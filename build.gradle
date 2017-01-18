@@ -1,0 +1,21 @@
+apply plugin: 'java'
+
+dependencies {
+    runtime group: 'javax.sip', name: 'jain-sip-ri', version: '1.2.323'
+    runtime group: 'log4j', name: 'log4j', version: '1.2.16'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-1.2-api', version: '2.7'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.7'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
+    compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
+    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version:'2.8.3'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.6'
+}
+
+repositories {
+    mavenCentral()
+}
+
+task getDeps(type: Copy) {
+    from sourceSets.main.runtimeClasspath
+    into 'lib/'
+}

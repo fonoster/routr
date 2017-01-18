@@ -1,0 +1,14 @@
+kind: Trunk
+apiVersion: v1
+metadata:
+  name: DID Logic, Inc
+  zone: USA / us1
+host: us1.sip.didlogic.net
+user: 0001
+secret: 1234
+registries:
+    - sip.lax.didlogic.net
+    - sip.za.didlogic.net
+    - sip.ca.didlogic.net
+    - sip.nyc.didlogic.net
+    - sip.didlogic.net

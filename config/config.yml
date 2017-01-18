@@ -1,0 +1,3 @@
+port: 5070
+proto: "udp"
+traceLevel: 32 # SIP stack logs
