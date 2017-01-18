@@ -5,7 +5,7 @@ for i in $(ls lib); do
     DEPS+="lib/$i:";
 done;
 
-JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home
+#JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home
 
 if [[ $(echo $JAVA_HOME 2>&1) != *"jdk-9"* ]];
 then
