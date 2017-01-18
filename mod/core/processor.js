@@ -10,7 +10,6 @@ var CSeqHeader          = Java.type('javax.sip.header.CSeqHeader')
 var AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
 var LogManager          = Java.type('org.apache.logging.log4j.LogManager')
 
-
 load("mod/core/context.js")
 
 function Processor(sipProvider, headerFactory, messageFactory, locationService, registrarService, config) {

@@ -1,6 +1,5 @@
 # Sip I/O
 
-
 This is a basic sip server built using JS with Oracle Nashorn. At the moment you can create sip accounts, which I call
 agents, and you can group them by domain.
 
