@@ -1,0 +1,18 @@
+version: '2'
+services:
+  mserver:
+    build:
+      context: .
+      dockerfile: etc/ms.df
+    image: mserver
+    ports:
+      - '5038:5038'
+      - '5060:5060'
+      - '5061:5061'
+  sipio:
+    build:
+      context: .
+      dockerfile: etc/sipio.df
+    image: sipio
+    ports:
+        - '5070:5070'

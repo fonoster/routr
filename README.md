@@ -1,19 +1,19 @@
 # Sip I/O
 
-This is a basic sip server built using JS with Oracle Nashorn. At the moment you can create sip accounts, which I call
-agents, and you can group them by domain.
+This is a basic sip server built using Javascript over the JVM (with Nashorn). At the moment you can create sip 
+accounts and you can group those accounts by domains.
 
-## Current features include
+# Current features include
 
 Sip server features
 
     - Registrar server
-    - Location server
+    - Location server (In-memory)
     - Proxy server
 
 Transport
 
-    - udp 
+    - UDP 
 
 Security
 
@@ -21,12 +21,12 @@ Security
     - Domain security via ACL (in progress)
     - I'm trying to implement TLS
 
-## Requirement
+# Requirement
 
 * Java 1.9+
 * Gradle
 
-## Getting Started
+# Getting Started
 
 To download repo and get the dependencies
 
@@ -39,12 +39,12 @@ gradle getDeps
 You must install Java 9 and point your JAVA_HOME to your JDK 9 to run this app. You can overwrite the JAVA_HOME
 at the file ./app.
 
-# Setting the Softphone or Sip endpoint
+## Setting the Softphone or Sip endpoint
 
 To test the app you can use any sip phone or softphone. Just use the username and secret from a sip account at `config/agents.yml`
 and use the IP of the server running this app as the OUTBOUND SERVER.
 
-# Run the App
+## Run the App
 
 Just run the `./app`
 
@@ -52,6 +52,6 @@ Just run the `./app`
 ./app
 ```
 
-## License
+# License
 
 I'm not sure yet.

@@ -14,7 +14,6 @@ load("mod/core/context.js")
 
 function Processor(sipProvider, headerFactory, messageFactory, locationService, registrarService, config) {
     let LOG = LogManager.getLogger()
-
     let ctxtList = new java.util.ArrayList()
 
     // Generates WWW-Authorization header
@@ -31,29 +30,28 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
     }
 
     function register (request, transaction) {
-        var toHeader = request.getHeader(ToHeader.NAME)
-        var toURI = toHeader.getAddress().getURI()
-        var toDomain = toHeader.getAddress().getURI().getHost()
-        var contactHeader = request.getHeader(ContactHeader.NAME)
-        var contactURI = contactHeader.getAddress().getURI()
-        var expH = request.getHeader(ExpiresHeader.NAME)
-        var exp = expH.getExpires()
-        var authHeader = request.getHeader(AuthorizationHeader.NAME)
+        let toHeader = request.getHeader(ToHeader.NAME)
+        let toURI = toHeader.getAddress().getURI()
+        let toDomain = toHeader.getAddress().getURI().getHost()
+        let contactHeader = request.getHeader(ContactHeader.NAME)
+        let contactURI = contactHeader.getAddress().getURI()
+        let expH = request.getHeader(ExpiresHeader.NAME)
+        let authHeader = request.getHeader(AuthorizationHeader.NAME)
 
         if (authHeader == null) {
-            var unauthorized = messageFactory.createResponse(401, request)
+            let unauthorized = messageFactory.createResponse(401, request)
             unauthorized.addHeader(generateChallenge())
             transaction.sendResponse(unauthorized)
             LOG.trace(unauthorized)
         } else {
             if (registrarService.register(authHeader, toDomain, contactURI)) {
-                var ok = messageFactory.createResponse(200, request)
+                let ok = messageFactory.createResponse(200, request)
                 ok.addHeader(contactHeader)
                 ok.addHeader(expH)
                 transaction.sendResponse(ok)
                 LOG.trace("\n" + ok)
             } else {
-                var unauthorized = messageFactory.createResponse(401, request)
+                let unauthorized = messageFactory.createResponse(401, request)
                 unauthorized.addHeader(generateChallenge())
                 transaction.sendResponse(unauthorized)
                 LOG.trace(unauthorized)
@@ -62,18 +60,18 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
     }
 
     function cancel (request, transaction) {
-        var iterator = ctxtList.iterator()
+        let iterator = ctxtList.iterator()
 
         while (iterator.hasNext()) {
-            var ctxt = iterator.next()
+            let ctxt = iterator.next()
             if (ctxt.serverTrans.getBranchId()
                 .equals(transaction.getBranchId())) {
 
-                var originRequest = ctxt.requestIn
-                var originResponse = messageFactory.createResponse(487, originRequest)
-                var cancelResponse = messageFactory.createResponse(200, request)
-                var cancelRequest = ctxt.clientTrans.createCancel()
-                var clientTransaction = sipProvider.getNewClientTransaction(cancelRequest)
+                let originRequest = ctxt.requestIn
+                let originResponse = messageFactory.createResponse(487, originRequest)
+                let cancelResponse = messageFactory.createResponse(200, request)
+                let cancelRequest = ctxt.clientTrans.createCancel()
+                let clientTransaction = sipProvider.getNewClientTransaction(cancelRequest)
 
                 ctxt.serverTrans.sendResponse(originResponse)
                 transaction.sendResponse(cancelResponse)
@@ -88,11 +86,20 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
 
     this.listener = new SipListener() {
         processRequest: function (e) {
+            LOG.trace(e.getRequest())
             let localhost = InetAddress.getLocalHost().getHostAddress()
             let requestIn = e.getRequest()
             let routeHeader = requestIn.getHeader(RouteHeader.NAME)
-            let sipURI = routeHeader.getAddress().getURI()
-            let proxyHost = sipURI.getHost()
+            let proxyHost
+
+            // Edge proxy
+            if (routeHeader != null) {
+                let sipURI = routeHeader.getAddress().getURI()
+                proxyHost = sipURI.getHost()
+            } else {
+                proxyHost = localhost;
+            }
+
             let method = requestIn.getMethod()
             let serverTransaction = e.getServerTransaction()
 
@@ -104,6 +111,9 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
                 register(requestIn, serverTransaction)
             } else if(method.equals(Request.CANCEL)) {
                 cancel(requestIn, serverTransaction)
+            } else if(method.equals(Request.OPTIONS)) {
+                // WARNING: NOT YET IMPLEMENTED
+                return
             } else {
                 let requestOut = requestIn.clone()
                 let tgtURI = requestIn.getRequestURI()
@@ -117,7 +127,7 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
                 }
 
                 // TODO: Respond UNAVAILABLE if the URI is not found by the Location Service
-                var uri = locationService.get(tgtURI.toString())
+                let uri = locationService.get(tgtURI.toString())
                 requestOut.setRequestURI(uri)
 
                 // Not need transaction
@@ -142,24 +152,24 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
         },
 
         processResponse: function (e) {
-            var responseIn = e.getResponse()
-            var statusCode = responseIn.getStatusCode()
+            let responseIn = e.getResponse()
+            let statusCode = responseIn.getStatusCode()
             if (statusCode == 100 || statusCode == 487) return
 
-            var responseOut = responseIn.clone()
+            let responseOut = responseIn.clone()
             responseOut.removeFirst(ViaHeader.NAME)
 
-            var clientTrans = e.getClientTransaction()
-            var originalCSeq = clientTrans.getRequest().getHeader(CSeqHeader.NAME)
-            var method = originalCSeq.getMethod()
+            let clientTrans = e.getClientTransaction()
+            let originalCSeq = clientTrans.getRequest().getHeader(CSeqHeader.NAME)
+            let method = originalCSeq.getMethod()
 
             if (method.equals(Request.CANCEL)) return
 
-            var i = ctxtList.iterator()
+            let i = ctxtList.iterator()
 
-            var match = false
+            let match = false
             while (i.hasNext()) {
-                var ctxt = i.next()
+                let ctxt = i.next()
 
                 if (ctxt.clientTrans.equals(clientTrans)) {
                     ctxt.serverTrans.sendResponse(responseOut)
@@ -177,12 +187,12 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
 
         processTransactionTerminated: function (e) {
             if (e.isServerTransaction()) {
-                var serverTrans = e.getServerTransaction()
+                let serverTrans = e.getServerTransaction()
 
-                var i = ctxtList.iterator()
+                let i = ctxtList.iterator()
 
                 while (i.hasNext()) {
-                    var ctxt = i.next()
+                    let ctxt = i.next()
 
                     if (ctxt.serverTrans.equals(serverTrans)) {
                         ctxt.serverTrans.sendResponse(responseOut)
@@ -192,7 +202,6 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
                         LOG.trace("Ongoing Transaction")
                     }
                 }
-
             }
         }
     }

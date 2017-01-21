@@ -12,11 +12,11 @@ var LogManager      = Java.type('org.apache.logging.log4j.LogManager')
 
 load('mod/core/processor.js')
 
-function Server(port = 5070,
-    proto = 'udp',
+function Server(port,
+    proto,
     locationService,
     registrarService,
-    traceLevel = 0) {
+    traceLevel) {
     let LOG = LogManager.getLogger()
 
     this.start = function() {
@@ -52,6 +52,7 @@ function Server(port = 5070,
 
         sipProvider.addSipListener(processor.listener)
 
+        // Server's contact address and header
         contactAddress = addressFactory.createAddress("sip:" + ip + ":" + port)
         contactHeader = headerFactory.createContactHeader(contactAddress)
     }

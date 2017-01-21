@@ -2,10 +2,10 @@
 main_js="$(pwd)/main.js"
 
 for i in $(ls lib); do
-    DEPS+="lib/$i:";
+    DEPS=$DEPS"lib/$i:";
 done;
 
-#JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home
+JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home
 
 if [[ $(echo $JAVA_HOME 2>&1) != *"jdk-9"* ]];
 then
@@ -15,8 +15,6 @@ then
     echo 'the path to your JDK 9.'
     exit;
 fi
-
-# Replace
 
 jjs -Dlog4j.configurationFile=config/log4j2.xml \
     -cp $DEPS --language=es6 -fv -doe -ot -scripting=true "$main_js" -- "$@"

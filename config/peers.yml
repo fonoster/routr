@@ -1,0 +1,26 @@
+- kind: Peer
+  apiVersion: v1
+  metadata:
+    name: DID Logic, Inc
+    zone: USA / us1
+  host: us1.sip.didlogic.net  # Outbound host
+  user: 0001
+  secret: 1234
+  registries:                 # Inbound hosts
+    - sip.lax.didlogic.net
+    - sip.za.didlogic.net
+    - sip.ca.didlogic.net
+    - sip.nyc.didlogic.net
+    - sip.didlogic.net
+  acl:
+    - 192.168.1.6
+    - 192.168.1.12
+
+- kind: Peer
+  apiVersion: v1
+  metadata:
+      name: Media Server
+  username: mediaserver
+  secret: 1234
+  domains:
+      - sip.fonoster.com
