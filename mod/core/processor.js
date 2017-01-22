@@ -59,13 +59,13 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
         }
     }
 
-    function cancel (request, transaction) {
+    function cancel (request, st) {
         let iterator = ctxtList.iterator()
 
         while (iterator.hasNext()) {
             let ctxt = iterator.next()
             if (ctxt.serverTrans.getBranchId()
-                .equals(transaction.getBranchId())) {
+                .equals(st.getBranchId())) {
 
                 let originRequest = ctxt.requestIn
                 let originResponse = messageFactory.createResponse(487, originRequest)
@@ -74,8 +74,8 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
                 let clientTransaction = sipProvider.getNewClientTransaction(cancelRequest)
 
                 ctxt.serverTrans.sendResponse(originResponse)
-                transaction.sendResponse(cancelResponse)
-                clientTransaction.setRequest()
+                st.sendResponse(cancelResponse)
+                clientTransaction.sendRequest()
 
                 LOG.trace(originResponse)
                 LOG.trace(cancelResponse)
@@ -84,9 +84,15 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
         }
     }
 
+    function notfound(request, transaction) {
+        // TODO: Add content to this response
+        let r = messageFactory.createResponse(404, request)
+        transaction.sendResponse(r)
+        LOG.trace("\n" + r)
+    }
+
     this.listener = new SipListener() {
         processRequest: function (e) {
-            LOG.trace(e.getRequest())
             let localhost = InetAddress.getLocalHost().getHostAddress()
             let requestIn = e.getRequest()
             let routeHeader = requestIn.getHeader(RouteHeader.NAME)
@@ -113,11 +119,13 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
                 cancel(requestIn, serverTransaction)
             } else if(method.equals(Request.OPTIONS)) {
                 // WARNING: NOT YET IMPLEMENTED
-                return
             } else {
                 let requestOut = requestIn.clone()
                 let tgtURI = requestIn.getRequestURI()
                 let tgtHost = tgtURI.getHost()
+
+                LOG.debug("tgtURI: " + tgtURI)
+                LOG.debug("tgtHost: " + tgtHost)
 
                 // Last proxy in route
                 if (proxyHost.equals(localhost)) {
@@ -128,6 +136,12 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
 
                 // TODO: Respond UNAVAILABLE if the URI is not found by the Location Service
                 let uri = locationService.get(tgtURI.toString())
+
+                if (uri == null) {
+                    notfound(requestIn, serverTransaction)
+                    return
+                }
+
                 requestOut.setRequestURI(uri)
 
                 // Not need transaction
@@ -154,16 +168,15 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
         processResponse: function (e) {
             let responseIn = e.getResponse()
             let statusCode = responseIn.getStatusCode()
+            let ct = e.getClientTransaction()
+            let originalCSeq = ct.getRequest().getHeader(CSeqHeader.NAME)
+            let method = originalCSeq.getMethod()
+
             if (statusCode == 100 || statusCode == 487) return
+            if (method.equals(Request.CANCEL)) return
 
             let responseOut = responseIn.clone()
             responseOut.removeFirst(ViaHeader.NAME)
-
-            let clientTrans = e.getClientTransaction()
-            let originalCSeq = clientTrans.getRequest().getHeader(CSeqHeader.NAME)
-            let method = originalCSeq.getMethod()
-
-            if (method.equals(Request.CANCEL)) return
 
             let i = ctxtList.iterator()
 
@@ -171,7 +184,7 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
             while (i.hasNext()) {
                 let ctxt = i.next()
 
-                if (ctxt.clientTrans.equals(clientTrans)) {
+                if (ctxt.clientTrans.equals(ct)) {
                     ctxt.serverTrans.sendResponse(responseOut)
                     match = true
                     break
@@ -187,15 +200,13 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
 
         processTransactionTerminated: function (e) {
             if (e.isServerTransaction()) {
-                let serverTrans = e.getServerTransaction()
-
+                let st = e.getServerTransaction()
                 let i = ctxtList.iterator()
 
                 while (i.hasNext()) {
                     let ctxt = i.next()
 
-                    if (ctxt.serverTrans.equals(serverTrans)) {
-                        ctxt.serverTrans.sendResponse(responseOut)
+                    if (ctxt.serverTrans.equals(st)) {
                         i.remove()
                         break
                     } else {
@@ -203,6 +214,14 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
                     }
                 }
             }
+        },
+
+        processDialogTerminated: function (e) {
+            LOG.trace("#processDialogTerminated not yet implemented")
+        },
+
+        processTimeout: function (e) {
+            LOG.trace("#processTimeout not yet implemented")
         }
     }
 }

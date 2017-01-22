@@ -4,7 +4,7 @@
     name: DID Logic, Inc
     zone: USA / us1
   host: us1.sip.didlogic.net  # Outbound host
-  user: 0001
+  username: 0001
   secret: 1234
   registries:                 # Inbound hosts
     - sip.lax.didlogic.net
@@ -19,8 +19,8 @@
 - kind: Peer
   apiVersion: v1
   metadata:
-      name: Media Server
-  username: mediaserver
+    name: Asterisk PBX 13.1.0
+    desc: Media Server
+  username: ms
   secret: 1234
-  domains:
-      - sip.fonoster.com
+  host: 192.168.1.6

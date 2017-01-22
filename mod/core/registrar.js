@@ -1,20 +1,31 @@
+var LogManager          = Java.type('org.apache.logging.log4j.LogManager')
+
 load('mod/core/auth-helper.js')
 load('mod/core/yaml-converter.js')
 
-// This implementation will locate agents at config/agents.yml
+// This implementation will locate agents or peers at config/agents.yml or config/peers.yml
 function getUserFromConfig(username) {
-    let users = new YamlToJsonConverter().getJson('config/agents.yml')
+    let agents = new YamlToJsonConverter().getJson('config/agents.yml')
+    let peers = new YamlToJsonConverter().getJson('config/peers.yml')
 
-    for (var user of users) {
-        if (user.username === username) {
-            return user
+    for (var peer of peers) {
+        if (peer.username === username) {
+            return peer
         }
     }
+
+    for (var agent of agents) {
+        if (agent.username === username) {
+            return agent
+        }
+    }
+
     return null
 }
 
 function RegistrarService(location, getUser = getUserFromConfig) {
     let authHelper = new AuthHelper()
+    let LOG = LogManager.getLogger()
 
     function hasDomain(user, domain) {
         for (var d of user.domains) {
@@ -37,13 +48,22 @@ function RegistrarService(location, getUser = getUserFromConfig) {
         return nc + h
     }
 
-    this.register = function(authHeader, agentDomain, contactURI) {
+    this.register = function(authHeader, uriDomain, contactURI) {
         // Get response from header
         let response = authHeader.getResponse()
         // Get username and password from "db:
         let user = getUser(authHeader.getUsername())
 
-        if (user == null || !hasDomain(user, agentDomain)) return false
+        if (user == null) {
+            LOG.info("Could not find user or peer '" + authHeader.getUsername() + "'")
+        }
+
+        // TODO: Should verify if domain exist first...
+
+        if (user.kind.equalsIgnoreCase('agent') && !hasDomain(user, uriDomain)) {
+            LOG.info("User " + user.username + " does not exist in domain " + uriDomain)
+            return false
+        }
 
         let aHeaderJson = {
             username: authHeader.getUsername(),
@@ -60,10 +80,21 @@ function RegistrarService(location, getUser = getUserFromConfig) {
 
         if (new AuthHelper().calcFromHeader(aHeaderJson).equals(response)) {
 
-            for (var domain of user.domains) {
-                // TODO: Find a better way to get this value
-                location.put("sip:" + authHeader.getUsername() + "@" + domain, contactURI)
+            if (user.kind.equalsIgnoreCase('peer')) {
+                if (user.host != null) {
+                    contactURI.setHost(user.host)
+                }
+                location.put("sip:" + authHeader.getUsername() + "@" + uriDomain, contactURI)
+                LOG.debug("contactURI -> " + contactURI)
+            } else {
+                for (var domain of user.domains) {
+                    // TODO: Find a better way to get this value
+                    // This could be "sips" or other protocol
+                    location.put("sip:" + authHeader.getUsername() + "@" + domain, contactURI)
+                }
             }
+
+            location.printAll()
 
             return true
         }

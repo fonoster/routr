@@ -1,6 +1,6 @@
 bindAddress: 0.0.0.0
 port: 5070
 proto: "udp"
-traceLevel: 10 # SIP stack logs
+traceLevel: 0 # SIP stack logs
 tlsCert: /cert/sip.io.cert      # Not yet implemented
 tlsCas: /cert/sip.io.crt        # Not yet implemented

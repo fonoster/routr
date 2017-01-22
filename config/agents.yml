@@ -1,18 +1,18 @@
 - kind: Agent
   apiVersion: v1
   metadata:
-      name: Jhon Doe
+    name: Jhon Doe
   username: johndoe
   secret: gJcxzr1v4zXUVXJ3
   domains:
-      - ocean-ny.us1.sip.fonoster.com
-      - ocean-tx.us1.sip.fonoster.com
+    - ocean-ny.us1.sip.fonoster.com
+    - ocean-tx.us1.sip.fonoster.com
 
 - kind: Agent
   apiVersion: v1
   metadata:
-      name: Janie Doe
+    name: Janie Doe
   username: janiedoe
   secret: gJcxzr1v4zXUVXJ3
   domains:
-      - ocean-ny.us1.sip.fonoster.com
+    - ocean-ny.us1.sip.fonoster.com
