@@ -19,7 +19,7 @@
 - kind: Peer
   apiVersion: v1
   metadata:
-    name: Asterisk PBX 13.1.0
+    name: Asterisk PBX 13
     desc: Media Server
   username: ms
   secret: 1234

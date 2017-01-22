@@ -14,4 +14,4 @@ services:
       dockerfile: etc/sipio.df
     image: sipio
     ports:
-        - '5070/udp:5070/udp'
+      - '5070/udp:5070/udp'

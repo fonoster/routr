@@ -1,4 +1,4 @@
-var LogManager          = Java.type('org.apache.logging.log4j.LogManager')
+var LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
 load('mod/core/auth-helper.js')
 load('mod/core/yaml-converter.js')

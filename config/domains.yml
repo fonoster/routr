@@ -4,14 +4,13 @@
       name: New York  Office
   uri: ocean-ny.us1.sip.fonoster.com
   acl:
-     - 192.168.1.6
-     - 192.168.1.12
-
+    - 192.168.1.6
+    - 192.168.1.12
 - kind: Domain
   apiVersion: v1
   metadata:
     name: Texas Office
   uri:  ocean-tx.us1.sip.fonoster.com
   acl:
-     - 192.168.1.6
-     - 192.168.1.12
+    - 192.168.1.6
+    - 192.168.1.12
