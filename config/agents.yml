@@ -7,7 +7,6 @@
   domains:
     - ocean-ny.us1.sip.fonoster.com
     - ocean-tx.us1.sip.fonoster.com
-
 - kind: Agent
   apiVersion: v1
   metadata:
