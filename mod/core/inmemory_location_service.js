@@ -2,7 +2,7 @@ var HashMap    = Java.type('java.util.HashMap')
 var LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
 // In memory location service
-function InMemoryLocationService() {
+function LocationService() {
     var LOG = LogManager.getLogger()
     var db = new HashMap()
 
