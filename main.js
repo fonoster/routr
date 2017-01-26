@@ -4,10 +4,14 @@ load("mod/core/registrar.js")
 load('mod/core/server.js')
 load('mod/core/yaml_converter.js')
 
+let settings = new YamlToJsonConverter().getJson('config/config.yml')
+
+// This a an in-memory/in-file service implementation. You may use them as reference to create your own
+// implementation. For example you may replace the location service implementation to use a database instead of
+// in-memory. Same apply for other services.
 let location = new LocationService()
 let registrar = new RegistrarService(location)
 let accountManager = new AccountManagerService();
-let settings = new YamlToJsonConverter().getJson('config/config.yml')
 
 let config = {
     "ip": InetAddress.getLocalHost().getHostAddress(),
