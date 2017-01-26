@@ -1,6 +1,7 @@
 // Define imports
 var SipListener         = Java.type('javax.sip.SipListener')
 var Request             = Java.type('javax.sip.message.Request')
+var Response            = Java.type('javax.sip.message.Response')
 var RouteHeader         = Java.type('javax.sip.header.RouteHeader')
 var ToHeader            = Java.type('javax.sip.header.ToHeader')
 var ContactHeader       = Java.type('javax.sip.header.ContactHeader')
@@ -11,25 +12,17 @@ var AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
 var LogManager          = Java.type('org.apache.logging.log4j.LogManager')
 
 load("mod/core/context.js")
+load("mod/core/auth_helper.js")
 
-function Processor(sipProvider, headerFactory, messageFactory, locationService, registrarService, config) {
+function Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
+    registrarService, accountManagerService, config) {
+
     let LOG = LogManager.getLogger()
     let ctxtList = new java.util.ArrayList()
+    let localhost = InetAddress.getLocalHost().getHostAddress()
+    let authHelper =  new AuthHelper(headerFactory)
 
-    // Generates WWW-Authorization header
-    function generateChallenge() {
-        let wwwAuthHeader = headerFactory.createWWWAuthenticateHeader("Digest")
-        wwwAuthHeader.setDomain("fonoster.com")
-        wwwAuthHeader.setRealm("sip.fonoster.com")
-        wwwAuthHeader.setQop("auth")
-        wwwAuthHeader.setOpaque("")
-        wwwAuthHeader.setStale(false)
-        wwwAuthHeader.setNonce("0ee55540a2e316dae22c804cdb383f5b")     // TODO: Generate a random nonce
-        wwwAuthHeader.setAlgorithm("MD5")
-        return wwwAuthHeader
-    }
-
-    function register (request, transaction) {
+    function register(request, transaction) {
         let toHeader = request.getHeader(ToHeader.NAME)
         let toURI = toHeader.getAddress().getURI()
         let toDomain = toHeader.getAddress().getURI().getHost()
@@ -40,7 +33,7 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
 
         if (authHeader == null) {
             let unauthorized = messageFactory.createResponse(401, request)
-            unauthorized.addHeader(generateChallenge())
+            unauthorized.addHeader(authHelper.generateChallenge())
             transaction.sendResponse(unauthorized)
             LOG.trace(unauthorized)
         } else {
@@ -52,14 +45,14 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
                 LOG.trace("\n" + ok)
             } else {
                 let unauthorized = messageFactory.createResponse(401, request)
-                unauthorized.addHeader(generateChallenge())
+                unauthorized.addHeader(authHelper.generateChallenge(headerFactory))
                 transaction.sendResponse(unauthorized)
                 LOG.trace(unauthorized)
             }
         }
     }
 
-    function cancel (request, st) {
+    function cancel(request, st) {
         let iterator = ctxtList.iterator()
 
         while (iterator.hasNext()) {
@@ -71,11 +64,11 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
                 let originResponse = messageFactory.createResponse(487, originRequest)
                 let cancelResponse = messageFactory.createResponse(200, request)
                 let cancelRequest = ctxt.clientTrans.createCancel()
-                let clientTransaction = sipProvider.getNewClientTransaction(cancelRequest)
+                let ct = sipProvider.getNewClientTransaction(cancelRequest)
 
                 ctxt.serverTrans.sendResponse(originResponse)
                 st.sendResponse(cancelResponse)
-                clientTransaction.sendRequest()
+                ct.sendRequest()
 
                 LOG.trace(originResponse)
                 LOG.trace(cancelResponse)
@@ -84,16 +77,13 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
         }
     }
 
-    function notfound(request, transaction) {
-        // TODO: Add content to this response
-        let r = messageFactory.createResponse(404, request)
-        transaction.sendResponse(r)
-        LOG.trace("\n" + r)
+    function unavailable(request, transaction) {
+        LOG.debug("Unavailable")
+        transaction.sendResponse(messageFactory.createResponse(404, request))
     }
 
     this.listener = new SipListener() {
-        processRequest: function (e) {
-            let localhost = InetAddress.getLocalHost().getHostAddress()
+        processRequest: function (e)    {
             let requestIn = e.getRequest()
             let routeHeader = requestIn.getHeader(RouteHeader.NAME)
             let proxyHost
@@ -107,16 +97,16 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
             }
 
             let method = requestIn.getMethod()
-            let serverTransaction = e.getServerTransaction()
+            let st = e.getServerTransaction()
 
-            if (serverTransaction == null) {
-                serverTransaction = sipProvider.getNewServerTransaction(requestIn)
+            if (st == null) {
+                st = sipProvider.getNewServerTransaction(requestIn)
             }
 
             if (method.equals(Request.REGISTER)) {
-                register(requestIn, serverTransaction)
+                register(requestIn, st)
             } else if(method.equals(Request.CANCEL)) {
-                cancel(requestIn, serverTransaction)
+                cancel(requestIn, st)
             } else if(method.equals(Request.OPTIONS)) {
                 // WARNING: NOT YET IMPLEMENTED
             } else {
@@ -138,7 +128,7 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
                 let uri = locationService.get(tgtURI.toString())
 
                 if (uri == null) {
-                    notfound(requestIn, serverTransaction)
+                    unavailable(requestIn, st)
                     return
                 }
 
@@ -148,13 +138,13 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
                 if(method.equals(Request.ACK)) {
                     sipProvider.sendRequest(requestOut)
                 } else {
-                    let clientTransaction = sipProvider.getNewClientTransaction(requestOut)
-                    clientTransaction.sendRequest()
+                    let ct = sipProvider.getNewClientTransaction(requestOut)
+                    ct.sendRequest()
 
                     // Transaction context
                     let ctxt = new Context()
-                    ctxt.clientTrans = clientTransaction
-                    ctxt.serverTrans = serverTransaction
+                    ctxt.clientTrans = ct
+                    ctxt.serverTrans = st
                     ctxt.method = method
                     ctxt.requestIn = requestIn
                     ctxt.requestOut = requestOut
@@ -171,12 +161,33 @@ function Processor(sipProvider, headerFactory, messageFactory, locationService, 
             let ct = e.getClientTransaction()
             let originalCSeq = ct.getRequest().getHeader(CSeqHeader.NAME)
             let method = originalCSeq.getMethod()
+            let routeHeader = responseIn.getHeader(RouteHeader.NAME)
+            let proxyHost
 
-            if (statusCode == 100 || statusCode == 487) return
+            // Edge proxy
+            if (routeHeader != null) {
+                let sipURI = routeHeader.getAddress().getURI()
+                proxyHost = sipURI.getHost()
+            } else {
+                proxyHost = localhost;
+            }
+
+            if (statusCode == 200 || statusCode == 100 || statusCode == 487) return
             if (method.equals(Request.CANCEL)) return
+            if (responseIn.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED
+                    || responseIn.getStatusCode() == Response.UNAUTHORIZED) {
+                let authenticationHelper =
+                    sipStack.getAuthenticationHelper(accountManagerService.getAccountManager(), headerFactory)
+                let t = authenticationHelper.handleChallenge(responseIn, ct, sipProvider, 5)
+                t.sendRequest()
+                return
+            }
 
             let responseOut = responseIn.clone()
-            responseOut.removeFirst(ViaHeader.NAME)
+
+            if(!proxyHost.equals(localhost)) {
+                responseOut.removeFirst(ViaHeader.NAME)
+            }
 
             let i = ctxtList.iterator()
 

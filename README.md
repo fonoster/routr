@@ -18,8 +18,8 @@ Transport
 Security
 
     - Digest SIP User authentication
-    - Domain security via ACL (in progress)
-    - I'm trying to implement TLS
+    - Domain security via ACL (Work in-progress)
+    - Im' working on implementing TLS
 
 # Requirement
 
@@ -46,7 +46,7 @@ and use the IP of the server running this app as the OUTBOUND SERVER.
 
 ## Run the App
 
-Just run the `./app`
+Just run the `./app` script
 
 ```bash
 ./app

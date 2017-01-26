@@ -11,18 +11,23 @@ var Properties      = Java.type('java.util.Properties')              // Other pr
 var LogManager      = Java.type('org.apache.logging.log4j.LogManager')
 
 load('mod/core/processor.js')
+load('mod/core/registry_helper.js')
 
 function Server(port,
     proto,
     locationService,
     registrarService,
+    accountManagerService,
     traceLevel) {
     let LOG = LogManager.getLogger()
 
     this.start = function() {
         LOG.info("Starting server on port " + port + " and protocol " + proto)
-        let config = {port, proto}
         let ip = InetAddress.getLocalHost().getHostAddress()
+        let config = {port, proto, ip}
+
+        print ("config -> " + JSON.stringify(config))
+
         let properties = new Properties()
         let sipFactory = SipFactory.getInstance()
         let contactAddress
@@ -30,7 +35,7 @@ function Server(port,
 
         sipFactory.setPathName("gov.nist")
         properties.setProperty("javax.sip.STACK_NAME", "fonoster")
-        properties.setProperty("javax.sip.AUTHOMATIC_DIALOG_SUPPORT", "OFF")
+        properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "OFF")
         // Guard against denial of service attack.
         properties.setProperty("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "1048576");
         // Drop the client connection after we are done with the transaction.
@@ -43,17 +48,37 @@ function Server(port,
         let addressFactory = sipFactory.createAddressFactory()
         let listeningPoint = sipStack.createListeningPoint(ip, port, proto)
         let sipProvider = sipStack.createSipProvider(listeningPoint)
-        let processor = new Processor(sipProvider,
-            headerFactory,
-            messageFactory,
-            locationService,
-            registrarService,
-            config)
-
-        sipProvider.addSipListener(processor.listener)
 
         // Server's contact address and header
         contactAddress = addressFactory.createAddress("sip:" + ip + ":" + port)
         contactHeader = headerFactory.createContactHeader(contactAddress)
+
+        let processor = new Processor(sipProvider,
+            sipStack,
+            headerFactory,
+            messageFactory,
+            addressFactory,
+            contactHeader,
+            locationService,
+            registrarService,
+            accountManagerService,
+            config)
+
+        sipProvider.addSipListener(processor.listener)
+
+        let registerUtil = new RegistryUtil(sipProvider, headerFactory, messageFactory,
+            addressFactory, contactHeader, config)
+
+        // TODO: Resend registration request after a configurable time
+        // TODO: List all of the peers
+        // TODO: Provide feedback if registration requests fails
+        new java.util.Timer().schedule(
+            new java.util.TimerTask() {
+                run: function() {
+                    registerUtil.requestChallenge("test", "127.0.0.1")
+                }
+            },
+            2000
+        );
     }
 }

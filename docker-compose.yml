@@ -8,10 +8,10 @@ services:
     ports:
       - '5060/udp:5060/udp'
       - '5061/udp:5061/udp'
-  sipio:
-    build:
-      context: .
-      dockerfile: etc/sipio.df
-    image: sipio
-    ports:
-      - '5070/udp:5070/udp'
+  #sipio:
+  #  build:
+  #    context: .
+  #    dockerfile: etc/sipio.df
+  #  image: sipio
+  #  ports:
+  #    - '5070/udp:5070/udp'

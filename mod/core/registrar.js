@@ -1,7 +1,7 @@
 var LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
-load('mod/core/auth-helper.js')
-load('mod/core/yaml-converter.js')
+load('mod/core/auth_helper.js')
+load('mod/core/yaml_converter.js')
 
 // This implementation will locate agents or peers at config/agents.yml or config/peers.yml
 function getUserFromConfig(username) {
@@ -56,6 +56,7 @@ function RegistrarService(location, getUser = getUserFromConfig) {
 
         if (user == null) {
             LOG.info("Could not find user or peer '" + authHeader.getUsername() + "'")
+            return false
         }
 
         // TODO: Should verify if domain exist first...
@@ -85,7 +86,6 @@ function RegistrarService(location, getUser = getUserFromConfig) {
                     contactURI.setHost(user.host)
                 }
                 location.put("sip:" + authHeader.getUsername() + "@" + uriDomain, contactURI)
-                LOG.debug("contactURI -> " + contactURI)
             } else {
                 for (var domain of user.domains) {
                     // TODO: Find a better way to get this value
@@ -93,8 +93,6 @@ function RegistrarService(location, getUser = getUserFromConfig) {
                     location.put("sip:" + authHeader.getUsername() + "@" + domain, contactURI)
                 }
             }
-
-            location.printAll()
 
             return true
         }

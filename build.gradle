@@ -1,7 +1,7 @@
 apply plugin: 'java'
 
 dependencies {
-    runtime group: 'javax.sip', name: 'jain-sip-ri', version: '1.2.323'
+    runtime group: 'javax.sip', name: 'jain-sip-ri', version: '1.2.324'
     runtime group: 'log4j', name: 'log4j', version: '1.2.16'
     compile group: 'org.apache.logging.log4j', name: 'log4j-1.2-api', version: '2.7'
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.7'
