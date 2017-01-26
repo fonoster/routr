@@ -84,6 +84,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
     this.listener = new SipListener() {
         processRequest: function (e)    {
+            LOG.debug(">> \n" + e.getRequest())
             let requestIn = e.getRequest()
             let routeHeader = requestIn.getHeader(RouteHeader.NAME)
             let proxyHost
@@ -113,9 +114,6 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 let requestOut = requestIn.clone()
                 let tgtURI = requestIn.getRequestURI()
                 let tgtHost = tgtURI.getHost()
-
-                LOG.debug("tgtURI: " + tgtURI)
-                LOG.debug("tgtHost: " + tgtHost)
 
                 // Last proxy in route
                 if (proxyHost.equals(localhost)) {
@@ -156,6 +154,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
         },
 
         processResponse: function (e) {
+            LOG.debug("<< \n" + e.getResponse())
             let responseIn = e.getResponse()
             let statusCode = responseIn.getStatusCode()
             let ct = e.getClientTransaction()
@@ -172,13 +171,14 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 proxyHost = localhost;
             }
 
-            if (statusCode == 200 || statusCode == 100 || statusCode == 487) return
+            if (statusCode == 200 || statusCode == 100 || statusCode == 487 || statusCode == 403) return
             if (method.equals(Request.CANCEL)) return
             if (responseIn.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED
                     || responseIn.getStatusCode() == Response.UNAUTHORIZED) {
                 let authenticationHelper =
                     sipStack.getAuthenticationHelper(accountManagerService.getAccountManager(), headerFactory)
                 let t = authenticationHelper.handleChallenge(responseIn, ct, sipProvider, 5)
+                LOG.debug(">> \n" + t.getRequest())
                 t.sendRequest()
                 return
             }

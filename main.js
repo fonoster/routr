@@ -9,9 +9,10 @@ let registrar = new RegistrarService(location)
 let accountManager = new AccountManagerService();
 let settings = new YamlToJsonConverter().getJson('config/config.yml')
 
-new Server(settings.port,
-    settings.proto,
-    location,
-    registrar,
-    accountManager,
-    settings.traceLevel).start()
+let ip = InetAddress.getLocalHost().getHostAddress()
+let traceLevel = settings.traceLevel
+let port = settings.port
+let proto = settings.proto
+let config = {ip, port, proto, traceLevel}
+
+new Server(location, registrar, accountManager, config).start()

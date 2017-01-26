@@ -13,20 +13,16 @@ var LogManager      = Java.type('org.apache.logging.log4j.LogManager')
 load('mod/core/processor.js')
 load('mod/core/registry_helper.js')
 
-function Server(port,
-    proto,
-    locationService,
-    registrarService,
-    accountManagerService,
-    traceLevel) {
+function getPeersFromConfig() {
+    return new YamlToJsonConverter().getJson('config/peers.yml')
+}
+
+function Server(locationService, registrarService, accountManagerService, config, getPeers = getPeersFromConfig) {
     let LOG = LogManager.getLogger()
+    const peerRegExp = 10 // minutes
 
     this.start = function() {
         LOG.info("Starting server on port " + port + " and protocol " + proto)
-        let ip = InetAddress.getLocalHost().getHostAddress()
-        let config = {port, proto, ip}
-
-        print ("config -> " + JSON.stringify(config))
 
         let properties = new Properties()
         let sipFactory = SipFactory.getInstance()
@@ -40,45 +36,45 @@ function Server(port,
         properties.setProperty("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "1048576");
         // Drop the client connection after we are done with the transaction.
         properties.setProperty("gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS", "false");
-        properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", traceLevel);
+        properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", config.traceLevel);
 
         let sipStack = sipFactory.createSipStack(properties)
         let messageFactory = sipFactory.createMessageFactory()
         let headerFactory = sipFactory.createHeaderFactory()
         let addressFactory = sipFactory.createAddressFactory()
-        let listeningPoint = sipStack.createListeningPoint(ip, port, proto)
+        let listeningPoint = sipStack.createListeningPoint(config.ip, config.port, config.proto)
         let sipProvider = sipStack.createSipProvider(listeningPoint)
 
         // Server's contact address and header
-        contactAddress = addressFactory.createAddress("sip:" + ip + ":" + port)
+        contactAddress = addressFactory.createAddress("sip:" + config.ip + ":" + config.port)
         contactHeader = headerFactory.createContactHeader(contactAddress)
 
-        let processor = new Processor(sipProvider,
-            sipStack,
-            headerFactory,
-            messageFactory,
-            addressFactory,
-            contactHeader,
-            locationService,
-            registrarService,
-            accountManagerService,
-            config)
+        let processor = new Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader,
+            locationService, registrarService, accountManagerService, config)
 
         sipProvider.addSipListener(processor.listener)
 
-        let registerUtil = new RegistryUtil(sipProvider, headerFactory, messageFactory,
-            addressFactory, contactHeader, config)
+        let registerUtil = new RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader,
+            config)
 
-        // TODO: Resend registration request after a configurable time
-        // TODO: List all of the peers
-        // TODO: Provide feedback if registration requests fails
-        new java.util.Timer().schedule(
-            new java.util.TimerTask() {
-                run: function() {
-                    registerUtil.requestChallenge("test", "127.0.0.1")
+        var registerTask = new java.util.TimerTask() {
+            run: function() {
+                let peers = getPeers()
+
+                for (var peer of peers) {
+                    registerUtil.requestChallenge(peer.username, peer.host)
+
+                    if (peer.registries === undefined) continue
+
+                    for (var host of peer.registries) {
+                        registerUtil.requestChallenge(peer.username, host)
+                    }
                 }
-            },
-            2000
-        );
+           }
+        }
+
+        new java.util.Timer().schedule(registerTask, 5000, peerRegExp * 60 * 1000);
     }
 }
+
+
