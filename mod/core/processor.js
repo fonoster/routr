@@ -12,7 +12,7 @@ var AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
 var LogManager          = Java.type('org.apache.logging.log4j.LogManager')
 
 load("mod/core/context.js")
-load("mod/core/auth_helper.js")
+load("mod/utils/auth_helper.js")
 
 function Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
     registrarService, accountManagerService, config) {

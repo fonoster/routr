@@ -22,7 +22,7 @@ function Server(locationService, registrarService, accountManagerService, config
     const peerRegExp = 10 // minutes
 
     this.start = function() {
-        LOG.info("Starting server on port " + port + " and protocol " + proto)
+        LOG.info("Starting Sip I/O on port " + config.port + " and protocol " + config.proto)
 
         let properties = new Properties()
         let sipFactory = SipFactory.getInstance()
@@ -62,8 +62,8 @@ function Server(locationService, registrarService, accountManagerService, config
                 let peers = getPeers()
 
                 for (var peer of peers) {
-                    registerUtil.requestChallenge(peer.username, peer.host)
-
+                    LOG.info("Request registration to '" + peer.host + "' for user '" + peer.username + "'")
+                    if (peer.host !== undefined) registerUtil.requestChallenge(peer.username, peer.host)
                     if (peer.registries === undefined) continue
 
                     for (var host of peer.registries) {

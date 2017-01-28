@@ -13,7 +13,7 @@ var ArrayList           = Java.type('java.util.ArrayList')
 var SipUtils            = Java.type('gov.nist.javax.sip.Utils')
 var LogManager          = Java.type('org.apache.logging.log4j.LogManager')
 
-load('mod/core/auth_helper.js')
+load('mod/utils/auth_helper.js')
 
 function RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader, config) {
     let LOG = LogManager.getLogger()
@@ -31,7 +31,7 @@ function RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory
         let fromHeader        = headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag())
         let toHeader          = headerFactory.createToHeader(fromAddress, null)
         let expireHeader      = headerFactory.createExpiresHeader(expires)
-        contactAddress        = addressFactory.createAddress("sip:test" + "@" + config.ip + ":" + config.port)
+        contactAddress        = addressFactory.createAddress("sip:" + username + "@" + config.ip + ":" + config.port)
         contactHeader         = headerFactory.createContactHeader(contactAddress)
 
         let request = messageFactory.createRequest("REGISTER sip:" + peerHost + " SIP/2.0\r\n\r\n")

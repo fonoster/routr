@@ -3,17 +3,15 @@
   metadata:
     name: DID Logic, Inc
     zone: USA / us1
-    id: 5877e58120543d0063307efc
-  username: 5877e58120543d0063307efc
-  secret: 1234
+    id: 96170
+  username: '96170'
+  secret: TH9BTbsQcsEpdgpa
   # outboundProxy:
   # port:
   # authUser:
   host: sip.didlogic.net      # Inbound/Outbound host
   registries:                 # Inbound hosts
     - sip.nyc.didlogic.net
-    - sip.la.didlogic.net
-    - sip.didlogic.net
 
 - kind: Peer
   apiVersion: v1
@@ -24,13 +22,3 @@
   secret: 1c3cr34m
   host: 127.0.0.1
   port: 5060                  # Not using this yet
-
-- kind: Peer
-  apiVersion: v1
-  metadata:
-    name: Asterisk PBX 13
-    desc: Media Server
-  username: test
-  secret: test
-  host: 127.0.0.1
-  port: 5070

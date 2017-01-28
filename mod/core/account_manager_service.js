@@ -2,49 +2,41 @@ var AccountManager  = Java.type('gov.nist.javax.sip.clientauthutils.AccountManag
 var UserCredentials = Java.type('gov.nist.javax.sip.clientauthutils.UserCredentials')
 var LogManager      = Java.type('org.apache.logging.log4j.LogManager')
 
-load('mod/core/yaml_converter.js')
+load('mod/utils/yaml_converter.js')
+var LOG = LogManager.getLogger()
 
 // This implementation will locate peers at config/peers.yml
-function getPeerFromConfig(username) {
+function getPeerFromConfig(ct) {
     let peers = new YamlToJsonConverter().getJson('config/peers.yml')
+    let address = ct.getOriginalRequestContact().getAddress()
+    let username = address.toString().split(":")[1].split("@")[0].toString()
 
     for (var peer of peers) {
-        if (peer.username.equals(username)) {
+        if (peer.username === username) {
             return peer
         }
     }
 
-    LOG.warn ("Peer " + username + " does not exist in config/peers.yml")
+    LOG.warn ("Peer '" + username + "' does not exist in config/peers.yml")
     return null
 }
 
-function getUsernameFromContact(address) {
-    return address.toString().split(":")[1].split("@")[0]
-}
-
 function AccountManagerService(getPeer = getPeerFromConfig) {
-    let LOG = LogManager.getLogger()
-
     this.getAccountManager = function() {
-        let getAccountManagerImpl = new AccountManager() {
+        return new AccountManager() {
             getCredentials: function(challengedTransaction, realm) {
                 return new UserCredentials() {
                     getUserName: function() {
-                        let username = getUsernameFromContact(challengedTransaction.getOriginalRequestContact().getAddress())
-                        return getPeer(username).username
+                        return getPeer(challengedTransaction).username
                     },
                     getPassword: function() {
-                        let username = getUsernameFromContact(challengedTransaction.getOriginalRequestContact().getAddress())
-                        return getPeer(username).secret
+                        return getPeer(challengedTransaction).secret
                     },
                     getSipDomain: function() {
-                        let username = getUsernameFromContact(challengedTransaction.getOriginalRequestContact().getAddress())
-                        return getPeer(username).host
+                        return getPeer(challengedTransaction).host
                     }
                 }
             }
         }
-
-        return getAccountManagerImpl
     }
 }

@@ -1,7 +1,7 @@
 var LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
-load('mod/core/auth_helper.js')
-load('mod/core/yaml_converter.js')
+load('mod/utils/yaml_converter.js')
+load('mod/utils/auth_helper.js')
 
 // This implementation will locate agents or peers at config/agents.yml or config/peers.yml
 function getUserFromConfig(username) {
