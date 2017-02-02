@@ -1,24 +1,10 @@
-- kind: Peer
-  apiVersion: v1
-  metadata:
-    name: DID Logic, Inc
-    zone: USA / us1
-    id: 96170
-  username: '96170'
-  secret: TH9BTbsQcsEpdgpa
-  # outboundProxy:
-  # port:
-  # authUser:
-  host: sip.didlogic.net      # Inbound/Outbound host
-  registries:                 # Inbound hosts
-    - sip.nyc.didlogic.net
-
+# Peers and Agents can register in Sip I/O location service
 - kind: Peer
   apiVersion: v1
   metadata:
     name: Asterisk PBX 13
-    desc: Media Server
+    type: MediaServer
   username: ms
   secret: 1c3cr34m
-  host: 127.0.0.1
+  host: 192.168.1.6
   port: 5060                  # Not using this yet

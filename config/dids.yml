@@ -1,0 +1,6 @@
+- kind: DID
+  apiVersion: v1
+  metadata:
+    city: Santiago
+    country: Dominican Rep.
+  e164num: 18296072077

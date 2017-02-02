@@ -12,12 +12,17 @@ var LogManager      = Java.type('org.apache.logging.log4j.LogManager')
 
 load('mod/core/processor.js')
 load('mod/core/registry_helper.js')
+load('mod/utils/contact_helper.js')
 
-function getPeersFromConfig() {
-    return new YamlToJsonConverter().getJson('config/peers.yml')
+function getProvidersFromConfig() {
+    return new YamlToJsonConverter().getJson('config/providers.yml')
 }
 
-function Server(locationService, registrarService, accountManagerService, config, getPeers = getPeersFromConfig) {
+function getDIDsFromConfig() {
+    return new YamlToJsonConverter().getJson('config/dids.yml')
+}
+
+function Server(locationService, registrarService, accountManagerService, config, getProviders = getProvidersFromConfig, getDIDs = getDIDsFromConfig) {
     let LOG = LogManager.getLogger()
     const peerRegExp = 10 // minutes
 
@@ -49,6 +54,22 @@ function Server(locationService, registrarService, accountManagerService, config
         contactAddress = addressFactory.createAddress("sip:" + config.ip + ":" + config.port)
         contactHeader = headerFactory.createContactHeader(contactAddress)
 
+        let providers = getProvidersFromConfig()
+        let dids = getDIDs()
+
+        let contactHelper = new ContactHelper(addressFactory, headerFactory, getProviders)
+
+        // This will not scale if we have a lot of DIDs
+        for (var did of dids) {
+            let k = "sip:" + did.e164num + "@" + config.ip + ":" + config.port
+
+            for (var provider of providers) {
+                let v = contactHelper.getProviderContactURI(provider.username)
+                LOG.debug("Added DID -> " + k + " to location service as " + v)
+                locationService.put(k, v)
+            }
+        }
+
         let processor = new Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader,
             locationService, registrarService, accountManagerService, config)
 
@@ -59,21 +80,21 @@ function Server(locationService, registrarService, accountManagerService, config
 
         var registerTask = new java.util.TimerTask() {
             run: function() {
-                let peers = getPeers()
+                let providers = getProvidersFromConfig()
+                for (var provider of providers) {
+                    LOG.info("Request registration to '" + provider.host + "' for user '" + provider.username + "'")
+                    if (provider.host !== undefined) registerUtil.requestChallenge(provider.username, provider.host)
+                    if (provider.registries === undefined) continue
 
-                for (var peer of peers) {
-                    LOG.info("Request registration to '" + peer.host + "' for user '" + peer.username + "'")
-                    if (peer.host !== undefined) registerUtil.requestChallenge(peer.username, peer.host)
-                    if (peer.registries === undefined) continue
-
-                    for (var host of peer.registries) {
-                        registerUtil.requestChallenge(peer.username, host)
+                    for (var h of provider.registries) {
+                        registerUtil.requestChallenge(provider.username, h)
                     }
                 }
            }
         }
 
         new java.util.Timer().schedule(registerTask, 5000, peerRegExp * 60 * 1000);
+
     }
 }
 
