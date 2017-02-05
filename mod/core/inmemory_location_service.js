@@ -7,11 +7,11 @@ function LocationService() {
     var db = new HashMap()
 
     this.put = function (k, v) {
-        db.put(k, v)
+        db.put(k.toString(), v)
     }
 
     this.get = function(k) {
-        return db.get(k)
+        return db.get(k.toString())
     }
 
     this.remove = function(k) {
@@ -23,7 +23,7 @@ function LocationService() {
 
         while(k.hasNext()) {
             let key = k.next()
-            print(key + " :: " + db.get(key))
+            LOG.info("The endpoint " + key + " is " + db.get(key) + " in Sip I/O")
         }
     }
 }

@@ -20,4 +20,4 @@ let config = {
     "traceLevel": settings.traceLevel
 }
 
-new Server(location, registrar, accountManager, config, getPeersFromConfig, getDIDsFromConfig).start()
+new Server(location, registrar, accountManager, config).start()

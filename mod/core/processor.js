@@ -84,7 +84,6 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
     this.listener = new SipListener() {
         processRequest: function (e)    {
-            LOG.debug(">> \n" + e.getRequest())
             let requestIn = e.getRequest()
             let routeHeader = requestIn.getHeader(RouteHeader.NAME)
             let proxyHost
@@ -121,14 +120,12 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                     requestOut.addFirst(viaHeader)
                 }
 
-                let uri = locationService.get(tgtURI.toString())
+                let uri = locationService.get(tgtURI)
 
                 if (uri == null) {
                     unavailable(requestIn, st)
                     return
                 }
-
-                LOG.debug("@@@@@@" + uri.toString())
 
                 requestOut.setRequestURI(uri)
 
@@ -136,7 +133,6 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 if(method.equals(Request.ACK)) {
                     sipProvider.sendRequest(requestOut)
                 } else {
-                     LOG.debug("Sending " + method + " with transaction...")
                     let ct = sipProvider.getNewClientTransaction(requestOut)
                     ct.sendRequest()
 
@@ -149,41 +145,22 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                     ctxt.requestOut = requestOut
                     ctxtList.add(ctxt)
                 }
-
-                LOG.trace(requestOut)
             }
+            LOG.trace(requestOut)
         },
 
         processResponse: function (e) {
-            //LOG.debug("<< \n" + e.getResponse())
             let responseIn = e.getResponse()
             let statusCode = responseIn.getStatusCode()
 
-            print ("*********************************")
-            print (e.getClientTransaction())
-            print ("*********************************")
-
-            print ("%%%%%%% statusCode = " + statusCode)
-
-            if (//statusCode == Response.OK        ||
-                statusCode == Response.TRYING    ||
-                statusCode == Response.FORBIDDEN ||
-                statusCode == Response.NOT_FOUND) {
-
-                print ("&&&&&&&&&&&&&&&&&&&&")
-
-                return
-            }
-
             let ct = e.getClientTransaction()
-            let originalCSeq = ct.getRequest().getHeader(CSeqHeader.NAME)
-            let method = originalCSeq.getMethod()
+            try {
+                let originalCSeq = ct.getRequest().getHeader(CSeqHeader.NAME)
+                let method = originalCSeq.getMethod()
 
-            print ("DBG 0000")
-
-            if (method.equals(Request.CANCEL)) return
-
-            print ("DBG 0001, method -> " + method)
+                if (method.equals(Request.CANCEL)) return
+            } catch(e) {
+            }
 
             let routeHeader = responseIn.getHeader(RouteHeader.NAME)
             let proxyHost
@@ -201,21 +178,15 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 let authenticationHelper =
                     sipStack.getAuthenticationHelper(accountManagerService.getAccountManager(), headerFactory)
                 let t = authenticationHelper.handleChallenge(responseIn, ct, sipProvider, 5)
-                //LOG.debug(">> \n" + t.getRequest())
                 t.sendRequest()
                 return
             }
 
-            print ("DBG 0002")
-
             let responseOut = responseIn.clone()
 
-            // Watch this line
             if(proxyHost.equals(localhost)) {
                 responseOut.removeFirst(ViaHeader.NAME)
             }
-
-            print ("DBG 0003")
 
             let i = ctxtList.iterator()
 
@@ -224,9 +195,6 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 let ctxt = i.next()
 
                 if (ctxt.clientTrans.equals(ct)) {
-                    print ("DBG 0004")
-
-                    print ("!!!!!!!!!!! [" + responseOut + "] this should go to back to inviter")
                     ctxt.serverTrans.sendResponse(responseOut)
                     match = true
                     break
@@ -234,11 +202,8 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             }
 
             if (!match) {
-                print ("DBG 0005")
                 sipProvider.sendResponse(responseOut)
             }
-
-            LOG.trace(responseOut)
         },
 
         processTransactionTerminated: function (e) {

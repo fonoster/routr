@@ -24,7 +24,9 @@ function getDIDsFromConfig() {
 
 function Server(locationService, registrarService, accountManagerService, config, getProviders = getProvidersFromConfig, getDIDs = getDIDsFromConfig) {
     let LOG = LogManager.getLogger()
-    const peerRegExp = 10 // minutes
+
+    // Registration with providers expire in 5 minutes, so we will re-register in 4
+    const proRegExp = 4
 
     this.start = function() {
         LOG.info("Starting Sip I/O on port " + config.port + " and protocol " + config.proto)
@@ -65,8 +67,8 @@ function Server(locationService, registrarService, accountManagerService, config
 
             for (var provider of providers) {
                 let v = contactHelper.getProviderContactURI(provider.username)
-                LOG.debug("Added DID -> " + k + " to location service as " + v)
                 locationService.put(k, v)
+                LOG.debug("Added DID -> " + k + " to location service as " + v)
             }
         }
 
@@ -82,19 +84,20 @@ function Server(locationService, registrarService, accountManagerService, config
             run: function() {
                 let providers = getProvidersFromConfig()
                 for (var provider of providers) {
-                    LOG.info("Request registration to '" + provider.host + "' for user '" + provider.username + "'")
+                    LOG.info("Login to '" + provider.metadata.name +  "' using '"  + provider.username + "@" + provider.host + "'")
                     if (provider.host !== undefined) registerUtil.requestChallenge(provider.username, provider.host)
                     if (provider.registries === undefined) continue
 
                     for (var h of provider.registries) {
+                        LOG.info("Login to '" + provider.metadata.name +  "' using '"  + provider.username + "@" + h + "'")
+
                         registerUtil.requestChallenge(provider.username, h)
                     }
                 }
            }
         }
 
-        new java.util.Timer().schedule(registerTask, 5000, peerRegExp * 60 * 1000);
-
+        new java.util.Timer().schedule(registerTask, 5000, proRegExp * 60 * 1000);
     }
 }
 

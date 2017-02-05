@@ -5,35 +5,35 @@ var LogManager      = Java.type('org.apache.logging.log4j.LogManager')
 load('mod/utils/yaml_converter.js')
 var LOG = LogManager.getLogger()
 
-// This implementation will locate peers at config/peers.yml
-function getPeerFromConfig(ct) {
-    let peers = new YamlToJsonConverter().getJson('config/peers.yml')
+// This implementation will locate providers at config/providers.yml
+function getProviderFromConfig(ct) {
+    let providers = new YamlToJsonConverter().getJson('config/providers.yml')
     let address = ct.getOriginalRequestContact().getAddress()
     let username = address.toString().split(":")[1].split("@")[0].toString()
 
-    for (var peer of peers) {
-        if (peer.username === username) {
-            return peer
+    for (var provider of providers) {
+        if (provider.username === username) {
+            return provider
         }
     }
 
-    LOG.warn ("Peer '" + username + "' does not exist in config/peers.yml")
+    LOG.warn ("Provider '" + username + "' does not exist in config/providers.yml")
     return null
 }
 
-function AccountManagerService(getPeer = getPeerFromConfig) {
+function AccountManagerService(getProvider = getProviderFromConfig) {
     this.getAccountManager = function() {
         return new AccountManager() {
             getCredentials: function(challengedTransaction, realm) {
                 return new UserCredentials() {
                     getUserName: function() {
-                        return getPeer(challengedTransaction).username
+                        return getProvider(challengedTransaction).username
                     },
                     getPassword: function() {
-                        return getPeer(challengedTransaction).secret
+                        return getProvider(challengedTransaction).secret
                     },
                     getSipDomain: function() {
-                        return getPeer(challengedTransaction).host
+                        return getProvider(challengedTransaction).host
                     }
                 }
             }

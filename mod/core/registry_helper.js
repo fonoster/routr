@@ -47,7 +47,6 @@ function RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory
         try {
             let ct = sipProvider.getNewClientTransaction(request)
             ct.sendRequest()
-            LOG.debug(">> \n" + request.toString())
         } catch(e) {
             if(e instanceof javax.sip.TransactionUnavailableException || e instanceof javax.sip.SipException) {
                 LOG.warn("Peer connection unavailable [peer host = " + peerHost + "]")

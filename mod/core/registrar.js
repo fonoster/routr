@@ -85,12 +85,18 @@ function RegistrarService(location, getUser = getUserFromConfig) {
                 if (user.host != null) {
                     contactURI.setHost(user.host)
                 }
-                location.put("sip:" + authHeader.getUsername() + "@" + uriDomain, contactURI)
+
+                let endpoint = "sip:" + authHeader.getUsername() + "@" + uriDomain
+                location.put(endpoint, contactURI)
+
+                LOG.info("The endpoint " + endpoint + " is " + contactURI + " in Sip I/O")
             } else {
                 for (var domain of user.domains) {
                     // TODO: Find a better way to get this value
                     // This could be "sips" or other protocol
-                    location.put("sip:" + authHeader.getUsername() + "@" + domain, contactURI)
+                    let endpoint = "sip:" + authHeader.getUsername() + "@" + domain
+                    location.put(endpoint, contactURI)
+                    LOG.info("The endpoint " + endpoint + " is " + contactURI + " in Sip I/O")
                 }
             }
 

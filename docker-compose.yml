@@ -8,6 +8,17 @@ services:
     ports:
       - '5060/udp:5060/udp'
       - '5061/udp:5061/udp'
+      - '16384/udp:16384/udp'
+      - '16385/udp:16385/udp'
+      - '16386/udp:16386/udp'
+      - '16387/udp:16387/udp'
+      - '16388/udp:16388/udp'
+      - '16389/udp:16389/udp'
+      - '16390/udp:16390/udp'
+      - '16391/udp:16391/udp'
+      - '16392/udp:16392/udp'
+      - '16393/udp:16393/udp'
+      - '16394/udp:16394/udp'
   #sipio:
   #  build:
   #    context: .

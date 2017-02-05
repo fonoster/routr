@@ -21,11 +21,11 @@ function AuthHelper(headerFactory) {
             result = DigestUtils.md5Hex(ha1 + ':' + nonce +  ':' + ha2)
         }
 
-        LOG.debug("A1: " + a1)
-        LOG.debug("A2: " + a2)
-        LOG.debug("HA1: " + ha1)
-        LOG.debug("HA2: " + ha2)
-        LOG.debug("Result: " + result)
+        LOG.trace("A1: " + a1)
+        LOG.trace("A2: " + a2)
+        LOG.trace("HA1: " + ha1)
+        LOG.trace("HA2: " + ha2)
+        LOG.trace("Result: " + result)
 
         return result
     }
