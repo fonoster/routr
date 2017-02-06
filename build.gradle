@@ -1,14 +1,16 @@
-apply plugin: 'java'
+apply plugin: "java"
 
 dependencies {
-    runtime group: 'javax.sip', name: 'jain-sip-ri', version: '1.2.324'
-    runtime group: 'log4j', name: 'log4j', version: '1.2.16'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-1.2-api', version: '2.7'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.7'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
-    compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
-    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version:'2.8.3'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.6'
+    runtime "javax.sip:jain-sip-ri:1.2.324"
+    runtime "log4j:log4j:1.2.16"
+    compile "org.apache.logging.log4j:log4j-1.2-api:2.7"
+    compile "org.apache.logging.log4j:log4j-api:2.7"
+    compile "org.apache.logging.log4j:log4j-core:2.7"
+    compile "commons-codec:commons-codec:1.10"
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.8.3"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.8.6"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.8.6"
+    compile "com.sparkjava:spark-core:2.5.4"
 }
 
 repositories {
@@ -17,5 +19,5 @@ repositories {
 
 task getDeps(type: Copy) {
     from sourceSets.main.runtimeClasspath
-    into 'lib/'
+    into "lib/"
 }
