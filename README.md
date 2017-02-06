@@ -10,6 +10,7 @@ Sip server features
     - Registrar server
     - Location server (In-memory)
     - Proxy server
+    - Rest Service
 
 Transport
 
@@ -37,7 +38,7 @@ gradle getDeps
 ```
 
 You must install Java 9 and point your JAVA_HOME to your JDK 9 to run this app. You can overwrite the JAVA_HOME
-at the file ./app.
+at the file ./sipio.
 
 ## Setting the Softphone or Sip endpoint
 
@@ -46,10 +47,10 @@ and use the IP of the server running this app as the OUTBOUND SERVER.
 
 ## Run the App
 
-Just run the `./app` script
+Just run the `./sipio` script
 
 ```bash
-./app
+./sipio
 ```
 
 # License

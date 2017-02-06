@@ -3,7 +3,7 @@
   apiVersion: v1
   metadata:
     name: Jhon Doe
-  username: johndoe
+  username: jhondoe
   secret: gJcxzr1v4zXUVXJ3
   domains:
     - ocean-ny.us1.sip.fonoster.com

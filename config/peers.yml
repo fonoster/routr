@@ -4,6 +4,7 @@
   metadata:
     name: Asterisk PBX 13
     type: MediaServer
+    desc: Default Media Server
   username: ms
   secret: 1c3cr34m
   host: 192.168.1.6

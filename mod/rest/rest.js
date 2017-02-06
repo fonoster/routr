@@ -5,10 +5,6 @@ function RestService(locationService, providers, peers, agents, dids, port=4567)
     let LOG = LogManager.getLogger()
     Spark.port(port)
 
-    Spark.get('/originate', function(request, response) {
-        return "Not yet implemented"
-    });
-
     Spark.get('/registry', function(request, response) {
         return locationService.listAllAsJSON()
     });

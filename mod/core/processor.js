@@ -78,12 +78,13 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     }
 
     function unavailable(request, transaction) {
-        LOG.info("Unavailable")
+        LOG.info("XXXXXXXXXXXX Unable to find contact: " + request.getHeader(ContactHeader.NAME))
         transaction.sendResponse(messageFactory.createResponse(Response.NOT_FOUND, request))
     }
 
     this.listener = new SipListener() {
         processRequest: function (e)    {
+            LOG.info("DBG 0001")
             let requestIn = e.getRequest()
             let routeHeader = requestIn.getHeader(RouteHeader.NAME)
             let proxyHost
@@ -145,15 +146,20 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                     ctxt.requestOut = requestOut
                     ctxtList.add(ctxt)
                 }
+                LOG.trace(requestOut)
             }
-            LOG.trace(requestOut)
         },
 
         processResponse: function (e) {
+            LOG.info("DBG 0002")
             let responseIn = e.getResponse()
             let statusCode = responseIn.getStatusCode()
 
+            if (responseIn.getStatusCode() == Response.TRYING
+                || statusCode == Response.REQUEST_TERMINATED) return
+
             let ct = e.getClientTransaction()
+
             try {
                 let originalCSeq = ct.getRequest().getHeader(CSeqHeader.NAME)
                 let method = originalCSeq.getMethod()
@@ -184,9 +190,9 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
             let responseOut = responseIn.clone()
 
-            if(proxyHost.equals(localhost)) {
-                responseOut.removeFirst(ViaHeader.NAME)
-            }
+            //if(proxyHost.equals(localhost)) {
+            responseOut.removeFirst(ViaHeader.NAME)
+            //}
 
             let i = ctxtList.iterator()
 
@@ -204,6 +210,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             if (!match) {
                 sipProvider.sendResponse(responseOut)
             }
+            LOG.trace(responseOut)
         },
 
         processTransactionTerminated: function (e) {
