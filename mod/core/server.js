@@ -13,16 +13,10 @@ var LogManager      = Java.type('org.apache.logging.log4j.LogManager')
 load('mod/core/processor.js')
 load('mod/core/registry_helper.js')
 load('mod/utils/contact_helper.js')
+load('mod/rest/rest.js')
 
-function getProvidersFromConfig() {
-    return new YamlToJsonConverter().getJson('config/providers.yml')
-}
-
-function getDIDsFromConfig() {
-    return new YamlToJsonConverter().getJson('config/dids.yml')
-}
-
-function Server(locationService, registrarService, accountManagerService, config, getProviders = getProvidersFromConfig, getDIDs = getDIDsFromConfig) {
+function Server(locationService, registrarService, accountManagerService, config, getProviders = getProvidersFromConfig,
+    getPeers = getPeersFromConfig, getDIDs = getDIDsFromConfig, getAgents = getAgentsFromConfig) {
     let LOG = LogManager.getLogger()
 
     // Registration with providers expire in 5 minutes, so we will re-register in 4
@@ -30,6 +24,11 @@ function Server(locationService, registrarService, accountManagerService, config
 
     this.start = function() {
         LOG.info("Starting Sip I/O on port " + config.port + " and protocol " + config.proto)
+
+        let providers = getProvidersFromConfig()
+        let dids = getDIDs()
+        let peers = getPeers()
+        let agents = getAgents()
 
         let properties = new Properties()
         let sipFactory = SipFactory.getInstance()
@@ -56,9 +55,6 @@ function Server(locationService, registrarService, accountManagerService, config
         contactAddress = addressFactory.createAddress("sip:" + config.ip + ":" + config.port)
         contactHeader = headerFactory.createContactHeader(contactAddress)
 
-        let providers = getProvidersFromConfig()
-        let dids = getDIDs()
-
         let contactHelper = new ContactHelper(addressFactory, headerFactory, getProviders)
 
         // This will not scale if we have a lot of DIDs
@@ -84,12 +80,12 @@ function Server(locationService, registrarService, accountManagerService, config
             run: function() {
                 let providers = getProvidersFromConfig()
                 for (var provider of providers) {
-                    LOG.info("Login to '" + provider.metadata.name +  "' using '"  + provider.username + "@" + provider.host + "'")
+                    LOG.debug("Login to '" + provider.metadata.name +  "' using '"  + provider.username + "@" + provider.host + "'")
                     if (provider.host !== undefined) registerUtil.requestChallenge(provider.username, provider.host)
                     if (provider.registries === undefined) continue
 
                     for (var h of provider.registries) {
-                        LOG.info("Login to '" + provider.metadata.name +  "' using '"  + provider.username + "@" + h + "'")
+                        LOG.debug("Login to '" + provider.metadata.name +  "' using '"  + provider.username + "@" + h + "'")
 
                         registerUtil.requestChallenge(provider.username, h)
                     }
@@ -98,7 +94,24 @@ function Server(locationService, registrarService, accountManagerService, config
         }
 
         new java.util.Timer().schedule(registerTask, 5000, proRegExp * 60 * 1000);
+
+        new RestService(locationService, providers, peers, agents, dids).start()
     }
 }
 
+function getProvidersFromConfig() {
+    return new YamlToJsonConverter().getJson('config/providers.yml')
+}
+
+function getDIDsFromConfig() {
+    return new YamlToJsonConverter().getJson('config/dids.yml')
+}
+
+function getAgentsFromConfig() {
+    return new YamlToJsonConverter().getJson('config/agents.yml')
+}
+
+function getPeersFromConfig() {
+    return new YamlToJsonConverter().getJson('config/peers.yml')
+}
 

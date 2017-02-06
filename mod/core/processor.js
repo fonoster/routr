@@ -78,7 +78,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     }
 
     function unavailable(request, transaction) {
-        LOG.debug("Unavailable")
+        LOG.info("Unavailable")
         transaction.sendResponse(messageFactory.createResponse(Response.NOT_FOUND, request))
     }
 
@@ -218,18 +218,18 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                         i.remove()
                         break
                     } else {
-                        LOG.trace("Ongoing Transaction")
+                        LOG.info("Ongoing Transaction")
                     }
                 }
             }
         },
 
         processDialogTerminated: function (e) {
-            LOG.trace("#processDialogTerminated not yet implemented")
+            LOG.info("#processDialogTerminated not yet implemented")
         },
 
         processTimeout: function (e) {
-            LOG.trace("#processTimeout not yet implemented")
+            LOG.info("#processTimeout not yet implemented")
         }
     }
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-main_js="$(pwd)/main.js"
+main_js="$(pwd)/mod/core/main.js"
 
 for i in $(ls lib); do
     DEPS=$DEPS"lib/$i:";
@@ -17,4 +17,4 @@ then
 fi
 
 jjs -Dlog4j.configurationFile=config/log4j2.xml \
-    -cp $DEPS --language=es6 -fv -doe -ot -scripting=true "$main_js" -- "$@"
+    -cp $DEPS --language=es6 -doe -ot -scripting=true "$main_js" -- "$@"

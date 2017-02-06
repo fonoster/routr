@@ -18,12 +18,19 @@ function LocationService() {
         db.remove(k)
     }
 
-    this.printAll = function () {
+    this.listAllAsJSON = function () {
+        let s = []
         let k = db.keySet().iterator()
 
         while(k.hasNext()) {
             let key = k.next()
-            LOG.info("The endpoint " + key + " is " + db.get(key) + " in Sip I/O")
+            let tmp = {
+                'endpoint': key,
+                'contact': db.get(key).toString()
+            }
+            s.push(tmp)
         }
+
+        return JSON.stringify(s)
     }
 }
