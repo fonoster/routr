@@ -1,7 +1,13 @@
 # Sip I/O
 
-This is a basic sip server built using Javascript over the JVM (with Nashorn). 
-At the moment you can create sip accounts and you can group those accounts by domains.
+Sip I/O is a sip proxy, location server, and registrar built using 
+Javascript over the JVM (with Nashorn). 
+
+At the moment you can add your sip devices and group them using domains.
+You can also connect with the PSTN using a Sip Gateway.
+
+`Disclaimer: This is an experimental project. I may or may not continue
+this work in the future.`
 
 ## Current features include
 
@@ -78,7 +84,7 @@ Also, you must use the IP of Sip I/O as your OUTBOUND PROXY.
 ## Sending and receiving calls from the PSTN
 
 To send and receive calls from the PSTN you must add a gateway. Gateways
-are define at `config/gateways.yml`. The next example, shows the configuration
+are define at `config/gateways.yml`. The next example shows the configuration
 for a gateway. Sip I/O will register with this Gateway using the parameter 'host'
 and the parameter 'registries'.
 
