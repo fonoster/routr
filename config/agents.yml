@@ -6,8 +6,8 @@
   username: jhondoe
   secret: gJcxzr1v4zXUVXJ3
   domains:
-    - ocean-ny.us1.sip.fonoster.com
-    - ocean-tx.us1.sip.fonoster.com
+    - ny.ocean.com
+    - tx.ocean.com
 - kind: Agent
   apiVersion: v1
   metadata:
@@ -15,4 +15,4 @@
   username: janiedoe
   secret: gJcxzr1v4zXUVXJ3
   domains:
-    - ocean-ny.us1.sip.fonoster.com
+    - ny.ocean.com

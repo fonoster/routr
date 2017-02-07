@@ -1,7 +1,7 @@
 var Spark        = Java.type('spark.Spark')
 var LogManager   = Java.type('org.apache.logging.log4j.LogManager')
 
-function RestService(locationService, providers, peers, agents, dids, port=4567){
+function RestService(locationService, gateways, peers, agents, dids, port=4567){
     let LOG = LogManager.getLogger()
     Spark.port(port)
 
@@ -9,8 +9,8 @@ function RestService(locationService, providers, peers, agents, dids, port=4567)
         return locationService.listAllAsJSON()
     });
 
-    Spark.get('/providers', function(request, response) {
-        return JSON.stringify(providers)
+    Spark.get('/gateways', function(request, response) {
+        return JSON.stringify(gateways)
     });
 
     Spark.get('/peers', function(request, response) {

@@ -1,5 +1,6 @@
-# Use providers to register with a Sip Gateways or SBCs
-- kind: Provider
+# Use gateway to register with a Sip Gateways or SBCs and send
+# or receive calls from the PSTN
+- kind: Gateway
   apiVersion: v1
   id: '96170'
   metadata:

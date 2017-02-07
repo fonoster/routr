@@ -12,20 +12,19 @@ var LogManager      = Java.type('org.apache.logging.log4j.LogManager')
 
 load('mod/core/processor.js')
 load('mod/core/registry_helper.js')
-load('mod/utils/contact_helper.js')
 load('mod/rest/rest.js')
 
-function Server(locationService, registrarService, accountManagerService, config, getProviders = getProvidersFromConfig,
+function Server(locationService, registrarService, accountManagerService, config, getGateways = getGatewaysFromConfig,
     getPeers = getPeersFromConfig, getDIDs = getDIDsFromConfig, getAgents = getAgentsFromConfig) {
     let LOG = LogManager.getLogger()
 
-    // Registration with providers expire in 5 minutes, so we will re-register in 4
+    // Registration with gateways expire in 5 minutes, so we will re-register in 4
     const proRegExp = 4
 
     this.start = function() {
         LOG.info("Starting Sip I/O on port " + config.port + " and protocol " + config.proto)
 
-        let providers = getProvidersFromConfig()
+        let gateways = getGateways()
         let dids = getDIDs()
         let peers = getPeers()
         let agents = getAgents()
@@ -55,17 +54,13 @@ function Server(locationService, registrarService, accountManagerService, config
         contactAddress = addressFactory.createAddress("sip:" + config.ip + ":" + config.port)
         contactHeader = headerFactory.createContactHeader(contactAddress)
 
-        let contactHelper = new ContactHelper(addressFactory, headerFactory, getProviders)
-
         // This will not scale if we have a lot of DIDs
         for (var did of dids) {
             let k = "sip:" + did.e164num + "@" + config.ip + ":" + config.port
 
-            for (var provider of providers) {
-                let v = contactHelper.getProviderContactURI(provider.username)
-                locationService.put(k, v)
-                LOG.debug("Added DID -> " + k + " to location service as " + v)
-            }
+            let ca = addressFactory.createAddress(did.contact)
+            let ch = headerFactory.createContactHeader(ca)
+            locationService.put(k, ch.getAddress().getURI())
         }
 
         let processor = new Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader,
@@ -78,16 +73,16 @@ function Server(locationService, registrarService, accountManagerService, config
 
         var registerTask = new java.util.TimerTask() {
             run: function() {
-                let providers = getProvidersFromConfig()
-                for (var provider of providers) {
-                    LOG.debug("Login to '" + provider.metadata.name +  "' using '"  + provider.username + "@" + provider.host + "'")
-                    if (provider.host !== undefined) registerUtil.requestChallenge(provider.username, provider.host)
-                    if (provider.registries === undefined) continue
+                let gateways = getGateways()
+                for (var gateway of gateways) {
+                    LOG.debug("Login to '" + gateway.metadata.name +  "' using '"  + gateway.username + "@" + gateway.host + "'")
+                    if (gateway.host !== undefined) registerUtil.requestChallenge(gateway.username, gateway.host)
+                    if (gateway.registries === undefined) continue
 
-                    for (var h of provider.registries) {
-                        LOG.debug("Login to '" + provider.metadata.name +  "' using '"  + provider.username + "@" + h + "'")
+                    for (var h of gateway.registries) {
+                        LOG.debug("Login to '" + gateway.metadata.name +  "' using '"  + gateway.username + "@" + h + "'")
 
-                        registerUtil.requestChallenge(provider.username, h)
+                        registerUtil.requestChallenge(gateway.username, h)
                     }
                 }
            }
@@ -95,12 +90,12 @@ function Server(locationService, registrarService, accountManagerService, config
 
         new java.util.Timer().schedule(registerTask, 5000, proRegExp * 60 * 1000);
 
-        new RestService(locationService, providers, peers, agents, dids).start()
+        new RestService(locationService, gateways, peers, agents, dids).start()
     }
 }
 
-function getProvidersFromConfig() {
-    return new YamlToJsonConverter().getJson('config/providers.yml')
+function getGatewaysFromConfig() {
+    return new YamlToJsonConverter().getJson('config/gateways.yml')
 }
 
 function getDIDsFromConfig() {

@@ -84,10 +84,11 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
     this.listener = new SipListener() {
         processRequest: function (e)    {
-            LOG.info("DBG 0001")
             let requestIn = e.getRequest()
             let routeHeader = requestIn.getHeader(RouteHeader.NAME)
             let proxyHost
+
+            print(requestIn)
 
             // Edge proxy
             if (routeHeader != null) {
@@ -151,9 +152,10 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
         },
 
         processResponse: function (e) {
-            LOG.info("DBG 0002")
             let responseIn = e.getResponse()
             let statusCode = responseIn.getStatusCode()
+
+            print(responseIn)
 
             if (responseIn.getStatusCode() == Response.TRYING
                 || statusCode == Response.REQUEST_TERMINATED) return
@@ -191,7 +193,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             let responseOut = responseIn.clone()
 
             //if(proxyHost.equals(localhost)) {
-            responseOut.removeFirst(ViaHeader.NAME)
+                responseOut.removeFirst(ViaHeader.NAME)
             //}
 
             let i = ctxtList.iterator()
