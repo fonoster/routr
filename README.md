@@ -40,7 +40,7 @@ gradle getDeps
 You must install Java 9 and point your JAVA_HOME to your JDK 9 to run 
 this app. You can overwrite the JAVA_HOME at the file ./sipio.
 
-# Configuring Domains and Agents
+# Configuring domains and agents
 
 Sip devices or endpoints are known in Sip I/O as agents. For two agents
 to be able to call each other they must be in the same domain. An agent
@@ -75,7 +75,7 @@ access both domains, Ocean New York and Ocean Texas.
 To configure your sip device use information found at `config/agents.yml`.
 You must use the IP of Sip I/O as your OUTBOUND PROXY.
 
-# Sending and Receiving calls from the PSTN
+# Sending and receiving calls from the PSTN
 
 To send and receive calls from the PSTN you must add a gateway. Gateways
 are define at `config/gateways.yml`. The next example, shows the configuration
@@ -97,7 +97,7 @@ and the parameter 'registries'.
     - sip.nyc.didlogic.net
 ```
 
-You also need to define the DID. An incomming call from a DID will be router
+You also need to define the DID. An incoming call from a DID will be router
 to an existing Agent using the 'contact' parameter. Please examine the 
 following example:
 
@@ -113,7 +113,7 @@ following example:
 
 Any incoming call will be route to the Jhon Doe @ Ocean New York.
 
-# Running the App
+# Running the server
 
 To start Sip I/O just run the `./sipio` script in the root of this 
 project
