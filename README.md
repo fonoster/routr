@@ -57,8 +57,8 @@ enables communication between all agents at Ocean New York.
   uri: ny.ocean.com
 ```
 
-Agents can be configure at `config/agents.yml`. The agent "John Doe" has
-access both domains, Ocean New York and Ocean Texas.
+Agents can be configured at `config/agents.yml`. In the following example
+agent "John Doe" has access to both domains, Ocean New York and Ocean Texas.
 
 ```yml
 - kind: Agent
@@ -72,8 +72,8 @@ access both domains, Ocean New York and Ocean Texas.
     - tx.ocean.com  # This must be defined at config/domains.yml
 ```
 
-To configure your sip device use information found at `config/agents.yml`.
-You must use the IP of Sip I/O as your OUTBOUND PROXY.
+To setup your sip device use information found in `config/agents.yml`.
+Also, you must use the IP of Sip I/O as your OUTBOUND PROXY.
 
 ## Sending and receiving calls from the PSTN
 
@@ -97,8 +97,8 @@ and the parameter 'registries'.
     - sip.nyc.didlogic.net
 ```
 
-You also need to define the DID. An incoming call from a DID will be router
-to an existing Agent using the 'contact' parameter. Please examine the 
+You also need to define the DID. An incoming call from a DID will be route
+to an existing agent using the 'contact' parameter. Please examine the 
 following example:
 
 ```yml
@@ -111,7 +111,7 @@ following example:
   contact: johndoe@ny.ocean.com
 ```
 
-Any incoming call will be route to the Jhon Doe @ Ocean New York.
+Any incoming call will be route to the "Jhon Doe" @ Ocean New York.
 
 ## Running the server
 
