@@ -114,7 +114,7 @@ following example:
     city: Santiago
     country: Dominican Rep.
   e164num: 18296072077
-  contact: johndoe@ny.ocean.com
+  contact: 'sip:johndoe@ny.ocean.com'
 ```
 
 Any incoming call will be route to the "Jhon Doe" @ Ocean New York.
