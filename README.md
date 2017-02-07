@@ -117,7 +117,7 @@ following example:
   contact: 'sip:johndoe@ny.ocean.com'
 ```
 
-Any incoming call will be route to the "Jhon Doe" @ Ocean New York.
+Any incoming call from this DID will be route to the "Jhon Doe" @ Ocean New York.
 
 ## Running the server
 
