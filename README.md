@@ -3,7 +3,7 @@
 This is a basic sip server built using Javascript over the JVM (with Nashorn). 
 At the moment you can create sip accounts and you can group those accounts by domains.
 
-# Current features include
+## Current features include
 
 Sip server features
 
@@ -22,12 +22,12 @@ Security
 - Domain security via ACL (Work in-progress)
 - I'm working on implementing TLS
 
-# Requirement
+## Requirement
 
 * Java 1.9+
 * Gradle
 
-# Installation
+## Installation
 
 To download repo and get the dependencies
 
@@ -40,7 +40,7 @@ gradle getDeps
 You must install Java 9 and point your JAVA_HOME to your JDK 9 to run 
 this app. You can overwrite the JAVA_HOME at the file ./sipio.
 
-# Configuring domains and agents
+## Configuring domains and agents
 
 Sip devices or endpoints are known in Sip I/O as agents. For two agents
 to be able to call each other they must be in the same domain. An agent
@@ -75,7 +75,7 @@ access both domains, Ocean New York and Ocean Texas.
 To configure your sip device use information found at `config/agents.yml`.
 You must use the IP of Sip I/O as your OUTBOUND PROXY.
 
-# Sending and receiving calls from the PSTN
+## Sending and receiving calls from the PSTN
 
 To send and receive calls from the PSTN you must add a gateway. Gateways
 are define at `config/gateways.yml`. The next example, shows the configuration
@@ -113,7 +113,7 @@ following example:
 
 Any incoming call will be route to the Jhon Doe @ Ocean New York.
 
-# Running the server
+## Running the server
 
 To start Sip I/O just run the `./sipio` script in the root of this 
 project
@@ -122,6 +122,6 @@ project
 ./sipio
 ```
 
-# License
+## License
 
 I'm not sure yet.
