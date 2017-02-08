@@ -6,7 +6,7 @@ Javascript over the JVM (with Nashorn).
 At the moment you can add your sip devices and group them using domains.
 You can also connect with the PSTN using a Sip Gateway.
 
-`Disclaimer: This is an experimental project. I may or may not continue
+`Disclaimer: This is an experimental project. I may or not continue
 this work in the future.`
 
 ## Current features include
