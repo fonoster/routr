@@ -75,12 +75,12 @@ function Server(locationService, registrarService, accountManagerService, config
             run: function() {
                 let gateways = getGateways()
                 for (var gateway of gateways) {
-                    LOG.debug("Login to '" + gateway.metadata.name +  "' using '"  + gateway.username + "@" + gateway.host + "'")
+                    LOG.debug("Register in '" + gateway.metadata.name +  "' using '"  + gateway.username + "@" + gateway.host + "'")
                     if (gateway.host !== undefined) registerUtil.requestChallenge(gateway.username, gateway.host)
                     if (gateway.registries === undefined) continue
 
                     for (var h of gateway.registries) {
-                        LOG.debug("Login to '" + gateway.metadata.name +  "' using '"  + gateway.username + "@" + h + "'")
+                        LOG.debug("Register in '" + gateway.metadata.name +  "' using '"  + gateway.username + "@" + h + "'")
 
                         registerUtil.requestChallenge(gateway.username, h)
                     }
