@@ -78,7 +78,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     }
 
     function unavailable(request, transaction) {
-        LOG.info("XXXXXXXXXXXX Unable to find contact: " + request.getHeader(ContactHeader.NAME))
+        LOG.debug("Unable to find contact: " + request.getHeader(ContactHeader.NAME))
         transaction.sendResponse(messageFactory.createResponse(Response.NOT_FOUND, request))
     }
 
@@ -87,8 +87,6 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             let requestIn = e.getRequest()
             let routeHeader = requestIn.getHeader(RouteHeader.NAME)
             let proxyHost
-
-            print(requestIn)
 
             // Edge proxy
             if (routeHeader != null) {
@@ -152,67 +150,62 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
         },
 
         processResponse: function (e) {
-            let responseIn = e.getResponse()
-            let statusCode = responseIn.getStatusCode()
+            let rin = e.getResponse()
+            let cseq = rin.getHeader(CSeqHeader.NAME)
 
-            print(responseIn)
-
-            if (responseIn.getStatusCode() == Response.TRYING
-                || statusCode == Response.REQUEST_TERMINATED) return
+            if (rin.getStatusCode() == Response.TRYING || rin.getStatusCode() == Response.REQUEST_TERMINATED) return
+            if (cseq.getMethod().equals(Request.CANCEL)) return
 
             let ct = e.getClientTransaction()
 
-            try {
-                let originalCSeq = ct.getRequest().getHeader(CSeqHeader.NAME)
-                let method = originalCSeq.getMethod()
-
-                if (method.equals(Request.CANCEL)) return
-            } catch(e) {
-            }
-
-            let routeHeader = responseIn.getHeader(RouteHeader.NAME)
-            let proxyHost
-
-            // Edge proxy
-            if (routeHeader != null) {
-                let sipURI = routeHeader.getAddress().getURI()
-                proxyHost = sipURI.getHost()
-            } else {
-                proxyHost = localhost;
-            }
-
-            if (responseIn.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED
-                    || responseIn.getStatusCode() == Response.UNAUTHORIZED) {
+            if (rin.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED || rin.getStatusCode() == Response.UNAUTHORIZED) {
                 let authenticationHelper =
                     sipStack.getAuthenticationHelper(accountManagerService.getAccountManager(), headerFactory)
-                let t = authenticationHelper.handleChallenge(responseIn, ct, sipProvider, 5)
+                let t = authenticationHelper.handleChallenge(rin, ct, e.getSource(), 5)
                 t.sendRequest()
                 return
             }
 
-            let responseOut = responseIn.clone()
+            if (cseq.getMethod().equals(Request.INVITE)) {
+                if (ct != null) {
+                    // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
+                    // However, I'm unable to find the way to cast this object.
+                    //let st = ct.getApplicationData()'
 
-            //if(proxyHost.equals(localhost)) {
-                responseOut.removeFirst(ViaHeader.NAME)
-            //}
+                    // Strip the topmost via header
+                    let rout = rin.clone();
+                    rout.removeFirst(ViaHeader.NAME);
 
-            let i = ctxtList.iterator()
+                    let i = ctxtList.iterator()
+                    while (i.hasNext()) {
+                        let ctxt = i.next()
 
-            let match = false
-            while (i.hasNext()) {
-                let ctxt = i.next()
+                        if (ctxt.clientTrans.equals(ct)) {
+                            // The server tx goes to the terminated state.
+                            ctxt.serverTrans.sendResponse(rout)
+                            break
+                        }
+                    }
+                } else {
+                    // Client tx has already terminated but the UA is retransmitting
+                    // just forward the response statelessly.
+                    // Strip the topmost via header
 
-                if (ctxt.clientTrans.equals(ct)) {
-                    ctxt.serverTrans.sendResponse(responseOut)
-                    match = true
-                    break
+                    let rout = rin.clone();
+                    rout.removeFirst(ViaHeader.NAME);
+                    // Send the retransmission statelessly
+                    let sipProvider = e.getSource();
+                    sipProvider.sendResponse(rout);
                 }
-            }
+            } else {
+                // Can be BYE due to Record-Route
+                LOG.trace("Got a non-invite response " + rin);
+                let sipProvider = e.getSource();
+                rin.removeFirst(ViaHeader.NAME);
 
-            if (!match) {
-                sipProvider.sendResponse(responseOut)
+                // There is no more Via headers; the response was intended for the proxy.
+                if (rin.getHeader(ViaHeader.NAME) != null) sipProvider.sendResponse(rin);
             }
-            LOG.trace(responseOut)
         },
 
         processTransactionTerminated: function (e) {
