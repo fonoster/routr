@@ -6,7 +6,7 @@ Javascript and the JVM (with Nashorn).
 At the moment you can add your sip devices and group them using domains.
 You can also connect with the PSTN using a Sip Gateway.
 
-`Disclaimer: This is an experimental project. I may or not continue
+`Disclaimer: This is an experimental project and I may or not continue
 this work in the future.`
 
 ## Current features include
@@ -56,7 +56,7 @@ may belong to more than one domain.
 Domains can be found at `config/domains.yml`. The example below
 enables communication between all agents at Ocean New York.
 
-```yml
+```yaml
 - kind: Domain
   apiVersion: v1
   metadata:
@@ -67,7 +67,7 @@ enables communication between all agents at Ocean New York.
 Agents can be configured at `config/agents.yml`. In the following example
 agent "John Doe" has access to both domains, Ocean New York and Ocean Texas.
 
-```yml
+```yaml
 - kind: Agent
   apiVersion: v1
   metadata:
@@ -89,7 +89,7 @@ are define at `config/gateways.yml`. The next example shows the configuration
 for a gateway. Sip I/O will register with this Gateway using the parameter 'host'
 and the parameter 'registries'.
 
-```yml
+```yaml
 - kind: Gateway
   apiVersion: v1
   id: '12345'
@@ -108,7 +108,7 @@ You also need to define the DID. An incoming call from a DID will be route
 to an existing agent using the 'contact' parameter. Please examine the 
 following example:
 
-```yml
+```yaml
 - kind: DID
   apiVersion: v1
   metadata:
