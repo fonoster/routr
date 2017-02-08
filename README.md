@@ -1,7 +1,7 @@
 # Sip I/O
 
 Sip I/O is a sip proxy, location server, and registrar built with 
-Javascript over the JVM (with Nashorn). 
+Javascript and the JVM (with Nashorn). 
 
 At the moment you can add your sip devices and group them using domains.
 You can also connect with the PSTN using a Sip Gateway.
