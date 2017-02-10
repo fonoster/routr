@@ -131,6 +131,29 @@ project
 ./sipio
 ```
 
+## Using the commandline tool `sipioctl`
+
+With `sipioctl` you can perform basic operations, such as obtaining a
+list of agents, peers, gateways, or simply show connections available
+in the location service (registry).
+
+```bash
+$ ./sipioctl -h
+usage: sipioctl [-h] COMMAND ...
+
+sipioctl controls the Sip I/O server
+
+optional arguments:
+-h, --help             show this help message and exit
+
+Basic Commands:
+COMMAND
+ get                  Display one or many resources
+ registry (reg)       Shows the gateways status
+
+Find more information at https://github.com/psanders/sip.io
+```
+
 ## License
 
 I'm not sure yet.
