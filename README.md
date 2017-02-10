@@ -17,7 +17,7 @@ Sip server features
 - Registrar service
 - Location service (In-memory)
 - Rest service
-- Commandline tool for basic operations
+- Command line tool for admin operations
 - Access to the PSTN using SIP Gateways
 
 Transport
