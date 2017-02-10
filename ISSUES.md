@@ -1,5 +1,5 @@
 # NAT Issues
 
-Ensure DMZ is setup properly if you are running a Media Server in a 
-local host and trying to communicate with an external IP Phone or 
-Gateway.
+I encounter several issues while testing Sip I/O in my home network. 
+This issues are very common, and can all be solve by properly configure
+the sip device indicating a STUN, ICE, or TURN.

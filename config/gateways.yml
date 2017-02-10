@@ -2,7 +2,6 @@
 # or receive calls from the PSTN
 - kind: Gateway
   apiVersion: v1
-  id: '96170'
   metadata:
     name: DID Logic, Inc
     zone: USA / us1

@@ -17,6 +17,7 @@ Sip server features
 - Registrar service
 - Location service (In-memory)
 - Rest service
+- Commandline tool for basic operations
 - Access to the PSTN using SIP Gateways
 
 Transport
@@ -80,7 +81,8 @@ agent "John Doe" has access to both domains, Ocean New York and Ocean Texas.
 ```
 
 To setup your sip device use information found in `config/agents.yml`.
-Also, you must use the IP of Sip I/O as your OUTBOUND PROXY.
+Also, you must use the IP of Sip I/O as the OUTBOUND PROXY of 
+your sip device.
 
 ## Sending and receiving calls from the PSTN
 

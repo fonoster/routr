@@ -47,7 +47,7 @@ function RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory
             ct.sendRequest()
         } catch(e) {
             if(e instanceof javax.sip.TransactionUnavailableException || e instanceof javax.sip.SipException) {
-                LOG.warn("Peer connection unavailable [peer host = " + peerHost + "]")
+                LOG.warn("Unable to register with gw -> " + peerHost + ". (Verify your network status)")
             } else {
                 LOG.warn(e)
             }

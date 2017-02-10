@@ -6,7 +6,7 @@ load('mod/utils/yaml_converter.js')
 var LOG = LogManager.getLogger()
 
 // This implementation will locate gateways at config/gateways.yml
-function getGwFromConfig(ct) {
+function getGWFromConfig(ct) {
     let gateways = new YamlToJsonConverter().getJson('config/gateways.yml')
     let address = ct.getOriginalRequestContact().getAddress()
     let username = address.toString().split(":")[1].split("@")[0].toString()
@@ -22,7 +22,7 @@ function getGwFromConfig(ct) {
     return null
 }
 
-function AccountManagerService(getGateway = getGwFromConfig) {
+function AccountManagerService(getGateway = getGWFromConfig) {
     this.getAccountManager = function() {
         return new AccountManager() {
             getCredentials: function(challengedTransaction, realm) {

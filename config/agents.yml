@@ -4,7 +4,7 @@
   metadata:
     name: Jhon Doe
   username: jhondoe
-  secret: gJcxzr1v4zXUVXJ3
+  secret: 1234
   domains:
     - ny.ocean.com
     - tx.ocean.com
@@ -13,6 +13,6 @@
   metadata:
     name: Janie Doe
   username: janiedoe
-  secret: gJcxzr1v4zXUVXJ3
+  secret: 4321
   domains:
     - ny.ocean.com

@@ -14,8 +14,13 @@ load('mod/core/processor.js')
 load('mod/core/registry_helper.js')
 load('mod/rest/rest.js')
 
-function Server(locationService, registrarService, accountManagerService, config, getGateways = getGatewaysFromConfig,
-    getPeers = getPeersFromConfig, getDIDs = getDIDsFromConfig, getAgents = getAgentsFromConfig) {
+function Server(locationService, registrarService, accountManagerService, config,
+    getGateways = getGatewaysFromConfig,
+    getPeers = getPeersFromConfig,
+    getDIDs = getDIDsFromConfig,
+    getAgents = getAgentsFromConfig,
+    getDomains = getDomainsFromConfig) {
+
     let LOG = LogManager.getLogger()
 
     // Registration with gateways expire in 5 minutes, so we will re-register in 4
@@ -27,6 +32,7 @@ function Server(locationService, registrarService, accountManagerService, config
         let gateways = getGateways()
         let dids = getDIDs()
         let peers = getPeers()
+        let domains = getDomains()
         let agents = getAgents()
 
         let properties = new Properties()
@@ -90,7 +96,7 @@ function Server(locationService, registrarService, accountManagerService, config
 
         new java.util.Timer().schedule(registerTask, 5000, proRegExp * 60 * 1000);
 
-        new RestService(locationService, gateways, peers, agents, dids).start()
+        new RestService(locationService, gateways, dids, domains, agents, peers, config).start()
     }
 }
 
@@ -110,3 +116,6 @@ function getPeersFromConfig() {
     return new YamlToJsonConverter().getJson('config/peers.yml')
 }
 
+function getDomainsFromConfig() {
+    return new YamlToJsonConverter().getJson('config/domains.yml')
+}

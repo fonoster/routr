@@ -2,5 +2,7 @@ bindAddress: 0.0.0.0
 port: 5070
 proto: "udp"
 traceLevel: 0 # SIP stack logs
-tlsCert: cert/sip.io.cert      # Not yet implemented
-tlsCas: cert/sip.io.crt        # Not yet implemented
+rest:
+  port: 4567
+  username: admin
+  password: 1234
