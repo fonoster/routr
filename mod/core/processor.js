@@ -13,14 +13,16 @@ var LogManager          = Java.type('org.apache.logging.log4j.LogManager')
 
 load("mod/core/context.js")
 load("mod/utils/auth_helper.js")
+load("mod/utils/acl_helper.js")
 
 function Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
-    registrarService, accountManagerService, config) {
+    registrarService, accountManagerService, getDomains, config) {
 
     let LOG = LogManager.getLogger()
     let ctxtList = new java.util.ArrayList()
     let localhost = InetAddress.getLocalHost().getHostAddress()
     let authHelper =  new AuthHelper(headerFactory)
+    let defaultDomainAcl = config.defaultDomainAcl
 
     function register(request, transaction) {
         let toHeader = request.getHeader(ToHeader.NAME)
@@ -57,16 +59,16 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
         while (iterator.hasNext()) {
             let ctxt = iterator.next()
-            if (ctxt.serverTrans.getBranchId()
+            if (ctxt.st.getBranchId()
                 .equals(st.getBranchId())) {
 
-                let originRequest = ctxt.requestIn
+                let originRequest = ctxt.rin
                 let originResponse = messageFactory.createResponse(Response.REQUEST_TERMINATED, originRequest)
                 let cancelResponse = messageFactory.createResponse(Response.OK, request)
-                let cancelRequest = ctxt.clientTrans.createCancel()
+                let cancelRequest = ctxt.ct.createCancel()
                 let ct = sipProvider.getNewClientTransaction(cancelRequest)
 
-                ctxt.serverTrans.sendResponse(originResponse)
+                ctxt.st.sendResponse(originResponse)
                 st.sendResponse(cancelResponse)
                 ct.sendRequest()
 
@@ -82,11 +84,21 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
         transaction.sendResponse(messageFactory.createResponse(Response.NOT_FOUND, request))
     }
 
+    function reject(request, transaction) {
+        LOG.debug("Connection rejected: " + request.getHeader(ContactHeader.NAME))
+        transaction.sendResponse(messageFactory.createResponse(Response.UNAUTHORIZED, request))
+    }
+
     this.listener = new SipListener() {
         processRequest: function (e)    {
-            let requestIn = e.getRequest()
-            let routeHeader = requestIn.getHeader(RouteHeader.NAME)
+            let rin = e.getRequest()
+            let method = rin.getMethod()
+            let st = e.getServerTransaction()
+            let routeHeader = rin.getHeader(RouteHeader.NAME)
             let proxyHost
+            let tgtURI = rin.getRequestURI()
+            let contactHeader = rin.getHeader(ContactHeader.NAME)
+            let contactURI = contactHeader.getAddress().getURI()
 
             // Edge proxy
             if (routeHeader != null) {
@@ -96,56 +108,60 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 proxyHost = localhost;
             }
 
-            let method = requestIn.getMethod()
-            let st = e.getServerTransaction()
-
             if (st == null) {
-                st = sipProvider.getNewServerTransaction(requestIn)
+                st = sipProvider.getNewServerTransaction(rin)
+            }
+
+            // Should generate a security exception if return null
+            let domain = findDomain(getDomains(), tgtURI.getHost())
+
+            if(!new DomainUtil(domain, defaultDomainAcl).isDomainAllow(domain, contactURI.getHost())) {
+                LOG.trace("Host " + contactURI.getHost() + " has been rejected by " + domain.uri)
+                reject(rin, st)
             }
 
             if (method.equals(Request.REGISTER)) {
-                register(requestIn, st)
+                register(rin, st)
             } else if(method.equals(Request.CANCEL)) {
-                cancel(requestIn, st)
+                cancel(rin, st)
             } else if(method.equals(Request.OPTIONS)) {
                 // WARNING: NOT YET IMPLEMENTED
             } else {
-                let requestOut = requestIn.clone()
-                let tgtURI = requestIn.getRequestURI()
+                let rout = rin.clone()
 
                 // Last proxy in route
                 if (proxyHost.equals(localhost)) {
                     let viaHeader = headerFactory.createViaHeader(proxyHost, config.port, config.proto, null)
-                    requestOut.removeFirst(RouteHeader.NAME)
-                    requestOut.addFirst(viaHeader)
+                    rout.removeFirst(RouteHeader.NAME)
+                    rout.addFirst(viaHeader)
                 }
 
                 let uri = locationService.get(tgtURI)
 
                 if (uri == null) {
-                    unavailable(requestIn, st)
+                    unavailable(rin, st)
                     return
                 }
 
-                requestOut.setRequestURI(uri)
+                rout.setRequestURI(uri)
 
                 // Not need transaction
                 if(method.equals(Request.ACK)) {
-                    sipProvider.sendRequest(requestOut)
+                    sipProvider.sendRequest(rout)
                 } else {
-                    let ct = sipProvider.getNewClientTransaction(requestOut)
+                    let ct = sipProvider.getNewClientTransaction(rout)
                     ct.sendRequest()
 
                     // Transaction context
                     let ctxt = new Context()
-                    ctxt.clientTrans = ct
-                    ctxt.serverTrans = st
+                    ctxt.ct = ct
+                    ctxt.st = st
                     ctxt.method = method
-                    ctxt.requestIn = requestIn
-                    ctxt.requestOut = requestOut
+                    ctxt.rin = rin
+                    ctxt.rout = rout
                     ctxtList.add(ctxt)
                 }
-                LOG.trace(requestOut)
+                LOG.trace(rout)
             }
         },
 
@@ -180,9 +196,9 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                     while (i.hasNext()) {
                         let ctxt = i.next()
 
-                        if (ctxt.clientTrans.equals(ct)) {
+                        if (ctxt.ct.equals(ct)) {
                             // The server tx goes to the terminated state.
-                            ctxt.serverTrans.sendResponse(rout)
+                            ctxt.st.sendResponse(rout)
                             break
                         }
                     }
@@ -216,7 +232,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 while (i.hasNext()) {
                     let ctxt = i.next()
 
-                    if (ctxt.serverTrans.equals(st)) {
+                    if (ctxt.st.equals(st)) {
                         i.remove()
                         break
                     } else {
@@ -233,5 +249,45 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
         processTimeout: function (e) {
             LOG.info("#processTimeout not yet implemented")
         }
+    }
+}
+
+function findDomain(domains, uri) {
+    let domain = null
+    domains.forEach(function(d) {
+        if (d.uri.equals(uri)) {
+            domain = d
+        }
+    })
+    return domain
+}
+
+function DomainUtil(domain, defaultDomainAcl) {
+    let rules = new java.util.ArrayList()
+
+    function addRules(acl) {
+        if (acl === undefined || acl == null) return
+        if (acl.deny === undefined && acl.allow === undefined) return
+
+        if (acl.deny !== undefined) {
+            acl.deny.forEach(function(r) {
+                rules.add(new Rule("deny", r))
+            })
+        }
+
+        if (acl.allow !== undefined) {
+            acl.allow.forEach(function(r) {
+                rules.add(new Rule("allow", r))
+            })
+        }
+    }
+
+    this.isDomainAllow = function (domain, calleeIp) {
+        if (domain == null) return false
+
+        if(defaultDomainAcl !== undefined) addRules(defaultDomainAcl)
+        if(domain.acl !== undefined) addRules(domain.acl)
+
+        return new ACLHelper().mostSpecific(rules, calleeIp).getAction() == "allow"
     }
 }

@@ -70,7 +70,7 @@ function Server(locationService, registrarService, accountManagerService, config
         }
 
         let processor = new Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader,
-            locationService, registrarService, accountManagerService, config)
+            locationService, registrarService, accountManagerService, getDomains, config)
 
         sipProvider.addSipListener(processor.listener)
 

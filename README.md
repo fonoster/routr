@@ -27,8 +27,7 @@ Transport
 Security
 
 - Digest SIP User authentication
-- Domain security via ACL (Work in-progress)
-- I'm working on implementing TLS
+- Domain Access Control List (DACL)
 
 ## Requirement
 
@@ -131,7 +130,7 @@ project
 ./sipio
 ```
 
-## Using the commandline tool `sipioctl`
+## Using the command line tool `sipioctl`
 
 With `sipioctl` you can perform basic operations, such as obtaining a
 list of agents, peers, gateways, or simply show connections available

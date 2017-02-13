@@ -1,8 +1,8 @@
 // Transaction context
 function Context() {
-    this.clientTrans
-    this.serverTrans
+    this.ct     # Client transaction
+    this.st     # Server transaction
     this.method
-    this.requestIn
-    this.requestOut
+    this.rin
+    this.rout
 }

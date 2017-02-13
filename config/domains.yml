@@ -4,13 +4,13 @@
     name: New York Office
   uri: ny.ocean.com
   acl:
-    - 192.168.1.6
-    - 192.168.1.12
+    allow:
+      - 71.92.60.0/24
 - kind: Domain
   apiVersion: v1
   metadata:
     name: Texas Office
   uri:  tx.ocean.com
   acl:
-    - 192.168.1.6
-    - 192.168.1.12
+    allow:
+      - 71.92.60.0/24

@@ -1,6 +1,6 @@
-load("mod/core/inmemory_location_service.js")
-load("mod/core/account_manager_service.js")
-load("mod/core/registrar.js")
+load('mod/core/inmemory_location_service.js')
+load('mod/core/account_manager_service.js')
+load('mod/core/registrar.js')
 load('mod/core/server.js')
 load('mod/utils/yaml_converter.js')
 
