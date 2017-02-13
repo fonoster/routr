@@ -1,7 +1,10 @@
 bindAddress: 0.0.0.0
 port: 5070
 proto: "udp"
-traceLevel: 0 # SIP stack logs
+traceLevel: 10 # SIP stack logs
+defaultDomainAcl:
+  deny:
+    - 0.0.0.0/1
 rest:
   port: 4567
   username: admin
