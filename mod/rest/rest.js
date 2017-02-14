@@ -8,28 +8,29 @@ function RestService(locationService, gateways, dids, domains, agents, peers, co
     let credentials = config.rest
     Spark.port(config.rest.port)
     Spark.before(new BasicAuthenticationFilter("/*", new AuthenticationDetails(credentials.username, credentials.password)))
+    let get = Spark.get
 
-    Spark.get('/registry', function(request, response) {
+    get('/registry', function(request, response) {
         return locationService.listAllAsJSON()
     });
 
-    Spark.get('/gateways', function(request, response) {
+    get('/gateways', function(request, response) {
         return JSON.stringify(gateways)
     });
 
-    Spark.get('/peers', function(request, response) {
+    get('/peers', function(request, response) {
         return JSON.stringify(peers)
     });
 
-    Spark.get('/agents', function(request, response) {
+    get('/agents', function(request, response) {
         return JSON.stringify(agents)
     });
 
-    Spark.get('/domains', function(request, response) {
+    get('/domains', function(request, response) {
         return JSON.stringify(domains)
     });
 
-    Spark.get('/dids', function(request, response) {
+    get('/dids', function(request, response) {
         return JSON.stringify(dids)
     });
 
