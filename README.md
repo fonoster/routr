@@ -115,6 +115,7 @@ following example:
   metadata:
     city: Santiago
     country: Dominican Rep.
+    countryCode: DO
   e164num: 18296072077
   contact: 'sip:johndoe@ny.ocean.com'
 ```
@@ -153,6 +154,12 @@ COMMAND
 Find more information at https://github.com/psanders/sip.io
 ```
 
-## License
+## Author
+* [Pedro Sanders](https://github.com/psanders)
 
-I'm not sure yet.
+Contributions
+* Please see [Contribution Documents](https://github.com/psanders/sip.io/blob/master/CONTRIBUTING.md)
+* [Contributors](https://github.com/psanders/sip.io/graphs/contributors)
+
+## Copyright
+Copyright (C) 2017 by [Pedro Sanders](https://github.com/psanders). MIT License (see [LICENSE](https://github.com/psanders/sip.io/blob/master/LICENSE) for details).
