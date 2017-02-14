@@ -8,6 +8,6 @@ function getDomainsCmd(id) {
 
     domains.forEach(function(d) {
         if (id.equals("none") || d.uri.equals(id))
-            out.printf("%-20s %-20s %-15s\n", d.metadata.name, d.uri, d.acl.join())
+            out.printf("%-20s %-20s %-15s\n", d.metadata.name, d.uri, "allow: " + JSON.stringify(d.acl.allow) + " deny: " + JSON.stringify(d.acl.allow))
     })
 }

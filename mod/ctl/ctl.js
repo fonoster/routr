@@ -48,6 +48,7 @@ try {
         cmdShowRegistry()
     }
 } catch(e) {
+    print(e)
     parser.handleError(e)
     exit(1)
 }
