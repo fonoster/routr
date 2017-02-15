@@ -27,6 +27,7 @@ getEpilog=
 get.epilog(getEpilog)
 
 subparsers.addParser('registry').aliases(['reg']).help('Shows the gateways status')
+subparsers.addParser('stop').help('Stops server')
 
 load('mod/ctl/get_agents.js')
 load('mod/ctl/get_dids.js')
@@ -34,6 +35,7 @@ load('mod/ctl/get_domains.js')
 load('mod/ctl/get_gateways.js')
 load('mod/ctl/get_peers.js')
 load('mod/ctl/cmd_registry.js')
+load('mod/ctl/cmd_stop.js')
 
 try {
     let arg = arguments
@@ -49,6 +51,8 @@ try {
         if (res.get('resource').match('peer')) getPeersCmd(res.get('ID'))
     } else if (arg[0] == 'registry' || arg[0] == 'reg') {
         cmdShowRegistry()
+    } else if (arg[0] == 'stop') {
+        cmdStop()
     }
 } catch(e) {
     print(e)

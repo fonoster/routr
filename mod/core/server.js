@@ -18,6 +18,8 @@ function Server(locationService, registrarService, accountManagerService, config
     const Properties = Packages.java.util.Properties
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
+    let restService
+    let sipStack
 
     // Registration with gateways expire in 5 minutes, so we will re-register in 4
     const proRegExp = 4
@@ -42,7 +44,8 @@ function Server(locationService, registrarService, accountManagerService, config
         properties.setProperty("gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS", "false");
         properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", config.traceLevel);
 
-        const sipStack = sipFactory.createSipStack(properties)
+        sipStack = sipFactory.createSipStack(properties)
+
         const messageFactory = sipFactory.createMessageFactory()
         const headerFactory = sipFactory.createHeaderFactory()
         const addressFactory = sipFactory.createAddressFactory()
@@ -74,12 +77,12 @@ function Server(locationService, registrarService, accountManagerService, config
             run: function() {
                 const gateways = getGateways()
                 for (var gateway of gateways) {
-                    LOG.debug("Register in '" + gateway.metadata.name +  "' using '"  + gateway.username + "@" + gateway.host + "'")
+                    LOG.debug('Register in [' + gateway.metadata.name +  '] using ['  + gateway.username + "@" + gateway.host + ']')
                     if (gateway.host !== undefined) registerUtil.requestChallenge(gateway.username, gateway.host)
                     if (gateway.registries === undefined) continue
 
                     for (var h of gateway.registries) {
-                        LOG.debug("Register in '" + gateway.metadata.name +  "' using '"  + gateway.username + "@" + h + "'")
+                        LOG.debug('Register in [' + gateway.metadata.name +  '] using ['  + gateway.username + "@" + h + ']')
 
                         registerUtil.requestChallenge(gateway.username, h)
                     }
@@ -89,6 +92,14 @@ function Server(locationService, registrarService, accountManagerService, config
 
         new java.util.Timer().schedule(registerTask, 5000, proRegExp * 60 * 1000);
 
-        new RestService(locationService, gateways, dids, domains, agents, peers, config).start()
+        restService = new RestService(this, locationService, gateways, dids, domains, agents, peers, config)
+        restService.start()
+    }
+
+    this.stop = () => {
+        LOG.info('Stopping server')
+        restService.stop()
+        sipStack.stop()
+        exit(0)
     }
 }
