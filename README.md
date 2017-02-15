@@ -31,12 +31,17 @@ Security
 
 ## Requirement
 
-* Java 1.9+
+* Java 1.9 +
 * Gradle
+
+Why Java 9? As I mentioned before this is an experimental project. My
+objective is to test Nashorn Javascript Engine, and more specifically 
+the ES6 features, in a real life scenario. These features are only 
+available in latest and greatest version of Java.
 
 ## Installation
 
-To download repo and get the dependencies
+Run the following commands to download repository and get the dependencies
 
 ```bash
 git clone https://github.com/psanders/sip.io.git
