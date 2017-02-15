@@ -1,3 +1,7 @@
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
 load('mod/core/acl_rule.js')
 
 /**
@@ -14,19 +18,16 @@ load('mod/core/acl_rule.js')
  *    - 192.168.0.1/31
  */
 function ACLHelper() {
-    var LogManager  = Java.type('org.apache.logging.log4j.LogManager')
-    let LOG = LogManager.getLogger()
+    const LogManager = Packages.org.apache.logging.log4j.LogManager
+    const LOG = LogManager.getLogger()
 
-    this.mostSpecific = function(rules, ip) {
+    this.mostSpecific = (rules, ip) => {
         try {
-            let r = rules
+            const r = rules
                 .stream()
-                .filter(function(rule) {
-                    return rule.hasIp(ip)
-                })
-                .sorted(function(r1, r2){
-                    return java.lang.Integer.compare(r2.getAddressCount(), r1.getAddressCount())
-                }).findFirst()
+                .filter(rule => rule.hasIp(ip))
+                .sorted((r1, r2) => java.lang.Integer.compare(r2.getAddressCount(), r1.getAddressCount()))
+                .findFirst()
             return r.get()
         } catch (e) {
             if (e instanceof java.util.NoSuchElementException) {

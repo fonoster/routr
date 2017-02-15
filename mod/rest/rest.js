@@ -1,41 +1,29 @@
-var Spark                     = Java.type('spark.Spark')
-var LogManager                = Java.type('org.apache.logging.log4j.LogManager')
-var BasicAuthenticationFilter = Java.type('com.qmetric.spark.authentication.BasicAuthenticationFilter')
-var AuthenticationDetails     = Java.type('com.qmetric.spark.authentication.AuthenticationDetails')
-
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
 function RestService(locationService, gateways, dids, domains, agents, peers, config) {
-    let LOG = LogManager.getLogger()
-    let credentials = config.rest
+    const Spark = Packages.spark.Spark
+    const LogManager = Packages.org.apache.logging.log4j.LogManager
+    const BasicAuthenticationFilter = Packages.com.qmetric.spark.authentication.BasicAuthenticationFilter
+    const AuthenticationDetails = Packages.com.qmetric.spark.authentication.AuthenticationDetails
+    const LOG = LogManager.getLogger()
+    const credentials = config.rest
+
     Spark.port(config.rest.port)
-    Spark.before(new BasicAuthenticationFilter("/*", new AuthenticationDetails(credentials.username, credentials.password)))
-    let get = Spark.get
+    Spark.before(new BasicAuthenticationFilter('/*', new AuthenticationDetails(credentials.username, credentials.password)))
 
-    get('/registry', function(request, response) {
-        return locationService.listAllAsJSON()
-    });
+    const get = Spark.get
 
-    get('/gateways', function(request, response) {
-        return JSON.stringify(gateways)
-    });
+    get('/registry', (request, response) => locationService.listAllAsJSON())
+    get('/gateways', (request, response) => JSON.stringify(gateways))
+    get('/peers', (request, response) => JSON.stringify(peers))
+    get('/agents', (request, response) =>JSON.stringify(agents))
+    get('/domains', (request, response) => JSON.stringify(domains))
+    get('/dids', (request, response) => JSON.stringify(dids))
 
-    get('/peers', function(request, response) {
-        return JSON.stringify(peers)
-    });
-
-    get('/agents', function(request, response) {
-        return JSON.stringify(agents)
-    });
-
-    get('/domains', function(request, response) {
-        return JSON.stringify(domains)
-    });
-
-    get('/dids', function(request, response) {
-        return JSON.stringify(dids)
-    });
-
-    this.start = function() {
-        LOG.info("Starting Restful service on port " + config.rest.port)
+    this.start = () => {
+        LOG.info('Starting Restful service on port ' + config.rest.port)
         java.lang.Thread.currentThread().join();
     }
 }

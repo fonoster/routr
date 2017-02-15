@@ -1,31 +1,14 @@
-var LogManager = Java.type('org.apache.logging.log4j.LogManager')
-
-load('mod/utils/yaml_converter.js')
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
+load('mod/core/resources.js')
 load('mod/utils/auth_helper.js')
 
-// This implementation will locate agents or peers at config/agents.yml or config/peers.yml
-function getUserFromConfig(username) {
-    let agents = new YamlToJsonConverter().getJson('config/agents.yml')
-    let peers = new YamlToJsonConverter().getJson('config/peers.yml')
-
-    for (var peer of peers) {
-        if (peer.username === username) {
-            return peer
-        }
-    }
-
-    for (var agent of agents) {
-        if (agent.username === username) {
-            return agent
-        }
-    }
-
-    return null
-}
-
 function RegistrarService(location, getUser = getUserFromConfig) {
-    let authHelper = new AuthHelper()
-    let LOG = LogManager.getLogger()
+    const LogManager = Packages.org.apache.logging.log4j.LogManager
+    const LOG = LogManager.getLogger()
+    const authHelper = new AuthHelper()
 
     function hasDomain(user, domain) {
         for (var d of user.domains) {
@@ -35,8 +18,8 @@ function RegistrarService(location, getUser = getUserFromConfig) {
     }
 
     function getNonceCount(d) {
-        let h = Java.type("java.lang.Integer").toHexString(d)
-        let cSize = 8 - h.toString().length() 
+        const h = Java.type("java.lang.Integer").toHexString(d)
+        const cSize = 8 - h.toString().length()
         let nc = ''
         let cnt = 0
 
@@ -48,11 +31,11 @@ function RegistrarService(location, getUser = getUserFromConfig) {
         return nc + h
     }
 
-    this.register = function(authHeader, uriDomain, contactURI) {
+    this.register = (authHeader, uriDomain, contactURI) => {
         // Get response from header
-        let response = authHeader.getResponse()
+        const response = authHeader.getResponse()
         // Get username and password from "db:
-        let user = getUser(authHeader.getUsername())
+        const user = getUser(authHeader.getUsername())
 
         if (user == null) {
             LOG.info("Could not find user or peer '" + authHeader.getUsername() + "'")
@@ -66,7 +49,7 @@ function RegistrarService(location, getUser = getUserFromConfig) {
             return false
         }
 
-        let aHeaderJson = {
+        const aHeaderJson = {
             username: authHeader.getUsername(),
             password: user.secret,
             realm: authHeader.getRealm(),
@@ -86,7 +69,7 @@ function RegistrarService(location, getUser = getUserFromConfig) {
                     contactURI.setHost(user.host)
                 }
 
-                let endpoint = "sip:" + authHeader.getUsername() + "@" + uriDomain
+                const endpoint = "sip:" + authHeader.getUsername() + "@" + uriDomain
                 location.put(endpoint, contactURI)
 
                 LOG.debug("The endpoint " + endpoint + " is " + contactURI + " in Sip I/O")
@@ -94,7 +77,7 @@ function RegistrarService(location, getUser = getUserFromConfig) {
                 for (var domain of user.domains) {
                     // TODO: Find a better way to get this value
                     // This could be "sips" or other protocol
-                    let endpoint = "sip:" + authHeader.getUsername() + "@" + domain
+                    const endpoint = "sip:" + authHeader.getUsername() + "@" + domain
                     location.put(endpoint, contactURI)
                     LOG.debug("The endpoint " + endpoint + " is " + contactURI + " in Sip I/O")
                 }

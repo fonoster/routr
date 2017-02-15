@@ -1,22 +1,25 @@
-var YAMLFactory  = Java.type('com.fasterxml.jackson.dataformat.yaml.YAMLFactory')
-var ObjectMapper = Java.type('com.fasterxml.jackson.databind.ObjectMapper')
-var Files        = Java.type('java.nio.file.Files')
-var Paths        = Java.type('java.nio.file.Paths')
-
-function readFile (path) {
-    var lines = Files.readAllLines(Paths.get(path), Java.type('java.nio.charset.StandardCharsets').UTF_8)
-    var data = []
-    lines.forEach(function(line) { data.push(line) })
-    return data.join("\n")
-}
-
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
 function YamlToJsonConverter() {
-    this.getJson = function(yamlFile) {
-        let yaml = readFile(yamlFile)
-        let yamlReader = new ObjectMapper(new YAMLFactory())
-        let obj = yamlReader.readValue(yaml, Java.type('java.lang.Object').class)
+    const YAMLFactory = Packages.com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+    const ObjectMapper = Packages.com.fasterxml.jackson.databind.ObjectMapper
 
-        let jsonWriter = new ObjectMapper()
+    function readFile (path) {
+        const Files = Packages.java.nio.file.Files
+        const Paths = Packages.java.nio.file.Paths
+        const lines = Files.readAllLines(Paths.get(path), Java.type('java.nio.charset.StandardCharsets').UTF_8)
+        const data = []
+        lines.forEach(line => { data.push(line) })
+        return data.join('\n')
+    }
+
+    this.getJson = yamlFile => {
+        const yaml = readFile(yamlFile)
+        const yamlReader = new ObjectMapper(new YAMLFactory())
+        const obj = yamlReader.readValue(yaml, Java.type('java.lang.Object').class)
+        const jsonWriter = new ObjectMapper()
         return JSON.parse(jsonWriter.writeValueAsString(obj))
     }
 }

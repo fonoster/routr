@@ -1,17 +1,20 @@
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
 load('mod/core/inmemory_location_service.js')
 load('mod/core/account_manager_service.js')
 load('mod/core/registrar.js')
 load('mod/core/server.js')
 load('mod/utils/yaml_converter.js')
 
-let config = new YamlToJsonConverter().getJson('config/config.yml')
+const config = new YamlToJsonConverter().getJson('config/config.yml')
+
+const InetAddress = Packages.java.net.InetAddress
 config.ip = InetAddress.getLocalHost().getHostAddress()
 
-// This a an in-memory/in-file service implementation. You may use them as reference to create your own
-// implementation. For example you may replace the location service implementation to use a database instead of
-// in-memory. The same is true for other services.
-let location = new LocationService()
-let registrar = new RegistrarService(location)
-let accountManager = new AccountManagerService();
+const location = new LocationService()
+const registrar = new RegistrarService(location)
+const accountManager = new AccountManagerService();
 
 new Server(location, registrar, accountManager, config).start()

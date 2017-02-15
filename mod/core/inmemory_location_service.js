@@ -1,33 +1,29 @@
-var HashMap    = Java.type('java.util.HashMap')
-var LogManager = Java.type('org.apache.logging.log4j.LogManager')
-
-// In memory location service
+/**
+ * Stores information on sip devices currently registered in the server.
+ * This implementation won't scale to thousands of devices.
+ *
+ * @author Pedro Sanders
+ * @since v1
+ */
 function LocationService() {
-    var LOG = LogManager.getLogger()
-    var db = new HashMap()
+    const HashMap = Packages.java.util.HashMap
+    const LogManager = Packages.org.apache.logging.log4j.LogManager
+    const LOG = LogManager.getLogger()
+    const db = new HashMap()
 
-    this.put = function (k, v) {
-        db.put(k.toString(), v)
-    }
+    this.put = (k, v) => { db.put(k.toString(), v) }
 
-    this.get = function(k) {
-        return db.get(k.toString())
-    }
+    this.get = k => db.get(k.toString())
 
-    this.remove = function(k) {
-        db.remove(k)
-    }
+    this.remove = k => { db.remove(k) }
 
-    this.listAllAsJSON = function () {
+    this.listAllAsJSON = () => {
         let s = []
         let k = db.keySet().iterator()
 
         while(k.hasNext()) {
             let key = k.next()
-            let tmp = {
-                'endpoint': key,
-                'contact': db.get(key).toString()
-            }
+            let tmp = {'endpoint': key, 'contact': db.get(key).toString()}
             s.push(tmp)
         }
 

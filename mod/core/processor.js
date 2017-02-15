@@ -1,16 +1,7 @@
-// Define imports
-var SipListener         = Java.type('javax.sip.SipListener')
-var Request             = Java.type('javax.sip.message.Request')
-var Response            = Java.type('javax.sip.message.Response')
-var RouteHeader         = Java.type('javax.sip.header.RouteHeader')
-var ToHeader            = Java.type('javax.sip.header.ToHeader')
-var ContactHeader       = Java.type('javax.sip.header.ContactHeader')
-var ExpiresHeader       = Java.type('javax.sip.header.ExpiresHeader')
-var ViaHeader           = Java.type('javax.sip.header.ViaHeader')
-var CSeqHeader          = Java.type('javax.sip.header.CSeqHeader')
-var AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
-var LogManager          = Java.type('org.apache.logging.log4j.LogManager')
-
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
 load("mod/core/context.js")
 load("mod/utils/auth_helper.js")
 load("mod/utils/acl_helper.js")
@@ -18,35 +9,47 @@ load("mod/utils/acl_helper.js")
 function Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
     registrarService, accountManagerService, getDomains, config) {
 
-    let LOG = LogManager.getLogger()
-    let ctxtList = new java.util.ArrayList()
-    let localhost = InetAddress.getLocalHost().getHostAddress()
-    let authHelper =  new AuthHelper(headerFactory)
-    let defaultDomainAcl = config.defaultDomainAcl
+    const SipListener = Packages.javax.sip.SipListener
+    const Request = Packages.javax.sip.message.Request
+    const Response = Packages.javax.sip.message.Response
+    const RouteHeader = Packages.javax.sip.header.RouteHeader
+    const ToHeader = Packages.javax.sip.header.ToHeader
+    const ContactHeader = Packages.javax.sip.header.ContactHeader
+    const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
+    const ViaHeader = Packages.javax.sip.header.ViaHeader
+    const CSeqHeader = Packages.javax.sip.header.CSeqHeader
+    const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
+    const LogManager = Packages.org.apache.logging.log4j.LogManager
+
+    const LOG = LogManager.getLogger()
+    const ctxtList = new java.util.ArrayList()
+    const localhost = InetAddress.getLocalHost().getHostAddress()
+    const authHelper =  new AuthHelper(headerFactory)
+    const defaultDomainAcl = config.defaultDomainAcl
 
     function register(request, transaction) {
-        let toHeader = request.getHeader(ToHeader.NAME)
-        let toURI = toHeader.getAddress().getURI()
-        let toDomain = toHeader.getAddress().getURI().getHost()
-        let contactHeader = request.getHeader(ContactHeader.NAME)
-        let contactURI = contactHeader.getAddress().getURI()
-        let expH = request.getHeader(ExpiresHeader.NAME)
-        let authHeader = request.getHeader(AuthorizationHeader.NAME)
+        const toHeader = request.getHeader(ToHeader.NAME)
+        const toURI = toHeader.getAddress().getURI()
+        const toDomain = toHeader.getAddress().getURI().getHost()
+        const contactHeader = request.getHeader(ContactHeader.NAME)
+        const contactURI = contactHeader.getAddress().getURI()
+        const expH = request.getHeader(ExpiresHeader.NAME)
+        const authHeader = request.getHeader(AuthorizationHeader.NAME)
 
         if (authHeader == null) {
-            let unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
+            const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
             unauthorized.addHeader(authHelper.generateChallenge())
             transaction.sendResponse(unauthorized)
             LOG.trace(unauthorized)
         } else {
             if (registrarService.register(authHeader, toDomain, contactURI)) {
-                let ok = messageFactory.createResponse(Response.OK, request)
+                const ok = messageFactory.createResponse(Response.OK, request)
                 ok.addHeader(contactHeader)
                 ok.addHeader(expH)
                 transaction.sendResponse(ok)
                 LOG.trace("\n" + ok)
             } else {
-                let unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
+                const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
                 unauthorized.addHeader(authHelper.generateChallenge(headerFactory))
                 transaction.sendResponse(unauthorized)
                 LOG.trace(unauthorized)
@@ -55,10 +58,10 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     }
 
     function cancel(request, st) {
-        let iterator = ctxtList.iterator()
+        const iterator = ctxtList.iterator()
 
         while (iterator.hasNext()) {
-            let ctxt = iterator.next()
+            const ctxt = iterator.next()
             if (ctxt.st.getBranchId()
                 .equals(st.getBranchId())) {
 
@@ -90,19 +93,20 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     }
 
     this.listener = new SipListener() {
-        processRequest: function (e)    {
-            let rin = e.getRequest()
-            let method = rin.getMethod()
+        processRequest: e => {
+            const rin = e.getRequest()
+            const method = rin.getMethod()
+            const routeHeader = rin.getHeader(RouteHeader.NAME)
+            const tgtURI = rin.getRequestURI()
+            const contactHeader = rin.getHeader(ContactHeader.NAME)
+            const contactURI = contactHeader.getAddress().getURI()
+
             let st = e.getServerTransaction()
-            let routeHeader = rin.getHeader(RouteHeader.NAME)
             let proxyHost
-            let tgtURI = rin.getRequestURI()
-            let contactHeader = rin.getHeader(ContactHeader.NAME)
-            let contactURI = contactHeader.getAddress().getURI()
 
             // Edge proxy
             if (routeHeader != null) {
-                let sipURI = routeHeader.getAddress().getURI()
+                const sipURI = routeHeader.getAddress().getURI()
                 proxyHost = sipURI.getHost()
             } else {
                 proxyHost = localhost;
@@ -113,7 +117,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             }
 
             // Should generate a security exception if return null
-            let domain = findDomain(getDomains(), tgtURI.getHost())
+            const domain = findDomain(getDomains(), tgtURI.getHost())
 
             if(!new DomainUtil(domain, defaultDomainAcl).isDomainAllow(domain, contactURI.getHost())) {
                 LOG.trace("Host " + contactURI.getHost() + " has been rejected by " + domain.uri)
@@ -124,19 +128,17 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 register(rin, st)
             } else if(method.equals(Request.CANCEL)) {
                 cancel(rin, st)
-            } else if(method.equals(Request.OPTIONS)) {
-                // WARNING: NOT YET IMPLEMENTED
             } else {
-                let rout = rin.clone()
+                const rout = rin.clone()
 
                 // Last proxy in route
                 if (proxyHost.equals(localhost)) {
-                    let viaHeader = headerFactory.createViaHeader(proxyHost, config.port, config.proto, null)
+                    const viaHeader = headerFactory.createViaHeader(proxyHost, config.port, config.proto, null)
                     rout.removeFirst(RouteHeader.NAME)
                     rout.addFirst(viaHeader)
                 }
 
-                let uri = locationService.get(tgtURI)
+                const uri = locationService.get(tgtURI)
 
                 if (uri == null) {
                     unavailable(rin, st)
@@ -149,11 +151,11 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 if(method.equals(Request.ACK)) {
                     sipProvider.sendRequest(rout)
                 } else {
-                    let ct = sipProvider.getNewClientTransaction(rout)
+                    const ct = sipProvider.getNewClientTransaction(rout)
                     ct.sendRequest()
 
                     // Transaction context
-                    let ctxt = new Context()
+                    const ctxt = new Context()
                     ctxt.ct = ct
                     ctxt.st = st
                     ctxt.method = method
@@ -165,14 +167,14 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             }
         },
 
-        processResponse: function (e) {
-            let rin = e.getResponse()
-            let cseq = rin.getHeader(CSeqHeader.NAME)
+        processResponse: e => {
+            const rin = e.getResponse()
+            const cseq = rin.getHeader(CSeqHeader.NAME)
 
             if (rin.getStatusCode() == Response.TRYING || rin.getStatusCode() == Response.REQUEST_TERMINATED) return
             if (cseq.getMethod().equals(Request.CANCEL)) return
 
-            let ct = e.getClientTransaction()
+            const ct = e.getClientTransaction()
 
             if (rin.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED || rin.getStatusCode() == Response.UNAUTHORIZED) {
                 let authenticationHelper =
@@ -189,12 +191,12 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                     //let st = ct.getApplicationData()'
 
                     // Strip the topmost via header
-                    let rout = rin.clone();
+                    const rout = rin.clone();
                     rout.removeFirst(ViaHeader.NAME);
 
-                    let i = ctxtList.iterator()
+                    const i = ctxtList.iterator()
                     while (i.hasNext()) {
-                        let ctxt = i.next()
+                        const ctxt = i.next()
 
                         if (ctxt.ct.equals(ct)) {
                             // The server tx goes to the terminated state.
@@ -207,16 +209,16 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                     // just forward the response statelessly.
                     // Strip the topmost via header
 
-                    let rout = rin.clone();
+                    const rout = rin.clone();
                     rout.removeFirst(ViaHeader.NAME);
                     // Send the retransmission statelessly
-                    let sipProvider = e.getSource();
+                    const sipProvider = e.getSource();
                     sipProvider.sendResponse(rout);
                 }
             } else {
                 // Can be BYE due to Record-Route
                 LOG.trace("Got a non-invite response " + rin);
-                let sipProvider = e.getSource();
+                const sipProvider = e.getSource();
                 rin.removeFirst(ViaHeader.NAME);
 
                 // There is no more Via headers; the response was intended for the proxy.
@@ -224,13 +226,13 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             }
         },
 
-        processTransactionTerminated: function (e) {
+        processTransactionTerminated: e => {
             if (e.isServerTransaction()) {
-                let st = e.getServerTransaction()
-                let i = ctxtList.iterator()
+                const st = e.getServerTransaction()
+                const i = ctxtList.iterator()
 
                 while (i.hasNext()) {
-                    let ctxt = i.next()
+                    const ctxt = i.next()
 
                     if (ctxt.st.equals(st)) {
                         i.remove()
@@ -242,11 +244,11 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             }
         },
 
-        processDialogTerminated: function (e) {
+        processDialogTerminated: e => {
             LOG.info("#processDialogTerminated not yet implemented")
         },
 
-        processTimeout: function (e) {
+        processTimeout: e => {
             LOG.info("#processTimeout not yet implemented")
         }
     }
@@ -254,7 +256,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
 function findDomain(domains, uri) {
     let domain = null
-    domains.forEach(function(d) {
+    domains.forEach(d => {
         if (d.uri.equals(uri)) {
             domain = d
         }
@@ -263,31 +265,19 @@ function findDomain(domains, uri) {
 }
 
 function DomainUtil(domain, defaultDomainAcl) {
-    let rules = new java.util.ArrayList()
+    const rules = new java.util.ArrayList()
 
     function addRules(acl) {
         if (acl === undefined || acl == null) return
         if (acl.deny === undefined && acl.allow === undefined) return
-
-        if (acl.deny !== undefined) {
-            acl.deny.forEach(function(r) {
-                rules.add(new Rule("deny", r))
-            })
-        }
-
-        if (acl.allow !== undefined) {
-            acl.allow.forEach(function(r) {
-                rules.add(new Rule("allow", r))
-            })
-        }
+        if (acl.deny !== undefined) { acl.deny.forEach(r => { rules.add(new Rule("deny", r)) }) }
+        if (acl.allow !== undefined) { acl.allow.forEach(r => { rules.add(new Rule("allow", r)) }) }
     }
 
-    this.isDomainAllow = function (domain, calleeIp) {
+    this.isDomainAllow = (domain, calleeIp) => {
         if (domain == null) return false
-
-        if(defaultDomainAcl !== undefined) addRules(defaultDomainAcl)
-        if(domain.acl !== undefined) addRules(domain.acl)
-
+        if (defaultDomainAcl !== undefined) addRules(defaultDomainAcl)
+        if (domain.acl !== undefined) addRules(domain.acl)
         return new ACLHelper().mostSpecific(rules, calleeIp).getAction() == "allow"
     }
 }
