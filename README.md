@@ -11,7 +11,7 @@ this work in the future.`
 
 ## Current features include
 
-Sip server features
+**Sip server features**
 
 - Proxy
 - Registrar service
@@ -20,11 +20,11 @@ Sip server features
 - Command line tool for admin operations
 - Access to the PSTN using SIP Gateways
 
-Transport
+**Transport**
 
 - UDP 
 
-Security
+**Security**
 
 - Digest SIP User authentication
 - Domain Access Control List (DACL)
