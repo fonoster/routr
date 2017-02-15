@@ -110,7 +110,7 @@ and the parameter 'registries'.
     - sip.nyc.didlogic.net
 ```
 
-You also need to define the DID. An incoming call from a DID will be route
+You also need to define the DID. Incoming calls from a DID will be route
 to an existing agent using the 'contact' parameter. Please examine the 
 following example:
 
