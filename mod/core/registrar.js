@@ -8,7 +8,6 @@ load('mod/utils/auth_helper.js')
 function RegistrarService(location, getUser = getUserFromConfig) {
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
-    const authHelper = new AuthHelper()
 
     function hasDomain(user, domain) {
         for (var d of user.domains) {
@@ -18,13 +17,13 @@ function RegistrarService(location, getUser = getUserFromConfig) {
     }
 
     function getNonceCount(d) {
-        const h = Java.type("java.lang.Integer").toHexString(d)
+        const h = Packages.java.lang.Integer.toHexString(d)
         const cSize = 8 - h.toString().length()
         let nc = ''
         let cnt = 0
 
         while (cSize > cnt) {
-            nc += "0"
+            nc += '0'
             cnt++
         }
 
@@ -38,14 +37,14 @@ function RegistrarService(location, getUser = getUserFromConfig) {
         const user = getUser(authHeader.getUsername())
 
         if (user == null) {
-            LOG.info("Could not find user or peer '" + authHeader.getUsername() + "'")
+            LOG.info('Could not find user or peer \'' + authHeader.getUsername() + '\'')
             return false
         }
 
         // TODO: Should verify if domain exist first...
 
         if (user.kind.equalsIgnoreCase('agent') && !hasDomain(user, uriDomain)) {
-            LOG.info("User " + user.username + " does not exist in domain " + uriDomain)
+            LOG.info('User ' + user.username + ' does not exist in domain ' + uriDomain)
             return false
         }
 
@@ -69,17 +68,17 @@ function RegistrarService(location, getUser = getUserFromConfig) {
                     contactURI.setHost(user.host)
                 }
 
-                const endpoint = "sip:" + authHeader.getUsername() + "@" + uriDomain
+                const endpoint = 'sip:' + authHeader.getUsername() + '@' + uriDomain
                 location.put(endpoint, contactURI)
 
-                LOG.debug("The endpoint " + endpoint + " is " + contactURI + " in Sip I/O")
+                LOG.debug('The endpoint ' + endpoint + ' is ' + contactURI + ' in Sip I/O')
             } else {
                 for (var domain of user.domains) {
                     // TODO: Find a better way to get this value
                     // This could be "sips" or other protocol
-                    const endpoint = "sip:" + authHeader.getUsername() + "@" + domain
+                    const endpoint = 'sip:' + authHeader.getUsername() + '@' + domain
                     location.put(endpoint, contactURI)
-                    LOG.debug("The endpoint " + endpoint + " is " + contactURI + " in Sip I/O")
+                    LOG.debug('The endpoint ' + endpoint + ' is ' + contactURI + ' in Sip I/O')
                 }
             }
 

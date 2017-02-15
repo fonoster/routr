@@ -31,11 +31,11 @@ function ACLHelper() {
             return r.get()
         } catch (e) {
             if (e instanceof java.util.NoSuchElementException) {
-                LOG.warn("Not default rules found for domain acl. This is a security concern")
+                LOG.warn('Not default rules found for domain acl. This is a security concern')
             } else {
                 LOG.warn(e)
             }
         }
-        return new Rule("allow", "0.0.0.0/1")
+        return new Rule('allow', '0.0.0.0/1')
     }
 }

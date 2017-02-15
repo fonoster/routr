@@ -15,6 +15,6 @@ config.ip = InetAddress.getLocalHost().getHostAddress()
 
 const location = new LocationService()
 const registrar = new RegistrarService(location)
-const accountManager = new AccountManagerService();
+const accountManager = new AccountManagerService()
 
 new Server(location, registrar, accountManager, config).start()

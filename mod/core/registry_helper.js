@@ -21,15 +21,14 @@ function RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory
         const maxForwardsHeader = headerFactory.createMaxForwardsHeader(70)
         const callIdHeader = sipProvider.getNewCallId()
         const cSeqHeader = headerFactory.createCSeqHeader(cseq, Request.REGISTER)
-        const fromAddress = addressFactory.createAddress("sip:" + username + '@' + peerHost)
+        const fromAddress = addressFactory.createAddress('sip:' + username + '@' + peerHost)
         const fromHeader = headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag())
         const toHeader = headerFactory.createToHeader(fromAddress, null)
         const expireHeader = headerFactory.createExpiresHeader(expires)
+        const contactAddress = addressFactory.createAddress('sip:' + username + '@' + config.ip + ':' + config.port)
+        const contactHeader = headerFactory.createContactHeader(contactAddress)
 
-        contactAddress = addressFactory.createAddress("sip:" + username + "@" + config.ip + ":" + config.port)
-        contactHeader = headerFactory.createContactHeader(contactAddress)
-
-        const request = messageFactory.createRequest("REGISTER sip:" + peerHost + " SIP/2.0\r\n\r\n")
+        const request = messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
         request.addHeader(callIdHeader)
         request.addHeader(cSeqHeader)
         request.addHeader(fromHeader)
@@ -44,7 +43,7 @@ function RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory
             ct.sendRequest()
         } catch(e) {
             if(e instanceof javax.sip.TransactionUnavailableException || e instanceof javax.sip.SipException) {
-                LOG.warn("Unable to register with gw -> " + peerHost + ". (Verify your network status)")
+                LOG.warn('Unable to register with GW -> ' + peerHost + '. (Verify your network status)')
             } else {
                 LOG.warn(e)
             }

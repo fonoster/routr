@@ -36,7 +36,7 @@ load('mod/ctl/get_peers.js')
 load('mod/ctl/cmd_registry.js')
 
 try {
-    const arg = arguments
+    let arg = arguments
     if (!Array.isArray(arg)) arg = [arguments]
 
     const res = parser.parseArgs(arg)

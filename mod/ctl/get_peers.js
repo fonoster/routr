@@ -11,7 +11,7 @@ function getPeersCmd(id) {
     out.printf("%-10s %-20s %-15s %-10s\n", 'USER', 'NAME', 'TYPE', 'HOST/PORT')
 
     peers.forEach(p => {
-        if (id.equals("none") || p.username.equals(id))
+        if (id.equals('none') || p.username.equals(id))
             out.printf("%-10s %-20s %-15s %-10s\n", p.username, p.metadata.name, p.metadata.type, p.host + '/' + p.port)
     })
 }

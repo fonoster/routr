@@ -9,7 +9,7 @@ function YamlToJsonConverter() {
     function readFile (path) {
         const Files = Packages.java.nio.file.Files
         const Paths = Packages.java.nio.file.Paths
-        const lines = Files.readAllLines(Paths.get(path), Java.type('java.nio.charset.StandardCharsets').UTF_8)
+        const lines = Files.readAllLines(Paths.get(path), Packages.java.nio.charset.StandardCharsets.UTF_8)
         const data = []
         lines.forEach(line => { data.push(line) })
         return data.join('\n')
@@ -18,7 +18,7 @@ function YamlToJsonConverter() {
     this.getJson = yamlFile => {
         const yaml = readFile(yamlFile)
         const yamlReader = new ObjectMapper(new YAMLFactory())
-        const obj = yamlReader.readValue(yaml, Java.type('java.lang.Object').class)
+        const obj = yamlReader.readValue(yaml, java.lang.Object.class)
         const jsonWriter = new ObjectMapper()
         return JSON.parse(jsonWriter.writeValueAsString(obj))
     }

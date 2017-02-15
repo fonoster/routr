@@ -17,31 +17,31 @@ function AuthHelper(headerFactory) {
         const ha2 =  DigestUtils.md5Hex(a2)
         let result
 
-        if (qop != null && qop.equals("auth")) {
+        if (qop != null && qop.equals('auth')) {
             result = DigestUtils.md5Hex(ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2)
         } else {
             result = DigestUtils.md5Hex(ha1 + ':' + nonce +  ':' + ha2)
         }
 
-        LOG.trace("A1: " + a1)
-        LOG.trace("A2: " + a2)
-        LOG.trace("HA1: " + ha1)
-        LOG.trace("HA2: " + ha2)
-        LOG.trace("Result: " + result)
+        LOG.trace('A1: ' + a1)
+        LOG.trace('A2: ' + a2)
+        LOG.trace('HA1: ' + ha1)
+        LOG.trace('HA2: ' + ha2)
+        LOG.trace('Result: ' + result)
 
         return result
     }
 
         // Generates WWW-Authorization header
     this.generateChallenge = () => {
-        const wwwAuthHeader = headerFactory.createWWWAuthenticateHeader("Digest")
-        wwwAuthHeader.setDomain("fonoster.com")
-        wwwAuthHeader.setRealm("fonoster")
-        wwwAuthHeader.setQop("auth")
-        wwwAuthHeader.setOpaque("")
+        const wwwAuthHeader = headerFactory.createWWWAuthenticateHeader('Digest')
+        wwwAuthHeader.setDomain('fonoster.com')
+        wwwAuthHeader.setRealm('fonoster')
+        wwwAuthHeader.setQop('auth')
+        wwwAuthHeader.setOpaque('')
         wwwAuthHeader.setStale(false)
-        wwwAuthHeader.setNonce("0ee55540a2e316dae22c804cdb383f5b")     // TODO: Generate a random nonce
-        wwwAuthHeader.setAlgorithm("MD5")
+        wwwAuthHeader.setNonce('0ee55540a2e316dae22c804cdb383f5b')     // TODO: Generate a random nonce
+        wwwAuthHeader.setAlgorithm('MD5')
         return wwwAuthHeader
     }
 }

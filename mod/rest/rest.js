@@ -24,6 +24,6 @@ function RestService(locationService, gateways, dids, domains, agents, peers, co
 
     this.start = () => {
         LOG.info('Starting Restful service on port ' + config.rest.port)
-        java.lang.Thread.currentThread().join();
+        java.lang.Thread.currentThread().join()
     }
 }

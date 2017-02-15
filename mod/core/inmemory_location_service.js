@@ -7,8 +7,6 @@
  */
 function LocationService() {
     const HashMap = Packages.java.util.HashMap
-    const LogManager = Packages.org.apache.logging.log4j.LogManager
-    const LOG = LogManager.getLogger()
     const db = new HashMap()
 
     this.put = (k, v) => { db.put(k.toString(), v) }

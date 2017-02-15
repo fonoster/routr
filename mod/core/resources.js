@@ -9,13 +9,13 @@ function getGWFromConfig(ct) {
     const LOG = LogManager.getLogger()
     const gateways = new YamlToJsonConverter().getJson('config/gateways.yml')
     const gwAddress = ct.getOriginalRequestContact().getAddress()
-    const username = gwAddress.toString().split(":")[1].split("@")[0].toString()
+    const username = gwAddress.toString().split(':')[1].split('@')[0].toString()
 
     for (var gateway of gateways) {
         if (gateway.username === username) { return gateway }
     }
 
-    LOG.warn ("Gateway '" + username + "' does not exist in config/gateways.yml")
+    LOG.warn ('Gateway [' + username + '] does not exist in config/gateways.yml')
     return null
 }
 
