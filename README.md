@@ -160,11 +160,12 @@ Find more information at https://github.com/psanders/sip.io
 ```
 
 ## Author
-* [Pedro Sanders](https://github.com/psanders)
+ - [Pedro Sanders](https://github.com/psanders)
 
 Contributions
-* Please see [Contribution Documents](https://github.com/psanders/sip.io/blob/master/CONTRIBUTING.md)
-* [Contributors](https://github.com/psanders/sip.io/graphs/contributors)
+
+ - Please see [Contribution Documents](https://github.com/psanders/sip.io/blob/master/CONTRIBUTING.md)
+ - [Contributors](https://github.com/psanders/sip.io/graphs/contributors)
 
 ## Copyright
 Copyright (C) 2017 by [Pedro Sanders](https://github.com/psanders). MIT License (see [LICENSE](https://github.com/psanders/sip.io/blob/master/LICENSE) for details).
