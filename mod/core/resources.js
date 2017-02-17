@@ -4,56 +4,116 @@
  */
 load('mod/utils/yaml_converter.js')
 
-function getGWFromConfig(ct) {
-    const LogManager      = Java.type('org.apache.logging.log4j.LogManager')
+var ResourcesAPI = (function () {
+    const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
-    const gateways = new YamlToJsonConverter().getJson('config/gateways.yml')
-    const gwAddress = ct.getOriginalRequestContact().getAddress()
-    const username = gwAddress.toString().split(':')[1].split('@')[0].toString()
+    let config
+    let domains
+    let agents
+    let peers
+    let gateways
+    let dids
 
-    for (var gateway of gateways) {
-        if (gateway.username === username) { return gateway }
+    function _findDomain(uri) {
+        const domains = _getDomains()
+        let domain = null
+        domains.forEach(d => {
+            if (d.uri.equals(uri)) {
+                domain = d
+            }
+        })
+        return domain
     }
 
-    LOG.warn ('Gateway [' + username + '] does not exist in config/gateways.yml')
-    return null
-}
+    function _findGateway(ct) {
+        const gateways = _getGateways()
+        const gwAddress = ct.getOriginalRequestContact().getAddress()
+        const username = gwAddress.toString().split(':')[1].split('@')[0].toString()
 
-function getUserFromConfig(username) {
-    const agents = new YamlToJsonConverter().getJson('config/agents.yml')
-    const peers = new YamlToJsonConverter().getJson('config/peers.yml')
-
-    for (var peer of peers) {
-        if (peer.username === username) {
-            return peer
+        for (var gateway of gateways) {
+            if (gateway.username === username) { return gateway }
         }
+
+        LOG.warn ('Gateway [' + username + '] does not exist in config/gateways.yml')
+        return null
     }
 
-    for (var agent of agents) {
-        if (agent.username === username) {
-            return agent
+    function _findUser(id) {
+        const agents = _getAgents()
+        const peers = _getPeers()
+
+        for (var peer of peers) {
+            if (peer.username === id) {
+                return peer
+            }
         }
+
+        for (var agent of agents) {
+            if (agent.username === id) {
+                return agent
+            }
+        }
+
+        return null
     }
 
-    return null
-}
+    function _getConfig() {
+        if(!config) {
+            LOG.info("Loading global config")
+            config = new YamlToJsonConverter().getJson('config/config.yml')
+        }
+        return config
+    }
 
-function getGatewaysFromConfig() {
-    return new YamlToJsonConverter().getJson('config/gateways.yml')
-}
+    function _getDomains() {
+        if(!domains) {
+            LOG.info("Loading domains")
+            domains = new YamlToJsonConverter().getJson('config/domains.yml')
+        }
+        return domains
+    }
 
-function getDIDsFromConfig() {
-    return new YamlToJsonConverter().getJson('config/dids.yml')
-}
+    function _getAgents() {
+        if(!agents) {
+            LOG.info("Loading agents")
+            agents = new YamlToJsonConverter().getJson('config/agents.yml')
+        }
+        return agents
+    }
 
-function getAgentsFromConfig() {
-    return new YamlToJsonConverter().getJson('config/agents.yml')
-}
+    function _getPeers() {
+        if(!peers) {
+            LOG.info("Loading peers")
+            peers = new YamlToJsonConverter().getJson('config/peers.yml')
+        }
+        return peers
+    }
 
-function getPeersFromConfig() {
-    return new YamlToJsonConverter().getJson('config/peers.yml')
-}
+    function _getGateways() {
+        if(!gateways) {
+            LOG.info("Loading gateways")
+            gateways = new YamlToJsonConverter().getJson('config/gateways.yml')
+        }
+        return gateways
+    }
 
-function getDomainsFromConfig() {
-    return new YamlToJsonConverter().getJson('config/domains.yml')
-}
+    function _getDIDs() {
+        if(!dids) {
+            LOG.info("Loading dids")
+            dids = new YamlToJsonConverter().getJson('config/dids.yml')
+        }
+        return dids
+    }
+
+    return {
+        getConfig: _getConfig,
+        getDomains: _getDomains,
+        getAgents: _getAgents,
+        getGateways: _getGateways,
+        getDIDs: _getDIDs,
+        getPeers: _getPeers,
+        findUser: _findUser,
+        findGateway: _findGateway,
+        findDomain: _findDomain
+    };
+})();

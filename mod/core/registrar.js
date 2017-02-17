@@ -2,10 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/core/resources.js')
 load('mod/utils/auth_helper.js')
 
-function RegistrarService(location, getUser = getUserFromConfig) {
+function RegistrarService(location, resourcesAPI) {
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
 
@@ -34,7 +33,7 @@ function RegistrarService(location, getUser = getUserFromConfig) {
         // Get response from header
         const response = authHeader.getResponse()
         // Get username and password from "db:
-        const user = getUser(authHeader.getUsername())
+        const user = resourcesAPI.findUser(authHeader.getUsername())
 
         if (user == null) {
             LOG.info('Could not find user or peer \'' + authHeader.getUsername() + '\'')

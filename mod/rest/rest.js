@@ -2,12 +2,14 @@
  * @author Pedro Sanders
  * @since v1
  */
-function RestService(server, locationService, gateways, dids, domains, agents, peers, config) {
+function RestService(server, locationService, resourcesAPI, config) {
+    //  const config = resourcesAPI.getConfig()
     const Spark = Packages.spark.Spark
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const BasicAuthenticationFilter = Packages.com.qmetric.spark.authentication.BasicAuthenticationFilter
     const AuthenticationDetails = Packages.com.qmetric.spark.authentication.AuthenticationDetails
     const LOG = LogManager.getLogger()
+    //const config = resourcesAPI.getConfig()
     const credentials = config.rest
 
     Spark.port(config.rest.port)
@@ -29,13 +31,17 @@ function RestService(server, locationService, gateways, dids, domains, agents, p
     }
 
     get('/registry', (request, response) => locationService.listAllAsJSON())
-    get('/gateways', (request, response) => JSON.stringify(gateways))
-    get('/peers', (request, response) => JSON.stringify(peers))
-    get('/agents', (request, response) =>JSON.stringify(agents))
-    get('/domains', (request, response) => JSON.stringify(domains))
-    get('/dids', (request, response) => JSON.stringify(dids))
+    get('/gateways', (request, response) => JSON.stringify(resourcesAPI.getGateways()))
+    get('/peers', (request, response) => JSON.stringify(resourcesAPI.getPeers()))
+    get('/agents', (request, response) =>JSON.stringify(resourcesAPI.getAgents()))
+    get('/domains', (request, response) => JSON.stringify(getDomains()))
+    get('/dids', (request, response) => JSON.stringify(resourcesAPI.getDIDs()))
     post('/stop', (request, response) => {
         server.stop()
         return 'Done.'
+    })
+    post('/reload', (request, response) => {
+        resourcesAPI.reload()
+        return 'Reloaded.'
     })
 }

@@ -2,13 +2,16 @@
  * @author Pedro Sanders
  * @since v1
  */
-load("mod/core/context.js")
-load("mod/utils/auth_helper.js")
-load("mod/utils/acl_helper.js")
+load('mod/core/context.js')
+load('mod/utils/auth_helper.js')
+load('mod/utils/acl_helper.js')
+load('mod/utils/domain_utils.js')
+load('mod/core/resources.js')
 
 function Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
-    registrarService, accountManagerService, getDomains, config) {
-
+    registrarService, accountManagerService, resourcesAPI, config) {
+    //const config = config
+    const InetAddress = Packages.java.net.InetAddress
     const SipListener = Packages.javax.sip.SipListener
     const Request = Packages.javax.sip.message.Request
     const Response = Packages.javax.sip.message.Response
@@ -25,6 +28,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     const ctxtList = new java.util.ArrayList()
     const localhost = InetAddress.getLocalHost().getHostAddress()
     const authHelper =  new AuthHelper(headerFactory)
+
     const defaultDomainAcl = config.defaultDomainAcl
 
     function register(request, transaction) {
@@ -117,7 +121,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             }
 
             // Should generate a security exception if return null
-            const domain = findDomain(getDomains(), tgtURI.getHost())
+            const domain = resourcesAPI.findDomain(tgtURI.getHost())
 
             if(!new DomainUtil(domain, defaultDomainAcl).isDomainAllow(domain, contactURI.getHost())) {
                 LOG.trace("Host " + contactURI.getHost() + " has been rejected by " + domain.uri)
@@ -251,33 +255,5 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
         processTimeout: e => {
             LOG.info("#processTimeout not yet implemented")
         }
-    }
-}
-
-function findDomain(domains, uri) {
-    let domain = null
-    domains.forEach(d => {
-        if (d.uri.equals(uri)) {
-            domain = d
-        }
-    })
-    return domain
-}
-
-function DomainUtil(domain, defaultDomainAcl) {
-    const rules = new java.util.ArrayList()
-
-    function addRules(acl) {
-        if (acl === undefined || acl == null) return
-        if (acl.deny === undefined && acl.allow === undefined) return
-        if (acl.deny !== undefined) { acl.deny.forEach(r => { rules.add(new Rule("deny", r)) }) }
-        if (acl.allow !== undefined) { acl.allow.forEach(r => { rules.add(new Rule("allow", r)) }) }
-    }
-
-    this.isDomainAllow = (domain, calleeIp) => {
-        if (domain == null) return false
-        if (defaultDomainAcl !== undefined) addRules(defaultDomainAcl)
-        if (domain.acl !== undefined) addRules(domain.acl)
-        return new ACLHelper().mostSpecific(rules, calleeIp).getAction() == "allow"
     }
 }

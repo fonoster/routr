@@ -28,6 +28,7 @@ get.epilog(getEpilog)
 
 subparsers.addParser('registry').aliases(['reg']).help('Shows the gateways status')
 subparsers.addParser('stop').help('Stops server')
+subparsers.addParser('reload').help('Reload resources(i.e domains, agents, etc...)')
 
 load('mod/ctl/get_agents.js')
 load('mod/ctl/get_dids.js')
@@ -36,6 +37,7 @@ load('mod/ctl/get_gateways.js')
 load('mod/ctl/get_peers.js')
 load('mod/ctl/cmd_registry.js')
 load('mod/ctl/cmd_stop.js')
+load('mod/ctl/cmd_reload.js')
 
 try {
     let arg = arguments
@@ -53,6 +55,8 @@ try {
         cmdShowRegistry()
     } else if (arg[0] == 'stop') {
         cmdStop()
+    } else if (arg[0] == 'reload') {
+        cmdReload()
     }
 } catch(e) {
     print(e)

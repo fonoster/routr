@@ -2,17 +2,14 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/core/resources.js')
 load('mod/core/processor.js')
 load('mod/core/registry_helper.js')
 load('mod/rest/rest.js')
 
-function Server(locationService, registrarService, accountManagerService, config,
-    getGateways = getGatewaysFromConfig,
-    getPeers = getPeersFromConfig,
-    getDIDs = getDIDsFromConfig,
-    getAgents = getAgentsFromConfig,
-    getDomains = getDomainsFromConfig) {
+function Server(locationService, registrarService, accountManagerService, resourcesAPI) {
+    const config = resourcesAPI.getConfig()
+    const InetAddress = Packages.java.net.InetAddress
+    config.ip = InetAddress.getLocalHost().getHostAddress()
 
     const SipFactory = Packages.javax.sip.SipFactory
     const Properties = Packages.java.util.Properties
@@ -27,11 +24,6 @@ function Server(locationService, registrarService, accountManagerService, config
     this.start = () => {
         LOG.info("Starting Sip I/O on port " + config.port + " and protocol " + config.proto)
 
-        const gateways = getGateways()
-        const dids = getDIDs()
-        const peers = getPeers()
-        const domains = getDomains()
-        const agents = getAgents()
         const properties = new Properties()
         const sipFactory = SipFactory.getInstance()
 
@@ -53,12 +45,12 @@ function Server(locationService, registrarService, accountManagerService, config
         const sipProvider = sipStack.createSipProvider(listeningPoint)
 
         // Server's contact address and header
-        const contactAddress = addressFactory.createAddress("sip:" + config.ip + ":" + config.port)
+        const contactAddress = addressFactory.createAddress('sip:' + config.ip + ':' + config.port)
         const contactHeader = headerFactory.createContactHeader(contactAddress)
 
         // This will not scale if we have a lot of DIDs
-        for (var did of dids) {
-            const k = "sip:" + did.e164num + "@" + config.ip + ":" + config.port
+        for (var did of resourcesAPI.getDIDs()) {
+            const k = "sip:" + did.e164num + '@' + config.ip + ':' + config.port
 
             const ca = addressFactory.createAddress(did.contact)
             const ch = headerFactory.createContactHeader(ca)
@@ -66,7 +58,7 @@ function Server(locationService, registrarService, accountManagerService, config
         }
 
         const processor = new Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader,
-            locationService, registrarService, accountManagerService, getDomains, config)
+            locationService, registrarService, accountManagerService, resourcesAPI, resourcesAPI.getConfig())
 
         sipProvider.addSipListener(processor.listener)
 
@@ -75,14 +67,14 @@ function Server(locationService, registrarService, accountManagerService, config
 
         var registerTask = new java.util.TimerTask() {
             run: function() {
-                const gateways = getGateways()
+                const gateways = resourcesAPI.getGateways()
                 for (var gateway of gateways) {
-                    LOG.debug('Register in [' + gateway.metadata.name +  '] using ['  + gateway.username + "@" + gateway.host + ']')
+                    LOG.debug('Register in [' + gateway.metadata.name +  '] using ['  + gateway.username + '@' + gateway.host + ']')
                     if (gateway.host !== undefined) registerUtil.requestChallenge(gateway.username, gateway.host)
                     if (gateway.registries === undefined) continue
 
                     for (var h of gateway.registries) {
-                        LOG.debug('Register in [' + gateway.metadata.name +  '] using ['  + gateway.username + "@" + h + ']')
+                        LOG.debug('Register in [' + gateway.metadata.name +  '] using ['  + gateway.username + '@' + h + ']')
 
                         registerUtil.requestChallenge(gateway.username, h)
                     }
@@ -92,7 +84,7 @@ function Server(locationService, registrarService, accountManagerService, config
 
         new java.util.Timer().schedule(registerTask, 5000, proRegExp * 60 * 1000);
 
-        restService = new RestService(this, locationService, gateways, dids, domains, agents, peers, config)
+        restService = new RestService(this, locationService, resourcesAPI, resourcesAPI.getConfig())
         restService.start()
     }
 
