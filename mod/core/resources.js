@@ -4,7 +4,7 @@
  */
 load('mod/utils/yaml_converter.js')
 
-var ResourcesAPI = (function () {
+var ResourcesAPI = (() => {
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
     let config

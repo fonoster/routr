@@ -13,5 +13,5 @@ function cmdReload(param) {
             print(e)
         }
     }
-    out.printf("Reloaded.")
+    out.printf('Reloaded.\n')
 }
