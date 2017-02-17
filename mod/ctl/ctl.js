@@ -12,6 +12,7 @@ subparsers = parser.addSubparsers().title('Basic Commands').metavar('COMMAND')
 
 const getSubCmds = ['agent', 'agents', 'peer', 'peers', 'domain', 'domains', 'did', 'dids', 'gateway', 'gateways']
 
+// Get command
 const get = subparsers.addParser('get').help('Display one or many resources')
 get.addArgument('resource').metavar(['resource']).choices(getSubCmds)
 get.addArgument('ID').nargs('?').setDefault('none').help('Specific resource')
@@ -28,7 +29,21 @@ get.epilog(getEpilog)
 
 subparsers.addParser('registry').aliases(['reg']).help('Shows the gateways status')
 subparsers.addParser('stop').help('Stops server')
-subparsers.addParser('reload').help('Reload resources(i.e domains, agents, etc...)')
+
+// Get command
+const reload = subparsers.addParser('reload').aliases(['rel']).help('Reload a resource(i.e domains, agents, etc...)')
+const reloadSubCmds = ['config', 'agents', 'peers', 'domains', 'dids', 'gateways', 'all']
+reload.addArgument('resource').metavar(['resource']).choices(reloadSubCmds)
+
+reloadEpilog=
+`Examples:
+    # Reload a all agents
+    sipioctl load agents
+
+    # Reload all resource
+    sipioctl rel all\n`
+
+reload.epilog(reloadEpilog)
 
 load('mod/ctl/get_agents.js')
 load('mod/ctl/get_dids.js')
@@ -55,8 +70,8 @@ try {
         cmdShowRegistry()
     } else if (arg[0] == 'stop') {
         cmdStop()
-    } else if (arg[0] == 'reload') {
-        cmdReload()
+    } else if (arg[0] == 'reload' || arg[0] == 'rel') {
+        cmdReload(res.get('resource'))
     }
 } catch(e) {
     print(e)

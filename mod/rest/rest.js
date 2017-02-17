@@ -40,8 +40,8 @@ function RestService(server, locationService, resourcesAPI, config) {
         server.stop()
         return 'Done.'
     })
-    post('/reload', (request, response) => {
-        resourcesAPI.reload()
+    post('/reload/:resource', (request, response) => {
+        resourcesAPI.reload(request.params(":resource"))
         return 'Reloaded.'
     })
 }

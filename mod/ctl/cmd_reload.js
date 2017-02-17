@@ -4,10 +4,10 @@
  */
 load('mod/ctl/ctl_utils.js')
 
-function cmdStop() {
+function cmdReload(param) {
     const out = Packages.java.lang.System.out
     try {
-        postWithAuth('reload')
+        postWithAuth('reload/' + param)
     } catch(e) {
         if(e instanceof Packages.org.apache.http.NoHttpResponseException) {
             print(e)

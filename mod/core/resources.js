@@ -14,6 +14,52 @@ var ResourcesAPI = (function () {
     let gateways
     let dids
 
+    function _reload(resource) {
+        if (resource.equals('all') || resource == 'all') {
+            config = false
+            domains = false
+            agents = false
+            peers = false
+            gateways = false
+            dids = false
+            _getConfig()
+            _getDomains()
+            _getAgents()
+            _getPeers()
+            _getGateways()
+            _getDIDs()
+        }
+
+        switch(resource) {
+            case 'config':
+                config = false
+                _getConfig()
+                break
+            case 'domains':
+                domains = false
+                _getDomains()
+                break
+            case 'agents':
+                agents = false
+                _getAgents()
+                break
+            case 'peers':
+                peers = false
+                _getPeers()
+                break
+            case 'gateways':
+                gateways = false
+                _getGateways()
+                break
+            case 'dids':
+                dids = false
+                _getDIDs()
+                break
+            default:
+                throw new Packages.java.lang.RuntimeException('Unable to find resource: ' + resource)
+        }
+    }
+
     function _findDomain(uri) {
         const domains = _getDomains()
         let domain = null
@@ -59,7 +105,7 @@ var ResourcesAPI = (function () {
 
     function _getConfig() {
         if(!config) {
-            LOG.info("Loading global config")
+            LOG.info("Loading config")
             config = new YamlToJsonConverter().getJson('config/config.yml')
         }
         return config
@@ -114,6 +160,7 @@ var ResourcesAPI = (function () {
         getPeers: _getPeers,
         findUser: _findUser,
         findGateway: _findGateway,
-        findDomain: _findDomain
-    };
-})();
+        findDomain: _findDomain,
+        reload: _reload
+    }
+})()
