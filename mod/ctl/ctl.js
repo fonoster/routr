@@ -74,7 +74,11 @@ try {
         cmdReload(res.get('resource'))
     }
 } catch(e) {
-    print(e)
-    parser.handleError(e)
-    exit(1)
+    if (e instanceof Packages.com.mashape.unirest.http.exceptions.UnirestException) {
+        print ('Sip I/O server is not running')
+        exit(1)
+    } else {
+        print(e)
+        parser.handleError(e)
+    }
 }

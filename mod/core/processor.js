@@ -181,8 +181,6 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             if (rin.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED || rin.getStatusCode() == Response.UNAUTHORIZED) {
                 let authenticationHelper =
                     sipStack.getAuthenticationHelper(accountManagerService.getAccountManager(), headerFactory)
-
-                print ('rin -> ' + rin)
                 //if (ct == null) ct = sipProvider.getNewClientTransaction(rin)
                 let t = authenticationHelper.handleChallenge(rin, ct, e.getSource(), 5)
                 t.sendRequest()

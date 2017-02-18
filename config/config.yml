@@ -1,4 +1,4 @@
-traceLevel: 10 # SIP stack logs
+traceLevel: 0 # SIP stack logs
 tcpPort: 5060
 udpPort: 5060
 tlsPort: 5061
