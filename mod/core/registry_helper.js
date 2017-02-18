@@ -12,10 +12,15 @@ function RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory
 
     var cseq = 0
 
-    this.requestChallenge = (username, peerHost, expires = 300) => {
+    this.requestChallenge = (username, peerHost, transport = 'tcp', expires = 300) => {
+        let port
+        if (transport == 'tcp') port = config.tcpPort
+        if (transport == 'udp') port = config.udpPort
+        if (transport == 'ws') port = config.wsPort
+
         cseq++
         const viaHeaders = []
-        const viaHeader = headerFactory.createViaHeader(config.ip, config.port, config.transport, null)
+        const viaHeader = headerFactory.createViaHeader(config.ip, port, transport, null)
         viaHeaders.push(viaHeader)
 
         const maxForwardsHeader = headerFactory.createMaxForwardsHeader(70)
@@ -25,7 +30,7 @@ function RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory
         const fromHeader = headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag())
         const toHeader = headerFactory.createToHeader(fromAddress, null)
         const expireHeader = headerFactory.createExpiresHeader(expires)
-        const contactAddress = addressFactory.createAddress('sip:' + username + '@' + config.ip + ':' + config.port)
+        const contactAddress = addressFactory.createAddress('sip:' + username + '@' + config.ip + ':' + port)
         const contactHeader = headerFactory.createContactHeader(contactAddress)
 
         const request = messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')

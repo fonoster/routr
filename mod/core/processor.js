@@ -32,12 +32,9 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     const defaultDomainAcl = config.defaultDomainAcl
 
     function register(request, transaction) {
-        const toHeader = request.getHeader(ToHeader.NAME)
-        const toURI = toHeader.getAddress().getURI()
-        const toDomain = toHeader.getAddress().getURI().getHost()
         const contactHeader = request.getHeader(ContactHeader.NAME)
         const contactURI = contactHeader.getAddress().getURI()
-        const expH = request.getHeader(ExpiresHeader.NAME)
+        const expH = request.getHeader(ExpiresHeader.NAME) || contactHeader.getExpires()
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
 
         if (authHeader == null) {
@@ -46,7 +43,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             transaction.sendResponse(unauthorized)
             LOG.trace(unauthorized)
         } else {
-            if (registrarService.register(authHeader, toDomain, contactURI)) {
+            if (registrarService.register(request)) {
                 const ok = messageFactory.createResponse(Response.OK, request)
                 ok.addHeader(contactHeader)
                 ok.addHeader(expH)
@@ -101,12 +98,9 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             const rin = e.getRequest()
             const method = rin.getMethod()
             const routeHeader = rin.getHeader(RouteHeader.NAME)
-            const tgtURI = rin.getRequestURI()
+            const toHeader = rin.getHeader(ToHeader.NAME)
+            const tgtURI = toHeader.getAddress().getURI()
             const contactHeader = rin.getHeader(ContactHeader.NAME)
-
-            if (method.equals(Request.NOTIFY)) return
-
-            const contactURI = contactHeader.getAddress().getURI()
 
             let st = e.getServerTransaction()
             let proxyHost
@@ -119,14 +113,14 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 proxyHost = localhost;
             }
 
-            if (st == null) {
+            if (st == null && !method.equals(Request.ACK)) {
                 st = sipProvider.getNewServerTransaction(rin)
             }
 
-            // Should generate a security exception if return null
             const domain = resourcesAPI.findDomain(tgtURI.getHost())
+            if (domain == null) throw Packages.java.lang.RuntimeException('Unregistered domain ' + tgtURI.getHost())
 
-            if(!new DomainUtil(domain, defaultDomainAcl).isDomainAllow(domain, contactURI.getHost())) {
+            if(!new DomainUtil(domain, defaultDomainAcl).isDomainAllow(domain, tgtURI.getHost())) {
                 LOG.trace("Host " + contactURI.getHost() + " has been rejected by " + domain.uri)
                 reject(rin, st)
             }
@@ -140,7 +134,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
                 // Last proxy in route
                 if (proxyHost.equals(localhost)) {
-                    const viaHeader = headerFactory.createViaHeader(proxyHost, config.port, config.transport, null)
+                    const viaHeader = headerFactory.createViaHeader(proxyHost, config.port, 'udp', null)
                     rout.removeFirst(RouteHeader.NAME)
                     rout.addFirst(viaHeader)
                 }
@@ -181,11 +175,15 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             if (rin.getStatusCode() == Response.TRYING || rin.getStatusCode() == Response.REQUEST_TERMINATED) return
             if (cseq.getMethod().equals(Request.CANCEL)) return
 
-            const ct = e.getClientTransaction()
+            let ct = e.getClientTransaction()
 
+            // WARNING: This is causing an issue with TCP transport
             if (rin.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED || rin.getStatusCode() == Response.UNAUTHORIZED) {
                 let authenticationHelper =
                     sipStack.getAuthenticationHelper(accountManagerService.getAccountManager(), headerFactory)
+
+                print ('rin -> ' + rin)
+                //if (ct == null) ct = sipProvider.getNewClientTransaction(rin)
                 let t = authenticationHelper.handleChallenge(rin, ct, e.getSource(), 5)
                 t.sendRequest()
                 return

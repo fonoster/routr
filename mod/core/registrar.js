@@ -5,6 +5,10 @@
 load('mod/utils/auth_helper.js')
 
 function RegistrarService(location, resourcesAPI) {
+    const ViaHeader = Packages.javax.sip.header.ViaHeader
+    const ContactHeader = Packages.javax.sip.header.ContactHeader
+    const ToHeader = Packages.javax.sip.header.ToHeader
+    const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
 
@@ -29,7 +33,23 @@ function RegistrarService(location, resourcesAPI) {
         return nc + h
     }
 
-    this.register = (authHeader, uriDomain, contactURI) => {
+    this.register = (rin) => {
+        request = rin.clone()
+        const viaHeader = request.getHeader(ViaHeader.NAME)
+        const authHeader = request.getHeader(AuthorizationHeader.NAME)
+        // For some reason this references the parent object
+        // to avoid we just clone it!
+        const contactHeader = request.getHeader(ContactHeader.NAME)
+        const contactURI = contactHeader.getAddress().getURI()
+        const toHeader = request.getHeader(ToHeader.NAME)
+        const domain = toHeader.getAddress().getURI().getHost()
+
+        if (contactURI.getHost().endsWith('.invalid')) {
+            contactURI.setUser(authHeader.getUsername())
+            contactURI.setHost(viaHeader.getReceived())
+            contactURI.setPort(viaHeader.getParameter('rport'))
+        }
+
         // Get response from header
         const response = authHeader.getResponse()
         // Get username and password from "db:
@@ -40,10 +60,8 @@ function RegistrarService(location, resourcesAPI) {
             return false
         }
 
-        // TODO: Should verify if domain exist first...
-
-        if (user.kind.equalsIgnoreCase('agent') && !hasDomain(user, uriDomain)) {
-            LOG.info('User ' + user.username + ' does not exist in domain ' + uriDomain)
+        if (user.kind.equalsIgnoreCase('agent') && !hasDomain(user, domain)) {
+            LOG.info('User ' + user.username + ' does not exist in domain ' + domain)
             return false
         }
 
@@ -67,17 +85,17 @@ function RegistrarService(location, resourcesAPI) {
                     contactURI.setHost(user.host)
                 }
 
-                const endpoint = 'sip:' + authHeader.getUsername() + '@' + uriDomain
+                const endpoint = 'sip:' + authHeader.getUsername() + '@' + domain
                 location.put(endpoint, contactURI)
 
                 LOG.debug('The endpoint ' + endpoint + ' is ' + contactURI + ' in Sip I/O')
             } else {
-                for (var domain of user.domains) {
+                for (var d of user.domains) {
                     // TODO: Find a better way to get this value
                     // This could be "sips" or other protocol
-                    const endpoint = 'sip:' + authHeader.getUsername() + '@' + domain
+                    const endpoint = 'sip:' + authHeader.getUsername() + '@' + d
                     location.put(endpoint, contactURI)
-                    LOG.debug('The endpoint ' + endpoint + ' is ' + contactURI + ' in Sip I/O')
+                    LOG.debug('The endpoint ' + endpoint + ' is now ' + contactURI + ' in Sip I/O')
                 }
             }
 

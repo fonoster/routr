@@ -22,7 +22,7 @@ function Server(locationService, registrarService, accountManagerService, resour
     const proRegExp = 4
 
     this.start = () => {
-        LOG.info('Starting Sip I/O on port ' + config.port + ' and transport ' + config.transport)
+        LOG.info('Starting Sip I/O')
 
         const properties = new Properties()
         const sipFactory = SipFactory.getInstance()
@@ -35,23 +35,30 @@ function Server(locationService, registrarService, accountManagerService, resour
         // Drop the client connection after we are done with the transaction.
         properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'false');
         properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', config.traceLevel);
+        // This seems to work with ws but not with udp
         properties.setProperty('gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY', 'gov.nist.javax.sip.stack.NioMessageProcessorFactory')
+        properties.setProperty('gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS', 'false')
 
         sipStack = sipFactory.createSipStack(properties)
 
         const messageFactory = sipFactory.createMessageFactory()
         const headerFactory = sipFactory.createHeaderFactory()
         const addressFactory = sipFactory.createAddressFactory()
-        const listeningPoint = sipStack.createListeningPoint(config.ip, config.port, config.transport)
-        const sipProvider = sipStack.createSipProvider(listeningPoint)
+        const tcp = sipStack.createListeningPoint(config.ip, config.tcpPort, 'tcp')
+        const udp = sipStack.createListeningPoint(config.ip, config.udpPort, 'udp')
+        const ws = sipStack.createListeningPoint(config.ip, config.wsPort, 'ws')
+
+        const sipProvider = sipStack.createSipProvider(tcp)
+        sipProvider.addListeningPoint(udp)
+        sipProvider.addListeningPoint(ws)
 
         // Server's contact address and header
-        const contactAddress = addressFactory.createAddress('sip:' + config.ip + ':' + config.port)
+        const contactAddress = addressFactory.createAddress('sip:' + config.ip + ':' + config.tcpPort)
         const contactHeader = headerFactory.createContactHeader(contactAddress)
 
         // This will not scale if we have a lot of DIDs
         for (var did of resourcesAPI.getDIDs()) {
-            const k = 'sip:' + did.e164num + '@' + config.ip + ':' + config.port
+            const k = 'sip:' + did.e164num + '@' + config.ip + ':' + config.tcpPort
 
             const ca = addressFactory.createAddress(did.contact)
             const ch = headerFactory.createContactHeader(ca)
@@ -71,13 +78,13 @@ function Server(locationService, registrarService, accountManagerService, resour
                 const gateways = resourcesAPI.getGateways()
                 for (var gateway of gateways) {
                     LOG.debug('Register in [' + gateway.metadata.name +  '] using ['  + gateway.username + '@' + gateway.host + ']')
-                    if (gateway.host !== undefined) registerUtil.requestChallenge(gateway.username, gateway.host)
+                    if (gateway.host !== undefined) registerUtil.requestChallenge(gateway.username, gateway.host, gateway.transport)
                     if (gateway.registries === undefined) continue
 
                     for (var h of gateway.registries) {
                         LOG.debug('Register in [' + gateway.metadata.name +  '] using ['  + gateway.username + '@' + h + ']')
 
-                        registerUtil.requestChallenge(gateway.username, h)
+                        registerUtil.requestChallenge(gateway.username, h, gateway.transport)
                     }
                 }
            }
