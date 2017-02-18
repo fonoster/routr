@@ -22,7 +22,7 @@ function Server(locationService, registrarService, accountManagerService, resour
     const proRegExp = 4
 
     this.start = () => {
-        LOG.info('Starting Sip I/O on port ' + config.port + ' and protocol ' + config.proto)
+        LOG.info('Starting Sip I/O on port ' + config.port + ' and transport ' + config.transport)
 
         const properties = new Properties()
         const sipFactory = SipFactory.getInstance()
@@ -42,7 +42,7 @@ function Server(locationService, registrarService, accountManagerService, resour
         const messageFactory = sipFactory.createMessageFactory()
         const headerFactory = sipFactory.createHeaderFactory()
         const addressFactory = sipFactory.createAddressFactory()
-        const listeningPoint = sipStack.createListeningPoint(config.ip, config.port, config.proto)
+        const listeningPoint = sipStack.createListeningPoint(config.ip, config.port, config.transport)
         const sipProvider = sipStack.createSipProvider(listeningPoint)
 
         // Server's contact address and header

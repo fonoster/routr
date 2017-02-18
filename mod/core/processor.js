@@ -137,7 +137,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
                 // Last proxy in route
                 if (proxyHost.equals(localhost)) {
-                    const viaHeader = headerFactory.createViaHeader(proxyHost, config.port, config.proto, null)
+                    const viaHeader = headerFactory.createViaHeader(proxyHost, config.port, config.transport, null)
                     rout.removeFirst(RouteHeader.NAME)
                     rout.addFirst(viaHeader)
                 }

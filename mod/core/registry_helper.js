@@ -15,7 +15,7 @@ function RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory
     this.requestChallenge = (username, peerHost, expires = 300) => {
         cseq++
         const viaHeaders = []
-        const viaHeader = headerFactory.createViaHeader(config.ip, config.port, config.proto, null)
+        const viaHeader = headerFactory.createViaHeader(config.ip, config.port, config.transport, null)
         viaHeaders.push(viaHeader)
 
         const maxForwardsHeader = headerFactory.createMaxForwardsHeader(70)

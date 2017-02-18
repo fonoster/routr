@@ -1,7 +1,6 @@
-bindAddress: 0.0.0.0
+transport: 'udp'
 port: 5082
-proto: "ws"
-traceLevel: 16 # SIP stack logs
+traceLevel: 10 # SIP stack logs
 rest:
   port: 4567
   username: admin
