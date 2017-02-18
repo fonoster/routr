@@ -2,8 +2,8 @@
 - kind: Agent
   apiVersion: v1
   metadata:
-    name: Jhon Doe
-  username: jhondoe
+    name: John Doe
+  username: john
   secret: 1234
   domains:
     - ny.ocean.com
@@ -12,7 +12,7 @@
   apiVersion: v1
   metadata:
     name: Janie Doe
-  username: janiedoe
-  secret: 4321
+  username: janie
+  secret: 1234
   domains:
     - ny.ocean.com
