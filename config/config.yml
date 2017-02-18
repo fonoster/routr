@@ -1,11 +1,14 @@
 bindAddress: 0.0.0.0
-port: 5070
-proto: "udp"
-traceLevel: 10 # SIP stack logs
-defaultDomainAcl:
-  deny:
-    - 0.0.0.0/1
+port: 5082
+proto: "ws"
+traceLevel: 16 # SIP stack logs
 rest:
   port: 4567
   username: admin
   password: 1234
+
+# Remove comment to deny all networks by default
+
+#defaultDomainAcl:
+#  deny:
+#    - 0.0.0.0/1
