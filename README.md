@@ -22,7 +22,8 @@ this work in the future.`
 
 **Transport**
 
-- UDP 
+- UDP
+- Websocket
 
 **Security**
 
@@ -158,6 +159,15 @@ COMMAND
 
 Find more information at https://github.com/psanders/sip.io
 ```
+
+# Compatibility notes
+
+- Successfully connected with DIDLogic using TCP, UDP and Websocket
+- Incoming calls from DIDLogic to "Telephone"
+- Call from and to mac sofphone "Telephone"
+- Call from/to Ip Phone GXP2100 from/to "Telephone"
+- Call from SIP.js (tested on Chrome) to another SIP.js
+- **Unable** to call from SIP.js to "Telephone" due to codecs issues
 
 ## Author
  - [Pedro Sanders](https://github.com/psanders)
