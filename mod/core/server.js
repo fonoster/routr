@@ -22,19 +22,20 @@ function Server(locationService, registrarService, accountManagerService, resour
     const proRegExp = 4
 
     this.start = () => {
-        LOG.info("Starting Sip I/O on port " + config.port + " and protocol " + config.proto)
+        LOG.info('Starting Sip I/O on port ' + config.port + ' and protocol ' + config.proto)
 
         const properties = new Properties()
         const sipFactory = SipFactory.getInstance()
 
-        sipFactory.setPathName("gov.nist")
-        properties.setProperty("javax.sip.STACK_NAME", "fonoster")
-        properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "OFF")
+        sipFactory.setPathName('gov.nist')
+        properties.setProperty('javax.sip.STACK_NAME', 'fonoster')
+        properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'OFF')
         // Guard against denial of service attack.
-        properties.setProperty("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "1048576");
+        properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576');
         // Drop the client connection after we are done with the transaction.
-        properties.setProperty("gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS", "false");
-        properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", config.traceLevel);
+        properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'false');
+        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', config.traceLevel);
+        properties.setProperty('gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY', 'gov.nist.javax.sip.stack.NioMessageProcessorFactory')
 
         sipStack = sipFactory.createSipStack(properties)
 
@@ -50,7 +51,7 @@ function Server(locationService, registrarService, accountManagerService, resour
 
         // This will not scale if we have a lot of DIDs
         for (var did of resourcesAPI.getDIDs()) {
-            const k = "sip:" + did.e164num + '@' + config.ip + ':' + config.port
+            const k = 'sip:' + did.e164num + '@' + config.ip + ':' + config.port
 
             const ca = addressFactory.createAddress(did.contact)
             const ch = headerFactory.createContactHeader(ca)
