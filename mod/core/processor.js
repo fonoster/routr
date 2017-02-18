@@ -103,6 +103,9 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             const routeHeader = rin.getHeader(RouteHeader.NAME)
             const tgtURI = rin.getRequestURI()
             const contactHeader = rin.getHeader(ContactHeader.NAME)
+
+            if (method.equals(Request.NOTIFY)) return
+
             const contactURI = contactHeader.getAddress().getURI()
 
             let st = e.getServerTransaction()
