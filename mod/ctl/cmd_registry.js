@@ -5,7 +5,7 @@
 load('mod/ctl/ctl_utils.js')
 
 function cmdShowRegistry(id) {
-    const out = Package.java.lang.System.out
+    const out = Packages.java.lang.System.out
     const registry = getWithAuth('registry')
 
     out.printf('SIP devices registered\n')
