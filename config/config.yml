@@ -1,6 +1,8 @@
-transport: 'udp'
-port: 5082
 traceLevel: 10 # SIP stack logs
+tcpPort: 5060
+udpPort: 5060
+tlsPort: 5061
+wsPort: 5062
 rest:
   port: 4567
   username: admin
