@@ -118,7 +118,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             }
 
             const domain = resourcesAPI.findDomain(tgtURI.getHost())
-            if (domain == null) throw Packages.java.lang.RuntimeException('Unregistered domain ' + tgtURI.getHost())
+            if (domain == null) reject(rin, st)
 
             if(!new DomainUtil(domain, defaultDomainAcl).isDomainAllow(domain, tgtURI.getHost())) {
                 LOG.trace("Host " + contactURI.getHost() + " has been rejected by " + domain.uri)
