@@ -89,7 +89,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     }
 
     function reject(request, transaction) {
-        LOG.debug("Connection rejected: " + request.getHeader(ContactHeader.NAME))
+        LOG.debug("Connection rejected: " + request.getHeader(ToHeader.NAME))
         transaction.sendResponse(messageFactory.createResponse(Response.UNAUTHORIZED, request))
     }
 
@@ -100,7 +100,6 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             const routeHeader = rin.getHeader(RouteHeader.NAME)
             const toHeader = rin.getHeader(ToHeader.NAME)
             const tgtURI = toHeader.getAddress().getURI()
-            const contactHeader = rin.getHeader(ContactHeader.NAME)
 
             let st = e.getServerTransaction()
             let proxyHost
@@ -118,11 +117,13 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             }
 
             const domain = resourcesAPI.findDomain(tgtURI.getHost())
-            if (domain == null) reject(rin, st)
 
-            if(!new DomainUtil(domain, defaultDomainAcl).isDomainAllow(domain, tgtURI.getHost())) {
-                LOG.trace("Host " + contactURI.getHost() + " has been rejected by " + domain.uri)
-                reject(rin, st)
+            if (domain != null) {
+                if(!new DomainUtil(defaultDomainAcl).isDomainAllow(domain, tgtURI.getHost())) {
+                    reject(rin, st)
+                }
+            } else {
+                // Should we check for peers and gateways request?
             }
 
             if (method.equals(Request.REGISTER)) {
@@ -134,7 +135,8 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
                 // Last proxy in route
                 if (proxyHost.equals(localhost)) {
-                    const viaHeader = headerFactory.createViaHeader(proxyHost, config.port, 'udp', null)
+                    // Why should this be UDP?
+                    const viaHeader = headerFactory.createViaHeader(proxyHost, config.udpPort, 'udp', null)
                     rout.removeFirst(RouteHeader.NAME)
                     rout.addFirst(viaHeader)
                 }
