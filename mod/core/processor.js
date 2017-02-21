@@ -84,12 +84,12 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     }
 
     function unavailable(request, transaction) {
-        LOG.debug("Unable to find contact: " + request.getHeader(ContactHeader.NAME))
+        LOG.debug("Unable to find contact: " + request.getHeader(ToHeader.NAME))
         transaction.sendResponse(messageFactory.createResponse(Response.NOT_FOUND, request))
     }
 
     function reject(request, transaction) {
-        LOG.debug("Connection rejected: " + request.getHeader(ToHeader.NAME))
+        LOG.debug("Connection rejected: " + request)
         transaction.sendResponse(messageFactory.createResponse(Response.UNAUTHORIZED, request))
     }
 
