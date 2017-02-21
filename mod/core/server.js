@@ -58,7 +58,7 @@ function Server(locationService, registrarService, accountManagerService, resour
 
         // This will not scale if we have a lot of DIDs
         for (var did of resourcesAPI.getDIDs()) {
-            const k = 'sip:' + did.e164num + '@' + config.ip + ':' + config.tcpPort
+            const k = 'sip:' + did.e164num + '@' + config.ip
 
             const ca = addressFactory.createAddress(did.contact)
             const ch = headerFactory.createContactHeader(ca)
