@@ -4,9 +4,9 @@
  */
 load('mod/ctl/ctl_utils.js')
 
-function cmdShowRegistry(id) {
+function cmdShowLocation(id) {
     const out = Packages.java.lang.System.out
-    const registry = getWithAuth('registry')
+    const registry = getWithAuth('location')
 
     out.printf('SIP devices registered\n')
     out.printf("%-35s %-20s\n", 'ENDPOINT', 'CONTACT ADDRESS')

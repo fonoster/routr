@@ -27,7 +27,7 @@ getEpilog=
 
 get.epilog(getEpilog)
 
-subparsers.addParser('registry').aliases(['reg']).help('Shows the gateways status')
+subparsers.addParser('location').aliases(['loc']).help('Locate sip devices')
 subparsers.addParser('stop').help('Stops server')
 
 // Get command
@@ -50,7 +50,7 @@ load('mod/ctl/get_dids.js')
 load('mod/ctl/get_domains.js')
 load('mod/ctl/get_gateways.js')
 load('mod/ctl/get_peers.js')
-load('mod/ctl/cmd_registry.js')
+load('mod/ctl/cmd_location.js')
 load('mod/ctl/cmd_stop.js')
 load('mod/ctl/cmd_reload.js')
 
@@ -66,8 +66,8 @@ try {
         if (res.get('resource').match('domain')) getDomainsCmd(res.get('ID'))
         if (res.get('resource').match('gateway')) getGatewaysCmd(res.get('ID'))
         if (res.get('resource').match('peer')) getPeersCmd(res.get('ID'))
-    } else if (arg[0] == 'registry' || arg[0] == 'reg') {
-        cmdShowRegistry()
+    } else if (arg[0] == 'location' || arg[0] == 'loc') {
+        cmdShowLocation()
     } else if (arg[0] == 'stop') {
         cmdStop()
     } else if (arg[0] == 'reload' || arg[0] == 'rel') {

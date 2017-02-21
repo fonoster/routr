@@ -30,7 +30,7 @@ function RestService(server, locationService, resourcesAPI, config) {
         java.lang.Thread.currentThread().join()
     }
 
-    get('/registry', (request, response) => locationService.listAllAsJSON())
+    get('/location', (request, response) => locationService.listAllAsJSON())
     get('/gateways', (request, response) => JSON.stringify(resourcesAPI.getGateways()))
     get('/peers', (request, response) => JSON.stringify(resourcesAPI.getPeers()))
     get('/agents', (request, response) =>JSON.stringify(resourcesAPI.getAgents()))

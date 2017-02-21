@@ -3,7 +3,7 @@
  * @since v1
  */
 
-function DomainUtil(domain, defaultDomainAcl) {
+function DomainUtil(defaultDomainAcl) {
     const rules = new java.util.ArrayList()
 
     function addRules(acl) {
