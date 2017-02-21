@@ -20,10 +20,10 @@ get.addArgument('ID').nargs('?').setDefault('none').help('Specific resource')
 getEpilog=
 `Examples:
     # List a all of the agents in system
-    sipioctl get agents
+    $ sipioctl get agents
 
     # Gets peer by username
-    sipioctl get peer 9201 ...\n`
+    $ sipioctl get peer 9201 ...\n`
 
 get.epilog(getEpilog)
 
@@ -38,10 +38,10 @@ reload.addArgument('resource').metavar(['resource']).choices(reloadSubCmds)
 reloadEpilog=
 `Examples:
     # Reload a all agents
-    sipioctl load agents
+    $ sipioctl load agents
 
     # Reload all resource
-    sipioctl rel all\n`
+    $ sipioctl rel all\n`
 
 reload.epilog(reloadEpilog)
 
