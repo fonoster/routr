@@ -1,8 +1,8 @@
 - kind: DID
   apiVersion: v1
   metadata:
-    city: Santiago
-    country: Dominican Rep.
-    countryISOCode: DO
-  e164num: '18296072077'
-  contact: 'sip:jhondoe@192.168.1.6:64980'
+    city: Columbus, GA
+    country: USA
+    countryISOCode: US
+  e164num: '17066041487'
+  contact: 'sip:john@192.168.1.6:64980'
