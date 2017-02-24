@@ -7,5 +7,3 @@
     desc: Default Media Server
   username: ms
   secret: 1c3cr34m
-  host: 192.168.1.6
-  port: 5060                  # Not using this yet
