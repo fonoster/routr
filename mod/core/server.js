@@ -77,12 +77,12 @@ function Server(locationService, registrarService, accountManagerService, resour
             run: function() {
                 const gateways = resourcesAPI.getGateways()
                 for (var gateway of gateways) {
-                    LOG.debug('Register in [' + gateway.metadata.name +  '] using ['  + gateway.username + '@' + gateway.host + ']')
+                    LOG.debug('Register to GW ' + gateway.metadata.name +  ' using '  + gateway.username + '@' + gateway.host)
                     if (gateway.host !== undefined) registerUtil.requestChallenge(gateway.username, gateway.host, gateway.transport)
                     if (gateway.registries === undefined) continue
 
                     for (var h of gateway.registries) {
-                        LOG.debug('Register in [' + gateway.metadata.name +  '] using ['  + gateway.username + '@' + h + ']')
+                        LOG.debug('Register to GW ' + gateway.metadata.name +  ' using '  + gateway.username + '@' + h)
 
                         registerUtil.requestChallenge(gateway.username, h, gateway.transport)
                     }
