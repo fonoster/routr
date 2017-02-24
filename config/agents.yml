@@ -6,8 +6,7 @@
   username: john
   secret: 1234
   domains:
-    - ny.ocean.com
-    - tx.ocean.com
+    - sip.fonoster.com
 - kind: Agent
   apiVersion: v1
   metadata:
@@ -15,4 +14,4 @@
   username: janie
   secret: 1234
   domains:
-    - ny.ocean.com
+    - sip.fonoster.com
