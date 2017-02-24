@@ -31,6 +31,13 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
     const defaultDomainAcl = config.defaultDomainAcl
 
+    function findContext(trans) {
+        return ctxtList
+            .stream()
+            .filter(c => c.st.equals(trans) || c.ct.equals(trans))
+            .findFirst() || null;
+    }
+
     function register(request, transaction) {
         const contactHeader = request.getHeader(ContactHeader.NAME)
         const contactURI = contactHeader.getAddress().getURI()
@@ -179,11 +186,11 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
             let ct = e.getClientTransaction()
 
-            // WARNING: This is causing an issue with TCP transport
+            // WARNING: This is causing an issue with TCP transport and DIDLogic
+            // I suspect that DIDLogic does not fully support tcp registration
             if (rin.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED || rin.getStatusCode() == Response.UNAUTHORIZED) {
                 let authenticationHelper =
                     sipStack.getAuthenticationHelper(accountManagerService.getAccountManager(), headerFactory)
-                //if (ct == null) ct = sipProvider.getNewClientTransaction(rin)
                 let t = authenticationHelper.handleChallenge(rin, ct, e.getSource(), 5)
                 t.sendRequest()
                 return
@@ -199,16 +206,8 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                     const rout = rin.clone();
                     rout.removeFirst(ViaHeader.NAME);
 
-                    const i = ctxtList.iterator()
-                    while (i.hasNext()) {
-                        const ctxt = i.next()
-
-                        if (ctxt.ct.equals(ct)) {
-                            // The server tx goes to the terminated state.
-                            ctxt.st.sendResponse(rout)
-                            break
-                        }
-                    }
+                    const ctxt = findContext(ct)
+                    ctxt.st.sendResponse(rout)
                 } else {
                     // Client tx has already terminated but the UA is retransmitting
                     // just forward the response statelessly.
@@ -234,17 +233,12 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
         processTransactionTerminated: e => {
             if (e.isServerTransaction()) {
                 const st = e.getServerTransaction()
-                const i = ctxtList.iterator()
+                const ctxt = findContext(st)
 
-                while (i.hasNext()) {
-                    const ctxt = i.next()
-
-                    if (ctxt.st.equals(st)) {
-                        i.remove()
-                        break
-                    } else {
-                        LOG.info("Ongoing Transaction")
-                    }
+                if (ctxt) {
+                    i.remove()
+                } else {
+                    LOG.info("Ongoing Transaction")
                 }
             }
         },
