@@ -2,7 +2,6 @@
  * @author Pedro Sanders
  * @since v1
  */
-
 function DomainUtil(defaultDomainAcl) {
     const rules = new java.util.ArrayList()
 

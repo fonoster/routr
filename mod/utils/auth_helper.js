@@ -12,7 +12,7 @@ function AuthHelper(headerFactory) {
 
     this.calculateResponse = (username, password, realm, nonce, nc, cnonce, uri, method, qop) => {
         const a1 = username + ':' + realm + ':' + password
-        const a2 = method + ':' + uri
+        const a2 = method.toUpperCase() + ':' + uri
         const ha1 = DigestUtils.md5Hex(a1)
         const ha2 =  DigestUtils.md5Hex(a2)
         let result
@@ -32,7 +32,7 @@ function AuthHelper(headerFactory) {
         return result
     }
 
-        // Generates WWW-Authorization header
+    // Generates WWW-Authorization header
     this.generateChallenge = () => {
         const wwwAuthHeader = headerFactory.createWWWAuthenticateHeader('Digest')
         wwwAuthHeader.setDomain('fonoster.com')
