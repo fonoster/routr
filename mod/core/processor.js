@@ -10,8 +10,6 @@ load('mod/core/resources.js')
 
 function Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
     registrarService, accountManagerService, resourcesAPI, config) {
-    //const config = config
-    const InetAddress = Packages.java.net.InetAddress
     const SipListener = Packages.javax.sip.SipListener
     const Request = Packages.javax.sip.message.Request
     const Response = Packages.javax.sip.message.Response
@@ -26,7 +24,6 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
     const LOG = LogManager.getLogger()
     const ctxtList = new java.util.ArrayList()
-    const localhost = InetAddress.getLocalHost().getHostAddress()
     const authHelper =  new AuthHelper(headerFactory)
 
     const defaultDomainAcl = config.defaultDomainAcl
@@ -36,6 +33,13 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             .stream()
             .filter(c => c.st.equals(trans) || c.ct.equals(trans))
             .findFirst() || null;
+    }
+
+    function removeContext(trans) {
+        const ctxt = findContext(trans)
+        const index = ctxtList.indexOf(ctxt)
+        if (index > -1)
+            ctxtList.remove(index)
     }
 
     function register(request, transaction) {
@@ -112,11 +116,11 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
             let proxyHost
 
             // Edge proxy
-            if (routeHeader != null) {
+            if (routeHeader == null) {
+                proxyHost = config.ip;
+            } else {
                 const sipURI = routeHeader.getAddress().getURI()
                 proxyHost = sipURI.getHost()
-            } else {
-                proxyHost = localhost;
             }
 
             if (st == null && !method.equals(Request.ACK)) {
@@ -141,7 +145,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 const rout = rin.clone()
 
                 // Last proxy in route
-                if (proxyHost.equals(localhost)) {
+                if (proxyHost.equals(config.ip)) {
                     // Why should this be UDP?
                     const viaHeader = headerFactory.createViaHeader(proxyHost, config.udpPort, 'udp', null)
                     rout.removeFirst(RouteHeader.NAME)
@@ -236,7 +240,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 const ctxt = findContext(st)
 
                 if (ctxt) {
-                    i.remove()
+                    removeContext(ctxt)
                 } else {
                     LOG.info("Ongoing Transaction")
                 }
