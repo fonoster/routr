@@ -28,20 +28,6 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
     const defaultDomainAcl = config.defaultDomainAcl
 
-    function findContext(trans) {
-        return ctxtList
-            .stream()
-            .filter(c => c.st.equals(trans) || c.ct.equals(trans))
-            .findFirst() || null;
-    }
-
-    function removeContext(trans) {
-        const ctxt = findContext(trans)
-        const index = ctxtList.indexOf(ctxt)
-        if (index > -1)
-            ctxtList.remove(index)
-    }
-
     function register(request, transaction) {
         const contactHeader = request.getHeader(ContactHeader.NAME)
         const contactURI = contactHeader.getAddress().getURI()
@@ -165,17 +151,22 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 if(method.equals(Request.ACK)) {
                     sipProvider.sendRequest(rout)
                 } else {
-                    const ct = sipProvider.getNewClientTransaction(rout)
-                    ct.sendRequest()
+                    try {
+                        const ct = sipProvider.getNewClientTransaction(rout)
+                        ct.sendRequest()
 
-                    // Transaction context
-                    const ctxt = new Context()
-                    ctxt.ct = ct
-                    ctxt.st = st
-                    ctxt.method = method
-                    ctxt.rin = rin
-                    ctxt.rout = rout
-                    ctxtList.add(ctxt)
+                        // Transaction context
+                        const ctxt = new Context()
+                        ctxt.ct = ct
+                        ctxt.st = st
+                        ctxt.method = method
+                        ctxt.rin = rin
+                        ctxt.rout = rout
+                        ctxtList.add(ctxt)
+                    } catch (e) {
+                        LOG.info(e.getMessage())
+                        LOG.trace(e.getStackTrace())
+                    }
                 }
                 LOG.trace(rout)
             }
@@ -210,8 +201,12 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                     const rout = rin.clone();
                     rout.removeFirst(ViaHeader.NAME);
 
-                    const ctxt = findContext(ct)
-                    ctxt.st.sendResponse(rout)
+                    ctxtList.forEach(ctxt => {
+                        if (ctxt.ct.equals(ct)) {
+                            ctxt.st.sendResponse(rout)
+                            return
+                        }
+                    })
                 } else {
                     // Client tx has already terminated but the UA is retransmitting
                     // just forward the response statelessly.
@@ -237,12 +232,17 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
         processTransactionTerminated: e => {
             if (e.isServerTransaction()) {
                 const st = e.getServerTransaction()
-                const ctxt = findContext(st)
+                const i = ctxtList.iterator()
 
-                if (ctxt) {
-                    removeContext(ctxt)
-                } else {
-                    LOG.info("Ongoing Transaction")
+                while (i.hasNext()) {
+                    const ctxt = i.next()
+
+                    if (ctxt.st.equals(st)) {
+                        i.remove()
+                        break
+                    } else {
+                        LOG.info("Ongoing Transaction")
+                    }
                 }
             }
         },
