@@ -5,9 +5,9 @@
  * @since v1
  */
 function Context() {
-    this.ct     // Client transaction
-    this.st     // Server transaction
+    this.clientTransaction
+    this.serverTransaction
     this.method
-    this.rin
-    this.rout
+    this.requestIn
+    this.requestOut
 }
