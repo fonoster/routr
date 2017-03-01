@@ -3,8 +3,9 @@
  * @since v1
  */
 load('mod/utils/auth_helper.js')
+load('mod/core/context.js')
 
-function RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader, config) {
+function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader, contextStorage, config) {
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
     const SipUtils = Packages.gov.nist.javax.sip.Utils
@@ -44,8 +45,8 @@ function RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory
         request.addHeader(expireHeader)
 
         try {
-            const ct = sipProvider.getNewClientTransaction(request)
-            ct.sendRequest()
+            const clientTransaction = sipProvider.getNewClientTransaction(request)
+            clientTransaction.sendRequest()
         } catch(e) {
             if(e instanceof javax.sip.TransactionUnavailableException || e instanceof javax.sip.SipException) {
                 LOG.warn('Unable to register with GW -> ' + peerHost + '. (Verify your network status)')

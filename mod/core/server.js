@@ -4,12 +4,16 @@
  */
 load('mod/core/processor.js')
 load('mod/core/registry_helper.js')
+load('mod/core/context_storage.js')
 load('mod/rest/rest.js')
 
 function Server(locationService, registrarService, accountManagerService, resourcesAPI) {
+    const contextStorage = new ContextStorage()
     const config = resourcesAPI.getConfig()
     const InetAddress = Packages.java.net.InetAddress
     config.ip = InetAddress.getLocalHost().getHostAddress()
+
+
 
     const SipFactory = Packages.javax.sip.SipFactory
     const Properties = Packages.java.util.Properties
@@ -23,6 +27,8 @@ function Server(locationService, registrarService, accountManagerService, resour
 
     this.start = () => {
         LOG.info('Starting Sip I/O')
+
+        print ('config.ip = ' + config.ip)
 
         const properties = new Properties()
         const sipFactory = SipFactory.getInstance()
@@ -66,25 +72,25 @@ function Server(locationService, registrarService, accountManagerService, resour
         }
 
         const processor = new Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader,
-            locationService, registrarService, accountManagerService, resourcesAPI, resourcesAPI.getConfig())
+            locationService, registrarService, accountManagerService, resourcesAPI, contextStorage, resourcesAPI.getConfig())
 
         sipProvider.addSipListener(processor.listener)
 
-        const registerUtil = new RegistryUtil(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader,
-            config)
+        const registerHelper = new RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader,
+            contextStorage, config)
 
         var registerTask = new java.util.TimerTask() {
             run: function() {
                 const gateways = resourcesAPI.getGateways()
                 for (var gateway of gateways) {
                     LOG.debug('Register to GW ' + gateway.metadata.name +  ' using '  + gateway.username + '@' + gateway.host)
-                    if (gateway.host !== undefined) registerUtil.requestChallenge(gateway.username, gateway.host, gateway.transport)
+                    if (gateway.host !== undefined) registerHelper.requestChallenge(gateway.username, gateway.host, gateway.transport)
                     if (gateway.registries === undefined) continue
 
                     for (var h of gateway.registries) {
                         LOG.debug('Register to GW ' + gateway.metadata.name +  ' using '  + gateway.username + '@' + h)
 
-                        registerUtil.requestChallenge(gateway.username, h, gateway.transport)
+                        registerHelper.requestChallenge(gateway.username, h, gateway.transport)
                     }
                 }
            }

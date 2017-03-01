@@ -9,7 +9,7 @@ load('mod/utils/domain_utils.js')
 load('mod/core/resources.js')
 
 function Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
-    registrarService, accountManagerService, resourcesAPI, config) {
+    registrarService, accountManagerService, resourcesAPI, contextStorage, config) {
     const SipListener = Packages.javax.sip.SipListener
     const Request = Packages.javax.sip.message.Request
     const Response = Packages.javax.sip.message.Response
@@ -23,7 +23,6 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     const LogManager = Packages.org.apache.logging.log4j.LogManager
 
     const LOG = LogManager.getLogger()
-    const ctxtList = new java.util.ArrayList()
     const authHelper =  new AuthHelper(headerFactory)
 
     const defaultDomainAcl = config.defaultDomainAcl
@@ -55,27 +54,28 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
         }
     }
 
-    function cancel(request, st) {
-        const iterator = ctxtList.iterator()
+    function cancel(request, serverTransaction) {
+        const storage = contextStorage.getStorage()
+        const iterator = storage.iterator()
 
         while (iterator.hasNext()) {
-            const ctxt = iterator.next()
-            if (ctxt.st.getBranchId()
-                .equals(st.getBranchId())) {
+            const context = iterator.next()
+            if (context.serverTransaction.getBranchId()
+                .equals(serverTransaction.getBranchId())) {
 
-                let originRequest = ctxt.rin
+                let originRequest = context.requestIn
                 let originResponse = messageFactory.createResponse(Response.REQUEST_TERMINATED, originRequest)
                 let cancelResponse = messageFactory.createResponse(Response.OK, request)
-                let cancelRequest = ctxt.ct.createCancel()
-                let ct = sipProvider.getNewClientTransaction(cancelRequest)
+                let cancelRequest = context.clientTransaction.createCancel()
+                let clientTransaction = sipProvider.getNewClientTransaction(cancelRequest)
 
-                ctxt.st.sendResponse(originResponse)
-                st.sendResponse(cancelResponse)
-                ct.sendRequest()
+                context.serverTransaction.sendResponse(originResponse)
+                serverTransaction.sendResponse(cancelResponse)
+                clientTransaction.sendRequest()
 
-                LOG.trace(originResponse)
-                LOG.trace(cancelResponse)
-                LOG.trace(cancelRequest)
+                LOG.trace('Original response: ' + originResponse)
+                LOG.trace('Cancel response: ' + cancelResponse)
+                LOG.trace('Cancel request: ' + cancelRequest)
             }
         }
     }
@@ -91,14 +91,14 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     }
 
     this.listener = new SipListener() {
-        processRequest: e => {
-            const rin = e.getRequest()
-            const method = rin.getMethod()
-            const routeHeader = rin.getHeader(RouteHeader.NAME)
-            const toHeader = rin.getHeader(ToHeader.NAME)
+        processRequest: event => {
+            const requestIn = event.getRequest()
+            const method = requestIn.getMethod()
+            const routeHeader = requestIn.getHeader(RouteHeader.NAME)
+            const toHeader = requestIn.getHeader(ToHeader.NAME)
             const tgtURI = toHeader.getAddress().getURI()
 
-            let st = e.getServerTransaction()
+            let serverTransaction = event.getServerTransaction()
             let proxyHost
 
             // Edge proxy
@@ -109,149 +109,140 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 proxyHost = sipURI.getHost()
             }
 
-            if (st == null && !method.equals(Request.ACK)) {
-                st = sipProvider.getNewServerTransaction(rin)
+            if (serverTransaction == null && !method.equals(Request.ACK)) {
+                serverTransaction = sipProvider.getNewServerTransaction(requestIn)
             }
 
             const domain = resourcesAPI.findDomain(tgtURI.getHost())
 
             if (domain != null) {
                 if(!new DomainUtil(defaultDomainAcl).isDomainAllow(domain, tgtURI.getHost())) {
-                    reject(rin, st)
+                    reject(requestIn, serverTransaction)
                 }
             } else {
                 // Should we check for peers and gateways request?
             }
 
             if (method.equals(Request.REGISTER)) {
-                register(rin, st)
+                register(requestIn, serverTransaction)
             } else if(method.equals(Request.CANCEL)) {
-                cancel(rin, st)
+                cancel(requestIn, serverTransaction)
             } else {
-                const rout = rin.clone()
+                const requestOut = requestIn.clone()
 
                 // Last proxy in route
                 if (proxyHost.equals(config.ip)) {
                     // Why should this be UDP?
                     const viaHeader = headerFactory.createViaHeader(proxyHost, config.udpPort, 'udp', null)
-                    rout.removeFirst(RouteHeader.NAME)
-                    rout.addFirst(viaHeader)
+                    requestOut.removeFirst(RouteHeader.NAME)
+                    requestOut.addFirst(viaHeader)
                 }
 
-                const uri = locationService.get(tgtURI)
+                const tgt = tgtURI.getScheme() + ":" + tgtURI.getUser() + '@' + tgtURI.getHost()
+                const uri = locationService.get(tgt)
 
                 if (uri == null) {
-                    unavailable(rin, st)
+                    unavailable(requestIn, serverTransaction)
                     return
                 }
 
-                rout.setRequestURI(uri)
+                requestOut.setRequestURI(uri)
 
                 // Not need transaction
                 if(method.equals(Request.ACK)) {
-                    sipProvider.sendRequest(rout)
+                    sipProvider.sendRequest(requestOut)
                 } else {
                     try {
-                        const ct = sipProvider.getNewClientTransaction(rout)
-                        ct.sendRequest()
+                        const clientTransaction = sipProvider.getNewClientTransaction(requestOut)
+                        clientTransaction.sendRequest()
 
                         // Transaction context
-                        const ctxt = new Context()
-                        ctxt.ct = ct
-                        ctxt.st = st
-                        ctxt.method = method
-                        ctxt.rin = rin
-                        ctxt.rout = rout
-                        ctxtList.add(ctxt)
+                        const context = new Context()
+                        context.clientTransaction = clientTransaction
+                        context.serverTransaction = serverTransaction
+                        context.method = method
+                        context.requestIn = requestIn
+                        context.requestOut = requestOut
+                        contextStorage.saveContext(context)
                     } catch (e) {
                         LOG.info(e.getMessage())
                         LOG.trace(e.getStackTrace())
                     }
                 }
-                LOG.trace(rout)
+                LOG.trace(requestOut)
             }
         },
 
-        processResponse: e => {
-            const rin = e.getResponse()
-            const cseq = rin.getHeader(CSeqHeader.NAME)
+        processResponse: event => {
+            const responseIn = event.getResponse()
+            const cseq = responseIn.getHeader(CSeqHeader.NAME)
 
-            if (rin.getStatusCode() == Response.TRYING || rin.getStatusCode() == Response.REQUEST_TERMINATED) return
+            if (responseIn.getStatusCode() == Response.TRYING ||
+                responseIn.getStatusCode() == Response.REQUEST_TERMINATED) return
             if (cseq.getMethod().equals(Request.CANCEL)) return
 
-            let ct = e.getClientTransaction()
+            let clientTransaction = event.getClientTransaction()
 
             // WARNING: This is causing an issue with TCP transport and DIDLogic
             // I suspect that DIDLogic does not fully support tcp registration
-            if (rin.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED || rin.getStatusCode() == Response.UNAUTHORIZED) {
+            if (responseIn.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED || responseIn.getStatusCode() == Response.UNAUTHORIZED) {
                 let authenticationHelper =
                     sipStack.getAuthenticationHelper(accountManagerService.getAccountManager(), headerFactory)
-                let t = authenticationHelper.handleChallenge(rin, ct, e.getSource(), 5)
+
+                let t = authenticationHelper.handleChallenge(responseIn, clientTransaction, event.getSource(), 5)
                 t.sendRequest()
                 return
             }
 
             if (cseq.getMethod().equals(Request.INVITE)) {
-                if (ct != null) {
+                if (clientTransaction != null) {
                     // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
                     // However, I'm unable to find the way to cast this object.
-                    //let st = ct.getApplicationData()'
+                    //let st = clientTransaction.getApplicationData()'
 
                     // Strip the topmost via header
-                    const rout = rin.clone();
-                    rout.removeFirst(ViaHeader.NAME);
+                    const responseOut = responseIn.clone();
+                    responseOut.removeFirst(ViaHeader.NAME);
 
-                    ctxtList.forEach(ctxt => {
-                        if (ctxt.ct.equals(ct)) {
-                            ctxt.st.sendResponse(rout)
-                            return
-                        }
-                    })
+                    const context = contextStorage.findContext(clientTransaction)
+                    context.serverTransaction.sendResponse(responseOut)
                 } else {
                     // Client tx has already terminated but the UA is retransmitting
                     // just forward the response statelessly.
                     // Strip the topmost via header
 
-                    const rout = rin.clone();
-                    rout.removeFirst(ViaHeader.NAME);
+                    const responseOut = responseIn.clone();
+                    responseOut.removeFirst(ViaHeader.NAME);
                     // Send the retransmission statelessly
-                    const sipProvider = e.getSource();
-                    sipProvider.sendResponse(rout);
+                    const sipProvider = event.getSource();
+                    sipProvider.sendResponse(responseOut);
                 }
             } else {
                 // Can be BYE due to Record-Route
-                LOG.trace("Got a non-invite response " + rin);
-                const sipProvider = e.getSource();
-                rin.removeFirst(ViaHeader.NAME);
+                LOG.trace("Got a non-invite response " + responseIn);
+                const sipProvider = event.getSource();
+                responseIn.removeFirst(ViaHeader.NAME);
 
                 // There is no more Via headers; the response was intended for the proxy.
-                if (rin.getHeader(ViaHeader.NAME) != null) sipProvider.sendResponse(rin);
+                if (responseIn.getHeader(ViaHeader.NAME) != null) sipProvider.sendResponse(responseIn);
             }
         },
 
-        processTransactionTerminated: e => {
-            if (e.isServerTransaction()) {
-                const st = e.getServerTransaction()
-                const i = ctxtList.iterator()
+        processTransactionTerminated: event => {
+            if (event.isServerTransaction()) {
+                const serverTransaction = event.getServerTransaction()
 
-                while (i.hasNext()) {
-                    const ctxt = i.next()
-
-                    if (ctxt.st.equals(st)) {
-                        i.remove()
-                        break
-                    } else {
-                        LOG.info("Ongoing Transaction")
-                    }
+                if (!contextStorage.removeContext(serverTransaction)) {
+                   LOG.info("Ongoing Transaction")
                 }
             }
         },
 
-        processDialogTerminated: e => {
+        processDialogTerminated: event => {
             LOG.info("#processDialogTerminated not yet implemented")
         },
 
-        processTimeout: e => {
+        processTimeout: event => {
             LOG.info("#processTimeout not yet implemented")
         }
     }
