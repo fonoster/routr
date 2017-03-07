@@ -14,8 +14,8 @@ function ContextStorage() {
         while(iterator.hasNext()) {
             const context = iterator.next()
 
-            if (context.clientTransaction.equals(trans) ||
-                context.serverTransaction.equals(trans)) {
+            if (context.clientTransaction == trans ||
+                context.serverTransaction == trans) {
                 return context
             }
         }
@@ -26,8 +26,8 @@ function ContextStorage() {
         while(iterator.hasNext()) {
             const context = iterator.next()
 
-            if (context.clientTransaction.equals(trans) ||
-                context.serverTransaction.equals(trans)) {
+            if (context.clientTransaction == trans ||
+                context.serverTransaction == trans) {
                 iterator.remove()
                 return true
             }
