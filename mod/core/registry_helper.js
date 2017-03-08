@@ -5,7 +5,7 @@
 load('mod/utils/auth_helper.js')
 load('mod/core/context.js')
 
-function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader, contextStorage, config) {
+function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory, config) {
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
     const SipUtils = Packages.gov.nist.javax.sip.Utils
@@ -13,11 +13,8 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
 
     var cseq = 0
 
-    this.requestChallenge = (username, peerHost, transport = 'tcp', expires = 300) => {
-        let port
-        if (transport == 'tcp') port = config.tcpPort
-        if (transport == 'udp') port = config.udpPort
-        if (transport == 'ws') port = config.wsPort
+    this.requestChallenge = (username, peerHost, transport = 'udp', expires = 300) => {
+        const port = sipProvider.getListeningPoint(transport).getPort()
 
         cseq++
         const viaHeaders = []
