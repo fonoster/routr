@@ -2,10 +2,8 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/utils/auth_helper.js')
-load('mod/core/context.js')
 
-function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader, contextStorage, config) {
+function Originate(sipProvider, headerFactory, messageFactory, addressFactory, contextStorage, config) {
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
     const SipUtils = Packages.gov.nist.javax.sip.Utils
@@ -13,46 +11,82 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
 
     var cseq = 0
 
-    this.requestChallenge = (username, peerHost, transport = 'tcp', expires = 300) => {
-        let port
-        if (transport == 'tcp') port = config.tcpPort
-        if (transport == 'udp') port = config.udpPort
-        if (transport == 'ws') port = config.wsPort
-
-        cseq++
-        const viaHeaders = []
-        const viaHeader = headerFactory.createViaHeader(config.ip, port, transport, null)
-        viaHeaders.push(viaHeader)
-
-        const maxForwardsHeader = headerFactory.createMaxForwardsHeader(70)
-        const callIdHeader = sipProvider.getNewCallId()
-        const cSeqHeader = headerFactory.createCSeqHeader(cseq, Request.REGISTER)
-        const fromAddress = addressFactory.createAddress('sip:' + username + '@' + peerHost)
-        const fromHeader = headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag())
-        const toHeader = headerFactory.createToHeader(fromAddress, null)
-        const expireHeader = headerFactory.createExpiresHeader(expires)
-        const contactAddress = addressFactory.createAddress('sip:' + username + '@' + config.ip + ':' + port)
-        const contactHeader = headerFactory.createContactHeader(contactAddress)
-
-        const request = messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
-        request.addHeader(callIdHeader)
-        request.addHeader(cSeqHeader)
-        request.addHeader(fromHeader)
-        request.addHeader(toHeader)
-        request.addHeader(maxForwardsHeader)
-        request.addHeader(viaHeader)        // Warning: Should we add the array?
-        request.addHeader(contactHeader)
-        request.addHeader(expireHeader)
+    this.call = (from, to, contact) => {
+        const transport = 'udp'
+        const port = sipProvider.getListeningPoint(transport).getPort()
 
         try {
+            cseq++;
+
+            const current_process = cseq + ' ' + Request.INVITE
+            let viaHeaders = []
+            const viaHeader = headerFactory.createViaHeader(config.ip, port, transport, null)
+            viaHeaders.push(viaHeader)
+
+            // The "Max-Forwards" header.
+            const maxForwardsHeader = headerFactory.createMaxForwardsHeader(70)
+            // The "Call-Id" header.
+            const callIdHeader = sipProvider.getNewCallId()
+            // The "CSeq" header.
+            const cSeqHeader = headerFactory.createCSeqHeader(cseq, Request.INVITE)
+            const fromAddress = addressFactory.createAddress(from)
+            const toAddress = addressFactory.createAddress(to)
+            const fromHeader = headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag())
+            // The "To" header.
+            const toHeader = headerFactory.createToHeader(toAddress, null)
+            const contentLength = headerFactory.createContentLengthHeader(300)
+            const contentType = headerFactory.createContentTypeHeader('application', 'sdp')
+            const contactAddress = addressFactory.createAddress(contact)
+            const contactHeader = headerFactory.createContactHeader(contactAddress)
+
+            const sdpData = 'v=0\n' +
+                'o=user1 392867480 292042336 IN IP4 10.0.0.5\n' +
+                's=-\n' +
+                'c=IN IP4 10.0.0.5\n' +
+                't=0 0\n' +
+                'm=audio 8000 RTP/AVP 0 8 101\n' +
+                'a=rtpmap:0 PCMU/8000\n' +
+                'a=rtpmap:8 PCMA/8000\n' +
+                'a=rtpmap:101 telephone-event/8000\n' +
+                'a=sendrecv';
+
+            const contents = sdpData.getBytes()
+
+            let request = messageFactory.createRequest(Request.INVITE + ' sip:10.0.0.5:5070 SIP/2.0\r\n\r\n')
+            request.addHeader(viaHeader)
+            request.addHeader(maxForwardsHeader)
+            request.addHeader(toHeader)
+            request.addHeader(fromHeader)
+            request.addHeader(callIdHeader)
+            request.addHeader(cSeqHeader)
+            request.addHeader(contactHeader)
+            request.addHeader(contentLength)
+            request.addHeader(contentType)
+
+            request.setContent(contents, contentType)
+
             const clientTransaction = sipProvider.getNewClientTransaction(request)
+            //const serverTransaction = sipProvider.getNewServerTransaction(request)
+
+            // send the request out.
             clientTransaction.sendRequest()
-        } catch(e) {
-            if(e instanceof javax.sip.TransactionUnavailableException || e instanceof javax.sip.SipException) {
-                LOG.warn('Unable to register with GW -> ' + peerHost + '. (Verify your network status)')
-            } else {
-                LOG.warn(e)
-            }
+
+            const dialog = clientTransaction.getDialog()
+
+            // Transaction context
+            const context = new Context()
+            context.clientTransaction = clientTransaction
+            //context.serverTransaction = serverTransaction
+            context.method = Request.INVITE
+            context.requestIn = request
+            context.requestOut = request
+            contextStorage.saveContext(context)
+
+            LOG.trace(request)
+        } catch (e) {
+            e.printStackTrace()
+            LOG.warn(e.getMessage())
         }
     }
 }
+

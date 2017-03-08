@@ -8,7 +8,7 @@ load('mod/utils/acl_helper.js')
 load('mod/utils/domain_utils.js')
 load('mod/core/resources.js')
 
-function Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
+function Processor(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
     registrarService, accountManagerService, resourcesAPI, contextStorage, config) {
     const SipListener = Packages.javax.sip.SipListener
     const Request = Packages.javax.sip.message.Request
@@ -20,6 +20,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
     const ViaHeader = Packages.javax.sip.header.ViaHeader
     const CSeqHeader = Packages.javax.sip.header.CSeqHeader
     const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
+    const ProxyAuthorizationHeader = Packages.javax.sip.header.ProxyAuthorizationHeader
     const LogManager = Packages.org.apache.logging.log4j.LogManager
 
     const LOG = LogManager.getLogger()
@@ -119,21 +120,23 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 if(!new DomainUtil(defaultDomainAcl).isDomainAllow(domain, tgtURI.getHost())) {
                     reject(requestIn, serverTransaction)
                 }
-            } else {
-                // Should we check for peers and gateways request?
             }
+
+            const requestOut = requestIn.clone()
 
             if (method.equals(Request.REGISTER)) {
                 register(requestIn, serverTransaction)
             } else if(method.equals(Request.CANCEL)) {
                 cancel(requestIn, serverTransaction)
             } else {
-                const requestOut = requestIn.clone()
-
                 // Last proxy in route
                 if (proxyHost.equals(config.ip)) {
                     // Why should this be UDP?
-                    const viaHeader = headerFactory.createViaHeader(proxyHost, config.udpPort, 'udp', null)
+                    const transport = 'udp'
+                    const port = sipProvider.getListeningPoint(transport).getPort()
+                    const viaHeader = headerFactory.createViaHeader(proxyHost, port, transport, null)
+
+                    // Why do I remove this header here?
                     requestOut.removeFirst(RouteHeader.NAME)
                     requestOut.addFirst(viaHeader)
                 }
@@ -148,7 +151,7 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
 
                 requestOut.setRequestURI(uri)
 
-                // Not need transaction
+                // Does not need a transaction
                 if(method.equals(Request.ACK)) {
                     sipProvider.sendRequest(requestOut)
                 } else {
@@ -169,8 +172,8 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                         LOG.trace(e.getStackTrace())
                     }
                 }
-                LOG.trace(requestOut)
             }
+            LOG.trace(requestOut)
         },
 
         processResponse: event => {
@@ -181,18 +184,24 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                 responseIn.getStatusCode() == Response.REQUEST_TERMINATED) return
             if (cseq.getMethod().equals(Request.CANCEL)) return
 
-            let clientTransaction = event.getClientTransaction()
+            const clientTransaction = event.getClientTransaction()
 
             // WARNING: This is causing an issue with TCP transport and DIDLogic
             // I suspect that DIDLogic does not fully support tcp registration
-            if (responseIn.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED || responseIn.getStatusCode() == Response.UNAUTHORIZED) {
-                let authenticationHelper =
-                    sipStack.getAuthenticationHelper(accountManagerService.getAccountManager(), headerFactory)
+            if (responseIn.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED ||
+                responseIn.getStatusCode() == Response.UNAUTHORIZED) {
+
+                let authenticationHelper = sipProvider.getSipStack()
+                    .getAuthenticationHelper(accountManagerService.getAccountManager(), headerFactory)
 
                 let t = authenticationHelper.handleChallenge(responseIn, clientTransaction, event.getSource(), 5)
                 t.sendRequest()
                 return
             }
+
+            // Strip the topmost via header
+            const responseOut = responseIn.clone();
+            responseOut.removeFirst(ViaHeader.NAME);
 
             if (cseq.getMethod().equals(Request.INVITE)) {
                 if (clientTransaction != null) {
@@ -200,32 +209,23 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
                     // However, I'm unable to find the way to cast this object.
                     //let st = clientTransaction.getApplicationData()'
 
-                    // Strip the topmost via header
-                    const responseOut = responseIn.clone();
-                    responseOut.removeFirst(ViaHeader.NAME);
-
                     const context = contextStorage.findContext(clientTransaction)
                     context.serverTransaction.sendResponse(responseOut)
                 } else {
                     // Client tx has already terminated but the UA is retransmitting
                     // just forward the response statelessly.
-                    // Strip the topmost via header
-
-                    const responseOut = responseIn.clone();
-                    responseOut.removeFirst(ViaHeader.NAME);
                     // Send the retransmission statelessly
-                    const sipProvider = event.getSource();
                     sipProvider.sendResponse(responseOut);
                 }
             } else {
                 // Can be BYE due to Record-Route
-                LOG.trace("Got a non-invite response " + responseIn);
-                const sipProvider = event.getSource();
+                LOG.trace('Got a non-invite response ' + responseIn);
                 responseIn.removeFirst(ViaHeader.NAME);
 
                 // There is no more Via headers; the response was intended for the proxy.
                 if (responseIn.getHeader(ViaHeader.NAME) != null) sipProvider.sendResponse(responseIn);
             }
+            LOG.trace(responseOut)
         },
 
         processTransactionTerminated: event => {
@@ -239,11 +239,11 @@ function Processor(sipProvider, sipStack, headerFactory, messageFactory, address
         },
 
         processDialogTerminated: event => {
-            LOG.info("#processDialogTerminated not yet implemented")
+            LOG.info('Dialog ' + event.getDialog().getBranchId() + ' has been terminated')
         },
 
         processTimeout: event => {
-            LOG.info("#processTimeout not yet implemented")
+            LOG.info('Transaction Time out')
         }
     }
 }

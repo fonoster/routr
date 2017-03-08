@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-function RestService(server, locationService, resourcesAPI, config) {
+function RestService(server, locationService, resourcesAPI, originate, config) {
     //  const config = resourcesAPI.getConfig()
     const Spark = Packages.spark.Spark
     const LogManager = Packages.org.apache.logging.log4j.LogManager
@@ -43,5 +43,14 @@ function RestService(server, locationService, resourcesAPI, config) {
     post('/reload/:resource', (request, response) => {
         resourcesAPI.reload(request.params(":resource"))
         return 'Reloaded.'
+    })
+    post('/call/:from/:to/:contact', (request, response) => {
+        try {
+            originate.call(request.params(":from"), request.params(":to"), request.params(":contact"))
+        } catch(e) {
+            LOG.warn(e.getMessage())
+            return(e.getMessage())
+        }
+        return 'Done.'
     })
 }

@@ -4,6 +4,7 @@
  */
 load('mod/core/processor.js')
 load('mod/core/registry_helper.js')
+load('mod/core/originate.js')
 load('mod/core/context_storage.js')
 load('mod/rest/rest.js')
 
@@ -12,8 +13,6 @@ function Server(locationService, registrarService, accountManagerService, resour
     const config = resourcesAPI.getConfig()
     const InetAddress = Packages.java.net.InetAddress
     config.ip = InetAddress.getLocalHost().getHostAddress()
-
-
 
     const SipFactory = Packages.javax.sip.SipFactory
     const Properties = Packages.java.util.Properties
@@ -27,8 +26,6 @@ function Server(locationService, registrarService, accountManagerService, resour
 
     this.start = () => {
         LOG.info('Starting Sip I/O')
-
-        print ('config.ip = ' + config.ip)
 
         const properties = new Properties()
         const sipFactory = SipFactory.getInstance()
@@ -71,13 +68,12 @@ function Server(locationService, registrarService, accountManagerService, resour
             locationService.put(k, ch.getAddress().getURI())
         }
 
-        const processor = new Processor(sipProvider, sipStack, headerFactory, messageFactory, addressFactory, contactHeader,
+        const processor = new Processor(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader,
             locationService, registrarService, accountManagerService, resourcesAPI, contextStorage, resourcesAPI.getConfig())
 
         sipProvider.addSipListener(processor.listener)
 
-        const registerHelper = new RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader,
-            contextStorage, config)
+        const registerHelper = new RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory, config)
 
         var registerTask = new java.util.TimerTask() {
             run: function() {
@@ -96,9 +92,11 @@ function Server(locationService, registrarService, accountManagerService, resour
            }
         }
 
+        const originate = new Originate(sipProvider, headerFactory, messageFactory, addressFactory, contextStorage, config)
+
         new java.util.Timer().schedule(registerTask, 5000, proRegExp * 60 * 1000);
 
-        restService = new RestService(this, locationService, resourcesAPI, resourcesAPI.getConfig())
+        restService = new RestService(this, locationService, resourcesAPI, originate, resourcesAPI.getConfig())
         restService.start()
     }
 

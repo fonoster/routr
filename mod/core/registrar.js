@@ -34,16 +34,18 @@ function RegistrarService(location, resourcesAPI) {
     }
 
     this.register = (rin) => {
+        // For some reason this references the parent object
+        // to avoid I just clone it!
         request = rin.clone()
         const viaHeader = request.getHeader(ViaHeader.NAME)
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
-        // For some reason this references the parent object
-        // to avoid we just clone it!
         const contactHeader = request.getHeader(ContactHeader.NAME)
         const contactURI = contactHeader.getAddress().getURI()
         const toHeader = request.getHeader(ToHeader.NAME)
-        const domain = toHeader.getAddress().getURI().getHost()
+        const toURI = toHeader.getAddress().getURI()
+        const domain = toURI.getHost()
 
+        // This scenario will happen with webclients
         if (contactURI.getHost().endsWith('.invalid')) {
             contactURI.setUser(authHeader.getUsername())
             contactURI.setHost(viaHeader.getReceived())
@@ -95,7 +97,7 @@ function RegistrarService(location, resourcesAPI) {
                     // This could be "sips" or other protocol
                     const endpoint = 'sip:' + authHeader.getUsername() + '@' + d
                     location.put(endpoint, contactURI)
-                    LOG.debug('The endpoint ' + endpoint + ' is now ' + contactURI + ' in Sip I/O')
+                    LOG.trace('The endpoint ' + endpoint + ' is now ' + contactURI + ' in Sip I/O')
                 }
             }
 
