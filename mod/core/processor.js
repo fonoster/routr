@@ -203,14 +203,19 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             const responseOut = responseIn.clone();
             responseOut.removeFirst(ViaHeader.NAME);
 
-            if (cseq.getMethod().equals(Request.INVITE)) {
+            if (cseq.getMethod().equals(Request.INVITE) && responseIn.getStatusCode() == Response.OK) {
+                const dialog = clientTransaction.getDialog()
+                const ackRequest = dialog.createAck(cseq.getSequenceNumber())
+                dialog.sendAck(ackRequest)
+            } else if (cseq.getMethod().equals(Request.INVITE)) {
                 if (clientTransaction != null) {
                     // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
                     // However, I'm unable to find the way to cast this object.
                     //let st = clientTransaction.getApplicationData()'
 
                     const context = contextStorage.findContext(clientTransaction)
-                    context.serverTransaction.sendResponse(responseOut)
+                    // serverTransaction will be undefined when using the Originate functionality
+                    if (context.serverTransaction) context.serverTransaction.sendResponse(responseOut)
                 } else {
                     // Client tx has already terminated but the UA is retransmitting
                     // just forward the response statelessly.
@@ -239,7 +244,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
         },
 
         processDialogTerminated: event => {
-            LOG.info('Dialog ' + event.getDialog().getBranchId() + ' has been terminated')
+            LOG.info('Dialog ' + event.getDialog() + ' has been terminated')
         },
 
         processTimeout: event => {

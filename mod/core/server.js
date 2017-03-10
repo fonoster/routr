@@ -32,7 +32,7 @@ function Server(locationService, registrarService, accountManagerService, resour
 
         sipFactory.setPathName('gov.nist')
         properties.setProperty('javax.sip.STACK_NAME', 'fonoster')
-        properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'OFF')
+        properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'ON')
         // Guard against denial of service attack.
         properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576');
         // Drop the client connection after we are done with the transaction.
@@ -56,7 +56,8 @@ function Server(locationService, registrarService, accountManagerService, resour
         sipProvider.addListeningPoint(ws)
 
         // Server's contact address and header
-        const contactAddress = addressFactory.createAddress('sip:' + config.ip + ':' + config.tcpPort)
+        const serverURI = 'sip:' + config.ip
+        const contactAddress = addressFactory.createAddress(serverURI)
         const contactHeader = headerFactory.createContactHeader(contactAddress)
 
         // This will not scale if we have a lot of DIDs

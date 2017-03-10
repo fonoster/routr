@@ -52,7 +52,7 @@ function Originate(sipProvider, headerFactory, messageFactory, addressFactory, c
 
             const contents = sdpData.getBytes()
 
-            let request = messageFactory.createRequest(Request.INVITE + ' sip:10.0.0.5:5070 SIP/2.0\r\n\r\n')
+            let request = messageFactory.createRequest(Request.INVITE + ' sip:10.0.0.3 SIP/2.0\r\n\r\n')
             request.addHeader(viaHeader)
             request.addHeader(maxForwardsHeader)
             request.addHeader(toHeader)
@@ -62,21 +62,14 @@ function Originate(sipProvider, headerFactory, messageFactory, addressFactory, c
             request.addHeader(contactHeader)
             request.addHeader(contentLength)
             request.addHeader(contentType)
-
             request.setContent(contents, contentType)
 
             const clientTransaction = sipProvider.getNewClientTransaction(request)
-            //const serverTransaction = sipProvider.getNewServerTransaction(request)
-
-            // send the request out.
             clientTransaction.sendRequest()
-
-            const dialog = clientTransaction.getDialog()
 
             // Transaction context
             const context = new Context()
             context.clientTransaction = clientTransaction
-            //context.serverTransaction = serverTransaction
             context.method = Request.INVITE
             context.requestIn = request
             context.requestOut = request
