@@ -37,7 +37,7 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
         request.addHeader(fromHeader)
         request.addHeader(toHeader)
         request.addHeader(maxForwardsHeader)
-        request.addHeader(viaHeader)        // Warning: Should we add the array?
+        request.addHeader(viaHeader)
         request.addHeader(contactHeader)
         request.addHeader(expireHeader)
 
