@@ -10,7 +10,7 @@ function cmdStop() {
         postWithAuth('stop')
     } catch(e) {
         if(e instanceof Packages.org.apache.http.NoHttpResponseException) {
-            print(e)
+            out.printf(e)
         }
     }
     out.printf("Done.")

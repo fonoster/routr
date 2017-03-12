@@ -10,7 +10,7 @@ function cmdReload(param) {
         postWithAuth('reload/' + param)
     } catch(e) {
         if(e instanceof Packages.org.apache.http.NoHttpResponseException) {
-            print(e)
+            out.printf(e)
         }
     }
     out.printf('Reloaded.\n')
