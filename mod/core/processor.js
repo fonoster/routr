@@ -61,7 +61,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
 
         while (iterator.hasNext()) {
             const context = iterator.next()
-            if (context.serverTransaction.getBranchId()
+            if (context.serverTransaction && context.serverTransaction.getBranchId()
                 .equals(serverTransaction.getBranchId())) {
 
                 let originRequest = context.requestIn
