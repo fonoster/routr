@@ -2,10 +2,14 @@
  * @author Pedro Sanders
  * @since v1
  */
-function AuthHelper(headerFactory) {
+function AuthHelper(headerFactory, domain='sip.io', realm='sipio') {
     const DigestUtils = Packages.org.apache.commons.codec.digest.DigestUtils
     const LogManager = Packages.org.apache.logging.log4j.LogManager
+    const MessageDigest = Packages.java.security.MessageDigest
+    const Long = Packages.java.lang.Long
+    const Random = Packages.java.util.Random
     const LOG = LogManager.getLogger()
+    const DEFAULT_ALGORITHM = 'MD5'
 
     this.calcFromHeader = a => this.calculateResponse(a.username, a.password, a.realm, a.nonce, a.nc, a.cnonce, a.uri,
         a.method, a.qop)
@@ -35,13 +39,24 @@ function AuthHelper(headerFactory) {
     // Generates WWW-Authorization header
     this.generateChallenge = () => {
         const wwwAuthHeader = headerFactory.createWWWAuthenticateHeader('Digest')
-        wwwAuthHeader.setDomain('fonoster.com')
-        wwwAuthHeader.setRealm('fonoster')
+        wwwAuthHeader.setDomain(domain)
+        wwwAuthHeader.setRealm(realm)
         wwwAuthHeader.setQop('auth')
         wwwAuthHeader.setOpaque('')
         wwwAuthHeader.setStale(false)
-        wwwAuthHeader.setNonce('0ee55540a2e316dae22c804cdb383f5b')     // TODO: Generate a random nonce
-        wwwAuthHeader.setAlgorithm('MD5')
+        wwwAuthHeader.setNonce(generateNonce())
+        wwwAuthHeader.setAlgorithm(DEFAULT_ALGORITHM)
         return wwwAuthHeader
+    }
+
+    function generateNonce() {
+        const date = new Date();
+        const time = date.getTime();
+        const rand = new Random();
+        const pad = rand.nextLong();
+        const nonceString = (new Long(time)).toString() + (new Long(pad)).toString();
+        const messageDigest = MessageDigest.getInstance(DEFAULT_ALGORITHM);
+        const mdbytes = messageDigest.digest(nonceString.getBytes());
+        return DigestUtils.md5Hex(mdbytes);
     }
 }
