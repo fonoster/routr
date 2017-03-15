@@ -6,7 +6,7 @@
   username: john
   secret: 1234
   domains:
-    - sip.fonoster.com
+    - sip.ocean.com
 - kind: Agent
   apiVersion: v1
   metadata:
@@ -14,4 +14,4 @@
   username: janie
   secret: 1234
   domains:
-    - sip.fonoster.com
+    - sip.ocean.com
