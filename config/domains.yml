@@ -1,13 +1,5 @@
 - kind: Domain
   apiVersion: v1
   metadata:
-    name: New York Office
-  uri: ny.ocean.com
-- kind: Domain
-  apiVersion: v1
-  metadata:
-    name: Texas Office
-  uri:  tx.ocean.com
-#  acl:
-#    allow:
-#      - 71.92.60.0/24
+    name: Ocean Central Office
+  uri: sip.ocean.com
