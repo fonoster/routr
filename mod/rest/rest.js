@@ -44,9 +44,9 @@ function RestService(server, locationService, resourcesAPI, originate, config) {
         resourcesAPI.reload(request.params(":resource"))
         return 'Reloaded.'
     })
-    post('/call/:from/:to/:contact', (request, response) => {
+    post('/originate', (request, response) => {
         try {
-            originate.call(request.params(":from"), request.params(":to"), request.params(":contact"))
+            originate.call(request.queryParams('from'), request.queryParams('to'), request.queryParams('contact'))
         } catch(e) {
             LOG.warn(e.getMessage())
             return(e.getMessage())
