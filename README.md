@@ -153,9 +153,11 @@ optional arguments:
 -h, --help             show this help message and exit
 
 Basic Commands:
-COMMAND
- get                  Display one or many resources
- registry (reg)       Shows the gateways status
+  COMMAND
+    get                  Display one or many resources
+    registry (reg)       Shows the gateways status
+    stop                 Stops server
+    reload (rel)         Reload a resource(i.e domains, agents, etc...)
 
 Find more information at https://github.com/psanders/sip.io
 ```
