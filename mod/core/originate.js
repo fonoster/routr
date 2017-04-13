@@ -39,20 +39,24 @@ function Originate(sipProvider, headerFactory, messageFactory, addressFactory, c
             const contactAddress = addressFactory.createAddress(contact)
             const contactHeader = headerFactory.createContactHeader(contactAddress)
 
-            const sdpData = 'v=0\n' +
-                'o=user1 392867480 292042336 IN IP4 10.0.0.5\n' +
-                's=-\n' +
-                'c=IN IP4 10.0.0.5\n' +
-                't=0 0\n' +
-                'm=audio 8000 RTP/AVP 0 8 101\n' +
-                'a=rtpmap:0 PCMU/8000\n' +
-                'a=rtpmap:8 PCMA/8000\n' +
-                'a=rtpmap:101 telephone-event/8000\n' +
-                'a=sendrecv';
+            const sdpData  = 'v=0\n' +
+            'o=- 3698187739 3698187740 IN IP4 127.0.0.1\n' +
+            's=pjmedia\n' +
+            'b=AS:117\n' +
+            't=0 0\n' +
+            'a=X-nat:0\n' +
+            'm=audio 4000 RTP/AVP 103 101\n' +
+            'c=IN IP4 127.0.0.1\n' +
+            'b=TIAS:96000\n' +
+            'a=rtcp:4001 IN IP4 10.0.0.8\n' +
+            'a=sendrecv\n' +
+            'a=rtpmap:103 speex/16000\n' +
+            'a=rtpmap:101 telephone-event/8000\n' +
+            'a=fmtp:101 0-16\n';
 
             const contents = sdpData.getBytes()
 
-            let request = messageFactory.createRequest(Request.INVITE + ' sip:10.0.0.3 SIP/2.0\r\n\r\n')
+            let request = messageFactory.createRequest(Request.INVITE + ' sip:' +  config.ip + ' SIP/2.0\r\n\r\n')
             request.addHeader(viaHeader)
             request.addHeader(maxForwardsHeader)
             request.addHeader(toHeader)

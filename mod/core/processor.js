@@ -130,7 +130,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 cancel(requestIn, serverTransaction)
             } else {
                 // Last proxy in route
-                if (proxyHost.equals(config.ip)) {
+                if (proxyHost.equals(config.ip) || proxyHost.equals(config.externalIp)) {
                     // Why should this be UDP?
                     const transport = 'udp'
                     const port = sipProvider.getListeningPoint(transport).getPort()
