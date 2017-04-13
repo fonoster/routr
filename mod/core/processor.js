@@ -97,6 +97,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             const method = requestIn.getMethod()
             const routeHeader = requestIn.getHeader(RouteHeader.NAME)
             const toHeader = requestIn.getHeader(ToHeader.NAME)
+            const requestVia = requestIn.getHeader(ViaHeader.NAME)
             const tgtURI = toHeader.getAddress().getURI()
 
             let serverTransaction = event.getServerTransaction()
@@ -131,8 +132,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             } else {
                 // Last proxy in route
                 if (proxyHost.equals(config.ip) || proxyHost.equals(config.externalIp)) {
-                    // Why should this be UDP?
-                    const transport = 'udp'
+                    const transport = requestVia.getTransport().toLowerCase()
                     const port = sipProvider.getListeningPoint(transport).getPort()
                     const viaHeader = headerFactory.createViaHeader(proxyHost, port, transport, null)
 
@@ -203,11 +203,12 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             const responseOut = responseIn.clone();
             responseOut.removeFirst(ViaHeader.NAME);
 
-            if (cseq.getMethod().equals(Request.INVITE) && responseIn.getStatusCode() == Response.OK) {
+            /*if (cseq.getMethod().equals(Request.INVITE) && responseIn.getStatusCode() == Response.OK) {
+                print('XXXXXXXXXXXX DB 0001')
                 const dialog = clientTransaction.getDialog()
                 const ackRequest = dialog.createAck(cseq.getSequenceNumber())
                 dialog.sendAck(ackRequest)
-            } else if (cseq.getMethod().equals(Request.INVITE)) {
+            } else*/ if (cseq.getMethod().equals(Request.INVITE)) {
                 if (clientTransaction != null) {
                     // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
                     // However, I'm unable to find the way to cast this object.
