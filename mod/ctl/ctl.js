@@ -61,11 +61,9 @@ Please observe that the callee will see the information of the FROM parameter bu
 to Contact, which may not be the same.
 
 Example:
-    $ sipioctl originate sip:john@sip.fonoster.com sip:jany@sip.fonoster.com sip:mediaserver@sip.fonoster.com`
-
+    $ sipioctl originate sip:john@sip.ocean.com sip:janie@sip.ocean.com sip:mediaserver@sip.ocean.com`
 
 originate.epilog(originateEpilog)
-
 
 load('mod/ctl/get_agents.js')
 load('mod/ctl/get_dids.js')
