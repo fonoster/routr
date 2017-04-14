@@ -242,17 +242,17 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 const serverTransaction = event.getServerTransaction()
 
                 if (!contextStorage.removeContext(serverTransaction)) {
-                   LOG.info("Ongoing Transaction")
+                   LOG.debug("Ongoing Transaction")
                 }
             }
         },
 
         processDialogTerminated: event => {
-            LOG.info('Dialog ' + event.getDialog() + ' has been terminated')
+            LOG.debug('Dialog ' + event.getDialog() + ' has been terminated')
         },
 
         processTimeout: event => {
-            LOG.info('Transaction Time out')
+            LOG.debug('Transaction Time out')
         }
     }
 }
