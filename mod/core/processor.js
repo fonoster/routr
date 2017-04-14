@@ -15,6 +15,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
     const Response = Packages.javax.sip.message.Response
     const RouteHeader = Packages.javax.sip.header.RouteHeader
     const ToHeader = Packages.javax.sip.header.ToHeader
+    const FromHeader = Packages.javax.sip.header.FromHeader
     const ContactHeader = Packages.javax.sip.header.ContactHeader
     const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
     const ViaHeader = Packages.javax.sip.header.ViaHeader
@@ -179,6 +180,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
         processResponse: event => {
             const responseIn = event.getResponse()
             const cseq = responseIn.getHeader(CSeqHeader.NAME)
+            const fromHeader = responseIn.getHeader(FromHeader.NAME)
 
             if (responseIn.getStatusCode() == Response.TRYING ||
                 responseIn.getStatusCode() == Response.REQUEST_TERMINATED) return
@@ -203,12 +205,15 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             const responseOut = responseIn.clone();
             responseOut.removeFirst(ViaHeader.NAME);
 
-            /*if (cseq.getMethod().equals(Request.INVITE) && responseIn.getStatusCode() == Response.OK) {
-                print('XXXXXXXXXXXX DB 0001')
+            let fromAPI = false
+            if (fromHeader.getParameter('origin') != null) fromAPI = true
+
+            if (cseq.getMethod().equals(Request.INVITE) && responseIn.getStatusCode() == Response.OK && fromAPI) {
+                LOG.debug('Call originated from API')
                 const dialog = clientTransaction.getDialog()
                 const ackRequest = dialog.createAck(cseq.getSequenceNumber())
                 dialog.sendAck(ackRequest)
-            } else*/ if (cseq.getMethod().equals(Request.INVITE)) {
+            } else if (cseq.getMethod().equals(Request.INVITE)) {
                 if (clientTransaction != null) {
                     // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
                     // However, I'm unable to find the way to cast this object.
@@ -221,15 +226,13 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                     // Client tx has already terminated but the UA is retransmitting
                     // just forward the response statelessly.
                     // Send the retransmission statelessly
-                    sipProvider.sendResponse(responseOut);
+                    if (responseIn.getHeader(ViaHeader.NAME) != null) sipProvider.sendResponse(responseOut);
                 }
             } else {
                 // Can be BYE due to Record-Route
-                LOG.trace('Got a non-invite response ' + responseIn);
-                responseIn.removeFirst(ViaHeader.NAME);
-
+                LOG.trace('Got a non-invite response ' + responseOut);
                 // There is no more Via headers; the response was intended for the proxy.
-                if (responseIn.getHeader(ViaHeader.NAME) != null) sipProvider.sendResponse(responseIn);
+                if (responseOut.getHeader(ViaHeader.NAME) != null) sipProvider.sendResponse(responseOut);
             }
             LOG.trace(responseOut)
         },
