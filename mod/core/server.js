@@ -25,7 +25,7 @@ function Server(locationService, registrarService, accountManagerService, resour
     const proRegExp = 4
 
     this.start = () => {
-        LOG.info('Starting Sip I/O.' + config.ip)
+        LOG.info('Starting Sip I/O')
         LOG.debug('Local IP: ' + config.ip)
         if (config.externalIp != undefined) LOG.debug('External IP: ' + config.externalIp)
 
