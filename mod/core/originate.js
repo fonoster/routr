@@ -32,6 +32,7 @@ function Originate(sipProvider, headerFactory, messageFactory, addressFactory, c
             const fromAddress = addressFactory.createAddress(from)
             const toAddress = addressFactory.createAddress(to)
             const fromHeader = headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag())
+            fromHeader.setParameter('origin', 'api')
             // The "To" header.
             const toHeader = headerFactory.createToHeader(toAddress, null)
             const contentLength = headerFactory.createContentLengthHeader(300)
