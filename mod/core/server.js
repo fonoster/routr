@@ -33,8 +33,8 @@ function Server(locationService, registrarService, accountManagerService, resour
         const sipFactory = SipFactory.getInstance()
 
         sipFactory.setPathName('gov.nist')
-        properties.setProperty('javax.sip.STACK_NAME', 'fonoster')
-        properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'ON')
+        properties.setProperty('javax.sip.STACK_NAME', 'sipio')
+        properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'OFF')
         // Guard against denial of service attack.
         properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576');
         // Drop the client connection after we are done with the transaction.
