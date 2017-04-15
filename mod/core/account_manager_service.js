@@ -2,7 +2,6 @@
  * @author Pedro Sanders
  * @since v1
  */
-
 function AccountManagerService(resourcesAPI) {
     const AccountManager  = Packages.gov.nist.javax.sip.clientauthutils.AccountManager
     const UserCredentials = Packages.gov.nist.javax.sip.clientauthutils.UserCredentials
