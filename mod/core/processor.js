@@ -15,7 +15,6 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
     const Response = Packages.javax.sip.message.Response
     const RouteHeader = Packages.javax.sip.header.RouteHeader
     const ToHeader = Packages.javax.sip.header.ToHeader
-    const FromHeader = Packages.javax.sip.header.FromHeader
     const ContactHeader = Packages.javax.sip.header.ContactHeader
     const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
     const ViaHeader = Packages.javax.sip.header.ViaHeader
@@ -35,23 +34,25 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
         const expH = request.getHeader(ExpiresHeader.NAME) || contactHeader.getExpires()
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
 
+        LOG.debug('<-------\n' + request)
+
         if (authHeader == null) {
             const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
             unauthorized.addHeader(authHelper.generateChallenge())
             transaction.sendResponse(unauthorized)
-            LOG.trace(unauthorized)
+            LOG.debug('------->\n' + unauthorized)
         } else {
             if (registrarService.register(request)) {
                 const ok = messageFactory.createResponse(Response.OK, request)
                 ok.addHeader(contactHeader)
                 ok.addHeader(expH)
                 transaction.sendResponse(ok)
-                LOG.trace("\n" + ok)
+                LOG.debug('------->\n' + ok)
             } else {
                 const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
                 unauthorized.addHeader(authHelper.generateChallenge(headerFactory))
                 transaction.sendResponse(unauthorized)
-                LOG.trace(unauthorized)
+                LOG.debug('------->\n' + unauthorized)
             }
         }
     }
@@ -80,16 +81,18 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 LOG.trace('Cancel request: ' + cancelRequest)
             }
         }
+        LOG.debug('<-------\n' + request)
     }
 
     function unavailable(request, transaction) {
-        LOG.debug("Unable to find contact: " + request.getHeader(ToHeader.NAME))
+        LOG.trace('Unable to find contact: ' + request.getHeader(ToHeader.NAME))
         transaction.sendResponse(messageFactory.createResponse(Response.NOT_FOUND, request))
+        LOG.debug('------->\n' + request)
     }
 
     function reject(request, transaction) {
-        LOG.debug("Connection rejected: " + request)
         transaction.sendResponse(messageFactory.createResponse(Response.UNAUTHORIZED, request))
+        LOG.debug('------->\n' + request)
     }
 
     this.listener = new SipListener() {
@@ -100,6 +103,16 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             const toHeader = requestIn.getHeader(ToHeader.NAME)
             const requestVia = requestIn.getHeader(ViaHeader.NAME)
             const tgtURI = toHeader.getAddress().getURI()
+
+            // Discover endpoint address with custom header
+            // The header must be added at config.addressInfo[*]
+            let address = null
+
+            config.addressInfo.forEach(function(info) {
+                if (requestIn.getHeader(info) != null) address = requestIn.getHeader(info)
+            })
+
+            print('didAddress ~> ' + address)
 
             let serverTransaction = event.getServerTransaction()
             let proxyHost
@@ -128,8 +141,10 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
 
             if (method.equals(Request.REGISTER)) {
                 register(requestIn, serverTransaction)
+                return
             } else if(method.equals(Request.CANCEL)) {
                 cancel(requestIn, serverTransaction)
+                return
             } else {
                 // Last proxy in route
                 if (proxyHost.equals(config.ip) || proxyHost.equals(config.externalIp)) {
@@ -142,7 +157,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                     requestOut.addFirst(viaHeader)
                 }
 
-                const tgt = tgtURI.getScheme() + ":" + tgtURI.getUser() + '@' + tgtURI.getHost()
+                const tgt = address || tgtURI.getScheme() + ":" + tgtURI.getUser() + '@' + tgtURI.getHost()
                 const uri = locationService.get(tgt)
 
                 if (uri == null) {
@@ -174,13 +189,12 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                     }
                 }
             }
-            LOG.trace(requestOut)
+            LOG.debug('<-------\n' + requestOut)
         },
 
         processResponse: event => {
             const responseIn = event.getResponse()
             const cseq = responseIn.getHeader(CSeqHeader.NAME)
-            const fromHeader = responseIn.getHeader(FromHeader.NAME)
 
             if (responseIn.getStatusCode() == Response.TRYING ||
                 responseIn.getStatusCode() == Response.REQUEST_TERMINATED) return
@@ -205,15 +219,12 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             const responseOut = responseIn.clone();
             responseOut.removeFirst(ViaHeader.NAME);
 
-            let fromAPI = false
-            if (fromHeader.getParameter('origin') != null) fromAPI = true
-
-            if (cseq.getMethod().equals(Request.INVITE) && responseIn.getStatusCode() == Response.OK && fromAPI) {
+            /*if (cseq.getMethod().equals(Request.INVITE) && responseIn.getStatusCode() == Response.OK) {
                 LOG.debug('Call originated from API')
                 const dialog = clientTransaction.getDialog()
                 const ackRequest = dialog.createAck(cseq.getSequenceNumber())
                 dialog.sendAck(ackRequest)
-            } else if (cseq.getMethod().equals(Request.INVITE)) {
+            } else*/ if (cseq.getMethod().equals(Request.INVITE)) {
                 if (clientTransaction != null) {
                     // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
                     // However, I'm unable to find the way to cast this object.
@@ -229,12 +240,11 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                     if (responseIn.getHeader(ViaHeader.NAME) != null) sipProvider.sendResponse(responseOut);
                 }
             } else {
-                // Can be BYE due to Record-Route
-                LOG.trace('Got a non-invite response ' + responseOut);
+                // Could be a BYE due to Record-Route
                 // There is no more Via headers; the response was intended for the proxy.
                 if (responseOut.getHeader(ViaHeader.NAME) != null) sipProvider.sendResponse(responseOut);
             }
-            LOG.trace(responseOut)
+            LOG.debug('------->\n' + responseOut)
         },
 
         processTransactionTerminated: event => {
@@ -242,17 +252,17 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 const serverTransaction = event.getServerTransaction()
 
                 if (!contextStorage.removeContext(serverTransaction)) {
-                   LOG.debug("Ongoing Transaction")
+                   LOG.trace("Ongoing Transaction")
                 }
             }
         },
 
         processDialogTerminated: event => {
-            LOG.debug('Dialog ' + event.getDialog() + ' has been terminated')
+            LOG.trace('Dialog ' + event.getDialog() + ' has been terminated')
         },
 
         processTimeout: event => {
-            LOG.debug('Transaction Time out')
+            LOG.trace('Transaction Time out')
         }
     }
 }

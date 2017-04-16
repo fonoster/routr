@@ -1,0 +1,16 @@
+[general]
+udpbindaddr=0.0.0.0:5060
+externalIp=192.168.1.6
+srvlookup=yes
+context=fnus1
+outboundProxy=sipio
+dtmfmode=inband
+
+register => ms:1c3cr34m@sipio:5060
+
+[sipio]
+host=sipio
+username=ms
+secret=1c3cr34m
+insecure=port,invite
+type=friend

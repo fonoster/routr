@@ -11,7 +11,9 @@ function LocationService() {
 
     this.put = (k, v) => { db.put(k.toString(), v) }
 
-    this.get = k => db.get(k.toString())
+    this.get = k => {
+        db.get(k.toString()) || db.get('did:' + k.toString())
+    }
 
     this.remove = k => { db.remove(k) }
 
