@@ -1,18 +1,19 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+
+JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home
+
 main_js="$(pwd)/mod/ctl/ctl.js"
 
 for i in $(ls lib); do
     DEPS=$DEPS"lib/$i:";
 done;
 
-JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home
-
 if [[ $(echo $JAVA_HOME 2>&1) != *"jdk-9"* ]];
 then
     echo 'This app requires some  features from JS Nashorn (including ES6)';
-    echo 'that are only available in Java 9. You must install Java 9!'
-    echo 'Once installed just open the file ./app an replace JAVA_HOME with'
-    echo 'the path to your JDK 9.'
+    echo 'only available in Java 9. You MUST have Java 9!'
+    echo 'Once installed just open the file ./sipioctl an replace JAVA_HOME with'
+    echo 'the path to your JDK 9. We are working in making this easier...'
     exit;
 fi
 
