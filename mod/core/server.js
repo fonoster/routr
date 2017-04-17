@@ -64,7 +64,7 @@ function Server(locationService, registrarService, accountManagerService, resour
 
         // This will not scale if we have a lot of DIDs
         for (var did of resourcesAPI.getDIDs()) {
-            const k = 'did:' + did.e164num
+            const k = 'tel:' + did.e164num
 
             const ca = addressFactory.createAddress(did.contact)
             const ch = headerFactory.createContactHeader(ca)
@@ -82,12 +82,12 @@ function Server(locationService, registrarService, accountManagerService, resour
             run: function() {
                 const gateways = resourcesAPI.getGateways()
                 for (var gateway of gateways) {
-                    LOG.debug('Trying to register with ' + gateway.metadata.name +  ' using '  + gateway.username + '@' + gateway.host)
+                    LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.username + '@' + gateway.host)
                     if (gateway.host !== undefined) registerHelper.requestChallenge(gateway.username, gateway.host, gateway.transport)
                     if (gateway.registries === undefined) continue
 
                     for (var h of gateway.registries) {
-                        LOG.debug('Trying to register with ' + gateway.metadata.name +  ' using '  + gateway.username + '@' + h)
+                        LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.username + '@' + h)
 
                         registerHelper.requestChallenge(gateway.username, h, gateway.transport)
                     }
