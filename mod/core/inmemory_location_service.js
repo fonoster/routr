@@ -11,8 +11,18 @@ function LocationService() {
 
     this.put = (k, v) => { db.put(k.toString(), v) }
 
+    // It would be nice if we could enforce the use of 'tel' scheme for DIDs requests
     this.get = k => {
-        db.get(k.toString()) || db.get('did:' + k.toString())
+        if (k instanceof Packages.javax.sip.address.URI || k instanceof Packages.javax.sip.address.SipURI) {
+
+            const sipAddress = k.getScheme() + ":" + k.getUser() + '@' + k.getHost()
+
+            return db.get(sipAddress) || db.get('tel:' + k.getUser())
+        } if (k instanceof Packages.javax.sip.address.TelURL) {
+            return db.get('tel:' + k.getPhoneNumber())
+        }
+
+        return db.get(k)
     }
 
     this.remove = k => { db.remove(k) }
