@@ -104,16 +104,6 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             const requestVia = requestIn.getHeader(ViaHeader.NAME)
             const tgtURI = toHeader.getAddress().getURI()
 
-            // Discover endpoint address with custom header
-            // The header must be added at config.addressInfo[*]
-            let address = null
-
-            config.addressInfo.forEach(function(info) {
-                if (requestIn.getHeader(info) != null) address = requestIn.getHeader(info)
-            })
-
-            print('didAddress ~> ' + address)
-
             let serverTransaction = event.getServerTransaction()
             let proxyHost
 
@@ -157,15 +147,23 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                     requestOut.addFirst(viaHeader)
                 }
 
-                const tgt = address || tgtURI.getScheme() + ":" + tgtURI.getUser() + '@' + tgtURI.getHost()
-                const uri = locationService.get(tgt)
+                // Discover DIDs sent via a non-standard header
+                // The header must be added at config.addressInfo[*]
+                let address = null
 
-                if (uri == null) {
+                config.addressInfo.forEach(function(info) {
+                    if (requestIn.getHeader(info) != null) address = 'tel:' + requestIn.getHeader(info)
+                })
+
+                const tgt = address || tgtURI
+                const contact = locationService.get(tgt)
+
+                if (contact == null) {
                     unavailable(requestIn, serverTransaction)
                     return
                 }
 
-                requestOut.setRequestURI(uri)
+                requestOut.setRequestURI(contact)
 
                 // Does not need a transaction
                 if(method.equals(Request.ACK)) {
@@ -212,6 +210,8 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
 
                 let t = authenticationHelper.handleChallenge(responseIn, clientTransaction, event.getSource(), 5)
                 t.sendRequest()
+
+                LOG.debug('<-------\n' + responseIn)
                 return
             }
 
