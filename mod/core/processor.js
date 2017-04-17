@@ -142,7 +142,6 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                     const port = sipProvider.getListeningPoint(transport).getPort()
                     const viaHeader = headerFactory.createViaHeader(proxyHost, port, transport, null)
 
-                    // Why do I remove this header here?
                     requestOut.removeFirst(RouteHeader.NAME)
                     requestOut.addFirst(viaHeader)
                 }
