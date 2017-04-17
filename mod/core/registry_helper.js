@@ -51,5 +51,7 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
                 LOG.warn(e)
             }
         }
+
+        LOG.debug('------->\n' + request)
     }
 }
