@@ -34,6 +34,7 @@ function Server(locationService, registrarService, accountManagerService, resour
 
         sipFactory.setPathName('gov.nist')
         properties.setProperty('javax.sip.STACK_NAME', 'sipio')
+        properties.setProperty('javax.sip.IP_ADDRESS', config.ip)
         properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'OFF')
         // Guard against denial of service attack.
         properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576');
@@ -49,9 +50,9 @@ function Server(locationService, registrarService, accountManagerService, resour
         const messageFactory = sipFactory.createMessageFactory()
         const headerFactory = sipFactory.createHeaderFactory()
         const addressFactory = sipFactory.createAddressFactory()
-        const tcp = sipStack.createListeningPoint(config.ip, config.tcpPort, 'tcp')
-        const udp = sipStack.createListeningPoint(config.ip, config.udpPort, 'udp')
-        const ws = sipStack.createListeningPoint(config.ip, config.wsPort, 'ws')
+        const tcp = sipStack.createListeningPoint(config.tcpPort, 'tcp')
+        const udp = sipStack.createListeningPoint(config.udpPort, 'udp')
+        const ws = sipStack.createListeningPoint(config.wsPort, 'ws')
 
         const sipProvider = sipStack.createSipProvider(tcp)
         sipProvider.addListeningPoint(udp)
