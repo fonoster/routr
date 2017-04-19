@@ -12,8 +12,6 @@ function Server(locationService, registrarService, accountManagerService, resour
     const contextStorage = new ContextStorage()
     const config = resourcesAPI.getConfig()
     const InetAddress = Packages.java.net.InetAddress
-    config.ip = InetAddress.getLocalHost().getHostAddress()
-
     const SipFactory = Packages.javax.sip.SipFactory
     const Properties = Packages.java.util.Properties
     const LogManager = Packages.org.apache.logging.log4j.LogManager
@@ -21,20 +19,22 @@ function Server(locationService, registrarService, accountManagerService, resour
     let restService
     let sipStack
 
+    const host = InetAddress.getLocalHost().getHostAddress()
+
     // Registration with gateways expire in 5 minutes, so we will re-register in 4
     const proRegExp = 4
 
     this.start = () => {
         LOG.info('Starting Sip I/O')
-        LOG.debug('Local IP: ' + config.ip)
-        if (config.externalIp != undefined) LOG.debug('External IP: ' + config.externalIp)
+        LOG.debug('Local Host: ' + host)
+        if (config.externalHost != undefined) LOG.debug('External Host: ' + config.externalHost)
 
         const properties = new Properties()
         const sipFactory = SipFactory.getInstance()
 
         sipFactory.setPathName('gov.nist')
         properties.setProperty('javax.sip.STACK_NAME', 'sipio')
-        properties.setProperty('javax.sip.IP_ADDRESS', config.ip)
+        properties.setProperty('javax.sip.IP_ADDRESS', host)
         properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'OFF')
         // Guard against denial of service attack.
         properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576');
@@ -59,25 +59,24 @@ function Server(locationService, registrarService, accountManagerService, resour
         sipProvider.addListeningPoint(ws)
 
         // Server's contact address and header
-        const serverURI = 'sip:' + config.ip
-        const contactAddress = addressFactory.createAddress(serverURI)
-        const contactHeader = headerFactory.createContactHeader(contactAddress)
+        const serverAddress = addressFactory.createAddress('sip:' + host)
+        const serverContactHeader = headerFactory.createContactHeader(serverAddress)
 
         // This will not scale if we have a lot of DIDs
         for (var did of resourcesAPI.getDIDs()) {
             const k = 'tel:' + did.e164num
 
-            const ca = addressFactory.createAddress(did.contact)
+            const ca = addressFactory.createAddress(did.contactAddress)
             const ch = headerFactory.createContactHeader(ca)
             locationService.put(k, ch.getAddress().getURI())
         }
 
-        const processor = new Processor(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader,
+        const processor = new Processor(sipProvider, headerFactory, messageFactory, addressFactory, serverContactHeader,
             locationService, registrarService, accountManagerService, resourcesAPI, contextStorage, resourcesAPI.getConfig())
 
         sipProvider.addSipListener(processor.listener)
 
-        const registerHelper = new RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory, config)
+        const registerHelper = new RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory)
 
         var registerTask = new java.util.TimerTask() {
             run: function() {
