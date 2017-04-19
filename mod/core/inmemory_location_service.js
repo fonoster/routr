@@ -33,7 +33,7 @@ function LocationService() {
 
         while(k.hasNext()) {
             let key = k.next()
-            let tmp = {'endpoint': key, 'contact': db.get(key).toString()}
+            let tmp = {'addressOfRecord': key, 'contactAddress': db.get(key).toString()}
             s.push(tmp)
         }
 
