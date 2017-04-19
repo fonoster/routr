@@ -20,6 +20,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
     const ViaHeader = Packages.javax.sip.header.ViaHeader
     const CSeqHeader = Packages.javax.sip.header.CSeqHeader
     const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
+    const MaxForwardsHeader = Packages.javax.sip.header.MaxForwardsHeader
     const ProxyAuthorizationHeader = Packages.javax.sip.header.ProxyAuthorizationHeader
     const LogManager = Packages.org.apache.logging.log4j.LogManager
 
@@ -99,32 +100,11 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
         processRequest: event => {
             const requestIn = event.getRequest()
             const method = requestIn.getMethod()
-            const routeHeader = requestIn.getHeader(RouteHeader.NAME)
-            const toHeader = requestIn.getHeader(ToHeader.NAME)
-            const requestVia = requestIn.getHeader(ViaHeader.NAME)
-            const tgtURI = toHeader.getAddress().getURI()
-
             let serverTransaction = event.getServerTransaction()
-            let proxyHost
 
-            // Edge proxy
-            if (routeHeader == null) {
-                proxyHost = config.ip;
-            } else {
-                const sipURI = routeHeader.getAddress().getURI()
-                proxyHost = sipURI.getHost()
-            }
-
+            // ACK does not need a transaction
             if (serverTransaction == null && !method.equals(Request.ACK)) {
                 serverTransaction = sipProvider.getNewServerTransaction(requestIn)
-            }
-
-            const domain = resourcesAPI.findDomain(tgtURI.getHost())
-
-            if (domain != null) {
-                if(!new DomainUtil(defaultDomainAcl).isDomainAllow(domain, tgtURI.getHost())) {
-                    reject(requestIn, serverTransaction)
-                }
             }
 
             const requestOut = requestIn.clone()
@@ -136,33 +116,63 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 cancel(requestIn, serverTransaction)
                 return
             } else {
-                // Last proxy in route
-                if (proxyHost.equals(config.ip) || proxyHost.equals(config.externalIp)) {
-                    const transport = requestVia.getTransport().toLowerCase()
-                    const port = sipProvider.getListeningPoint(transport).getPort()
-                    const viaHeader = headerFactory.createViaHeader(proxyHost, port, transport, null)
+                const routeHeader = requestIn.getHeader(RouteHeader.NAME)
+                const rVia = requestIn.getHeader(ViaHeader.NAME)
+                const transport = rVia.getTransport().toLowerCase()
+                const lp = sipProvider.getListeningPoint(transport)
+                const host = lp.getIPAddress().toString()
+                const port = lp.getPort()
+                const toHeader = requestIn.getHeader(ToHeader.NAME)
+                const addressOfRecord = toHeader.getAddress().getURI()
 
-                    requestOut.removeFirst(RouteHeader.NAME)
-                    requestOut.addFirst(viaHeader)
+                if (routeHeader) {
+                    const nextHop = routeHeader.getAddress().getURI().getHost()
+
+                    if (nextHop.equals(host) || config.externalHost) {
+                        requestOut.removeFirst(RouteHeader.NAME)
+                    }
+                }
+
+                const maxForwardsHeader = requestOut.getHeader(MaxForwardsHeader.NAME)
+                maxForwardsHeader.decrementMaxForwards()
+
+                if (config.recordRoute) {
+                    const proxyUri = addressFactory.createURI('sip:' + host);
+                    const proxyAddress = addressFactory.createAddress(proxyUri);
+                    const recordRouteHeader = headerFactory.createRecordRouteHeader(proxyAddress)
+                    requestOut.addHeader(recordRouteHeader)
+                }
+
+                // Request RPort for Symmetric Response Routing in accordance with RFC 3581
+                const viaHeader = headerFactory.createViaHeader(host, port, transport, null)
+                viaHeader.setRPort()
+                requestOut.addFirst(viaHeader)
+
+                const domain = resourcesAPI.findDomain(addressOfRecord.getHost())
+
+                if (!!domain) {
+                    if(!new DomainUtil(defaultDomainAcl).isDomainAllow(domain, addressOfRecord.getHost())) {
+                        reject(requestIn, serverTransaction)
+                    }
                 }
 
                 // Discover DIDs sent via a non-standard header
                 // The header must be added at config.addressInfo[*]
-                let address = null
-
+                // If the such header is present then overwrite the AOR
                 config.addressInfo.forEach(function(info) {
-                    if (requestIn.getHeader(info) != null) address = 'tel:' + requestIn.getHeader(info)
+                    if (!!requestIn.getHeader(info)) addressOfRecord = 'tel:' + requestIn.getHeader(info).getValue()
                 })
 
-                const tgt = address || tgtURI
-                const contact = locationService.get(tgt)
+                print('addressOfRecord ~> ' + addressOfRecord)
 
-                if (contact == null) {
+                const contactAddress = locationService.get(addressOfRecord)
+
+                if (contactAddress == null) {
                     unavailable(requestIn, serverTransaction)
                     return
                 }
 
-                requestOut.setRequestURI(contact)
+                requestOut.setRequestURI(contactAddress)
 
                 // Does not need a transaction
                 if(method.equals(Request.ACK)) {
@@ -193,14 +203,15 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             const responseIn = event.getResponse()
             const cseq = responseIn.getHeader(CSeqHeader.NAME)
 
+            // The stack takes care of this cases
             if (responseIn.getStatusCode() == Response.TRYING ||
-                responseIn.getStatusCode() == Response.REQUEST_TERMINATED) return
-            if (cseq.getMethod().equals(Request.CANCEL)) return
+                responseIn.getStatusCode() == Response.REQUEST_TERMINATED ||
+                cseq.getMethod().equals(Request.CANCEL)) return
 
             const clientTransaction = event.getClientTransaction()
 
             // WARNING: This is causing an issue with TCP transport and DIDLogic
-            // I suspect that DIDLogic does not fully support tcp registration
+            // I suspect that DIDLogic does not fully support thru tcp registration
             if (responseIn.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED ||
                 responseIn.getStatusCode() == Response.UNAUTHORIZED) {
 
@@ -218,30 +229,19 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             const responseOut = responseIn.clone();
             responseOut.removeFirst(ViaHeader.NAME);
 
-            /*if (cseq.getMethod().equals(Request.INVITE) && responseIn.getStatusCode() == Response.OK) {
-                LOG.debug('Call originated from API')
-                const dialog = clientTransaction.getDialog()
-                const ackRequest = dialog.createAck(cseq.getSequenceNumber())
-                dialog.sendAck(ackRequest)
-            } else*/ if (cseq.getMethod().equals(Request.INVITE)) {
-                if (clientTransaction != null) {
-                    // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
-                    // However, I'm unable to find the way to cast this object.
-                    //let st = clientTransaction.getApplicationData()'
+            if (cseq.getMethod().equals(Request.INVITE) && !!clientTransaction) {
+                // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
+                // However, I'm unable to find the way to cast this object.
+                //let st = clientTransaction.getApplicationData()'
 
-                    const context = contextStorage.findContext(clientTransaction)
-                    // serverTransaction will be undefined when using the Originate functionality
-                    if (context.serverTransaction) context.serverTransaction.sendResponse(responseOut)
-                } else {
-                    // Client tx has already terminated but the UA is retransmitting
-                    // just forward the response statelessly.
-                    // Send the retransmission statelessly
-                    if (responseIn.getHeader(ViaHeader.NAME) != null) sipProvider.sendResponse(responseOut);
-                }
+                const context = contextStorage.findContext(clientTransaction)
+                // serverTransaction will be undefined when using the Originate functionality
+                if (!!context.serverTransaction) context.serverTransaction.sendResponse(responseOut)
+
             } else {
                 // Could be a BYE due to Record-Route
                 // There is no more Via headers; the response was intended for the proxy.
-                if (responseOut.getHeader(ViaHeader.NAME) != null) sipProvider.sendResponse(responseOut);
+                if (!!responseOut.getHeader(ViaHeader.NAME)) sipProvider.sendResponse(responseOut);
             }
             LOG.debug('------->\n' + responseOut)
         },
