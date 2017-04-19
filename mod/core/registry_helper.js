@@ -5,7 +5,7 @@
 load('mod/utils/auth_helper.js')
 load('mod/core/context.js')
 
-function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory, config) {
+function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory) {
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
     const SipUtils = Packages.gov.nist.javax.sip.Utils
@@ -14,11 +14,15 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
     var cseq = 0
 
     this.requestChallenge = (username, peerHost, transport = 'udp', expires = 300) => {
+        const host = sipProvider.getListeningPoint(transport).getIPAddress()
         const port = sipProvider.getListeningPoint(transport).getPort()
 
         cseq++
+
         const viaHeaders = []
-        const viaHeader = headerFactory.createViaHeader(config.ip, port, transport, null)
+        const viaHeader = headerFactory.createViaHeader(host, port, transport, null)
+        // Request RPort for Symmetric Response Routing in accordance with RFC 3581
+        viaHeader.setRPort()
         viaHeaders.push(viaHeader)
 
         const maxForwardsHeader = headerFactory.createMaxForwardsHeader(70)
@@ -28,7 +32,7 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
         const fromHeader = headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag())
         const toHeader = headerFactory.createToHeader(fromAddress, null)
         const expireHeader = headerFactory.createExpiresHeader(expires)
-        const contactAddress = addressFactory.createAddress('sip:' + username + '@' + config.ip + ':' + port)
+        const contactAddress = addressFactory.createAddress('sip:' + username + '@' + host + ':' + port)
         const contactHeader = headerFactory.createContactHeader(contactAddress)
 
         const request = messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
