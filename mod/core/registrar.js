@@ -87,17 +87,17 @@ function RegistrarService(location, resourcesAPI) {
                     contactURI.setHost(user.host)
                 }
 
-                const endpoint = 'sip:' + authHeader.getUsername() + '@' + domain
-                location.put(endpoint, contactURI)
+                const addressOfRecord = 'sip:' + authHeader.getUsername() + '@' + domain
+                location.put(addressOfRecord, contactURI)
 
-                LOG.debug('The endpoint ' + endpoint + ' is ' + contactURI + ' in Sip I/O')
+                    LOG.trace('The contact address for the address of record(aor) ' + addressOfRecord + ' is ' + contactURI)
             } else {
                 for (var d of user.domains) {
                     // TODO: Find a better way to get this value
                     // This could be "sips" or other protocol
-                    const endpoint = 'sip:' + authHeader.getUsername() + '@' + d
-                    location.put(endpoint, contactURI)
-                    LOG.trace('The endpoint ' + endpoint + ' is now ' + contactURI + ' in Sip I/O')
+                    const addressOfRecord = 'sip:' + authHeader.getUsername() + '@' + d
+                    location.put(addressOfRecord, contactURI)
+                    LOG.trace('The contact address for the address of record(aor) ' + addressOfRecord + ' is ' + contactURI)
                 }
             }
 
