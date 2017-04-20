@@ -1,15 +1,21 @@
-traceLevel: 0 # SIP stack logs
+# This is Sip I/O's general configuration file
+
+# SIP stack logs
+traceLevel: 10
+
+# Transport ports
 tcpPort: 5060
 udpPort: 5060
 tlsPort: 5061
 wsPort: 5062
+
+# CLI Configuration
 rest:
   port: 4567
   username: admin
   password: 1234
+  disable: false
 
-# Remove comment to deny all networks by default
-
-#defaultDomainAcl:
-#  deny:
-#    - 0.0.0.0/1
+# Misc
+addressInfo:
+  - x-didinfo
