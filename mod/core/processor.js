@@ -160,9 +160,11 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 // Discover DIDs sent via a non-standard header
                 // The header must be added at config.addressInfo[*]
                 // If the such header is present then overwrite the AOR
-                config.addressInfo.forEach(function(info) {
-                    if (!!requestIn.getHeader(info)) addressOfRecord = 'tel:' + requestIn.getHeader(info).getValue()
-                })
+                if(!!config.addressInfo) {
+                    config.addressInfo.forEach(function(info) {
+                        if (!!requestIn.getHeader(info)) addressOfRecord = 'tel:' + requestIn.getHeader(info).getValue()
+                    })
+                }
 
                 const contactAddress = locationService.get(addressOfRecord)
 
