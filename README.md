@@ -1,10 +1,9 @@
 # Sip I/O
 
-Sip I/O is a sip proxy, location server, and registrar built with 
-Javascript and the JVM (with Nashorn). 
+Sip I/O is a sip proxy, location server, and registrar built with Javascript and the JVM (with Nashorn). 
 
-At the moment you can add your sip devices and group them using domains.
-You can also connect with the PSTN using a Sip Gateway.
+At the moment you can add your sip devices and group them using domains. You can also connect with the PSTN using a 
+Sip Gateway.
 
 `Disclaimer: This is an experimental project and I may or not continue
 this work in the future.`
@@ -35,10 +34,9 @@ this work in the future.`
 * Java 1.9 +
 * Gradle
 
-Why Java 9? As I mentioned before this is an experimental project. My
-objective is to test Nashorn Javascript Engine, and more specifically 
-the ES6 features, in a real life scenario. These features are only 
-available in latest and greatest version of Java.
+Why Java 9? As I mentioned before this is an experimental project. My objective is to test Nashorn Javascript Engine, 
+and more specifically the ES6 features, in a real life scenario. These features are only available in latest and greatest 
+version of Java.
 
 ## Installation
 
@@ -50,17 +48,34 @@ cd sip.io
 gradle getDeps
 ```
 
-You must install Java 9 and point your JAVA_HOME to your JDK 9 to run 
-this app. You can overwrite the JAVA_HOME at the file ./sipio.
+You must install Java 9 and point your JAVA_HOME to your JDK 9 to run this app. You can overwrite the JAVA_HOME at the 
+file ./sipio.
+
+## General configuration
+
+Configuration properties
+
+- traceLevel
+- tcpPort
+- udpPort
+- tlsPort
+- wsPort
+- recordRoute
+- addressInfo.[*]
+- rest.port
+- rest.username
+- rest.password
+- rest.disable
+- defaultDomainAcl.deny.[*]
+- defaultDomainAcl.allow.[*]  i.e: 0.0.0.0/1
+- externalHost
 
 ## Configuring domains and agents
 
-Sip devices or endpoints are known in Sip I/O as agents. For two agents
-to be able to call each other they must be in the same domain. An agent
-may belong to more than one domain.
+Sip devices or endpoints are known in Sip I/O as agents. For two agents to be able to call each other they must be in the 
+same domain. An agent may belong to more than one domain.
 
-Domains can be found at `config/domains.yml`. The example below
-enables communication between all agents at Ocean New York.
+Domains can be found at `config/domains.yml`. The example below enables communication between all agents at Ocean New York.
 
 ```yaml
 - kind: Domain
@@ -70,8 +85,8 @@ enables communication between all agents at Ocean New York.
   uri: ny.ocean.com
 ```
 
-Agents can be configured at `config/agents.yml`. In the following example
-agent "John Doe" has access to both domains, Ocean New York and Ocean Texas.
+Agents can be configured at `config/agents.yml`. In the following example agent "John Doe" has access to both domains, 
+Ocean New York and Ocean Texas.
 
 ```yaml
 - kind: Agent
@@ -85,15 +100,13 @@ agent "John Doe" has access to both domains, Ocean New York and Ocean Texas.
     - tx.ocean.com  # This must be defined at config/domains.yml
 ```
 
-To setup your sip device use information found in `config/agents.yml`.
-Also, you must use the IP of Sip I/O as the OUTBOUND PROXY of 
-your sip device.
+To setup your sip device use information found in `config/agents.yml`. Also, you must use the IP of Sip I/O as the 
+OUTBOUND PROXY of your sip device.
 
 ## Sending and receiving calls from the PSTN
 
-To send and receive calls from the PSTN you must add a gateway. Gateways
-are define at `config/gateways.yml`. The next example shows the configuration
-for a gateway. Sip I/O will register with this Gateway using the parameter 'host'
+To send and receive calls from the PSTN you must add a gateway. Gateways are define at `config/gateways.yml`. The next 
+example shows the configuration for a gateway. Sip I/O will register with this Gateway using the parameter 'host'
 and the parameter 'registries'.
 
 ```yaml
@@ -111,9 +124,8 @@ and the parameter 'registries'.
     - sip.nyc.didlogic.net
 ```
 
-You also need to define the DID. Incoming calls from a DID will be route
-to an existing agent using the 'contact' parameter. Please examine the 
-following example:
+You also need to define the DID. Incoming calls from a DID will be route to an existing agent using the 'contact' 
+parameter. Please examine the following example:
 
 ```yaml
 - kind: DID
@@ -139,9 +151,8 @@ project
 
 ## Using the command line tool `sipioctl`
 
-With `sipioctl` you can perform basic operations, such as obtaining a
-list of agents, peers, gateways, or simply show connections available
-in the location service (registry).
+With `sipioctl` you can perform basic operations, such as obtaining a list of agents, peers, gateways, or simply show 
+connections available in the location service (registry).
 
 ```bash
 $ ./sipioctl -h
