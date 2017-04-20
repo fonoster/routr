@@ -15,7 +15,3 @@ rest:
   username: admin
   password: 1234
   disable: false
-
-# Misc
-addressInfo:
-  - x-didinfo
