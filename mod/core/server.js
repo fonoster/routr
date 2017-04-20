@@ -4,7 +4,6 @@
  */
 load('mod/core/processor.js')
 load('mod/core/registry_helper.js')
-load('mod/core/originate.js')
 load('mod/core/context_storage.js')
 load('mod/rest/rest.js')
 
@@ -95,11 +94,9 @@ function Server(locationService, registrarService, accountManagerService, resour
            }
         }
 
-        const originate = new Originate(sipProvider, headerFactory, messageFactory, addressFactory, contextStorage, config)
-
         new java.util.Timer().schedule(registerTask, 5000, proRegExp * 60 * 1000);
 
-        restService = new RestService(this, locationService, resourcesAPI, originate, resourcesAPI.getConfig())
+        restService = new RestService(this, locationService, resourcesAPI, resourcesAPI.getConfig())
         restService.start()
     }
 

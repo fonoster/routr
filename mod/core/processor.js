@@ -234,7 +234,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 //let st = clientTransaction.getApplicationData()'
 
                 const context = contextStorage.findContext(clientTransaction)
-                // serverTransaction will be undefined when using the Originate functionality
+
                 if (!!context.serverTransaction) context.serverTransaction.sendResponse(responseOut)
 
             } else {

@@ -47,24 +47,6 @@ reloadEpilog=
 
 reload.epilog(reloadEpilog)
 
-// Originate command
-const originate = subparsers.addParser('originate').help('Originate a call on behalf of a sip endpoint')
-originate.addArgument('from').nargs('?').setDefault('none').help('Origin')
-originate.addArgument('to').nargs('?').setDefault('none').help('Destination')
-originate.addArgument('contact').nargs('?').setDefault('none').help('Actual contact')
-
-originateEpilog=
-`Use the originate command to place a call in behalf of a sip endpoint. Both, the TO and the Contact
-mush be searchable by the location service/command.
-
-Please observe that the callee will see the information of the FROM parameter but the call will be redirected
-to Contact, which may not be the same.
-
-Example:
-    $ sipioctl originate sip:john@sip.ocean.com sip:janie@sip.ocean.com sip:mediaserver@sip.ocean.com`
-
-originate.epilog(originateEpilog)
-
 load('mod/ctl/get_agents.js')
 load('mod/ctl/get_dids.js')
 load('mod/ctl/get_domains.js')
@@ -73,7 +55,6 @@ load('mod/ctl/get_peers.js')
 load('mod/ctl/cmd_location.js')
 load('mod/ctl/cmd_stop.js')
 load('mod/ctl/cmd_reload.js')
-load('mod/ctl/cmd_originate.js')
 
 try {
     let arg = arguments
@@ -93,8 +74,6 @@ try {
         cmdStop()
     } else if (arg[0] == 'reload' || arg[0] == 'rel') {
         cmdReload(res.get('resource'))
-    } else if (arg[0] == 'originate') {
-        cmdOriginate(res.get('from'), res.get('to'), res.get('contact'))
     }
 } catch(e) {
     if (e instanceof Packages.com.mashape.unirest.http.exceptions.UnirestException) {
