@@ -5,4 +5,4 @@
     country: USA
     countryISOCode: US
   e164num: '17066041487'
-  contact: 'sip:john@192.168.1.6:64980'
+  contactAddress: 'sip:john@192.168.1.2:64980'
