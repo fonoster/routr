@@ -137,7 +137,8 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 maxForwardsHeader.decrementMaxForwards()
 
                 if (config.recordRoute) {
-                    const proxyUri = addressFactory.createURI('sip:' + host);
+                    const proxyUri = addressFactory.createSipURI(null, host)
+                    proxyUri.setLrParam()
                     const proxyAddress = addressFactory.createAddress(proxyUri);
                     const recordRouteHeader = headerFactory.createRecordRouteHeader(proxyAddress)
                     requestOut.addHeader(recordRouteHeader)
@@ -162,8 +163,6 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 config.addressInfo.forEach(function(info) {
                     if (!!requestIn.getHeader(info)) addressOfRecord = 'tel:' + requestIn.getHeader(info).getValue()
                 })
-
-                print('addressOfRecord ~> ' + addressOfRecord)
 
                 const contactAddress = locationService.get(addressOfRecord)
 
