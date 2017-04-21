@@ -9,7 +9,7 @@ load('mod/utils/domain_utils.js')
 load('mod/core/resources.js')
 
 function Processor(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
-    registrarService, accountManagerService, resourcesAPI, contextStorage, config) {
+    registrarService, accountManagerService, resourcesAPI, contextStorage) {
     const SipListener = Packages.javax.sip.SipListener
     const Request = Packages.javax.sip.message.Request
     const Response = Packages.javax.sip.message.Response
@@ -23,6 +23,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
     const MaxForwardsHeader = Packages.javax.sip.header.MaxForwardsHeader
     const ProxyAuthorizationHeader = Packages.javax.sip.header.ProxyAuthorizationHeader
     const LogManager = Packages.org.apache.logging.log4j.LogManager
+    const config = resourcesAPI.getConfig()
 
     const LOG = LogManager.getLogger()
     const authHelper =  new AuthHelper(headerFactory)

@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-function RestService(server, locationService, resourcesAPI, config) {
+function RestService(server, locationService, resourcesAPI) {
     //  const config = resourcesAPI.getConfig()
     const Spark = Packages.spark.Spark
     const LogManager = Packages.org.apache.logging.log4j.LogManager
@@ -11,6 +11,7 @@ function RestService(server, locationService, resourcesAPI, config) {
     const LOG = LogManager.getLogger()
     //const config = resourcesAPI.getConfig()
     const credentials = config.rest
+    const config = resourcesAPI.getConfig()
 
     Spark.port(config.rest.port)
     Spark.before(new BasicAuthenticationFilter('/*', new AuthenticationDetails(credentials.username, credentials.password)))

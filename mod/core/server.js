@@ -71,7 +71,7 @@ function Server(locationService, registrarService, accountManagerService, resour
         }
 
         const processor = new Processor(sipProvider, headerFactory, messageFactory, addressFactory, serverContactHeader,
-            locationService, registrarService, accountManagerService, resourcesAPI, contextStorage, resourcesAPI.getConfig())
+            locationService, registrarService, accountManagerService, resourcesAPI, contextStorage)
 
         sipProvider.addSipListener(processor.listener)
 
@@ -96,7 +96,7 @@ function Server(locationService, registrarService, accountManagerService, resour
 
         new java.util.Timer().schedule(registerTask, 5000, proRegExp * 60 * 1000);
 
-        restService = new RestService(this, locationService, resourcesAPI, resourcesAPI.getConfig())
+        restService = new RestService(this, locationService, resourcesAPI)
         restService.start()
     }
 

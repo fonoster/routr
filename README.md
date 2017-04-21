@@ -49,7 +49,7 @@ gradle getDeps
 ```
 
 You must install Java 9 and point your JAVA_HOME to your JDK 9 to run this app. You can overwrite the JAVA_HOME at the 
-file ./sipio.
+file `./sipio` and `./sipioctl`
 
 ## General configuration
 
