@@ -3,15 +3,13 @@
  * @since v1
  */
 function RestService(server, locationService, resourcesAPI) {
-    //  const config = resourcesAPI.getConfig()
+    const config = resourcesAPI.getConfig()
     const Spark = Packages.spark.Spark
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const BasicAuthenticationFilter = Packages.com.qmetric.spark.authentication.BasicAuthenticationFilter
     const AuthenticationDetails = Packages.com.qmetric.spark.authentication.AuthenticationDetails
     const LOG = LogManager.getLogger()
-    //const config = resourcesAPI.getConfig()
     const credentials = config.rest
-    const config = resourcesAPI.getConfig()
 
     Spark.port(config.rest.port)
     Spark.before(new BasicAuthenticationFilter('/*', new AuthenticationDetails(credentials.username, credentials.password)))
