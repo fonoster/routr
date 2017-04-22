@@ -9,7 +9,7 @@ function cmdShowLocation(id) {
     const registry = getWithAuth('location')
 
     out.printf('Registered devices\n')
-    out.printf("%-35s %-20s\n", 'ADDRESS OF RECORD', 'CONTACT ADDRESS')
+    out.printf("%-35s %-20s\n", 'ADDRESS OF RECORD', 'CONTACT INFO')
 
-    registry.forEach(reg => out.printf("%-35s %-20s\n", reg.addressOfRecord, reg.contactAddress))
+    registry.forEach(reg => out.printf("%-35s %-20s\n", reg.addressOfRecord, reg.contactInfo))
 }
