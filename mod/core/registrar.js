@@ -7,7 +7,7 @@ load('mod/utils/auth_helper.js')
 function RegistrarService(location, resourcesAPI) {
     const ViaHeader = Packages.javax.sip.header.ViaHeader
     const ContactHeader = Packages.javax.sip.header.ContactHeader
-    const ToHeader = Packages.javax.sip.header.ToHeader
+    const FromHeader = Packages.javax.sip.header.FromHeader
     const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
@@ -41,34 +41,30 @@ function RegistrarService(location, resourcesAPI) {
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
         const contactHeader = request.getHeader(ContactHeader.NAME)
         const contactURI = contactHeader.getAddress().getURI()
-        const toHeader = request.getHeader(ToHeader.NAME)
-        const toURI = toHeader.getAddress().getURI()
-        const domain = toURI.getHost()
-
-        // This scenario will happen with webclients
-        if (contactURI.getHost().endsWith('.invalid')) {
-            contactURI.setUser(authHeader.getUsername())
-            contactURI.setHost(viaHeader.getReceived())
-            contactURI.setPort(viaHeader.getParameter('rport'))
-        }
+        const fromHeader = request.getHeader(FromHeader.NAME)
+        const fromURI = fromHeader.getAddress().getURI()
+        const host = fromURI.getHost()
 
         // Get response from header
         const response = authHeader.getResponse()
-        // Get username and password from "db:
+        // Get user from db or file
         const user = resourcesAPI.findUser(authHeader.getUsername())
 
+        if(!!viaHeader.getReceived()) contactURI.setHost(viaHeader.getReceived())
+        if(!!viaHeader.getParameter('rport')) contactURI.setPort(viaHeader.getParameter('rport'))
+
         if (user == null) {
-            LOG.info('Could not find user or peer \'' + authHeader.getUsername() + '\'')
+            LOG.debug('Could not find user or peer \'' + user.username + '\'')
             return false
         }
 
-        if (user.kind.equalsIgnoreCase('agent') && !hasDomain(user, domain)) {
-            LOG.info('User ' + user.username + ' does not exist in domain ' + domain)
+        if (user.kind.equalsIgnoreCase('agent') && !hasDomain(user, host)) {
+            LOG.debug('User ' + user.username + ' does not exist within domain ' + host)
             return false
         }
 
         const aHeaderJson = {
-            username: authHeader.getUsername(),
+            username: user.username,
             password: user.secret,
             realm: authHeader.getRealm(),
             nonce: authHeader.getNonce(),
@@ -81,23 +77,29 @@ function RegistrarService(location, resourcesAPI) {
         }
 
         if (new AuthHelper().calcFromHeader(aHeaderJson).equals(response)) {
+            // Detect NAT
+            const nat = (viaHeader.getHost() + viaHeader.getPort()) != (viaHeader.getReceived() + viaHeader.getParameter('rport'))
+
+            const route = {
+                sentByAddress: viaHeader.getHost(),
+                sentByPort: viaHeader.getPort(),
+                received: viaHeader.getReceived(),
+                rport: viaHeader.getParameter('rport'),
+                contactURI: contactURI.toString(),
+                registeredOn: Date.now(),
+                nat: nat
+            }
+
+            print ('route ~> ' + JSON.stringify(route))
 
             if (user.kind.equalsIgnoreCase('peer')) {
-                if (user.host != null) {
-                    contactURI.setHost(user.host)
-                }
+                const addressOfRecord = contactURI.getScheme() + user.username + '@' + host
 
-                const addressOfRecord = 'sip:' + authHeader.getUsername() + '@' + domain
                 location.put(addressOfRecord, contactURI)
-
-                    LOG.trace('The contact address for the address of record(aor) ' + addressOfRecord + ' is ' + contactURI)
             } else {
-                for (var d of user.domains) {
-                    // TODO: Find a better way to get this value
-                    // This could be "sips" or other protocol
-                    const addressOfRecord = 'sip:' + authHeader.getUsername() + '@' + d
+                for (var domain of user.domains) {
+                    addressOfRecord = contactURI.getScheme() + user.username + '@' + domain
                     location.put(addressOfRecord, contactURI)
-                    LOG.trace('The contact address for the address of record(aor) ' + addressOfRecord + ' is ' + contactURI)
                 }
             }
 
