@@ -3,7 +3,8 @@
  * @since v1
  */
 function RestService(server, locationService, resourcesAPI) {
-    const config = resourcesAPI.getConfig()
+    // For some weird reason this only works with var and not const or let
+    var config = resourcesAPI.getConfig()
     const Spark = Packages.spark.Spark
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const BasicAuthenticationFilter = Packages.com.qmetric.spark.authentication.BasicAuthenticationFilter
