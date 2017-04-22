@@ -63,11 +63,11 @@ function Server(locationService, registrarService, accountManagerService, resour
 
         // This will not scale if we have a lot of DIDs
         for (var did of resourcesAPI.getDIDs()) {
-            const k = 'tel:' + did.e164num
+            const addressOfRecord = 'tel:' + did.e164num
 
             const ca = addressFactory.createAddress(did.contactAddress)
             const ch = headerFactory.createContactHeader(ca)
-            locationService.put(k, ch.getAddress().getURI())
+            locationService.put(addressOfRecord, ch.getAddress().getURI())
         }
 
         const processor = new Processor(sipProvider, headerFactory, messageFactory, addressFactory, serverContactHeader,
