@@ -4,12 +4,12 @@
  */
 load('mod/core/context.js')
 load('mod/utils/auth_helper.js')
-load('mod/utils/acl_helper.js')
 load('mod/utils/domain_utils.js')
-load('mod/core/resources.js')
 
 function Processor(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
     registrarService, accountManagerService, resourcesAPI, contextStorage) {
+    // For some weird reason this only works with var and not const or let
+    var config = resourcesAPI.getConfig()
     const SipListener = Packages.javax.sip.SipListener
     const Request = Packages.javax.sip.message.Request
     const Response = Packages.javax.sip.message.Response
@@ -23,7 +23,6 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
     const MaxForwardsHeader = Packages.javax.sip.header.MaxForwardsHeader
     const ProxyAuthorizationHeader = Packages.javax.sip.header.ProxyAuthorizationHeader
     const LogManager = Packages.org.apache.logging.log4j.LogManager
-    const config = resourcesAPI.getConfig()
 
     const LOG = LogManager.getLogger()
     const authHelper =  new AuthHelper(headerFactory)
