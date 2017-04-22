@@ -5,6 +5,7 @@
 load('mod/core/context.js')
 load('mod/utils/auth_helper.js')
 load('mod/utils/domain_utils.js')
+load('mod/utils/acl_helper.js')
 
 function Processor(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
     registrarService, accountManagerService, resourcesAPI, contextStorage) {
@@ -34,13 +35,15 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
         const contactURI = contactHeader.getAddress().getURI()
         const expH = request.getHeader(ExpiresHeader.NAME) || contactHeader.getExpires()
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
+        const addressOfRecord = contactURI.toString()
 
-        LOG.debug('<-------\n' + request)
-
-        if (authHeader == null) {
+        if (authHeader == null || expH == 0) {
             const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
             unauthorized.addHeader(authHelper.generateChallenge())
             transaction.sendResponse(unauthorized)
+
+            //locationService.remove(addressOfRecord)
+
             LOG.debug('------->\n' + unauthorized)
         } else {
             if (registrarService.register(request)) {
@@ -85,17 +88,6 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
         LOG.debug('<-------\n' + request)
     }
 
-    function unavailable(request, transaction) {
-        LOG.trace('Unable to find contact: ' + request.getHeader(ToHeader.NAME))
-        transaction.sendResponse(messageFactory.createResponse(Response.NOT_FOUND, request))
-        LOG.debug('------->\n' + request)
-    }
-
-    function reject(request, transaction) {
-        transaction.sendResponse(messageFactory.createResponse(Response.UNAUTHORIZED, request))
-        LOG.debug('------->\n' + request)
-    }
-
     this.listener = new SipListener() {
         processRequest: event => {
             const requestIn = event.getRequest()
@@ -125,6 +117,12 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 const toHeader = requestIn.getHeader(ToHeader.NAME)
                 const addressOfRecord = toHeader.getAddress().getURI()
 
+                //if (resourcesAPI.findUser(addressOfRecord) == null) {
+                //   LOG.trace('Unable to find address of record: ' + addressOfRecord)
+                //    serverTransaction.sendResponse(messageFactory.createResponse(Response.NOT_FOUND, requestIn))
+                //    return
+                //}
+
                 if (routeHeader) {
                     const nextHop = routeHeader.getAddress().getURI().getHost()
 
@@ -153,7 +151,8 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
 
                 if (!!domain) {
                     if(!new DomainUtil(defaultDomainAcl).isDomainAllow(domain, addressOfRecord.getHost())) {
-                        reject(requestIn, serverTransaction)
+                        serverTransaction.sendResponse(messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
+                        return
                     }
                 }
 
@@ -166,38 +165,48 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                     })
                 }
 
-                const contactAddress = locationService.get(addressOfRecord)
+                // Contact Address/es
+                const caIterator = locationService.getAORContacts(addressOfRecord)
 
-                if (contactAddress == null) {
-                    unavailable(requestIn, serverTransaction)
+                if (!caIterator.hasNext()) {
+                    serverTransaction.sendResponse(messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
                     return
                 }
 
-                requestOut.setRequestURI(contactAddress)
+                // Fork the call if needed
+                while(caIterator.hasNext()) {
+                    const route = caIterator.next()
 
-                // Does not need a transaction
-                if(method.equals(Request.ACK)) {
-                    sipProvider.sendRequest(requestOut)
-                } else {
-                    try {
-                        const clientTransaction = sipProvider.getNewClientTransaction(requestOut)
-                        clientTransaction.sendRequest()
+                    requestOut.setRequestURI(route.contactURI)
 
-                        // Transaction context
-                        const context = new Context()
-                        context.clientTransaction = clientTransaction
-                        context.serverTransaction = serverTransaction
-                        context.method = method
-                        context.requestIn = requestIn
-                        context.requestOut = requestOut
-                        contextStorage.saveContext(context)
-                    } catch (e) {
-                        LOG.info(e.getMessage())
-                        LOG.trace(e.getStackTrace())
+                    // Does not need a transaction
+                    if(method.equals(Request.ACK)) {
+                        sipProvider.sendRequest(requestOut)
+                    } else {
+                        try {
+                            const clientTransaction = sipProvider.getNewClientTransaction(requestOut)
+                            clientTransaction.sendRequest()
+
+                            // Transaction context
+                            const context = new Context()
+                            context.clientTransaction = clientTransaction
+                            context.serverTransaction = serverTransaction
+                            context.method = method
+                            context.requestIn = requestIn
+                            context.requestOut = requestOut
+                            contextStorage.saveContext(context)
+                        } catch (e) {
+                            LOG.info(e.getMessage())
+                            LOG.trace(e.getStackTrace())
+                        }
                     }
+
+                    LOG.debug('<-------\n' + requestOut)
                 }
+
+                return
             }
-            LOG.debug('<-------\n' + requestOut)
+            LOG.debug('<-------\n' + requestIn)
         },
 
         processResponse: event => {
