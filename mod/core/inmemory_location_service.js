@@ -9,24 +9,34 @@ function LocationService() {
     const HashMap = Packages.java.util.HashMap
     const db = new HashMap()
 
-    this.put = (addressOfRecord, contactAddress) => { db.put(addressOfRecord.toString(), contactAddress) }
+    function getKey(route) { return route.sentByAddress + route.sentByPort + route.received + route.rport}
 
-    // It would be nice if we could enforce the use of 'tel' scheme for DIDs requests
-    this.get = addressOfRecord => {
-        if (addressOfRecord instanceof Packages.javax.sip.address.URI ||
-            addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
-
-            const sipAddress = addressOfRecord.getScheme() + ":" + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
-
-            return db.get(sipAddress) || db.get('tel:' + addressOfRecord.getUser())
-        } if (k instanceof Packages.javax.sip.address.TelURL) {
-            return db.get('tel:' + addressOfRecord.getPhoneNumber())
-        }
-
-        return db.get(addressOfRecord)
+    this.put = (addressOfRecord, route) => {
+        const routes = db.get(addressOfRecord) || new HashMap()
+        const routeKey = getKey(route)
+        routes.put(routeKey, route)
+        db.put(addressOfRecord, routes)
     }
 
-    this.remove = k => { db.remove(k) }
+    // It would be nice if we could enforce the use of 'tel' scheme for DIDs requests
+    this.getAORContacts = addressOfRecord => {
+        let routes
+
+        if (addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
+            const recordKey = addressOfRecord.getScheme() + ":" + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
+            routes =  db.get(recordKey) || db.get('tel:' + addressOfRecord.getUser()) || new HashMap()
+        } else if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
+            routes = db.get('tel:' + addressOfRecord.getUser()) || new HashMap()
+        } else {
+            routes = db.get(addressOfRecord)
+        }
+
+        const iterator = routes.values().iterator()
+
+        return iterator
+    }
+
+    this.remove = addressOfRecord => { db.remove(addressOfRecord) }
 
     this.listAllAsJSON = () => {
         let s = []
@@ -34,7 +44,21 @@ function LocationService() {
 
         while(aors.hasNext()) {
             let key = aors.next()
-            let tmp = {'addressOfRecord': key, 'contactAddress': db.get(key).toString()}
+
+            let i = db.get(key).values().iterator()
+            let contactInfo = ''
+
+            while(i.hasNext()) {
+                const rObj = i.next()
+                const r = '<' + rObj.contactURI + '>;nat=' + rObj.nat + ';timestamp=' + rObj.registeredOn
+                if (i.hasNext()) r = r + ','
+                contactInfo = contactInfo + r
+            }
+
+            let tmp = {
+                'addressOfRecord': key,
+                'contactInfo': contactInfo
+            }
             s.push(tmp)
         }
 
