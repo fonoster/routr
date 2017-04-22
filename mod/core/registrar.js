@@ -85,21 +85,18 @@ function RegistrarService(location, resourcesAPI) {
                 sentByPort: viaHeader.getPort(),
                 received: viaHeader.getReceived(),
                 rport: viaHeader.getParameter('rport'),
-                contactURI: contactURI.toString(),
+                contactURI: contactURI,
                 registeredOn: Date.now(),
                 nat: nat
             }
 
-            print ('route ~> ' + JSON.stringify(route))
-
             if (user.kind.equalsIgnoreCase('peer')) {
-                const addressOfRecord = contactURI.getScheme() + user.username + '@' + host
-
-                location.put(addressOfRecord, contactURI)
+                const addressOfRecord = contactURI.getScheme() + ':' + user.username + '@' + host
+                location.put(addressOfRecord, route)
             } else {
                 for (var domain of user.domains) {
-                    addressOfRecord = contactURI.getScheme() + user.username + '@' + domain
-                    location.put(addressOfRecord, contactURI)
+                    addressOfRecord = contactURI.getScheme() + ':' + user.username + '@' + domain
+                    location.put(addressOfRecord, route)
                 }
             }
 
