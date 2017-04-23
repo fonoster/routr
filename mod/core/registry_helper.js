@@ -56,7 +56,6 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
         request.addHeader(headerFactory.createAllowHeader('OPTIONS'))
         request.addHeader(expireHeader)
 
-
         try {
             const clientTransaction = sipProvider.getNewClientTransaction(request)
             clientTransaction.sendRequest()
