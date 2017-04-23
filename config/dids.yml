@@ -4,5 +4,5 @@
     city: Columbus, GA
     country: USA
     countryISOCode: US
-  e164num: '17066041487'
-  contactAddress: 'sip:john@192.168.1.2:64980'
+  telURI: 'tel:17066041487'
+  aorLink: 'sip:john@sip.ocean.com'
