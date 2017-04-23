@@ -24,7 +24,6 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
     const MaxForwardsHeader = Packages.javax.sip.header.MaxForwardsHeader
     const ProxyAuthorizationHeader = Packages.javax.sip.header.ProxyAuthorizationHeader
     const LogManager = Packages.org.apache.logging.log4j.LogManager
-
     const LOG = LogManager.getLogger()
     const authHelper =  new AuthHelper(headerFactory)
 
@@ -41,8 +40,6 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
             unauthorized.addHeader(authHelper.generateChallenge())
             transaction.sendResponse(unauthorized)
-
-            //locationService.remove(addressOfRecord)
 
             LOG.debug('------->\n' + unauthorized)
         } else {
@@ -117,12 +114,6 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 const toHeader = requestIn.getHeader(ToHeader.NAME)
                 const addressOfRecord = toHeader.getAddress().getURI()
 
-                //if (resourcesAPI.findUser(addressOfRecord) == null) {
-                //   LOG.trace('Unable to find address of record: ' + addressOfRecord)
-                //    serverTransaction.sendResponse(messageFactory.createResponse(Response.NOT_FOUND, requestIn))
-                //    return
-                //}
-
                 if (routeHeader) {
                     const nextHop = routeHeader.getAddress().getURI().getHost()
 
@@ -166,9 +157,14 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 }
 
                 // Contact Address/es
-                const caIterator = locationService.getAORContacts(addressOfRecord)
+                const location = locationService.findLocation(addressOfRecord)
+                let caIterator
 
-                if (!caIterator.hasNext()) {
+                try {
+                    caIterator = location.values().iterator()
+                } catch(e) {}
+
+                if (location == undefined || location == null || !caIterator.hasNext()) {
                     serverTransaction.sendResponse(messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
                     return
                 }

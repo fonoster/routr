@@ -4,7 +4,7 @@
  */
 load('mod/utils/auth_helper.js')
 
-function RegistrarService(location, resourcesAPI) {
+function RegistrarService(locationService, resourcesAPI) {
     const ViaHeader = Packages.javax.sip.header.ViaHeader
     const ContactHeader = Packages.javax.sip.header.ContactHeader
     const FromHeader = Packages.javax.sip.header.FromHeader
@@ -81,6 +81,7 @@ function RegistrarService(location, resourcesAPI) {
             const nat = (viaHeader.getHost() + viaHeader.getPort()) != (viaHeader.getReceived() + viaHeader.getParameter('rport'))
 
             const route = {
+                isLinkAOR: false,
                 sentByAddress: viaHeader.getHost(),
                 sentByPort: viaHeader.getPort(),
                 received: viaHeader.getReceived(),
@@ -92,11 +93,11 @@ function RegistrarService(location, resourcesAPI) {
 
             if (user.kind.equalsIgnoreCase('peer')) {
                 const addressOfRecord = contactURI.getScheme() + ':' + user.username + '@' + host
-                location.put(addressOfRecord, route)
+                locationService.addLocation(addressOfRecord, route)
             } else {
                 for (var domain of user.domains) {
                     addressOfRecord = contactURI.getScheme() + ':' + user.username + '@' + domain
-                    location.put(addressOfRecord, route)
+                    locationService.addLocation(addressOfRecord, route)
                 }
             }
 

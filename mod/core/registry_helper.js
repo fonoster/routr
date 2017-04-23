@@ -36,14 +36,21 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
         const contactHeader = headerFactory.createContactHeader(contactAddress)
 
         const request = messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
+        request.addHeader(viaHeader)
+        request.addHeader(maxForwardsHeader)
         request.addHeader(callIdHeader)
         request.addHeader(cSeqHeader)
         request.addHeader(fromHeader)
         request.addHeader(toHeader)
-        request.addHeader(maxForwardsHeader)
-        request.addHeader(viaHeader)
         request.addHeader(contactHeader)
+        request.addHeader(headerFactory.createAllowHeader('INVITE'))
+        request.addHeader(headerFactory.createAllowHeader('ACK'))
+        request.addHeader(headerFactory.createAllowHeader('BYE'))
+        request.addHeader(headerFactory.createAllowHeader('CANCEL'))
+        request.addHeader(headerFactory.createAllowHeader('REGISTER'))
+        request.addHeader(headerFactory.createAllowHeader('OPTIONS'))
         request.addHeader(expireHeader)
+
 
         try {
             const clientTransaction = sipProvider.getNewClientTransaction(request)

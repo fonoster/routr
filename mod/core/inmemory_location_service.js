@@ -8,35 +8,56 @@
 function LocationService() {
     const HashMap = Packages.java.util.HashMap
     const db = new HashMap()
+    const LogManager = Packages.org.apache.logging.log4j.LogManager
+    const LOG = LogManager.getLogger()
 
-    function getKey(route) { return route.sentByAddress + route.sentByPort + route.received + route.rport}
-
-    this.put = (addressOfRecord, route) => {
-        const routes = db.get(addressOfRecord) || new HashMap()
-        const routeKey = getKey(route)
-        routes.put(routeKey, route)
-        db.put(addressOfRecord, routes)
+    function aorAsString(addressOfRecord) {
+        if (addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
+            return addressOfRecord.getScheme() + ":" + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
+        } else if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
+            return  addressOfRecord.getScheme() + ":" + addressOfRecord.getUser()
+        } else {
+            return addressOfRecord
+        }
+        return null
     }
 
-    // It would be nice if we could enforce the use of 'tel' scheme for DIDs requests
-    this.getAORContacts = addressOfRecord => {
-        let routes
+    this.addLocation = (addressOfRecord, route) => {
+        const routes = this.findLocation(addressOfRecord) || new HashMap()
+        let routeKey
 
-        if (addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
-            const recordKey = addressOfRecord.getScheme() + ":" + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
-            routes =  db.get(recordKey) || db.get('tel:' + addressOfRecord.getUser()) || new HashMap()
-        } else if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
-            routes = db.get('tel:' + addressOfRecord.getUser()) || new HashMap()
-        } else {
-            routes = db.get(addressOfRecord)
+        if (route.isLinkAOR == true) {
+            // Store only the link
+            db.put(aorAsString(addressOfRecord), route)
+            return
         }
 
-        const iterator = routes.values().iterator()
+        routeKey = route.sentByAddress + route.sentByPort + route.received + route.rport
 
-        return iterator
+        // For aorLink it will be the only entry
+        routes.put(routeKey, route)
+        db.put(aorAsString(addressOfRecord), routes)
     }
 
-    this.remove = addressOfRecord => { db.remove(addressOfRecord) }
+    this.findLocation = addressOfRecord => {
+        let result = null
+
+        try {
+            // In case they are not sending the didInfo I check the ToHeader
+            result = db.get(aorAsString(addressOfRecord)) || db.get('tel:' + addressOfRecord.getUser())
+        } catch(e) {
+            LOG.warn(e)
+        }
+
+        if (result instanceof HashMap) {
+            return result
+        } else if (!!result) {
+            return db.get(result.aorLink)
+        }
+        return null
+    }
+
+    this.removeLocation = addressOfRecord => { db.remove(addressOfRecord) }
 
     this.listAllAsJSON = () => {
         let s = []
@@ -44,15 +65,21 @@ function LocationService() {
 
         while(aors.hasNext()) {
             let key = aors.next()
-
-            let i = db.get(key).values().iterator()
+            let value = db.get(key)
             let contactInfo = ''
 
-            while(i.hasNext()) {
-                const rObj = i.next()
-                const r = '<' + rObj.contactURI + '>;nat=' + rObj.nat + ';timestamp=' + rObj.registeredOn
-                if (i.hasNext()) r = r + ','
-                contactInfo = contactInfo + r
+            if (value instanceof HashMap) {
+                let i = value.values().iterator()
+
+                while(i.hasNext()) {
+                    const rObj = i.next()
+                    const r = rObj.contactURI + ';nat=' + rObj.nat + ';timestamp=' + rObj.registeredOn
+
+                    if (i.hasNext()) r = r + ','
+                    contactInfo = contactInfo + r
+                }
+            } else {
+                contactInfo = '@ => ' + value.aorLink + ''
             }
 
             let tmp = {
