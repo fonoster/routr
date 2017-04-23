@@ -10,6 +10,9 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
     const LOG = LogManager.getLogger()
     const SipUtils = Packages.gov.nist.javax.sip.Utils
     const Request = Packages.javax.sip.message.Request
+    const userAgent = new java.util.ArrayList()
+
+    userAgent.add('Sip I/O v1.0')
 
     var cseq = 0
 
@@ -34,6 +37,7 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
         const expireHeader = headerFactory.createExpiresHeader(expires)
         const contactAddress = addressFactory.createAddress('sip:' + username + '@' + host + ':' + port)
         const contactHeader = headerFactory.createContactHeader(contactAddress)
+        const userAgentHeader = headerFactory.createUserAgentHeader(userAgent)
 
         const request = messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
         request.addHeader(viaHeader)
@@ -43,6 +47,7 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
         request.addHeader(fromHeader)
         request.addHeader(toHeader)
         request.addHeader(contactHeader)
+        request.addHeader(userAgentHeader)
         request.addHeader(headerFactory.createAllowHeader('INVITE'))
         request.addHeader(headerFactory.createAllowHeader('ACK'))
         request.addHeader(headerFactory.createAllowHeader('BYE'))
