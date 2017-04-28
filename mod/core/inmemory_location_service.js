@@ -34,7 +34,7 @@ function LocationService() {
 
         routeKey = route.sentByAddress + route.sentByPort + route.received + route.rport
 
-        // For aorLink it will be the only entry
+        // For aorLink there will be only one entry
         routes.put(routeKey, route)
         db.put(aorAsString(addressOfRecord), routes)
     }
