@@ -1,6 +1,6 @@
 # Peers and Agents can register in Sip I/O location service
-- kind: Peer
-  apiVersion: v1
+- apiVersion: v1
+  kind: Peer
   metadata:
     name: Asterisk PBX 13
     type: MediaServer

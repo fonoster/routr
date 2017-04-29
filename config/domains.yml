@@ -1,5 +1,5 @@
-- kind: Domain
-  apiVersion: v1
+- apiVersion: v1
+  kind: Domain
   metadata:
     name: Ocean Central Office
   uri: sip.ocean.com

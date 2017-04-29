@@ -1,7 +1,7 @@
 # Use gateway to register with a Sip Gateways or SBCs and send
 # or receive calls from the PSTN
-- kind: Gateway
-  apiVersion: v1
+- apiVersion: v1
+  kind: Gateway
   metadata:
     name: DID Logic, Inc
     zone: USA / us1

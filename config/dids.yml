@@ -1,5 +1,5 @@
-- kind: DID
-  apiVersion: v1
+- apiVersion: v1
+  kind: DID
   metadata:
     city: Columbus, GA
     country: USA
