@@ -32,6 +32,12 @@ function LocationService() {
             return
         }
 
+        if (route.thruGW == true) {
+            // Store only the link
+            db.put(aorAsString(addressOfRecord), route)
+            return
+        }
+
         routeKey = route.sentByAddress + route.sentByPort + route.received + route.rport
 
         // For aorLink there will be only one entry
@@ -45,15 +51,28 @@ function LocationService() {
         try {
             // In case they are not sending the didInfo I check the ToHeader
             result = db.get(aorAsString(addressOfRecord)) || db.get('tel:' + addressOfRecord.getUser())
-        } catch(e) {
-            LOG.warn(e)
-        }
+        } catch(e) {}
 
         if (result instanceof HashMap) {
             return result
-        } else if (!!result) {
+        } else if (!!result && result.isLinkAOR) {
             return db.get(result.aorLink)
+        } else if (addressOfRecord instanceof Packages.javax.sip.address.SipURI){
+            // Lets see if there is a matching rule for this number
+            let pattern = db.keySet()
+                 .stream()
+                 .filter(s => new RegExp(s).test(addressOfRecord))
+                 .findFirst()
+
+            if (pattern.isPresent()) {
+                const route = db.get(pattern.get())
+                // Replace pattern with actual number
+                route.contactURI.setUser(addressOfRecord.getUser())
+
+                return route
+            }
         }
+
         return null
     }
 
@@ -78,8 +97,10 @@ function LocationService() {
                     if (i.hasNext()) r = r + ','
                     contactInfo = contactInfo + r
                 }
+            } else if(value.aorLink) {
+                contactInfo = 'link to => ' + value.aorLink + ''
             } else {
-                contactInfo = '@ => ' + value.aorLink + ''
+                contactInfo = 'route via => sip:' + value.rule + '@' + value.gwHost
             }
 
             let tmp = {
