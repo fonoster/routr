@@ -6,7 +6,7 @@
     name: DID Logic, Inc
     zone: USA / us1
     type: Provider
-    ref:  1000
+    ref:  GW0001
   username: '96170'
   secret: TH9BTbsQcsEpdgpa
   host: sip.didlogic.net      # Inbound/Outbound host

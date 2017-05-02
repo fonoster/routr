@@ -1,5 +1,5 @@
 # Peers and Agents can register in Sip I/O location service
-- apiVersion: v1
+- apiVersion: v1alpha1
   kind: Agent
   metadata:
     name: John Doe
@@ -8,7 +8,7 @@
   domains:
     - sip.ocean.com
 - kind: Agent
-  apiVersion: v1
+  apiVersion: v1alpha1
   metadata:
     name: Janie Doe
   username: janie

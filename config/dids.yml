@@ -1,10 +1,11 @@
-- apiVersion: v1
+- apiVersion: v1alpha1
   kind: DID
   metadata:
-    city: Columbus, GA
-    country: USA
-    countryISOCode: US
-    ref: 1000
-    gwRef: 1000
+    ref: DID0001
+    gwRef: GW0001
+    geoInfo:
+      city: Columbus, GA
+      country: USA
+      countryISOCode: US
   telURI: 'tel:17066041487'
   aorLink: 'sip:john@sip.ocean.com'
