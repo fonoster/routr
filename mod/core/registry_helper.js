@@ -38,6 +38,7 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
         const contactAddress = addressFactory.createAddress('sip:' + username + '@' + host + ':' + port)
         const contactHeader = headerFactory.createContactHeader(contactAddress)
         const userAgentHeader = headerFactory.createUserAgentHeader(userAgent)
+        const gwUsernameHeader = headerFactory.createHeader('GWUsername', username)
 
         const request = messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
         request.addHeader(viaHeader)
@@ -48,6 +49,7 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
         request.addHeader(toHeader)
         request.addHeader(contactHeader)
         request.addHeader(userAgentHeader)
+        request.addHeader(gwUsernameHeader)
         request.addHeader(headerFactory.createAllowHeader('INVITE'))
         request.addHeader(headerFactory.createAllowHeader('ACK'))
         request.addHeader(headerFactory.createAllowHeader('BYE'))
