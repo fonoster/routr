@@ -78,26 +78,28 @@ same domain. An agent may belong to more than one domain.
 Domains can be found at `config/domains.yml`. The example below enables communication between all agents at Ocean New York.
 
 ```yaml
-- kind: Domain
-  apiVersion: v1alpha1
+- apiVersion: v1alpha1
+  kind: Domain
   metadata:
-    name: New York Office
-  uri: ny.ocean.com
+    name: Ocean Central Office
+  uri: sip.ocean.com
+  outgoing:
+    rule: .*
+    didRef: DID0001
 ```
 
 Agents can be configured at `config/agents.yml`. In the following example agent "John Doe" has access to both domains, 
 Ocean New York and Ocean Texas.
 
 ```yaml
-- kind: Agent
-  apiVersion: v1alpha1
+- apiVersion: v1alpha1
+  kind: Agent
   metadata:
-    name: Jhon Doe
-  username: jhondoe
-  secret: yoursecret
+    name: John Doe
+  username: john
+  secret: 1234
   domains:
-    - ny.ocean.com  # This must be defined at config/domains.yml
-    - tx.ocean.com  # This must be defined at config/domains.yml
+    - sip.ocean.com     # This must exist in config/domains.yml
 ```
 
 To setup your sip device use information found in `config/agents.yml`. Also, you must use the IP of Sip I/O as the 
@@ -110,34 +112,36 @@ example shows the configuration for a gateway. Sip I/O will register with this G
 and the parameter 'registries'.
 
 ```yaml
-- kind: Gateway
-  apiVersion: v1alpha1
+- apiVersion: v1alpha1
+  kind: Gateway
   metadata:
-    ref: GW0001
+    ref:  GW0001
     name: DID Logic, Inc
     zone: USA / us1
     type: Provider
-  username: '12345'
+  username: '96170'
   secret: yoursecret
-  host: sip.didlogic.net      # Inbound/Outbound calls
-  registries:                 # Inbound calls only
-    - sip.nyc.didlogic.net
+  host: sip.yourprovider.net      # Inbound/Outbound host
+  transport: udp
+  registries:                     # Inbound hosts
+    - sip.nyc.yourprovider.net 
 ```
 
 You also need to define the DID. Incoming calls from a DID will be route to an existing agent using the 'contact' 
 parameter. Please examine the following example:
 
 ```yaml
-- kind: DID
-  apiVersion: v1alpha1
+- apiVersion: v1alpha1
+  kind: DID
   metadata:
-    ref: DID001
+    ref: DID0001
+    gwRef: GW0001
     geoInfo:
-      city: Santiago
-      country: Dominican Rep.
-      countryCode: DO
-  e164num: 18296072077
-  contact: 'sip:johndoe@ny.ocean.com'
+      city: Columbus, GA
+      country: USA
+      countryISOCode: US
+  telURI: 'tel:17066041487'
+  aorLink: 'sip:john@sip.ocean.com'
 ```
 
 Any incoming call from this DID will be route to the "Jhon Doe" @ Ocean New York.
