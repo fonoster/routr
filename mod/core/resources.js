@@ -73,16 +73,30 @@ var ResourcesAPI = (() => {
 
     function _findGateway(ct) {
         const gateways = _getGateways()
-        const gwAddress = ct.getOriginalRequestContact().getAddress()
-        const username = gwAddress.toString().split(':')[1].split('@')[0].toString()
+        //const gwAddress = ct.getOriginalRequestContact().getAddress()
+        //const username = gwAddress.toString().split(':')[1].split('@')[0].toString()
+        const gwUsernameHeader = ct.getRequest().getHeader('GWUsername')
+        const username = gwUsernameHeader.getValue()
 
         for (var gateway of gateways) {
-            if (gateway.username === username) { return gateway }
+            if (gateway.username === username) return gateway
         }
 
         LOG.warn ('Gateway [' + username + '] does not exist in config/gateways.yml')
         return null
     }
+
+    function _findGatewayByRef(ref) {
+        const gateways = _getGateways()
+
+        for (var gateway of gateways) {
+            if (gateway.metadata.ref.equals(ref)) return gateway
+        }
+
+        LOG.warn ('Gateway by ref [' + ref + '] does not exist in config/gateways.yml')
+        return null
+    }
+
 
     function _findUser(id) {
         const agents = _getAgents()
@@ -100,6 +114,17 @@ var ResourcesAPI = (() => {
             }
         }
 
+        return null
+    }
+
+    function _findDIDByRef(ref) {
+        const dids = _getDIDs()
+
+        for (var did of dids) {
+            if (did.metadata.ref.equals(ref)) {
+                return did
+            }
+        }
         return null
     }
 
@@ -160,7 +185,9 @@ var ResourcesAPI = (() => {
         getPeers: _getPeers,
         findUser: _findUser,
         findGateway: _findGateway,
+        findGatewayByRef: _findGatewayByRef,
         findDomain: _findDomain,
+        findDIDByRef: _findDIDByRef,
         reload: _reload
     }
 })()
