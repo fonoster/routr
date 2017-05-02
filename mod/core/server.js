@@ -68,7 +68,7 @@ function Server(locationService, registrarService, accountManagerService, resour
                 aorLink: did.aorLink
             }
 
-            locationService.addLocation(did.telURI, route)
+            locationService.addLocation(did.telUri, route)
         }
 
         for (var domain of resourcesAPI.getDomains()) {
@@ -84,7 +84,7 @@ function Server(locationService, registrarService, accountManagerService, resour
                 rule: domain.outgoing.rule,
                 gwUsername: gw.username,
                 gwHost: gw.host,
-                did: did.telURI,
+                did: did.telUri,
                 contactURI: addressFactory.createSipURI(domain.outgoing.rule, gw.host)
             }
 

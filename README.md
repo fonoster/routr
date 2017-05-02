@@ -138,7 +138,7 @@ parameter. Please examine the following example:
       city: Columbus, GA
       country: USA
       countryISOCode: US
-  telURI: 'tel:17066041487'
+  telUri: 'tel:17066041487'
   aorLink: 'sip:john@sip.ocean.com'
 ```
 
