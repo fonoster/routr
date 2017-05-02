@@ -11,6 +11,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
     registrarService, accountManagerService, resourcesAPI, contextStorage) {
     // For some weird reason this only works with var and not const or let
     var config = resourcesAPI.getConfig()
+    const HashMap = Packages.java.util.HashMap
     const SipListener = Packages.javax.sip.SipListener
     const Request = Packages.javax.sip.message.Request
     const Response = Packages.javax.sip.message.Response
@@ -156,24 +157,14 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                     })
                 }
 
-                // Contact Address/es
-                const location = locationService.findLocation(addressOfRecord)
-                let caIterator
-
-                try {
-                    caIterator = location.values().iterator()
-                } catch(e) {}
-
-                if (location == undefined || location == null || !caIterator.hasNext()) {
-                    serverTransaction.sendResponse(messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
-                    return
-                }
-
-                // Fork the call if needed
-                while(caIterator.hasNext()) {
-                    const route = caIterator.next()
-
+                function processRoute(route) {
                     requestOut.setRequestURI(route.contactURI)
+
+                    if (route.thruGW) {
+                        // Adding custom header GWUsername
+                        const gwUsernameHeader = headerFactory.createHeader('GWUsername', route.gwUsername)
+                        requestOut.addHeader(gwUsernameHeader)
+                    }
 
                     // Does not need a transaction
                     if(method.equals(Request.ACK)) {
@@ -198,6 +189,36 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                     }
 
                     LOG.debug('<-------\n' + requestOut)
+                }
+
+                // Contact Address/es
+                const location = locationService.findLocation(addressOfRecord)
+
+                if (location == undefined || location == null) {
+                    serverTransaction.sendResponse(messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
+                    return
+                }
+
+                if (location instanceof HashMap) {
+                    let caIterator
+
+                    try {
+                        caIterator = location.values().iterator()
+                    } catch(e) {}
+
+                    if (!caIterator.hasNext()) {
+                        serverTransaction.sendResponse(messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
+                        return
+                    }
+
+                    // Fork the call if needed
+                    while(caIterator.hasNext()) {
+                        const route = caIterator.next()
+                        processRoute(route)
+                    }
+                } else {
+                    const route = location
+                    processRoute(route)
                 }
 
                 return
@@ -242,7 +263,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
 
                 const context = contextStorage.findContext(clientTransaction)
 
-                if (!!context.serverTransaction) context.serverTransaction.sendResponse(responseOut)
+                if (!!context && !!context.serverTransaction) context.serverTransaction.sendResponse(responseOut)
 
             } else {
                 // Could be a BYE due to Record-Route
