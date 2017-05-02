@@ -7,12 +7,11 @@ load('mod/core/inmemory_location_service.js')
 load('mod/core/account_manager_service.js')
 load('mod/core/registrar.js')
 load('mod/core/server.js')
-load('mod/utils/yaml_converter.js')
 
 const resourcesAPI = ResourcesAPI
 
-const location = new LocationService()
-const registrar = new RegistrarService(location, resourcesAPI)
+const locationService = new LocationService()
+const registrar = new RegistrarService(locationService, resourcesAPI)
 const accountManager = new AccountManagerService(resourcesAPI)
 
-new Server(location, registrar, accountManager, resourcesAPI).start()
+new Server(locationService, registrar, accountManager, resourcesAPI).start()
