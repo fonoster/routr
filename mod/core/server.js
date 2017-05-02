@@ -63,15 +63,33 @@ function Server(locationService, registrarService, accountManagerService, resour
 
         // This will not scale if we have a lot of DIDs
         for (var did of resourcesAPI.getDIDs()) {
-            const ca = addressFactory.createAddress(did.telURI)
-            const ch = headerFactory.createContactHeader(ca)
-
             const route = {
                 isLinkAOR: true,
                 aorLink: did.aorLink
             }
 
             locationService.addLocation(did.telURI, route)
+        }
+
+        for (var domain of resourcesAPI.getDomains()) {
+            if (domain.outgoing == undefined) return
+
+            // Get DID and GW info
+            const did = resourcesAPI.findDIDByRef(domain.outgoing.didRef)
+            const gw = resourcesAPI.findGatewayByRef(did.metadata.gwRef)
+
+            const route = {
+                isLinkAOR: false,
+                thruGW: true,
+                rule: domain.outgoing.rule,
+                gwUsername: gw.username,
+                gwHost: gw.host,
+                did: did.telURI,
+                contactURI: addressFactory.createSipURI(domain.outgoing.rule, gw.host)
+            }
+
+            const address = 'sip:' + domain.outgoing.rule + '@' + domain.uri
+            locationService.addLocation(address, route)
         }
 
         const processor = new Processor(sipProvider, headerFactory, messageFactory, addressFactory, serverContactHeader,
