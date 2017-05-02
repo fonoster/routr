@@ -3,3 +3,6 @@
   metadata:
     name: Ocean Central Office
   uri: sip.ocean.com
+  outgoing:
+    rule: .*
+    didRef: 1000

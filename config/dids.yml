@@ -4,5 +4,7 @@
     city: Columbus, GA
     country: USA
     countryISOCode: US
+    ref: 1000
+    gwRef: 1000
   telURI: 'tel:17066041487'
   aorLink: 'sip:john@sip.ocean.com'
