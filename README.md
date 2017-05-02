@@ -79,7 +79,7 @@ Domains can be found at `config/domains.yml`. The example below enables communic
 
 ```yaml
 - kind: Domain
-  apiVersion: v1
+  apiVersion: v1alpha1
   metadata:
     name: New York Office
   uri: ny.ocean.com
@@ -90,7 +90,7 @@ Ocean New York and Ocean Texas.
 
 ```yaml
 - kind: Agent
-  apiVersion: v1
+  apiVersion: v1alpha1
   metadata:
     name: Jhon Doe
   username: jhondoe
@@ -111,9 +111,10 @@ and the parameter 'registries'.
 
 ```yaml
 - kind: Gateway
-  apiVersion: v1
+  apiVersion: v1alpha1
   id: '12345'
   metadata:
+    ref: GW0001
     name: DID Logic, Inc
     zone: USA / us1
     type: Provider
@@ -129,11 +130,13 @@ parameter. Please examine the following example:
 
 ```yaml
 - kind: DID
-  apiVersion: v1
+  apiVersion: v1alpha1
   metadata:
-    city: Santiago
-    country: Dominican Rep.
-    countryCode: DO
+    ref: DID001
+    geoInfo:
+      city: Santiago
+      country: Dominican Rep.
+      countryCode: DO
   e164num: 18296072077
   contact: 'sip:johndoe@ny.ocean.com'
 ```
@@ -157,19 +160,15 @@ connections available in the location service (registry).
 ```bash
 $ ./sipioctl -h
 usage: sipioctl [-h] COMMAND ...
-
 sipioctl controls the Sip I/O server
-
 optional arguments:
--h, --help             show this help message and exit
-
+  -h, --help             show this help message and exit
 Basic Commands:
   COMMAND
     get                  Display one or many resources
-    registry (reg)       Shows the gateways status
+    location (loc)       Locate sip devices
     stop                 Stops server
     reload (rel)         Reload a resource(i.e domains, agents, etc...)
-
 Find more information at https://github.com/psanders/sip.io
 ```
 
