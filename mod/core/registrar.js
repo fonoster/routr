@@ -92,6 +92,8 @@ function RegistrarService(locationService, resourcesAPI) {
             }
 
             if (user.kind.equalsIgnoreCase('peer')) {
+                if (user.host) host = user.host
+
                 const addressOfRecord = contactURI.getScheme() + ':' + user.username + '@' + host
                 locationService.addLocation(addressOfRecord, route)
             } else {
