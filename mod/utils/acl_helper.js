@@ -22,20 +22,17 @@ function ACLHelper() {
     const LOG = LogManager.getLogger()
 
     this.mostSpecific = (rules, ip) => {
-        try {
-            const r = rules
-                .stream()
-                .filter(rule => rule.hasIp(ip))
-                .sorted((r1, r2) => java.lang.Integer.compare(r2.getAddressCount(), r1.getAddressCount()))
-                .findFirst()
+
+        const r = rules
+            .stream()
+            .filter(rule => rule.hasIp(ip))
+            .sorted((r1, r2) => java.lang.Integer.compare(r2.getAddressCount(), r1.getAddressCount()))
+            .findFirst()
+
+        if (r.isPresent()) {
             return r.get()
-        } catch (e) {
-            if (e instanceof java.util.NoSuchElementException) {
-                LOG.warn('Not default rules found for domain acl. This is a security concern')
-            } else {
-                LOG.warn(e)
-            }
         }
+
         return new Rule('allow', '0.0.0.0/1')
     }
 }
