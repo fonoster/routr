@@ -44,6 +44,14 @@ function Server(locationService, registrarService, accountManagerService, resour
         properties.setProperty('gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY', 'gov.nist.javax.sip.stack.NioMessageProcessorFactory')
         properties.setProperty('gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS', 'false')
 
+        // I have not tested this yet but a least suppress some annoying warnings
+        properties.setProperty('javax.net.ssl.keyStore', 'keystore.jks')
+        properties.setProperty('javax.net.ssl.keyStoreType', 'jks')
+        properties.setProperty('javax.net.ssl.keyStorePassword', 'osopolar')
+        properties.setProperty('javax.net.ssl.trustStore', 'keystore.jks')
+        properties.setProperty('javax.net.ssl.trustStorePassword', 'osopolar')
+        properties.setProperty('javax.net.ssl.trustStoreType', 'jks')
+
         sipStack = sipFactory.createSipStack(properties)
 
         const messageFactory = sipFactory.createMessageFactory()
@@ -52,10 +60,12 @@ function Server(locationService, registrarService, accountManagerService, resour
         const tcp = sipStack.createListeningPoint(config.tcpPort, 'tcp')
         const udp = sipStack.createListeningPoint(config.udpPort, 'udp')
         const ws = sipStack.createListeningPoint(config.wsPort, 'ws')
+        const tls = sipStack.createListeningPoint(config.tlsPort, 'tls')
 
         const sipProvider = sipStack.createSipProvider(tcp)
         sipProvider.addListeningPoint(udp)
         sipProvider.addListeningPoint(ws)
+        sipProvider.addListeningPoint(tls)
 
         // Server's contact address and header
         const serverAddress = addressFactory.createAddress('sip:' + host)
