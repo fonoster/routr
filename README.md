@@ -112,7 +112,6 @@ and the parameter 'registries'.
 ```yaml
 - kind: Gateway
   apiVersion: v1alpha1
-  id: '12345'
   metadata:
     ref: GW0001
     name: DID Logic, Inc
