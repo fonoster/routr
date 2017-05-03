@@ -1,6 +1,6 @@
-SIP I/O is an Open Source project sponsored by [Fonoster, INC](https://fonoster.com). If you are interested in building communication systems using SIP you may also want to check [Astive Toolkit](https://github.com/fonoster/astivetoolkit) Asterisk's media controller and application server.
+Sip I/O is an Open Source project sponsored by [Fonoster, INC](https://fonoster.com). If you are interested in building communication systems using SIP you may also want to check [Astive Toolkit](https://github.com/fonoster/astivetoolkit) Asterisk's media controller and application server.
 
-# SIP I/O
+# Sip I/O
 
 Sip I/O is a modern sip proxy, location server, and registrar that aims to be container friendly and easy to use by 
 developers and VoIP implementors.
@@ -12,33 +12,31 @@ Sip Gateway. To learn some key concepts and get up and running, check out the fo
 * [How to get SIP I/O up and running](https://github.com/fonoster/astivetoolkit/wiki/Tutorial:-How-to-get-ATK-up-and-running)
 * [Deployment Scenarios](https://github.com/fonoster/astivetoolkit/wiki/Tutorial:-Exploring-the-capabilities-of-the-Menu-API)
 
-## Current features include
+## Features
 
-| Sip server features |
-| --- |
-| Proxy |
-| Registrar service |
-| Location service (In-memory) |
-| Rest service | 
-| Command line tool for admin operations |
-| Access to the PSTN using SIP Gateways |
+**Sip server features**
 
-| Transport |
-| --- |
-| UDP |
-| Websocket |
+- Proxy
+- Registrar service
+- Location service (In-memory)
+- Rest service
+- Command line tool for admin operations
+- Access to the PSTN using SIP Gateways
 
-| Security |
-| --- |
-| Digest SIP User authentication |
-| Domain Access Control List (DACL) |
+**Transport**
 
-## Requirement
+- UDP
+- Websocket
 
-| Requirement | Reason |
-| --- | --- |
-| Java 1.9 +  | SIP I/O uses advanced features that are only avaiable in Java 9 |
-| Gradle      | Its use to install the dependencies |
+**Security**
+
+- Digest SIP User authentication
+- Domain Access Control List (DACL)
+
+## Requirements
+
+* Java 1.9 +
+* Gradle
 
 Why Java 9? As I mentioned before this is an experimental project. My objective is to test Nashorn Javascript Engine, 
 and more specifically the ES6 features, in a real life scenario. These features are only available in latest and greatest 
