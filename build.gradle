@@ -17,6 +17,7 @@ dependencies {
     compile "com.qmetric:spark-authentication:1.3"
     compile "com.mashape.unirest:unirest-java:1.4.9"
     compile "net.sourceforge.argparse4j:argparse4j:0.7.0"
+    compile "com.networknt:json-schema-validator:0.1.7"
 }
 
 repositories {
