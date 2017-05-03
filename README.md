@@ -4,14 +4,10 @@ Sip I/O is an Open Source project sponsored by [Fonoster, INC](https://fonoster.
 
 # Sip I/O: Modern SIP Server
 
-<a href="https://github.com/psanders/sip.io"><img src="https://github.com/psanders/sip.io/blob/master/logo.png" align="left" hspace="10" vspace="5" width="150"></a>
+<a href="https://github.com/psanders/sip.io"><img src="https://github.com/psanders/sip.io/blob/master/logo.png" align="left" hspace="10" vspace="5" width="120"></a>
 
-Sip I/O is a modern sip proxy, location server, and registrar that aims to be container friendly and easy to use by 
+**Sip I/O** is a modern sip proxy, location server, and registrar that aims to be container friendly and easy to use by 
 developers and VoIP implementors. At the moment you can add your sip devices and group them using domains. You can also connect with the PSTN using a Sip Gateway. To learn some key concepts and get up and running, check out the following tutorials:
-
-* [Getting started with Sip I/O](https://github.com/psanders/sip.io/wiki/Home)
-* [Basic Office Setup](https://github.com/fonoster/psanders/sip.io/wiki/Basic-Office-Setup)
-* [Sending and Receiving Calls From the PSTN](https://github.com/psanders/sip.io/wiki/Sending-and-Receiving-Calls-From-the-PSTN)
 
 ## Requirements
 
