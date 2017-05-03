@@ -5,6 +5,8 @@
 **Sip I/O** is a modern sip proxy, location server, and registrar that aims to be container friendly and easy to use by 
 developers and VoIP implementors. At the moment you can add your sip devices and group them using domains and connect with the PSTN using a Sip Gateway. To learn some key concepts and get up and running please see the [wiki](https://github.com/psanders/sip.io/wiki/Home)
 
+> This software is in its very early stage and is not recommended for production
+
 ## Requirements
 
 * Java 1.9 +
