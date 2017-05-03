@@ -10,9 +10,7 @@ developers and VoIP implementors. At the moment you can add your sip devices and
 * Java 1.9 +
 * Gradle
 
-Why Java 9? As I mentioned before this is an experimental project. My objective is to test Nashorn Javascript Engine, 
-and more specifically the ES6 features, in a real life scenario. These features are only available in latest and greatest 
-version of Java.
+Why Java 9? This project's objective is to test Nashorn Javascript Engine, and more specifically the ES6 features, in a real life scenario. These features are only available in latest and greatest version of Java.
 
 ## Installation
 
