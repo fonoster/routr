@@ -1,0 +1,46 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Agent set",
+    "type": "array",
+    "items": {
+        "title": "Agent",
+        "type": "object",
+        "properties": {
+            "apiVersion": {
+                "type": "string"
+            },
+            "kind": {
+                "type": "string"
+            },
+            "metadata": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"}
+                }
+            },
+            "spec": {
+                "type": "object",
+                "properties": {
+                    "access": {
+                        "type": "object",
+                        "properties": {
+                            "username": {"type": "string"},
+                            "secret": {"type": "string"}
+                        },
+                        "required": ["username", "secret"]
+                    },
+                    "domains": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "minItems": 1,
+                        "uniqueItems": true
+                    }
+                },
+                "required": ["access", "domains"]
+            }
+        },
+        "required": ["apiVersion", "kind", "spec"]
+    }
+}

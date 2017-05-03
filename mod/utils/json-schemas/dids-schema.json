@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "DID set",
+    "type": "array",
+    "items": {
+        "title": "DID",
+        "type": "object",
+        "properties": {
+            "apiVersion": {
+                "type": "string"
+            },
+            "kind": {
+                "type": "string"
+            },
+            "metadata": {
+                "type": "object",
+                "properties": {
+                    "ref": {"type": "string"},
+                    "gwRef": {"type": "string"}
+                },
+                "required": ["ref", "gwRef"]
+            },
+            "spec": {
+                "type": "object",
+                "properties": {
+                    "connection": {
+                        "type": "object",
+                        "properties": {
+                            "telUri": {"type": "string"},
+                            "aorLink": {"type": "string"}
+                        },
+                        "required": ["telUri", "aorLink"]
+                    },
+                    "connection": {
+                        "type": "object",
+                        "properties": {
+                            "telUri": {"type": "string"},
+                            "aorLink": {"type": "string"}
+                        },
+                        "required": ["telUri", "aorLink"]
+                    }
+                },
+                "required": ["location"]
+            }
+        },
+        "required": ["apiVersion", "kind", "metadata", "spec"]
+    }
+}

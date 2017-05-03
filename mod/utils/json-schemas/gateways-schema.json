@@ -1,0 +1,50 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Gateway set",
+    "type": "array",
+    "items": {
+        "title": "Gateway",
+        "type": "object",
+        "properties": {
+            "apiVersion": {
+                "type": "string"
+            },
+            "kind": {
+                "type": "string"
+            },
+            "metadata": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "ref": {"type": "string"}
+                },
+                "required": ["ref"]
+            },
+            "spec": {
+                "type": "object",
+                "properties": {
+                    "regService": {
+                        "type": "object",
+                        "properties": {
+                            "username": {"type": "string"},
+                            "secret": {"type": "string"},
+                            "host": {"type": "string"},
+                            "transport": {"type": "string"},
+                            "registries": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "minItems": 1,
+                                "uniqueItems": true
+                            }
+                        },
+                        "required": ["username", "secret", "host"]
+                    }
+                },
+                "required": ["regService"]
+            }
+        },
+        "required": ["apiVersion", "kind", "metadata", "spec"]
+    }
+}

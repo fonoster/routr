@@ -1,0 +1,40 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Peer set",
+    "type": "array",
+    "items": {
+        "title": "Peer",
+        "type": "object",
+        "properties": {
+            "apiVersion": {
+                "type": "string"
+            },
+            "kind": {
+                "type": "string"
+            },
+            "metadata": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"}
+                },
+                "required": ["name"]
+            },
+            "spec": {
+                "type": "object",
+                "properties": {
+                    "access": {
+                        "type": "object",
+                        "properties": {
+                            "username": {"type": "string"},
+                            "secret": {"type": "string"}
+                        },
+                        "required": ["username", "secret"]
+                    },
+                    "host": {"type": "string"}
+                },
+                "required": ["access"]
+            }
+        },
+        "required": ["apiVersion", "kind", "spec"]
+    }
+}
