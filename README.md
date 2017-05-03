@@ -1,4 +1,4 @@
-* [![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # Sip I/O: Modern SIP Server
 
@@ -33,10 +33,8 @@ gradle getDeps
 Communication
 ---------------
 
-* Google Group: [lettuce-redis-client-users](https://groups.google.com/d/forum/lettuce-redis-client-users) or lettuce-redis-client-users@googlegroups.com
-* [![Join the chat at https://gitter.im/lettuce-io/lettuce-core](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lettuce-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+* [![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 * [GitHub Issues](https://github.com/lettuce-io/lettuce-core/issues)
-
 
 ## Author
  - [Pedro Sanders](https://github.com/psanders)
