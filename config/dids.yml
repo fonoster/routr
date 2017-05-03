@@ -1,4 +1,4 @@
-- apiVersion: v1alpha1
+- apiVersion: v1draft1
   kind: DID
   metadata:
     ref: DID0001
@@ -7,5 +7,7 @@
       city: Columbus, GA
       country: USA
       countryISOCode: US
-  telUri: 'tel:17066041487'
-  aorLink: 'sip:john@sip.ocean.com'
+  spec:
+    location:
+      telUri: 'tel:17066041487'
+      aorLink: 'sip:john@sip.ocean.com'

@@ -1,15 +1,10 @@
 # This is Sip I/O's general configuration file
-
-# SIP stack logs
-traceLevel: 10
-
-# Transport ports
-tcpPort: 5060
-udpPort: 5060
-tlsPort: 5061
-wsPort: 5062
-
-# CLI Configuration
+general:
+  traceLevel: 10
+  tcpPort: 5060
+  udpPort: 5060
+  tlsPort: 5061
+  wsPort: 5062
 rest:
   port: 4567
   username: admin

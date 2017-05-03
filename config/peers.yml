@@ -1,9 +1,9 @@
 # Peers and Agents can register in Sip I/O location service
-- apiVersion: v1alpha1
+- apiVersion: v1draft1
   kind: Peer
   metadata:
     name: Asterisk PBX 13
-    type: MediaServer
-    desc: Default Media Server
-  username: ms
-  secret: 1c3cr34m
+  spec:
+    access:
+      username: ms
+      secret: 1c3cr34m

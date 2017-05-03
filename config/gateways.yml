@@ -1,15 +1,14 @@
 # Use gateway to register with a Sip Gateways or SBCs and send
 # or receive calls from the PSTN
-- apiVersion: v1alpha1
+- apiVersion: v1draft1
   kind: Gateway
   metadata:
     name: DID Logic, Inc
-    zone: USA / us1
-    type: Provider
     ref:  GW0001
-  username: '96170'
-  secret: TH9BTbsQcsEpdgpa
-  host: sip.didlogic.net      # Inbound/Outbound host
-  transport: udp              # DIDLogic sents a weird realm if I use TCP
-  registries:                 # Inbound hosts
-    - sip.nyc.didlogic.net
+  spec:
+    regService:
+      username: '96170'
+      secret: TH9BTbsQcsEpdgpa
+      host: sip.didlogic.net
+      transport: udp
+      registries: [sip.nyc.didlogic.net]

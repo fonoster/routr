@@ -1,8 +1,13 @@
-- apiVersion: v1alpha1
+- apiVersion: v1draft1
   kind: Domain
   metadata:
     name: Ocean Central Office
-  uri: sip.ocean.com
-  outgoing:
-    rule: .*
-    didRef: DID0001
+  spec:
+    context:
+      domainUri: sip.ocean.com
+      egressPolicy:
+        rule: .*
+        didRef: DID0001
+      #accessControlList:
+      #  allow:
+      #  deny:
