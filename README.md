@@ -16,7 +16,7 @@ Why Java 9? This project's objective is to test Nashorn Javascript Engine, and m
 
 ## Installation
 
-Run the following commands to download repository and get the dependencies
+Run the following commands to download the repository and get the dependencies
 
 ```bash
 git clone https://github.com/psanders/sip.io.git
