@@ -1,3 +1,5 @@
+* [![Join the chat at https://gitter.im/sip-io/lettuce-core](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lettuce-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 # Sip I/O: Modern SIP Server
 
 <a href="https://github.com/psanders/sip.io"><img src="https://github.com/psanders/sip.io/blob/master/logo.png" align="left" hspace="10" vspace="2" width="120"></a>
@@ -26,6 +28,15 @@ gradle getDeps
 
 > You must install Java 9 and point your JAVA_HOME to your JDK 9 to run this app. You can overwrite the JAVA_HOME at the 
 > file `./sipio` and `./sipioctl`
+
+
+Communication
+---------------
+
+* Google Group: [lettuce-redis-client-users](https://groups.google.com/d/forum/lettuce-redis-client-users) or lettuce-redis-client-users@googlegroups.com
+* [![Join the chat at https://gitter.im/lettuce-io/lettuce-core](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lettuce-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+* [GitHub Issues](https://github.com/lettuce-io/lettuce-core/issues)
+
 
 ## Author
  - [Pedro Sanders](https://github.com/psanders)
