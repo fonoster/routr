@@ -29,13 +29,6 @@ gradle getDeps
 > You must install Java 9 and point your JAVA_HOME to your JDK 9 to run this app. You can overwrite the JAVA_HOME at the 
 > file `./sipio` and `./sipioctl`
 
-
-Communication
----------------
-
-* [![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-* [GitHub Issues](https://github.com/lettuce-io/lettuce-core/issues)
-
 ## Author
  - [Pedro Sanders](https://github.com/psanders)
 
