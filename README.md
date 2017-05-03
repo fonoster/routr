@@ -8,8 +8,8 @@ developers and VoIP implementors.
 At the moment you can add your sip devices and group them using domains. You can also connect with the PSTN using a 
 Sip Gateway. To learn some key concepts and get up and running, check out the following tutorials:
 
-* [Getting started with SIP I/O](https://github.com/psanders/sip.io/wiki/Tutorial:-Getting-Started-With-Astivlets)
-* [How to get SIP I/O up and running](https://github.com/fonoster/astivetoolkit/wiki/Tutorial:-How-to-get-ATK-up-and-running)
+* [Getting started with Sip I/O](https://github.com/psanders/sip.io/wiki/Tutorial:-Getting-Started-With-Astivlets)
+* [How to get Sip I/O up and running](https://github.com/fonoster/astivetoolkit/wiki/Tutorial:-How-to-get-ATK-up-and-running)
 * [Deployment Scenarios](https://github.com/fonoster/astivetoolkit/wiki/Tutorial:-Exploring-the-capabilities-of-the-Menu-API)
 
 ## Features
