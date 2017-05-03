@@ -12,27 +12,6 @@ Sip Gateway. To learn some key concepts and get up and running, check out the fo
 * [How to get Sip I/O up and running](https://github.com/fonoster/astivetoolkit/wiki/Tutorial:-How-to-get-ATK-up-and-running)
 * [Deployment Scenarios](https://github.com/fonoster/astivetoolkit/wiki/Tutorial:-Exploring-the-capabilities-of-the-Menu-API)
 
-## Features
-
-**Sip server features**
-
-- Proxy
-- Registrar service
-- Location service (In-memory)
-- Rest service
-- Command line tool for admin operations
-- Access to the PSTN using SIP Gateways
-
-**Transport**
-
-- UDP
-- Websocket
-
-**Security**
-
-- Digest SIP User authentication
-- Domain Access Control List (DACL)
-
 ## Requirements
 
 * Java 1.9 +
