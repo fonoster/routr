@@ -3,7 +3,7 @@
 <a href="https://github.com/psanders/sip.io"><img src="https://github.com/psanders/sip.io/blob/master/logo.png" align="left" hspace="10" vspace="4" width="160"></a>
 
 **Sip I/O** is a modern sip proxy, location server, and registrar that aims to be container friendly and easy to use by 
-developers and VoIP implementors. At the moment you can add your sip devices and group them using domains. You can also connect with the PSTN using a Sip Gateway. To learn some key concepts and get up and running, check out the following tutorials:
+developers and VoIP implementors. At the moment you can add your sip devices and group them using domains. You can also connect with the PSTN using a Sip Gateway. To learn some key concepts and get up and running, check out the [Wiki](https://github.com/psanders/sip.io/wiki/Home)
 
 ## Requirements
 
