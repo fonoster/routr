@@ -1,5 +1,7 @@
 Sip I/O is an Open Source project sponsored by [Fonoster, INC](https://fonoster.com). If you are interested in building communication systems using SIP you may also want to check [Astive Toolkit](https://github.com/fonoster/astivetoolkit) Asterisk's media controller and application server.
 
+> This software is in its very early stage and is not recommended for production
+
 # Sip I/O
 
 Sip I/O is a modern sip proxy, location server, and registrar that aims to be container friendly and easy to use by 
