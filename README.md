@@ -1,8 +1,8 @@
-Sip I/O is an Open Source project sponsored by [Fonoster, INC](https://fonoster.com). If you are interested in building communication systems using SIP you may also want to check [Astive Toolkit](https://github.com/fonoster/astivetoolkit) Asterisk's media controller and application server.
+Sip I/O is an Open Source project sponsored by [Fonoster, INC](https://fonoster.com). If you are interested in building communication systems using SIP you may also want to check our Asterisk's media controller and application server [Astive Toolkit](https://github.com/fonoster/astivetoolkit), 
 
 > This software is in its very early stage and is not recommended for production
 
-# Sip I/O
+# Sip I/O: Modern SIP Server
 
 Sip I/O is a modern sip proxy, location server, and registrar that aims to be container friendly and easy to use by 
 developers and VoIP implementors.
@@ -10,9 +10,9 @@ developers and VoIP implementors.
 At the moment you can add your sip devices and group them using domains. You can also connect with the PSTN using a 
 Sip Gateway. To learn some key concepts and get up and running, check out the following tutorials:
 
-* [Getting started with Sip I/O](https://github.com/psanders/sip.io/wiki/Tutorial:-Getting-Started-With-Astivlets)
-* [How to get Sip I/O up and running](https://github.com/fonoster/astivetoolkit/wiki/Tutorial:-How-to-get-ATK-up-and-running)
-* [Deployment Scenarios](https://github.com/fonoster/astivetoolkit/wiki/Tutorial:-Exploring-the-capabilities-of-the-Menu-API)
+* [Getting started with Sip I/O](https://github.com/psanders/sip.io/wiki/Home)
+* [Basic Office Setup](https://github.com/fonoster/psanders/sip.io/wiki/Basic-Office-Setup)
+* [Sending and Receiving Calls From the PSTN](https://github.com/psanders/sip.io/wiki/Sending-and-Receiving-Calls-From-the-PSTN)
 
 ## Requirements
 
