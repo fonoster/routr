@@ -18,26 +18,20 @@ Sip Gateway. To learn some key concepts and get up and running, check out the fo
 | --- |
 | Proxy |
 | Registrar service |
-| Registrar service |
+| Location service (In-memory) |
+| Rest service | 
+| Command line tool for admin operations |
+| Access to the PSTN using SIP Gateways |
 
-**Sip server features**
+| Transport |
+| --- |
+| UDP |
+| Websocket |
 
-- Proxy
-- Registrar service
-- Location service (In-memory)
-- Rest service
-- Command line tool for admin operations
-- Access to the PSTN using SIP Gateways
-
-**Transport**
-
-- UDP
-- Websocket
-
-**Security**
-
-- Digest SIP User authentication
-- Domain Access Control List (DACL)
+| Security |
+| --- |
+| Digest SIP User authentication |
+| Domain Access Control List (DACL) |
 
 ## Requirement
 
