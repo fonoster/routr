@@ -1,10 +1,16 @@
-# Sip I/O
+SIP I/O is an Open Source project sponsored by [Fonoster, INC](https://fonoster.com). If you are interested in building communication systems using SIP you may also want to check [Astive Toolkit](https://github.com/fonoster/astivetoolkit) Asterisk's media controller and application server.
+
+# SIP I/O
 
 Sip I/O is a modern sip proxy, location server, and registrar that aims to be container friendly and easy to use by 
 developers and VoIP implementors.
 
 At the moment you can add your sip devices and group them using domains. You can also connect with the PSTN using a 
-Sip Gateway.
+Sip Gateway. To learn some key concepts and get up and running, check out the following tutorials:
+
+* [Getting started with SIP I/O](https://github.com/psanders/sip.io/wiki/Tutorial:-Getting-Started-With-Astivlets)
+* [How to get SIP I/O up and running](https://github.com/fonoster/astivetoolkit/wiki/Tutorial:-How-to-get-ATK-up-and-running)
+* [Deployment Scenarios](https://github.com/fonoster/astivetoolkit/wiki/Tutorial:-Exploring-the-capabilities-of-the-Menu-API)
 
 ## Current features include
 
@@ -29,7 +35,12 @@ Sip Gateway.
 
 ## Requirement
 
-* Java 1.9 +
+| Requirement | Reason |
+| --- | --- |
+| Java 1.9 +  | SIP I/I uses advanced features that are only avaiable in Java 9 including support for ES6 |
+| Gradle      | Its use to install the dependencies |
+
+* 
 * Gradle
 
 Why Java 9? As I mentioned before this is an experimental project. My objective is to test Nashorn Javascript Engine, 
