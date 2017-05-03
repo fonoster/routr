@@ -53,20 +53,21 @@ file `./sipio` and `./sipioctl`
 
 Configuration properties
 
-- traceLevel
-- tcpPort
-- udpPort
-- tlsPort
-- wsPort
-- recordRoute
-- addressInfo.[*]
+- general.traceLevel
+- general.tcpPort
+- general.udpPort
+- general.tlsPort
+- general.wsPort
+- general.recordRoute
+- general.addressInfo.[*]
+- general.defaultDomainAcl.deny.[*]
+- general.defaultDomainAcl.allow.[*]  i.e: 0.0.0.0/1
+- general.externalHost
 - rest.port
 - rest.username
 - rest.password
 - rest.disable
-- defaultDomainAcl.deny.[*]
-- defaultDomainAcl.allow.[*]  i.e: 0.0.0.0/1
-- externalHost
+
 
 ## Configuring domains and agents
 
@@ -76,7 +77,7 @@ same domain. An agent may belong to more than one domain.
 Domains can be found at `config/domains.yml`. The example below enables communication between all agents at Ocean New York.
 
 ```yaml
-- apiVersion: v1alpha1
+- apiVersion: v1draft1
   kind: Domain
   metadata:
     name: Ocean Central Office
@@ -90,7 +91,7 @@ Agents can be configured at `config/agents.yml`. In the following example agent 
 Ocean New York and Ocean Texas.
 
 ```yaml
-- apiVersion: v1alpha1
+- apiVersion: v1draft1
   kind: Agent
   metadata:
     name: John Doe
@@ -110,7 +111,7 @@ example shows the configuration for a gateway. Sip I/O will register with this G
 and the parameter 'registries'.
 
 ```yaml
-- apiVersion: v1alpha1
+- apiVersion: v1draft1
   kind: Gateway
   metadata:
     ref:  GW0001
@@ -129,7 +130,7 @@ You also need to define the DID. Incoming calls from a DID will be route to an e
 parameter. Please examine the following example:
 
 ```yaml
-- apiVersion: v1alpha1
+- apiVersion: v1draft1
   kind: DID
   metadata:
     ref: DID0001

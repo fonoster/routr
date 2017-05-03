@@ -13,7 +13,7 @@ function RegistrarService(locationService, resourcesAPI) {
     const LOG = LogManager.getLogger()
 
     function hasDomain(user, domain) {
-        for (var d of user.domains) {
+        for (var d of user.spec.domains) {
            if (domain === d) return true
         }
         return false
@@ -54,18 +54,23 @@ function RegistrarService(locationService, resourcesAPI) {
         if(!!viaHeader.getParameter('rport')) contactURI.setPort(viaHeader.getParameter('rport'))
 
         if (user == null) {
-            LOG.debug('Could not find user or peer \'' + user.username + '\'')
+            LOG.warn('Could not find user or peer \'' + authHeader.getUsername() + '\'')
             return false
         }
+
+        if(!!viaHeader.getReceived()) contactURI.setHost(viaHeader.getReceived())
+        if(!!viaHeader.getParameter('rport')) contactURI.setPort(viaHeader.getParameter('rport'))
 
         if (user.kind.equalsIgnoreCase('agent') && !hasDomain(user, host)) {
-            LOG.debug('User ' + user.username + ' does not exist within domain ' + host)
+            LOG.debug('User ' + user.spec.access.username + ' does not exist within domain ' + host)
             return false
         }
 
+        print ('user ~> ' + JSON.stringify(user))
+
         const aHeaderJson = {
-            username: user.username,
-            password: user.secret,
+            username: user.spec.access.username,
+            password: user.spec.access.secret,
             realm: authHeader.getRealm(),
             nonce: authHeader.getNonce(),
             // For some weird reason the interface value is an int while the value original value is a string
@@ -92,13 +97,13 @@ function RegistrarService(locationService, resourcesAPI) {
             }
 
             if (user.kind.equalsIgnoreCase('peer')) {
-                if (user.host) host = user.host
+                if (user.host) host = user.spec.host
 
-                const addressOfRecord = contactURI.getScheme() + ':' + user.username + '@' + host
+                const addressOfRecord = contactURI.getScheme() + ':' + user.spec.access.username + '@' + host
                 locationService.addLocation(addressOfRecord, route)
             } else {
-                for (var domain of user.domains) {
-                    addressOfRecord = contactURI.getScheme() + ':' + user.username + '@' + domain
+                for (var domain of user.spec.domains) {
+                    addressOfRecord = contactURI.getScheme() + ':' + user.spec.access.username + '@' + domain
                     locationService.addLocation(addressOfRecord, route)
                 }
             }

@@ -26,7 +26,7 @@ function Server(locationService, registrarService, accountManagerService, resour
     this.start = () => {
         LOG.info('Starting Sip I/O')
         LOG.debug('Local Host: ' + host)
-        if (config.externalHost != undefined) LOG.debug('External Host: ' + config.externalHost)
+        if (config.general.externalHost != undefined) LOG.debug('External Host: ' + config.general.externalHost)
 
         const properties = new Properties()
         const sipFactory = SipFactory.getInstance()
@@ -39,7 +39,7 @@ function Server(locationService, registrarService, accountManagerService, resour
         properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576');
         // Drop the client connection after we are done with the transaction.
         properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'false');
-        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', config.traceLevel);
+        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', config.general.traceLevel);
         // This seems to work with ws but not with udp
         properties.setProperty('gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY', 'gov.nist.javax.sip.stack.NioMessageProcessorFactory')
         properties.setProperty('gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS', 'false')
@@ -57,10 +57,10 @@ function Server(locationService, registrarService, accountManagerService, resour
         const messageFactory = sipFactory.createMessageFactory()
         const headerFactory = sipFactory.createHeaderFactory()
         const addressFactory = sipFactory.createAddressFactory()
-        const tcp = sipStack.createListeningPoint(config.tcpPort, 'tcp')
-        const udp = sipStack.createListeningPoint(config.udpPort, 'udp')
-        const ws = sipStack.createListeningPoint(config.wsPort, 'ws')
-        const tls = sipStack.createListeningPoint(config.tlsPort, 'tls')
+        const tcp = sipStack.createListeningPoint(config.general.tcpPort, 'tcp')
+        const udp = sipStack.createListeningPoint(config.general.udpPort, 'udp')
+        const ws = sipStack.createListeningPoint(config.general.wsPort, 'ws')
+        const tls = sipStack.createListeningPoint(config.general.tlsPort, 'tls')
 
         const sipProvider = sipStack.createSipProvider(tcp)
         sipProvider.addListeningPoint(udp)
@@ -75,30 +75,33 @@ function Server(locationService, registrarService, accountManagerService, resour
         for (var did of resourcesAPI.getDIDs()) {
             const route = {
                 isLinkAOR: true,
-                aorLink: did.aorLink
+                aorLink: did.spec.location.aorLink
             }
 
-            locationService.addLocation(did.telUri, route)
+            locationService.addLocation(did.spec.location.telUri, route)
         }
 
         for (var domain of resourcesAPI.getDomains()) {
-            if (domain.outgoing == undefined) return
+            if (domain.spec.context.egressPolicy == undefined) return
 
             // Get DID and GW info
-            const did = resourcesAPI.findDIDByRef(domain.outgoing.didRef)
+            const did = resourcesAPI.findDIDByRef(domain.spec.context.egressPolicy.didRef)
             const gw = resourcesAPI.findGatewayByRef(did.metadata.gwRef)
+            const gwHost = gw.spec.regService.host
+            const gwUsername = gw.spec.regService.username
+            const egressRule = domain.spec.context.egressPolicy.rule
 
             const route = {
                 isLinkAOR: false,
                 thruGW: true,
-                rule: domain.outgoing.rule,
-                gwUsername: gw.username,
-                gwHost: gw.host,
-                did: did.telUri,
-                contactURI: addressFactory.createSipURI(domain.outgoing.rule, gw.host)
+                rule: egressRule,
+                gwUsername: gwUsername,
+                gwHost: gwHost,
+                did: did.spec.location.telUri,
+                contactURI: addressFactory.createSipURI(egressRule, gwHost)
             }
 
-            const address = 'sip:' + domain.outgoing.rule + '@' + domain.uri
+            const address = 'sip:' + egressRule + '@' + domain.spec.context.domainUri
             locationService.addLocation(address, route)
         }
 
@@ -112,15 +115,22 @@ function Server(locationService, registrarService, accountManagerService, resour
         var registerTask = new java.util.TimerTask() {
             run: function() {
                 const gateways = resourcesAPI.getGateways()
+
+                if (gateways == null) return
+
                 for (var gateway of gateways) {
-                    LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.username + '@' + gateway.host)
-                    if (gateway.host !== undefined) registerHelper.requestChallenge(gateway.username, gateway.host, gateway.transport)
-                    if (gateway.registries === undefined) continue
+                    LOG.debug('Register with ' + gateway.metadata.name +  ' using '
+                        + gateway.spec.regService.username + '@' + gateway.spec.regService.host)
 
-                    for (var h of gateway.registries) {
-                        LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.username + '@' + h)
+                    if (gateway.spec.regService.host !== undefined) registerHelper.requestChallenge(gateway.spec.regService.username,
+                        gateway.spec.regService.host, gateway.spec.regService.transport)
 
-                        registerHelper.requestChallenge(gateway.username, h, gateway.transport)
+                    if (gateway.spec.regService.registries === undefined) continue
+
+                    for (var h of gateway.spec.regService.registries) {
+                        LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.regService.username + '@' + h)
+
+                        registerHelper.requestChallenge(gateway.spec.regService.username, h, gateway.spec.regService.transport)
                     }
                 }
            }

@@ -12,6 +12,6 @@ function getAgentsCmd(id) {
 
     agents.forEach(a => {
         if (id.equals('none') || a.username.equals(id))
-            out.printf("%-20s %-20s %-15s\n", a.username, a.metadata.name, a.domains.join())
+            out.printf("%-20s %-20s %-15s\n", a.spec.access.username, a.metadata.name, a.spec.domains.join())
     })
 }

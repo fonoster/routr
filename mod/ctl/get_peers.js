@@ -8,10 +8,10 @@ function getPeersCmd(id) {
     const out = Packages.java.lang.System.out
     const peers = getWithAuth('peers')
 
-    out.printf("%-10s %-20s %-15s %-10s\n", 'USER', 'NAME', 'TYPE', 'HOST/PORT')
+    out.printf("%-10s %-20s %-15s\n", 'USER', 'NAME', 'HOST')
 
     peers.forEach(p => {
         if (id.equals('none') || p.username.equals(id))
-            out.printf("%-10s %-20s %-15s %-10s\n", p.username, p.metadata.name, p.metadata.type, p.host + '/' + p.port)
+            out.printf("%-10s %-20s %-10s\n", p.spec.access.username, p.metadata.name, p.spec.host)
     })
 }

@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-function ResourcesPipeline() {
+function ResourcesManager() {
     const YAMLFactory = Packages.com.fasterxml.jackson.dataformat.yaml.YAMLFactory
     const JsonSchemaFactory = Packages.com.networknt.schema.JsonSchemaFactory
     const ObjectMapper = Packages.com.fasterxml.jackson.databind.ObjectMapper

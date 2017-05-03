@@ -28,7 +28,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
     const LOG = LogManager.getLogger()
     const authHelper =  new AuthHelper(headerFactory)
 
-    const defaultDomainAcl = config.defaultDomainAcl
+    const defaultDomainAcl = config.general.defaultDomainAcl
 
     function register(request, transaction) {
         const contactHeader = request.getHeader(ContactHeader.NAME)
@@ -118,7 +118,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 if (routeHeader) {
                     const nextHop = routeHeader.getAddress().getURI().getHost()
 
-                    if (nextHop.equals(host) || config.externalHost) {
+                    if (nextHop.equals(host) || config.general.externalHost) {
                         requestOut.removeFirst(RouteHeader.NAME)
                     }
                 }
@@ -126,7 +126,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 const maxForwardsHeader = requestOut.getHeader(MaxForwardsHeader.NAME)
                 maxForwardsHeader.decrementMaxForwards()
 
-                if (config.recordRoute) {
+                if (config.general.recordRoute) {
                     const proxyUri = addressFactory.createSipURI(null, host)
                     proxyUri.setLrParam()
                     const proxyAddress = addressFactory.createAddress(proxyUri);
@@ -149,10 +149,10 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 }
 
                 // Discover DIDs sent via a non-standard header
-                // The header must be added at config.addressInfo[*]
+                // The header must be added at config.general.addressInfo[*]
                 // If the such header is present then overwrite the AOR
-                if(!!config.addressInfo) {
-                    config.addressInfo.forEach(function(info) {
+                if(!!config.general.addressInfo) {
+                    config.general.addressInfo.forEach(function(info) {
                         if (!!requestIn.getHeader(info)) addressOfRecord = 'tel:' + requestIn.getHeader(info).getValue()
                     })
                 }

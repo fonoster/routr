@@ -8,9 +8,9 @@ function AccountManagerService(resourcesAPI) {
 
     this.getAccountManager = () =>  new AccountManager() {
         getCredentials: (challengedTransaction, realm) => new UserCredentials() {
-            getUserName: () => resourcesAPI.findGateway(challengedTransaction).username,
-            getPassword: () => resourcesAPI.findGateway(challengedTransaction).secret,
-            getSipDomain: () => resourcesAPI.findGateway(challengedTransaction).host
+            getUserName: () => resourcesAPI.findGateway(challengedTransaction).spec.regService.username,
+            getPassword: () => resourcesAPI.findGateway(challengedTransaction).spec.regService.secret,
+            getSipDomain: () => resourcesAPI.findGateway(challengedTransaction).spec.regService.host
         }
     }
 }
