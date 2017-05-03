@@ -14,6 +14,12 @@ Sip Gateway. To learn some key concepts and get up and running, check out the fo
 
 ## Current features include
 
+| Sip server features |
+| --- |
+| Proxy |
+| Registrar service |
+| Registrar service |
+
 **Sip server features**
 
 - Proxy
@@ -37,11 +43,8 @@ Sip Gateway. To learn some key concepts and get up and running, check out the fo
 
 | Requirement | Reason |
 | --- | --- |
-| Java 1.9 +  | SIP I/I uses advanced features that are only avaiable in Java 9 including support for ES6 |
+| Java 1.9 +  | SIP I/O uses advanced features that are only avaiable in Java 9 |
 | Gradle      | Its use to install the dependencies |
-
-* 
-* Gradle
 
 Why Java 9? As I mentioned before this is an experimental project. My objective is to test Nashorn Javascript Engine, 
 and more specifically the ES6 features, in a real life scenario. These features are only available in latest and greatest 
