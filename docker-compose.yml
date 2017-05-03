@@ -1,0 +1,13 @@
+version: '2.1'
+services:
+  sipio:
+    build:
+      context: .
+    image: sip.io
+    ports:
+      - '5060/udp:5060/udp'
+      - '5060/tcp:5060/tcp'
+      - '5061/udp:5061/udp'
+      - '5062/udp:5062/udp'
+    volumes:
+      - ./config:/app/config
