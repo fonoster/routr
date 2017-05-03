@@ -23,15 +23,7 @@
             "spec": {
                 "type": "object",
                 "properties": {
-                    "connection": {
-                        "type": "object",
-                        "properties": {
-                            "telUri": {"type": "string"},
-                            "aorLink": {"type": "string"}
-                        },
-                        "required": ["telUri", "aorLink"]
-                    },
-                    "connection": {
+                    "location": {
                         "type": "object",
                         "properties": {
                             "telUri": {"type": "string"},
