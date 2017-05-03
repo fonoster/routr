@@ -66,8 +66,6 @@ function RegistrarService(locationService, resourcesAPI) {
             return false
         }
 
-        print ('user ~> ' + JSON.stringify(user))
-
         const aHeaderJson = {
             username: user.spec.access.username,
             password: user.spec.access.secret,
