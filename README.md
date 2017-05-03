@@ -1,31 +1,22 @@
-Sip I/O is an Open Source project sponsored by [Fonoster, INC](https://fonoster.com). If you are interested in building communication systems using SIP you may also want to check our Asterisk's media controller and application server [Astive Toolkit](https://github.com/fonoster/astivetoolkit), 
-
-> This software is in its very early stage and is not recommended for production
-
 # Sip I/O: Modern SIP Server
 
-Sip I/O is a modern sip proxy, location server, and registrar that aims to be container friendly and easy to use by 
-developers and VoIP implementors.
+<a href="https://github.com/psanders/sip.io"><img src="https://github.com/psanders/sip.io/blob/master/logo.png" align="left" hspace="10" vspace="2" width="120"></a>
 
-At the moment you can add your sip devices and group them using domains. You can also connect with the PSTN using a 
-Sip Gateway. To learn some key concepts and get up and running, check out the following tutorials:
+**Sip I/O** is a modern sip proxy, location server, and registrar that aims to be container friendly and easy to use by 
+developers and VoIP implementors. At the moment you can add your sip devices and group them using domains and connect with the PSTN using a Sip Gateway. To learn some key concepts and get up and running please see the [wiki](https://github.com/psanders/sip.io/wiki/Home)
 
-* [Getting started with Sip I/O](https://github.com/psanders/sip.io/wiki/Home)
-* [Basic Office Setup](https://github.com/fonoster/psanders/sip.io/wiki/Basic-Office-Setup)
-* [Sending and Receiving Calls From the PSTN](https://github.com/psanders/sip.io/wiki/Sending-and-Receiving-Calls-From-the-PSTN)
+> This software is in its very early stage and is not recommended for production
 
 ## Requirements
 
 * Java 1.9 +
 * Gradle
 
-Why Java 9? As I mentioned before this is an experimental project. My objective is to test Nashorn Javascript Engine, 
-and more specifically the ES6 features, in a real life scenario. These features are only available in latest and greatest 
-version of Java.
+Why Java 9? This project's objective is to test Nashorn Javascript Engine, and more specifically the ES6 features, in a real life scenario. These features are only available in latest and greatest version of Java.
 
 ## Installation
 
-Run the following commands to download repository and get the dependencies
+Run the following commands to download the repository and get the dependencies
 
 ```bash
 git clone https://github.com/psanders/sip.io.git
@@ -33,8 +24,8 @@ cd sip.io
 gradle getDeps
 ```
 
-You must install Java 9 and point your JAVA_HOME to your JDK 9 to run this app. You can overwrite the JAVA_HOME at the 
-file `./sipio` and `./sipioctl`
+> You must install Java 9 and point your JAVA_HOME to your JDK 9 to run this app. You can overwrite the JAVA_HOME at the 
+> file `./sipio` and `./sipioctl`
 
 ## Author
  - [Pedro Sanders](https://github.com/psanders)
