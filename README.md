@@ -11,7 +11,7 @@ At the moment you can add your sip devices and group them using domains. You can
 Sip Gateway. To learn some key concepts and get up and running, check out the following tutorials:
 
 * [Getting started with Sip I/O](https://github.com/psanders/sip.io/wiki/Home)
-* [Basic Office Setup](https://github.com/fonoster/astivetoolkit/wiki/Basic-Office-Setup)
+* [Basic Office Setup](https://github.com/fonoster/psanders/sip.io/wiki/Basic-Office-Setup)
 * [Sending and Receiving Calls From the PSTN](https://github.com/psanders/sip.io/wiki/Sending-and-Receiving-Calls-From-the-PSTN)
 
 ## Requirements
