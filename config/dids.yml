@@ -9,5 +9,5 @@
       countryISOCode: US
   spec:
     location:
-      telUri: 'tel:17066041487'
+      telUrl: 'tel:17066041487'
       aorLink: 'sip:john@sip.ocean.com'
