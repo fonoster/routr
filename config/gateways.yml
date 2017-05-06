@@ -7,8 +7,8 @@
     ref:  GW0001
   spec:
     regService:
-      username: '96170'
-      secret: TH9BTbsQcsEpdgpa
-      host: sip.didlogic.net
+      username: 'youruser'
+      secret: yoursecret
+      host: sip.provider.net
       transport: udp
-      registries: [sip.nyc.didlogic.net]
+      registries: [sip.nyc.udp.net]
