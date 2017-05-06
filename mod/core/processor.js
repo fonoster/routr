@@ -3,14 +3,17 @@
  * @since v1
  */
 load('mod/core/context.js')
+load('mod/core/config_util.js')
 load('mod/utils/auth_helper.js')
 load('mod/utils/domain_utils.js')
 load('mod/utils/acl_helper.js')
+load('mod/resources/utils.js')
+load('mod/location/status.js')
 
 function Processor(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
-    registrarService, accountManagerService, resourcesAPI, contextStorage) {
+    registrarService, accountManagerService, dataAPIs, contextStorage) {
     // For some weird reason this only works with var and not const or let
-    var config = resourcesAPI.getConfig()
+    var config = new ConfigUtil().getConfig()
     const HashMap = Packages.java.util.HashMap
     const SipListener = Packages.javax.sip.SipListener
     const Request = Packages.javax.sip.message.Request
@@ -27,6 +30,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
     const authHelper =  new AuthHelper(headerFactory)
+    const dAPI = dataAPIs.getDomainsAPI()
 
     const defaultDomainAcl = config.general.defaultDomainAcl
 
@@ -139,9 +143,10 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 viaHeader.setRPort()
                 requestOut.addFirst(viaHeader)
 
-                const domain = resourcesAPI.findDomain(addressOfRecord.getHost())
+                let result = dAPI.getDomain(addressOfRecord.getHost())
 
-                if (!!domain) {
+                if (result.status == Status.OK) {
+                    const domain = result.obj
                     if(!new DomainUtil(defaultDomainAcl).isDomainAllow(domain, addressOfRecord.getHost())) {
                         serverTransaction.sendResponse(messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
                         return
@@ -153,7 +158,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 // If the such header is present then overwrite the AOR
                 if(!!config.general.addressInfo) {
                     config.general.addressInfo.forEach(function(info) {
-                        if (!!requestIn.getHeader(info)) addressOfRecord = 'tel:' + requestIn.getHeader(info).getValue()
+                        if (!!requestIn.getHeader(info)) addressOfRecord = addressFactory.createTelURL(requestIn.getHeader(info).getValue())
                     })
                 }
 
@@ -192,12 +197,14 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 }
 
                 // Contact Address/es
-                const location = locationService.findLocation(addressOfRecord)
+                result = locationService.findEndpoint(addressOfRecord)
 
-                if (location == undefined || location == null) {
+                if (result.status == Status.NOT_FOUND) {
                     serverTransaction.sendResponse(messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
                     return
                 }
+
+                const location = result.obj
 
                 if (location instanceof HashMap) {
                     let caIterator

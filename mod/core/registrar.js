@@ -3,14 +3,17 @@
  * @since v1
  */
 load('mod/utils/auth_helper.js')
+load('mod/resources/status.js')
 
-function RegistrarService(locationService, resourcesAPI) {
+function RegistrarService(locationService, dataAPIs) {
     const ViaHeader = Packages.javax.sip.header.ViaHeader
     const ContactHeader = Packages.javax.sip.header.ContactHeader
     const FromHeader = Packages.javax.sip.header.FromHeader
     const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
+    const pAPI = dataAPIs.getPeersAPI()
+    const aAPI = dataAPIs.getAgentsAPI()
 
     function hasDomain(user, domain) {
         for (var d of user.spec.domains) {
@@ -48,7 +51,19 @@ function RegistrarService(locationService, resourcesAPI) {
         // Get response from header
         const response = authHeader.getResponse()
         // Get user from db or file
-        const user = resourcesAPI.findUser(authHeader.getUsername())
+        let result = pAPI.getPeer(authHeader.getUsername())
+        let user
+
+        if (result.status == Status.OK ) {
+            user = result.obj
+        } else {
+            // Then lets check agents
+            result = aAPI.getAgent(host, authHeader.getUsername())
+
+            if (result.status == Status.OK ) {
+                user = result.obj
+            }
+        }
 
         if(!!viaHeader.getReceived()) contactURI.setHost(viaHeader.getReceived())
         if(!!viaHeader.getParameter('rport')) contactURI.setPort(viaHeader.getParameter('rport'))
@@ -98,11 +113,11 @@ function RegistrarService(locationService, resourcesAPI) {
                 if (user.host) host = user.spec.host
 
                 const addressOfRecord = contactURI.getScheme() + ':' + user.spec.access.username + '@' + host
-                locationService.addLocation(addressOfRecord, route)
+                locationService.addEndpoint(addressOfRecord, route)
             } else {
                 for (var domain of user.spec.domains) {
                     addressOfRecord = contactURI.getScheme() + ':' + user.spec.access.username + '@' + domain
-                    locationService.addLocation(addressOfRecord, route)
+                    locationService.addEndpoint(addressOfRecord, route)
                 }
             }
 

@@ -5,11 +5,14 @@
 load('mod/core/processor.js')
 load('mod/core/registry_helper.js')
 load('mod/core/context_storage.js')
+load('mod/core/config_util.js')
 load('mod/rest/rest.js')
+load('mod/resources/utils.js')
+load('mod/resources/status.js')
 
-function Server(locationService, registrarService, accountManagerService, resourcesAPI) {
+function Server(locationService, registrarService, accountManagerService, dataAPIs) {
     const contextStorage = new ContextStorage()
-    const config = resourcesAPI.getConfig()
+    const config = new ConfigUtil().getConfig()
     const InetAddress = Packages.java.net.InetAddress
     const SipFactory = Packages.javax.sip.SipFactory
     const Properties = Packages.java.util.Properties
@@ -71,42 +74,8 @@ function Server(locationService, registrarService, accountManagerService, resour
         const serverAddress = addressFactory.createAddress('sip:' + host)
         const serverContactHeader = headerFactory.createContactHeader(serverAddress)
 
-        // This will not scale if we have a lot of DIDs
-        for (var did of resourcesAPI.getDIDs()) {
-            const route = {
-                isLinkAOR: true,
-                aorLink: did.spec.location.aorLink
-            }
-
-            locationService.addLocation(did.spec.location.telUri, route)
-        }
-
-        for (var domain of resourcesAPI.getDomains()) {
-            if (domain.spec.context.egressPolicy == undefined) return
-
-            // Get DID and GW info
-            const did = resourcesAPI.findDIDByRef(domain.spec.context.egressPolicy.didRef)
-            const gw = resourcesAPI.findGatewayByRef(did.metadata.gwRef)
-            const gwHost = gw.spec.regService.host
-            const gwUsername = gw.spec.regService.username
-            const egressRule = domain.spec.context.egressPolicy.rule
-
-            const route = {
-                isLinkAOR: false,
-                thruGW: true,
-                rule: egressRule,
-                gwUsername: gwUsername,
-                gwHost: gwHost,
-                did: did.spec.location.telUri,
-                contactURI: addressFactory.createSipURI(egressRule, gwHost)
-            }
-
-            const address = 'sip:' + egressRule + '@' + domain.spec.context.domainUri
-            locationService.addLocation(address, route)
-        }
-
         const processor = new Processor(sipProvider, headerFactory, messageFactory, addressFactory, serverContactHeader,
-            locationService, registrarService, accountManagerService, resourcesAPI, contextStorage)
+           locationService, registrarService, accountManagerService, dataAPIs, contextStorage)
 
         sipProvider.addSipListener(processor.listener)
 
@@ -114,11 +83,11 @@ function Server(locationService, registrarService, accountManagerService, resour
 
         var registerTask = new java.util.TimerTask() {
             run: function() {
-                const gateways = resourcesAPI.getGateways()
+                const result = dataAPIs.getGatewaysAPI().getGateways()
 
-                if (gateways == null) return
+                if (result.status != Status.OK) return
 
-                for (var gateway of gateways) {
+                for (var gateway of result.obj) {
                     LOG.debug('Register with ' + gateway.metadata.name +  ' using '
                         + gateway.spec.regService.username + '@' + gateway.spec.regService.host)
 
@@ -138,7 +107,7 @@ function Server(locationService, registrarService, accountManagerService, resour
 
         new java.util.Timer().schedule(registerTask, 5000, proRegExp * 60 * 1000);
 
-        restService = new RestService(this, locationService, resourcesAPI)
+        restService = new RestService(this, locationService, dataAPIs)
         restService.start()
     }
 

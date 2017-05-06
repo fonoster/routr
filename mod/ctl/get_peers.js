@@ -4,14 +4,36 @@
  */
 load('mod/ctl/ctl_utils.js')
 
-function getPeersCmd(id) {
-    const out = Packages.java.lang.System.out
-    const peers = getWithAuth('peers')
+function getPeersCmd(ref, filters) {
+    const SimpleTable = Packages.com.inamik.text.tables.SimpleTable
+    const Border = Packages.com.inamik.text.tables.grid.Border;
+    const TUtil = com.inamik.text.tables.grid.Util
 
-    out.printf("%-10s %-20s %-15s\n", 'USER', 'NAME', 'HOST')
+    const result = getWithAuth('peers/' + filters)
+
+    if (result.status != 200) {
+         print(result.message)
+         return
+    }
+
+    const peers = result.obj
+
+    const textTable = SimpleTable.of()
+        .nextRow()
+        .nextCell().addLine('REF')
+        .nextCell().addLine('NAME')
+        .nextCell().addLine('HOST')
 
     peers.forEach(p => {
-        if (id.equals('none') || p.username.equals(id))
-            out.printf("%-10s %-20s %-10s\n", p.spec.access.username, p.metadata.name, p.spec.host)
+        if (ref.equals('none') || ref.equals(p.spec.access.username)) {
+            textTable.nextRow()
+                .nextCell().addLine(p.spec.access.username)
+                .nextCell().addLine(p.metadata.name)
+                .nextCell().addLine(p.spec.host)
+        }
     })
+
+    let grid = textTable.toGrid()
+    grid = Border.DOUBLE_LINE.apply(grid);
+    TUtil.print(grid)
 }

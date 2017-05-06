@@ -18,6 +18,7 @@ dependencies {
     compile "com.mashape.unirest:unirest-java:1.4.9"
     compile "net.sourceforge.argparse4j:argparse4j:0.7.0"
     compile "com.networknt:json-schema-validator:0.1.7"
+    compile "com.github.steveash.itxttbl:inamik-text-tables:0.1"
 }
 
 repositories {

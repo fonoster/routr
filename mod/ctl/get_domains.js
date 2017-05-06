@@ -4,14 +4,49 @@
  */
 load('mod/ctl/ctl_utils.js')
 
-function getDomainsCmd(id) {
-    const out = Packages.java.lang.System.out
-    let domains = getWithAuth('domains')
+function getDomainsCmd(ref, filters) {
+    const SimpleTable = Packages.com.inamik.text.tables.SimpleTable
+    const Border = Packages.com.inamik.text.tables.grid.Border;
+    const TUtil = com.inamik.text.tables.grid.Util
 
-    out.printf("%-20s %-20s %-15s\n", 'NAME', 'URI', 'ACL')
+    const result = getWithAuth('domains/' + filters)
+
+    if (result.status != 200) {
+         out.printf(result.message + '\n')
+         return
+    }
+
+    const domains = result.obj
+
+    const textTable = SimpleTable.of()
+        .nextRow()
+        .nextCell().addLine('REF')
+        .nextCell().addLine('NAME')
+        .nextCell().addLine('EGRESS POLICY')
+        .nextCell().addLine('ACL')
 
     domains.forEach(d => {
-        if (id.equals('none') || d.uri.equals(id))
-            out.printf("%-20s %-20s %-15s\n", d.metadata.name, d.uri, 'allow: ' + JSON.stringify(d.acl.allow) + ' deny: ' + JSON.stringify(d.acl.allow))
+        if (ref.equals('none') || ref.equals(d.spec.context.domainUri)) {
+            let accessControlList = {}
+            let egressPolicy = {}
+
+            if (d.spec.context.accessControlList ) {
+                accessControlList = d.spec.context.accessControlList
+            }
+
+            if (d.spec.context.egressPolicy) {
+                egressPolicy = d.spec.context.egressPolicy
+            }
+
+            textTable.nextRow()
+                .nextCell().addLine(d.spec.context.domainUri)
+                .nextCell().addLine(d.metadata.name)
+                .nextCell().addLine(JSON.stringify(egressPolicy))
+                .nextCell().addLine(JSON.stringify(accessControlList))
+        }
     })
+
+    let grid = textTable.toGrid()
+    grid = Border.DOUBLE_LINE.apply(grid);
+    TUtil.print(grid)
 }

@@ -12,40 +12,29 @@ subparsers = parser.addSubparsers().title('Basic Commands').metavar('COMMAND')
 
 // Get command
 const getSubCmds = ['agent', 'agents', 'peer', 'peers', 'domain', 'domains', 'did', 'dids', 'gateway', 'gateways']
-const get = subparsers.addParser('get').help('Display one or many resources')
-get.addArgument('resource').metavar(['resource']).choices(getSubCmds)
-get.addArgument('ID').nargs('?').setDefault('none').help('Specific resource')
+const get = subparsers.addParser('get').help('display a list of resources')
+get.addArgument('resource').metavar(['resource']).choices(getSubCmds).help('the resource to be listed')
+get.addArgument('REF').nargs('?').setDefault('none').help('Reference to resource')
+get.addArgument('--filter').setDefault('{}').help('apply filter base a resource metadata ')
 
 getEpilog=
 `Examples:
     # List a all of the agents in system
     $ sipioctl get agents
 
+    # List a single agent by ref
+    $ sipioctl get agent john-4353
+
     # Gets peer by username
-    $ sipioctl get peer 9201 ...\n`
+    $ sipioctl get dids --filter '{"ref": "DID0001"}' \n`
 
 get.epilog(getEpilog)
 
 // Location command
-subparsers.addParser('location').aliases(['loc']).help('Locate sip devices')
+const loc = subparsers.addParser('location').aliases(['loc']).help('locate sip devices')
 
 // Stop command
-subparsers.addParser('stop').help('Stops server')
-
-// Reload command
-const reload = subparsers.addParser('reload').aliases(['rel']).help('Reload a resource(i.e domains, agents, etc...)')
-const reloadSubCmds = ['config', 'agents', 'peers', 'domains', 'dids', 'gateways', 'all']
-reload.addArgument('resource').metavar(['resource']).choices(reloadSubCmds)
-
-reloadEpilog=
-`Examples:
-    # Reload a all agents
-    $ sipioctl load agents
-
-    # Reload all resource
-    $ sipioctl rel all\n`
-
-reload.epilog(reloadEpilog)
+subparsers.addParser('stop').help('stops server')
 
 load('mod/ctl/get_agents.js')
 load('mod/ctl/get_dids.js')
@@ -54,7 +43,6 @@ load('mod/ctl/get_gateways.js')
 load('mod/ctl/get_peers.js')
 load('mod/ctl/cmd_location.js')
 load('mod/ctl/cmd_stop.js')
-load('mod/ctl/cmd_reload.js')
 
 try {
     let arg = arguments
@@ -63,17 +51,15 @@ try {
     const res = parser.parseArgs(arg)
 
     if (arg[0] == 'get') {
-        if (res.get('resource').match('agent')) getAgentsCmd(res.get('ID'))
-        if (res.get('resource').match('did')) getDIDsCmd(res.get('ID'))
-        if (res.get('resource').match('domain')) getDomainsCmd(res.get('ID'))
-        if (res.get('resource').match('gateway')) getGatewaysCmd(res.get('ID'))
-        if (res.get('resource').match('peer')) getPeersCmd(res.get('ID'))
+        if (res.get('resource').match('agent')) getAgentsCmd(res.get('REF'), res.get('filter'))
+        if (res.get('resource').match('did')) getDIDsCmd(res.get('REF'), res.get('filter'))
+        if (res.get('resource').match('domain')) getDomainsCmd(res.get('REF'), res.get('filter'))
+        if (res.get('resource').match('gateway')) getGatewaysCmd(res.get('REF'), res.get('filter'))
+        if (res.get('resource').match('peer')) getPeersCmd(res.get('REF'), res.get('filter'))
     } else if (arg[0] == 'location' || arg[0] == 'loc') {
         cmdShowLocation()
     } else if (arg[0] == 'stop') {
         cmdStop()
-    } else if (arg[0] == 'reload' || arg[0] == 'rel') {
-        cmdReload(res.get('resource'))
     }
 } catch(e) {
     if (e instanceof Packages.com.mashape.unirest.http.exceptions.UnirestException) {

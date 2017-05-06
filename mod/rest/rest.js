@@ -2,9 +2,11 @@
  * @author Pedro Sanders
  * @since v1
  */
-function RestService(server, locationService, resourcesAPI) {
+load ('mod/core/config_util.js')
+
+function RestService(server, locationService, dataAPIs) {
     // For some weird reason this only works with var and not const or let
-    var config = resourcesAPI.getConfig()
+    var config = new ConfigUtil().getConfig()
     const Spark = Packages.spark.Spark
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const BasicAuthenticationFilter = Packages.com.qmetric.spark.authentication.BasicAuthenticationFilter
@@ -30,18 +32,40 @@ function RestService(server, locationService, resourcesAPI) {
         java.lang.Thread.currentThread().join()
     }
 
-    get('/location', (request, response) => locationService.listAllAsJSON())
-    get('/gateways', (request, response) => JSON.stringify(resourcesAPI.getGateways()))
-    get('/peers', (request, response) => JSON.stringify(resourcesAPI.getPeers()))
-    get('/agents', (request, response) =>JSON.stringify(resourcesAPI.getAgents()))
-    get('/domains', (request, response) => JSON.stringify(getDomains()))
-    get('/dids', (request, response) => JSON.stringify(resourcesAPI.getDIDs()))
+    get('/location', (request, response) => locationService.listAsJSON())
+
+    get('/gateways/:filter', (request, response) => {
+        const filter = request.params(":filter")
+        const result = dataAPIs.getGatewaysAPI().getGateways(filter)
+        return JSON.stringify(result)
+    })
+
+    get('/peers/:filter', (request, response) => {
+        const filter = request.params(":filter")
+        const result = dataAPIs.getPeersAPI().getPeers(filter)
+        return JSON.stringify(result)
+    })
+
+    get('/agents/:filter', (request, response) => {
+        const filter = request.params(":filter")
+        const result = dataAPIs.getAgentsAPI().getAgents(filter)
+        return JSON.stringify(result)
+    })
+
+    get('/domains/:filter', (request, response) => {
+        const filter = request.params(":filter")
+        const result = dataAPIs.getDomainsAPI().getDomains(filter)
+        return JSON.stringify(result)
+    })
+
+    get('/dids/:filter', (request, response) => {
+        const filter = request.params(":filter")
+        const result = dataAPIs.getDIDsAPI().getDIDs(filter)
+        return JSON.stringify(result)
+    })
+
     post('/stop', (request, response) => {
         server.stop()
         return 'Done.'
-    })
-    post('/reload/:resource', (request, response) => {
-        resourcesAPI.reload(request.params(":resource"))
-        return 'Reloaded.'
     })
 }

@@ -4,14 +4,39 @@
  */
 load('mod/ctl/ctl_utils.js')
 
-function getAgentsCmd(id) {
-    const out = Packages.java.lang.System.out
-    const agents = getWithAuth('agents')
+function getAgentsCmd(ref, filters) {
+    const SimpleTable = Packages.com.inamik.text.tables.SimpleTable
+    const Border = Packages.com.inamik.text.tables.grid.Border;
+    const TUtil = com.inamik.text.tables.grid.Util
 
-    out.printf("%-20s %-20s %-15s\n", 'USER', 'NAME', 'DOMAINS')
+    const result = getWithAuth('agents/' + filters)
+
+    if (result.status != 200) {
+         out.printf(result.message + '\n')
+         return
+    }
+
+    const agents = result.obj
+
+    const textTable = SimpleTable.of()
+        .nextRow()
+        .nextCell().addLine('REF')
+        .nextCell().addLine('USERNAME')
+        .nextCell().addLine('NAME')
+        .nextCell().addLine('DOMAIN(S)')
 
     agents.forEach(a => {
-        if (id.equals('none') || a.username.equals(id))
-            out.printf("%-20s %-20s %-15s\n", a.spec.access.username, a.metadata.name, a.spec.domains.join())
+        const genRef = a.spec.access.username + '-' + a.spec.domains[0].hashCode().toString().substring(6)
+
+        if (ref.equals('none') || genRef.equals(ref))
+            textTable.nextRow()
+                 .nextCell().addLine(genRef)
+                .nextCell().addLine(a.spec.access.username)
+                .nextCell().addLine(a.metadata.name)
+                .nextCell().addLine(a.spec.domains.join())
     })
+
+    let grid = textTable.toGrid()
+    grid = Border.DOUBLE_LINE.apply(grid);
+    TUtil.print(grid)
 }

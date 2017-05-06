@@ -5,11 +5,20 @@
 load('mod/ctl/ctl_utils.js')
 
 function cmdShowLocation(id) {
-    const out = Packages.java.lang.System.out
+    const SimpleTable = Packages.com.inamik.text.tables.SimpleTable
+    const Border = Packages.com.inamik.text.tables.grid.Border;
+    const TUtil = com.inamik.text.tables.grid.Util
+
     const registry = getWithAuth('location')
 
-    out.printf('Registered devices\n')
-    out.printf("%-35s %-20s\n", 'ADDRESS OF RECORD', 'CONTACT INFO')
+    const textTable = SimpleTable.of()
+        .nextRow()
+        .nextCell().addLine("ADDRESS OF RECORD")
+        .nextCell().addLine("CONTACT INFO")
 
-    registry.forEach(reg => out.printf("%-35s %-20s\n", reg.addressOfRecord, reg.contactInfo))
+    registry.forEach(reg => textTable.nextRow().nextCell().addLine(reg.addressOfRecord).nextCell().addLine(reg.contactInfo))
+
+    let grid = textTable.toGrid()
+    grid = Border.DOUBLE_LINE.apply(grid);
+    TUtil.print(grid)
 }

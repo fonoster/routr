@@ -4,15 +4,46 @@
  */
 load('mod/ctl/ctl_utils.js')
 
-function getDIDsCmd(id) {
-    const out = Packages.java.lang.System.out
-    const dids = getWithAuth('dids')
+function getDIDsCmd(ref, filters) {
+    const SimpleTable = Packages.com.inamik.text.tables.SimpleTable
+    const Border = Packages.com.inamik.text.tables.grid.Border;
+    const TUtil = com.inamik.text.tables.grid.Util
 
-    out.printf("%-20s %-30s %-15s\n", 'TEL URI', 'COUNTRY/CITY', 'ADDRESS OF RECORD LINK')
+    const result = getWithAuth('dids/' + filters)
+
+    if (result.status != 200) {
+         out.printf(result.message + '\n')
+         return
+    }
+
+    const dids = result.obj
+
+    const textTable = SimpleTable.of()
+        .nextRow()
+        .nextCell().addLine('REF')
+        .nextCell().addLine('GW_REF')
+        .nextCell().addLine('TEL URI')
+        .nextCell().addLine('ADDRESS OF RECORD LINK')
+        .nextCell().addLine('COUNTRY/CITY')
 
     dids.forEach(d => {
-        if (id.equals('none') || d.spec.connection.telUri.equals(id))
-            out.printf("%-20s %-30s %-25s\n", d.spec.connection.telUri,
-                d.metadata.geoInfo.country + '/' + d.metadata.geoInfo.city, d.spec.connection.aorLink)
+        if (ref.equals('none') || ref.equals(d.metadata.ref)) {
+            let country = undefined
+            let city = undefined
+
+            if (d.metadata.geoInfo && d.metadata.geoInfo.country) country = d.metadata.geoInfo.country
+            if (d.metadata.geoInfo && d.metadata.geoInfo.city) city = d.metadata.geoInfo.city
+
+            textTable.nextRow()
+                .nextCell().addLine(d.metadata.ref)
+                .nextCell().addLine(d.metadata.gwRef)
+                .nextCell().addLine(d.spec.location.telUrl)
+                .nextCell().addLine(d.spec.location.aorLink)
+                .nextCell().addLine(country + '/' + city)
+        }
     })
+
+    let grid = textTable.toGrid()
+    grid = Border.DOUBLE_LINE.apply(grid);
+    TUtil.print(grid)
 }
