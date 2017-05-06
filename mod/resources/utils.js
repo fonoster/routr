@@ -74,6 +74,8 @@ function ResourcesUtil() {
     this.getJson = yamlFile => JSON.parse(getJsonString(yamlFile))
 
     this.getObjs = (resourcePath, filter) => {
+        if (filter == undefined) filter = '{}'
+
         if (!isJson(filter)) {
             return {
                status: Status.BAD_REQUEST,

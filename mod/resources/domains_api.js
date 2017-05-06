@@ -43,7 +43,7 @@ var DomainsAPI = (() => {
     }
 
     self.getRouteForAOR = (addressOfRecord) => {
-        let result = self.getDomains('{}')
+        let result = self.getDomains()
 
         if (result.status == Status.OK) {
             const domains = result.obj
