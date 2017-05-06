@@ -73,8 +73,6 @@ function LocationService(dataAPIs) {
                 }
             }
 
-            print ('XXXXXXXXXX DB001')
-
             // Finally try search for a Domain egress route
             result = domainsAPI.getRouteForAOR(addressOfRecord)
 
