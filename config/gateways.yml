@@ -11,4 +11,4 @@
       secret: yoursecret
       host: sip.provider.net
       transport: udp
-      registries: [sip.nyc.udp.net]
+      registries: [sip.nyc.provider.net]
