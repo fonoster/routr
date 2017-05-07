@@ -8,6 +8,3 @@
       egressPolicy:
         rule: .*
         didRef: DID0001
-      #accessControlList:
-      #  allow:
-      #  deny:
