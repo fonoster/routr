@@ -7,6 +7,10 @@
  */
 load('mod/location/status.js')
 
+/**
+ * NOTE #1: Notice that addressOfRecord.toString !eq to aorAsString(addressOfRecord). This is important to ensure
+ * the location of the devices regardless of any additional parameters that they may have.
+ */
 function LocationService(dataAPIs) {
     const HashMap = Packages.java.util.HashMap
     const db = new HashMap()
@@ -14,6 +18,21 @@ function LocationService(dataAPIs) {
     const LOG = LogManager.getLogger()
     const didsAPI = dataAPIs.getDIDsAPI()
     const domainsAPI = dataAPIs.getDomainsAPI()
+
+    function aorAsString(addressOfRecord) {
+
+        if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
+            return 'tel:' + addressOfRecord.getPhoneNumber()
+        } else if (addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
+            if (addressOfRecord.isSecure()) {
+                return 'sips:' + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
+            } else {
+                return 'sip:' + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
+            }
+        }
+
+        return addressOfRecord.toString()
+    }
 
     this.addEndpoint = (addressOfRecord, route) => {
         const result = this.findEndpoint(addressOfRecord)
@@ -25,14 +44,15 @@ function LocationService(dataAPIs) {
 
         const routeKey = route.sentByAddress + route.sentByPort + route.received + route.rport
         routes.put(routeKey, route)
-        db.put(addressOfRecord.toString(), routes)
+        // See NOTE #1
+        db.put(aorAsString(addressOfRecord), routes)
     }
 
     this.findEndpoint = addressOfRecord => {
         let result = null
 
         if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
-            const result = didsAPI.getDIDByTelUrl(addressOfRecord)
+            const result = didsAPI.getDIDByTelUrl(aorAsString(addressOfRecord))
 
             if (result.status == Status.OK) {
                 const route = db.get(did.spec.location.aorLink)
@@ -47,7 +67,7 @@ function LocationService(dataAPIs) {
             }
         } else if (addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
             // First just check the db for such addressOfRecord
-            let routes = db.get(addressOfRecord.toString())
+            let routes = db.get(aorAsString(addressOfRecord))
 
             if (routes != null) {
                 return {
@@ -91,7 +111,8 @@ function LocationService(dataAPIs) {
         }
     }
 
-    this.removeEndpoint = addressOfRecord => { db.remove(addressOfRecord.toString()) }
+    // See NOTE #1
+    this.removeEndpoint = addressOfRecord => { db.remove(aorAsString(addressOfRecord)) }
 
     this.listAsJSON = (domainUri) => {
         let s = []
