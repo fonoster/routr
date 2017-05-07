@@ -28,8 +28,8 @@ function Server(locationService, registrarService, accountManagerService, dataAP
 
     this.start = () => {
         LOG.info('Starting Sip I/O')
-        LOG.debug('Local Host: ' + host)
-        if (config.general.externalHost != undefined) LOG.debug('External Host: ' + config.general.externalHost)
+        LOG.info('Listening on IP ' + host)
+        if (config.general.externalHost != undefined) LOG.info('External Host: ' + config.general.externalHost)
 
         const properties = new Properties()
         const sipFactory = SipFactory.getInstance()
