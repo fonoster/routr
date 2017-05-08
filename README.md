@@ -30,12 +30,13 @@ gradle getDeps
 
 ## Support
 
-To report a bug or make a request for new features, use the Issues Page in the Sip **I/O** Github project:
 Please open an [issue](https://github.com/psanders/sip.io/issues) for support.
 
 ## Contributing
 
- - Please see [Contribution Documents](https://github.com/psanders/sip.io/blob/master/CONTRIBUTING.md)
+For contributing, please see the following links:
+
+ - [Contribution Documents](https://github.com/psanders/sip.io/blob/master/CONTRIBUTING.md)
  - [Contributors](https://github.com/psanders/sip.io/graphs/contributors)
 
 ## Author
