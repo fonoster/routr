@@ -39,7 +39,7 @@ For contributing, please see the following links:
  - [Contribution Documents](https://github.com/psanders/sip.io/blob/master/CONTRIBUTING.md)
  - [Contributors](https://github.com/psanders/sip.io/graphs/contributors)
 
-## Author
+## Authors
  - [Pedro Sanders](https://github.com/psanders)
 
 ## Copyright
