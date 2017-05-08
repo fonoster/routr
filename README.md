@@ -29,7 +29,7 @@ gradle getDeps
 > You must install Java 9 and point your JAVA_HOME to your JDK 9 to run this app. You can overwrite the JAVA_HOME at the 
 > file `./sipio` and `./sipioctl`
 
-## Issues And Bug Reports
+## Issues and Bug Reports
 
 To report a bug or make a request for new features, use the Issues Page in the Sip **I/O** Github project:
 
