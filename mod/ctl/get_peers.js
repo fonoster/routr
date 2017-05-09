@@ -25,9 +25,9 @@ function getPeersCmd(ref, filters) {
         .nextCell().addLine('HOST')
 
     peers.forEach(p => {
-        if (ref.equals('none') || ref.equals(p.spec.access.username)) {
+        if (ref.equals('none') || ref.equals(p.spec.credentials.username)) {
             textTable.nextRow()
-                .nextCell().addLine(p.spec.access.username)
+                .nextCell().addLine(p.spec.credentials.username)
                 .nextCell().addLine(p.metadata.name)
                 .nextCell().addLine(p.spec.host)
         }

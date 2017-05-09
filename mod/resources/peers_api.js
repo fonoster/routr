@@ -18,7 +18,7 @@ var PeersAPI = (() => {
         let peer
 
         resource.forEach(obj => {
-            if (obj.spec.access.username == username) {
+            if (obj.spec.credentials.username == username) {
                 peer = obj
             }
         })

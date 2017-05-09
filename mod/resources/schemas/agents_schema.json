@@ -21,7 +21,7 @@
             "spec": {
                 "type": "object",
                 "properties": {
-                    "access": {
+                    "credentials": {
                         "type": "object",
                         "properties": {
                             "username": {"type": "string"},
@@ -38,7 +38,7 @@
                         "uniqueItems": true
                     }
                 },
-                "required": ["access", "domains"]
+                "required": ["credentials", "domains"]
             }
         },
         "required": ["apiVersion", "kind", "spec"]

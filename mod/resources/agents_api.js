@@ -18,7 +18,7 @@ var AgentsAPI = (() => {
         let agent
 
         resource.forEach(obj => {
-            if (obj.spec.access.username == username) {
+            if (obj.spec.credentials.username == username) {
                 obj.spec.domains.forEach(d => {
                     if (domainUri == d) {
                         agent = obj

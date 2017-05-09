@@ -32,7 +32,7 @@ function getGatewaysCmd(ref, filters) {
 
             textTable.nextRow()
                 .nextCell().addLine(g.metadata.ref)
-                .nextCell().addLine(g.spec.regService.username)
+                .nextCell().addLine(g.spec.regService.credentials.username)
                 .nextCell().addLine(g.metadata.name)
                 .nextCell().addLine(g.spec.regService.host)
                 .nextCell().addLine(registries.join())

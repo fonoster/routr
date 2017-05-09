@@ -89,17 +89,17 @@ function Server(locationService, registrarService, accountManagerService, dataAP
 
                 for (var gateway of result.obj) {
                     LOG.debug('Register with ' + gateway.metadata.name +  ' using '
-                        + gateway.spec.regService.username + '@' + gateway.spec.regService.host)
+                        + gateway.spec.regService.credentials.username + '@' + gateway.spec.regService.host)
 
-                    if (gateway.spec.regService.host !== undefined) registerHelper.requestChallenge(gateway.spec.regService.username,
+                    if (gateway.spec.regService.host !== undefined) registerHelper.requestChallenge(gateway.spec.regService.credentials.username,
                         gateway.spec.regService.host, gateway.spec.regService.transport)
 
                     if (gateway.spec.regService.registries === undefined) continue
 
                     for (var h of gateway.spec.regService.registries) {
-                        LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.regService.username + '@' + h)
+                        LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.regService.credentials.username + '@' + h)
 
-                        registerHelper.requestChallenge(gateway.spec.regService.username, h, gateway.spec.regService.transport)
+                        registerHelper.requestChallenge(gateway.spec.regService.credentials.username, h, gateway.spec.regService.transport)
                     }
                 }
            }

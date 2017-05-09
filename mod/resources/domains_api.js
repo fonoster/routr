@@ -59,7 +59,7 @@ var DomainsAPI = (() => {
                 if (result.status != Status.OK) break
                 const gw = result.obj
                 const gwHost = gw.spec.regService.host
-                const gwUsername = gw.spec.regService.username
+                const gwUsername = gw.spec.regService.credentials.username
                 const egressRule = domain.spec.context.egressPolicy.rule
 
                 const pattern = 'sip:' + egressRule + '@' + domain.spec.context.domainUri

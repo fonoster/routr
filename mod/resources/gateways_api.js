@@ -42,7 +42,7 @@ var GatewaysAPI = (() => {
         let gateways
 
         resource.forEach(obj => {
-            if (obj.spec.regService.username == username) {
+            if (obj.spec.regService.credentials.username == username) {
                 gateways = obj
             }
         })

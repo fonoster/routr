@@ -4,7 +4,7 @@
   metadata:
     name: John Doe
   spec:
-    access:
+    credentials:
       username: john
       secret: '1234'
     domains: [sip.ocean.com]
@@ -13,7 +13,7 @@
   metadata:
     name: Janie Doe
   spec:
-    access:
+    credentials:
       username: janie
       secret: '1234'
     domains: [sip.ocean.com]

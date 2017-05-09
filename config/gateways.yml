@@ -7,8 +7,9 @@
     ref:  GW0001
   spec:
     regService:
-      username: 'youruser'
-      secret: yoursecret
       host: sip.provider.net
+      credentials:
+        username: 'gwuser'
+        secret: gwsecret
       transport: udp
       registries: [sip.nyc.provider.net]

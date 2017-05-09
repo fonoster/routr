@@ -77,13 +77,13 @@ function RegistrarService(locationService, dataAPIs) {
         if(!!viaHeader.getParameter('rport')) contactURI.setPort(viaHeader.getParameter('rport'))
 
         if (user.kind.equalsIgnoreCase('agent') && !hasDomain(user, host)) {
-            LOG.debug('User ' + user.spec.access.username + ' does not exist within domain ' + host)
+            LOG.debug('User ' + user.spec.credentials.username + ' does not exist within domain ' + host)
             return false
         }
 
         const aHeaderJson = {
-            username: user.spec.access.username,
-            secret: user.spec.access.secret,
+            username: user.spec.credentials.username,
+            secret: user.spec.credentials.secret,
             realm: authHeader.getRealm(),
             nonce: authHeader.getNonce(),
             // For some weird reason the interface value is an int while the value original value is a string
@@ -112,11 +112,11 @@ function RegistrarService(locationService, dataAPIs) {
             if (user.kind.equalsIgnoreCase('peer')) {
                 if (user.host) host = user.spec.host
 
-                const addressOfRecord = contactURI.getScheme() + ':' + user.spec.access.username + '@' + host
+                const addressOfRecord = contactURI.getScheme() + ':' + user.spec.credentials.username + '@' + host
                 locationService.addEndpoint(addressOfRecord, route)
             } else {
                 for (var domain of user.spec.domains) {
-                    addressOfRecord = contactURI.getScheme() + ':' + user.spec.access.username + '@' + domain
+                    addressOfRecord = contactURI.getScheme() + ':' + user.spec.credentials.username + '@' + domain
                     locationService.addEndpoint(addressOfRecord, route)
                 }
             }

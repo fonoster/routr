@@ -15,8 +15,8 @@ function AccountManagerService(dataAPIs) {
             const gateway = result.obj
 
             return {
-                username: gateway.spec.regService.username,
-                secret: gateway.spec.regService.secret,
+                username: gateway.spec.regService.credentials.username,
+                secret: gateway.spec.regService.credentials.secret,
                 host: gateway.spec.regService.host
             }
         }

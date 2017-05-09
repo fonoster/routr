@@ -26,8 +26,14 @@
                     "regService": {
                         "type": "object",
                         "properties": {
-                            "username": {"type": "string"},
-                            "secret": {"type": "string"},
+                            "credentials": {
+                                "type": "object",
+                                "properties": {
+                                    "username": {"type": "string"},
+                                    "secret": {"type": "string"}
+                                },
+                                "required": ["username", "secret"]
+                            },
                             "host": {"type": "string"},
                             "transport": {"type": "string"},
                             "registries": {
@@ -39,7 +45,7 @@
                                 "uniqueItems": true
                             }
                         },
-                        "required": ["username", "secret", "host"]
+                        "required": ["credentials", "host"]
                     }
                 },
                 "required": ["regService"]

@@ -22,7 +22,7 @@
             "spec": {
                 "type": "object",
                 "properties": {
-                    "access": {
+                    "credentials": {
                         "type": "object",
                         "properties": {
                             "username": {"type": "string"},
@@ -32,7 +32,7 @@
                     },
                     "host": {"type": "string"}
                 },
-                "required": ["access"]
+                "required": ["credentials"]
             }
         },
         "required": ["apiVersion", "kind", "spec"]

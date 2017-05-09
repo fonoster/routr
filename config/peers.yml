@@ -4,6 +4,6 @@
   metadata:
     name: Asterisk PBX 13
   spec:
-    access:
+    credentials:
       username: ms
       secret: 1c3cr34m

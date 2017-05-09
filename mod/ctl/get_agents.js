@@ -26,12 +26,12 @@ function getAgentsCmd(ref, filters) {
         .nextCell().addLine('DOMAIN(S)')
 
     agents.forEach(a => {
-        const genRef = a.spec.access.username + '-' + a.spec.domains[0].hashCode().toString().substring(6)
+        const genRef = a.spec.credentials.username + '-' + a.spec.domains[0].hashCode().toString().substring(6)
 
         if (ref.equals('none') || genRef.equals(ref))
             textTable.nextRow()
                  .nextCell().addLine(genRef)
-                .nextCell().addLine(a.spec.access.username)
+                .nextCell().addLine(a.spec.credentials.username)
                 .nextCell().addLine(a.metadata.name)
                 .nextCell().addLine(a.spec.domains.join())
     })
