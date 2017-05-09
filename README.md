@@ -1,5 +1,3 @@
-[![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 # Sip I/O: Lightweight SIP Server
 
 <a href="https://github.com/psanders/sip.io"><img src="https://raw.githubusercontent.com/wiki/psanders/sip.io/images/logo.png" align="left" hspace="10" vspace="5" width="80" style="margin-right: 20px;"></a>
