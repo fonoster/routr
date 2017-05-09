@@ -6,5 +6,5 @@
     context:
       domainUri: sip.ocean.com
       egressPolicy:
-        rule: .*
+        rule: .*        # See the Location Service Rules for information about this parameter
         didRef: DID0001
