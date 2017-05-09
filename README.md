@@ -1,6 +1,6 @@
 # Sip I/O: Lightweight SIP Server
 
-<a href="https://github.com/psanders/sip.io"><img src="https://raw.githubusercontent.com/wiki/psanders/sip.io/images/logo.png" align="left" hspace="10" vspace="5" width="80" style="margin-right: 20px;"></a>
+<a href="https://github.com/psanders/sip.io"><img src="https://raw.githubusercontent.com/wiki/psanders/sip.io/images/logo.png" align="left" hspace="10" vspace="5" width="80" style="background-color: #fff"></a>
 
 **Sip I/O** is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. For a list of features and documentation about the project please visit the [wiki](https://github.com/psanders/sip.io/wiki/Home). To get involve in the development of this project, please contact me at [@sandedro](https://twitter.com/sandedro).
 
