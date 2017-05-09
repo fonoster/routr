@@ -15,7 +15,7 @@ const getSubCmds = ['agent', 'agents', 'peer', 'peers', 'domain', 'domains', 'di
 const get = subparsers.addParser('get').help('display a list of resources')
 get.addArgument('resource').metavar(['resource']).choices(getSubCmds).help('the resource to be listed')
 get.addArgument('REF').nargs('?').setDefault('none').help('Reference to resource')
-get.addArgument('--filter').setDefault('{}').help('apply filter base a resource metadata ')
+get.addArgument('--filter').setDefault('*').help('apply filter base a resource metadata ')
 
 getEpilog=
 `Examples:

@@ -12,11 +12,16 @@ function getDomainsCmd(ref, filters) {
     const result = getWithAuth('domains/' + filters)
 
     if (result.status != 200) {
-         out.printf(result.message + '\n')
-         return
+         print(result.message)
+         quit(0)
     }
 
     const domains = result.obj
+
+    if (domains.length == 0) {
+        print("Resource not found.")
+        quit(0)
+    }
 
     const textTable = SimpleTable.of()
         .nextRow()

@@ -13,10 +13,15 @@ function getPeersCmd(ref, filters) {
 
     if (result.status != 200) {
          print(result.message)
-         return
+         quit(0)
     }
 
     const peers = result.obj
+
+    if (peers.length == 0) {
+        print("Resource not found.")
+        quit(0)
+    }
 
     const textTable = SimpleTable.of()
         .nextRow()

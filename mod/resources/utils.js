@@ -9,8 +9,13 @@ function ResourcesUtil() {
     const LOG = LogManager.getLogger()
     const YAMLFactory = Packages.com.fasterxml.jackson.dataformat.yaml.YAMLFactory
     const JsonSchemaFactory = Packages.com.networknt.schema.JsonSchemaFactory
+    const JsonPath = com.jayway.jsonpath.JsonPath
+    const Option = Packages.com.jayway.jsonpath.Option
     const ObjectMapper = Packages.com.fasterxml.jackson.databind.ObjectMapper
     const factory = new JsonSchemaFactory()
+
+    const conf = Packages.com.jayway.jsonpath.Configuration.defaultConfiguration()
+    conf.addOptions(Option.ALWAYS_RETURN_LIST)
 
     function readFile (path) {
         const Files = Packages.java.nio.file.Files
@@ -19,20 +24,6 @@ function ResourcesUtil() {
         const data = []
         lines.forEach(line => { data.push(line) })
         return data.join('\n')
-    }
-
-    function matchFilter (jsonObj, f) {
-        // Assume no filtering required therefore return true
-        if (f == undefined || f == null) return true
-
-        const filter = {metadata: f}
-
-        for (i in filter){
-            for (key in filter[i]){
-                if (jsonObj[i][key] != filter[i][key]) return false
-            }
-        }
-        return true
     }
 
     function getJsonString(yamlFile) {
@@ -73,25 +64,27 @@ function ResourcesUtil() {
 
     this.getJson = yamlFile => JSON.parse(getJsonString(yamlFile))
 
-    this.getObjs = (resourcePath, filter) => {
-        if (filter == undefined) filter = '{}'
-
-        if (!isJson(filter)) {
-            return {
-               status: Status.BAD_REQUEST,
-               message: 'Filter must be a JSON string',
-            }
+    this.getObjs = (resourcePath, f) => {
+        if (f == null || f == undefined || f == '') {
+            filter = '*'
+        } else {
+            filter = "*.[?(@." + f + ")]"
         }
 
-        const resource = this.getJson(resourcePath)
-        const list = []
+        const resource = getJsonString(resourcePath)
+        let list
 
-        if (resource != null) {
-            resource.forEach((o) => {
-                if (matchFilter(o, JSON.parse(filter))) {
-                    list.push(o)
-                }
-            })
+        try {
+            // Convert this from net.minidev.json.JSONArray
+            // to Javascript Object
+            list = JSON.parse(JsonPath.parse(resource).read(filter).toJSONString())
+        } catch(e) {
+            LOG.warn(e.getMessage())
+
+            return {
+                status: Status.BAD_REQUEST,
+                message: e.getMessage(),
+            }
         }
 
         return {

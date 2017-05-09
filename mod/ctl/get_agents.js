@@ -12,11 +12,16 @@ function getAgentsCmd(ref, filters) {
     const result = getWithAuth('agents/' + filters)
 
     if (result.status != 200) {
-         out.printf(result.message + '\n')
-         return
+         print(result.message)
+         quit(1)
     }
 
     const agents = result.obj
+
+    if (agents.length == 0) {
+        print("Resource not found.")
+        quit(0)
+    }
 
     const textTable = SimpleTable.of()
         .nextRow()
