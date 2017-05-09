@@ -11,11 +11,11 @@ function AuthHelper(headerFactory, domain='sip.io', realm='sipio') {
     const LOG = LogManager.getLogger()
     const DEFAULT_ALGORITHM = 'MD5'
 
-    this.calcFromHeader = a => this.calculateResponse(a.username, a.password, a.realm, a.nonce, a.nc, a.cnonce, a.uri,
+    this.calcFromHeader = a => this.calculateResponse(a.username, a.secret, a.realm, a.nonce, a.nc, a.cnonce, a.uri,
         a.method, a.qop)
 
-    this.calculateResponse = (username, password, realm, nonce, nc, cnonce, uri, method, qop) => {
-        const a1 = username + ':' + realm + ':' + password
+    this.calculateResponse = (username, secret, realm, nonce, nc, cnonce, uri, method, qop) => {
+        const a1 = username + ':' + realm + ':' + secret
         const a2 = method.toUpperCase() + ':' + uri
         const ha1 = DigestUtils.md5Hex(a1)
         const ha2 =  DigestUtils.md5Hex(a2)

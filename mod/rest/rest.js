@@ -15,7 +15,7 @@ function RestService(server, locationService, dataAPIs) {
     const credentials = config.rest
 
     Spark.port(config.rest.port)
-    Spark.before(new BasicAuthenticationFilter('/*', new AuthenticationDetails(credentials.username, credentials.password)))
+    Spark.before(new BasicAuthenticationFilter('/*', new AuthenticationDetails(credentials.username, credentials.secret)))
 
     const get = Spark.get
     const post = Spark.post

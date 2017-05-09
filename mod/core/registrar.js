@@ -83,7 +83,7 @@ function RegistrarService(locationService, dataAPIs) {
 
         const aHeaderJson = {
             username: user.spec.access.username,
-            password: user.spec.access.secret,
+            secret: user.spec.access.secret,
             realm: authHeader.getRealm(),
             nonce: authHeader.getNonce(),
             // For some weird reason the interface value is an int while the value original value is a string

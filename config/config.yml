@@ -8,5 +8,5 @@ general:
 rest:
   port: 4567
   username: admin
-  password: 1234
+  secret: 1234
   disable: false
