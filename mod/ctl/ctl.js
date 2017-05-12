@@ -51,11 +51,17 @@ try {
     const res = parser.parseArgs(arg)
 
     if (arg[0] == 'get') {
-        if (res.get('resource').match('agent')) getAgentsCmd(res.get('REF'), res.get('filter'))
-        if (res.get('resource').match('did')) getDIDsCmd(res.get('REF'), res.get('filter'))
-        if (res.get('resource').match('domain')) getDomainsCmd(res.get('REF'), res.get('filter'))
-        if (res.get('resource').match('gateway')) getGatewaysCmd(res.get('REF'), res.get('filter'))
-        if (res.get('resource').match('peer')) getPeersCmd(res.get('REF'), res.get('filter'))
+        const resource = res.get('resource')
+        const ref = res.get('REF')
+        let filter = res.get('filter')
+
+        if (filter.isEmpty()) filter = "*"
+
+        if (resource.match('agent')) getAgentsCmd(ref, filter)
+        if (resource.match('did')) getDIDsCmd(ref, filter)
+        if (resource.match('domain')) getDomainsCmd(ref, filter)
+        if (resource.match('gateway')) getGatewaysCmd(ref, filter)
+        if (resource.match('peer')) getPeersCmd(ref, filter)
     } else if (arg[0] == 'location' || arg[0] == 'loc') {
         cmdShowLocation()
     } else if (arg[0] == 'stop') {

@@ -18,7 +18,11 @@ function cmdShowLocation(id) {
 
     registry.forEach(reg => textTable.nextRow().nextCell().addLine(reg.addressOfRecord).nextCell().addLine(reg.contactInfo))
 
-    let grid = textTable.toGrid()
-    grid = Border.DOUBLE_LINE.apply(grid);
-    TUtil.print(grid)
+    if (registry.length > 0) {
+        let grid = textTable.toGrid()
+        grid = Border.DOUBLE_LINE.apply(grid);
+        TUtil.print(grid)
+    } else {
+        print("No registered devices at this time.")
+    }
 }

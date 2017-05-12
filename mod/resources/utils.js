@@ -83,7 +83,7 @@ function ResourcesUtil() {
 
             return {
                 status: Status.BAD_REQUEST,
-                message: e.getMessage(),
+                message: e.getMessage()
             }
         }
 

@@ -4,12 +4,12 @@
  */
 load('mod/ctl/ctl_utils.js')
 
-function getDIDsCmd(ref, filters) {
+function getDIDsCmd(ref, filter) {
     const SimpleTable = Packages.com.inamik.text.tables.SimpleTable
     const Border = Packages.com.inamik.text.tables.grid.Border;
     const TUtil = com.inamik.text.tables.grid.Util
 
-    const result = getWithAuth('dids/' + filters)
+    const result = getWithAuth('dids/' + filter)
 
     if (result.status != 200) {
          print(result.message)
@@ -18,11 +18,6 @@ function getDIDsCmd(ref, filters) {
 
     const dids = result.obj
 
-    if (dids.length == 0) {
-        print("Resource not found.")
-        quit(0)
-    }
-
     const textTable = SimpleTable.of()
         .nextRow()
         .nextCell().addLine('REF')
@@ -30,6 +25,8 @@ function getDIDsCmd(ref, filters) {
         .nextCell().addLine('TEL URI')
         .nextCell().addLine('ADDRESS OF RECORD LINK')
         .nextCell().addLine('COUNTRY/CITY')
+
+    let cnt = 0
 
     dids.forEach(d => {
         if (ref.equals('none') || ref.equals(d.metadata.ref)) {
@@ -45,10 +42,15 @@ function getDIDsCmd(ref, filters) {
                 .nextCell().addLine(d.spec.location.telUrl)
                 .nextCell().addLine(d.spec.location.aorLink)
                 .nextCell().addLine(country + '/' + city)
+            cnt++
         }
     })
 
-    let grid = textTable.toGrid()
-    grid = Border.DOUBLE_LINE.apply(grid);
-    TUtil.print(grid)
+    if (cnt > 0) {
+        let grid = textTable.toGrid()
+        grid = Border.DOUBLE_LINE.apply(grid);
+        TUtil.print(grid)
+    } else {
+        print("Resource/s not found.")
+    }
 }

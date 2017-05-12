@@ -4,12 +4,12 @@
  */
 load('mod/ctl/ctl_utils.js')
 
-function getDomainsCmd(ref, filters) {
+function getDomainsCmd(ref, filter) {
     const SimpleTable = Packages.com.inamik.text.tables.SimpleTable
     const Border = Packages.com.inamik.text.tables.grid.Border;
     const TUtil = com.inamik.text.tables.grid.Util
 
-    const result = getWithAuth('domains/' + filters)
+    const result = getWithAuth('domains/' + filter)
 
     if (result.status != 200) {
          print(result.message)
@@ -18,17 +18,14 @@ function getDomainsCmd(ref, filters) {
 
     const domains = result.obj
 
-    if (domains.length == 0) {
-        print("Resource not found.")
-        quit(0)
-    }
-
     const textTable = SimpleTable.of()
         .nextRow()
         .nextCell().addLine('REF')
         .nextCell().addLine('NAME')
         .nextCell().addLine('EGRESS POLICY')
         .nextCell().addLine('ACL')
+
+    let cnt = 0
 
     domains.forEach(d => {
         if (ref.equals('none') || ref.equals(d.spec.context.domainUri)) {
@@ -48,10 +45,16 @@ function getDomainsCmd(ref, filters) {
                 .nextCell().addLine(d.metadata.name)
                 .nextCell().addLine(JSON.stringify(egressPolicy))
                 .nextCell().addLine(JSON.stringify(accessControlList))
+
+            cnt++
         }
     })
 
-    let grid = textTable.toGrid()
-    grid = Border.DOUBLE_LINE.apply(grid);
-    TUtil.print(grid)
+    if (cnt > 0) {
+        let grid = textTable.toGrid()
+        grid = Border.DOUBLE_LINE.apply(grid);
+        TUtil.print(grid)
+    } else {
+        print("Resource/s not found.")
+    }
 }
