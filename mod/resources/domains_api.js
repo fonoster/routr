@@ -114,7 +114,7 @@ var DomainsAPI = (() => {
         }
     }
 
-    self.deleteDomain = () => {
+    self.deleteDomains = () => {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
@@ -125,6 +125,20 @@ var DomainsAPI = (() => {
         const result = AgentsAPI.getInstance().getAgent(domainUri, username)
         if (result.status == Status.OK) return true
         return false
+    }
+
+    self.createFromJSONObj = () => {
+        return {
+            status: Status.NOT_SUPPORTED,
+            message: Status.message[Status.NOT_SUPPORTED].value
+        }
+    }
+
+    self.updateFromJSONObj = () => {
+        return {
+            status: Status.NOT_SUPPORTED,
+            message: Status.message[Status.NOT_SUPPORTED].value
+        }
     }
 
     function _getInstance() {

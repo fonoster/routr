@@ -58,10 +58,24 @@ var PeersAPI = (() => {
         }
     }
 
-    self.deletePeer = () => {
+    self.deletePeers = () => {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
+        }
+    }
+
+    self.createFromJSONObj = () => {
+        return {
+            status: Status.NOT_SUPPORTED,
+            message: Status.message[Status.NOT_SUPPORTED].value
+        }
+    }
+
+    self.updateFromJSONObj = () => {
+        return {
+            status: Status.NOT_SUPPORTED,
+            message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
 
