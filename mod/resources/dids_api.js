@@ -4,6 +4,7 @@
  */
 load('mod/resources/utils.js')
 load('mod/resources/status.js')
+load('mod/utils/obj_util.js')
 
 var DIDsAPI = (() => {
     const self = this
@@ -11,9 +12,9 @@ var DIDsAPI = (() => {
     const resourcePath = 'config/dids.yml'
     const schemaPath = 'mod/resources/schemas/dids_schema.json'
 
-    self.getDIDs = (filter) => rUtil.getObjs(resourcePath, filter)
+    self.getDIDs = filter => rUtil.getObjs(resourcePath, filter)
 
-    self.getDID = (ref) => {
+    self.getDID = ref => {
         const resource = rUtil.getJson(resourcePath)
         let did
 
@@ -23,7 +24,7 @@ var DIDsAPI = (() => {
             }
         })
 
-        if (did != undefined) {
+        if (!isEmpty(did)) {
             return {
                 status: Status.OK,
                 message: Status.message[Status.OK].value,
@@ -41,7 +42,7 @@ var DIDsAPI = (() => {
      * note: telUrl maybe a string in form of 'tel:${number}' or
      * a TelURL.
      */
-    self.getDIDByTelUrl = (telUrl) => {
+    self.getDIDByTelUrl = telUrl => {
         const resource = rUtil.getJson(resourcePath)
         let did
         let url
@@ -58,7 +59,7 @@ var DIDsAPI = (() => {
             }
         })
 
-        if (did != undefined) {
+        if (!isEmpty(did)) {
             return {
                 status: Status.OK,
                 message: Status.message[Status.OK].value,
@@ -72,7 +73,7 @@ var DIDsAPI = (() => {
         }
     }
 
-    self.didExist = (ref) => {
+    self.didExist = ref => {
         const result = self.getGateway(ref)
         if (result.status == Status.OK) return true
         return false

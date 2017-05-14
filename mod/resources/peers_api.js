@@ -4,6 +4,7 @@
  */
 load('mod/resources/utils.js')
 load('mod/resources/status.js')
+load('mod/utils/obj_util.js')
 
 var PeersAPI = (() => {
     const self = this
@@ -11,9 +12,9 @@ var PeersAPI = (() => {
     const resourcePath = 'config/peers.yml'
     const schemaPath = 'mod/resources/schemas/peers_schema.json'
 
-    self.getPeers = (filter) => rUtil.getObjs(resourcePath, filter)
+    self.getPeers = filter => rUtil.getObjs(resourcePath, filter)
 
-    self.getPeer = (username) => {
+    self.getPeer = username => {
         const resource = rUtil.getJson(resourcePath)
         let peer
 
@@ -23,7 +24,7 @@ var PeersAPI = (() => {
             }
         })
 
-        if (peer != undefined) {
+        if (!isEmpty(peer)) {
             return {
                 status: Status.OK,
                 message: Status.message[Status.OK].value,
@@ -37,7 +38,7 @@ var PeersAPI = (() => {
         }
     }
 
-    self.peerExist = (username) => {
+    self.peerExist = username => {
         const result = self.getPeer(username)
         if (result.status == Status.OK) return true
         return false

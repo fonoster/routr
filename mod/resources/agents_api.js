@@ -4,6 +4,7 @@
  */
 load('mod/resources/utils.js')
 load('mod/resources/status.js')
+load('mod/utils/obj_util.js')
 
 var AgentsAPI = (() => {
     const self = this
@@ -11,7 +12,7 @@ var AgentsAPI = (() => {
     const resourcePath = 'config/agents.yml'
     const schemaPath = 'mod/resources/schemas/agents_schema.json'
 
-    self.getAgents = (filter) =>  rUtil.getObjs(resourcePath, filter)
+    self.getAgents = filter =>  rUtil.getObjs(resourcePath, filter)
 
     self.getAgent = (domainUri, username) => {
         const resource = rUtil.getJson(resourcePath)
@@ -27,7 +28,7 @@ var AgentsAPI = (() => {
             }
         })
 
-        if (agent != undefined) {
+        if (!isEmpty(agent)) {
             return {
                 status: Status.OK,
                 message: Status.message[Status.OK].value,

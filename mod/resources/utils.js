@@ -3,6 +3,7 @@
  * @since v1
  */
 load('mod/resources/status.js')
+load('mod/utils/obj_util.js')
 
 function ResourcesUtil() {
     const LogManager = Packages.org.apache.logging.log4j.LogManager
@@ -65,7 +66,7 @@ function ResourcesUtil() {
     this.getJson = yamlFile => JSON.parse(getJsonString(yamlFile))
 
     this.getObjs = (resourcePath, f) => {
-        if (f == null || f == undefined || f == '') {
+        if (isEmpty(f)) {
             filter = '*'
         } else {
             filter = "*.[?(@." + f + ")]"

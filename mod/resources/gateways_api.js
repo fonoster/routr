@@ -4,6 +4,7 @@
  */
 load('mod/resources/utils.js')
 load('mod/resources/status.js')
+load('mod/utils/obj_util.js')
 
 var GatewaysAPI = (() => {
     const self = this
@@ -11,9 +12,9 @@ var GatewaysAPI = (() => {
     const resourcePath = 'config/gateways.yml'
     const schemaPath = 'mod/resources/schemas/gateways_schema.json'
 
-    self.getGateways = (filter) => rUtil.getObjs(resourcePath, filter)
+    self.getGateways = filter => rUtil.getObjs(resourcePath, filter)
 
-    self.getGateway = (ref) => {
+    self.getGateway = ref => {
         const resource = rUtil.getJson(resourcePath)
         let gateways
 
@@ -23,7 +24,7 @@ var GatewaysAPI = (() => {
             }
         })
 
-        if (gateways != undefined) {
+        if (!isEmpty(gateways)) {
             return {
                 status: Status.OK,
                 message: Status.message[Status.OK].value,
@@ -37,7 +38,7 @@ var GatewaysAPI = (() => {
         }
     }
 
-    self.getGWByUsername = (username) => {
+    self.getGWByUsername = username => {
         const resource = rUtil.getJson(resourcePath)
         let gateways
 
@@ -47,7 +48,7 @@ var GatewaysAPI = (() => {
             }
         })
 
-        if (gateways != undefined) {
+        if (!isEmpty(gateways)) {
             return {
                 status: Status.OK,
                 message: Status.message[Status.OK].value,
@@ -61,7 +62,7 @@ var GatewaysAPI = (() => {
         }
     }
 
-    self.gatewayExist = (ref) => {
+    self.gatewayExist = ref => {
         const result = self.getGateway(ref)
         if (result.status == Status.OK) return true
         return false

@@ -7,6 +7,7 @@ load('mod/resources/status.js')
 load('mod/resources/agents_api.js')
 load('mod/resources/dids_api.js')
 load('mod/resources/gateways_api.js')
+load('mod/utils/obj_util.js')
 
 var DomainsAPI = (() => {
     const self = this
@@ -28,7 +29,7 @@ var DomainsAPI = (() => {
             }
         })
 
-        if (domain != undefined) {
+        if (!isEmpty(domain)) {
             return {
                 status: Status.OK,
                 message: Status.message[Status.OK].value,
@@ -49,7 +50,7 @@ var DomainsAPI = (() => {
             const domains = result.obj
 
             for (var domain of domains) {
-                if (domain.spec.context.egressPolicy == undefined) continue
+                if (isEmpty(domain.spec.context.egressPolicy)) continue
 
                 // Get DID and GW info
                 result = DIDsAPI.getInstance().getDID(domain.spec.context.egressPolicy.didRef)
@@ -93,7 +94,7 @@ var DomainsAPI = (() => {
         }
     }
 
-    self.domainExist = (domainUri) => {
+    self.domainExist = domainUri => {
         const result = self.getDomain(domainUri)
         if (result.status == Status.OK) return true
         return false
