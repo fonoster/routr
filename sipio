@@ -4,8 +4,8 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home
 
 main_js="$(pwd)/mod/core/main.js"
 
-for i in $(ls lib); do
-    DEPS=$DEPS"lib/$i:";
+for i in $(ls libs); do
+    DEPS=$DEPS"libs/$i:";
 done;
 
 if [[ $(echo $JAVA_HOME 2>&1) != *"jdk-9"* ]];
