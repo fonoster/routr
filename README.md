@@ -6,10 +6,6 @@
 
 > This software is in its very early stage and is not recommended for production
 
-## Requirements
-
-* Java 1.8 +
-
 ## Download and Run
 
 Get the binary as [zip](https://github.com/psanders/sipio/releases/download/1.0.0-M1/sipio.1.0.0-M1.zip) or [tar.gz](https://github.com/psanders/sipio/releases/download/1.0.0-M1/sipio.1.0.0-M1.tar.gz). Then from withing the root folder simply run:
@@ -17,6 +13,8 @@ Get the binary as [zip](https://github.com/psanders/sipio/releases/download/1.0.
 ```bash
 ./sipio.js
 ```
+
+> You need Java 1.8 + to run Sip I/O. You will also need Gradle and Npm if you wish to [build from source](https://github.com/psanders/sipio/wiki/Installing-and-Running-the-Server).
 
 ## Support
 
