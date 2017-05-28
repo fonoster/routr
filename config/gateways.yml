@@ -5,10 +5,10 @@
     ref: GW0001
   spec:
     regService:
-      host: sip.provider
+      host: provider.com
       credentials:
         username: '12345'
         secret: 'supersecret'
       transport: tcp
       registries:
-        - atlanta2.voip.ms
+        - host2.provider.com
