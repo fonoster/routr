@@ -9,6 +9,7 @@ node_modules
 *.zip
 build
 libs
+config/gateways.yml
 
 # User-specific stuff:
 .idea/workspace.xml
