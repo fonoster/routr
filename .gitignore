@@ -10,6 +10,11 @@ node_modules
 build
 libs
 config/gateways.yml
+.gradle
+.idea
+*.iml
+*.ipr
+mod/vendor
 
 # User-specific stuff:
 .idea/workspace.xml
@@ -98,16 +103,4 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
-
-# Other
-lib
-lib/*
-.gradle
-.idea
-*.iml
-*.ipr
-etc
-Dockerfile
-docker-compose.yml
-mod/vendor
 
