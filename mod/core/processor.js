@@ -2,35 +2,41 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/core/context.js')
-load('mod/core/config_util.js')
-load('mod/utils/auth_helper.js')
-load('mod/utils/domain_utils.js')
-load('mod/utils/acl_helper.js')
-load('mod/resources/utils.js')
-load('mod/location/status.js')
+import AccountManagerService from 'core/account_manager_service'
+import Context    from 'core/context'
+import AuthHelper from 'utils/auth_helper'
+import DomainUtil from 'utils/domain_utils'
+import { Status } from 'location/status'
+import getConfig from 'core/config_util'
 
-function Processor(sipProvider, headerFactory, messageFactory, addressFactory, contactHeader, locationService,
-    registrarService, accountManagerService, dataAPIs, contextStorage) {
-    // For some weird reason this only works with var and not const or let
-    var config = new ConfigUtil().getConfig()
-    const HashMap = Packages.java.util.HashMap
-    const SipListener = Packages.javax.sip.SipListener
-    const Request = Packages.javax.sip.message.Request
-    const Response = Packages.javax.sip.message.Response
-    const RouteHeader = Packages.javax.sip.header.RouteHeader
-    const ToHeader = Packages.javax.sip.header.ToHeader
-    const ContactHeader = Packages.javax.sip.header.ContactHeader
-    const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
-    const ViaHeader = Packages.javax.sip.header.ViaHeader
-    const CSeqHeader = Packages.javax.sip.header.CSeqHeader
-    const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
-    const MaxForwardsHeader = Packages.javax.sip.header.MaxForwardsHeader
-    const ProxyAuthorizationHeader = Packages.javax.sip.header.ProxyAuthorizationHeader
-    const LogManager = Packages.org.apache.logging.log4j.LogManager
-    const LOG = LogManager.getLogger()
+const config = getConfig()
+const HashMap = Packages.java.util.HashMap
+const SipListener = Packages.javax.sip.SipListener
+const Request = Packages.javax.sip.message.Request
+const Response = Packages.javax.sip.message.Response
+const RouteHeader = Packages.javax.sip.header.RouteHeader
+const ToHeader = Packages.javax.sip.header.ToHeader
+const FromHeader = Packages.javax.sip.header.FromHeader
+const ContactHeader = Packages.javax.sip.header.ContactHeader
+const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
+const ViaHeader = Packages.javax.sip.header.ViaHeader
+const CSeqHeader = Packages.javax.sip.header.CSeqHeader
+const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
+const MaxForwardsHeader = Packages.javax.sip.header.MaxForwardsHeader
+const ProxyAuthorizationHeader = Packages.javax.sip.header.ProxyAuthorizationHeader
+const LogManager = Packages.org.apache.logging.log4j.LogManager
+const SipFactory = Packages.javax.sip.SipFactory
+const LOG = LogManager.getLogger()
+const sipFactory = SipFactory.getInstance()
+const messageFactory = sipFactory.createMessageFactory()
+const headerFactory = sipFactory.createHeaderFactory()
+const addressFactory = sipFactory.createAddressFactory()
+
+export default function (sipProvider, contactHeader, locationService,
+    registrarService, dataAPIs, contextStorage) {
+    const accountManagerService = new AccountManagerService(dataAPIs)
     const authHelper =  new AuthHelper(headerFactory)
-    const dAPI = dataAPIs.getDomainsAPI()
+    const dAPI = dataAPIs.DomainsAPI
 
     const defaultDomainAcl = config.general.defaultDomainAcl
 
@@ -90,8 +96,8 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
         LOG.debug('<-------\n' + request)
     }
 
-    this.listener = new SipListener() {
-        processRequest: event => {
+    this.listener = new SipListener({
+        processRequest: function(event) {
             const requestIn = event.getRequest()
             const method = requestIn.getMethod()
             let serverTransaction = event.getServerTransaction()
@@ -117,12 +123,12 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 const host = lp.getIPAddress().toString()
                 const port = lp.getPort()
                 const toHeader = requestIn.getHeader(ToHeader.NAME)
-                const addressOfRecord = toHeader.getAddress().getURI()
+                let addressOfRecord = toHeader.getAddress().getURI()
 
                 if (routeHeader) {
                     const nextHop = routeHeader.getAddress().getURI().getHost()
 
-                    if (nextHop.equals(host) || config.general.externalHost) {
+                    if (nextHop.equals(host) || nextHop.equals(config.general.externalHost)) {
                         requestOut.removeFirst(RouteHeader.NAME)
                     }
                 }
@@ -165,11 +171,27 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
                 function processRoute(route) {
                     requestOut.setRequestURI(route.contactURI)
 
-                    if (route.thruGW) {
-                        // Adding custom header GWUsername
-                        const gwUsernameHeader = headerFactory.createHeader('GWUsername', route.gwUsername)
-                        requestOut.addHeader(gwUsernameHeader)
-                    }
+                   if (route.thruGW) {
+                        const gwRef = headerFactory.createHeader('GWRef', route.gwRef)
+                        const toHeader = requestIn.getHeader(ToHeader.NAME)
+                        const fromHeader = requestIn.getHeader(FromHeader.NAME)
+                        const to = toHeader.getAddress().toString().match('sips?:(.*)@(.*)')[1]
+
+                        // This might not work with all provider
+                        const fromAddress = addressFactory.createAddress('sip:' + route.gwUsername + '@' + route.gwHost)
+                        fromAddress.setDisplayName(route.did)
+                        const toAddress = addressFactory.createAddress('sip:' + to + '@' + route.gwHost)
+                        toAddress.setDisplayName(to)
+
+                        fromHeader.setAddress(fromAddress)
+                        toHeader.setAddress(toAddress)
+
+                        // I'm not sure if this makes sense for TCP
+                        requestOut.setHeader(gwRef)
+                        requestOut.setHeader(fromHeader)
+                        // This didn't seem necessary with some providers
+                        requestOut.setHeader(toHeader)
+                   }
 
                     // Does not need a transaction
                     if(method.equals(Request.ACK)) {
@@ -233,7 +255,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             LOG.debug('<-------\n' + requestIn)
         },
 
-        processResponse: event => {
+        processResponse: function(event) {
             const responseIn = event.getResponse()
             const cseq = responseIn.getHeader(CSeqHeader.NAME)
 
@@ -248,19 +270,16 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             // I suspect that DIDLogic does not fully support thru tcp registration
             if (responseIn.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED ||
                 responseIn.getStatusCode() == Response.UNAUTHORIZED) {
-
                 let authenticationHelper = sipProvider.getSipStack()
                     .getAuthenticationHelper(accountManagerService.getAccountManager(), headerFactory)
-
                 let t = authenticationHelper.handleChallenge(responseIn, clientTransaction, event.getSource(), 5)
                 t.sendRequest()
-
                 LOG.debug('<-------\n' + responseIn)
                 return
             }
 
             // Strip the topmost via header
-            const responseOut = responseIn.clone();
+            const responseOut = responseIn.clone()
             responseOut.removeFirst(ViaHeader.NAME);
 
             if (cseq.getMethod().equals(Request.INVITE) && !!clientTransaction) {
@@ -280,7 +299,7 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             LOG.debug('------->\n' + responseOut)
         },
 
-        processTransactionTerminated: event => {
+        processTransactionTerminated: function(event) {
             if (event.isServerTransaction()) {
                 const serverTransaction = event.getServerTransaction()
 
@@ -290,12 +309,12 @@ function Processor(sipProvider, headerFactory, messageFactory, addressFactory, c
             }
         },
 
-        processDialogTerminated: event => {
+        processDialogTerminated: function(event) {
             LOG.trace('Dialog ' + event.getDialog() + ' has been terminated')
         },
 
-        processTimeout: event => {
+        processTimeout: function(event) {
             LOG.trace('Transaction Time out')
         }
-    }
+    })
 }

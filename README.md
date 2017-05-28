@@ -8,28 +8,13 @@
 
 ## Requirements
 
-* Java 1.9 +
-* Gradle (Optional)
-
-Why Java 9? **Sip I/O** uses Oracle Nashorn Javascript Engine to take advantage of several ES6 features. These features are only available in latest and greatest version of Java.
+* Java 1.8 +
+* Gradle (Recommended)
+* NPM (Recommended)
 
 ## Installation
 
-Run the following commands to download the repository and get the dependencies
 
-```bash
-git clone https://github.com/psanders/sipio.git
-```
-
-or
-
-```bash
-wget clone https://github.com/psanders/sipio/archive/master.tar.gz
-tar xvf master.tar.gz
-```
-
-> You must install Java 9 and point your JAVA_HOME to your JDK 9 to run this app. You can overwrite the JAVA_HOME at the 
-> file `./sipio` and `./sipioctl`
 
 ## Support
 

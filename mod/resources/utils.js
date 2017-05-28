@@ -2,23 +2,26 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/resources/status.js')
-load('mod/utils/obj_util.js')
+import { Status } from 'resources/status'
+import isEmpty from 'utils/obj_util'
 
-function ResourcesUtil() {
-    const LogManager = Packages.org.apache.logging.log4j.LogManager
-    const LOG = LogManager.getLogger()
-    const YAMLFactory = Packages.com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-    const JsonSchemaFactory = Packages.com.networknt.schema.JsonSchemaFactory
-    const JsonPath = com.jayway.jsonpath.JsonPath
-    const Option = Packages.com.jayway.jsonpath.Option
-    const ObjectMapper = Packages.com.fasterxml.jackson.databind.ObjectMapper
-    const factory = new JsonSchemaFactory()
+let LogManager = Packages.org.apache.logging.log4j.LogManager
+let LOG  = LogManager.getLogger()
+let YAMLFactory = Packages.com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+let JsonSchemaFactory = Packages.com.networknt.schema.JsonSchemaFactory
+let JsonPath = Packages.com.jayway.jsonpath.JsonPath
+let Option = Packages.com.jayway.jsonpath.Option
+let ObjectMapper = Packages.com.fasterxml.jackson.databind.ObjectMapper
 
-    const conf = Packages.com.jayway.jsonpath.Configuration.defaultConfiguration()
-    conf.addOptions(Option.ALWAYS_RETURN_LIST)
+export default class ResourcesUtil {
 
-    function readFile (path) {
+    constructor () {
+        this.factory = new JsonSchemaFactory()
+        this.yamlReader = new ObjectMapper(new YAMLFactory())
+        this.mapper = new ObjectMapper()
+    }
+
+    readFile (path) {
         const Files = Packages.java.nio.file.Files
         const Paths = Packages.java.nio.file.Paths
         const lines = Files.readAllLines(Paths.get(path), Packages.java.nio.charset.StandardCharsets.UTF_8)
@@ -27,15 +30,13 @@ function ResourcesUtil() {
         return data.join('\n')
     }
 
-    function getJsonString(yamlFile) {
-        const yaml = readFile(yamlFile)
-        const yamlReader = new ObjectMapper(new YAMLFactory())
-        const obj = yamlReader.readValue(yaml, java.lang.Object.class)
-        const jsonWriter = new ObjectMapper()
-        return jsonWriter.writeValueAsString(obj)
+    getJsonString(yamlFile) {
+        const yaml = this.readFile(yamlFile)
+        const obj = this.yamlReader.readValue(yaml, java.lang.Object.class)
+        return this.mapper.writeValueAsString(obj)
     }
 
-    function isJson(str) {
+    isJson(str) {
         try {
             JSON.parse(str);
         } catch (e) {
@@ -44,18 +45,20 @@ function ResourcesUtil() {
         return true;
     }
 
-    this.isResourceValid = (schemaPath, nodePath) => {
-        const schema = factory.getSchema(readFile(schemaPath))
-        const mapper = new ObjectMapper()
-        const node = mapper.readTree(getJsonString(nodePath))
+    getJson (yamlFile) {
+        return JSON.parse(this.getJsonString(yamlFile))
+    }
 
+    isResourceValid (schemaPath, nodePath) {
+        const schema = this.factory.getSchema(this.readFile(schemaPath))
+        const node = this.mapper.readTree(this.getJsonString(nodePath))
         const errors = schema.validate(node);
 
         if (errors.size() > 0) {
             const i = errors.iterator()
             LOG.warn('We found some errors in your resource ' + node)
             while(i.hasNext()) {
-                LOG.warn(i.next())
+               LOG.warn(i.next())
             }
             return false
         }
@@ -63,25 +66,28 @@ function ResourcesUtil() {
         return true
     }
 
-    this.getJson = yamlFile => JSON.parse(getJsonString(yamlFile))
+    getObjs (resourcePath, f) {
+        let filter = '*'
 
-    this.getObjs = (resourcePath, f) => {
-        if (isEmpty(f)) {
-            filter = '*'
-        } else {
-            filter = "*.[?(@." + f + ")]"
+        if (!isEmpty(f) && f != '*') {
+            filter = "*.[?(" + f + ")]"
         }
 
-        const resource = getJsonString(resourcePath)
+        const resource = this.getJsonString(resourcePath)
         let list
 
         try {
             // Convert this from net.minidev.json.JSONArray
             // to Javascript Object
             list = JSON.parse(JsonPath.parse(resource).read(filter).toJSONString())
-        } catch(e) {
-            LOG.warn(e.getMessage())
 
+            if (list.length == 0) {
+                return {
+                    status: Status.NOT_FOUND,
+                    message: Status.message[Status.NOT_FOUND].value
+                }
+            }
+        } catch(e) {
             return {
                 status: Status.BAD_REQUEST,
                 message: e.getMessage()

@@ -4,7 +4,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-function ContextStorage() {
+export default function ContextStorage() {
     const storage = new java.util.ArrayList()
 
     this.saveContext = context => storage.add(context)

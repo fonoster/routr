@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-var Status = {
+export const Status = {
   OK: 200,
   NOT_FOUND: 404,
   INTERNAL_SERVER_ERROR: 500,

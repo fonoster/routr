@@ -2,25 +2,36 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/resources/utils.js')
-load('mod/resources/status.js')
-load('mod/resources/agents_api.js')
-load('mod/resources/dids_api.js')
-load('mod/resources/gateways_api.js')
-load('mod/utils/obj_util.js')
+import ResourcesUtil from 'resources/utils'
+import AgentsAPI from 'resources/agents_api'
+import DIDsAPI from 'resources/dids_api'
+import GatewaysAPI from 'resources/gateways_api'
+import { Status } from 'resources/status'
+import isEmpty from 'utils/obj_util'
 
-var DomainsAPI = (() => {
-    const self = this
-    const rUtil = new ResourcesUtil()
-    const resourcePath = 'config/domains.yml'
-    const schemaPath = 'mod/resources/schemas/domains_schema.json'
-    const sipFactory = Packages.javax.sip.SipFactory.getInstance()
-    const addressFactory = sipFactory.createAddressFactory()
+const SipFactory = Packages.javax.sip.SipFactory
 
-    self.getDomains = (filter) => rUtil.getObjs(resourcePath, filter)
+export default class DomainsAPI {
 
-    self.getDomain = (domainUri) => {
-        const resource = rUtil.getJson(resourcePath)
+    constructor() {
+        this.resourcePath = 'config/domains.yml'
+        this.schemaPath = 'etc/schemas/domains_schema.json'
+        this.rUtil = new ResourcesUtil()
+        if (!this.rUtil.isResourceValid(this.schemaPath, this.resourcePath)) {
+            throw "Invalid 'config/domains.yml' resource. Server unable to continue..."
+        }
+        this.addressFactory = SipFactory.getInstance().createAddressFactory()
+        this.agensAPI = new AgentsAPI()
+        this.gatewaysAPI = new GatewaysAPI()
+        this.didsAPI = new DIDsAPI()
+    }
+
+    getDomains(filter) {
+        return this.rUtil.getObjs(this.resourcePath, filter)
+    }
+
+    getDomain(domainUri) {
+        const resource = this.rUtil.getJson(this.resourcePath)
         let domain
 
         resource.forEach(obj => {
@@ -43,48 +54,62 @@ var DomainsAPI = (() => {
         }
     }
 
-    self.getRouteForAOR = (addressOfRecord) => {
-        let result = self.getDomains()
+    getRouteForAOR(addressOfRecord) {
+        if (!(addressOfRecord instanceof Packages.javax.sip.address.SipURI)) throw 'AOR must be instance of javax.sip.address.SipURI'
+
+        const didsAPI = this.didsAPI
+        const gatewaysAPI = this.gatewaysAPI
+        const addressFactory = this.addressFactory
+
+        let result = this.getDomains()
+        let route
 
         if (result.status == Status.OK) {
             const domains = result.obj
 
-            for (var domain of domains) {
-                if (isEmpty(domain.spec.context.egressPolicy)) continue
+            domains.forEach(domain => {
+                if (!isEmpty(domain.spec.context.egressPolicy)) {
+                    // Get DID and GW info
+                    result = didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
 
-                // Get DID and GW info
-                result = DIDsAPI.getInstance().getDID(domain.spec.context.egressPolicy.didRef)
-                if (result.status != Status.OK) break
-                const did = result.obj
-                result = GatewaysAPI.getInstance().getGateway(did.metadata.gwRef)
-                if (result.status != Status.OK) break
-                const gw = result.obj
-                const gwHost = gw.spec.regService.host
-                const gwUsername = gw.spec.regService.credentials.username
-                const egressRule = domain.spec.context.egressPolicy.rule
+                    if (result.status == Status.OK) {
+                        const did = result.obj
+                        result = gatewaysAPI.getGateway(did.metadata.gwRef)
 
-                const pattern = 'sip:' + egressRule + '@' + domain.spec.context.domainUri
+                        if (result.status == Status.OK) {
+                            const gw = result.obj
+                            const gwHost = gw.spec.regService.host
+                            const gwUsername = gw.spec.regService.credentials.username
+                            const gwRef = gw.metadata.ref
+                            const egressRule = domain.spec.context.egressPolicy.rule
+                            const pattern = 'sip:' + egressRule + '@' + domain.spec.context.domainUri
 
-                if (!new RegExp(pattern).test(addressOfRecord.toString())) continue
+                            if (new RegExp(pattern).test(addressOfRecord.toString())) {
+                                const contactURI = addressFactory.createSipURI(addressOfRecord.getUser(), gwHost)
+                                contactURI.setSecure(addressOfRecord.isSecure())
 
-                const contactURI = addressFactory.createSipURI(addressOfRecord.getUser(), gwHost)
-                contactURI.setSecure(addressOfRecord.isSecure())
-
-                const route = {
-                    isLinkAOR: false,
-                    thruGW: true,
-                    rule: egressRule,
-                    gwUsername: gwUsername,
-                    gwHost: gwHost,
-                    did: did.spec.location.telUrl,
-                    contactURI: contactURI
+                                route = {
+                                    isLinkAOR: false,
+                                    thruGW: true,
+                                    rule: egressRule,
+                                    gwUsername: gwUsername,
+                                    gwRef: gwRef,
+                                    gwHost: gwHost,
+                                    did: did.spec.location.telUrl.split(':')[1],
+                                    contactURI: contactURI
+                                }
+                            }
+                        }
+                    }
                 }
+            })
+        }
 
-                return {
-                    status: Status.OK,
-                    message: Status.message[Status.OK].value,
-                    obj: route
-                }
+        if(route) {
+            return {
+                status: Status.OK,
+                message: Status.message[Status.OK].value,
+                obj: route
             }
         }
 
@@ -94,62 +119,50 @@ var DomainsAPI = (() => {
         }
     }
 
-    self.domainExist = domainUri => {
-        const result = self.getDomain(domainUri)
+    domainExist(domainUri){
+        const result = this.getDomain(domainUri)
         if (result.status == Status.OK) return true
         return false
     }
 
-    self.createDomain = () => {
+    createDomain() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
 
-    self.updateDomain = () => {
+    updateDomain() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
         }
     }
 
-    self.deleteDomains = () => {
+    deleteDomains() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
         }
     }
 
-    self.domainHasUser = (domainUri, username) => {
-        const result = AgentsAPI.getInstance().getAgent(domainUri, username)
+    domainHasUser(domainUri, username) {
+        const result = agentsAPI.getAgent(domainUri, username)
         if (result.status == Status.OK) return true
         return false
     }
 
-    self.createFromJSONObj = () => {
+    createFromJSONObj() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
 
-    self.updateFromJSONObj = () => {
+    updateFromJSONObj() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
-
-    function _getInstance() {
-        if (!rUtil.isResourceValid(schemaPath, resourcePath)) {
-            throw "Invalid 'config/domains.yml' resource. Server unable to continue..."
-        }
-
-        return self
-    }
-
-    return {
-        getInstance: _getInstance
-    }
-})()
+}

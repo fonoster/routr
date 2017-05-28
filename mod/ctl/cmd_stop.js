@@ -2,15 +2,23 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/ctl/ctl_utils.js')
+import CtlUtils from 'ctl/ctl_utils'
 
-function cmdStop() {
-    try {
-        postWithAuth('stop')
-    } catch(e) {
-        if(e instanceof Packages.org.apache.http.NoHttpResponseException) {
-            print(e)
-        }
+export default class CommandStop {
+
+    constructor(subparsers) {
+        subparsers.addParser('stop').help('stops server')
     }
-    print("Done.")
+
+    run() {
+        const ctlUtils = new CtlUtils()
+        try {
+            ctlUtils.postWithAuth('stop')
+        } catch(e) {
+            if(e instanceof Packages.org.apache.http.NoHttpResponseException) {
+                print(e)
+            }
+        }
+        print("Done.")
+    }
 }

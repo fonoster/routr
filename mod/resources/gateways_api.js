@@ -2,20 +2,28 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/resources/utils.js')
-load('mod/resources/status.js')
-load('mod/utils/obj_util.js')
+import ResourcesUtil from 'resources/utils'
+import { Status } from 'resources/status'
+import isEmpty from 'utils/obj_util'
 
-var GatewaysAPI = (() => {
-    const self = this
-    const rUtil = new ResourcesUtil()
-    const resourcePath = 'config/gateways.yml'
-    const schemaPath = 'mod/resources/schemas/gateways_schema.json'
+export default class GatewaysAPI {
 
-    self.getGateways = filter => rUtil.getObjs(resourcePath, filter)
+    constructor() {
+        this.resourcePath = 'config/gateways.yml'
+        this.schemaPath = 'etc/schemas/gateways_schema.json'
+        this.rUtil = new ResourcesUtil()
 
-    self.getGateway = ref => {
-        const resource = rUtil.getJson(resourcePath)
+        if (!this.rUtil.isResourceValid(this.schemaPath, this.resourcePath)) {
+            throw "Invalid 'config/gateways.yml' resource. Server unable to continue..."
+        }
+    }
+
+    getGateways(filter)  {
+        return this.rUtil.getObjs(this.resourcePath, this.filter)
+    }
+
+    getGateway(ref) {
+        const resource = this.rUtil.getJson(this.resourcePath)
         let gateways
 
         resource.forEach(obj => {
@@ -38,12 +46,12 @@ var GatewaysAPI = (() => {
         }
     }
 
-    self.getGWByUsername = username => {
-        const resource = rUtil.getJson(resourcePath)
+    getGWByRef(ref) {
+        const resource = this.rUtil.getJson(this.resourcePath)
         let gateways
 
         resource.forEach(obj => {
-            if (obj.spec.regService.credentials.username == username) {
+            if (obj.metadata.ref == ref) {
                 gateways = obj
             }
         })
@@ -62,56 +70,44 @@ var GatewaysAPI = (() => {
         }
     }
 
-    self.gatewayExist = ref => {
-        const result = self.getGateway(ref)
+    gatewayExist(ref) {
+        const result = this.getGateway(ref)
         if (result.status == Status.OK) return true
         return false
     }
 
-    self.createGateway = () => {
+    createGateway() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
 
-    self.updateGateway = () => {
+    updateGateway() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
         }
     }
 
-    self.deleteGateways = () => {
+    deleteGateways() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
         }
     }
 
-    self.createFromJSONObj = () => {
+    createFromJSONObj() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
 
-    self.updateFromJSONObj = () => {
+    updateFromJSONObj() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
-
-    function _getInstance() {
-        if (!rUtil.isResourceValid(schemaPath, resourcePath)) {
-            throw "Invalid 'config/gateways.yml' resource. Server unable to continue..."
-        }
-
-        return self
-    }
-
-    return {
-        getInstance: _getInstance
-    }
-})()
+}

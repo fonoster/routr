@@ -2,23 +2,27 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/utils/auth_helper.js')
-load('mod/core/context.js')
+import getConfig from 'core/config_util'
 
-function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory) {
+export default function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory) {
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
     const SipUtils = Packages.gov.nist.javax.sip.Utils
     const Request = Packages.javax.sip.message.Request
     const userAgent = new java.util.ArrayList()
+    var config = getConfig()
 
     userAgent.add('Sip I/O v1.0')
 
     var cseq = 0
 
-    this.requestChallenge = (username, peerHost, transport = 'udp', expires = 300) => {
-        const host = sipProvider.getListeningPoint(transport).getIPAddress()
+    this.requestChallenge = (username, gwRef, peerHost, transport = 'udp', expires = 300) => {
+        let host = sipProvider.getListeningPoint(transport).getIPAddress()
         const port = sipProvider.getListeningPoint(transport).getPort()
+
+        if (config.general.externalHost) {
+            host = config.general.externalHost
+        }
 
         cseq++
 
@@ -38,7 +42,7 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
         const contactAddress = addressFactory.createAddress('sip:' + username + '@' + host + ':' + port)
         const contactHeader = headerFactory.createContactHeader(contactAddress)
         const userAgentHeader = headerFactory.createUserAgentHeader(userAgent)
-        const gwUsernameHeader = headerFactory.createHeader('GWUsername', username)
+        const gwRefHeader = headerFactory.createHeader('GWRef', gwRef)
 
         const request = messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
         request.addHeader(viaHeader)
@@ -49,7 +53,7 @@ function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFacto
         request.addHeader(toHeader)
         request.addHeader(contactHeader)
         request.addHeader(userAgentHeader)
-        request.addHeader(gwUsernameHeader)
+        request.addHeader(gwRefHeader)
         request.addHeader(headerFactory.createAllowHeader('INVITE'))
         request.addHeader(headerFactory.createAllowHeader('ACK'))
         request.addHeader(headerFactory.createAllowHeader('BYE'))

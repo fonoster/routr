@@ -1,15 +1,14 @@
-# Use gateway to register with a Sip Gateways or SBCs and send
-# or receive calls from the PSTN
 - apiVersion: v1draft1
   kind: Gateway
   metadata:
-    name: DID Logic, Inc
-    ref:  GW0001
+    name: Voip MS
+    ref: GW0001
   spec:
     regService:
-      host: sip.provider.net
+      host: sanjose2.voip.ms
       credentials:
-        username: 'gwuser'
-        secret: gwsecret
-      transport: udp
-      registries: [sip.nyc.provider.net]
+        username: '215706'
+        secret: 'iymscvb4rUSG4T0P4RD0'
+      transport: tcp
+      registries:
+        - atlanta2.voip.ms

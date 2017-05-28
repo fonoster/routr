@@ -10,3 +10,8 @@ rest:
   username: admin
   secret: 1234
   disable: false
+resources:
+  baseUrl: http://localhost:8080/v1/admin
+  credentials:
+    username: admin
+    secret: 308a002ab539471394a06ce710bc96c2

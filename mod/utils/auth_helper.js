@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-function AuthHelper(headerFactory, domain='sip.io', realm='sipio') {
+export default function AuthHelper (headerFactory, domain='sip.io', realm='sipio') {
     const DigestUtils = Packages.org.apache.commons.codec.digest.DigestUtils
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const MessageDigest = Packages.java.security.MessageDigest

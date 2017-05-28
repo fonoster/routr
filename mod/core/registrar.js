@@ -2,24 +2,27 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/utils/auth_helper.js')
-load('mod/resources/status.js')
+import AuthHelper from 'utils/auth_helper'
+import { Status } from 'resources/status'
 
-function RegistrarService(locationService, dataAPIs) {
+export default function RegistrarService(locationService, dataAPIs) {
     const ViaHeader = Packages.javax.sip.header.ViaHeader
     const ContactHeader = Packages.javax.sip.header.ContactHeader
     const FromHeader = Packages.javax.sip.header.FromHeader
     const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
-    const pAPI = dataAPIs.getPeersAPI()
-    const aAPI = dataAPIs.getAgentsAPI()
+    const pAPI = dataAPIs.PeersAPI
+    const aAPI = dataAPIs.AgentsAPI
+    const self = this
 
     function hasDomain(user, domain) {
-        for (var d of user.spec.domains) {
-           if (domain === d) return true
-        }
-        return false
+        if (user.spec.domains == null || user.spec.domains.length == 0) return false
+        let result = false
+        user.spec.domains.forEach(function(d) {
+            if (domain === d) result=true
+        })
+        return result
     }
 
     function getNonceCount(d) {
@@ -36,10 +39,10 @@ function RegistrarService(locationService, dataAPIs) {
         return nc + h
     }
 
-    this.register = (rin) => {
+    self.register = function(rin) {
         // For some reason this references the parent object
         // to avoid I just clone it!
-        request = rin.clone()
+        const request = rin.clone()
         const viaHeader = request.getHeader(ViaHeader.NAME)
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
         const contactHeader = request.getHeader(ContactHeader.NAME)
@@ -110,15 +113,19 @@ function RegistrarService(locationService, dataAPIs) {
             }
 
             if (user.kind.equalsIgnoreCase('peer')) {
-                if (user.host) host = user.spec.host
+                let host
+
+                if (user.host) {
+                    host = user.spec.host
+                }
 
                 const addressOfRecord = contactURI.getScheme() + ':' + user.spec.credentials.username + '@' + host
                 locationService.addEndpoint(addressOfRecord, route)
             } else {
-                for (var domain of user.spec.domains) {
-                    addressOfRecord = contactURI.getScheme() + ':' + user.spec.credentials.username + '@' + domain
+                user.spec.domains.forEach(domain => {
+                    const addressOfRecord = contactURI.getScheme() + ':' + user.spec.credentials.username + '@' + domain
                     locationService.addEndpoint(addressOfRecord, route)
-                }
+                })
             }
 
             return true

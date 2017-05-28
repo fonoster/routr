@@ -1,0 +1,7 @@
+{
+  "name": "sipio-resources-service",
+  "version": "1.0.0",
+  "description": "SipIO resources service module",
+  "author": "Pedro S. Sanders",
+  "license": "MIT"
+}

@@ -2,7 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
-function DomainUtil(defaultDomainAcl) {
+import ACLHelper from 'utils/acl_helper'
+
+export default function DomainUtils (defaultDomainAcl) {
     const rules = new java.util.ArrayList()
 
     function addRules(accessControlList) {

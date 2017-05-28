@@ -2,20 +2,28 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/resources/utils.js')
-load('mod/resources/status.js')
-load('mod/utils/obj_util.js')
+import ResourcesUtil from 'resources/utils'
+import { Status } from 'resources/status'
+import isEmpty from 'utils/obj_util'
 
-var PeersAPI = (() => {
-    const self = this
-    const rUtil = new ResourcesUtil()
-    const resourcePath = 'config/peers.yml'
-    const schemaPath = 'mod/resources/schemas/peers_schema.json'
+export default class PeersAPI {
 
-    self.getPeers = filter => rUtil.getObjs(resourcePath, filter)
+    constructor() {
+        this.resourcePath = 'config/peers.yml'
+        this.schemaPath = 'etc/schemas/peers_schema.json'
+        this.rUtil = new ResourcesUtil()
 
-    self.getPeer = username => {
-        const resource = rUtil.getJson(resourcePath)
+        if (!this.rUtil.isResourceValid(this.schemaPath, this.resourcePath)) {
+            throw "Invalid 'config/peers.yml' resource. Server unable to continue..."
+        }
+    }
+
+    getPeers(filter) {
+        return this.rUtil.getObjs(this.resourcePath, filter)
+    }
+
+    getPeer(username) {
+        const resource = this.rUtil.getJson(this.resourcePath)
         let peer
 
         resource.forEach(obj => {
@@ -38,56 +46,44 @@ var PeersAPI = (() => {
         }
     }
 
-    self.peerExist = username => {
-        const result = self.getPeer(username)
+    peerExist(username) {
+        const result = this.getPeer(username)
         if (result.status == Status.OK) return true
         return false
     }
 
-    self.createPeer = () => {
+    createPeer() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
 
-    self.updatePeer = () => {
+    updatePeer() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
         }
     }
 
-    self.deletePeers = () => {
+    deletePeers() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
         }
     }
 
-    self.createFromJSONObj = () => {
+    createFromJSONObj() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
 
-    self.updateFromJSONObj = () => {
+    updateFromJSONObj() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
-
-    function _getInstance() {
-        if (!rUtil.isResourceValid(schemaPath, resourcePath)) {
-            throw "Invalid 'config/peers.yml' resource. Server unable to continue..."
-        }
-
-        return self
-    }
-
-    return {
-        getInstance: _getInstance
-    }
-})()
+}

@@ -2,20 +2,28 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/resources/utils.js')
-load('mod/resources/status.js')
-load('mod/utils/obj_util.js')
+import ResourcesUtil from 'resources/utils'
+import { Status } from 'resources/status'
+import isEmpty from 'utils/obj_util'
 
-var DIDsAPI = (() => {
-    const self = this
-    const rUtil = new ResourcesUtil()
-    const resourcePath = 'config/dids.yml'
-    const schemaPath = 'mod/resources/schemas/dids_schema.json'
+export default class DIDsAPI {
 
-    self.getDIDs = filter => rUtil.getObjs(resourcePath, filter)
+    constructor() {
+        this.resourcePath = 'config/dids.yml'
+        this.schemaPath = 'etc/schemas/dids_schema.json'
+        this.rUtil = new ResourcesUtil()
 
-    self.getDID = ref => {
-        const resource = rUtil.getJson(resourcePath)
+        if (!this.rUtil.isResourceValid(this.schemaPath, this.resourcePath)) {
+            throw "Invalid 'config/dids.yml' resource. Server unable to continue..."
+        }
+    }
+
+    getDIDs(filter) {
+        return this.rUtil.getObjs(this.resourcePath, this.filter)
+    }
+
+    getDID(ref) {
+        const resource = this.rUtil.getJson(this.resourcePath)
         let did
 
         resource.forEach(obj => {
@@ -42,8 +50,8 @@ var DIDsAPI = (() => {
      * note: telUrl maybe a string in form of 'tel:${number}' or
      * a TelURL.
      */
-    self.getDIDByTelUrl = telUrl => {
-        const resource = rUtil.getJson(resourcePath)
+    getDIDByTelUrl(telUrl) {
+        const resource = this.rUtil.getJson(this.resourcePath)
         let did
         let url
 
@@ -73,56 +81,44 @@ var DIDsAPI = (() => {
         }
     }
 
-    self.didExist = ref => {
-        const result = self.getGateway(ref)
+    didExist(ref) {
+        const result = this.getGateway(ref)
         if (result.status == Status.OK) return true
         return false
     }
 
-    self.createDID = () => {
+    createDID() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
 
-    self.createDID = () => {
+    createDID() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
         }
     }
 
-    self.deleteDIDs = () => {
+    deleteDIDs() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
         }
     }
 
-    self.createFromJSONObj = () => {
+    createFromJSONObj() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
 
-    self.updateFromJSONObj = () => {
+    updateFromJSONObj() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
-
-    function _getInstance() {
-        if (!rUtil.isResourceValid(schemaPath, resourcePath)) {
-            throw "Invalid 'config/dids.yml' resource. Server unable to continue..."
-        }
-
-        return self
-    }
-
-    return {
-        getInstance: _getInstance
-    }
-})()
+}

@@ -4,7 +4,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-function Context() {
+export default function () {
     this.clientTransaction
     this.serverTransaction
     this.method

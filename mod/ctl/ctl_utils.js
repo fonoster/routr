@@ -2,55 +2,69 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/resources/utils.js')
+import ResourcesUtil from 'resources/utils'
 
-function getWithAuth(resource) {
-    const Unirest = Packages.com.mashape.unirest.http.Unirest
-    const rest = new ResourcesUtil().getJson('config/config.yml').rest
-    const baseUrl = 'http://localhost:' + rest.port
-    const result = Unirest.get(baseUrl + '/' + resource).basicAuth(rest.username, rest.secret).asJson()
-    return JSON.parse(result.getBody())
-}
+const Unirest = Packages.com.mashape.unirest.http.Unirest
+const InetAddress = Packages.java.net.InetAddress
 
-function postWithAuth(cmd, data) {
-    const Unirest = Packages.com.mashape.unirest.http.Unirest
-    const rest = new ResourcesUtil().getJson('config/config.yml').rest
-    const baseUrl = 'http://localhost:' + rest.port
-    let result
+export default class CtlUtils {
 
-    if (data) {
-        result = Unirest.post(baseUrl + '/' + cmd).basicAuth(rest.username, rest.secret)
-        .body(JSON.stringify(data))
-        .asJson()
-    } else {
-        result = Unirest.post(baseUrl + '/' + cmd).basicAuth(rest.username, rest.secret).asJson()
+    constructor() {
+        const host = InetAddress.getLocalHost().getHostAddress()
+        this.restConfig = new ResourcesUtil().getJson('config/config.yml').rest
+        this.baseUrl = 'http://' + host + ':' + this.restConfig.port
     }
 
-    return JSON.parse(result.getBody())
-}
-
-function putWithAuth(cmd, data) {
-    const Unirest = Packages.com.mashape.unirest.http.Unirest
-    const rest = new ResourcesUtil().getJson('config/config.yml').rest
-    const baseUrl = 'http://localhost:' + rest.port
-    let result
-
-    if (data) {
-        result = Unirest.put(baseUrl + '/' + cmd).basicAuth(rest.username, rest.secret)
-        .body(JSON.stringify(data))
-        .asJson()
-    } else {
-        result = Unirest.put(baseUrl + '/' + cmd).basicAuth(rest.username, rest.secret).asJson()
+    getWithAuth(resource) {
+        const result = Unirest.get(this.baseUrl + '/' + resource).basicAuth(this.restConfig.username, this.restConfig.secret).asJson()
+        return JSON.parse(result.getBody())
     }
 
-    return JSON.parse(result.getBody())
+    postWithAuth(cmd, data) {
+        let result
+
+        if (data) {
+            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret)
+            .body(JSON.stringify(data))
+            .asJson()
+        } else {
+            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret).asJson()
+        }
+
+        return JSON.parse(result.getBody())
+    }
+
+    postWithAuth(cmd, data) {
+        let result
+
+        if (data) {
+            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret)
+            .body(JSON.stringify(data))
+            .asJson()
+        } else {
+            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret).asJson()
+        }
+
+        return JSON.parse(result.getBody())
+    }
+
+    putWithAuth(cmd, data) {
+        let result
+
+        if (data) {
+            result = Unirest.put(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret)
+            .body(JSON.stringify(data))
+            .asJson()
+        } else {
+            result = Unirest.put(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret).asJson()
+        }
+
+        return JSON.parse(result.getBody())
+    }
+
+    deleteWithAuth(cmd) {
+        const result = Unirest.delete(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret).asJson()
+        return JSON.parse(result.getBody())
+    }
 }
 
-
-function deleteWithAuth(cmd) {
-    const Unirest = Packages.com.mashape.unirest.http.Unirest
-    const rest = new ResourcesUtil().getJson('config/config.yml').rest
-    const baseUrl = 'http://localhost:' + rest.port
-    const result = Unirest.delete(baseUrl + '/' + cmd).basicAuth(rest.username, rest.secret).asJson()
-    return JSON.parse(result.getBody())
-}

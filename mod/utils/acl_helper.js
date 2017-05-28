@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-load('mod/core/acl_rule.js')
+import Rule from 'core/acl_rule'
 
 /**
  * Helps verify if a device is allow or not to REGISTER and place calls.
@@ -17,12 +17,11 @@ load('mod/core/acl_rule.js')
       - 192.168.1.0/255.255.255.0
  *    - 192.168.0.1/31
  */
-function ACLHelper() {
+export default function ACLHelper() {
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
 
     this.mostSpecific = (rules, ip) => {
-
         const r = rules
             .stream()
             .filter(rule => rule.hasIp(ip))

@@ -2,17 +2,17 @@
  * @author Pedro Sanders
  * @since v1
  */
-load ('mod/core/config_util.js')
-load('mod/resources/status.js')
+import getConfig from 'core/config_util'
+import { Status } from 'resources/status'
 
-function RestService(server, locationService, dataAPIs) {
-    // For some weird reason this only works with var and not const or let
-    var config = new ConfigUtil().getConfig()
-    const Spark = Packages.spark.Spark
-    const LogManager = Packages.org.apache.logging.log4j.LogManager
-    const BasicAuthenticationFilter = Packages.com.qmetric.spark.authentication.BasicAuthenticationFilter
-    const AuthenticationDetails = Packages.com.qmetric.spark.authentication.AuthenticationDetails
-    const LOG = LogManager.getLogger()
+const Spark = Packages.spark.Spark
+const LogManager = Packages.org.apache.logging.log4j.LogManager
+const BasicAuthenticationFilter = Packages.com.qmetric.spark.authentication.BasicAuthenticationFilter
+const AuthenticationDetails = Packages.com.qmetric.spark.authentication.AuthenticationDetails
+const LOG = LogManager.getLogger()
+
+export default function (server, locationService, dataAPIs) {
+    const config = getConfig()
     const credentials = config.rest
 
     Spark.port(config.rest.port)
@@ -34,35 +34,35 @@ function RestService(server, locationService, dataAPIs) {
         java.lang.Thread.currentThread().join()
     }
 
-    get('/location', (request, response) => locationService.listAsJSON())
+    get('/locate', (request, response) => locationService.listAsJSON())
 
     get('/gateways/:filter', (request, response) => {
         const filter = request.params(":filter")
-        const result = dataAPIs.getGatewaysAPI().getGateways(filter)
+        const result = dataAPIs.GatewaysAPI.getGateways(filter)
         return JSON.stringify(result)
     })
 
     get('/peers/:filter', (request, response) => {
         const filter = request.params(":filter")
-        const result = dataAPIs.getPeersAPI().getPeers(filter)
+        const result = dataAPIs.PeersAPI.getPeers(filter)
         return JSON.stringify(result)
     })
 
     get('/agents/:filter', (request, response) => {
         const filter = request.params(":filter")
-        const result = dataAPIs.getAgentsAPI().getAgents(filter)
+        const result = dataAPIs.AgentsAPI.getAgents(filter)
         return JSON.stringify(result)
     })
 
     get('/domains/:filter', (request, response) => {
         const filter = request.params(":filter")
-        const result = dataAPIs.getDomainsAPI().getDomains(filter)
+        const result = dataAPIs.DomainsAPI.getDomains(filter)
         return JSON.stringify(result)
     })
 
     get('/dids/:filter', (request, response) => {
         const filter = request.params(":filter")
-        const result = dataAPIs.getDIDsAPI().getDIDs(filter)
+        const result = dataAPIs.DIDsAPI.getDIDs(filter)
         return JSON.stringify(result)
     })
 
@@ -81,19 +81,19 @@ function RestService(server, locationService, dataAPIs) {
 
         switch(kind) {
             case 'Agent':
-                result = dataAPIs.getAgentsAPI().createFromJSONObj(data)
+                result = dataAPIs.AgentsAPI.createFromJSONObj(data)
                 break;
             case 'Domain':
-                result = dataAPIs.getDomainsAPI().createFromJSONObj(data)
+                result = dataAPIs.DomainsAPI.createFromJSONObj(data)
                 break;
             case 'Gateway':
-                result = dataAPIs.getGatewaysAPI().createFromJSONObj(data)
+                result = dataAPIs.GatewaysAPI.createFromJSONObj(data)
                 break;
             case 'DID':
-                result = dataAPIs.getDIDsAPI().createFromJSONObj(data)
+                result = dataAPIs.DIDsAPI.createFromJSONObj(data)
                 break;
             case 'Peer':
-                result = dataAPIs.getPeersAPI().createFromJSONObj(data)
+                result = dataAPIs.PeersAPI.createFromJSONObj(data)
                 break;
             default:
                 result.status = Status.BAD_REQUEST
@@ -118,19 +118,19 @@ function RestService(server, locationService, dataAPIs) {
 
         switch(kind) {
             case 'Agent':
-                result = dataAPIs.getAgentsAPI().updateFromJSONObj(data)
+                result = dataAPIs.AgentsAPI.updateFromJSONObj(data)
                 break;
             case 'Domain':
-                result = dataAPIs.getDomainsAPI().updateFromJSONObj(data)
+                result = dataAPIs.DomainsAPI.updateFromJSONObj(data)
                 break;
             case 'Gateway':
-                result = dataAPIs.getGatewaysAPI().updateFromJSONObj(data)
+                result = dataAPIs.GatewaysAPI.updateFromJSONObj(data)
                 break;
             case 'DID':
-                result = dataAPIs.getDIDsAPI().updateFromJSONObj(data)
+                result = dataAPIs.DIDsAPI.updateFromJSONObj(data)
                 break;
             case 'Peer':
-                result = dataAPIs.getPeersAPI().updateFromJSONObj(data)
+                result = dataAPIs.PeersAPI.updateFromJSONObj(data)
                 break;
             default:
                 result.status = Status.BAD_REQUEST
@@ -141,26 +141,28 @@ function RestService(server, locationService, dataAPIs) {
     })
 
     // This is for internal use, so is ok to go unconventional
-    del('/resources/:type/:ref', (request, response) => {
-        const type = request.params(":type")
+    del('/resources/:resource/:ref', (request, response) => {
+        const resource = request.params(":resource")
         const ref = request.params(":ref")
         const filter = request.queryParams('filter')
 
-        switch(type) {
+        let result
+
+        switch(resource) {
             case 'agent':
-                result = dataAPIs.getAgentsAPI().deleteAgents(ref, filter)
+                result = dataAPIs.AgentsAPI.deleteAgents(ref, filter)
                 break;
             case 'domain':
-                result = dataAPIs.getDomainsAPI().deleteDomains(ref, filter)
+                result = dataAPIs.DomainsAPI.deleteDomains(ref, filter)
                 break;
             case 'gateway':
-                result = dataAPIs.getGatewaysAPI().deleteGateways(ref, filter)
+                result = dataAPIs.GatewaysAPI.deleteGateways(ref, filter)
                 break;
             case 'did':
-                result = dataAPIs.getDIDsAPI().deleteDIDs(ref, filter)
+                result = dataAPIs.DIDsAPI.deleteDIDs(ref, filter)
                 break;
             case 'peer':
-                result = dataAPIs.getPeersAPI().deletePeers(ref, filter)
+                result = dataAPIs.PeersAPI.deletePeers(ref, filter)
                 break;
             default:
                 result.status = Status.BAD_REQUEST
