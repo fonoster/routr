@@ -82,19 +82,19 @@ export default function (server, locationService, dataAPIs) {
         switch(kind) {
             case 'Agent':
                 result = dataAPIs.AgentsAPI.createFromJSONObj(data)
-                break;
+                break
             case 'Domain':
                 result = dataAPIs.DomainsAPI.createFromJSONObj(data)
-                break;
+                break
             case 'Gateway':
                 result = dataAPIs.GatewaysAPI.createFromJSONObj(data)
-                break;
+                break
             case 'DID':
                 result = dataAPIs.DIDsAPI.createFromJSONObj(data)
-                break;
+                break
             case 'Peer':
                 result = dataAPIs.PeersAPI.createFromJSONObj(data)
-                break;
+                break
             default:
                 result.status = Status.BAD_REQUEST
                 result.message = 'Unknown resource type.'
@@ -119,19 +119,19 @@ export default function (server, locationService, dataAPIs) {
         switch(kind) {
             case 'Agent':
                 result = dataAPIs.AgentsAPI.updateFromJSONObj(data)
-                break;
+                break
             case 'Domain':
                 result = dataAPIs.DomainsAPI.updateFromJSONObj(data)
-                break;
+                break
             case 'Gateway':
                 result = dataAPIs.GatewaysAPI.updateFromJSONObj(data)
-                break;
+                break
             case 'DID':
                 result = dataAPIs.DIDsAPI.updateFromJSONObj(data)
-                break;
+                break
             case 'Peer':
                 result = dataAPIs.PeersAPI.updateFromJSONObj(data)
-                break;
+                break
             default:
                 result.status = Status.BAD_REQUEST
                 result.message = 'Unknown resource type.'
@@ -151,19 +151,19 @@ export default function (server, locationService, dataAPIs) {
         switch(resource) {
             case 'agent':
                 result = dataAPIs.AgentsAPI.deleteAgents(ref, filter)
-                break;
+                break
             case 'domain':
                 result = dataAPIs.DomainsAPI.deleteDomains(ref, filter)
-                break;
+                break
             case 'gateway':
                 result = dataAPIs.GatewaysAPI.deleteGateways(ref, filter)
-                break;
+                break
             case 'did':
                 result = dataAPIs.DIDsAPI.deleteDIDs(ref, filter)
-                break;
+                break
             case 'peer':
                 result = dataAPIs.PeersAPI.deletePeers(ref, filter)
-                break;
+                break
             default:
                 result.status = Status.BAD_REQUEST
                 result.message = 'Unknown resource type.'

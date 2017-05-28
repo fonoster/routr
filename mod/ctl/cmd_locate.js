@@ -5,7 +5,7 @@
 import CtlUtils from 'ctl/ctl_utils'
 
 const SimpleTable = Packages.com.inamik.text.tables.SimpleTable
-const Border = Packages.com.inamik.text.tables.grid.Border;
+const Border = Packages.com.inamik.text.tables.grid.Border
 const TUtil = com.inamik.text.tables.grid.Util
 
 export default class CommandLocate {
@@ -28,7 +28,7 @@ export default class CommandLocate {
 
         if (registry.length > 0) {
             let grid = textTable.toGrid()
-            grid = Border.DOUBLE_LINE.apply(grid);
+            grid = Border.DOUBLE_LINE.apply(grid)
             TUtil.print(grid)
         } else {
             print("No registered devices at this time.")

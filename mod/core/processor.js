@@ -139,7 +139,7 @@ export default function (sipProvider, contactHeader, locationService,
                 if (config.general.recordRoute) {
                     const proxyUri = addressFactory.createSipURI(null, host)
                     proxyUri.setLrParam()
-                    const proxyAddress = addressFactory.createAddress(proxyUri);
+                    const proxyAddress = addressFactory.createAddress(proxyUri)
                     const recordRouteHeader = headerFactory.createRecordRouteHeader(proxyAddress)
                     requestOut.addHeader(recordRouteHeader)
                 }
@@ -280,7 +280,7 @@ export default function (sipProvider, contactHeader, locationService,
 
             // Strip the topmost via header
             const responseOut = responseIn.clone()
-            responseOut.removeFirst(ViaHeader.NAME);
+            responseOut.removeFirst(ViaHeader.NAME)
 
             if (cseq.getMethod().equals(Request.INVITE) && !!clientTransaction) {
                 // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
@@ -294,7 +294,7 @@ export default function (sipProvider, contactHeader, locationService,
             } else {
                 // Could be a BYE due to Record-Route
                 // There is no more Via headers; the response was intended for the proxy.
-                if (!!responseOut.getHeader(ViaHeader.NAME)) sipProvider.sendResponse(responseOut);
+                if (!!responseOut.getHeader(ViaHeader.NAME)) sipProvider.sendResponse(responseOut)
             }
             LOG.debug('------->\n' + responseOut)
         },

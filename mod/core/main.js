@@ -21,5 +21,5 @@ const dataAPIs = {
 
 const locator = new Locator(dataAPIs)
 const registrarService = new RegistrarService(locator, dataAPIs)
-new Server(locator, registrarService, dataAPIs).start();
+new Server(locator, registrarService, dataAPIs).start()
 

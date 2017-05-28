@@ -15,4 +15,4 @@ export const Status = {
     500: {value:'Ups something when wrong with the server :('},
     400: {value:'Bad request.'}
   }
-};
+}

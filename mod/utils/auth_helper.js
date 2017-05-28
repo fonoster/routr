@@ -50,13 +50,13 @@ export default function AuthHelper (headerFactory, domain='sip.io', realm='sipio
     }
 
     function generateNonce() {
-        const date = new Date();
-        const time = date.getTime();
-        const rand = new Random();
-        const pad = rand.nextLong();
-        const nonceString = (new Long(time)).toString() + (new Long(pad)).toString();
-        const messageDigest = MessageDigest.getInstance(DEFAULT_ALGORITHM);
-        const mdbytes = messageDigest.digest(nonceString.getBytes());
-        return DigestUtils.md5Hex(mdbytes);
+        const date = new Date()
+        const time = date.getTime()
+        const rand = new Random()
+        const pad = rand.nextLong()
+        const nonceString = (new Long(time)).toString() + (new Long(pad)).toString()
+        const messageDigest = MessageDigest.getInstance(DEFAULT_ALGORITHM)
+        const mdbytes = messageDigest.digest(nonceString.getBytes())
+        return DigestUtils.md5Hex(mdbytes)
     }
 }

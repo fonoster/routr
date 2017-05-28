@@ -38,11 +38,11 @@ export default class ResourcesUtil {
 
     isJson(str) {
         try {
-            JSON.parse(str);
+            JSON.parse(str)
         } catch (e) {
-            return false;
+            return false
         }
-        return true;
+        return true
     }
 
     getJson (yamlFile) {
@@ -52,7 +52,7 @@ export default class ResourcesUtil {
     isResourceValid (schemaPath, nodePath) {
         const schema = this.factory.getSchema(this.readFile(schemaPath))
         const node = this.mapper.readTree(this.getJsonString(nodePath))
-        const errors = schema.validate(node);
+        const errors = schema.validate(node)
 
         if (errors.size() > 0) {
             const i = errors.iterator()

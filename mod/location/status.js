@@ -11,4 +11,4 @@ export const Status = {
     404: {value:'Unable to find resource/s'},
     500: {value:'Ups something when wrong with the server :('},
   }
-};
+}

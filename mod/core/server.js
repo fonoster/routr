@@ -50,10 +50,10 @@ export default class Server {
         properties.setProperty('javax.sip.IP_ADDRESS', host)
         properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'OFF')
         // Guard against denial of service attack.
-        properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576');
+        properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576')
         // Drop the client connection after we are done with the transaction.
-        properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'false');
-        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', config.general.traceLevel);
+        properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'false')
+        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', config.general.traceLevel)
         // This seems to work with ws but not with udp
         properties.setProperty('gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY', 'gov.nist.javax.sip.stack.NioMessageProcessorFactory')
         properties.setProperty('gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS', 'false')
@@ -119,7 +119,7 @@ export default class Server {
            }
         })
 
-        new java.util.Timer().schedule(registerTask, 5000, regTimeout * 60 * 1000);
+        new java.util.Timer().schedule(registerTask, 5000, regTimeout * 60 * 1000)
 
         this.restService = new RestService(this, locationService, dataAPIs)
         this.restService.start()

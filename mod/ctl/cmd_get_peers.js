@@ -6,7 +6,7 @@ import CtlUtils from 'ctl/ctl_utils'
 import isEmpty from 'utils/obj_util'
 
 const SimpleTable = Packages.com.inamik.text.tables.SimpleTable
-const Border = Packages.com.inamik.text.tables.grid.Border;
+const Border = Packages.com.inamik.text.tables.grid.Border
 const TUtil = com.inamik.text.tables.grid.Util
 
 export default function getPeers(ref, filter) {
@@ -40,7 +40,7 @@ export default function getPeers(ref, filter) {
 
     if (cnt > 0) {
         let grid = textTable.toGrid()
-        grid = Border.DOUBLE_LINE.apply(grid);
+        grid = Border.DOUBLE_LINE.apply(grid)
         TUtil.print(grid)
     } else {
         print("Resource/s not found.")
