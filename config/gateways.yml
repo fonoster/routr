@@ -5,10 +5,10 @@
     ref: GW0001
   spec:
     regService:
-      host: sanjose2.voip.ms
+      host: sip.provider
       credentials:
-        username: '215706'
-        secret: 'iymscvb4rUSG4T0P4RD0'
+        username: '12345'
+        secret: 'supersecret'
       transport: tcp
       registries:
         - atlanta2.voip.ms
