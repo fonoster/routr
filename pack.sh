@@ -20,4 +20,7 @@ cp sipio.js $FOLDER_NAME/
 cp sipioctl.js $FOLDER_NAME/
 
 tar -czvf $FOLDER_NAME.tar.gz $FOLDER_NAME
+zip -r $FOLDER_NAME.zip $FOLDER_NAME
+
+# Cleanup again
 rm -rf $FOLDER_NAME
