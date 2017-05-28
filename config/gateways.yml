@@ -1,7 +1,7 @@
 - apiVersion: v1draft1
   kind: Gateway
   metadata:
-    name: Voip MS
+    name: Your Service Provider
     ref: GW0001
   spec:
     regService:
