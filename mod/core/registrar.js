@@ -5,13 +5,14 @@
 import AuthHelper from 'utils/auth_helper'
 import { Status } from 'resources/status'
 
+const ViaHeader = Packages.javax.sip.header.ViaHeader
+const ContactHeader = Packages.javax.sip.header.ContactHeader
+const FromHeader = Packages.javax.sip.header.FromHeader
+const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
+const LogManager = Packages.org.apache.logging.log4j.LogManager
+const LOG = LogManager.getLogger()
+
 export default function RegistrarService(locationService, dataAPIs) {
-    const ViaHeader = Packages.javax.sip.header.ViaHeader
-    const ContactHeader = Packages.javax.sip.header.ContactHeader
-    const FromHeader = Packages.javax.sip.header.FromHeader
-    const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
-    const LogManager = Packages.org.apache.logging.log4j.LogManager
-    const LOG = LogManager.getLogger()
     const pAPI = dataAPIs.PeersAPI
     const aAPI = dataAPIs.AgentsAPI
     const self = this
@@ -113,13 +114,13 @@ export default function RegistrarService(locationService, dataAPIs) {
             }
 
             if (user.kind.equalsIgnoreCase('peer')) {
-                let host
+                let peerHost = host
 
-                if (user.host) {
-                    host = user.spec.host
+                if (user.spec.host) {
+                    peerHost = user.spec.host
                 }
 
-                const addressOfRecord = contactURI.getScheme() + ':' + user.spec.credentials.username + '@' + host
+                const addressOfRecord = contactURI.getScheme() + ':' + user.spec.credentials.username + '@' + peerHost
                 locationService.addEndpoint(addressOfRecord, route)
             } else {
                 user.spec.domains.forEach(domain => {
