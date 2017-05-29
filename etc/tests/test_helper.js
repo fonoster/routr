@@ -14,6 +14,10 @@ var assertSame = Packages.org.junit.Assert.assertSame
 var assertNotSame = Packages.org.junit.Assert.assertNotSame
 var fail = Packages.org.junit.Assert.fail
 
+var ANSI_GREEN = "\u001B[32m"
+var ANSI_RESET = "\u001B[0m"
+var ANSI_RED = "\u001B[31m"
+
 var THelper =  {
     test: function (path, name) {
         // XXX: This makes this code less portable
@@ -43,9 +47,9 @@ var THelper =  {
             var result = new TCase().run()
 
             if (result.wasSuccessful()) {
-                print(' ', 'test [', funName, ']','=> passed');
+                print(' ', '[', funName, '] =>', ANSI_GREEN + 'passed' + ANSI_RESET)
             } else {
-                print(' ', 'test [', funName, ']','=> failed');
+                print(' ', '[', funName, '] =>', ANSI_RED + 'failed' + ANSI_RESET)
 
                 var errors = result.errors()
                 while (errors.hasMoreElements()) {

@@ -8,6 +8,7 @@ import ResourcesUtil from 'resources/utils'
 import AgentsAPI from 'resources/agents_api'
 import GatewaysAPI from 'resources/gateways_api'
 import DomainsAPI from 'resources/domains_api'
+import { Status } from 'resources/status'
 
 export let testGroup = { name: "Resources Module" }
 
@@ -34,37 +35,37 @@ testGroup.validate_resource = function () {
 
 testGroup.get_objs = function () {
     let result = rUtil.getObjs('config/agents.yml')
-    assertTrue(result.status == 200)
+    assertTrue(result.status == Status.OK)
     // Existing Agent
     result = rUtil.getObjs('config/agents.yml', "@.spec.credentials.username=='john'")
-    assertTrue(result.status == 200)
+    assertTrue(result.status == Status.OK)
     // Non-Existing Agent
     result = rUtil.getObjs('config/agents.yml', "@.spec.credentials.username=='jhon'")
-    assertTrue(result.status == 404)
+    assertTrue(result.status == Status.NOT_FOUND)
     // Invalid filter
     result = rUtil.getObjs('config/agents.yml', "@.spec.credentials.username==jhon'")
-    assertTrue(result.status == 400)
+    assertTrue(result.status == Status.BAD_REQUEST)
 }
 
 // This also validates the other resources
 testGroup.get_agents = function () {
     // NOTE: The space will not work in the console because is considered another parameter
     const result = agentsApi.getAgents("@.spec.credentials.username=='john' || @.spec.credentials.username=='janie'")
-    assertTrue(result.status == 200)
+    assertTrue(result.status == Status.OK)
     assertTrue(result.obj.length == 2)
 }
 
 // This also validates the other resources
 testGroup.get_agent = function () {
     const result = agentsApi.getAgent('sip.ocean.com', 'janie')
-    assertTrue(result.status == 200)
+    assertTrue(result.status == Status.OK)
     assertTrue(result.obj.kind == 'Agent')
 }
 
 // This also validates the other resources
 testGroup.get_gw_by_ref = function () {
     const result = gwsAPI.getGWByRef('GW0001')
-    assertTrue(result.status == 200)
+    assertTrue(result.status == Status.OK)
     assertTrue(result.obj.kind == 'Gateway')
 }
 
@@ -74,5 +75,5 @@ testGroup.get_aor = function () {
     const addressFactory = SipFactory.getInstance().createAddressFactory()
     const aor = addressFactory.createSipURI('john', 'sip.ocean.com')
     const result = domainsAPI.getRouteForAOR(aor)
-    assertTrue(result.status == 200)
+    assertTrue(result.status == Status.OK)
 }

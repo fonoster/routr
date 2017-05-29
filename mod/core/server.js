@@ -15,6 +15,8 @@ const SipFactory = Packages.javax.sip.SipFactory
 const Properties = Packages.java.util.Properties
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
+const ANSI_GREEN = "\u001B[32m"
+const ANSI_RESET = "\u001B[0m"
 
 export default class Server {
 
@@ -39,7 +41,7 @@ export default class Server {
         const regTimeout = this.regTimeout
 
         LOG.info('Starting Sip I/O')
-        LOG.info('Listening on IP ' + host)
+        LOG.info('Listening on IP: ' + ANSI_GREEN + host + ANSI_RESET)
         if (config.general.externalHost != undefined) LOG.info('External Host: ' + config.general.externalHost)
 
         const properties = new Properties()
