@@ -9,7 +9,7 @@ node_modules
 *.zip
 build
 libs
-config/gateways.yml
+config/*
 .gradle
 .idea
 *.iml
