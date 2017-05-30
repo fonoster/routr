@@ -9,6 +9,10 @@ import CommandGet from 'ctl/cmd_get'
 import CommandDel from 'ctl/cmd_delete'
 import CommandStop from 'ctl/cmd_stop'
 
+// Just to avoid the annoying old log4j messages
+org.apache.log4j.BasicConfigurator.configure(new
+    org.apache.log4j.varia.NullAppender())
+
 const ArgumentParsers = Packages.net.sourceforge.argparse4j.ArgumentParsers
 const parser = ArgumentParsers.newArgumentParser('sipioctl')
     .description('sipioctl controls the Sip I/O server')
