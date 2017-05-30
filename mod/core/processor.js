@@ -230,8 +230,13 @@ export default function (sipProvider, contactHeader, locationService,
                             context.requestOut = requestOut
                             contextStorage.saveContext(context)
                         } catch (e) {
-                            LOG.info(e.getMessage())
-                            LOG.trace(e.getStackTrace())
+                            if (e instanceof java.net.ConnectException) {
+                                LOG.error('Connection refused. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/ConnectException.html')
+                            } else if (e instanceof java.net.NoRouteToHostException) {
+                                LOG.error('No route to host. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/NoRouteToHostException.html')
+                            } else {
+                                LOG.error(e.getStackTrace())
+                            }
                         }
                     }
 
