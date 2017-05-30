@@ -31,7 +31,7 @@ export default function (server, locationService, dataAPIs) {
 
     this.start = () => {
         LOG.info('Starting Restful service on port ' + config.rest.port)
-        java.lang.Thread.currentThread().join()
+        //java.lang.Thread.currentThread().join()
     }
 
     get('/locate', (request, response) => locationService.listAsJSON())

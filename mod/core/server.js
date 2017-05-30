@@ -123,14 +123,19 @@ export default class Server {
 
         new java.util.Timer().schedule(registerTask, 5000, regTimeout * 60 * 1000)
 
+        locationService.start()
+
         this.restService = new RestService(this, locationService, dataAPIs)
         this.restService.start()
+
+        //java.lang.Thread.currentThread().join()
     }
 
     stop() {
         LOG.info('Stopping server')
         this.restService.stop()
         this.sipStack.stop()
+        this.locationService.stop()
         exit(0)
     }
 }

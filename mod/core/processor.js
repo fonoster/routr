@@ -43,11 +43,31 @@ export default function (sipProvider, contactHeader, locationService,
     function register(request, transaction) {
         const contactHeader = request.getHeader(ContactHeader.NAME)
         const contactURI = contactHeader.getAddress().getURI()
-        const expH = request.getHeader(ExpiresHeader.NAME) || contactHeader.getExpires()
+        const expH = request.getHeader(ExpiresHeader.NAME).getExpires() || contactHeader.getExpires()
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
-        const addressOfRecord = contactURI.toString()
+        const toHeader = request.getHeader(ToHeader.NAME)
+        const addressOfRecord = toHeader.getAddress().getURI()
 
-        if (authHeader == null || expH == 0) {
+        // See: Removing bindings -> https://tools.ietf.org/html/rfc3261#section-10.2.2
+        if (contactHeader.getAddress().isWildcard() && expH <= 0) {
+            locationService.removeEndpoint(addressOfRecord)
+            const ok = messageFactory.createResponse(Response.OK, request)
+            ok.addHeader(contactHeader)
+            ok.addHeader(expH)
+            transaction.sendResponse(ok)
+            LOG.debug('------->\n' + ok)
+            return
+        } else if (!contactHeader.getAddress().isWildcard() && expH <= 0) {
+            locationService.removeEndpoint(addressOfRecord, contactURI)
+            const ok = messageFactory.createResponse(Response.OK, request)
+            ok.addHeader(contactHeader)
+            ok.addHeader(expH)
+            transaction.sendResponse(ok)
+            LOG.debug('------->\n' + ok)
+            return
+        }
+
+        if (authHeader == null) {
             const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
             unauthorized.addHeader(authHelper.generateChallenge())
             transaction.sendResponse(unauthorized)

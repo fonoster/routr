@@ -5,11 +5,11 @@
  * @author Pedro Sanders
  * @since v1
  */
+import { Status } from 'location/status'
+
 const HashMap = Packages.java.util.HashMap
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
-
-import { Status } from 'location/status'
 
 /**
  * NOTE #1: Notice that addressOfRecord.toString !eq to this.aorAsString(addressOfRecord). This is important to ensure
@@ -17,10 +17,11 @@ import { Status } from 'location/status'
  */
 export default class Locator {
 
-    constructor(dataAPIs) {
-       this.db = new HashMap()
-       this.didsAPI = dataAPIs.DIDsAPI
-       this.domainsAPI = dataAPIs.DomainsAPI
+    constructor(dataAPIs, checkExpiresTime = 1) {
+        this.checkExpiresTime = checkExpiresTime
+        this.db = new HashMap()
+        this.didsAPI = dataAPIs.DIDsAPI
+        this.domainsAPI = dataAPIs.DomainsAPI
     }
 
     aorAsString(addressOfRecord) {
@@ -41,21 +42,26 @@ export default class Locator {
         const result = this.findEndpoint(addressOfRecord)
         let routes
 
-        if (result.status != Status.OK) {
+        // ThruGW is not available in db. We obtain that from api
+        if (result.status == Status.OK && !result.obj.thruGW) {
+            routes = result.obj
+        } else {
             routes = new HashMap()
         }
 
-        const routeKey = route.sentByAddress + route.sentByPort + route.received + route.rport
+        // Not using aorAsString because we need to consider the port, etc.
+        const routeKey = route.contactURI.toString()
         routes.put(routeKey, route)
+
         // See NOTE #1
         this.db.put(this.aorAsString(addressOfRecord), routes)
     }
 
     findEndpoint(addressOfRecord) {
-        let result = null
+        let result
 
         if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
-            const result = this.didsAPI.getDIDByTelUrl(this.aorAsString(addressOfRecord))
+            result = this.didsAPI.getDIDByTelUrl(this.aorAsString(addressOfRecord))
 
             if (result.status == Status.OK) {
                 const route = this.db.get(did.spec.location.aorLink)
@@ -81,7 +87,7 @@ export default class Locator {
             }
 
             // Then try to find for a DID with such user
-            let result = this.didsAPI.getDIDByTelUrl('tel:' + addressOfRecord.getUser())
+            result = this.didsAPI.getDIDByTelUrl('tel:' + addressOfRecord.getUser())
 
             if (result.status == Status.OK) {
                 const did = result.obj
@@ -102,7 +108,7 @@ export default class Locator {
             if (result.status == Status.OK) {
                 return {
                     status: Status.OK,
-                     message: Status.message[Status.OK].value,
+                    message: Status.message[Status.OK].value,
                     obj: result.obj
                 }
             }
@@ -115,8 +121,14 @@ export default class Locator {
     }
 
     // See NOTE #1
-    removeEndpoint(addressOfRecord) {
-        return this.db.remove(this.aorAsString(addressOfRecord))
+    removeEndpoint(addressOfRecord, contactURI) {
+        const aor = this.aorAsString(addressOfRecord)
+        // Remove all bindings
+        if (contactURI == null) {
+            return this.db.remove(aor)
+        }
+        // Not using aorAsString because we need to consider the port, etc.
+        return this.db.get(aor).remove(contactURI.toString())
     }
 
     listAsJSON (domainUri) {
@@ -125,19 +137,16 @@ export default class Locator {
 
         while(aors.hasNext()) {
             let key = aors.next()
-            let value = this.db.get(key)
+            let routes = this.db.get(key)
             let contactInfo = ''
+            let i = routes.values().iterator()
 
-            if (value instanceof HashMap) {
-                let i = value.values().iterator()
+            if (i.hasNext()) {
+                const rObj = i.next()
+                let r = rObj.contactURI + ';nat=' + rObj.nat + ';expires=' + rObj.expires
 
-                while(i.hasNext()) {
-                    const rObj = i.next()
-                    let r = rObj.contactURI + ';nat=' + rObj.nat + ';timestamp=' + rObj.registeredOn
-
-                    if (i.hasNext()) r = r + ','
-                    contactInfo = contactInfo + r
-                }
+                if (i.hasNext()) r = r + ' [...]'
+                contactInfo = contactInfo + r
             }
 
             let tmp = {
@@ -148,5 +157,37 @@ export default class Locator {
         }
 
         return JSON.stringify(s)
+    }
+
+    start() {
+        LOG.info('Starting Location service')
+        var locDB = this.db
+
+        let unbindExpiredTask = new java.util.TimerTask({
+            run: function() {
+                const e = locDB.values().iterator()
+
+                while(e.hasNext()) {
+                    let routes = e.next()
+                    let i = routes.values().iterator()
+
+                    while (i.hasNext()) {
+                        const route = i.next()
+                        const elapsed = (Date.now() - route.registeredOn) / 1000
+                        if ((route.expires - elapsed) <= 0) {
+                            i.remove()
+                        }
+
+                        if (routes.size() == 0) e.remove()
+                    }
+                }
+            }
+        })
+
+        new java.util.Timer().schedule(unbindExpiredTask, 5000, this.checkExpiresTime * 60 * 1000)
+    }
+
+    stop() {
+        // ??
     }
 }

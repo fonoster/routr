@@ -8,9 +8,12 @@ import { Status } from 'resources/status'
 const ViaHeader = Packages.javax.sip.header.ViaHeader
 const ContactHeader = Packages.javax.sip.header.ContactHeader
 const FromHeader = Packages.javax.sip.header.FromHeader
+const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
 const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
+const SipFactory = Packages.javax.sip.SipFactory
+const addressFactory = SipFactory.getInstance().createAddressFactory()
 
 export default function RegistrarService(locationService, dataAPIs) {
     const pAPI = dataAPIs.PeersAPI
@@ -50,6 +53,7 @@ export default function RegistrarService(locationService, dataAPIs) {
         const contactURI = contactHeader.getAddress().getURI()
         const fromHeader = request.getHeader(FromHeader.NAME)
         const fromURI = fromHeader.getAddress().getURI()
+        const expires = request.getHeader(ExpiresHeader.NAME).getExpires() || contactHeader.getExpires()
         const host = fromURI.getHost()
 
         // Get response from header
@@ -104,12 +108,14 @@ export default function RegistrarService(locationService, dataAPIs) {
 
             const route = {
                 isLinkAOR: false,
+                thruGW: false,
                 sentByAddress: viaHeader.getHost(),
                 sentByPort: viaHeader.getPort(),
                 received: viaHeader.getReceived(),
                 rport: viaHeader.getParameter('rport'),
                 contactURI: contactURI,
                 registeredOn: Date.now(),
+                expires: expires,
                 nat: nat
             }
 
@@ -120,11 +126,13 @@ export default function RegistrarService(locationService, dataAPIs) {
                     peerHost = user.spec.host
                 }
 
-                const addressOfRecord = contactURI.getScheme() + ':' + user.spec.credentials.username + '@' + peerHost
+                const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, peerHost)
+                addressOfRecord.setSecure(contactURI.isSecure())
                 locationService.addEndpoint(addressOfRecord, route)
             } else {
                 user.spec.domains.forEach(domain => {
-                    const addressOfRecord = contactURI.getScheme() + ':' + user.spec.credentials.username + '@' + domain
+                    const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, domain)
+                    addressOfRecord.setSecure(contactURI.isSecure())
                     locationService.addEndpoint(addressOfRecord, route)
                 })
             }
