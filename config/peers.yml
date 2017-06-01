@@ -2,8 +2,9 @@
 - apiVersion: v1draft1
   kind: Peer
   metadata:
-    name: Asterisk PBX 13
+    name: Asterisk PBX
   spec:
+    device: 'astserver'
     credentials:
-      username: ms
-      secret: 1c3cr34m
+      username: ast
+      secret: '1234'
