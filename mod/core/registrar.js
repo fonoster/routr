@@ -122,8 +122,8 @@ export default function RegistrarService(locationService, dataAPIs) {
             if (user.kind.equalsIgnoreCase('peer')) {
                 let peerHost = host
 
-                if (user.spec.host) {
-                    peerHost = user.spec.host
+                if (user.spec.device) {
+                    peerHost = user.spec.device
                 }
 
                 const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, peerHost)
