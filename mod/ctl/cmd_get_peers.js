@@ -24,7 +24,7 @@ export default function getPeers(ref, filter) {
         .nextRow()
         .nextCell().addLine('REF')
         .nextCell().addLine('NAME')
-        .nextCell().addLine('HOST')
+        .nextCell().addLine('DEVICE NAME')
 
     let cnt = 0
 
@@ -33,7 +33,7 @@ export default function getPeers(ref, filter) {
             textTable.nextRow()
                 .nextCell().addLine(p.spec.credentials.username)
                 .nextCell().addLine(p.metadata.name)
-                .nextCell().addLine(p.spec.host)
+                .nextCell().addLine(p.spec.device)
             cnt++
         }
     })
