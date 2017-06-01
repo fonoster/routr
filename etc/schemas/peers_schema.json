@@ -30,7 +30,7 @@
                         },
                         "required": ["username", "secret"]
                     },
-                    "host": {"type": "string"}
+                    "device": {"type": "string"}
                 },
                 "required": ["credentials"]
             }
