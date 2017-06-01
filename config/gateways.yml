@@ -1,14 +1,14 @@
 - apiVersion: v1draft1
   kind: Gateway
   metadata:
-    name: Voip MS
+    name: SIP Provider
     ref: GW0001
   spec:
     regService:
-      host: sanjose2.voip.ms
+      host: sip.provider.net
       credentials:
         username: '12345'
         secret: 'supersecret'
       transport: tcp
       registries:
-        - atlanta2.voip.ms
+        - sip2.provider.net

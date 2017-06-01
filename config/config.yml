@@ -8,7 +8,7 @@ general:
 rest:
   port: 4567
   username: admin
-  secret: 1234
+  secret: '1234'
   disable: false
 resources:
   baseUrl: http://localhost:8080/v1/admin
