@@ -75,6 +75,8 @@ export default class Locator {
                 }
             }
         } else if (addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
+            // There is currently no way to block incoming traffic from other domains
+
             // First just check the db for such addressOfRecord
             let routes = this.db.get(this.aorAsString(addressOfRecord))
 
@@ -86,7 +88,7 @@ export default class Locator {
                 }
             }
 
-            // Then try to find for a DID with such user
+            // Then search for a DID with such user
             result = this.didsAPI.getDIDByTelUrl('tel:' + addressOfRecord.getUser())
 
             if (result.status == Status.OK) {
