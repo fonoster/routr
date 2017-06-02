@@ -5,7 +5,7 @@
 import AccountManagerService from 'core/account_manager_service'
 import Context    from 'core/context'
 import AuthHelper from 'utils/auth_helper'
-import DomainUtil from 'utils/domain_utils'
+import AclUtil from 'core/acl/acl_util'
 import { Status } from 'location/status'
 import getConfig from 'core/config_util'
 
@@ -38,7 +38,7 @@ export default function (sipProvider, contactHeader, locationService,
     const authHelper =  new AuthHelper(headerFactory)
     const dAPI = dataAPIs.DomainsAPI
 
-    const defaultDomainAcl = config.general.defaultDomainAcl
+    const generalAcl = config.general.accessControlList
 
     function register(request, transaction) {
         const contactHeader = request.getHeader(ContactHeader.NAME)
@@ -143,11 +143,33 @@ export default function (sipProvider, contactHeader, locationService,
                 const host = lp.getIPAddress().toString()
                 const port = lp.getPort()
                 const toHeader = requestIn.getHeader(ToHeader.NAME)
-                let addressOfRecord = toHeader.getAddress().getURI()
+                let addressOfRecord
+
+                // Discover DIDs sent via a non-standard header
+                // The header must be added at config.general.addressInfo[*]
+                // If the such header is present then overwrite the AOR
+                if(!!config.general.addressInfo) {
+                    config.general.addressInfo.forEach(function(info) {
+                        if (!!requestIn.getHeader(info)) addressOfRecord = addressFactory.createTelURL(requestIn.getHeader(info).getValue())
+                    })
+                } else {
+                   addressOfRecord = toHeader.getAddress().getURI()
+                }
+
+                // Security check
+                let result = dAPI.getDomain(addressOfRecord.getHost())
+
+                if (result.status == Status.OK) {
+                    const domainObj = result.obj
+                    if(!new AclUtil(generalAcl).isNetworkAllow(domainObj, addressOfRecord.getHost())) {
+                        serverTransaction.sendResponse(messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
+                        LOG.debug('<-------\n' + requestIn)
+                        return
+                    }
+                }
 
                 if (routeHeader) {
                     const nextHop = routeHeader.getAddress().getURI().getHost()
-
                     if (nextHop.equals(host) || nextHop.equals(config.general.externalHost)) {
                         requestOut.removeFirst(RouteHeader.NAME)
                     }
@@ -156,6 +178,7 @@ export default function (sipProvider, contactHeader, locationService,
                 const maxForwardsHeader = requestOut.getHeader(MaxForwardsHeader.NAME)
                 maxForwardsHeader.decrementMaxForwards()
 
+                // Stay in the signaling path?
                 if (config.general.recordRoute) {
                     const proxyUri = addressFactory.createSipURI(null, host)
                     proxyUri.setLrParam()
@@ -169,47 +192,26 @@ export default function (sipProvider, contactHeader, locationService,
                 viaHeader.setRPort()
                 requestOut.addFirst(viaHeader)
 
-                let result = dAPI.getDomain(addressOfRecord.getHost())
-
-                if (result.status == Status.OK) {
-                    const domain = result.obj
-                    if(!new DomainUtil(defaultDomainAcl).isDomainAllow(domain, addressOfRecord.getHost())) {
-                        serverTransaction.sendResponse(messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
-                        return
-                    }
-                }
-
-                // Discover DIDs sent via a non-standard header
-                // The header must be added at config.general.addressInfo[*]
-                // If the such header is present then overwrite the AOR
-                if(!!config.general.addressInfo) {
-                    config.general.addressInfo.forEach(function(info) {
-                        if (!!requestIn.getHeader(info)) addressOfRecord = addressFactory.createTelURL(requestIn.getHeader(info).getValue())
-                    })
-                }
-
                 function processRoute(route) {
                     requestOut.setRequestURI(route.contactURI)
 
-                   if (route.thruGW) {
-                        const gwRef = headerFactory.createHeader('GWRef', route.gwRef)
+                    if (route.thruGW) {
                         const toHeader = requestIn.getHeader(ToHeader.NAME)
                         const fromHeader = requestIn.getHeader(FromHeader.NAME)
-                        const to = toHeader.getAddress().toString().match('sips?:(.*)@(.*)')[1]
+                        const gwRef = headerFactory.createHeader('GWRef', route.gwRef)
+                        const from = 'sip:' + route.gwUsername + '@' + route.gwHost
+                        const to = 'sip:' + toHeader.getAddress().toString().match('sips?:(.*)@(.*)')[1] + '@' + route.gwHost
 
                         // This might not work with all provider
-                        const fromAddress = addressFactory.createAddress('sip:' + route.gwUsername + '@' + route.gwHost)
+                        const fromAddress = addressFactory.createAddress(from)
                         fromAddress.setDisplayName(route.did)
-                        const toAddress = addressFactory.createAddress('sip:' + to + '@' + route.gwHost)
-                        toAddress.setDisplayName(to)
+                        const toAddress = addressFactory.createAddress(to)
 
                         fromHeader.setAddress(fromAddress)
                         toHeader.setAddress(toAddress)
 
-                        // I'm not sure if this makes sense for TCP
                         requestOut.setHeader(gwRef)
                         requestOut.setHeader(fromHeader)
-                        // This didn't seem necessary with some providers
                         requestOut.setHeader(toHeader)
                    }
 
@@ -243,16 +245,18 @@ export default function (sipProvider, contactHeader, locationService,
                     LOG.debug('<-------\n' + requestOut)
                 }
 
-                // Contact Address/es
+                // Contact address/es
                 result = locationService.findEndpoint(addressOfRecord)
 
                 if (result.status == Status.NOT_FOUND) {
                     serverTransaction.sendResponse(messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
+                    LOG.debug('<-------\n' + requestIn)
                     return
                 }
 
                 const location = result.obj
 
+                // Forking transmission
                 if (location instanceof HashMap) {
                     let caIterator
 
@@ -262,6 +266,7 @@ export default function (sipProvider, contactHeader, locationService,
 
                     if (!caIterator.hasNext()) {
                         serverTransaction.sendResponse(messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
+                        LOG.debug('<-------\n' + requestIn)
                         return
                     }
 
