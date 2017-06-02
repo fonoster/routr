@@ -2,14 +2,13 @@
  * @author Pedro Sanders
  * @since v1
  */
-import ACLHelper from 'utils/acl_helper'
-import Rule from 'core/acl_rule'
+import ACLHelper from 'core/acl/acl_helper'
+import Rule from 'core/acl/acl_rule'
 
-export default class AclUtil () {
+export default class AclUtil {
 
     constructor(generalAcl) {
         this.generalAcl = generalAcl
-        this.rules = new java.util.ArrayList()
     }
 
     addRules(acl) {
@@ -17,23 +16,26 @@ export default class AclUtil () {
             return
 
         if (acl.deny !== undefined) {
-            acl.deny.forEach(r => { rules.add(new Rule('deny', r)) })
+            acl.deny.forEach(r => { this.rules.add(new Rule('deny', r)) })
         }
 
         if (acl.allow !== undefined) {
-            acl.allow.forEach(r => { rules.add(new Rule('allow', r)) })
+            acl.allow.forEach(r => { this.rules.add(new Rule('allow', r)) })
         }
     }
 
-    isNetworkAllow(domainObj, calleeIp) {
-        if (domain == null) return false
+    isIpAllowed(domainObj, calleeIp) {
+        if (domainObj == null) return false
+
+        // Is important to reset this every time
+        this.rules = new java.util.ArrayList()
 
         if (this.generalAcl !== undefined)
-            addRules(generalAcl)
+            this.addRules(this.generalAcl)
 
         if (domainObj.spec.context.accessControlList !== undefined)
-            addRules(domainObj.spec.context.accessControlList)
+            this.addRules(domainObj.spec.context.accessControlList)
 
-        return new ACLHelper().mostSpecific(rules, calleeIp).action() == 'allow'
+        return ACLHelper.mostSpecific(this.rules, calleeIp).action == 'allow'
     }
 }

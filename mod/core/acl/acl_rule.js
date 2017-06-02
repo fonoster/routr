@@ -8,22 +8,27 @@ const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9
 
 export default class Rule {
 
-    constructor(action, p) {
-        this.action = action
+    constructor(action, net) {
+        if (!action.equals('allow') && !action.equals('deny'))
+            throw "Parameter action can only be 'allow' or 'deny'"
+
         let subnetUtils
 
-        if(isIp(p)) {
-            subnetUtils = new SubnetUtils(p + '/31')
-        } else if(isCidr(p)) {
-            subnetUtils = new SubnetUtils(p)
-        } else if(isIpAndMask(p)) {
-            let s = p.split('/')
+        if(this.isIp(net)) {
+            subnetUtils = new SubnetUtils(net + '/31')
+        } else if(this.isCidr(net)) {
+            subnetUtils = new SubnetUtils(net)
+        } else if(this.isIpAndMask(net)) {
+            let s = net.split('/')
             subnetUtils = new SubnetUtils(s[0], s[1])
         } else {
             throw new java.lang.RuntimeException('Invalid rule notation. Must be IPv4 value, CIDR, or Ip/Mask notation.')
         }
         subnetUtils.setInclusiveHostCount(true)
+
         this.subnetUtils = subnetUtils
+        this._action = action
+        this._net = net
     }
 
     isIp (v) {
@@ -45,11 +50,15 @@ export default class Rule {
         return this.subnetUtils.getInfo().isInRange(address)
     }
 
-    get addressCount() {
+    getAddressCount() {
         return this.subnetUtils.getInfo().getAddressCountLong()
     }
 
     get action() {
-        return return this.action
+        return this._action
+    }
+
+    get net () {
+        return this._net
     }
 }
