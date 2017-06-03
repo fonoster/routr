@@ -3,8 +3,10 @@
  * @since v1
  */
 import ResourcesUtil from 'resources/utils'
-import { Status } from 'resources/status'
 import isEmpty from 'utils/obj_util'
+import { Status } from 'resources/status'
+
+const FromHeader = Packages.javax.sip.header.FromHeader
 
 export default class PeersAPI {
 

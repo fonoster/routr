@@ -46,7 +46,7 @@ export default class GatewaysAPI {
         }
     }
 
-    getGWByRef(ref) {
+    getGatewayByRef(ref) {
         const resource = this.rUtil.getJson(this.resourcePath)
         let gateways
 

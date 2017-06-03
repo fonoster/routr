@@ -5,11 +5,14 @@
  * @author Pedro Sanders
  * @since v1
  */
+import isEmpty from 'utils/obj_util'
 import { Status } from 'location/status'
+import { Status as RStatus } from 'resources/status'
 
 const HashMap = Packages.java.util.HashMap
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
+const SipFactory = Packages.javax.sip.SipFactory
 
 /**
  * NOTE #1: Notice that addressOfRecord.toString !eq to this.aorAsString(addressOfRecord). This is important to ensure
@@ -22,6 +25,8 @@ export default class Locator {
         this.db = new HashMap()
         this.didsAPI = dataAPIs.DIDsAPI
         this.domainsAPI = dataAPIs.DomainsAPI
+        this.gatewaysAPI = dataAPIs.GatewaysAPI
+        this.addressFactory = SipFactory.getInstance().createAddressFactory()
     }
 
     aorAsString(addressOfRecord) {
@@ -42,8 +47,8 @@ export default class Locator {
         const result = this.findEndpoint(addressOfRecord)
         let routes
 
-        // ThruGW is not available in db. We obtain that from api
-        if (result.status == Status.OK && !result.obj.thruGW) {
+        // ThruGw is not available in db. We obtain that from api
+        if (result.status == Status.OK && !result.obj.thruGw) {
             routes = result.obj
         } else {
             routes = new HashMap()
@@ -104,8 +109,8 @@ export default class Locator {
                 }
             }
 
-            // Finally try search for a Domain egress route
-            result = this.domainsAPI.getRouteForAOR(addressOfRecord)
+            // Endpoint can only be reach thru a gateway
+            result = this.getEgressRouteForAOR(addressOfRecord)
 
             if (result.status == Status.OK) {
                 return {
@@ -119,6 +124,120 @@ export default class Locator {
         return {
             status: Status.NOT_FOUND,
             message: Status.message[Status.NOT_FOUND].value
+        }
+    }
+
+    getEgressRouteForAOR(addressOfRecord) {
+        if (!(addressOfRecord instanceof Packages.javax.sip.address.SipURI)) throw 'AOR must be instance of javax.sip.address.SipURI'
+
+        const didsAPI = this.didsAPI
+        const domainsAPI = this.domainsAPI
+        const gatewaysAPI = this.gatewaysAPI
+        const addressFactory = this.addressFactory
+
+        let result = domainsAPI.getDomains()
+
+        let route
+
+        if (result.status == RStatus.OK) {
+            const domains = result.obj
+
+            domains.forEach(domain => {
+                if (!isEmpty(domain.spec.context.egressPolicy)) {
+                    // Get DID and Gateway info
+                    result = didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
+
+                    if (result.status == RStatus.OK) {
+                        const did = result.obj
+
+                        result = gatewaysAPI.getGateway(did.metadata.gwRef)
+
+                        if (result.status == RStatus.OK) {
+
+                            const gw = result.obj
+                            const gwHost = gw.spec.regService.host
+                            const gwUsername = gw.spec.regService.credentials.username
+                            const gwRef = gw.metadata.ref
+                            const egressRule = domain.spec.context.egressPolicy.rule
+                            const pattern = 'sip:' + egressRule + '@' + domain.spec.context.domainUri
+
+                            if (new RegExp(pattern).test(addressOfRecord.toString())) {
+                                const contactURI = addressFactory.createSipURI(addressOfRecord.getUser(), gwHost)
+                                contactURI.setSecure(addressOfRecord.isSecure())
+
+                                route = {
+                                    isLinkAOR: false,
+                                    thruGw: true,
+                                    rule: egressRule,
+                                    gwUsername: gwUsername,
+                                    gwRef: gwRef,
+                                    gwHost: gwHost,
+                                    didRef: did.metadata.didRef,
+                                    did: did.spec.location.telUrl.split(':')[1],
+                                    contactURI: contactURI
+                                }
+                            }
+                        }
+                    }
+                }
+            })
+        }
+
+        if(route) {
+            return {
+                status: RStatus.OK,
+                message: RStatus.message[RStatus.OK].value,
+                obj: route
+            }
+        }
+
+        return {
+            status: RStatus.NOT_FOUND,
+            message: RStatus.message[RStatus.NOT_FOUND].value
+        }
+    }
+
+    getEgressRouteForPeer(addressOfRecord, didRef) {
+        const addressFactory = this.addressFactory
+        let result = this.didsAPI.getDID(didRef)
+        let route
+
+        if (result.status == Status.OK) {
+            const did = result.obj
+            result = this.gatewaysAPI.getGateway(did.metadata.gwRef)
+
+            if (result.status == Status.OK) {
+                const gw = result.obj
+                const gwHost = gw.spec.regService.host
+                const gwUsername = gw.spec.regService.credentials.username
+                const gwRef = gw.metadata.ref
+
+                const contactURI = addressFactory.createSipURI(addressOfRecord.getUser(), gwHost)
+
+                route = {
+                    isLinkAOR: false,
+                    thruGw: true,
+                    gwUsername: gwUsername,
+                    gwRef: gwRef,
+                    gwHost: gwHost,
+                    didRef: didRef,
+                    did: did.spec.location.telUrl.split(':')[1],
+                    contactURI: contactURI
+                }
+           }
+        }
+
+        if(route) {
+            return {
+                status: RStatus.OK,
+                message: RStatus.message[RStatus.OK].value,
+                obj: route
+            }
+        }
+
+        return {
+            status: RStatus.NOT_FOUND,
+            message: RStatus.message[RStatus.NOT_FOUND].value
         }
     }
 

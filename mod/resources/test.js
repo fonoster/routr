@@ -64,16 +64,7 @@ testGroup.get_agent = function () {
 
 // This also validates the other resources
 testGroup.get_gw_by_ref = function () {
-    const result = gwsAPI.getGWByRef('GW0001')
+    const result = gwsAPI.getGatewayByRef('GW0001')
     assertTrue(result.status == Status.OK)
     assertTrue(result.obj.kind == 'Gateway')
-}
-
-// This also validates the other resources
-testGroup.get_aor = function () {
-    const SipFactory = Packages.javax.sip.SipFactory
-    const addressFactory = SipFactory.getInstance().createAddressFactory()
-    const aor = addressFactory.createSipURI('john', 'sip.ocean.com')
-    const result = domainsAPI.getRouteForAOR(aor)
-    assertTrue(result.status == Status.OK)
 }
