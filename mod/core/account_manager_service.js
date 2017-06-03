@@ -12,9 +12,9 @@ export default function AccountManagerService(dataAPIs) {
     var gwAPI = dataAPIs.GatewaysAPI
     var self = this
 
-    function getGW(ct) {
-        const gwRef = ct.getRequest().getHeader('GWRef').value
-        const result = gwAPI.getGWByRef(gwRef)
+    function getGateway(ct) {
+        const gwRef = ct.getRequest().getHeader('GwRef').value
+        const result = gwAPI.getGatewayByRef(gwRef)
 
         if (result.status == 200) {
             const gateway = result.obj
@@ -34,13 +34,13 @@ export default function AccountManagerService(dataAPIs) {
             getCredentials: function (challengedTransaction, realm) {
                 return new UserCredentials({
                     getUserName: function() {
-                        return getGW(challengedTransaction).username
+                        return getGateway(challengedTransaction).username
                     },
                     getPassword: function() {
-                        return getGW(challengedTransaction).secret
+                        return getGateway(challengedTransaction).secret
                     },
                     getSipDomain: function() {
-                        return getGW(challengedTransaction).host
+                        return getGateway(challengedTransaction).host
                     }
                 })
             }
