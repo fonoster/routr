@@ -3,11 +3,11 @@
  * @since v1
  */
 import AccountManagerService from 'core/account_manager_service'
-import Context    from 'core/context'
+import Context from 'core/context'
 import AuthHelper from 'utils/auth_helper'
 import AclUtil from 'core/acl/acl_util'
-import { Status } from 'location/status'
 import getConfig from 'core/config_util'
+import { Status } from 'location/status'
 
 const config = getConfig()
 const HashMap = Packages.java.util.HashMap
@@ -31,12 +31,15 @@ const sipFactory = SipFactory.getInstance()
 const messageFactory = sipFactory.createMessageFactory()
 const headerFactory = sipFactory.createHeaderFactory()
 const addressFactory = sipFactory.createAddressFactory()
+const dsam = new Packages.gov.nist.javax.sip.clientauthutils.DigestServerAuthenticationHelper()
 
 export default function (sipProvider, contactHeader, locationService,
     registrarService, dataAPIs, contextStorage) {
     const accountManagerService = new AccountManagerService(dataAPIs)
     const authHelper =  new AuthHelper(headerFactory)
     const dAPI = dataAPIs.DomainsAPI
+    const pAPI = dataAPIs.PeersAPI
+    const aAPI = dataAPIs.AgentsAPI
 
     const generalAcl = config.general.accessControlList
 
@@ -139,11 +142,38 @@ export default function (sipProvider, contactHeader, locationService,
                 const routeHeader = requestIn.getHeader(RouteHeader.NAME)
                 const rVia = requestIn.getHeader(ViaHeader.NAME)
                 const transport = rVia.getTransport().toLowerCase()
+                const contactHeader = requestIn.getHeader(ContactHeader.NAME)
+                const contactURI = contactHeader.getAddress().getURI()
                 const lp = sipProvider.getListeningPoint(transport)
                 const host = lp.getIPAddress().toString()
                 const port = lp.getPort()
+                const fromHeader = requestIn.getHeader(FromHeader.NAME)
+                const fromURI = fromHeader.getAddress().getURI()
                 const toHeader = requestIn.getHeader(ToHeader.NAME)
+
                 let addressOfRecord
+
+                // Authenticating
+                let result = pAPI.getPeer(fromURI.getUser())
+                let user
+
+                if (result.status == Status.OK) {
+                    user = result.obj
+                } else {
+                    result = aAPI.getAgent(fromURI.getHost(), fromURI.getUser())
+
+                    if (result.status == Status.OK ) {
+                        user = result.obj
+                    }
+                }
+
+                if (!dsam.doAuthenticatePlainTextPassword(requestIn, user.spec.credentials.secret)) {
+                    const challengeResponse = messageFactory.createResponse(Response.PROXY_AUTHENTICATION_REQUIRED, requestIn)
+                    dsam.generateChallenge(headerFactory, challengeResponse, "sip.io")
+                    serverTransaction.sendResponse(challengeResponse)
+                    LOG.debug('<-------\n' + requestIn)
+                    return;
+                }
 
                 // Discover DIDs sent via a non-standard header
                 // The header must be added at config.general.addressInfo[*]
@@ -153,15 +183,16 @@ export default function (sipProvider, contactHeader, locationService,
                         if (!!requestIn.getHeader(info)) addressOfRecord = addressFactory.createTelURL(requestIn.getHeader(info).getValue())
                     })
                 } else {
-                   addressOfRecord = toHeader.getAddress().getURI()
+                    addressOfRecord = toHeader.getAddress().getURI()
                 }
 
                 // Security check
-                let result = dAPI.getDomain(addressOfRecord.getHost())
+                result = dAPI.getDomain(addressOfRecord.getHost())
 
+                // TODO: This should not work :(
                 if (result.status == Status.OK) {
                     const domainObj = result.obj
-                    if(!new AclUtil(generalAcl).isNetworkAllow(domainObj, addressOfRecord.getHost())) {
+                    if(!new AclUtil(generalAcl).isIpAllowed(domainObj, addressOfRecord.getHost())) {
                         serverTransaction.sendResponse(messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
                         LOG.debug('<-------\n' + requestIn)
                         return
@@ -195,10 +226,10 @@ export default function (sipProvider, contactHeader, locationService,
                 function processRoute(route) {
                     requestOut.setRequestURI(route.contactURI)
 
-                    if (route.thruGW) {
-                        const toHeader = requestIn.getHeader(ToHeader.NAME)
+                    if (route.thruGw) {
                         const fromHeader = requestIn.getHeader(FromHeader.NAME)
-                        const gwRef = headerFactory.createHeader('GWRef', route.gwRef)
+                        const toHeader = requestIn.getHeader(ToHeader.NAME)
+                        const gwRef = headerFactory.createHeader('GwRef', route.gwRef)
                         const from = 'sip:' + route.gwUsername + '@' + route.gwHost
                         const to = 'sip:' + toHeader.getAddress().toString().match('sips?:(.*)@(.*)')[1] + '@' + route.gwHost
 
@@ -245,7 +276,25 @@ export default function (sipProvider, contactHeader, locationService,
                     LOG.debug('<-------\n' + requestOut)
                 }
 
-                // Contact address/es
+                // Peer Egress Routing
+               /* if (isFromPeerThruGw(requestIn)) {
+                    // Extract didRef
+                    const didRef = requestIn.getHeader('DIDRef').value
+                    const result = locationService.getEgressRouteForPeer(addressOfRecord, didRef)
+
+                    if (result.status == Status.NOT_FOUND) {
+                        serverTransaction.sendResponse(messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
+                        LOG.debug('<-------\n' + requestIn)
+                        return
+                    }
+
+                    const route = result.obj
+                    processRoute(route)
+
+                    LOG.debug('<-------\n' + requestOut)
+                    return
+                }*/
+
                 result = locationService.findEndpoint(addressOfRecord)
 
                 if (result.status == Status.NOT_FOUND) {
@@ -296,8 +345,8 @@ export default function (sipProvider, contactHeader, locationService,
 
             const clientTransaction = event.getClientTransaction()
 
-            // WARNING: This is causing an issue with TCP transport and DIDLogic
-            // I suspect that DIDLogic does not fully support thru tcp registration
+            // WARNING: This is causing an issue with tcp transport and DIDLogic
+            // I believe that DIDLogic does not fully support tcp registration
             if (responseIn.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED ||
                 responseIn.getStatusCode() == Response.UNAUTHORIZED) {
                 let authenticationHelper = sipProvider.getSipStack()
