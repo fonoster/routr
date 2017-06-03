@@ -108,7 +108,7 @@ export default function RegistrarService(locationService, dataAPIs) {
 
             const route = {
                 isLinkAOR: false,
-                thruGW: false,
+                thruGw: false,
                 sentByAddress: viaHeader.getHost(),
                 sentByPort: viaHeader.getPort(),
                 received: viaHeader.getReceived(),
