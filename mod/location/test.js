@@ -7,10 +7,12 @@
 import Locator from 'location/locator.js'
 import DIDsAPI from 'resources/dids_api'
 import DomainsAPI from 'resources/domains_api'
+import GatewaysAPI from 'resources/gateways_api'
 import { Status } from 'location/status'
 
 const dataAPIs = {
     DomainsAPI: new DomainsAPI(),
+    GatewaysAPI: new GatewaysAPI(),
     DIDsAPI: new DIDsAPI()
 }
 
@@ -31,12 +33,24 @@ testGroup.aor_as_string = function () {
     assertEquals(aorString, 'tel:8095863314')
 }
 
+testGroup.get_route_for_aor = function () {
+    const aor = addressFactory.createSipURI('john', 'sip.ocean.com')
+    const result = locator.getEgressRouteForAOR(aor)
+    assertTrue(result.status == Status.OK)
+}
+
+testGroup.get_route_for_peer = function () {
+    const contactURI = addressFactory.createSipURI('ast', 'asterisk')
+    const result = locator.getEgressRouteForPeer(contactURI, 'DID0001')
+    assertTrue(result.status == Status.OK)
+}
+
 testGroup.add_find_del_aor = function() {
     const contactURI = addressFactory.createSipURI('john', 'sip.ocean.com')
     const aor = contactURI
     const route = {
         isLinkAOR: false,
-        thruGW: false,
+        thruGw: false,
         sentByAddress: 'localhost',
         sentByPort: 5060,
         received: 'remotehost',
@@ -66,7 +80,7 @@ testGroup.add_multi_aor = function() {
 
     const route1 = {
         isLinkAOR: false,
-        thruGW: false,
+        thruGw: false,
         sentByAddress: 'localhost',
         sentByPort: 5060,
         received: 'remotehost',
@@ -78,7 +92,7 @@ testGroup.add_multi_aor = function() {
 
     const route2 = {
         isLinkAOR: false,
-        thruGW: false,
+        thruGw: false,
         sentByAddress: 'localhost',
         sentByPort: 5060,
         received: 'remotehost',
@@ -90,7 +104,7 @@ testGroup.add_multi_aor = function() {
 
     const route3 = {
         isLinkAOR: false,
-        thruGW: false,
+        thruGw: false,
         sentByAddress: 'localhost',
         sentByPort: 5060,
         received: 'remotehost',
