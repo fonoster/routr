@@ -66,7 +66,7 @@ export default class Locator {
         let result
 
         if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
-            result = this.didsAPI.getDIDByTelUrl(this.aorAsString(addressOfRecord))
+            result = this.didsAPI.getDIDByTelUrl(addressOfRecord)
 
             if (result.status == Status.OK) {
                 const route = this.db.get(did.spec.location.aorLink)
@@ -80,7 +80,6 @@ export default class Locator {
                 }
             }
         } else if (addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
-            // There is currently no way to block incoming traffic from other domains
 
             // First just check the db for such addressOfRecord
             let routes = this.db.get(this.aorAsString(addressOfRecord))
@@ -93,20 +92,25 @@ export default class Locator {
                 }
             }
 
-            // Then search for a DID with such user
-            result = this.didsAPI.getDIDByTelUrl('tel:' + addressOfRecord.getUser())
+            // Then search for a DID
+            try {
+                const telUrl = this.addressFactory.createTelURL(addressOfRecord.getUser())
+                result = this.didsAPI.getDIDByTelUrl(telUrl)
 
-            if (result.status == Status.OK) {
-                const did = result.obj
-                const route = this.db.get(did.spec.location.aorLink)
+                if (result.status == Status.OK) {
+                    const did = result.obj
+                    const route = this.db.get(did.spec.location.aorLink)
 
-                if (route != null) {
-                    return {
-                        status: Status.OK,
-                        message: Status.message[Status.OK].value,
-                        obj: route
+                    if (route != null) {
+                        return {
+                            status: Status.OK,
+                            message: Status.message[Status.OK].value,
+                            obj: route
+                        }
                     }
                 }
+            } catch(e) {
+                // Ignore error
             }
 
             // Endpoint can only be reach thru a gateway

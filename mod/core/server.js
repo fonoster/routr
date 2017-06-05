@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-import Processor from 'core/processor'
+import Processor from 'core/processor/processor'
 import RegistryHelper from 'core/registry_helper'
 import ContextStorage from 'core/context_storage'
 import RestService from 'rest/rest'
@@ -87,12 +87,11 @@ export default class Server {
         const serverAddress = addressFactory.createAddress('sip:' + host)
         const serverContactHeader = headerFactory.createContactHeader(serverAddress)
 
-        const processor = new Processor(sipProvider, serverContactHeader,
-           locationService, registrarService, dataAPIs, contextStorage)
+        const processor = new Processor(sipProvider, locationService, registrarService, dataAPIs, contextStorage)
 
         sipProvider.addSipListener(processor.listener)
 
-        const registerHelper = new RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory)
+        const registerHelper = new RegistryHelper(sipProvider)
 
         let registerTask = new java.util.TimerTask({
             run: function() {
@@ -127,8 +126,6 @@ export default class Server {
 
         this.restService = new RestService(this, locationService, dataAPIs)
         this.restService.start()
-
-        //java.lang.Thread.currentThread().join()
     }
 
     stop() {

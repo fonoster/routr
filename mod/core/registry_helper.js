@@ -4,13 +4,19 @@
  */
 import getConfig from 'core/config_util'
 
-export default function RegistryHelper(sipProvider, headerFactory, messageFactory, addressFactory) {
+const SipFactory = Packages.javax.sip.SipFactory
+
+export default function RegistryHelper(sipProvider) {
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const LOG = LogManager.getLogger()
     const SipUtils = Packages.gov.nist.javax.sip.Utils
     const Request = Packages.javax.sip.message.Request
     const userAgent = new java.util.ArrayList()
-    var config = getConfig()
+    const config = getConfig()
+    const sipFactory = SipFactory.getInstance()
+    const messageFactory = sipFactory.createMessageFactory()
+    const headerFactory = sipFactory.createHeaderFactory()
+    const addressFactory = sipFactory.createAddressFactory()
 
     userAgent.add('Sip I/O v1.0')
 

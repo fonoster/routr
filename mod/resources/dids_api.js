@@ -55,14 +55,12 @@ export default class DIDsAPI {
         let did
         let url
 
-        if (telUrl instanceof Packages.javax.sip.address.TelURL) {
-            url = 'tel:' + telUrl.getPhoneNumber()
-        } else {
-            url = telUrl
-        }
+        if (!(telUrl instanceof Packages.javax.sip.address.TelURL)) throw 'Expects a TelURL as parameter'
+
+        url = 'tel:' + telUrl.getPhoneNumber()
 
         resource.forEach(obj => {
-            if (obj.spec.location.telUrl.toString() == telUrl) {
+            if (obj.spec.location.telUrl == telUrl) {
                 did = obj
             }
         })
@@ -82,7 +80,13 @@ export default class DIDsAPI {
     }
 
     didExist(ref) {
-        const result = this.getGateway(ref)
+        const result = this.getDID(ref)
+        if (result.status == Status.OK) return true
+        return false
+    }
+
+    didExistByTelUrl(telUrl) {
+        const result = this.getDIDByTelUrl(telUrl)
         if (result.status == Status.OK) return true
         return false
     }

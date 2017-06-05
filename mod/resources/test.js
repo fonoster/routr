@@ -8,6 +8,7 @@ import ResourcesUtil from 'resources/utils'
 import AgentsAPI from 'resources/agents_api'
 import GatewaysAPI from 'resources/gateways_api'
 import DomainsAPI from 'resources/domains_api'
+import DIDsAPI from 'resources/dids_api'
 import { Status } from 'resources/status'
 
 export let testGroup = { name: "Resources Module" }
@@ -16,6 +17,9 @@ const rUtil = new ResourcesUtil()
 const agentsApi = new AgentsAPI()
 const gwsAPI = new GatewaysAPI()
 const domainsAPI = new DomainsAPI()
+const didsAPI = new DIDsAPI()
+const SipFactory = Packages.javax.sip.SipFactory
+const addressFactory = SipFactory.getInstance().createAddressFactory()
 
 // Tests
 testGroup.is_jason = function () {
@@ -67,4 +71,12 @@ testGroup.get_gw_by_ref = function () {
     const result = gwsAPI.getGatewayByRef('GW0001')
     assertTrue(result.status == Status.OK)
     assertTrue(result.obj.kind == 'Gateway')
+}
+
+// This also validates the other resources
+testGroup.get_did_by_tel_url = function () {
+    const telURL = addressFactory.createTelURL('17066041487')
+    const result = didsAPI.getDIDByTelUrl(telURL)
+    assertTrue(result.status == Status.OK)
+    assertTrue(result.obj.kind == 'DID')
 }
