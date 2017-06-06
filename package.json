@@ -5,14 +5,15 @@
   "scripts": {
     "transpile": "./node_modules/.bin/babel --out-dir node_modules mod",
     "bundle": "./node_modules/.bin/webpack --config webpack.config.js",
-    "test": "./etc/tests/tester 'core/test' 'core/acl/test' 'core/processor/test' 'resources/test' 'ctl/test' 'location/test' 'rest/test' 'utils/test'",
+    "test": "./etc/tests/tester 'utils/test' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'resources/test' 'rest/test' 'ctl/test'",
     "pack": "./pack.sh",
     "prebundle": "gradle shadowJar && npm run transpile",
     "pretest": "npm run bundle",
     "prepack": "npm test"
   },
   "dependencies": {
-    "jvm-npm": "^0.1.1"
+    "jvm-npm": "^0.1.1",
+    "moment": "^2.18.1"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
