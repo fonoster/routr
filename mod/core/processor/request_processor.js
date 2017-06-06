@@ -2,7 +2,6 @@
  * @author Pedro Sanders
  * @since v1
  */
-
 import RegisterHandler from 'core/processor/register_handler'
 import CancelHandler from 'core/processor/cancel_handler'
 import RouteInfo from 'core/processor/route_info'
@@ -28,9 +27,10 @@ const LOG = LogManager.getLogger()
 
 export default class RequestProcessor {
 
-    constructor(sipProvider, locator, registrar, dataAPIs, contextStorage) {
+    constructor(sipProvider, locator, registry, registrar, dataAPIs, contextStorage) {
         this.sipProvider = sipProvider
         this.locator = locator
+        this.registry = registry
         this.dataAPIs = dataAPIs
         this.domainsAPI = dataAPIs.DomainsAPI
         this.peersAPI = dataAPIs.PeersAPI
@@ -96,13 +96,17 @@ export default class RequestProcessor {
                     serverTransaction.sendResponse(this.messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
                     LOG.debug(requestIn)
                 }
+            } else {
+                if (!this.registry.hasIp(remoteIp)) {
+                    serverTransaction.sendResponse(this.messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
+                    LOG.debug(requestIn)
+                }
             }
 
             let addressOfRecord = this.getAOR(requestIn)
 
             // We only apply ACL rules to Domain Routing. Communication with Gateways must be secured
             // Using ipsec, ssl, or other mechanism.
-
             if (routeInfo.getRoutingType().equals(RoutingType.INTRA_INGRESS_ROUTING) ||
                 routeInfo.getRoutingType().equals(RoutingType.INTER_INGRESS_ROUTING)) {
                 const result = this.domainsAPI.getDomain(addressOfRecord.getHost())

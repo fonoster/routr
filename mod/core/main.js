@@ -8,7 +8,7 @@ import PeersAPI from 'resources/peers_api'
 import DIDsAPI from 'resources/dids_api'
 import DomainsAPI from 'resources/domains_api'
 import AgentsAPI from 'resources/agents_api'
-import RegistrarService from 'core/registrar'
+import Registrar from 'registrar/registrar'
 import Server from 'core/server'
 
 // Just to avoid the annoying old log4j messages
@@ -24,6 +24,6 @@ const dataAPIs = {
 }
 
 const locator = new Locator(dataAPIs)
-const registrarService = new RegistrarService(locator, dataAPIs)
-new Server(locator, registrarService, dataAPIs).start()
+const registrar = new Registrar(locator, dataAPIs)
+new Server(locator, registrar, dataAPIs).start()
 

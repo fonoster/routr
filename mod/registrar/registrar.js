@@ -13,40 +13,20 @@ const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const SipFactory = Packages.javax.sip.SipFactory
-const addressFactory = SipFactory.getInstance().createAddressFactory()
 
-export default function RegistrarService(locationService, dataAPIs) {
-    const pAPI = dataAPIs.PeersAPI
-    const aAPI = dataAPIs.AgentsAPI
-    const self = this
+export default class Registrar {
 
-    function hasDomain(user, domain) {
-        if (user.spec.domains == null || user.spec.domains.length == 0) return false
-        let result = false
-        user.spec.domains.forEach(function(d) {
-            if (domain === d) result=true
-        })
-        return result
+    constructor(locator, dataAPIs) {
+        this.locator = locator
+        this.peersAPI = dataAPIs.PeersAPI
+        this.agentsAPI = dataAPIs.AgentsAPI
+        this.addressFactory = SipFactory.getInstance().createAddressFactory()
     }
 
-    function getNonceCount(d) {
-        const h = Packages.java.lang.Integer.toHexString(d)
-        const cSize = 8 - h.toString().length()
-        let nc = ''
-        let cnt = 0
-
-        while (cSize > cnt) {
-            nc += '0'
-            cnt++
-        }
-
-        return nc + h
-    }
-
-    self.register = function(rin) {
+    register(r) {
         // For some reason this references the parent object
         // to avoid I just clone it!
-        const request = rin.clone()
+        const request = r.clone()
         const viaHeader = request.getHeader(ViaHeader.NAME)
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
         const contactHeader = request.getHeader(ContactHeader.NAME)
@@ -59,14 +39,14 @@ export default function RegistrarService(locationService, dataAPIs) {
         // Get response from header
         const response = authHeader.getResponse()
         // Get user from db or file
-        let result = pAPI.getPeer(authHeader.getUsername())
+        let result = this.peersAPI.getPeer(authHeader.getUsername())
         let user
 
         if (result.status == Status.OK ) {
             user = result.obj
         } else {
             // Then lets check agents
-            result = aAPI.getAgent(host, authHeader.getUsername())
+            result = this.agentsAPI.getAgent(host, authHeader.getUsername())
 
             if (result.status == Status.OK ) {
                 user = result.obj
@@ -84,7 +64,7 @@ export default function RegistrarService(locationService, dataAPIs) {
         if(!!viaHeader.getReceived()) contactURI.setHost(viaHeader.getReceived())
         if(!!viaHeader.getParameter('rport')) contactURI.setPort(viaHeader.getParameter('rport'))
 
-        if (user.kind.equalsIgnoreCase('agent') && !hasDomain(user, host)) {
+        if (user.kind.equalsIgnoreCase('agent') && !this.hasDomain(user, host)) {
             LOG.debug('User ' + user.spec.credentials.username + ' does not exist within domain ' + host)
             return false
         }
@@ -95,7 +75,7 @@ export default function RegistrarService(locationService, dataAPIs) {
             realm: authHeader.getRealm(),
             nonce: authHeader.getNonce(),
             // For some weird reason the interface value is an int while the value original value is a string
-            nc: getNonceCount(authHeader.getNonceCount()),
+            nc: this.getNonceCount(authHeader.getNonceCount()),
             cnonce: authHeader.getCNonce(),
             uri: authHeader.getURI().toString(),
             method: 'REGISTER',
@@ -126,19 +106,42 @@ export default function RegistrarService(locationService, dataAPIs) {
                     peerHost = user.spec.device
                 }
 
-                const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, peerHost)
+                const addressOfRecord = this.addressFactory.createSipURI(user.spec.credentials.username, peerHost)
                 addressOfRecord.setSecure(contactURI.isSecure())
-                locationService.addEndpoint(addressOfRecord, route)
+                this.locator.addEndpoint(addressOfRecord, route)
             } else {
                 user.spec.domains.forEach(domain => {
-                    const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, domain)
+                    const addressOfRecord = this.addressFactory.createSipURI(user.spec.credentials.username, domain)
                     addressOfRecord.setSecure(contactURI.isSecure())
-                    locationService.addEndpoint(addressOfRecord, route)
+                    this.locator.addEndpoint(addressOfRecord, route)
                 })
             }
 
             return true
         }
         return false
+    }
+
+    hasDomain(user, domain) {
+        if (user.spec.domains == null || user.spec.domains.length == 0) return false
+        let result = false
+        user.spec.domains.forEach(function(d) {
+            if (domain === d) result=true
+        })
+        return result
+    }
+
+    getNonceCount(d) {
+        const h = Packages.java.lang.Integer.toHexString(d)
+        const cSize = 8 - h.toString().length()
+        let nc = ''
+        let cnt = 0
+
+        while (cSize > cnt) {
+            nc += '0'
+            cnt++
+        }
+
+        return nc + h
     }
 }

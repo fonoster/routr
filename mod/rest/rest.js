@@ -11,7 +11,7 @@ const BasicAuthenticationFilter = Packages.com.qmetric.spark.authentication.Basi
 const AuthenticationDetails = Packages.com.qmetric.spark.authentication.AuthenticationDetails
 const LOG = LogManager.getLogger()
 
-export default function (server, locationService, dataAPIs) {
+export default function Rest (server, locator, registry, dataAPIs) {
     const config = getConfig()
     const credentials = config.rest
 
@@ -34,7 +34,9 @@ export default function (server, locationService, dataAPIs) {
         //java.lang.Thread.currentThread().join()
     }
 
-    get('/locate', (request, response) => locationService.listAsJSON())
+    get('/locate', (request, response) => locator.listAsJSON())
+
+    get('/registry', (request, response) => registry.listAsJSON())
 
     get('/gateways/:filter', (request, response) => {
         const filter = request.params(":filter")

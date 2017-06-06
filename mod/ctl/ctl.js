@@ -8,6 +8,7 @@ import CommandApply from 'ctl/cmd_apply'
 import CommandGet from 'ctl/cmd_get'
 import CommandDel from 'ctl/cmd_delete'
 import CommandStop from 'ctl/cmd_stop'
+import CommandReg from 'ctl/cmd_registry'
 
 // Just to avoid the annoying old log4j messages
 org.apache.log4j.BasicConfigurator.configure(new
@@ -26,6 +27,7 @@ const cmdGet = new CommandGet(subparsers)
 const cmdDel = new CommandDel(subparsers)
 const cmdLocate = new CommandLocate(subparsers)
 const cmdStop = new CommandStop(subparsers)
+const cmdRegistry = new CommandReg(subparsers)
 
 try {
     // Variable 'args' is a global coming from the entry point script
@@ -49,6 +51,10 @@ try {
         case 'locate':
         case 'loc':
             cmdLocate.run()
+            break
+        case 'registry':
+        case 'reg':
+            cmdRegistry.run()
             break
         case 'stop':
             cmdStop.run()

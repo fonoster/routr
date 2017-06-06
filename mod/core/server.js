@@ -3,8 +3,8 @@
  * @since v1
  */
 import Processor from 'core/processor/processor'
-import RegistryHelper from 'core/registry_helper'
 import ContextStorage from 'core/context_storage'
+import Registry from 'registry/registry'
 import RestService from 'rest/rest'
 import ResourcesUtil from 'resources/utils'
 import getConfig from 'core/config_util.js'
@@ -20,22 +20,22 @@ const ANSI_RESET = "\u001B[0m"
 
 export default class Server {
 
-    constructor(locationService, registrarService, dataAPIs) {
-        this.locationService = locationService
-        this.registrarService = registrarService
+    constructor(locator, registrar, dataAPIs) {
+        this.locator = locator
+        this.registrar = registrar
         this.dataAPIs = dataAPIs
         this.contextStorage = new ContextStorage()
         this.config = getConfig()
-        // Registration with gateways expire in 5 minutes, so we will re-register in 4
-        this.regTimeout = 4
+        // Not sure if this is a good idea in terms of performance
+        this.regTimeout = 0.6
         this.host = InetAddress.getLocalHost().getHostAddress()
     }
 
     start()  {
         const host = this.host
         const config = this.config
-        const locationService = this.locationService
-        const registrarService = this.registrarService
+        const locator = this.locator
+        const registrar = this.registrar
         const dataAPIs = this.dataAPIs
         const contextStorage = this.contextStorage
         const regTimeout = this.regTimeout
@@ -87,11 +87,10 @@ export default class Server {
         const serverAddress = addressFactory.createAddress('sip:' + host)
         const serverContactHeader = headerFactory.createContactHeader(serverAddress)
 
-        const processor = new Processor(sipProvider, locationService, registrarService, dataAPIs, contextStorage)
+        const registry = new Registry(sipProvider)
+        const processor = new Processor(sipProvider, locator, registry, registrar, dataAPIs, contextStorage)
 
         sipProvider.addSipListener(processor.listener)
-
-        const registerHelper = new RegistryHelper(sipProvider)
 
         let registerTask = new java.util.TimerTask({
             run: function() {
@@ -104,27 +103,29 @@ export default class Server {
 
                     let regService = gateway.spec.regService
 
-                    if (regService.host !== undefined) registerHelper.requestChallenge(regService.credentials.username,
-                        gateway.metadata.ref, regService.host, regService.transport)
+                    if (!registry.hasHost(regService.host)) {
+                        registry.requestChallenge(regService.credentials.username,
+                            gateway.metadata.ref, regService.host, regService.transport)
+                    }
 
                     let registries = gateway.spec.regService.registries
 
                     if (registries != undefined) {
                         registries.forEach (function(h) {
-                            LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.regService.credentials.username + '@' + h)
-
-                            registerHelper.requestChallenge(gateway.spec.regService.credentials.username, gateway.metadata.ref, h, gateway.spec.regService.transport)
+                            if (!registry.hasHost(regService.host)) {
+                                LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.regService.credentials.username + '@' + h)
+                                registry.requestChallenge(gateway.spec.regService.credentials.username, gateway.metadata.ref, h, gateway.spec.regService.transport)
+                            }
                         })
                     }
                 })
            }
         })
-
         new java.util.Timer().schedule(registerTask, 5000, regTimeout * 60 * 1000)
 
-        locationService.start()
-
-        this.restService = new RestService(this, locationService, dataAPIs)
+        locator.start()
+        registry.start()
+        this.restService = new RestService(this, locator, registry, dataAPIs)
         this.restService.start()
     }
 
@@ -132,7 +133,7 @@ export default class Server {
         LOG.info('Stopping server')
         this.restService.stop()
         this.sipStack.stop()
-        this.locationService.stop()
+        this.locator.stop()
         exit(0)
     }
 }

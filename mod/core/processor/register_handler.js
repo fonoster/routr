@@ -39,7 +39,7 @@ export default class RegisterHandler {
             ok.addHeader(contactHeader)
             ok.addHeader(expH)
             transaction.sendResponse(ok)
-            LOG.debug('------->\n' + ok)
+            LOG.debug(ok)
             return
         } else if (!contactHeader.getAddress().isWildcard() && expH <= 0) {
             this.locator.removeEndpoint(addressOfRecord, contactURI)
@@ -47,7 +47,7 @@ export default class RegisterHandler {
             ok.addHeader(contactHeader)
             ok.addHeader(expH)
             transaction.sendResponse(ok)
-            LOG.debug('------->\n' + ok)
+            LOG.debug(ok)
             return
         }
 
@@ -55,19 +55,19 @@ export default class RegisterHandler {
             const unauthorized = this.messageFactory.createResponse(Response.UNAUTHORIZED, request)
             unauthorized.addHeader(this.authHelper.generateChallenge())
             transaction.sendResponse(unauthorized)
-            LOG.debug('------->\n' + unauthorized)
+            LOG.debug(unauthorized)
         } else {
             if (this.registrar.register(request)) {
                 const ok = this.messageFactory.createResponse(Response.OK, request)
                 ok.addHeader(contactHeader)
                 ok.addHeader(expH)
                 transaction.sendResponse(ok)
-                LOG.debug('------->\n' + ok)
+                LOG.debug(ok)
             } else {
                 const unauthorized = this.messageFactory.createResponse(Response.UNAUTHORIZED, request)
                 unauthorized.addHeader(this.authHelper.generateChallenge(this.headerFactory))
                 transaction.sendResponse(unauthorized)
-                LOG.debug('------->\n' + unauthorized)
+                LOG.debug(unauthorized)
             }
         }
     }

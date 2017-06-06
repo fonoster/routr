@@ -5,16 +5,23 @@
 const AccountManager  = Packages.gov.nist.javax.sip.clientauthutils.AccountManager
 const UserCredentials = Packages.gov.nist.javax.sip.clientauthutils.UserCredentials
 
+// There is something mysterious about this class that
+// makes gatewaysAPI null beyond the constructor.
+// The only way it works is by using this a global :(
+var gatewaysAPI
+
 /**
  * This serves as an authentication helper for Gateways
  */
-export default function AccountManagerService(dataAPIs) {
-    var gwAPI = dataAPIs.GatewaysAPI
-    var self = this
+export default class AccountManagerService {
 
-    function getGateway(ct) {
+    constructor(dataAPIs) {
+        gatewaysAPI = dataAPIs.GatewaysAPI
+    }
+
+    getGateway(ct) {
         const gwRef = ct.getRequest().getHeader('GwRef').value
-        const result = gwAPI.getGatewayByRef(gwRef)
+        const result = gatewaysAPI.getGateway(gwRef)
 
         if (result.status == 200) {
             const gateway = result.obj
@@ -29,7 +36,9 @@ export default function AccountManagerService(dataAPIs) {
         return {}
     }
 
-    self.getAccountManager = function() {
+    getAccountManager() {
+        var getGateway = this.getGateway
+
         return new AccountManager({
             getCredentials: function (challengedTransaction, realm) {
                 return new UserCredentials({

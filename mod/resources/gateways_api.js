@@ -46,30 +46,6 @@ export default class GatewaysAPI {
         }
     }
 
-    getGatewayByRef(ref) {
-        const resource = this.rUtil.getJson(this.resourcePath)
-        let gateways
-
-        resource.forEach(obj => {
-            if (obj.metadata.ref == ref) {
-                gateways = obj
-            }
-        })
-
-        if (!isEmpty(gateways)) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                obj: gateways
-            }
-        }
-
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
-    }
-
     gatewayExist(ref) {
         const result = this.getGateway(ref)
         if (result.status == Status.OK) return true
