@@ -29,6 +29,7 @@ export default class RequestProcessor {
 
     constructor(sipProvider, locator, registry, registrar, dataAPIs, contextStorage) {
         this.sipProvider = sipProvider
+        this.contextStorage = contextStorage
         this.locator = locator
         this.registry = registry
         this.dataAPIs = dataAPIs
@@ -88,6 +89,7 @@ export default class RequestProcessor {
             if (routeInfo.getRoutingType().equals(RoutingType.INTER_DOMAIN_ROUTING)) {
                 serverTransaction.sendResponse(this.messageFactory.createResponse(Response.FORBIDDEN, requestIn))
                 LOG.debug(requestIn)
+                return
             }
 
             if (!routeInfo.getRoutingType().equals(RoutingType.DOMAIN_INGRESS_ROUTING)) {
@@ -95,11 +97,13 @@ export default class RequestProcessor {
                 if (user == null) {
                     serverTransaction.sendResponse(this.messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
                     LOG.debug(requestIn)
+                    return
                 }
             } else {
                 if (!this.registry.hasIp(remoteIp)) {
                     serverTransaction.sendResponse(this.messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
                     LOG.debug(requestIn)
+                    return
                 }
             }
 
@@ -169,7 +173,7 @@ export default class RequestProcessor {
                     return
                 }
 
-                this.processRoute(requestIn, requestOut, result.obj)
+                this.processRoute(requestIn, requestOut, result.obj, serverTransaction)
 
                 LOG.debug(requestOut)
                 return
@@ -203,11 +207,11 @@ export default class RequestProcessor {
                 // Fork the call if needed
                 while(caIterator.hasNext()) {
                     const route = caIterator.next()
-                    this.processRoute(requestIn, requestOut, route)
+                    this.processRoute(requestIn, requestOut, route, serverTransaction)
                 }
             } else {
                 const route = location
-                this.processRoute(requestIn, requestOut, route)
+                this.processRoute(requestIn, requestOut, route, serverTransaction)
             }
 
             return
@@ -215,7 +219,7 @@ export default class RequestProcessor {
         LOG.debug(requestIn)
     }
 
-    processRoute(requestIn, requestOut, route) {
+    processRoute(requestIn, requestOut, route, serverTransaction) {
         const method = requestIn.getMethod()
         requestOut.setRequestURI(route.contactURI)
 
@@ -256,14 +260,14 @@ export default class RequestProcessor {
                 context.method = method
                 context.requestIn = requestIn
                 context.requestOut = requestOut
-                contextStorage.saveContext(context)
+                this.contextStorage.saveContext(context)
             } catch (e) {
                 if (e instanceof java.net.ConnectException) {
                     LOG.error('Connection refused. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/ConnectException.html')
                 } else if (e instanceof java.net.NoRouteToHostException) {
                     LOG.error('No route to host. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/NoRouteToHostException.html')
                 } else {
-                    LOG.error(e.getStackTrace())
+                    LOG.error('XXXXXX -> ' + e.getStackTrace())
                 }
             }
         }

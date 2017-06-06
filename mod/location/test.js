@@ -46,7 +46,7 @@ testGroup.get_route_for_peer = function () {
 }
 
 testGroup.add_find_del_aor = function() {
-    const contactURI = addressFactory.createSipURI('john', 'sip.ocean.com')
+    const contactURI = addressFactory.createSipURI('john', 'sip.provider.com')
     const aor = contactURI
     const route = {
         isLinkAOR: false,
@@ -69,7 +69,7 @@ testGroup.add_find_del_aor = function() {
     locator.removeEndpoint(aor)
     // Check
     result = locator.findEndpoint(aor)
-    assertEquals(Status.OK, result.status)
+    assertEquals(Status.NOT_FOUND, result.status)
 }
 
 testGroup.add_multi_aor = function() {
