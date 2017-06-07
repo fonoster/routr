@@ -253,7 +253,9 @@ export default class Locator {
             return this.db.remove(aor)
         }
         // Not using aorAsString because we need to consider the port, etc.
-        return this.db.get(aor).remove(contactURI.toString())
+        this.db.get(aor).remove(contactURI.toString())
+
+        if (this.db.get(aor).isEmpty()) this.db.remove(aor)
     }
 
     listAsJSON (domainUri) {
