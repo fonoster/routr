@@ -77,10 +77,7 @@ export default class RequestProcessor {
             const fromHeader = requestIn.getHeader(FromHeader.NAME)
             const fromURI = fromHeader.getAddress().getURI()
             const remoteIp = event.getRemoteIpAddress()
-            const remotePort = event.getRemotePort()
             const routeInfo = new RouteInfo(requestIn, this.dataAPIs)
-
-            let user
 
             LOG.debug('routing type -> ' + routeInfo.getRoutingType())
 
@@ -93,8 +90,7 @@ export default class RequestProcessor {
             }
 
             if (!routeInfo.getRoutingType().equals(RoutingType.DOMAIN_INGRESS_ROUTING)) {
-                user = this.authenticate(requestIn, serverTransaction)
-                if (user == null) {
+                if (!this.authorized(requestIn, serverTransaction)) {
                     serverTransaction.sendResponse(this.messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
                     LOG.debug(requestIn)
                     return
@@ -119,7 +115,7 @@ export default class RequestProcessor {
                     const domainObj = result.obj
                     if(!new AclUtil(this.generalAcl).isIpAllowed(domainObj, remoteIp)) {
                         serverTransaction.sendResponse(this.messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
-                        LOG.debug('<-------\n' + requestIn)
+                        LOG.debug(requestIn)
                         return
                     }
                 }
@@ -179,7 +175,7 @@ export default class RequestProcessor {
                 return
             }
 
-            // 3.1 In-Domain Routing(IDR), Domain Ingress Routing (DIR), & Domain Egress Routing (DER)
+            // 3.1 Intra-Domain Routing(IDR), Domain Ingress Routing (DIR), & Domain Egress Routing (DER)
             const result = this.locator.findEndpoint(addressOfRecord)
 
             if (result.status == Status.NOT_FOUND) {
@@ -267,7 +263,7 @@ export default class RequestProcessor {
                 } else if (e instanceof java.net.NoRouteToHostException) {
                     LOG.error('No route to host. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/NoRouteToHostException.html')
                 } else {
-                    LOG.error('XXXXXX -> ' + e.getStackTrace())
+                    LOG.error(e.getStackTrace())
                 }
             }
         }
@@ -275,7 +271,7 @@ export default class RequestProcessor {
         LOG.debug(requestOut)
     }
 
-    authenticate(request, serverTransaction) {
+    authorized(request, serverTransaction) {
         const authHeader = request.getHeader(ProxyAuthorizationHeader.NAME)
         const fromHeader = request.getHeader(FromHeader.NAME)
         const fromURI = fromHeader.getAddress().getURI()
@@ -310,7 +306,7 @@ export default class RequestProcessor {
             return
         }
 
-        return user
+        return user != null
     }
 
     /**

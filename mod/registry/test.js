@@ -5,13 +5,20 @@
  * Unit Test for the "Registry Module"
  */
 import Registry from 'registry/registry'
+import GatewaysAPI from 'resources/gateways_api'
 const InetAddress = Packages.java.net.InetAddress
+
+const dataAPIs = {
+    GatewaysAPI: new GatewaysAPI()
+}
 
 export let testGroup = { name: "Registry Module" }
 
 // Tests
 testGroup.store_registry = function () {
-    const registry = new Registry()
+
+
+    const registry = new Registry(null, dataAPIs)
     registry.storeRegistry('29121', 'sanjose2.voip.ms', 200)
     assertFalse(registry.listAsJSON().isEmpty())
     assertTrue(registry.hasHost('sanjose2.voip.ms'))

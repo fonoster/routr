@@ -38,6 +38,6 @@ export default class CancelHandler {
                 LOG.trace('Cancel request: ' + cancelRequest)
             }
         }
-        LOG.debug('<-------\n' + request)
+        LOG.debug(request)
     }
 }

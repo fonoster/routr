@@ -37,15 +37,13 @@ export default class ResponseProcessor {
             responseIn.getStatusCode() == Response.REQUEST_TERMINATED ||
             cseq.getMethod().equals(Request.CANCEL)) return
 
-        if (responseIn.getStatusCode() == Response.OK &&
-            cseq.getMethod().equals(Request.REGISTER)) {
-            const regHost = fromURI.getHost()
-            const regUser = fromURI.getUser()
+        if (cseq.getMethod().equals(Request.REGISTER) &&
+            responseIn.getStatusCode() == Response.OK) {
             let expires = 300
-
             if(expiresHeader != null) expires = expiresHeader.getExpires()
-
-            this.registry.storeRegistry(regUser, regHost, expires)
+            this.registry.storeRegistry(fromURI.getUser(), fromURI.getHost(), expires)
+        } else if(cseq.getMethod().equals(Request.REGISTER)) {
+            this.registry.removeRegistry(fromURI.getHost())
         }
 
         const clientTransaction = event.getClientTransaction()

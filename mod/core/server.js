@@ -87,41 +87,10 @@ export default class Server {
         const serverAddress = addressFactory.createAddress('sip:' + host)
         const serverContactHeader = headerFactory.createContactHeader(serverAddress)
 
-        const registry = new Registry(sipProvider)
+        const registry = new Registry(sipProvider, dataAPIs)
         const processor = new Processor(sipProvider, locator, registry, registrar, dataAPIs, contextStorage)
 
         sipProvider.addSipListener(processor.listener)
-
-        let registerTask = new java.util.TimerTask({
-            run: function() {
-                const result = dataAPIs.GatewaysAPI.getGateways()
-                if (result.status != Status.OK) return
-
-                result.obj.forEach (function(gateway) {
-                    LOG.debug('Register with ' + gateway.metadata.name +  ' using '
-                        + gateway.spec.regService.credentials.username + '@' + gateway.spec.regService.host)
-
-                    let regService = gateway.spec.regService
-
-                    if (!registry.hasHost(regService.host)) {
-                        registry.requestChallenge(regService.credentials.username,
-                            gateway.metadata.ref, regService.host, regService.transport)
-                    }
-
-                    let registries = gateway.spec.regService.registries
-
-                    if (registries != undefined) {
-                        registries.forEach (function(h) {
-                            if (!registry.hasHost(regService.host)) {
-                                LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.regService.credentials.username + '@' + h)
-                                registry.requestChallenge(gateway.spec.regService.credentials.username, gateway.metadata.ref, h, gateway.spec.regService.transport)
-                            }
-                        })
-                    }
-                })
-           }
-        })
-        new java.util.Timer().schedule(registerTask, 5000, regTimeout * 60 * 1000)
 
         locator.start()
         registry.start()

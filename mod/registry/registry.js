@@ -3,6 +3,7 @@
  * @since v1
  */
 import getConfig from 'core/config_util'
+import { Status } from 'resources/status'
 
 const SipFactory = Packages.javax.sip.SipFactory
 const SipUtils = Packages.gov.nist.javax.sip.Utils
@@ -15,7 +16,9 @@ var cseq = 0
 
 export default class Registry {
 
-    constructor(sipProvider, expires = 300, checkExpiresTime = 1) {
+    constructor(sipProvider, dataAPIs, expires = 300, checkExpiresTime = .5) {
+        this.dataAPIs = dataAPIs.GatewaysAPI
+        this.gatewaysAPI = dataAPIs.GatewaysAPI
         this.expires = expires
         this.checkExpiresTime = checkExpiresTime
         this.sipProvider = sipProvider
@@ -78,6 +81,9 @@ export default class Registry {
             const clientTransaction = this.sipProvider.getNewClientTransaction(request)
             clientTransaction.sendRequest()
         } catch(e) {
+
+            this.registry.remove(peerHost)
+
             if(e instanceof javax.sip.TransactionUnavailableException || e instanceof javax.sip.SipException) {
                 LOG.warn('Unable to register with Gateway -> ' + peerHost + '. (Verify your network status)')
             } else {
@@ -89,16 +95,22 @@ export default class Registry {
     }
 
     storeRegistry(username, host, expires = 300) {
+        // Re-register before actual time expiration
+        let actualExpires = expires - 2 * 60 * this.checkExpiresTime
 
         const reg = {
             username: username,
             host: host,
             ip: InetAddress.getByName(host).getHostAddress(),
-            expires: expires,
+            expires: actualExpires,
             registeredOn: Date.now()
         }
 
         this.registry.put(host, reg)
+    }
+
+    removeRegistry (host) {
+        this.registry.remove(host)
     }
 
     hasHost(host) {
@@ -130,21 +142,52 @@ export default class Registry {
     start() {
         LOG.info('Starting Registry service')
         var registry = this.registry
+        var gatewaysAPI = this.gatewaysAPI
+       // var myRegistry = new Registry(this.sipProvider, this.dataAPIs)
+        var myRegistry = this
 
-        let unbindExpiredTask = new java.util.TimerTask({
-            run: function() {
-                const iterator = registry.values().iterator()
-                while(iterator.hasNext()) {
-                    let reg = iterator.next()
-                    const elapsed = (Date.now() - reg.registeredOn) / 1000
-                    if ((reg.expires - elapsed) <= 0) {
-                        iterator.remove()
-                    }
-                }
+        function isExpired (host) {
+            const reg = registry.get(host)
+
+            if (reg == null) return true
+
+            const elapsed = (Date.now() - reg.registeredOn) / 1000
+            if ((reg.expires - elapsed) <= 0) {
+                return true
             }
+            return false
+        }
+
+        let registerTask = new java.util.TimerTask({
+            run: function() {
+                const result = gatewaysAPI.getGateways()
+                if (result.status != Status.OK) return
+
+                result.obj.forEach (function(gateway) {
+                    let regService = gateway.spec.regService
+
+                    if (isExpired(regService.host)) {
+                        LOG.debug('Register with ' + gateway.metadata.name +  ' using '
+                            + gateway.spec.regService.credentials.username + '@' + gateway.spec.regService.host)
+                        myRegistry.requestChallenge(regService.credentials.username,
+                            gateway.metadata.ref, regService.host, regService.transport)
+                    }
+
+                    let registries = gateway.spec.regService.registries
+
+                    if (registries != undefined) {
+                        registries.forEach (function(h) {
+                            if (isExpired(regService.host)) {
+                                LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.regService.credentials.username + '@' + h)
+                                myRegistry.requestChallenge(gateway.spec.regService.credentials.username, gateway.metadata.ref, h, gateway.spec.regService.transport)
+                            }
+                        })
+                    }
+                })
+           }
         })
 
-        new java.util.Timer().schedule(unbindExpiredTask, 5000, this.checkExpiresTime * 60 * 1000)
+        new java.util.Timer().schedule(registerTask, 10000, this.checkExpiresTime * 60 * 1000)
     }
 
     stop() {
