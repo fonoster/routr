@@ -1,4 +1,4 @@
-#!/usr/bin/jjs -Dlog4j.configurationFile=config/log4j2.xml -cp libs/app.deps.jar -doe=true -ot=true -scripting=true
+#!/usr/bin/jjs -Dlog4j.configurationFile=config/log4j2.xml -cp libs/app.deps.jar -dump-on-error=true
 
 // Ctl expects to find this variable
 var args = arguments
