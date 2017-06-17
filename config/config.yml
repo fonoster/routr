@@ -1,17 +1,26 @@
-# This is Sip I/O's general configuration file
-general:
-  traceLevel: 10
-  tcpPort: 5060
-  udpPort: 5060
-  tlsPort: 5061
-  wsPort: 5062
-rest:
-  port: 4567
-  username: admin
-  secret: '1234'
-  disable: false
-resources:
-  baseUrl: http://localhost:8080/v1/admin
-  credentials:
-    username: admin
-    secret: 308a002ab539471394a06ce710bc96c2
+apiVersion: v1draft1
+metadata:
+  userAgent: Sip I/O v1.0
+spec:
+  securityContext:
+    keyStore: etc/certs/keystore.jks
+    trustStore: etc/certs/keystore.jks
+    keyStorePassword: 'password'
+    keyStoreType: 'jks'
+    debugging: false
+  transport:
+    - protocol: udp
+      port: 5060
+    - protocol: tcp
+      port: 5060
+    - protocol: tls
+      port: 5061
+    - protocol: ws
+      port: 5082
+  services:
+    rest:
+      credentials:
+        username: rest
+        secret: 'KN4k^^f%M]e66f~^'
+  logging:
+    traceLevel: 10

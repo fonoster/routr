@@ -1,0 +1,141 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "General Config",
+    "type": "object",
+    "properties": {
+        "apiVersion": {
+            "type": "string"
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "userAgent": {"type": "string"}
+            }
+        },
+        "spec": {
+            "type": "object",
+            "properties": {
+                "bindAddr": {
+                    "type": "string"
+                },
+                "externAddr": {
+                    "type": "string"
+                },
+                "recordRoute": {
+                    "type": "boolean"
+                },
+                "addressInfo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "securityContext": {
+                    "type": "object",
+                    "properties": {
+                        "debugging": { "type": "boolean" },
+                        "keyStore": { "type": "string" },
+                        "trustStore": { "type": "string" },
+                        "keyStorePassword": { "type": "string" },
+                        "keyStoreType": { "type": "string" },
+                        "client": {
+                            "type": "object",
+                            "properties": {
+                                "protocols": {
+                                    "type": "array",
+                                    "items": {
+                                        "enum": [
+                                            "TLSv1.2",
+                                            "TLSv1.1",
+                                            "TLSv1"
+                                        ]
+                                    }
+                                },
+                                "authType": {
+                                    "enum": [
+                                    "Default",
+                                    "Enabled",
+                                    "Want",
+                                    "Disabled",
+                                    "DisabledAll"
+                                ]}
+                            }
+                        },
+                        "required": ["keyStore", "trustStore", "keyStorePassword", "keyStoreType"]
+                    }
+                },
+                "accessControlList": {
+                    "type": "object",
+                    "properties": {
+                        "allow": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 1,
+                            "uniqueItems": true
+                        },
+                        "deny": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 1,
+                            "uniqueItems": true
+                        }
+                    }
+                },
+                "services": {
+                    "type": "object",
+                    "properties": {
+                        "rest": {
+                            "type": "object",
+                            "properties": {
+                                "bindAddr": { "type": "string" },
+                                "port": { "type": "integer" },
+                                "credentials": {
+                                    "type": "object",
+                                    "properties": {
+                                        "username": { "type": "string"},
+                                        "secret": { "type": "string"}
+                                    },
+                                    "required": ["username", "secret"]
+                                }
+                            },
+                            "required": ["credentials"]
+                        },
+                        "required": ["rest"]
+                    }
+                },
+                "transport": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "bindAddr": {"type": "string"},
+                            "port": {"type": "integer"},
+                            "protocol": {
+                                "enum": [ "udp", "tcp", "tls", "sctp", "ws", "wss"]
+                            }
+                        },
+                        "required": ["protocol", "port"],
+                        "minItems": 1,
+                        "uniqueItems": true
+                    },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "logging": {
+                    "type": "object",
+                    "properties": {
+                        "traceLevel": {"type": "integer"}
+                    }
+                }
+            },
+            "required": ["transport", "services"]
+        }
+    },
+    "required": ["apiVersion", "spec"]
+}

@@ -17,3 +17,12 @@
       username: janie
       secret: '1234'
     domains: [sip.ocean.com]
+- kind: Agent
+  apiVersion: v1draft1
+  metadata:
+    name: Jack Doe
+  spec:
+    credentials:
+      username: jack
+      secret: '1234'
+    domains: [sip.ny.ocean.com]
