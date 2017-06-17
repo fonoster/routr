@@ -12,6 +12,7 @@ const InetAddress = Packages.java.net.InetAddress
 const HashMap = Packages.java.util.HashMap
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
+const DEFAULT_USER_AGENT = 'Sip I/O v1.0'
 var cseq = 0
 
 export default class Registry {
@@ -27,23 +28,40 @@ export default class Registry {
         this.headerFactory = SipFactory.getInstance().createHeaderFactory()
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
         this.userAgent = new java.util.ArrayList()
-        this.userAgent.add('Sip I/O v1.0')
+
+        if (this.config.metadata && this.config.metadata.userAgent) {
+            this.userAgent.add(this.config.metadata.userAgent)
+        } else {
+            this.userAgent.add(DEFAULT_USER_AGENT)
+        }
+
         this.registry = new HashMap()
     }
 
-    requestChallenge(username, gwRef, peerHost, transport = 'udp') {
-        let host = this.sipProvider.getListeningPoint(transport).getIPAddress()
-        const port = this.sipProvider.getListeningPoint(transport).getPort()
+    requestChallenge(username, gwRef, peerHost, transport, received, rport) {
+        let host
+        let port
 
-        if (this.config.general.externalHost) {
-            host = this.config.general.externalHost
+        try {
+            host = this.sipProvider.getListeningPoint(transport).getIPAddress()
+            port = this.sipProvider.getListeningPoint(transport).getPort()
+        } catch(e) {
+            LOG.error("Transport '" + transport + "' not found in configs => .spec.transport.[*]")
+            return
         }
+
+        if (this.config.spec.externAddr) {
+            host = this.config.spec.externAddr
+        }
+
+        if (received) host = received
+        if (rport) port = rport
 
         cseq++
 
         const viaHeaders = []
         const viaHeader = this.headerFactory.createViaHeader(host, port, transport, null)
-        // Request RPort for Symmetric Response Routing in accordance with RFC 3581
+        // Request RPort to enable Symmetric Response in accordance with RFC 3581 and RFC 6314
         viaHeader.setRPort()
         viaHeaders.push(viaHeader)
 

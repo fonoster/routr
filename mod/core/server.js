@@ -28,7 +28,7 @@ export default class Server {
         this.config = getConfig()
         // Not sure if this is a good idea in terms of performance
         this.regTimeout = 0.6
-        this.host = InetAddress.getLocalHost().getHostAddress()
+        this.host = this.config.spec.bindAddr
     }
 
     start()  {
@@ -41,51 +41,59 @@ export default class Server {
         const regTimeout = this.regTimeout
 
         LOG.info('Starting Sip I/O')
-        LOG.info('Listening on IP: ' + ANSI_GREEN + host + ANSI_RESET)
-        if (config.general.externalHost != undefined) LOG.info('External Host: ' + config.general.externalHost)
 
         const properties = new Properties()
         const sipFactory = SipFactory.getInstance()
 
+        // See https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java for
+        // many other options
         sipFactory.setPathName('gov.nist')
         properties.setProperty('javax.sip.STACK_NAME', 'sipio')
+        // Default host
         properties.setProperty('javax.sip.IP_ADDRESS', host)
         properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'OFF')
         // Guard against denial of service attack.
         properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576')
         // Drop the client connection after we are done with the transaction.
         properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'false')
-        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', config.general.traceLevel)
-        // This seems to work with ws but not with udp
+        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', config.spec.logging.traceLevel)
         properties.setProperty('gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY', 'gov.nist.javax.sip.stack.NioMessageProcessorFactory')
         properties.setProperty('gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS', 'false')
 
-        // I have not tested this yet but a least suppress some annoying warnings
-        properties.setProperty('javax.net.ssl.keyStore', 'etc/keystore.jks')
-        properties.setProperty('javax.net.ssl.keyStoreType', 'jks')
-        properties.setProperty('javax.net.ssl.keyStorePassword', 'osopolar')
-        properties.setProperty('javax.net.ssl.trustStore', 'etc/keystore.jks')
-        properties.setProperty('javax.net.ssl.trustStorePassword', 'osopolar')
-        properties.setProperty('javax.net.ssl.trustStoreType', 'jks')
+        // See https://groups.google.com/forum/#!topic/mobicents-public/U_c7aLAJ_MU for useful info
+        if (config.spec.securityContext) {
+            properties.setProperty('gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS', config.spec.securityContext.client.protocols.join())
+            properties.setProperty('gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE', config.spec.securityContext.client.authType)
+            properties.setProperty('javax.net.ssl.keyStore', config.spec.securityContext.keyStore)
+            properties.setProperty('javax.net.ssl.trustStore', config.spec.securityContext.trustStore)
+            properties.setProperty('javax.net.ssl.keyStorePassword', config.spec.securityContext.keyStorePassword)
+            properties.setProperty('javax.net.ssl.keyStoreType', config.spec.securityContext.keyStoreType)
+
+            if (config.spec.securityContext.debugging) {
+                Packages.java.lang.System.setProperty('javax.net.debug', 'ssl')
+            }
+        }
 
         this.sipStack = sipFactory.createSipStack(properties)
 
-        const messageFactory = sipFactory.createMessageFactory()
-        const headerFactory = sipFactory.createHeaderFactory()
-        const addressFactory = sipFactory.createAddressFactory()
-        const tcp = this.sipStack.createListeningPoint(config.general.tcpPort, 'tcp')
-        const udp = this.sipStack.createListeningPoint(config.general.udpPort, 'udp')
-        const ws = this.sipStack.createListeningPoint(config.general.wsPort, 'ws')
-        const tls = this.sipStack.createListeningPoint(config.general.tlsPort, 'tls')
+        const defTransport = this.sipStack.createListeningPoint(config.spec.transport[0].port,
+            config.spec.transport[0].protocol.toLowerCase())
 
-        const sipProvider = this.sipStack.createSipProvider(tcp)
-        sipProvider.addListeningPoint(udp)
-        sipProvider.addListeningPoint(ws)
-        sipProvider.addListeningPoint(tls)
+        const sipProvider = this.sipStack.createSipProvider(defTransport)
 
-        // Server's contact address and header
-        const serverAddress = addressFactory.createAddress('sip:' + host)
-        const serverContactHeader = headerFactory.createContactHeader(serverAddress)
+        for (const key in config.spec.transport) {
+            const transport = config.spec.transport[key]
+
+            if (transport.bindAddr == undefined) transport.bindAddr = this.host
+
+            const lp = this.sipStack.createListeningPoint(transport.bindAddr, transport.port, transport.protocol.toLowerCase())
+            sipProvider.addListeningPoint(lp)
+
+            LOG.info('Added listening point:' + ANSI_GREEN  + ' [ip => ' + transport.bindAddr
+                + ', port => ' + transport.port
+                + ', proto => ' + transport.protocol.toLowerCase() + ']'
+                + ANSI_RESET)
+        }
 
         const registry = new Registry(sipProvider, dataAPIs)
         const processor = new Processor(sipProvider, locator, registry, registrar, dataAPIs, contextStorage)

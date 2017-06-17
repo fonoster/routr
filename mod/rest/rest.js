@@ -13,10 +13,10 @@ const LOG = LogManager.getLogger()
 
 export default function Rest (server, locator, registry, dataAPIs) {
     const config = getConfig()
-    const credentials = config.rest
+    const rest = config.spec.services.rest
 
-    Spark.port(config.rest.port)
-    Spark.before(new BasicAuthenticationFilter('/*', new AuthenticationDetails(credentials.username, credentials.secret)))
+    Spark.port(rest.port)
+    Spark.before(new BasicAuthenticationFilter('/*', new AuthenticationDetails(rest.credentials.username, rest.credentials.secret)))
     const get = Spark.get
     const post = Spark.post
     const put = Spark.put
@@ -30,8 +30,7 @@ export default function Rest (server, locator, registry, dataAPIs) {
     }
 
     this.start = () => {
-        LOG.info('Starting Restful service on port ' + config.rest.port)
-        //java.lang.Thread.currentThread().join()
+        LOG.info('Starting Restful service on port ' + rest.port)
     }
 
     get('/locate', (request, response) => locator.listAsJSON())

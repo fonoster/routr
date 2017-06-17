@@ -33,8 +33,14 @@ export default class Registrar {
         const contactURI = contactHeader.getAddress().getURI()
         const fromHeader = request.getHeader(FromHeader.NAME)
         const fromURI = fromHeader.getAddress().getURI()
-        const expires = request.getHeader(ExpiresHeader.NAME).getExpires() || contactHeader.getExpires()
         const host = fromURI.getHost()
+        let expires
+
+        if (request.getHeader(ExpiresHeader.NAME)) {
+            expires = request.getHeader(ExpiresHeader.NAME).getExpires()
+        } else {
+            expires = contactHeader.getExpires()
+        }
 
         // Get response from header
         const response = authHeader.getResponse()

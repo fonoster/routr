@@ -42,7 +42,7 @@ export default class RequestProcessor {
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
         this.dsam = new Packages.gov.nist.javax.sip.clientauthutils.DigestServerAuthenticationHelper()
         this.config = getConfig()
-        this.generalAcl = this.config.general.accessControlList
+        this.generalAcl = this.config.spec.accessControlList
         this.registerHandler = new RegisterHandler(locator, registrar)
         this.cancelHandler = new CancelHandler(sipProvider, contextStorage)
     }
@@ -69,8 +69,6 @@ export default class RequestProcessor {
             const routeHeader = requestIn.getHeader(RouteHeader.NAME)
             const rVia = requestIn.getHeader(ViaHeader.NAME)
             const transport = rVia.getTransport().toLowerCase()
-            const contactHeader = requestIn.getHeader(ContactHeader.NAME)
-            const contactURI = contactHeader.getAddress().getURI()
             const lp = this.sipProvider.getListeningPoint(transport)
             const host = lp.getIPAddress().toString()
             const port = lp.getPort()
@@ -78,7 +76,7 @@ export default class RequestProcessor {
             const fromURI = fromHeader.getAddress().getURI()
             const remoteIp = event.getRemoteIpAddress()
             const routeInfo = new RouteInfo(requestIn, this.dataAPIs)
-
+            
             LOG.debug('routing type -> ' + routeInfo.getRoutingType())
 
             // 1. Security check
@@ -105,8 +103,7 @@ export default class RequestProcessor {
 
             let addressOfRecord = this.getAOR(requestIn)
 
-            // We only apply ACL rules to Domain Routing. Communication with Gateways must be secured
-            // Using ipsec, ssl, or other mechanism.
+            // We only apply ACL rules to Domain Routing.
             if (routeInfo.getRoutingType().equals(RoutingType.INTRA_INGRESS_ROUTING) ||
                 routeInfo.getRoutingType().equals(RoutingType.INTER_INGRESS_ROUTING)) {
                 const result = this.domainsAPI.getDomain(addressOfRecord.getHost())
@@ -129,13 +126,13 @@ export default class RequestProcessor {
             // 2.1 Remove Route-Header
             if (routeHeader) {
                 const nextHop = routeHeader.getAddress().getURI().getHost()
-                if (nextHop.equals(host) || nextHop.equals(this.config.general.externalHost)) {
+                if (nextHop.equals(host) || nextHop.equals(this.config.spec.externAddr)) {
                     requestOut.removeFirst(RouteHeader.NAME)
                 }
             }
 
             // 2.2 Stay in the signaling path of the dialog
-            if (this.config.general.recordRoute) {
+            if (this.config.spec.recordRoute) {
                 const proxyURI = this.addressFactory.createSipURI(null, host)
                 proxyURI.setLrParam()
                 const proxyAddress = this.addressFactory.createAddress(proxyURI)
@@ -143,7 +140,7 @@ export default class RequestProcessor {
                 requestOut.addHeader(recordRouteHeader)
             }
 
-            // 2.3 Request RPort for Symmetric Response Routing in accordance with RFC 3581
+            // 2.3 Request RPort to enable Symmetric Response in accordance with RFC 3581 and RFC 6314
             const viaHeader = this.headerFactory.createViaHeader(host, port, transport, null)
             viaHeader.setRPort()
             requestOut.addFirst(viaHeader)
@@ -263,7 +260,7 @@ export default class RequestProcessor {
                 } else if (e instanceof java.net.NoRouteToHostException) {
                     LOG.error('No route to host. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/NoRouteToHostException.html')
                 } else {
-                    LOG.error(e.getStackTrace())
+                    LOG.error(e.getMessage())
                 }
             }
         }
@@ -311,14 +308,14 @@ export default class RequestProcessor {
 
     /**
      * Discover DIDs sent via a non-standard header
-     * The header must be added at config.general.addressInfo[*]
+     * The header must be added at config.spec.addressInfo[*]
      * If the such header is present then overwrite the AOR
      */
     getAOR (request) {
         const toHeader = request.getHeader(ToHeader.NAME)
 
-        if(!!this.config.general.addressInfo) {
-            this.config.general.addressInfo.forEach(function(info) {
+        if(!!this.config.spec.addressInfo) {
+            this.config.spec.addressInfo.forEach(function(info) {
                 if (!!request.getHeader(info)) {
                     return addressOfRecord = this.addressFactory.createTelURL(request.getHeader(info).getValue())
                 }

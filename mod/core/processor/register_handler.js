@@ -27,13 +27,22 @@ export default class RegisterHandler {
     register (request, transaction) {
         const contactHeader = request.getHeader(ContactHeader.NAME)
         const contactURI = contactHeader.getAddress().getURI()
-        const expH = request.getHeader(ExpiresHeader.NAME).getExpires() || contactHeader.getExpires()
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
         const toHeader = request.getHeader(ToHeader.NAME)
         const addressOfRecord = toHeader.getAddress().getURI()
 
+        let expires
+
+        if (request.getHeader(ExpiresHeader.NAME)) {
+            expires = request.getHeader(ExpiresHeader.NAME).getExpires()
+        } else {
+            expires = contactHeader.getExpires()
+        }
+
+        const expH = this.headerFactory.createExpiresHeader(expires)
+
         // See: Removing bindings -> https://tools.ietf.org/html/rfc3261#section-10.2.2
-        if (contactHeader.getAddress().isWildcard() && expH <= 0) {
+        if (contactHeader.getAddress().isWildcard() && expires <= 0) {
             this.locator.removeEndpoint(addressOfRecord)
             const ok = this.messageFactory.createResponse(Response.OK, request)
             ok.addHeader(contactHeader)
@@ -41,7 +50,7 @@ export default class RegisterHandler {
             transaction.sendResponse(ok)
             LOG.debug(ok)
             return
-        } else if (!contactHeader.getAddress().isWildcard() && expH <= 0) {
+        } else if (!contactHeader.getAddress().isWildcard() && expires <= 0) {
             this.locator.removeEndpoint(addressOfRecord, contactURI)
             const ok = this.messageFactory.createResponse(Response.OK, request)
             ok.addHeader(contactHeader)

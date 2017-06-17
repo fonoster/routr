@@ -153,11 +153,9 @@ export default class Locator {
 
                     if (result.status == RStatus.OK) {
                         const did = result.obj
-
                         result = gatewaysAPI.getGateway(did.metadata.gwRef)
 
                         if (result.status == RStatus.OK) {
-
                             const gw = result.obj
                             const gwHost = gw.spec.regService.host
                             const gwUsername = gw.spec.regService.credentials.username

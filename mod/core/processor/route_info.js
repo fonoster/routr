@@ -29,7 +29,13 @@ export default class RoutingInfo {
 
     getRoutingType() {
         if (this.getCallerType() == 'AGENT' && this.getCalleeType() == 'AGENT' && this.isSameDomain()) return RoutingType.INTRA_DOMAIN_ROUTING
+        if (this.getCallerType() == 'AGENT' && this.getCalleeType() == 'PEER' && this.isSameDomain()) return RoutingType.INTRA_DOMAIN_ROUTING
+        if (this.getCallerType() == 'PEER' && this.getCalleeType() == 'AGENT' && this.isSameDomain()) return RoutingType.INTRA_DOMAIN_ROUTING
+
         if (this.getCallerType() == 'AGENT' && this.getCalleeType() == 'AGENT' && !this.isSameDomain()) return RoutingType.INTER_DOMAIN_ROUTING
+        if (this.getCallerType() == 'AGENT' && this.getCalleeType() == 'PEER' && !this.isSameDomain()) return RoutingType.INTER_DOMAIN_ROUTING
+        if (this.getCallerType() == 'PEER' && this.getCalleeType() == 'AGENT' && !this.isSameDomain()) return RoutingType.INTER_DOMAIN_ROUTING
+
         if (this.getCallerType() == 'AGENT' && this.getCalleeType() == 'THRU_GW') return RoutingType.DOMAIN_EGRESS_ROUTING
         // We could test for SIPEntityType == DID
         if (this.getCallerType() == 'THRU_GW' && this.getCalleeType() == 'THRU_GW') return RoutingType.DOMAIN_INGRESS_ROUTING

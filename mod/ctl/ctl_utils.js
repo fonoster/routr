@@ -3,6 +3,7 @@
  * @since v1
  */
 import ResourcesUtil from 'resources/utils'
+import getConfig from 'core/config_util.js'
 
 const Unirest = Packages.com.mashape.unirest.http.Unirest
 const InetAddress = Packages.java.net.InetAddress
@@ -10,13 +11,14 @@ const InetAddress = Packages.java.net.InetAddress
 export default class CtlUtils {
 
     constructor() {
-        const host = InetAddress.getLocalHost().getHostAddress()
-        this.restConfig = new ResourcesUtil().getJson('config/config.yml').rest
-        this.baseUrl = 'http://' + host + ':' + this.restConfig.port
+        const config = getConfig()
+        const rest = config.spec.services.rest
+        this.credentials = rest.credentials
+        this.baseUrl = 'http://' + rest.bindAddr + ':' + rest.port
     }
 
     getWithAuth(resource) {
-        const result = Unirest.get(this.baseUrl + '/' + resource).basicAuth(this.restConfig.username, this.restConfig.secret).asJson()
+        const result = Unirest.get(this.baseUrl + '/' + resource).basicAuth(this.credentials.username, this.credentials.secret).asJson()
         return JSON.parse(result.getBody())
     }
 
@@ -24,11 +26,11 @@ export default class CtlUtils {
         let result
 
         if (data) {
-            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret)
+            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.credentials.username, this.credentials.secret)
             .body(JSON.stringify(data))
             .asJson()
         } else {
-            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret).asJson()
+            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.credentials.username, this.credentials.secret).asJson()
         }
 
         return JSON.parse(result.getBody())
@@ -38,11 +40,11 @@ export default class CtlUtils {
         let result
 
         if (data) {
-            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret)
+            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.credentials.username, this.credentials.secret)
             .body(JSON.stringify(data))
             .asJson()
         } else {
-            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret).asJson()
+            result = Unirest.post(this.baseUrl + '/' + cmd).basicAuth(this.credentials.username, this.credentials.secret).asJson()
         }
 
         return JSON.parse(result.getBody())
@@ -52,18 +54,18 @@ export default class CtlUtils {
         let result
 
         if (data) {
-            result = Unirest.put(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret)
+            result = Unirest.put(this.baseUrl + '/' + cmd).basicAuth(this.credentials.username, this.credentials.secret)
             .body(JSON.stringify(data))
             .asJson()
         } else {
-            result = Unirest.put(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret).asJson()
+            result = Unirest.put(this.baseUrl + '/' + cmd).basicAuth(this.credentials.username, this.credentials.secret).asJson()
         }
 
         return JSON.parse(result.getBody())
     }
 
     deleteWithAuth(cmd) {
-        const result = Unirest.delete(this.baseUrl + '/' + cmd).basicAuth(this.restConfig.username, this.restConfig.secret).asJson()
+        const result = Unirest.delete(this.baseUrl + '/' + cmd).basicAuth(this.credentials.username, this.credentials.secret).asJson()
         return JSON.parse(result.getBody())
     }
 }

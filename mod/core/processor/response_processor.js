@@ -31,6 +31,8 @@ export default class ResponseProcessor {
         const expiresHeader = responseIn.getHeader(ExpiresHeader.NAME)
         const fromHeader = responseIn.getHeader(FromHeader.NAME)
         const fromURI = fromHeader.getAddress().getURI()
+        const viaHeader = responseIn.getHeader(ViaHeader.NAME)
+        const clientTransaction = event.getClientTransaction()
 
         // The stack takes care of this cases
         if (responseIn.getStatusCode() == Response.TRYING ||
@@ -39,14 +41,36 @@ export default class ResponseProcessor {
 
         if (cseq.getMethod().equals(Request.REGISTER) &&
             responseIn.getStatusCode() == Response.OK) {
+
+            const request = clientTransaction.getRequest()
+            const gwRef = request.getHeader('GwRef').value
+
+            const rPort = viaHeader.getRPort()
+            const port = viaHeader.getPort()
+            const host = viaHeader.getHost()
+            const received = viaHeader.getReceived()
+
+            if ((!!received && !host.equals(received)) || port != rPort) {
+                const username = fromURI.getUser()
+                const transport = viaHeader.getTransport().toLowerCase()
+                // This may not be the best source to get this parameter
+                const peerHost = fromURI.getHost()
+
+                LOG.debug('Sip I/O is behind a NAT. Re-registering using Received and RPort')
+                try {
+                    this.registry.requestChallenge(username, gwRef, peerHost, transport, received, rPort)
+                } catch(e) {
+                    e.printStackTrace()
+                }
+                return
+            }
+
             let expires = 300
             if(expiresHeader != null) expires = expiresHeader.getExpires()
             this.registry.storeRegistry(fromURI.getUser(), fromURI.getHost(), expires)
         } else if(cseq.getMethod().equals(Request.REGISTER)) {
             this.registry.removeRegistry(fromURI.getHost())
         }
-
-        const clientTransaction = event.getClientTransaction()
 
         // WARNING: This is causing an issue with tcp transport and DIDLogic
         // I believe that DIDLogic does not fully support tcp registration
