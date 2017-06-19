@@ -75,6 +75,7 @@ export default class RequestProcessor {
             const fromHeader = requestIn.getHeader(FromHeader.NAME)
             const fromURI = fromHeader.getAddress().getURI()
             const remoteIp = event.getRemoteIpAddress()
+
             const routeInfo = new RouteInfo(requestIn, this.dataAPIs)
             
             LOG.debug('routing type -> ' + routeInfo.getRoutingType())
@@ -88,7 +89,8 @@ export default class RequestProcessor {
             }
 
             if (!routeInfo.getRoutingType().equals(RoutingType.DOMAIN_INGRESS_ROUTING)) {
-                if (!this.authorized(requestIn, serverTransaction)) {
+                // Do not need to authorized ACK messages...
+                if (!method.equals(Request.ACK) && !this.authorized(requestIn, serverTransaction)) {
                     serverTransaction.sendResponse(this.messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
                     LOG.debug(requestIn)
                     return
@@ -243,7 +245,8 @@ export default class RequestProcessor {
             this.sipProvider.sendRequest(requestOut)
         } else {
             try {
-                const clientTransaction = this.sipProvider.getNewClientTransaction(requestOut)
+                // The request must be cloned or the stack will not fork the call
+                const clientTransaction = this.sipProvider.getNewClientTransaction(requestOut.clone())
                 clientTransaction.sendRequest()
 
                 // Transaction context
@@ -272,6 +275,7 @@ export default class RequestProcessor {
         const authHeader = request.getHeader(ProxyAuthorizationHeader.NAME)
         const fromHeader = request.getHeader(FromHeader.NAME)
         const fromURI = fromHeader.getAddress().getURI()
+
         if (authHeader == null) {
             const challengeResponse = this.messageFactory.createResponse(Response.PROXY_AUTHENTICATION_REQUIRED, request)
             this.dsam.generateChallenge(this.headerFactory, challengeResponse, "sipio")
@@ -287,7 +291,7 @@ export default class RequestProcessor {
         if (result.status == Status.OK) {
             user = result.obj
         } else {
-            // This is also a security check. The user in the authentication must exit for the "formURI.getHost()" domain
+            // This is also a security check. The user in the authentication must exist for the 'fromURI.getHost()' domain
             result = this.agentsAPI.getAgent(fromURI.getHost(), authHeader.getUsername())
 
             if (result.status == Status.OK ) {
