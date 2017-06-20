@@ -1,14 +1,26 @@
 - apiVersion: v1draft1
   kind: Gateway
   metadata:
-    name: SIP Provider
-    ref: GW0001
+    name: DID Logic, Inc
+    ref:  GW0001
   spec:
     regService:
-      host: sip.provider.net
+      host: sip.didlogic.net
       credentials:
-        username: '12345'
-        secret: 'supersecret'
-      transport: tcp
+        username: '96170'
+        secret: 'iymscvb4rUSG4T0P4RD0'
+      transport: udp
       registries:
-        - sip2.provider.net
+        - sip.nyc.didlogic.net
+- apiVersion: v1draft1
+  kind: Gateway
+  metadata:
+    name: Voip MS
+    ref:  GW0002
+  spec:
+    regService:
+      host: atlanta2.voip.ms   # Ensure this registration server is selected in Voip.ms portal
+      credentials:
+        username: '215706'
+        secret: 'iymscvb4rUSG4T0P4RD0'
+      transport: tcp

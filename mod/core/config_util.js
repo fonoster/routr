@@ -25,7 +25,7 @@ export default function () {
         }
 
         if (config.spec.securityContext.client.protocols == undefined) {
-            config.spec.securityContext.client.protocols = ['TLSv1.2', 'TLSv1.1', 'TLSv1']
+            config.spec.securityContext.client.protocols = ['SSLv3', 'TLSv1.2', 'TLSv1.1', 'TLSv1']
         }
     }
 

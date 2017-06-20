@@ -9,5 +9,18 @@
       countryISOCode: US
   spec:
     location:
-      telUrl: 'tel:7062332323'
+      telUrl: 'tel:17066041487'
+      aorLink: 'sip:janie@sip.ocean.com'
+- apiVersion: v1draft1
+  kind: DID
+  metadata:
+    ref: DID0002
+    gwRef: GW0002
+    geoInfo:
+      city: Sanford, NC
+      country: USA
+      countryISOCode: US
+  spec:
+    location:
+      telUrl: 'tel:9198972120'
       aorLink: 'sip:john@sip.ocean.com'

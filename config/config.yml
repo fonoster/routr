@@ -17,6 +17,8 @@ spec:
       port: 5061
     - protocol: ws
       port: 5082
+    - protocol: wss
+      port: 5083
   services:
     rest:
       credentials:

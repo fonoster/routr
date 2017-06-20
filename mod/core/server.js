@@ -16,6 +16,7 @@ const Properties = Packages.java.util.Properties
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const ANSI_GREEN = "\u001B[32m"
+const ANSI_YELLOW = "\u001B[33m"
 const ANSI_RESET = "\u001B[0m"
 
 export default class Server {
@@ -63,6 +64,7 @@ export default class Server {
         // See https://groups.google.com/forum/#!topic/mobicents-public/U_c7aLAJ_MU for useful info
         if (config.spec.securityContext) {
             properties.setProperty('gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS', config.spec.securityContext.client.protocols.join())
+            // This must be set to 'Disabled' when using WSS
             properties.setProperty('gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE', config.spec.securityContext.client.authType)
             properties.setProperty('javax.net.ssl.keyStore', config.spec.securityContext.keyStore)
             properties.setProperty('javax.net.ssl.trustStore', config.spec.securityContext.trustStore)
@@ -83,15 +85,21 @@ export default class Server {
 
         for (const key in config.spec.transport) {
             const transport = config.spec.transport[key]
+            const proto = transport.protocol.toLowerCase()
+
+            if ((proto == 'wss' || proto == 'tls') && !config.spec.securityContext) {
+                LOG.warn(ANSI_YELLOW + 'Security context not found. Ignoring protocol: ' + proto + ANSI_RESET)
+                continue;
+            }
 
             if (transport.bindAddr == undefined) transport.bindAddr = this.host
 
-            const lp = this.sipStack.createListeningPoint(transport.bindAddr, transport.port, transport.protocol.toLowerCase())
+            const lp = this.sipStack.createListeningPoint(transport.bindAddr, transport.port, proto)
             sipProvider.addListeningPoint(lp)
 
             LOG.info('Added listening point:' + ANSI_GREEN  + ' [ip => ' + transport.bindAddr
                 + ', port => ' + transport.port
-                + ', proto => ' + transport.protocol.toLowerCase() + ']'
+                + ', proto => ' + proto + ']'
                 + ANSI_RESET)
         }
 
