@@ -1,4 +1,4 @@
-# Sip I/O: Lightweight SIP Server
+# Sip I/O: Next-genereation Sip Server
 
 <a href="https://github.com/fonoster/sipio"><img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo.png" align="left" hspace="10" vspace="5" width="80"></a>
 
