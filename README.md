@@ -4,7 +4,13 @@
 
 **Sip I/O** is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. For a list of features and documentation about the project please visit the [wiki](https://github.com/psanders/sip.io/wiki/Home). To get involve in the development of this project, please contact me at [@sandedro](https://twitter.com/sandedro).
 
-> This software is in its very early stage and is not recommended for production
+## What is it useful for?
+
+- [x] Simple call setup for sip devices
+- [x] WebRTC signaling server
+- [x] Signaling for chat applications
+- [x] Multi-tenant VOIP network setup
+- [x] Frontend for Asterisk or any Media Server
 
 ## Download and Run
 
