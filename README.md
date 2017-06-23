@@ -11,8 +11,8 @@
 - [x] Signaling for chat applications
 - [x] Multi-tenant VOIP network setup
 - [x] Frontend for Asterisk or any Media Server
+- [ ] Presence
 - [ ] Load balancing
-- [ ] Presence 
 
 ## Download and Run
 
