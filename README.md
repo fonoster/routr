@@ -16,7 +16,7 @@
 
 ## Download and Run
 
-Get the binary as [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M1/sipio.1.0.0-M1.zip) or [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M1/sipio.1.0.0-M1.tar.gz). Then from withing the root folder simply run:
+Get the binary as [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip) or [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz). Then from withing the root folder simply run:
 
 ```bash
 ./sipio
