@@ -97,10 +97,10 @@ export default class Server {
             const lp = this.sipStack.createListeningPoint(transport.bindAddr, transport.port, proto)
             sipProvider.addListeningPoint(lp)
 
-            LOG.info('Added listening point:' + ANSI_GREEN  + ' [ip => ' + transport.bindAddr
-                + ', port => ' + transport.port
-                + ', proto => ' + proto + ']'
-                + ANSI_RESET)
+            LOG.info('Listening @ ' + ANSI_GREEN  + transport.bindAddr
+                + ':' + transport.port
+                    + ' [' + proto + ']'
+                        + ANSI_RESET)
         }
 
         const registry = new Registry(sipProvider, dataAPIs)
