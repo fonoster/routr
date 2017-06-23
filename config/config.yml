@@ -25,4 +25,4 @@ spec:
         username: rest
         secret: 'KN4k^^f%M]e66f~^'
   logging:
-    traceLevel: 10
+    traceLevel: 0
