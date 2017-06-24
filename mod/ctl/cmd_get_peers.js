@@ -30,10 +30,14 @@ export default function getPeers(ref, filter) {
 
     peers.forEach(p => {
         if (isEmpty(ref) || ref.equals(p.spec.credentials.username)) {
+            let deviceName = '--'
+
+            if (p.spec.device) deviceName = p.spec.device
+
             textTable.nextRow()
                 .nextCell().addLine(p.spec.credentials.username)
                 .nextCell().addLine(p.metadata.name)
-                .nextCell().addLine(p.spec.device)
+                .nextCell().addLine(deviceName)
             cnt++
         }
     })

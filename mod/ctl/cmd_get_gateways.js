@@ -32,14 +32,18 @@ export default function getGateways(ref, filter) {
 
     gateways.forEach(g => {
         if (isEmpty(ref) || ref.equals(g.metadata.ref)) {
-            let registries = g.spec.regService.registries || undefined
+            let registries = '--'
+
+            if (g.spec.regService.registries) {
+                registries = g.spec.regService.registries.join()
+            }
 
             textTable.nextRow()
                 .nextCell().addLine(g.metadata.ref)
                 .nextCell().addLine(g.spec.regService.credentials.username)
                 .nextCell().addLine(g.metadata.name)
                 .nextCell().addLine(g.spec.regService.host)
-                .nextCell().addLine(registries.join())
+                .nextCell().addLine(registries)
             cnt++
         }
     })
