@@ -18,7 +18,7 @@
 
 ## Key Concepts :books:
 
-Here are some important **Sip I/O** concepts including the different signaling methods implemented by the server.
+Here are some important **Sip I/O** concepts including the different routing types implemented by the server.
 
 | Concept | Description |
 | -- | -- |
