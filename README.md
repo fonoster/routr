@@ -18,7 +18,7 @@
 
 ## Key Concepts :books:
 
-Here are some important **Sip I/O** concepts including the different routing types implemented by the server.
+This following table features some important concepts, including the different routing types implemented by the server.
 
 | Concept | Description |
 | -- | -- |
@@ -27,20 +27,19 @@ Here are some important **Sip I/O** concepts including the different routing typ
 | Peer    | Similar to Agents but without Domain boundaries                 |
 | Gateway | SIP entity that allows call termination                         |
 | DID     | Routes and translate calls between the PSTN and Sip I/O         |
-| Intra-Domain Routing (IDR)   | Routing type for calling within the same Domain  |
-| Domain Ingress Routing (DIR) | Calling from the PSTN to an Agent or Peer |
-| Domain Egress Routing (DER)  | Calling from an Agent to the PSTN thru a Gateway |
-| Peer Egress Routing (PER)    | Similar to *DER* but applies only to Peers |
+| Intra-Domain Routing  | Routing type for calling within the same Domain   |
+| Domain Ingress Routing | Calling from the PSTN to an Agent or Peer        |
+| Domain Egress Routing | Calling from an Agent to the PSTN thru a Gateway  |
+| Peer Egress Routing | Similar to *DER* but applies only to Peers          |
 
-## Download and Run :arrow_down:
+## Running the Server :runner:
 
-To run server you will need `Java 1.8 +`. Get the binary as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip). Then, from within the server's folder simply run:
+Install `Java 1.8 +`, get the binary as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip), and then from within the server's folder simply run:
 
 ```bash
 ./sipio
 ```
 
-Please check the guide [Installing and Running the Server](https://github.com/fonoster/sipio/wiki/Installing-and-Running-the-Server) if you wish to build from source. 
 
 ## Support
 
