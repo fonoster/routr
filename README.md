@@ -34,13 +34,13 @@ Here are some important **Sip I/O** concepts including the different signaling m
 
 ## Download and Run :arrow_down:
 
-Get the binary as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip). Then, from within the server's folder simply run:
+To run server you will need `Java 1.8 +`. Get the binary as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip). Then, from within the server's folder simply run:
 
 ```bash
 ./sipio
 ```
 
-> You will need Java 1.8 + to run `Sip I/O`. You will also need Gradle and NPM if you wish to [build from source](https://github.com/fonoster/sipio/wiki/Installing-and-Running-the-Server).
+Please check the guide [Installing and Running the Server](https://github.com/fonoster/sipio/wiki/Installing-and-Running-the-Server) if you wish to build from source. 
 
 ## Support
 
