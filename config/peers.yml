@@ -4,7 +4,6 @@
   metadata:
     name: Asterisk PBX
   spec:
-    device: 'sip.ocean.com'
     credentials:
       username: ast
       secret: '1234'

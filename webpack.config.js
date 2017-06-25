@@ -9,4 +9,5 @@ module.exports = {
         filename: "[name].bundle.js",
         path: path.resolve(__dirname, 'libs')
     },
+    devtool: 'source-map'
 };
