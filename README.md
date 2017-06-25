@@ -27,7 +27,7 @@ This table includes some important concepts, including the different routing typ
 
 | Concept | Description |
 | -- | -- |
-| Agent   | Agents represent SIP endpoints (e.g. softphones and IP phones) |
+| Agent   | Agents represent SIP endpoints (e.g. softphones and ip-phones) |
 | Domain  | Enables the creation of isolated groups of Agents               |
 | Peer    | Similar to Agents but without Domain boundaries                 |
 | Gateway | SIP entity that allows call termination                         |
