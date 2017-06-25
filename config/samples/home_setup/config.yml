@@ -1,0 +1,16 @@
+apiVersion: v1draft1
+metadata:
+  userAgent: Sip I/O v1.0
+spec:
+  transport:
+    - protocol: udp
+      port: 5060
+    - protocol: tcp
+      port: 5060
+  services:
+    rest:
+      credentials:
+        username: rest
+        secret: 'KN4k^^f%M]e66f~^'
+  logging:
+    traceLevel: 0

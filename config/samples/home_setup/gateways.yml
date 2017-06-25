@@ -1,0 +1,12 @@
+- apiVersion: v1draft1
+  kind: Gateway
+  metadata:
+    name: DIDLogic Inc
+    ref:  GW0001
+  spec:
+    regService:
+      host: sip.didlogic.net
+      credentials:
+        username: 'youruser'
+        secret: 'yoursecret'
+      transport: udp

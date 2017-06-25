@@ -1,0 +1,9 @@
+- apiVersion: v1draft1
+  kind: Agent
+  metadata:
+    name: Whatever Agent Name
+  spec:
+    credentials:
+      username: '1001'
+      secret: '1234'
+    domains: [sip.local]
