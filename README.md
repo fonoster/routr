@@ -16,6 +16,27 @@
 - [ ] Presence
 - [ ] Load balancing
 
+## Key Concepts
+
+**Resources**
+
+| Concept | Description |
+| -- | -- |
+| Agents  | Agents represent SIP endpoints such as softphones and IP phones                         |
+| Domains | Use Domains to place Agents withing the same context                                    |
+| Peers   | Peers are similar than Agents, but they are not bound to a Domain (ie.: a media server) |
+| Gateway | A Gateway is a SIP entity that allows Sip I/O to connect to the PSTN                    |
+| DID     | Routes and translate calls between the PSTN and Sip I/O.                                |
+
+**Routing Method**
+
+| Concept | Description |
+| -- | -- |
+| Intra-Domain Routing (IDR)   | Routing within the Domain |
+| Domain Ingress Routing (DIR) | Calls from PSTN to Domain |
+| Domain Egress Routing (DER)  | Calls from Agent to PSTN  |
+| Peer Egress Routing (PER)    | Calls Peer to PStN        |
+
 ## Download and Run
 
 Get the binary as [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip) or [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz). Then from withing the root folder simply run:
