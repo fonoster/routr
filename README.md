@@ -18,7 +18,7 @@
 
 ## Key Concepts
 
-**Resources**
+The following are some concepts might seem in other sip servers but present from *Sip I/O* point of view.
 
 | Concept | Description |
 | -- | -- |
@@ -28,14 +28,14 @@
 | Gateway | A Gateway is a SIP entity that allows Sip I/O to connect to the PSTN                    |
 | DID     | Routes and translate calls between the PSTN and Sip I/O.                                |
 
-**Routing Method**
+The next table shows the different signaling path implemented by the server.
 
 | Concept | Description |
 | -- | -- |
-| Intra-Domain Routing (IDR)   | Routing within the Domain |
-| Domain Ingress Routing (DIR) | Calls from PSTN to Domain |
-| Domain Egress Routing (DER)  | Calls from Agent to PSTN  |
-| Peer Egress Routing (PER)    | Calls Peer to PStN        |
+| Intra-Domain Routing (IDR)   | This type of routing applies for calling within the same Domain    |
+| Domain Ingress Routing (DIR) | *DIR* enables calling from the PSTN to an Agent in a Domain        |
+| Domain Egress Routing (DER)  | Signaling path for calls from an Agent  to the PSTN thru a Gateway |
+| Peer Egress Routing (PER)    | Similar to *DER* but applies only to Peers |
 
 ## Download and Run
 
