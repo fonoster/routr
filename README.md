@@ -1,4 +1,4 @@
-<a href="https://github.com/fonoster/sipio"><img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo3.png"  width="250"></a>
+<a href="https://github.com/fonoster/sipio"><img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo3.png"  width="200"></a>
 
 * [Description](#description)
 * [Key Concepts](#key-concepts)
