@@ -37,7 +37,7 @@ The next table shows the different signaling path implemented by the server.
 | Domain Egress Routing (DER)  | Calling from an Agent to the PSTN thru a Gateway |
 | Peer Egress Routing (PER)    | Similar to *DER* but applies only to Peers |
 
-## Download and Run
+## Download and Run :arrow_down:
 
 Get the binary as [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip) or [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz). Then from withing the root folder simply run:
 
