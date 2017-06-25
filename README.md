@@ -32,7 +32,7 @@ This following table features some important concepts, including the different r
 | Domain Egress Routing | Calling from an Agent to the PSTN thru a Gateway  |
 | Peer Egress Routing | Similar to *DER* but applies only to Peers          |
 
-## Running the Server :moyai:
+## Running the Server :up:
 
 Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip), and then from within the server's folder simply run:
 
