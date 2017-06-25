@@ -18,7 +18,7 @@
 
 ## Key Concepts :books:
 
-Here are some important **Sip I/O** conccepts including the different signaling methods implmented by the server.
+Here are some important **Sip I/O** concepts including the different signaling methods implemented by the server.
 
 | Concept | Description |
 | -- | -- |
@@ -34,13 +34,13 @@ Here are some important **Sip I/O** conccepts including the different signaling 
 
 ## Download and Run :arrow_down:
 
-Get the binary as [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip) or [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz). Then from withing the root folder simply run:
+Get the binary as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip). Then, from within the server's folder simply run:
 
 ```bash
 ./sipio
 ```
 
-> You need Java 1.8 + to run Sip I/O. You will also need Gradle and Npm if you wish to [build from source](https://github.com/fonoster/sipio/wiki/Installing-and-Running-the-Server).
+> You will need Java 1.8 + to run `Sip I/O`. You will also need Gradle and NPM if you wish to [build from source](https://github.com/fonoster/sipio/wiki/Installing-and-Running-the-Server).
 
 ## Support
 
