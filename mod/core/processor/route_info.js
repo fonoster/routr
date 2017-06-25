@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-import { SIPEntityType } from 'core/sip_entity_type'
+import { RouteEntityType } from 'core/route_entity_type'
 import { RoutingType } from 'core/routing_type'
 
 const ToHeader = Packages.javax.sip.header.ToHeader
@@ -28,31 +28,43 @@ export default class RoutingInfo {
     }
 
     getRoutingType() {
-        if (this.getCallerType() == 'AGENT' && this.getCalleeType() == 'AGENT' && this.isSameDomain()) return RoutingType.INTRA_DOMAIN_ROUTING
-        if (this.getCallerType() == 'AGENT' && this.getCalleeType() == 'PEER' && this.isSameDomain()) return RoutingType.INTRA_DOMAIN_ROUTING
-        if (this.getCallerType() == 'PEER' && this.getCalleeType() == 'AGENT' && this.isSameDomain()) return RoutingType.INTRA_DOMAIN_ROUTING
+        if (this.getCallerType() == RouteEntityType.AGENT && this.getCalleeType() == RouteEntityType.AGENT && this.isSameDomain()) return RoutingType.INTRA_DOMAIN_ROUTING
+        if (this.getCallerType() == RouteEntityType.AGENT && this.getCalleeType() == RouteEntityType.PEER && this.isSameDomain()) return RoutingType.INTRA_DOMAIN_ROUTING
+        if (this.getCallerType() == RouteEntityType.PEER && this.getCalleeType() == RouteEntityType.AGENT && this.isSameDomain()) return RoutingType.INTRA_DOMAIN_ROUTING
 
-        if (this.getCallerType() == 'AGENT' && this.getCalleeType() == 'AGENT' && !this.isSameDomain()) return RoutingType.INTER_DOMAIN_ROUTING
-        if (this.getCallerType() == 'AGENT' && this.getCalleeType() == 'PEER' && !this.isSameDomain()) return RoutingType.INTER_DOMAIN_ROUTING
-        if (this.getCallerType() == 'PEER' && this.getCalleeType() == 'AGENT' && !this.isSameDomain()) return RoutingType.INTER_DOMAIN_ROUTING
+        if (this.getCallerType() == RouteEntityType.AGENT && this.getCalleeType() == RouteEntityType.AGENT && !this.isSameDomain()) return RoutingType.INTER_DOMAIN_ROUTING
+        if (this.getCallerType() == RouteEntityType.AGENT && this.getCalleeType() == RouteEntityType.PEER && !this.isSameDomain()) return RoutingType.INTER_DOMAIN_ROUTING
+        if (this.getCallerType() == RouteEntityType.PEER && this.getCalleeType() == RouteEntityType.AGENT && !this.isSameDomain()) return RoutingType.INTER_DOMAIN_ROUTING
 
-        if (this.getCallerType() == 'AGENT' && this.getCalleeType() == 'THRU_GW') return RoutingType.DOMAIN_EGRESS_ROUTING
-        // We could test for SIPEntityType == DID
-        if (this.getCallerType() == 'THRU_GW' && this.getCalleeType() == 'THRU_GW') return RoutingType.DOMAIN_INGRESS_ROUTING
-        if (this.getCallerType() == 'PEER' && this.getCalleeType() == 'THRU_GW') return RoutingType.PEER_EGRESS_ROUTING
-        if (this.getCallerType() == 'PEER' && this.getCalleeType() == 'THRU_GW') return RoutingType.PEER_EGRESS_ROUTING
+        if (this.getCallerType() == RouteEntityType.AGENT && this.getCalleeType() == RouteEntityType.THRU_GW) return RoutingType.DOMAIN_EGRESS_ROUTING
+        if (this.getCallerType() == RouteEntityType.THRU_GW && this.getCalleeType() == RouteEntityType.DID) return RoutingType.DOMAIN_INGRESS_ROUTING
+
+        // This is consider PEER_EGRESS_ROUTING because peers are the only one allow to overwrite the FromHeader.
+        if (this.getCallerType() == RouteEntityType.DID && this.getCalleeType() == RouteEntityType.THRU_GW) return RoutingType.PEER_EGRESS_ROUTING
+        if (this.getCallerType() == RouteEntityType.PEER && this.getCalleeType() == RouteEntityType.THRU_GW) return RoutingType.PEER_EGRESS_ROUTING
+
+        return RoutingType.UNKNOWN
     }
 
     getCallerType () {
-        if (this.peersAPI.peerExist(this.callerUser)) return SIPEntityType.PEER
-        if (this.agentsAPI.agentExist(this.callerDomain, this.callerUser)) return SIPEntityType.AGENT
-        return SIPEntityType.THRU_GW
+        if (this.peersAPI.peerExist(this.callerUser)) return RouteEntityType.PEER
+        if (this.agentsAPI.agentExist(this.callerDomain, this.callerUser)) return RouteEntityType.AGENT
+        if (StringUtils.isNumeric(this.callerUser)) {
+            const telUrl = this.addressFactory.createTelURL(this.callerUser)
+            if (this.didsAPI.didExistByTelUrl(telUrl)) return RouteEntityType.DID
+        }
+        if (this.agentsAPI.agentExist(this.callerDomain, this.callerUser)) return RouteEntityType.AGENT
+        return RouteEntityType.THRU_GW
     }
 
     getCalleeType() {
-        if (this.peersAPI.peerExist(this.calleeUser)) return SIPEntityType.PEER
-        if (this.agentsAPI.agentExist( this.calleeDomain, this.calleeUser)) return SIPEntityType.AGENT
-        return SIPEntityType.THRU_GW
+        if (this.peersAPI.peerExist(this.calleeUser)) return RouteEntityType.PEER
+        if (this.agentsAPI.agentExist(this.calleeDomain, this.calleeUser)) return RouteEntityType.AGENT
+        if (StringUtils.isNumeric(this.calleeUser)) {
+            const telUrl = this.addressFactory.createTelURL(this.calleeUser)
+            if (this.didsAPI.didExistByTelUrl(telUrl)) return RouteEntityType.DID
+        }
+        return RouteEntityType.THRU_GW
     }
 
     isSameDomain() {

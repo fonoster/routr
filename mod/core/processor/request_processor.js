@@ -90,7 +90,7 @@ export default class RequestProcessor {
 
             if (!routeInfo.getRoutingType().equals(RoutingType.DOMAIN_INGRESS_ROUTING)) {
                 // Do not need to authorized ACK messages...
-                if (!method.equals(Request.ACK) && !this.authorized(requestIn, serverTransaction)) {
+                if (!method.equals(Request.ACK) && !method.equals(Request.BYE) && !this.authorized(requestIn, serverTransaction)) {
                     serverTransaction.sendResponse(this.messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
                     LOG.debug(requestIn)
                     return
@@ -150,7 +150,15 @@ export default class RequestProcessor {
             // 3. Determine route
             // 3.0 Peer Egress Routing (PR)
             if (routeInfo.getRoutingType().equals(RoutingType.PEER_EGRESS_ROUTING)) {
-                const telUrl = this.addressFactory.createTelURL(fromURI.getUser())
+                let telUrl
+
+                // First look for the header 'DIDRef'
+                if (requestOut.getHeader('DIDRef')) {
+                    telUrl = this.addressFactory.createTelURL(requestOut.getHeader('DIDRef'))
+                } else {
+                    telUrl = this.addressFactory.createTelURL(fromURI.getUser())
+                }
+
                 let result = this.didsAPI.getDIDByTelUrl(telUrl)
 
                 if (result.status == Status.NOT_FOUND) {

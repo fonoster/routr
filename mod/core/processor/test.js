@@ -43,27 +43,32 @@ testGroup.routing_type = function () {
     // Same Domain
     let request = getRequest('john@sip.ocean.com', 'janie@sip.ocean.com')
     let routeInfo = new RouteInfo(request, dataAPIs)
-    assertEquals(routeInfo.getRoutingType(), 'INTRA_DOMAIN_ROUTING')
+    assertEquals('INTRA_DOMAIN_ROUTING', routeInfo.getRoutingType())
 
     // Different domain but both domains exist
     request = getRequest('john@sip.ocean.com', 'jack@sip.ny.ocean.com')
     routeInfo = new RouteInfo(request, dataAPIs)
-    assertEquals(routeInfo.getRoutingType(), 'INTER_DOMAIN_ROUTING')
+    assertEquals('INTER_DOMAIN_ROUTING', routeInfo.getRoutingType())
 
     // Call to the PSTN
     request = getRequest('john@sip.ocean.com', '17853178070@sip.ocean.com')
     routeInfo = new RouteInfo(request, dataAPIs)
-    assertEquals(routeInfo.getRoutingType(), 'DOMAIN_EGRESS_ROUTING')
+    assertEquals('DOMAIN_EGRESS_ROUTING', routeInfo.getRoutingType())
 
     // Call from the PSTN
-    request = getRequest('17853178070@sip.provider.com', '1762223232@sip.provider.com')
+    request = getRequest('17853178070@sip.provider.com', '17066041487@sip.provider.com')
     routeInfo = new RouteInfo(request, dataAPIs)
-    assertEquals(routeInfo.getRoutingType(), 'DOMAIN_INGRESS_ROUTING')
+    assertEquals('DOMAIN_INGRESS_ROUTING', routeInfo.getRoutingType())
+
+    // Peer call
+    request = getRequest('17066041487@sip.provider.com', '1762223232@sip.provider.com')
+    routeInfo = new RouteInfo(request, dataAPIs)
+    assertEquals('PEER_EGRESS_ROUTING', routeInfo.getRoutingType())
 
     // Peer call
     request = getRequest('ast@astserver', '17853178070@sip.provider.com')
     routeInfo = new RouteInfo(request, dataAPIs)
-    assertEquals(routeInfo.getRoutingType(), 'PEER_EGRESS_ROUTING')
+    assertEquals('PEER_EGRESS_ROUTING', routeInfo.getRoutingType())
 }
 
 function getRequest(from, to) {

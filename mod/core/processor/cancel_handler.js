@@ -3,6 +3,7 @@
  * @since v1
  */
 const SipFactory = Packages.javax.sip.SipFactory
+const Response = Packages.javax.sip.message.Response
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 
