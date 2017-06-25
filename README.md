@@ -18,23 +18,23 @@
 
 ## Key Concepts
 
-The following are some concepts might seem in other sip servers but present from *Sip I/O* point of view.
+Here are some sip related concepts as the apply to **Sip I/O**
 
 | Concept | Description |
 | -- | -- |
-| Agents  | Agents represent SIP endpoints such as softphones and IP phones                         |
-| Domains | Use Domains to place Agents withing the same context                                    |
-| Peers   | Peers are similar than Agents, but they are not bound to a Domain (ie.: a media server) |
-| Gateway | A Gateway is a SIP entity that allows Sip I/O to connect to the PSTN                    |
-| DID     | Routes and translate calls between the PSTN and Sip I/O.                                |
+| Agents  | Agents represent SIP endpoints such as softphones and IP phones |
+| Domains | Enables the creation of isolated groups of Agents               |
+| Peers   | Similar to Agents but without Domain boundaries                 |
+| Gateway | SIP entity that allows call termination                         |
+| DID     | Routes and translate calls between the PSTN and Sip I/O         |
 
 The next table shows the different signaling path implemented by the server.
 
 | Concept | Description |
 | -- | -- |
-| Intra-Domain Routing (IDR)   | This type of routing applies for calling within the same Domain    |
-| Domain Ingress Routing (DIR) | *DIR* enables calling from the PSTN to an Agent in a Domain        |
-| Domain Egress Routing (DER)  | Signaling path for calls from an Agent  to the PSTN thru a Gateway |
+| Intra-Domain Routing (IDR)   | Routing type for calling within the same Domain  |
+| Domain Ingress Routing (DIR) | Calling from the PSTN to an Agent or Peer |
+| Domain Egress Routing (DER)  | Calling from an Agent to the PSTN thru a Gateway |
 | Peer Egress Routing (PER)    | Similar to *DER* but applies only to Peers |
 
 ## Download and Run
