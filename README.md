@@ -18,20 +18,15 @@
 
 ## Key Concepts
 
-Here are some sip related concepts as the apply to **Sip I/O**
+Here are some important **Sip I/O** conccepts including the different signaling methods implmented by the server.
 
 | Concept | Description |
 | -- | -- |
-| Agents  | Agents represent SIP endpoints such as softphones and IP phones |
-| Domains | Enables the creation of isolated groups of Agents               |
-| Peers   | Similar to Agents but without Domain boundaries                 |
+| Agent   | Agents represent SIP endpoints such as softphones and IP phones |
+| Domain  | Enables the creation of isolated groups of Agents               |
+| Peer    | Similar to Agents but without Domain boundaries                 |
 | Gateway | SIP entity that allows call termination                         |
 | DID     | Routes and translate calls between the PSTN and Sip I/O         |
-
-The next table shows the different signaling path implemented by the server.
-
-| Concept | Description |
-| -- | -- |
 | Intra-Domain Routing (IDR)   | Routing type for calling within the same Domain  |
 | Domain Ingress Routing (DIR) | Calling from the PSTN to an Agent or Peer |
 | Domain Egress Routing (DER)  | Calling from an Agent to the PSTN thru a Gateway |
