@@ -6,7 +6,7 @@
 * [Support](#support)
 * [Contributing](#contribuiting)
 * [Authors](#authors)
-* [Copyright](#copyright)
+* [License](#license)
 
 ***
 
@@ -61,5 +61,5 @@ For contributing, please see the following links:
 ## Authors
  - [Pedro Sanders](https://github.com/psanders)
 
-## Copyright
+## License
 Copyright (C) 2017 by [Fonoster Inc](https://github.com/fonoster). MIT License (see [LICENSE](https://github.com/fonoster/sipio/blob/master/LICENSE) for details).
