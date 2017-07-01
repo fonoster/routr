@@ -1,7 +1,7 @@
 - apiVersion: v1draft1
   kind: Agent
   metadata:
-    name: Whatever Agent Name
+    name: Whatever Agent
   spec:
     credentials:
       username: '1001'
@@ -10,7 +10,7 @@
 - apiVersion: v1draft1
   kind: Agent
   metadata:
-    name: Another Agent Name
+    name: Another Agent
   spec:
     credentials:
       username: '1002'
