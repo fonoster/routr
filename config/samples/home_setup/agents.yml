@@ -7,3 +7,13 @@
       username: '1001'
       secret: '1234'
     domains: [sip.local]
+- apiVersion: v1draft1
+  kind: Agent
+  metadata:
+    name: Another Agent Name
+  spec:
+    credentials:
+      username: '1002'
+      secret: '1234'
+    domains: [sip.local]
+
