@@ -42,8 +42,6 @@ Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/s
 
 For bugs, questions and discussions please use the [Github Issues](https://github.com/fonoster/sipio/issues)
 
-Please open an  for support.
-
 ## Contributing
 
 For contributing, please see the following links:
