@@ -7,10 +7,10 @@
 ## What does it do?
 
 - [x] Simple call setup for sip devices
+- [x] Frontend for Asterisk, FreeSWITCH or any Media Server
 - [x] WebRTC signaling server
 - [x] Signaling for chat applications
-- [x] Multi-tenant VOIP network setup
-- [x] Frontend for Asterisk or any Media Server
+- [x] Multi-tenant VoIP network setup
 - [ ] Presence
 - [ ] Load balancing
 
