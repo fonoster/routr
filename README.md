@@ -12,16 +12,6 @@
 * [Basic Setup](https://github.com/fonoster/sipio/tree/master/config/samples/basic_setup)
 * [Wiki](https://github.com/fonoster/sipio/wiki)
 
-## What does it do?
-
-- [x] Simple call setup for sip devices
-- [x] Frontend for Asterisk, FreeSWITCH or any Media Server
-- [x] WebRTC signaling server
-- [x] Signaling for chat applications
-- [x] Multi-tenant VoIP network setup
-- [ ] Presence
-- [ ] Load balancing
-
 ## Running the Server :up:
 
 Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip), and then from within the server's folder simply run:
