@@ -4,6 +4,14 @@
 
 **Sip I/O** is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. For a list of features and documentation about the project please visit the [wiki](https://github.com/fonoster/sipio/wiki/Home). To get involve in the development of this project, please contact us at [@fonoster](https://twitter.com/fonoster).
 
+## Resources
+
+* [Features](https://github.com/fonoster/sipio/wiki)
+* [Release Notes](https://github.com/fonoster/sipio/releases)
+* [Security](https://github.com/fonoster/sipio/wiki/Securing-the-Signaling)
+* [Basic Setup](https://github.com/fonoster/sipio/tree/master/config/samples/basic_setup)
+* [Wiki](https://github.com/fonoster/sipio/wiki)
+
 ## What does it do?
 
 - [x] Simple call setup for sip devices
