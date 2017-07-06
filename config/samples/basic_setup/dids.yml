@@ -3,12 +3,11 @@
   metadata:
     ref: DID0001
     gwRef: GW0001
-    geoInfo:
-      city: Columbus, GA
-      country: USA
+    geoInfo:                  # Replace this using your DID's info
+      city: City, State
+      country: Country
       countryISOCode: US
   spec:
     location:
-      telUrl: 'tel:17066041487'
+      telUrl: 'tel:0000000000'        # Use your DID number as giving by your provider
       aorLink: 'sip:1001@sip.local'
-
