@@ -1,7 +1,11 @@
 - apiVersion: v1draft1
   kind: Agent
   metadata:
+<<<<<<< HEAD
     name: Whatever Agent Name
+=======
+    name: John Doe
+>>>>>>> df6c1f4a1b59147d17699617204b9fd54be05395
   spec:
     credentials:
       username: '1001'
@@ -10,7 +14,11 @@
 - apiVersion: v1draft1
   kind: Agent
   metadata:
+<<<<<<< HEAD
     name: Another Agent Name
+=======
+    name: Janie Doe
+>>>>>>> df6c1f4a1b59147d17699617204b9fd54be05395
   spec:
     credentials:
       username: '1002'

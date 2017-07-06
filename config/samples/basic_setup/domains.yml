@@ -1,7 +1,7 @@
 - apiVersion: v1draft1
   kind: Domain
   metadata:
-    name: My Home Setup
+    name: My Home or Office Setup
   spec:
     context:
       domainUri: sip.local
