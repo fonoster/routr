@@ -12,6 +12,26 @@
 * [Basic Setup](https://github.com/fonoster/sipio/tree/master/config/samples/basic_setup)
 * [Wiki](https://github.com/fonoster/sipio/wiki)
 
+## Configuration Overview
+
+**Sip I/O**  API version is currently `v1draft1`. We will continue to improve the API, resource definition, and other artifacts until we reach a beta version. We will then establish an update policy to ensure backward compatibility. The configuration files are beautifully implemented using YAML(inspired by [Docker](https://www.docker.com/) and [Kubernetes](https://kubernetes.io/)) so this might be familiar to you. Here is an example of `Domain` configuration:
+
+```yml
+- apiVersion: v1draft1
+  kind: Domain
+  metadata:
+    name: Sip Local
+  spec:
+    context:
+      domainUri: sip.local
+      egressPolicy:
+        rule: .*
+        didRef: DID0001
+      accessControlList:
+        deny: [0.0.0.0/1]     # Deny all
+        allow: [192.168.0.1/31]
+```
+
 ## Running the Server :up:
 
 Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip), and then from within the server's folder simply run:
