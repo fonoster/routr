@@ -12,7 +12,7 @@ const TUtil = com.inamik.text.tables.grid.Util
 export default class CommandLocate {
 
     constructor(subparsers) {
-        subparsers.addParser('registry').aliases(['reg']).help('shows providers registrations')
+        subparsers.addParser('registry').aliases(['reg']).help('shows gateways registrations')
         this.ctlUtils = new CtlUtils()
     }
 
