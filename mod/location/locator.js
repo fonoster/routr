@@ -39,7 +39,7 @@ export default class Locator {
                 return 'sip:' + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
             }
         } else {
-            if (/sip:.*@.*/.test(addressOfRecord) ||
+            if (/sips?:.*@.*/.test(addressOfRecord) ||
                 /tel:\d+/.test(addressOfRecord)) {
                 return addressOfRecord
             }
