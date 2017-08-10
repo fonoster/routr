@@ -73,9 +73,9 @@ export default class Locator {
 
         if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
             result = this.didsAPI.getDIDByTelUrl(addressOfRecord)
-
             if (result.status == Status.OK) {
-                const route = this.db.get(did.spec.location.aorLink)
+                const did = result.obj
+                const route = this.db.get(this.aorAsString(did.spec.location.aorLink))
 
                 if (route != null) {
                     return {
@@ -105,7 +105,7 @@ export default class Locator {
 
                 if (result.status == Status.OK) {
                     const did = result.obj
-                    const route = this.db.get(did.spec.location.aorLink)
+                    const route = this.db.get(this.aorAsString(did.spec.location.aorLink))
 
                     if (route != null) {
                         return {
