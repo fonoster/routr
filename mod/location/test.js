@@ -31,6 +31,9 @@ testGroup.aor_as_string = function () {
     const telURL = addressFactory.createTelURL('tel:8095863314')
     aorString = locator.aorAsString(telURL)
     assertEquals(aorString, 'tel:8095863314')
+    // Test text format
+    aorString = locator.aorAsString('sip:john@sip.ocean.com')
+    assertEquals(aorString, 'sip:john@sip.ocean.com')
 }
 
 testGroup.get_route_for_aor = function () {

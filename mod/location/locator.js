@@ -38,9 +38,14 @@ export default class Locator {
             } else {
                 return 'sip:' + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
             }
+        } else {
+            if (/sip:.*@.*/.test(addressOfRecord) ||
+                /tel:\d+/.test(addressOfRecord)) {
+                return addressOfRecord
+            }
         }
 
-        return addressOfRecord.toString()
+        throw 'Invalid AOR: ' + addressOfRecord
     }
 
     addEndpoint(addressOfRecord, route) {
