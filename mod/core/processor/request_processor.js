@@ -230,14 +230,14 @@ export default class RequestProcessor {
             const fromHeader = requestIn.getHeader(FromHeader.NAME)
             const toHeader = requestIn.getHeader(ToHeader.NAME)
             const gwRefHeader = this.headerFactory.createHeader('GwRef', route.gwRef)
+            const remotePartyIdHeader = this.headerFactory
+                .createHeader('Remote-Party-ID', '<sip:'+ route.did + '@' + route.gwHost+ '>;screen=yes;party=calling')
 
-            //const from = 'sip:' + route.did + '@' + route.gwHost  // This does not work with all providers
             const from = 'sip:' + route.gwUsername + '@' + route.gwHost
             const to = 'sip:' + toHeader.getAddress().toString().match('sips?:(.*)@(.*)')[1] + '@' + route.gwHost
 
             // This might not work with all provider
             const fromAddress = this.addressFactory.createAddress(from)
-            fromAddress.setDisplayName(route.did)
             const toAddress = this.addressFactory.createAddress(to)
 
             fromHeader.setAddress(fromAddress)
@@ -246,6 +246,9 @@ export default class RequestProcessor {
             requestOut.setHeader(gwRefHeader)
             requestOut.setHeader(fromHeader)
             requestOut.setHeader(toHeader)
+            requestOut.setHeader(remotePartyIdHeader)
+
+            requestOut.removeHeader("Proxy-Authorization")
         }
 
         // Does not need a transaction

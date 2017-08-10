@@ -43,6 +43,7 @@ export default class Locator {
                 /tel:\d+/.test(addressOfRecord)) {
                 return addressOfRecord
             }
+           LOG.error('Invalid AOR: ' + addressOfRecord)
         }
 
         throw 'Invalid AOR: ' + addressOfRecord
