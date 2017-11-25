@@ -247,7 +247,6 @@ export default class RequestProcessor {
             requestOut.setHeader(fromHeader)
             requestOut.setHeader(toHeader)
             requestOut.setHeader(remotePartyIdHeader)
-
             requestOut.removeHeader("Proxy-Authorization")
         }
 
