@@ -15,10 +15,10 @@ export default class CommandApply {
         const applyEpilog=
         `Examples:
             # Apply changes over an existing agent
-            $ sipioctl apply -f agent.yaml
+            $ sipioctl -- apply -f agent.yaml
 
             # Updates a set of gateways
-            $ sipioctl apply -f gws.yaml \n`
+            $ sipioctl -- apply -f gws.yaml \n`
 
         apply.epilog(applyEpilog)
 

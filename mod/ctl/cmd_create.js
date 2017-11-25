@@ -15,10 +15,10 @@ export default class CommandCreate {
         const createEpilog=
         `Examples:
             # Creates a new agent from a yaml file
-            $ sipioctl crea -f agent.yaml
+            $ sipioctl -- crea -f agent.yaml
 
             # Creates a set of gateways from a yaml file
-            $ sipioctl create -f gws.yaml \n`
+            $ sipioctl -- create -f gws.yaml \n`
 
         create.epilog(createEpilog)
 

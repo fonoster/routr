@@ -21,13 +21,13 @@ export default class CommandGet {
         const getEpilog =
         `Examples:
             # Shows all the agents in the system
-            $ sipioctl get agents
+            $ sipioctl -- get agents
 
             # List a single agent by ref
-            $ sipioctl get agent john-4353
+            $ sipioctl -- get agent john-4353
 
             # Gets did using its reference
-            $ sipioctl get dids --filter "@.metadata.ref=='DID0001'" \n`
+            $ sipioctl -- get dids --filter "@.metadata.ref=='DID0001'" \n`
 
         get.epilog(getEpilog)
     }

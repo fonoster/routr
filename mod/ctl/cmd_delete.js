@@ -18,12 +18,12 @@ export default class CommandDel {
         const delEpilog=
         `Examples:
             # Deletes resource type Agent using its reference
-            $ sipioctl delete agent john-4353
+            $ sipioctl -- delete agent john-4353
 
             or use 'del' alias
 
             # Deletes resource type DIDs using the its parent Gateway reference
-            $ sipioctl del did --filter "@.metadata.gwRef='GW0001'" \n`
+            $ sipioctl -- del did --filter "@.metadata.gwRef='GW0001'" \n`
 
         del.epilog(delEpilog)
         this.ctlUtil = new CtlUtils()
