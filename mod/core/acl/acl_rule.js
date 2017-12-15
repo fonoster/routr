@@ -31,11 +31,11 @@ export default class Rule {
         this._net = net
     }
 
-    isIp (v) {
+    isIp(v) {
         return ipPattern.test(v)
     }
 
-    isCidr (v) {
+    isCidr(v) {
         return cidrPattern.test(v) && new java.lang.String(v).contains('/')
     }
 
@@ -54,7 +54,7 @@ export default class Rule {
         return this.subnetUtils.getInfo().getAddressCountLong()
     }
 
-    get action() {
+    get action () {
         return this._action
     }
 
