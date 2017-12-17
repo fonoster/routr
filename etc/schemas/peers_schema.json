@@ -30,7 +30,8 @@
                         },
                         "required": ["username", "secret"]
                     },
-                    "device": {"type": "string"}
+                    "device": {"type": "string"},
+                    "contactAddr": {"type": "string"}
                 },
                 "required": ["credentials"]
             }
