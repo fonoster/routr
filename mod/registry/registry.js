@@ -12,7 +12,7 @@ const InetAddress = Packages.java.net.InetAddress
 const HashMap = Packages.java.util.HashMap
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
-const DEFAULT_USER_AGENT = 'Sip I/O v1.0'
+
 var cseq = 0
 
 export default class Registry {
@@ -28,13 +28,7 @@ export default class Registry {
         this.headerFactory = SipFactory.getInstance().createHeaderFactory()
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
         this.userAgent = new java.util.ArrayList()
-
-        if (this.config.metadata && this.config.metadata.userAgent) {
-            this.userAgent.add(this.config.metadata.userAgent)
-        } else {
-            this.userAgent.add(DEFAULT_USER_AGENT)
-        }
-
+        this.userAgent.add(this.config.metadata.userAgent)
         this.registry = new HashMap()
     }
 
@@ -71,7 +65,6 @@ export default class Registry {
         const fromAddress = this.addressFactory.createAddress('sip:' + username + '@' + peerHost)
         const fromHeader = this.headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag())
         const toHeader = this.headerFactory.createToHeader(fromAddress, null)
-        //const expireHeader = this.headerFactory.createExpiresHeader(this.expires)
         const contactAddress = this.addressFactory.createAddress('sip:' + username + '@' + host + ':' + port)
         const contactHeader = this.headerFactory.createContactHeader(contactAddress)
         const userAgentHeader = this.headerFactory.createUserAgentHeader(this.userAgent)
@@ -93,7 +86,6 @@ export default class Registry {
         request.addHeader(this.headerFactory.createAllowHeader('CANCEL'))
         request.addHeader(this.headerFactory.createAllowHeader('REGISTER'))
         request.addHeader(this.headerFactory.createAllowHeader('OPTIONS'))
-        //request.addHeader(expireHeader)
 
         try {
             const clientTransaction = this.sipProvider.getNewClientTransaction(request)

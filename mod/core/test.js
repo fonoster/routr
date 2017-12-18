@@ -6,6 +6,7 @@
  */
 import ResourcesUtil from 'resources/utils'
 import getConfig from 'core/config_util'
+import IPUtil from 'core/ip_util'
 
 export let testGroup = { name: "Core Module" }
 
@@ -20,3 +21,16 @@ testGroup.validate_config = function () {
     assertTrue(valid)
 }
 
+testGroup.ip_utils = function () {
+    const partialConfig = {
+        spec: {
+            localnets: ['192.168.1.2', '10.88.1.0/255.255.255.0', '192.168.0.1/28']
+        }
+    }
+
+    const ipUtil = new IPUtil(partialConfig)
+    assertTrue(ipUtil.isLocalnet('192.168.1.2'))
+    assertTrue(ipUtil.isLocalnet('10.88.1.34'))
+    assertTrue(ipUtil.isLocalnet('192.168.0.14'))
+    assertFalse(ipUtil.isLocalnet('35.196.78.166'))
+}

@@ -29,5 +29,7 @@ export default function () {
         }
     }
 
+    if (config.metadata.userAgent == undefined) config.metadata.userAgent = 'Sip I/O v1.0'
+
     return config
 }

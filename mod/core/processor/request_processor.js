@@ -10,6 +10,8 @@ import AclUtil from 'core/acl/acl_util'
 import getConfig from 'core/config_util'
 import { Status } from 'location/status'
 import { RoutingType } from 'core/routing_type'
+import isEmpty from 'utils/obj_util'
+import IPUtil from 'core/ip_util'
 
 const SipFactory = Packages.javax.sip.SipFactory
 const RouteHeader = Packages.javax.sip.header.RouteHeader
@@ -29,6 +31,7 @@ export default class RequestProcessor {
 
     constructor(sipProvider, locator, registry, registrar, dataAPIs, contextStorage) {
         this.sipProvider = sipProvider
+        this.sipStack = this.sipProvider.getSipStack()
         this.contextStorage = contextStorage
         this.locator = locator
         this.registry = registry
@@ -45,6 +48,7 @@ export default class RequestProcessor {
         this.generalAcl = this.config.spec.accessControlList
         this.registerHandler = new RegisterHandler(locator, registrar)
         this.cancelHandler = new CancelHandler(sipProvider, contextStorage)
+        this.ipUtil = new IPUtil()
     }
 
     process(event) {
@@ -60,24 +64,18 @@ export default class RequestProcessor {
         const requestOut = requestIn.clone()
 
         if (method.equals(Request.REGISTER)) {
+            // Should we apply ACL rules here too?
             this.registerHandler.register(requestIn, serverTransaction)
             return
         } else if(method.equals(Request.CANCEL)) {
             this.cancelHandler.cancel(requestIn, serverTransaction)
             return
         } else {
-            const routeHeader = requestIn.getHeader(RouteHeader.NAME)
-            const rVia = requestIn.getHeader(ViaHeader.NAME)
-            const transport = rVia.getTransport().toLowerCase()
-            const lp = this.sipProvider.getListeningPoint(transport)
-            const host = lp.getIPAddress().toString()
-            const port = lp.getPort()
             const fromHeader = requestIn.getHeader(FromHeader.NAME)
             const fromURI = fromHeader.getAddress().getURI()
             const remoteIp = event.getRemoteIpAddress()
-
             const routeInfo = new RouteInfo(requestIn, this.dataAPIs)
-            
+
             LOG.debug('routing type -> ' + routeInfo.getRoutingType())
 
             // 1. Security check
@@ -106,10 +104,8 @@ export default class RequestProcessor {
             let addressOfRecord = this.getAOR(requestIn)
 
             // We only apply ACL rules to Domain Routing.
-            if (routeInfo.getRoutingType().equals(RoutingType.INTRA_INGRESS_ROUTING) ||
-                routeInfo.getRoutingType().equals(RoutingType.INTER_INGRESS_ROUTING)) {
+            if (routeInfo.getRoutingType().equals(RoutingType.INTRA_DOMAIN_ROUTING)) {
                 const result = this.domainsAPI.getDomain(addressOfRecord.getHost())
-
                 if (result.status == Status.OK) {
                     const domainObj = result.obj
                     if(!new AclUtil(this.generalAcl).isIpAllowed(domainObj, remoteIp)) {
@@ -120,32 +116,9 @@ export default class RequestProcessor {
                 }
             }
 
-            // 2. Configure
-            // 2.0 Decrement the max forwards value
+            // 2. Decrement the max forwards value
             const maxForwardsHeader = requestOut.getHeader(MaxForwardsHeader.NAME)
             maxForwardsHeader.decrementMaxForwards()
-
-            // 2.1 Remove Route-Header
-            if (routeHeader) {
-                const nextHop = routeHeader.getAddress().getURI().getHost()
-                if (nextHop.equals(host) || nextHop.equals(this.config.spec.externAddr)) {
-                    requestOut.removeFirst(RouteHeader.NAME)
-                }
-            }
-
-            // 2.2 Stay in the signaling path of the dialog
-            if (this.config.spec.recordRoute) {
-                const proxyURI = this.addressFactory.createSipURI(null, host)
-                proxyURI.setLrParam()
-                const proxyAddress = this.addressFactory.createAddress(proxyURI)
-                const recordRouteHeader = this.headerFactory.createRecordRouteHeader(proxyAddress)
-                requestOut.addHeader(recordRouteHeader)
-            }
-
-            // 2.3 Request RPort to enable Symmetric Response in accordance with RFC 3581 and RFC 6314
-            const viaHeader = this.headerFactory.createViaHeader(host, port, transport, null)
-            viaHeader.setRPort()
-            requestOut.addFirst(viaHeader)
 
             // 3. Determine route
             // 3.0 Peer Egress Routing (PR)
@@ -223,8 +196,62 @@ export default class RequestProcessor {
     }
 
     processRoute(requestIn, requestOut, route, serverTransaction) {
-        const method = requestIn.getMethod()
         requestOut.setRequestURI(route.contactURI)
+        const routeHeader = requestIn.getHeader(RouteHeader.NAME)
+        const rVia = requestIn.getHeader(ViaHeader.NAME)
+        const transport = rVia.getTransport().toLowerCase()
+        const lp = this.sipProvider.getListeningPoint(transport)
+        const localPort = lp.getPort()
+        const localIp = lp.getIPAddress().toString()
+        const method = requestIn.getMethod()
+        const rcvHost = route.contactURI.getHost()
+
+        LOG.debug('contactURI is -> ' + route.contactURI)
+        LOG.debug('Behind nat -> ' + route.nat)
+        LOG.debug('rcvHost is -> ' + rcvHost)
+        LOG.debug('sentByAddress -> ' + route.sentByAddress)
+        LOG.debug('sentByPort -> ' + route.sentByPort)
+        LOG.debug('received -> ' + route.received)
+        LOG.debug('rport -> ' + route.rport)
+
+        let advertisedAddr
+        let advertisedPort
+
+        if (this.config.spec.externAddr && !this.ipUtil.isLocalnet(route.sentByAddress)) {
+            advertisedAddr = this.config.spec.externAddr.contains(":") ? this.config.spec.externAddr.split(":")[0] : this.config.spec.externAddr
+            advertisedPort = this.config.spec.externAddr.contains(":") ? this.config.spec.externAddr.split(":")[1] : lp.getPort()
+        }  else {
+            advertisedAddr = localIp
+            advertisedPort = lp.getPort()
+        }
+
+        LOG.debug('advertisedAddr is -> ' + advertisedAddr)
+        LOG.debug('advertisedPort is -> ' + advertisedPort)
+
+        // Remove route header if host is same as the proxy
+        if (routeHeader) {
+            const routeHeaderHost = routeHeader.getAddress().getURI().getHost()
+            const routeHeaderPort = routeHeader.getAddress().getURI().getPort()
+            if ((routeHeaderHost.equals(localIp) && routeHeaderPort.equals(localPort))
+                || ((routeHeaderHost.equals(advertisedAddr) && routeHeaderPort.equals(advertisedPort)))) {
+                requestOut.removeFirst(RouteHeader.NAME)
+            }
+        }
+
+        // Stay in the signaling path
+        if (this.config.spec.recordRoute) {
+            const proxyURI = this.addressFactory.createSipURI(null, advertisedAddr)
+            proxyURI.setLrParam()
+            proxyURI.setPort(advertisedPort)
+            const proxyAddress = this.addressFactory.createAddress(proxyURI)
+            const recordRouteHeader = this.headerFactory.createRecordRouteHeader(proxyAddress)
+            requestOut.addHeader(recordRouteHeader)
+        }
+
+        // Request RPort to enable Symmetric Response in accordance with RFC 3581 and RFC 6314
+        const viaHeader = this.headerFactory.createViaHeader(advertisedAddr, advertisedPort, transport, null)
+        viaHeader.setRPort()
+        requestOut.addFirst(viaHeader)
 
         if (route.thruGw) {
             const fromHeader = requestIn.getHeader(FromHeader.NAME)
@@ -247,8 +274,10 @@ export default class RequestProcessor {
             requestOut.setHeader(fromHeader)
             requestOut.setHeader(toHeader)
             requestOut.setHeader(remotePartyIdHeader)
-            requestOut.removeHeader("Proxy-Authorization")
         }
+
+        // Warning: Not yet test :(
+        requestOut.removeHeader("Proxy-Authorization")
 
         // Does not need a transaction
         if(method.equals(Request.ACK)) {

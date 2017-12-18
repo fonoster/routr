@@ -4,6 +4,7 @@
  */
 import AuthHelper from 'utils/auth_helper'
 import { Status } from 'resources/status'
+import isEmpty from 'utils/obj_util'
 
 const ViaHeader = Packages.javax.sip.header.ViaHeader
 const ContactHeader = Packages.javax.sip.header.ContactHeader
@@ -59,16 +60,22 @@ export default class Registrar {
             }
         }
 
-        if(!!viaHeader.getReceived()) contactURI.setHost(viaHeader.getReceived())
-        if(!!viaHeader.getParameter('rport')) contactURI.setPort(viaHeader.getParameter('rport'))
-
         if (user == null) {
             LOG.warn('Could not find user or peer \'' + authHeader.getUsername() + '\'')
             return false
         }
 
-        if(!!viaHeader.getReceived()) contactURI.setHost(viaHeader.getReceived())
-        if(!!viaHeader.getParameter('rport')) contactURI.setPort(viaHeader.getParameter('rport'))
+        if (user.kind.equalsIgnoreCase('peer') && !isEmpty(user.spec.contactAddr)) {
+            if (user.spec.contactAddr.contains(":")) {
+                contactURI.setHost(user.spec.contactAddr.split(":")[0])
+                contactURI.setPort(user.spec.contactAddr.split(":")[1])
+            } else {
+                contactURI.setHost(user.spec.contactAddr)
+            }
+        } else {
+            if(isEmpty(viaHeader.getReceived())) contactURI.setHost(viaHeader.getReceived())
+            if(isEmpty(viaHeader.getParameter('rport'))) contactURI.setPort(viaHeader.getParameter('rport'))
+        }
 
         if (user.kind.equalsIgnoreCase('agent') && !this.hasDomain(user, host)) {
             LOG.debug('User ' + user.spec.credentials.username + ' does not exist within domain ' + host)
@@ -106,12 +113,7 @@ export default class Registrar {
             }
 
             if (user.kind.equalsIgnoreCase('peer')) {
-                let peerHost = host
-
-                if (user.spec.device) {
-                    peerHost = user.spec.device
-                }
-
+                let peerHost = isEmpty(user.spec.device) ?  host : user.spec.device
                 const addressOfRecord = this.addressFactory.createSipURI(user.spec.credentials.username, peerHost)
                 addressOfRecord.setSecure(contactURI.isSecure())
                 this.locator.addEndpoint(addressOfRecord, route)

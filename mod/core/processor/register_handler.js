@@ -14,6 +14,7 @@ const Response = Packages.javax.sip.message.Response
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 
+// Should we apply ACL rules here too?
 export default class RegisterHandler {
 
     constructor(locator, registrar) {
