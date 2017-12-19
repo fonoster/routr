@@ -4,10 +4,10 @@
  */
 import Locator from 'location/locator.js'
 import GatewaysAPI from 'resources/gateways_api'
-import PeersAPI from 'resources/peers_api'
 import DIDsAPI from 'resources/dids_api'
 import DomainsAPI from 'resources/domains_api'
 import AgentsAPI from 'resources/agents_api'
+import PeersAPI from 'resources/peers_api'
 import Registrar from 'registrar/registrar'
 import Server from 'core/server'
 
