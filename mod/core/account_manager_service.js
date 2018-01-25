@@ -20,7 +20,7 @@ export default class AccountManagerService {
     }
 
     getGateway(ct) {
-        const gwRef = ct.getRequest().getHeader('GwRef').value
+        const gwRef = ct.getRequest().getHeader('X-Gateway-Ref').value
         const result = gatewaysAPI.getGateway(gwRef)
 
         if (result.status == 200) {

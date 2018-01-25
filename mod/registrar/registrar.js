@@ -73,8 +73,8 @@ export default class Registrar {
                 contactURI.setHost(user.spec.contactAddr)
             }
         } else {
-            if(isEmpty(viaHeader.getReceived())) contactURI.setHost(viaHeader.getReceived())
-            if(isEmpty(viaHeader.getParameter('rport'))) contactURI.setPort(viaHeader.getParameter('rport'))
+            if(!!viaHeader.getReceived()) contactURI.setHost(viaHeader.getReceived())
+            if(!!viaHeader.getParameter('rport')) contactURI.setPort(viaHeader.getParameter('rport'))
         }
 
         if (user.kind.equalsIgnoreCase('agent') && !this.hasDomain(user, host)) {

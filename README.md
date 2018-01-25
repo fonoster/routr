@@ -55,4 +55,4 @@ For contributing, please see the following links:
  - [Pedro Sanders](https://github.com/psanders)
 
 ## LICENSE
-Copyright (C) 2017 by [Fonoster Inc](https://github.com/fonoster). MIT License (see [LICENSE](https://github.com/fonoster/sipio/blob/master/LICENSE) for details).
+Copyright (C) 2018 by [Fonoster Inc](https://github.com/fonoster). MIT License (see [LICENSE](https://github.com/fonoster/sipio/blob/master/LICENSE) for details).

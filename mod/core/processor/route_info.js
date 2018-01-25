@@ -4,6 +4,7 @@
  */
 import { RouteEntityType } from 'core/route_entity_type'
 import { RoutingType } from 'core/routing_type'
+import getConfig from 'core/config_util'
 
 const ToHeader = Packages.javax.sip.header.ToHeader
 const FromHeader = Packages.javax.sip.header.FromHeader
@@ -15,12 +16,31 @@ export default class RoutingInfo {
         const fromHeader = request.getHeader(FromHeader.NAME)
         const toHeader = request.getHeader(ToHeader.NAME)
         const sipFactory = Packages.javax.sip.SipFactory.getInstance()
+        this.config = getConfig()
         this.addressFactory = sipFactory.createAddressFactory()
         this.request = request
         this._callerUser = fromHeader.getAddress().getURI().getUser()
         this._callerHost = fromHeader.getAddress().getURI().getHost()
         this._calleeUser = toHeader.getAddress().getURI().getUser()
         this._calleeHost = toHeader.getAddress().getURI().getHost()
+
+        // Overwrites callee info if addressInfo is present
+        if(!!this.config.spec.addressInfo) {
+            for (let x in this.config.spec.addressInfo) {
+                let info = this.config.spec.addressInfo[x]
+                if (!!request.getHeader(info)) {
+                    let v = request.getHeader(info).getValue()
+                    if (/sips?:.*@.*/.test(v)) {
+                        const calleeURI = this.addressFactory.createURI(v)
+                        this._calleeUser = calleeURI.getUser()
+                        this._calleeHost = calleeURI.getHost()
+                        break
+                    }
+                    LOG.error('Invalid address: ' + v)
+                }
+            }
+        }
+
         this.peersAPI = dataAPIs.PeersAPI
         this.domainsAPI = dataAPIs.DomainsAPI
         this.didsAPI = dataAPIs.DIDsAPI

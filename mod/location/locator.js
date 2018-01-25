@@ -138,7 +138,7 @@ export default class Locator {
     }
 
     getEgressRouteForAOR(addressOfRecord) {
-        if (!(addressOfRecord instanceof Packages.javax.sip.address.SipURI)) throw 'AOR must be instance of javax.sip.address.SipURI'
+        if (!(addressOfRecord instanceof Packages.javax.sip.address.SipURI)) throw 'AOR must be an instance of javax.sip.address.SipURI'
 
         const didsAPI = this.didsAPI
         const domainsAPI = this.domainsAPI
