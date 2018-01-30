@@ -86,10 +86,17 @@ export default class RequestProcessor {
                 return
             }
 
-            if (!routeInfo.getRoutingType().equals(RoutingType.DOMAIN_INGRESS_ROUTING)) {
-                // Do not need to authorized ACK messages...
-                if (!method.equals(Request.ACK) && !method.equals(Request.BYE) && !this.authorized(requestIn, serverTransaction)) {
+            // Other routing types are assume to be already login(registered)
+            /*if (!routeInfo.getRoutingType().equals(RoutingType.DOMAIN_INGRESS_ROUTING)) {
+                // Do not need to authorized ACK or BYE messages...
+                if (!method.equals(Request.ACK)
+                    && !method.equals(Request.BYE)
+                    && this.authorized(requestIn, serverTransaction) == 'UNAUTHORIZED') {
                     serverTransaction.sendResponse(this.messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
+                    LOG.debug(requestIn)
+                    return
+                } else if (!method.equals(Request.ACK) && !method.equals(Request.BYE)
+                    && this.authorized(requestIn, serverTransaction) == 'SENT_CHALLENGE') {
                     LOG.debug(requestIn)
                     return
                 }
@@ -99,7 +106,7 @@ export default class RequestProcessor {
                     LOG.debug(requestIn)
                     return
                 }
-            }
+            }*/
 
             let addressOfRecord = this.getAOR(requestIn)
 
@@ -149,7 +156,7 @@ export default class RequestProcessor {
                     return
                 }
 
-                this.processRoute(requestIn, requestOut, result.obj, serverTransaction)
+                this.processRoute(requestIn, requestOut, result.obj, serverTransaction, routeInfo)
 
                 LOG.debug(requestOut)
                 return
@@ -183,11 +190,11 @@ export default class RequestProcessor {
                 // Fork the call if needed
                 while(caIterator.hasNext()) {
                     const route = caIterator.next()
-                    this.processRoute(requestIn, requestOut, route, serverTransaction)
+                    this.processRoute(requestIn, requestOut, route, serverTransaction, routeInfo)
                 }
             } else {
                 const route = location
-                this.processRoute(requestIn, requestOut, route, serverTransaction)
+                this.processRoute(requestIn, requestOut, route, serverTransaction, routeInfo)
             }
 
             return
@@ -195,7 +202,7 @@ export default class RequestProcessor {
         LOG.debug(requestIn)
     }
 
-    processRoute(requestIn, requestOut, route, serverTransaction) {
+    processRoute(requestIn, requestOut, route, serverTransaction, routeInfo) {
         requestOut.setRequestURI(route.contactURI)
         const routeHeader = requestIn.getHeader(RouteHeader.NAME)
         const rVia = requestIn.getHeader(ViaHeader.NAME)
@@ -217,12 +224,13 @@ export default class RequestProcessor {
         let advertisedAddr
         let advertisedPort
 
-        if (this.config.spec.externAddr && !this.ipUtil.isLocalnet(route.sentByAddress)) {
+        // No egress routing has sentByAddress. They are assume to be entities outside the local network.
+        if (this.config.spec.externAddr && (route.sentByAddress == undefined || !this.ipUtil.isLocalnet(route.sentByAddress))) {
             advertisedAddr = this.config.spec.externAddr.contains(":") ? this.config.spec.externAddr.split(":")[0] : this.config.spec.externAddr
-            advertisedPort = this.config.spec.externAddr.contains(":") ? this.config.spec.externAddr.split(":")[1] : lp.getPort()
+            advertisedPort = this.config.spec.externAddr.contains(":") ? this.config.spec.externAddr.split(":")[1] : localPort
         }  else {
             advertisedAddr = localIp
-            advertisedPort = lp.getPort()
+            advertisedPort = localPort
         }
 
         LOG.debug('advertisedAddr is -> ' + advertisedAddr)
@@ -256,7 +264,7 @@ export default class RequestProcessor {
         if (route.thruGw) {
             const fromHeader = requestIn.getHeader(FromHeader.NAME)
             const toHeader = requestIn.getHeader(ToHeader.NAME)
-            const gwRefHeader = this.headerFactory.createHeader('GwRef', route.gwRef)
+            const gwRefHeader = this.headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
             const remotePartyIdHeader = this.headerFactory
                 .createHeader('Remote-Party-ID', '<sip:'+ route.did + '@' + route.gwHost+ '>;screen=yes;party=calling')
 
@@ -271,8 +279,8 @@ export default class RequestProcessor {
             toHeader.setAddress(toAddress)
 
             requestOut.setHeader(gwRefHeader)
-            requestOut.setHeader(fromHeader)
-            requestOut.setHeader(toHeader)
+            //requestOut.setHeader(fromHeader)
+            //requestOut.setHeader(toHeader)
             requestOut.setHeader(remotePartyIdHeader)
         }
 
@@ -315,14 +323,16 @@ export default class RequestProcessor {
         const fromHeader = request.getHeader(FromHeader.NAME)
         const fromURI = fromHeader.getAddress().getURI()
 
+        // WARNING: Should limit the amount of attempts...
         if (authHeader == null) {
             const challengeResponse = this.messageFactory.createResponse(Response.PROXY_AUTHENTICATION_REQUIRED, request)
             this.dsam.generateChallenge(this.headerFactory, challengeResponse, "sipio")
             serverTransaction.sendResponse(challengeResponse)
             LOG.debug(request)
-            return
+            return 'SENT_CHALLENGE'
         }
 
+        // WARNING: If they are multiple peers with the same name this might be an issue
         let result = this.peersAPI.getPeer(authHeader.getUsername())
 
         let user
@@ -332,21 +342,16 @@ export default class RequestProcessor {
         } else {
             // This is also a security check. The user in the authentication must exist for the 'fromURI.getHost()' domain
             result = this.agentsAPI.getAgent(fromURI.getHost(), authHeader.getUsername())
-
             if (result.status == Status.OK ) {
                 user = result.obj
             }
         }
 
-        if (!this.dsam.doAuthenticatePlainTextPassword(request, user.spec.credentials.secret)) {
-            const challengeResponse = this.messageFactory.createResponse(Response.PROXY_AUTHENTICATION_REQUIRED, request)
-            this.dsam.generateChallenge(this.headerFactory, challengeResponse, "sipio")
-            serverTransaction.sendResponse(challengeResponse)
-            LOG.debug(request)
-            return
+        if (!user || !this.dsam.doAuthenticatePlainTextPassword(request, user.spec.credentials.secret)) {
+            return 'UNAUTHORIZED'
         }
 
-        return user != null
+        return 'AUTHORIZED'
     }
 
     /**
@@ -355,16 +360,16 @@ export default class RequestProcessor {
      * If the such header is present then overwrite the AOR
      */
     getAOR (request) {
-        const toHeader = request.getHeader(ToHeader.NAME)
-
-        if(!!this.config.spec.addressInfo) {
-            this.config.spec.addressInfo.forEach(function(info) {
-                if (!!request.getHeader(info)) {
-                    return addressOfRecord = this.addressFactory.createTelURL(request.getHeader(info).getValue())
+        for (let x in this.config.spec.addressInfo) {
+            let info = this.config.spec.addressInfo[x]
+            if (!!request.getHeader(info)) {
+                let v = request.getHeader(info).getValue()
+                if (/sips?:.*@.*/.test(v) || /tel:\d+/.test(v)) {
+                    return this.addressFactory.createURI(v)
                 }
-            })
+                LOG.error('Invalid address: ' + v)
+            }
         }
-
-        return toHeader.getAddress().getURI()
+        return request.getHeader(ToHeader.NAME).getAddress().getURI()
     }
 }
