@@ -43,7 +43,7 @@ export default class ResponseProcessor {
             responseIn.getStatusCode() == Response.OK) {
 
             const request = clientTransaction.getRequest()
-            const gwRef = request.getHeader('GwRef').value
+            const gwRef = request.getHeader('X-Gateway-Ref').value
 
             const rPort = viaHeader.getRPort()
             const port = viaHeader.getPort()
@@ -94,8 +94,11 @@ export default class ResponseProcessor {
             //let st = clientTransaction.getApplicationData()'
             const context = this.contextStorage.findContext(clientTransaction)
 
-            if (!!context && !!context.serverTransaction) context.serverTransaction.sendResponse(responseOut)
-
+            if (!!context && !!context.serverTransaction) {
+                context.serverTransaction.sendResponse(responseOut)
+            } else if (!!responseOut.getHeader(ViaHeader.NAME)) {
+                this.sipProvider.sendResponse(responseOut)
+            }
         } else {
             // Could be a BYE due to Record-Route
             // There is no more Via headers; the response was intended for the proxy.
