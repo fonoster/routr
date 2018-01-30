@@ -68,7 +68,7 @@ export default class Registry {
         const contactAddress = this.addressFactory.createAddress('sip:' + username + '@' + host + ':' + port)
         const contactHeader = this.headerFactory.createContactHeader(contactAddress)
         const userAgentHeader = this.headerFactory.createUserAgentHeader(this.userAgent)
-        const gwRefHeader = this.headerFactory.createHeader('GwRef', gwRef)
+        const gwRefHeader = this.headerFactory.createHeader('X-Gateway-Ref', gwRef)
 
         const request = this.messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
         request.addHeader(viaHeader)
@@ -153,7 +153,6 @@ export default class Registry {
         LOG.info('Starting Registry service')
         var registry = this.registry
         var gatewaysAPI = this.gatewaysAPI
-       // var myRegistry = new Registry(this.sipProvider, this.dataAPIs)
         var myRegistry = this
 
         function isExpired (host) {
