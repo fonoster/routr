@@ -137,6 +137,47 @@ export default class Locator {
         }
     }
 
+    listAsJSON (domainUri) {
+        let s = []
+        const aors = this.db.keySet().iterator()
+
+        while(aors.hasNext()) {
+            let key = aors.next()
+            let routes = this.db.get(key)
+            let contactInfo = ''
+            let i = routes.values().iterator()
+
+            if (i.hasNext()) {
+                const rObj = i.next()
+                let r = rObj.contactURI + ';nat=' + rObj.nat + ';expires=' + rObj.expires
+
+                if (i.hasNext()) r = r + ' [...]'
+                contactInfo = contactInfo + r
+            }
+
+            let tmp = {
+                'addressOfRecord': key,
+                'contactInfo': contactInfo
+            }
+            s.push(tmp)
+        }
+
+        return JSON.stringify(s)
+    }
+
+    // See NOTE #1
+    removeEndpoint(addressOfRecord, contactURI) {
+        const aor = this.aorAsString(addressOfRecord)
+        // Remove all bindings
+        if (contactURI == null) {
+            return this.db.remove(aor)
+        }
+        // Not using aorAsString because we need to consider the port, etc.
+        this.db.get(aor).remove(contactURI.toString())
+
+        if (this.db.get(aor).isEmpty()) this.db.remove(aor)
+    }
+
     getEgressRouteForAOR(addressOfRecord) {
         if (!(addressOfRecord instanceof Packages.javax.sip.address.SipURI)) throw 'AOR must be an instance of javax.sip.address.SipURI'
 
@@ -247,47 +288,6 @@ export default class Locator {
             status: RStatus.NOT_FOUND,
             message: RStatus.message[RStatus.NOT_FOUND].value
         }
-    }
-
-    // See NOTE #1
-    removeEndpoint(addressOfRecord, contactURI) {
-        const aor = this.aorAsString(addressOfRecord)
-        // Remove all bindings
-        if (contactURI == null) {
-            return this.db.remove(aor)
-        }
-        // Not using aorAsString because we need to consider the port, etc.
-        this.db.get(aor).remove(contactURI.toString())
-
-        if (this.db.get(aor).isEmpty()) this.db.remove(aor)
-    }
-
-    listAsJSON (domainUri) {
-        let s = []
-        const aors = this.db.keySet().iterator()
-
-        while(aors.hasNext()) {
-            let key = aors.next()
-            let routes = this.db.get(key)
-            let contactInfo = ''
-            let i = routes.values().iterator()
-
-            if (i.hasNext()) {
-                const rObj = i.next()
-                let r = rObj.contactURI + ';nat=' + rObj.nat + ';expires=' + rObj.expires
-
-                if (i.hasNext()) r = r + ' [...]'
-                contactInfo = contactInfo + r
-            }
-
-            let tmp = {
-                'addressOfRecord': key,
-                'contactInfo': contactInfo
-            }
-            s.push(tmp)
-        }
-
-        return JSON.stringify(s)
     }
 
     start() {
