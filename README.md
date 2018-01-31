@@ -51,7 +51,7 @@ docker-compose build
 docker-compose run -e EXTERN_ADDR=192.168.1.2 sipio
 ```
 
-Note: Make sure you use your own host address
+> Make sure you use your host address
 
 ### Destroying the container
 
@@ -61,7 +61,7 @@ docker-compose down
 
 ## Running with Docker
 
-### Pull latest
+### Pull lastest
 
 ```bash
 docker pull fonoster/sipio
@@ -71,6 +71,8 @@ docker pull fonoster/sipio
 ```bash
 docker run -it -p 5060:5060 -p 5060:5060/udp -e EXTERN_ADDR=192.168.1.2 -v ${PWD}/config/samples/basic_setup:/opt/sipio/config fonoster/sipio
 ```
+
+> Make sure you use your host address
 
 ## Bugs and Feedback
 
