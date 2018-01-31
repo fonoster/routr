@@ -8,6 +8,12 @@ const InetAddress = Packages.java.net.InetAddress
 export default function () {
     const config = new ResourcesUtil().getJson('config/config.yml')
 
+    if (Packages.java.lang.System.getenv("EXTERN_ADDR") != null)
+        config.spec.externAddr = Packages.java.lang.System.getenv("EXTERN_ADDR")
+
+    if (Packages.java.lang.System.getenv("LOCALNETS") != null)
+        config.spec.localnets = Packages.java.lang.System.getenv("LOCALNETS").split(",")
+
     if (config.spec.bindAddr == undefined)
         config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
 

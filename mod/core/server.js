@@ -83,7 +83,8 @@ export default class Server {
 
         const sipProvider = this.sipStack.createSipProvider(defTransport)
 
-        if (this.config.spec.externAddr) LOG.info("ExternAddr @ " + ANSI_GREEN  + this.config.spec.externAddr + ANSI_RESET)
+        if (this.config.spec.externAddr) LOG.info("ExternAddr is " + ANSI_GREEN  + this.config.spec.externAddr + ANSI_RESET)
+        if (this.config.spec.externAddr && this.config.spec.localnets) LOG.info("Localnets  is " + ANSI_GREEN  + this.config.spec.localnets.join(",") + ANSI_RESET)
 
         for (const key in config.spec.transport) {
             const transport = config.spec.transport[key]
@@ -99,7 +100,7 @@ export default class Server {
             const lp = this.sipStack.createListeningPoint(transport.bindAddr, transport.port, proto)
             sipProvider.addListeningPoint(lp)
 
-            LOG.info('Listening  @ ' + ANSI_GREEN  + transport.bindAddr
+            LOG.info('Listening  on ' + ANSI_GREEN  + transport.bindAddr
                 + ':' + transport.port
                     + ' [' + proto + ']'
                         + ANSI_RESET)
