@@ -1,0 +1,13 @@
+version: '3'
+services:
+  sipio:
+    build:
+      context: .
+    image: fonoster/sipio:latest
+    environment:
+      - EXTERN_ADDR=${EXTERN_ADDR}
+    volumes:
+      - ${PWD}/config/samples/basic_setup:/opt/sipio/config
+    ports:
+      - '5060:5060'
+      - '5060:5060/udp'
