@@ -32,12 +32,44 @@
         allow: [192.168.0.1/31]
 ```
 
-## Running the Server :up:
+## Running the Server
 
 Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip), and then from within the server's folder simply run:
 
 ```bash
 ./sipio
+```
+
+## Running with docker-compose
+
+If you have docker-compose installed, just run
+
+```bash
+git clone https://github.com/fonoster/sipio.git
+cd sipio
+docker-compose build
+docker-compose run -e EXTERN_ADDR=192.168.1.2 sipio
+```
+
+Note: Make sure you use your own host address
+
+### Destroying the container
+
+```bash
+docker-compose down
+```
+
+## Running with Docker
+
+### Pull latest
+
+```bash
+docker pull fonoster/sipio
+```
+
+### Run lastest
+```bash
+docker run -it -p 5060:5060 -p 5060:5060/udp -e EXTERN_ADDR=192.168.1.2 -v ${PWD}/config/samples/basic_setup:/opt/sipio/config fonoster/sipio
 ```
 
 ## Bugs and Feedback
