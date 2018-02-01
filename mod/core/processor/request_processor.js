@@ -272,19 +272,19 @@ export default class RequestProcessor {
             const to = 'sip:' + toHeader.getAddress().toString().match('sips?:(.*)@(.*)')[1] + '@' + route.gwHost
 
             // This might not work with all provider
-            const fromAddress = this.addressFactory.createAddress(from)
-            const toAddress = this.addressFactory.createAddress(to)
-
-            fromHeader.setAddress(fromAddress)
-            toHeader.setAddress(toAddress)
+            /*
+              const fromAddress = this.addressFactory.createAddress(from)
+              const toAddress = this.addressFactory.createAddress(to)
+              fromHeader.setAddress(fromAddress)
+              toHeader.setAddress(toAddress)
+              requestOut.setHeader(fromHeader)
+              requestOut.setHeader(toHeader)
+            */
 
             requestOut.setHeader(gwRefHeader)
-            //requestOut.setHeader(fromHeader)
-            //requestOut.setHeader(toHeader)
             requestOut.setHeader(remotePartyIdHeader)
         }
 
-        // Warning: Not yet test :(
         requestOut.removeHeader("Proxy-Authorization")
 
         // Does not need a transaction
