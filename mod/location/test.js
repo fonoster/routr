@@ -140,3 +140,30 @@ testGroup.add_multi_aor = function() {
     result = locator.findEndpoint(aor)
     assertEquals(Status.NOT_FOUND, result.status)
 }
+
+testGroup.get_peer_route_by_host = function() {
+    const peerContactURI = addressFactory.createSipURI('ast', '192.168.1.2:5060')
+    const aor = addressFactory.createSipURI('7853178070', '192.168.1.2:5060')
+    const route = {
+        isLinkAOR: false,
+        thruGw: false,
+        sentByAddress: 'localhost',
+        sentByPort: 5060,
+        received: 'remotehost',
+        rport: 5061,
+        contactURI: peerContactURI,
+        registeredOn: Date.now(),
+        nat: false
+    }
+
+    // Add
+    locator.addEndpoint(aor, route)
+
+    // Check individual function
+    let result = locator.getPeerRouteByHost(aor)
+    assertEquals(Status.OK, result.status)
+
+    // ... and main function
+    result = locator.findEndpoint(aor)
+    assertEquals(Status.OK, result.status)
+}
