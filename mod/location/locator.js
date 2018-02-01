@@ -98,6 +98,17 @@ export default class Locator {
                 }
             }
 
+            // Check peer's route by host
+            result = this.getPeerRouteByHost(addressOfRecord)
+
+            if (result.status == Status.OK) {
+                return {
+                    status: Status.OK,
+                    message: Status.message[Status.OK].value,
+                    obj: result.obj
+                }
+            }
+
             // Then search for a DID
             try {
                 const telUrl = this.addressFactory.createTelURL(addressOfRecord.getUser())
@@ -176,6 +187,35 @@ export default class Locator {
         this.db.get(aor).remove(contactURI.toString())
 
         if (this.db.get(aor).isEmpty()) this.db.remove(aor)
+    }
+
+    getPeerRouteByHost(addressOfRecord) {
+        const aors = this.db.keySet().iterator()
+
+        while(aors.hasNext()) {
+            let key = aors.next()
+            let routes = this.db.get(key)
+            let i = routes.values().iterator()
+
+            if (i.hasNext()) {
+                const rObj = i.next()
+                rObj.contactURI
+                const h1 = rObj.contactURI.getHost().toString()
+                const h2 = addressOfRecord.getHost().toString()
+                if (h1.equals(h2)) {
+                    return {
+                        status: Status.OK,
+                        message: Status.message[Status.OK].value,
+                        obj: rObj
+                    }
+                }
+            }
+        }
+
+        return {
+            status: Status.NOT_FOUND,
+            message: Status.message[Status.NOT_FOUND].value
+        }
     }
 
     getEgressRouteForAOR(addressOfRecord) {
