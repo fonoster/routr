@@ -202,7 +202,9 @@ export default class Locator {
                 rObj.contactURI
                 const h1 = rObj.contactURI.getHost().toString()
                 const h2 = addressOfRecord.getHost().toString()
-                if (h1.equals(h2)) {
+                const p1 = rObj.contactURI.getPort() == -1? 5060 : rObj.contactURI.getPort();
+                const p2 = addressOfRecord.getPort() == -1? 5060 : addressOfRecord.getPort();
+                if (h1.equals(h2) && p1 == p2) {
                     return {
                         status: Status.OK,
                         message: Status.message[Status.OK].value,
