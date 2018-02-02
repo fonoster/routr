@@ -213,13 +213,7 @@ export default class RequestProcessor {
         const method = requestIn.getMethod()
         const rcvHost = route.contactURI.getHost()
 
-        LOG.debug('contactURI is -> ' + route.contactURI)
-        LOG.debug('Behind nat -> ' + route.nat)
-        LOG.debug('rcvHost is -> ' + rcvHost)
-        LOG.debug('sentByAddress -> ' + route.sentByAddress)
-        LOG.debug('sentByPort -> ' + route.sentByPort)
-        LOG.debug('received -> ' + route.received)
-        LOG.debug('rport -> ' + route.rport)
+        LOG.debug('route is -> ' + JSON.stringify(route))
 
         let advertisedAddr
         let advertisedPort
@@ -272,14 +266,12 @@ export default class RequestProcessor {
             const to = 'sip:' + toHeader.getAddress().toString().match('sips?:(.*)@(.*)')[1] + '@' + route.gwHost
 
             // This might not work with all provider
-            /*
-              const fromAddress = this.addressFactory.createAddress(from)
-              const toAddress = this.addressFactory.createAddress(to)
-              fromHeader.setAddress(fromAddress)
-              toHeader.setAddress(toAddress)
-              requestOut.setHeader(fromHeader)
-              requestOut.setHeader(toHeader)
-            */
+            const fromAddress = this.addressFactory.createAddress(from)
+            const toAddress = this.addressFactory.createAddress(to)
+            fromHeader.setAddress(fromAddress)
+            toHeader.setAddress(toAddress)
+            requestOut.setHeader(fromHeader)
+            requestOut.setHeader(toHeader)
 
             requestOut.setHeader(gwRefHeader)
             requestOut.setHeader(remotePartyIdHeader)
