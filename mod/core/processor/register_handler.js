@@ -61,9 +61,11 @@ export default class RegisterHandler {
             return
         }
 
+        const realm = addressOfRecord.getHost()
+
         if (authHeader == null) {
             const unauthorized = this.messageFactory.createResponse(Response.UNAUTHORIZED, request)
-            unauthorized.addHeader(this.authHelper.generateChallenge())
+            unauthorized.addHeader(this.authHelper.generateChallenge(realm))
             transaction.sendResponse(unauthorized)
             LOG.debug(unauthorized)
         } else {
@@ -75,7 +77,7 @@ export default class RegisterHandler {
                 LOG.debug(ok)
             } else {
                 const unauthorized = this.messageFactory.createResponse(Response.UNAUTHORIZED, request)
-                unauthorized.addHeader(this.authHelper.generateChallenge(this.headerFactory))
+                unauthorized.addHeader(this.authHelper.generateChallenge(realm))
                 transaction.sendResponse(unauthorized)
                 LOG.debug(unauthorized)
             }

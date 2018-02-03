@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-export default function AuthHelper (headerFactory, domain='sip.io', realm='sipio') {
+export default function AuthHelper (headerFactory) {
     const DigestUtils = Packages.org.apache.commons.codec.digest.DigestUtils
     const LogManager = Packages.org.apache.logging.log4j.LogManager
     const MessageDigest = Packages.java.security.MessageDigest
@@ -27,19 +27,12 @@ export default function AuthHelper (headerFactory, domain='sip.io', realm='sipio
             result = DigestUtils.md5Hex(ha1 + ':' + nonce +  ':' + ha2)
         }
 
-        LOG.trace('A1: ' + a1)
-        LOG.trace('A2: ' + a2)
-        LOG.trace('HA1: ' + ha1)
-        LOG.trace('HA2: ' + ha2)
-        LOG.trace('Result: ' + result)
-
         return result
     }
 
     // Generates WWW-Authorization header
-    this.generateChallenge = () => {
+    this.generateChallenge = (realm) => {
         const wwwAuthHeader = headerFactory.createWWWAuthenticateHeader('Digest')
-        wwwAuthHeader.setDomain(domain)
         wwwAuthHeader.setRealm(realm)
         wwwAuthHeader.setQop('auth')
         wwwAuthHeader.setOpaque('')

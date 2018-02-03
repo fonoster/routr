@@ -318,7 +318,7 @@ export default class RequestProcessor {
         // WARNING: Should limit the amount of attempts...
         if (authHeader == null) {
             const challengeResponse = this.messageFactory.createResponse(Response.PROXY_AUTHENTICATION_REQUIRED, request)
-            this.dsam.generateChallenge(this.headerFactory, challengeResponse, "sipio")
+            this.dsam.generateChallenge(this.headerFactory, challengeResponse, fromURI.getHost())
             serverTransaction.sendResponse(challengeResponse)
             LOG.debug(request)
             return 'SENT_CHALLENGE'
