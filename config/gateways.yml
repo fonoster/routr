@@ -1,26 +1,12 @@
 - apiVersion: v1draft1
   kind: Gateway
   metadata:
-    name: Provider 1
-    ref:  GW0001
+    name: Provider Inc.
+    ref: GW0001
   spec:
     regService:
-      host: sip.provider1.net
+      host: sip.provider.net
       credentials:
-        username: 'user'
-        secret: 'secret'
+        username: 'youruser'
+        secret: 'yoursecret'
       transport: udp
-      registries:
-        - sip2.provider1.net
-- apiVersion: v1draft1
-  kind: Gateway
-  metadata:
-    name: Provider 2
-    ref:  GW0002
-  spec:
-    regService:
-      host: sip.provider2.net
-      credentials:
-        username: 'user'
-        secret: 'secret'
-      transport: tcp

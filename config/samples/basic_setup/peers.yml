@@ -1,9 +1,0 @@
-# Peers and Agents can register in Sip I/O location service
-- apiVersion: v1draft1
-  kind: Peer
-  metadata:
-    name: Asterisk PBX
-  spec:
-    credentials:
-      username: ast
-      secret: '1234'

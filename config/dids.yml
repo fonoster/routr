@@ -3,24 +3,11 @@
   metadata:
     ref: DID0001
     gwRef: GW0001
-    geoInfo:
-      city: Columbus, GA
-      country: USA
+    geoInfo:                  # Replace this using your DID's info
+      city: City, State
+      country: Country
       countryISOCode: US
   spec:
     location:
-      telUrl: 'tel:17066041487'
-      aorLink: 'sip:janie@sip.ocean.com'
-- apiVersion: v1draft1
-  kind: DID
-  metadata:
-    ref: DID0002
-    gwRef: GW0002
-    geoInfo:
-      city: Sanford, NC
-      country: USA
-      countryISOCode: US
-  spec:
-    location:
-      telUrl: 'tel:9198972120'
-      aorLink: 'sip:john@sip.ocean.com'
+      telUrl: 'tel:0000000000'        # Use your DID number as giving by your provider
+      aorLink: 'sip:1001@sip.local'

@@ -1,28 +1,18 @@
-# Peers and Agents can register in Sip I/O location service
 - apiVersion: v1draft1
   kind: Agent
   metadata:
     name: John Doe
   spec:
     credentials:
-      username: john
+      username: '1001'
       secret: '1234'
-    domains: [sip.ocean.com]
-- kind: Agent
-  apiVersion: v1draft1
+    domains: [sip.local]
+- apiVersion: v1draft1
+  kind: Agent
   metadata:
     name: Janie Doe
   spec:
     credentials:
-      username: janie
+      username: '1002'
       secret: '1234'
-    domains: [sip.ocean.com]
-- kind: Agent
-  apiVersion: v1draft1
-  metadata:
-    name: Jack Doe
-  spec:
-    credentials:
-      username: jack
-      secret: '1234'
-    domains: [sip.ny.ocean.com]
+    domains: [sip.local]

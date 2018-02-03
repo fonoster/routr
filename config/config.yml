@@ -16,9 +16,9 @@ spec:
     - protocol: tls
       port: 5061
     - protocol: ws
-      port: 5082
+      port: 5062
     - protocol: wss
-      port: 5083
+      port: 5063
   services:
     rest:
       credentials:

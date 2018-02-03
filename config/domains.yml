@@ -1,17 +1,10 @@
 - apiVersion: v1draft1
   kind: Domain
   metadata:
-    name: Ocean Central Office
+    name: My Home or Office Setup
   spec:
     context:
-      domainUri: sip.ocean.com
+      domainUri: sip.local
       egressPolicy:
-        rule: .*        # See the Location Service Rules for information about this parameter
+        rule: .*
         didRef: DID0001
-- apiVersion: v1draft1
-  kind: Domain
-  metadata:
-    name: Ocean NY Office
-  spec:
-    context:
-      domainUri: sip.ny.ocean.com
