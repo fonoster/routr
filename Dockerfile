@@ -15,12 +15,12 @@ RUN apt-get install nodejs -y
 
 COPY . /opt/sipio
 WORKDIR /opt/sipio
-RUN npm i && npm test
+RUN npm prune && npm i && npm test
 
 # Cleanup
-RUN apt-get remove unzip curl nodejs -y && apt-get clean && rm -rf /opt/gradle \
+RUN apt-get autoremove && apt-get remove unzip curl nodejs -y && apt-get clean && rm -rf /opt/gradle \
     rm -rf .babelrc _config.yml mod node_modules CODE_OF_CONDUCT.md CONTRIBUTING.md docker-compose.yml \
-        Dockerfile pack.sh webpack.config.js build.gradle *.iml *.ipr *.iws *.json
+        Dockerfile pack.sh webpack.config.js build.gradle *.iml *.ipr *.iws *.json *.tar.gz *.zip
 
 RUN chmod +x run.sh
 EXPOSE 5060
