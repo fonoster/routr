@@ -9,7 +9,7 @@
 * [Features](https://github.com/fonoster/sipio/wiki)
 * [Release Notes](https://github.com/fonoster/sipio/releases)
 * [Security](https://github.com/fonoster/sipio/wiki/Securing-the-Signaling)
-* [Basic Setup](https://github.com/fonoster/sipio/tree/master/config/samples/basic_setup)
+* [Running on docker](https://github.com/fonoster/sipio/wiki/Running-Sip-I-O-on-Docker-and-Docker-Compose)
 * [Wiki](https://github.com/fonoster/sipio/wiki)
 
 ## Configuration Overview
@@ -40,39 +40,7 @@ Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/s
 ./sipio
 ```
 
-## Running with docker-compose
-
-If you have docker-compose installed, just run
-
-```bash
-git clone https://github.com/fonoster/sipio.git
-cd sipio
-docker-compose build
-docker-compose run -e EXTERN_ADDR=192.168.1.2 sipio
-```
-
-> Make sure you use your host address
-
-### Destroying the container
-
-```bash
-docker-compose down
-```
-
-## Running with Docker
-
-### Pull lastest
-
-```bash
-docker pull fonoster/sipio
-```
-
-### Run lastest
-```bash
-docker run -it -p 5060:5060 -p 5060:5060/udp -e EXTERN_ADDR=192.168.1.2 -v ${PWD}/config/samples/basic_setup:/opt/sipio/config fonoster/sipio
-```
-
-> Make sure you use your host address
+Alternatively, try using our experimental [docker image](https://github.com/fonoster/sipio/wiki/Running-Sip-I-O-on-Docker-and-Docker-Compose) docker image
 
 ## Bugs and Feedback
 
