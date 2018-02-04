@@ -9,7 +9,7 @@
 * [Features](https://github.com/fonoster/sipio/wiki)
 * [Release Notes](https://github.com/fonoster/sipio/releases)
 * [Security](https://github.com/fonoster/sipio/wiki/Securing-the-Signaling)
-* [Running on docker](https://github.com/fonoster/sipio/wiki/Running-Sip-I-O-on-Docker-and-Docker-Compose)
+* [Running on docker](https://github.com/fonoster/sipio/wiki/Running-on-Docker-and-Docker-Compose)
 * [Wiki](https://github.com/fonoster/sipio/wiki)
 
 ## Configuration Overview
@@ -40,7 +40,7 @@ Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/s
 ./sipio
 ```
 
-Alternatively, try using our experimental [docker image](https://github.com/fonoster/sipio/wiki/Running-Sip-I-O-on-Docker-and-Docker-Compose) docker image
+Alternatively, try using our experimental [docker image](https://github.com/fonoster/sipio/wiki/Running-on-Docker-and-Docker-Compose)
 
 ## Bugs and Feedback
 
