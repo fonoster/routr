@@ -219,7 +219,9 @@ export default class RequestProcessor {
         let advertisedPort
 
         // No egress routing has sentByAddress. They are assume to be entities outside the local network.
-        if (this.config.spec.externAddr && (route.sentByAddress == undefined || !this.ipUtil.isLocalnet(route.sentByAddress))) {
+        if (this.config.spec.externAddr && (route.sentByAddress == undefined
+            || route.sentByAddress.endsWith(".invalid")
+            || !this.ipUtil.isLocalnet(route.sentByAddress))) {
             advertisedAddr = this.config.spec.externAddr.contains(":") ? this.config.spec.externAddr.split(":")[0] : this.config.spec.externAddr
             advertisedPort = this.config.spec.externAddr.contains(":") ? this.config.spec.externAddr.split(":")[1] : localPort
         }  else {
