@@ -34,7 +34,7 @@
 
 ## Running the Server
 
-Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M2/sipio.1.0.0-M2.zip), and then from within the server's folder simply run:
+Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M3/sipio.1.0.0-M3.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M3/sipio.1.0.0-M3.zip), and then from within the server's folder simply run:
 
 ```bash
 ./sipio
