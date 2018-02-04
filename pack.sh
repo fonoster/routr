@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=1.0.0-M4
+VERSION=1.0.0-M3
 FOLDER_NAME=sipio.$VERSION
 
 # Cleanup
