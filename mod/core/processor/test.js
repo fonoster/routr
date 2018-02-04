@@ -31,7 +31,7 @@ export let testGroup = { name: "Core Processor Module" }
 
 // Tests
 testGroup.caller_type = function () {
-    const request = getRequest('john@sip.ocean.com', 'janie@sip.ocean.com')
+    const request = getRequest('1001@sip.local', '1002@sip.local')
     const routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals(routeInfo.getCallerType(), 'AGENT')
     assertEquals(routeInfo.getCalleeType(), 'AGENT')
@@ -41,31 +41,32 @@ testGroup.caller_type = function () {
 // Tests
 testGroup.routing_type = function () {
     // Same Domain
-    let request = getRequest('john@sip.ocean.com', 'janie@sip.ocean.com')
+    let request = getRequest('1001@sip.local', '1002@sip.local')
     let routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals('INTRA_DOMAIN_ROUTING', routeInfo.getRoutingType())
 
     // Different domain but both domains exist
-    request = getRequest('john@sip.ocean.com', 'jack@sip.ny.ocean.com')
+    request = getRequest('1001@sip.local', '4001@sip2.local')
     routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals('INTER_DOMAIN_ROUTING', routeInfo.getRoutingType())
 
     // Call to the PSTN
-    request = getRequest('john@sip.ocean.com', '17853178070@sip.ocean.com')
+    request = getRequest('1001@sip.local', '17853178070@sip.local')
     routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals('DOMAIN_EGRESS_ROUTING', routeInfo.getRoutingType())
 
-    // Call from the PSTN
-    request = getRequest('17853178070@sip.provider.com', '17066041487@sip.provider.com')
+   // Call from the PSTN
+    request = getRequest('17853178070@sip.provider.com', '0000000000@sip.provider.com')
     routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals('DOMAIN_INGRESS_ROUTING', routeInfo.getRoutingType())
 
+
     // Peer call
-    request = getRequest('17066041487@sip.provider.com', '1762223232@sip.provider.com')
+    request = getRequest('0000000000@sip.provider.com', '17853178070@sip.provider.com')
     routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals('PEER_EGRESS_ROUTING', routeInfo.getRoutingType())
 
-    // Peer call
+   // Peer call
     request = getRequest('ast@astserver', '17853178070@sip.provider.com')
     routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals('PEER_EGRESS_ROUTING', routeInfo.getRoutingType())

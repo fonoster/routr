@@ -37,7 +37,7 @@ testGroup.aor_as_string = function () {
 }
 
 testGroup.get_route_for_aor = function () {
-    const aor = addressFactory.createSipURI('john', 'sip.ocean.com')
+    const aor = addressFactory.createSipURI('1001', 'sip.local')
     const result = locator.getEgressRouteForAOR(aor)
     assertTrue(result.status == Status.OK)
 }
