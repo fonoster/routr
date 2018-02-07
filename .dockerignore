@@ -1,0 +1,14 @@
+_config.yml
+*.md
+*.iml
+*.ipr
+*.iws
+*.tar.gz
+*.zip
+.DS_Store
+.dockerignore
+.git
+.gitignore
+.gradle
+.idea
+build
