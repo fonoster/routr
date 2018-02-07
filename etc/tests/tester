@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 main_js="$(pwd)/etc/tests/test_helper.js"
 
 jjs -Dlog4j.configurationFile=./config/log4j2.xml -cp libs/app.deps.jar \
