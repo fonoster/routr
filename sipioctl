@@ -1,7 +1,4 @@
-#!/usr/bin/jjs -Dlog4j.configurationFile=config/log4j2.xml -cp libs/app.deps.jar -dump-on-error=true
+#!/usr/bin/env sh
 
-// Ctl expects to find this variable
-var args = arguments
-
-load ('libs/jvm-npm.js')
-load ('libs/ctl.bundle.js')
+jrunscript -Dlog4j.configurationFile=config/log4j2.xml -cp libs/app.deps.jar -e \
+    "var args = arguments; load('libs/jvm-npm.js'); load ('libs/ctl.bundle.js')" ${@:2}
