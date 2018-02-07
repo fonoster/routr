@@ -1,27 +1,27 @@
-FROM debian:8.7
+FROM openjdk:alpine
 MAINTAINER Pedro Sanders <fonosterteam@fonoster.com>
 
 ENV LANG C.UTF-8
 ENV PATH=/opt/gradle/bin:${PATH}
 
-RUN echo "deb http://http.debian.net/debian jessie-backports main" >> /etc/apt/sources.list
-RUN apt-get update
-RUN apt-get install curl -y && apt-get install unzip -y
-RUN curl -sL https://services.gradle.org/distributions/gradle-4.5-bin.zip > gradle-4.5-bin.zip
-RUN mkdir /opt/gradle && unzip gradle-4.5-bin.zip && mv gradle-4.5/* /opt/gradle
-RUN apt-get install -t jessie-backports openjdk-8-jdk -y
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
-RUN apt-get install nodejs -y
-
 COPY . /opt/sipio
 WORKDIR /opt/sipio
-RUN npm prune && npm i && npm test
 
-# Cleanup
-RUN apt-get autoremove && apt-get remove unzip curl nodejs -y && apt-get clean && rm -rf /opt/gradle \
-    rm -rf .babelrc _config.yml mod node_modules CODE_OF_CONDUCT.md CONTRIBUTING.md docker-compose.yml \
-        Dockerfile pack.sh webpack.config.js build.gradle *.iml *.ipr *.iws *.json *.tar.gz *.zip
+RUN wget https://services.gradle.org/distributions/gradle-4.5-bin.zip  \
+    && mkdir -p /opt/gradle && unzip gradle-4.5-bin.zip && mv gradle-4.5/* /opt/gradle && rm gradle-4.5-bin.zip
+RUN apk add --update nodejs nodejs-npm && npm i && npm test && npm prune && rm -rf node_modules && \
+    rm -rf /opt/gradle \
+    .babelrc \
+    mod \
+    docker-compose.yml \
+    Dockerfile \
+    pack.sh \
+    webpack.config.js \
+    build.gradle \
+    *.json \
+    gradle-4.5 \
+    .gradle \
+    build && \
+    chmod +x run.sh
 
-RUN chmod +x run.sh
-EXPOSE 5060
 CMD ["./run.sh"]
