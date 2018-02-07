@@ -115,6 +115,7 @@ export default class Server {
         registry.start()
         this.restService = new RestService(this, locator, registry, dataAPIs)
         this.restService.start()
+        java.lang.Thread.sleep(java.lang.Long.MAX_VALUE)
     }
 
     stop() {
