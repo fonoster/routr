@@ -17,7 +17,7 @@ org.apache.log4j.BasicConfigurator.configure(new
 const ArgumentParsers = Packages.net.sourceforge.argparse4j.ArgumentParsers
 const parser = ArgumentParsers.newArgumentParser('sipioctl')
     .description('sipioctl controls the Sip I/O server')
-    .epilog('Find more information at https://github.com/psanders/sipio/wiki')
+    .epilog('Find more information at https://github.com/fonoster/sipio/wiki')
 const subparsers = parser.addSubparsers().title('Basic Commands').metavar('COMMAND')
 
 // Adding subparsers
