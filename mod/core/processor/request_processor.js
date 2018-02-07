@@ -213,7 +213,7 @@ export default class RequestProcessor {
         const method = requestIn.getMethod()
         const rcvHost = route.contactURI.getHost()
 
-        LOG.debug('route is -> ' + JSON.stringify(route))
+        LOG.debug('flow -> ' + JSON.stringify(route))
 
         let advertisedAddr
         let advertisedPort
