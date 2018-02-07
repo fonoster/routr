@@ -103,7 +103,7 @@ export default class Registrar {
                 isLinkAOR: false,
                 thruGw: false,
                 sentByAddress: viaHeader.getHost(),
-                sentByPort: viaHeader.getPort(),
+                sentByPort: (viaHeader.getPort() == -1 ? 5060 : viaHeader.getPort()),
                 received: viaHeader.getReceived(),
                 rport: viaHeader.getParameter('rport'),
                 contactURI: contactURI,
