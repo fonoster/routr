@@ -4,23 +4,34 @@
  */
 import getConfig from 'core/config_util'
 import { Status } from 'resources/status'
+import basicAuthFilter from 'rest/basic_auth_filter'
+import parameterAuthFilter from 'rest/parameter_auth_filter'
+import getJWTToken from 'rest/jwt_token_generator'
 
 const Spark = Packages.spark.Spark
+const SecurityFilter = org.pac4j.sparkjava.SecurityFilter
 const LogManager = Packages.org.apache.logging.log4j.LogManager
+const LOG = LogManager.getLogger()
 const BasicAuthenticationFilter = Packages.com.qmetric.spark.authentication.BasicAuthenticationFilter
 const AuthenticationDetails = Packages.com.qmetric.spark.authentication.AuthenticationDetails
-const LOG = LogManager.getLogger()
 
 export default function Rest (server, locator, registry, dataAPIs) {
+    const JWT_SALT = "0123456789012345678901234567890123456789"
     const config = getConfig()
     const rest = config.spec.services.rest
 
+    Spark.secure(config.spec.services.rest.secure.keyStore,
+        config.spec.services.rest.secure.keyStorePassword,
+            config.spec.services.rest.secure.trustStore,
+                config.spec.services.rest.secure.trustStorePassword)
+
     Spark.port(rest.port)
-    Spark.before(new BasicAuthenticationFilter('/*', new AuthenticationDetails(rest.credentials.username, rest.credentials.secret)))
     const get = Spark.get
     const post = Spark.post
     const put = Spark.put
     const del = Spark.delete
+    const halt = Spark.halt
+    const before = Spark.before
     // Is this a bug? For some reason I can not reach the object Spark from within the function stop
     const rStop = Spark.stop
 
@@ -32,6 +43,17 @@ export default function Rest (server, locator, registry, dataAPIs) {
     this.start = () => {
         LOG.info('Starting Restful service on port ' + rest.port)
     }
+
+    before("/credentials", new BasicAuthenticationFilter("/credentials",
+        new AuthenticationDetails(rest.credentials.username, rest.credentials.secret)))
+
+    before("/locate*", (request, response) => parameterAuthFilter(request, response, JWT_SALT))
+
+    before("/registry*", (request, response) => parameterAuthFilter(request, response, JWT_SALT))
+
+    before("/gateways*", (request, response) => parameterAuthFilter(request, response, JWT_SALT))
+
+    get("/credentials", (request, response) => getJWTToken(request, response, JWT_SALT))
 
     get('/locate', (request, response) => locator.listAsJSON())
 
@@ -176,5 +198,10 @@ export default function Rest (server, locator, registry, dataAPIs) {
     post('/stop', (request, response) => {
         server.stop()
         return 'Done.'
+    })
+
+    Spark.internalServerError((request, response) => {
+        response.type("application/json");
+        return "{\"status\": \"500\", \"message\":\"Internal server error\"}";
     })
 }

@@ -1,10 +1,8 @@
 apiVersion: v1draft1
-metadata:
-  userAgent: Sip I/O v1.0
 spec:
   securityContext:
-    keyStore: etc/certs/keystore.jks
-    trustStore: etc/certs/keystore.jks
+    keyStore: etc/certs/domains-cert.jks
+    trustStore: etc/certs/domains-cert.jks
     keyStorePassword: 'password'
     keyStoreType: 'jks'
     debugging: false
@@ -19,10 +17,5 @@ spec:
       port: 5062
     - protocol: wss
       port: 5063
-  services:
-    rest:
-      credentials:
-        username: rest
-        secret: 'KN4k^^f%M]e66f~^'
   logging:
     traceLevel: 0

@@ -203,7 +203,6 @@ export default class RequestProcessor {
     }
 
     processRoute(requestIn, requestOut, route, serverTransaction, routeInfo) {
-        requestOut.setRequestURI(route.contactURI)
         const routeHeader = requestIn.getHeader(RouteHeader.NAME)
         const rVia = requestIn.getHeader(ViaHeader.NAME)
         const transport = rVia.getTransport().toLowerCase()
@@ -211,12 +210,15 @@ export default class RequestProcessor {
         const localPort = lp.getPort()
         const localIp = lp.getIPAddress().toString()
         const method = requestIn.getMethod()
-        const rcvHost = route.contactURI.getHost()
 
         LOG.debug('flow -> ' + JSON.stringify(route))
 
         let advertisedAddr
         let advertisedPort
+
+        // Keep and eye here o.O
+        //if (method.equals(Request.INVITE))
+        requestOut.setRequestURI(route.contactURI)
 
         // No egress routing has sentByAddress. They are assume to be entities outside the local network.
         if (this.config.spec.externAddr && (route.sentByAddress == undefined
@@ -232,6 +234,8 @@ export default class RequestProcessor {
         LOG.debug('advertisedAddr is -> ' + advertisedAddr)
         LOG.debug('advertisedPort is -> ' + advertisedPort)
 
+        print ('DBG001')
+
         // Remove route header if host's address is the same as the proxy's address
         if (routeHeader) {
             const h = routeHeader.getAddress().getURI().getHost()
@@ -243,6 +247,8 @@ export default class RequestProcessor {
             }
         }
 
+        print ('DBG002')
+
         // Stay in the signaling path
         if (this.config.spec.recordRoute) {
             const proxyURI = this.addressFactory.createSipURI(null, advertisedAddr)
@@ -253,12 +259,16 @@ export default class RequestProcessor {
             requestOut.addHeader(recordRouteHeader)
         }
 
+        print ('DBG003')
+
         // Request RPort to enable Symmetric Response in accordance with RFC 3581 and RFC 6314
         const viaHeader = this.headerFactory.createViaHeader(advertisedAddr, advertisedPort, transport, null)
         viaHeader.setRPort()
         requestOut.addFirst(viaHeader)
 
         if (route.thruGw) {
+            const contactHeader = requestIn.getHeader(ContactHeader.NAME)
+            const contactURI = contactHeader.getAddress().getURI()
             const fromHeader = requestIn.getHeader(FromHeader.NAME)
             const toHeader = requestIn.getHeader(ToHeader.NAME)
             const gwRefHeader = this.headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
@@ -268,6 +278,9 @@ export default class RequestProcessor {
             const from = 'sip:' + route.gwUsername + '@' + route.gwHost
             const to = 'sip:' + toHeader.getAddress().toString().match('sips?:(.*)@(.*)')[1] + '@' + route.gwHost
 
+            contactURI.setUser(route.gwUsername)
+            contactHeader.setAddress(this.addressFactory.createAddress(contactURI.toString()))
+
             // This might not work with all provider
             const fromAddress = this.addressFactory.createAddress(from)
             const toAddress = this.addressFactory.createAddress(to)
@@ -276,15 +289,22 @@ export default class RequestProcessor {
             requestOut.setHeader(fromHeader)
             requestOut.setHeader(toHeader)
 
+            requestOut.setHeader(contactHeader)
             requestOut.setHeader(gwRefHeader)
             requestOut.setHeader(remotePartyIdHeader)
         }
+
+        print ('DBG004')
 
         requestOut.removeHeader("Proxy-Authorization")
 
         // Does not need a transaction
         if(method.equals(Request.ACK)) {
+             print ('DBG005')
+
             this.sipProvider.sendRequest(requestOut)
+             print ('DBG006')
+
         } else {
             try {
                 // The request must be cloned or the stack will not fork the call

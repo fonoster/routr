@@ -17,11 +17,36 @@ export default function () {
     if (config.spec.bindAddr == undefined)
         config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
 
-    if (config.spec.services.rest.port == undefined)
-        config.spec.services.rest.port = 4567
+    if (config.spec.services == undefined) config.spec.services = {}
+
+    if (config.spec.services.rest == undefined) {
+        config.spec.services.rest = {}
+        config.spec.services.rest.secure = {}
+        config.spec.services.rest.credentials = {}
+    }
+
+    if (config.spec.services.rest.credentials) {
+        config.spec.services.rest.credentials.username = 'admin'
+        config.spec.services.rest.credentials.secret = 'admin'
+    }
+
+    if (config.spec.services.rest.secure.keyStore == undefined)
+        config.spec.services.rest.secure.keyStore = 'etc/certs/api-cert.jks'
+
+    if (config.spec.services.rest.secure.keyStorePassword == undefined)
+        config.spec.services.rest.secure.keyStorePassword = 'password'
+
+    if (config.spec.services.rest.secure.trustStore == undefined)
+        config.spec.services.rest.secure.trustStore = null
+
+    if (config.spec.services.rest.secure.trustStorePassword == undefined)
+        config.spec.services.rest.secure.trustStorePassword = null
 
     if (config.spec.services.rest.bindAddr == undefined)
         config.spec.services.rest.bindAddr = InetAddress.getLocalHost().getHostAddress()
+
+    if (config.spec.services.rest.port == undefined)
+        config.spec.services.rest.port = 4567
 
     if (config.spec.securityContext) {
         if (config.spec.securityContext.client == undefined) config.spec.securityContext.client = {}
@@ -35,7 +60,13 @@ export default function () {
         }
     }
 
+    if (config.metadata == undefined) config.metadata = {}
     if (config.metadata.userAgent == undefined) config.metadata.userAgent = 'Sip I/O v1.0'
+
+    if (config.logging == undefined) {
+        config.logging = {}
+        config.logging.traceLevel = 0
+    }
 
     return config
 }

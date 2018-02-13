@@ -95,28 +95,6 @@
                         }
                     }
                 },
-                "services": {
-                    "type": "object",
-                    "properties": {
-                        "rest": {
-                            "type": "object",
-                            "properties": {
-                                "bindAddr": { "type": "string" },
-                                "port": { "type": "integer" },
-                                "credentials": {
-                                    "type": "object",
-                                    "properties": {
-                                        "username": { "type": "string"},
-                                        "secret": { "type": "string"}
-                                    },
-                                    "required": ["username", "secret"]
-                                }
-                            },
-                            "required": ["credentials"]
-                        },
-                        "required": ["rest"]
-                    }
-                },
                 "transport": {
                     "type": "array",
                     "items": {
@@ -142,7 +120,7 @@
                     }
                 }
             },
-            "required": ["transport", "services"]
+            "required": ["transport"]
         }
     },
     "required": ["apiVersion", "spec"]

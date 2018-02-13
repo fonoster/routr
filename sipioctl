@@ -1,4 +1,0 @@
-#!/usr/bin/env sh
-
-jrunscript -Dlog4j.configurationFile=config/log4j2.xml -cp libs/app.deps.jar -e \
-    "var args = arguments; load('libs/jvm-npm.js'); load ('libs/ctl.bundle.js')" ${@:2}
