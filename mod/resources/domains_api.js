@@ -68,7 +68,7 @@ export default class DomainsAPI {
         }
     }
 
-    deleteDomains() {
+    deleteDomain() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,

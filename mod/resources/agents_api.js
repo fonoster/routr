@@ -22,6 +22,32 @@ export default class AgentsAPI {
         return this.rUtil.getObjs(this.resourcePath, filter)
     }
 
+    getAgentsByDomain(domainUri) {
+        const resource = this.rUtil.getJson(this.resourcePath)
+        let agents = []
+
+        resource.forEach(obj => {
+            obj.spec.domains.forEach(d => {
+                if (domainUri == d) {
+                    agents.push(obj)
+                }
+            })
+        })
+
+        if (agents.length > 0) {
+            return {
+                status: Status.OK,
+                message: Status.message[Status.OK].value,
+                obj: agents
+            }
+        }
+
+        return {
+            status: Status.NOT_FOUND,
+            message: Status.message[Status.NOT_FOUND].value
+        }
+    }
+
     getAgent(domainUri, username) {
         const resource = this.rUtil.getJson(this.resourcePath)
         let agent
@@ -70,7 +96,7 @@ export default class AgentsAPI {
         }
     }
 
-    deleteAgents() {
+    deleteAgent(domainUri, username) {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,

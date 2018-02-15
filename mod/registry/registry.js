@@ -4,6 +4,7 @@
  */
 import getConfig from 'core/config_util'
 import { Status } from 'resources/status'
+import moment from 'moment'
 
 const SipFactory = Packages.javax.sip.SipFactory
 const SipUtils = Packages.gov.nist.javax.sip.Utils
@@ -113,7 +114,8 @@ export default class Registry {
             host: host,
             ip: InetAddress.getByName(host).getHostAddress(),
             expires: actualExpires,
-            registeredOn: Date.now()
+            registeredOn: Date.now(),
+            regOnFormatted: moment(new Date(Date.now())).fromNow()
         }
 
         this.registry.put(host, reg)

@@ -34,7 +34,7 @@ export default function () {
         config.spec.services.rest.secure.keyStore = 'etc/certs/api-cert.jks'
 
     if (config.spec.services.rest.secure.keyStorePassword == undefined)
-        config.spec.services.rest.secure.keyStorePassword = 'password'
+        config.spec.services.rest.secure.keyStorePassword = 'changeit'
 
     if (config.spec.services.rest.secure.trustStore == undefined)
         config.spec.services.rest.secure.trustStore = null

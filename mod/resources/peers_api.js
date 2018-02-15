@@ -68,7 +68,7 @@ export default class PeersAPI {
         }
     }
 
-    deletePeers() {
+    deletePeer() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
