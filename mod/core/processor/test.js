@@ -55,18 +55,17 @@ testGroup.routing_type = function () {
     routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals('DOMAIN_EGRESS_ROUTING', routeInfo.getRoutingType())
 
-   // Call from the PSTN
+    // Call from the PSTN
     request = getRequest('17853178070@sip.provider.com', '0000000000@sip.provider.com')
     routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals('DOMAIN_INGRESS_ROUTING', routeInfo.getRoutingType())
-
 
     // Peer call
     request = getRequest('0000000000@sip.provider.com', '17853178070@sip.provider.com')
     routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals('PEER_EGRESS_ROUTING', routeInfo.getRoutingType())
 
-   // Peer call
+    // Peer call
     request = getRequest('ast@astserver', '17853178070@sip.provider.com')
     routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals('PEER_EGRESS_ROUTING', routeInfo.getRoutingType())

@@ -44,9 +44,9 @@ export default function (agentsAPI, salt) {
         return JSON.stringify(result.obj)
     })
 
-    get('/agents/:domain', (request, response) => {
-        const domain = request.params(":domain")
-        const result = agentsAPI.getAgentsByDomain(domain)
+    get('/agents/:ref', (request, response) => {
+        const ref = request.params(":ref")
+        const result = agentsAPI.getAgentByRef(ref)
 
         if (result.status && result.status != 200) {
             return JSON.stringify(result)
@@ -55,21 +55,10 @@ export default function (agentsAPI, salt) {
         return JSON.stringify(result.obj)
     })
 
-    get('/agents/:domain/:username', (request, response) => {
-        const domain = request.params(":domain")
-        const username = request.params(":username")
-        const result = agentsAPI.getAgent(domain, username)
-
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
-        }
-
-        return JSON.stringify(result.obj)
-    })
-
-    put('/agents/:domain/:username', (request, response) => {
+    put('/agents/:ref', (request, response) => {
+        const ref = request.params(":ref")
         const data = JSON.parse(request.body())
-        let result = result = agentsAPI.updateFromJSONObj(data)
+        let result = result = agentsAPI.updateFromJSONObj(ref, data)
 
         if (result.status && result.status != 200) {
             return JSON.stringify(result)
@@ -78,10 +67,9 @@ export default function (agentsAPI, salt) {
         return JSON.stringify(result.obj)
     })
 
-    del('/agents/:domain/:username', (request, response) => {
-        const domain = request.params(":domain")
-        const username = request.params(":username")
-        let result = result = agentsAPI.deleteAgent(domain, username)
+    del('/agents/:ref', (request, response) => {
+        const ref = request.params(":ref")
+        let result = result = agentsAPI.deleteAgent(ref)
 
         if (result.status && result.status != 200) {
             return JSON.stringify(result)

@@ -1,8 +1,7 @@
 - apiVersion: v1draft1
   kind: DID
   metadata:
-    ref: DID0001
-    gwRef: GW0001
+    gwRef: gweef506
     geoInfo:                  # Replace this using your DID's info
       city: City, State
       country: Country

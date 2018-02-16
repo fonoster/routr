@@ -17,8 +17,7 @@
                 "properties": {
                     "name": {"type": "string"},
                     "ref": {"type": "string"}
-                },
-                "required": ["ref"]
+                }
             },
             "spec": {
                 "type": "object",

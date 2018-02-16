@@ -20,8 +20,23 @@ export default class PeersAPI {
         }
     }
 
+    generateRef(username) {
+        let md5 = java.security.MessageDigest.getInstance("MD5")
+        md5.update(java.nio.charset.StandardCharsets.UTF_8.encode(username))
+        let hash = java.lang.String.format("%032x", new java.math.BigInteger(1, md5.digest()))
+        return "pr" + hash.substring(hash.length() - 6).toLowerCase()
+    }
+
     getPeers(filter) {
-        return this.rUtil.getObjs(this.resourcePath, filter)
+        let objs = this.rUtil.getObjs(this.resourcePath, filter)
+
+        objs.obj.forEach(obj => {
+            if (!obj.metadata.ref) {
+                obj.metadata.ref = this.generateRef(obj.spec.credentials.username)
+            }
+        })
+
+        return objs
     }
 
     getPeer(username) {
@@ -30,6 +45,9 @@ export default class PeersAPI {
 
         resource.forEach(obj => {
             if (obj.spec.credentials.username == username) {
+                if (!obj.metadata.ref) {
+                    obj.metadata.ref = this.generateRef(obj.spec.credentials.username)
+                }
                 peer = obj
             }
         })

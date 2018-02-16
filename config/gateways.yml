@@ -2,7 +2,6 @@
   kind: Gateway
   metadata:
     name: Provider Inc.
-    ref: GW0001
   spec:
     regService:
       host: sip.provider.net

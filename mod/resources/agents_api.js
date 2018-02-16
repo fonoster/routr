@@ -18,8 +18,23 @@ export default class AgentsAPI {
         }
     }
 
+    generateRef(username, domainUri) {
+        let md5 = java.security.MessageDigest.getInstance("MD5")
+        md5.update(java.nio.charset.StandardCharsets.UTF_8.encode(username + domainUri))
+        let hash = java.lang.String.format("%032x", new java.math.BigInteger(1, md5.digest()))
+        return "ag" + hash.substring(hash.length() - 6).toLowerCase()
+    }
+
     getAgents(filter) {
-        return this.rUtil.getObjs(this.resourcePath, filter)
+        let objs = this.rUtil.getObjs(this.resourcePath, filter)
+
+        objs.obj.forEach(obj => {
+            if (!obj.metadata.ref) {
+                obj.metadata.ref = this.generateRef(obj.spec.credentials.username, obj.spec.domains[0])
+            }
+        })
+
+        return objs
     }
 
     getAgentsByDomain(domainUri) {
@@ -29,6 +44,10 @@ export default class AgentsAPI {
         resource.forEach(obj => {
             obj.spec.domains.forEach(d => {
                 if (domainUri == d) {
+                    if (!obj.metadata.ref) {
+                        obj.metadata.ref = this.generateRef(obj.spec.credentials.username, obj.spec.domains[0])
+                    }
+
                     agents.push(obj)
                 }
             })
@@ -56,9 +75,41 @@ export default class AgentsAPI {
             if (obj.spec.credentials.username == username) {
                 obj.spec.domains.forEach(d => {
                     if (domainUri == d) {
+                        if (!obj.metadata.ref) {
+                            obj.metadata.ref = this.generateRef(obj.spec.credentials.username, obj.spec.domains[0])
+                        }
+
                         agent = obj
                     }
                 })
+            }
+        })
+
+        if (!isEmpty(agent)) {
+            return {
+                status: Status.OK,
+                message: Status.message[Status.OK].value,
+                obj: agent
+            }
+        }
+
+        return {
+            status: Status.NOT_FOUND,
+            message: Status.message[Status.NOT_FOUND].value
+        }
+    }
+
+    getAgentByRef(ref) {
+        const resource = this.rUtil.getJson(this.resourcePath)
+        let agent
+
+        resource.forEach(obj => {
+            if (!obj.metadata.ref) {
+                obj.metadata.ref = this.generateRef(obj.spec.credentials.username, obj.spec.domains[0])
+            }
+
+            if (ref == obj.metadata.ref) {
+                agent = obj
             }
         })
 
@@ -90,6 +141,13 @@ export default class AgentsAPI {
     }
 
     updateAgent() {
+        return {
+            status: Status.NOT_SUPPORTED,
+            message: Status.message[Status.NOT_SUPPORTED].value,
+        }
+    }
+
+    deleteAgent(ref) {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,

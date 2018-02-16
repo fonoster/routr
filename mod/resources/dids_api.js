@@ -18,8 +18,23 @@ export default class DIDsAPI {
         }
     }
 
+    generateRef(telUrl) {
+        let md5 = java.security.MessageDigest.getInstance("MD5")
+        md5.update(java.nio.charset.StandardCharsets.UTF_8.encode(telUrl))
+        let hash = java.lang.String.format("%032x", new java.math.BigInteger(1, md5.digest()))
+        return "dd" + hash.substring(hash.length() - 6).toLowerCase()
+    }
+
     getDIDs(filter) {
-        return this.rUtil.getObjs(this.resourcePath, this.filter)
+        let objs = this.rUtil.getObjs(this.resourcePath, filter)
+
+        objs.obj.forEach(obj => {
+            if (!obj.metadata.ref) {
+                obj.metadata.ref = this.generateRef(obj.spec.location.telUrl)
+            }
+        })
+
+        return objs
     }
 
     getDID(ref) {
@@ -27,6 +42,10 @@ export default class DIDsAPI {
         let did
 
         resource.forEach(obj => {
+            if (!obj.metadata.ref) {
+                obj.metadata.ref = this.generateRef(obj.spec.location.telUrl)
+            }
+
             if (obj.metadata.ref == ref) {
                 did = obj
             }
@@ -61,6 +80,9 @@ export default class DIDsAPI {
 
         resource.forEach(obj => {
             if (obj.spec.location.telUrl == telUrl) {
+                if (!obj.metadata.ref) {
+                    obj.metadata.ref = this.generateRef(obj.spec.location.telUrl)
+                }
                 did = obj
             }
         })

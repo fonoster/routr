@@ -60,8 +60,8 @@ testGroup.get_agents = function () {
 }
 
 // This also validates the other resources
-testGroup.get_agent = function () {
-    const result = agentsApi.getAgent('sip.local', '1002')
+testGroup.get_agent_by_ref = function () {
+    const result = agentsApi.getAgentByRef('ag3f77f6')
     assertTrue(result.status == Status.OK)
     assertTrue(result.obj.kind == 'Agent')
 }

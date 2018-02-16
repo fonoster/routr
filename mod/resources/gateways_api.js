@@ -18,8 +18,25 @@ export default class GatewaysAPI {
         }
     }
 
+    generateRef(host) {
+        let md5 = java.security.MessageDigest.getInstance("MD5")
+        md5.update(java.nio.charset.StandardCharsets.UTF_8.encode(host))
+        let hash = java.lang.String.format("%032x", new java.math.BigInteger(1, md5.digest()))
+        return "gw" + hash.substring(hash.length() - 6).toLowerCase()
+    }
+
     getGateways(filter)  {
-        return this.rUtil.getObjs(this.resourcePath, this.filter)
+        let objs = this.rUtil.getObjs(this.resourcePath, filter)
+
+        objs.obj.forEach(obj => {
+            if (!obj.metadata.ref) {
+                if (!obj.metadata.ref) {
+                    obj.metadata.ref = this.generateRef(obj.spec.regService.host)
+                }
+            }
+        })
+
+        return objs
     }
 
     getGateway(ref) {
@@ -28,6 +45,9 @@ export default class GatewaysAPI {
 
         resource.forEach(obj => {
             if (obj.metadata.ref == ref) {
+                if (!obj.metadata.ref) {
+                    obj.metadata.ref = this.generateRef(obj.spec.regService.host)
+                }
                 gateways = obj
             }
         })
