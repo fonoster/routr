@@ -127,7 +127,7 @@ export default class DIDsAPI {
         }
     }
 
-    deleteDIDs() {
+    deleteDID() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,

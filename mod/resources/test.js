@@ -68,7 +68,7 @@ testGroup.get_agent_by_ref = function () {
 
 // This also validates the other resources
 testGroup.get_gw_by_ref = function () {
-    const result = gwsAPI.getGateway('GW0001')
+    const result = gwsAPI.getGateway('gweef506')
     assertTrue(result.status == Status.OK)
     assertTrue(result.obj.kind == 'Gateway')
 }

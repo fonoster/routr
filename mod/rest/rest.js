@@ -14,13 +14,10 @@ import didsService from 'rest/dids_service.js'
 import parameterAuthFilter from 'rest/parameter_auth_filter'
 
 const Spark = Packages.spark.Spark
-const get = Spark.get
-const post = Spark.post
-const put = Spark.put
-const del = Spark.delete
-const halt = Spark.halt
-const before = Spark.before
-const SecurityFilter = org.pac4j.sparkjava.SecurityFilter
+const get = Packages.spark.Spark.get
+const post = Packages.spark.Spark.post
+const before = Packages.spark.Spark.before
+const path = Packages.spark.Spark.path
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const BasicAuthenticationFilter = Packages.com.qmetric.spark.authentication.BasicAuthenticationFilter
@@ -28,9 +25,11 @@ const AuthenticationDetails = Packages.com.qmetric.spark.authentication.Authenti
 
 export default class Rest {
 
-    constructor(server, locator, registry, dataAPIs, salt="0123456789012345678901234567890123456789") {
+    constructor(server, locator, registry, dataAPIs) {
         const config = getConfig()
         this.rest = config.spec.services.rest
+        this.system = config.system
+
         LOG.info('Starting Restful service on port ' + this.rest.port)
         Spark.secure(config.spec.services.rest.secure.keyStore,
             config.spec.services.rest.secure.keyStorePassword,
@@ -46,30 +45,57 @@ export default class Rest {
             return "{\"status\": \"404\", \"message\":\"Not found\"}";
         })
         this.dataAPIs = dataAPIs
-        this.salt = salt
         this.locator = locator
         this.registry = registry
+        this.server = server
+        this.config = config
     }
 
     start() {
-        before("/credentials", new BasicAuthenticationFilter(
-            new AuthenticationDetails(this.rest.credentials.username, this.rest.credentials.secret)))
+        path(this.system.apiPath, (r) => {
+            before("/credentials", new BasicAuthenticationFilter(
+                new AuthenticationDetails(this.rest.credentials.username, this.rest.credentials.secret)))
 
-        get("/credentials", (request, response) => getJWTToken(request, response, this.salt))
+            before("/system/status",  (request, response) => parameterAuthFilter(request, response, this.config.salt))
 
-        before("/location",  (request, response) => parameterAuthFilter(request, response, this.salt))
+            before("/system/info",  (request, response) => parameterAuthFilter(request, response, this.config.salt))
 
-        before("/registry",  (request, response) => parameterAuthFilter(request, response, this.salt))
+            before("/location",  (request, response) => parameterAuthFilter(request, response, this.config.salt))
 
-        get('/location', (request, response) => this.locator.listAsJSON())
+            before("/registry",  (request, response) => parameterAuthFilter(request, response, this.config.salt))
 
-        get('/registry', (request, response) => this.registry.listAsJSON())
+            // Its always running! Use to ping Sip IO server
+            get('/system/status', (request, response) => "running")
 
-        agentsService(this.dataAPIs.AgentsAPI, this.salt)
-        peersService(this.dataAPIs.PeersAPI, this.salt)
-        domainsService(this.dataAPIs.DomainsAPI, this.salt)
-        gatewaysService(this.dataAPIs.GatewaysAPI, this.salt)
-        didsService(this.dataAPIs.DIDsAPI, this.salt)
+            post('/system/status/:status', (request, response) => {
+                // halt or error
+                const status = request.params(":status")
+                if (status.equals("halt")) {
+                    this.server.stop()
+                } else {
+                    response.status(401);
+                    response.body("{\"status\": \"400\", \"message\":\"Bad Request\"}")
+                }
+            })
+
+            get('/system/info', (request, response) => JSON.stringify(this.system))
+
+            get("/credentials", (request, response) => getJWTToken(request, response, this.config.salt))
+
+            get('/location', (request, response) => this.locator.listAsJSON())
+
+            get('/registry', (request, response) => this.registry.listAsJSON())
+
+            agentsService(this.dataAPIs.AgentsAPI, this.config.salt)
+            peersService(this.dataAPIs.PeersAPI, this.config.salt)
+            domainsService(this.dataAPIs.DomainsAPI, this.config.salt)
+            gatewaysService(this.dataAPIs.GatewaysAPI, this.config.salt)
+            didsService(this.dataAPIs.DIDsAPI, this.config.salt)
+        })
     }
 
+    stop() {
+        LOG.info('Stopping Restful service')
+        Spark.stop()
+    }
 }

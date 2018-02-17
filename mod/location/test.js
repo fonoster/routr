@@ -44,7 +44,7 @@ testGroup.get_route_for_aor = function () {
 
 testGroup.get_route_for_peer = function () {
     const contactURI = addressFactory.createSipURI('ast', 'asterisk')
-    const result = locator.getEgressRouteForPeer(contactURI, 'DID0001')
+    const result = locator.getEgressRouteForPeer(contactURI, 'dd50baa4')
     assertTrue(result.status == Status.OK)
 }
 

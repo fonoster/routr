@@ -29,11 +29,7 @@ export default class GatewaysAPI {
         let objs = this.rUtil.getObjs(this.resourcePath, filter)
 
         objs.obj.forEach(obj => {
-            if (!obj.metadata.ref) {
-                if (!obj.metadata.ref) {
-                    obj.metadata.ref = this.generateRef(obj.spec.regService.host)
-                }
-            }
+            if (!obj.metadata.ref) obj.metadata.ref = this.generateRef(obj.spec.regService.host)
         })
 
         return objs
@@ -44,12 +40,8 @@ export default class GatewaysAPI {
         let gateways
 
         resource.forEach(obj => {
-            if (obj.metadata.ref == ref) {
-                if (!obj.metadata.ref) {
-                    obj.metadata.ref = this.generateRef(obj.spec.regService.host)
-                }
-                gateways = obj
-            }
+            if (!obj.metadata.ref) obj.metadata.ref = this.generateRef(obj.spec.regService.host)
+            if (obj.metadata.ref == ref) gateways = obj
         })
 
         if (!isEmpty(gateways)) {
