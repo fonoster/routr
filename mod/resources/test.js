@@ -9,6 +9,7 @@ import AgentsAPI from 'resources/agents_api'
 import GatewaysAPI from 'resources/gateways_api'
 import DomainsAPI from 'resources/domains_api'
 import DIDsAPI from 'resources/dids_api'
+import UsersAPI from 'resources/users_api'
 import { Status } from 'resources/status'
 
 export let testGroup = { name: "Resources Module" }
@@ -18,6 +19,7 @@ const agentsApi = new AgentsAPI()
 const gwsAPI = new GatewaysAPI()
 const domainsAPI = new DomainsAPI()
 const didsAPI = new DIDsAPI()
+const usersAPI = new UsersAPI()
 const SipFactory = Packages.javax.sip.SipFactory
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 
@@ -79,4 +81,18 @@ testGroup.get_did_by_tel_url = function () {
     const result = didsAPI.getDIDByTelUrl(telURL)
     assertTrue(result.status == Status.OK)
     assertTrue(result.obj.kind == 'DID')
+}
+
+// This also validates the other resources
+testGroup.get_users = function () {
+    const result = usersAPI.getUsers("@.spec.credentials.username=='admin'")
+    assertTrue(result.status == Status.OK)
+    assertTrue(result.obj.length == 1)
+}
+
+// This also validates the other resources
+testGroup.get_user_by_username = function () {
+    const result = usersAPI.getUser('admin')
+    assertTrue(result.status == Status.OK)
+    assertTrue(result.obj.kind == 'User')
 }

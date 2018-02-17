@@ -1,0 +1,38 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "User set",
+    "type": "array",
+    "items": {
+        "title": "User",
+        "type": "object",
+        "properties": {
+            "apiVersion": {
+                "type": "string"
+            },
+            "kind": {
+                "type": "string"
+            },
+            "metadata": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"}
+                }
+            },
+            "spec": {
+                "type": "object",
+                "properties": {
+                    "credentials": {
+                        "type": "object",
+                        "properties": {
+                            "username": {"type": "string"},
+                            "secret": {"type": "string"}
+                        },
+                        "required": ["username", "secret"]
+                    }
+                },
+                "required": ["credentials"]
+            }
+        },
+        "required": ["apiVersion", "kind", "spec"]
+    }
+}

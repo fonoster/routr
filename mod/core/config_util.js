@@ -29,11 +29,6 @@ function writeFile(path, text) {
 export default function () {
     const config = new ResourcesUtil().getJson('config/config.yml')
 
-    config.system = {}
-    config.system.version = 'v1.0'
-    config.system.apiVersion = 'v1draft1'
-    config.system.apiPath = '/api' + '/' + config.system.apiVersion
-
     // Find or generate SALT
     if (System.getenv("SIPIO_SALT") != null) {
         config.salt = System.getenv("SIPIO_SALT")
@@ -50,10 +45,10 @@ export default function () {
         }
     }
 
-    if (Packages.java.lang.System.getenv("SIPIO_EXTERN_ADDR") != null)
+    if (System.getenv("SIPIO_EXTERN_ADDR") != null)
         config.spec.externAddr = Packages.java.lang.System.getenv("SIPIO_EXTERN_ADDR")
 
-    if (Packages.java.lang.System.getenv("SIPIO_LOCALNETS") != null)
+    if (System.getenv("SIPIO_LOCALNETS") != null)
         config.spec.localnets = Packages.java.lang.System.getenv("SIPIO_LOCALNETS").split(",")
 
     if (config.spec.bindAddr == undefined)
@@ -64,12 +59,6 @@ export default function () {
     if (config.spec.services.rest == undefined) {
         config.spec.services.rest = {}
         config.spec.services.rest.secure = {}
-        config.spec.services.rest.credentials = {}
-    }
-
-    if (config.spec.services.rest.credentials) {
-        config.spec.services.rest.credentials.username = 'admin'
-        config.spec.services.rest.credentials.secret = 'admin'
     }
 
     if (config.spec.services.rest.secure.keyStore == undefined)
@@ -102,13 +91,22 @@ export default function () {
         }
     }
 
-    if (config.metadata == undefined) config.metadata = {}
-    if (config.metadata.userAgent == undefined) config.metadata.userAgent = 'Sip I/O ' + config.system.version
-
     if (config.logging == undefined) {
         config.logging = {}
         config.logging.traceLevel = 0
     }
+
+    config.system = {}
+    config.system.version = 'v1.0'
+    config.system.apiVersion = 'v1draft1'
+    config.system.apiPath = '/api' + '/' + config.system.apiVersion
+    config.system.env = []
+    config.system.env.push({"var":'SIPIO_SALT', "value":System.getenv("SIPIO_EXTERN_ADDR")})
+    config.system.env.push({"var":'SIPIO_EXTERN_ADDR', "value":System.getenv("SIPIO_EXTERN_ADDR")})
+    config.system.env.push({"var":'SIPIO_LOCALNETS', "value":System.getenv("SIPIO_LOCALNETS")})
+
+    if (config.metadata == undefined) config.metadata = {}
+    if (config.metadata.userAgent == undefined) config.metadata.userAgent = 'Sip I/O ' + config.system.version
 
     return config
 }
