@@ -26,7 +26,7 @@
       domainUri: sip.local
       egressPolicy:
         rule: .*
-        didRef: DID0001
+        didRef: dd50baa4
       accessControlList:
         deny: [0.0.0.0/1]     # Deny all
         allow: [192.168.0.1/31]
