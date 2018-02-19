@@ -12,7 +12,7 @@ import PeersAPI from 'resources/peers_api'
 import Registrar from 'registrar/registrar'
 import Server from 'core/server'
 
-// Just to avoid the annoying old log4j messages
+// Avoids old log4j messages
 org.apache.log4j.BasicConfigurator.configure(new
     org.apache.log4j.varia.NullAppender())
 
