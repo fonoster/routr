@@ -13,68 +13,68 @@ const before = Packages.spark.Spark.before
 
 export default function (didsAPI, salt) {
 
-    before("/dids",  (request, response) => parameterAuthFilter(request, response, salt))
+    before("/dids",  (req, res) => parameterAuthFilter(req, res, salt))
 
-    before("/dids/*",  (request, response) => parameterAuthFilter(request, response, salt))
+    before("/dids/*",  (request, response) => parameterAuthFilter(req, res, salt))
 
-    post('/dids', (request, response) => {
-        const data = JSON.parse(request.body())
-        let result = didsAPI.createFromJSONObj(data)
+    post('/dids', (req, res) => {
+        const data = JSON.parse(req.body())
+        let response = didsAPI.createFromJSONObj(data)
 
         if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    get('/dids', (request, response) => {
+    get('/dids', (req, res) => {
         let filter = ''
 
-        if(!isEmpty(request.queryParams("filter"))) {
-            filter = request.queryParams("filter")
+        if(!isEmpty(req.queryParams("filter"))) {
+            filter = req.queryParams("filter")
         }
 
-        const result = didsAPI.getDIDs(filter)
+        const response = didsAPI.getDIDs(filter)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    get('/dids/:ref', (request, response) => {
-        const ref = request.params(":ref")
-        const result = didsAPI.getDID(ref)
+    get('/dids/:ref', (req, res) => {
+        const ref = req.params(":ref")
+        const response = didsAPI.getDID(ref)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    put('/dids/:ref', (request, response) => {
-        const data = JSON.parse(request.body())
-        let result = result = didsAPI.updateFromJSONObj(data)
+    put('/dids/:ref', (req, res) => {
+        const data = JSON.parse(req.body())
+        const response = didsAPI.updateFromJSON(data)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    del('/dids/:ref', (request, response) => {
-        const ref = request.params(":ref")
-        let result = result = didsAPI.deleteDID(ref)
+    del('/dids/:ref', (req, res) => {
+        const ref = req.params(":ref")
+        const response = didsAPI.delete(ref)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
 }

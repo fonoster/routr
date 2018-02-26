@@ -6,25 +6,25 @@ const halt = Packages.spark.Spark.halt
 const Base64 = Packages.org.apache.commons.codec.binary.Base64
 const StringUtils = Packages.org.apache.commons.lang3.StringUtils
 
-export default function (request, response, usersAPI) {
-    if (!validAuthHeader(request)) halt(401, "{\"status\": \"401\", \"message\":\"Unauthorized\"}")
+export default function (req, res, usersAPI) {
+    if (!validAuthHeader(req)) halt(401, "{\"status\": \"401\", \"message\":\"Unauthorized\"}")
 
-    let user = getUserFromHeader(request)
+    let user = getUserFromHeader(req)
 
     if (!authentic(usersAPI, user)) halt(401, "{\"status\": \"401\", \"message\":\"Unauthorized\"}")
 }
 
-function validAuthHeader(request) {
+function validAuthHeader(req) {
     try {
-        StringUtils.substringAfter(request.headers("Authorization"), "Basic")
+        StringUtils.substringAfter(req.headers("Authorization"), "Basic")
     } catch(e) {
         return false
     }
     return true
 }
 
-function getUserFromHeader(request) {
-    let encodedHeader = StringUtils.substringAfter(request.headers("Authorization"), "Basic")
+function getUserFromHeader(req) {
+    let encodedHeader = StringUtils.substringAfter(req.headers("Authorization"), "Basic")
 
     let decodedHeader = new java.lang.String(Base64.decodeBase64(encodedHeader))
 

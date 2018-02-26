@@ -3,7 +3,7 @@
  * @since v1
  */
 import getConfig from 'core/config_util'
-import { Status } from 'resources/status'
+import { Status } from 'data_provider/status'
 import getJWTToken from 'rest/jwt_token_generator'
 import agentsService from 'rest/agents_service.js'
 import peersService from 'rest/peers_service.js'
@@ -36,12 +36,12 @@ export default class Rest {
                 config.spec.services.rest.secure.trustStore,
                     config.spec.services.rest.secure.trustStorePassword)
         Spark.port(this.rest.port)
-        Spark.internalServerError((request, response) => {
-            response.type("application/json");
+        Spark.internalServerError((req, res) => {
+            res.type("application/json");
             return "{\"status\": \"500\", \"message\":\"Internal server error\"}";
         })
-        Spark.notFound((request, response) => {
-            response.type("application/json");
+        Spark.notFound((req, res) => {
+            res.type("application/json");
             return "{\"status\": \"404\", \"message\":\"Not found\"}";
         })
         this.dataAPIs = dataAPIs
@@ -53,37 +53,37 @@ export default class Rest {
 
     start() {
         path(this.system.apiPath, (r) => {
-            before("/credentials", (request, response) => basicAuthFilter(request, response, this.dataAPIs.UsersAPI))
+            before("/credentials", (req, res) => basicAuthFilter(req, res, this.dataAPIs.UsersAPI))
 
-            before("/system/status",  (request, response) => parameterAuthFilter(request, response, this.config.salt))
+            before("/system/status",  (req, res) => parameterAuthFilter(req, res, this.config.salt))
 
-            before("/system/info",  (request, response) => parameterAuthFilter(request, response, this.config.salt))
+            before("/system/info",  (req, res) => parameterAuthFilter(req, res, this.config.salt))
 
-            before("/location",  (request, response) => parameterAuthFilter(request, response, this.config.salt))
+            before("/location",  (req, res) => parameterAuthFilter(req, res, this.config.salt))
 
-            before("/registry",  (request, response) => parameterAuthFilter(request, response, this.config.salt))
+            before("/registry",  (req, res) => parameterAuthFilter(req, res, this.config.salt))
 
             // Its always running! Use to ping Sip IO server
-            get('/system/status', (request, response) => "{\"status\": \"Up\"}")
+            get('/system/status', (req, res) => "{\"status\": \"Up\"}")
 
-            post('/system/status/:status', (request, response) => {
+            post('/system/status/:status', (req, res) => {
                 // halt or error
-                const status = request.params(":status")
+                const status = req.params(":status")
                 if (status.equals("down")) {
                     this.server.stop()
                 } else {
-                    response.status(401);
-                    response.body("{\"status\": \"400\", \"message\":\"Bad Request\"}")
+                    res.status(401);
+                    res.body("{\"status\": \"400\", \"message\":\"Bad Request\"}")
                 }
             })
 
-            get('/system/info', (request, response) => JSON.stringify(this.system))
+            get('/system/info', (req, res) => JSON.stringify(this.system))
 
-            get("/credentials", (request, response) => getJWTToken(request, response, this.config.salt))
+            get("/credentials", (req, res) => getJWTToken(req, res, this.config.salt))
 
-            get('/location', (request, response) => this.locator.listAsJSON())
+            get('/location', (req, res) => this.locator.listAsJSON())
 
-            get('/registry', (request, response) => this.registry.listAsJSON())
+            get('/registry', (req, res) => this.registry.listAsJSON())
 
             agentsService(this.dataAPIs.AgentsAPI, this.config.salt)
             peersService(this.dataAPIs.PeersAPI, this.config.salt)

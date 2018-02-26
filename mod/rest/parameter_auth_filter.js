@@ -6,8 +6,8 @@ const Jwts = Packages.io.jsonwebtoken.Jwts
 const SignatureAlgorithm = Packages.io.jsonwebtoken.SignatureAlgorithm
 const halt = Packages.spark.Spark.halt
 
-export default function (request, response, salt) {
-    const token = request.queryParams("token")
+export default function (req, res, salt) {
+    const token = req.queryParams("token")
     try {
         const valid = Jwts.parser().setSigningKey(salt).parseClaimsJws(token)
     } catch(e) {

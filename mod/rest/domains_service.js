@@ -13,68 +13,68 @@ const before = Packages.spark.Spark.before
 
 export default function (domainsAPI, salt) {
 
-    before("/domains",  (request, response) => parameterAuthFilter(request, response, salt))
+    before("/domains", (req, res) => parameterAuthFilter(req, res, salt))
 
-    before("/domains/*",  (request, response) => parameterAuthFilter(request, response, salt))
+    before("/domains/*", (req, res) => parameterAuthFilter(req, res, salt))
 
-    post('/domains', (request, response) => {
-        const data = JSON.parse(request.body())
-        let result = domainsAPI.createFromJSONObj(data)
+    post('/domains', (req, res) => {
+        const data = JSON.parse(req.body())
+        let response = domainsAPI.createFromJSON(data)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    get('/domains', (request, response) => {
+    get('/domains', (req, res) => {
         let filter = ''
 
-        if(!isEmpty(request.queryParams("filter"))) {
-            filter = request.queryParams("filter")
+        if(!isEmpty(req.queryParams("filter"))) {
+            filter = req.queryParams("filter")
         }
 
-        const result = domainsAPI.getDomains(filter)
+        const response = domainsAPI.getDomains(filter)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    get('/domains/:domainUri', (request, response) => {
-        const domainUri = request.params(":domainUri")
-        const result = domainsAPI.getDomain(domainUri)
+    get('/domains/:domainUri', (req, res) => {
+        const domainUri = req.params(":domainUri")
+        const response = domainsAPI.getDomain(domainUri)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    put('/domains/:domainUri', (request, response) => {
-        const data = JSON.parse(request.body())
-        let result = result = domainsAPI.updateFromJSONObj(data)
+    put('/domains/:domainUri', (req, res) => {
+        const data = JSON.parse(req.body())
+        const response = domainsAPI.updateFromJSON(data)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    del('/domains/:domainUri', (request, response) => {
-        const domainUri = request.params(":domainUri")
-        let result = result = domainsAPI.deleteDomain(domainUri)
+    del('/domains/:domainUri', (req, res) => {
+        const domainUri = req.params(":domainUri")
+        const response = domainsAPI.deleteDomain(domainUri)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
 }

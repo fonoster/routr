@@ -13,68 +13,68 @@ const before = Packages.spark.Spark.before
 
 export default function (peersAPI, salt) {
 
-    before("/peers",  (request, response) => parameterAuthFilter(request, response, salt))
+    before("/peers", (req, res) => parameterAuthFilter(req, res, salt))
 
-    before("/peers/*",  (request, response) => parameterAuthFilter(request, response, salt))
+    before("/peers/*", (req, res) => parameterAuthFilter(req, res, salt))
 
-    post('/peers', (request, response) => {
-        const data = JSON.parse(request.body())
-        let result = peersAPI.createFromJSONObj(data)
+    post('/peers', (req, res) => {
+        const data = JSON.parse(req.body())
+        let response = peersAPI.createFromJSONObj(data)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    get('/peers', (request, response) => {
+    get('/peers', (req, res) => {
         let filter = ''
 
-        if(!isEmpty(request.queryParams("filter"))) {
-            filter = request.queryParams("filter")
+        if(!isEmpty(req.queryParams("filter"))) {
+            filter = req.queryParams("filter")
         }
 
-        const result = peersAPI.getPeers(filter)
+        const response = peersAPI.getPeers(filter)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    get('/peers/:username', (request, response) => {
-        const username = request.params(":username")
-        const result = peersAPI.getPeer(username)
+    get('/peers/:username', (req, res) => {
+        const username = req.params(":username")
+        const response = peersAPI.getPeer(username)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    put('/peers/:username', (request, response) => {
-        const data = JSON.parse(request.body())
-        let result = result = peersAPI.updateFromJSONObj(data)
+    put('/peers/:username', (req, res) => {
+        const data = JSON.parse(req.body())
+        const response = peersAPI.updateFromJSONObj(data)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
-    del('/peers/:username', (request, response) => {
-        const username = request.params(":username")
-        let result = result = peersAPI.deletePeer(username)
+    del('/peers/:username', (req, res) => {
+        const username = req.params(":username")
+        const response = peersAPI.deletePeer(username)
 
-        if (result.status && result.status != 200) {
-            return JSON.stringify(result)
+        if (response.status && response.status != 200) {
+            return JSON.stringify(response)
         }
 
-        return JSON.stringify(result.obj)
+        return JSON.stringify(response.result)
     })
 
     // TODO: Add endpoint for location (i.e  '/peers/:username/location')
