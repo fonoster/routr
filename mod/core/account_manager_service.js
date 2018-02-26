@@ -21,10 +21,10 @@ export default class AccountManagerService {
 
     getGateway(ct) {
         const gwRef = ct.getRequest().getHeader('X-Gateway-Ref').value
-        const result = gatewaysAPI.getGateway(gwRef)
+        const response = gatewaysAPI.getGateway(gwRef)
 
-        if (result.status == 200) {
-            const gateway = result.obj
+        if (response.status == 200) {
+            const gateway = response.result
 
             return {
                 username: gateway.spec.regService.credentials.username,

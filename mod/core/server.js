@@ -6,9 +6,9 @@ import Processor from 'core/processor/processor'
 import ContextStorage from 'core/context_storage'
 import Registry from 'registry/registry'
 import RestService from 'rest/rest'
-import ResourcesUtil from 'resources/utils'
+import DSUtil from 'data_provider/utils'
+import { Status } from 'data_provider/status'
 import getConfig from 'core/config_util.js'
-import { Status } from 'resources/status'
 
 const InetAddress = Packages.java.net.InetAddress
 const SipFactory = Packages.javax.sip.SipFactory

@@ -2,13 +2,13 @@
  * @author Pedro Sanders
  * @since v1
  *
- * Unit Test for the "Resources Module"
+ * Unit Test for core functionalities
  */
-import GatewaysAPI from 'resources/gateways_api'
-import PeersAPI from 'resources/peers_api'
-import DIDsAPI from 'resources/dids_api'
-import DomainsAPI from 'resources/domains_api'
-import AgentsAPI from 'resources/agents_api'
+import GatewaysAPI from 'data_provider/gateways_api'
+import PeersAPI from 'data_provider/peers_api'
+import DIDsAPI from 'data_provider/dids_api'
+import DomainsAPI from 'data_provider/domains_api'
+import AgentsAPI from 'data_provider/agents_api'
 import RouteInfo from 'core/processor/route_info'
 
 const sipFactory = Packages.javax.sip.SipFactory.getInstance()
@@ -19,6 +19,7 @@ const SipUtils = Packages.gov.nist.javax.sip.Utils
 const Request = Packages.javax.sip.message.Request
 const userAgent = new java.util.ArrayList()
 userAgent.add('Test I/O v1.0')
+
 const dataAPIs = {
     AgentsAPI: new AgentsAPI(),
     DomainsAPI: new DomainsAPI(),

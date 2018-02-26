@@ -5,7 +5,7 @@ services:
       context: .
     image: fonoster/sipio:latest
     environment:
-      - EXTERN_ADDR=${EXTERN_ADDR}
+      - SIPIO_EXTERN_ADDR=${SIPIO_EXTERN_ADDR}
     ports:
       - '5060:5060'
       - '5060:5060/udp'
@@ -13,3 +13,12 @@ services:
       - '5062:5062'
       - '5063:5063'
       - '4567:4567'
+  redis:
+    image: redis:4.0.5-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: redis
+    ##volumes:
+    ##  - redis-data:/data
+    ports:
+      - '6390:6390'
+      - '6379:6379'

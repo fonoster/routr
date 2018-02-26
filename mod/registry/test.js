@@ -5,7 +5,7 @@
  * Unit Test for the "Registry Module"
  */
 import Registry from 'registry/registry'
-import GatewaysAPI from 'resources/gateways_api'
+import GatewaysAPI from 'data_provider/gateways_api'
 const InetAddress = Packages.java.net.InetAddress
 
 const dataAPIs = {

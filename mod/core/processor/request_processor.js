@@ -112,9 +112,9 @@ export default class RequestProcessor {
 
             // We only apply ACL rules to Domain Routing.
             if (routeInfo.getRoutingType().equals(RoutingType.INTRA_DOMAIN_ROUTING)) {
-                const result = this.domainsAPI.getDomain(addressOfRecord.getHost())
-                if (result.status == Status.OK) {
-                    const domainObj = result.obj
+                const response = this.domainsAPI.getDomain(addressOfRecord.getHost())
+                if (response.status == Status.OK) {
+                    const domainObj = response.result
                     if(!new AclUtil(this.generalAcl).isIpAllowed(domainObj, remoteIp)) {
                         serverTransaction.sendResponse(this.messageFactory.createResponse(Response.UNAUTHORIZED, requestIn))
                         LOG.debug(requestIn)
@@ -139,40 +139,40 @@ export default class RequestProcessor {
                     telUrl = this.addressFactory.createTelURL(fromURI.getUser())
                 }
 
-                let result = this.didsAPI.getDIDByTelUrl(telUrl)
+                let response = this.didsAPI.getDIDByTelUrl(telUrl)
 
-                if (result.status == Status.NOT_FOUND) {
+                if (response.status == Status.NOT_FOUND) {
                     serverTransaction.sendResponse(this.messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
                     LOG.debug(requestIn)
                     return
                 }
 
-                const didRef = result.obj.metadata.ref
-                result = this.locator.getEgressRouteForPeer(addressOfRecord, didRef)
+                const didRef = response.result.metadata.ref
+                response = this.locator.getEgressRouteForPeer(addressOfRecord, didRef)
 
-                if (result.status == Status.NOT_FOUND) {
+                if (response.status == Status.NOT_FOUND) {
                     serverTransaction.sendResponse(this.messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
                     LOG.debug(requestIn)
                     return
                 }
 
-                this.processRoute(requestIn, requestOut, result.obj, serverTransaction, routeInfo)
+                this.processRoute(requestIn, requestOut, response.result, serverTransaction, routeInfo)
 
                 LOG.debug(requestOut)
                 return
             }
 
             // 3.1 Intra-Domain Routing(IDR), Domain Ingress Routing (DIR), & Domain Egress Routing (DER)
-            const result = this.locator.findEndpoint(addressOfRecord)
+            response = this.locator.findEndpoint(addressOfRecord)
 
-            if (result.status == Status.NOT_FOUND) {
+            if (response.status == Status.NOT_FOUND) {
                 serverTransaction.sendResponse(this.messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
                 LOG.debug(requestIn)
                 return
             }
 
             // 4. Send response
-            const location = result.obj
+            const location = response.result
 
             if (location instanceof HashMap) {
                 let caIterator
@@ -353,12 +353,12 @@ export default class RequestProcessor {
         let user
 
         if (result.status == Status.OK) {
-            user = result.obj
+            user = response.result
         } else {
             // This is also a security check. The user in the authentication must exist for the 'fromURI.getHost()' domain
             result = this.agentsAPI.getAgent(fromURI.getHost(), authHeader.getUsername())
             if (result.status == Status.OK ) {
-                user = result.obj
+                user = response.result
             }
         }
 

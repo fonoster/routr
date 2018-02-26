@@ -5,13 +5,14 @@
   "scripts": {
     "transpile": "./node_modules/.bin/babel --out-dir node_modules mod",
     "bundle": "./node_modules/.bin/webpack --config webpack.config.js",
-    "test": "./etc/tests/tester 'utils/test' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'resources/test' 'rest/test' 'ctl/test'",
+    "test": "./etc/tests/tester 'utils/test' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'data_provider/test' 'rest/test' 'ext/redis_data_provider/test'",
     "pack": "./pack.sh",
     "prebundle": "gradle shadowJar && npm run transpile",
     "pretest": "npm run bundle",
     "prepack": "npm test"
   },
   "dependencies": {
+    "contracts-es6": "^3.0.0",
     "jvm-npm": "^0.1.1",
     "moment": "^2.18.1"
   },
@@ -24,5 +25,5 @@
     "type": "git",
     "url": "git://github.com/fonoster/sipio.git"
   },
-  "license" : "MIT"
+  "license": "MIT"
 }

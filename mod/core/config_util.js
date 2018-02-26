@@ -2,32 +2,17 @@
  * @author Pedro Sanders
  * @since v1
  */
-import ResourcesUtil from 'resources/utils'
+import DSUtil from 'data_provider/utils'
+import FilesUtil from 'utils/files_util'
 const InetAddress = Packages.java.net.InetAddress
-const BufferedWriter = Packages.java.io.BufferedWriter
 const File = Packages.java.io.File
-const Files = Packages.java.nio.file.Files
-const FileWriter = Packages.java.io.FileWriter
-const Paths = Packages.java.nio.file.Paths
 const System = Packages.java.lang.System
 const UUID = Packages.java.util.UUID
 
-function readFile (path) {
-    const lines = Files.readAllLines(Paths.get(path), Packages.java.nio.charset.StandardCharsets.UTF_8)
-    const data = []
-    lines.forEach(line => { data.push(line) })
-    return data.join('\n')
-}
-
-function writeFile(path, text) {
-  const file = new File (path)
-  const out = new BufferedWriter(new FileWriter(file))
-  out.write(text)
-  out.close()
-}
-
 export default function () {
-    const config = new ResourcesUtil().getJson('config/config.yml')
+    // TODO: Create ENV "SIPIO_CONFIG_PATH" to allow for dynamic change of this parameter
+    // FIXME: This should be a try and catch
+    const config = DSUtil.convertToJson(FilesUtil.readFile('config/config.yml'))
 
     // Find or generate SALT
     if (System.getenv("SIPIO_SALT") != null) {
@@ -37,7 +22,7 @@ export default function () {
         const f = new File(pathToSalt)
 
         if(f.exists() && !f.isDirectory()) {
-            config.salt = readFile(pathToSalt)
+            config.salt = FilesUtil.readFile(pathToSalt)
         } else {
             const genSalt = UUID.randomUUID().toString().replaceAll("-", "")
             writeFile(pathToSalt, genSalt)
@@ -94,6 +79,13 @@ export default function () {
     if (config.logging == undefined) {
         config.logging = {}
         config.logging.traceLevel = 0
+    }
+
+    if (!config.spec.dataSource) {
+        config.spec.dataSource = {}
+        config.spec.dataSource.provider = 'default'
+        config.spec.dataSource.parameters = {}
+        config.spec.dataSource.parameters.path = 'config'
     }
 
     config.system = {}

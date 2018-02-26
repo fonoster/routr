@@ -5,9 +5,9 @@
  * Unit Test for the "Location Service Module"
  */
 import Locator from 'location/locator.js'
-import DIDsAPI from 'resources/dids_api'
-import DomainsAPI from 'resources/domains_api'
-import GatewaysAPI from 'resources/gateways_api'
+import DIDsAPI from 'data_provider/dids_api'
+import DomainsAPI from 'data_provider/domains_api'
+import GatewaysAPI from 'data_provider/gateways_api'
 import { Status } from 'location/status'
 
 const dataAPIs = {
@@ -38,14 +38,14 @@ testGroup.aor_as_string = function () {
 
 testGroup.get_route_for_aor = function () {
     const aor = addressFactory.createSipURI('1001', 'sip.local')
-    const result = locator.getEgressRouteForAOR(aor)
-    assertTrue(result.status == Status.OK)
+    const response = locator.getEgressRouteForAOR(aor)
+    assertTrue(response.status == Status.OK)
 }
 
 testGroup.get_route_for_peer = function () {
     const contactURI = addressFactory.createSipURI('ast', 'asterisk')
-    const result = locator.getEgressRouteForPeer(contactURI, 'dd50baa4')
-    assertTrue(result.status == Status.OK)
+    const response = locator.getEgressRouteForPeer(contactURI, 'dd50baa4')
+    assertTrue(response.status == Status.OK)
 }
 
 testGroup.add_find_del_aor = function() {
@@ -66,13 +66,13 @@ testGroup.add_find_del_aor = function() {
     // Add
     locator.addEndpoint(aor, route)
     // Check
-    let result = locator.findEndpoint(aor)
-    assertEquals(Status.OK, result.status)
+    let response = locator.findEndpoint(aor)
+    assertEquals(Status.OK, response.status)
     // Remove
     locator.removeEndpoint(aor)
     // Check
-    result = locator.findEndpoint(aor)
-    assertEquals(Status.NOT_FOUND, result.status)
+    response = locator.findEndpoint(aor)
+    assertEquals(Status.NOT_FOUND, response.status)
 }
 
 testGroup.add_multi_aor = function() {
@@ -123,22 +123,22 @@ testGroup.add_multi_aor = function() {
     locator.addEndpoint(aor, route3)
 
     // Check
-    let result = locator.findEndpoint(aor)
-    assertEquals(3, result.obj.size())
+    let response = locator.findEndpoint(aor)
+    assertEquals(3, response.result.size())
 
     // Remove 1
     locator.removeEndpoint(aor, contactURI1)
 
     // Check
-    result = locator.findEndpoint(aor)
-    assertEquals(2, result.obj.size())
+    response = locator.findEndpoint(aor)
+    assertEquals(2, response.result.size())
 
     // Remove all bindings
     locator.removeEndpoint(aor)
 
     // Check
-    result = locator.findEndpoint(aor)
-    assertEquals(Status.NOT_FOUND, result.status)
+    response = locator.findEndpoint(aor)
+    assertEquals(Status.NOT_FOUND, response.status)
 }
 
 testGroup.get_peer_route_by_host = function() {
@@ -160,10 +160,10 @@ testGroup.get_peer_route_by_host = function() {
     locator.addEndpoint(aor, route)
 
     // Check individual function
-    let result = locator.getPeerRouteByHost(aor)
-    assertEquals(Status.OK, result.status)
+    let response = locator.getPeerRouteByHost(aor)
+    assertEquals(Status.OK, response.status)
 
     // ... and main function
-    result = locator.findEndpoint(aor)
-    assertEquals(Status.OK, result.status)
+    response = locator.findEndpoint(aor)
+    assertEquals(Status.OK, response.status)
 }

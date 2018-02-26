@@ -3,7 +3,7 @@
  * @since v1
  */
 import getConfig from 'core/config_util'
-import { Status } from 'resources/status'
+import { Status } from 'data_provider/status'
 import moment from 'moment'
 
 const SipFactory = Packages.javax.sip.SipFactory
@@ -171,10 +171,10 @@ export default class Registry {
 
         let registerTask = new java.util.TimerTask({
             run: function() {
-                const result = gatewaysAPI.getGateways()
-                if (result.status != Status.OK) return
+                const response = gatewaysAPI.getGateways()
+                if (response.status != Status.OK) return
 
-                result.obj.forEach (function(gateway) {
+                response.result.forEach (function(gateway) {
                     let regService = gateway.spec.regService
 
                     if (isExpired(regService.host)) {

@@ -7,7 +7,7 @@
  */
 import isEmpty from 'utils/obj_util'
 import { Status } from 'location/status'
-import { Status as RStatus } from 'resources/status'
+import { Status as RStatus } from 'data_provider/status'
 
 const HashMap = Packages.java.util.HashMap
 const LogManager = Packages.org.apache.logging.log4j.LogManager
@@ -50,12 +50,12 @@ export default class Locator {
     }
 
     addEndpoint(addressOfRecord, route) {
-        const result = this.findEndpoint(addressOfRecord)
+        const response = this.findEndpoint(addressOfRecord)
         let routes
 
         // ThruGw is not available in db. We obtain that from api
-        if (result.status == Status.OK && !result.obj.thruGw) {
-            routes = result.obj
+        if (response.status == Status.OK && !response.result.thruGw) {
+            routes = response.result
         } else {
             routes = new HashMap()
         }
@@ -69,19 +69,19 @@ export default class Locator {
     }
 
     findEndpoint(addressOfRecord) {
-        let result
+        let response
 
         if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
-            result = this.didsAPI.getDIDByTelUrl(addressOfRecord)
-            if (result.status == Status.OK) {
-                const did = result.obj
+            response = this.didsAPI.getDIDByTelUrl(addressOfRecord)
+            if (response.status == Status.OK) {
+                const did = response.result
                 const route = this.db.get(this.aorAsString(did.spec.location.aorLink))
 
                 if (route != null) {
                     return {
                         status: Status.OK,
                         message: Status.message[Status.OK].value,
-                        obj: route
+                        result: route
                     }
                 }
             }
@@ -94,35 +94,35 @@ export default class Locator {
                 return {
                     status: Status.OK,
                     message: Status.message[Status.OK].value,
-                    obj: routes
+                    result: routes
                 }
             }
 
             // Check peer's route by host
-            result = this.getPeerRouteByHost(addressOfRecord)
+            response = this.getPeerRouteByHost(addressOfRecord)
 
-            if (result.status == Status.OK) {
+            if (response.status == Status.OK) {
                 return {
                     status: Status.OK,
                     message: Status.message[Status.OK].value,
-                    obj: result.obj
+                    result: response.result
                 }
             }
 
             // Then search for a DID
             try {
                 const telUrl = this.addressFactory.createTelURL(addressOfRecord.getUser())
-                result = this.didsAPI.getDIDByTelUrl(telUrl)
+                response = this.didsAPI.getDIDByTelUrl(telUrl)
 
-                if (result.status == Status.OK) {
-                    const did = result.obj
+                if (response.status == Status.OK) {
+                    const did = response.result
                     const route = this.db.get(this.aorAsString(did.spec.location.aorLink))
 
                     if (route != null) {
                         return {
                             status: Status.OK,
                             message: Status.message[Status.OK].value,
-                            obj: route
+                            result: route
                         }
                     }
                 }
@@ -131,13 +131,13 @@ export default class Locator {
             }
 
             // Endpoint can only be reach thru a gateway
-            result = this.getEgressRouteForAOR(addressOfRecord)
+            response = this.getEgressRouteForAOR(addressOfRecord)
 
-            if (result.status == Status.OK) {
+            if (response.status == Status.OK) {
                 return {
                     status: Status.OK,
                     message: Status.message[Status.OK].value,
-                    obj: result.obj
+                    result: response.result
                 }
             }
         }
@@ -208,7 +208,7 @@ export default class Locator {
                     return {
                         status: Status.OK,
                         message: Status.message[Status.OK].value,
-                        obj: rObj
+                        result: rObj
                     }
                 }
             }
@@ -228,24 +228,23 @@ export default class Locator {
         const gatewaysAPI = this.gatewaysAPI
         const addressFactory = this.addressFactory
 
-        let result = domainsAPI.getDomains()
-
+        let response = domainsAPI.getDomains()
         let route
 
-        if (result.status == RStatus.OK) {
-            const domains = result.obj
+        if (response.status == RStatus.OK) {
+            const domains = response.result
 
             domains.forEach(domain => {
                 if (!isEmpty(domain.spec.context.egressPolicy)) {
                     // Get DID and Gateway info
-                    result = didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
+                    response = didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
 
-                    if (result.status == RStatus.OK) {
-                        const did = result.obj
-                        result = gatewaysAPI.getGateway(did.metadata.gwRef)
+                    if (response.status == RStatus.OK) {
+                        const did = response.result
+                        response = gatewaysAPI.getGateway(did.metadata.gwRef)
 
-                        if (result.status == RStatus.OK) {
-                            const gw = result.obj
+                        if (response.status == RStatus.OK) {
+                            const gw = response.result
                             const gwHost = gw.spec.regService.host
                             const gwUsername = gw.spec.regService.credentials.username
                             const gwRef = gw.metadata.ref
@@ -278,7 +277,7 @@ export default class Locator {
             return {
                 status: RStatus.OK,
                 message: RStatus.message[RStatus.OK].value,
-                obj: route
+                result: route
             }
         }
 
@@ -290,15 +289,15 @@ export default class Locator {
 
     getEgressRouteForPeer(addressOfRecord, didRef) {
         const addressFactory = this.addressFactory
-        let result = this.didsAPI.getDID(didRef)
+        let response = this.didsAPI.getDID(didRef)
         let route
 
-        if (result.status == Status.OK) {
-            const did = result.obj
-            result = this.gatewaysAPI.getGateway(did.metadata.gwRef)
+        if (response.status == Status.OK) {
+            const did = response.result
+            response = this.gatewaysAPI.getGateway(did.metadata.gwRef)
 
-            if (result.status == Status.OK) {
-                const gw = result.obj
+            if (response.status == Status.OK) {
+                const gw = response.result
                 const gwHost = gw.spec.regService.host
                 const gwUsername = gw.spec.regService.credentials.username
                 const gwRef = gw.metadata.ref
@@ -322,7 +321,7 @@ export default class Locator {
             return {
                 status: RStatus.OK,
                 message: RStatus.message[RStatus.OK].value,
-                obj: route
+                result: route
             }
         }
 

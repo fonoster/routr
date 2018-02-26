@@ -3,7 +3,7 @@
  * @since v1
  */
 import AuthHelper from 'utils/auth_helper'
-import { Status } from 'resources/status'
+import { Status } from 'data_provider/status'
 import isEmpty from 'utils/obj_util'
 
 const ViaHeader = Packages.javax.sip.header.ViaHeader
@@ -45,18 +45,19 @@ export default class Registrar {
 
         // Get response from header
         const response = authHeader.getResponse()
+
         // Get user from db or file
-        let result = this.peersAPI.getPeer(authHeader.getUsername())
+        let res = this.peersAPI.getPeer(authHeader.getUsername())
         let user
 
-        if (result.status == Status.OK ) {
-            user = result.obj
+        if (res.status == Status.OK ) {
+            user = res.result
         } else {
             // Then lets check agents
-            result = this.agentsAPI.getAgent(host, authHeader.getUsername())
+            res = this.agentsAPI.getAgent(host, authHeader.getUsername())
 
-            if (result.status == Status.OK ) {
-                user = result.obj
+            if (res.status == Status.OK ) {
+                user = res.result
             }
         }
 
