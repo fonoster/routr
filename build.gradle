@@ -23,8 +23,10 @@ dependencies {
     compile "com.mashape.unirest:unirest-java:1.4.9"
     compile "net.sourceforge.argparse4j:argparse4j:0.7.0"
     compile "com.networknt:json-schema-validator:0.1.7"
-    compile "com.jayway.jsonpath:json-path:2.2.0"
+    compile "com.jayway.jsonpath:json-path:2.4.0"
     compile "com.github.steveash.itxttbl:inamik-text-tables:0.1"
+    compile 'redis.clients:jedis:2.9.0'
+    compile 'org.mongodb:bson:3.6.3'
     compile "junit:junit:4.+"
 }
 
