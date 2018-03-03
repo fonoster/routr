@@ -43,7 +43,7 @@ testGroup.basic_operations = function () {
     assertTrue (initSize == endSize)
 }
 
-testGroup.get_objs = function () {
+testGroup.get_collection = function () {
     let agent = {
         apiVersion: 'v1.0',
         kind: "Agent",
@@ -115,6 +115,11 @@ testGroup.get_agents = function () {
     const ref1 = ds.insert(john).result
     const ref2 = ds.insert(jane).result
 
+    const l = ds.withCollection('agents')
+        .find("'sip.local' in @.spec.domains").result
+
+    assertTrue(l.length == 2)
+
     // NOTE: The space will not work in the console because is considered another parameter
     const response = agentsApi.getAgents("@.spec.credentials.username=='1001' || @.spec.credentials.username=='1002'")
 
@@ -127,7 +132,7 @@ testGroup.get_agents = function () {
 }
 
 // This also validates the other resources
-testGroup.get_agent_by_ref = function () {
+testGroup.get_agent = function () {
     let agent = {
         apiVersion: 'v1.0',
         kind: "Agent",
@@ -145,7 +150,7 @@ testGroup.get_agent_by_ref = function () {
     }
 
     const ref = ds.insert(agent).result
-    const response = agentsApi.getAgentByRef('ag3f77f6')
+    const response = agentsApi.getAgent('ag3f77f6')
     assertTrue(response.status == Status.OK)
     assertTrue(response.result.kind == 'Agent')
     // Cleanup

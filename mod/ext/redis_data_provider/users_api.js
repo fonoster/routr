@@ -7,7 +7,7 @@ import DSUtil from 'data_provider/utils'
 import { Status } from 'data_provider/status'
 import isEmpty from 'utils/obj_util'
 
-export default class GatewaysAPI {
+export default class UsersAPI {
 
     constructor() {
         this.ds = new DataSource()
@@ -15,13 +15,12 @@ export default class GatewaysAPI {
 
     createFromJSON(jsonObj) {
         try {
-            if(this.gatewayExist(jsonObj.spec.regService.host)) {
+            if(this.userExist(jsonObj.spec.credentials.username)) {
                 return {
                     status: Status.CONFLICT,
                     message: Status.message[Status.CONFLICT].value,
                 }
             }
-
             return this.ds.insert(jsonObj)
         } catch(e) {
             return {
@@ -34,13 +33,12 @@ export default class GatewaysAPI {
 
     updateFromJSON(jsonObj) {
         try {
-            if(!this.gatewayExist(jsonObj.spec.regService.host)) {
+            if(this.userExist(jsonObj.spec.credentials.username)) {
                 return {
                     status: Status.CONFLICT,
                     message: Status.message[Status.CONFLICT].value,
                 }
             }
-
             return this.ds.update(jsonObj)
         } catch(e) {
             return {
@@ -51,25 +49,25 @@ export default class GatewaysAPI {
         }
     }
 
-    getGateways(filter)  {
-        return this.ds.withCollection('gateways').find(filter)
+    getUsers(filter) {
+        return this.ds.withCollection('users').filter(filter)
     }
 
-    getGateway(ref) {
-        const response = this.getGateways()
-        let gateways
+    getUser(username) {
+        const response = this.getUsers()
+        let user
 
         response.result.forEach(obj => {
-            if (obj.metadata.ref == ref) {
-                gateways = obj
+            if (obj.spec.credentials.username == username) {
+                user = obj
             }
         })
 
-        if (!isEmpty(gateways)) {
+        if (!isEmpty(user)) {
             return {
                 status: Status.OK,
                 message: Status.message[Status.OK].value,
-                result: gateways
+                result: user
             }
         }
 
@@ -79,58 +77,15 @@ export default class GatewaysAPI {
         }
     }
 
-    getGatewayByHost(host) {
-        const response = this.getGateways()
-        let gateways
-
-        response.result.forEach(obj => {
-            if (obj.spec.regService.host == host) {
-                gateways = obj
-            }
-        })
-
-        if (!isEmpty(gateways)) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: gateways
-            }
-        }
-
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
-    }
-
-    gatewayExist(host) {
-        const response = this.getGatewayByHost(host)
+    userExist(username) {
+        const response = this.getUser(username)
         if (response.status == Status.OK) return true
         return false
     }
 
-    deleteGateway(ref) {
+    deleteUser(ref) {
         try {
-            let response = this.getGateway(ref)
-
-            if (response.status != Status.OK) {
-                return response
-            }
-
-            const gateway = response.result
-
-            response = this.ds.withCollection('dids').find("@.metadata.gwRef == '" + gateway.metadata.ref + "'")
-            const dids = response.result
-
-            if (dids.length == 0) {
-                return this.ds.withCollection('gateways').remove(ref)
-            } else {
-                return {
-                    status: Status.BAD_REQUEST,
-                    message: Status.message[Status.BAD_REQUEST].value,
-                    result: 'Must first remove all dids in this gateway'
-                }
-            }
+            return this.ds.withCollection('users').remove(ref)
         } catch(e) {
             return {
                 status: Status.BAD_REQUEST,

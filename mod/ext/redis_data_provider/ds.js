@@ -27,7 +27,8 @@ export default class DataSource {
         if (!DSUtils.isValidEntity(obj)) {
             return {
                 status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value
+                message: Status.message[Status.BAD_REQUEST].value,
+                result: 'Not a valid entity'
             }
         }
 
@@ -37,8 +38,8 @@ export default class DataSource {
         this.jedis.sadd(kind.toLowerCase() + 's', obj.metadata.ref)
 
         return {
-            status: Status.BAD_REQUEST,
-            message: Status.message[Status.BAD_REQUEST].value,
+            status: Status.OK,
+            message: Status.message[Status.OK].value,
             result: obj.metadata.ref
         }
     }
@@ -49,7 +50,7 @@ export default class DataSource {
         if (result != null) {
             return {
                 status: Status.OK,
-                message: Status.message[Status.NOT_FOUND].value,
+                message: Status.message[Status.OK].value,
                 result: result
             }
         }
@@ -85,7 +86,8 @@ export default class DataSource {
         } catch(e) {
             return {
                 status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value
+                message: Status.message[Status.BAD_REQUEST].value,
+                result: e.getMessage()
             }
         }
 
@@ -97,20 +99,24 @@ export default class DataSource {
     }
 
     update(obj) {
-        if (!DSUtils.isValidEntity(obj)) {
+        if (!obj.metadata.ref) {
             return {
                 status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value
+                message: Status.message[Status.BAD_REQUEST].value,
+                result: "Field 'metadata.ref' not found"
             }
         }
 
-        const response = this.get(obj.metadata.ref)
-
-        if (response.status == Status.NOT_FOUND) return response
+        if (!DSUtils.isValidEntity(obj)) {
+            return {
+                status: Status.BAD_REQUEST,
+                message: Status.message[Status.BAD_REQUEST].value,
+                result: 'Not a valid entity'
+            }
+        }
 
         try {
-            const kind = DSUtils.getKind(obj)
-            this.jedis.set(obj.metadata.ref, obj)
+            this.jedis.set(obj.metadata.ref, JSON.stringify(obj))
         } catch(e) {
             return {
                 status: Status.INTERNAL_SERVER_ERROR,
@@ -127,9 +133,25 @@ export default class DataSource {
 
     remove(ref) {
         try {
-            this.jedis.del(ref)
-            this.jedis.srem(this.collection, ref)
+            let cnt = this.jedis.del(ref)
+
+            if (cnt == 0) {
+                return {
+                    status: Status.NOT_FOUND,
+                    message: Status.message[Status.NOT_FOUND].value,
+                }
+            }
+
+            cnt = this.jedis.srem(this.collection, ref)
+
+            if (cnt == 0) {
+                return {
+                    status: Status.NOT_FOUND,
+                    message: Status.message[Status.NOT_FOUND].value,
+                }
+            }
         } catch(e) {
+            e.printStackTrace()
             return {
                 status: Status.INTERNAL_SERVER_ERROR,
                 message: Status.message[Status.INTERNAL_SERVER_ERROR].value
