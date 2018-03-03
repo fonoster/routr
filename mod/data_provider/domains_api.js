@@ -52,7 +52,35 @@ export default class DomainsAPI {
         return response
     }
 
-    getDomain(domainUri) {
+    getDomain(ref) {
+        const resource = DSUtil.convertToJson(FilesUtil.readFile(this.resourcePath))
+        let domain
+
+        resource.forEach(obj => {
+            if (!obj.metadata.ref) {
+                obj.metadata.ref = this.generateRef(obj.spec.context.domainUri)
+            }
+
+            if (obj.metadata.ref == ref) {
+                domain = obj
+            }
+        })
+
+        if (!isEmpty(domain)) {
+            return {
+                status: Status.OK,
+                message: Status.message[Status.OK].value,
+                result: domain
+            }
+        }
+
+        return {
+            status: Status.NOT_FOUND,
+            message: Status.message[Status.NOT_FOUND].value
+        }
+    }
+
+    getDomainByUri(domainUri) {
         const resource = DSUtil.convertToJson(FilesUtil.readFile(this.resourcePath))
         let domain
 
@@ -80,7 +108,7 @@ export default class DomainsAPI {
     }
 
     domainExist(domainUri){
-        const response = this.getDomain(domainUri)
+        const response = this.getDomainByUri(domainUri)
         if (response.status == Status.OK) return true
         return false
     }

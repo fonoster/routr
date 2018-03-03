@@ -110,13 +110,7 @@ export default class DIDsAPI {
         }
     }
 
-    didExist(ref) {
-        const response = this.getDID(ref)
-        if (response.status == Status.OK) return true
-        return false
-    }
-
-    didExistByTelUrl(telUrl) {
+    didExist(telUrl) {
         const response = this.getDIDByTelUrl(telUrl)
         if (response.status == Status.OK) return true
         return false

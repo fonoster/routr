@@ -75,7 +75,7 @@ export default class UsersAPI {
 
     getUserByRef(ref) {
         const resource = DSUtil.convertToJson(FilesUtil.readFile(this.resourcePath))
-        let agent
+        let user
 
         resource.forEach(obj => {
             if (!obj.metadata.ref) {
@@ -83,15 +83,15 @@ export default class UsersAPI {
             }
 
             if (ref == obj.metadata.ref) {
-                agent = obj
+                user = obj
             }
         })
 
-        if (!isEmpty(agent)) {
+        if (!isEmpty(user)) {
             return {
                 status: Status.OK,
                 message: Status.message[Status.OK].value,
-                result: agent
+                result: user
             }
         }
 

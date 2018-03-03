@@ -49,8 +49,13 @@ export default class GatewaysAPI {
         let gateways
 
         resource.forEach(obj => {
-            if (!obj.metadata.ref) obj.metadata.ref = this.generateRef(obj.spec.regService.host)
-            if (obj.metadata.ref == ref) gateways = obj
+            if (!obj.metadata.ref) {
+                obj.metadata.ref = this.generateRef(obj.spec.regService.host)
+            }
+
+            if (obj.metadata.ref == ref) {
+                gateways = obj
+            }
         })
 
         if (!isEmpty(gateways)) {
@@ -67,8 +72,36 @@ export default class GatewaysAPI {
         }
     }
 
-    gatewayExist(ref) {
-        const response = this.getGateway(ref)
+    getGatewayByHost(host) {
+        const resource = DSUtil.convertToJson(FilesUtil.readFile(this.resourcePath))
+        let gateways
+
+        resource.forEach(obj => {
+            if (!obj.metadata.ref) {
+                obj.metadata.ref = this.generateRef(obj.spec.regService.host)
+            }
+
+            if (obj.spec.regService.host == host) {
+                gateways = obj
+            }
+        })
+
+        if (!isEmpty(gateways)) {
+            return {
+                status: Status.OK,
+                message: Status.message[Status.OK].value,
+                result: gateways
+            }
+        }
+
+        return {
+            status: Status.NOT_FOUND,
+            message: Status.message[Status.NOT_FOUND].value
+        }
+    }
+
+    gatewayExist(host) {
+        const response = this.getGatewayByHost(host)
         if (response.status == Status.OK) return true
         return false
     }

@@ -8,8 +8,6 @@ import FilesUtil from 'utils/files_util'
 import { Status } from 'data_provider/status'
 import isEmpty from 'utils/obj_util'
 
-const FromHeader = Packages.javax.sip.header.FromHeader
-
 export default class PeersAPI {
 
     constructor(resourcePath = 'config/peers.yml') {
@@ -48,7 +46,35 @@ export default class PeersAPI {
         return objs
     }
 
-    getPeer(username) {
+    getPeer(ref) {
+        const resource = DSUtil.convertToJson(FilesUtil.readFile(this.resourcePath))
+        let peer
+
+        resource.forEach(obj => {
+            if (!obj.metadata.ref) {
+                obj.metadata.ref = this.generateRef(obj.spec.credentials.username)
+            }
+
+            if (obj.metadata.ref == ref) {
+                peer = obj
+            }
+        })
+
+        if (!isEmpty(peer)) {
+            return {
+                status: Status.OK,
+                message: Status.message[Status.OK].value,
+                result: peer
+            }
+        }
+
+        return {
+            status: Status.NOT_FOUND,
+            message: Status.message[Status.NOT_FOUND].value
+        }
+    }
+
+    getPeerByUsername(username) {
         const resource = DSUtil.convertToJson(FilesUtil.readFile(this.resourcePath))
         let peer
 
@@ -76,7 +102,7 @@ export default class PeersAPI {
     }
 
     peerExist(username) {
-        const result = this.getPeer(username)
+        const result = this.getPeerByUsername(username)
         if (result.status == Status.OK) return true
         return false
     }
