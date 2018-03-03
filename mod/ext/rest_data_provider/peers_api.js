@@ -39,7 +39,7 @@ export default class PeersAPI {
         return objs
     }
 
-    getPeer(username) {
+    getPeerByUsername(username) {
         const resource = DSUtil.getJson(this.resourcePath)
         let peer
 
@@ -67,7 +67,7 @@ export default class PeersAPI {
     }
 
     peerExist(username) {
-        const result = this.getPeer(username)
+        const result = this.getPeerByUsername(username)
         if (result.status == Status.OK) return true
         return false
     }

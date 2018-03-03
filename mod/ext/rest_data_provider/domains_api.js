@@ -14,11 +14,56 @@ export default class DomainsAPI {
         this.dsUtil = new DSUtil()
     }
 
+    createFromJSON() {
+        return {
+            status: Status.NOT_SUPPORTED,
+            message: Status.message[Status.NOT_SUPPORTED].value
+        }
+    }
+
+    updateFromJSON() {
+        return {
+            status: Status.NOT_SUPPORTED,
+            message: Status.message[Status.NOT_SUPPORTED].value
+        }
+    }
+
     getDomains(filter) {
         return this.dsUtil.getObjs('domains', filter)
     }
 
-    getDomain(domainUri) {
+    getDomain(ref) {
+        try {
+            const result = this.dsUtil.getWithAuth('/domains/' + ref)
+
+            if (result.status && result.status != 200) {
+                return {
+                    status: result.status,
+                    message: result.message
+                }
+            }
+
+            if (!isEmpty(result)) {
+                return {
+                    status: Status.OK,
+                    message: Status.message[Status.OK].value,
+                    obj: result
+                }
+            }
+        } catch(e) {
+            return {
+                status: Status.BAD_REQUEST,
+                message: e.getMessage()
+            }
+        }
+
+        return {
+            status: Status.NOT_FOUND,
+            message: Status.message[Status.NOT_FOUND].value
+        }
+    }
+
+    getDomainByUri(domainUri) {
         try {
             const result = this.dsUtil.getWithAuth('/domains/' + domainUri)
 
@@ -50,43 +95,15 @@ export default class DomainsAPI {
     }
 
     domainExist(domainUri) {
-        const result = this.getDomain(domainUri)
+        const result = this.getDomainByUri(domainUri)
         if (result.status == Status.OK) return true
         return false
-    }
-
-    createDomain() {
-        return {
-            status: Status.NOT_SUPPORTED,
-            message: Status.message[Status.NOT_SUPPORTED].value
-        }
-    }
-
-    updateDomain() {
-        return {
-            status: Status.NOT_SUPPORTED,
-            message: Status.message[Status.NOT_SUPPORTED].value,
-        }
     }
 
     deleteDomains() {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,
-        }
-    }
-
-    createFromJSONObj() {
-        return {
-            status: Status.NOT_SUPPORTED,
-            message: Status.message[Status.NOT_SUPPORTED].value
-        }
-    }
-
-    updateFromJSONObj() {
-        return {
-            status: Status.NOT_SUPPORTED,
-            message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
 }
