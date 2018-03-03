@@ -43,7 +43,7 @@ testGroup.basic_operations = function () {
     assertTrue (initSize == endSize)
 }
 
-testGroup.get_collection = function () {
+testGroup.get_collections = function () {
     let agent = {
         apiVersion: 'v1.0',
         kind: "Agent",
@@ -76,7 +76,6 @@ testGroup.get_collection = function () {
 
     ds.withCollection('agents').remove(ref)
     const endSize = ds.withCollection('agents').find().result.length
-
     assertTrue:(initSize == endSize)
 }
 

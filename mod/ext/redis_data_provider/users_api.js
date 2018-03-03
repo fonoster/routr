@@ -14,39 +14,23 @@ export default class UsersAPI {
     }
 
     createFromJSON(jsonObj) {
-        try {
-            if(this.userExist(jsonObj.spec.credentials.username)) {
-                return {
-                    status: Status.CONFLICT,
-                    message: Status.message[Status.CONFLICT].value,
-                }
-            }
-            return this.ds.insert(jsonObj)
-        } catch(e) {
+        if(this.userExist(jsonObj.spec.credentials.username)) {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.CONFLICT,
+                message: Status.message[Status.CONFLICT].value,
             }
         }
+        return this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        try {
-            if(this.userExist(jsonObj.spec.credentials.username)) {
-                return {
-                    status: Status.CONFLICT,
-                    message: Status.message[Status.CONFLICT].value,
-                }
-            }
-            return this.ds.update(jsonObj)
-        } catch(e) {
+        if(this.userExist(jsonObj.spec.credentials.username)) {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.NOT_FOUND,
+                message: Status.message[Status.NOT_FOUND].value,
             }
         }
+        return this.ds.update(jsonObj)
     }
 
     getUsers(filter) {
@@ -84,15 +68,7 @@ export default class UsersAPI {
     }
 
     deleteUser(ref) {
-        try {
-            return this.ds.withCollection('users').remove(ref)
-        } catch(e) {
-            return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
-            }
-        }
+        return this.ds.withCollection('users').remove(ref)
     }
 
 }

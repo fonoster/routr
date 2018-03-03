@@ -14,41 +14,25 @@ export default class DomainsAPI {
     }
 
     createFromJSON(jsonObj) {
-        try {
-            if(this.domainExist(jsonObj.spec.context.domainUri)) {
-                return {
-                    status: Status.CONFLICT,
-                    message: Status.message[Status.CONFLICT].value,
-                }
-            }
-
-            return this.ds.insert(jsonObj)
-        } catch(e) {
+        if(this.domainExist(jsonObj.spec.context.domainUri)) {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.CONFLICT,
+                message: Status.message[Status.CONFLICT].value,
             }
         }
+
+        return this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        try {
-            if(!this.domainExist(jsonObj.spec.context.domainUri)) {
-                return {
-                    status: Status.CONFLICT,
-                    message: Status.message[Status.CONFLICT].value,
-                }
-            }
-
-            return this.ds.update(jsonObj)
-        } catch(e) {
+        if(!this.domainExist(jsonObj.spec.context.domainUri)) {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.NOT_FOUND,
+                message: Status.message[Status.NOT_FOUND].value,
             }
         }
+
+        return this.ds.update(jsonObj)
     }
 
     getDomains(filter) {
@@ -110,32 +94,23 @@ export default class DomainsAPI {
     }
 
     deleteDomain(ref) {
-        try {
-            let response = this.getDomain(ref)
+        let response = this.getDomain(ref)
 
-            if (response.status != Status.OK) {
-                return response
-            }
+        if (response.status != Status.OK) {
+            return response
+        }
 
-            const domain = response.result
+        const domain = response.result
 
-            response = this.ds.withCollection('agents').find("'" + domain.spec.context.domainUri + "' in @.spec.domains")
-            const agents = response.result
+        response = this.ds.withCollection('agents').find("'" + domain.spec.context.domainUri + "' in @.spec.domains")
+        const agents = response.result
 
-            if (agents.length == 0) {
-                return this.ds.withCollection('domains').remove(ref)
-            } else {
-                return {
-                    status: Status.BAD_REQUEST,
-                    message: Status.message[Status.BAD_REQUEST].value,
-                    result: 'Must first remove agents in this domain'
-                }
-            }
-        } catch(e) {
+        if (agents.length == 0) {
+            return this.ds.withCollection('domains').remove(ref)
+        } else {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.CONFLICT,
+                message: Status.message[409.2].value
             }
         }
     }

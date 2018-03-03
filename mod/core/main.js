@@ -58,7 +58,7 @@ if (config.spec.dataSource.provider == 'default') {
     dataAPIs = {
         UsersAPI: new UsersAPI(),
         DomainsAPI: new RedisDomainsAPI(),
-        AgentsAPI: new RedisAgentsAPI(new RedisDomainsAPI()),
+        AgentsAPI: new RedisAgentsAPI(),
         DIDsAPI: new RedisDIDsAPI(),
         GatewaysAPI: new RedisGatewaysAPI(),
         PeersAPI: new RedisPeersAPI()

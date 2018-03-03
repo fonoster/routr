@@ -88,6 +88,26 @@ export default function () {
         config.spec.dataSource.parameters.path = 'config'
     }
 
+    if (config.spec.dataSource.provider == 'default') {
+        if (!config.spec.dataSource.parameters) {
+            config.spec.dataSource.parameters = {}
+            config.spec.dataSource.parameters.path = 'config'
+        }
+    }
+
+    if (config.spec.dataSource.provider == 'redis_data_provider') {
+        if (!config.spec.dataSource.parameters) {
+            config.spec.dataSource.parameters = {}
+            config.spec.dataSource.parameters.host = 'localhost'
+            config.spec.dataSource.parameters.port = '6379'
+            config.spec.dataSource.parameters.secret = ''
+        }
+
+        if (!config.spec.dataSource.parameters.host) config.spec.dataSource.parameters.host = 'localhost'
+        if (!config.spec.dataSource.parameters.port) config.spec.dataSource.parameters.port = '6379'
+        if (!config.spec.dataSource.parameters.secret) config.spec.dataSource.parameters.secret = ''
+    }
+
     config.system = {}
     config.system.version = 'v1.0'
     config.system.apiVersion = 'v1draft1'

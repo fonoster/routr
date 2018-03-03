@@ -14,39 +14,37 @@ export default class DIDsAPI {
     }
 
     createFromJSON(jsonObj) {
-        try {
-            if(this.didExist(jsonObj.spec.location.telUrl)) {
-                return {
-                    status: Status.CONFLICT,
-                    message: Status.message[Status.CONFLICT].value,
-                }
-            }
-            return this.ds.insert(jsonObj)
-        } catch(e) {
-            e.printStackTrace()
+        const response = this.ds.withCollection('gateways').find("@.metadata.ref==" + jsonObj.metadata.gwRef)
+
+        if (response.result.length == 0) {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.CONFLICT,
+                message: Status.message[409.1].value
+            }
+        }
+
+        if(this.didExist(jsonObj.spec.location.telUrl)) {
+            return {
+                status: Status.CONFLICT,
+                message: Status.message[Status.CONFLICT].value,
             }
         }
     }
 
     updateFromJSON(jsonObj) {
-        try {
-            if(!this.didExist(jsonObj.spec.location.telUrl)) {
-                return {
-                    status: Status.CONFLICT,
-                    message: Status.message[Status.CONFLICT].value,
-                }
-            }
+        const response = this.ds.withCollection('gateways').find("@.metadata.ref==" + jsonObj.metadata.gwRef)
 
-            return this.ds.update(jsonObj)
-        } catch(e) {
+        if (response.result.length == 0) {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.CONFLICT,
+                message: Status.message[409.1].value
+            }
+        }
+
+        if(!this.didExist(jsonObj.spec.location.telUrl)) {
+            return {
+                status: Status.NOT_FOUND,
+                message: Status.message[Status.NOT_FOUND].value,
             }
         }
     }
@@ -121,15 +119,7 @@ export default class DIDsAPI {
     }
 
     deleteDID(ref) {
-        try {
-            return this.ds.withCollection('dids').remove(ref)
-        } catch(e) {
-            return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
-            }
-        }
+        return this.ds.withCollection('dids').remove(ref)
     }
 
 }

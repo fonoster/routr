@@ -36,7 +36,7 @@ testGroup.validate_resource = function () {
     assertTrue(valid)
 }
 
-testGroup.get_objs = function () {
+testGroup.get_collections = function () {
     let response = ds.withCollection('agents').find()
     assertTrue(response.status == Status.OK)
     // Existing Agent

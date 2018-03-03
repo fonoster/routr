@@ -8,72 +8,59 @@ import isEmpty from 'utils/obj_util'
 
 export default class AgentsAPI {
 
-    constructor(domainsAPI) {
+    constructor() {
         this.ds = new DataSource()
-        this.domainsAPI = domainsAPI
     }
 
     createFromJSON(jsonObj) {
-        try {
-            for(let i = 0; i < jsonObj.spec.domains.length; i++) {
-                const domain = jsonObj.spec.domains[i]
+        const domains = JSON.stringify(jsonObj.spec.domains).replaceAll("\"","'")
+        let response = this.ds.withCollection('domains').find("@.spec.context.domainUri in " + domains)
 
-                if (!this.domainsAPI.domainExist(domain)) {
-                    return {
-                        status: Status.CONFLICT,
-                        message: "Domain '" + domain + "' does not exist"
-                    }
-                }
-
-                if(this.agentExist(domain, jsonObj.spec.credentials.username)) {
-                    return {
-                        status: Status.CONFLICT,
-                        message: Status.message[Status.CONFLICT].value,
-                    }
-                }
-            }
-
-            return this.ds.insert(jsonObj)
-
-        } catch(e) {
+        if (response.result.length != jsonObj.spec.domains.length) {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.CONFLICT,
+                message: Status.message[409.1].value
             }
         }
+
+        response = this.ds.withCollection('agents').find("@.spec.credentials.username=='"
+            + jsonObj.spec.credentials.username + "'"
+                + " && (@.spec.domains subsetof " + domains + " || "
+                    + domains + " subsetof  @.spec.domains)")
+
+        if (response.result.length > 0) {
+            return {
+                status: Status.CONFLICT,
+                message: Status.message[Status.CONFLICT].value,
+            }
+        }
+
+        return this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        try {
-            for(let i = 0; i < jsonObj.spec.domains.length; i++) {
-                const domain = jsonObj.spec.domains[i]
+        const domains = JSON.stringify(jsonObj.spec.domains).replaceAll("\"","'")
+        let response = this.ds.withCollection('domains').find("@.spec.context.domainUri in " + domains)
 
-                if (!this.domainsAPI.domainExist(domain)) {
-                    return {
-                        status: Status.CONFLICT,
-                        message: "Domain '" + domain + "' does not exist"
-                    }
-                }
-
-                // Changing the domain is not allowed.
-                if(!this.agentExist(domain, jsonObj.spec.credentials.username)) {
-                    return {
-                        status: Status.CONFLICT,
-                        message: Status.message[Status.CONFLICT].value,
-                    }
-                }
-            }
-
-            return this.ds.update(jsonObj)
-
-        } catch(e) {
+        if (response.result.length != jsonObj.spec.domains.length) {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.CONFLICT,
+                message: Status.message[409.1].value
             }
         }
+        response = this.ds.withCollection('agents').find("@.spec.credentials.username=='"
+            + jsonObj.spec.credentials.username + "'"
+                + " && (@.spec.domains subsetof " + domains + " || "
+                    + domains + " subsetof  @.spec.domains)")
+
+        if (response.result.length == 0) {
+            return {
+                status: Status.NOT_FOUND,
+                message: Status.message[Status.NOT_FOUND].value,
+            }
+        }
+
+        return this.ds.update(jsonObj)
     }
 
     getAgents(filter) {
@@ -126,14 +113,6 @@ export default class AgentsAPI {
     }
 
     deleteAgent(ref) {
-        try {
-            return this.ds.withCollection('agents').remove(ref)
-        } catch(e) {
-            return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
-            }
-        }
+        return this.ds.withCollection('agents').remove(ref)
     }
 }

@@ -14,41 +14,25 @@ export default class GatewaysAPI {
     }
 
     createFromJSON(jsonObj) {
-        try {
-            if(this.gatewayExist(jsonObj.spec.regService.host)) {
-                return {
-                    status: Status.CONFLICT,
-                    message: Status.message[Status.CONFLICT].value,
-                }
-            }
-
-            return this.ds.insert(jsonObj)
-        } catch(e) {
+        if(this.gatewayExist(jsonObj.spec.regService.host)) {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.CONFLICT,
+                message: Status.message[Status.CONFLICT].value,
             }
         }
+
+        return this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        try {
-            if(!this.gatewayExist(jsonObj.spec.regService.host)) {
-                return {
-                    status: Status.CONFLICT,
-                    message: Status.message[Status.CONFLICT].value,
-                }
-            }
-
-            return this.ds.update(jsonObj)
-        } catch(e) {
+        if(!this.gatewayExist(jsonObj.spec.regService.host)) {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.NOT_FOUND,
+                message: Status.message[Status.NOT_FOUND].value,
             }
         }
+
+        return this.ds.update(jsonObj)
     }
 
     getGateways(filter)  {
@@ -110,32 +94,23 @@ export default class GatewaysAPI {
     }
 
     deleteGateway(ref) {
-        try {
-            let response = this.getGateway(ref)
+        let response = this.getGateway(ref)
 
-            if (response.status != Status.OK) {
-                return response
-            }
+        if (response.status != Status.OK) {
+            return response
+        }
 
-            const gateway = response.result
+        const gateway = response.result
 
-            response = this.ds.withCollection('dids').find("@.metadata.gwRef == '" + gateway.metadata.ref + "'")
-            const dids = response.result
+        response = this.ds.withCollection('dids').find("@.metadata.gwRef == '" + gateway.metadata.ref + "'")
+        const dids = response.result
 
-            if (dids.length == 0) {
-                return this.ds.withCollection('gateways').remove(ref)
-            } else {
-                return {
-                    status: Status.BAD_REQUEST,
-                    message: Status.message[Status.BAD_REQUEST].value,
-                    result: 'Must first remove all dids in this gateway'
-                }
-            }
-        } catch(e) {
+        if (dids.length == 0) {
+            return this.ds.withCollection('gateways').remove(ref)
+        } else {
             return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value,
-                result: e.getMessage()
+                status: Status.CONFLICT,
+                message: Status.message[409.2].value
             }
         }
     }
