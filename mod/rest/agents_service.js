@@ -13,69 +13,41 @@ const before = Packages.spark.Spark.before
 
 export default function (agentsAPI, salt) {
 
-    before("/agents",  (req, res) => parameterAuthFilter(req, res, salt))
+    before("/agents", (req, res) => parameterAuthFilter(req, res, salt))
 
-    before("/agents/*",  (req, res) => parameterAuthFilter(req, res, salt))
+    before("/agents/*", (req, res) => parameterAuthFilter(req, res, salt))
 
     post('/agents', (req, res) => {
-        const data = JSON.parse(req.body())
-        const response = agentsAPI.createFromJSON(data)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const jsonObj = JSON.parse(req.body())
+        const response = agentsAPI.createFromJSON(jsonObj)
+        return JSON.stringify(response)
     })
 
     get('/agents', (req, res) => {
         let filter = ''
-
-        if(!isEmpty(req.queryParams("filter"))) {
-            filter = req.queryParams("filter")
-        }
-
+        if(!isEmpty(req.queryParams("filter"))) filter = req.queryParams("filter")
         const response = agentsAPI.getAgents(filter)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        return JSON.stringify(response)
     })
 
     get('/agents/:ref', (req, res) => {
         const ref = req.params(":ref")
-        const response = agentsAPI.getAgentByRef(ref)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const response = agentsAPI.getAgent(ref)
+        return JSON.stringify(response)
     })
 
     put('/agents/:ref', (req, res) => {
         const ref = req.params(":ref")
-        const data = JSON.parse(req.body())
-        const response = agentsAPI.updateFromJSON(ref, data)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const jsonObj = JSON.parse(req.body())
+        jsonObj.metadata.ref = ref
+        const response = agentsAPI.updateFromJSON(jsonObj)
+        return JSON.stringify(response)
     })
 
     del('/agents/:ref', (req, res) => {
         const ref = req.params(":ref")
         const response = agentsAPI.deleteAgent(ref)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        return JSON.stringify(response)
     })
 
     // TODO: Add endpoint for location (i.e  '/agents/:domain/:username/location')

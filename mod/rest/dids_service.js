@@ -13,68 +13,43 @@ const before = Packages.spark.Spark.before
 
 export default function (didsAPI, salt) {
 
-    before("/dids",  (req, res) => parameterAuthFilter(req, res, salt))
+    before("/dids", (req, res) => parameterAuthFilter(req, res, salt))
 
-    before("/dids/*",  (request, response) => parameterAuthFilter(req, res, salt))
+    before("/dids/*", (req, res) => parameterAuthFilter(req, res, salt))
 
     post('/dids', (req, res) => {
-        const data = JSON.parse(req.body())
-        let response = didsAPI.createFromJSONObj(data)
-
-        if (result.status && result.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const jsonObj = JSON.parse(req.body())
+        let response = didsAPI.createFromJSON(jsonObj)
+        return JSON.stringify(response)
     })
 
     get('/dids', (req, res) => {
         let filter = ''
-
         if(!isEmpty(req.queryParams("filter"))) {
             filter = req.queryParams("filter")
         }
-
         const response = didsAPI.getDIDs(filter)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        return JSON.stringify(response)
     })
 
     get('/dids/:ref', (req, res) => {
         const ref = req.params(":ref")
         const response = didsAPI.getDID(ref)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        return JSON.stringify(response)
     })
 
     put('/dids/:ref', (req, res) => {
-        const data = JSON.parse(req.body())
-        const response = didsAPI.updateFromJSON(data)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const ref = req.params(":ref")
+        const jsonObj = JSON.parse(req.body())
+        jsonObj.metadata.ref = ref
+        const response = didsAPI.updateFromJSON(jsonObj)
+        return JSON.stringify(response)
     })
 
     del('/dids/:ref', (req, res) => {
         const ref = req.params(":ref")
-        const response = didsAPI.delete(ref)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const response = didsAPI.deleteDID(ref)
+        return JSON.stringify(response)
     })
 
 }

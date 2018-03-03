@@ -18,63 +18,36 @@ export default function (domainsAPI, salt) {
     before("/domains/*", (req, res) => parameterAuthFilter(req, res, salt))
 
     post('/domains', (req, res) => {
-        const data = JSON.parse(req.body())
-        let response = domainsAPI.createFromJSON(data)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const jsonObj = JSON.parse(req.body())
+        let response = domainsAPI.createFromJSON(jsonObj)
+        return JSON.stringify(response)
     })
 
     get('/domains', (req, res) => {
         let filter = ''
-
-        if(!isEmpty(req.queryParams("filter"))) {
-            filter = req.queryParams("filter")
-        }
-
+        if(!isEmpty(req.queryParams("filter"))) filter = req.queryParams("filter")
         const response = domainsAPI.getDomains(filter)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        return JSON.stringify(response)
     })
 
-    get('/domains/:domainUri', (req, res) => {
-        const domainUri = req.params(":domainUri")
-        const response = domainsAPI.getDomain(domainUri)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+    get('/domains/:ref', (req, res) => {
+        const ref = req.params(":ref")
+        const response = domainsAPI.getDomain(ref)
+        return JSON.stringify(response)
     })
 
-    put('/domains/:domainUri', (req, res) => {
-        const data = JSON.parse(req.body())
-        const response = domainsAPI.updateFromJSON(data)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+    put('/domains/:ref', (req, res) => {
+        const ref = req.params(":ref")
+        const jsonObj = JSON.parse(req.body())
+        jsonObj.metadata.ref = ref
+        const response = domainsAPI.updateFromJSON(jsonObj)
+        return JSON.stringify(response)
     })
 
-    del('/domains/:domainUri', (req, res) => {
-        const domainUri = req.params(":domainUri")
-        const response = domainsAPI.deleteDomain(domainUri)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+    del('/domains/:ref', (req, res) => {
+        const ref = req.params(":ref")
+        const response = domainsAPI.deleteDomain(ref)
+        return JSON.stringify(response)
     })
 
 }

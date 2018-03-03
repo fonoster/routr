@@ -18,64 +18,39 @@ export default function (peersAPI, salt) {
     before("/peers/*", (req, res) => parameterAuthFilter(req, res, salt))
 
     post('/peers', (req, res) => {
-        const data = JSON.parse(req.body())
-        let response = peersAPI.createFromJSONObj(data)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const jsonObj = JSON.parse(req.body())
+        let response = peersAPI.createFromJSON(jsonObj)
+        return JSON.stringify(response)
     })
 
     get('/peers', (req, res) => {
         let filter = ''
-
         if(!isEmpty(req.queryParams("filter"))) {
             filter = req.queryParams("filter")
         }
-
         const response = peersAPI.getPeers(filter)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        return JSON.stringify(response)
     })
 
-    get('/peers/:username', (req, res) => {
-        const username = req.params(":username")
-        const response = peersAPI.getPeer(username)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+    get('/peers/:ref', (req, res) => {
+        const ref = req.params(":ref")
+        const response = peersAPI.getPeer(ref)
+        return JSON.stringify(response)
     })
 
-    put('/peers/:username', (req, res) => {
-        const data = JSON.parse(req.body())
-        const response = peersAPI.updateFromJSONObj(data)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+    put('/peers/:ref', (req, res) => {
+        const ref = req.params(":ref")
+        const jsonObj = JSON.parse(req.body())
+        jsonObj.metadata.ref = ref
+        const response = peersAPI.updateFromJSON(jsonObj)
+        return JSON.stringify(response)
     })
 
-    del('/peers/:username', (req, res) => {
-        const username = req.params(":username")
-        const response = peersAPI.deletePeer(username)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+    del('/peers/:ref', (req, res) => {
+        const ref = req.params(":ref")
+        const response = peersAPI.deletePeer(ref)
+        return JSON.stringify(response)
     })
 
-    // TODO: Add endpoint for location (i.e  '/peers/:username/location')
+    // TODO: Add endpoint for location (i.e  '/peers/:ref/location')
 }

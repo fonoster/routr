@@ -18,63 +18,36 @@ export default function (gatewaysAPI, salt) {
     before("/gateways/*", (req, res) => parameterAuthFilter(req, res, salt))
 
     post('/gateways', (req, res) => {
-        const data = JSON.parse(req.body())
-        let response = gatewaysAPI.createFromJSON(data)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const jsonObj = JSON.parse(req.body())
+        let response = gatewaysAPI.createFromJSON(jsonObj)
+        return JSON.stringify(response)
     })
 
     get('/gateways', (req, res) => {
         let filter = ''
-
-        if(!isEmpty(req.queryParams("filter"))) {
-            filter = req.queryParams("filter")
-        }
-
+        if(!isEmpty(req.queryParams("filter"))) filter = req.queryParams("filter")
         const response = gatewaysAPI.getGateways(filter)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        return JSON.stringify(response)
     })
 
     get('/gateways/:ref', (req, res) => {
-        const username = req.params(":username")
-        const response = peersAPI.getPeer(username)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const ref = req.params(":ref")
+        const response = gatewaysAPI.getGateway(ref)
+        return JSON.stringify(response)
     })
 
     put('/gateways/:ref', (req, res) => {
-        const data = JSON.parse(req.body())
-        const response = gatewaysAPI.updateFromJSON(data)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const ref = req.params(":ref")
+        const jsonObj = JSON.parse(req.body())
+        jsonObj.metadata.ref = ref
+        const response = gatewaysAPI.updateFromJSON(jsonObj)
+        return JSON.stringify(response)
     })
 
     del('/gateways/:ref', (req, es) => {
         const ref = req.params(":ref")
-        const response = gatewaysAPI.delete(ref)
-
-        if (response.status && response.status != 200) {
-            return JSON.stringify(response)
-        }
-
-        return JSON.stringify(response.result)
+        const response = gatewaysAPI.deleteGateway(ref)
+        return JSON.stringify(response)
     })
 
 }

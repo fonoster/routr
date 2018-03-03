@@ -39,7 +39,7 @@ function getUserFromHeader(req) {
 
 function authentic(usersAPI, user) {
     try {
-        let dbUser = usersAPI.getUser(user.username).obj
+        let dbUser = usersAPI.getUser(user.username).result
         if (!dbUser.spec.credentials.secret.equals(user.password)) {
             return false
         }
