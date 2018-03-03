@@ -11,6 +11,8 @@ const Jedis = Packages.redis.clients.jedis.Jedis
 const ObjectId = Packages.org.bson.types.ObjectId
 const JsonPath = Packages.com.jayway.jsonpath.JsonPath
 const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
+const LogManager = Packages.org.apache.logging.log4j.LogManager
+const LOG = LogManager.getLogger()
 
 export default class DataSource {
 
@@ -49,7 +51,8 @@ export default class DataSource {
                 result: obj.metadata.ref
             }
         } catch(e) {
-            e.printStackTrace()
+            LOG.error(e.getMessage())
+
             return {
                 status: Status.INTERNAL_SERVER_ERROR,
                 message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
@@ -75,11 +78,13 @@ export default class DataSource {
                 message: Status.message[Status.NOT_FOUND].value,
             }
         } catch(e) {
-             return {
-                 status: Status.INTERNAL_SERVER_ERROR,
-                 message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-                 result: e.getMessage()
-             }
+            LOG.error(e.getMessage())
+
+            return {
+                status: Status.INTERNAL_SERVER_ERROR,
+                message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
+                result: e.getMessage()
+            }
          }
     }
 
@@ -114,6 +119,8 @@ export default class DataSource {
                 result: list
             }
         } catch(e) {
+            LOG.error(e.getMessage())
+
             if (e instanceof InvalidPathException) {
                 return {
                     status: Status.BAD_REQUEST,
@@ -148,6 +155,8 @@ export default class DataSource {
             }
 
         } catch(e) {
+            LOG.error(e.getMessage())
+
             if (e instanceof InvalidPathException) {
                 return {
                     status: Status.BAD_REQUEST,
@@ -189,6 +198,8 @@ export default class DataSource {
                 message: Status.message[Status.OK].value
             }
         } catch(e) {
+            LOG.error(e.getMessage())
+
             return {
                 status: Status.INTERNAL_SERVER_ERROR,
                 message: Status.message[Status.INTERNAL_SERVER_ERROR].value

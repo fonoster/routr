@@ -46,53 +46,36 @@ export default class AgentsAPI {
         return response
     }
 
-    getAgentsByDomain(domainUri) {
-        const resource = DSUtil.convertToJson(FilesUtil.readFile(this.resourcePath))
-        let agents = []
-
-        resource.forEach(obj => {
-            obj.spec.domains.forEach(d => {
-                if (domainUri == d) {
-                    if (!obj.metadata.ref) {
-                        obj.metadata.ref = this.generateRef(obj.spec.credentials.username, obj.spec.domains[0])
-                    }
-
-                    agents.push(obj)
-                }
-            })
-        })
-
-        if (agents.length > 0) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: agents
-            }
-        }
-
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
-    }
-
-    getAgent(domainUri, username) {
+    // Not yet implemented
+    getAgent(arg1, arg2) {
         const resource = DSUtil.convertToJson(FilesUtil.readFile(this.resourcePath))
         let agent
 
-        resource.forEach(obj => {
-            if (obj.spec.credentials.username == username) {
-                obj.spec.domains.forEach(d => {
-                    if (domainUri == d) {
-                        if (!obj.metadata.ref) {
-                            obj.metadata.ref = this.generateRef(obj.spec.credentials.username, obj.spec.domains[0])
-                        }
 
-                        agent = obj
-                    }
-                })
-            }
-        })
+        // Domain and username
+        if( arguments.length == 2) {
+            resource.forEach(obj => {
+                if (obj.spec.credentials.username == arg2) {
+                    obj.spec.domains.forEach(d => {
+                        if (arg1 == d) {
+                            if (!obj.metadata.ref) {
+                                obj.metadata.ref = this.generateRef(obj.spec.credentials.username, obj.spec.domains[0])
+                            }
+                            agent = obj
+                        }
+                    })
+                }
+            })
+        } else {
+            resource.forEach(obj => {
+                if (!obj.metadata.ref) {
+                    obj.metadata.ref = this.generateRef(obj.spec.credentials.username, obj.spec.domains[0])
+                }
+                if (obj.metadata.ref == arg1) {
+                    agent = obj
+                }
+            })
+        }
 
         if (!isEmpty(agent)) {
             return {
@@ -143,13 +126,6 @@ export default class AgentsAPI {
     }
 
     deleteAgent(ref) {
-        return {
-            status: Status.NOT_SUPPORTED,
-            message: Status.message[Status.NOT_SUPPORTED].value,
-        }
-    }
-
-    deleteAgent(domainUri, username) {
         return {
             status: Status.NOT_SUPPORTED,
             message: Status.message[Status.NOT_SUPPORTED].value,

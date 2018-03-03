@@ -21,23 +21,6 @@ export default class DataSource {
         return this;
     }
 
-    get(ref) {
-        const result = this.jedis.get(obj.metadata.ref)
-
-        if (result != null) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.NOT_FOUND].value,
-                result: result
-            }
-        }
-
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value,
-        }
-    }
-
     find(filter = '*') {
         if (!isEmpty(filter) && !filter.equals('*')) {
             filter = "*.[?(" + filter + ")]"
