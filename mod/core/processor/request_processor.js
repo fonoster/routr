@@ -112,7 +112,7 @@ export default class RequestProcessor {
 
             // We only apply ACL rules to Domain Routing.
             if (routeInfo.getRoutingType().equals(RoutingType.INTRA_DOMAIN_ROUTING)) {
-                const response = this.domainsAPI.getDomain(addressOfRecord.getHost())
+                const response = this.domainsAPI.getDomainByUri(addressOfRecord.getHost())
                 if (response.status == Status.OK) {
                     const domainObj = response.result
                     if(!new AclUtil(this.generalAcl).isIpAllowed(domainObj, remoteIp)) {
@@ -234,8 +234,6 @@ export default class RequestProcessor {
         LOG.debug('advertisedAddr is -> ' + advertisedAddr)
         LOG.debug('advertisedPort is -> ' + advertisedPort)
 
-        print ('DBG001')
-
         // Remove route header if host's address is the same as the proxy's address
         if (routeHeader) {
             const h = routeHeader.getAddress().getURI().getHost()
@@ -247,8 +245,6 @@ export default class RequestProcessor {
             }
         }
 
-        print ('DBG002')
-
         // Stay in the signaling path
         if (this.config.spec.recordRoute) {
             const proxyURI = this.addressFactory.createSipURI(null, advertisedAddr)
@@ -258,8 +254,6 @@ export default class RequestProcessor {
             const recordRouteHeader = this.headerFactory.createRecordRouteHeader(proxyAddress)
             requestOut.addHeader(recordRouteHeader)
         }
-
-        print ('DBG003')
 
         // Request RPort to enable Symmetric Response in accordance with RFC 3581 and RFC 6314
         const viaHeader = this.headerFactory.createViaHeader(advertisedAddr, advertisedPort, transport, null)
@@ -294,17 +288,11 @@ export default class RequestProcessor {
             requestOut.setHeader(remotePartyIdHeader)
         }
 
-        print ('DBG004')
-
         requestOut.removeHeader("Proxy-Authorization")
 
         // Does not need a transaction
         if(method.equals(Request.ACK)) {
-             print ('DBG005')
-
             this.sipProvider.sendRequest(requestOut)
-             print ('DBG006')
-
         } else {
             try {
                 // The request must be cloned or the stack will not fork the call
@@ -348,7 +336,7 @@ export default class RequestProcessor {
         }
 
         // WARNING: If they are multiple peers with the same name this might be an issue
-        let result = this.peersAPI.getPeer(authHeader.getUsername())
+        let result = this.peersAPI.getPeerByUsername(authHeader.getUsername())
 
         let user
 

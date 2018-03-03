@@ -47,7 +47,7 @@ export default class Registrar {
         const response = authHeader.getResponse()
 
         // Get user from db or file
-        let res = this.peersAPI.getPeer(authHeader.getUsername())
+        let res = this.peersAPI.getPeerByUsername(authHeader.getUsername())
         let user
 
         if (res.status == Status.OK ) {

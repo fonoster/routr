@@ -57,14 +57,15 @@ if (config.spec.dataSource.provider == 'default') {
 } else if(config.spec.dataSource.provider == 'redis_data_provider') {
     dataAPIs = {
         UsersAPI: new UsersAPI(),
-        AgentsAPI: new RedisAgentsAPI(),
         DomainsAPI: new RedisDomainsAPI(),
+        AgentsAPI: new RedisAgentsAPI(new RedisDomainsAPI()),
         DIDsAPI: new RedisDIDsAPI(),
         GatewaysAPI: new RedisGatewaysAPI(),
         PeersAPI: new RedisPeersAPI()
     }
 }else {
-    // Invalid DS and exit
+    print ('Invalid data source')
+    exit(1)
 }
 
 const locator = new Locator(dataAPIs)

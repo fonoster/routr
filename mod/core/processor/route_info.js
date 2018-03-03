@@ -71,7 +71,7 @@ export default class RoutingInfo {
         if (this.agentsAPI.agentExist(this.callerDomain, this.callerUser)) return RouteEntityType.AGENT
         if (StringUtils.isNumeric(this.callerUser)) {
             const telUrl = this.addressFactory.createTelURL(this.callerUser)
-            if (this.didsAPI.didExistByTelUrl(telUrl)) return RouteEntityType.DID
+            if (this.didsAPI.didExist(telUrl)) return RouteEntityType.DID
         }
         if (this.agentsAPI.agentExist(this.callerDomain, this.callerUser)) return RouteEntityType.AGENT
         return RouteEntityType.THRU_GW
@@ -82,7 +82,7 @@ export default class RoutingInfo {
         if (this.agentsAPI.agentExist(this.calleeDomain, this.calleeUser)) return RouteEntityType.AGENT
         if (StringUtils.isNumeric(this.calleeUser)) {
             const telUrl = this.addressFactory.createTelURL(this.calleeUser)
-            if (this.didsAPI.didExistByTelUrl(telUrl)) return RouteEntityType.DID
+            if (this.didsAPI.didExist(telUrl)) return RouteEntityType.DID
         }
         return RouteEntityType.THRU_GW
     }
