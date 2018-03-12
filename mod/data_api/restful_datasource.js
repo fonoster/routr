@@ -15,8 +15,14 @@ const LOG = LogManager.getLogger()
 export default class RestfulDataSource {
 
     constructor(dataSource, config = getConfig()) {
-        if (!config.spec.dataSource.parameters ||
-            !config.spec.dataSource.parameters.baseUrl ||
+        if (!config.spec.dataSource.parameters) {
+            config.spec.dataSource.parameters = {}
+            config.spec.dataSource.parameters.baseUrl = 'http://localhost/v1/ctl'
+            config.spec.dataSource.parameters.username = 'admin'
+            config.spec.dataSource.parameters.secret = 'changeit'
+        }
+
+        if (!config.spec.dataSource.parameters.baseUrl ||
             !config.spec.dataSource.parameters.username ||
             !config.spec.dataSource.parameters.secret) {
             LOG.error("Restful Data Source incorrectly configured.\nYou must specify the baseUrl, username and secret when using this data provider")

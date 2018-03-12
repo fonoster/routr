@@ -14,7 +14,7 @@ import UsersAPI from 'data_api/users_api'
 import { Status } from 'data_api/status'
 import getConfig from 'core/config_util.js'
 
-export let testGroup = { name: "Restful Data Source" }
+export let testGroup = { name: "Restful Data Source", enabled: false}
 
 const config = getConfig()
 // Forces data source to use its own default parameters...

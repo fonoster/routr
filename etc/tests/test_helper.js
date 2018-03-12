@@ -15,6 +15,7 @@ var assertNotSame = Packages.org.junit.Assert.assertNotSame
 var fail = Packages.org.junit.Assert.fail
 
 var ANSI_GREEN = "\u001B[32m"
+var ANSI_YELLOW = "\u001B[33m"
 var ANSI_RESET = "\u001B[0m"
 var ANSI_RED = "\u001B[31m"
 
@@ -31,7 +32,12 @@ var THelper =  {
         var group = obj.name
         if (name != undefined) group = name
 
-        print('Test group \'' + group + '\'')
+        if (obj.enabled === false) {
+            print('Test group', "'" + group + "'", ANSI_YELLOW + '#disabled' + ANSI_RESET)
+            return
+        } else {
+            print('Test group \'' + group + '\'')
+        }
 
         for (var key in obj){
             var funName = key;
@@ -61,6 +67,7 @@ var THelper =  {
 }
 
 var tests = $ARG
+
 if (tests.length == 0) print ('Nothing test found')
 tests.forEach(function(t) {
     THelper.test(t)

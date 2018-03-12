@@ -15,7 +15,7 @@ import UsersAPI from 'data_api/users_api'
 import { Status } from 'data_api/status'
 import getConfig from 'core/config_util.js'
 
-export let testGroup = { name: "Files Data Source " }
+export let testGroup = { name: "Files Data Source" }
 
 const config = getConfig()
 // Forces data source to use its own default parameters...
