@@ -19,12 +19,12 @@ import RestfulDataSource from 'data_api/restful_datasource'
 
 import getConfig from 'core/config_util.js'
 
-let config = getConfig()
-
-// Avoids old log4j messages
+// Avoids old log4j and jetty logs
+java.lang.System.setProperty("org.eclipse.jetty.LEVEL", "WARN");
 org.apache.log4j.BasicConfigurator.configure(new
     org.apache.log4j.varia.NullAppender())
 
+let config = getConfig()
 let dataSource
 
 if (config.spec.dataSource.provider == 'files_data_provider') {

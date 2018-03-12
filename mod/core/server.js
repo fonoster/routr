@@ -15,6 +15,7 @@ const SipFactory = Packages.javax.sip.SipFactory
 const Properties = Packages.java.util.Properties
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
+
 const ANSI_GREEN = "\u001B[32m"
 const ANSI_YELLOW = "\u001B[33m"
 const ANSI_RESET = "\u001B[0m"
