@@ -34,6 +34,25 @@ export default class RedisDataSource {
         if (config.spec.dataSource.parameters.secret) {
             this.jedis.auth(config.spec.dataSource.parameters.secret)
         }
+
+        if(this.withCollection('users').find().result.length == 0) {
+            LOG.info("No user found. Creating default 'admin' user.")
+            let defUser = {
+                apiVersion: config.system.apiVersion,
+                kind: 'User',
+                metadata: {
+                    name: 'Ctl'
+                },
+                spec: {
+                    credentials: {
+                        username: 'admin',
+                        secret: 'changeit'
+                    }
+                }
+            }
+
+            this.insert(defUser)
+        }
     }
 
     withCollection(collection) {
@@ -218,3 +237,5 @@ export default class RedisDataSource {
     }
 
 }
+
+

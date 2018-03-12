@@ -89,7 +89,7 @@ export default class DSUtil {
 
     static getKind(obj) {
         if (!obj.kind || (
-            obj.kind.toLowerCase != 'user' &&
+            obj.kind.toLowerCase() != 'user' &&
             obj.kind.toLowerCase() != 'agent' &&
             obj.kind.toLowerCase() != 'peer' &&
             obj.kind.toLowerCase() != 'domain' &&

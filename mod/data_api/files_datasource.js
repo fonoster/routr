@@ -97,6 +97,7 @@ export default class FilesDataSource {
             message: Status.message[Status.NOT_SUPPORTED].value
         }
     }
+
     remove() {
         return {
             status: Status.NOT_SUPPORTED,
