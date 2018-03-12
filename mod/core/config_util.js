@@ -48,30 +48,27 @@ export default function () {
     if (config.spec.bindAddr == undefined)
         config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
 
-    if (config.spec.services == undefined) config.spec.services = {}
-
-    if (config.spec.services.rest == undefined) {
-        config.spec.services.rest = {}
-        config.spec.services.rest.secure = {}
+    if (config.spec.restService == undefined) {
+        config.spec.restService = {}
     }
 
-    if (config.spec.services.rest.secure.keyStore == undefined)
-        config.spec.services.rest.secure.keyStore = 'etc/certs/api-cert.jks'
+    if (config.spec.restService.keyStore == undefined)
+        config.spec.restService.keyStore = 'etc/certs/api-cert.jks'
 
-    if (config.spec.services.rest.secure.keyStorePassword == undefined)
-        config.spec.services.rest.secure.keyStorePassword = 'changeit'
+    if (config.spec.restService.keyStorePassword == undefined)
+        config.spec.restService.keyStorePassword = 'changeit'
 
-    if (config.spec.services.rest.secure.trustStore == undefined)
-        config.spec.services.rest.secure.trustStore = null
+    if (config.spec.restService.trustStore == undefined)
+        config.spec.restService.trustStore = null
 
-    if (config.spec.services.rest.secure.trustStorePassword == undefined)
-        config.spec.services.rest.secure.trustStorePassword = null
+    if (config.spec.restService.trustStorePassword == undefined)
+        config.spec.restService.trustStorePassword = null
 
-    if (config.spec.services.rest.bindAddr == undefined)
-        config.spec.services.rest.bindAddr = InetAddress.getLocalHost().getHostAddress()
+    if (config.spec.restService.bindAddr == undefined)
+        config.spec.restService.bindAddr = InetAddress.getLocalHost().getHostAddress()
 
-    if (config.spec.services.rest.port == undefined)
-        config.spec.services.rest.port = 4567
+    if (config.spec.restService.port == undefined)
+        config.spec.restService.port = 4567
 
     if (config.spec.securityContext) {
         if (config.spec.securityContext.client == undefined) config.spec.securityContext.client = {}

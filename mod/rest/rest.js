@@ -27,15 +27,15 @@ export default class Rest {
 
     constructor(server, locator, registry, dataAPIs) {
         const config = getConfig()
-        this.rest = config.spec.services.rest
+        this.rest = config.spec.restService
         this.system = config.system
 
         LOG.info("Starting Restful service (port: " + this.rest.port + ", apiPath: '" + this.system.apiPath + "')")
 
-        Spark.secure(config.spec.services.rest.secure.keyStore,
-            config.spec.services.rest.secure.keyStorePassword,
-                config.spec.services.rest.secure.trustStore,
-                    config.spec.services.rest.secure.trustStorePassword)
+        Spark.secure(config.spec.restService.keyStore,
+            config.spec.restService.keyStorePassword,
+                config.spec.restService.trustStore,
+                    config.spec.restService.trustStorePassword)
         Spark.port(this.rest.port)
         Spark.internalServerError((req, res) => {
             res.type("application/json");

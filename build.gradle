@@ -9,7 +9,6 @@ dependencies {
     compile "org.apache.logging.log4j:log4j-1.2-api:2.8.2"
     compile "org.apache.logging.log4j:log4j-api:2.8.2"
     compile "org.apache.logging.log4j:log4j-core:2.8.2"
-    //compile 'ch.qos.logback:logback-classic:1.0.13'
     compile "org.slf4j:slf4j-api:1.7.22"
     compile "org.slf4j:slf4j-nop:1.7.22"
     compile "commons-codec:commons-codec:1.10"
