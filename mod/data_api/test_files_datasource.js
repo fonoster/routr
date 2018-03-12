@@ -4,25 +4,29 @@
  *
  * Unit Test for the "Resources Module"
  */
-import DataSource from 'data_provider/ds'
+import FilesDataSource from 'data_api/files_datasource'
 import FilesUtil from 'utils/files_util'
-import DSUtil from 'data_provider/utils'
-import AgentsAPI from 'data_provider/agents_api'
-import GatewaysAPI from 'data_provider/gateways_api'
-import DomainsAPI from 'data_provider/domains_api'
-import DIDsAPI from 'data_provider/dids_api'
-import UsersAPI from 'data_provider/users_api'
-import { Status } from 'data_provider/status'
+import DSUtil from 'data_api/utils'
+import AgentsAPI from 'data_api/agents_api'
+import GatewaysAPI from 'data_api/gateways_api'
+import DomainsAPI from 'data_api/domains_api'
+import DIDsAPI from 'data_api/dids_api'
+import UsersAPI from 'data_api/users_api'
+import { Status } from 'data_api/status'
+import getConfig from 'core/config_util.js'
 
-export let testGroup = { name: "DS Module" }
+export let testGroup = { name: "Files Data Source " }
 
-const dsUtil = new DSUtil()
-const ds = new DataSource()
-const agentsApi = new AgentsAPI()
-const gwsAPI = new GatewaysAPI()
-const domainsAPI = new DomainsAPI()
-const didsAPI = new DIDsAPI()
-const usersAPI = new UsersAPI()
+const config = getConfig()
+// Forces data source to use its own default parameters...
+delete config.spec.dataSource.parameters
+
+const ds = new FilesDataSource(config)
+const agentsApi = new AgentsAPI(ds)
+const gwsAPI = new GatewaysAPI(ds)
+const domainsAPI = new DomainsAPI(ds)
+const didsAPI = new DIDsAPI(ds)
+const usersAPI = new UsersAPI(ds)
 const SipFactory = Packages.javax.sip.SipFactory
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 
@@ -60,14 +64,14 @@ testGroup.get_agents = function () {
 }
 
 // This also validates the other resources
-testGroup.get_agent_by_ref = function () {
-    const response = agentsApi.getAgentByRef('ag3f77f6')
+testGroup.get_agent = function () {
+    const response = agentsApi.getAgent('ag3f77f6')
     assertTrue(response.status == Status.OK)
     assertTrue(response.result.kind == 'Agent')
 }
 
 // This also validates the other resources
-testGroup.get_gw_by_ref = function () {
+testGroup.get_gw= function () {
     const response = gwsAPI.getGateway('gweef506')
     assertTrue(response.status == Status.OK)
     assertTrue(response.result.kind == 'Gateway')
@@ -90,7 +94,7 @@ testGroup.get_users = function () {
 
 // This also validates the other resources
 testGroup.get_user_by_username = function () {
-    const response = usersAPI.getUser('admin')
+    const response = usersAPI.getUserByUsername('admin')
     assertTrue(response.status == Status.OK)
     assertTrue(response.result.kind == 'User')
 }

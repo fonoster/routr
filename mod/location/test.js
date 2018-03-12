@@ -4,16 +4,25 @@
  *
  * Unit Test for the "Location Service Module"
  */
+
+import FilesDataSource from 'data_api/files_datasource'
 import Locator from 'location/locator.js'
-import DIDsAPI from 'data_provider/dids_api'
-import DomainsAPI from 'data_provider/domains_api'
-import GatewaysAPI from 'data_provider/gateways_api'
+import DIDsAPI from 'data_api/dids_api'
+import DomainsAPI from 'data_api/domains_api'
+import GatewaysAPI from 'data_api/gateways_api'
 import { Status } from 'location/status'
+import getConfig from 'core/config_util.js'
+
+const config = getConfig()
+// Forces data source to use its own default parameters...
+delete config.spec.dataSource.parameters
+
+const ds = new FilesDataSource(config)
 
 const dataAPIs = {
-    DomainsAPI: new DomainsAPI(),
-    GatewaysAPI: new GatewaysAPI(),
-    DIDsAPI: new DIDsAPI()
+    DomainsAPI: new DomainsAPI(ds),
+    GatewaysAPI: new GatewaysAPI(ds),
+    DIDsAPI: new DIDsAPI(ds)
 }
 
 const SipFactory = Packages.javax.sip.SipFactory

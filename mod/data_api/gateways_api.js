@@ -2,15 +2,13 @@
  * @author Pedro Sanders
  * @since v1
  */
-import DataSource from 'ext/redis_data_provider/ds'
-import DSUtil from 'data_provider/utils'
-import { Status } from 'data_provider/status'
+import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
 
 export default class GatewaysAPI {
 
-    constructor() {
-        this.ds = new DataSource()
+    constructor(dataSource) {
+        this.ds = dataSource
     }
 
     createFromJSON(jsonObj) {
@@ -73,17 +71,17 @@ export default class GatewaysAPI {
             }
         })
 
-        if (!isEmpty(gateways)) {
+        if (isEmpty(gateways)) {
             return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: gateways
+                status: Status.NOT_FOUND,
+                message: Status.message[Status.NOT_FOUND].value
             }
         }
 
         return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
+            status: Status.OK,
+            message: Status.message[Status.OK].value,
+            result: gateways
         }
     }
 
@@ -102,7 +100,7 @@ export default class GatewaysAPI {
 
         const gateway = response.result
 
-        response = this.ds.withCollection('dids').find("@.metadata.gwRef == '" + gateway.metadata.ref + "'")
+        response = this.ds.withCollection('dids').find("@.metadata.gwRef=='" + gateway.metadata.ref + "'")
         const dids = response.result
 
         if (dids.length == 0) {
@@ -110,7 +108,7 @@ export default class GatewaysAPI {
         } else {
             return {
                 status: Status.CONFLICT,
-                message: Status.message[409.2].value
+                message: Status.message[4092].value
             }
         }
     }

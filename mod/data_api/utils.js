@@ -3,7 +3,7 @@
  * @since v1
  */
 import FilesUtil from 'utils/files_util'
-import { Status } from 'data_provider/status'
+import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
 
 const LogManager = Packages.org.apache.logging.log4j.LogManager

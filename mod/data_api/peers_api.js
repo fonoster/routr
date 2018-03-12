@@ -2,15 +2,13 @@
  * @author Pedro Sanders
  * @since v1
  */
-import DataSource from 'ext/redis_data_provider/ds'
-import DSUtil from 'data_provider/utils'
-import { Status } from 'data_provider/status'
+import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
 
 export default class PeersAPI {
 
-    constructor() {
-        this.ds = new DataSource()
+    constructor(dataSource) {
+        this.ds = dataSource
     }
 
     createFromJSON(jsonObj) {

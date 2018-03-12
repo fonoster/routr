@@ -2,14 +2,13 @@
  * @author Pedro Sanders
  * @since v1
  */
-import DataSource from 'ext/redis_data_provider/ds'
-import { Status } from 'data_provider/status'
+import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
 
 export default class AgentsAPI {
 
-    constructor() {
-        this.ds = new DataSource()
+    constructor(dataSource) {
+        this.ds = dataSource
     }
 
     createFromJSON(jsonObj) {
@@ -19,19 +18,27 @@ export default class AgentsAPI {
         if (response.result.length != jsonObj.spec.domains.length) {
             return {
                 status: Status.CONFLICT,
-                message: Status.message[409.1].value
+                message: Status.message[4091].value
             }
         }
 
+        // TODO: Put this into another function
         response = this.ds.withCollection('agents').find("@.spec.credentials.username=='"
-            + jsonObj.spec.credentials.username + "'"
-                + " && (@.spec.domains subsetof " + domains + " || "
-                    + domains + " subsetof  @.spec.domains)")
+            + jsonObj.spec.credentials.username + "'")
 
-        if (response.result.length > 0) {
-            return {
-                status: Status.CONFLICT,
-                message: Status.message[Status.CONFLICT].value,
+        for(let i = 0; i < response.result.length; i++) {
+            const curAgent = response.result[i]
+
+            for(let y = 0; y < curAgent.spec.domains.length; y++) {
+                const curDomain = curAgent.spec.domains[y]
+
+                if (jsonObj.spec.domains.indexOf(curDomain) != -1) {
+                    return {
+                        status: Status.CONFLICT,
+                        message: Status.message[Status.CONFLICT].value,
+                    }
+                }
+
             }
         }
 
@@ -45,18 +52,27 @@ export default class AgentsAPI {
         if (response.result.length != jsonObj.spec.domains.length) {
             return {
                 status: Status.CONFLICT,
-                message: Status.message[409.1].value
+                message: Status.message[4091].value
             }
         }
-        response = this.ds.withCollection('agents').find("@.spec.credentials.username=='"
-            + jsonObj.spec.credentials.username + "'"
-                + " && (@.spec.domains subsetof " + domains + " || "
-                    + domains + " subsetof  @.spec.domains)")
 
-        if (response.result.length == 0) {
-            return {
-                status: Status.NOT_FOUND,
-                message: Status.message[Status.NOT_FOUND].value,
+        response = this.ds.withCollection('agents').find("@.spec.credentials.username=='"
+            + jsonObj.spec.credentials.username + "'")
+
+
+        for(let i = 0; i < response.result.length; i++) {
+            const curAgent = response.result[i]
+
+            for(let y = 0; y < curAgent.spec.domains.length; y++) {
+                const curDomain = curAgent.spec.domains[y]
+
+                if (jsonObj.spec.domains.indexOf(curDomain) != -1) {
+                    return {
+                        status: Status.CONFLICT,
+                        message: Status.message[Status.CONFLICT].value,
+                    }
+                }
+
             }
         }
 
@@ -115,4 +131,6 @@ export default class AgentsAPI {
     deleteAgent(ref) {
         return this.ds.withCollection('agents').remove(ref)
     }
+
+
 }

@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-import DSUtil from 'data_provider/utils'
+import DSUtil from 'data_api/utils'
 import FilesUtil from 'utils/files_util'
 const InetAddress = Packages.java.net.InetAddress
 const File = Packages.java.io.File
@@ -83,29 +83,7 @@ export default function () {
 
     if (!config.spec.dataSource) {
         config.spec.dataSource = {}
-        config.spec.dataSource.provider = 'default'
-        config.spec.dataSource.parameters = {}
-        config.spec.dataSource.parameters.path = 'config'
-    }
-
-    if (config.spec.dataSource.provider == 'default') {
-        if (!config.spec.dataSource.parameters) {
-            config.spec.dataSource.parameters = {}
-            config.spec.dataSource.parameters.path = 'config'
-        }
-    }
-
-    if (config.spec.dataSource.provider == 'redis_data_provider') {
-        if (!config.spec.dataSource.parameters) {
-            config.spec.dataSource.parameters = {}
-            config.spec.dataSource.parameters.host = 'localhost'
-            config.spec.dataSource.parameters.port = '6379'
-            config.spec.dataSource.parameters.secret = ''
-        }
-
-        if (!config.spec.dataSource.parameters.host) config.spec.dataSource.parameters.host = 'localhost'
-        if (!config.spec.dataSource.parameters.port) config.spec.dataSource.parameters.port = '6379'
-        if (!config.spec.dataSource.parameters.secret) config.spec.dataSource.parameters.secret = ''
+        config.spec.dataSource.provider = 'files_data_provider'
     }
 
     config.system = {}

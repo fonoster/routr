@@ -2,10 +2,10 @@
  * @author Pedro Sanders
  * @since v1
  */
-import { Status } from 'data_provider/status'
+import DSUtil from 'data_api/utils'
+import { Status } from 'data_api/status'
 import getConfig from 'core/config_util'
 import isEmpty from 'utils/obj_util'
-import DSUtils from 'data_provider/utils'
 
 const Jedis = Packages.redis.clients.jedis.Jedis
 const ObjectId = Packages.org.bson.types.ObjectId
@@ -14,15 +14,25 @@ const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 
-export default class DataSource {
+export default class RedisDataSource {
 
-    constructor() {
-        const config = getConfig()
+    constructor(config = getConfig()) {
+        if (!config.spec.dataSource.parameters) {
+            config.spec.dataSource.parameters = {}
+            config.spec.dataSource.parameters.host = 'localhost'
+            config.spec.dataSource.parameters.port = '6379'
+            config.spec.dataSource.parameters.secret = ''
+        }
+
+        if (!config.spec.dataSource.parameters.host) config.spec.dataSource.parameters.host = 'localhost'
+        if (!config.spec.dataSource.parameters.port) config.spec.dataSource.parameters.port = '6379'
+        if (!config.spec.dataSource.parameters.secret) config.spec.dataSource.parameters.secret = ''
+
         this.jedis = new Jedis(config.spec.dataSource.parameters.host,
             config.spec.dataSource.parameters.port)
 
         if (config.spec.dataSource.parameters.secret) {
-            this.jedis.password(config.spec.dataSource.parameters.secret)
+            this.jedis.auth(config.spec.dataSource.parameters.secret)
         }
     }
 
@@ -33,7 +43,7 @@ export default class DataSource {
 
     insert(obj) {
         try {
-            if (!DSUtils.isValidEntity(obj)) {
+            if (!DSUtil.isValidEntity(obj)) {
                 return {
                     status: Status.BAD_REQUEST,
                     message: Status.message[Status.BAD_REQUEST].value
@@ -42,7 +52,7 @@ export default class DataSource {
 
             if (!obj.metadata.ref) obj.metadata.ref = new ObjectId().toString()
             this.jedis.set(obj.metadata.ref, JSON.stringify(obj))
-            const kind = DSUtils.getKind(obj)
+            const kind = DSUtil.getKind(obj)
             this.jedis.sadd(kind.toLowerCase() + 's', obj.metadata.ref)
 
             return {
@@ -138,7 +148,7 @@ export default class DataSource {
     }
 
     update(obj) {
-        if (!obj.metadata.ref || !DSUtils.isValidEntity(obj)) {
+        if (!obj.metadata.ref || !DSUtil.isValidEntity(obj)) {
             return {
                 status: Status.BAD_REQUEST,
                 message: Status.message[Status.BAD_REQUEST].value

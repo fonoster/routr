@@ -4,12 +4,14 @@
  *
  * Unit Test for core functionalities
  */
-import GatewaysAPI from 'data_provider/gateways_api'
-import PeersAPI from 'data_provider/peers_api'
-import DIDsAPI from 'data_provider/dids_api'
-import DomainsAPI from 'data_provider/domains_api'
-import AgentsAPI from 'data_provider/agents_api'
+import FilesDataSource from 'data_api/files_datasource'
+import GatewaysAPI from 'data_api/gateways_api'
+import PeersAPI from 'data_api/peers_api'
+import DIDsAPI from 'data_api/dids_api'
+import DomainsAPI from 'data_api/domains_api'
+import AgentsAPI from 'data_api/agents_api'
 import RouteInfo from 'core/processor/route_info'
+import getConfig from 'core/config_util.js'
 
 const sipFactory = Packages.javax.sip.SipFactory.getInstance()
 const messageFactory = sipFactory.createMessageFactory()
@@ -20,12 +22,18 @@ const Request = Packages.javax.sip.message.Request
 const userAgent = new java.util.ArrayList()
 userAgent.add('Test I/O v1.0')
 
+const config = getConfig()
+// Forces data source to use its own default parameters...
+delete config.spec.dataSource.parameters
+
+const ds = new FilesDataSource(config)
+
 const dataAPIs = {
-    AgentsAPI: new AgentsAPI(),
-    DomainsAPI: new DomainsAPI(),
-    DIDsAPI: new DIDsAPI(),
-    GatewaysAPI: new GatewaysAPI(),
-    PeersAPI: new PeersAPI()
+    AgentsAPI: new AgentsAPI(ds),
+    DomainsAPI: new DomainsAPI(ds),
+    DIDsAPI: new DIDsAPI(ds),
+    GatewaysAPI: new GatewaysAPI(ds),
+    PeersAPI: new PeersAPI(ds)
 }
 
 export let testGroup = { name: "Core Processor Module" }

@@ -4,7 +4,7 @@
  *
  * Unit Test for the "Core Module"
  */
-import DSUtil from 'data_provider/utils'
+import DSUtil from 'data_api/utils'
 import FilesUtil from 'utils/files_util'
 import getConfig from 'core/config_util'
 import IPUtil from 'core/ip_util'
@@ -17,7 +17,6 @@ testGroup.config_func = function () {
     assertTrue(result != undefined)
 }
 
-/*
 testGroup.validate_config = function () {
     const valid = DSUtil.isValidDataSource('etc/schemas/config_schema.json', FilesUtil.readFile('config/config.yml'))
     assertTrue(valid)
@@ -37,4 +36,3 @@ testGroup.ip_utils = function () {
     assertTrue(ipUtil.isLocalnet('192.168.0.14'))
     assertFalse(ipUtil.isLocalnet('35.196.78.166'))
 }
-*/

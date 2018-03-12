@@ -19,8 +19,8 @@ export const Status = {
     404: {value:'Not found'},
     405: {value:'Operation not supported by data source provider'},
     409: {value:'An attempt was made to create an object that already exists'},
-    409.1: {value:'Found one or more unfulfilled dependencies'},
-    409.2: {value:'Found one or more dependent objects'},
+    4091: {value:'Found one or more unfulfilled dependencies'},
+    4092: {value:'Found one or more dependent objects'},
     500: {value:'The execution of the service failed'}
   }
 }

@@ -3,7 +3,7 @@
  * @since v1
  */
 import getConfig from 'core/config_util'
-import { Status } from 'data_provider/status'
+import { Status } from 'data_api/status'
 import getJWTToken from 'rest/jwt_token_generator'
 import agentsService from 'rest/agents_service.js'
 import peersService from 'rest/peers_service.js'

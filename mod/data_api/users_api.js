@@ -2,15 +2,13 @@
  * @author Pedro Sanders
  * @since v1
  */
-import DataSource from 'ext/redis_data_provider/ds'
-import DSUtil from 'data_provider/utils'
-import { Status } from 'data_provider/status'
+import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
 
 export default class UsersAPI {
 
-    constructor() {
-        this.ds = new DataSource()
+    constructor(dataSource) {
+        this.ds = dataSource
     }
 
     createFromJSON(jsonObj) {
@@ -34,10 +32,34 @@ export default class UsersAPI {
     }
 
     getUsers(filter) {
-        return this.ds.withCollection('users').filter(filter)
+        return this.ds.withCollection('users').find(filter)
     }
 
-    getUser(username) {
+    getUser(ref) {
+        const response = this.getUsers()
+        let user
+
+        response.result.forEach(obj => {
+            if (obj.metadata.ref == ref) {
+                user = obj
+            }
+        })
+
+        if (!isEmpty(user)) {
+            return {
+                status: Status.OK,
+                message: Status.message[Status.OK].value,
+                result: user
+            }
+        }
+
+        return {
+            status: Status.NOT_FOUND,
+            message: Status.message[Status.NOT_FOUND].value
+        }
+    }
+
+    getUserByUsername(username) {
         const response = this.getUsers()
         let user
 

@@ -2,24 +2,22 @@
  * @author Pedro Sanders
  * @since v1
  */
-import DataSource from 'ext/redis_data_provider/ds'
-import DSUtil from 'data_provider/utils'
-import { Status } from 'data_provider/status'
+import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
 
 export default class DIDsAPI {
 
-    constructor() {
-        this.ds = new DataSource()
+    constructor(dataSource) {
+        this.ds = dataSource
     }
 
     createFromJSON(jsonObj) {
-        const response = this.ds.withCollection('gateways').find("@.metadata.ref==" + jsonObj.metadata.gwRef)
+        const response = this.ds.withCollection('gateways').find("@.metadata.ref=='" + jsonObj.metadata.gwRef + "'")
 
         if (response.result.length == 0) {
             return {
                 status: Status.CONFLICT,
-                message: Status.message[409.1].value
+                message: Status.message[4091].value
             }
         }
 
@@ -29,15 +27,17 @@ export default class DIDsAPI {
                 message: Status.message[Status.CONFLICT].value,
             }
         }
+
+        return this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        const response = this.ds.withCollection('gateways').find("@.metadata.ref==" + jsonObj.metadata.gwRef)
+        const response = this.ds.withCollection('gateways').find("@.metadata.ref=='" + jsonObj.metadata.gwRef + "'")
 
         if (response.result.length == 0) {
             return {
                 status: Status.CONFLICT,
-                message: Status.message[409.1].value
+                message: Status.message[4091].value
             }
         }
 
@@ -47,6 +47,8 @@ export default class DIDsAPI {
                 message: Status.message[Status.NOT_FOUND].value,
             }
         }
+
+        return this.ds.update(jsonObj)
     }
 
     getDIDs(filter) {

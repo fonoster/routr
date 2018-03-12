@@ -4,15 +4,21 @@
  *
  * Unit Test for the "Fonoster Resources Module"
  */
-import DataSource from 'ext/redis_data_provider/ds'
-import AgentsAPI from 'ext/redis_data_provider/agents_api'
-import { Status } from 'data_provider/status'
+import RedisDataSource from 'data_api/redis_datasource'
+import AgentsAPI from 'data_api/agents_api'
+import { Status } from 'data_api/status'
+import getConfig from 'core/config_util.js'
 
 const ObjectId = Packages.org.bson.types.ObjectId
-const agentsApi = new AgentsAPI()
-export let testGroup = { name: "Redis Data Provider" }
 
-const ds = new DataSource()
+export let testGroup = { name: "Redis Data Source " }
+
+const config = getConfig()
+// To force RedisDataSource to use its own default parameters...
+delete config.spec.dataSource.parameters
+
+const ds = new RedisDataSource(config)
+const agentsApi = new AgentsAPI(ds)
 
 testGroup.basic_operations = function () {
     let agent = {

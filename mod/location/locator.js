@@ -7,7 +7,7 @@
  */
 import isEmpty from 'utils/obj_util'
 import { Status } from 'location/status'
-import { Status as RStatus } from 'data_provider/status'
+import { Status as RStatus } from 'data_api/status'
 
 const HashMap = Packages.java.util.HashMap
 const LogManager = Packages.org.apache.logging.log4j.LogManager

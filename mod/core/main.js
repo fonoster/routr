@@ -6,26 +6,17 @@ import Server from 'core/server'
 import Locator from 'location/locator.js'
 import Registrar from 'registrar/registrar'
 // Default Data Provider (from files)
-import UsersAPI from 'data_provider/users_api'
-import AgentsAPI from 'data_provider/agents_api'
-import DomainsAPI from 'data_provider/domains_api'
-import PeersAPI from 'data_provider/peers_api'
-import GatewaysAPI from 'data_provider/gateways_api'
-import DIDsAPI from 'data_provider/dids_api'
-// RESTful API Data Provider
-import RestUsersAPI from 'ext/rest_data_provider/users_api'
-import RestAgentsAPI from 'ext/rest_data_provider/agents_api'
-import RestDomainsAPI from 'ext/rest_data_provider/domains_api'
-import RestPeersAPI from 'ext/rest_data_provider/peers_api'
-import RestGatewaysAPI from 'ext/rest_data_provider/gateways_api'
-import RestDIDsAPI from 'ext/rest_data_provider/dids_api'
-// Redis Data Provider
-import RedisUsersAPI from 'ext/redis_data_provider/users_api'
-import RedisAgentsAPI from 'ext/redis_data_provider/agents_api'
-import RedisDomainsAPI from 'ext/redis_data_provider/domains_api'
-import RedisPeersAPI from 'ext/redis_data_provider/peers_api'
-import RedisGatewaysAPI from 'ext/redis_data_provider/gateways_api'
-import RedisDIDsAPI from 'ext/redis_data_provider/dids_api'
+import UsersAPI from 'data_api/users_api'
+import AgentsAPI from 'data_api/agents_api'
+import DomainsAPI from 'data_api/domains_api'
+import PeersAPI from 'data_api/peers_api'
+import GatewaysAPI from 'data_api/gateways_api'
+import DIDsAPI from 'data_api/dids_api'
+// Data sources
+import FilesDataSource from 'data_api/files_datasource'
+import RedisDataSource from 'data_api/redis_datasource'
+import RestfulDataSource from 'data_api/restful_datasource'
+
 import getConfig from 'core/config_util.js'
 
 let config = getConfig()
@@ -34,38 +25,26 @@ let config = getConfig()
 org.apache.log4j.BasicConfigurator.configure(new
     org.apache.log4j.varia.NullAppender())
 
-let dataAPIs
+let dataSource
 
 if (config.spec.dataSource.provider == 'default') {
-    dataAPIs = {
-        UsersAPI: new UsersAPI(),
-        AgentsAPI: new AgentsAPI(),
-        DomainsAPI: new DomainsAPI(),
-        DIDsAPI: new DIDsAPI(),
-        GatewaysAPI: new GatewaysAPI(),
-        PeersAPI: new PeersAPI()
-    }
-} else if(config.spec.dataSource.provider == 'rest_data_provider') {
-    dataAPIs = {
-        UsersAPI: new RestUsersAPI(),
-        AgentsAPI: new RestAgentsAPI(),
-        DomainsAPI: new RestDomainsAPI(),
-        DIDsAPI: new RestDIDsAPI(),
-        GatewaysAPI: new RestGatewaysAPI(),
-        PeersAPI: new RestPeersAPI()
-    }
+    dataSource = new FilesDataSource()
+} else if(config.spec.dataSource.provider == 'restful_data_provider') {
+    dataSource = new RestfulDataSource()
 } else if(config.spec.dataSource.provider == 'redis_data_provider') {
-    dataAPIs = {
-        UsersAPI: new UsersAPI(),
-        DomainsAPI: new RedisDomainsAPI(),
-        AgentsAPI: new RedisAgentsAPI(),
-        DIDsAPI: new RedisDIDsAPI(),
-        GatewaysAPI: new RedisGatewaysAPI(),
-        PeersAPI: new RedisPeersAPI()
-    }
-}else {
+    dataSource = new RedisDataSource()
+} else {
     print ('Invalid data source')
     exit(1)
+}
+
+const dataAPIs = {
+    UsersAPI: new UsersAPI(dataSource),
+    AgentsAPI: new AgentsAPI(dataSource),
+    DomainsAPI: new DomainsAPI(dataSource),
+    DIDsAPI: new DIDsAPI(dataSource),
+    GatewaysAPI: new GatewaysAPI(dataSource),
+    PeersAPI: new PeersAPI(dataSource)
 }
 
 const locator = new Locator(dataAPIs)
