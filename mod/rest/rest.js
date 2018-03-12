@@ -30,7 +30,8 @@ export default class Rest {
         this.rest = config.spec.services.rest
         this.system = config.system
 
-        LOG.info('Starting Restful service on port ' + this.rest.port)
+        LOG.info("Starting Restful service (port: " + this.rest.port + ", apiPath: '" + this.system.apiPath + "')")
+
         Spark.secure(config.spec.services.rest.secure.keyStore,
             config.spec.services.rest.secure.keyStorePassword,
                 config.spec.services.rest.secure.trustStore,
