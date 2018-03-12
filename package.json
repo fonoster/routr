@@ -5,7 +5,7 @@
   "scripts": {
     "transpile": "./node_modules/.bin/babel --out-dir node_modules mod",
     "bundle": "./node_modules/.bin/webpack --config webpack.config.js",
-    "test": "./etc/tests/tester 'utils/test' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'data_provider/test' 'rest/test' 'ext/redis_data_provider/test'",
+    "test": "./etc/tests/tester 'utils/test' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'rest/test' 'data_api/test_redis_datasource' 'data_api/test_files_datasource' 'data_api/test_restful_datasource'",
     "pack": "./pack.sh",
     "prebundle": "gradle shadowJar && npm run transpile",
     "pretest": "npm run bundle",
