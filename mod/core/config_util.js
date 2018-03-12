@@ -10,9 +10,18 @@ const System = Packages.java.lang.System
 const UUID = Packages.java.util.UUID
 
 export default function () {
-    // TODO: Create ENV "SIPIO_CONFIG_PATH" to allow for dynamic change of this parameter
-    // FIXME: This should be a try and catch
-    const config = DSUtil.convertToJson(FilesUtil.readFile('config/config.yml'))
+    let config
+
+    try {
+        if (System.getenv("SIPIO_CONFIG_PATH") != null) {
+            config = DSUtil.convertToJson(FilesUtil.readFile(System.getenv("SIPIO_CONFIG_PATH") + '/config.yml'))
+        } else {
+            config = DSUtil.convertToJson(FilesUtil.readFile('config/config.yml'))
+        }
+    } catch(e) {
+        print('Unable to open configuration file')
+        exit(1)
+    }
 
     // Find or generate SALT
     if (System.getenv("SIPIO_SALT") != null) {
@@ -91,6 +100,7 @@ export default function () {
     config.system.apiVersion = 'v1draft1'
     config.system.apiPath = '/api' + '/' + config.system.apiVersion
     config.system.env = []
+    config.system.env.push({"var":'SIPIO_CONFIG_PATH', "value":System.getenv("SIPIO_CONFIG_PATH")})
     config.system.env.push({"var":'SIPIO_SALT', "value":System.getenv("SIPIO_EXTERN_ADDR")})
     config.system.env.push({"var":'SIPIO_EXTERN_ADDR', "value":System.getenv("SIPIO_EXTERN_ADDR")})
     config.system.env.push({"var":'SIPIO_LOCALNETS', "value":System.getenv("SIPIO_LOCALNETS")})

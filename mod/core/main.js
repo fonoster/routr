@@ -27,7 +27,7 @@ org.apache.log4j.BasicConfigurator.configure(new
 
 let dataSource
 
-if (config.spec.dataSource.provider == 'default') {
+if (config.spec.dataSource.provider == 'files_data_provider') {
     dataSource = new FilesDataSource()
 } else if(config.spec.dataSource.provider == 'restful_data_provider') {
     dataSource = new RestfulDataSource()
