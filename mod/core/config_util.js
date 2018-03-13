@@ -107,7 +107,7 @@ export default function () {
     config.system.env.push({"var":'SIPIO_DS_PROVIDER', "value":System.getenv("SIPIO_DS_PROVIDER")})
     config.system.env.push({"var":'SIPIO_DS_PARAMETERS', "value":System.getenv("SIPIO_DS_PARAMETERS")})
     config.system.env.push({"var":'SIPIO_CONFIG_PATH', "value":System.getenv("SIPIO_CONFIG_PATH")})
-    config.system.env.push({"var":'SIPIO_SALT', "value":System.getenv("SIPIO_EXTERN_ADDR")})
+    config.system.env.push({"var":'SIPIO_SALT', "value":System.getenv("SIPIO_SALT")})
     config.system.env.push({"var":'SIPIO_EXTERN_ADDR', "value":System.getenv("SIPIO_EXTERN_ADDR")})
     config.system.env.push({"var":'SIPIO_LOCALNETS', "value":System.getenv("SIPIO_LOCALNETS")})
 
@@ -116,3 +116,15 @@ export default function () {
 
     return config
 }
+
+
+keytool -genkey -keyalg RSA \
+-noprompt \
+-alias sipio \
+-keystore api-cert.jks \
+-storepass changeit \
+-keypass changeit \
+-validity 365 \
+-keysize 2048 \
+-dname "CN=localhost, OU=OSS, O=Fonoster Inc, L=Sanford, ST=NC, C=US" \
+-ext SAN=dns:localhost,ip:127.0.0.1

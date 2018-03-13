@@ -17,7 +17,6 @@ cp -a config $FOLDER_NAME
 cp -a etc $FOLDER_NAME
 cp libs/* $FOLDER_NAME/libs
 cp sipio $FOLDER_NAME/
-cp sipioctl $FOLDER_NAME/
 cp README.md $FOLDER_NAME/
 cp LICENSE $FOLDER_NAME/
 cp run.sh $FOLDER_NAME/
