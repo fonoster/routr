@@ -148,7 +148,7 @@ export default class Registry {
             s.push(reg)
         }
 
-        return JSON.stringify(s)
+        return s
     }
 
     start() {

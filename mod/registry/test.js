@@ -19,7 +19,7 @@ export let testGroup = { name: "Registry Module" }
 testGroup.store_registry = function () {
     const registry = new Registry(null, dataAPIs)
     registry.storeRegistry('29121', 'sanjose2.voip.ms', 200)
-    assertFalse(registry.listAsJSON().isEmpty())
+    assertTrue(registry.listAsJSON().length == 1)
     assertTrue(registry.hasHost('sanjose2.voip.ms'))
     assertFalse(registry.hasHost('atlanta.voip.ms'))
 

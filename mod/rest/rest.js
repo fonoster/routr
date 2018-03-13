@@ -82,9 +82,21 @@ export default class Rest {
 
             get("/credentials", (req, res) => getJWTToken(req, res, this.config.salt))
 
-            get('/location', (req, res) => this.locator.listAsJSON())
+            get('/location', (req, res) => {
+                return JSON.stringify({
+                    status: Status.OK,
+                    message: Status.message[Status.OK].value,
+                    result: this.locator.listAsJSON()
+                })
+            })
 
-            get('/registry', (req, res) => this.registry.listAsJSON())
+            get('/registry', (req, res) => {
+                return JSON.stringify({
+                    status: Status.OK,
+                    message: Status.message[Status.OK].value,
+                    result: this.registry.listAsJSON()
+                })
+            })
 
             agentsService(this.dataAPIs.AgentsAPI, this.config.salt)
             peersService(this.dataAPIs.PeersAPI, this.config.salt)
