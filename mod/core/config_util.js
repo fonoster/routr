@@ -93,7 +93,6 @@ export default function () {
     if (!config.spec.dataSource) {
         config.spec.dataSource = {}
         config.spec.dataSource.provider = 'files_data_provider'
-        config.spec.dataSource.parameters = {}
     }
 
     if (System.getenv("SIPIO_DS_PROVIDER") != null) {
