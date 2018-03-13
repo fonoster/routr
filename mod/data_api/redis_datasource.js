@@ -11,12 +11,35 @@ const Jedis = Packages.redis.clients.jedis.Jedis
 const ObjectId = Packages.org.bson.types.ObjectId
 const JsonPath = Packages.com.jayway.jsonpath.JsonPath
 const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
+const System = Packages.java.lang.System
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 
 export default class RedisDataSource {
 
     constructor(config = getConfig()) {
+        if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
+            config.spec.dataSource.parameters = {}
+            const parameters = System.getenv("SIPIO_DS_PARAMETERS").split(",")
+            parameters.forEach(par => {
+                const key = par.split("=")[0]
+                const value =  par.split("=")[1]
+                switch (key) {
+                    case "host":
+                        config.spec.dataSource.parameters.host = value
+                        break
+                    case "port":
+                        config.spec.dataSource.parameters.username = value
+                        break
+                    case "secret":
+                        config.spec.dataSource.parameters.secret = value
+                        break
+                    default:
+                     LOG.warn('Invalid parameter: ' + key)
+                }
+            })
+        }
+
         if (!config.spec.dataSource.parameters) {
             config.spec.dataSource.parameters = {}
             config.spec.dataSource.parameters.host = 'localhost'

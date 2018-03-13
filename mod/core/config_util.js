@@ -39,14 +39,17 @@ export default function () {
         }
     }
 
-    if (System.getenv("SIPIO_EXTERN_ADDR") != null)
+    if (System.getenv("SIPIO_EXTERN_ADDR") != null) {
         config.spec.externAddr = Packages.java.lang.System.getenv("SIPIO_EXTERN_ADDR")
+    }
 
-    if (System.getenv("SIPIO_LOCALNETS") != null)
+    if (System.getenv("SIPIO_LOCALNETS") != null) {
         config.spec.localnets = Packages.java.lang.System.getenv("SIPIO_LOCALNETS").split(",")
+    }
 
-    if (config.spec.bindAddr == undefined)
+    if (config.spec.bindAddr == undefined) {
         config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
+    }
 
     if (config.spec.restService == undefined) {
         config.spec.restService = {}
@@ -90,6 +93,11 @@ export default function () {
     if (!config.spec.dataSource) {
         config.spec.dataSource = {}
         config.spec.dataSource.provider = 'files_data_provider'
+        config.spec.dataSource.parameters = {}
+    }
+
+    if (System.getenv("SIPIO_DS_PROVIDER") != null) {
+        config.spec.dataSource.provider = System.getenv("SIPIO_DS_PROVIDER")
     }
 
     config.system = {}
@@ -97,6 +105,8 @@ export default function () {
     config.system.apiVersion = 'v1draft1'
     config.system.apiPath = '/api' + '/' + config.system.apiVersion
     config.system.env = []
+    config.system.env.push({"var":'SIPIO_DS_PROVIDER', "value":System.getenv("SIPIO_DS_PROVIDER")})
+    config.system.env.push({"var":'SIPIO_DS_PARAMETERS', "value":System.getenv("SIPIO_DS_PARAMETERS")})
     config.system.env.push({"var":'SIPIO_CONFIG_PATH', "value":System.getenv("SIPIO_CONFIG_PATH")})
     config.system.env.push({"var":'SIPIO_SALT', "value":System.getenv("SIPIO_EXTERN_ADDR")})
     config.system.env.push({"var":'SIPIO_EXTERN_ADDR', "value":System.getenv("SIPIO_EXTERN_ADDR")})

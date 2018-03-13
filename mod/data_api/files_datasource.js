@@ -9,10 +9,19 @@ import DSUtils from 'data_api/utils'
 import FilesUtil from 'utils/files_util'
 
 const JsonPath = Packages.com.jayway.jsonpath.JsonPath
+const System = Packages.java.lang.System
 
 export default class FilesDataSource {
 
     constructor(config = getConfig()) {
+        if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
+            config.spec.dataSource.parameters = {}
+            const key = System.getenv("SIPIO_DS_PARAMETERS").split("=")[0]
+            if (key == 'path') {
+               config.spec.dataSource.parameters.path = System.getenv("SIPIO_DS_PARAMETERS").split("=")[1]
+            }
+        }
+
         if (!config.spec.dataSource.parameters) {
             config.spec.dataSource.parameters = {}
             config.spec.dataSource.parameters.path = 'config'

@@ -9,12 +9,36 @@ import isEmpty from 'utils/obj_util'
 
 const Unirest = Packages.com.mashape.unirest.http.Unirest
 const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
+const System = Packages.java.lang.System
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 
 export default class RestfulDataSource {
 
     constructor(dataSource, config = getConfig()) {
+
+        if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
+            config.spec.dataSource.parameters = {}
+            const parameters = System.getenv("SIPIO_DS_PARAMETERS").split(",")
+            parameters.forEach(par => {
+                const key = par.split("=")[0]
+                const value =  par.split("=")[1]
+                switch (key) {
+                    case "baseUrl":
+                        config.spec.dataSource.parameters.baseUrl = value
+                        break
+                    case "username":
+                        config.spec.dataSource.parameters.username = value
+                        break
+                    case "secret":
+                        config.spec.dataSource.parameters.secret = value
+                        break
+                    default:
+                        LOG.warn('Invalid parameter: ' + key)
+                }
+            })
+        }
+
         if (!config.spec.dataSource.parameters) {
             config.spec.dataSource.parameters = {}
             config.spec.dataSource.parameters.baseUrl = 'http://localhost/v1/ctl'
