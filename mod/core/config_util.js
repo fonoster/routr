@@ -34,7 +34,7 @@ export default function () {
             config.salt = FilesUtil.readFile(pathToSalt)
         } else {
             const genSalt = UUID.randomUUID().toString().replaceAll("-", "")
-            writeFile(pathToSalt, genSalt)
+            FilesUtil.writeFile(pathToSalt, genSalt)
             config.salt = genSalt
         }
     }
