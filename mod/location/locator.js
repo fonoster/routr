@@ -173,7 +173,7 @@ export default class Locator {
             s.push(tmp)
         }
 
-        return JSON.stringify(s)
+        return s
     }
 
     // See NOTE #1
