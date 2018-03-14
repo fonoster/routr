@@ -262,7 +262,7 @@ export default class Locator {
                                     gwUsername: gwUsername,
                                     gwRef: gwRef,
                                     gwHost: gwHost,
-                                    didRef: did.metadata.didRef,
+                                    didRef: did.metadata.ref,
                                     did: did.spec.location.telUrl.split(':')[1],
                                     contactURI: contactURI
                                 }
