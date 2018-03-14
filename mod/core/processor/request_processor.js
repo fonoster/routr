@@ -163,7 +163,7 @@ export default class RequestProcessor {
             }
 
             // 3.1 Intra-Domain Routing(IDR), Domain Ingress Routing (DIR), & Domain Egress Routing (DER)
-            response = this.locator.findEndpoint(addressOfRecord)
+            const response = this.locator.findEndpoint(addressOfRecord)
 
             if (response.status == Status.NOT_FOUND) {
                 serverTransaction.sendResponse(this.messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, requestIn))
