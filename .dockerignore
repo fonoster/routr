@@ -5,6 +5,7 @@ _config.yml
 *.iws
 *.tar.gz
 *.zip
+*.jar
 .DS_Store
 .dockerignore
 .git
@@ -12,3 +13,4 @@ _config.yml
 .gradle
 .idea
 build
+node_modules
