@@ -1,8 +1,9 @@
-FROM openjdk:alpine
+FROM alpine
 MAINTAINER Pedro Sanders <fonosterteam@fonoster.com>
 
 ENV LANG C.UTF-8
 ENV PATH=/opt/gradle/bin:${PATH}
+ENV PATH $PATH:/usr/lib/jvm/java-1.8-openjdk/jre/bin:/usr/lib/jvm/java-1.8-openjdk/bin
 
 COPY . /opt/sipio
 WORKDIR /opt/sipio
@@ -12,12 +13,15 @@ RUN wget https://services.gradle.org/distributions/gradle-4.5-bin.zip  \
     && unzip gradle-4.5-bin.zip \
     && mv gradle-4.5/* /opt/gradle \
     && rm gradle-4.5-bin.zip \
-    && apk add --update nodejs nodejs-npm && npm i && npm test && npm prune && rm -rf node_modules &&  apk add redis \
+    && apk add --update openjdk8 nodejs nodejs-npm redis \
+    && npm i && npm test && npm prune && rm -rf node_modules \
+    && apk del nodejs nodejs-npm \
     && wget https://github.com/fonoster/sipioctl/releases/download/1.0.0-alpha/sipioctl.1.0.0-alpha.tar.gz \
     && tar xvf sipioctl.1.0.0-alpha.tar.gz \
     && mv sipioctl.1.0.0-alpha/sipioctl . \
     && mv sipioctl.1.0.0-alpha/libs/* libs \
     && rm -rf sipioctl.1.0.0-alpha \
+        /var/cache/apk/* \
         sipioctl.1.0.0-alpha.tar.gz \
         /opt/gradle \
         .babelrc \
