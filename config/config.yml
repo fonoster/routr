@@ -6,12 +6,6 @@ spec:
     keyStorePassword: 'password'
     keyStoreType: 'jks'
     debugging: false
-  dataSource:
-    provider: 'restful_data_provider'
-    parameters:
-      baseUrl: http://localhost:8080/v1/ctl
-      username: admin
-      secret: 308a002ab539471394a06ce710bc96c2
   transport:
     - protocol: udp
       port: 5060
