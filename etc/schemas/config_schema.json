@@ -40,6 +40,25 @@
                     "minItems": 1,
                     "uniqueItems": true
                 },
+                "restService": {
+                    "type": "object",
+                    "properties": {
+                        "unsecured": { "type": "boolean" },
+                        "port": { "type": "integer" },
+                        "bindAddr": { "type": "string" },
+                        "keyStore": { "type": "string" },
+                        "trustStore": { "type": "string" },
+                        "keyStorePassword": { "type": "string" },
+                        "trustStorePassword": { "type": "string" }
+                    }
+                },
+                "dataSource": {
+                    "type": "object",
+                    "properties": {
+                        "provider": { "type": "String" }
+                    },
+                    "required": ["provider"]
+                },
                 "securityContext": {
                     "type": "object",
                     "properties": {

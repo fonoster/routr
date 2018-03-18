@@ -55,23 +55,30 @@ export default function () {
         config.spec.restService = {}
     }
 
-    if (config.spec.restService.keyStore == undefined)
+    if (config.spec.restService.keyStore == undefined) {
         config.spec.restService.keyStore = 'etc/certs/api-cert.jks'
-
-    if (config.spec.restService.keyStorePassword == undefined)
         config.spec.restService.keyStorePassword = 'changeit'
+    }
 
-    if (config.spec.restService.trustStore == undefined)
+    if (config.spec.restService.unsecured == undefined) {
+        config.spec.restService.unsecured = false
+    }
+
+    if (config.spec.restService.trustStore == undefined) {
         config.spec.restService.trustStore = null
+    }
 
-    if (config.spec.restService.trustStorePassword == undefined)
+    if (config.spec.restService.trustStorePassword == undefined) {
         config.spec.restService.trustStorePassword = null
+    }
 
-    if (config.spec.restService.bindAddr == undefined)
-        config.spec.restService.bindAddr = InetAddress.getLocalHost().getHostAddress()
+    if (config.spec.restService.bindAddr == undefined) {
+        config.spec.restService.bindAddr = '0.0.0.0'
+    }
 
-    if (config.spec.restService.port == undefined)
+    if (config.spec.restService.port == undefined) {
         config.spec.restService.port = 4567
+    }
 
     if (config.spec.securityContext) {
         if (config.spec.securityContext.client == undefined) config.spec.securityContext.client = {}

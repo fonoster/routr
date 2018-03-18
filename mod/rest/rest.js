@@ -32,10 +32,15 @@ export default class Rest {
 
         LOG.info("Starting Restful service (port: " + this.rest.port + ", apiPath: '" + this.system.apiPath + "')")
 
-        Spark.secure(config.spec.restService.keyStore,
-            config.spec.restService.keyStorePassword,
-                config.spec.restService.trustStore,
-                    config.spec.restService.trustStorePassword)
+        Spark.ipAddress(this.rest.bindAddr)
+
+        if(!this.rest.unsecured) {
+            Spark.secure(config.spec.restService.keyStore,
+                config.spec.restService.keyStorePassword,
+                    config.spec.restService.trustStore,
+                        config.spec.restService.trustStorePassword)
+        }
+
         Spark.port(this.rest.port)
         Spark.internalServerError((req, res) => {
             res.type("application/json");
