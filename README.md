@@ -23,43 +23,51 @@
 
 ## Key Features
 
-**Sip Server Features**
-
 - Proxy
 - Registrar Service
+- Location Service
 - Call Forking
-- Location Service (In-memory)
-- Multi-Tenancy
+- Multi-Tenancy/Multi-Domain
 - Access to the PSTN Using SIP Gateways
-
-**Transport**
-
-- TCP
-- UDP
-- TLS
-- Websocket
-
-**Security**
-
-- Digest SIP User Authentication
-- Domain Access Control List (DACL)
-- RESTful service secured with TLS and JWT tokens
-
-**Other**
-
-- Rest Service
+- Transport: TCP, UDP, TLS, Websocket
+- Security
+  - Digest SIP User Authentication
+  - Domain Access Control List (DACL)
+  RESTful service secured with TLS and JWT tokens
+- Rest API
 - Command Line Tool for Admin Operations
-- Routing: Intra-Domain Routing (IDR), Domain Ingress Routing(DIR), Domain Egress Routing (DER), Peer Egress Routing (PER)
+- Routing Capabilities
+  - Intra-Domain Routing (IDR)
+  - Domain Ingress Routing(DIR)
+  - Domain Egress Routing (DER)
+  - Peer Egress Routing (PER)
 
 ## Quick Start
 
-Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M3/sipio.1.0.0-M3.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M3/sipio.1.0.0-M3.zip), and then from within the server's folder simply run:
+Download and run the server
 
 ```bash
+wget https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio.1.0.0-M5.tar.gz
+tar -xvf sipio.1.0.0-M5.tar.gz
+cd sipio.1.0.0-M5
 ./sipio
 ```
 
-Alternatively, try using our experimental [docker image](https://github.com/fonoster/sipio/wiki/Running-on-Docker)
+> Requires `Java 1.8 +`
+
+Running with Docker
+
+```bash
+docker pull fonoster/sipio
+
+docker run -it \
+    -p 4567:4567 \
+    -p 5060:5060 \
+    -p 5060:5060/udp \
+    -p 5061-5063:5061-5063 \
+    -e SIPIO_EXTERN_ADDR=${your host address} \
+    fonoster/sipio
+```
 
 ## Bugs and Feedback
 
