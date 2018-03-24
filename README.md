@@ -32,8 +32,8 @@
 - Call Forking
 - Multi-Tenancy/Multi-Domain
 - Access to the PSTN Using SIP Gateways
-- Transport: TCP, UDP, TLS, Websocket
-- Data Sources: Redis, Restul API, Files 
+- Transport: TCP, UDP, TLS, WebSocket
+- Data Sources: Redis, Restful API, Files 
 - Restful API
 - Command Line Tool for Admin Operations
 - Routing Capabilities
