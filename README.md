@@ -8,14 +8,11 @@
 
 <h4 align="center">Next-generation Sip Server.</h4>
 
-
-
 <p align="center">
   <a href="#key-features">Key Features</a> •
-  <a href="#how-to-use">How To Use</a> •
-  <a href="#download">Download</a> •
-  <a href="#credits">Credits</a> •
-  <a href="#related">Related</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#bugs-and-feedback">Bugs and Feedback</a> •
+  <a href="#Contributing">Contributing</a> •
   <a href="#license">License</a>
 </p>
 
@@ -23,42 +20,38 @@
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/fonoster/sipio/issues) [![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-## Table of Contents
 
-- [Introduction](#introduction)
-- [Features](#features)
-- [Feedback](#feedback)
-- [Contributors](#contributors)
-- [Build Process](#build-process)
-- [Backers](#backers-)
-- [Sponsors](#sponsors-)
-- [Acknowledgments](#acknowledgments)
+## Key Features
 
-# Introduction
+**Sip Server Features**
 
-**Sip I/O** is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. For a list of features and documentation about the project please visit the [wiki](https://github.com/fonoster/sipio/wiki/Home). To get involved in the development of this project, please contact us at [@fonoster](https://twitter.com/fonoster).
+- Proxy
+- Registrar Service
+- Call Forking
+- Location Service (In-memory)
+- Multi-Tenancy
+- Access to the PSTN Using SIP Gateways
 
-## Configuration Overview
+**Transport**
 
-**Sip I/O**  API version is currently `v1draft1`. We will continue to improve the API, resource definition, and other artifacts until we reach a beta version. We will then establish an update policy to ensure backward compatibility. The configuration files are beautifully implemented using YAML(inspired by [Docker](https://www.docker.com/) and [Kubernetes](https://kubernetes.io/)) so this might be familiar to you. Here is an example of a `Domain` configuration:
+- TCP
+- UDP
+- TLS
+- Websocket
 
-```yml
-- apiVersion: v1draft1
-  kind: Domain
-  metadata:
-    name: Sip Local
-  spec:
-    context:
-      domainUri: sip.local
-      egressPolicy:
-        rule: .*
-        didRef: dd50baa4
-      accessControlList:
-        deny: [0.0.0.0/1]     # Deny all
-        allow: [192.168.0.1/31]
-```
+**Security**
 
-## Running the Server
+- Digest SIP User Authentication
+- Domain Access Control List (DACL)
+- RESTful service secured with TLS and JWT tokens
+
+**Other**
+
+- Rest Service
+- Command Line Tool for Admin Operations
+- Routing: Intra-Domain Routing (IDR), Domain Ingress Routing(DIR), Domain Egress Routing (DER), Peer Egress Routing (PER)
+
+## Quick Start
 
 Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M3/sipio.1.0.0-M3.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M3/sipio.1.0.0-M3.zip), and then from within the server's folder simply run:
 
