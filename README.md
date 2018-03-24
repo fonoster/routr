@@ -1,13 +1,25 @@
-<h1 align="center">Sip I/O</h1> <br>
-<p align="center">
-  <a href="https://gitpoint.co/">
-    <img alt="Sip IO" title="Sip IO" src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo.png" width="150">
-  </a>
-</p>
+<h1 align="center">
+  <br>
+  <a href="http://www.amitmerchant.com/electron-markdownify"><img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo.png" alt="Markdownify" width="150"></a>
+  <br>
+  Sip I/O
+  <br>
+</h1>
+
+<h4 align="center">Next-generation Sip Server.</h4>
+
+
 
 <p align="center">
-  Next-generation Sip Server.
+  <a href="#key-features">Key Features</a> •
+  <a href="#how-to-use">How To Use</a> •
+  <a href="#download">Download</a> •
+  <a href="#credits">Credits</a> •
+  <a href="#related">Related</a> •
+  <a href="#license">License</a>
 </p>
+
+![screenshot](https://raw.githubusercontent.com/wiki/fonoster/sipio/images/starting_server.png)
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/fonoster/sipio/issues) [![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
