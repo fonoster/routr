@@ -33,7 +33,7 @@
 - Security
   - Digest SIP User Authentication
   - Domain Access Control List (DACL)
-  RESTful service secured with TLS and JWT tokens
+  - RESTful service secured with TLS and JWT tokens
 - Rest API
 - Command Line Tool for Admin Operations
 - Routing Capabilities
@@ -44,7 +44,7 @@
 
 ## Quick Start
 
-Download and run the server
+**Download and run the server**
 
 ```bash
 wget https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio.1.0.0-M5.tar.gz
@@ -55,7 +55,7 @@ cd sipio.1.0.0-M5
 
 > Requires `Java 1.8 +`
 
-Running with Docker
+**Running with Docker**
 
 ```bash
 docker pull fonoster/sipio
@@ -71,7 +71,7 @@ docker run -it \
 
 ## Bugs and Feedback
 
-For bugs, questions and discussions please use the [Github Issues](https://github.com/fonoster/sipio/issues)
+For bugs, questions, and discussions please use the [Github Issues](https://github.com/fonoster/sipio/issues)
 
 ## Contributing
 
