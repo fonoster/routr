@@ -9,16 +9,7 @@
   Next-generation Sip Server.
 </p>
 
-<h1 align="center">
-  <img src="images/nerd-fonts-logo.svg" alt="Nerd Fonts Logo" />
-</h1>
-<h2 align="center">
-  <img alt="Iconic font aggregator, collection, and patcher" src="images/project-subtitle-phrase.svg" width="50%">
-</h2>
-
-<div align="center">
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/fonoster/sipio/issues) [![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-</div>
 
 ## Table of Contents
 
