@@ -1,7 +1,7 @@
 <h1 align="center">Sip I/O</h1> <br>
 <p align="center">
   <a href="https://gitpoint.co/">
-    <img alt="GitPoint" title="GitPoint" src="http://i.imgur.com/VShxJHs.png" width="450">
+    <img alt="GitPoint" title="GitPoint" src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo.png" width="450">
   </a>
 </p>
 
@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://itunes.apple.com/us/app/gitpoint/id1251245162?mt=8">
-    <img alt="Download on the App Store" title="App Store" src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo.png" width="140">
+    <img alt="Download on the App Store" title="App Store" src="http://i.imgur.com/0n2zqHD.png" width="140">
   </a>
 
   <a href="https://play.google.com/store/apps/details?id=com.gitpoint">
