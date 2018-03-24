@@ -34,17 +34,17 @@
 - Access to the PSTN Using SIP Gateways
 - Transport: TCP, UDP, TLS, Websocket
 - Data Sources: Redis, Restul API, Files 
-- Security
-  - Digest SIP User Authentication
-  - Domain Access Control List (DACL)
-  - RESTful service secured with TLS and JWT tokens
-- Rest API
+- Restful API
 - Command Line Tool for Admin Operations
 - Routing Capabilities
   - Intra-Domain Routing (IDR)
   - Domain Ingress Routing(DIR)
   - Domain Egress Routing (DER)
   - Peer Egress Routing (PER)
+- Security
+  - Digest SIP User Authentication
+  - Domain Access Control List (DACL)
+  - Restful service secured with TLS and JWT tokens
 
 ## Quick Start
 
