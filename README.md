@@ -30,6 +30,7 @@
 - Multi-Tenancy/Multi-Domain
 - Access to the PSTN Using SIP Gateways
 - Transport: TCP, UDP, TLS, Websocket
+- Data Sources: Redis, Restul API, Files 
 - Security
   - Digest SIP User Authentication
   - Domain Access Control List (DACL)
@@ -59,7 +60,6 @@ cd sipio.1.0.0-M5
 
 ```bash
 docker pull fonoster/sipio
-
 docker run -it \
     -p 4567:4567 \
     -p 5060:5060 \
