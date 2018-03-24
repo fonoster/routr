@@ -17,7 +17,7 @@
 </p>
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/running_sipio.gif" alt="Running Sip I/O" width=600>
+   <img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/running_sipio.gif" alt="Running Sip I/O" width=700>
 </div>
 
 </br>
