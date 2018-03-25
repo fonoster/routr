@@ -1,50 +1,80 @@
-# Sip I/O: Next-generation Sip Server &nbsp;[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/fonoster/sipio/issues) [![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+<h1 align="center">
+  <br>
+  <a href="http://www.amitmerchant.com/electron-markdownify"><img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo.png" alt="Running Sip I/O" width="150"></a>
+  <br>
+  Sip I/O
+  <br>
+</h1>
 
-<a href="https://github.com/fonoster/sipio"><img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo.png" align="left" hspace="10" vspace="5" width="80"></a>
+<h4 align="center">Next-generation Sip Server.</h4>
 
-**Sip I/O** is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. For a list of features and documentation about the project please visit the [wiki](https://github.com/fonoster/sipio/wiki/Home). To get involved in the development of this project, please contact us at [@fonoster](https://twitter.com/fonoster).
+<p align="center">
+  <a href="#key-features">Key Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#bugs-and-feedback">Bugs and Feedback</a> •
+  <a href="#Contributing">Contributing</a> •
+  <a href="#license">License</a>
+</p>
 
-## Resources
+<div align="center">
+   <img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/running_sipio.gif" alt="Running Sip I/O" width=700>
+</div>
 
-* [Features](https://github.com/fonoster/sipio/wiki)
-* [Release Notes](https://github.com/fonoster/sipio/releases)
-* [Security](https://github.com/fonoster/sipio/wiki/Securing-the-Signaling)
-* [Running on docker](https://github.com/fonoster/sipio/wiki/Running-on-Docker)
-* [Wiki](https://github.com/fonoster/sipio/wiki)
+</br>
 
-## Configuration Overview
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/fonoster/sipio/issues) [![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-**Sip I/O**  API version is currently `v1draft1`. We will continue to improve the API, resource definition, and other artifacts until we reach a beta version. We will then establish an update policy to ensure backward compatibility. The configuration files are beautifully implemented using YAML(inspired by [Docker](https://www.docker.com/) and [Kubernetes](https://kubernetes.io/)) so this might be familiar to you. Here is an example of a `Domain` configuration:
+## Key Features
 
-```yml
-- apiVersion: v1draft1
-  kind: Domain
-  metadata:
-    name: Sip Local
-  spec:
-    context:
-      domainUri: sip.local
-      egressPolicy:
-        rule: .*
-        didRef: dd50baa4
-      accessControlList:
-        deny: [0.0.0.0/1]     # Deny all
-        allow: [192.168.0.1/31]
-```
+- Proxy
+- Registrar Service
+- Location Service
+- Call Forking
+- Multi-Tenancy/Multi-Domain
+- Access to the PSTN Using SIP Gateways
+- Transport: TCP, UDP, TLS, WebSocket
+- Data Sources: Redis, Restful API, Files 
+- Restful API
+- Command Line Tool for Admin Operations
+- Routing Capabilities
+  - Intra-Domain Routing (IDR)
+  - Domain Ingress Routing(DIR)
+  - Domain Egress Routing (DER)
+  - Peer Egress Routing (PER)
+- Security
+  - Digest SIP User Authentication
+  - Domain Access Control List (DACL)
+  - Restful service secured with TLS and JWT tokens
 
-## Running the Server
+## Quick Start
 
-Install `Java 1.8 +`, get the binaries as [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M3/sipio.1.0.0-M3.tar.gz) or [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M3/sipio.1.0.0-M3.zip), and then from within the server's folder simply run:
+**Download and run the server**
 
 ```bash
+wget https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio.1.0.0-M5.tar.gz
+tar -xvf sipio.1.0.0-M5.tar.gz
+cd sipio.1.0.0-M5
 ./sipio
 ```
 
-Alternatively, try using our experimental [docker image](https://github.com/fonoster/sipio/wiki/Running-on-Docker)
+> Requires `Java 1.8 +`
+
+**Running with Docker**
+
+```bash
+docker pull fonoster/sipio
+docker run -it \
+    -p 4567:4567 \
+    -p 5060:5060 \
+    -p 5060:5060/udp \
+    -p 5061-5063:5061-5063 \
+    -e SIPIO_EXTERN_ADDR=${your host address} \
+    fonoster/sipio
+```
 
 ## Bugs and Feedback
 
-For bugs, questions and discussions please use the [Github Issues](https://github.com/fonoster/sipio/issues)
+For bugs, questions, and discussions please use the [Github Issues](https://github.com/fonoster/sipio/issues)
 
 ## Contributing
 

@@ -1,0 +1,5 @@
+language: node_js
+node_js:
+  - "iojs"
+  - "7"
+script: npm i && npm test
