@@ -167,41 +167,6 @@ testGroup.update_gateway = function () {
 }
 
 // This also validates the other resources
-testGroup.update_gateway = function () {
-    let gateway = {
-        apiVersion: 'v1draft1',
-        kind: 'Gateway',
-        metadata: {
-            spId: '507f1f77bcf86cd799439011',
-            name: 'Voip2 MS',
-            ref: 'GW0001'
-        },
-        spec: {
-            regService: {
-                transport: 'tcp',
-                host: 'atlanta13.voip.ms',
-                credentials: {
-                    username: '215706',
-                    secret: 'iymscvb4rUSG4T0P4RD0'
-                }
-            }
-        }
-    }
-
-    let response = ds.insert(gateway)
-    const ref = response.result
-    assertTrue(response.status == Status.CREATED)
-
-    gateway.metadata.name = 'Voip Change'
-    gateway.metadata.ref = ref
-    response = ds.update(gateway)
-    assertTrue(response.status == Status.OK)
-
-    response = ds.withCollection('gateways').remove(ref)
-    assertTrue(response.status == Status.OK)
-}
-
-// This also validates the other resources
 testGroup.update_domain = function () {
     let domain = {
         apiVersion: 'v1draft1',
