@@ -50,16 +50,14 @@ Documentation and tutorials available [here](https://github.com/fonoster/sipio/w
 
 ## Quick Start
 
-**Download and run the server**
+**Download the server**
 
-```bash
-wget https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio.1.0.0-M5.tar.gz
-tar -xvf sipio.1.0.0-M5.tar.gz
-cd sipio.1.0.0-M5
-./sipio
-```
-
-> Requires `Java 1.8 +`
+| Platform | Download |
+| -- | -- |
+| Linux | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_linux-x64_bin.tar.gz) |  
+| macOS | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_osx-x64_bin.tar.gz) |  
+| Windows | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_windows-x64_bin.zip) |  
+| Docker | [img](https://hub.docker.com/r/fonoster/sipio/) |  
 
 **Running with Docker**
 
@@ -72,6 +70,12 @@ docker run -it \
     -p 5061-5063:5061-5063 \
     -e SIPIO_EXTERN_ADDR=${your host address} \
     fonoster/sipio
+```
+**Running with any other platform**
+
+```bash
+cd sipio.1.0.0-M5
+./sipio
 ```
 
 ## Bugs and Feedback
