@@ -54,7 +54,7 @@ Documentation and tutorials available [here](https://github.com/fonoster/sipio/w
 
 | Platform | Download |
 | -- | -- |
-| Linux | Comming soon |  
+| Linux | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_linux-x64_bin.tar.gz) |  
 | macOS | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_osx-x64_bin.tar.gz) |  
 | Windows | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_windows-x64_bin.zip) |  
 | Docker | [image](https://hub.docker.com/r/fonoster/sipio/) |  
