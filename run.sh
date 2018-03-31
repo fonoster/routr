@@ -14,7 +14,9 @@ run_local_redis() {
 [ -z "$SIPIO_LOCALNETS" ] && { export SIPIO_LOCALNETS=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}'); }
 [ -z "$SIPIO_DS_PROVIDER" ] && run_local_redis
 
-jrunscript -Dlog4j.configurationFile=config/log4j2.xml -cp libs/app.deps.jar \
-    -e "load('libs/jvm-npm.js'); load('libs/app.bundle.js')"
+jjs -Dlog4j.configurationFile=config/log4j2.xml \
+    -cp libs/app.deps.jar \
+    --optimistic-types=true \
+    -dump-on-error=true sipio
 
 while sleep 3600; do :; done

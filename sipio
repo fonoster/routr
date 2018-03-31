@@ -1,4 +1,4 @@
-#!/usr/bin/jjs -Dlog4j.configurationFile=config/log4j2.xml -cp libs/app.deps.jar --optimistic-types=true -dump-on-error=true
+#!jre/bin/jjs -Dlog4j.configurationFile=config/log4j2.xml -cp libs/app.deps.jar --optimistic-types=true -dump-on-error=true
 
 load ('libs/jvm-npm.js')
 load ('libs/app.bundle.js')

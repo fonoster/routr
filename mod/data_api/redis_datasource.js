@@ -260,5 +260,3 @@ export default class RedisDataSource {
     }
 
 }
-
-

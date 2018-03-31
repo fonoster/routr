@@ -29,6 +29,7 @@ RUN wget https://services.gradle.org/distributions/gradle-4.5-bin.zip  \
         docker-compose.yml \
         Dockerfile \
         pack.sh \
+        sipio.bat \
         webpack.config.js \
         build.gradle \
         *.json \
