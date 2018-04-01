@@ -48,13 +48,3 @@ else
 fi
 
 while sleep 3600; do :; done
-
-
-docker run -it \
-    -p 9090:9090 \
-    -p 4567:4567 \
-    -p 5060:5060 \
-    -p 5060:5060/udp \
-    -p 5061-5063:5061-5063 \
-    -e SIPIO_EXTERN_ADDR=192.168.1.2 \
-    fonoster/sipio
