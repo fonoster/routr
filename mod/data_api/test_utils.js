@@ -22,14 +22,14 @@ export default class TestUtils {
     }
 
     static buildAgent(name, domains, username, secret = '1234') {
-        const agent = buildEndpoint(name, username, secret)
+        const agent = TestUtils.buildEndpoint(name, username, secret)
         agent.spec.domains = domains
         agent.kind = 'Agent'
         return agent
     }
 
     static buildPeer(name, device, username, secret = '1234') {
-         const peer = buildEndpoint(name, username, secret)
+         const peer = TestUtils.buildEndpoint(name, username, secret)
          peer.spec.device = device
          peer.kind = 'Peer'
          return peer
