@@ -14,28 +14,24 @@ export default class AgentsAPI {
         this.ds = dataSource
     }
 
-    createFromJSON(jsonObj) {
-        if (!this.doesDomainExist(jsonObj)) {
+    save(domain) {
+        if (!this.doesDomainExist(domain)) {
             return unfulfilledDepResponse
         }
 
-        if (this.existInAnotherDomain(jsonObj)) {
-            return DSUtil.buildResponse(Status.CONFLICT)
-        }
-
-        return this.ds.insert(jsonObj)
-    }
-
-    updateFromJSON(jsonObj) {
-        if (!this.doesDomainExist(jsonObj)) {
-            return unfulfilledDepResponse
-        }
-
-        if (this.existInAnotherDomain(jsonObj)) {
+        if (this.existInAnotherDomain(domain)) {
            return DSUtil.buildResponse(Status.CONFLICT)
         }
 
-        return this.ds.update(jsonObj)
+        return this.ds.update(domain)
+    }
+
+    createFromJSON(domain) {
+       save(domain)
+    }
+
+    updateFromJSON(jsonObj) {
+        save(domain)
     }
 
     getAgents(filter) {
