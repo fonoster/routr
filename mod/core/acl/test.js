@@ -15,7 +15,6 @@ testGroup.rules = function () {
     assertEquals(16, rule.getAddressCount())
     assertTrue(rule.hasIp('10.0.0.4'))
     assertEquals('allow', rule.action)
-    assertTrue(rule.isCidr('10.0.0.1/28'))
 
     rule = new Rule('allow', '0.0.0.0/0')
     assertTrue(rule.hasIp('10.0.0.4'))
