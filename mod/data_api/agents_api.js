@@ -6,7 +6,7 @@ import DSUtil from 'data_api/utils'
 import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
 
-const conflictResponse = { status: Status.CONFLICT, message: Status.message[4091].value }
+const unfulfilledDepResponse = { status: Status.CONFLICT, message: Status.message[4091].value }
 
 export default class AgentsAPI {
 
@@ -14,40 +14,12 @@ export default class AgentsAPI {
         this.ds = dataSource
     }
 
-    existInAnotherDomain(agent) {
-        const response = getAgents("@.spec.credentials.username=='" + agent.spec.credentials.username + "'")
-        const agents = response.results
-
-        for(let i = 0; i < agents.length; i++) {
-            const curAgent = agents[i]
-
-            for(let y = 0; y < curAgent.spec.domains.length; y++) {
-                const curDomain = curAgent.spec.domains[y]
-
-                if (agent.spec.domains.indexOf(curDomain) != -1) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    doesDomainExist(agent) {
-        const domains = JSON.stringify(jsonObj.spec.domains).replaceAll("\"","'")
-        const response = this.ds.withCollection('domains').find("@.spec.context.domainUri in " + domains)
-
-        if (response.result.length != agent.spec.domains.length) {
-            return false
-        }
-        return true
-    }
-
     createFromJSON(jsonObj) {
-        if (!doesDomainExist(jsonObj)) {
-            return conflictResponse
+        if (!this.doesDomainExist(jsonObj)) {
+            return unfulfilledDepResponse
         }
 
-        if (existInAnotherDomain(jsonObj)) {
+        if (this.existInAnotherDomain(jsonObj)) {
             return DSUtil.buildResponse(Status.CONFLICT)
         }
 
@@ -55,11 +27,11 @@ export default class AgentsAPI {
     }
 
     updateFromJSON(jsonObj) {
-        if (!doesDomainExist(jsonObj)) {
-            return conflictResponse
+        if (!this.doesDomainExist(jsonObj)) {
+            return unfulfilledDepResponse
         }
 
-        if (existInAnotherDomain(jsonObj)) {
+        if (this.existInAnotherDomain(jsonObj)) {
            return DSUtil.buildResponse(Status.CONFLICT)
         }
 
@@ -125,4 +97,31 @@ export default class AgentsAPI {
         return this.ds.withCollection('agents').remove(ref)
     }
 
+    existInAnotherDomain(agent) {
+        const response = getAgents("@.spec.credentials.username=='" + agent.spec.credentials.username + "'")
+        const agents = response.results
+
+        for(let i = 0; i < agents.length; i++) {
+            const curAgent = agents[i]
+
+            for(let y = 0; y < curAgent.spec.domains.length; y++) {
+                const curDomain = curAgent.spec.domains[y]
+
+                if (agent.spec.domains.indexOf(curDomain) != -1) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    doesDomainExist(agent) {
+        const domains = JSON.stringify(jsonObj.spec.domains).replaceAll("\"","'")
+        const response = this.ds.withCollection('domains').find("@.spec.context.domainUri in " + domains)
+
+        if (response.result.length != agent.spec.domains.length) {
+            return false
+        }
+        return true
+    }
 }

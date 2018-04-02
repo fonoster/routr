@@ -2,8 +2,11 @@
  * @author Pedro Sanders
  * @since v1
  */
+import DSUtil from 'data_api/utils'
 import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
+
+const foundDependentObjects = { status: Status.CONFLICT, message: Status.message[4092].value }
 
 export default class DomainsAPI {
 
@@ -13,23 +16,15 @@ export default class DomainsAPI {
 
     createFromJSON(jsonObj) {
         if(this.domainExist(jsonObj.spec.context.domainUri)) {
-            return {
-                status: Status.CONFLICT,
-                message: Status.message[Status.CONFLICT].value,
-            }
+            return DSUtil.buildResponse(Status.CONFLICT)
         }
-
         return this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
         if(!this.domainExist(jsonObj.spec.context.domainUri)) {
-            return {
-                status: Status.NOT_FOUND,
-                message: Status.message[Status.NOT_FOUND].value,
-            }
+            return DSUtil.buildResponse(Status.NOT_FOUND)
         }
-
         return this.ds.update(jsonObj)
     }
 
@@ -47,18 +42,11 @@ export default class DomainsAPI {
             }
         })
 
-        if (!isEmpty(domain)) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: domain
-            }
+        if (isEmpty(domain)) {
+            return DSUtil.buildResponse(Status.NOT_FOUND)
         }
 
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
+        return DSUtil.buildResponse(Status.OK, domain)
     }
 
     getDomainByUri(domainUri) {
@@ -71,23 +59,18 @@ export default class DomainsAPI {
             }
         })
 
-        if (!isEmpty(domain)) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: domain
-            }
+        if (isEmpty(domain)) {
+            return DSUtil.buildResponse(Status.NOT_FOUND)
         }
 
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
+        return DSUtil.buildResponse(Status.OK, domain)
     }
 
     domainExist(domainUri) {
         const response = this.getDomainByUri(domainUri)
-        if (response.status == Status.OK) return true
+        if (response.status == Status.OK) {
+            return true
+        }
         return false
     }
 
@@ -105,11 +88,8 @@ export default class DomainsAPI {
 
         if (agents.length == 0) {
             return this.ds.withCollection('domains').remove(ref)
-        } else {
-            return {
-                status: Status.CONFLICT,
-                message: Status.message[4092].value
-            }
         }
+
+        return foundDependentObjects
     }
 }
