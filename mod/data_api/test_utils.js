@@ -5,40 +5,34 @@
 
 export default class TestUtils {
 
-    static buildAgent(name, domains, username, secret = '1234') {
-        const agent = {
+    static buildEndpoint(name, username, secret = '1234') {
+        const endpoint = {
             apiVersion: 'v1.0',
-            kind: 'Agent',
             metadata: {
                 name: name
             },
             spec: {
-                domains: domains,
                 credentials: {
                     username: username,
                     secret: secret
                 }
             }
         }
+        return endpoint
+    }
+
+    static buildAgent(name, domains, username, secret = '1234') {
+        const agent = buildEndpoint(name, username, secret)
+        agent.spec.domains = domains
+        agent.kind = 'Agent'
         return agent
     }
 
     static buildPeer(name, device, username, secret = '1234') {
-        const peer = {
-            apiVersion: 'v1.0',
-            kind: 'Peer',
-            metadata: {
-                name: name
-            },
-            spec: {
-                device: device,
-                credentials: {
-                    username: username,
-                    secret: secret
-                }
-            }
-        }
-        return peer
+         const peer = buildEndpoint(name, username, secret)
+         peer.spec.device = device
+         peer.kind = 'Peer'
+         return peer
     }
 
     static buildGateway(name, username, ref = '1234', secret = '1234') {
