@@ -13,6 +13,11 @@ const System = Packages.java.lang.System
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
+const defaultRestfulParams = {
+    baseUrl: 'http://localhost/v1/ctl',
+    username: 'admin',
+    secret: 'changeit'
+}
 
 export default class RestfulDataSource {
 
@@ -24,7 +29,7 @@ export default class RestfulDataSource {
         }
 
         if (!parameters && !config.spec.dataSource.parameters) {
-            parameters = this.getDefaultParams()
+            parameters = defaultRestfulParams
         }
 
         if (!parameters.baseUrl || !parameters.username || !parameters.secret) {
@@ -35,16 +40,6 @@ export default class RestfulDataSource {
         this.baseUrl = parameters.baseUrl
         this.username =  parameters.username
         this.secret = parameters.secret
-    }
-
-    buildErrResponse(e) {
-        LOG.error(e.getMessage())
-
-        return {
-            status: Status.INTERNAL_SERVER_ERROR,
-            message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-            result: e.getMessage()
-        }
     }
 
     getParams(params) {
@@ -66,14 +61,6 @@ export default class RestfulDataSource {
                     LOG.warn('Invalid parameter: ' + key)
             }
         })
-        return parameters
-    }
-
-    getDefaultParams() {
-        const parameters = {}
-        parameters.baseUrl = 'http://localhost/v1/ctl'
-        parameters.username = 'admin'
-        parameters.secret = 'changeit'
         return parameters
     }
 
@@ -119,21 +106,17 @@ export default class RestfulDataSource {
             const encodeFilter = java.net.URLEncoder.encode(filter)
 
             const r = Unirest.get(this.baseUrl + '/' + this.collection +  '/' + this.collection + '?filter=' + encodeFilter)
-            .basicAuth(this.username, this.secret).asString()
+                .basicAuth(this.username, this.secret).asString()
 
             const response = JSON.parse(r.getBody())
 
             if (response.status && response.status != 200) {
-                return {
-                    status: response.status,
-                    message: Status.message[response.status].value,
-                    result: []
-                }
+                return DSUtil.buildResponse(response.status, [])
             }
 
             return response
         } catch(e) {
-            return buildErrorResponse(e)
+            return DSUtil.buildErrResponse(e)
         }
     }
 
@@ -143,11 +126,12 @@ export default class RestfulDataSource {
 
     remove(ref) {
         try {
-            const r = Unirest.delete(this.baseUrl + '/' + this.collection + '/' + ref)
-               .basicAuth(this.username, this.secret).asString()
+            const r = Unirest.delete(this.baseUrl + '/'
+                + this.collection + '/' + ref)
+                    .basicAuth(this.username, this.secret).asString()
             return JSON.parse(r.getBody())
         } catch(e) {
-            return buildErrorResponse(e)
+            return DSUtil.buildErrResponse(e)
         }
     }
 }

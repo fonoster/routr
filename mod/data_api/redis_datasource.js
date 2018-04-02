@@ -16,23 +16,40 @@ const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
 const System = Packages.java.lang.System
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
+const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
+const defautRedisParameters = {
+    host: 'localhost',
+    port: '6379',
+    secret: ''
+}
+const defUser = {
+    kind: 'User',
+    metadata: {
+        name: 'Ctl'
+    },
+    spec: {
+        credentials: {
+            username: 'admin',
+            secret: 'changeit'
+        }
+    }
+}
 
 export default class RedisDataSource {
 
     constructor(config = getConfig()) {
+        let parameters
         if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
-            config.spec.dataSource.parameters = this.getParams(System.getenv("SIPIO_DS_PARAMETERS"))
+            parameters = this.getParams(System.getenv("SIPIO_DS_PARAMETERS"))
         }
 
-        if (!config.spec.dataSource.parameters) {
-            config.spec.dataSource.parameters = this.getDefaultParams()
+        if (!parameters && !config.spec.dataSource.parameters) {
+            parameters = defautRedisParameters
         }
 
-        if (!config.spec.dataSource.parameters.host) config.spec.dataSource.parameters.host = 'localhost'
-        if (!config.spec.dataSource.parameters.port) config.spec.dataSource.parameters.port = '6379'
-        if (!config.spec.dataSource.parameters.secret) config.spec.dataSource.parameters.secret = ''
-
-        const parameters = config.spec.dataSource.parameters
+        if (!parameters.host) parameters.host = 'localhost'
+        if (!parameters.port) parameters.port = '6379'
+        if (!parameters.secret) parameters.secret = ''
 
         this.jedisPool = new JedisPool(parameters.host, parameters.port)
 
@@ -42,13 +59,12 @@ export default class RedisDataSource {
 
         if(this.withCollection('users').find().result.length == 0) {
             LOG.info("No user found. Creating default 'admin' user.")
-            this.createDefaultUser(config)
+            this.createDefaultUser(config.system.apiVersion)
         }
     }
 
     getParams(params) {
         const parameters = {}
-
         params.forEach(par => {
             const key = par.split("=")[0]
             const value =  par.split("=")[1]
@@ -69,14 +85,6 @@ export default class RedisDataSource {
         return parameters
     }
 
-    getDefaultParams() {
-        const parameters = {}
-        parameters.host = 'localhost'
-        parameters.port = '6379'
-        parameters.secret = ''
-        return parameters
-    }
-
     buildPoolConfig() {
         const poolConfig = new JedisPoolConfig();
         poolConfig.setMaxTotal(128)
@@ -92,27 +100,14 @@ export default class RedisDataSource {
         return poolConfig
     }
 
-    createDefaultUser(config) {
-        let defUser = {
-            apiVersion: config.system.apiVersion,
-            kind: 'User',
-            metadata: {
-                name: 'Ctl'
-            },
-            spec: {
-                credentials: {
-                    username: 'admin',
-                    secret: 'changeit'
-                }
-            }
-        }
-
+    createDefaultUser(apiVersion) {
+        defUser.apiVersion = apiVersion
         this.insert(defUser)
     }
 
     withCollection(collection) {
-        this.collection = collection;
-        return this;
+        this.collection = collection
+        return this
     }
 
     insert(obj) {
@@ -120,10 +115,7 @@ export default class RedisDataSource {
 
         try {
             if (!DSUtil.isValidEntity(obj)) {
-                return {
-                    status: Status.BAD_REQUEST,
-                    message: Status.message[Status.BAD_REQUEST].value
-                }
+                return badRequest
             }
 
             if (!obj.metadata.ref) {
@@ -136,19 +128,9 @@ export default class RedisDataSource {
             const kind = DSUtil.getKind(obj)
             jedis.sadd(kind.toLowerCase() + 's', obj.metadata.ref)
 
-            return {
-                status: Status.CREATED,
-                message: Status.message[Status.CREATED].value,
-                result: obj.metadata.ref
-            }
+            return DSUtil.buildResponse(Status.CREATED, obj.metadata.ref)
         } catch(e) {
-            LOG.error(e.getMessage())
-
-            return {
-                status: Status.INTERNAL_SERVER_ERROR,
-                message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-                result: e.getMessage()
-            }
+            return DSUtil.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -164,30 +146,17 @@ export default class RedisDataSource {
             const result = jedis.get(obj.metadata.ref)
 
             if (result != null) {
-                return {
-                    status: Status.OK,
-                    message: Status.message[Status.OK].value,
-                    result: result
-                }
+                return DSUtil.buildResponse(Status.OK, result)
             }
 
-            return {
-                status: Status.NOT_FOUND,
-                message: Status.message[Status.NOT_FOUND].value,
-            }
+            return DSUtil.buildResponse(Status.NOT_FOUND)
         } catch(e) {
-            LOG.error(e.getMessage())
-
-            return {
-                status: Status.INTERNAL_SERVER_ERROR,
-                message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-                result: e.getMessage()
-            }
-         } finally {
+            return DSUtil.buildErrResponse(e)
+        } finally {
             if (jedis) {
                 jedis.close()
             }
-         }
+        }
     }
 
     find(filter = '*') {
@@ -207,36 +176,18 @@ export default class RedisDataSource {
 
 
             if (list.length == 0) {
-                return {
-                    status: Status.OK,
-                    message: Status.message[Status.OK].value,
-                    result: []
-                }
+                return DSUtil.buildResponse(Status.OK, [])
             }
             // JsonPath does not parse properly when using Json objects from JavaScript
             list = JSON.parse(JsonPath.parse(JSON.stringify(list)).read(filter).toJSONString())
 
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: list
-            }
+            return DSUtil.buildResponse(Status.OK, list)
         } catch(e) {
-            LOG.error(e.getMessage())
-
             if (e instanceof InvalidPathException) {
-                return {
-                    status: Status.BAD_REQUEST,
-                    message: Status.message[Status.BAD_REQUEST].value,
-                    result: e.getMessage()
-                }
+                return DSUtil.buildResponse(Status.BAD_REQUEST, e.getMessage())
             }
 
-            return {
-                status: Status.INTERNAL_SERVER_ERROR,
-                message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-                result: e.getMessage()
-            }
+            return DSUtil.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -246,10 +197,7 @@ export default class RedisDataSource {
 
     update(obj) {
         if (!obj.metadata.ref || !DSUtil.isValidEntity(obj)) {
-            return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value
-            }
+            return DSUtil.buildResponse(Status.BAD_REQUEST, e.getMessage())
         }
 
         let jedis
@@ -258,28 +206,13 @@ export default class RedisDataSource {
             jedis = this.jedisPool.getResource()
             jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: obj.metadata.ref
-            }
-
+            return DSUtil.buildResponse(Status.OK, obj.metadata.ref)
         } catch(e) {
-            LOG.error(e.getMessage())
-
             if (e instanceof InvalidPathException) {
-                return {
-                    status: Status.BAD_REQUEST,
-                    message: Status.message[Status.BAD_REQUEST].value,
-                    result: e.getMessage()
-                }
+                return DSUtil.buildResponse(Status.BAD_REQUEST, e.getMessage())
             }
 
-            return {
-                status: Status.INTERNAL_SERVER_ERROR,
-                message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-                result: e.getMessage()
-            }
+            return DSUtil.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -295,32 +228,18 @@ export default class RedisDataSource {
             let cnt = jedis.del(ref)
 
             if (cnt == 0) {
-                return {
-                    status: Status.NOT_FOUND,
-                    message: Status.message[Status.NOT_FOUND].value,
-                }
+                return DSUtil.buildResponse(Status.NOT_FOUND)
             }
 
             cnt = jedis.srem(this.collection, ref)
 
             if (cnt == 0) {
-                return {
-                    status: Status.NOT_FOUND,
-                    message: Status.message[Status.NOT_FOUND].value,
-                }
+                return DSUtil.buildResponse(Status.NOT_FOUND)
             }
 
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value
-            }
+            return DSUtil.buildResponse(Status.OK)
         } catch(e) {
-            LOG.error(e.getMessage())
-
-            return {
-                status: Status.INTERNAL_SERVER_ERROR,
-                message: Status.message[Status.INTERNAL_SERVER_ERROR].value
-            }
+            return DSUtil.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()

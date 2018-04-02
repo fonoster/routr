@@ -100,4 +100,31 @@ export default class DSUtil {
 
         return obj.kind
     }
+
+    static buildErrResponse(e) {
+        LOG.error(e.getMessage())
+
+        return {
+            status: Status.INTERNAL_SERVER_ERROR,
+            message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
+            result: e.getMessage()
+        }
+    }
+
+    static buildResponse(status, result) {
+        if (status == Status.BAD_RESPONSE) {
+            LOG.warn(e.getMessage())
+        }
+
+        const response = {
+            status: status,
+            message: Status.message[status].value
+        }
+
+        if (result) {
+            response.result = result
+        }
+
+        return response
+    }
 }
