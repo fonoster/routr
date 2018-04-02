@@ -2,8 +2,11 @@
  * @author Pedro Sanders
  * @since v1
  */
+import DSUtil from 'data_api/utils'
 import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
+
+const foundDependentObjects = { status: Status.CONFLICT, message: Status.message[4092].value }
 
 export default class GatewaysAPI {
 
@@ -13,10 +16,7 @@ export default class GatewaysAPI {
 
     createFromJSON(jsonObj) {
         if(this.gatewayExist(jsonObj.spec.regService.host)) {
-            return {
-                status: Status.CONFLICT,
-                message: Status.message[Status.CONFLICT].value,
-            }
+            return DSUtil.buildResponse(Status.CONFLICT)
         }
 
         return this.ds.insert(jsonObj)
@@ -24,10 +24,7 @@ export default class GatewaysAPI {
 
     updateFromJSON(jsonObj) {
         if(!this.gatewayExist(jsonObj.spec.regService.host)) {
-            return {
-                status: Status.NOT_FOUND,
-                message: Status.message[Status.NOT_FOUND].value,
-            }
+            return DSUtil.buildResponse(Status.NOT_FOUND)
         }
 
         return this.ds.update(jsonObj)
@@ -47,18 +44,11 @@ export default class GatewaysAPI {
             }
         })
 
-        if (!isEmpty(gateways)) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: gateways
-            }
+        if (isEmpty(gateways)) {
+            return DSUtil.buildResponse(Status.NOT_FOUND, gateways)
         }
 
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
+        return DSUtil.buildResponse(Status.OK, gateways)
     }
 
     getGatewayByHost(host) {
@@ -72,22 +62,17 @@ export default class GatewaysAPI {
         })
 
         if (isEmpty(gateways)) {
-            return {
-                status: Status.NOT_FOUND,
-                message: Status.message[Status.NOT_FOUND].value
-            }
+            return DSUtil.buildResponse(Status.NOT_FOUND, gateways)
         }
 
-        return {
-            status: Status.OK,
-            message: Status.message[Status.OK].value,
-            result: gateways
-        }
+        return DSUtil.buildResponse(Status.OK, gateways)
     }
 
     gatewayExist(host) {
         const response = this.getGatewayByHost(host)
-        if (response.status == Status.OK) return true
+        if (response.status == Status.OK) {
+            return true
+        }
         return false
     }
 
@@ -106,10 +91,7 @@ export default class GatewaysAPI {
         if (dids.length == 0) {
             return this.ds.withCollection('gateways').remove(ref)
         } else {
-            return {
-                status: Status.CONFLICT,
-                message: Status.message[4092].value
-            }
+            return foundDependentObjects
         }
     }
 
