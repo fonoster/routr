@@ -60,17 +60,7 @@ testGroup.get_route_for_peer = function () {
 testGroup.add_find_del_aor = function() {
     const contactURI = addressFactory.createSipURI('john', 'sip.provider.com')
     const aor = contactURI
-    const route = {
-        isLinkAOR: false,
-        thruGw: false,
-        sentByAddress: 'localhost',
-        sentByPort: 5060,
-        received: 'remotehost',
-        rport: 5061,
-        contactURI: contactURI,
-        registeredOn: Date.now(),
-        nat: false
-    }
+    const route = buildRoute(contactURI)
 
     // Add
     locator.addEndpoint(aor, route)
@@ -90,41 +80,9 @@ testGroup.add_multi_aor = function() {
     const contactURI2 = addressFactory.createSipURI('john', '192.168.1.2:64232')
     const contactURI3 = addressFactory.createSipURI('jonn', '10.0.0.21')
 
-    const route1 = {
-        isLinkAOR: false,
-        thruGw: false,
-        sentByAddress: 'localhost',
-        sentByPort: 5060,
-        received: 'remotehost',
-        rport: 5061,
-        contactURI: contactURI1,
-        registeredOn: Date.now(),
-        nat: false
-    }
-
-    const route2 = {
-        isLinkAOR: false,
-        thruGw: false,
-        sentByAddress: 'localhost',
-        sentByPort: 5060,
-        received: 'remotehost',
-        rport: 5061,
-        contactURI: contactURI2,
-        registeredOn: Date.now(),
-        nat: false
-    }
-
-    const route3 = {
-        isLinkAOR: false,
-        thruGw: false,
-        sentByAddress: 'localhost',
-        sentByPort: 5060,
-        received: 'remotehost',
-        rport: 5061,
-        contactURI: contactURI3,
-        registeredOn: Date.now(),
-        nat: false
-    }
+    const route1 = buildRoute(contactURI1)
+    const route2 = buildRoute(contactURI2)
+    const route3 = buildRoute(contactURI3)
 
     // Add
     locator.addEndpoint(aor, route1)
@@ -153,17 +111,7 @@ testGroup.add_multi_aor = function() {
 testGroup.get_peer_route_by_host = function() {
     const peerContactURI = addressFactory.createSipURI('ast', '192.168.1.2:5060')
     const aor = addressFactory.createSipURI('7853178070', '192.168.1.2:5060')
-    const route = {
-        isLinkAOR: false,
-        thruGw: false,
-        sentByAddress: 'localhost',
-        sentByPort: 5060,
-        received: 'remotehost',
-        rport: 5061,
-        contactURI: peerContactURI,
-        registeredOn: Date.now(),
-        nat: false
-    }
+    const route = buildRoute(peerContactURI)
 
     // Add
     locator.addEndpoint(aor, route)
@@ -175,4 +123,18 @@ testGroup.get_peer_route_by_host = function() {
     // ... and main function
     response = locator.findEndpoint(aor)
     assertEquals(Status.OK, response.status)
+}
+
+function buildRoute(contactURI) {
+    return {
+        isLinkAOR: false,
+        thruGw: false,
+        sentByAddress: 'localhost',
+        sentByPort: 5060,
+        received: 'remotehost',
+        rport: 5061,
+        contactURI: contactURI,
+        registeredOn: Date.now(),
+        nat: false
+    }
 }
