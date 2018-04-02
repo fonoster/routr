@@ -24,8 +24,7 @@ export default class PeersService {
 
         post('/peers', (req, res) => {
             const jsonObj = JSON.parse(req.body())
-            let response = this.peersAPI.createFromJSON(jsonObj)
-            return JSON.stringify(response)
+            return JSON.stringify(this.peersAPI.createFromJSON(jsonObj))
         })
 
         get('/peers', (req, res) => {
@@ -33,8 +32,7 @@ export default class PeersService {
             if(!isEmpty(req.queryParams("filter"))) {
                 filter = req.queryParams("filter")
             }
-            const response = this.peersAPI.getPeers(filter)
-            return JSON.stringify(response)
+            return JSON.stringify(this.peersAPI.getPeers(filter))
         })
 
         get('/peers/:ref', (req, res) => {
