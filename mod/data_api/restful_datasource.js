@@ -12,50 +12,69 @@ const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
 const System = Packages.java.lang.System
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
+const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
 
 export default class RestfulDataSource {
 
-    constructor(dataSource, config = getConfig()) {
+    constructor(config = getConfig()) {
+        let parameters
 
         if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
-            config.spec.dataSource.parameters = {}
-            const parameters = System.getenv("SIPIO_DS_PARAMETERS").split(",")
-            parameters.forEach(par => {
-                const key = par.split("=")[0]
-                const value =  par.split("=")[1]
-                switch (key) {
-                    case "baseUrl":
-                        config.spec.dataSource.parameters.baseUrl = value
-                        break
-                    case "username":
-                        config.spec.dataSource.parameters.username = value
-                        break
-                    case "secret":
-                        config.spec.dataSource.parameters.secret = value
-                        break
-                    default:
-                        LOG.warn('Invalid parameter: ' + key)
-                }
-            })
+            parameters = this.getParams(System.getenv("SIPIO_DS_PARAMETERS"))
         }
 
-        if (!config.spec.dataSource.parameters) {
-            config.spec.dataSource.parameters = {}
-            config.spec.dataSource.parameters.baseUrl = 'http://localhost/v1/ctl'
-            config.spec.dataSource.parameters.username = 'admin'
-            config.spec.dataSource.parameters.secret = 'changeit'
+        if (!parameters && !config.spec.dataSource.parameters) {
+            parameters = this.getDefaultParams()
         }
 
-        if (!config.spec.dataSource.parameters.baseUrl ||
-            !config.spec.dataSource.parameters.username ||
-            !config.spec.dataSource.parameters.secret) {
+        if (!parameters.baseUrl || !parameters.username || !parameters.secret) {
             LOG.error("Restful Data Source incorrectly configured.\nYou must specify the baseUrl, username and secret when using this data provider")
             exit(1)
         }
 
-        this.baseUrl = config.spec.dataSource.parameters.baseUrl
-        this.username =  config.spec.dataSource.parameters.username
-        this.secret =  config.spec.dataSource.parameters.secret
+        this.baseUrl = parameters.baseUrl
+        this.username =  parameters.username
+        this.secret = parameters.secret
+    }
+
+    buildErrResponse(e) {
+        LOG.error(e.getMessage())
+
+        return {
+            status: Status.INTERNAL_SERVER_ERROR,
+            message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
+            result: e.getMessage()
+        }
+    }
+
+    getParams(params) {
+        const parameters = {}
+        params.forEach(par => {
+            const key = par.split("=")[0]
+            const value =  par.split("=")[1]
+            switch (key) {
+                case "baseUrl":
+                    parameters.baseUrl = value
+                    break
+                case "username":
+                    username = value
+                    break
+                case "secret":
+                    secret = value
+                    break
+                default:
+                    LOG.warn('Invalid parameter: ' + key)
+            }
+        })
+        return parameters
+    }
+
+    getDefaultParams() {
+        const parameters = {}
+        parameters.baseUrl = 'http://localhost/v1/ctl'
+        parameters.username = 'admin'
+        parameters.secret = 'changeit'
+        return parameters
     }
 
     withCollection(collection) {
@@ -63,44 +82,46 @@ export default class RestfulDataSource {
         return this;
     }
 
-    insert(obj) {
+    save(obj, method, ref = '') {
         try {
             if (!DSUtil.isValidEntity(obj)) {
-                return {
-                    status: Status.BAD_REQUEST,
-                    message: Status.message[Status.BAD_REQUEST].value
-                }
+                return badRequest
             }
 
-            return this.postWithAuth(obj)
+            const path = '/' + obj.kind.toString().toLowerCase() + 's' + ref
+            const r = method(this.baseUrl + path)
+                .header("Content-Type", "application/json")
+                    .basicAuth(this.username, this.secret)
+                        .body(JSON.stringify(obj)).asString()
+
+            return JSON.parse(r.getBody())
         } catch(e) {
-            LOG.error(e.getMessage())
-
-            return {
-                status: Status.INTERNAL_SERVER_ERROR,
-                message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-                result: e.getMessage()
-            }
+            return buildErrResponse(e)
         }
+    }
+
+    insert(obj) {
+        save(obj, Unirest.post)
     }
 
     get(ref) {
         try {
-            return this.getWithAuth('/' + this.collection +  '/' + ref)
+            const r = Unirest.get(this.baseUrl + '/' + this.collection +  '/' + ref)
+            .basicAuth(this.username, this.secret).asString()
+            return JSON.parse(r.getBody())
         } catch(e) {
-            LOG.error(e.getMessage())
-            return {
-                status: Status.INTERNAL_SERVER_ERROR,
-                message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-                result: e.getMessage()
-            }
+            return buildErrorResponse(e)
         }
     }
 
     find(filter = "*") {
         try {
             const encodeFilter = java.net.URLEncoder.encode(filter)
-            const response = this.getWithAuth('/' + this.collection + '?filter=' + encodeFilter)
+
+            const r = Unirest.get(this.baseUrl + '/' + this.collection +  '/' + this.collection + '?filter=' + encodeFilter)
+            .basicAuth(this.username, this.secret).asString()
+
+            const response = JSON.parse(r.getBody())
 
             if (response.status && response.status != 200) {
                 return {
@@ -112,82 +133,21 @@ export default class RestfulDataSource {
 
             return response
         } catch(e) {
-            LOG.error(e.getMessage())
-            return {
-                status: Status.INTERNAL_SERVER_ERROR,
-                message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-                result: e.getMessage()
-            }
+            return buildErrorResponse(e)
         }
     }
 
     update(obj) {
-        try {
-            if (!DSUtil.isValidEntity(obj)) {
-                return {
-                    status: Status.BAD_REQUEST,
-                    message: Status.message[Status.BAD_REQUEST].value
-                }
-            }
-
-            return this.putWithAuth(obj)
-        } catch(e) {
-            LOG.error(e.getMessage())
-
-            return {
-                status: Status.INTERNAL_SERVER_ERROR,
-                message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-                result: e.getMessage()
-            }
-        }
+        save(obj, Unirest.put, '/' + obj.metadata.ref)
     }
 
     remove(ref) {
         try {
-            return this.deleteWithAuth('/' + this.collection + '/' + ref)
+            const r = Unirest.delete(this.baseUrl + '/' + this.collection + '/' + ref)
+               .basicAuth(this.username, this.secret).asString()
+            return JSON.parse(r.getBody())
         } catch(e) {
-            LOG.error(e.getMessage())
-
-            return {
-                status: Status.INTERNAL_SERVER_ERROR,
-                message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-                result: e.getMessage()
-            }
+            return buildErrorResponse(e)
         }
     }
-
-    // Helper functions
-
-    getWithAuth(path) {
-        const r = Unirest.get(this.baseUrl + path)
-            .basicAuth(this.username, this.secret).asString()
-        return JSON.parse(r.getBody())
-    }
-
-    postWithAuth(obj) {
-        const path = '/' + obj.kind.toString().toLowerCase() + 's'
-        const r = Unirest.post(this.baseUrl + path)
-            .header("Content-Type", "application/json")
-                .basicAuth(this.username, this.secret)
-                    .body(JSON.stringify(obj)).asString()
-
-        return JSON.parse(r.getBody())
-    }
-
-    putWithAuth(obj) {
-        const path = '/' + obj.kind.toString().toLowerCase() + 's' + '/' + obj.metadata.ref
-        const r = Unirest.put(this.baseUrl + path)
-            .header("Content-Type", "application/json")
-                .basicAuth(this.username, this.secret)
-                    .body(JSON.stringify(obj)).asString()
-
-        return JSON.parse(r.getBody())
-    }
-
-    deleteWithAuth(path) {
-        const r = Unirest.delete(this.baseUrl + path)
-           .basicAuth(this.username, this.secret).asString()
-        return JSON.parse(r.getBody())
-    }
-
 }
