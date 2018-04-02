@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  *
- * Unit Test for the "Resources Module"
+ * Unit Test for the "Files Data Source"
  */
 import FilesDataSource from 'data_api/files_datasource'
 import FilesUtil from 'utils/files_util'

@@ -127,4 +127,20 @@ export default class DSUtil {
 
         return response
     }
+
+    static deepSearch(objects, path, value) {
+        let result
+        objects.forEach(obj => {
+            if (resolve(path, obj) == value) {
+                result = obj
+            }
+        })
+        return result
+    }
+}
+
+function resolve(path, obj) {
+    return path.split('.').reduce(function(prev, curr) {
+        return prev ? prev[curr] : null
+    }, obj || self)
 }

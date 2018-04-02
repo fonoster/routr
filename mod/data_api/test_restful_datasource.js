@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  *
- * Unit Test for the "Fonoster Resources Module"
+ * Unit Test for the "Restful Data Source"
  */
 import RestfulDataSource from 'data_api/restful_datasource'
 import { Status } from 'data_api/status'

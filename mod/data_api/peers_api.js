@@ -31,14 +31,7 @@ export default class PeersAPI {
     }
 
     getPeer(ref) {
-        const response = this.getPeers()
-        let peer
-
-        response.result.forEach(obj => {
-            if (obj.metadata.ref == ref) {
-                peer = obj
-            }
-        })
+        let peer = DSUtil.deepSearch(this.getPeers().result, "metadata.ref", ref)
 
         if (isEmpty(peer)) {
             return DSUtil.buildResponse(Status.NOT_FOUND)
@@ -48,14 +41,7 @@ export default class PeersAPI {
     }
 
     getPeerByUsername(username) {
-        const response = this.getPeers()
-        let peer
-
-        response.result.forEach(obj => {
-            if (obj.spec.credentials.username == username) {
-                peer = obj
-            }
-        })
+        let peer = DSUtil.deepSearch(this.getPeers().result, "spec.credentials.username", username)
 
         if (isEmpty(peer)) {
             return DSUtil.buildResponse(Status.NOT_FOUND)

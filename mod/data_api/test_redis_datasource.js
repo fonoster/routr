@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  *
- * Unit Test for the "Fonoster Resources Module"
+ * Unit Test for the "Redis Data Source"
  */
 import RedisDataSource from 'data_api/redis_datasource'
 import AgentsAPI from 'data_api/agents_api'

@@ -23,7 +23,6 @@ export default class TestUtils {
         return agent
     }
 
-
     static buildPeer(name, device, username, secret = '1234') {
         const peer = {
             apiVersion: 'v1.0',
