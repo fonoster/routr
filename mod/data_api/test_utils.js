@@ -41,7 +41,6 @@ export default class TestUtils {
         return peer
     }
 
-
     static buildGateway(name, username, ref = '1234', secret = '1234') {
         const gateway = {
             apiVersion: 'v1.0',

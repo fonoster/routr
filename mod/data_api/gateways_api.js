@@ -18,7 +18,6 @@ export default class GatewaysAPI {
         if(this.gatewayExist(jsonObj.spec.regService.host)) {
             return DSUtil.buildResponse(Status.CONFLICT)
         }
-
         return this.ds.insert(jsonObj)
     }
 
@@ -26,7 +25,6 @@ export default class GatewaysAPI {
         if(!this.gatewayExist(jsonObj.spec.regService.host)) {
             return DSUtil.buildResponse(Status.NOT_FOUND)
         }
-
         return this.ds.update(jsonObj)
     }
 
@@ -35,37 +33,11 @@ export default class GatewaysAPI {
     }
 
     getGateway(ref) {
-        const response = this.getGateways()
-        let gateways
-
-        response.result.forEach(obj => {
-            if (obj.metadata.ref == ref) {
-                gateways = obj
-            }
-        })
-
-        if (isEmpty(gateways)) {
-            return DSUtil.buildResponse(Status.NOT_FOUND, gateways)
-        }
-
-        return DSUtil.buildResponse(Status.OK, gateways)
+       return DSUtil.deepSearch(this.getGateways().result, "metadata.ref", ref)
     }
 
     getGatewayByHost(host) {
-        const response = this.getGateways()
-        let gateways
-
-        response.result.forEach(obj => {
-            if (obj.spec.regService.host == host) {
-                gateways = obj
-            }
-        })
-
-        if (isEmpty(gateways)) {
-            return DSUtil.buildResponse(Status.NOT_FOUND, gateways)
-        }
-
-        return DSUtil.buildResponse(Status.OK, gateways)
+       return DSUtil.deepSearch(this.getGateways().result, "spec.regService.host", host)
     }
 
     gatewayExist(host) {

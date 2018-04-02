@@ -31,23 +31,11 @@ export default class PeersAPI {
     }
 
     getPeer(ref) {
-        let peer = DSUtil.deepSearch(this.getPeers().result, "metadata.ref", ref)
-
-        if (isEmpty(peer)) {
-            return DSUtil.buildResponse(Status.NOT_FOUND)
-        }
-
-        return DSUtil.buildResponse(Status.OK, peer)
+        return DSUtil.deepSearch(this.getPeers().result, "metadata.ref", ref)
     }
 
     getPeerByUsername(username) {
-        let peer = DSUtil.deepSearch(this.getPeers().result, "spec.credentials.username", username)
-
-        if (isEmpty(peer)) {
-            return DSUtil.buildResponse(Status.NOT_FOUND)
-        }
-
-        return DSUtil.buildResponse(Status.OK, peer)
+        return DSUtil.deepSearch(this.getPeers().result, "spec.credentials.username", username)
     }
 
     peerExist(username) {

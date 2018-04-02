@@ -33,37 +33,11 @@ export default class DomainsAPI {
     }
 
     getDomain(ref) {
-        const response = this.getDomains()
-        let domain
-
-        response.result.forEach(obj => {
-            if (obj.metadata.ref == ref) {
-                domain = obj
-            }
-        })
-
-        if (isEmpty(domain)) {
-            return DSUtil.buildResponse(Status.NOT_FOUND)
-        }
-
-        return DSUtil.buildResponse(Status.OK, domain)
+        return DSUtil.deepSearch(this.getDomains().result, "metadata.ref", ref)
     }
 
     getDomainByUri(domainUri) {
-        const response = this.getDomains()
-        let domain
-
-        response.result.forEach(obj => {
-            if (obj.spec.context.domainUri == domainUri) {
-                domain = obj
-            }
-        })
-
-        if (isEmpty(domain)) {
-            return DSUtil.buildResponse(Status.NOT_FOUND)
-        }
-
-        return DSUtil.buildResponse(Status.OK, domain)
+        return DSUtil.deepSearch(this.getDomains().result, "spec.context.domainUri", domainUri)
     }
 
     domainExist(domainUri) {

@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+import DSUtil from 'data_api/utils'
 import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
 
@@ -13,20 +14,14 @@ export default class UsersAPI {
 
     createFromJSON(jsonObj) {
         if(this.userExist(jsonObj.spec.credentials.username)) {
-            return {
-                status: Status.CONFLICT,
-                message: Status.message[Status.CONFLICT].value,
-            }
+            return DSUtil.buildResponse(Status.CONFLICT)
         }
         return this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
         if(this.userExist(jsonObj.spec.credentials.username)) {
-            return {
-                status: Status.NOT_FOUND,
-                message: Status.message[Status.NOT_FOUND].value,
-            }
+            return DSUtil.buildResponse(Status.NOT_FOUND)
         }
         return this.ds.update(jsonObj)
     }
@@ -36,56 +31,18 @@ export default class UsersAPI {
     }
 
     getUser(ref) {
-        const response = this.getUsers()
-        let user
-
-        response.result.forEach(obj => {
-            if (obj.metadata.ref == ref) {
-                user = obj
-            }
-        })
-
-        if (!isEmpty(user)) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: user
-            }
-        }
-
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
+        return DSUtil.deepSearch(this.getUsers().result, "metadata.ref", ref)
     }
 
     getUserByUsername(username) {
-        const response = this.getUsers()
-        let user
-
-        response.result.forEach(obj => {
-            if (obj.spec.credentials.username == username) {
-                user = obj
-            }
-        })
-
-        if (!isEmpty(user)) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: user
-            }
-        }
-
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
+        return DSUtil.deepSearch(this.getUsers().result, "spec.credentials.username", username)
     }
 
     userExist(username) {
         const response = this.getUser(username)
-        if (response.status == Status.OK) return true
+        if (response.status == Status.OK) {
+            return true
+        }
         return false
     }
 

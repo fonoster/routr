@@ -135,7 +135,12 @@ export default class DSUtil {
                 result = obj
             }
         })
-        return result
+
+        if (isEmpty(result)) {
+            return DSUtil.buildResponse(Status.NOT_FOUND)
+        }
+
+        return DSUtil.buildResponse(Status.OK, result)
     }
 }
 

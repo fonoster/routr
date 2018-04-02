@@ -38,7 +38,7 @@ export default class AgentsAPI {
         return this.ds.withCollection('agents').find(filter)
     }
 
-    getAgentInDomain(domainUri, username) {
+    getAgentByDomain(domainUri, username) {
         const response = this.getAgents()
         let agent
         response.result.forEach(obj => {
@@ -50,18 +50,16 @@ export default class AgentsAPI {
                 })
             }
         })
-        return agent
+
+        if (isEmpty(agent)) {
+            return DSUtil.buildResponse(Status.NOT_FOUND)
+        }
+
+        return DSUtil.buildResponse(Status.OK, agent)
     }
 
     getAgentByRef(ref) {
-        const response = this.getAgents()
-        let agent
-        response.result.forEach(obj => {
-            if (obj.metadata.ref == ref) {
-                agent = obj
-            }
-        })
-        return agent
+        return DSUtil.deepSearch(this.getAgents().result, "metadata.ref", ref)
     }
 
     /**
@@ -71,21 +69,17 @@ export default class AgentsAPI {
         let agent
 
         if(arguments.length == 2) {
-            agent = this.getAgentInDomain(arg1, arg2)
-        } else {
-            agent = this.getAgentByRef(arg1)
+            return this.getAgentByDomain(arg1, arg2)
         }
 
-        if (isEmpty(agent)) {
-           return DSUtil.buildResponse(Status.NOT_FOUND)
-        }
-
-        return DSUtil.buildResponse(Status.OK, agent)
+        return this.getAgentByRef(arg1)
     }
 
     agentExist(domainUri, username) {
         const response = this.getAgent(domainUri, username)
-        if (response.status == Status.OK) return true
+        if (response.status == Status.OK) {
+            return true
+        }
         return false
     }
 
