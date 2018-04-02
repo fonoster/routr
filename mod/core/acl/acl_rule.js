@@ -12,23 +12,25 @@ export default class Rule {
         if (!action.equals('allow') && !action.equals('deny'))
             throw "Parameter action can only be 'allow' or 'deny'"
 
-        let subnetUtils
-
-        if(this.isIp(net)) {
-            subnetUtils = new SubnetUtils(net + '/31')
-        } else if(this.isCidr(net)) {
-            subnetUtils = new SubnetUtils(net)
-        } else if(this.isIpAndMask(net)) {
-            let s = net.split('/')
-            subnetUtils = new SubnetUtils(s[0], s[1])
-        } else {
-            throw new java.lang.RuntimeException('Invalid rule notation. Must be IPv4 value, CIDR, or Ip/Mask notation.')
-        }
+        const subnetUtils = this.selectSUForNet(net)
         subnetUtils.setInclusiveHostCount(true)
 
         this.subnetUtils = subnetUtils
         this._action = action
         this._net = net
+    }
+
+    selectSUForNet(net) {
+        if(this.isIp(net)) {
+            return new SubnetUtils(net + '/31')
+        } else if(this.isCidr(net)) {
+            return new SubnetUtils(net)
+        } else if(this.isIpAndMask(net)) {
+            const s = net.split('/')
+            return new SubnetUtils(s[0], s[1])
+        }
+
+        throw new java.lang.RuntimeException('Invalid rule notation. Must be IPv4 value, CIDR, or Ip/Mask notation.')
     }
 
     isIp(v) {
