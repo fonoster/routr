@@ -10,34 +10,8 @@ const System = Packages.java.lang.System
 const UUID = Packages.java.util.UUID
 
 export default function () {
-    let config
-
-    try {
-        if (System.getenv("SIPIO_CONFIG_PATH") != null) {
-            config = DSUtil.convertToJson(FilesUtil.readFile(System.getenv("SIPIO_CONFIG_PATH") + '/config.yml'))
-        } else {
-            config = DSUtil.convertToJson(FilesUtil.readFile('config/config.yml'))
-        }
-    } catch(e) {
-        print('Unable to open configuration file')
-        exit(1)
-    }
-
-    // Find or generate SALT
-    if (System.getenv("SIPIO_SALT") != null) {
-        config.salt = System.getenv("SIPIO_SALT")
-    } else {
-        const pathToSalt = System.getProperty("user.home") + "/.sipio.salt"
-        const f = new File(pathToSalt)
-
-        if(f.exists() && !f.isDirectory()) {
-            config.salt = FilesUtil.readFile(pathToSalt)
-        } else {
-            const genSalt = UUID.randomUUID().toString().replaceAll("-", "")
-            FilesUtil.writeFile(pathToSalt, genSalt)
-            config.salt = genSalt
-        }
-    }
+    const config = getConfigFromFile()
+    config.salt = getSalt()
 
     if (System.getenv("SIPIO_EXTERN_ADDR") != null) {
         config.spec.externAddr = Packages.java.lang.System.getenv("SIPIO_EXTERN_ADDR")
@@ -92,7 +66,7 @@ export default function () {
         }
     }
 
-    if (config.logging == undefined) {
+    if (!config.logging) {
         config.logging = {}
         config.logging.traceLevel = 0
     }
@@ -106,20 +80,58 @@ export default function () {
         config.spec.dataSource.provider = System.getenv("SIPIO_DS_PROVIDER")
     }
 
-    config.system = {}
-    config.system.version = 'v1.0'
-    config.system.apiVersion = 'v1draft1'
-    config.system.apiPath = '/api' + '/' + config.system.apiVersion
-    config.system.env = []
-    config.system.env.push({"var":'SIPIO_DS_PROVIDER', "value":System.getenv("SIPIO_DS_PROVIDER")})
-    config.system.env.push({"var":'SIPIO_DS_PARAMETERS', "value":System.getenv("SIPIO_DS_PARAMETERS")})
-    config.system.env.push({"var":'SIPIO_CONFIG_PATH', "value":System.getenv("SIPIO_CONFIG_PATH")})
-    config.system.env.push({"var":'SIPIO_SALT', "value":System.getenv("SIPIO_SALT")})
-    config.system.env.push({"var":'SIPIO_EXTERN_ADDR', "value":System.getenv("SIPIO_EXTERN_ADDR")})
-    config.system.env.push({"var":'SIPIO_LOCALNETS', "value":System.getenv("SIPIO_LOCALNETS")})
+    config.system = getSystemConfig()
 
     if (config.metadata == undefined) config.metadata = {}
     if (config.metadata.userAgent == undefined) config.metadata.userAgent = 'Sip I/O ' + config.system.version
 
     return config
+}
+
+function getSystemConfig() {
+    const system = {}
+    system.version = 'v1.0'
+    system.apiVersion = 'v1draft1'
+    system.apiPath = '/api' + '/' + system.apiVersion
+    system.env = []
+    system.env.push({"var":'SIPIO_DS_PROVIDER', "value":System.getenv("SIPIO_DS_PROVIDER")})
+    system.env.push({"var":'SIPIO_DS_PARAMETERS', "value":System.getenv("SIPIO_DS_PARAMETERS")})
+    system.env.push({"var":'SIPIO_CONFIG_PATH', "value":System.getenv("SIPIO_CONFIG_PATH")})
+    system.env.push({"var":'SIPIO_SALT', "value":System.getenv("SIPIO_SALT")})
+    system.env.push({"var":'SIPIO_EXTERN_ADDR', "value":System.getenv("SIPIO_EXTERN_ADDR")})
+    system.env.push({"var":'SIPIO_LOCALNETS', "value":System.getenv("SIPIO_LOCALNETS")})
+    return system
+}
+
+function getConfigFromFile() {
+    let config
+    try {
+        if (System.getenv("SIPIO_CONFIG_PATH") != null) {
+            config = DSUtil.convertToJson(FilesUtil.readFile(System.getenv("SIPIO_CONFIG_PATH") + '/config.yml'))
+        } else {
+            config = DSUtil.convertToJson(FilesUtil.readFile('config/config.yml'))
+        }
+        return config
+    } catch(e) {
+        print('Unable to open configuration file')
+        exit(1)
+    }
+}
+
+function getSalt() {
+    // Find or generate SALT
+    if (System.getenv("SIPIO_SALT") != null) {
+        return System.getenv("SIPIO_SALT")
+    } else {
+        const pathToSalt = System.getProperty("user.home") + "/.sipio.salt"
+        const f = new File(pathToSalt)
+
+        if(f.exists() && !f.isDirectory()) {
+            return FilesUtil.readFile(pathToSalt)
+        } else {
+            const genSalt = UUID.randomUUID().toString().replaceAll("-", "")
+            FilesUtil.writeFile(pathToSalt, genSalt)
+            return genSalt
+        }
+    }
 }
