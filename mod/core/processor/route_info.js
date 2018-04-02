@@ -37,7 +37,6 @@ export default class RoutingInfo {
         this.agentsAPI = dataAPIs.AgentsAPI
     }
 
-
     getCalleeFromAddressInfo(request, addressInfo) {
         const callee = {}
         for (let x in addressInfo) {
@@ -58,46 +57,53 @@ export default class RoutingInfo {
 
     getRoutingType() {
         let routingType = RoutingType.UNKNOWN
+        const callerType = this.getCallerType()
+        const calleetype = this.getCalleeType()
+        const belongToSameDomain = this.isSameDomain()
 
-        if (this.getCallerType() == RouteEntityType.AGENT && this.getCalleeType() == RouteEntityType.AGENT && this.isSameDomain()) routingType = RoutingType.INTRA_DOMAIN_ROUTING
-        if (this.getCallerType() == RouteEntityType.AGENT && this.getCalleeType() == RouteEntityType.PEER && this.isSameDomain()) routingType = RoutingType.INTRA_DOMAIN_ROUTING
-        if (this.getCallerType() == RouteEntityType.PEER && this.getCalleeType() == RouteEntityType.AGENT && this.isSameDomain()) routingType = RoutingType.INTRA_DOMAIN_ROUTING
+        if (callerType == RouteEntityType.AGENT && calleetype == RouteEntityType.AGENT && belongToSameDomain) routingType = RoutingType.INTRA_DOMAIN_ROUTING
+        if (callerType == RouteEntityType.AGENT && calleetype == RouteEntityType.PEER && belongToSameDomain) routingType = RoutingType.INTRA_DOMAIN_ROUTING
 
-        if (this.getCallerType() == RouteEntityType.AGENT && this.getCalleeType() == RouteEntityType.AGENT && !this.isSameDomain()) routingType = RoutingType.INTER_DOMAIN_ROUTING
-        if (this.getCallerType() == RouteEntityType.AGENT && this.getCalleeType() == RouteEntityType.PEER && !this.isSameDomain()) routingType = RoutingType.INTER_DOMAIN_ROUTING
-        if (this.getCallerType() == RouteEntityType.PEER && this.getCalleeType() == RouteEntityType.AGENT && !this.isSameDomain()) routingType = RoutingType.INTER_DOMAIN_ROUTING
+        if (callerType == RouteEntityType.AGENT && calleetype == RouteEntityType.AGENT && !belongToSameDomain) routingType = RoutingType.INTER_DOMAIN_ROUTING
+        if (callerType == RouteEntityType.AGENT && calleetype == RouteEntityType.PEER && !belongToSameDomain) routingType = RoutingType.INTER_DOMAIN_ROUTING
+        if (callerType == RouteEntityType.AGENT && calleetype == RouteEntityType.THRU_GW) routingType = RoutingType.DOMAIN_EGRESS_ROUTING
 
-        if (this.getCallerType() == RouteEntityType.AGENT && this.getCalleeType() == RouteEntityType.THRU_GW) routingType = RoutingType.DOMAIN_EGRESS_ROUTING
-        if (this.getCallerType() == RouteEntityType.THRU_GW && this.getCalleeType() == RouteEntityType.DID) routingType = RoutingType.DOMAIN_INGRESS_ROUTING
+        if (callerType == RouteEntityType.PEER && calleetype == RouteEntityType.AGENT && !belongToSameDomain) routingType = RoutingType.INTER_DOMAIN_ROUTING
+        if (callerType == RouteEntityType.PEER && calleetype == RouteEntityType.AGENT && belongToSameDomain) routingType = RoutingType.INTRA_DOMAIN_ROUTING
+        if (callerType == RouteEntityType.PEER && this.getCalleeType() == RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
+
+        if (callerType == RouteEntityType.THRU_GW && calleetype == RouteEntityType.DID) routingType = RoutingType.DOMAIN_INGRESS_ROUTING
 
         // This is consider PEER_EGRESS_ROUTING because peers are the only one allow to overwrite the FromHeader.
-        if (this.getCallerType() == RouteEntityType.DID && this.getCalleeType() == RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
-        if (this.getCallerType() == RouteEntityType.PEER && this.getCalleeType() == RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
+        if (callerType == RouteEntityType.DID && this.getCalleeType() == RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
+
 
         return routingType
     }
 
     getRouteEntityType(domain, entity) {
+        let entityType = RouteEntityType.THRU_GW
+
         if (this.peersAPI.peerExist(entity)) {
-            return RouteEntityType.PEER
+            entityType = RouteEntityType.PEER
         }
 
         if (this.agentsAPI.agentExist(domain, entity)) {
-            return RouteEntityType.AGENT
+            entityType = RouteEntityType.AGENT
         }
 
         if (StringUtils.isNumeric(this.callerUser)) {
             const telUrl = this.addressFactory.createTelURL(entity)
             if (this.didsAPI.didExist(telUrl)) {
-                return RouteEntityType.DID
+                entityType = RouteEntityType.DID
             }
         }
 
         if (this.agentsAPI.agentExist(domain, entity)) {
-            return RouteEntityType.AGENT
+            entityType = RouteEntityType.AGENT
         }
 
-        return RouteEntityType.THRU_GW
+        return entityType
     }
 
     getCallerType () {
