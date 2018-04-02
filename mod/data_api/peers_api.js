@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+import DSUtil from 'data_api/utils'
 import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
 
@@ -13,20 +14,14 @@ export default class PeersAPI {
 
     createFromJSON(jsonObj) {
         if(this.peerExist(jsonObj.spec.credentials.username)) {
-            return {
-                status: Status.CONFLICT,
-                message: Status.message[Status.CONFLICT].value,
-            }
+           return DSUtil.buildResponse(Status.CONFLICT)
         }
         return this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
         if(!this.peerExist(jsonObj.spec.credentials.username)) {
-            return {
-                status: Status.NOT_FOUND,
-                message: Status.message[Status.NOT_FOUND].value,
-            }
+            return DSUtil.buildResponse(Status.NOT_FOUND)
         }
         return this.ds.update(jsonObj)
     }
@@ -45,18 +40,11 @@ export default class PeersAPI {
             }
         })
 
-        if (!isEmpty(peer)) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: peer
-            }
+        if (isEmpty(peer)) {
+            return DSUtil.buildResponse(Status.NOT_FOUND)
         }
 
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
+        return DSUtil.buildResponse(Status.OK, peer)
     }
 
     getPeerByUsername(username) {
@@ -69,23 +57,18 @@ export default class PeersAPI {
             }
         })
 
-        if (!isEmpty(peer)) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: peer
-            }
+        if (isEmpty(peer)) {
+            return DSUtil.buildResponse(Status.NOT_FOUND)
         }
 
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
+        return DSUtil.buildResponse(Status.OK, peer)
     }
 
     peerExist(username) {
         const response = this.getPeerByUsername(username)
-        if (response.status == Status.OK) return true
+        if (response.status == Status.OK) {
+            return true
+        }
         return false
     }
 
