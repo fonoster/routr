@@ -28,104 +28,19 @@ export default class Registrar {
         // For some reason this references the parent object
         // to avoid I just clone it!
         const request = r.clone()
-        const viaHeader = request.getHeader(ViaHeader.NAME)
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
-        const contactHeader = request.getHeader(ContactHeader.NAME)
-        const contactURI = contactHeader.getAddress().getURI()
         const fromHeader = request.getHeader(FromHeader.NAME)
         const fromURI = fromHeader.getAddress().getURI()
         const host = fromURI.getHost()
-        let expires
-
-        if (request.getHeader(ExpiresHeader.NAME)) {
-            expires = request.getHeader(ExpiresHeader.NAME).getExpires()
-        } else {
-            expires = contactHeader.getExpires()
-        }
-
-        // Get response from header
-        const response = authHeader.getResponse()
 
         // Get user from db or file
-        let res = this.peersAPI.getPeerByUsername(authHeader.getUsername())
-        let user
+        const user = this.getUser(authHeader.getUsername(), host)
+        const aHeaderJson = Registrar.buildHeader(user, authHeader)
 
-        if (res.status == Status.OK ) {
-            user = res.result
-        } else {
-            // Then lets check agents
-            res = this.agentsAPI.getAgent(host, authHeader.getUsername())
-
-            if (res.status == Status.OK ) {
-                user = res.result
-            }
-        }
-
-        if (user == null) {
-            LOG.warn('Could not find user or peer \'' + authHeader.getUsername() + '\'')
-            return false
-        }
-
-        if (user.kind.equalsIgnoreCase('peer') && !isEmpty(user.spec.contactAddr)) {
-            if (user.spec.contactAddr.contains(":")) {
-                contactURI.setHost(user.spec.contactAddr.split(":")[0])
-                contactURI.setPort(user.spec.contactAddr.split(":")[1])
-            } else {
-                contactURI.setHost(user.spec.contactAddr)
-            }
-        } else {
-            if(!!viaHeader.getReceived()) contactURI.setHost(viaHeader.getReceived())
-            if(!!viaHeader.getParameter('rport')) contactURI.setPort(viaHeader.getParameter('rport'))
-        }
-
-        if (user.kind.equalsIgnoreCase('agent') && !this.hasDomain(user, host)) {
-            LOG.debug('User ' + user.spec.credentials.username + ' does not exist within domain ' + host)
-            return false
-        }
-
-        const aHeaderJson = {
-            username: user.spec.credentials.username,
-            secret: user.spec.credentials.secret,
-            realm: authHeader.getRealm(),
-            nonce: authHeader.getNonce(),
-            // For some weird reason the interface value is an int while the value original value is a string
-            nc: this.getNonceCount(authHeader.getNonceCount()),
-            cnonce: authHeader.getCNonce(),
-            uri: authHeader.getURI().toString(),
-            method: 'REGISTER',
-            qop: authHeader.getQop()
-        }
-
-        if (new AuthHelper().calcFromHeader(aHeaderJson).equals(response)) {
-            // Detect NAT
-            const nat = (viaHeader.getHost() + viaHeader.getPort()) != (viaHeader.getReceived() + viaHeader.getParameter('rport'))
-
-            const route = {
-                isLinkAOR: false,
-                thruGw: false,
-                sentByAddress: viaHeader.getHost(),
-                sentByPort: (viaHeader.getPort() == -1 ? 5060 : viaHeader.getPort()),
-                received: viaHeader.getReceived(),
-                rport: viaHeader.getParameter('rport'),
-                contactURI: contactURI,
-                registeredOn: Date.now(),
-                expires: expires,
-                nat: nat
-            }
-
-            if (user.kind.equalsIgnoreCase('peer')) {
-                let peerHost = isEmpty(user.spec.device) ?  host : user.spec.device
-                const addressOfRecord = this.addressFactory.createSipURI(user.spec.credentials.username, peerHost)
-                addressOfRecord.setSecure(contactURI.isSecure())
-                this.locator.addEndpoint(addressOfRecord, route)
-            } else {
-                user.spec.domains.forEach(domain => {
-                    const addressOfRecord = this.addressFactory.createSipURI(user.spec.credentials.username, domain)
-                    addressOfRecord.setSecure(contactURI.isSecure())
-                    this.locator.addEndpoint(addressOfRecord, route)
-                })
-            }
-
+        if (new AuthHelper()
+            .calcFromHeader(aHeaderJson)
+                .equals(authHeader.getResponse())) {
+            addEndpoint(user, host, request)
             return true
         }
         return false
@@ -152,5 +67,111 @@ export default class Registrar {
         }
 
         return nc + h
+    }
+
+    addEndpoint(user, host, request) {
+        const contactHeader = request.getHeader(ContactHeader.NAME)
+        const contactURI = contactHeader.getAddress().getURI()
+        const viaHeader = request.getHeader(ViaHeader.NAME)
+        const route = Registrar.buildRoute(user, viaHeader, contactURI, expires)
+        let addressOfRecord
+
+        if (user.kind.equalsIgnoreCase('peer')) {
+            const peerHost = isEmpty(user.spec.device) ?  host : user.spec.device
+            addressOfRecord = this.addressFactory.createSipURI(user.spec.credentials.username, peerHost)
+            addressOfRecord.setSecure(contactURI.isSecure())
+        } else {
+            user.spec.domains.forEach(domain => {
+                addressOfRecord = this.addressFactory.createSipURI(user.spec.credentials.username, domain)
+                addressOfRecord.setSecure(contactURI.isSecure())
+            })
+        }
+
+        this.locator.addEndpoint(addressOfRecord, route)
+    }
+
+    getUser(username, host) {
+            let user
+            let response = this.peersAPI.getPeerByUsername(username)
+
+            if (response.status == Status.OK) {
+                user = response.result
+            } else {
+                // Then lets check agents
+                response = this.agentsAPI.getAgent(host, username)
+
+                if (response.status == Status.OK ) {
+                    user = response.result
+                }
+            }
+
+            if (user == null) {
+                throw 'Could not find user or peer \'' + username + '\''
+            }
+
+            return user
+        }
+
+    static buildRoute(user, viaHeader, contactURI, expires) {
+        // Detect NAT
+        const nat = (viaHeader.getHost() + viaHeader.getPort()) != (viaHeader.getReceived() + viaHeader.getParameter('rport'))
+        return {
+            isLinkAOR: false,
+            thruGw: false,
+            sentByAddress: viaHeader.getHost(),
+            sentByPort: (viaHeader.getPort() == -1 ? 5060 : viaHeader.getPort()),
+            received: viaHeader.getReceived(),
+            rport: viaHeader.getParameter('rport'),
+            contactURI: getUpdatedContactURI(user, viaHeader, contactURI),
+            registeredOn: Date.now(),
+            expires: expires,
+            nat: nat
+        }
+    }
+
+    static getUpdatedContactURI(user, viaHeader, contactURI) {
+        if (user.kind.equalsIgnoreCase('peer') && !isEmpty(user.spec.contactAddr)) {
+            if (user.spec.contactAddr.contains(":")) {
+                contactURI.setHost(user.spec.contactAddr.split(":")[0])
+                contactURI.setPort(user.spec.contactAddr.split(":")[1])
+            } else {
+                contactURI.setHost(user.spec.contactAddr)
+            }
+        } else {
+            if(!!viaHeader.getReceived()) {
+                contactURI.setHost(viaHeader.getReceived())
+            }
+
+            if(!!viaHeader.getParameter('rport')) {
+                contactURI.setPort(viaHeader.getParameter('rport'))
+            }
+        }
+        return contactURI
+    }
+
+    static buildHeader(user, authHeader) {
+        return {
+            username: user.spec.credentials.username,
+            secret: user.spec.credentials.secret,
+            realm: authHeader.getRealm(),
+            nonce: authHeader.getNonce(),
+            // For some weird reason the interface value is an int while the value original value is a string
+            nc: this.getNonceCount(authHeader.getNonceCount()),
+            cnonce: authHeader.getCNonce(),
+            uri: authHeader.getURI().toString(),
+            method: 'REGISTER',
+            qop: authHeader.getQop()
+        }
+    }
+
+    static getExpires(request) {
+        const contactHeader = request.getHeader(ContactHeader.NAME)
+        // Simplify
+        if (request.getHeader(ExpiresHeader.NAME)) {
+            expires = request.getHeader(ExpiresHeader.NAME).getExpires()
+        } else {
+            expires = contactHeader.getExpires()
+        }
+        return expires
     }
 }
