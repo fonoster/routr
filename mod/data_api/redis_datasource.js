@@ -142,7 +142,6 @@ export default class RedisDataSource {
                 result: obj.metadata.ref
             }
         } catch(e) {
-            e.printStackTrace()
             LOG.error(e.getMessage())
 
             return {
@@ -177,7 +176,6 @@ export default class RedisDataSource {
                 message: Status.message[Status.NOT_FOUND].value,
             }
         } catch(e) {
-            e.printStackTrace()
             LOG.error(e.getMessage())
 
             return {
@@ -224,7 +222,6 @@ export default class RedisDataSource {
                 result: list
             }
         } catch(e) {
-            e.printStackTrace()
             LOG.error(e.getMessage())
 
             if (e instanceof InvalidPathException) {
@@ -268,7 +265,6 @@ export default class RedisDataSource {
             }
 
         } catch(e) {
-            e.printStackTrace()
             LOG.error(e.getMessage())
 
             if (e instanceof InvalidPathException) {
@@ -319,7 +315,6 @@ export default class RedisDataSource {
                 message: Status.message[Status.OK].value
             }
         } catch(e) {
-            e.printStackTrace()
             LOG.error(e.getMessage())
 
             return {
