@@ -237,7 +237,7 @@ export default class RequestProcessor {
         // Remove route header if host's address is the same as the proxy's address
         if (routeHeader) {
             const h = routeHeader.getAddress().getURI().getHost()
-            const routeHost = this.ipUtil.isIp(h)? h : Packages.java.net.InetAddress.getByName(h).getHostAddress()
+            const routeHost = IPUtil.isIp(h)? h : Packages.java.net.InetAddress.getByName(h).getHostAddress()
             const routePort = routeHeader.getAddress().getURI().getPort()
             if ((routeHost.equals(localIp) && routePort.equals(localPort))
                 || ((routeHost.equals(advertisedAddr) && routePort.equals(advertisedPort)))) {

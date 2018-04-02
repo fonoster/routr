@@ -35,4 +35,5 @@ testGroup.ip_utils = function () {
     assertTrue(ipUtil.isLocalnet('10.88.1.34'))
     assertTrue(ipUtil.isLocalnet('192.168.0.14'))
     assertFalse(ipUtil.isLocalnet('35.196.78.166'))
+    assertTrue(IPUtil.isCidr('10.0.0.1/28'))
 }
