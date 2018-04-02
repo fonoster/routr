@@ -11,46 +11,45 @@ const put = Packages.spark.Spark.put
 const del = Packages.spark.Spark.delete
 const before = Packages.spark.Spark.before
 
-export default function (peersAPI, salt) {
+export default class PeersService {
 
-    before("/peers", (req, res) => parameterAuthFilter(req, res, salt))
+    constructor(peersAPI, salt) {
+        this.peersAPI = peersAPI
+        this.salt = salt
+    }
 
-    before("/peers/*", (req, res) => parameterAuthFilter(req, res, salt))
+    attachEndpoints() {
+        before("/peers", (req, res) => parameterAuthFilter(req, res, this.salt))
+        before("/peers/*", (req, res) => parameterAuthFilter(req, res, this.salt))
 
-    post('/peers', (req, res) => {
-        const jsonObj = JSON.parse(req.body())
-        let response = peersAPI.createFromJSON(jsonObj)
-        return JSON.stringify(response)
-    })
+        post('/peers', (req, res) => {
+            const jsonObj = JSON.parse(req.body())
+            let response = this.peersAPI.createFromJSON(jsonObj)
+            return JSON.stringify(response)
+        })
 
-    get('/peers', (req, res) => {
-        let filter = ''
-        if(!isEmpty(req.queryParams("filter"))) {
-            filter = req.queryParams("filter")
-        }
-        const response = peersAPI.getPeers(filter)
-        return JSON.stringify(response)
-    })
+        get('/peers', (req, res) => {
+            let filter = ''
+            if(!isEmpty(req.queryParams("filter"))) {
+                filter = req.queryParams("filter")
+            }
+            const response = this.peersAPI.getPeers(filter)
+            return JSON.stringify(response)
+        })
 
-    get('/peers/:ref', (req, res) => {
-        const ref = req.params(":ref")
-        const response = peersAPI.getPeer(ref)
-        return JSON.stringify(response)
-    })
+        get('/peers/:ref', (req, res) => {
+            return JSON.stringify(this.peersAPI.getPeer(req.params(":ref")))
+        })
 
-    put('/peers/:ref', (req, res) => {
-        const ref = req.params(":ref")
-        const jsonObj = JSON.parse(req.body())
-        jsonObj.metadata.ref = ref
-        const response = peersAPI.updateFromJSON(jsonObj)
-        return JSON.stringify(response)
-    })
+        put('/peers/:ref', (req, res) => {
+            const jsonObj = JSON.parse(req.body())
+            jsonObj.metadata.ref = req.params(":ref")
+            return JSON.stringify(this.peersAPI.updateFromJSON(jsonObj))
+        })
 
-    del('/peers/:ref', (req, res) => {
-        const ref = req.params(":ref")
-        const response = peersAPI.deletePeer(ref)
-        return JSON.stringify(response)
-    })
-
-    // TODO: Add endpoint for location (i.e  '/peers/:ref/location')
+        del('/peers/:ref', (req, res) => {
+            const ref = req.params(":ref")
+            return JSON.stringify(this.peersAPI.deletePeer(ref))
+        })
+    }
 }
