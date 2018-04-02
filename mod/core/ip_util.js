@@ -20,46 +20,47 @@ export default class IPUtil {
         this.localnets = this.config.spec.localnets
     }
 
-    getSubnetUtils(net) {
+    isLocalnet(address) {
+        const localnets = this.localnets
+        if (isEmpty(localnets)) throw "No localnets found"
+
+        for (let x in localnets) {
+            const subnetUtils = IPUtil.getSubnetUtils(localnets[x])
+            if (subnetUtils.getInfo().isInRange(address)) return true
+        }
+        return false;
+    }
+
+    static getSubnetUtils(net) {
         let subnetUtils
 
-        if(this.isIp(net)) {
+        if(IPUtil.isIp(net)) {
             subnetUtils = new SubnetUtils(net + '/31')
-        } else if(this.isCidr(net)) {
+        } else if(IPUtil.isCidr(net)) {
             subnetUtils = new SubnetUtils(net)
-        } else if(this.isIpAndMask(net)) {
-            let s = net.split('/')
+        } else if(IPUtil.isIpAndMask(net)) {
+            const s = net.split('/')
             subnetUtils = new SubnetUtils(s[0], s[1])
         } else {
             throw new java.lang.RuntimeException('Invalid rule notation. Must be IPv4 value, CIDR, or Ip/Mask notation.')
         }
+
         subnetUtils.setInclusiveHostCount(true)
-        return subnetUtils;
+        return subnetUtils
     }
 
-    isIp(v) {
+    static isIp(v) {
         return ipPattern.test(v)
     }
 
-    isCidr(v) {
+    static isCidr(v) {
         return cidrPattern.test(v) && new java.lang.String(v).contains('/')
     }
 
-    isIpAndMask(v) {
-        let s = v.split('/')
+    static isIpAndMask(v) {
+        const s = v.split('/')
         if (s.length != 2) return false
-        if (this.isIp(s[0]) && this.isIp(s[1])) return true
+        if (IPUtil.isIp(s[0]) && IPUtil.isIp(s[1])) return true
         return false
-    }
-
-    isLocalnet(address) {
-        let localnets = this.localnets
-        if (isEmpty(localnets)) throw "No localnets found"
-
-        for (let x in localnets) {
-            let subnetUtils = this.getSubnetUtils(localnets[x])
-            if (subnetUtils.getInfo().isInRange(address)) return true
-        }
-        return false;
     }
 }
