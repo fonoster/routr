@@ -7,7 +7,9 @@
 import RedisDataSource from 'data_api/redis_datasource'
 import AgentsAPI from 'data_api/agents_api'
 import { Status } from 'data_api/status'
+import TestUtils from 'data_api/test_utils.js'
 import getConfig from 'core/config_util.js'
+
 
 const ObjectId = Packages.org.bson.types.ObjectId
 
@@ -20,26 +22,8 @@ delete config.spec.dataSource.parameters
 const ds = new RedisDataSource(config)
 const agentsApi = new AgentsAPI(ds)
 
-function buildAgent(name, domains, username, secret = '1234') {
-    const agent = {
-        apiVersion: 'v1.0',
-        kind: 'Agent',
-        metadata: {
-            name: name
-        },
-        spec: {
-            domains: domains,
-            credentials: {
-                username: username,
-                secret: secret
-            }
-        }
-    }
-    return agent
-}
-
 testGroup.basic_operations = function () {
-    const agent = buildAgent('John Doe', ['sip.local'], '1001')
+    const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
 
     const initSize = ds.withCollection('agents').find().result.length
     const response = ds.insert(agent)
@@ -55,7 +39,7 @@ testGroup.basic_operations = function () {
 }
 
 testGroup.get_collections = function () {
-    const agent = buildAgent('John Doe', ['sip.local'], '1001')
+    const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
     const initSize = ds.withCollection('agents').find().result.length
     const ref = ds.insert(agent).result
 
@@ -78,8 +62,8 @@ testGroup.get_collections = function () {
 
 // This also validates the other resources
 testGroup.get_agents = function () {
-    const john = buildAgent('John Doe', ['sip.local'], '1001')
-    const jane = buildAgent('Jane Doe', ['sip.local'], '1002')
+    const john = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
+    const jane = TestUtils.buildAgent('Jane Doe', ['sip.local'], '1002')
 
     const ref1 = ds.insert(john).result
     const ref2 = ds.insert(jane).result
@@ -102,12 +86,12 @@ testGroup.get_agents = function () {
 
 // This also validates the other resources
 testGroup.get_agent = function () {
-    const agent = buildAgent('John Doe', ['sip.local'], '1001')
-    agent.ref = 'ag3f77f6'
+    const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
+    agent.metadata.ref = 'ag3f77f6'
     const ref = ds.insert(agent).result
     const response = agentsApi.getAgent('ag3f77f6')
-    //assertTrue(response.status == Status.OK)
-    //assertTrue(response.result.kind == 'Agent')
+    assertTrue(response.status == Status.OK)
+    assertTrue(response.result.kind == 'Agent')
     // Cleanup
     ds.withCollection('agents').remove(ref)
 }
