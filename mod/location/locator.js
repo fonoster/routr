@@ -68,84 +68,74 @@ export default class Locator {
         this.db.put(this.aorAsString(addressOfRecord), routes)
     }
 
+    findEndpointByTelUrl(addressOfRecord) {
+        const response = this.didsAPI.getDIDByTelUrl(addressOfRecord)
+        if (response.status == Status.OK) {
+            const did = response.result
+            const route = this.db.get(this.aorAsString(did.spec.location.aorLink))
+
+            if (route != null) {
+                return Locator.buildResponse(Status.OK, route)
+            }
+        }
+        return Locator.buildResponse(Status.NOT_FOUND)
+    }
+
+    findEndpointForDID(addressOfRecord) {
+        const telUrl = this.addressFactory.createTelURL(addressOfRecord.getUser())
+        const response = this.didsAPI.getDIDByTelUrl(telUrl)
+
+        if (response.status == Status.OK) {
+            const did = response.result
+            const route = this.db.get(this.aorAsString(did.spec.location.aorLink))
+
+            if (route != null) {
+                return Locator.buildResponse(Status.OK, route)
+            }
+        }
+    }
+
+    findEndpointBySipURI(addressOfRecord) {
+        // First just check the db for such addressOfRecord
+        let routes = this.db.get(this.aorAsString(addressOfRecord))
+
+        if (routes != null) {
+            return Locator.buildResponse(Status.OK, routes)
+        }
+
+        // Check peer's route by host
+        let response = this.getPeerRouteByHost(addressOfRecord)
+
+        if (response.status == Status.OK) {
+            return Locator.buildResponse(Status.OK, response.result)
+        }
+
+        // Then search for a DID
+        try {
+            response = this.findEndpointForDID(addressOfRecord)
+            if (response.status == Status.OK) {
+                return Locator.buildResponse(Status.OK, response.result)
+            }
+        } catch(e) {
+            //noop
+        }
+
+        // Endpoint can only be reach thru a gateway
+        response = this.getEgressRouteForAOR(addressOfRecord)
+
+        if (response.status == Status.OK) {
+            return Locator.buildResponse(Status.OK, response.result)
+        }
+
+        return Locator.buildResponse(Status.NOT_FOUND)
+    }
+
     findEndpoint(addressOfRecord) {
-        let response
-
         if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
-            response = this.didsAPI.getDIDByTelUrl(addressOfRecord)
-            if (response.status == Status.OK) {
-                const did = response.result
-                const route = this.db.get(this.aorAsString(did.spec.location.aorLink))
-
-                if (route != null) {
-                    return {
-                        status: Status.OK,
-                        message: Status.message[Status.OK].value,
-                        result: route
-                    }
-                }
-            }
-        } else if (addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
-
-            // First just check the db for such addressOfRecord
-            let routes = this.db.get(this.aorAsString(addressOfRecord))
-
-            if (routes != null) {
-                return {
-                    status: Status.OK,
-                    message: Status.message[Status.OK].value,
-                    result: routes
-                }
-            }
-
-            // Check peer's route by host
-            response = this.getPeerRouteByHost(addressOfRecord)
-
-            if (response.status == Status.OK) {
-                return {
-                    status: Status.OK,
-                    message: Status.message[Status.OK].value,
-                    result: response.result
-                }
-            }
-
-            // Then search for a DID
-            try {
-                const telUrl = this.addressFactory.createTelURL(addressOfRecord.getUser())
-                response = this.didsAPI.getDIDByTelUrl(telUrl)
-
-                if (response.status == Status.OK) {
-                    const did = response.result
-                    const route = this.db.get(this.aorAsString(did.spec.location.aorLink))
-
-                    if (route != null) {
-                        return {
-                            status: Status.OK,
-                            message: Status.message[Status.OK].value,
-                            result: route
-                        }
-                    }
-                }
-            } catch(e) {
-                // Ignore error
-            }
-
-            // Endpoint can only be reach thru a gateway
-            response = this.getEgressRouteForAOR(addressOfRecord)
-
-            if (response.status == Status.OK) {
-                return {
-                    status: Status.OK,
-                    message: Status.message[Status.OK].value,
-                    result: response.result
-                }
-            }
+            return this.findEndpointByTelUrl(addressOfRecord)
         }
 
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
+        return this.findEndpointBySipURI(addressOfRecord)
     }
 
     listAsJSON (domainUri) {
@@ -166,10 +156,7 @@ export default class Locator {
                 contactInfo = contactInfo + r
             }
 
-            let tmp = {
-                'addressOfRecord': key,
-                'contactInfo': contactInfo
-            }
+            let tmp = { 'addressOfRecord': key, 'contactInfo': contactInfo }
             s.push(tmp)
         }
 
@@ -357,6 +344,19 @@ export default class Locator {
         })
 
         new java.util.Timer().schedule(unbindExpiredTask, 5000, this.checkExpiresTime * 60 * 1000)
+    }
+
+    static buildResponse(status, result) {
+        const response = {
+            status: status,
+            message: Status.message[status].value
+        }
+
+        if (result) {
+            response.result = result
+        }
+
+        return response
     }
 
     stop() {

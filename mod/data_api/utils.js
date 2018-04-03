@@ -111,11 +111,7 @@ export default class DSUtil {
         }
     }
 
-    static buildResponse(status, result) {
-        if (status == Status.BAD_RESPONSE) {
-            LOG.warn(e.getMessage())
-        }
-
+    static buildResponse(status, result, e) {
         const response = {
             status: status,
             message: Status.message[status].value

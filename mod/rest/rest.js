@@ -6,7 +6,7 @@ import getConfig from 'core/config_util'
 import { Status } from 'data_api/status'
 import getJWTToken from 'rest/jwt_token_generator'
 import agentsService from 'rest/agents_service.js'
-import peersService from 'rest/peers_service.js'
+import PeersService from 'rest/peers_service.js'
 import domainsService from 'rest/domains_service.js'
 import gatewaysService from 'rest/gateways_service.js'
 import didsService from 'rest/dids_service.js'
@@ -104,7 +104,7 @@ export default class Rest {
             })
 
             agentsService(this.dataAPIs.AgentsAPI, this.config.salt)
-            peersService(this.dataAPIs.PeersAPI, this.config.salt)
+            new PeersService(this.dataAPIs.PeersAPI, this.config.salt).attachEndpoints()
             domainsService(this.dataAPIs.DomainsAPI, this.config.salt)
             gatewaysService(this.dataAPIs.GatewaysAPI, this.config.salt)
             didsService(this.dataAPIs.DIDsAPI, this.config.salt)
