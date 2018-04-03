@@ -5,9 +5,12 @@
  * @author Pedro Sanders
  * @since v1
  */
+import LocatorUtils from 'location/utils'
+import DSUtils from 'data_api/utils'
 import isEmpty from 'utils/obj_util'
 import { Status } from 'location/status'
 import { Status as RStatus } from 'data_api/status'
+
 
 const HashMap = Packages.java.util.HashMap
 const LogManager = Packages.org.apache.logging.log4j.LogManager
@@ -15,7 +18,7 @@ const LOG = LogManager.getLogger()
 const SipFactory = Packages.javax.sip.SipFactory
 
 /**
- * NOTE #1: Notice that addressOfRecord.toString !eq to this.aorAsString(addressOfRecord). This is important to ensure
+ * NOTE #1: Notice that addressOfRecord.toString !eq to LocatorUtils.aorAsString(addressOfRecord). This is important to ensure
  * the location of the devices regardless of any additional parameters that they may have.
  */
 export default class Locator {
@@ -29,35 +32,13 @@ export default class Locator {
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
     }
 
-    aorAsString(addressOfRecord) {
-        if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
-            return 'tel:' + addressOfRecord.getPhoneNumber()
-        } else if (addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
-            if (addressOfRecord.isSecure()) {
-                return 'sips:' + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
-            } else {
-                return 'sip:' + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
-            }
-        } else {
-            if (/sips?:.*@.*/.test(addressOfRecord) ||
-                /tel:\d+/.test(addressOfRecord)) {
-                return addressOfRecord
-            }
-           LOG.error('Invalid AOR: ' + addressOfRecord)
-        }
-
-        throw 'Invalid AOR: ' + addressOfRecord
-    }
-
     addEndpoint(addressOfRecord, route) {
         const response = this.findEndpoint(addressOfRecord)
-        let routes
+        let routes = new HashMap()
 
         // ThruGw is not available in db. We obtain that from api
         if (response.status == Status.OK && !response.result.thruGw) {
             routes = response.result
-        } else {
-            routes = new HashMap()
         }
 
         // Not using aorAsString because we need to consider the port, etc.
@@ -65,20 +46,20 @@ export default class Locator {
         routes.put(routeKey, route)
 
         // See NOTE #1
-        this.db.put(this.aorAsString(addressOfRecord), routes)
+        this.db.put(LocatorUtils.aorAsString(addressOfRecord), routes)
     }
 
     findEndpointByTelUrl(addressOfRecord) {
         const response = this.didsAPI.getDIDByTelUrl(addressOfRecord)
         if (response.status == Status.OK) {
             const did = response.result
-            const route = this.db.get(this.aorAsString(did.spec.location.aorLink))
+            const route = this.db.get(LocatorUtils.aorAsString(did.spec.location.aorLink))
 
             if (route != null) {
-                return Locator.buildResponse(Status.OK, route)
+                return LocatorUtils.buildResponse(Status.OK, route)
             }
         }
-        return Locator.buildResponse(Status.NOT_FOUND)
+        return LocatorUtils.buildResponse(Status.NOT_FOUND)
     }
 
     findEndpointForDID(addressOfRecord) {
@@ -87,34 +68,35 @@ export default class Locator {
 
         if (response.status == Status.OK) {
             const did = response.result
-            const route = this.db.get(this.aorAsString(did.spec.location.aorLink))
+            const route = this.db.get(LocatorUtils.aorAsString(did.spec.location.aorLink))
 
             if (route != null) {
-                return Locator.buildResponse(Status.OK, route)
+                return LocatorUtils.buildResponse(Status.OK, route)
             }
         }
+        return LocatorUtils.buildResponse(Status.NOT_FOUND)
     }
 
     findEndpointBySipURI(addressOfRecord) {
         // First just check the db for such addressOfRecord
-        let routes = this.db.get(this.aorAsString(addressOfRecord))
+        let routes = this.db.get(LocatorUtils.aorAsString(addressOfRecord))
 
         if (routes != null) {
-            return Locator.buildResponse(Status.OK, routes)
+            return LocatorUtils.buildResponse(Status.OK, routes)
         }
 
         // Check peer's route by host
         let response = this.getPeerRouteByHost(addressOfRecord)
 
         if (response.status == Status.OK) {
-            return Locator.buildResponse(Status.OK, response.result)
+            return LocatorUtils.buildResponse(Status.OK, response.result)
         }
 
         // Then search for a DID
         try {
             response = this.findEndpointForDID(addressOfRecord)
             if (response.status == Status.OK) {
-                return Locator.buildResponse(Status.OK, response.result)
+                return LocatorUtils.buildResponse(Status.OK, response.result)
             }
         } catch(e) {
             //noop
@@ -124,10 +106,10 @@ export default class Locator {
         response = this.getEgressRouteForAOR(addressOfRecord)
 
         if (response.status == Status.OK) {
-            return Locator.buildResponse(Status.OK, response.result)
+            return LocatorUtils.buildResponse(Status.OK, response.result)
         }
 
-        return Locator.buildResponse(Status.NOT_FOUND)
+        return LocatorUtils.buildResponse(Status.NOT_FOUND)
     }
 
     findEndpoint(addressOfRecord) {
@@ -165,7 +147,7 @@ export default class Locator {
 
     // See NOTE #1
     removeEndpoint(addressOfRecord, contactURI) {
-        const aor = this.aorAsString(addressOfRecord)
+        const aor = LocatorUtils.aorAsString(addressOfRecord)
         // Remove all bindings
         if (contactURI == null) {
             return this.db.remove(aor)
@@ -207,75 +189,56 @@ export default class Locator {
         }
     }
 
+    getEgressRouteForDomain(domain, addressOfRecord) {
+        if (isEmpty(domain.spec.context.egressPolicy) == false) {
+            // Get DID and Gateway info
+            let response = this.didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
+
+            if (response.status == RStatus.OK) {
+                const did = response.result
+                response = this.gatewaysAPI.getGateway(did.metadata.gwRef)
+
+                if (response.status == RStatus.OK) {
+                    const gateway = response.result
+                    const pattern = 'sip:' + domain.spec.context.egressPolicy.rule + '@' + domain.spec.context.domainUri
+
+                    if (new RegExp(pattern).test(addressOfRecord.toString())) {
+                        const contactURI = this.addressFactory
+                            .createSipURI(addressOfRecord.getUser(), gateway.spec.regService.host)
+                        contactURI.setSecure(addressOfRecord.isSecure())
+                        const route = LocatorUtils.buildEgressRoute(contactURI, gateway, did, domain)
+                        return LocatorUtils.buildResponse(RStatus.OK, route)
+                    }
+                }
+            }
+        }
+        return DSUtils.buildResponse(RStatus.NOT_FOUND)
+    }
+
     getEgressRouteForAOR(addressOfRecord) {
-        if (!(addressOfRecord instanceof Packages.javax.sip.address.SipURI)) throw 'AOR must be an instance of javax.sip.address.SipURI'
+        if (!(addressOfRecord instanceof Packages.javax.sip.address.SipURI))
+            throw 'AOR must be an instance of javax.sip.address.SipURI'
 
-        const didsAPI = this.didsAPI
-        const domainsAPI = this.domainsAPI
-        const gatewaysAPI = this.gatewaysAPI
-        const addressFactory = this.addressFactory
-
-        let response = domainsAPI.getDomains()
+        let response = this.domainsAPI.getDomains()
         let route
 
         if (response.status == RStatus.OK) {
-            const domains = response.result
-
-            domains.forEach(domain => {
-                if (!isEmpty(domain.spec.context.egressPolicy)) {
-                    // Get DID and Gateway info
-                    response = didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
-
-                    if (response.status == RStatus.OK) {
-                        const did = response.result
-                        response = gatewaysAPI.getGateway(did.metadata.gwRef)
-
-                        if (response.status == RStatus.OK) {
-                            const gw = response.result
-                            const gwHost = gw.spec.regService.host
-                            const gwUsername = gw.spec.regService.credentials.username
-                            const gwRef = gw.metadata.ref
-                            const egressRule = domain.spec.context.egressPolicy.rule
-                            const pattern = 'sip:' + egressRule + '@' + domain.spec.context.domainUri
-
-                            if (new RegExp(pattern).test(addressOfRecord.toString())) {
-                                const contactURI = addressFactory.createSipURI(addressOfRecord.getUser(), gwHost)
-                                contactURI.setSecure(addressOfRecord.isSecure())
-
-                                route = {
-                                    isLinkAOR: false,
-                                    thruGw: true,
-                                    rule: egressRule,
-                                    gwUsername: gwUsername,
-                                    gwRef: gwRef,
-                                    gwHost: gwHost,
-                                    didRef: did.metadata.ref,
-                                    did: did.spec.location.telUrl.split(':')[1],
-                                    contactURI: contactURI
-                                }
-                            }
-                        }
-                    }
+            response.result.forEach(domain => {
+                const r = this.getEgressRouteForDomain(domain, addressOfRecord)
+                if (r.status == RStatus.OK) {
+                    route = r.result
                 }
             })
         }
 
         if(route) {
-            return {
-                status: RStatus.OK,
-                message: RStatus.message[RStatus.OK].value,
-                result: route
-            }
+            return DSUtils.buildResponse(RStatus.OK, route)
         }
 
-        return {
-            status: RStatus.NOT_FOUND,
-            message: RStatus.message[RStatus.NOT_FOUND].value
-        }
+        return DSUtils.buildResponse(RStatus.NOT_FOUND)
     }
 
     getEgressRouteForPeer(addressOfRecord, didRef) {
-        const addressFactory = this.addressFactory
         let response = this.didsAPI.getDID(didRef)
         let route
 
@@ -284,38 +247,17 @@ export default class Locator {
             response = this.gatewaysAPI.getGateway(did.metadata.gwRef)
 
             if (response.status == Status.OK) {
-                const gw = response.result
-                const gwHost = gw.spec.regService.host
-                const gwUsername = gw.spec.regService.credentials.username
-                const gwRef = gw.metadata.ref
-
-                const contactURI = addressFactory.createSipURI(addressOfRecord.getUser(), gwHost)
-
-                route = {
-                    isLinkAOR: false,
-                    thruGw: true,
-                    gwUsername: gwUsername,
-                    gwRef: gwRef,
-                    gwHost: gwHost,
-                    didRef: didRef,
-                    did: did.spec.location.telUrl.split(':')[1],
-                    contactURI: contactURI
-                }
+                const gateway = response.result
+                const contactURI = this.addressFactory.createSipURI(addressOfRecord.getUser(), gateway.spec.regService.host)
+                route = LocatorUtils.buildEgressRoute(contactURI, gateway, did)
            }
         }
 
         if(route) {
-            return {
-                status: RStatus.OK,
-                message: RStatus.message[RStatus.OK].value,
-                result: route
-            }
+            return DSUtils.buildResponse(RStatus.OK, route)
         }
 
-        return {
-            status: RStatus.NOT_FOUND,
-            message: RStatus.message[RStatus.NOT_FOUND].value
-        }
+        return DSUtils.buildResponse(RStatus.NOT_FOUND)
     }
 
     start() {
@@ -344,19 +286,6 @@ export default class Locator {
         })
 
         new java.util.Timer().schedule(unbindExpiredTask, 5000, this.checkExpiresTime * 60 * 1000)
-    }
-
-    static buildResponse(status, result) {
-        const response = {
-            status: status,
-            message: Status.message[status].value
-        }
-
-        if (result) {
-            response.result = result
-        }
-
-        return response
     }
 
     stop() {

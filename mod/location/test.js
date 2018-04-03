@@ -7,6 +7,7 @@
 
 import FilesDataSource from 'data_api/files_datasource'
 import Locator from 'location/locator.js'
+import LocatorUtils from 'location/utils.js'
 import DIDsAPI from 'data_api/dids_api'
 import DomainsAPI from 'data_api/domains_api'
 import GatewaysAPI from 'data_api/gateways_api'
@@ -34,14 +35,14 @@ export let testGroup = { name: "Location Service Module" }
 // Tests
 testGroup.aor_as_string = function () {
     const sipURI = addressFactory.createSipURI('john', 'sip.ocean.com')
-    let aorString = locator.aorAsString(sipURI)
+    let aorString = LocatorUtils.aorAsString(sipURI)
     assertEquals(aorString, 'sip:john@sip.ocean.com')
     // Testing TelURL
     const telURL = addressFactory.createTelURL('tel:8095863314')
-    aorString = locator.aorAsString(telURL)
+    aorString = LocatorUtils.aorAsString(telURL)
     assertEquals(aorString, 'tel:8095863314')
     // Test text format
-    aorString = locator.aorAsString('sip:john@sip.ocean.com')
+    aorString = LocatorUtils.aorAsString('sip:john@sip.ocean.com')
     assertEquals(aorString, 'sip:john@sip.ocean.com')
 }
 
