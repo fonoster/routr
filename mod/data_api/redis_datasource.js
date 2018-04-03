@@ -17,11 +17,7 @@ const System = Packages.java.lang.System
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
-const defautRedisParameters = {
-    host: 'localhost',
-    port: '6379',
-    secret: ''
-}
+const defautRedisParameters = { host: 'localhost', port: '6379', }
 const defUser = {
     kind: 'User',
     metadata: {
@@ -39,17 +35,13 @@ export default class RedisDataSource {
 
     constructor(config = getConfig()) {
         let parameters
+
+        isEmpty(config.spec.dataSource.parameters) == false?
+            parameters = config.spec.dataSource.parameters: parameters = defautRedisParameters
+
         if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
             parameters = this.getParams(System.getenv("SIPIO_DS_PARAMETERS"))
         }
-
-        if (!parameters && !config.spec.dataSource.parameters) {
-            parameters = defautRedisParameters
-        }
-
-        if (!parameters.host) parameters.host = 'localhost'
-        if (!parameters.port) parameters.port = '6379'
-        if (!parameters.secret) parameters.secret = ''
 
         this.jedisPool = new JedisPool(parameters.host, parameters.port)
 
@@ -160,7 +152,7 @@ export default class RedisDataSource {
     }
 
     find(filter = '*') {
-        if (!isEmpty(filter) && !filter.equals('*')) {
+        if (isEmpty(filter) == false && filter.equals('*') == false) {
             filter = "*.[?(" + filter + ")]"
         }
 
@@ -169,11 +161,8 @@ export default class RedisDataSource {
 
         try {
             jedis = this.jedisPool.getResource()
-            jedis.smembers(this.collection).forEach(ref => {
-                const entry = JSON.parse(jedis.get(ref))
-                list.push(entry)
-            })
-
+            jedis.smembers(this.collection)
+                .forEach(ref => list.push(JSON.parse(jedis.get(ref))))
 
             if (list.length == 0) {
                 return DSUtil.buildResponse(Status.OK, [])
@@ -196,8 +185,8 @@ export default class RedisDataSource {
     }
 
     update(obj) {
-        if (!obj.metadata.ref || !DSUtil.isValidEntity(obj)) {
-            return DSUtil.buildResponse(Status.BAD_REQUEST, e.getMessage())
+        if (isEmpty(obj.metadata.ref) == true || DSUtil.isValidEntity(obj) == false) {
+            return badRequest
         }
 
         let jedis

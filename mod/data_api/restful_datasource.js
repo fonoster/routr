@@ -24,12 +24,11 @@ export default class RestfulDataSource {
     constructor(config = getConfig()) {
         let parameters
 
+        isEmpty(config.spec.dataSource.parameters) == false?
+            parameters = config.spec.dataSource.parameters: parameters = defaultRestfulParams
+
         if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
             parameters = this.getParams(System.getenv("SIPIO_DS_PARAMETERS"))
-        }
-
-        if (!parameters && !config.spec.dataSource.parameters) {
-            parameters = defaultRestfulParams
         }
 
         if (!parameters.baseUrl || !parameters.username || !parameters.secret) {

@@ -22,7 +22,7 @@ export default class FilesDataSource {
             }
         }
 
-        if (!config.spec.dataSource.parameters) {
+        if (config.spec.dataSource.parameters) {
             config.spec.dataSource.parameters = {}
             config.spec.dataSource.parameters.path = 'config'
         }
