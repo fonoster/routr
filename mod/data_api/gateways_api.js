@@ -50,11 +50,7 @@ export default class GatewaysAPI {
         response = this.ds.withCollection('dids').find("@.metadata.gwRef=='" + gateway.metadata.ref + "'")
         const dids = response.result
 
-        if (dids.length == 0) {
-            return this.ds.withCollection('gateways').remove(ref)
-        } else {
-            return foundDependentObjects
-        }
+        return dids.length == 0? this.ds.withCollection('gateways').remove(ref): foundDependentObjects
     }
 
 }

@@ -18,12 +18,7 @@ export default class AgentsAPI {
         if (!this.doesDomainExist(domain)) {
             return unfulfilledDepResponse
         }
-
-        if (this.existInAnotherDomain(domain)) {
-           return DSUtil.buildResponse(Status.CONFLICT)
-        }
-
-        return this.ds.update(domain)
+        return this.existInAnotherDomain(domain)? DSUtil.buildResponse(Status.CONFLICT): this.ds.update(domain)
     }
 
     createFromJSON(domain) {
@@ -51,11 +46,7 @@ export default class AgentsAPI {
             }
         })
 
-        if (isEmpty(agent)) {
-            return DSUtil.buildResponse(Status.NOT_FOUND)
-        }
-
-        return DSUtil.buildResponse(Status.OK, agent)
+        return isEmpty(agent)? DSUtil.buildResponse(Status.NOT_FOUND): DSUtil.buildResponse(Status.OK, agent)
     }
 
     getAgentByRef(ref) {
@@ -66,13 +57,7 @@ export default class AgentsAPI {
      * Takes either one argument(ref) or two arguments(domainUri and username)
      */
     getAgent(arg1, arg2) {
-        let agent
-
-        if(arguments.length == 2) {
-            return this.getAgentByDomain(arg1, arg2)
-        }
-
-        return this.getAgentByRef(arg1)
+        return arguments.length == 2? this.getAgentByDomain(arg1, arg2): this.getAgentByRef(arg1)
     }
 
     agentExist(domainUri, username) {
@@ -104,10 +89,6 @@ export default class AgentsAPI {
     doesDomainExist(agent) {
         const domains = JSON.stringify(jsonObj.spec.domains).replaceAll("\"","'")
         const response = this.ds.withCollection('domains').find("@.spec.context.domainUri in " + domains)
-
-        if (response.result.length != agent.spec.domains.length) {
-            return false
-        }
-        return true
+        return response.result.length != agent.spec.domains.length? false: true
     }
 }

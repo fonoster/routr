@@ -13,17 +13,11 @@ export default class PeersAPI {
     }
 
     createFromJSON(jsonObj) {
-        if(this.peerExist(jsonObj.spec.credentials.username)) {
-           return DSUtil.buildResponse(Status.CONFLICT)
-        }
-        return this.ds.insert(jsonObj)
+        return this.peerExist(jsonObj.spec.credentials.username)? DSUtil.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        if(!this.peerExist(jsonObj.spec.credentials.username)) {
-            return DSUtil.buildResponse(Status.NOT_FOUND)
-        }
-        return this.ds.update(jsonObj)
+        return !this.peerExist(jsonObj.spec.credentials.username)? DSUtil.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
     }
 
     getPeers(filter) {
