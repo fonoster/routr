@@ -5,7 +5,7 @@
 
 export default class TestUtils {
 
-    static buildEndpoint(name, username, secret = '1234') {
+    static buildEndpoint(kind, name, username, secret = '1234') {
         const endpoint = {
             apiVersion: 'v1.0',
             metadata: {
@@ -18,20 +18,19 @@ export default class TestUtils {
                 }
             }
         }
+        endpoint.kind = kind
         return endpoint
     }
 
     static buildAgent(name, domains, username, secret = '1234') {
-        const agent = TestUtils.buildEndpoint(name, username, secret)
+        const agent = TestUtils.buildEndpoint('Agent', username, secret)
         agent.spec.domains = domains
-        agent.kind = 'Agent'
         return agent
     }
 
     static buildPeer(name, device, username, secret = '1234') {
-         const peer = TestUtils.buildEndpoint(name, username, secret)
+         const peer = TestUtils.buildEndpoint('Peer', name, username, secret)
          peer.spec.device = device
-         peer.kind = 'Peer'
          return peer
     }
 
