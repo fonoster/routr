@@ -136,12 +136,7 @@ export default class RedisDataSource {
         try {
             jedis = this.jedisPool.getResource()
             const result = jedis.get(obj.metadata.ref)
-
-            if (result != null) {
-                return DSUtil.buildResponse(Status.OK, result)
-            }
-
-            return DSUtil.buildResponse(Status.NOT_FOUND)
+            return result == null? DSUtil.buildResponse(Status.NOT_FOUND):DSUtil.buildResponse(Status.OK, result)
         } catch(e) {
             return DSUtil.buildErrResponse(e)
         } finally {
@@ -151,8 +146,10 @@ export default class RedisDataSource {
         }
     }
 
-    find(filter = '*') {
-        if (isEmpty(filter) == false && filter.equals('*') == false) {
+    find(filter) {
+        if (isEmpty(filter)) {
+            filter = '*'
+        } else if(!filter.equals('*')) {
             filter = "*.[?(" + filter + ")]"
         }
 
@@ -172,11 +169,8 @@ export default class RedisDataSource {
 
             return DSUtil.buildResponse(Status.OK, list)
         } catch(e) {
-            if (e instanceof InvalidPathException) {
-                return DSUtil.buildResponse(Status.BAD_REQUEST, e.getMessage())
-            }
-
-            return DSUtil.buildErrResponse(e)
+            return e instanceof InvalidPathException? DSUtil.buildResponse(Status.BAD_REQUEST, e.getMessage())
+                :DSUtil.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -185,7 +179,7 @@ export default class RedisDataSource {
     }
 
     update(obj) {
-        if (isEmpty(obj.metadata.ref) == true || DSUtil.isValidEntity(obj) == false) {
+        if (!DSUtil.isValidEntity(obj)) {
             return badRequest
         }
 
@@ -197,11 +191,8 @@ export default class RedisDataSource {
 
             return DSUtil.buildResponse(Status.OK, obj.metadata.ref)
         } catch(e) {
-            if (e instanceof InvalidPathException) {
-                return DSUtil.buildResponse(Status.BAD_REQUEST, e.getMessage())
-            }
-
-            return DSUtil.buildErrResponse(e)
+            return e instanceof InvalidPathException? DSUtil.buildResponse(Status.BAD_REQUEST, e.getMessage())
+                :DSUtil.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -222,11 +213,7 @@ export default class RedisDataSource {
 
             cnt = jedis.srem(this.collection, ref)
 
-            if (cnt == 0) {
-                return DSUtil.buildResponse(Status.NOT_FOUND)
-            }
-
-            return DSUtil.buildResponse(Status.OK)
+            return cnt == 0? DSUtil.buildResponse(Status.NOT_FOUND):DSUtil.buildResponse(Status.OK)
         } catch(e) {
             return DSUtil.buildErrResponse(e)
         } finally {
