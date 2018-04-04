@@ -76,11 +76,7 @@ export default class AgentsAPI {
     }
 
     agentExist(domainUri, username) {
-        const response = this.getAgent(domainUri, username)
-        if (response.status == Status.OK) {
-            return true
-        }
-        return false
+       return DSUtil.objExist(this.getAgent(domainUri, username))
     }
 
     deleteAgent(ref) {

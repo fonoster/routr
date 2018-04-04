@@ -39,11 +39,7 @@ export default class UsersAPI {
     }
 
     userExist(username) {
-        const response = this.getUser(username)
-        if (response.status == Status.OK) {
-            return true
-        }
-        return false
+        return DSUtil.objExist(this.getUser(username))
     }
 
     deleteUser(ref) {

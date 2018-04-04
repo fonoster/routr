@@ -41,11 +41,7 @@ export default class DomainsAPI {
     }
 
     domainExist(domainUri) {
-        const response = this.getDomainByUri(domainUri)
-        if (response.status == Status.OK) {
-            return true
-        }
-        return false
+        return DSUtil.objExist(this.getDomainByUri(domainUri))
     }
 
     deleteDomain(ref) {

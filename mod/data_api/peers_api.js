@@ -39,11 +39,7 @@ export default class PeersAPI {
     }
 
     peerExist(username) {
-        const response = this.getPeerByUsername(username)
-        if (response.status == Status.OK) {
-            return true
-        }
-        return false
+        return DSUtil.objExist(this.getPeerByUsername(username))
     }
 
     deletePeer(ref) {

@@ -41,11 +41,7 @@ export default class GatewaysAPI {
     }
 
     gatewayExist(host) {
-        const response = this.getGatewayByHost(host)
-        if (response.status == Status.OK) {
-            return true
-        }
-        return false
+        return DSUtil.objExist(this.getGatewayByHost(host))
     }
 
     deleteGateway(ref) {

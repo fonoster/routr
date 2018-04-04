@@ -138,6 +138,10 @@ export default class DSUtil {
 
         return DSUtil.buildResponse(Status.OK, result)
     }
+
+    static objExist(response) {
+       return response.status == Status.OK? true: false
+    }
 }
 
 function resolve(path, obj) {

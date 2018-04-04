@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+import DSUtil from 'data_api/utils'
 import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
 
@@ -115,9 +116,7 @@ export default class DIDsAPI {
     }
 
     didExist(telUrl) {
-        const response = this.getDIDByTelUrl(telUrl)
-        if (response.status == Status.OK) return true
-        return false
+        return DSUtil.objExist(this.getDIDByTelUrl(telUrl))
     }
 
     deleteDID(ref) {
