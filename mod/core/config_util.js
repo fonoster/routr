@@ -12,80 +12,106 @@ const UUID = Packages.java.util.UUID
 export default function () {
     const config = getConfigFromFile()
     config.salt = getSalt()
-
-    if (System.getenv("SIPIO_EXTERN_ADDR") != null) {
-        config.spec.externAddr = Packages.java.lang.System.getenv("SIPIO_EXTERN_ADDR")
-    }
-
-    if (System.getenv("SIPIO_LOCALNETS") != null) {
-        config.spec.localnets = Packages.java.lang.System.getenv("SIPIO_LOCALNETS").split(",")
-    }
+    config.spec.securityContext = getDefaultSecContext(config.spec.securityContext)
+    config.spec.externAddr = getSysPresets().externAddr
+    config.spec.localnets = getSysPresets().localnets
+    config.spec.provider = getSysPresets().provider
+    config.spec.restService = getRestfulPresets(config.spec.restService)
+    config.system = getSystemConfig()
 
     if (config.spec.bindAddr == undefined) {
         config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
     }
 
-    if (config.spec.restService == undefined) {
-        config.spec.restService = {}
+    if (config.logging == undefined) {
+        config.logging = { traceLevel: 0 }
     }
 
-    if (config.spec.restService.keyStore == undefined) {
-        config.spec.restService.keyStore = 'etc/certs/api-cert.jks'
-        config.spec.restService.keyStorePassword = 'changeit'
+    if (config.spec.dataSource == undefined) {
+        config.spec.dataSource = { provider: 'files_data_provider' }
     }
 
-    if (config.spec.restService.unsecured == undefined) {
-        config.spec.restService.unsecured = false
+    if (config.metadata == undefined) {
+        config.metadata = {}
     }
 
-    if (config.spec.restService.trustStore == undefined) {
-        config.spec.restService.trustStore = null
+    if (config.metadata.userAgent == undefined) {
+        config.metadata.userAgent = 'Sip I/O ' + config.system.version
     }
 
-    if (config.spec.restService.trustStorePassword == undefined) {
-        config.spec.restService.trustStorePassword = null
+    return config
+}
+
+function getRestfulPresets(rs) {
+    let restService
+    restService = rs == undefined ? {} : rs
+
+    if (restService.keyStore == undefined) {
+        restService.keyStore = 'etc/certs/api-cert.jks'
+        restService.keyStorePassword = 'changeit'
     }
 
-    if (config.spec.restService.bindAddr == undefined) {
-        config.spec.restService.bindAddr = '0.0.0.0'
+    if (restService.unsecured == undefined) {
+        restService.unsecured = false
     }
 
-    if (config.spec.restService.port == undefined) {
-        config.spec.restService.port = 4567
+    if (restService.trustStore == undefined) {
+        restService.trustStore = null
     }
 
-    if (config.spec.securityContext) {
-        if (config.spec.securityContext.client == undefined) config.spec.securityContext.client = {}
-
-        if (config.spec.securityContext.client.authType == undefined) {
-            config.spec.securityContext.client.authType = 'Disabled'
-        }
-
-        if (config.spec.securityContext.client.protocols == undefined) {
-            config.spec.securityContext.client.protocols = ['SSLv3', 'TLSv1.2', 'TLSv1.1', 'TLSv1']
-        }
+    if (restService.trustStorePassword == undefined) {
+        restService.trustStorePassword = null
     }
 
-    if (!config.logging) {
-        config.logging = {}
-        config.logging.traceLevel = 0
+    if (restService.bindAddr == undefined) {
+        restService.bindAddr = '0.0.0.0'
     }
 
-    if (!config.spec.dataSource) {
-        config.spec.dataSource = {}
-        config.spec.dataSource.provider = 'files_data_provider'
+    if (restService.port == undefined) {
+        restService.port = 4567
+    }
+
+    return restService
+}
+
+function getSysPresets() {
+    const spec = {}
+
+    if (System.getenv("SIPIO_EXTERN_ADDR") != null) {
+        spec.externAddr = Packages.java.lang.System.getenv("SIPIO_EXTERN_ADDR")
+    }
+
+    if (System.getenv("SIPIO_LOCALNETS") != null) {
+        spec.localnets = Packages.java.lang.System.getenv("SIPIO_LOCALNETS").split(",")
     }
 
     if (System.getenv("SIPIO_DS_PROVIDER") != null) {
-        config.spec.dataSource.provider = System.getenv("SIPIO_DS_PROVIDER")
+        spec.provider = System.getenv("SIPIO_DS_PROVIDER")
     }
+    return spec
+}
 
-    config.system = getSystemConfig()
+function getDefaultSecContext(securityContext) {
+    if (securityContext) {
+        if (securityContext.client == undefined) {
+            securityContext.client = {}
+        }
 
-    if (config.metadata == undefined) config.metadata = {}
-    if (config.metadata.userAgent == undefined) config.metadata.userAgent = 'Sip I/O ' + config.system.version
+        if (securityContext.client.authType == undefined) {
+            securityContext.client.authType = 'Disabled'
+        }
 
-    return config
+        if (securityContext.client.protocols == undefined) {
+            securityContext.client.protocols = ['SSLv3', 'TLSv1.2', 'TLSv1.1', 'TLSv1']
+        }
+
+        if (securityContext.debugging == undefined) {
+            securityContext.debugging = false
+        }
+
+        return securityContext
+    }
+    return null
 }
 
 function getSystemConfig() {

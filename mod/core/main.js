@@ -16,11 +16,10 @@ import DIDsAPI from 'data_api/dids_api'
 import FilesDataSource from 'data_api/files_datasource'
 import RedisDataSource from 'data_api/redis_datasource'
 import RestfulDataSource from 'data_api/restful_datasource'
-
 import getConfig from 'core/config_util.js'
 
 // Avoids old log4j and jetty logs
-java.lang.System.setProperty("org.eclipse.jetty.LEVEL", "WARN");
+java.lang.System.setProperty("org.eclipse.jetty.LEVEL", "WARN")
 org.apache.log4j.BasicConfigurator.configure(new
     org.apache.log4j.varia.NullAppender())
 

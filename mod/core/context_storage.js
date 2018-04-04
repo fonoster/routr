@@ -4,13 +4,18 @@
  * @author Pedro Sanders
  * @since v1
  */
-export default function ContextStorage() {
-    const storage = new java.util.ArrayList()
+export default class ContextStorage {
 
-    this.saveContext = context => storage.add(context)
+    constructor() {
+        this.storage = new java.util.ArrayList()
+    }
 
-    this.findContext = trans => {
-        const iterator = storage.iterator()
+    saveContext(context) {
+        this.storage.add(context)
+    }
+
+    findContext(trans) {
+        const iterator = this.storage.iterator()
         while(iterator.hasNext()) {
             const context = iterator.next()
 
@@ -21,8 +26,8 @@ export default function ContextStorage() {
         }
     }
 
-    this.removeContext = trans => {
-        const iterator = storage.iterator()
+    removeContext(trans) {
+        const iterator = this.storage.iterator()
         while(iterator.hasNext()) {
             const context = iterator.next()
 
@@ -35,5 +40,7 @@ export default function ContextStorage() {
         return false
     }
 
-    this.getStorage = () => storage
+    getStorage() {
+        return this.storage
+    }
 }
