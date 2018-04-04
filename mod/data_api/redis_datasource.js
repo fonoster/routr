@@ -147,27 +147,24 @@ export default class RedisDataSource {
     }
 
     find(filter) {
-        if (isEmpty(filter)) {
-            filter = '*'
-        } else if(!filter.equals('*')) {
-            filter = "*.[?(" + filter + ")]"
-        }
-
         let list = []
         let jedis
 
         try {
             jedis = this.jedisPool.getResource()
             jedis.smembers(this.collection)
-                .forEach(ref => list.push(JSON.parse(jedis.get(ref))))
+                .forEach(ref =>
+                    list.push(JSON.parse(jedis.get(ref))))
 
             if (list.length == 0) {
                 return DSUtil.buildResponse(Status.OK, [])
             }
             // JsonPath does not parse properly when using Json objects from JavaScript
-            list = JSON.parse(JsonPath.parse(JSON.stringify(list)).read(filter).toJSONString())
+            list = JsonPath.parse(JSON.stringify(list))
+                .read(DSUtil.transformFilter(filter))
+                    .toJSONString()
 
-            return DSUtil.buildResponse(Status.OK, list)
+            return DSUtil.buildResponse(Status.OK, JSON.parse(list))
         } catch(e) {
             return e instanceof InvalidPathException? DSUtil.buildResponse(Status.BAD_REQUEST, e.getMessage())
                 :DSUtil.buildErrResponse(e)

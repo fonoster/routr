@@ -82,12 +82,12 @@ export default class DSUtil {
     }
 
     static buildErrResponse(e) {
-        LOG.error(e.getMessage())
+        LOG.error(e.toString())
 
         return {
             status: Status.INTERNAL_SERVER_ERROR,
             message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-            result: e.getMessage()
+            result: e.toString()
         }
     }
 
@@ -121,6 +121,10 @@ export default class DSUtil {
 
     static objExist(response) {
        return response.status == Status.OK? true: false
+    }
+
+    static transformFilter(filter = '*') {
+        return !isEmpty(filter) && !filter.equals('*')? "*.[?(" + filter + ")]" : filter
     }
 }
 
