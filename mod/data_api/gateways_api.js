@@ -15,17 +15,11 @@ export default class GatewaysAPI {
     }
 
     createFromJSON(jsonObj) {
-        if(this.gatewayExist(jsonObj.spec.regService.host)) {
-            return DSUtil.buildResponse(Status.CONFLICT)
-        }
-        return this.ds.insert(jsonObj)
+        return this.gatewayExist(jsonObj.spec.regService.host)? DSUtil.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        if(!this.gatewayExist(jsonObj.spec.regService.host)) {
-            return DSUtil.buildResponse(Status.NOT_FOUND)
-        }
-        return this.ds.update(jsonObj)
+        return !this.gatewayExist(jsonObj.spec.regService.host)? DSUtil.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
     }
 
     getGateways(filter)  {
