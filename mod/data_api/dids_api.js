@@ -22,14 +22,8 @@ export default class DIDsAPI {
             }
         }
 
-        if(this.didExist(jsonObj.spec.location.telUrl)) {
-            return {
-                status: Status.CONFLICT,
-                message: Status.message[Status.CONFLICT].value,
-            }
-        }
-
-        return this.ds.insert(jsonObj)
+        return this.didExist(jsonObj.spec.location.telUrl)?
+          DSUtil.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
@@ -42,14 +36,8 @@ export default class DIDsAPI {
             }
         }
 
-        if(!this.didExist(jsonObj.spec.location.telUrl)) {
-            return {
-                status: Status.NOT_FOUND,
-                message: Status.message[Status.NOT_FOUND].value,
-            }
-        }
-
-        return this.ds.update(jsonObj)
+        return !this.didExist(jsonObj.spec.location.telUrl)?
+          DSUtil.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj
     }
 
     getDIDs(filter) {
@@ -57,27 +45,7 @@ export default class DIDsAPI {
     }
 
     getDID(ref) {
-        const response = this.getDIDs()
-        let did
-
-        response.result.forEach(obj => {
-            if (obj.metadata.ref == ref) {
-                did = obj
-            }
-        })
-
-        if (!isEmpty(did)) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: did
-            }
-        }
-
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
+        return DSUtil.deepSearch(this.getDIDs().result, "obj.metadata.ref", ref)
     }
 
     /**
@@ -85,34 +53,7 @@ export default class DIDsAPI {
      * a TelURL Object.
      */
     getDIDByTelUrl(telUrl) {
-        const response = this.getDIDs()
-        let did
-        let url
-
-        if (telUrl instanceof Packages.javax.sip.address.TelURL) {
-            url = 'tel:' + telUrl.getPhoneNumber()
-        } else {
-            url = telUrl
-        }
-
-        response.result.forEach(obj => {
-            if (obj.spec.location.telUrl == url) {
-                did = obj
-            }
-        })
-
-        if (!isEmpty(did)) {
-            return {
-                status: Status.OK,
-                message: Status.message[Status.OK].value,
-                result: did
-            }
-        }
-
-        return {
-            status: Status.NOT_FOUND,
-            message: Status.message[Status.NOT_FOUND].value
-        }
+        return DSUtil.deepSearch(this.getDIDs().result, "obj.spec.location.telUrl", ref)
     }
 
     didExist(telUrl) {
