@@ -23,7 +23,7 @@ export default class TestUtils {
     }
 
     static buildAgent(name, domains, username, secret = '1234') {
-        const agent = TestUtils.buildEndpoint('Agent', username, secret)
+        const agent = TestUtils.buildEndpoint('Agent', name, username, secret)
         agent.spec.domains = domains
         return agent
     }

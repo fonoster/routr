@@ -37,7 +37,7 @@ export default class DIDsAPI {
         }
 
         return !this.didExist(jsonObj.spec.location.telUrl)?
-          DSUtil.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj
+          DSUtil.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
     }
 
     getDIDs(filter) {
@@ -45,7 +45,7 @@ export default class DIDsAPI {
     }
 
     getDID(ref) {
-        return DSUtil.deepSearch(this.getDIDs().result, "obj.metadata.ref", ref)
+        return DSUtil.deepSearch(this.getDIDs().result, "metadata.ref", ref)
     }
 
     /**
@@ -53,7 +53,7 @@ export default class DIDsAPI {
      * a TelURL Object.
      */
     getDIDByTelUrl(telUrl) {
-        return DSUtil.deepSearch(this.getDIDs().result, "obj.spec.location.telUrl", ref)
+        return DSUtil.deepSearch(this.getDIDs().result, "spec.location.telUrl", telUrl)
     }
 
     didExist(telUrl) {

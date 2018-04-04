@@ -7,17 +7,14 @@ import getConfig from 'core/config_util'
 import { Status } from 'data_api/status'
 import isEmpty from 'utils/obj_util'
 
+const URLEncoder = Packages.java.net.URLEncoder
 const Unirest = Packages.com.mashape.unirest.http.Unirest
 const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
 const System = Packages.java.lang.System
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
-const defaultRestfulParams = {
-    baseUrl: 'http://localhost/v1/ctl',
-    username: 'admin',
-    secret: 'changeit'
-}
+const defaultRestfulParams = { baseUrl: 'http://localhost/v1/ctl', username: 'admin', secret: 'changeit' }
 
 export default class RestfulDataSource {
 
@@ -64,13 +61,13 @@ export default class RestfulDataSource {
     }
 
     withCollection(collection) {
-        this.collection = collection;
-        return this;
+        this.collection = collection
+        return this
     }
 
-    save(obj, method, ref = '') {
+    save(obj = 'ignore', method, ref = '') {
         try {
-            if (!DSUtil.isValidEntity(obj)) {
+            if (obj == 'ignore' && DSUtil.isValidEntity(obj) == false) {
                 return badRequest
             }
 
@@ -102,35 +99,24 @@ export default class RestfulDataSource {
 
     find(filter = "*") {
         try {
-            const encodeFilter = java.net.URLEncoder.encode(filter)
-
-            const r = Unirest.get(this.baseUrl + '/' + this.collection +  '/' + this.collection + '?filter=' + encodeFilter)
-                .basicAuth(this.username, this.secret).asString()
+            const r = Unirest.get(this.baseUrl + '/'
+              + this.collection
+              + '?filter='
+              + URLEncoder.encode(filter)).basicAuth(this.username, this.secret).asString()
 
             const response = JSON.parse(r.getBody())
 
-            if (response.status && response.status != 200) {
-                return DSUtil.buildResponse(response.status, [])
-            }
-
-            return response
+            return response.status != Status.OK? DSUtil.buildResponse(response.status, []): response
         } catch(e) {
             return DSUtil.buildErrResponse(e)
         }
     }
 
     update(obj) {
-        save(obj, Unirest.put, '/' + obj.metadata.ref)
+        return save(obj, Unirest.put, '/' + obj.metadata.ref)
     }
 
     remove(ref) {
-        try {
-            const r = Unirest.delete(this.baseUrl + '/'
-                + this.collection + '/' + ref)
-                    .basicAuth(this.username, this.secret).asString()
-            return JSON.parse(r.getBody())
-        } catch(e) {
-            return DSUtil.buildErrResponse(e)
-        }
+        return save('ignore', Unirest.delete, '/' + ref)
     }
 }
