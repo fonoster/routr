@@ -1,3 +1,4 @@
+
 /**
  * @author Pedro Sanders
  * @since v1
@@ -15,17 +16,11 @@ export default class DomainsAPI {
     }
 
     createFromJSON(jsonObj) {
-        if(this.domainExist(jsonObj.spec.context.domainUri)) {
-            return DSUtil.buildResponse(Status.CONFLICT)
-        }
-        return this.ds.insert(jsonObj)
+        return this.domainExist(jsonObj.spec.context.domainUri)? DSUtil.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        if(!this.domainExist(jsonObj.spec.context.domainUri)) {
-            return DSUtil.buildResponse(Status.NOT_FOUND)
-        }
-        return this.ds.update(jsonObj)
+        return !this.domainExist(jsonObj.spec.context.domainUri)? DSUtil.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
     }
 
     getDomains(filter) {
