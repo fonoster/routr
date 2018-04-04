@@ -58,26 +58,6 @@ export default class DSUtil {
         return true
     }
 
-    static isValidDataSource(schemaPath, yamlStr) {
-        const factory = new JsonSchemaFactory()
-        const mapper = new ObjectMapper()
-
-        const schema = factory.getSchema(FilesUtil.readFile(schemaPath))
-        const node = mapper.readTree(JSON.stringify(this.convertToJson(yamlStr)))
-        const errors = schema.validate(node)
-
-        if (errors.size() > 0) {
-            const i = errors.iterator()
-            LOG.warn('We found some errors in your resource ' + node)
-            while(i.hasNext()) {
-               LOG.warn(i.next())
-            }
-            return false
-        }
-
-        return true
-    }
-
     static isValidJson(str) {
         try {
             JSON.parse(str)

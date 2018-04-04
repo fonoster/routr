@@ -23,11 +23,6 @@ testGroup.yaml_from_file = function () {
     assertTrue(jsonObj instanceof Object)
 }
 
-testGroup.validate_resource = function () {
-    const valid = DSUtil.isValidDataSource('etc/schemas/agents_schema.json', FilesUtil.readFile('config/agents.yml'))
-    assertTrue(valid)
-}
-
 testGroup.get_collections = function () {
     let response = ds.withCollection('agents').find()
     assertTrue(response.status == Status.OK)

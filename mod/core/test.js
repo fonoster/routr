@@ -17,12 +17,6 @@ testGroup.config_func = function () {
     assertTrue(result != undefined)
 }
 
-testGroup.validate_config = function () {
-    const valid = DSUtil.isValidDataSource('etc/schemas/config_schema.json', FilesUtil.readFile('config/config.yml'))
-    assertTrue(valid)
-}
-
-
 testGroup.ip_utils = function () {
     const partialConfig = {
         spec: {
