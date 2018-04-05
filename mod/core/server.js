@@ -7,7 +7,7 @@ import ContextStorage from 'core/context_storage'
 import Registry from 'registry/registry'
 import RestService from 'rest/rest'
 import DSUtil from 'data_api/utils'
-import { Status } from 'data_api/status'
+import { Status } from 'core/status'
 import getConfig from 'core/config_util.js'
 
 const InetAddress = Packages.java.net.InetAddress

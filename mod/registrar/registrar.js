@@ -3,7 +3,7 @@
  * @since v1
  */
 import AuthHelper from 'utils/auth_helper'
-import { Status } from 'data_api/status'
+import { Status } from 'core/status'
 import isEmpty from 'utils/obj_util'
 
 const ViaHeader = Packages.javax.sip.header.ViaHeader

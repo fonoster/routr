@@ -3,7 +3,7 @@
  * @since v1
  */
 import getConfig from 'core/config_util'
-import { Status } from 'data_api/status'
+import { Status } from 'core/status'
 import moment from 'moment'
 
 const SipFactory = Packages.javax.sip.SipFactory
