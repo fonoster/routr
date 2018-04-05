@@ -43,8 +43,7 @@ export default function () {
 }
 
 function getRestfulPresets(rs) {
-    let restService
-    restService = rs == undefined ? {} : rs
+    let restService = rs == undefined ? {} : rs
 
     if (restService.keyStore == undefined) {
         restService.keyStore = 'etc/certs/api-cert.jks'
