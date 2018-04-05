@@ -7,7 +7,7 @@
 import FilesDataSource from 'data_api/files_datasource'
 import FilesUtil from 'utils/files_util'
 import DSUtil from 'data_api/utils'
-import { Status } from 'data_api/status'
+import { Status } from 'core/status'
 import getConfig from 'core/config_util.js'
 
 export const testGroup = { name: "Files Data Source" }

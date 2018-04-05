@@ -6,7 +6,7 @@
  */
 import RedisDataSource from 'data_api/redis_datasource'
 import AgentsAPI from 'data_api/agents_api'
-import { Status } from 'data_api/status'
+import { Status } from 'core/status'
 import TestUtils from 'data_api/test_utils.js'
 import getConfig from 'core/config_util.js'
 
