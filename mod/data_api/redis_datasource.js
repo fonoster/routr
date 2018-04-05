@@ -2,8 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
+import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
-import { Status } from 'data_api/status'
+import { Status } from 'core/status'
 import getConfig from 'core/config_util'
 import isEmpty from 'utils/obj_util'
 
@@ -120,9 +121,9 @@ export default class RedisDataSource {
             const kind = DSUtil.getKind(obj)
             jedis.sadd(kind.toLowerCase() + 's', obj.metadata.ref)
 
-            return DSUtil.buildResponse(Status.CREATED, obj.metadata.ref)
+            return CoreUtils.buildResponse(Status.CREATED, obj.metadata.ref)
         } catch(e) {
-            return DSUtil.buildErrResponse(e)
+            return CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -136,9 +137,9 @@ export default class RedisDataSource {
         try {
             jedis = this.jedisPool.getResource()
             const result = jedis.get(obj.metadata.ref)
-            return result == null? DSUtil.buildResponse(Status.NOT_FOUND):DSUtil.buildResponse(Status.OK, result)
+            return result == null? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
         } catch(e) {
-            return DSUtil.buildErrResponse(e)
+            return CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -157,17 +158,17 @@ export default class RedisDataSource {
                     list.push(JSON.parse(jedis.get(ref))))
 
             if (list.length == 0) {
-                return DSUtil.buildResponse(Status.OK, [])
+                return CoreUtils.buildResponse(Status.OK, [])
             }
             // JsonPath does not parse properly when using Json objects from JavaScript
             list = JsonPath.parse(JSON.stringify(list))
                 .read(DSUtil.transformFilter(filter))
                     .toJSONString()
 
-            return DSUtil.buildResponse(Status.OK, JSON.parse(list))
+            return CoreUtils.buildResponse(Status.OK, JSON.parse(list))
         } catch(e) {
-            return e instanceof InvalidPathException? DSUtil.buildResponse(Status.BAD_REQUEST, e.getMessage())
-                :DSUtil.buildErrResponse(e)
+            return e instanceof InvalidPathException? CoreUtils.buildResponse(Status.BAD_REQUEST, null, e)
+                : CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -186,10 +187,10 @@ export default class RedisDataSource {
             jedis = this.jedisPool.getResource()
             jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
-            return DSUtil.buildResponse(Status.OK, obj.metadata.ref)
+            return CoreUtils.buildResponse(Status.OK, obj.metadata.ref)
         } catch(e) {
-            return e instanceof InvalidPathException? DSUtil.buildResponse(Status.BAD_REQUEST, e.getMessage())
-                :DSUtil.buildErrResponse(e)
+            return e instanceof InvalidPathException? CoreUtils.buildResponse(Status.BAD_REQUEST, null, e)
+                :CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -205,14 +206,14 @@ export default class RedisDataSource {
             let cnt = jedis.del(ref)
 
             if (cnt == 0) {
-                return DSUtil.buildResponse(Status.NOT_FOUND)
+                return CoreUtils.buildResponse(Status.NOT_FOUND)
             }
 
             cnt = jedis.srem(this.collection, ref)
 
-            return cnt == 0? DSUtil.buildResponse(Status.NOT_FOUND):DSUtil.buildResponse(Status.OK)
+            return cnt == 0? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK)
         } catch(e) {
-            return DSUtil.buildErrResponse(e)
+            return CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()

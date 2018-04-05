@@ -5,7 +5,7 @@
  * Unit Test for the "Restful Data Source"
  */
 import RestfulDataSource from 'data_api/restful_datasource'
-import { Status } from 'data_api/status'
+import { Status } from 'core/status'
 import TestUtils from 'data_api/test_utils.js'
 import getConfig from 'core/config_util.js'
 

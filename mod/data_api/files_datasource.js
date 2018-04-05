@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-import { Status } from 'data_api/status'
+import { Status } from 'core/status'
 import getConfig from 'core/config_util'
 import isEmpty from 'utils/obj_util'
 import DSUtils from 'data_api/utils'

@@ -2,9 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
+import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
-import { Status } from 'data_api/status'
-import isEmpty from 'utils/obj_util'
+import { Status } from 'core/status'
 
 export default class DIDsAPI {
 
@@ -23,7 +23,7 @@ export default class DIDsAPI {
         }
 
         return this.didExist(jsonObj.spec.location.telUrl)?
-          DSUtil.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+          CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
@@ -37,7 +37,7 @@ export default class DIDsAPI {
         }
 
         return !this.didExist(jsonObj.spec.location.telUrl)?
-          DSUtil.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
+          CoreUtils.buildResponse(Status.NOT_FOUND) : this.ds.update(jsonObj)
     }
 
     getDIDs(filter) {

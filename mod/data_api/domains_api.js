@@ -3,9 +3,9 @@
  * @author Pedro Sanders
  * @since v1
  */
+import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
-import { Status } from 'data_api/status'
-import isEmpty from 'utils/obj_util'
+import { Status } from 'core/status'
 
 const foundDependentObjects = { status: Status.CONFLICT, message: Status.message[4092].value }
 
@@ -16,11 +16,11 @@ export default class DomainsAPI {
     }
 
     createFromJSON(jsonObj) {
-        return this.domainExist(jsonObj.spec.context.domainUri)? DSUtil.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+        return this.domainExist(jsonObj.spec.context.domainUri)? CoreUtils.buildResponse(Status.CONFLICT) : this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        return !this.domainExist(jsonObj.spec.context.domainUri)? DSUtil.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
+        return !this.domainExist(jsonObj.spec.context.domainUri)? CoreUtils.buildResponse(Status.NOT_FOUND) : this.ds.update(jsonObj)
     }
 
     getDomains(filter) {
@@ -51,6 +51,6 @@ export default class DomainsAPI {
         response = this.ds.withCollection('agents').find("'" + domain.spec.context.domainUri + "' in @.spec.domains")
         const agents = response.result
 
-        return agents.length == 0? this.ds.withCollection('domains').remove(ref): foundDependentObjects
+        return agents.length == 0? this.ds.withCollection('domains').remove(ref) : foundDependentObjects
     }
 }

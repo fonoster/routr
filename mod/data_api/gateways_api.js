@@ -2,9 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
+import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
-import { Status } from 'data_api/status'
-import isEmpty from 'utils/obj_util'
+import { Status } from 'core/status'
 
 const foundDependentObjects = { status: Status.CONFLICT, message: Status.message[4092].value }
 
@@ -15,11 +15,11 @@ export default class GatewaysAPI {
     }
 
     createFromJSON(jsonObj) {
-        return this.gatewayExist(jsonObj.spec.regService.host)? DSUtil.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+        return this.gatewayExist(jsonObj.spec.regService.host)? CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        return !this.gatewayExist(jsonObj.spec.regService.host)? DSUtil.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
+        return !this.gatewayExist(jsonObj.spec.regService.host)? CoreUtils.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
     }
 
     getGateways(filter)  {

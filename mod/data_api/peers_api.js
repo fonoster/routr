@@ -2,9 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
+import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
-import { Status } from 'data_api/status'
-import isEmpty from 'utils/obj_util'
+import { Status } from 'core/status'
 
 export default class PeersAPI {
 
@@ -13,11 +13,11 @@ export default class PeersAPI {
     }
 
     createFromJSON(jsonObj) {
-        return this.peerExist(jsonObj.spec.credentials.username)? DSUtil.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+        return this.peerExist(jsonObj.spec.credentials.username)? CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        return !this.peerExist(jsonObj.spec.credentials.username)? DSUtil.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
+        return !this.peerExist(jsonObj.spec.credentials.username)? CoreUtils.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
     }
 
     getPeers(filter) {

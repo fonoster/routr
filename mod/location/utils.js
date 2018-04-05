@@ -2,8 +2,6 @@
  * @author Pedro Sanders
  * @since v1
  */
-import { Status } from 'location/status'
-
 export default class LocatorUtils {
 
     static aorAsString(addressOfRecord) {
@@ -24,19 +22,6 @@ export default class LocatorUtils {
         }
 
         throw 'Invalid AOR: ' + addressOfRecord
-    }
-
-    static buildResponse(status, result) {
-        const response = {
-            status: status,
-            message: Status.message[status].value
-        }
-
-        if (result) {
-            response.result = result
-        }
-
-        return response
     }
 
     static buildEgressRoute(contactURI, gateway, did, domain) {

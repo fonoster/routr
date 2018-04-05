@@ -2,9 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
+import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
-import { Status } from 'data_api/status'
-import isEmpty from 'utils/obj_util'
+import { Status } from 'core/status'
 
 export default class UsersAPI {
 
@@ -13,11 +13,11 @@ export default class UsersAPI {
     }
 
     createFromJSON(jsonObj) {
-        return this.userExist(jsonObj.spec.credentials.username)? DSUtil.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+        return this.userExist(jsonObj.spec.credentials.username)? CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        return !this.userExist(jsonObj.spec.credentials.username)? DSUtil.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
+        return !this.userExist(jsonObj.spec.credentials.username)? CoreUtils.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
     }
 
     getUsers(filter) {

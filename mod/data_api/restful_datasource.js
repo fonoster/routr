@@ -2,9 +2,10 @@
  * @author Pedro Sanders
  * @since v1
  */
+import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
 import getConfig from 'core/config_util'
-import { Status } from 'data_api/status'
+import { Status } from 'core/status'
 import isEmpty from 'utils/obj_util'
 
 const URLEncoder = Packages.java.net.URLEncoder
@@ -106,9 +107,9 @@ export default class RestfulDataSource {
 
             const response = JSON.parse(r.getBody())
 
-            return response.status != Status.OK? DSUtil.buildResponse(response.status, []): response
+            return response.status != Status.OK? CoreUtils.buildResponse(response.status, []): response
         } catch(e) {
-            return DSUtil.buildErrResponse(e)
+            return CoreUtils.buildErrResponse(e)
         }
     }
 

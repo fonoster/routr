@@ -2,8 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
+import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
-import { Status } from 'data_api/status'
+import { Status } from 'core/status'
 import isEmpty from 'utils/obj_util'
 
 const unfulfilledDepResponse = { status: Status.CONFLICT, message: Status.message[4091].value }
@@ -18,7 +19,7 @@ export default class AgentsAPI {
         if (!this.doesDomainExist(domain)) {
             return unfulfilledDepResponse
         }
-        return this.existInAnotherDomain(domain)? DSUtil.buildResponse(Status.CONFLICT): this.ds.update(domain)
+        return this.existInAnotherDomain(domain)? CoreUtils.buildResponse(Status.CONFLICT): this.ds.update(domain)
     }
 
     createFromJSON(domain) {
@@ -46,7 +47,7 @@ export default class AgentsAPI {
             }
         })
 
-        return isEmpty(agent)? DSUtil.buildResponse(Status.NOT_FOUND): DSUtil.buildResponse(Status.OK, agent)
+        return isEmpty(agent)? CoreUtils.buildResponse(Status.NOT_FOUND): CoreUtils.buildResponse(Status.OK, agent)
     }
 
     getAgentByRef(ref) {

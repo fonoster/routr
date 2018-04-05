@@ -2,8 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
+import CoreUtils from 'core/utils'
 import FilesUtil from 'utils/files_util'
-import { Status } from 'data_api/status'
+import { Status } from 'core/status'
 import isEmpty from 'utils/obj_util'
 
 const LogManager = Packages.org.apache.logging.log4j.LogManager
@@ -81,42 +82,14 @@ export default class DSUtil {
         return obj.kind
     }
 
-    static buildErrResponse(e) {
-        LOG.error(e.toString())
-
-        return {
-            status: Status.INTERNAL_SERVER_ERROR,
-            message: Status.message[Status.INTERNAL_SERVER_ERROR].value,
-            result: e.toString()
-        }
-    }
-
-    static buildResponse(status, result, e) {
-        const response = {
-            status: status,
-            message: Status.message[status].value
-        }
-
-        if (result) {
-            response.result = result
-        }
-
-        return response
-    }
-
     static deepSearch(objects, path, value) {
         let result
         objects.forEach(obj => {
-            if (resolve(path, obj) == value) {
+            if (DSUtil.resolve(path, obj) == value) {
                 result = obj
             }
         })
-
-        if (isEmpty(result)) {
-            return DSUtil.buildResponse(Status.NOT_FOUND)
-        }
-
-        return DSUtil.buildResponse(Status.OK, result)
+        return isEmpty(result)? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
     }
 
     static objExist(response) {
@@ -126,10 +99,12 @@ export default class DSUtil {
     static transformFilter(filter = '*') {
         return !isEmpty(filter) && !filter.equals('*')? "*.[?(" + filter + ")]" : filter
     }
-}
 
-function resolve(path, obj) {
-    return path.split('.').reduce(function(prev, curr) {
-        return prev ? prev[curr] : null
-    }, obj || self)
+   static resolve(path, obj) {
+        return path.split('.').reduce(
+          function(prev, curr) {
+            return prev ? prev[curr] : null
+          }, obj || self
+        )
+    }
 }
