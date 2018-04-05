@@ -72,13 +72,8 @@ export default class AgentsAPI {
     existInAnotherDomain(agent) {
         const response = getAgents("@.spec.credentials.username=='" + agent.spec.credentials.username + "'")
         const agents = response.results
-
-        for(let i = 0; i < agents.length; i++) {
-            const curAgent = agents[i]
-
-            for(let y = 0; y < curAgent.spec.domains.length; y++) {
-                const curDomain = curAgent.spec.domains[y]
-
+        for (var curAgent of agents) {
+            for (var curDomain of curAgent.spec.domains) {
                 if (agent.spec.domains.indexOf(curDomain) != -1) {
                     return true
                 }
