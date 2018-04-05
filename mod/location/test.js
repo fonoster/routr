@@ -11,7 +11,7 @@ import LocatorUtils from 'location/utils.js'
 import DIDsAPI from 'data_api/dids_api'
 import DomainsAPI from 'data_api/domains_api'
 import GatewaysAPI from 'data_api/gateways_api'
-import { Status } from 'location/status'
+import { Status } from 'core/status'
 import getConfig from 'core/config_util.js'
 
 const config = getConfig()
