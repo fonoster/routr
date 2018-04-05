@@ -7,7 +7,7 @@ import { Status } from 'core/status'
 export default class CoreUtils {
 
     static buildErrResponse(e) {
-        return buildResponse(Status.INTERNAL_SERVER_ERROR, null, e)
+        return CoreUtils.buildResponse(Status.INTERNAL_SERVER_ERROR, null, e)
     }
 
     static buildResponse(status, result, e) {

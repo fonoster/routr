@@ -71,6 +71,8 @@ export default class Server {
         const sipFactory = SipFactory.getInstance()
         sipFactory.setPathName('gov.nist')
 
+        print(JSON.stringify(this.config.spec))
+
         if(this.config.spec.securityContext.debugging) {
             Packages.java.lang.System.setProperty('javax.net.debug', 'ssl')
         }
@@ -91,6 +93,7 @@ export default class Server {
 
     start()  {
         LOG.info('Starting Sip I/O')
+        this.setup()
         this.locator.start()
         this.registry.start()
         this.restService = new RestService(this, this.locator, registry, this.dataAPIs)

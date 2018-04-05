@@ -23,8 +23,8 @@ export default function () {
         config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
     }
 
-    if (config.logging == undefined) {
-        config.logging = { traceLevel: 0 }
+    if (config.spec.logging == undefined) {
+        config.spec.logging = { traceLevel: 0 }
     }
 
     if (config.spec.dataSource == undefined) {
@@ -91,7 +91,9 @@ function getSysPresets() {
 }
 
 function getDefaultSecContext(securityContext) {
-    if (securityContext) {
+    if (securityContext == undefined) {
+        securityContext = {}
+
         if (securityContext.client == undefined) {
             securityContext.client = {}
         }
@@ -110,7 +112,7 @@ function getDefaultSecContext(securityContext) {
 
         return securityContext
     }
-    return null
+    return securityContext
 }
 
 function getSystemConfig() {

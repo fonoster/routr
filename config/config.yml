@@ -1,21 +1,7 @@
 apiVersion: v1draft1
 spec:
-  securityContext:
-    keyStore: etc/certs/domains-cert.jks
-    trustStore: etc/certs/domains-cert.jks
-    keyStorePassword: 'password'
-    keyStoreType: 'jks'
-    debugging: false
   transport:
     - protocol: udp
       port: 5060
     - protocol: tcp
       port: 5060
-    - protocol: tls
-      port: 5061
-    - protocol: ws
-      port: 5062
-    - protocol: wss
-      port: 5063
-  logging:
-    traceLevel: 0
