@@ -4,8 +4,6 @@
  */
 import IPUtil from 'core/ip_util'
 
-const SubnetUtils = Packages.org.apache.commons.net.util.SubnetUtils
-
 export default class Rule {
 
     constructor(action, net) {

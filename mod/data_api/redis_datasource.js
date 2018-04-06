@@ -8,7 +8,6 @@ import { Status } from 'core/status'
 import getConfig from 'core/config_util'
 import isEmpty from 'utils/obj_util'
 
-const Jedis = Packages.redis.clients.jedis.Jedis
 const JedisPoolConfig = Packages.redis.clients.jedis.JedisPoolConfig
 const JedisPool = Packages.redis.clients.jedis.JedisPool
 const ObjectId = Packages.org.bson.types.ObjectId

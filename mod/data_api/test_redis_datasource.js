@@ -57,7 +57,7 @@ testGroup.get_collections = function () {
 
     ds.withCollection('agents').remove(ref)
     const endSize = ds.withCollection('agents').find().result.length
-    assertTrue:(initSize == endSize)
+    assertTrue(initSize == endSize)
 }
 
 // This also validates the other resources

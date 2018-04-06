@@ -4,11 +4,9 @@
  */
 export default function AuthHelper (headerFactory) {
     const DigestUtils = Packages.org.apache.commons.codec.digest.DigestUtils
-    const LogManager = Packages.org.apache.logging.log4j.LogManager
     const MessageDigest = Packages.java.security.MessageDigest
     const Long = Packages.java.lang.Long
     const Random = Packages.java.util.Random
-    const LOG = LogManager.getLogger()
     const DEFAULT_ALGORITHM = 'MD5'
 
     this.calcFromHeader = a => this.calculateResponse(a.username, a.secret, a.realm, a.nonce, a.nc, a.cnonce, a.uri,

@@ -11,8 +11,6 @@ const ContactHeader = Packages.javax.sip.header.ContactHeader
 const FromHeader = Packages.javax.sip.header.FromHeader
 const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
 const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
-const LogManager = Packages.org.apache.logging.log4j.LogManager
-const LOG = LogManager.getLogger()
 const SipFactory = Packages.javax.sip.SipFactory
 
 export default class Registrar {

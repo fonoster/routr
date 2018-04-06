@@ -5,7 +5,6 @@
 import AccountManagerService from 'core/account_manager_service'
 
 const SipFactory = Packages.javax.sip.SipFactory
-const SipListener = Packages.javax.sip.SipListener
 const FromHeader = Packages.javax.sip.header.FromHeader
 const ViaHeader = Packages.javax.sip.header.ViaHeader
 const CSeqHeader = Packages.javax.sip.header.CSeqHeader

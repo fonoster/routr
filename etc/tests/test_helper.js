@@ -27,9 +27,9 @@ var THelper =  {
         if (obj == undefined) {
             print ('Nothing test found')
             quit()
+        } else {
+            var group = name != undefined? name : obj.name
         }
-
-        var group = name != undefined? name : obj.name
 
         if (obj.enabled === false) {
             print('Test group', "'" + group + "'", ANSI_YELLOW + '#disabled' + ANSI_RESET)
@@ -38,7 +38,7 @@ var THelper =  {
             print('Test group \'' + group + '\'')
         }
 
-        for (var key of obj){
+        for (var key in obj){
             var funName = key;
             var fun = obj[key];
 

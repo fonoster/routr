@@ -6,11 +6,8 @@ import Processor from 'core/processor/processor'
 import ContextStorage from 'core/context_storage'
 import Registry from 'registry/registry'
 import RestService from 'rest/rest'
-import DSUtil from 'data_api/utils'
-import { Status } from 'core/status'
 import getConfig from 'core/config_util.js'
 
-const InetAddress = Packages.java.net.InetAddress
 const SipFactory = Packages.javax.sip.SipFactory
 const Properties = Packages.java.util.Properties
 const LogManager = Packages.org.apache.logging.log4j.LogManager

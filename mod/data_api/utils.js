@@ -11,8 +11,6 @@ const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const YAMLFactory = Packages.com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 const JsonSchemaFactory = Packages.com.networknt.schema.JsonSchemaFactory
-const JsonPath = Packages.com.jayway.jsonpath.JsonPath
-const Option = Packages.com.jayway.jsonpath.Option
 const ObjectMapper = Packages.com.fasterxml.jackson.databind.ObjectMapper
 const schemaPath = 'etc/schemas'
 

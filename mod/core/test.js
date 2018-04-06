@@ -4,8 +4,6 @@
  *
  * Unit Test for the "Core Module"
  */
-import DSUtil from 'data_api/utils'
-import FilesUtil from 'utils/files_util'
 import getConfig from 'core/config_util'
 import IPUtil from 'core/ip_util'
 

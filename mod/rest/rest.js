@@ -20,8 +20,6 @@ const before = Packages.spark.Spark.before
 const path = Packages.spark.Spark.path
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
-const BasicAuthenticationFilter = Packages.com.qmetric.spark.authentication.BasicAuthenticationFilter
-const AuthenticationDetails = Packages.com.qmetric.spark.authentication.AuthenticationDetails
 
 export default class Rest {
 

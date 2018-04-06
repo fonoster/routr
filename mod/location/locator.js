@@ -7,7 +7,6 @@
  */
 import CoreUtils from 'core/utils'
 import LocatorUtils from 'location/utils'
-import DSUtils from 'data_api/utils'
 import isEmpty from 'utils/obj_util'
 import { Status } from 'core/status'
 
@@ -167,7 +166,6 @@ export default class Locator {
 
             if (i.hasNext()) {
                 const rObj = i.next()
-                rObj.contactURI
                 const h1 = rObj.contactURI.getHost().toString()
                 const h2 = addressOfRecord.getHost().toString()
                 const p1 = rObj.contactURI.getPort() == -1? 5060 : rObj.contactURI.getPort()

@@ -10,7 +10,6 @@ import AclUtil from 'core/acl/acl_util'
 import getConfig from 'core/config_util'
 import { Status } from 'core/status'
 import { RoutingType } from 'core/routing_type'
-import isEmpty from 'utils/obj_util'
 import IPUtil from 'core/ip_util'
 
 const SipFactory = Packages.javax.sip.SipFactory
@@ -199,7 +198,6 @@ export default class RequestProcessor {
 
             return
         }
-        LOG.debug(requestIn)
     }
 
     processRoute(requestIn, requestOut, route, serverTransaction, routeInfo) {

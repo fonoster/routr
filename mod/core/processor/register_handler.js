@@ -5,7 +5,6 @@
 import AuthHelper from 'utils/auth_helper'
 
 const SipFactory = Packages.javax.sip.SipFactory
-const RouteHeader = Packages.javax.sip.header.RouteHeader
 const ToHeader = Packages.javax.sip.header.ToHeader
 const ContactHeader = Packages.javax.sip.header.ContactHeader
 const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
@@ -70,7 +69,7 @@ export default class RegisterHandler {
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
         const toHeader = request.getHeader(ToHeader.NAME)
         const addressOfRecord = toHeader.getAddress().getURI()
-        const realm = addressOfRecord.getHost()
+        //const realm = addressOfRecord.getHost()
 
         const expHeader = getExpHeader(request)
 

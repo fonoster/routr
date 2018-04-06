@@ -4,9 +4,6 @@
  */
 import Rule from 'core/acl/acl_rule'
 
-const LogManager = Packages.org.apache.logging.log4j.LogManager
-const LOG = LogManager.getLogger()
-
 /**
  * Helps verify if a device is allow or not to REGISTER and place calls.
  *

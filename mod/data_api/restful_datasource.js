@@ -10,7 +10,6 @@ import isEmpty from 'utils/obj_util'
 
 const URLEncoder = Packages.java.net.URLEncoder
 const Unirest = Packages.com.mashape.unirest.http.Unirest
-const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
 const System = Packages.java.lang.System
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
