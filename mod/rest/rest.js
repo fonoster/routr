@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+import CoreUtils from 'core/utils'
 import getConfig from 'core/config_util'
 import { Status } from 'core/status'
 import getJWTToken from 'rest/jwt_token_generator'
