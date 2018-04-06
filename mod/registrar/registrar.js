@@ -27,20 +27,24 @@ export default class Registrar {
     register(r) {
         // For some reason this references the parent object
         // to avoid I just clone it!
+        print ('DBG001')
         const request = r.clone()
+        print ('DBG002')
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
         const fromHeader = request.getHeader(FromHeader.NAME)
         const fromURI = fromHeader.getAddress().getURI()
         const host = fromURI.getHost()
-
+        print ('DBG003')
         // Get user from db or file
         const user = this.getUser(authHeader.getUsername(), host)
         const aHeaderJson = Registrar.buildHeader(user, authHeader)
-
+        print ('DBG004')
         if (new AuthHelper()
             .calcFromHeader(aHeaderJson)
                 .equals(authHeader.getResponse())) {
-            addEndpoint(user, host, request)
+         print ('DBG0015')
+            this.addEndpoint(user, host, request)
+                    print ('DBG005')
             return true
         }
         return false

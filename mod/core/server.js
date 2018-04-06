@@ -31,29 +31,33 @@ export default class Server {
         this.host = this.config.spec.bindAddr
     }
 
-    setupTransport(transport) {
-        const defTransport = this.sipStack.createListeningPoint(transport[0].port,transport[0].protocol.toLowerCase())
-        const sipProvider = this.sipStack.createSipProvider(defTransport)
+    buildSipProvider(transport) {
+        const defListeningPoint = this.sipStack.createListeningPoint(transport[0].port, transport[0].protocol.toLowerCase())
+        const sipProvider = this.sipStack.createSipProvider(defListeningPoint)
 
         for (const key in transport) {
             const curTransport = transport[key]
-            const proto = transport.protocol.toLowerCase()
+            const proto = curTransport.protocol.toLowerCase()
 
             if ((proto == 'wss' || proto == 'tls') && !this.config.spec.securityContext) {
                 LOG.warn(ANSI_YELLOW + 'Security context could not found. Ignoring protocol: ' + proto + ANSI_RESET)
                 continue;
             }
 
-            if (curTransport.bindAddr == undefined) curTransport.bindAddr = this.host
+            if (curTransport.bindAddr == undefined) {
+                curTransport.bindAddr = this.host
+            }
 
-            const lp = this.sipStack.createListeningPoint(transport.bindAddr, transport.port, proto)
+            const lp = this.sipStack.createListeningPoint(curTransport.bindAddr, curTransport.port, proto)
             sipProvider.addListeningPoint(lp)
 
-            LOG.info('Listening  on ' + ANSI_GREEN  + transport.bindAddr
-                + ':' + transport.port
+            LOG.info('Listening  on ' + ANSI_GREEN  + curTransport.bindAddr
+                + ':' + curTransport.port
                     + ' [' + proto + ']'
                         + ANSI_RESET)
         }
+
+        return sipProvider
     }
 
     showExternInfo() {
@@ -68,18 +72,16 @@ export default class Server {
 
     setup() {
         this.showExternInfo()
-        const sipFactory = SipFactory.getInstance()
-        sipFactory.setPathName('gov.nist')
-
-        print(JSON.stringify(this.config.spec))
-
         if(this.config.spec.securityContext.debugging) {
             Packages.java.lang.System.setProperty('javax.net.debug', 'ssl')
         }
 
+        const sipFactory = SipFactory.getInstance()
+        sipFactory.setPathName('gov.nist')
+
         this.sipStack = sipFactory.createSipStack(this.getProperties())
 
-        this.setupTransport(this.config.spec.transport)
+        const sipProvider = this.buildSipProvider(this.config.spec.transport)
 
         this.registry = new Registry(sipProvider, this.dataAPIs)
 
@@ -96,7 +98,7 @@ export default class Server {
         this.setup()
         this.locator.start()
         this.registry.start()
-        this.restService = new RestService(this, this.locator, registry, this.dataAPIs)
+        this.restService = new RestService(this, this.locator, this.registry, this.dataAPIs)
         this.restService.start()
         java.lang.Thread.sleep(java.lang.Long.MAX_VALUE)
     }

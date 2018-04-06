@@ -90,28 +90,46 @@ function getSysPresets() {
     return spec
 }
 
-function getDefaultSecContext(securityContext) {
-    if (securityContext == undefined) {
-        securityContext = {}
+function getDefaultSecContext(sc) {
+    let securityContext
+    sc == undefined? securityContext = {} : securityContext = sc
 
-        if (securityContext.client == undefined) {
-            securityContext.client = {}
-        }
-
-        if (securityContext.client.authType == undefined) {
-            securityContext.client.authType = 'Disabled'
-        }
-
-        if (securityContext.client.protocols == undefined) {
-            securityContext.client.protocols = ['SSLv3', 'TLSv1.2', 'TLSv1.1', 'TLSv1']
-        }
-
-        if (securityContext.debugging == undefined) {
-            securityContext.debugging = false
-        }
-
-        return securityContext
+    if (securityContext.client == undefined) {
+        securityContext.client = {}
     }
+
+    if (securityContext.client.authType == undefined) {
+        securityContext.client.authType = 'Disabled'
+    }
+
+    if (securityContext.client.protocols == undefined) {
+        securityContext.client.protocols = ['SSLv3', 'TLSv1.2', 'TLSv1.1', 'TLSv1']
+    }
+
+    if (securityContext.debugging == undefined) {
+        securityContext.debugging = false
+    }
+
+    if (securityContext.keyStore == undefined) {
+        securityContext.keyStore = 'etc/certs/domains-cert.jks'
+    }
+
+    if (securityContext.trustStore == undefined) {
+        securityContext.trustStore = 'etc/certs/domains-cert.jks'
+    }
+
+    if (securityContext.keyStorePassword == undefined) {
+        securityContext.keyStorePassword = 'changeit'
+    }
+
+    if (securityContext.trustStorePassword == undefined) {
+        securityContext.trustStorePassword = 'changeit'
+    }
+
+    if (securityContext.keyStoreType == undefined) {
+        securityContext.keyStoreType = 'jks'
+    }
+
     return securityContext
 }
 

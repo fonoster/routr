@@ -29,6 +29,11 @@ export default class Rest {
         const config = getConfig()
         this.rest = config.spec.restService
         this.system = config.system
+        this.dataAPIs = dataAPIs
+        this.locator = locator
+        this.registry = registry
+        this.server = server
+        this.config = config
 
         LOG.info("Starting Restful service (port: " + this.rest.port + ", apiPath: '" + this.system.apiPath + "')")
 
@@ -43,18 +48,13 @@ export default class Rest {
 
         Spark.port(this.rest.port)
         Spark.internalServerError((req, res) => {
-            res.type("application/json");
+            res.type("application/json")
             return "{\"status\": \"500\", \"message\":\"Internal server error\"}";
         })
         Spark.notFound((req, res) => {
-            res.type("application/json");
+            res.type("application/json")
             return "{\"status\": \"404\", \"message\":\"Not found\"}";
         })
-        this.dataAPIs = dataAPIs
-        this.locator = locator
-        this.registry = registry
-        this.server = server
-        this.config = config
     }
 
     start() {
@@ -87,21 +87,9 @@ export default class Rest {
 
             get("/credentials", (req, res) => getJWTToken(req, res, this.config.salt))
 
-            get('/location', (req, res) => {
-                return JSON.stringify({
-                    status: Status.OK,
-                    message: Status.message[Status.OK].value,
-                    result: this.locator.listAsJSON()
-                })
-            })
+            get('/location', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, this.locator.listAsJSON())))
 
-            get('/registry', (req, res) => {
-                return JSON.stringify({
-                    status: Status.OK,
-                    message: Status.message[Status.OK].value,
-                    result: this.registry.listAsJSON()
-                })
-            })
+            get('/registry', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, this.registry.listAsJSON())))
 
             agentsService(this.dataAPIs.AgentsAPI, this.config.salt)
             new PeersService(this.dataAPIs.PeersAPI, this.config.salt).attachEndpoints()
