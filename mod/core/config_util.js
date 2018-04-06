@@ -139,6 +139,7 @@ function getSystemConfig() {
     system.apiVersion = 'v1draft1'
     system.apiPath = '/api' + '/' + system.apiVersion
     system.env = []
+    system.env.push({"var":'SIPIO_JAVA_OPTS', "value":System.getenv("SIPIO_JAVA_OPTS")})
     system.env.push({"var":'SIPIO_DS_PROVIDER', "value":System.getenv("SIPIO_DS_PROVIDER")})
     system.env.push({"var":'SIPIO_DS_PARAMETERS', "value":System.getenv("SIPIO_DS_PARAMETERS")})
     system.env.push({"var":'SIPIO_CONFIG_PATH', "value":System.getenv("SIPIO_CONFIG_PATH")})
