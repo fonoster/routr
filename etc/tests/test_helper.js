@@ -29,7 +29,7 @@ var THelper =  {
             quit()
         }
 
-        var group = name != undefined? group = name : obj.name
+        var group = name != undefined? name : obj.name
 
         if (obj.enabled === false) {
             print('Test group', "'" + group + "'", ANSI_YELLOW + '#disabled' + ANSI_RESET)
