@@ -29,34 +29,35 @@ export default class RegisterHandler {
         if (request.getHeader(ExpiresHeader.NAME)) {
             expires =  request.getHeader(ExpiresHeader.NAME).getExpires()
         } else {
-            expires = request.getHeader(ContactHeader.NAME).getExpires()
+            expires = RegisterHandler.getContactHeader(request).getExpires()
         }
         return this.headerFactory.createExpiresHeader(expires)
     }
 
     // See: Removing bindings -> https://tools.ietf.org/html/rfc3261#section-10.2.2
-    removeEndpoint(request, addressOfRecord, contactURI, hasWildcard) {
-        if (hasWildcard) {
+    removeEndpoint(request, transaction) {
+        const contactHeader = RegisterHandler.getContactHeader(request)
+        const contactURI = contactHeader.getAddress().getURI()
+        const addressOfRecord = RegisterHandler.getAddressOfRecord(request)
+
+        if (contactHeader.getAddress().isWildcard()) {
             this.locator.removeEndpoint(addressOfRecord, contactURI)
         } else {
             this.locator.removeEndpoint(addressOfRecord)
         }
+        this.sendOk(request, transaction)
+    }
+
+    sendOk(request, transaction) {
         const ok = this.messageFactory.createResponse(Response.OK, request)
-        ok.addHeader(contactHeader)
-        ok.addHeader(expH)
+        ok.addHeader(RegisterHandler.getContactHeader(request))
+        ok.addHeader(this.getExpHeader(request))
         transaction.sendResponse(ok)
         LOG.debug(ok)
     }
 
-    sendOk(request) {
-        const ok = this.messageFactory.createResponse(Response.OK, request)
-        ok.addHeader(contactHeader)
-        ok.addHeader(expH)
-        transaction.sendResponse(ok)
-        LOG.debug(ok)
-    }
-
-    sendUnauthorized(request) {
+    sendUnauthorized(request, transaction) {
+        const realm = RegisterHandler.getAddressOfRecord(request).getHost()
         const unauthorized = this.messageFactory.createResponse(Response.UNAUTHORIZED, request)
         unauthorized.addHeader(this.authHelper.generateChallenge(realm))
         transaction.sendResponse(unauthorized)
@@ -64,33 +65,31 @@ export default class RegisterHandler {
     }
 
     register (request, transaction) {
-        const contactHeader = request.getHeader(ContactHeader.NAME)
-        const contactURI = contactHeader.getAddress().getURI()
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
-        const toHeader = request.getHeader(ToHeader.NAME)
-        const addressOfRecord = toHeader.getAddress().getURI()
-        //const realm = addressOfRecord.getHost()
-
-        const expHeader = getExpHeader(request)
+        const expHeader = this.getExpHeader(request)
 
         if (expHeader.getExpires() <= 0) {
-            removeEndpoint(request, addressOfRecord, contactURI, contactHeader.getAddress().isWildcard())
+            this.removeEndpoint(request, transaction)
             return
         }
 
         if (authHeader == null) {
-            sendUnauthorized(request)
+            this.sendUnauthorized(request, transaction)
             return
         }
 
-        const success = this.registrar.register(request)
-
-        if (success) {
-            sendOk(request)
-        } else {
-            sendUnauthorized(request)
-        }
+        this.registrar.register(request)? this.sendOk(request, transaction)
+            : this.sendUnauthorized(request, transaction)
 
         return
+    }
+
+    static getContactHeader(request) {
+        return request.getHeader(ContactHeader.NAME)
+    }
+
+    static getAddressOfRecord(request) {
+        const toHeader = request.getHeader(ToHeader.NAME)
+        return toHeader.getAddress().getURI()
     }
 }

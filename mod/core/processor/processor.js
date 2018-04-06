@@ -23,7 +23,11 @@ export default class Processor {
 
         return new SipListener({
             processRequest: function(event) {
-                requestProcessor.process(event)
+                try {
+                    requestProcessor.process(event)
+                } catch(e) {
+                    e.printStackTrace()
+                }
             },
     
             processResponse: function(event) {

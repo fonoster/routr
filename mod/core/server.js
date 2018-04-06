@@ -69,6 +69,7 @@ export default class Server {
 
     setup() {
         this.showExternInfo()
+
         if(this.config.spec.securityContext.debugging) {
             Packages.java.lang.System.setProperty('javax.net.debug', 'ssl')
         }

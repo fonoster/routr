@@ -25,24 +25,20 @@ export default class Registrar {
     register(r) {
         // For some reason this references the parent object
         // to avoid I just clone it!
-        print ('DBG001')
         const request = r.clone()
-        print ('DBG002')
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
         const fromHeader = request.getHeader(FromHeader.NAME)
         const fromURI = fromHeader.getAddress().getURI()
         const host = fromURI.getHost()
-        print ('DBG003')
+
         // Get user from db or file
         const user = this.getUser(authHeader.getUsername(), host)
         const aHeaderJson = Registrar.buildHeader(user, authHeader)
-        print ('DBG004')
+
         if (new AuthHelper()
             .calcFromHeader(aHeaderJson)
                 .equals(authHeader.getResponse())) {
-         print ('DBG0015')
             this.addEndpoint(user, host, request)
-                    print ('DBG005')
             return true
         }
         return false
@@ -57,7 +53,7 @@ export default class Registrar {
         return result
     }
 
-    getNonceCount(d) {
+    static getNonceCount(d) {
         const h = Packages.java.lang.Integer.toHexString(d)
         const cSize = 8 - h.toString().length()
         let nc = ''
@@ -75,7 +71,7 @@ export default class Registrar {
         const contactHeader = request.getHeader(ContactHeader.NAME)
         const contactURI = contactHeader.getAddress().getURI()
         const viaHeader = request.getHeader(ViaHeader.NAME)
-        const route = Registrar.buildRoute(user, viaHeader, contactURI, expires)
+        const route = Registrar.buildRoute(user, viaHeader, contactURI, Registrar.getExpires(request))
         let addressOfRecord
 
         if (user.kind.equalsIgnoreCase('peer')) {
@@ -124,7 +120,7 @@ export default class Registrar {
             sentByPort: (viaHeader.getPort() == -1 ? 5060 : viaHeader.getPort()),
             received: viaHeader.getReceived(),
             rport: viaHeader.getParameter('rport'),
-            contactURI: getUpdatedContactURI(user, viaHeader, contactURI),
+            contactURI: Registrar.getUpdatedContactURI(user, viaHeader, contactURI),
             registeredOn: Date.now(),
             expires: expires,
             nat: nat
@@ -158,7 +154,7 @@ export default class Registrar {
             realm: authHeader.getRealm(),
             nonce: authHeader.getNonce(),
             // For some weird reason the interface value is an int while the value original value is a string
-            nc: this.getNonceCount(authHeader.getNonceCount()),
+            nc: Registrar.getNonceCount(authHeader.getNonceCount()),
             cnonce: authHeader.getCNonce(),
             uri: authHeader.getURI().toString(),
             method: 'REGISTER',
@@ -168,12 +164,7 @@ export default class Registrar {
 
     static getExpires(request) {
         const contactHeader = request.getHeader(ContactHeader.NAME)
-        // Simplify
-        if (request.getHeader(ExpiresHeader.NAME)) {
-            expires = request.getHeader(ExpiresHeader.NAME).getExpires()
-        } else {
-            expires = contactHeader.getExpires()
-        }
-        return expires
+        return request.getHeader(ExpiresHeader.NAME)? request.getHeader(ExpiresHeader.NAME).getExpires() :
+            contactHeader.getExpires()
     }
 }

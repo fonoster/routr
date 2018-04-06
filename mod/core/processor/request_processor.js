@@ -54,7 +54,6 @@ export default class RequestProcessor {
         const requestIn = event.getRequest()
         const method = requestIn.getMethod()
         let serverTransaction = event.getServerTransaction()
-
         // ACK does not need a transaction
         if (serverTransaction == null && !method.equals(Request.ACK)) {
             serverTransaction = this.sipProvider.getNewServerTransaction(requestIn)
