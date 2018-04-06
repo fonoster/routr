@@ -8,7 +8,7 @@ node_modules
 *.tar.gz
 *.zip
 build
-libs
+libs/app.*
 config/*.yml
 .gradle
 .idea
@@ -103,4 +103,3 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
-
