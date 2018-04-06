@@ -22,7 +22,8 @@
 
 </br>
 
-[![Build Status](https://travis-ci.org/fonoster/sipio.svg?branch=master)](https://travis-ci.org/fonoster/sipio) [![Maintainability](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/maintainability)](https://codeclimate.com/github/fonoster/sipio/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/test_coverage)](https://codeclimate.com/github/fonoster/sipio/test_coverage) [![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
+[![Build Status](https://travis-ci.org/fonoster/sipio.svg?branch=master)](https://travis-ci.org/fonoster/sipio) [![DeepScan grade](https://deepscan.io/api/projects/2192/branches/11760/badge/grade.svg)](https://deepscan.io/dashboard#view=project&pid=2192&bid=11760) [![Maintainability](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/maintainability)](https://codeclimate.com/github/fonoster/sipio/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/test_coverage)](https://codeclimate.com/github/fonoster/sipio/test_coverage) 
+[![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
 
 Documentation and tutorials available [here](https://github.com/fonoster/sipio/wiki)
 
