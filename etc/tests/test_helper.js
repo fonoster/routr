@@ -21,7 +21,7 @@ var ANSI_RED = "\u001B[31m"
 
 var THelper =  {
     test: function (path, name) {
-        // XXX: This makes this code less portable
+        // WARN: This line makes makes the helper less portable
         var obj = require(path).testGroup
 
         if (obj == undefined) {
@@ -29,8 +29,7 @@ var THelper =  {
             quit()
         }
 
-        var group = obj.name
-        if (name != undefined) group = name
+        var group = name != undefined? group = name : obj.name
 
         if (obj.enabled === false) {
             print('Test group', "'" + group + "'", ANSI_YELLOW + '#disabled' + ANSI_RESET)
@@ -39,7 +38,7 @@ var THelper =  {
             print('Test group \'' + group + '\'')
         }
 
-        for (var key in obj){
+        for (var key of obj){
             var funName = key;
             var fun = obj[key];
 
@@ -68,7 +67,10 @@ var THelper =  {
 
 var tests = $ARG
 
-if (tests.length == 0) print ('Nothing test found')
+if (tests.length == 0) {
+    print ('Nothing test found')
+}
+
 tests.forEach(function(t) {
     THelper.test(t)
 })
