@@ -24,7 +24,7 @@ export default class IPUtil {
         const localnets = this.localnets
         if (isEmpty(localnets)) throw "No localnets found"
 
-        for (let x in localnets) {
+        for (const x in localnets) {
             const subnetUtils = IPUtil.getSubnetUtils(localnets[x])
             if (subnetUtils.getInfo().isInRange(address)) return true
         }

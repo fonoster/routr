@@ -19,7 +19,6 @@ const config = getConfig()
 delete config.spec.dataSource.parameters
 
 const ds = new FilesDataSource(config)
-
 const dataAPIs = {
     DomainsAPI: new DomainsAPI(ds),
     GatewaysAPI: new GatewaysAPI(ds),
@@ -46,96 +45,59 @@ testGroup.aor_as_string = function () {
     assertEquals(aorString, 'sip:john@sip.ocean.com')
 }
 
-testGroup.get_route_for_aor = function () {
-    const aor = addressFactory.createSipURI('1001', 'sip.local')
-    const response = locator.getEgressRouteForAOR(aor)
-    assertTrue(response.status == Status.OK)
+testGroup.find_local_endpoint = function() {
+    // Add  endpoints
+    const agentEndpoint = buildEndpoint('1001', 'sip.local', '192.168.1.2:5061')
+    const peerEndpoint = buildEndpoint('ast', '192.168.1.2:5061', '192.168.1.2:5061')
+    locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
+    locator.addEndpoint(peerEndpoint.aor, peerEndpoint.route)
+    testFE(agentEndpoint.aor)
+    testFE(peerEndpoint.aor)
+    locator.removeEndpoint(agentEndpoint.aor)
 }
 
-testGroup.get_route_for_peer = function () {
-    const contactURI = addressFactory.createSipURI('ast', 'asterisk')
-    const response = locator.getEgressRouteForPeer(contactURI, 'dd50baa4')
-    assertTrue(response.status == Status.OK)
+testGroup.find_endpoint_for_did = function() {
+    // This is the local aor for the did '0000000000'
+    const endpoint = buildEndpoint('1001', 'sip.local', '192.168.1.2:5061')
+    locator.addEndpoint(endpoint.aor, endpoint.route)
+    testFE(addressFactory.createSipURI('0000000000', 'sip.local'))
+    locator.removeEndpoint(endpoint.aor)
 }
 
-testGroup.add_find_del_aor = function() {
-    const contactURI = addressFactory.createSipURI('john', 'sip.provider.com')
-    const aor = contactURI
-    const route = buildRoute(contactURI)
-
-    // Add
-    locator.addEndpoint(aor, route)
-    // Check
-    let response = locator.findEndpoint(aor)
-    assertEquals(Status.OK, response.status)
-    // Remove
-    locator.removeEndpoint(aor)
-    // Check
-    response = locator.findEndpoint(aor)
-    assertEquals(Status.NOT_FOUND, response.status)
+testGroup.find_remote_endpoint = function() {
+    testFE(addressFactory.createSipURI('17853178070',  'sip.local'), true)
 }
 
+// Test having more than one route per address of record
 testGroup.add_multi_aor = function() {
-    const aor = addressFactory.createSipURI('john', 'domain.com')
-    const contactURI1 = addressFactory.createSipURI('john', '192.168.1.2')
-    const contactURI2 = addressFactory.createSipURI('john', '192.168.1.2:64232')
-    const contactURI3 = addressFactory.createSipURI('jonn', '10.0.0.21')
-
-    const route1 = buildRoute(contactURI1)
-    const route2 = buildRoute(contactURI2)
-    const route3 = buildRoute(contactURI3)
-
-    // Add
-    locator.addEndpoint(aor, route1)
-    locator.addEndpoint(aor, route2)
-    locator.addEndpoint(aor, route3)
-
-    // Check
-    let response = locator.findEndpoint(aor)
-    assertEquals(3, response.result.size())
-
-    // Remove 1
-    locator.removeEndpoint(aor, contactURI1)
-
-    // Check
-    response = locator.findEndpoint(aor)
-    assertEquals(2, response.result.size())
-
-    // Remove all bindings
-    locator.removeEndpoint(aor)
-
-    // Check
-    response = locator.findEndpoint(aor)
-    assertEquals(Status.NOT_FOUND, response.status)
+    const ep1 = buildEndpoint('1001', 'sip.local', '192.168.1.2:5061')
+    const ep2 = buildEndpoint('1001', 'sip.local', '192.168.1.3:5061')
+    locator.addEndpoint(ep1.aor, ep1.route)
+    locator.addEndpoint(ep2.aor, ep2.route)
+    testFE(go1.aor)
 }
 
-testGroup.get_peer_route_by_host = function() {
-    const peerContactURI = addressFactory.createSipURI('ast', '192.168.1.2:5060')
-    const aor = addressFactory.createSipURI('7853178070', '192.168.1.2:5060')
-    const route = buildRoute(peerContactURI)
-
-    // Add
-    locator.addEndpoint(aor, route)
-
-    // Check individual function
-    let response = locator.getPeerRouteByHost(aor)
-    assertEquals(Status.OK, response.status)
-
-    // ... and main function
-    response = locator.findEndpoint(aor)
-    assertEquals(Status.OK, response.status)
-}
-
-function buildRoute(contactURI) {
+function buildEndpoint(username, domain, host) {
+    const aor = addressFactory.createSipURI(username, domain)
+    const contactURI = addressFactory.createSipURI(username, host)
     return {
-        isLinkAOR: false,
-        thruGw: false,
-        sentByAddress: 'localhost',
-        sentByPort: 5060,
-        received: 'remotehost',
-        rport: 5061,
-        contactURI: contactURI,
-        registeredOn: Date.now(),
-        nat: false
+      aor: aor,
+      route: {
+          isLinkAOR: false,
+          thruGw: false,
+          sentByAddress: 'localhost',
+          sentByPort: 5060,
+          received: 'remotehost',
+          rport: 5061,
+          contactURI: contactURI,
+          registeredOn: Date.now(),
+          nat: false
+      }
     }
+}
+
+function testFE(aor, thruGw = false) {
+  const response = locator.findEndpoint(aor)
+  assertEquals(Status.OK, response.status)
+  response.result.forEach(route => assertEquals(thruGw, route.thruGw))
 }

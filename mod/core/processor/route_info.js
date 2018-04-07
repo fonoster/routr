@@ -39,7 +39,7 @@ export default class RoutingInfo {
 
     getCalleeFromAddressInfo(request, addressInfo) {
         const callee = {}
-        for (let x in addressInfo) {
+        for (const x in addressInfo) {
             let info = addressInfo[x]
             if (!!request.getHeader(info)) {
                 let v = request.getHeader(info).getValue()
