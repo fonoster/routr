@@ -5,6 +5,7 @@
 import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
 import { Status } from 'core/status'
+import { UNFULFILLED_DEPENDENCY_RESPONSE } from 'core/status'
 
 export default class DIDsAPI {
 
@@ -16,10 +17,7 @@ export default class DIDsAPI {
         const response = this.ds.withCollection('gateways').find("@.metadata.ref=='" + jsonObj.metadata.gwRef + "'")
 
         if (response.result.length == 0) {
-            return {
-                status: Status.CONFLICT,
-                message: Status.message[4091].value
-            }
+            return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
         return this.didExist(jsonObj.spec.location.telUrl)?
@@ -30,10 +28,7 @@ export default class DIDsAPI {
         const response = this.ds.withCollection('gateways').find("@.metadata.ref=='" + jsonObj.metadata.gwRef + "'")
 
         if (response.result.length == 0) {
-            return {
-                status: Status.CONFLICT,
-                message: Status.message[4091].value
-            }
+            return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
         return !this.didExist(jsonObj.spec.location.telUrl)?

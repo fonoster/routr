@@ -5,9 +5,8 @@
 import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
 import { Status } from 'core/status'
+import { UNFULFILLED_DEPENDENCY_RESPONSE } from 'core/status'
 import isEmpty from 'utils/obj_util'
-
-const unfulfilledDepResponse = { status: Status.CONFLICT, message: Status.message[4091].value }
 
 export default class AgentsAPI {
 
@@ -17,7 +16,7 @@ export default class AgentsAPI {
 
     save(domain) {
         if (!this.doesDomainExist(domain)) {
-            return unfulfilledDepResponse
+            return UNFULFILLED_DEPENDENCY_RESPONSE
         }
         return this.existInAnotherDomain(domain)? CoreUtils.buildResponse(Status.CONFLICT): this.ds.update(domain)
     }

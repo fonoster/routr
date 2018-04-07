@@ -5,8 +5,7 @@
 import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
 import { Status } from 'core/status'
-
-const foundDependentObjects = { status: Status.CONFLICT, message: Status.message[4092].value }
+import { FOUND_DEPENDENT_OBJECTS_RESPONSE } from 'core/status'
 
 export default class GatewaysAPI {
 
@@ -50,7 +49,7 @@ export default class GatewaysAPI {
         response = this.ds.withCollection('dids').find("@.metadata.gwRef=='" + gateway.metadata.ref + "'")
         const dids = response.result
 
-        return dids.length == 0? this.ds.withCollection('gateways').remove(ref): foundDependentObjects
+        return dids.length == 0? this.ds.withCollection('gateways').remove(ref): FOUND_DEPENDENT_OBJECTS_RESPONSE
     }
 
 }

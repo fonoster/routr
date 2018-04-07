@@ -74,7 +74,7 @@ testGroup.add_multi_aor = function() {
     const ep2 = buildEndpoint('1001', 'sip.local', '192.168.1.3:5061')
     locator.addEndpoint(ep1.aor, ep1.route)
     locator.addEndpoint(ep2.aor, ep2.route)
-    testFE(go1.aor)
+    testFE(ep1.aor)
 }
 
 function buildEndpoint(username, domain, host) {
