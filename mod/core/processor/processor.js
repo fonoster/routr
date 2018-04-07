@@ -23,31 +23,27 @@ export default class Processor {
 
         return new SipListener({
             processRequest: function(event) {
-                try {
-                    requestProcessor.process(event)
-                } catch(e) {
-                    e.printStackTrace()
-                }
+                requestProcessor.process(event)
             },
-    
+
             processResponse: function(event) {
                 responseProcessor.process(event)
             },
-    
+
             processTransactionTerminated: function(event) {
                 if (event.isServerTransaction()) {
                     const serverTransaction = event.getServerTransaction()
-    
+
                     if (!this.contextStorage.removeContext(serverTransaction)) {
                        LOG.trace("Ongoing Transaction")
                     }
                 }
             },
-    
+
             processDialogTerminated: function(event) {
                 LOG.trace('Dialog ' + event.getDialog() + ' has been terminated')
             },
-    
+
             processTimeout: function(event) {
                 LOG.trace('Transaction Time out')
             }
