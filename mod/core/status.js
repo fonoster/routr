@@ -29,6 +29,6 @@ export const UNFULFILLED_DEPENDENCY_RESPONSE = {
     status: Status.CONFLICT, message: Status.message[4091].value
 }
 
-const FOUND_DEPENDENT_OBJECTS_RESPONSE = {
+export const FOUND_DEPENDENT_OBJECTS_RESPONSE = {
   status: Status.CONFLICT, message: Status.message[4092].value
 }
