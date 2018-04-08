@@ -255,7 +255,7 @@ export default class Locator {
                             routes.splice(x,1)
                         }
 
-                        if (routes.length() == 0) {
+                        if (routes.length == 0) {
                             e.remove()
                         }
                     }
