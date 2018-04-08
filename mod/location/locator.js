@@ -42,8 +42,6 @@ export default class Locator {
             routes = []
         }
 
-        // Not using aorAsString because we need to consider the port, etc.
-        const routeKey = route.contactURI.toString()
         routes.push(route)
 
         // See NOTE #1

@@ -121,7 +121,6 @@ export default class ResponseProcessor {
     reRegister(event) {
         const response = event.getResponse()
         const clientTransaction = event.getClientTransaction()
-        const request = clientTransaction.getRequest()
         const viaHeader = response.getHeader(ViaHeader.NAME)
 
         LOG.debug('Sip I/O is behind a NAT. Re-registering using Received and RPort')
