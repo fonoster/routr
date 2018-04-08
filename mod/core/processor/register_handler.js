@@ -24,6 +24,26 @@ export default class RegisterHandler {
         this.authHelper = new AuthHelper(this.headerFactory)
     }
 
+    doProcess (request, transaction) {
+        const authHeader = request.getHeader(AuthorizationHeader.NAME)
+        const expHeader = this.getExpHeader(request)
+
+        if (expHeader.getExpires() <= 0) {
+            this.removeEndpoint(request, transaction)
+            return
+        }
+
+        if (authHeader == null) {
+            this.sendUnauthorized(request, transaction)
+            return
+        }
+
+        this.registrar.register(request)? this.sendOk(request, transaction)
+            : this.sendUnauthorized(request, transaction)
+
+        return
+    }
+
     getExpHeader(request) {
         let expires
         if (request.getHeader(ExpiresHeader.NAME)) {
@@ -62,26 +82,6 @@ export default class RegisterHandler {
         unauthorized.addHeader(this.authHelper.generateChallenge(realm))
         transaction.sendResponse(unauthorized)
         LOG.debug(unauthorized)
-    }
-
-    register (request, transaction) {
-        const authHeader = request.getHeader(AuthorizationHeader.NAME)
-        const expHeader = this.getExpHeader(request)
-
-        if (expHeader.getExpires() <= 0) {
-            this.removeEndpoint(request, transaction)
-            return
-        }
-
-        if (authHeader == null) {
-            this.sendUnauthorized(request, transaction)
-            return
-        }
-
-        this.registrar.register(request)? this.sendOk(request, transaction)
-            : this.sendUnauthorized(request, transaction)
-
-        return
     }
 
     static getContactHeader(request) {

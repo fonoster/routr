@@ -15,7 +15,7 @@ export default class CancelHandler {
         this.messageFactory = SipFactory.getInstance().createMessageFactory()
     }
 
-    cancel(request, serverTransaction) {
+    doProcess(request, serverTransaction) {
         const storage = this.contextStorage.getStorage()
         const iterator = storage.iterator()
 
