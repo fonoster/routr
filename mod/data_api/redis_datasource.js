@@ -6,14 +6,12 @@ import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
 import { Status } from 'core/status'
 import getConfig from 'core/config_util'
-import isEmpty from 'utils/obj_util'
 
 const JedisPoolConfig = Packages.redis.clients.jedis.JedisPoolConfig
 const JedisPool = Packages.redis.clients.jedis.JedisPool
 const ObjectId = Packages.org.bson.types.ObjectId
 const JsonPath = Packages.com.jayway.jsonpath.JsonPath
 const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
-const System = Packages.java.lang.System
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }

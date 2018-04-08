@@ -6,11 +6,9 @@ import CoreUtils from 'core/utils'
 import DSUtil from 'data_api/utils'
 import getConfig from 'core/config_util'
 import { Status } from 'core/status'
-import isEmpty from 'utils/obj_util'
 
 const URLEncoder = Packages.java.net.URLEncoder
 const Unirest = Packages.com.mashape.unirest.http.Unirest
-const System = Packages.java.lang.System
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
