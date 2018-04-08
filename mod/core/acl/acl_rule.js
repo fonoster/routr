@@ -6,13 +6,15 @@ import IPUtil from 'core/ip_util'
 
 export default class Rule {
 
-    constructor(action, net) {
-        if (!action.equals('allow') && !action.equals('deny'))
-            throw "Parameter action can only be 'allow' or 'deny'"
-        const subnetUtils = IPUtil.getSubnetUtils(net)
-        this.subnetUtils = subnetUtils
-        this._action = action
-        this._net = net
+    constructor(net, action) {
+        if (action.equals('allow') || action.equals('deny')) {
+          const subnetUtils = IPUtil.getSubnetUtils(net)
+          this.subnetUtils = subnetUtils
+          this._action = action
+          this._net = net
+        } else {
+          throw "Parameter action can only be 'allow' or 'deny'"
+        }
     }
 
     hasIp(address) {

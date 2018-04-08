@@ -11,37 +11,27 @@ export let testGroup = { name: "Access Control List Submodule" }
 
 // Tests
 testGroup.rules = function () {
-    let rule = new Rule('allow', '10.0.0.1/28')
+    let rule = new Rule('10.0.0.1/28', 'allow')
     assertEquals(16, rule.getAddressCount())
     assertTrue(rule.hasIp('10.0.0.4'))
     assertEquals('allow', rule.action)
 
-    rule = new Rule('allow', '0.0.0.0/0')
+    rule = new Rule('0.0.0.0/0', 'allow')
     assertTrue(rule.hasIp('10.0.0.4'))
     assertTrue(rule.hasIp('192.168.0.16'))
 }
 
 // Tests
 testGroup.is_network_allowed = function () {
-    const generalAcl = {
-        deny: ["0.0.0.0/0"]
+    const accessControlList = {
+        allow: ['192.168.0.1/28'],
+        deny: ['192.168.0.4']
     }
 
-    const domainObj = {
-        spec: {
-            context: {
-                accessControlList: {
-                    allow: ['192.168.0.1/28'],
-                    deny: ['192.168.0.4']
-                }
-            }
-        }
-    }
+    const aclUtil = new ACLUtil(accessControlList)
 
-    let aclUtil = new ACLUtil(generalAcl)
-
-    assertTrue(aclUtil.isIpAllowed(domainObj, '192.168.0.1'))
-    assertTrue(aclUtil.isIpAllowed(domainObj, '192.168.0.14'))
-    assertFalse(aclUtil.isIpAllowed(domainObj, '192.168.0.4'))
-    assertFalse(aclUtil.isIpAllowed(domainObj, '192.168.0.16')) // Simply out of range
+    assertTrue(aclUtil.isIpAllowed('192.168.0.1'))
+    assertTrue(aclUtil.isIpAllowed('192.168.0.14'))
+    assertFalse(aclUtil.isIpAllowed('192.168.0.4'))
+    assertFalse(aclUtil.isIpAllowed('192.168.0.16'))
 }

@@ -26,7 +26,6 @@ export default class RequestHandler {
         this.sipProvider = sipProvider
         this.locator = locator
         this.contextStorage = contextStorage
-        this.dataAPIs = dataAPIs
         this.messageFactory = SipFactory.getInstance().createMessageFactory()
         this.headerFactory = SipFactory.getInstance().createHeaderFactory()
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
@@ -35,27 +34,15 @@ export default class RequestHandler {
     }
 
     doProcess(request, serverTransaction) {
-        const responseUtil = new ResponseUtil(request, serverTransaction, this.messageFactory)
-        let response = this.locator.findEndpoint(ProcessorUtils.getAOR(request))
+        const procUtils = new ProcessorUtils(request, serverTransaction, this.messageFactory)
+        const response = this.locator.findEndpoint(ProcessorUtils.getAOR(request))
 
         if (response.status == Status.NOT_FOUND) {
-            return responseUtil.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
-        }
-
-        if (RequestHandler.isAuthorized(request) == false) {
-            return responseUtil.sendResponse(Response.FORBIDDEN)
-        }
-
-        const routes = response.result
-
-        if(routes.length == 0) {
-            return responseUtil.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
+            return procUtils.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
         }
 
         // Call forking
-        for (const x in routes) {
-            this.processRoute(request, serverTransaction, routes[x])
-        }
+        response.result.forEach(route => this.processRoute(request, serverTransaction, route))
     }
 
     processRoute(requestIn, serverTransaction, route) {
@@ -209,26 +196,7 @@ export default class RequestHandler {
             }
         }
 
-        return {
-            host: localAddr.host,
-            port: localAddr.port
-        }
+        return { host: localAddr.host, port: localAddr.port }
     }
 
-    static isAuthorized(request) {
-        return true
-    }
-}
-
-class ResponseUtil {
-
-    constructor(request, serverTransaction, messageFactory) {
-        this.request = request
-        this.st = serverTransaction
-        this.messageFactory = messageFactory
-    }
-
-    sendResponse(responseType) {
-        this.st.sendResponse(this.messageFactory.createResponse(responseType, this.request))
-    }
 }

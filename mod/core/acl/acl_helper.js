@@ -18,20 +18,13 @@ import Rule from 'core/acl/acl_rule'
  *    - 192.168.0.1/31
  */
 export default class ACLHelper {
-
-    constructor() {}
-
-    static mostSpecific(rules, ip) {
+    static mostSpecific(ip, rules) {
         const r = rules
             .stream()
             .filter(rule => rule.hasIp(ip))
             .sorted((r1, r2) => java.lang.Long.compare(r1.getAddressCount(), r2.getAddressCount()))
             .findFirst()
 
-        if (r.isPresent()) {
-            return r.get()
-        }
-
-        return new Rule('allow', '0.0.0.0/0')
+        return r.isPresent()? r.get() : new Rule('0.0.0.0/0', 'deny')
     }
 }

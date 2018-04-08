@@ -7,6 +7,16 @@ const ToHeader = Packages.javax.sip.header.ToHeader
 
 export default class ProcessorUtils {
 
+    constructor(request, serverTransaction, messageFactory) {
+        this.request = request
+        this.st = serverTransaction
+        this.messageFactory = messageFactory
+    }
+
+    sendResponse(responseType) {
+        this.st.sendResponse(this.messageFactory.createResponse(responseType, this.request))
+    }
+
     /**
       * Discover DIDs sent via a non-standard header
       * The header must be added at config.spec.addressInfo[*]
