@@ -17,7 +17,6 @@ const FromHeader = Packages.javax.sip.header.FromHeader
 const ContactHeader = Packages.javax.sip.header.ContactHeader
 const ViaHeader = Packages.javax.sip.header.ViaHeader
 const MaxForwardsHeader = Packages.javax.sip.header.MaxForwardsHeader
-const ProxyAuthorizationHeader = Packages.javax.sip.header.ProxyAuthorizationHeader
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 
@@ -75,7 +74,7 @@ export default class RequestHandler {
         }
 
         if(this.stayInSignalingPath()) {
-            requestOut = this.configureRecordRoute(requestOut)
+            requestOut = this.configureRecordRoute(requestOut, advertisedAddr)
         }
 
         if(route.thruGw) {
