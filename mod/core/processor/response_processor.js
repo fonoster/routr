@@ -25,69 +25,133 @@ export default class ResponseProcessor {
     }
 
     process(event) {
-        const responseIn = event.getResponse()
-        const cseq = responseIn.getHeader(CSeqHeader.NAME)
-        const expiresHeader = responseIn.getHeader(ExpiresHeader.NAME)
-        const fromHeader = responseIn.getHeader(FromHeader.NAME)
-        const fromURI = fromHeader.getAddress().getURI()
-        const viaHeader = responseIn.getHeader(ViaHeader.NAME)
+        const response = event.getResponse()
+        const cseq = response.getHeader(CSeqHeader.NAME)
+        const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
+        const viaHeader = response.getHeader(ViaHeader.NAME)
         const clientTransaction = event.getClientTransaction()
 
         // The stack takes care of this cases
-        if (responseIn.getStatusCode() == Response.TRYING ||
-            responseIn.getStatusCode() == Response.REQUEST_TERMINATED ||
-            cseq.getMethod().equals(Request.CANCEL)) return
-
-        if (cseq.getMethod().equals(Request.REGISTER) &&
-            responseIn.getStatusCode() == Response.OK) {
-
-            const request = clientTransaction.getRequest()
-            const gwRef = request.getHeader('X-Gateway-Ref').value
-
-            const rPort = viaHeader.getRPort()
-            const port = viaHeader.getPort()
-            const host = viaHeader.getHost()
-            const received = viaHeader.getReceived()
-
-            if ((!!received && !host.equals(received)) || port != rPort) {
-                const username = fromURI.getUser()
-                const transport = viaHeader.getTransport().toLowerCase()
-                // This may not be the best source to get this parameter
-                const peerHost = fromURI.getHost()
-
-                LOG.debug('Sip I/O is behind a NAT. Re-registering using Received and RPort')
-                try {
-                    this.registry.requestChallenge(username, gwRef, peerHost, transport, received, rPort)
-                } catch(e) {
-                    e.printStackTrace()
-                }
-                return
-            }
-
-            let expires = 300
-            if(expiresHeader != null) expires = expiresHeader.getExpires()
-            this.registry.storeRegistry(fromURI.getUser(), fromURI.getHost(), expires)
-        } else if(cseq.getMethod().equals(Request.REGISTER)) {
-            this.registry.removeRegistry(fromURI.getHost())
-        }
-
-        // WARNING: This is causing an issue with tcp transport and DIDLogic
-        // I believe that DIDLogic does not fully support tcp registration
-        if (responseIn.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED ||
-            responseIn.getStatusCode() == Response.UNAUTHORIZED) {
-            let authenticationHelper = this.sipProvider.getSipStack()
-                .getAuthenticationHelper(this.accountManagerService.getAccountManager(), this.headerFactory)
-            let t = authenticationHelper.handleChallenge(responseIn, clientTransaction, event.getSource(), 5)
-            t.sendRequest()
-            LOG.debug(responseIn)
+        if (ResponseProcessor.isStackJob(response)) {
             return
         }
 
-        // Strip the topmost via header
+        if (ResponseProcessor.isRegisterOk(response)) {
+            if (ResponseProcessor.isBehindNat(viaHeader)) {
+                return this.reRegister(event)
+            }
+        } else if(ResponseProcessor.isRegisterNok(response)) {
+            this.removeFromRegistry(response)
+        }
+
+        return ResponseProcessor.mustAuthenticate(response)?
+          this.sendAuthChallenge(event) : this.sendResponse(event)
+    }
+
+    static mustAuthenticate(response) {
+        if(response.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED ||
+          response.getStatusCode() == Response.UNAUTHORIZED) {
+            return true
+        }
+        return false
+    }
+
+    static isStackJob(response) {
+        if(response.getStatusCode() == Response.TRYING              ||
+            response.getStatusCode() == Response.REQUEST_TERMINATED ||
+            response.getHeader(CSeqHeader.NAME).getMethod()
+              .equals(Request.CANCEL)) {
+              return true
+        }
+        return false
+    }
+
+    static isBehindNat(viaHeader) {
+        const rPort = viaHeader.getRPort()
+        const port = viaHeader.getPort()
+        const host = viaHeader.getHost()
+        const received = viaHeader.getReceived()
+        return (!!received && !host.equals(received)) || port != rPort? true : false
+    }
+
+    static isRegister(response) {
+        const cseq = response.getHeader(CSeqHeader.NAME)
+        return cseq.getMethod().equals(Request.REGISTER)? true : false
+    }
+
+    static isRegisterOk(response) {
+        if(isRegister(response) && response.getStatusCode() == Response.OK) {
+            return true
+        }
+        return false
+    }
+
+    static isRegisterNok(response) {
+        if(response.getStatusCode() != Response.OK && isRegister(response)) {
+            return true
+        }
+        return false
+    }
+
+    static isInviteWithoutCT(event) {
+        const clientTransaction = event.getClientTransaction()
+        const cseq = event.getResponse().getHeader(CSeqHeader.NAME)
+        return cseq.getMethod().equals(Request.INVITE) && !!clientTransaction? true : false
+    }
+
+    storeInRegistry(response) {
+        const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
+        const expiresHeader = response.getHeader(ExpiresHeader.NAME)
+        const expires  = expiresHeader != null? expiresHeader.getExpires() : 300
+        this.registry.storeRegistry(fromURI.getUser(), fromURI.getHost(), expires)
+    }
+
+    removeFromRegistry(response) {
+        const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
+        this.registry.removeRegistry(fromURI.getHost())
+    }
+
+    sendAuthChallenge(event) {
+        const authHelper = this.sipProvider
+            .getSipStack()
+                .getAuthenticationHelper(this.accountManagerService
+                    .getAccountManager(), this.headerFactory)
+        authHelper.handleChallenge(
+            event.getResponse(), event.getClientTransaction(),
+              event.getSource(), 5).sendRequest()
+    }
+
+    reRegister(event) {
+        const response = event.getResponse()
+        const clientTransaction = event.getClientTransaction()
+        const request = clientTransaction.getRequest()
+        const viaHeader = response.getHeader(ViaHeader.NAME)
+
+        LOG.debug('Sip I/O is behind a NAT. Re-registering using Received and RPort')
+
+        try {
+            const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
+            const gwRef = clientTransaction.getRequest().getHeader('X-Gateway-Ref').value
+            this.registry.requestChallenge(fromURI.getUser(),
+                  gwRef,
+                  fromURI.getHost(),
+                  viaHeader.getTransport().toLowerCase(),
+                  viaHeader.getReceived(),
+                  viaHeader.getRPort())
+        } catch(e) {
+            LOG.error(e.getMessage())
+        }
+    }
+
+    sendResponse(event) {
+        const responseIn = event.getResponse()
         const responseOut = responseIn.clone()
+        const clientTransaction = event.getClientTransaction()
+
+        // Strip the topmost via header
         responseOut.removeFirst(ViaHeader.NAME)
 
-        if (cseq.getMethod().equals(Request.INVITE) && !!clientTransaction) {
+        if (isInviteWithoutCT(event)) {
             // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
             // However, I'm unable to find the way to cast this object.
             //let st = clientTransaction.getApplicationData()'
