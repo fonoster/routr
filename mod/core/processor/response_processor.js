@@ -26,10 +26,6 @@ export default class ResponseProcessor {
 
     process(event) {
         const response = event.getResponse()
-        const cseq = response.getHeader(CSeqHeader.NAME)
-        const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
-        const viaHeader = response.getHeader(ViaHeader.NAME)
-        const clientTransaction = event.getClientTransaction()
 
         // The stack takes care of this cases
         if (ResponseProcessor.isStackJob(response)) {
@@ -37,6 +33,7 @@ export default class ResponseProcessor {
         }
 
         if (ResponseProcessor.isRegisterOk(response)) {
+            const viaHeader = response.getHeader(ViaHeader.NAME)
             if (ResponseProcessor.isBehindNat(viaHeader)) {
                 return this.reRegister(event)
             }
