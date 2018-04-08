@@ -21,7 +21,7 @@ export default class CoreUtils {
         }
 
         if(e) {
-            response.result = e.getMessage()
+            response.result = e.toString()
         }
 
         return response
