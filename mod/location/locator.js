@@ -241,22 +241,23 @@ export default class Locator {
         LOG.info('Starting Location service')
         var locDB = this.db
 
-        let unbindExpiredTask = new java.util.TimerTask({
+        const unbindExpiredTask = new java.util.TimerTask({
             run: function() {
                 const e = locDB.values().iterator()
 
                 while(e.hasNext()) {
                     let routes = e.next()
-                    let i = routes.values().iterator()
 
-                    while (i.hasNext()) {
-                        const route = i.next()
+                    for (const x in routes) {
+                        const route = routes[x]
                         const elapsed = (Date.now() - route.registeredOn) / 1000
                         if ((route.expires - elapsed) <= 0) {
-                            i.remove()
+                            routes.splice(x,1)
                         }
 
-                        if (routes.size() == 0) e.remove()
+                        if (routes.length() == 0) {
+                            e.remove()
+                        }
                     }
                 }
             }
