@@ -13,7 +13,7 @@ export default class Processor {
 
     constructor(sipProvider, locator, registry, registrar, dataAPIs, contextStorage) {
         this.contextStorage = contextStorage
-        this.requestProcessor = new RequestProcessor(sipProvider, locator, registry, registrar, dataAPIs, contextStorage)
+        this.requestProcessor = new RequestProcessor(sipProvider, locator, registrar, dataAPIs, contextStorage)
         this.responseProcessor = new ResponseProcessor(sipProvider, locator, registry, registrar, dataAPIs, contextStorage)
     }
 
