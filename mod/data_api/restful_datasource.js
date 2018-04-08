@@ -19,14 +19,7 @@ const defaultRestfulParams = { baseUrl: 'http://localhost/v1/ctl', username: 'ad
 export default class RestfulDataSource {
 
     constructor(config = getConfig()) {
-        let parameters
-
-        isEmpty(config.spec.dataSource.parameters) == false?
-            parameters = config.spec.dataSource.parameters: parameters = defaultRestfulParams
-
-        if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
-            parameters = this.getParams(System.getenv("SIPIO_DS_PARAMETERS"))
-        }
+        const parameters = DSUtil.getParameters(config, RestfulDataSource.getFromEnv, defaultRestfulParams)
 
         if (!parameters.baseUrl || !parameters.username || !parameters.secret) {
             LOG.error("Restful Data Source incorrectly configured.\nYou must specify the baseUrl, username and secret when using this data provider")
@@ -38,7 +31,7 @@ export default class RestfulDataSource {
         this.secret = parameters.secret
     }
 
-    getParams(params) {
+    static getFromEnv(params) {
         const parameters = {}
         params.forEach(par => {
             const key = par.split("=")[0]

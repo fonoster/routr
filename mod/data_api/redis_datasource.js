@@ -34,14 +34,8 @@ const defUser = {
 export default class RedisDataSource {
 
     constructor(config = getConfig()) {
-        let parameters
-
-        isEmpty(config.spec.dataSource.parameters) == false?
-            parameters = config.spec.dataSource.parameters: parameters = defautRedisParameters
-
-        if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
-            parameters = this.getParams(System.getenv("SIPIO_DS_PARAMETERS"))
-        }
+        const parameters = DSUtil.getParameters(config, RedisDataSource.getFromEnv,
+            defautRedisParameters)
 
         this.jedisPool = new JedisPool(parameters.host, parameters.port)
 
@@ -55,7 +49,7 @@ export default class RedisDataSource {
         }
     }
 
-    getParams(params) {
+    static getFromEnv(params) {
         const parameters = {}
         params.forEach(par => {
             const key = par.split("=")[0]

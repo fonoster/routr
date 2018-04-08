@@ -7,6 +7,7 @@ import FilesUtil from 'utils/files_util'
 import { Status } from 'core/status'
 import isEmpty from 'utils/obj_util'
 
+const System = Packages.java.lang.System
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const YAMLFactory = Packages.com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -98,11 +99,22 @@ export default class DSUtil {
         return !isEmpty(filter) && !filter.equals('*')? "*.[?(" + filter + ")]" : filter
     }
 
-   static resolve(path, obj) {
+    static resolve(path, obj) {
         return path.split('.').reduce(
           function(prev, curr) {
             return prev ? prev[curr] : null
           }, obj || self
         )
+    }
+
+    static getParameters(config, getFromEnv, defaultParameters) {
+        let parameters = isEmpty(config.spec.dataSource.parameters) == false?
+          config.spec.dataSource.parameters: defaultParameters
+
+        if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
+          parameters = getFromEnv(System.getenv("SIPIO_DS_PARAMETERS"))
+        }
+
+        return parameters
     }
 }
