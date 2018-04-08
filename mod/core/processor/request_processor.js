@@ -36,7 +36,8 @@ export default class RequestProcessor {
               new CancelHandler(this.sipProvider, this.contextStorage).doProcess(request, serverTransaction)
               break
             default:
-              new RequestHandler(this.locator, this.dataAPIs).doProcess(request, serverTransaction)
+              new RequestHandler(this.locator, this.sipProvider, this.dataAPIs, this.contextStorage)
+                .doProcess(request, serverTransaction)
         }
     }
 }

@@ -77,14 +77,14 @@ export default class ResponseProcessor {
     }
 
     static isRegisterOk(response) {
-        if(isRegister(response) && response.getStatusCode() == Response.OK) {
+        if(ResponseProcessor.isRegister(response) && response.getStatusCode() == Response.OK) {
             return true
         }
         return false
     }
 
     static isRegisterNok(response) {
-        if(response.getStatusCode() != Response.OK && isRegister(response)) {
+        if(response.getStatusCode() != Response.OK && ResponseProcessor.isRegister(response)) {
             return true
         }
         return false
@@ -135,7 +135,7 @@ export default class ResponseProcessor {
                   viaHeader.getReceived(),
                   viaHeader.getRPort())
         } catch(e) {
-            LOG.error(e.getMessage())
+            LOG.error(e)
         }
     }
 
@@ -147,7 +147,7 @@ export default class ResponseProcessor {
         // Strip the topmost via header
         responseOut.removeFirst(ViaHeader.NAME)
 
-        if (isInviteWithoutCT(event)) {
+        if (ResponseProcessor.isInviteWithoutCT(event)) {
             // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
             // However, I'm unable to find the way to cast this object.
             //let st = clientTransaction.getApplicationData()'
