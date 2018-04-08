@@ -27,7 +27,7 @@ export default class DSUtil {
     static isValidEntity(obj) {
         let kind
         try {
-            kind = this.getKind(obj)
+            kind = DSUtil.getKind(obj)
         } catch(e) {
             return false
         }
@@ -68,16 +68,10 @@ export default class DSUtil {
     }
 
     static getKind(obj) {
-        if (!obj.kind || (
-            obj.kind.toLowerCase() != 'user' &&
-            obj.kind.toLowerCase() != 'agent' &&
-            obj.kind.toLowerCase() != 'peer' &&
-            obj.kind.toLowerCase() != 'domain' &&
-            obj.kind.toLowerCase() != 'gateway' &&
-            obj.kind.toLowerCase() != 'did')) {
+        if(['user', 'agent', 'peer', 'domain', 'gateway', 'did']
+            .indexOf(obj.kind.toLowerCase()) == -1) {
             throw "Not a valid entity. `kind` must be: User, Agent, Peer, Domain, Gateway, DID"
         }
-
         return obj.kind
     }
 
