@@ -4,7 +4,6 @@
  *
  * Unit Test for the "Location Service Module"
  */
-
 import FilesDataSource from 'data_api/files_datasource'
 import Locator from 'location/locator.js'
 import LocatorUtils from 'location/utils.js'
