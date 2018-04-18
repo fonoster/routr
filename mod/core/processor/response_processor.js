@@ -41,8 +41,8 @@ export default class ResponseProcessor {
             this.removeFromRegistry(response)
         }
 
-        return ResponseProcessor.mustAuthenticate(response)?
-          this.sendAuthChallenge(event) : this.sendResponse(event)
+        ResponseProcessor.mustAuthenticate(response)? this.sendAuthChallenge(event)
+            : this.sendResponse(event)
     }
 
     static mustAuthenticate(response) {
@@ -90,10 +90,10 @@ export default class ResponseProcessor {
         return false
     }
 
-    static isInviteWithoutCT(event) {
+    static isInviteWithCT(event) {
         const clientTransaction = event.getClientTransaction()
         const cseq = event.getResponse().getHeader(CSeqHeader.NAME)
-        return cseq.getMethod().equals(Request.INVITE) && !!clientTransaction? true : false
+        return cseq.getMethod().equals(Request.INVITE) && clientTransaction != null? true : false
     }
 
     storeInRegistry(response) {
@@ -129,39 +129,37 @@ export default class ResponseProcessor {
             const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
             const gwRef = clientTransaction.getRequest().getHeader('X-Gateway-Ref').value
             this.registry.requestChallenge(fromURI.getUser(),
-                  gwRef,
-                  fromURI.getHost(),
-                  viaHeader.getTransport().toLowerCase(),
-                  viaHeader.getReceived(),
-                  viaHeader.getRPort())
+                gwRef,
+                fromURI.getHost(),
+                viaHeader.getTransport().toLowerCase(),
+                viaHeader.getReceived(),
+                viaHeader.getRPort())
         } catch(e) {
             LOG.error(e)
         }
     }
 
     sendResponse(event) {
-        const responseIn = event.getResponse()
-        const responseOut = responseIn.clone()
-        const clientTransaction = event.getClientTransaction()
+        const responseOut = event.getResponse().clone()
 
         // Strip the topmost via header
         responseOut.removeFirst(ViaHeader.NAME)
 
-        if (ResponseProcessor.isInviteWithoutCT(event)) {
+        if (ResponseProcessor.isInviteWithCT(event)) {
             // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
             // However, I'm unable to find the way to cast this object.
             //let st = clientTransaction.getApplicationData()'
-            const context = this.contextStorage.findContext(clientTransaction)
+            const context = this.contextStorage.findContext(event.getClientTransaction())
 
-            if (!!context && !!context.serverTransaction) {
+            if (context != null && context.serverTransaction != null) {
                 context.serverTransaction.sendResponse(responseOut)
-            } else if (!!responseOut.getHeader(ViaHeader.NAME)) {
+            } else if (responseOut.getHeader(ViaHeader.NAME) != null) {
                 this.sipProvider.sendResponse(responseOut)
             }
-        } else {
+        } else if(responseOut.getHeader(ViaHeader.NAME) != null) {
             // Could be a BYE due to Record-Route
             // There is no more Via headers; the response was intended for the proxy.
-            if (!!responseOut.getHeader(ViaHeader.NAME)) this.sipProvider.sendResponse(responseOut)
+            this.sipProvider.sendResponse(responseOut)
         }
         LOG.debug(responseOut)
     }
