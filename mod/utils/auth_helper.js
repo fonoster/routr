@@ -20,12 +20,10 @@ export default function AuthHelper (headerFactory) {
         let result
 
         if (qop != null && qop.equals('auth')) {
-            result = DigestUtils.md5Hex(ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2)
-        } else {
-            result = DigestUtils.md5Hex(ha1 + ':' + nonce +  ':' + ha2)
+            return DigestUtils.md5Hex(ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2)
         }
 
-        return result
+        return result = DigestUtils.md5Hex(ha1 + ':' + nonce +  ':' + ha2)
     }
 
     // Generates WWW-Authorization header

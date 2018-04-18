@@ -24,6 +24,14 @@ export default class LocatorUtils {
         throw 'Invalid AOR: ' + addressOfRecord
     }
 
+    static buildForwardRoute(contactURI) {
+        return [{
+            isLinkAOR: false,
+            thruGw: false,
+            contactURI: contactURI
+        }]
+    }
+
     static buildEgressRoute(contactURI, gateway, did, domain) {
         const route = {
             isLinkAOR: false,

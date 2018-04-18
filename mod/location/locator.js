@@ -69,7 +69,7 @@ export default class Locator {
     }
 
     /**
-     * DIDs required a "aorLink" enter the network
+     * DIDs required an "aorLink" enter the network
      */
     findEndpointByTelUrl(addressOfRecord) {
         const response = this.didsAPI.getDIDByTelUrl(addressOfRecord)
@@ -165,7 +165,8 @@ export default class Locator {
             })
         }
 
-        return route? CoreUtils.buildResponse(Status.OK, route) : CoreUtils.buildResponse(Status.NOT_FOUND)
+        return route? CoreUtils.buildResponse(Status.OK, route) :
+            CoreUtils.buildResponse(Status.OK, LocatorUtils.buildForwardRoute(addressOfRecord))
     }
 
     getEgressRouteForDomain(domain, addressOfRecord) {
