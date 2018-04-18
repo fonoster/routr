@@ -34,7 +34,6 @@ export default class Processor {
                 try {
                     responseProcessor.process(event)
                 } catch(e) {
-                    e.printStackTrace()
                     LOG.error(e)
                 }
             },
