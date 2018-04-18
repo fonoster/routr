@@ -34,6 +34,6 @@ export default class ProcessorUtils {
               LOG.error('Invalid address: ' + v)
           }
       }
-      return request.getHeader(ToHeader.NAME).getAddress().getURI()
+      return request.getRequestURI()
     }
 }
