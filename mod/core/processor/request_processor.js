@@ -35,7 +35,7 @@ export default class RequestProcessor {
 
         let serverTransaction = event.getServerTransaction()
 
-        if (serverTransaction == null) {
+        if (serverTransaction == null && request.getMethod().equals(Request.ACK) == false) {
             serverTransaction = this.sipProvider.getNewServerTransaction(request)
         }
 
