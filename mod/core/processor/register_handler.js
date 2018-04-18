@@ -13,7 +13,6 @@ const Response = Packages.javax.sip.message.Response
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 
-// Should we apply ACL rules here too?
 export default class RegisterHandler {
 
     constructor(locator, registrar) {
@@ -29,19 +28,15 @@ export default class RegisterHandler {
         const expHeader = this.getExpHeader(request)
 
         if (expHeader.getExpires() <= 0) {
-            this.removeEndpoint(request, transaction)
-            return
+            return this.removeEndpoint(request, transaction)
         }
 
         if (authHeader == null) {
-            this.sendUnauthorized(request, transaction)
-            return
+            return this.sendUnauthorized(request, transaction)
         }
 
         this.registrar.register(request)? this.sendOk(request, transaction)
             : this.sendUnauthorized(request, transaction)
-
-        return
     }
 
     getExpHeader(request) {
