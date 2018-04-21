@@ -54,21 +54,21 @@ export default class FilesDataSource {
             filter = "*.[?(" + filter + ")]"
         }
 
-        const resource = DSUtils.convertToJson(FilesUtil.readFile(this.filesPath + '/' + this.collection + '.yml'))
         let list = []
 
         try {
+            const resource = DSUtils.convertToJson(FilesUtil.readFile(this.filesPath + '/' + this.collection + '.yml'))
             // JsonPath does not parse properly when using Json objects from JavaScript
             list = JSON.parse(JsonPath.parse(JSON.stringify(resource)).read(filter).toJSONString())
 
             if (isEmpty(list)) {
-                return {
-                    status: Status.OK,
-                    message: Status.message[Status.OK].value,
-                    result: []
-                }
+                return FilesDataSource.emptyResult()
             }
         } catch(e) {
+            if(e instanceof java.nio.file.NoSuchFileException) {
+                return FilesDataSource.emptyResult()
+            }
+
             return {
                 status: Status.BAD_REQUEST,
                 message: Status.message[Status.BAD_REQUEST].value
@@ -97,6 +97,14 @@ export default class FilesDataSource {
             status: Status.OK,
             message: Status.message[Status.OK].value,
             result: list
+        }
+    }
+
+    static emptyResult() {
+        return {
+            status: Status.OK,
+            message: Status.message[Status.OK].value,
+            result: []
         }
     }
 

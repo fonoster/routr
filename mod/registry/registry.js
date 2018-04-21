@@ -174,7 +174,10 @@ export default class Registry {
         let registerTask = new java.util.TimerTask({
             run: function() {
                 const response = gatewaysAPI.getGateways()
-                if (response.status != Status.OK) return
+
+                if (response.status != Status.OK) {
+                    return
+                }
 
                 response.result.forEach (function(gateway) {
                     let regService = gateway.spec.regService
