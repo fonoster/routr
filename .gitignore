@@ -15,6 +15,7 @@ config/*.yml
 *.iml
 *.ipr
 mod/vendor
+jre
 
 # User-specific stuff:
 .idea/workspace.xml
