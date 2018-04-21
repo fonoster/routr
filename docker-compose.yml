@@ -17,8 +17,6 @@ services:
     image: redis:4.0.5-alpine
     command: ["redis-server", "--appendonly", "yes"]
     hostname: redis
-    ##volumes:
-    ##  - redis-data:/data
     ports:
       - '6390:6390'
       - '6379:6379'
