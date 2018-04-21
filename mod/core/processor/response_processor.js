@@ -41,7 +41,7 @@ export default class ResponseProcessor {
             this.removeFromRegistry(response)
         }
 
-        ResponseProcessor.mustAuthenticate(response)? this.sendAuthChallenge(event)
+        ResponseProcessor.mustAuthenticate(response)? this.handleAuthChallenge(event)
             : this.sendResponse(event)
     }
 
@@ -108,7 +108,7 @@ export default class ResponseProcessor {
         this.registry.removeRegistry(fromURI.getHost())
     }
 
-    sendAuthChallenge(event) {
+    handleAuthChallenge(event) {
         const authHelper = this.sipProvider
             .getSipStack()
                 .getAuthenticationHelper(this.accountManagerService

@@ -49,4 +49,3 @@ const dataAPIs = {
 const locator = new Locator(dataAPIs)
 const registrar = new Registrar(locator, dataAPIs)
 new Server(locator, registrar, dataAPIs).start()
-

@@ -134,8 +134,10 @@ export default class Registry {
 
         while(iterator.hasNext()) {
             const reg = iterator.next()
-            if (reg.ip.equals(ip)) return true
-         }
+            if (reg.ip.equals(ip)) {
+                return true
+            }
+        }
         return false
     }
 
