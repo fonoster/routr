@@ -14,7 +14,7 @@ export default class FilesUtil {
         const lines = Files.readAllLines(Paths.get(path), Packages.java.nio.charset.StandardCharsets.UTF_8)
         const data = []
         lines.forEach(line => { data.push(line) })
-        return data.join('\n')
+        return data.join('\n').trim()
     }
 
     static writeFile(path, text) {

@@ -104,7 +104,7 @@ export default class Registrar {
             }
 
             if (user == null) {
-                throw 'Could not find user or peer \'' + username + '\''
+                throw 'Could not find agent or peer \'' + username + '\''
             }
 
             return user
