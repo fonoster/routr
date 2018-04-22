@@ -192,7 +192,7 @@ export default class RequestHandler {
 
             return {
                 host: externAddr.contains(":") ? externAddr.split(":")[0] : externAddr,
-                port: externAddr.contains(":") ? externAddr.split(":")[1] : localPort
+                port: externAddr.contains(":") ? externAddr.split(":")[1] : localAddr.port
             }
         }
 
