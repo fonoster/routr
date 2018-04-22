@@ -60,7 +60,7 @@ export default class FilesDataSource {
             const resource = DSUtils.convertToJson(FilesUtil.readFile(this.filesPath + '/' + this.collection + '.yml'))
 
             // JsonPath does not parse properly when using Json objects from JavaScript
-            if(isEmpty(resource) != false) {
+            if(isEmpty(resource) == false) {
                 list = JSON.parse(JsonPath.parse(JSON.stringify(resource)).read(filter).toJSONString())
             }
 
