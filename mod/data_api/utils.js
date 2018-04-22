@@ -103,10 +103,10 @@ export default class DSUtil {
 
     static getParameters(config, getFromEnv, defaultParameters) {
         let parameters = isEmpty(config.spec.dataSource.parameters) == false?
-          config.spec.dataSource.parameters: defaultParameters
+            config.spec.dataSource.parameters: defaultParameters
 
         if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
-          parameters = getFromEnv(System.getenv("SIPIO_DS_PARAMETERS"))
+            parameters = getFromEnv(System.getenv("SIPIO_DS_PARAMETERS"))
         }
 
         return parameters
