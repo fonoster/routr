@@ -49,7 +49,7 @@ export default class RedisDataSource {
 
     static getFromEnv(params) {
         const parameters = {}
-        params.forEach(par => {
+        params.split(",").forEach(par => {
             const key = par.split("=")[0]
             const value =  par.split("=")[1]
             switch (key) {
@@ -57,7 +57,7 @@ export default class RedisDataSource {
                     parameters.host = value
                     break
                 case "port":
-                    parameters.username = value
+                    parameters.port = value
                     break
                 case "secret":
                     parameters.secret = value
