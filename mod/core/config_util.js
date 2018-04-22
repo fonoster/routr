@@ -15,7 +15,7 @@ export default function () {
     config.spec.securityContext = getDefaultSecContext(config.spec.securityContext)
     config.spec.externAddr = getSysPresets().externAddr
     config.spec.localnets = getSysPresets().localnets
-    config.spec.provider = getSysPresets().provider
+    config.spec.dataSource = getSysPresets().dataSource
     config.spec.restService = getRestfulPresets(config.spec.restService)
     config.system = getSystemConfig()
 
@@ -85,7 +85,7 @@ function getSysPresets() {
     }
 
     if (System.getenv("SIPIO_DS_PROVIDER") != null) {
-        spec.provider = System.getenv("SIPIO_DS_PROVIDER")
+        spec.dataSource = { provider : System.getenv("SIPIO_DS_PROVIDER") }
     }
     return spec
 }
