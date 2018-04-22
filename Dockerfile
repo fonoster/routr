@@ -6,6 +6,8 @@ ENV PATH=/opt/gradle/bin:${PATH}
 ENV PATH $PATH:/usr/lib/jvm/java-1.8-openjdk/jre/bin:/usr/lib/jvm/java-1.8-openjdk/bin
 
 COPY . /opt/sipio
+COPY etc/api-access.json /root/.sipio-access.json
+COPY etc/salt /root/.sipio.salt
 WORKDIR /opt/sipio
 
 RUN wget https://services.gradle.org/distributions/gradle-4.5-bin.zip  \
