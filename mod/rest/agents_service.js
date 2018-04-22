@@ -18,13 +18,9 @@ export default function (agentsAPI, salt) {
     before("/agents/*", (req, res) => parameterAuthFilter(req, res, salt))
 
     post('/agents', (req, res) => {
-        try {
         const jsonObj = JSON.parse(req.body())
         const response = agentsAPI.createFromJSON(jsonObj)
         return JSON.stringify(response)
-      } catch(e) {
-          e.printStackTrace()
-      }
     })
 
     get('/agents', (req, res) => {
