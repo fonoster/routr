@@ -13,9 +13,10 @@ export default function () {
     const config = getConfigFromFile()
     config.salt = getSalt()
     config.spec.securityContext = getDefaultSecContext(config.spec.securityContext)
-    config.spec.externAddr = getSysPresets().externAddr
-    config.spec.localnets = getSysPresets().localnets
-    config.spec.dataSource = getSysPresets().dataSource
+    const spec = getSysPresets(config.spec)
+    config.spec.externAddr = spec.externAddr
+    config.spec.localnets = spec.localnets
+    config.spec.dataSource = spec.dataSource
     config.spec.restService = getRestfulPresets(config.spec.restService)
     config.system = getSystemConfig()
 
@@ -73,8 +74,8 @@ function getRestfulPresets(rs) {
     return restService
 }
 
-function getSysPresets() {
-    const spec = {}
+function getSysPresets(s) {
+    const spec = s == undefined ? {} : s
 
     if (System.getenv("SIPIO_EXTERN_ADDR") != null) {
         spec.externAddr = Packages.java.lang.System.getenv("SIPIO_EXTERN_ADDR")
