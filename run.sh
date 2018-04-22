@@ -12,7 +12,7 @@ run_with_local_redis() {
 
 run_wrapped() {
 
-# We wrapped the script because this some JAVA OPTS don't work with Nashorn
+# We wrapped the script because can't pass JAVA OPTS directly into Nashorn
 cat > SipIOLauncher.java <<- EOM
 public class SipIOLauncher {
     static public void main(String... args) throws javax.script.ScriptException {
