@@ -14,11 +14,11 @@ export default class GatewaysAPI {
     }
 
     createFromJSON(jsonObj) {
-        return this.gatewayExist(jsonObj.spec.regService.host)? CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+        return this.gatewayExist(jsonObj.spec.host)? CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        return !this.gatewayExist(jsonObj.spec.regService.host)? CoreUtils.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
+        return !this.gatewayExist(jsonObj.spec.host)? CoreUtils.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
     }
 
     getGateways(filter)  {
@@ -26,11 +26,11 @@ export default class GatewaysAPI {
     }
 
     getGateway(ref) {
-       return DSUtil.deepSearch(this.getGateways().result, "metadata.ref", ref)
+       return DSUtil.deepSearch(this.getGateways(), "metadata.ref", ref)
     }
 
     getGatewayByHost(host) {
-       return DSUtil.deepSearch(this.getGateways().result, "spec.regService.host", host)
+       return DSUtil.deepSearch(this.getGateways(), "spec.host", host)
     }
 
     gatewayExist(host) {

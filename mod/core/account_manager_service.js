@@ -27,9 +27,9 @@ export default class AccountManagerService {
             const gateway = response.result
 
             return {
-                username: gateway.spec.regService.credentials.username,
-                secret: gateway.spec.regService.credentials.secret,
-                host: gateway.spec.regService.host
+                username: gateway.spec.credentials.username,
+                secret: gateway.spec.credentials.secret,
+                host: gateway.spec.host
             }
         }
 
@@ -56,5 +56,3 @@ export default class AccountManagerService {
         })
     }
 }
-
-

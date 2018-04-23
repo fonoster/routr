@@ -75,9 +75,9 @@ export default class DSUtil {
         return obj.kind
     }
 
-    static deepSearch(objects, path, value) {
+    static deepSearch(response, path, value) {
         let result
-        objects.forEach(obj => {
+        response.result.forEach(obj => {
             if (DSUtil.resolve(path, obj) == value) {
                 result = obj
             }

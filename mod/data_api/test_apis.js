@@ -14,7 +14,13 @@ testGroup.deep_search = function () {
     agents.push(TestUtil.buildAgent('John Doe', ['sip.local'], '1001'))
     agents.push(TestUtil.buildAgent('Jane Doe', ['sip.local'], '1002'))
     agents.push(TestUtil.buildAgent('Jake Doe', ['sip.local'], '1003'))
-    const response = DSUtil.deepSearch(agents, 'spec.credentials.username', '1001')
+
+    let response = {
+        status: 200,
+        result: agents
+    }
+
+    response = DSUtil.deepSearch(response, 'spec.credentials.username', '1001')
     const agent = response.result
     assertTrue(agent.metadata.name == 'John Doe')
 }

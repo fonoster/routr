@@ -180,22 +180,20 @@ export default class Registry {
                 }
 
                 response.result.forEach (function(gateway) {
-                    let regService = gateway.spec.regService
-
-                    if (isExpired(regService.host)) {
+                    if (isExpired(gateway.spec.host)) {
                         LOG.debug('Register with ' + gateway.metadata.name +  ' using '
-                            + gateway.spec.regService.credentials.username + '@' + gateway.spec.regService.host)
-                        myRegistry.requestChallenge(regService.credentials.username,
-                            gateway.metadata.ref, regService.host, regService.transport)
+                            + gateway.spec.credentials.username + '@' + gateway.spec.host)
+                        myRegistry.requestChallenge(gateway.spec.credentials.username,
+                            gateway.metadata.ref, gateway.spec.host, gateway.spec.transport)
                     }
 
-                    let registries = gateway.spec.regService.registries
+                    let registries = gateway.spec.registries
 
                     if (registries != undefined) {
                         registries.forEach (function(h) {
-                            if (isExpired(regService.host)) {
-                                LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.regService.credentials.username + '@' + h)
-                                myRegistry.requestChallenge(gateway.spec.regService.credentials.username, gateway.metadata.ref, h, gateway.spec.regService.transport)
+                            if (isExpired(gateway.spec.host)) {
+                                LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.credentials.username + '@' + h)
+                                myRegistry.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport)
                             }
                         })
                     }

@@ -25,11 +25,11 @@ export default class PeersAPI {
     }
 
     getPeer(ref) {
-        return DSUtil.deepSearch(this.getPeers().result, "metadata.ref", ref)
+        return DSUtil.deepSearch(this.getPeers(), "metadata.ref", ref)
     }
 
     getPeerByUsername(username) {
-        return DSUtil.deepSearch(this.getPeers().result, "spec.credentials.username", username)
+        return DSUtil.deepSearch(this.getPeers(), "spec.credentials.username", username)
     }
 
     peerExist(username) {

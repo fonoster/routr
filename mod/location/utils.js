@@ -36,9 +36,9 @@ export default class LocatorUtils {
         const route = {
             isLinkAOR: false,
             thruGw: true,
-            gwUsername: gateway.spec.regService.credentials.username,
+            gwUsername: gateway.spec.credentials.username,
             gwRef: gateway.metadata.ref,
-            gwHost: gateway.spec.regService.host,
+            gwHost: gateway.spec.host,
             didRef: did.metadata.ref,
             did: did.spec.location.telUrl.split(':')[1],
             contactURI: contactURI

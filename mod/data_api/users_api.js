@@ -25,11 +25,11 @@ export default class UsersAPI {
     }
 
     getUser(ref) {
-        return DSUtil.deepSearch(this.getUsers().result, "metadata.ref", ref)
+        return DSUtil.deepSearch(this.getUsers(), "metadata.ref", ref)
     }
 
     getUserByUsername(username) {
-        return DSUtil.deepSearch(this.getUsers().result, "spec.credentials.username", username)
+        return DSUtil.deepSearch(this.getUsers(), "spec.credentials.username", username)
     }
 
     userExist(username) {

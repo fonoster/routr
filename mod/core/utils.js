@@ -3,11 +3,14 @@
  * @since v1
  */
 import { Status } from 'core/status'
+const LogManager = Packages.org.apache.logging.log4j.LogManager
+const LOG = LogManager.getLogger()
 
 export default class CoreUtils {
 
     static buildErrResponse(e) {
-        return CoreUtils.buildResponse(Status.INTERNAL_SERVER_ERROR, null, e)
+        LOG.error(e)
+        return CoreUtils.buildResponse(Status.INTERNAL_SERVER_ERROR, [], e)
     }
 
     static buildResponse(status, result, e) {

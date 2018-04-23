@@ -28,11 +28,11 @@ export default class DomainsAPI {
     }
 
     getDomain(ref) {
-        return DSUtil.deepSearch(this.getDomains().result, "metadata.ref", ref)
+        return DSUtil.deepSearch(this.getDomains(), "metadata.ref", ref)
     }
 
     getDomainByUri(domainUri) {
-        return DSUtil.deepSearch(this.getDomains().result, "spec.context.domainUri", domainUri)
+        return DSUtil.deepSearch(this.getDomains(), "spec.context.domainUri", domainUri)
     }
 
     domainExist(domainUri) {

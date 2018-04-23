@@ -118,7 +118,7 @@ export default class FilesDataSource {
                 } else if (obj.kind.equals('Peer')) {
                     obj.metadata.ref = 'pr' + FilesDataSource.generateRef(obj.spec.credentials.username)
                 } else if (obj.kind.equals('Gateway')) {
-                    obj.metadata.ref = 'gw' + FilesDataSource.generateRef(obj.spec.regService.host)
+                    obj.metadata.ref = 'gw' + FilesDataSource.generateRef(obj.spec.host)
                 } else if (obj.kind.equals('DID')) {
                     obj.metadata.ref = 'dd' + FilesDataSource.generateRef(obj.spec.location.telUrl)
                 } else if (obj.kind.equals('User')) {

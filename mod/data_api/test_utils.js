@@ -43,13 +43,11 @@ export default class TestUtils {
                 ref: ref
             },
             spec: {
-                regService: {
-                    transport: 'tcp',
-                    host: 'provider.net',
-                    credentials: {
-                        username: username,
-                        secret: secret
-                    }
+                transport: 'tcp',
+                host: 'provider.net',
+                credentials: {
+                    username: username,
+                    secret: secret
                 }
             }
         }

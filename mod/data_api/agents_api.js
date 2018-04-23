@@ -52,7 +52,7 @@ export default class AgentsAPI {
     }
 
     getAgentByRef(ref) {
-        return DSUtil.deepSearch(this.getAgents().result, "metadata.ref", ref)
+        return DSUtil.deepSearch(this.getAgents(), "metadata.ref", ref)
     }
 
     /**

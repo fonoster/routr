@@ -184,7 +184,7 @@ export default class Locator {
 
                     if (new RegExp(pattern).test(addressOfRecord.toString())) {
                         const contactURI = this.addressFactory
-                            .createSipURI(addressOfRecord.getUser(), gateway.spec.regService.host)
+                            .createSipURI(addressOfRecord.getUser(), gateway.spec.host)
                         contactURI.setSecure(addressOfRecord.isSecure())
                         const route = LocatorUtils.buildEgressRoute(contactURI, gateway, did, domain)
                         return CoreUtils.buildResponse(Status.OK, [route])
@@ -206,7 +206,7 @@ export default class Locator {
 
             if (response.status == Status.OK) {
                 const gateway = response.result
-                const contactURI = this.addressFactory.createSipURI(addressOfRecord.getUser(), gateway.spec.regService.host)
+                const contactURI = this.addressFactory.createSipURI(addressOfRecord.getUser(), gateway.spec.host)
                 route = LocatorUtils.buildEgressRoute(contactURI, gateway, did)
            }
         }
