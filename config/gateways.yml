@@ -3,9 +3,8 @@
   metadata:
     name: Provider Inc.
   spec:
-    regService:
-      host: sip.provider.net
-      credentials:
-        username: 'youruser'
-        secret: 'yoursecret'
-      transport: udp
+    host: sip.provider.net
+    credentials:
+      username: 'youruser'
+      secret: 'yoursecret'
+    transport: udp
