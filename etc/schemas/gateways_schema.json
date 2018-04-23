@@ -23,32 +23,29 @@
             "spec": {
                 "type": "object",
                 "properties": {
-                    "regService": {
-                        "type": "object",
-                        "properties": {
-                            "credentials": {
-                                "type": "object",
-                                "properties": {
-                                    "username": {"type": "string"},
-                                    "secret": {"type": "string"}
-                                },
-                                "required": ["username", "secret"]
-                            },
-                            "host": {"type": "string"},
-                            "transport": {"type": "string"},
-                            "registries": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                },
-                                "minItems": 1,
-                                "uniqueItems": true
-                            }
-                        },
-                        "required": ["credentials", "host"]
-                    }
+                  "type": "object",
+                  "properties": {
+                      "credentials": {
+                          "type": "object",
+                          "properties": {
+                              "username": {"type": "string"},
+                              "secret": {"type": "string"}
+                          },
+                          "required": ["username", "secret"]
+                      },
+                      "host": {"type": "string"},
+                      "transport": {"type": "string"},
+                      "registries": {
+                          "type": "array",
+                          "items": {
+                              "type": "string"
+                          },
+                          "minItems": 1,
+                          "uniqueItems": true
+                      }
+                  },
+                  "required": ["host"]
                 },
-                "required": ["regService"]
             }
         },
         "required": ["apiVersion", "kind", "metadata", "spec"]
