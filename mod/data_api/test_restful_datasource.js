@@ -5,6 +5,7 @@
  * Unit Test for the "Restful Data Source"
  */
 import RestfulDataSource from 'data_api/restful_datasource'
+import GatewaysAPI from 'data_api/gateways_api'
 import { Status } from 'core/status'
 import TestUtils from 'data_api/test_utils.js'
 import getConfig from 'core/config_util.js'
@@ -17,12 +18,15 @@ delete config.spec.dataSource.parameters
 
 const ds = new RestfulDataSource(config)
 const ObjectId = Packages.org.bson.types.ObjectId
+const gatewaysAPI = new GatewaysAPI(ds)
 
 testGroup.basic_operations = function () {
+    const domain = TestUtils.buildDomain('Local Domain', 'sip.local')
     const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
 
+    let response = ds.insert(domain)
     const initSize = ds.withCollection('agents').find().result.length
-    let response = ds.insert(agent)
+    response = ds.insert(agent)
     const ref = response.result
     let endSize = ds.withCollection('agents').find().result.length
 
@@ -70,24 +74,8 @@ testGroup.get_gateways = function () {
 }
 
 // This also validates the other resources
-testGroup.update_gateway = function () {
-    const gateway = TestUtils.buildGateway('Voip2 MS', '215706')
-    let response = ds.insert(gateway)
-    const ref = response.result
-    assertTrue(response.status == Status.CREATED)
-
-    gateway.metadata.name = 'Voip Change'
-    gateway.metadata.ref = ref
-    response = ds.update(gateway)
-
-    assertTrue(response.status == Status.OK)
-    response = ds.withCollection('gateways').remove(ref)
-    assertTrue(response.status == Status.OK)
-}
-
-// This also validates the other resources
 testGroup.update_domain = function () {
-    const domain = TestUtils.buildDomain(name, domainUri)
+    const domain = TestUtils.buildDomain("Local Domain", "sip.walmart")
     let response = ds.insert(domain)
     const ref = response.result
     assertTrue(response.status == Status.CREATED)
@@ -119,12 +107,12 @@ testGroup.update_did = function () {
 
 // This also validates the other resources
 testGroup.update_peer = function () {
-    const peer = TestUtils.buildPeer(name, 'ast', username)
+    const peer = TestUtils.buildPeer('Asterisk PBX', 'ast', 'node1')
     let response = ds.insert(peer)
     const ref = response.result
     assertTrue(response.status == Status.CREATED)
 
-    peer.metadata.name = 'Asterisk PBX'
+    peer.metadata.name = 'DodoPBX'
     peer.metadata.ref = ref
     response = ds.update(peer)
     assertTrue(response.status == Status.OK)
