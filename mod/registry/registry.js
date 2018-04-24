@@ -132,7 +132,7 @@ export default class Registry {
         return false
     }
 
-    listAsJSON () {
+    listAsJSON() {
         const s = []
         const iterator = this.registry.values().iterator()
 
@@ -144,51 +144,47 @@ export default class Registry {
         return s
     }
 
+    isExpired (host) {
+        const reg = this.registry.get(host)
+
+        if (reg == null) {
+          return true
+        }
+
+        const elapsed = (Date.now() - reg.registeredOn) / 1000
+        return reg.expires - elapsed <= 0? true : false
+    }
+
     start() {
         LOG.info('Starting Registry service')
-        var registry = this.registry
         var gatewaysAPI = this.gatewaysAPI
         var myRegistry = this
-
-        function isExpired (host) {
-            const reg = registry.get(host)
-
-            if (reg == null) return true
-
-            const elapsed = (Date.now() - reg.registeredOn) / 1000
-            if ((reg.expires - elapsed) <= 0) {
-                return true
-            }
-            return false
-        }
 
         let registerTask = new java.util.TimerTask({
             run: function() {
                 const response = gatewaysAPI.getGateways()
 
-                if (response.status != Status.OK) {
-                    return
+                if (response.status == Status.OK) {
+                    response.result.forEach (function(gateway) {
+                        if (myRegistry.isExpired(gateway.spec.host)) {
+                            LOG.debug('Register with ' + gateway.metadata.name +  ' using '
+                                + gateway.spec.credentials.username + '@' + gateway.spec.host)
+                            myRegistry.requestChallenge(gateway.spec.credentials.username,
+                                gateway.metadata.ref, gateway.spec.host, gateway.spec.transport)
+                        }
+
+                        let registries = gateway.spec.registries
+
+                        if (registries != undefined) {
+                            registries.forEach (function(h) {
+                                if (myRegistry.isExpired(gateway.spec.host)) {
+                                    LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.credentials.username + '@' + h)
+                                    myRegistry.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport)
+                                }
+                            })
+                        }
+                    })
                 }
-
-                response.result.forEach (function(gateway) {
-                    if (isExpired(gateway.spec.host)) {
-                        LOG.debug('Register with ' + gateway.metadata.name +  ' using '
-                            + gateway.spec.credentials.username + '@' + gateway.spec.host)
-                        myRegistry.requestChallenge(gateway.spec.credentials.username,
-                            gateway.metadata.ref, gateway.spec.host, gateway.spec.transport)
-                    }
-
-                    let registries = gateway.spec.registries
-
-                    if (registries != undefined) {
-                        registries.forEach (function(h) {
-                            if (isExpired(gateway.spec.host)) {
-                                LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.credentials.username + '@' + h)
-                                myRegistry.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport)
-                            }
-                        })
-                    }
-                })
            }
         })
 
