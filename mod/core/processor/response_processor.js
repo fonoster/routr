@@ -37,6 +37,7 @@ export default class ResponseProcessor {
             if (ResponseProcessor.isBehindNat(viaHeader)) {
                 return this.reRegister(event)
             }
+            this.storeInRegistry(response)
         } else if(ResponseProcessor.isRegisterNok(response)) {
             this.removeFromRegistry(response)
         }
