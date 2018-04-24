@@ -13,7 +13,7 @@ import getConfig from 'core/config_util.js'
 
 const ObjectId = Packages.org.bson.types.ObjectId
 
-export let testGroup = { name: "Redis Data Source", enabled: true }
+export let testGroup = { name: "Redis Data Source", enabled: false }
 
 const config = getConfig()
 // To force RedisDataSource to use its own default parameters...

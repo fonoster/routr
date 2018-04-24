@@ -33,76 +33,67 @@ export default class Registry {
         this.registry = new HashMap()
     }
 
-    requestChallenge(username, gwRef, peerHost, transport, received, rport) {
-        let host
-        let port
-
+    getHostAddress(transport, received, rport) {
         try {
-            host = this.sipProvider.getListeningPoint(transport).getIPAddress()
-            port = this.sipProvider.getListeningPoint(transport).getPort()
+            const lp = this.sipProvider.getListeningPoint(transport)
+            const host = received? received : lp.getIPAddress()
+            const port = rport? rport : lp.getPort()
+
+            return this.config.spec.externAddr? {host: this.config.spec.externAddr, port: port}
+                : {host: host, port: port}
         } catch(e) {
             LOG.error("Transport '" + transport + "' not found in configs => .spec.transport.[*]")
             return
         }
+    }
 
-        if (this.config.spec.externAddr) {
-            host = this.config.spec.externAddr
-        }
-
-        if (received) host = received
-        if (rport) port = rport
-
-        cseq++
-
-        const viaHeaders = []
-        const viaHeader = this.headerFactory.createViaHeader(host, port, transport, null)
-        // Request RPort to enable Symmetric Response in accordance with RFC 3581 and RFC 6314
-        viaHeader.setRPort()
-        viaHeaders.push(viaHeader)
-
-        const maxForwardsHeader = this.headerFactory.createMaxForwardsHeader(70)
-        const callIdHeader = this.sipProvider.getNewCallId()
-        const cSeqHeader = this.headerFactory.createCSeqHeader(cseq, Request.REGISTER)
-        const fromAddress = this.addressFactory.createAddress('sip:' + username + '@' + peerHost)
-        const fromHeader = this.headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag())
-        const toHeader = this.headerFactory.createToHeader(fromAddress, null)
-        const contactAddress = this.addressFactory.createAddress('sip:' + username + '@' + host + ':' + port)
-        const contactHeader = this.headerFactory.createContactHeader(contactAddress)
-        const userAgentHeader = this.headerFactory.createUserAgentHeader(this.userAgent)
-        const gwRefHeader = this.headerFactory.createHeader('X-Gateway-Ref', gwRef)
-
+    requestChallenge(username, gwRef, peerHost, transport, received, rport) {
+        const address = this.getHostAddress(transport, received, rport)
+        const host = address.host
+        const port = address.port
         const request = this.messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
-        request.addHeader(viaHeader)
-        request.addHeader(maxForwardsHeader)
-        request.addHeader(callIdHeader)
-        request.addHeader(cSeqHeader)
-        request.addHeader(fromHeader)
-        request.addHeader(toHeader)
-        request.addHeader(contactHeader)
-        request.addHeader(userAgentHeader)
-        request.addHeader(gwRefHeader)
-        request.addHeader(this.headerFactory.createAllowHeader('INVITE'))
-        request.addHeader(this.headerFactory.createAllowHeader('ACK'))
-        request.addHeader(this.headerFactory.createAllowHeader('BYE'))
-        request.addHeader(this.headerFactory.createAllowHeader('CANCEL'))
-        request.addHeader(this.headerFactory.createAllowHeader('REGISTER'))
-        request.addHeader(this.headerFactory.createAllowHeader('OPTIONS'))
+        const fromAddress = this.addressFactory.createAddress('sip:' + username + '@' + peerHost)
+        const contactAddress = this.addressFactory.createAddress('sip:' + username + '@' + host + ':' + port)
 
+        let headers = []
+        headers.push(this.headerFactory.createViaHeader(host, port, transport, null))
+        headers.push(this.headerFactory.createMaxForwardsHeader(70))
+        headers.push(this.sipProvider.getNewCallId())
+        headers.push(this.headerFactory.createCSeqHeader(cseq++, Request.REGISTER))
+        headers.push(this.addressFactory.createAddress('sip:' + username + '@' + peerHost))
+        headers.push(this.headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag()))
+        headers.push(this.headerFactory.createToHeader(fromAddress, null))
+        headers.push(this.addressFactory.createAddress('sip:' + username + '@' + host + ':' + port))
+        headers.push(this.headerFactory.createContactHeader(contactAddress))
+        headers.push(this.headerFactory.createUserAgentHeader(this.userAgent))
+        headers.push(this.headerFactory.createHeader('X-Gateway-Ref', gwRef))
+        headers.push(this.headerFactory.createAllowHeader('INVITE'))
+        headers.push(this.headerFactory.createAllowHeader('ACK'))
+        headers.push(this.headerFactory.createAllowHeader('BYE'))
+        headers.push(this.headerFactory.createAllowHeader('CANCEL'))
+        headers.push(this.headerFactory.createAllowHeader('REGISTER'))
+        headers.push(this.headerFactory.createAllowHeader('OPTIONS'))
+        headers.forEach(header => request.addHeader(header))
+        this.sendRequest(request, peerHost)
+    }
+
+    sendRequest(request, peerHost) {
         try {
             const clientTransaction = this.sipProvider.getNewClientTransaction(request)
             clientTransaction.sendRequest()
         } catch(e) {
-
-            this.registry.remove(peerHost)
-
-            if(e instanceof javax.sip.TransactionUnavailableException || e instanceof javax.sip.SipException) {
-                LOG.warn('Unable to register with Gateway -> ' + peerHost + '. (Verify your network status)')
-            } else {
-                LOG.warn(e)
-            }
+            this.handleChallengeException(e, peerHost)
         }
-
         LOG.debug(request)
+    }
+
+    handleChallengeException(e, peerHost) {
+        this.registry.remove(peerHost)
+        if(e instanceof javax.sip.TransactionUnavailableException || e instanceof javax.sip.SipException) {
+            LOG.warn('Unable to register with Gateway -> ' + peerHost + '. (Verify your network status)')
+        } else {
+            LOG.warn(e)
+        }
     }
 
     storeRegistry(username, host, expires = 300) {
