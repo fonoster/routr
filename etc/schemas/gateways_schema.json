@@ -43,9 +43,9 @@
                           "minItems": 1,
                           "uniqueItems": true
                       }
-                  },
-                  "required": ["host"]
+                  }
                 },
+                "required": ["host"]
             }
         },
         "required": ["apiVersion", "kind", "metadata", "spec"]
