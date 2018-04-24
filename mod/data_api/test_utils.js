@@ -9,6 +9,7 @@ export default class TestUtils {
         const endpoint = {
             apiVersion: 'v1.0',
             metadata: {
+                userId: 'john@doe.com',
                 name: name
             },
             spec: {
@@ -39,6 +40,7 @@ export default class TestUtils {
             apiVersion: 'v1.0',
             kind: 'Gateway',
             metadata: {
+                userId: 'john@doe.com',
                 name: name,
                 ref: ref
             },
@@ -59,8 +61,8 @@ export default class TestUtils {
             apiVersion: 'v1.0',
             kind: 'Domain',
             metadata: {
-                name: name,
-                userId: 'john@doe.com'
+                userId: 'john@doe.com',
+                name: name
             },
             spec: {
                 context: {
@@ -80,6 +82,7 @@ export default class TestUtils {
             apiVersion: 'v1.0',
             kind: 'DID',
             metadata: {
+                userId: 'john@doe.com',
                 gwRef: '595bc68492bccf1454883d0b',
                 geoInfo: {
                   city: 'Sanford, GA',
