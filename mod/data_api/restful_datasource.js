@@ -12,7 +12,7 @@ const Unirest = Packages.com.mashape.unirest.http.Unirest
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
-const defaultRestfulParams = { baseUrl: 'http://localhost/v1/ctl', username: 'admin', secret: 'changeit' }
+const defaultRestfulParams = { baseUrl: 'http://localhost:8080/v1/ctl', username: 'admin', secret: 'changeit' }
 
 export default class RestfulDataSource {
 
@@ -56,26 +56,26 @@ export default class RestfulDataSource {
         return this
     }
 
-    save(obj = 'ignore', method, ref = '') {
+    save(obj, method, ref = '') {
         try {
-            if (obj == 'ignore' && DSUtil.isValidEntity(obj) == false) {
+            if (obj != 'noobj' && DSUtil.isValidEntity(obj) == false) {
                 return badRequest
             }
 
-            const path = '/' + obj.kind.toString().toLowerCase() + 's' + ref
+            const path = obj == 'noobj'? '/' + this.collection + ref
+                : '/' + obj.kind.toString().toLowerCase() + 's' + ref
             const r = method(this.baseUrl + path)
                 .header("Content-Type", "application/json")
                     .basicAuth(this.username, this.secret)
                         .body(JSON.stringify(obj)).asString()
-
             return JSON.parse(r.getBody())
         } catch(e) {
-            return buildErrResponse(e)
+            return CoreUtils.buildErrResponse(e)
         }
     }
 
     insert(obj) {
-        save(obj, Unirest.post)
+        return this.save(obj, Unirest.post)
     }
 
     get(ref) {
@@ -104,10 +104,10 @@ export default class RestfulDataSource {
     }
 
     update(obj) {
-        return save(obj, Unirest.put, '/' + obj.metadata.ref)
+        return this.save(obj, Unirest.put, '/' + obj.metadata.ref)
     }
 
     remove(ref) {
-        return save('ignore', Unirest.delete, '/' + ref)
+        return this.save('noobj', Unirest.delete, '/' + ref)
     }
 }
