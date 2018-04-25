@@ -15,7 +15,7 @@ const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
-const defautRedisParameters = { host: 'localhost', port: '6379', }
+const defaultRedisParameters = { host: 'localhost', port: '6379', }
 const defUser = {
     kind: 'User',
     metadata: {
@@ -32,8 +32,8 @@ const defUser = {
 export default class RedisDataSource {
 
     constructor(config = getConfig()) {
-        const parameters = DSUtil.getParameters(config, RedisDataSource.getFromEnv,
-            defautRedisParameters)
+        const parameters = DSUtil.getParameters(config, defaultRedisParameters,
+           ['host', 'port', 'secret'])
 
         this.jedisPool = new JedisPool(parameters.host, parameters.port)
 
@@ -45,28 +45,6 @@ export default class RedisDataSource {
             LOG.info("No user found. Creating default 'admin' user.")
             this.createDefaultUser(config.system.apiVersion)
         }
-    }
-
-    static getFromEnv(params) {
-        const parameters = {}
-        params.split(",").forEach(par => {
-            const key = par.split("=")[0]
-            const value =  par.split("=")[1]
-            switch (key) {
-                case "host":
-                    parameters.host = value
-                    break
-                case "port":
-                    parameters.port = value
-                    break
-                case "secret":
-                    parameters.secret = value
-                    break
-                default:
-                 LOG.warn('Invalid parameter: ' + key)
-            }
-        })
-        return parameters
     }
 
     buildPoolConfig() {

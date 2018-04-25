@@ -17,7 +17,8 @@ const defaultRestfulParams = { baseUrl: 'http://localhost:8080/v1/ctl', username
 export default class RestfulDataSource {
 
     constructor(config = getConfig()) {
-        const parameters = DSUtil.getParameters(config, RestfulDataSource.getFromEnv, defaultRestfulParams)
+        const parameters = DSUtil.getParameters(config, defaultRestfulParams,
+            ['baseUrl', 'username', 'secret'])
 
         if (!parameters.baseUrl || !parameters.username || !parameters.secret) {
             LOG.error("Restful Data Source incorrectly configured.\nYou must specify the baseUrl, username and secret when using this data provider")
@@ -27,28 +28,6 @@ export default class RestfulDataSource {
         this.baseUrl = parameters.baseUrl
         this.username =  parameters.username
         this.secret = parameters.secret
-    }
-
-    static getFromEnv(params) {
-        const parameters = {}
-        params.split(",").forEach(par => {
-            const key = par.split("=")[0]
-            const value =  par.split("=")[1]
-            switch (key) {
-                case "baseUrl":
-                    parameters.baseUrl = value
-                    break
-                case "username":
-                    parameters.username = value
-                    break
-                case "secret":
-                    parameters.secret = value
-                    break
-                default:
-                    LOG.warn('Invalid parameter: ' + key)
-            }
-        })
-        return parameters
     }
 
     withCollection(collection) {
