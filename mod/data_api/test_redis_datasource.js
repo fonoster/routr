@@ -10,7 +10,6 @@ import { Status } from 'core/status'
 import TestUtils from 'data_api/test_utils.js'
 import getConfig from 'core/config_util.js'
 
-
 const ObjectId = Packages.org.bson.types.ObjectId
 
 export let testGroup = { name: "Redis Data Source", enabled: false }
