@@ -52,7 +52,7 @@ export default class Registry {
         const request = this.messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
         const fromAddress = this.addressFactory.createAddress('sip:' + username + '@' + peerHost)
         const contactAddress = this.addressFactory.createAddress('sip:' + username + '@' + host + ':' + port)
-        const viaHeader = this.headerFactory.createViaHeader(host, port, transport, null).setRPort()
+        const viaHeader = this.headerFactory.createViaHeader(host, port, transport, null)
 
         let headers = []
 
