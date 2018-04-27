@@ -36,11 +36,9 @@ export default class Registry {
     getHostAddress(transport, received, rport) {
         try {
             const lp = this.sipProvider.getListeningPoint(transport)
-            const host = received? received : lp.getIPAddress()
+            const host = this.config.spec.externAddr? this.config.spec.externAddr : lp.getIPAddress()
             const port = rport? rport : lp.getPort()
-
-            return this.config.spec.externAddr? {host: this.config.spec.externAddr, port: port}
-                : {host: host, port: port}
+            return received? { host: received, port: port } : { host: host, port: port }
         } catch(e) {
             LOG.error("Transport '" + transport + "' not found in configs => .spec.transport.[*]")
             return
@@ -54,16 +52,17 @@ export default class Registry {
         const request = this.messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
         const fromAddress = this.addressFactory.createAddress('sip:' + username + '@' + peerHost)
         const contactAddress = this.addressFactory.createAddress('sip:' + username + '@' + host + ':' + port)
+        const viaHeader = this.headerFactory.createViaHeader(host, port, transport, null).setRPort()
 
         let headers = []
-        headers.push(this.headerFactory.createViaHeader(host, port, transport, null))
+
+        viaHeader.setRPort()
+        headers.push(viaHeader)
         headers.push(this.headerFactory.createMaxForwardsHeader(70))
         headers.push(this.sipProvider.getNewCallId())
         headers.push(this.headerFactory.createCSeqHeader(cseq++, Request.REGISTER))
-        headers.push(this.addressFactory.createAddress('sip:' + username + '@' + peerHost))
         headers.push(this.headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag()))
         headers.push(this.headerFactory.createToHeader(fromAddress, null))
-        headers.push(this.addressFactory.createAddress('sip:' + username + '@' + host + ':' + port))
         headers.push(this.headerFactory.createContactHeader(contactAddress))
         headers.push(this.headerFactory.createUserAgentHeader(this.userAgent))
         headers.push(this.headerFactory.createHeader('X-Gateway-Ref', gwRef))
