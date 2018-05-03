@@ -10,7 +10,7 @@ const ToHeader = Packages.javax.sip.header.ToHeader
 const FromHeader = Packages.javax.sip.header.FromHeader
 const StringUtils = Packages.org.apache.commons.lang3.StringUtils
 
-export default class RoutingInfo {
+export default class RouteInfo {
 
     constructor(request, dataAPIs) {
         const fromHeader = request.getHeader(FromHeader.NAME)
@@ -76,7 +76,6 @@ export default class RoutingInfo {
 
         // This is consider PEER_EGRESS_ROUTING because peers are the only one allow to overwrite the FromHeader.
         if (callerType == RouteEntityType.DID && this.getCalleeType() == RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
-
 
         return routingType
     }

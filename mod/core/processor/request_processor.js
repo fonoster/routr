@@ -31,8 +31,6 @@ export default class RequestProcessor {
 
     process(event) {
         const request = event.getRequest()
-        const method = request.getMethod()
-
         let serverTransaction = event.getServerTransaction()
 
         if (serverTransaction == null && request.getMethod().equals(Request.ACK) == false) {
@@ -45,7 +43,7 @@ export default class RequestProcessor {
             return procUtils.sendResponse(Response.FORBIDDEN)
         }
 
-        switch (method) {
+        switch (request.getMethod()) {
             case Request.REGISTER:
               new RegisterHandler(this.locator, this.registrar).doProcess(request, serverTransaction)
               break
