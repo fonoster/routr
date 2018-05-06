@@ -12,6 +12,7 @@ const SipFactory = Packages.javax.sip.SipFactory
 const Request = Packages.javax.sip.message.Request
 const Response = Packages.javax.sip.message.Response
 const RouteHeader = Packages.javax.sip.header.RouteHeader
+const CSeqHeader = Packages.javax.sip.header.CSeqHeader
 const ToHeader = Packages.javax.sip.header.ToHeader
 const FromHeader = Packages.javax.sip.header.FromHeader
 const ContactHeader = Packages.javax.sip.header.ContactHeader
@@ -46,6 +47,7 @@ export default class RequestHandler {
     }
 
     processRoute(requestIn, serverTransaction, route) {
+        const requestOut = requestIn.clone()
         const transport = requestIn.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
         const lp = this.sipProvider.getListeningPoint(transport)
         const localAddr = { host: lp.getIPAddress().toString(), port: lp.getPort() }
@@ -54,18 +56,18 @@ export default class RequestHandler {
         LOG.debug('advertised addr: ' + JSON.stringify(advertisedAddr))
         LOG.debug('flow: ' + JSON.stringify(route))
 
-        let requestOut = this.configureGeneral(requestIn, route, advertisedAddr)
+        this.configureGeneral(requestOut, route, advertisedAddr)
 
         if(this.proxyOwnsRequest(requestOut, localAddr, advertisedAddr)) {
             requestOut.removeFirst(RouteHeader.NAME)
         }
 
         if(this.stayInSignalingPath()) {
-            requestOut = this.configureRecordRoute(requestOut, advertisedAddr)
+            this.configureRecordRoute(requestOut, advertisedAddr)
         }
 
         if(route.thruGw) {
-            requestOut = this.configureRoutingHeaders(requestOut, route)
+            this.configureRoutingHeaders(requestOut, route)
         }
 
         this.sendRequest(requestIn, requestOut, serverTransaction)
@@ -93,61 +95,38 @@ export default class RequestHandler {
         return false
     }
 
-    configureGeneral(requestIn, route, advertisedAddr) {
-        const transport = requestIn.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
-        let requestOut = requestIn.clone()
-        requestOut.setRequestURI(route.contactURI)
+    configureGeneral(request, route, advertisedAddr) {
+        const transport = request.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
+        request.setRequestURI(route.contactURI)
         const viaHeader = this.headerFactory
           .createViaHeader(advertisedAddr.host, advertisedAddr.port, transport, null)
         viaHeader.setRPort()
-        requestOut.addFirst(viaHeader)
-        requestOut.removeHeader("Proxy-Authorization")
-        const maxForwardsHeader = requestOut.getHeader(MaxForwardsHeader.NAME)
+        request.addFirst(viaHeader)
+        request.removeHeader("Proxy-Authorization")
+        const maxForwardsHeader = request.getHeader(MaxForwardsHeader.NAME)
         maxForwardsHeader.decrementMaxForwards()
-        return requestOut
     }
 
-    configureRecordRoute(requestIn, advertisedAddr) {
-        const requestOut = requestIn.clone()
+    configureRecordRoute(request, advertisedAddr) {
         const proxyURI = this.addressFactory.createSipURI(null, advertisedAddr.host)
         proxyURI.setLrParam()
         proxyURI.setPort(advertisedAddr.port)
         const proxyAddress = this.addressFactory.createAddress(proxyURI)
         const recordRouteHeader = this.headerFactory.createRecordRouteHeader(proxyAddress)
-        requestOut.addHeader(recordRouteHeader)
-        return requestOut
+        request.addHeader(recordRouteHeader)
     }
 
-    configureRoutingHeaders(requestIn, route) {
-        const contactHeader = requestIn.getHeader(ContactHeader.NAME)
-        const contactURI = contactHeader.getAddress().getURI()
-        const fromHeader = requestIn.getHeader(FromHeader.NAME)
-        const toHeader = requestIn.getHeader(ToHeader.NAME)
-
+    configureRoutingHeaders(request, route) {
+        // Lower the cseq to match the original request
+        if (request.getMethod().equals(Request.INVITE)) {
+            const cseq = request.getHeader(CSeqHeader.NAME).getSeqNumber() - 1
+            request.getHeader(CSeqHeader.NAME).setSeqNumber(cseq)
+        }
         const gwRefHeader = this.headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
         const remotePartyIdHeader = this.headerFactory
             .createHeader('Remote-Party-ID', '<sip:'+ route.did + '@' + route.gwHost+ '>;screen=yes;party=calling')
-
-        const from = 'sip:' + route.gwUsername + '@' + route.gwHost
-        const to = 'sip:' + toHeader.getAddress().toString().match('sips?:(.*)@(.*)')[1] + '@' + route.gwHost
-
-        contactURI.setUser(route.gwUsername)
-        contactHeader.setAddress(this.addressFactory.createAddress(contactURI.toString()))
-
-        // This might not work with all provider
-        const fromAddress = this.addressFactory.createAddress(from)
-        const toAddress = this.addressFactory.createAddress(to)
-        fromHeader.setAddress(fromAddress)
-        toHeader.setAddress(toAddress)
-
-        const requestOut = requestIn.clone()
-        requestOut.setHeader(fromHeader)
-        requestOut.setHeader(toHeader)
-        requestOut.setHeader(contactHeader)
-        requestOut.setHeader(gwRefHeader)
-        requestOut.setHeader(remotePartyIdHeader)
-
-        return requestOut
+        request.setHeader(gwRefHeader)
+        request.setHeader(remotePartyIdHeader)
     }
 
     sendRequest(requestIn, requestOut, serverTransaction) {
@@ -170,7 +149,6 @@ export default class RequestHandler {
                 LOG.error(e)
             }
         }
-        LOG.debug(requestOut)
     }
 
     saveContext(requestIn, requestOut, clientTransaction, serverTransaction) {

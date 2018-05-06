@@ -46,12 +46,93 @@ export default class ResponseProcessor {
             : this.sendResponse(event)
     }
 
+    storeInRegistry(response) {
+        const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
+        const expiresHeader = response.getHeader(ExpiresHeader.NAME)
+        const expires  = expiresHeader != null? expiresHeader.getExpires() : 300
+        this.registry.storeRegistry(fromURI.getUser(), fromURI.getHost(), expires)
+    }
+
+    removeFromRegistry(response) {
+        const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
+        this.registry.removeRegistry(fromURI.getHost())
+    }
+
+    handleAuthChallenge(event) {
+        const authHelper = this.sipProvider
+            .getSipStack()
+                .getAuthenticationHelper(this.accountManagerService
+                    .getAccountManager(), this.headerFactory)
+        // Setting looseRouting to false will cause https://github.com/fonoster/sipio/issues/18
+        authHelper.handleChallenge(
+            event.getResponse(), event.getClientTransaction(),
+              event.getSource(), 5, true).sendRequest()
+    }
+
+    reRegister(event) {
+        const response = event.getResponse()
+        const clientTransaction = event.getClientTransaction()
+        const viaHeader = response.getHeader(ViaHeader.NAME)
+
+        LOG.debug('Sip I/O is behind a NAT. Re-registering using Received and RPort')
+
+        try {
+            const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
+            const gwRef = clientTransaction.getRequest().getHeader('X-Gateway-Ref').value
+            this.registry.requestChallenge(fromURI.getUser(),
+                gwRef,
+                fromURI.getHost(),
+                viaHeader.getTransport().toLowerCase(),
+                viaHeader.getReceived(),
+                viaHeader.getRPort())
+        } catch(e) {
+            LOG.error(e)
+        }
+    }
+
+    sendResponse(event) {
+        const responseOut = event.getResponse().clone()
+        responseOut.removeFirst(ViaHeader.NAME)
+
+        if (ResponseProcessor.isInviteWithCT(event)) {
+            const context = this.contextStorage.findContext(event.getClientTransaction())
+
+            if (context != null && context.serverTransaction != null) {
+                context.serverTransaction.sendResponse(responseOut)
+            } else if (responseOut.getHeader(ViaHeader.NAME) != null) {
+                this.sipProvider.sendResponse(responseOut)
+            }
+        } else if(responseOut.getHeader(ViaHeader.NAME) != null) {
+            // Could be a BYE due to Record-Route
+            // There is no more Via headers; the response was intended for the proxy.
+            this.sipProvider.sendResponse(responseOut)
+        }
+
+        LOG.debug(responseOut)
+    }
+
+    static isOk(response) {
+        return response.getStatusCode() == Response.OK
+    }
+
     static mustAuthenticate(response) {
         if(response.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED ||
           response.getStatusCode() == Response.UNAUTHORIZED) {
             return true
         }
         return false
+    }
+
+    static isInvite(response) {
+        return response.getHeader(CSeqHeader.NAME).getMethod().equals(Request.INVITE)
+    }
+
+    static isInviteOk(response) {
+        return ResponseProcessor.isInvite(response) && ResponseProcessor.isOk(response)
+    }
+
+    static isInviteNok(response) {
+        return ResponseProcessor.isInvite(response) && !ResponseProcessor.isOk(response)
     }
 
     static isStackJob(response) {
@@ -78,90 +159,22 @@ export default class ResponseProcessor {
     }
 
     static isRegisterOk(response) {
-        if(ResponseProcessor.isRegister(response) && response.getStatusCode() == Response.OK) {
+        if(ResponseProcessor.isRegister(response) && ResponseProcessor.isOk(response)) {
             return true
         }
         return false
     }
 
     static isRegisterNok(response) {
-        if(response.getStatusCode() != Response.OK && ResponseProcessor.isRegister(response)) {
+        if(!ResponseProcessor.isOk(response) && ResponseProcessor.isRegister(response)) {
             return true
         }
         return false
     }
 
     static isInviteWithCT(event) {
-        const clientTransaction = event.getClientTransaction()
-        const cseq = event.getResponse().getHeader(CSeqHeader.NAME)
-        return cseq.getMethod().equals(Request.INVITE) && clientTransaction != null? true : false
+        return ResponseProcessor.isInvite(event.getResponse())
+          && event.getClientTransaction() != null? true : false
     }
 
-    storeInRegistry(response) {
-        const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
-        const expiresHeader = response.getHeader(ExpiresHeader.NAME)
-        const expires  = expiresHeader != null? expiresHeader.getExpires() : 300
-        this.registry.storeRegistry(fromURI.getUser(), fromURI.getHost(), expires)
-    }
-
-    removeFromRegistry(response) {
-        const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
-        this.registry.removeRegistry(fromURI.getHost())
-    }
-
-    handleAuthChallenge(event) {
-        const authHelper = this.sipProvider
-            .getSipStack()
-                .getAuthenticationHelper(this.accountManagerService
-                    .getAccountManager(), this.headerFactory)
-        authHelper.handleChallenge(
-            event.getResponse(), event.getClientTransaction(),
-              event.getSource(), 5).sendRequest()
-    }
-
-    reRegister(event) {
-        const response = event.getResponse()
-        const clientTransaction = event.getClientTransaction()
-        const viaHeader = response.getHeader(ViaHeader.NAME)
-
-        LOG.debug('Sip I/O is behind a NAT. Re-registering using Received and RPort')
-
-        try {
-            const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
-            const gwRef = clientTransaction.getRequest().getHeader('X-Gateway-Ref').value
-            this.registry.requestChallenge(fromURI.getUser(),
-                gwRef,
-                fromURI.getHost(),
-                viaHeader.getTransport().toLowerCase(),
-                viaHeader.getReceived(),
-                viaHeader.getRPort())
-        } catch(e) {
-            LOG.error(e)
-        }
-    }
-
-    sendResponse(event) {
-        const responseOut = event.getResponse().clone()
-
-        // Strip the topmost via header
-        responseOut.removeFirst(ViaHeader.NAME)
-
-        if (ResponseProcessor.isInviteWithCT(event)) {
-            // In theory we should be able to obtain the ServerTransaction casting the ApplicationData.
-            // However, I'm unable to find the way to cast this object.
-            //let st = clientTransaction.getApplicationData()'
-            const context = this.contextStorage.findContext(event.getClientTransaction())
-
-            if (context != null && context.serverTransaction != null) {
-                context.serverTransaction.sendResponse(responseOut)
-            } else if (responseOut.getHeader(ViaHeader.NAME) != null) {
-                this.sipProvider.sendResponse(responseOut)
-            }
-        } else if(responseOut.getHeader(ViaHeader.NAME) != null) {
-            // Could be a BYE due to Record-Route
-            // There is no more Via headers; the response was intended for the proxy.
-            this.sipProvider.sendResponse(responseOut)
-        }
-        LOG.debug(responseOut)
-    }
 }
