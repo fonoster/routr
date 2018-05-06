@@ -17,7 +17,6 @@ export default function AuthHelper (headerFactory) {
         const a2 = method.toUpperCase() + ':' + uri
         const ha1 = DigestUtils.md5Hex(a1)
         const ha2 =  DigestUtils.md5Hex(a2)
-        let result
 
         if (qop != null && qop.equals('auth')) {
             return DigestUtils.md5Hex(ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2)
