@@ -3,7 +3,6 @@
  * @since v1
  */
 const SipFactory = Packages.javax.sip.SipFactory
-const ToHeader = Packages.javax.sip.header.ToHeader
 
 export default class ProcessorUtils {
 

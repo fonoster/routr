@@ -23,7 +23,7 @@ export default function AuthHelper (headerFactory) {
             return DigestUtils.md5Hex(ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2)
         }
 
-        return result = DigestUtils.md5Hex(ha1 + ':' + nonce +  ':' + ha2)
+        return DigestUtils.md5Hex(ha1 + ':' + nonce +  ':' + ha2)
     }
 
     // Generates WWW-Authorization header

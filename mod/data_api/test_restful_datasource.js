@@ -24,9 +24,9 @@ testGroup.basic_operations = function () {
     const domain = TestUtils.buildDomain('Local Domain', 'sip.local')
     const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
 
-    let response = ds.insert(domain)
+    ds.insert(domain)
     const initSize = ds.withCollection('agents').find().result.length
-    response = ds.insert(agent)
+    let response = ds.insert(agent)
     const ref = response.result
     let endSize = ds.withCollection('agents').find().result.length
 
