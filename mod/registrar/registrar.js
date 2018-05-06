@@ -135,16 +135,20 @@ export default class Registrar {
             } else {
                 contactURI.setHost(user.spec.contactAddr)
             }
-        } else {
-            if(!!viaHeader.getReceived()) {
+        } else if(Registrar.isTransportUDP(viaHeader)) {
+            if(viaHeader.getReceived() != null) {
                 contactURI.setHost(viaHeader.getReceived())
             }
 
-            if(!!viaHeader.getParameter('rport')) {
+            if(viaHeader.getParameter('rport') != null) {
                 contactURI.setPort(viaHeader.getParameter('rport'))
             }
         }
         return contactURI
+    }
+
+    static isTransportUDP(viaHeader) {
+        return viaHeader.getTransport().equalsIgnoreCase('udp')? true : false
     }
 
     static buildHeader(user, authHeader) {
