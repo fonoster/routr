@@ -3,6 +3,8 @@
  * @since v1
  */
 const SipFactory = Packages.javax.sip.SipFactory
+const ToHeader = Packages.javax.sip.header.ToHeader
+import getConfig from 'core/config_util.js'
 
 export default class ProcessorUtils {
 
@@ -33,6 +35,8 @@ export default class ProcessorUtils {
               LOG.error('Invalid address: ' + v)
           }
       }
-      return request.getRequestURI()
+
+      return getConfig().spec.useToAsAOR ? request.getHeader(ToHeader.NAME).getAddress().getURI() :
+        request.getRequestURI()
     }
 }

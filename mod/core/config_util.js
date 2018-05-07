@@ -25,6 +25,10 @@ export default function () {
         config.spec.registrarIntf = 'External'
     }
 
+    if (config.spec.useToAsAOR == undefined) {
+        config.spec.useToAsAOR = false
+    }
+
     if (config.spec.bindAddr == undefined) {
         config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
     }
