@@ -24,9 +24,6 @@
 
 [![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/fonoster/sipio.svg?branch=master)](https://travis-ci.org/fonoster/sipio) [![DeepScan grade](https://deepscan.io/api/projects/2192/branches/11760/badge/grade.svg)](https://deepscan.io/dashboard#view=project&pid=2192&bid=11760) [![Maintainability](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/maintainability)](https://codeclimate.com/github/fonoster/sipio/maintainability) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-
-Documentation and tutorials available [here](https://github.com/fonoster/sipio/wiki)
-
 ## Key Features
 
 - Proxy
@@ -49,15 +46,17 @@ Documentation and tutorials available [here](https://github.com/fonoster/sipio/w
   - Domain Access Control List (DACL)
   - Restful service secured with TLS and JWT tokens
 
+To learn more, read the [documentation](https://github.com/fonoster/sipio/wiki). :books:
+
 ## Quick Start
 
 **Download the server**
 
 | Platform | Download |
 | -- | -- |
-| Linux | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_linux-x64_bin.tar.gz) |  
-| macOS | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_osx-x64_bin.tar.gz) |  
-| Windows | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M5/sipio-1.0.0-M5_windows-x64_bin.zip) |  
+| Linux | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M6/sipio-1.0.0-M6_linux-x64_bin.tar.gz) |  
+| macOS | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M6/sipio-1.0.0-M6_osx-x64_bin.tar.gz) |  
+| Windows | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M6/sipio-1.0.0-M6_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M6/sipio-1.0.0-M6_windows-x64_bin.zip) |  
 | Docker | [img](https://hub.docker.com/r/fonoster/sipio/) |  
 
 **Running with Docker**
@@ -75,7 +74,7 @@ docker run -it \
 **Running with any other platform**
 
 ```bash
-cd sipio.1.0.0-M5
+cd sipio.1.0.0-M6
 ./sipio
 ```
 
