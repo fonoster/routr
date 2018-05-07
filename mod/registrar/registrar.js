@@ -5,6 +5,7 @@
 import AuthHelper from 'utils/auth_helper'
 import { Status } from 'core/status'
 import isEmpty from 'utils/obj_util'
+import getConfig from 'core/config_util.js'
 
 const ViaHeader = Packages.javax.sip.header.ViaHeader
 const ContactHeader = Packages.javax.sip.header.ContactHeader
@@ -135,7 +136,7 @@ export default class Registrar {
             } else {
                 contactURI.setHost(user.spec.contactAddr)
             }
-        } else if(Registrar.isTransportUDP(viaHeader)) {
+        } else if(Registrar.useInternalInterface(viaHeader)) {
             if(viaHeader.getReceived() != null) {
                 contactURI.setHost(viaHeader.getReceived())
             }
@@ -147,7 +148,10 @@ export default class Registrar {
         return contactURI
     }
 
-    static isTransportUDP(viaHeader) {
+    static useInternalInterface(viaHeader) {
+        if (getConfig().spec.registrarIntf.equalsIgnoreCase('Internal')) {
+            return true
+        }
         return viaHeader.getTransport().equalsIgnoreCase('udp')? true : false
     }
 

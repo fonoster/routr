@@ -17,8 +17,13 @@ export default function () {
     config.spec.externAddr = spec.externAddr
     config.spec.localnets = spec.localnets
     config.spec.dataSource = spec.dataSource
+    config.spec.registrarIntf = spec.registrarIntf
     config.spec.restService = getRestfulPresets(config.spec.restService)
     config.system = getSystemConfig()
+
+    if (config.spec.registrarIntf == undefined) {
+        config.spec.registrarIntf = 'External'
+    }
 
     if (config.spec.bindAddr == undefined) {
         config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
@@ -88,6 +93,11 @@ function getSysPresets(s) {
     if (System.getenv("SIPIO_DS_PROVIDER") != null) {
         spec.dataSource = { provider : System.getenv("SIPIO_DS_PROVIDER") }
     }
+
+    if (System.getenv("SIPIO_REGISTRAR_INTF") != null) {
+        spec.registrarIntf = System.getenv("SIPIO_REGISTRAR_INTF")
+    }
+
     return spec
 }
 
@@ -147,6 +157,7 @@ function getSystemConfig() {
     system.env.push({"var":'SIPIO_SALT', "value":System.getenv("SIPIO_SALT")})
     system.env.push({"var":'SIPIO_EXTERN_ADDR', "value":System.getenv("SIPIO_EXTERN_ADDR")})
     system.env.push({"var":'SIPIO_LOCALNETS', "value":System.getenv("SIPIO_LOCALNETS")})
+    system.env.push({"var":'SIPIO_REGISTRAR_INTF', "value":System.getenv("SIPIO_REGISTRAR_INTF")})
     return system
 }
 
