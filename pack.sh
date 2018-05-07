@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=1.0.0-M5
+VERSION=1.0.0-M6
 
 build_for_platform() {
     PLATFORM=$1
