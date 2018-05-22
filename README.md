@@ -9,16 +9,19 @@
 <h4 align="center">Next-generation Sip Server.</h4>
 
 <p align="center">
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-blue.svg"
+         alt="License: MIT">
+  </a>
+</p>
+
+<p align="center">
   <a href="#key-features">Key Features</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#bugs-and-feedback">Bugs and Feedback</a> •
   <a href="#Contributing">Contributing</a> •
   <a href="#license">License</a>
 </p>
-
-</br>
-
-[![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/fonoster/sipio.svg?branch=master)](https://travis-ci.org/fonoster/sipio) [![DeepScan grade](https://deepscan.io/api/projects/2192/branches/11760/badge/grade.svg)](https://deepscan.io/dashboard#view=project&pid=2192&bid=11760) [![Maintainability](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/maintainability)](https://codeclimate.com/github/fonoster/sipio/maintainability) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ![Sip I/O UI Coming Soon!](https://raw.githubusercontent.com/fonoster/sipiowctl/master/public/sipiowctl.png)
 
