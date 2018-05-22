@@ -16,13 +16,11 @@
   <a href="#license">License</a>
 </p>
 
-<div align="center">
-   <img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/running_sipio.gif" alt="Running Sip I/O" width=700>
-</div>
-
 </br>
 
 [![Join the chat at https://gitter.im/sip-io/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/fonoster/sipio.svg?branch=master)](https://travis-ci.org/fonoster/sipio) [![DeepScan grade](https://deepscan.io/api/projects/2192/branches/11760/badge/grade.svg)](https://deepscan.io/dashboard#view=project&pid=2192&bid=11760) [![Maintainability](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/maintainability)](https://codeclimate.com/github/fonoster/sipio/maintainability) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
+![Sip I/O UI Coming Soon!](https://raw.githubusercontent.com/fonoster/sipiowctl/master/public/sipiowctl.png)
 
 ## Key Features
 
@@ -77,12 +75,6 @@ docker run -it \
 cd sipio.1.0.0-M6
 ./sipio
 ```
-
-## Comming Soon
-
-We are working in a web console that will make Sip I/O even more user friendly.
-
-<a href="https://github.com/fonoster/sipiowctl"><img src="https://raw.githubusercontent.com/fonoster/sipiowctl/master/public/sipiowctl.png" alt="Sip I/O Console" width="500"></a>
 
 ## Bugs and Feedback
 
