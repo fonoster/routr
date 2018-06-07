@@ -1,32 +1,40 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
+
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '2.0.0'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id "com.github.ben-manes.versions" version '0.17.0'
 }
 
 dependencies {
     // Newer versions of JAIN-SIP are causing the registration service fail
     compile "javax.sip:jain-sip-ri:1.2.324"
     compile "log4j:log4j:1.2.17"
-    compile "org.apache.logging.log4j:log4j-1.2-api:2.8.2"
-    compile "org.apache.logging.log4j:log4j-api:2.8.2"
-    compile "org.apache.logging.log4j:log4j-core:2.8.2"
-    compile "org.slf4j:slf4j-api:1.7.22"
-    compile "org.slf4j:slf4j-nop:1.7.22"
-    compile "commons-codec:commons-codec:1.10"
+    compile "org.apache.logging.log4j:log4j-1.2-api:2.11.0"
+    compile "org.apache.logging.log4j:log4j-api:2.11.0"
+    compile "org.apache.logging.log4j:log4j-core:2.11.0"
+    compile "org.slf4j:slf4j-api:1.7.25"
+    compile "org.slf4j:slf4j-nop:1.7.25"
+    compile "commons-codec:commons-codec:1.11"
     compile "commons-net:commons-net:3.6"
     compile "commons-lang:commons-lang:2.6"
-    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.8.3"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.8.6"
-    compile "com.sparkjava:spark-core:2.7.1"
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.9.5"
+    compile "com.sparkjava:spark-core:2.7.2"
     compile "io.jsonwebtoken:jjwt:0.9.0"
     compile "com.qmetric:spark-authentication:1.4"
     compile "com.mashape.unirest:unirest-java:1.4.9"
-    compile "net.sourceforge.argparse4j:argparse4j:0.7.0"
-    compile "com.networknt:json-schema-validator:0.1.7"
+    compile "net.sourceforge.argparse4j:argparse4j:0.8.1"
+    compile "com.networknt:json-schema-validator:0.1.19"
     compile "com.jayway.jsonpath:json-path:2.4.0"
     compile "com.github.steveash.itxttbl:inamik-text-tables:0.1"
     compile 'redis.clients:jedis:2.9.0'
-    compile 'org.mongodb:bson:3.6.3'
+    compile 'org.mongodb:bson:3.7.1'
     compile "junit:junit:4.+"
 }
 
