@@ -88,7 +88,7 @@ For bugs, questions, and discussions please use the [Github Issues](https://gith
 For contributing, please see the following links:
 
  - [Contribution Documents](https://github.com/fonoster/sipio/blob/master/CONTRIBUTING.md)
- - [Contributors](https://github.com/fonoster/graphs/contributors)
+ - [Contributors](https://github.com/fonoster/sipio/contributors)
 
 ## Authors
  - [Pedro Sanders](https://github.com/psanders)
