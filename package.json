@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "Next generation proxy server",
   "scripts": {
-    "transpile": "./node_modules/.bin/babel --out-dir node_modules mod",
-    "bundle": "./node_modules/.bin/webpack --config webpack.config.js",
-    "test": "./etc/tests/tester 'utils/test' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'rest/test' 'data_api/test_apis' 'data_api/test_redis_datasource' 'data_api/test_files_datasource' 'data_api/test_restful_datasource'",
+    "transpile": "babel --out-dir node_modules mod",
+    "bundle": "webpack --config webpack.config.js --mode production",
+    "test": "cross-env ./etc/tests/tester 'utils/test' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'rest/test' 'data_api/test_apis' 'data_api/test_redis_datasource' 'data_api/test_files_datasource' 'data_api/test_restful_datasource'",
     "pack": "./pack.sh",
-    "prebundle": "gradle shadowJar && npm run transpile",
+    "prebundle": "cross-env ./gradlew shadowJar && npm run transpile",
     "pretest": "npm run bundle",
     "prepack": "npm test"
   },
@@ -17,8 +17,10 @@
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-preset-es2015": "6.24.1",
-    "webpack": "^2.6.1"
+    "babel-preset-env": "^1.7.0",
+    "cross-env": "^5.1.6",
+    "webpack": "^4.11.1",
+    "webpack-command": "^0.2.0"
   },
   "repository": {
     "type": "git",
