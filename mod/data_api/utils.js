@@ -32,7 +32,7 @@ export default class DSUtil {
             return false
         }
 
-        const factory = new JsonSchemaFactory()
+        const factory = JsonSchemaFactory.getInstance()
         const mapper = new ObjectMapper()
 
         // The validator expects an array
