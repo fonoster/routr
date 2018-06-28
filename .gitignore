@@ -16,6 +16,7 @@ config/*.yml
 *.ipr
 mod/vendor
 jre
+package-lock.json
 
 # User-specific stuff:
 .idea/workspace.xml
@@ -36,6 +37,9 @@ jre
 .idea/gradle.xml
 .idea/libraries
 tmp
+gradle
+gradlew
+gradlew.bat
 
 # Mongo Explorer plugin:
 .idea/mongoSettings.xml

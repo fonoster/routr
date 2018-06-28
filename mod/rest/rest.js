@@ -15,6 +15,7 @@ import parameterAuthFilter from 'rest/parameter_auth_filter'
 import basicAuthFilter from 'rest/basic_auth_filter'
 
 const Spark = Packages.spark.Spark
+const options = Packages.spark.Spark.options
 const get = Packages.spark.Spark.get
 const post = Packages.spark.Spark.post
 const before = Packages.spark.Spark.before
@@ -57,16 +58,32 @@ export default class Rest {
     }
 
     start() {
+
+        options('/*', (req, res) => {
+              const accessControlRequestHeaders = req.headers('Access-Control-Request-Headers')
+              if (accessControlRequestHeaders != null) {
+                  res.header('Access-Control-Allow-Headers', accessControlRequestHeaders)
+              }
+
+              const accessControlRequestMethod = req.headers('Access-Control-Request-Method')
+              if (accessControlRequestMethod != null) {
+                  res.header('Access-Control-Allow-Methods', accessControlRequestMethod)
+              }
+              return 'OK'
+        })
+
         path(this.system.apiPath, (r) => {
-            before("/credentials", (req, res) => basicAuthFilter(req, res, this.dataAPIs.UsersAPI))
+            before('/*', (req, res) => res.header('Access-Control-Allow-Origin', '*'))
 
-            before("/system/status",  (req, res) => parameterAuthFilter(req, res, this.config.salt))
+            before('/credentials', (req, res) => basicAuthFilter(req, res, this.dataAPIs.UsersAPI))
 
-            before("/system/info",  (req, res) => parameterAuthFilter(req, res, this.config.salt))
+            before('/system/status',  (req, res) => parameterAuthFilter(req, res, this.config.salt))
 
-            before("/location",  (req, res) => parameterAuthFilter(req, res, this.config.salt))
+            before('/system/info',  (req, res) => parameterAuthFilter(req, res, this.config.salt))
 
-            before("/registry",  (req, res) => parameterAuthFilter(req, res, this.config.salt))
+            before('/location',  (req, res) => parameterAuthFilter(req, res, this.config.salt))
+
+            before('/registry',  (req, res) => parameterAuthFilter(req, res, this.config.salt))
 
             // Its always running! Use to ping Sip IO server
             get('/system/status', (req, res) => "{\"status\": \"Up\"}")
@@ -84,7 +101,7 @@ export default class Rest {
 
             get('/system/info', (req, res) => JSON.stringify(this.system))
 
-            get("/credentials", (req, res) => getJWTToken(req, res, this.config.salt))
+            get('/credentials', (req, res) => getJWTToken(req, res, this.config.salt))
 
             get('/location', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, this.locator.listAsJSON())))
 
