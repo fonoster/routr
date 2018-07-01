@@ -23,6 +23,7 @@ dependencies {
     compile "commons-codec:commons-codec:1.11"
     compile "commons-net:commons-net:3.6"
     compile "commons-lang:commons-lang:2.6"
+    compile "commons-io:commons-io:2.6"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5"
     compile "com.fasterxml.jackson.core:jackson-databind:2.9.5"
     compile "com.sparkjava:spark-core:2.7.2"
