@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+import RestUtil from 'rest/utils'
 import isEmpty from 'utils/obj_util'
 import parameterAuthFilter from 'rest/parameter_auth_filter'
 
@@ -23,8 +24,7 @@ export default class PeersService {
         before("/peers/*", (req, res) => parameterAuthFilter(req, res, this.salt))
 
         post('/peers', (req, res) => {
-            const jsonObj = JSON.parse(req.body())
-            return JSON.stringify(this.peersAPI.createFromJSON(jsonObj))
+            return RestUtil.createFromFile(req, this.peersAPI)
         })
 
         get('/peers', (req, res) => {

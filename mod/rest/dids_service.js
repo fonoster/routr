@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+import RestUtil from 'rest/utils'
 import isEmpty from 'utils/obj_util'
 import parameterAuthFilter from 'rest/parameter_auth_filter'
 
@@ -18,9 +19,7 @@ export default function (didsAPI, salt) {
     before("/dids/*", (req, res) => parameterAuthFilter(req, res, salt))
 
     post('/dids', (req, res) => {
-        const jsonObj = JSON.parse(req.body())
-        let response = didsAPI.createFromJSON(jsonObj)
-        return JSON.stringify(response)
+        return RestUtil.createFromFile(req, didsAPI)
     })
 
     get('/dids', (req, res) => {
