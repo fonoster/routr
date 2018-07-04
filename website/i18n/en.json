@@ -8,6 +8,7 @@
     "api-refence": "API Reference",
     "api-resources": "Resource Files",
     "api-webconsole": "Web Console",
+    "faqs": "FAQs",
     "getting-started-installation": "Installation",
     "getting-started-introduction": "Introduction",
     "getting-started-routing": "Traffic Routing",
@@ -17,7 +18,8 @@
     "Help": "Help",
     "Blog": "Blog",
     "Getting Started": "Getting Started",
-    "Guides": "Guides"
+    "Guides": "Guides",
+    "FAQs": "FAQs"
   },
   "pages-strings": {
     "Help Translate|recruit community translators for your project": "Help Translate",

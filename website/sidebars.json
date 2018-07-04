@@ -11,6 +11,7 @@
       "api-resources",
       "api-cli-commands",
       "api-webconsole"
-    ]
+    ],
+    "Misc": ["faqs"]
   }
 }

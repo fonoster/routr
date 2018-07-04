@@ -1,6 +1,7 @@
 ---
 id: api-resources
 title: Resource Files
+custom_edit_url: https://github.com/fonoster/sipio/edit/master/docs/api-resources.md
 ---
 
 **Sip I/O** API version is currently `v1beta1`. We will continue to improve the API, resource definition, and other artifacts until we reach a final version. We then will establish an update policy to ensure backward compatibility. Until then keep an eye on this document.

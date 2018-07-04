@@ -1,7 +1,7 @@
 ---
 id: api-cli-commands
 title: CLI Commands
-custom_edit_url: https://github.com/facebook/Docusaurus/edit/master/docs/api-doc-markdown.md
+custom_edit_url: https://github.com/fonoster/sipio/edit/master/docs/api-cli-commands.md
 ---
 
 `sipioctl` is a command line interface for running commands against a **Sip I/O** server. This overview covers `sipioctl` syntax, describes the command operations and provides common examples. For details about each command, including all the supported flags and subcommands, see the `sipioctl` reference documentation. This tool is part of Sip I/O installation.

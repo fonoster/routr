@@ -1,6 +1,7 @@
 ---
 id: guide-securing-the-signal
 title: Securing the Signal
+custom_edit_url: https://github.com/fonoster/sipio/edit/master/docs/guide-securing-the-signal.md
 ---
 
 Follow this guide to secure the signaling between your endpoints and **Sip I/O**. Keep in mind that **Sip I/O** will only secure the signaling and that the endpoints are ultimately responsible for securing the media.

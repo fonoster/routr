@@ -1,6 +1,7 @@
 ---
 id: getting-started-installation
 title: Installation
+custom_edit_url: https://github.com/fonoster/sipio/edit/master/docs/getting-started-installation.md
 ---
 
 There are no special requirements to install the server. Just download, decompress, and move the folder to a location of your choice.
