@@ -37,9 +37,6 @@ package-lock.json
 .idea/gradle.xml
 .idea/libraries
 tmp
-gradle
-gradlew
-gradlew.bat
 
 # Mongo Explorer plugin:
 .idea/mongoSettings.xml
