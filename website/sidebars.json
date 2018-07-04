@@ -1,0 +1,16 @@
+{
+  "docs": {
+    "Getting Started": [
+        "getting-started-introduction",
+        "getting-started-installation",
+        "getting-started-routing"
+    ],
+    "Guides": ["guide-securing-the-signal"],
+    "API": [
+      "api-refence",
+      "api-resources",
+      "api-cli-commands",
+      "api-webconsole"
+    ]
+  }
+}
