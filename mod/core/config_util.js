@@ -151,7 +151,7 @@ function getDefaultSecContext(sc) {
 function getSystemConfig() {
     const system = {}
     system.version = 'v1.0'
-    system.apiVersion = 'v1draft1'
+    system.apiVersion = 'v1beta1'
     system.apiPath = '/api' + '/' + system.apiVersion
     system.env = []
     system.env.push({"var":'SIPIO_JAVA_OPTS', "value":System.getenv("SIPIO_JAVA_OPTS")})

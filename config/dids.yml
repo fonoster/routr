@@ -1,4 +1,4 @@
-- apiVersion: v1draft1
+- apiVersion: v1beta1
   kind: DID
   metadata:
     gwRef: gweef506

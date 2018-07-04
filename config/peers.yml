@@ -1,5 +1,5 @@
 # Peers and Agents can register in Sip I/O location service
-- apiVersion: v1draft1
+- apiVersion: v1beta1
   kind: Peer
   metadata:
     name: Asterisk PBX

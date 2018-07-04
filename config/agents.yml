@@ -1,4 +1,4 @@
-- apiVersion: v1draft1
+- apiVersion: v1beta1
   kind: Agent
   metadata:
     name: John Doe
@@ -7,7 +7,7 @@
       username: '1001'
       secret: '1234'
     domains: [sip.local]
-- apiVersion: v1draft1
+- apiVersion: v1beta1
   kind: Agent
   metadata:
     name: Janie Doe
@@ -16,7 +16,7 @@
       username: '1002'
       secret: '1234'
     domains: [sip.local]
-- apiVersion: v1draft1
+- apiVersion: v1beta1
   kind: Agent
   metadata:
     name: Janie Doe

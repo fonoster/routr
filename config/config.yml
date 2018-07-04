@@ -1,4 +1,4 @@
-apiVersion: v1draft1
+apiVersion: v1beta1
 spec:
   transport:
     - protocol: udp

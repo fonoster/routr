@@ -1,4 +1,4 @@
-- apiVersion: v1draft1
+- apiVersion: v1beta1
   kind: Domain
   metadata:
     name: My Home or Office Setup
@@ -8,7 +8,7 @@
       egressPolicy:
         rule: .*
         didRef: dd50baa4
-- apiVersion: v1draft1
+- apiVersion: v1beta1
   kind: Domain
   metadata:
     name: Another Office
