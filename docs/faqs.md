@@ -1,7 +1,6 @@
 ---
 id: faqs
 title: Frequently asked questions
-custom_edit_url: https://github.com/fonoster/sipio/edit/master/docs/faqs.md
 ---
 
 Here is a list of common questions we get.

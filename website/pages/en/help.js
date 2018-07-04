@@ -22,8 +22,8 @@ class Help extends React.Component {
     let language = this.props.language || '';
     const supportLinks = [
       {
-        content: `Learn more using the [documentation on this site.](${docUrl(
-          'doc1.html',
+        content: `Learn more using the [documentation on this section.](${docUrl(
+          'getting-started-introduction.html',
           language
         )})`,
         title: 'Browse Docs',
@@ -45,7 +45,7 @@ class Help extends React.Component {
             <header className="postHeader">
               <h1>Need help?</h1>
             </header>
-            <p>This project is maintained by a dedicated group of people.</p>
+            <p>This project is maintained by Fonoster, Inc and friends.</p>
             <GridBlock contents={supportLinks} layout="threeColumn" />
           </div>
         </Container>

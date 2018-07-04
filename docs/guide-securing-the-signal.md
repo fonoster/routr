@@ -1,12 +1,11 @@
 ---
 id: guide-securing-the-signal
 title: Securing the Signal
-custom_edit_url: https://github.com/fonoster/sipio/edit/master/docs/guide-securing-the-signal.md
 ---
 
 Follow this guide to secure the signaling between your endpoints and **Sip I/O**. Keep in mind that **Sip I/O** will only secure the signaling and that the endpoints are ultimately responsible for securing the media.
 
-<img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/secure_signaling.png" width=600 vspace=30>
+<img src="../img/secure_signaling.png" width=600 vspace=30>
 
 ## Creating a Java Keystore(.JKS) Certificate
 
@@ -43,7 +42,7 @@ The recommended way to create a valid certificate for **Sip I/O** is using the f
 certbot certonly --standalone -d domain.com --email admin@domain.com
 ```
 
-Change to the directory where the certificates were created(probably /etc/letsencrypt/live/domain.com).
+Change to the directory where the certificates were created(normally at /etc/letsencrypt/live/domain.com).
 
 **2. Create a PKCS12 file containing full chain and private key**
 
@@ -93,8 +92,8 @@ openssl s_client -host 192.168.1.2 -port 5061    # Remember to use Sip I/O's IP
 
 Go to the account that you want to secure, select `Advanced -> Sip Signaling` and change the parameter `Primary Proxy` to `${proxyHost}:${proxyPort};transport=tls`. See the example in the following image:
 
-<img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/blinkpro_tls_config.png" width=600>
+<img src="../img/blinkpro_tls_config.png" width=600>
 
 If everything went well you should see a green padlock like the one in the image bellow:
 
-<img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/blinkpro_tls_secured.png" width=400>
+<img src="../img/blinkpro_tls_secured.png" width=400>

@@ -5,10 +5,10 @@
     "previous": "Previous",
     "tagline": "Next-generation Sip Server",
     "api-cli-commands": "CLI Commands",
-    "api-refence": "API Reference",
+    "api-reference": "API Reference",
     "api-resources": "Resource Files",
     "api-webconsole": "Web Console",
-    "faqs": "FAQs",
+    "faqs": "Frequently asked questions",
     "getting-started-installation": "Installation",
     "getting-started-introduction": "Introduction",
     "getting-started-routing": "Traffic Routing",
@@ -19,7 +19,7 @@
     "Blog": "Blog",
     "Getting Started": "Getting Started",
     "Guides": "Guides",
-    "FAQs": "FAQs"
+    "Misc": "Misc"
   },
   "pages-strings": {
     "Help Translate|recruit community translators for your project": "Help Translate",

@@ -1,7 +1,6 @@
 ---
 id: getting-started-routing
 title: Traffic Routing
-custom_edit_url: https://github.com/fonoster/sipio/edit/master/docs/getting-started-routing.md
 ---
 
 ## Intra-Domain Routing
@@ -60,7 +59,7 @@ The following yaml configuration shows a simple setup, involving one Domain and 
     domains: [sip.local]
 ```
 
-And voila! That's all the configuration you need for intra-domain communication. For calls outside the domain, see [[Domain Egress Routing]] and to receive calls from the PSTN check [[Domain Ingress Routing]]
+And voila! That's all the configuration you need for intra-domain communication. For calls outside the domain, see "Domain Egress Routing" section and to receive calls from the PSTN check section "Domain Ingress Routing"
 
 > To setup your sip devices use information found in `config/agents.yml`. Also, you must use the Host/IP of Sip I/O server as
 > the OUTBOUND PROXY of your sip device.

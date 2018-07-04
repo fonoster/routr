@@ -7,7 +7,7 @@
     ],
     "Guides": ["guide-securing-the-signal"],
     "API": [
-      "api-refence",
+      "api-reference",
       "api-resources",
       "api-cli-commands",
       "api-webconsole"
