@@ -4,6 +4,7 @@ MAINTAINER Pedro Sanders <fonosterteam@fonoster.com>
 ENV LANG C.UTF-8
 ENV PATH=/opt/gradle/bin:${PATH}
 ENV PATH $PATH:/usr/lib/jvm/java-1.8-openjdk/jre/bin:/usr/lib/jvm/java-1.8-openjdk/bin
+ENV CTL_VERSION 1.0.1-alpha
 
 COPY . /opt/sipio
 COPY etc/api-access.json /root/.sipio-access.json
@@ -18,13 +19,13 @@ RUN wget https://services.gradle.org/distributions/gradle-4.5-bin.zip  \
     && apk add --update openjdk8 nodejs nodejs-npm redis \
     && npm i && npm test && npm prune && rm -rf node_modules \
     && apk del nodejs nodejs-npm \
-    && wget https://github.com/fonoster/sipioctl/releases/download/1.0.0-alpha/sipioctl.1.0.0-alpha.tar.gz \
-    && tar xvf sipioctl.1.0.0-alpha.tar.gz \
-    && mv sipioctl.1.0.0-alpha/sipioctl . \
-    && mv sipioctl.1.0.0-alpha/libs/* libs \
-    && rm -rf sipioctl.1.0.0-alpha \
+    && wget https://github.com/fonoster/sipioctl/releases/download/$CTL_VERSION/sipioctl.$CTL_VERSION.tar.gz \
+    && tar xvf sipioctl.$CTL_VERSION.tar.gz \
+    && mv sipioctl.$CTL_VERSION/sipioctl . \
+    && mv sipioctl.$CTL_VERSION/libs/* libs \
+    && rm -rf sipioctl.$CTL_VERSION \
         /var/cache/apk/* \
-        sipioctl.1.0.0-alpha.tar.gz \
+        sipioctl.$CTL_VERSION.tar.gz \
         /opt/gradle \
         .babelrc \
         mod \
