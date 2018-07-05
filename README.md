@@ -47,7 +47,7 @@
   - Domain Access Control List (DACL)
   - Restful service secured with TLS and JWT tokens
 
-To learn more, read the [documentation](https://github.com/fonoster/sipio/wiki). :books:
+To learn more, read the [documentation](https://fonoster.github.io/sipio). :books:
 
 ## Quick Start
 
