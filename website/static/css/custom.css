@@ -14,3 +14,13 @@
 
 @media only screen and (min-width: 1500px) {
 }
+
+.fixedHeaderContainer header .headerTitleWithLogo {
+    display: block;
+    font-size: 15px;
+    line-height: 18px;
+    margin: 0;
+    position: relative;
+    z-index: 9999;
+    text-decoration: underline;
+}

@@ -22,8 +22,8 @@ const users = [
 
 const siteConfig = {
   tagline: 'Next-generation Sip Server',
-  url: 'https://fonoster.github.com/sipio' /* your website url */,
-  baseUrl: '/' /* base url for your project */,
+  url: 'https://fonoster.github.com' /* your website url */,
+  baseUrl: '/sipio/' /* base url for your project */,
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
   //   baseUrl: '/test-site/',
@@ -45,6 +45,9 @@ const siteConfig = {
 
   // If you have users set above, you add it here:
   users,
+
+  title: '1.0.0',
+  disableTitleTagline: true,
 
   /* path to images for header/footer */
   headerIcon: 'img/logo.png',

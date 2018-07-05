@@ -5,7 +5,7 @@ authorURL: http://twitter.com/sandedro
 authorFBID: 100009981642435
 ---
 
-<img src="/img/voip-setup-at-home-or-office.png">
+<img src="/sipio/img/voip-setup-at-home-or-office.png">
 
 <!--truncate-->
 
@@ -132,11 +132,11 @@ Your output should be as follows:
 
 **Starting the Server**
 
-<img src="/img/starting_server.png" width=600 >
+<img src="/sipio/img/starting_server.png" width=600 >
 
 **Verifying the Configuration**
 
-<img src="/img/verify_configuration.png" width=600 >
+<img src="/sipio/img/verify_configuration.png" width=600 >
 
 ## Configuring the Sip devices
 
@@ -144,14 +144,14 @@ Your output should be as follows:
 
 Configure your softphone using the information you gather in the last step. Start by completing only the required information: _username_, _domain_, _password_. Also, In the advanced section use the server's **IP** as your _Registry Server_ and _Proxy_. Here is how mine looks like:
 
-<img src="/img/telephone_config_general.png" width=500>
-<img src="/img/telephone_config_advanced.png" width=500>
+<img src="/sipio/img/telephone_config_general.png" width=500>
+<img src="/sipio/img/telephone_config_advanced.png" width=500>
 
 > Make sure to check the box "Use this account" to register your device
 
 If everything went well we just need to confirm that both softphones have registered correctly. Conveniently you can use the `.sipioctl locate` to obtain a list of "online" devices. This may seem like a lot of information. But what's relevant here is that both `1001` and `1002` are present in the location service and therefore can reach each other.
 
-<img src="/img/locate_agents.png" width=600>
+<img src="/sipio/img/locate_agents.png" width=600>
 
 ## Making calls
 
