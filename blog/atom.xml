@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://fonoster.github.com/sipio/blog</id>
-    <title>undefined Blog</title>
+    <title>1.0.0 Blog</title>
     <updated>2018-07-04T06:00:00Z</updated>
     <generator>Feed for Node.js</generator>
     <link rel="alternate" href="https://fonoster.github.com/sipio/blog"/>
-    <subtitle>The best place to stay up-to-date with the latest undefined news and events.</subtitle>
+    <subtitle>The best place to stay up-to-date with the latest 1.0.0 news and events.</subtitle>
     <logo>https://fonoster.github.com/sipio/img/logo.png</logo>
     <rights>Copyright © 2018 Brought to you by Fonoster, Inc and friends.</rights>
     <entry>

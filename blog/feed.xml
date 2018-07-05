@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0">
     <channel>
-        <title>undefined Blog</title>
+        <title>1.0.0 Blog</title>
         <link>https://fonoster.github.com/sipio/blog</link>
-        <description>The best place to stay up-to-date with the latest undefined news and events.</description>
+        <description>The best place to stay up-to-date with the latest 1.0.0 news and events.</description>
         <lastBuildDate>Wed, 04 Jul 2018 06:00:00 GMT</lastBuildDate>
         <docs>http://blogs.law.harvard.edu/tech/rss</docs>
         <generator>Feed for Node.js</generator>
         <image>
-            <title>undefined Blog</title>
+            <title>1.0.0 Blog</title>
             <url>https://fonoster.github.com/sipio/img/logo.png</url>
             <link>https://fonoster.github.com/sipio/blog</link>
         </image>
