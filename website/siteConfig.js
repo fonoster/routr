@@ -25,8 +25,8 @@ const siteConfig = {
   url: 'https://fonoster.github.com' /* your website url */,
   baseUrl: '/sipio/' /* base url for your project */,
   // For github.io type URLs, you would set the url and baseUrl like:
-  //   url: 'https://facebook.github.io',
-  //   baseUrl: '/test-site/',
+  //url: 'https://fonoster.github.io/sipio',
+  //baseUrl: '/',
   editUrl: "https://github.com/fonoster/sipio/edit/master/docs/",
   // Used for publishing and more
   projectName: 'sipio',
@@ -40,7 +40,7 @@ const siteConfig = {
     {doc: 'getting-started-introduction', label: 'Docs'},
     {doc: 'api-reference', label: 'API'},
     {page: 'help', label: 'Help'},
-    {blog: true, label: 'Blog'},
+    {blog: false, label: 'Blog'},
   ],
 
   // If you have users set above, you add it here:

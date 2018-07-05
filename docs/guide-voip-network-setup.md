@@ -1,17 +1,12 @@
 ---
-title: VoIP Setup at Home or the Office
-author: Pedro Sanders
-authorURL: http://twitter.com/sandedro
-authorFBID: 100009981642435
+id: guide-voip-network-setup
+title: VoIP Network Setup
 ---
 
-<img src="/sipio/img/voip-setup-at-home-or-office.png">
-
-<!--truncate-->
+This is a step-by-step guide on VoIP setup at home or at the office. For calls to the PSTN you will need to have a sip provider like `voip.ms` or `didlogic.com`.
 
 **Content**
 
-- [Description](#description)
 - [Requirements](#requirements)
 - [Setting up the Server](#setting-up-the-server)
     - [Configuring the Gateway](#configuring-the-gateway)
@@ -22,10 +17,6 @@ authorFBID: 100009981642435
 - [Making calls](#making-calls)
 - [What's Next](whats-next)
 
-## Description
-
-This is a step-by-step guide on VoIP setup at home or at the office. For calls to the PSTN you will need to have a sip provider like `voip.ms` or `didlogic.com`.
-
 ## Requirements
 
 This tutorial assumes the following:
@@ -34,11 +25,9 @@ This tutorial assumes the following:
 - A fresh installation of Sip I/O
 - SIP providers such as `voip.ms` or `didlogic.com`
 
-> Before starting the guide follow the [[Installation instructions]] to install **Sip I/O** server.
-
 ## Setting up the Server
 
-A set of sample configuration converting this scenario can be found at [basic sample files](https://github.com/fonoster/sipio/tree/master/config/samples/basic_setup). You might overwrite the files in the `config` folder if you wish to skip this section.
+A set of sample configuration converting this scenario can be found at [basic sample files](https://github.com/fonoster../tree/master/config/samples/basic_setup). You might overwrite the files in the `config` folder if you wish to skip this section.
 
 ### Configuring the Gateway
 
@@ -121,22 +110,22 @@ Pay close attention to the credentials block since it contains the username and 
     domains: [sip.local]
 ```
 
-To verify your configuration, start the server by issuing the command `./sipio`. In a separate window use the following commands:
+To verify your configuration, start the server by issuing the command `sipio`. In a separate window use the following commands:
 
-- `./sipioctl get gateway`
-- `./sipioctl get did`
-- `./sipioctl get domain`
-- `./sipioctl get agents`
+- `sipioctl get gateway`
+- `sipioctl get did`
+- `sipioctl get domain`
+- `sipioctl get agents`
 
 Your output should be as follows:
 
 **Starting the Server**
 
-<img src="/sipio/img/starting_server.png" width=600 >
+<img src="../img/starting_server.png" width=600 >
 
 **Verifying the Configuration**
 
-<img src="/sipio/img/verify_configuration.png" width=600 >
+<img src="../img/verify_configuration.png" width=600 >
 
 ## Configuring the Sip devices
 
@@ -144,14 +133,14 @@ Your output should be as follows:
 
 Configure your softphone using the information you gather in the last step. Start by completing only the required information: _username_, _domain_, _password_. Also, In the advanced section use the server's **IP** as your _Registry Server_ and _Proxy_. Here is how mine looks like:
 
-<img src="/sipio/img/telephone_config_general.png" width=500>
-<img src="/sipio/img/telephone_config_advanced.png" width=500>
+<img src="../img/telephone_config_general.png" width=500>
+<img src="../img/telephone_config_advanced.png" width=500>
 
 > Make sure to check the box "Use this account" to register your device
 
 If everything went well we just need to confirm that both softphones have registered correctly. Conveniently you can use the `.sipioctl locate` to obtain a list of "online" devices. This may seem like a lot of information. But what's relevant here is that both `1001` and `1002` are present in the location service and therefore can reach each other.
 
-<img src="/sipio/img/locate_agents.png" width=600>
+<img src="../img/locate_agents.png" width=600>
 
 ## Making calls
 
@@ -159,7 +148,7 @@ This is a pretty easy step. If everything went well you will be able to call dev
 
 ## What’s Next?
 
-You can check out the [wiki](https://github.com/fonoster/sipio/wiki/Home) to see more examples. If you have any questions start an issue or contact us via:
+You can check out the [wiki](https://github.com/fonoster../wiki/Home) to see more examples. If you have any questions start an issue or contact us via:
 
 - Twitter: [@fonoster](https://twitter.com/fonoster)
 - Email: fonosterteam@fonoster.com

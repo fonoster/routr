@@ -5,7 +5,10 @@
         "getting-started-installation",
         "getting-started-routing"
     ],
-    "Guides": ["guide-securing-the-signal"],
+    "Guides": [
+      "guide-voip-network-setup",
+      "guide-sipio-as-asterisk-frontend",
+      "guide-securing-the-signal"],
     "API": [
       "api-reference",
       "api-resources",
