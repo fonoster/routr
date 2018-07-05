@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <id>https://fonoster.github.com/sipiohttps://fonoster.github.ioblog</id>
+    <id>https://fonoster.github.com/sipio/blog</id>
     <title>undefined Blog</title>
     <updated>2018-07-04T06:00:00Z</updated>
     <generator>Feed for Node.js</generator>
-    <link rel="alternate" href="https://fonoster.github.com/sipiohttps://fonoster.github.ioblog"/>
+    <link rel="alternate" href="https://fonoster.github.com/sipio/blog"/>
     <subtitle>The best place to stay up-to-date with the latest undefined news and events.</subtitle>
-    <logo>https://fonoster.github.com/sipiohttps://fonoster.github.ioimg/logo.png</logo>
+    <logo>https://fonoster.github.com/sipio/img/logo.png</logo>
     <rights>Copyright © 2018 Brought to you by Fonoster, Inc and friends.</rights>
     <entry>
         <title type="html"><![CDATA[VoIP Setup at Home or the Office]]></title>
-        <id>https://fonoster.github.com/sipiohttps://fonoster.github.ioblog/2018/07/04/voip-setup-at-home-or-the-office.html</id>
-        <link href="https://fonoster.github.com/sipiohttps://fonoster.github.ioblog/2018/07/04/voip-setup-at-home-or-the-office.html">
+        <id>https://fonoster.github.com/sipio/blog/2018/07/04/voip-setup-at-home-or-the-office.html</id>
+        <link href="https://fonoster.github.com/sipio/blog/2018/07/04/voip-setup-at-home-or-the-office.html">
         </link>
         <updated>2018-07-04T06:00:00Z</updated>
         <summary type="html"><![CDATA[<p><img src="/img/voip-setup-at-home-or-office.png"></p>
@@ -23,8 +23,8 @@
     </entry>
     <entry>
         <title type="html"><![CDATA[Sip I/O as Asterisk Frontend]]></title>
-        <id>https://fonoster.github.com/sipiohttps://fonoster.github.ioblog/2018/07/04/sipio-as-asterisk-frontend.html</id>
-        <link href="https://fonoster.github.com/sipiohttps://fonoster.github.ioblog/2018/07/04/sipio-as-asterisk-frontend.html">
+        <id>https://fonoster.github.com/sipio/blog/2018/07/04/sipio-as-asterisk-frontend.html</id>
+        <link href="https://fonoster.github.com/sipio/blog/2018/07/04/sipio-as-asterisk-frontend.html">
         </link>
         <updated>2018-07-04T06:00:00Z</updated>
         <summary type="html"><![CDATA[<p><img src="/img/peering_banner.png"></p>
