@@ -1,0 +1,319 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Resource Files · undefined</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="**Sip I/O** API version is currently `v1beta1`. We will continue to improve the API, resource definition, and other artifacts until we reach a final version. We then will establish an update policy to ensure backward compatibility. Until then keep an eye on this document."/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Resource Files · undefined"/><meta property="og:type" content="website"/><meta property="og:url" content="https://fonoster.github.com/sipiohttps://fonoster.github.ioindex.html"/><meta property="og:description" content="**Sip I/O** API version is currently `v1beta1`. We will continue to improve the API, resource definition, and other artifacts until we reach a final version. We then will establish an update policy to ensure backward compatibility. Until then keep an eye on this document."/><meta property="og:image" content="https://fonoster.github.com/sipiohttps://fonoster.github.io/img/logo.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://fonoster.github.com/sipiohttps://fonoster.github.io/img/logo.png"/><link rel="shortcut icon" href="https://fonoster.github.ioimg/favicon.ico"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/androidstudio.min.css"/><link rel="alternate" type="application/atom+xml" href="https://fonoster.github.com/sipiohttps://fonoster.github.io/blog/atom.xml" title="undefined Blog ATOM Feed"/><link rel="alternate" type="application/rss+xml" href="https://fonoster.github.com/sipiohttps://fonoster.github.io/blog/feed.xml" title="undefined Blog RSS Feed"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="https://fonoster.github.iocss/main.css"/></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="https://fonoster.github.io"><img class="logo" src="https://fonoster.github.ioimg/logo.png"/><h2 class="headerTitleWithLogo"></h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="https://fonoster.github.iodocs/getting-started-introduction.html" target="_self">Docs</a></li><li class="siteNavGroupActive"><a href="https://fonoster.github.iodocs/api-reference.html" target="_self">API</a></li><li class=""><a href="https://fonoster.github.ioen/help.html" target="_self">Help</a></li><li class=""><a href="https://fonoster.github.ioblog" target="_self">Blog</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>API</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting Started</h3><ul><li class="navListItem"><a class="navItem" href="https://fonoster.github.iodocs/getting-started-introduction.html">Introduction</a></li><li class="navListItem"><a class="navItem" href="https://fonoster.github.iodocs/getting-started-installation.html">Installation</a></li><li class="navListItem"><a class="navItem" href="https://fonoster.github.iodocs/getting-started-routing.html">Traffic Routing</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Guides</h3><ul><li class="navListItem"><a class="navItem" href="https://fonoster.github.iodocs/guide-securing-the-signal.html">Securing the Signal</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">API</h3><ul><li class="navListItem"><a class="navItem" href="https://fonoster.github.iodocs/api-reference.html">API Reference</a></li><li class="navListItem navListItemActive"><a class="navItem" href="https://fonoster.github.iodocs/api-resources.html">Resource Files</a></li><li class="navListItem"><a class="navItem" href="https://fonoster.github.iodocs/api-cli-commands.html">CLI Commands</a></li><li class="navListItem"><a class="navItem" href="https://fonoster.github.iodocs/api-webconsole.html">Web Console</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Misc</h3><ul><li class="navListItem"><a class="navItem" href="https://fonoster.github.iodocs/faqs.html">Frequently asked questions</a></li></ul></div></div></section></div><script>
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/fonoster/sipio/edit/master/docs/api-resources.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 class="postHeaderTitle">Resource Files</h1></header><article><div><span><p><strong>Sip I/O</strong> API version is currently <code>v1beta1</code>. We will continue to improve the API, resource definition, and other artifacts until we reach a final version. We then will establish an update policy to ensure backward compatibility. Until then keep an eye on this document.</p>
+<h2><a class="anchor" aria-hidden="true" id="general-configuration"></a><a href="#general-configuration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>General Configuration</h2>
+<blockquote>
+<p>This file can be found at 'config/config.yaml' in the root of this project.</p>
+</blockquote>
+<table>
+<thead>
+<tr><th>Property</th><th>Description</th><th>Required</th></tr>
+</thead>
+<tbody>
+<tr><td>apiVersion</td><td>Indicates the version of the resource (Not yet implemented)</td><td>yes</td></tr>
+<tr><td>metadata.userAgent</td><td>Sets sip header <code>User-Agent</code> to the desired value</td><td>No</td></tr>
+<tr><td>spec.bindAddr</td><td>Default stack IP address</td><td>No</td></tr>
+<tr><td>spec.externAddr</td><td>IP address to advertise</td><td>No</td></tr>
+<tr><td>spec.localnets</td><td>Local networks. Use in combination with spec.externAddr</td><td>No</td></tr>
+<tr><td>spec.recordRoute</td><td>Stay within the signaling path</td><td>No</td></tr>
+<tr><td>spec.useToAsAOR</td><td>Use the TO header instead of Request URI</td><td>No</td></tr>
+<tr><td>spec.registrarIntf</td><td>Force to use received &amp; rport for registration</td><td>No</td></tr>
+<tr><td>spec.addressInfo.[*]</td><td>Custom tag with the did information</td><td>No</td></tr>
+<tr><td>spec.accessControlList.deny.[*]</td><td>Deny incoming traffic from network list</td><td>No</td></tr>
+<tr><td>spec.accessControlList.allow.[*]</td><td>Allow incoming traffic from network list</td><td>No</td></tr>
+<tr><td>spec.restService.bindAddr</td><td>Restful service listening address</td><td>No</td></tr>
+<tr><td>spec.restService.port</td><td>Restful service port. Defaults to 4567</td><td>No</td></tr>
+<tr><td>spec.restService.unsecured</td><td>Disabled https for restful calls. Default is <code>false</code></td><td>No</td></tr>
+<tr><td>spec.restService.keyStore</td><td>Path to keyStore</td><td>No</td></tr>
+<tr><td>spec.restService.trueStore</td><td>Path to trueStore</td><td>No</td></tr>
+<tr><td>spec.restService.keyStorePassword</td><td>Password for keyStore</td><td>No</td></tr>
+<tr><td>spec.restService.trueStorePassword</td><td>Password for trueStore</td><td>No</td></tr>
+<tr><td>spec.transport.bindAddr</td><td>Overwrites <code>spec.bindAddr</code> for transport entry</td><td>No</td></tr>
+<tr><td>spec.transport.port</td><td>Transport port</td><td>Yes</td></tr>
+<tr><td>spec.transport.protocol</td><td>Valid values are: <code>tcp</code>, <code>udp</code>, <code>tls</code>, <code>sctp</code>, <code>ws</code>, <code>wss</code></td><td>Yes</td></tr>
+<tr><td>spec.securityContext.keyStore</td><td>Path to keyStore</td><td>Yes</td></tr>
+<tr><td>spec.securityContext.trustStore</td><td>Path to trueStore</td><td>Yes</td></tr>
+<tr><td>spec.securityContext.keyStorePassword</td><td>Password for keyStore</td><td>Yes</td></tr>
+<tr><td>spec.securityContext.keyStoreType</td><td>KeyStore type</td><td>Yes</td></tr>
+<tr><td>spec.securityContext.client.authType</td><td>Type of client authentication. Default is <code>Disabled</code>. See <a href="https://goo.gl/1vKbXW">https://goo.gl/1vKbXW</a> for more options</td><td>No</td></tr>
+<tr><td>spec.securityContext.client.protocols.[*]</td><td>Accepted tls protocols. Default is [<code>TLSv1.2</code>, <code>TLSv1.1</code>, <code>TLSv1</code>]</td><td>No</td></tr>
+<tr><td>spec.securityContext.debugging</td><td>Turns ON or OFF ssl debuging. Default is <code>false</code></td><td>No</td></tr>
+<tr><td>spec.dataSource.provider</td><td>Defines data provider. Defaults to <code>files_data_provider</code></td><td>No</td></tr>
+<tr><td>spec.dataSource.parameters</td><td>Parameters expecifics to data provider implementation</td><td>No</td></tr>
+<tr><td>spec.logging.traceLevel</td><td>Verbosity of the sip-stack logging. Default is <code>0</code></td><td>No</td></tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<pre><code class="hljs css languages- yaml"><span class="hljs-attr">apiVersion:</span> <span class="hljs-string">v1beta1</span>
+<span class="hljs-attr">metadata:</span>
+<span class="hljs-attr">  userAgent:</span> <span class="hljs-string">Sip</span> <span class="hljs-string">I/O</span> <span class="hljs-string">v1.0</span>
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr">  transport:</span>
+<span class="hljs-attr">    - protocol:</span> <span class="hljs-string">udp</span>
+<span class="hljs-attr">      port:</span> <span class="hljs-number">5060</span>
+<span class="hljs-attr">  dataSource:</span>
+<span class="hljs-attr">    provider:</span> <span class="hljs-string">redis_data_provider</span>
+<span class="hljs-attr">  logging:</span>
+<span class="hljs-attr">    traceLevel:</span> <span class="hljs-number">10</span>
+</code></pre>
+<h3><a class="anchor" aria-hidden="true" id="data-providers"></a><a href="#data-providers" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Data Providers</h3>
+<p>Sip I/O currently implements three data providers: <code>redis_data_provider</code>, <code>files_data_provider</code> and <code>redis_data_provider</code>. The default data provider is the <code>files_data_provider</code>.</p>
+<blockquote>
+<p>The docker version of the server uses <code>redis_data_provider</code> as its default</p>
+</blockquote>
+<p>The parameters for <code>redis_data_provider</code> are:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Description</th><th>Required</th></tr>
+</thead>
+<tbody>
+<tr><td>host</td><td>Redis host. Defaults to 'localhost'</td><td>No</td></tr>
+<tr><td>port</td><td>Redis port. The default port is 6379</td><td>No</td></tr>
+<tr><td>secret</td><td>Password to access database</td><td>No</td></tr>
+</tbody>
+</table>
+<p>The parameters for <code>files_data_provider</code> are:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Description</th><th>Required</th></tr>
+</thead>
+<tbody>
+<tr><td>path</td><td>Path to configuration files. Defaults to 'config' folder</td><td>No</td></tr>
+</tbody>
+</table>
+<p>This implementation has the limitation that writes operations have to be performed manually on the files.</p>
+<p>The parameters for <code>restful_data_provider</code> are:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Description</th><th>Required</th></tr>
+</thead>
+<tbody>
+<tr><td>baseUrl</td><td>Endpoint base url</td><td>yes</td></tr>
+<tr><td>username</td><td>Basic authentication username</td><td>yes</td></tr>
+<tr><td>secret</td><td>Basic authentication password</td><td>yes</td></tr>
+</tbody>
+</table>
+<h2><a class="anchor" aria-hidden="true" id="user-resource"></a><a href="#user-resource" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>User Resource</h2>
+<blockquote>
+<p>This file can be found at 'config/users.yaml' in the root of this project.</p>
+</blockquote>
+<table>
+<thead>
+<tr><th>Property</th><th>Description</th><th>Required</th></tr>
+</thead>
+<tbody>
+<tr><td>apiVersion</td><td>Indicates the version of the resource (Not yet implemented)</td><td>Yes</td></tr>
+<tr><td>kind</td><td>Defines the type of resource</td><td>Yes</td></tr>
+<tr><td>metadata.name</td><td>Friendly name for the User device</td><td>Yes</td></tr>
+<tr><td>spec.credentials.username</td><td>User's credential username</td><td>Yes</td></tr>
+<tr><td>spec.credentials.secret</td><td>User's credential secret</td><td>Yes</td></tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<pre><code class="hljs css languages- yaml"><span class="hljs-comment"># Users exist in Sip I/O to perform administrative actions on the server</span>
+<span class="hljs-attr">- apiVersion:</span> <span class="hljs-string">v1beta1</span>
+<span class="hljs-attr">  kind:</span> <span class="hljs-string">User</span>
+<span class="hljs-attr">  metadata:</span>
+<span class="hljs-attr">    name:</span> <span class="hljs-string">Administrator</span>
+<span class="hljs-attr">  spec:</span>
+<span class="hljs-attr">    credentials:</span>
+<span class="hljs-attr">      username:</span> <span class="hljs-string">admin</span>
+<span class="hljs-attr">      secret:</span> <span class="hljs-string">changeit</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="agent-resource"></a><a href="#agent-resource" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Agent Resource</h2>
+<blockquote>
+<p>This file can be found at 'config/agents.yaml' in the root of this project.</p>
+</blockquote>
+<table>
+<thead>
+<tr><th>Property</th><th>Description</th><th>Required</th></tr>
+</thead>
+<tbody>
+<tr><td>apiVersion</td><td>Indicates the version of the resource (Not yet implemented)</td><td>Yes</td></tr>
+<tr><td>kind</td><td>Defines the type of resource</td><td>Yes</td></tr>
+<tr><td>metadata.name</td><td>Friendly name for the SIP device</td><td>Yes</td></tr>
+<tr><td>spec.credentials.username</td><td>Agent's credential username</td><td>Yes</td></tr>
+<tr><td>spec.credentials.secret</td><td>Agent's credential secret</td><td>Yes</td></tr>
+<tr><td>spec.domains[*]</td><td>Context/s in which this Agent is allowed to communicate. FQDN is recommended</td><td>Yes</td></tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<pre><code class="hljs css languages- yaml"><span class="hljs-comment"># Peers and Agents can register in Sip I/O location service</span>
+<span class="hljs-attr">- apiVersion:</span> <span class="hljs-string">v1beta1</span>
+<span class="hljs-attr">  kind:</span> <span class="hljs-string">Agent</span>
+<span class="hljs-attr">  metadata:</span>
+<span class="hljs-attr">    name:</span> <span class="hljs-string">John</span> <span class="hljs-string">Doe</span>
+<span class="hljs-attr">  spec:</span>
+<span class="hljs-attr">    credentials:</span>
+<span class="hljs-attr">      username:</span> <span class="hljs-string">john</span>
+<span class="hljs-attr">      secret:</span> <span class="hljs-string">'1234'</span>
+<span class="hljs-attr">    domains:</span> <span class="hljs-string">[sip.local]</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="domain-resource"></a><a href="#domain-resource" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Domain Resource</h2>
+<blockquote>
+<p>This file can be found at 'config/domains.yaml' in the root of this project.</p>
+</blockquote>
+<table>
+<thead>
+<tr><th>Property</th><th>Description</th><th>Required</th></tr>
+</thead>
+<tbody>
+<tr><td>apiVersion</td><td>Indicates the version of the resource (Not yet implemented)</td><td>Yes</td></tr>
+<tr><td>kind</td><td>Defines the type of resource</td><td>Yes</td></tr>
+<tr><td>metadata.name</td><td>Friendly name for the SIP domain</td><td>Yes</td></tr>
+<tr><td>spec.context.domainUri</td><td>Domain URI. FQDN is recomended</td><td>Yes</td></tr>
+<tr><td>spec.context.egressPolicy.rule</td><td>Regular expression indicating when a call will be routed via $spec.context.egressPolicy.didRef</td><td>No</td></tr>
+<tr><td>spec.context.egressPolicy.didRef</td><td>Reference to the DID that will route the call</td><td>No</td></tr>
+<tr><td>spec.context.accessControlList.allow[*]</td><td>Traffic allow for Network in list</td><td>No</td></tr>
+<tr><td>spec.context.accessControlList.deny[*]</td><td>Traffic disabled for Network in list</td><td>No</td></tr>
+</tbody>
+</table>
+<blockquote>
+<p>Access Control List
+Rules may be in CIDR, IP/Mask, or single IP format. Example
+of rules are:</p>
+<ul>
+<li>0.0.0.0/1 # all</li>
+<li>192.168.1.0/255.255.255.0</li>
+<li>192.168.0.1/31</li>
+</ul>
+</blockquote>
+<p><strong>Example</strong></p>
+<pre><code class="hljs css languages- yaml"><span class="hljs-attr">- apiVersion:</span> <span class="hljs-string">v1beta1</span>
+<span class="hljs-attr">  kind:</span> <span class="hljs-string">Domain</span>
+<span class="hljs-attr">  metadata:</span>
+<span class="hljs-attr">    name:</span> <span class="hljs-string">Local</span> <span class="hljs-string">Server</span>
+<span class="hljs-attr">  spec:</span>
+<span class="hljs-attr">    context:</span>
+<span class="hljs-attr">      domainUri:</span> <span class="hljs-string">sip.local</span>
+<span class="hljs-attr">      egressPolicy:</span>
+<span class="hljs-attr">        rule:</span> <span class="hljs-string">.*</span>
+<span class="hljs-attr">        didRef:</span> <span class="hljs-string">DID0001</span>
+<span class="hljs-attr">      accessControlList:</span>
+<span class="hljs-attr">        deny:</span> <span class="hljs-string">[0.0.0.0/1]</span>     <span class="hljs-comment"># Deny all</span>
+<span class="hljs-attr">        allow:</span> <span class="hljs-string">[192.168.0.1/31]</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="gateway-resource"></a><a href="#gateway-resource" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Gateway Resource</h2>
+<blockquote>
+<p>This file can be found at 'config/gateways.yaml' in the root of this project.</p>
+</blockquote>
+<table>
+<thead>
+<tr><th>Property</th><th>Description</th><th>Required</th></tr>
+</thead>
+<tbody>
+<tr><td>apiVersion</td><td>Indicates the version of the resource (Not yet implemented)</td><td>Yes</td></tr>
+<tr><td>kind</td><td>Defines the type of resource</td><td>Yes</td></tr>
+<tr><td>metadata.name</td><td>Friendly name for the SIP device</td><td>Yes</td></tr>
+<tr><td>metadata.ref</td><td>Reference to this resource</td><td>Yes</td></tr>
+<tr><td>spec.credentials.username</td><td>Gateway username</td><td>Yes</td></tr>
+<tr><td>spec.credentials.secret</td><td>Gateway secret</td><td>Yes</td></tr>
+<tr><td>spec.host</td><td>Gateway host</td><td>Yes</td></tr>
+<tr><td>spec.transport</td><td>Transport protocol</td><td>Yes</td></tr>
+<tr><td>spec.registries.[*]</td><td>Additional registries for ingress calls</td><td>No</td></tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<pre><code class="hljs css languages- yaml"><span class="hljs-comment"># Use gateway to register with a Sip Gateways or SBCs and send</span>
+<span class="hljs-comment"># or receive calls from the PSTN</span>
+<span class="hljs-attr">- apiVersion:</span> <span class="hljs-string">v1beta1</span>
+<span class="hljs-attr">  kind:</span> <span class="hljs-string">Gateway</span>
+<span class="hljs-attr">  metadata:</span>
+<span class="hljs-attr">    name:</span> <span class="hljs-string">Provider,</span> <span class="hljs-string">Inc</span>
+<span class="hljs-attr">    ref:</span>  <span class="hljs-string">GW0001</span>
+<span class="hljs-attr">  spec:</span>
+<span class="hljs-attr">    host:</span> <span class="hljs-string">sip.provider.com</span>
+<span class="hljs-attr">    transport:</span> <span class="hljs-string">tcp</span>
+<span class="hljs-attr">    credentials:</span>
+<span class="hljs-attr">      username:</span> <span class="hljs-string">'user'</span>
+<span class="hljs-attr">      secret:</span> <span class="hljs-string">changeit</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="did-resource"></a><a href="#did-resource" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>DID Resource</h2>
+<blockquote>
+<p>This file can be found at 'config/dids.yaml' in the root of this project.</p>
+</blockquote>
+<table>
+<thead>
+<tr><th>Property</th><th>Description</th><th>Required</th></tr>
+</thead>
+<tbody>
+<tr><td>apiVersion</td><td>Indicates the version of the resource (Not yet implemented)</td><td>Yes</td></tr>
+<tr><td>kind</td><td>Defines the type of resource</td><td>Yes</td></tr>
+<tr><td>metadata.ref</td><td>Reference to this resource</td><td>Yes</td></tr>
+<tr><td>metadata.gwRef</td><td>Reference to parent Gateway</td><td>Yes</td></tr>
+<tr><td>metadata.geoInfo.city</td><td>City of the DID</td><td>No</td></tr>
+<tr><td>metadata.geoInfo.country</td><td>Country of the DID</td><td>No</td></tr>
+<tr><td>metadata.geoInfo.countryISOCode</td><td>Country ISO code for the DID (ie.: US)</td><td>No</td></tr>
+<tr><td>spec.location.telUrl</td><td>DID URI available in the location server</td><td>Yes</td></tr>
+<tr><td>spec.location.aorLink</td><td>Address of record of SIP device for call routing</td><td>Yes</td></tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<pre><code class="hljs css languages- yaml"><span class="hljs-attr">- apiVersion:</span> <span class="hljs-string">v1beta1</span>
+<span class="hljs-attr">  kind:</span> <span class="hljs-string">DID</span>
+<span class="hljs-attr">  metadata:</span>
+<span class="hljs-attr">    ref:</span> <span class="hljs-string">DID0001</span>
+<span class="hljs-attr">    gwRef:</span> <span class="hljs-string">GW0001</span>
+<span class="hljs-attr">    geoInfo:</span>
+<span class="hljs-attr">      city:</span> <span class="hljs-string">Columbus,</span> <span class="hljs-string">GA</span>
+<span class="hljs-attr">      country:</span> <span class="hljs-string">USA</span>
+<span class="hljs-attr">      countryISOCode:</span> <span class="hljs-string">US</span>
+<span class="hljs-attr">  spec:</span>
+<span class="hljs-attr">    location:</span>
+<span class="hljs-attr">      telUrl:</span> <span class="hljs-string">'tel:17066041487'</span>
+<span class="hljs-attr">      aorLink:</span> <span class="hljs-string">'sip:john@sip.local'</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="peer-resource"></a><a href="#peer-resource" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Peer Resource</h2>
+<blockquote>
+<p>This file can be found at 'config/peers.yaml' in the root of this project.</p>
+</blockquote>
+<table>
+<thead>
+<tr><th>Property</th><th>Description</th><th>Required</th></tr>
+</thead>
+<tbody>
+<tr><td>apiVersion</td><td>Indicates the version of the resource (Not yet implemented)</td><td>Yes</td></tr>
+<tr><td>kind</td><td>Defines the type of resource</td><td>Yes</td></tr>
+<tr><td>metadata.name</td><td>Friendly name for the SIP device</td><td>Yes</td></tr>
+<tr><td>spec.credentials.username</td><td>Peer's credential username</td><td>Yes</td></tr>
+<tr><td>spec.credentials.secret</td><td>Peer's credential secret</td><td>Yes</td></tr>
+<tr><td>spec.device</td><td>When set it will be used by the location service</td><td>No</td></tr>
+<tr><td>spec.contactAddr</td><td>When set will advertise this as the contactURI</td><td>No</td></tr>
+</tbody>
+</table>
+<p><strong>Example</strong></p>
+<pre><code class="hljs css languages- yaml"><span class="hljs-comment"># Peers and Agents can register on Sip I/O location service</span>
+<span class="hljs-attr">- apiVersion:</span> <span class="hljs-string">v1beta1</span>
+<span class="hljs-attr">  kind:</span> <span class="hljs-string">Peer</span>
+<span class="hljs-attr">  metadata:</span>
+<span class="hljs-attr">    name:</span> <span class="hljs-string">Asterisk</span> <span class="hljs-string">(Media</span> <span class="hljs-string">Server)</span>
+<span class="hljs-attr">  spec:</span>
+<span class="hljs-attr">    credentials:</span>
+<span class="hljs-attr">      username:</span> <span class="hljs-string">ast</span>
+<span class="hljs-attr">      secret:</span> <span class="hljs-string">'astsecret'</span>
+<span class="hljs-attr">    device:</span> <span class="hljs-string">astserver</span>      <span class="hljs-comment"># If is not define the IP address will be use</span>
+<span class="hljs-attr">    contactAddr:</span> <span class="hljs-string">'192.168.1.2:6060'</span>
+</code></pre>
+<p>This peer can be reached using <code>ast@astserver</code>.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="https://fonoster.github.iodocs/api-reference.html">← API Reference</a><a class="docs-next button" href="https://fonoster.github.iodocs/api-cli-commands.html">CLI Commands →</a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#general-configuration">General Configuration</a><ul class="toc-headings"><li><a href="#data-providers">Data Providers</a></li></ul></li><li><a href="#user-resource">User Resource</a></li><li><a href="#agent-resource">Agent Resource</a></li><li><a href="#domain-resource">Domain Resource</a></li><li><a href="#gateway-resource">Gateway Resource</a></li><li><a href="#did-resource">DID Resource</a></li><li><a href="#peer-resource">Peer Resource</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><div><h5>Docs</h5><a href="https://fonoster.github.iodocs/en/../getting-started-installation.html">Getting Started</a><a href="https://fonoster.github.iodocs/en/../guide-securing-the-signal.html">Guides</a><a href="https://fonoster.github.iodocs/en/../api-reference.html">API Reference</a></div><div><h5>Community</h5><a href="https://fonoster.com">User Showcase</a><a href="http://stackoverflow.com/questions/tagged/sipio" target="_blank" rel="noreferrer noopener">Stack Overflow</a><a href="https://gitter.im/sip-io/Lobby">Project Chat</a><a href="https://twitter.com/fonoster" target="_blank" rel="noreferrer noopener">Twitter</a></div><div><h5>More</h5><a href="https://fonoster.github.ioblog">Blog</a><a href="https://github.com/fonoster/sipio">GitHub</a><a class="github-button" href="https://github.com/fonoster/sipio" data-icon="octicon-star" data-count-href="/fonoster/sipio/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a></div></section><a href="https://fonoster.com" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="http://fonoster.com/assets/images/logo.png" alt="Fonoster Open Source" width="170"/></a><section class="copyright">Copyright © 2018 Brought to you by Fonoster, Inc and friends.</section></footer></div></body></html>

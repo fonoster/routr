@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+    <channel>
+        <title>undefined Blog</title>
+        <link>https://fonoster.github.com/sipiohttps://fonoster.github.ioblog</link>
+        <description>The best place to stay up-to-date with the latest undefined news and events.</description>
+        <lastBuildDate>Wed, 04 Jul 2018 06:00:00 GMT</lastBuildDate>
+        <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+        <generator>Feed for Node.js</generator>
+        <image>
+            <title>undefined Blog</title>
+            <url>https://fonoster.github.com/sipiohttps://fonoster.github.ioimg/logo.png</url>
+            <link>https://fonoster.github.com/sipiohttps://fonoster.github.ioblog</link>
+        </image>
+        <copyright>Copyright © 2018 Brought to you by Fonoster, Inc and friends.</copyright>
+        <item>
+            <title><![CDATA[VoIP Setup at Home or the Office]]></title>
+            <link>https://fonoster.github.com/sipiohttps://fonoster.github.ioblog/2018/07/04/voip-setup-at-home-or-the-office.html</link>
+            <guid>https://fonoster.github.com/sipiohttps://fonoster.github.ioblog/2018/07/04/voip-setup-at-home-or-the-office.html</guid>
+            <pubDate>Wed, 04 Jul 2018 06:00:00 GMT</pubDate>
+            <description><![CDATA[<p><img src="/img/voip-setup-at-home-or-office.png"></p>
+]]></description>
+        </item>
+        <item>
+            <title><![CDATA[Sip I/O as Asterisk Frontend]]></title>
+            <link>https://fonoster.github.com/sipiohttps://fonoster.github.ioblog/2018/07/04/sipio-as-asterisk-frontend.html</link>
+            <guid>https://fonoster.github.com/sipiohttps://fonoster.github.ioblog/2018/07/04/sipio-as-asterisk-frontend.html</guid>
+            <pubDate>Wed, 04 Jul 2018 06:00:00 GMT</pubDate>
+            <description><![CDATA[<p><img src="/img/peering_banner.png"></p>
+]]></description>
+        </item>
+    </channel>
+</rss>

@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Sip I/O as Asterisk Frontend · undefined</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;img src=&quot;/img/peering_banner.png&quot;&gt;"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Sip I/O as Asterisk Frontend · undefined"/><meta property="og:type" content="website"/><meta property="og:url" content="https://fonoster.github.com/sipiohttps://fonoster.github.ioblog/2018/07/04/sipio-as-asterisk-frontend.html"/><meta property="og:description" content="&lt;img src=&quot;/img/peering_banner.png&quot;&gt;"/><meta property="og:image" content="https://fonoster.github.com/sipiohttps://fonoster.github.io/img/logo.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://fonoster.github.com/sipiohttps://fonoster.github.io/img/logo.png"/><link rel="shortcut icon" href="https://fonoster.github.ioimg/favicon.ico"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/androidstudio.min.css"/><link rel="alternate" type="application/atom+xml" href="https://fonoster.github.com/sipiohttps://fonoster.github.io/blog/atom.xml" title="undefined Blog ATOM Feed"/><link rel="alternate" type="application/rss+xml" href="https://fonoster.github.com/sipiohttps://fonoster.github.io/blog/feed.xml" title="undefined Blog RSS Feed"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="https://fonoster.github.iocss/main.css"/></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="https://fonoster.github.io"><img class="logo" src="https://fonoster.github.ioimg/logo.png"/><h2 class="headerTitleWithLogo"></h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://fonoster.github.iodocs/getting-started-introduction.html" target="_self">Docs</a></li><li class=""><a href="https://fonoster.github.iodocs/api-reference.html" target="_self">API</a></li><li class=""><a href="https://fonoster.github.ioen/help.html" target="_self">Help</a></li><li class="siteNavGroupActive"><a href="https://fonoster.github.ioblog" target="_self">Blog</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Recent Posts</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Recent Posts</h3><ul><li class="navListItem"><a class="navItem" href="https://fonoster.github.ioblog/2018/07/04/voip-setup-at-home-or-the-office.html">VoIP Setup at Home or the Office</a></li><li class="navListItem navListItemActive"><a class="navItem" href="https://fonoster.github.ioblog/2018/07/04/sipio-as-asterisk-frontend.html">Sip I/O as Asterisk Frontend</a></li></ul></div></div></section></div><script>
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer postContainer blogContainer"><div class="wrapper"><div class="lonePost"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle"><a href="https://fonoster.github.ioblog/2018/07/04/sipio-as-asterisk-frontend.html">Sip I/O as Asterisk Frontend</a></h1><p class="post-meta">July 4, 2018</p><div class="authorBlock"><p class="post-authorName"><a href="http://twitter.com/sandedro" target="_blank" rel="noreferrer noopener">Pedro Sanders</a></p><div class="authorPhoto"><a href="http://twitter.com/sandedro" target="_blank" rel="noreferrer noopener"><img src="https://graph.facebook.com/100009981642435/picture/?height=200&amp;width=200" alt="Pedro Sanders"/></a></div></div></header><div><span><p><img src="/img/peering_banner.png"></p>
+<!--truncate-->
+<p><strong>Content</strong></p>
+<ul>
+<li><a href="#description">Description</a></li>
+<li><a href="#requirements">Requirements</a></li>
+<li><a href="#configuration-overview">Configuration Overview</a></li>
+<li><a href="#configuring-asterisk">Configuring Asterisk</a></li>
+<li><a href="#calling-asterisk-from-johns-device">Calling Asterisk from John’s device</a></li>
+<li><a href="#whats-next">What’s Next?</a></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="description"></a><a href="#description" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Description</h2>
+<p>This tutorial explores the use case of using Asterisk merely as a Media Server and a more specialized software, like <strong>Sip I/O</strong>, to take care of the signaling and resource management. In other words, Asterisk will be in charge of the ivrs, voice mail, call recording, and <strong>Sip I/O</strong> will deal with connecting Agents, Peers, and Gateways. The following illustration depicts our scenario:</p>
+<p><img src="/img/peering_ilustration.png" width=600 vspace=50></p>
+<h2><a class="anchor" aria-hidden="true" id="requirements"></a><a href="#requirements" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Requirements</h2>
+<p>This tutorial assumes the following:</p>
+<ul>
+<li>You have a SIP phone connected to the same LAN where Sip I/O and Asterisk are in.</li>
+<li>If using a hardware phone, this can reach Asterisk and Sip I/O and the other way around</li>
+<li>You have a fresh installation of Sip I/O and Asterisk</li>
+</ul>
+<blockquote>
+<p>Before starting the guide follow the [[Installation instructions]] to install <strong>Sip I/O</strong> server.</p>
+</blockquote>
+<h2><a class="anchor" aria-hidden="true" id="configuration-overview"></a><a href="#configuration-overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configuration Overview</h2>
+<p>With a fresh installation of <strong>Sip I/O</strong> you will have most of the configuration you need to follow this tutorial. We, however, need to make some minor changes to configuration files to run our scenario.</p>
+<p>The first file we will examine and change is <code>config/peers.yml</code>. Make note of the username and secret for the Peer &quot;ast&quot; since we will be using this to configure Asterisk. Also, search for the field <code>spec.device</code> and change it to match the Agents domain(<code>sip.local</code>). The file now will look similar to this:</p>
+<p><code>config/peers.yml</code></p>
+<pre><code class="hljs css languages- yml"><span class="hljs-attr">- apiVersion:</span> <span class="hljs-string">v1beta1</span>
+<span class="hljs-attr">  kind:</span> <span class="hljs-string">Peer</span>
+<span class="hljs-attr">  metadata:</span>
+<span class="hljs-attr">    name:</span> <span class="hljs-string">Asterisk</span> <span class="hljs-string">PBX</span>
+<span class="hljs-attr">  spec:</span>
+<span class="hljs-attr">    device:</span> <span class="hljs-string">'sip.local'</span>
+<span class="hljs-attr">    credentials:</span>
+<span class="hljs-attr">      username:</span> <span class="hljs-string">ast</span>
+<span class="hljs-attr">      secret:</span> <span class="hljs-string">'1234'</span>
+</code></pre>
+<p>Head to the console and run the command <code>./sipioctl -- get peers</code> to confirm that the Peer exist. The result should be as follows:</p>
+<p><img src="/img/get_peers_cmd_output.png" width=600 ></p>
+<p>Next, we focus our attention to <code>domains.yml</code> and <code>agents.yml</code>. With a fresh installation, we don't need to make any changes to this files. However, you could run the commands <code>get domains</code> and <code>get agents</code> to ensure that both, the Agent and the Domain, exist on the server. Your output should look similar to:</p>
+<p><img src="/img/get_domains_and_agents.png" width=600 ></p>
+<p>Use the information in <code>agents.yml</code> to configure your SIP phone. The relevant information is found in <code>spec.credentials</code>. Mine looks like this:</p>
+<p><img src="/img/john_telephone_setup_general.png" width=500 >
+<img src="/img/john_telephone_setup_advanced.png" width=500 ></p>
+<blockquote>
+<p>Make the adjustments based on your prefer SIP phone.</p>
+</blockquote>
+<p>You can verify that your device registered correctly with <strong>Sip I/O</strong> by running the <code>locate</code> command:</p>
+<p><img src="/img/locate_john.png" width=600 ></p>
+<h2><a class="anchor" aria-hidden="true" id="configuring-asterisk"></a><a href="#configuring-asterisk" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configuring Asterisk</h2>
+<p><strong>Using PJSIP</strong></p>
+<p>Backup your <code>pjsip.conf</code> and <code>pjsip_wizard.conf</code>. Update your pjsip.conf with the following:</p>
+<pre><code class="hljs"><span class="hljs-section">[transport-tcp]</span>
+<span class="hljs-attr">type</span>=transport
+<span class="hljs-attr">protocol</span>=tcp
+<span class="hljs-attr">bind</span>=<span class="hljs-number">0.0</span>.<span class="hljs-number">0.0</span>:<span class="hljs-number">6060</span>
+</code></pre>
+<p>Then, in your pjsip_wizard.conf:</p>
+<pre><code class="hljs">[sipio]<span class="hljs-built_in">
+type </span>= wizard
+sends_auth = <span class="hljs-literal">yes</span>
+sends_registrations = <span class="hljs-literal">yes</span>
+remote_hosts = 192.168.1.2
+outbound_auth/username = ast
+outbound_auth/password = 1234
+registration/retry_interval = 10
+registration/expiration = 900
+endpoint/allow = ulaw
+endpoint/allow = alaw
+endpoint/allow = opus
+endpoint/context =<span class="hljs-built_in"> default
+</span>transport = transport-tcp
+</code></pre>
+<p><strong>Using the &quot;old&quot; Chan SIP</strong></p>
+<p>First backup your <code>sip.conf</code>. Then, replace your configuration and edit the file to reflect the following:</p>
+<pre><code class="hljs"><span class="hljs-section">[general]</span>
+<span class="hljs-attr">udpbindaddr</span>=<span class="hljs-number">0.0</span>.<span class="hljs-number">0.0</span>:<span class="hljs-number">6060</span>
+<span class="hljs-attr">context</span>=default
+<span class="hljs-attr">register</span> =&gt; ast:<span class="hljs-number">1234</span>@<span class="hljs-number">192.168</span>.<span class="hljs-number">1.2</span>:<span class="hljs-number">5060</span>/<span class="hljs-number">1001</span>    ; This information must match the credentials in `config/peers.yml`
+</code></pre>
+<p><strong>Configuring the Dialplan</strong></p>
+<p>We are going to use a very simple dialplan to play a sound file. Again, make a backup of your configuration and replace its content with this:</p>
+<pre><code class="hljs"><span class="hljs-section">[default]</span>
+<span class="hljs-attr">exten</span> =&gt; <span class="hljs-number">1001</span>,<span class="hljs-number">1</span>,Answer
+<span class="hljs-attr">exten</span> =&gt; <span class="hljs-number">1001</span>,n,Playback(tt-monkeys)
+<span class="hljs-attr">exten</span> =&gt; <span class="hljs-number">1001</span>,n,Hangup
+</code></pre>
+<p>Restart your Asterisk and check the location service. A new device will appear.</p>
+<p><img src="/img/locate_john_and_ast.png" width=600 ></p>
+<h2><a class="anchor" aria-hidden="true" id="calling-asterisk-from-john-s-device"></a><a href="#calling-asterisk-from-john-s-device" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Calling Asterisk from John's device</h2>
+<p>We can now call <code>ast@sip.local</code> and if everything went well listen to a group of really annoying monkeys :).</p>
+<h2><a class="anchor" aria-hidden="true" id="what-s-next"></a><a href="#what-s-next" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>What’s Next?</h2>
+<p>You can check out the <a href="https://github.com/fonoster/sipio/wiki/Home">wiki</a> to see more examples. If you have any questions start an issue or contact us via:</p>
+<ul>
+<li>Twitter: <a href="https://twitter.com/fonoster">@fonoster</a></li>
+<li>Email: <a href="mailto:fonosterteam@fonoster.com">fonosterteam@fonoster.com</a></li>
+</ul>
+</span></div></div><div class="blogSocialSection"></div></div><div class="blog-recent"><a class="button" href="https://fonoster.github.ioblog">Recent Posts</a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#description">Description</a></li><li><a href="#requirements">Requirements</a></li><li><a href="#configuration-overview">Configuration Overview</a></li><li><a href="#configuring-asterisk">Configuring Asterisk</a></li><li><a href="#calling-asterisk-from-john-s-device">Calling Asterisk from John's device</a></li><li><a href="#what-s-next">What’s Next?</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><div><h5>Docs</h5><a href="https://fonoster.github.iodocs/en/../getting-started-installation.html">Getting Started</a><a href="https://fonoster.github.iodocs/en/../guide-securing-the-signal.html">Guides</a><a href="https://fonoster.github.iodocs/en/../api-reference.html">API Reference</a></div><div><h5>Community</h5><a href="https://fonoster.com">User Showcase</a><a href="http://stackoverflow.com/questions/tagged/sipio" target="_blank" rel="noreferrer noopener">Stack Overflow</a><a href="https://gitter.im/sip-io/Lobby">Project Chat</a><a href="https://twitter.com/fonoster" target="_blank" rel="noreferrer noopener">Twitter</a></div><div><h5>More</h5><a href="https://fonoster.github.ioblog">Blog</a><a href="https://github.com/fonoster/sipio">GitHub</a><a class="github-button" href="https://github.com/fonoster/sipio" data-icon="octicon-star" data-count-href="/fonoster/sipio/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a></div></section><a href="https://fonoster.com" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="http://fonoster.com/assets/images/logo.png" alt="Fonoster Open Source" width="170"/></a><section class="copyright">Copyright © 2018 Brought to you by Fonoster, Inc and friends.</section></footer></div></body></html>
