@@ -23,7 +23,7 @@
   <a href="#license">License</a>
 </p>
 
-![Sip I/O UI Coming Soon!](https://raw.githubusercontent.com/fonoster/sipiowctl/master/public/sipiowctl.gif)
+![Sip I/O UI Coming Soon!](https://raw.githubusercontent.com/fonoster/sipiowctl/master/public/console.gif)
 
 ## Key Features
 
