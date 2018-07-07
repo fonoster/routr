@@ -67,7 +67,7 @@ docker run -it \
     -p 5060:5060 \
     -p 5060:5060/udp \
     -p 5061-5063:5061-5063 \
-    -e SIPIO_EXTERN_ADDR=${your host address} \
+    -e ARKE_EXTERN_ADDR=${your host address} \
     fonoster/arke
 ```
 **Running with any other platform**
