@@ -19,13 +19,13 @@ RUN wget https://services.gradle.org/distributions/gradle-4.5-bin.zip  \
     && apk add --update openjdk8 nodejs nodejs-npm redis \
     && npm i && npm test && npm prune && rm -rf node_modules \
     && apk del nodejs nodejs-npm \
-    && wget https://github.com/fonoster/arkectl/releases/download/$CTL_VERSION/arkectl.$CTL_VERSION.tar.gz \
-    && tar xvf arkectl.$CTL_VERSION.tar.gz \
-    && mv arkectl.$CTL_VERSION/arkectl . \
-    && mv arkectl.$CTL_VERSION/libs/* libs \
-    && rm -rf arkectl.$CTL_VERSION \
+    && wget https://github.com/fonoster/arke-ctl/releases/download/$CTL_VERSION/arke-ctl.$CTL_VERSION.tar.gz \
+    && tar xvf arke-ctl.$CTL_VERSION.tar.gz \
+    && mv arke-ctl.$CTL_VERSION/arkctl . \
+    && mv arke-ctl.$CTL_VERSION/libs/* libs \
+    && rm -rf arke-ctl.$CTL_VERSION \
         /var/cache/apk/* \
-        arkectl.$CTL_VERSION.tar.gz \
+        arke-ctl.$CTL_VERSION.tar.gz \
         /opt/gradle \
         .babelrc \
         mod \

@@ -46,7 +46,7 @@ const siteConfig = {
   // If you have users set above, you add it here:
   users,
 
-  title: '1.0.0',
+  title: '1.0',
   disableTitleTagline: true,
 
   /* path to images for header/footer */
