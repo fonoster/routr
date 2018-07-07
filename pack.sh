@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-VERSION=1.0.0-M6
+VERSION=1.0.0-RC1
 
 build_for_platform() {
     PLATFORM=$1
     DOWNLOAD_FILE=$2
 
-    BUILD_NAME="sipio-$VERSION""_$PLATFORM-x64_bin"
+    BUILD_NAME="arke-$VERSION""_$PLATFORM-x64_bin"
     # Cleanup
     rm -rf $BUILD_NAME
     mkdir -p $BUILD_NAME/libs
@@ -14,8 +14,8 @@ build_for_platform() {
     cp -a config $BUILD_NAME
     cp -a etc $BUILD_NAME
     cp libs/* $BUILD_NAME/libs
-    cp sipio $BUILD_NAME/
-    cp sipio.bat $BUILD_NAME/
+    cp arke $BUILD_NAME/
+    cp arke.bat $BUILD_NAME/
     cp README.md $BUILD_NAME/
     cp LICENSE $BUILD_NAME/
 
