@@ -112,10 +112,10 @@ Pay close attention to the credentials block since it contains the username and 
 
 To verify your configuration, start the server by issuing the command `arke`. In a separate window use the following commands:
 
-- `arkectl get gateway`
-- `arkectl get did`
-- `arkectl get domain`
-- `arkectl get agents`
+- `arkctl get gateway`
+- `arkctl get did`
+- `arkctl get domain`
+- `arkctl get agents`
 
 Your output should be as follows:
 
@@ -138,7 +138,7 @@ Configure your softphone using the information you gather in the last step. Star
 
 > Make sure to check the box "Use this account" to register your device
 
-If everything went well we just need to confirm that both softphones have registered correctly. Conveniently you can use the `.arkectl locate` to obtain a list of "online" devices. This may seem like a lot of information. But what's relevant here is that both `1001` and `1002` are present in the location service and therefore can reach each other.
+If everything went well we just need to confirm that both softphones have registered correctly. Conveniently you can use the `.arkctl locate` to obtain a list of "online" devices. This may seem like a lot of information. But what's relevant here is that both `1001` and `1002` are present in the location service and therefore can reach each other.
 
 <img src="../img/locate_agents.png" width=600>
 

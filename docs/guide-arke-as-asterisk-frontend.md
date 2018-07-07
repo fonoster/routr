@@ -45,7 +45,7 @@ The first file we will examine and change is `config/peers.yml`. Make note of th
       secret: '1234'
 ```
 
-Head to the console and run the command `arkectl -- get peers` to confirm that the Peer exist. The result should be as follows:
+Head to the console and run the command `arkctl -- get peers` to confirm that the Peer exist. The result should be as follows:
 
 <img src="../img/get_peers_cmd_output.png" width=600 >
 

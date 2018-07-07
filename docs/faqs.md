@@ -29,11 +29,11 @@ $ redis-cli set 5aa69ead8fd6861d92385bac
 "{\"apiVersion\":\"v1beta1\",\"kind\":\"User\",\"metadata\":{\"name\":\"Ctl\",\"ref\":\"5aa69ead8fd6861d92385bac\"},\"spec\":{\"credentials\":{\"username\":\"admin\",\"secret\":\"newpass\"}}}"
 ```
 
-> A new token will be issued after your next login with `arkectl`
+> A new token will be issued after your next login with `arkctl`
 
-## 2. How can I use `arkectl` from a remote host?
+## 2. How can I use `arkctl` from a remote host?
 
-By default Arke installs a certificate that only allows for connections using the `localhost` or `127.0.0.1`. To use `arkectl` tool from a remote host, you must generate a certificate that accepts connections to the desired domain name or ip and update the `spec.restService` section of the `config.yml`.
+By default Arke installs a certificate that only allows for connections using the `localhost` or `127.0.0.1`. To use `arkctl` tool from a remote host, you must generate a certificate that accepts connections to the desired domain name or ip and update the `spec.restService` section of the `config.yml`.
 
 Here is an example using a self-signed certificate(usually enough).
 
