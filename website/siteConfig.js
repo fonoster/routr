@@ -23,13 +23,13 @@ const users = [
 const siteConfig = {
   tagline: 'Next-generation Sip Server',
   url: 'https://fonoster.github.com' /* your website url */,
-  baseUrl: '/sipio/' /* base url for your project */,
+  baseUrl: '/arke/' /* base url for your project */,
   // For github.io type URLs, you would set the url and baseUrl like:
-  //url: 'https://fonoster.github.io/sipio',
+  //url: 'https://fonoster.github.io/arke',
   //baseUrl: '/',
-  editUrl: "https://github.com/fonoster/sipio/edit/master/docs/",
+  editUrl: "https://github.com/fonoster/arke/edit/master/docs/",
   // Used for publishing and more
-  projectName: 'sipio',
+  projectName: 'arke',
   organizationName: 'fonoster',
   // For top-level user or org sites, the organization is still the same.
   // e.g., for the https://JoelMarcey.github.io site, it would be set like...
@@ -95,7 +95,7 @@ const siteConfig = {
 
   // You may provide arbitrary config keys to be used as needed by your
   // template. For example, if you need your repo's URL...
-  repoUrl: 'https://github.com/fonoster/sipio',
+  repoUrl: 'https://github.com/fonoster/arke',
 };
 
 module.exports = siteConfig;

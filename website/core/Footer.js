@@ -50,7 +50,7 @@ class Footer extends React.Component {
               User Showcase
             </a>
             <a
-              href="http://stackoverflow.com/questions/tagged/sipio"
+              href="http://stackoverflow.com/questions/tagged/arke"
               target="_blank"
               rel="noreferrer noopener">
               Stack Overflow
@@ -66,12 +66,12 @@ class Footer extends React.Component {
           <div>
             <h5>More</h5>
             <a href={this.props.config.baseUrl + 'blog'}>Blog</a>
-            <a href="https://github.com/fonoster/sipio">GitHub</a>
+            <a href="https://github.com/fonoster/arke">GitHub</a>
             <a
               className="github-button"
               href={this.props.config.repoUrl}
               data-icon="octicon-star"
-              data-count-href={"/fonoster/sipio/stargazers"}
+              data-count-href={"/fonoster/arke/stargazers"}
               data-show-count={true}
               data-count-aria-label="# stargazers on GitHub"
               aria-label="Star this project on GitHub">

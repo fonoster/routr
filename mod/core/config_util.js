@@ -46,7 +46,7 @@ export default function () {
     }
 
     if (config.metadata.userAgent == undefined) {
-        config.metadata.userAgent = 'Sip I/O ' + config.system.version
+        config.metadata.userAgent = 'Arke ' + config.system.version
     }
 
     return config

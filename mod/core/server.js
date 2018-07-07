@@ -92,7 +92,7 @@ export default class Server {
     }
 
     start()  {
-        LOG.info('Starting Sip I/O')
+        LOG.info('Starting Arke')
         this.setup()
         this.locator.start()
         this.registry.start()

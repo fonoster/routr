@@ -74,7 +74,7 @@ export default class ResponseProcessor {
         const clientTransaction = event.getClientTransaction()
         const viaHeader = response.getHeader(ViaHeader.NAME)
 
-        LOG.debug('Sip I/O is behind a NAT. Re-registering using Received and RPort')
+        LOG.debug('Arke is behind a NAT. Re-registering using Received and RPort')
 
         try {
             const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()

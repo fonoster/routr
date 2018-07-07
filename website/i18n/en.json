@@ -13,7 +13,7 @@
     "getting-started-introduction": "Introduction",
     "getting-started-routing": "Traffic Routing",
     "guide-securing-the-signal": "Securing the Signal",
-    "guide-sipio-as-asterisk-frontend": "Sip I/O as Asterisk Frontend",
+    "guide-arke-as-asterisk-frontend": "Arke as Asterisk Frontend",
     "guide-voip-network-setup": "VoIP Network Setup",
     "Docs": "Docs",
     "API": "API",
