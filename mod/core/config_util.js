@@ -86,20 +86,20 @@ function getRestfulPresets(rs) {
 function getSysPresets(s) {
     const spec = s == undefined ? {} : s
 
-    if (System.getenv("SIPIO_EXTERN_ADDR") != null) {
-        spec.externAddr = Packages.java.lang.System.getenv("SIPIO_EXTERN_ADDR")
+    if (System.getenv("ARKE_EXTERN_ADDR") != null) {
+        spec.externAddr = Packages.java.lang.System.getenv("ARKE_EXTERN_ADDR")
     }
 
-    if (System.getenv("SIPIO_LOCALNETS") != null) {
-        spec.localnets = Packages.java.lang.System.getenv("SIPIO_LOCALNETS").split(",")
+    if (System.getenv("ARKE_LOCALNETS") != null) {
+        spec.localnets = Packages.java.lang.System.getenv("ARKE_LOCALNETS").split(",")
     }
 
-    if (System.getenv("SIPIO_DS_PROVIDER") != null) {
-        spec.dataSource = { provider : System.getenv("SIPIO_DS_PROVIDER") }
+    if (System.getenv("ARKE_DS_PROVIDER") != null) {
+        spec.dataSource = { provider : System.getenv("ARKE_DS_PROVIDER") }
     }
 
-    if (System.getenv("SIPIO_REGISTRAR_INTF") != null) {
-        spec.registrarIntf = System.getenv("SIPIO_REGISTRAR_INTF")
+    if (System.getenv("ARKE_REGISTRAR_INTF") != null) {
+        spec.registrarIntf = System.getenv("ARKE_REGISTRAR_INTF")
     }
 
     return spec
@@ -154,22 +154,22 @@ function getSystemConfig() {
     system.apiVersion = 'v1beta1'
     system.apiPath = '/api' + '/' + system.apiVersion
     system.env = []
-    system.env.push({"var":'SIPIO_JAVA_OPTS', "value":System.getenv("SIPIO_JAVA_OPTS")})
-    system.env.push({"var":'SIPIO_DS_PROVIDER', "value":System.getenv("SIPIO_DS_PROVIDER")})
-    system.env.push({"var":'SIPIO_DS_PARAMETERS', "value":System.getenv("SIPIO_DS_PARAMETERS")})
-    system.env.push({"var":'SIPIO_CONFIG_PATH', "value":System.getenv("SIPIO_CONFIG_PATH")})
-    system.env.push({"var":'SIPIO_SALT', "value":System.getenv("SIPIO_SALT")})
-    system.env.push({"var":'SIPIO_EXTERN_ADDR', "value":System.getenv("SIPIO_EXTERN_ADDR")})
-    system.env.push({"var":'SIPIO_LOCALNETS', "value":System.getenv("SIPIO_LOCALNETS")})
-    system.env.push({"var":'SIPIO_REGISTRAR_INTF', "value":System.getenv("SIPIO_REGISTRAR_INTF")})
+    system.env.push({"var":'ARKE_JAVA_OPTS', "value":System.getenv("ARKE_JAVA_OPTS")})
+    system.env.push({"var":'ARKE_DS_PROVIDER', "value":System.getenv("ARKE_DS_PROVIDER")})
+    system.env.push({"var":'ARKE_DS_PARAMETERS', "value":System.getenv("ARKE_DS_PARAMETERS")})
+    system.env.push({"var":'ARKE_CONFIG_PATH', "value":System.getenv("ARKE_CONFIG_PATH")})
+    system.env.push({"var":'ARKE_SALT', "value":System.getenv("ARKE_SALT")})
+    system.env.push({"var":'ARKE_EXTERN_ADDR', "value":System.getenv("ARKE_EXTERN_ADDR")})
+    system.env.push({"var":'ARKE_LOCALNETS', "value":System.getenv("ARKE_LOCALNETS")})
+    system.env.push({"var":'ARKE_REGISTRAR_INTF', "value":System.getenv("ARKE_REGISTRAR_INTF")})
     return system
 }
 
 function getConfigFromFile() {
     let config
     try {
-        if (System.getenv("SIPIO_CONFIG_PATH") != null) {
-            config = DSUtil.convertToJson(FilesUtil.readFile(System.getenv("SIPIO_CONFIG_PATH") + '/config.yml'))
+        if (System.getenv("ARKE_CONFIG_PATH") != null) {
+            config = DSUtil.convertToJson(FilesUtil.readFile(System.getenv("ARKE_CONFIG_PATH") + '/config.yml'))
         } else {
             config = DSUtil.convertToJson(FilesUtil.readFile('config/config.yml'))
         }
@@ -182,10 +182,10 @@ function getConfigFromFile() {
 
 function getSalt() {
     // Find or generate SALT
-    if (System.getenv("SIPIO_SALT") != null) {
-        return System.getenv("SIPIO_SALT")
+    if (System.getenv("ARKE_SALT") != null) {
+        return System.getenv("ARKE_SALT")
     } else {
-        const pathToSalt = System.getProperty("user.home") + "/.sipio.salt"
+        const pathToSalt = System.getProperty("user.home") + "/.arke.salt"
         const f = new File(pathToSalt)
 
         if(f.exists() && !f.isDirectory()) {

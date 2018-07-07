@@ -1,10 +1,10 @@
-<h1 align="center">
+<!--<h1 align="center">
   <br>
-  <a href="http://github.com/fonoster/sipio"><img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo.png" alt="Running Sip I/O" width="150"></a>
+  <a href="http://github.com/fonoster/arke"><img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo.png" alt="Running Arke" width="150"></a>
   <br>
-  Sip I/O
+  Arke
   <br>
-</h1>
+</h1>-->
 
 <h4 align="center">Next-generation Sip Server.</h4>
 
@@ -23,8 +23,6 @@
   <a href="#license">License</a>
 </p>
 
-![Sip I/O UI Coming Soon!](https://raw.githubusercontent.com/fonoster/sipiowctl/master/public/console.gif)
-
 ## Key Features
 
 - Proxy
@@ -34,7 +32,7 @@
 - Multi-Tenancy/Multi-Domain
 - Access to the PSTN Using SIP Gateways
 - Transport: TCP, UDP, TLS, WebSocket
-- Data Sources: Redis, Restful API, Files 
+- Data Sources: Redis, Restful API, Files
 - Restful API
 - Command Line Tool for Admin Operations
 - Routing Capabilities
@@ -47,7 +45,7 @@
   - Domain Access Control List (DACL)
   - Restful service secured with TLS and JWT tokens
 
-To learn more, read the [documentation](https://fonoster.github.io/sipio). :books:
+To learn more, read the [documentation](https://fonoster.github.io/arke). :books:
 
 ## Quick Start
 
@@ -63,35 +61,35 @@ To learn more, read the [documentation](https://fonoster.github.io/sipio). :book
 **Running with Docker**
 
 ```bash
-docker pull fonoster/sipio
+docker pull fonoster/arke
 docker run -it \
     -p 4567:4567 \
     -p 5060:5060 \
     -p 5060:5060/udp \
     -p 5061-5063:5061-5063 \
     -e SIPIO_EXTERN_ADDR=${your host address} \
-    fonoster/sipio
+    fonoster/arke
 ```
 **Running with any other platform**
 
 ```bash
-cd sipio.1.0.0-M6
-./sipio
+cd arke.1.0.0-M6
+./arke
 ```
 
 ## Bugs and Feedback
 
-For bugs, questions, and discussions please use the [Github Issues](https://github.com/fonoster/sipio/issues)
+For bugs, questions, and discussions please use the [Github Issues](https://github.com/fonoster/arke/issues)
 
 ## Contributing
 
 For contributing, please see the following links:
 
- - [Contribution Documents](https://github.com/fonoster/sipio/blob/master/CONTRIBUTING.md)
- - [Contributors](https://github.com/fonoster/sipio/contributors)
+ - [Contribution Documents](https://github.com/fonoster/arke/blob/master/CONTRIBUTING.md)
+ - [Contributors](https://github.com/fonoster/arke/contributors)
 
 ## Authors
  - [Pedro Sanders](https://github.com/psanders)
 
 ## LICENSE
-Copyright (C) 2018 by [Fonoster Inc](https://github.com/fonoster). MIT License (see [LICENSE](https://github.com/fonoster/sipio/blob/master/LICENSE) for details).
+Copyright (C) 2018 by [Fonoster Inc](https://github.com/fonoster). MIT License (see [LICENSE](https://github.com/fonoster/arke/blob/master/LICENSE) for details).

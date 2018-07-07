@@ -63,7 +63,7 @@ export default class ResponseProcessor {
             .getSipStack()
                 .getAuthenticationHelper(this.accountManagerService
                     .getAccountManager(), this.headerFactory)
-        // Setting looseRouting to false will cause https://github.com/fonoster/sipio/issues/18
+        // Setting looseRouting to false will cause https://github.com/fonoster/arke/issues/18
         authHelper.handleChallenge(
             event.getResponse(), event.getClientTransaction(),
               event.getSource(), 5, true).sendRequest()

@@ -3,7 +3,7 @@ id: getting-started-introduction
 title: Introduction
 ---
 
-**Sip I/O** is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. To get involved in the development of this project please contact us at [@fonoster](https://twitter.com/fonoster).
+**Arke** is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. To get involved in the development of this project please contact us at [@fonoster](https://twitter.com/fonoster).
 
 ## Features
 
@@ -38,13 +38,13 @@ This following table features some important concepts, including the different r
 | Domain  | Enables the creation of isolated groups of Agents               |
 | Peer    | Similar to Agents but without Domain boundaries                 |
 | Gateway | SIP entity that allows call termination                         |
-| DID     | Routes and translate calls between the PSTN and Sip I/O         |
+| DID     | Routes and translate calls between the PSTN and Arke         |
 | Intra-Domain Routing  | Routing type for calling within the same Domain   |
 | Domain Ingress Routing | Calling from the PSTN to an Agent or Peer        |
 | Domain Egress Routing | Calling from an Agent to the PSTN thru a Gateway  |
 | Peer Egress Routing | Similar to *DER* but applies only to Peers          |
 
 ## Typical Deployment
-The following image depicts a typical SIP deployment with **Sip I/O**
+The following image depicts a typical SIP deployment with **Arke**
 
 <img src="../img/signal.png" hspace="10" vspace="5" style="margin-bottom: 50px">

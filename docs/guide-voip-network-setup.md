@@ -22,7 +22,7 @@ This is a step-by-step guide on VoIP setup at home or at the office. For calls t
 This tutorial assumes the following:
 
 - Two SIP phones connected to the same LAN
-- A fresh installation of Sip I/O
+- A fresh installation of Arke
 - SIP providers such as `voip.ms` or `didlogic.com`
 
 ## Setting up the Server
@@ -68,7 +68,7 @@ To configure your DID or virtual number, you must open and edit the file `config
 
 ### Creating a new Domain and EgressPolicy
 
-**Sip I/O** is a Domain centric Sip Server. A Domain is used to group several Agents in the same context. The Domain URI can be an arbitrary name but we recommend using a fully qualified domain name (FQDN). You will also need to setup and *EgressPolicy* to allow calls outside the Domain. Here is how the file `config/domains.yml` needs to look like:
+**Arke** is a Domain centric Sip Server. A Domain is used to group several Agents in the same context. The Domain URI can be an arbitrary name but we recommend using a fully qualified domain name (FQDN). You will also need to setup and *EgressPolicy* to allow calls outside the Domain. Here is how the file `config/domains.yml` needs to look like:
 
 ```yml
 - apiVersion: v1beta1
@@ -110,12 +110,12 @@ Pay close attention to the credentials block since it contains the username and 
     domains: [sip.local]
 ```
 
-To verify your configuration, start the server by issuing the command `sipio`. In a separate window use the following commands:
+To verify your configuration, start the server by issuing the command `arke`. In a separate window use the following commands:
 
-- `sipioctl get gateway`
-- `sipioctl get did`
-- `sipioctl get domain`
-- `sipioctl get agents`
+- `arkectl get gateway`
+- `arkectl get did`
+- `arkectl get domain`
+- `arkectl get agents`
 
 Your output should be as follows:
 
@@ -138,7 +138,7 @@ Configure your softphone using the information you gather in the last step. Star
 
 > Make sure to check the box "Use this account" to register your device
 
-If everything went well we just need to confirm that both softphones have registered correctly. Conveniently you can use the `.sipioctl locate` to obtain a list of "online" devices. This may seem like a lot of information. But what's relevant here is that both `1001` and `1002` are present in the location service and therefore can reach each other.
+If everything went well we just need to confirm that both softphones have registered correctly. Conveniently you can use the `.arkectl locate` to obtain a list of "online" devices. This may seem like a lot of information. But what's relevant here is that both `1001` and `1002` are present in the location service and therefore can reach each other.
 
 <img src="../img/locate_agents.png" width=600>
 

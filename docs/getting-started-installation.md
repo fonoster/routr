@@ -9,18 +9,18 @@ There are no special requirements to install the server. Just download, decompre
 
 | Platform | Download |
 | -- | -- |
-| Linux | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M6/sipio-1.0.0-M6_linux-x64_bin.tar.gz) |  
-| macOS | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M6/sipio-1.0.0-M6_osx-x64_bin.tar.gz) |  
-| Windows | [tar.gz](https://github.com/fonoster/sipio/releases/download/1.0.0-M6/sipio-1.0.0-M6_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/sipio/releases/download/1.0.0-M6/sipio-1.0.0-M6_windows-x64_bin.zip) |  
-| Docker | [img](https://hub.docker.com/r/fonoster/sipio/) |  
+| Linux | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-M6/arke-1.0.0-M6_linux-x64_bin.tar.gz) |  
+| macOS | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-M6/arke-1.0.0-M6_osx-x64_bin.tar.gz) |  
+| Windows | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-M6/arke-1.0.0-M6_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/arke/releases/download/1.0.0-M6/arke-1.0.0-M6_windows-x64_bin.zip) |  
+| Docker | [img](https://hub.docker.com/r/fonoster/arke/) |  
 
 ## Or Build from Source
 
 > Building from source requires of Java 1.8+, Gradle, and NPM
 
 ```bash
-git clone https://github.com/fonoster/sipio
-cd sipio
+git clone https://github.com/fonoster/arke
+cd arke
 npm i
 npm run pack
 ```
@@ -28,24 +28,24 @@ npm run pack
 ## Running with Docker
 
 ```bash
-docker pull fonoster/sipio
+docker pull fonoster/arke
 docker run -it \
     -p 4567:4567 \
     -p 5060:5060 \
     -p 5060:5060/udp \
     -p 5061-5063:5061-5063 \
-    -e SIPIO_EXTERN_ADDR=${your host address} \
-    fonoster/sipio
+    -e ARKE_EXTERN_ADDR=${your host address} \
+    fonoster/arke
 ```
 
 ## Running in any other Plattform
 
-To start the server just run the script `./sipio` at the root of this
+To start the server just run the script `./arke` at the root of this
 project. Your output will look similar to this:
 
 ```bash
-$ ./sipio
-[INFO ] Starting Sip I/O
+$ ./arke
+[INFO ] Starting Arke
 [INFO ] Listening @ 172.18.0.4:5060 [udp]
 [INFO ] Listening @ 172.18.0.4:5060 [tcp]
 [INFO ] Listening @ 172.18.0.4:5061 [tls]

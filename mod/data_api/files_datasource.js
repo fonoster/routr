@@ -14,11 +14,11 @@ const System = Packages.java.lang.System
 export default class FilesDataSource {
 
     constructor(config = getConfig()) {
-        if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
+        if (System.getenv("ARKE_DS_PARAMETERS") != null) {
             config.spec.dataSource.parameters = {}
-            const key = System.getenv("SIPIO_DS_PARAMETERS").split("=")[0]
+            const key = System.getenv("ARKE_DS_PARAMETERS").split("=")[0]
             if (key == 'path') {
-               config.spec.dataSource.parameters.path = System.getenv("SIPIO_DS_PARAMETERS").split("=")[1]
+               config.spec.dataSource.parameters.path = System.getenv("ARKE_DS_PARAMETERS").split("=")[1]
             }
         }
 

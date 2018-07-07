@@ -105,8 +105,8 @@ export default class DSUtil {
         let parameters = isEmpty(config.spec.dataSource.parameters) == false?
             config.spec.dataSource.parameters: defaultParameters
 
-        if (System.getenv("SIPIO_DS_PARAMETERS") != null) {
-            parameters = DSUtil.getFromEnv(System.getenv("SIPIO_DS_PARAMETERS"), allowedKeys)
+        if (System.getenv("ARKE_DS_PARAMETERS") != null) {
+            parameters = DSUtil.getFromEnv(System.getenv("ARKE_DS_PARAMETERS"), allowedKeys)
         }
 
         return parameters
