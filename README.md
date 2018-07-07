@@ -6,7 +6,7 @@
   <br>
 </h1>-->
 
-<h4 align="center">Next-generation Sip Server.</h4>
+<h2 align="left">Next-generation Sip Server.</h4>
 
 <p align="left">
   <a href="https://opensource.org/licenses/MIT">
@@ -15,7 +15,7 @@
   </a>
 </p>
 
-<p align="center">
+<p align="left">
   <a href="#key-features">Key Features</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#bugs-and-feedback">Bugs and Feedback</a> •
