@@ -5,6 +5,8 @@ title: Securing the Signal
 
 Follow this guide to secure the signaling between your endpoints and **Routr**. Keep in mind that **Routr** will only secure the signaling and that the endpoints are ultimately responsible for securing the media.
 
+> For this guide we will use a fictitious domain name to demonstrate the process of securing the signaling path
+
 <img src="../img/secure_signaling.png" width=600 vspace=30>
 
 ## Creating a Java Keystore(.JKS) Certificate
@@ -24,13 +26,13 @@ keytool -genkey -keyalg RSA \
  -keypass changeit \
  -validity 365 \
  -keysize 2048 \
- -dname "CN=domain.com, OU=OSS, O=Your Company Inc, L=Sanford, ST=NC, C=US" \
- -ext SAN=dns:your.domain.com,dns:localhost,ip:127.0.0.1
+ -dname "CN=sip.ocean.com, OU=OSS, O=Your Company Inc, L=Sanford, ST=NC, C=US" \
+ -ext SAN=dns:sip.ocean.com,dns:localhost,ip:127.0.0.1
 ```
 
 Remember to adjust the values to match your project's information.
 
-> :mag_right: `WSS` will not work with a self-signed certificate. However, you can add a security exception by using `https` instead of `wss` in your browser's search bar and then accepting the security certificate.
+> `WSS` will not work with a self-signed certificate. However, you can add a security exception by using `https` instead of `wss` in your browser's search bar and then accepting the security certificate.
 
 ### Creating a Certificate using Let’s Encrypt
 
@@ -39,10 +41,10 @@ The recommended way to create a valid certificate for **Routr** is using the fre
 **1. Create keys**
 
 ```bash
-certbot certonly --standalone -d domain.com --email admin@domain.com
+certbot certonly --standalone -d sip.ocean.com --email admin@sip.ocean.com
 ```
 
-Change to the directory where the certificates were created(normally at /etc/letsencrypt/live/domain.com).
+Change to the directory where the certificates were created(normally at /etc/letsencrypt/live/sip.ocean.com).
 
 **2. Create a PKCS12 file containing full chain and private key**
 
