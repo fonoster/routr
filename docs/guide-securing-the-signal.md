@@ -3,22 +3,22 @@ id: guide-securing-the-signal
 title: Securing the Signal
 ---
 
-Follow this guide to secure the signaling between your endpoints and **Arke**. Keep in mind that **Arke** will only secure the signaling and that the endpoints are ultimately responsible for securing the media.
+Follow this guide to secure the signaling between your endpoints and **Routr**. Keep in mind that **Routr** will only secure the signaling and that the endpoints are ultimately responsible for securing the media.
 
 <img src="../img/secure_signaling.png" width=600 vspace=30>
 
 ## Creating a Java Keystore(.JKS) Certificate
 
-**Arke** needs a keystore (.jks) in order to properly handling the certificates. The following steps will create a valid keystore file using a self-signed method or using the free [Let's Encrypt service](https://letsencrypt.org/).
+**Routr** needs a keystore (.jks) in order to properly handling the certificates. The following steps will create a valid keystore file using a self-signed method or using the free [Let's Encrypt service](https://letsencrypt.org/).
 
 ### Creating a self-signed Certificate
 
-Perhaps the easiest way to create a valid certificate for **Arke** is using a self-signed certificate. To generate the certificate change into `etc/certs` in your **Arke** installation and run the following script:
+Perhaps the easiest way to create a valid certificate for **Routr** is using a self-signed certificate. To generate the certificate change into `etc/certs` in your **Routr** installation and run the following script:
 
 ```bash
 keytool -genkey -keyalg RSA \
  -noprompt \
- -alias arke \
+ -alias routr \
  -keystore domain-certs.jks \
  -storepass changeit \
  -keypass changeit \
@@ -34,7 +34,7 @@ Remember to adjust the values to match your project's information.
 
 ### Creating a Certificate using Let’s Encrypt
 
-The recommended way to create a valid certificate for **Arke** is using the free service [Let's Encrypt](https://letsencrypt.org). Please go to https://letsencrypt.org/ for details on how to install the required tooling. To generate the certificate, use the following steps:
+The recommended way to create a valid certificate for **Routr** is using the free service [Let's Encrypt](https://letsencrypt.org). Please go to https://letsencrypt.org/ for details on how to install the required tooling. To generate the certificate, use the following steps:
 
 **1. Create keys**
 
@@ -50,7 +50,7 @@ Change to the directory where the certificates were created(normally at /etc/let
 openssl pkcs12 -export -in fullchain.pem -inkey privkey.pem -out pkcs.p12 -name domains-cert.jks
 ```
 
-Please make note of the password since you will need it in the following step and also for your settings in **Arke**.
+Please make note of the password since you will need it in the following step and also for your settings in **Routr**.
 
 **3. Convert PKCS12 to Keystore**
 
@@ -58,14 +58,14 @@ Please make note of the password since you will need it in the following step an
 keytool -importkeystore -srckeystore keystore.pkcs12 -srcstoretype PKCS12 -destkeystore domains-cert.jks
 ```
 
-## Installing the Certificate in Arke
+## Installing the Certificate in Routr
 
-To enable secure signaling in **Arke**, copy your certificate in `etc/certs` and edit the file `config/config.yml` to look like this:
+To enable secure signaling in **Routr**, copy your certificate in `etc/certs` and edit the file `config/config.yml` to look like this:
 
 ```yml
 apiVersion: v1beta1
 metadata:
-  userAgent: Arke v1.0
+  userAgent: Routr v1.0
 spec:
   securityContext:
     keyStore: etc/certs/domains-cert.jks
@@ -83,7 +83,7 @@ spec:
 With the property `spec.securityContext.debugging` set to `true` you can get some valuable information about the status of the configuration. You can also test your configuration using the following command:
 
 ```
-openssl s_client -host 192.168.1.2 -port 5061    # Remember to use Arke's IP
+openssl s_client -host 192.168.1.2 -port 5061    # Remember to use Routr's IP
 ```
 
 ## Setting up the Sip Phones

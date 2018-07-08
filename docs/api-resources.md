@@ -3,7 +3,7 @@ id: api-resources
 title: Resource Files
 ---
 
-**Arke** API version is currently `v1beta1`. We will continue to improve the API, resource definition, and other artifacts until we reach a final version. We then will establish an update policy to ensure backward compatibility. Until then keep an eye on this document.
+**Routr** API version is currently `v1beta1`. We will continue to improve the API, resource definition, and other artifacts until we reach a final version. We then will establish an update policy to ensure backward compatibility. Until then keep an eye on this document.
 
 ## General Configuration
 
@@ -48,7 +48,7 @@ title: Resource Files
 ```yaml
 apiVersion: v1beta1
 metadata:
-  userAgent: Arke v1.0
+  userAgent: Routr v1.0
 spec:
   transport:
     - protocol: udp
@@ -61,7 +61,7 @@ spec:
 
 ### Data Providers
 
-Arke currently implements three data providers: `redis_data_provider`, `files_data_provider` and `redis_data_provider`. The default data provider is the `files_data_provider`.
+Routr currently implements three data providers: `redis_data_provider`, `files_data_provider` and `redis_data_provider`. The default data provider is the `files_data_provider`.
 
 > The docker version of the server uses `redis_data_provider` as its default
 
@@ -104,7 +104,7 @@ The parameters for `restful_data_provider` are:
 **Example**
 
 ```yaml
-# Users exist in Arke to perform administrative actions on the server
+# Users exist in Routr to perform administrative actions on the server
 - apiVersion: v1beta1
   kind: User
   metadata:
@@ -131,7 +131,7 @@ The parameters for `restful_data_provider` are:
 **Example**
 
 ```yaml
-# Peers and Agents can register in Arke location service
+# Peers and Agents can register in Routr location service
 - apiVersion: v1beta1
   kind: Agent
   metadata:
@@ -268,7 +268,7 @@ The parameters for `restful_data_provider` are:
 **Example**
 
 ```yaml
-# Peers and Agents can register on Arke location service
+# Peers and Agents can register on Routr location service
 - apiVersion: v1beta1
   kind: Peer
   metadata:

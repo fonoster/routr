@@ -7,7 +7,7 @@
     ],
     "Guides": [
       "guide-voip-network-setup",
-      "guide-arke-as-asterisk-frontend",
+      "guide-routr-as-asterisk-frontend",
       "guide-securing-the-signal"],
     "API": [
       "api-reference",

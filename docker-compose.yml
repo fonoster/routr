@@ -1,13 +1,13 @@
 version: '3.2'
 services:
-  arke:
+  routr:
     build:
       context: .
-    image: fonoster/arke:latest
+    image: fonoster/routr:latest
     environment:
-      ARKE_EXTERN_ADDR: ${ARKE_EXTERN_ADDR}
-      ARKE_DS_PROVIDER: redis_data_provider
-      ARKE_DS_PARAMETERS: "host=redis,port=6379"
+      ROUTR_EXTERN_ADDR: ${ROUTR_EXTERN_ADDR}
+      ROUTR_DS_PROVIDER: redis_data_provider
+      ROUTR_DS_PARAMETERS: "host=redis,port=6379"
     ports:
       - '5060:5060'
       - '5060:5060/udp'

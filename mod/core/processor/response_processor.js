@@ -63,7 +63,7 @@ export default class ResponseProcessor {
             .getSipStack()
                 .getAuthenticationHelper(this.accountManagerService
                     .getAccountManager(), this.headerFactory)
-        // Setting looseRouting to false will cause https://github.com/fonoster/arke/issues/18
+        // Setting looseRouting to false will cause https://github.com/fonoster/routr/issues/18
         authHelper.handleChallenge(
             event.getResponse(), event.getClientTransaction(),
               event.getSource(), 5, true).sendRequest()
@@ -74,7 +74,7 @@ export default class ResponseProcessor {
         const clientTransaction = event.getClientTransaction()
         const viaHeader = response.getHeader(ViaHeader.NAME)
 
-        LOG.debug('Arke is behind a NAT. Re-registering using Received and RPort')
+        LOG.debug('Routr is behind a NAT. Re-registering using Received and RPort')
 
         try {
             const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()

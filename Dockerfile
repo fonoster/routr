@@ -6,10 +6,10 @@ ENV PATH=/opt/gradle/bin:${PATH}
 ENV PATH $PATH:/usr/lib/jvm/java-1.8-openjdk/jre/bin:/usr/lib/jvm/java-1.8-openjdk/bin
 ENV CTL_VERSION 1.0.1-alpha
 
-COPY . /opt/arke
-COPY etc/api-access.json /root/.arke-access.json
-COPY etc/salt /root/.arke.salt
-WORKDIR /opt/arke
+COPY . /opt/routr
+COPY etc/api-access.json /root/.routr-access.json
+COPY etc/salt /root/.routr.salt
+WORKDIR /opt/routr
 
 RUN wget https://services.gradle.org/distributions/gradle-4.5-bin.zip  \
     && mkdir -p /opt/gradle \
@@ -19,20 +19,20 @@ RUN wget https://services.gradle.org/distributions/gradle-4.5-bin.zip  \
     && apk add --update openjdk8 nodejs nodejs-npm redis \
     && npm i && npm test && npm prune && rm -rf node_modules \
     && apk del nodejs nodejs-npm \
-    && wget https://github.com/fonoster/arke-ctl/releases/download/$CTL_VERSION/arke-ctl.$CTL_VERSION.tar.gz \
-    && tar xvf arke-ctl.$CTL_VERSION.tar.gz \
-    && mv arke-ctl.$CTL_VERSION/arkctl . \
-    && mv arke-ctl.$CTL_VERSION/libs/* libs \
-    && rm -rf arke-ctl.$CTL_VERSION \
+    && wget https://github.com/fonoster/routr-ctl/releases/download/$CTL_VERSION/routr-ctl.$CTL_VERSION.tar.gz \
+    && tar xvf routr-ctl.$CTL_VERSION.tar.gz \
+    && mv routr-ctl.$CTL_VERSION/rctl . \
+    && mv routr-ctl.$CTL_VERSION/libs/* libs \
+    && rm -rf routr-ctl.$CTL_VERSION \
         /var/cache/apk/* \
-        arke-ctl.$CTL_VERSION.tar.gz \
+        routr-ctl.$CTL_VERSION.tar.gz \
         /opt/gradle \
         .babelrc \
         mod \
         docker-compose.yml \
         Dockerfile \
         pack.sh \
-        arke.bat \
+        routr.bat \
         webpack.config.js \
         build.gradle \
         *.json \

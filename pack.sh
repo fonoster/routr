@@ -6,7 +6,7 @@ build_for_platform() {
     PLATFORM=$1
     DOWNLOAD_FILE=$2
 
-    BUILD_NAME="arke-$VERSION""_$PLATFORM-x64_bin"
+    BUILD_NAME="routr-$VERSION""_$PLATFORM-x64_bin"
     # Cleanup
     rm -rf $BUILD_NAME
     mkdir -p $BUILD_NAME/libs
@@ -14,8 +14,8 @@ build_for_platform() {
     cp -a config $BUILD_NAME
     cp -a etc $BUILD_NAME
     cp libs/* $BUILD_NAME/libs
-    cp arke $BUILD_NAME/
-    cp arke.bat $BUILD_NAME/
+    cp routr $BUILD_NAME/
+    cp routr.bat $BUILD_NAME/
     cp README.md $BUILD_NAME/
     cp LICENSE $BUILD_NAME/
 

@@ -1,8 +1,8 @@
 <!--<h1 align="center">
   <br>
-  <a href="http://github.com/fonoster/arke"><img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/logo.png" alt="Running Arke" width="150"></a>
+  <a href="http://github.com/fonoster/routr"><img src="https://raw.githubusercontent.com/wiki/fonoster/routr/images/logo.png" alt="Running Routr" width="150"></a>
   <br>
-  Arke
+  Routr
   <br>
 </h1>-->
 
@@ -45,7 +45,7 @@
   - Domain Access Control List (DACL)
   - Restful service secured with TLS and JWT tokens
 
-To learn more, read the [documentation](https://fonoster.github.io/arke). :books:
+To learn more, read the [documentation](https://fonoster.github.io/routr). :books:
 
 ## Quick Start
 
@@ -53,43 +53,43 @@ To learn more, read the [documentation](https://fonoster.github.io/arke). :books
 
 | Platform | Download |
 | -- | -- |
-| Linux | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-rc1/arke-1.0.0-rc1_linux-x64_bin.tar.gz) |  
-| macOS | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-rc1/arke-1.0.0-rc1_osx-x64_bin.tar.gz) |  
-| Windows | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-rc1/arke-1.0.0-rc1_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/arke/releases/download/1.0.0-rc1/arke-1.0.0-rc1_windows-x64_bin.zip) |  
-| Docker | [img](https://hub.docker.com/r/fonoster/arke/) |  
+| Linux | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_linux-x64_bin.tar.gz) |  
+| macOS | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_osx-x64_bin.tar.gz) |  
+| Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.zip) |  
+| Docker | [img](https://hub.docker.com/r/fonoster/routr/) |  
 
 **Running with Docker**
 
 ```bash
-docker pull fonoster/arke
+docker pull fonoster/routr
 docker run -it \
     -p 4567:4567 \
     -p 5060:5060 \
     -p 5060:5060/udp \
     -p 5061-5063:5061-5063 \
-    -e ARKE_EXTERN_ADDR=${your host address} \
-    fonoster/arke
+    -e ROUTR_EXTERN_ADDR=${your host address} \
+    fonoster/routr
 ```
 **Running with any other platform**
 
 ```bash
-cd arke.1.0.0-rc1
-./arke
+cd routr.1.0.0-rc1
+./routr
 ```
 
 ## Bugs and Feedback
 
-For bugs, questions, and discussions please use the [Github Issues](https://github.com/fonoster/arke/issues)
+For bugs, questions, and discussions please use the [Github Issues](https://github.com/fonoster/routr/issues)
 
 ## Contributing
 
 For contributing, please see the following links:
 
- - [Contribution Documents](https://github.com/fonoster/arke/blob/master/CONTRIBUTING.md)
- - [Contributors](https://github.com/fonoster/arke/contributors)
+ - [Contribution Documents](https://github.com/fonoster/routr/blob/master/CONTRIBUTING.md)
+ - [Contributors](https://github.com/fonoster/routr/contributors)
 
 ## Authors
  - [Pedro Sanders](https://github.com/psanders)
 
 ## LICENSE
-Copyright (C) 2018 by [Fonoster Inc](https://github.com/fonoster). MIT License (see [LICENSE](https://github.com/fonoster/arke/blob/master/LICENSE) for details).
+Copyright (C) 2018 by [Fonoster Inc](https://github.com/fonoster). MIT License (see [LICENSE](https://github.com/fonoster/routr/blob/master/LICENSE) for details).

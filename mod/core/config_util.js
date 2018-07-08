@@ -46,7 +46,7 @@ export default function () {
     }
 
     if (config.metadata.userAgent == undefined) {
-        config.metadata.userAgent = 'Arke ' + config.system.version
+        config.metadata.userAgent = 'Routr ' + config.system.version
     }
 
     return config
@@ -86,20 +86,20 @@ function getRestfulPresets(rs) {
 function getSysPresets(s) {
     const spec = s == undefined ? {} : s
 
-    if (System.getenv("ARKE_EXTERN_ADDR") != null) {
-        spec.externAddr = Packages.java.lang.System.getenv("ARKE_EXTERN_ADDR")
+    if (System.getenv("ROUTR_EXTERN_ADDR") != null) {
+        spec.externAddr = Packages.java.lang.System.getenv("ROUTR_EXTERN_ADDR")
     }
 
-    if (System.getenv("ARKE_LOCALNETS") != null) {
-        spec.localnets = Packages.java.lang.System.getenv("ARKE_LOCALNETS").split(",")
+    if (System.getenv("ROUTR_LOCALNETS") != null) {
+        spec.localnets = Packages.java.lang.System.getenv("ROUTR_LOCALNETS").split(",")
     }
 
-    if (System.getenv("ARKE_DS_PROVIDER") != null) {
-        spec.dataSource = { provider : System.getenv("ARKE_DS_PROVIDER") }
+    if (System.getenv("ROUTR_DS_PROVIDER") != null) {
+        spec.dataSource = { provider : System.getenv("ROUTR_DS_PROVIDER") }
     }
 
-    if (System.getenv("ARKE_REGISTRAR_INTF") != null) {
-        spec.registrarIntf = System.getenv("ARKE_REGISTRAR_INTF")
+    if (System.getenv("ROUTR_REGISTRAR_INTF") != null) {
+        spec.registrarIntf = System.getenv("ROUTR_REGISTRAR_INTF")
     }
 
     return spec
@@ -154,22 +154,22 @@ function getSystemConfig() {
     system.apiVersion = 'v1beta1'
     system.apiPath = '/api' + '/' + system.apiVersion
     system.env = []
-    system.env.push({"var":'ARKE_JAVA_OPTS', "value":System.getenv("ARKE_JAVA_OPTS")})
-    system.env.push({"var":'ARKE_DS_PROVIDER', "value":System.getenv("ARKE_DS_PROVIDER")})
-    system.env.push({"var":'ARKE_DS_PARAMETERS', "value":System.getenv("ARKE_DS_PARAMETERS")})
-    system.env.push({"var":'ARKE_CONFIG_PATH', "value":System.getenv("ARKE_CONFIG_PATH")})
-    system.env.push({"var":'ARKE_SALT', "value":System.getenv("ARKE_SALT")})
-    system.env.push({"var":'ARKE_EXTERN_ADDR', "value":System.getenv("ARKE_EXTERN_ADDR")})
-    system.env.push({"var":'ARKE_LOCALNETS', "value":System.getenv("ARKE_LOCALNETS")})
-    system.env.push({"var":'ARKE_REGISTRAR_INTF', "value":System.getenv("ARKE_REGISTRAR_INTF")})
+    system.env.push({"var":'ROUTR_JAVA_OPTS', "value":System.getenv("ROUTR_JAVA_OPTS")})
+    system.env.push({"var":'ROUTR_DS_PROVIDER', "value":System.getenv("ROUTR_DS_PROVIDER")})
+    system.env.push({"var":'ROUTR_DS_PARAMETERS', "value":System.getenv("ROUTR_DS_PARAMETERS")})
+    system.env.push({"var":'ROUTR_CONFIG_PATH', "value":System.getenv("ROUTR_CONFIG_PATH")})
+    system.env.push({"var":'ROUTR_SALT', "value":System.getenv("ROUTR_SALT")})
+    system.env.push({"var":'ROUTR_EXTERN_ADDR', "value":System.getenv("ROUTR_EXTERN_ADDR")})
+    system.env.push({"var":'ROUTR_LOCALNETS', "value":System.getenv("ROUTR_LOCALNETS")})
+    system.env.push({"var":'ROUTR_REGISTRAR_INTF', "value":System.getenv("ROUTR_REGISTRAR_INTF")})
     return system
 }
 
 function getConfigFromFile() {
     let config
     try {
-        if (System.getenv("ARKE_CONFIG_FILE") != null) {
-            config = DSUtil.convertToJson(FilesUtil.readFile(System.getenv("ARKE_CONFIG_FILE")))
+        if (System.getenv("ROUTR_CONFIG_FILE") != null) {
+            config = DSUtil.convertToJson(FilesUtil.readFile(System.getenv("ROUTR_CONFIG_FILE")))
         } else {
             config = DSUtil.convertToJson(FilesUtil.readFile('config/config.yml'))
         }
@@ -182,10 +182,10 @@ function getConfigFromFile() {
 
 function getSalt() {
     // Find or generate SALT
-    if (System.getenv("ARKE_SALT") != null) {
-        return System.getenv("ARKE_SALT")
+    if (System.getenv("ROUTR_SALT") != null) {
+        return System.getenv("ROUTR_SALT")
     } else {
-        const pathToSalt = System.getProperty("user.home") + "/.arke.salt"
+        const pathToSalt = System.getProperty("user.home") + "/.routr.salt"
         const f = new File(pathToSalt)
 
         if(f.exists() && !f.isDirectory()) {

@@ -92,7 +92,7 @@ export default class Server {
     }
 
     start()  {
-        LOG.info('Starting Arke')
+        LOG.info('Starting Routr')
         this.setup()
         this.locator.start()
         this.registry.start()
@@ -113,7 +113,7 @@ export default class Server {
         const properties = new Properties()
         // See https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java for
         // many other options
-        properties.setProperty('javax.sip.STACK_NAME', 'arke')
+        properties.setProperty('javax.sip.STACK_NAME', 'routr')
         // Default host
         properties.setProperty('javax.sip.IP_ADDRESS', this.host)
         properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'OFF')

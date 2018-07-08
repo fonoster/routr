@@ -13,7 +13,7 @@ A multinational company like _Walmart_ have thousands of stores that operate ind
 
 ### Double Agents
 
-<img src="https://raw.githubusercontent.com/wiki/fonoster/arke/images/double_agent.png" width=400 style="margin-bottom: 50px">
+<img src="https://raw.githubusercontent.com/wiki/fonoster/routr/images/double_agent.png" width=400 style="margin-bottom: 50px">
 <br>
 
 Yes, you can have double Agents, or Agents that exist in a multi-domain setup. All you need to do is include the domain in the Agent's `spec.domain[*]` list. In the example before, john can send or receive calls from both domains, while the rest of the Agents are only allowed to call within the domain.
@@ -61,7 +61,7 @@ The following yaml configuration shows a simple setup, involving one Domain and 
 
 And voila! That's all the configuration you need for intra-domain communication. For calls outside the domain, see "Domain Egress Routing" section and to receive calls from the PSTN check section "Domain Ingress Routing"
 
-> To setup your sip devices use information found in `config/agents.yml`. Also, you must use the Host/IP of Arke server as
+> To setup your sip devices use information found in `config/agents.yml`. Also, you must use the Host/IP of Routr server as
 > the OUTBOUND PROXY of your sip device.
 
 **Routing Rules**
@@ -74,7 +74,7 @@ The following rules apply to Intra-Domain Routing:
 
 ## Domain Ingress Routing
 
-The process of receiving a call from PSTN to a domain is known in **Arke** as _Domain Ingress Routing(DIR)_ and it is done using Gateway. Gateways are defined in the yaml file `config/gateways.yml`. The following example shows a typical Gateway configuration.
+The process of receiving a call from PSTN to a domain is known in **Routr** as _Domain Ingress Routing(DIR)_ and it is done using Gateway. Gateways are defined in the yaml file `config/gateways.yml`. The following example shows a typical Gateway configuration.
 
 ```yaml
 - apiVersion: v1beta1
@@ -119,7 +119,7 @@ The `aorLink` refers to an Address of Record(Agent or Peer) that is available in
 
 ## Domain Egress Routing
 
-_Domain Egress Routing(DER)_ is the way that **Arke** deals with a call request to a _callee_ that exist in the Public Switched Telephone Network(PSTN) and not in the _callers_ domain. The Egress Policy consists in a `rule` and a `didRef`, and it is defined in the `spec.context` section of `Domains` resources.
+_Domain Egress Routing(DER)_ is the way that **Routr** deals with a call request to a _callee_ that exist in the Public Switched Telephone Network(PSTN) and not in the _callers_ domain. The Egress Policy consists in a `rule` and a `didRef`, and it is defined in the `spec.context` section of `Domains` resources.
 
 The `rule` and `didRef` are defined as follows:
 
@@ -133,7 +133,7 @@ Agents can only perform outbound calls using the `Egress Policy` of their own Do
 
 ## Peers Routing
 
-Peers are very similar to Agents but they are not bound to any Domain, and they are usually collocated in the same network with Arke. A common case will be peering with Asterisk, where Asterisk acts as a Media Server and Arke is used for signaling.
+Peers are very similar to Agents but they are not bound to any Domain, and they are usually collocated in the same network with Routr. A common case will be peering with Asterisk, where Asterisk acts as a Media Server and Routr is used for signaling.
 
 Peers can perform inbound/outbound signaling within the network without any especial consideration since they exist inside the _Location Service_ just like Agents. So it is possible to perform signaling from Peer to Peer, Peer to Agent.
 
