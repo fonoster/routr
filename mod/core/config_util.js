@@ -168,8 +168,8 @@ function getSystemConfig() {
 function getConfigFromFile() {
     let config
     try {
-        if (System.getenv("ARKE_CONFIG_PATH") != null) {
-            config = DSUtil.convertToJson(FilesUtil.readFile(System.getenv("ARKE_CONFIG_PATH") + '/config.yml'))
+        if (System.getenv("ARKE_CONFIG_FILE") != null) {
+            config = DSUtil.convertToJson(FilesUtil.readFile(System.getenv("ARKE_CONFIG_FILE")))
         } else {
             config = DSUtil.convertToJson(FilesUtil.readFile('config/config.yml'))
         }
