@@ -43,8 +43,3 @@ This following table features some important concepts, including the different r
 | Domain Ingress Routing | Calling from the PSTN to an Agent or Peer        |
 | Domain Egress Routing | Calling from an Agent to the PSTN thru a Gateway  |
 | Peer Egress Routing | Similar to *DER* but applies only to Peers          |
-
-## Typical Deployment
-The following image depicts a typical SIP deployment with **Arke**
-
-<img src="../img/signal.png" hspace="10" vspace="5" style="margin-bottom: 50px">
