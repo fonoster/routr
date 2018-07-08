@@ -139,8 +139,8 @@ const LearnHow = props => (
   <Block background="light">
     {[
       {
-        content: 'Arke is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators.',
-        image: imgUrl('arkewctl.gif'),
+        content: 'Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators.',
+        image: imgUrl('routrwctl.gif'),
         imageAlign: 'right',
         title: 'Learn How',
       },
