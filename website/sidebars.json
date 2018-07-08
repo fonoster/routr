@@ -2,8 +2,7 @@
   "docs": {
     "Getting Started": [
         "getting-started-introduction",
-        "getting-started-installation",
-        "getting-started-routing"
+        "getting-started-installation"
     ],
     "Guides": [
       "guide-voip-network-setup",
