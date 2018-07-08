@@ -23,7 +23,7 @@ This tutorial assumes the following:
 - If using a hardware phone, this can reach Asterisk and Arke and the other way around
 - You have a fresh installation of Arke and Asterisk
 
-> Before starting the guide follow the [[Installation instructions]] to install **Arke** server.
+> Before starting this guide make sure to have a fresh installation of **Arke** server.
 
 ## Configuration Overview
 
