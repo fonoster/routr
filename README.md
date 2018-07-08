@@ -73,7 +73,7 @@ docker run -it \
 **Running with any other platform**
 
 ```bash
-cd arke.1.0.0-M6
+cd arke.1.0.0-rc1
 ./arke
 ```
 

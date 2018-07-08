@@ -9,9 +9,9 @@ There are no special requirements to install the server. Just download, decompre
 
 | Platform | Download |
 | -- | -- |
-| Linux | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-M6/arke-1.0.0-M6_linux-x64_bin.tar.gz) |  
-| macOS | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-M6/arke-1.0.0-M6_osx-x64_bin.tar.gz) |  
-| Windows | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-M6/arke-1.0.0-M6_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/arke/releases/download/1.0.0-M6/arke-1.0.0-M6_windows-x64_bin.zip) |  
+| Linux | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-rc1/arke-1.0.0-rc1_linux-x64_bin.tar.gz) |  
+| macOS | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-rc1/arke-1.0.0-rc1_osx-x64_bin.tar.gz) |  
+| Windows | [tar.gz](https://github.com/fonoster/arke/releases/download/1.0.0-rc1/arke-1.0.0-rc1_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/arke/releases/download/1.0.0-rc1/arke-1.0.0-rc1_windows-x64_bin.zip) |  
 | Docker | [img](https://hub.docker.com/r/fonoster/arke/) |  
 
 ## Or Build from Source
