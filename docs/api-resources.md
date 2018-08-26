@@ -61,7 +61,7 @@ spec:
 
 ### Data Providers
 
-Routr currently implements three data providers: `redis_data_provider`, `files_data_provider` and `redis_data_provider`. The default data provider is the `files_data_provider`.
+Routr currently implements three data providers: `redis_data_provider`, `files_data_provider` and `restful_data_provider`. The default data provider is the `files_data_provider`.
 
 > The docker version of the server uses `redis_data_provider` as its default
 
