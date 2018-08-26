@@ -19,7 +19,7 @@ title: Resource Files
 | spec.recordRoute | Stay within the signaling path | No |
 | spec.useToAsAOR | Use the TO header instead of Request URI | No |
 | spec.registrarIntf | Force to use received & rport for registration| No |
-| spec.addressInfo.[*] | Custom tag with the did information | No |
+| spec.addressInfo.[*] | Custom tag with the DID information | No |
 | spec.accessControlList.deny.[*] | Deny incoming traffic from network list | No |
 | spec.accessControlList.allow.[*] | Allow incoming traffic from network list | No |
 | spec.restService.bindAddr | Restful service listening address | No |
