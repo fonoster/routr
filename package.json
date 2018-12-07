@@ -27,5 +27,6 @@
     "type": "git",
     "url": "git://github.com/fonoster/routr.git"
   },
+  "author": "Pedro Sanders",
   "license": "MIT"
 }
