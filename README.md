@@ -1,13 +1,3 @@
-<h1 align="center">
-  <br>
-  <a href="https://routr.io"><img src="https://raw.githubusercontent.com/wiki/fonoster/routr/images/logo.png" alt="Running Routr" width="100"></a>
-  <br>
-  Routr
-  <br>
-</h1>
-
-<h4 align="center">Next-generation Sip Server</h4>
-
 <p align="center">
   <a href="#key-features">Key Features</a> •
   <a href="#quick-start">Quick Start</a> •
@@ -18,12 +8,12 @@
 </p>
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/running_sipio.gif" alt="Running Routr" with=700>
+   <img src="https://raw.githubusercontent.com/fonoster/routr/master/website/static/img/routr_animation.gif" alt="Running Routr">
 </div>
 
 </br>
 
-[![Build Status](https://travis-ci.org/fonoster/routr.svg?branch=master)](https://travis-ci.org/fonoster/routr) [![Maintainability](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/maintainability)](https://codeclimate.com/github/fonoster/routr/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/test_coverage)](https://codeclimate.com/github/fonoster/routr/test_coverage) [![Join the chat at https://gitter.im/fonoster/routr](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
+[![Build Status](https://travis-ci.org/fonoster/routr.svg?branch=master)](https://travis-ci.org/fonoster/routr) [![Maintainability](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/maintainability)](https://codeclimate.com/github/fonoster/routr/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/test_coverage)](https://codeclimate.com/github/fonoster/routr/test_coverage) [![Join the chat at https://gitter.im/fonoster/routr](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/fonoster/routr?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="license: MIT"></a>
 
 ## Key Features
@@ -52,7 +42,7 @@ To learn more, read the [documentation](https://fonoster.github.io/routr). :book
 
 ## Quick Start
 
-**Download the server**
+&#10122; Download the server for your plattform
 
 | Platform | Download |
 | -- | -- |
@@ -61,7 +51,7 @@ To learn more, read the [documentation](https://fonoster.github.io/routr). :book
 | Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.zip) |  
 | Docker | [img](https://hub.docker.com/r/fonoster/routr/) |  
 
-**Running with Docker**
+&#10123; Use the following command to run the server using docker
 
 ```bash
 docker pull fonoster/routr
@@ -73,12 +63,21 @@ docker run -it \
     -e ROUTR_EXTERN_ADDR=${your host address} \
     fonoster/routr
 ```
-**Running with any other platform**
 
-```bash
-cd routr.1.0.0-rc1
-./routr
+or if using `docker-compose`
+
 ```
+git clone https://github.com/fonoster/routr
+cd routr
+docker-compose pull
+docker-compose up --abort-on-container-exit
+```
+
+> for any other plattform use the executable `./routr`
+
+&#10124; Use the command-line tool `rctl` to control the server or to launch the `web console`
+
+> Instructions to install the command-line tool are available at https://github.com/fonoster/routr-ctl
 
 ## Bugs and Feedback
 
