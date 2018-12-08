@@ -1,13 +1,3 @@
-<h1 align="center">
-  <br>
-  <a href="https://routr.io"><img src="https://raw.githubusercontent.com/wiki/fonoster/routr/images/logo.png" alt="Running Routr" width="100"></a>
-  <br>
-  Routr
-  <br>
-</h1>
-
-<h4 align="center">Next-generation Sip Server</h4>
-
 <p align="center">
   <a href="#key-features">Key Features</a> •
   <a href="#quick-start">Quick Start</a> •
