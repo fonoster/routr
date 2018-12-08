@@ -1,27 +1,30 @@
-<!--<h1 align="center">
+<h1 align="center">
   <br>
-  <a href="http://github.com/fonoster/routr"><img src="https://raw.githubusercontent.com/wiki/fonoster/routr/images/logo.png" alt="Running Routr" width="150"></a>
+  <a href="https://routr.io"><img src="https://raw.githubusercontent.com/wiki/fonoster/routr/images/logo.png" alt="Running Routr" width="100"></a>
   <br>
   Routr
   <br>
-</h1>-->
+</h1>
 
-<h2 align="left">Next-generation Sip Server.</h4>
+<h4 align="center">Next-generation Sip Server</h4>
 
-<p align="left">
-  <a href="https://opensource.org/licenses/MIT">
-    <img src="https://img.shields.io/badge/License-MIT-blue.svg"
-         alt="License: MIT">
-  </a>
-</p>
-
-<p align="left">
+<p align="center">
   <a href="#key-features">Key Features</a> •
   <a href="#quick-start">Quick Start</a> •
+  <a href="https://routr.io">Docs</a> •
   <a href="#bugs-and-feedback">Bugs and Feedback</a> •
   <a href="#Contributing">Contributing</a> •
   <a href="#license">License</a>
 </p>
+
+<div align="center">
+   <img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/running_sipio.gif" alt="Running Routr" with=700>
+</div>
+
+</br>
+
+[![Build Status](https://travis-ci.org/fonoster/routr.svg?branch=master)](https://travis-ci.org/fonoster/routr) [![Maintainability](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/maintainability)](https://codeclimate.com/github/fonoster/routr/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/test_coverage)](https://codeclimate.com/github/fonoster/routr/test_coverage) [![Join the chat at https://gitter.im/fonoster/routr](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sip-io/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="license: MIT"></a>
 
 ## Key Features
 
