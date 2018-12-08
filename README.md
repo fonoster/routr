@@ -18,7 +18,7 @@
 </p>
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/wiki/fonoster/sipio/images/running_sipio.gif" alt="Running Routr" with=700>
+   <img src="https://raw.githubusercontent.com/fonoster/routr/master/website/static/img/routr_animation.gif" alt="Running Routr">
 </div>
 
 </br>
