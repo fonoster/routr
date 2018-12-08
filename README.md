@@ -40,7 +40,7 @@
   - Domain Access Control List (DACL)
   - Restful service secured with TLS and JWT tokens
 
-To learn more, read the [documentation](https://fonoster.github.io/routr). :books:
+To learn more, read the [documentation](https://routr.io). :books:
 
 ## Quick Start
 
@@ -96,4 +96,4 @@ For contributing, please see the following links:
  - [Pedro Sanders](https://github.com/psanders)
 
 ## LICENSE
-Copyright (C) 2018 by [Fonoster Inc](https://github.com/fonoster). MIT License (see [LICENSE](https://github.com/fonoster/routr/blob/master/LICENSE) for details).
+Copyright (C) 2018 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/routr/blob/master/LICENSE) for details).
