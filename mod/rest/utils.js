@@ -12,8 +12,8 @@ export default class RestUtil {
 
     static createFromFile(req, api) {
         if (req.contentType().indexOf('multipart/form-data') !== -1) {
-            req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"))
-            const is = req.raw().getPart("file").getInputStream()
+            req.attribute('org.eclipse.jetty.multipartConfig', new MultipartConfigElement('/temp'))
+            const is = req.raw().getPart('file').getInputStream()
             const fileContent = IOUtils.toString(is, StandardCharsets.UTF_8.name());
             const jsonObjs = DSUtil.convertToJson(fileContent)
             let compoundResponse = ''

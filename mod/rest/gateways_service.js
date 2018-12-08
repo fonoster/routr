@@ -14,39 +14,29 @@ const before = Packages.spark.Spark.before
 
 export default function (gatewaysAPI, salt) {
 
-    before("/gateways", (req, res) => parameterAuthFilter(req, res, salt))
+    before('/gateways', (req, res) => parameterAuthFilter(req, res, salt))
 
-    before("/gateways/*", (req, res) => parameterAuthFilter(req, res, salt))
+    before('/gateways/*', (req, res) => parameterAuthFilter(req, res, salt))
 
-    post('/gateways', (req, res) => {
-        return RestUtil.createFromFile(req, gatewaysAPI)
-    })
+    post('/gateways', (req, res) => RestUtil.createFromFile(req, gatewaysAPI))
 
     get('/gateways', (req, res) => {
         let filter = ''
-        if(!isEmpty(req.queryParams("filter"))) filter = req.queryParams("filter")
+        if(!isEmpty(req.queryParams('filter'))) filter = req.queryParams('filter')
         const response = gatewaysAPI.getGateways(filter)
         return JSON.stringify(response)
     })
 
-    get('/gateways/:ref', (req, res) => {
-        const ref = req.params(":ref")
-        const response = gatewaysAPI.getGateway(ref)
-        return JSON.stringify(response)
-    })
+    get('/gateways/:ref', (req, res) => JSON.stringify(gatewaysAPI.getGateway(req.params(':ref'))))
 
     put('/gateways/:ref', (req, res) => {
-        const ref = req.params(":ref")
+        const ref = req.params(':ref')
         const jsonObj = JSON.parse(req.body())
         jsonObj.metadata.ref = ref
         const response = gatewaysAPI.updateFromJSON(jsonObj)
         return JSON.stringify(response)
     })
 
-    del('/gateways/:ref', (req, es) => {
-        const ref = req.params(":ref")
-        const response = gatewaysAPI.deleteGateway(ref)
-        return JSON.stringify(response)
-    })
+    del('/gateways/:ref', (req, es) => JSON.stringify(gatewaysAPI.deleteGateway(req.params(':ref'))))
 
 }

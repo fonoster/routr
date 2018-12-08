@@ -20,34 +20,28 @@ export default class PeersService {
     }
 
     attachEndpoints() {
-        before("/peers", (req, res) => parameterAuthFilter(req, res, this.salt))
-        before("/peers/*", (req, res) => parameterAuthFilter(req, res, this.salt))
+        before('/peers', (req, res) => parameterAuthFilter(req, res, this.salt))
 
-        post('/peers', (req, res) => {
-            return RestUtil.createFromFile(req, this.peersAPI)
-        })
+        before('/peers/*', (req, res) => parameterAuthFilter(req, res, this.salt))
+
+        post('/peers', (req, res) => RestUtil.createFromFile(req, this.peersAPI))
 
         get('/peers', (req, res) => {
             let filter = ''
-            if(!isEmpty(req.queryParams("filter"))) {
-                filter = req.queryParams("filter")
+            if(!isEmpty(req.queryParams('filter'))) {
+                filter = req.queryParams('filter')
             }
             return JSON.stringify(this.peersAPI.getPeers(filter))
         })
 
-        get('/peers/:ref', (req, res) => {
-            return JSON.stringify(this.peersAPI.getPeer(req.params(":ref")))
-        })
+        get('/peers/:ref', (req, res) => JSON.stringify(this.peersAPI.getPeer(req.params(':ref'))))
 
         put('/peers/:ref', (req, res) => {
             const jsonObj = JSON.parse(req.body())
-            jsonObj.metadata.ref = req.params(":ref")
+            jsonObj.metadata.ref = req.params(':ref')
             return JSON.stringify(this.peersAPI.updateFromJSON(jsonObj))
         })
 
-        del('/peers/:ref', (req, res) => {
-            const ref = req.params(":ref")
-            return JSON.stringify(this.peersAPI.deletePeer(ref))
-        })
+        del('/peers/:ref', (req, res) => JSON.stringify(this.peersAPI.deletePeer(req.params(':ref'))))
     }
 }

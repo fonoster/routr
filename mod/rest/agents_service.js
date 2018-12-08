@@ -14,38 +14,28 @@ const before = Packages.spark.Spark.before
 
 export default function (agentsAPI, salt) {
 
-    before("/agents", (req, res) => parameterAuthFilter(req, res, salt))
+    before('/agents', (req, res) => parameterAuthFilter(req, res, salt))
 
-    before("/agents/*", (req, res) => parameterAuthFilter(req, res, salt))
+    before('/agents/*', (req, res) => parameterAuthFilter(req, res, salt))
 
-    post('/agents', (req, res) => {
-        return RestUtil.createFromFile(req, agentsAPI)
-    })
+    post('/agents', (req, res) => RestUtil.createFromFile(req, agentsAPI))
 
     get('/agents', (req, res) => {
         let filter = ''
-        if(!isEmpty(req.queryParams("filter"))) filter = req.queryParams("filter")
+        if(!isEmpty(req.queryParams('filter'))) filter = req.queryParams('filter')
         const response = agentsAPI.getAgents(filter)
         return JSON.stringify(response)
     })
 
-    get('/agents/:ref', (req, res) => {
-        const ref = req.params(":ref")
-        const response = agentsAPI.getAgent(ref)
-        return JSON.stringify(response)
-    })
+    get('/agents/:ref', (req, res) => JSON.stringify(agentsAPI.getAgent(req.params(':ref'))))
 
     put('/agents/:ref', (req, res) => {
-        const ref = req.params(":ref")
+        const ref = req.params(':ref')
         const jsonObj = JSON.parse(req.body())
         jsonObj.metadata.ref = ref
         const response = agentsAPI.updateFromJSON(jsonObj)
         return JSON.stringify(response)
     })
 
-    del('/agents/:ref', (req, res) => {
-        const ref = req.params(":ref")
-        const response = agentsAPI.deleteAgent(ref)
-        return JSON.stringify(response)
-    })
+    del('/agents/:ref', (req, res) => JSON.stringify(agentsAPI.deleteAgent(req.params(':ref'))))
 }

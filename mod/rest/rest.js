@@ -35,7 +35,7 @@ export default class Rest {
         this.server = server
         this.config = config
 
-        LOG.info("Starting Restful service (port: " + this.rest.port + ", apiPath: '" + this.system.apiPath + "')")
+        LOG.info('Starting Restful service (port: ' + this.rest.port + ', apiPath: ' + this.system.apiPath + ')')
 
         Spark.ipAddress(this.rest.bindAddr)
 
@@ -48,12 +48,12 @@ export default class Rest {
 
         Spark.port(this.rest.port)
         Spark.internalServerError((req, res) => {
-            res.type("application/json")
-            return "{\"status\": \"500\", \"message\":\"Internal server error\"}";
+            res.type('application/json')
+            return '{\"status\": \"500\", \"message\":\"Internal server error\"}';
         })
         Spark.notFound((req, res) => {
-            res.type("application/json")
-            return "{\"status\": \"404\", \"message\":\"Not found\"}";
+            res.type('application/json')
+            return '{\"status\": \"404\", \"message\":\"Not found\"}';
         })
     }
 
@@ -86,16 +86,16 @@ export default class Rest {
             before('/registry',  (req, res) => parameterAuthFilter(req, res, this.config.salt))
 
             // Its always running! Use to ping Sip IO server
-            get('/system/status', (req, res) => "{\"status\": \"Up\"}")
+            get('/system/status', (req, res) => '{\"status\": \"Up\"}')
 
             post('/system/status/:status', (req, res) => {
                 // halt or error
-                const status = req.params(":status")
-                if (status.equals("down")) {
+                const status = req.params(':status')
+                if (status.equals('down')) {
                     this.server.stop()
                 } else {
                     res.status(401);
-                    res.body("{\"status\": \"400\", \"message\":\"Bad Request\"}")
+                    res.body('{\"status\": \"400\", \"message\":\"Bad Request\"}')
                 }
             })
 
