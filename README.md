@@ -75,8 +75,9 @@ docker-compose up --abort-on-container-exit
 
 > for any other plattform use the executable `./routr`
 
-&#10124; Use the `rctl` to control the server or to launch the `web console`
+&#10124; Use the command-line tool `rctl` to control the server or to launch the `web console`
 
+> Instructions to install the command-line tool are available at https://github.com/fonoster/routr-ctl
 
 ## Bugs and Feedback
 
