@@ -42,7 +42,7 @@ To learn more, read the [documentation](https://fonoster.github.io/routr). :book
 
 ## Quick Start
 
-**Download the server**
+&#10122; Download the server for your plattform
 
 | Platform | Download |
 | -- | -- |
@@ -51,7 +51,7 @@ To learn more, read the [documentation](https://fonoster.github.io/routr). :book
 | Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.zip) |  
 | Docker | [img](https://hub.docker.com/r/fonoster/routr/) |  
 
-**Running with Docker**
+&#10123; Use the following command to run the server using docker
 
 ```bash
 docker pull fonoster/routr
@@ -63,12 +63,20 @@ docker run -it \
     -e ROUTR_EXTERN_ADDR=${your host address} \
     fonoster/routr
 ```
-**Running with any other platform**
 
-```bash
-cd routr.1.0.0-rc1
-./routr
+or if using `docker-compose`
+
 ```
+git clone https://github.com/fonoster/routr
+cd routr
+docker-compose pull
+docker-compose up --abort-on-container-exit
+```
+
+> for any other plattform use the executable `./routr`
+
+&#10124; Use the `rctl` to control the server or to launch the `web console`
+
 
 ## Bugs and Feedback
 
