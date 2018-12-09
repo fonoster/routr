@@ -1,4 +1,4 @@
-<h1>Routr > Next-generation Sip Server</h1>
+# Routr: Next-generation Sip Server
 
 <p align="left">
   <a href="#key-features">Key Features</a> •
