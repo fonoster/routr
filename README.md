@@ -77,7 +77,7 @@ docker-compose pull
 docker-compose up --abort-on-container-exit
 ```
 
-> for any other plattform use the executable `./routr`
+for any other plattform use the `./routr` command at the root of your download
 
 &#10124; Use the command-line tool `rctl` to control the server or to launch the `web console`
 
