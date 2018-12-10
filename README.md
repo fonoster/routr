@@ -18,6 +18,8 @@
   <a href="#license">License</a>
 </p>
 
+`Routr` is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. To get involved in the development of this project please contact us at @fonoster.
+
 ## Key Features
 
 - Proxy
