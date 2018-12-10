@@ -43,29 +43,24 @@ class Footer extends React.Component {
             <a href={this.docUrl('../api-reference.html', this.props.language)}>
               API Reference
             </a>
+            <a href={this.docUrl('../faqs.html', this.props.language)}>
+              FAQs
+            </a>
           </div>
           <div>
             <h5>Community</h5>
-            <a href={"https://fonoster.com"}>
-              User Showcase
-            </a>
             <a
               href="http://stackoverflow.com/questions/tagged/routr"
               target="_blank"
               rel="noreferrer noopener">
               Stack Overflow
             </a>
-            <a href="https://gitter.im/sip-io/Lobby">Project Chat</a>
-            <a
-              href="https://twitter.com/fonoster"
-              target="_blank"
-              rel="noreferrer noopener">
-              Twitter
-            </a>
+            <a href="https://gitter.im/fonoster/routr">Gitter</a>
+            <a href="https://fonosterteam.typeform.com/to/Xy8Oc0">Slack</a>
+            <a href="https://spectrum.chat/routr">Spectrum Community</a>
           </div>
           <div>
             <h5>More</h5>
-            <a href={this.props.config.baseUrl + 'blog'}>Blog</a>
             <a href="https://github.com/fonoster/routr">GitHub</a>
             <a
               className="github-button"

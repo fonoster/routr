@@ -40,7 +40,7 @@ const siteConfig = {
     {doc: 'getting-started-introduction', label: 'Docs'},
     {doc: 'api-reference', label: 'API'},
     {page: 'help', label: 'Help'},
-    {blog: false, label: 'Blog'},
+    //{blog: false, label: 'GitHub'},
   ],
 
   // If you have users set above, you add it here:
