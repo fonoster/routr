@@ -22,10 +22,6 @@
 
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Next-generation%20SIP%20Server&url=https://github.com/fonoster/routr&via=fonoster&hashtags=voip,sip,webrtc,telephony)
 
-<br />
-
-**Discuss it on [Product Hunt](https://www.producthunt.com/posts/froala-design-blocks-2-2) 🦄**
-
 ## Key Features
 
 - Proxy
