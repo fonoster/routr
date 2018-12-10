@@ -86,8 +86,8 @@ class Footer extends React.Component {
           rel="noreferrer noopener"
           className="fbOpenSource">
           <img
-            src={"http://fonoster.com/assets/images/logo.png"}
-            alt="Fonoster Open Source"
+            src={"https://fonoster.com/assets/images/logo.png"}
+            alt="Fonoster OSS"
             width="170"
           />
         </a>
