@@ -41,6 +41,10 @@ const siteConfig = {
     {doc: 'api-reference', label: 'API'},
     {page: 'help', label: 'Help'},
     //{blog: false, label: 'GitHub'},
+    {
+      href: 'https://github.com/fonoster/routr',
+      label: 'GitHub',
+    },
   ],
 
   // If you have users set above, you add it here:
