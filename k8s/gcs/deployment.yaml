@@ -1,0 +1,54 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: routr
+  labels:
+    app: routr
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: routr
+        tier: signaling
+    spec:
+      containers:
+      - name: routr
+        image: fonoster/routr
+        imagePullPolicy: Always
+        command: ["/bin/sh"]
+        args: ["-c", "sh /opt/routr/entrypoint.sh"]
+        env:
+        # Uncommend to point to an external redis
+        #- name: ROUTR_DS_PROVIDER
+        #  value: 'redis_data_provider'
+        #- name: ROUTR_DS_PARAMETERS
+        #  value: 'host=redis,port=6379'
+        - name: ROUTR_EXTERN_ADDR
+          value: '35.231.210.78'        # This must be set manually (for now...)
+        ports:
+         - containerPort: 5060
+           name: sip
+         - containerPort: 4567
+           name: https
+        volumeMounts:
+          - name: routr-config
+            mountPath: /opt/routr/config/config.yml
+            subPath: config.yml
+          - name: routr-entrypoint
+            mountPath: /opt/routr/entrypoint.sh
+            subPath: entrypoint.sh
+          - name: routr-bootstrap
+            mountPath: /opt/routr/bootstrap.yml
+            subPath: bootstrap.yml
+      volumes:
+      - name: routr-config
+        configMap:
+          name: routr-config
+      - name: routr-entrypoint
+        configMap:
+          name: routr-entrypoint
+      - name: routr-bootstrap
+        configMap:
+          name: routr-bootstrap
