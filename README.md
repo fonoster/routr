@@ -1,6 +1,6 @@
-<div align="left">
-   <img src="https://raw.githubusercontent.com/fonoster/routr/master/brand.png" alt="Routr Logo" height="100">
-</div>
+
+<img src="https://raw.githubusercontent.com/fonoster/routr/master/brand.png" alt="Routr Logo" height="100">
+
 
 <br />
 <br />
