@@ -13,7 +13,7 @@
         <meta name="description" content="Next-generation SIP Server">
       
       
-        <link rel="canonical" href="https://routr.io/">
+        <link rel="canonical" href="https://routr.io/guide-routr-as-asterisk-frontend/">
       
       
         <meta name="author" content="Pedro Sanders">
@@ -42,13 +42,13 @@
     
     
       
-        <title>Undertanding Routr</title>
+        <title>Routr as Asterisk Frontend</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/application.11e41852.css">
+      <link rel="stylesheet" href="../assets/stylesheets/application.11e41852.css">
       
-        <link rel="stylesheet" href="assets/stylesheets/application-palette.22915126.css">
+        <link rel="stylesheet" href="../assets/stylesheets/application-palette.22915126.css">
       
       
         
@@ -57,7 +57,7 @@
       
     
     
-      <script src="assets/javascripts/modernizr.20ef595d.js"></script>
+      <script src="../assets/javascripts/modernizr.20ef595d.js"></script>
     
     
       
@@ -66,7 +66,7 @@
         <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
       
     
-    <link rel="stylesheet" href="assets/fonts/material-icons.css">
+    <link rel="stylesheet" href="../assets/fonts/material-icons.css">
     
     
     
@@ -105,7 +105,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#features" tabindex="1" class="md-skip">
+      <a href="#requirements" tabindex="1" class="md-skip">
         Skip to content
       </a>
     
@@ -204,7 +204,7 @@
                 Routr Documentation
               </span>
               <span class="md-header-nav__topic">
-                Introduction
+                Routr as Asterisk frontend
               </span>
             
           
@@ -326,52 +326,11 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        Introduction
-      </label>
-    
-    <a href="." title="Introduction" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href=".." title="Introduction" class="md-nav__link">
       Introduction
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#features" title="Features" class="md-nav__link">
-    Features
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#key-concepts" title="Key Concepts" class="md-nav__link">
-    Key Concepts
-  </a>
-  
-</li>
-      
-      
-      
-      
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
     
@@ -381,7 +340,7 @@
 
 
   <li class="md-nav__item">
-    <a href="getting-started-installation/" title="Installation" class="md-nav__link">
+    <a href="../getting-started-installation/" title="Installation" class="md-nav__link">
       Installation
     </a>
   </li>
@@ -393,7 +352,7 @@
 
 
   <li class="md-nav__item">
-    <a href="getting-started-routing/" title="Routing Methods" class="md-nav__link">
+    <a href="../getting-started-routing/" title="Routing Methods" class="md-nav__link">
       Routing Methods
     </a>
   </li>
@@ -405,7 +364,7 @@
 
 
   <li class="md-nav__item">
-    <a href="api-cli-commands/" title="Command Line" class="md-nav__link">
+    <a href="../api-cli-commands/" title="Command Line" class="md-nav__link">
       Command Line
     </a>
   </li>
@@ -436,7 +395,7 @@
 
 
   <li class="md-nav__item">
-    <a href="api-reference/" title="Reference" class="md-nav__link">
+    <a href="../api-reference/" title="Reference" class="md-nav__link">
       Reference
     </a>
   </li>
@@ -448,7 +407,7 @@
 
 
   <li class="md-nav__item">
-    <a href="api-resources/" title="Resources" class="md-nav__link">
+    <a href="../api-resources/" title="Resources" class="md-nav__link">
       Resources
     </a>
   </li>
@@ -463,10 +422,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6" checked>
     
     <label class="md-nav__link" for="nav-6">
       Guides
@@ -484,7 +445,7 @@
 
 
   <li class="md-nav__item">
-    <a href="guide-voip-network-setup/" title="Voip Network Setup" class="md-nav__link">
+    <a href="../guide-voip-network-setup/" title="Voip Network Setup" class="md-nav__link">
       Voip Network Setup
     </a>
   </li>
@@ -494,11 +455,73 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="guide-routr-as-asterisk-frontend/" title="Routr as Asterisk frontend" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Routr as Asterisk frontend
+      </label>
+    
+    <a href="./" title="Routr as Asterisk frontend" class="md-nav__link md-nav__link--active">
       Routr as Asterisk frontend
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" title="Requirements" class="md-nav__link">
+    Requirements
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-overview" title="Configuration Overview" class="md-nav__link">
+    Configuration Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-asterisk" title="Configuring Asterisk" class="md-nav__link">
+    Configuring Asterisk
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calling-asterisk-from-johns-device" title="Calling Asterisk from John's device" class="md-nav__link">
+    Calling Asterisk from John's device
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-next" title="What’s Next?" class="md-nav__link">
+    What’s Next?
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -508,7 +531,7 @@
 
 
   <li class="md-nav__item">
-    <a href="guide-securing-the-signal/" title="Securing the Signaling Path" class="md-nav__link">
+    <a href="../guide-securing-the-signal/" title="Securing the Signaling Path" class="md-nav__link">
       Securing the Signaling Path
     </a>
   </li>
@@ -525,7 +548,7 @@
 
 
   <li class="md-nav__item">
-    <a href="api-webconsole/" title="Web Console" class="md-nav__link">
+    <a href="../api-webconsole/" title="Web Console" class="md-nav__link">
       Web Console
     </a>
   </li>
@@ -537,7 +560,7 @@
 
 
   <li class="md-nav__item">
-    <a href="faqs/" title="Faqs" class="md-nav__link">
+    <a href="../faqs/" title="Faqs" class="md-nav__link">
       Faqs
     </a>
   </li>
@@ -562,15 +585,36 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#features" title="Features" class="md-nav__link">
-    Features
+  <a href="#requirements" title="Requirements" class="md-nav__link">
+    Requirements
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-concepts" title="Key Concepts" class="md-nav__link">
-    Key Concepts
+  <a href="#configuration-overview" title="Configuration Overview" class="md-nav__link">
+    Configuration Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuring-asterisk" title="Configuring Asterisk" class="md-nav__link">
+    Configuring Asterisk
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calling-asterisk-from-johns-device" title="Calling Asterisk from John's device" class="md-nav__link">
+    Calling Asterisk from John's device
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#whats-next" title="What’s Next?" class="md-nav__link">
+    What’s Next?
   </a>
   
 </li>
@@ -592,83 +636,107 @@
               
                 
                 
-                  <h1>Introduction</h1>
+                  <h1>Routr as Asterisk frontend</h1>
                 
-                <p><strong>Routr</strong> is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. To get involved in the development of this project please contact us at <a href="https://twitter.com/fonoster">@fonoster</a>.</p>
-<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+                <p>This guide explores the use case of using Asterisk merely as a Media Server and a more specialized software, like <strong>Routr</strong>, to take care of the signaling and resource management. In other words, Asterisk will be in charge of the ivrs, voice mail, call recording, while <strong>Routr</strong> deals with connecting Agents, Peers, and Gateways. The following illustration depicts our scenario:</p>
+<p><img src="/assets/images/peering_ilustration.png" width=600 vspace=50></p>
+<p><strong>Content</strong></p>
 <ul>
-<li>Proxy</li>
-<li>Registrar Service</li>
-<li>Location Service</li>
-<li>Call Forking</li>
-<li>Multi-Tenancy/Multi-Domain</li>
-<li>Access to the PSTN Using SIP Gateways</li>
-<li>Transport: TCP, UDP, TLS, WebSocket</li>
-<li>Data Sources: Redis, Restful API, Files</li>
-<li>Security</li>
-<li>Digest SIP User Authentication</li>
-<li>Domain Access Control List (DACL)</li>
-<li>RESTful service secured with TLS and JWT tokens</li>
-<li>Rest API</li>
-<li>Command Line Tool for Admin Operations</li>
-<li>Routing Capabilities</li>
-<li>Intra-Domain Routing (IDR)</li>
-<li>Domain Ingress Routing(DIR)</li>
-<li>Domain Egress Routing (DER)</li>
-<li>Peer Egress Routing (PER)</li>
+<li><a href="#requirements">Requirements</a></li>
+<li><a href="#configuration-overview">Configuration Overview</a></li>
+<li><a href="#configuring-asterisk">Configuring Asterisk</a></li>
+<li><a href="#calling-asterisk-from-johns-device">Calling Asterisk from John’s device</a></li>
+<li><a href="#whats-next">What’s Next?</a></li>
 </ul>
-<h2 id="key-concepts">Key Concepts<a class="headerlink" href="#key-concepts" title="Permanent link">&para;</a></h2>
-<p>This following table features some important concepts, including the different routing types implemented by the server.</p>
-<table>
-<thead>
-<tr>
-<th>Concept</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>User</td>
-<td>Users perform administrative actions on the server</td>
-</tr>
-<tr>
-<td>Agent</td>
-<td>Agents represent SIP endpoints such as softphones and IP phones</td>
-</tr>
-<tr>
-<td>Domain</td>
-<td>Enables the creation of isolated groups of Agents</td>
-</tr>
-<tr>
-<td>Peer</td>
-<td>Similar to Agents but without Domain boundaries</td>
-</tr>
-<tr>
-<td>Gateway</td>
-<td>SIP entity that allows call termination</td>
-</tr>
-<tr>
-<td>DID</td>
-<td>Routes and translate calls between the PSTN and Routr</td>
-</tr>
-<tr>
-<td>Intra-Domain Routing</td>
-<td>Routing type for calling within the same Domain</td>
-</tr>
-<tr>
-<td>Domain Ingress Routing</td>
-<td>Calling from the PSTN to an Agent or Peer</td>
-</tr>
-<tr>
-<td>Domain Egress Routing</td>
-<td>Calling from an Agent to the PSTN thru a Gateway</td>
-</tr>
-<tr>
-<td>Peer Egress Routing</td>
-<td>Similar to <em>DER</em> but applies only to Peers</td>
-</tr>
-</tbody>
-</table>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<p>This tutorial assumes the following:</p>
+<ul>
+<li>You have a SIP phone connected to the same LAN where Routr and Asterisk are in.</li>
+<li>If using a hardware phone, this can reach Asterisk and Routr and the other way around</li>
+<li>You have a fresh installation of Routr and Asterisk</li>
+</ul>
+<blockquote>
+<p>Before starting this guide make sure to have a fresh installation of <strong>Routr</strong> server.</p>
+</blockquote>
+<h2 id="configuration-overview">Configuration Overview<a class="headerlink" href="#configuration-overview" title="Permanent link">&para;</a></h2>
+<p>With a fresh installation of <strong>Routr</strong> you will have most of the configuration you need to follow this tutorial. We, however, need to make some minor changes to configuration files to run our scenario.</p>
+<p>The first file we will examine and change is <code>config/peers.yml</code>. Make note of the username and secret for the Peer "ast" since we will be using this to configure Asterisk. Also, search for the field <code>spec.device</code> and change it to match the Agents domain(<code>sip.local</code>). The file now will look similar to this:</p>
+<p><code>config/peers.yml</code></p>
+<div class="codehilite"><pre><span></span>- apiVersion: v1beta1
+  kind: Peer
+  metadata:
+    name: Asterisk PBX
+  spec:
+    device: &#39;sip.local&#39;
+    credentials:
+      username: ast
+      secret: &#39;1234&#39;
+</pre></div>
+
+<p>Head to the console and run the command <code>rctl -- get peers</code> to confirm that the Peer exist. The result should be as follows:</p>
+<p><img src="/assets/images/get_peers_cmd_output.png" width=600 ></p>
+<p>Next, we focus our attention to <code>domains.yml</code> and <code>agents.yml</code>. With a fresh installation, we don't need to make any changes to this files. However, you could run the commands <code>get domains</code> and <code>get agents</code> to ensure that both, the Agent and the Domain, exist on the server. Your output should look similar to:</p>
+<p><img src="/assets/images/get_domains_and_agents.png" width=600 ></p>
+<p>Use the information in <code>agents.yml</code> to configure your SIP phone. The relevant information is found in <code>spec.credentials</code>. Mine looks like this:</p>
+<p><img src="/assets/images/john_telephone_setup_general.png" width=500 >
+<img src="/assets/images/john_telephone_setup_advanced.png" width=500 ></p>
+<blockquote>
+<p>Make the adjustments based on your prefer SIP phone.</p>
+</blockquote>
+<p>You can verify that your device registered correctly with <strong>Routr</strong> by running the <code>locate</code> command:</p>
+<p><img src="/assets/images/locate_john.png" width=600 ></p>
+<h2 id="configuring-asterisk">Configuring Asterisk<a class="headerlink" href="#configuring-asterisk" title="Permanent link">&para;</a></h2>
+<p><strong>Using PJSIP</strong></p>
+<p>Backup your <code>pjsip.conf</code> and <code>pjsip_wizard.conf</code>. Update your pjsip.conf with the following:</p>
+<div class="codehilite"><pre><span></span>[transport-tcp]
+type=transport
+protocol=tcp
+bind=0.0.0.0:6060
+</pre></div>
+
+<p>Then, in your pjsip_wizard.conf:</p>
+<div class="codehilite"><pre><span></span>[routr]
+type = wizard
+sends_auth = yes
+sends_registrations = yes
+remote_hosts = 192.168.1.2
+outbound_auth/username = ast
+outbound_auth/password = 1234
+registration/retry_interval = 10
+registration/expiration = 900
+endpoint/allow = ulaw
+endpoint/allow = alaw
+endpoint/allow = opus
+endpoint/context = default
+transport = transport-tcp
+</pre></div>
+
+<p><strong>Using the "old" Chan SIP</strong></p>
+<p>First backup your <code>sip.conf</code>. Then, replace your configuration and edit the file to reflect the following:</p>
+<div class="codehilite"><pre><span></span>[general]
+udpbindaddr=0.0.0.0:6060
+context=default
+register =&gt; ast:1234@192.168.1.2:5060/1001    ; This information must match the credentials in `config/peers.yml`
+</pre></div>
+
+<p><strong>Configuring the Dialplan</strong></p>
+<p>We are going to use a very simple dialplan to play a sound file. Again, make a backup of your configuration and replace its content with this:</p>
+<div class="codehilite"><pre><span></span>[default]
+exten =&gt; 1001,1,Answer
+exten =&gt; 1001,n,Playback(tt-monkeys)
+exten =&gt; 1001,n,Hangup
+</pre></div>
+
+<p>Restart your Asterisk and check the location service. A new device will appear.</p>
+<p><img src="/assets/images/locate_john_and_ast.png" width=600 ></p>
+<h2 id="calling-asterisk-from-johns-device">Calling Asterisk from John's device<a class="headerlink" href="#calling-asterisk-from-johns-device" title="Permanent link">&para;</a></h2>
+<p>We can now call <code>ast@sip.local</code> and if everything went well listen to a group of really annoying monkeys :).</p>
+<h2 id="whats-next">What’s Next?<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
+<p>You can check out the <a href="https://github.com/fonoster../wiki/Home">wiki</a> to see more examples. If you have any questions start an issue or contact us via:</p>
+<ul>
+<li>Twitter: <a href="https://twitter.com/fonoster">@fonoster</a></li>
+<li>Email: <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#102;&#111;&#110;&#111;&#115;&#116;&#101;&#114;&#116;&#101;&#97;&#109;&#64;&#102;&#111;&#110;&#111;&#115;&#116;&#101;&#114;&#46;&#99;&#111;&#109;">&#102;&#111;&#110;&#111;&#115;&#116;&#101;&#114;&#116;&#101;&#97;&#109;&#64;&#102;&#111;&#110;&#111;&#115;&#116;&#101;&#114;&#46;&#99;&#111;&#109;</a></li>
+</ul>
                 
                   
                 
@@ -695,11 +763,30 @@
 
         <!-- Link to previous page -->
         
+          <a href="../guide-voip-network-setup/"
+              title="Voip Network Setup"
+              class="md-flex md-footer-nav__link md-footer-nav__link--prev"
+              rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back
+                    md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch
+                  md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Voip Network Setup
+              </span>
+            </div>
+          </a>
+        
 
         <!-- Link to next page -->
         
-          <a href="getting-started-installation/"
-              title="Installation"
+          <a href="../guide-securing-the-signal/"
+              title="Securing the Signaling Path"
               class="md-flex md-footer-nav__link md-footer-nav__link--next"
               rel="next">
             <div class="md-flex__cell md-flex__cell--stretch
@@ -708,7 +795,7 @@
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Installation
+                Securing the Signaling Path
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">
@@ -743,7 +830,7 @@
       
         
   <div class="md-footer-social">
-    <link rel="stylesheet" href="assets/fonts/font-awesome.css">
+    <link rel="stylesheet" href="../assets/fonts/font-awesome.css">
     
       <a href="https://fonoster.com" class="md-footer-social__link fa fa-globe"></a>
     
@@ -762,9 +849,9 @@
       
     </div>
     
-      <script src="assets/javascripts/application.9e1f3b71.js"></script>
+      <script src="../assets/javascripts/application.9e1f3b71.js"></script>
       
-      <script>app.initialize({version:"1.0.4",url:{base:"."}})</script>
+      <script>app.initialize({version:"1.0.4",url:{base:".."}})</script>
       
     
     
