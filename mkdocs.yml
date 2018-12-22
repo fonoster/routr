@@ -7,7 +7,7 @@ site_url: https://routr.io
 # Repository
 repo_name: fonoster/routr
 repo_url: https://github.com/fonoster/routr
-edit_uri: ""
+edit_uri: /fonoster/routr/edit/master/docs/
 
 nav:
   - Introduction: index.md
@@ -57,7 +57,7 @@ extra:
     - type: twitter
       link: https://twitter.com/fonoster
     - type: linkedin
-      link: https://linkedin.com/in/fonoster
+      link: https://www.linkedin.com/company/fonoster/about/
 
 markdown_extensions:
   - markdown.extensions.admonition
