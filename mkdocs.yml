@@ -22,6 +22,7 @@ nav:
     - Routr as Asterisk frontend: guide-routr-as-asterisk-frontend.md
     - Securing the Signaling Path: guide-securing-the-signal.md
   - Web Console: api-webconsole.md
+  - Community: community.md
   - Faqs: faqs.md
 
 # Copyright

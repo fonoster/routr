@@ -1,8 +1,3 @@
----
-id: faqs
-title: Frequently asked questions
----
-
 Here is a list of common questions we get.
 
 ## 1. How do I change the server's password?
