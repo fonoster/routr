@@ -1,8 +1,8 @@
 # Project information
-site_name: Routr Documentation
+site_name: Documentation
 site_description: Next-generation SIP Server
 site_author: Pedro Sanders
-site_url: https://routr.io
+site_url: https://routr.io/docs
 
 # Repository
 repo_name: fonoster/routr
@@ -46,7 +46,7 @@ theme:
   font:
     text: Roboto
     code: Roboto Mono
-  favicon: /assets/images/favicon/favicon.ico
+  favicon: docs/assets/images/favicon/favicon.ico
 
 extra:
   social:

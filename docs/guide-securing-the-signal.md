@@ -7,7 +7,7 @@ Follow this guide to secure the signaling between your endpoints and **Routr**. 
 
 > For this guide we will use a fictitious domain name to demonstrate the process of securing the signaling path
 
-<img src="/assets/images/secure_signaling.png" width=600 vspace=30>
+<img src="/docs/assets/images/secure_signaling.png" width=600 vspace=30>
 
 ## Creating a Java Keystore(.JKS) Certificate
 
@@ -94,8 +94,8 @@ openssl s_client -host 192.168.1.2 -port 5061    # Remember to use Routr's IP
 
 Go to the account that you want to secure, select `Advanced -> Sip Signaling` and change the parameter `Primary Proxy` to `${proxyHost}:${proxyPort};transport=tls`. See the example in the following image:
 
-<img src="/assets/images/blinkpro_tls_config.png" width=600>
+<img src="/docs/assets/images/blinkpro_tls_config.png" width=600>
 
 If everything went well you should see a green padlock like the one in the image bellow:
 
-<img src="/assets/images/blinkpro_tls_secured.png" width=400>
+<img src="/docs/assets/images/blinkpro_tls_secured.png" width=400>
