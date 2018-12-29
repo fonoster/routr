@@ -105,6 +105,10 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
+      <a href="#contributing" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
     
       
 <style>
@@ -161,8 +165,8 @@
 <div class="brand-header">
   <a href="/"><img src="/docs/assets/logo.png" height="45"/></a>
   <ul id="menu">
-      <li><a href="/docs/community">Community</a></li>
-      <li><a href="/docs">About</a></li>
+      <li><a href="/community">Community</a></li>
+      <li><a href="/">About</a></li>
   </ul>
 </div>
 
@@ -498,9 +502,64 @@
     <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
     
     
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Community
+      </label>
+    
     <a href="./" title="Community" class="md-nav__link md-nav__link--active">
       Community
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#contributing" title="CONTRIBUTING" class="md-nav__link">
+    CONTRIBUTING
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developer-summits" title="DEVELOPER SUMMITS" class="md-nav__link">
+    DEVELOPER SUMMITS
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-of-conduct" title="CODE OF CONDUCT" class="md-nav__link">
+    CODE OF CONDUCT
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commercial-support" title="COMMERCIAL SUPPORT" class="md-nav__link">
+    COMMERCIAL SUPPORT
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgements" title="ACKNOWLEDGEMENTS" class="md-nav__link">
+    ACKNOWLEDGEMENTS
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -524,6 +583,63 @@
               </div>
             
             
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#contributing" title="CONTRIBUTING" class="md-nav__link">
+    CONTRIBUTING
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developer-summits" title="DEVELOPER SUMMITS" class="md-nav__link">
+    DEVELOPER SUMMITS
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-of-conduct" title="CODE OF CONDUCT" class="md-nav__link">
+    CODE OF CONDUCT
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commercial-support" title="COMMERCIAL SUPPORT" class="md-nav__link">
+    COMMERCIAL SUPPORT
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgements" title="ACKNOWLEDGEMENTS" class="md-nav__link">
+    ACKNOWLEDGEMENTS
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
@@ -534,9 +650,33 @@
                 
                   <h1>Community</h1>
                 
-                <p>We are currently on <a href="https://gitter.im/fonoster/routr">Gitter</a>,
-<a href="https://spectrum.chat/routr">Spectrum Chat</a>, and <a href="https://fonosterteam.typeform.com/to/Xy8Oc0">Slack</a>.
-Come hangout with us, and chat about any issue, questions or ideas. We will be more than happy to guide you through, until your mission success!</p>
+                <p>Routr is developed in the open. Here are some of the channels we use to communicate and contribute:</p>
+<p><strong>IRC</strong>: <code>#routr</code> on <a href="https://freenode.net/">irc.freenode.net</a> (for the easiest start, join via <a href="https://riot.im/app/#/room/#routr:matrix.org">Riot</a>)</p>
+<p>(The IRC channel connects our <a href="https://gitter.im/fonoster/routr">Gitter</a> and <a href="https://fonosterteam.typeform.com/to/Xy8Oc0">Slack</a> communities)</p>
+<p><strong>User mailing lists:</strong></p>
+<ul>
+<li><a href="https://groups.google.com/forum/#!forum/routr-announce">routr-announce</a> – for announcements like new releases</li>
+<li><a href="https://groups.google.com/forum/#!forum/routr-users">routr-users</a> – for discussions around Routr usage and community support</li>
+</ul>
+<p><strong>Twitter:</strong> <a href="https://twitter.com/fonoster">@Fonoster</a></p>
+<p><strong>Issue tracker:</strong> Use the GitHub issue tracker for the various <a href="https://github.com/fonoster/">Routr repositories</a> to file bugs and features request. If you need support, please send your questions to the routr-users mailing list rather than filing a GitHub issue.</p>
+<blockquote>
+<p>Please do not ask individual project members for support. Use the channels above instead, where the whole community can help you and benefit from the solutions provided. If community support is insufficient for your situation, please refer to the Commercial Support section below.</p>
+</blockquote>
+<h2 id="contributing">CONTRIBUTING<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
+<p>We welcome community contributions! Please see the CONTRIBUTING.md file in the respective Routr repository for instructions on how to submit changes. If you are planning on making more elaborate or controversial changes, please discuss them on the mailing list before sending a pull request.</p>
+<p>Development mailing list: <a href="https://groups.google.com/forum/#!forum/routr-developers">routr-developers</a> – for discussions around Routr development</p>
+<h2 id="developer-summits">DEVELOPER SUMMITS<a class="headerlink" href="#developer-summits" title="Permanent link">&para;</a></h2>
+<p>We strive to be as open and public as possible. Technical discussions happen on the development list, our in-person meeting notes are public, and we have public calls. Below, you can find links to our developer summits at JConfDominicana 2019. These deveolper summits are open to join upon request as long as we have capacity. Preference is given to friendly projects and companies, plus diversity. Attendees are free not to be listed in the public meeting notes.</p>
+<p>2019 developer summit notes (Come back to see updated link)</p>
+<h2 id="code-of-conduct">CODE OF CONDUCT<a class="headerlink" href="#code-of-conduct" title="Permanent link">&para;</a></h2>
+<p>To make Routr a welcoming and harassment-free experience for everyone, we follow the <a href="https://github.com/fonoster/routr/blob/master/CODE_OF_CONDUCT.md">Contributor Covenant Code of Conduct</a>.</p>
+<h2 id="commercial-support">COMMERCIAL SUPPORT<a class="headerlink" href="#commercial-support" title="Permanent link">&para;</a></h2>
+<p>This is a list of third-party companies and individuals who provide products or services related to Routr. Routr is an independent open source project which does not endorse any company. The list is provided in alphabetical order.</p>
+<p><a href="https://github.com/psanders">Pedro Sanders</a> (independent contractor)</p>
+<h2 id="acknowledgements">ACKNOWLEDGEMENTS<a class="headerlink" href="#acknowledgements" title="Permanent link">&para;</a></h2>
+<p>Routr was initially started by <a href="https://github.com/psanders">Pedro Sanders</a>. The majority of its development has been sponsored by <a href="https://fonoster.com">Fonoster</a>.</p>
+<p>The Routr logo was contributed by Pedro Sanders.</p>
                 
                   
                 
