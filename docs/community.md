@@ -2,6 +2,8 @@ Routr is developed in the open. Here are some of the channels we use to communic
 
 **IRC**: `#routr` on [irc.freenode.net](https://freenode.net/) (for the easiest start, join via [Riot](https://riot.im/app/#/room/#routr:matrix.org))
 
+(The IRC channel connects our [Gitter](https://gitter.im/fonoster/routr) and [Slack](https://fonosterteam.typeform.com/to/Xy8Oc0) communities)
+
 **User mailing lists:**
 
 - [routr-announce](https://groups.google.com/forum/#!forum/routr-announce) – for announcements like new releases
@@ -37,8 +39,6 @@ This is a list of third-party companies and individuals who provide products or 
 
 ## ACKNOWLEDGEMENTS
 
-Routr was initially started by [Pedro Sanders](https://github.com/psanders). The majority of its development has been sponsored by [Fonoster](https://fonoster.com). We would also like to acknowledge early contributions by engineers from Docker and Boxever.
-
-Special thanks to [Fonoster](https://fonoster.com) for providing hosting resources.
+Routr was initially started by [Pedro Sanders](https://github.com/psanders). The majority of its development has been sponsored by [Fonoster](https://fonoster.com).
 
 The Routr logo was contributed by Pedro Sanders.
