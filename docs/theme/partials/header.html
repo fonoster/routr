@@ -1,62 +1,94 @@
+<!-- Load an icon library to show a hamburger menu (bars) on small screens -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <style>
-  #menu {
-      position: absolute;
-      list-style-type:none;
-      top:5px;
-      right: 25px;
-      padding:0;
-      height:30px;
-      font-family:Arial;
-      font-size:16px;
-  }
-  #menu li {
-      float:left;
-      height:30px;
-      line-height:30px;
-  }
-  #menu li a {
-      display:block;
-      padding:0 20px;
-      color: #ECEFF1;
-      text-decoration:none;
-  }
-  #menu li a:hover {
-      text-decoration:none;
-      color: rgb(98, 190, 92);
+  /* Add a black background color to the top navigation */
+  .topnav {
+    background-color: #33383d;
+    overflow: hidden;
+    z-index: 10;
+    display: flex;
+    position: fixed;
+    width: 100%;
+    font-family:Arial;
   }
 
-  .brand-header {
-    height: 70px;
-    padding: 12px;
-    padding-left: 25px;
-    background-color: #33383d;
-    position: fixed;
-    top: 0;
-    width: 100vw;
-    transition: background-color 0.25s, color 0.25s, box-shadow 0.25s;
-    box-shadow: 0 0 6px rgba(0,0,0,.35);
-    z-index: 1000;
-    margin-bottom: 200px;
+  /* Style the links inside the navigation bar */
+  .topnav a {
+    float: left;
+    display: block;
+    color: #ECEFF1;
+    text-align: center;
+    padding: 25px 30px;
+    text-decoration: none;
+    font-size: 16px;
+  }
+
+  .topnav a:hover {
+    color: rgb(98, 190, 92);
+  }
+
+  /* Hide the link that should open and close the topnav on small screens */
+  .topnav .icon {
+    display: none;
+  }
+
+  /* When the screen is less than 600 pixels wide, hide all links, except for the first one ("Home"). Show the link that contains should open and close the topnav (.icon) */
+  @media screen and (max-width: 600px) {
+    .topnav a:not(:first-child) {display: none;}
+    .topnav a.icon {
+      float: right;
+      display: block;
+    }
+  }
+
+  /* The "responsive" class is added to the topnav with JavaScript when the user clicks on the icon. This class makes the topnav look good on small screens (display the links vertically instead of horizontally) */
+  @media screen and (max-width: 600px) {
+    .topnav.responsive {
+      display: block;
+    }
+    .topnav.responsive a.icon {
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+    .topnav.responsive a {
+      float: none;
+      display: block;
+      text-align: left;
+    }
   }
 
   div.md-content {
     margin-top: 60px;
   }
-
   div.md-sidebar {
     margin-top: 60px;
   }
-
 </style>
 
-<div class="brand-header">
+<div class="topnav" id="myTopnav">
   <a href="/"><img src="/docs/assets/logo.png" height="45"/></a>
-  <ul id="menu">
-      <li><a href="/community">Community</a></li>
-      <li><a href="/">About</a></li>
-  </ul>
+  <span style="flex:1"></span>
+  <a href="https://demo.routr.io">Demo</a>
+  <a href="/community">Community</a>
+  <a href="/">About</a>
+  <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+    <i class="fa fa-bars"></i>
+  </a>
 </div>
+
+<script type="text/javascript">
+  /* Toggle between adding and removing the "responsive" class to topnav when the user clicks on the icon */
+  function myFunction() {
+    var x = document.getElementById("myTopnav");
+    if (x.className === "topnav") {
+      x.className += " responsive";
+    } else {
+      x.className = "topnav";
+    }
+  }
+</script>
 
 <!-- Application header -->
 <header class="md-header" data-md-component="header" style="top: 70px; ">
