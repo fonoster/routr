@@ -1,0 +1,88 @@
+# Project information
+site_name: Documentation
+site_description: Next-generation SIP Server
+site_author: Pedro Sanders
+site_url: https://routr.io/docs
+
+# Repository
+repo_name: fonoster/routr
+repo_url: https://github.com/fonoster/routr
+edit_uri: /fonoster/routr/edit/master/docs/
+
+nav:
+  - Introduction: index.md
+  - Installation: getting-started-installation.md
+  - Routing Methods: getting-started-routing.md
+  - Command Line: api-cli-commands.md
+  - API:
+    - Reference: api-reference.md
+    - Resources: api-resources.md
+  - Guides:
+    - Voip Network Setup: guide-voip-network-setup.md
+    - Routr as Asterisk frontend: guide-routr-as-asterisk-frontend.md
+    - Securing the Signaling Path: guide-securing-the-signal.md
+  - Web Console: api-webconsole.md
+  - Community: community.md
+  - Faqs: faqs.md
+
+# Copyright
+copyright: 'Copyright &copy; 2018 Fonoster Inc'
+theme:
+  name: material
+  custom_dir: docs/theme
+
+  # 404 page
+  static_templates:
+    - 404.html
+
+  # Don't include MkDocs' JavaScript
+  include_search_page: false
+  search_index_only: true
+
+  # Default values, taken from mkdocs_theme.yml
+  language: en
+  palette:
+    primary: blue grey
+    accent: indigo
+  font:
+    text: Roboto
+    code: Roboto Mono
+  favicon: /assets/images/favicon.ico
+
+extra:
+  social:
+    - type: globe
+      link: https://fonoster.com
+    - type: github-alt
+      link: https://github.com/fonoster
+    - type: twitter
+      link: https://twitter.com/fonoster
+    - type: linkedin
+      link: https://www.linkedin.com/company/fonoster/about/
+
+markdown_extensions:
+  - markdown.extensions.admonition
+  - markdown.extensions.codehilite:
+      guess_lang: false
+  - markdown.extensions.def_list
+  - markdown.extensions.footnotes
+  - markdown.extensions.meta
+  - markdown.extensions.toc:
+      permalink: true
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
