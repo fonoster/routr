@@ -47,7 +47,7 @@ theme:
   font:
     text: Roboto
     code: Roboto Mono
-  favicon: /assets/images/favicon.png
+  favicon: /assets/images/favicon.ico
 
 extra:
   social:
