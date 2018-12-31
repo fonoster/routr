@@ -25,7 +25,7 @@ nav:
       - Transport Settings: configuration/general/transport.md
       - Signaling Security(TLS): configuration/general/signaling-security.md
       - Restful API: configuration/general/restful-api.md
-      - Datasource Setting: configuration/general/datasources.md
+      - Datasource Setting: configuration/general/datasource.md
       - Logging: configuration/general/logging.md
     - Users Configuration: configuration/users.md
     - Carriers(Gateways) Configuration: configuration/gateways.md
