@@ -1,8 +1,6 @@
 
 <img src="https://raw.githubusercontent.com/fonoster/routr/master/brand.png" alt="Routr Logo" height="100">
 
-
-<br />
 <br />
 
 [![Build Status](https://travis-ci.org/fonoster/routr.svg?branch=master)](https://travis-ci.org/fonoster/routr) [![Maintainability](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/maintainability)](https://codeclimate.com/github/fonoster/routr/maintainability) <!-- [![Test Coverage](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/test_coverage)](https://codeclimate.com/github/fonoster/routr/test_coverage)--> [![Join the chat Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/fonoster/routr?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
@@ -12,7 +10,7 @@
 <p align="left">
   <a href="#key-features">Key Features</a> •
   <a href="#quick-start">Quick Start</a> •
-  <a href="https://routr.io">Docs</a> •
+  <a href="https://routr.io/docs">Documentation</a> •
   <a href="#bugs-and-feedback">Bugs and Feedback</a> •
   <a href="#Contributing">Contributing</a> •
   <a href="#license">License</a>
@@ -46,7 +44,7 @@ Be sure to see the [demo](https://demo.routr.io/login)
   - Domain Access Control List (DACL)
   - Restful service secured with TLS and JWT tokens
 
-To learn more, read the [documentation](https://routr.io). :books:
+To learn more, read the [documentation](https://routr.io/docs). :books:
 
 ## Quick Start
 
