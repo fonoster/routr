@@ -70,8 +70,6 @@ cd routr-*
 ./routr
 ```
 
-> Instructions to install the command-line tool are available at https://github.com/fonoster/routr-ctl
-
 ## Bugs and Feedback
 
 For bugs, questions, and discussions please use the [Github Issues](https://github.com/fonoster/routr/issues)
