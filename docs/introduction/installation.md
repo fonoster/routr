@@ -1,8 +1,3 @@
----
-id: getting-started-installation
-title: Installation
----
-
 There are no special requirements to install the server. Just download, decompress, and move the folder to a location of your choice.
 
 ## Download the Server

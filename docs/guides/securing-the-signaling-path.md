@@ -1,8 +1,3 @@
----
-id: guide-securing-the-signal
-title: Securing the Signal
----
-
 Follow this guide to secure the signaling between your endpoints and **Routr**. Keep in mind that **Routr** will only secure the signaling and that the endpoints are ultimately responsible for securing the media.
 
 > For this guide we will use a fictitious domain name to demonstrate the process of securing the signaling path

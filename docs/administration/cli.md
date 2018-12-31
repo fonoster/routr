@@ -1,8 +1,3 @@
----
-id: api-cli-commands
-title: CLI Commands
----
-
 `rctl` is a command line interface for running commands against a **Routr** server. This overview covers `rctl` syntax, describes the command operations and provides common examples. For details about each command, including all the supported flags and subcommands, see the `rctl` reference documentation. This tool is part of Routr installation.
 
 ## Syntax

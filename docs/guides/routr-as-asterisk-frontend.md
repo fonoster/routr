@@ -1,8 +1,3 @@
----
-id: guide-routr-as-asterisk-frontend
-title: Routr as Asterisk Frontend
----
-
 This guide explores the use case of using Asterisk merely as a Media Server and a more specialized software, like **Routr**, to take care of the signaling and resource management. In other words, Asterisk will be in charge of the ivrs, voice mail, call recording, while **Routr** deals with connecting Agents, Peers, and Gateways. The following illustration depicts our scenario:
 
 <img src="/docs/assets/images/peering_ilustration.png" width=600 vspace=50>

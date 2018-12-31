@@ -1,8 +1,3 @@
----
-id: guide-voip-network-setup
-title: VoIP Network Setup
----
-
 This is a step-by-step guide on VoIP setup at home or at the office. For calls to the PSTN you will need to have a sip provider like `voip.ms` or `didlogic.com`.
 
 **Content**
