@@ -3,6 +3,7 @@ site_name: Documentation
 site_description: Next-generation SIP Server
 site_author: Pedro Sanders
 site_url: https://routr.io/docs
+google_analytics: ['UA-71722942-3', 'routr.io']
 
 # Repository
 repo_name: fonoster/routr
