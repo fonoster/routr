@@ -1,0 +1,1271 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+        <meta name="description" content="Next-generation SIP Server">
+      
+      
+        <link rel="canonical" href="https://routr.io/docs/concepts/">
+      
+      
+        <meta name="author" content="Pedro Sanders">
+      
+      
+        <meta name="lang:clipboard.copy" content="Copy to clipboard">
+      
+        <meta name="lang:clipboard.copied" content="Copied to clipboard">
+      
+        <meta name="lang:search.language" content="en">
+      
+        <meta name="lang:search.pipeline.stopwords" content="True">
+      
+        <meta name="lang:search.pipeline.trimmer" content="True">
+      
+        <meta name="lang:search.result.none" content="No matching documents">
+      
+        <meta name="lang:search.result.one" content="1 matching document">
+      
+        <meta name="lang:search.result.other" content="# matching documents">
+      
+        <meta name="lang:search.tokenizer" content="[\s\-]+">
+      
+      <link rel="shortcut icon" href="/assets/images/favicon.ico">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-3.1.0">
+    
+    
+      
+        <title>Concepts - Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/application.11e41852.css">
+      
+        <link rel="stylesheet" href="../assets/stylesheets/application-palette.22915126.css">
+      
+      
+        
+        
+        <meta name="theme-color" content="#546e7a">
+      
+    
+    
+      <script src="../assets/javascripts/modernizr.20ef595d.js"></script>
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+    
+    <link rel="stylesheet" href="../assets/fonts/material-icons.css">
+    
+    
+    
+  </head>
+  
+    
+    
+    <body dir="ltr" data-md-color-primary="blue-grey" data-md-color-accent="indigo">
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448"
+    viewBox="0 0 416 448" id="__github">
+  <path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19-18.125
+        8.5-18.125-8.5-10.75-19-3.125-20.5 3.125-20.5 10.75-19 18.125-8.5
+        18.125 8.5 10.75 19 3.125 20.5zM320 304q0 10-3.125 20.5t-10.75
+        19-18.125 8.5-18.125-8.5-10.75-19-3.125-20.5 3.125-20.5 10.75-19
+        18.125-8.5 18.125 8.5 10.75 19 3.125 20.5zM360
+        304q0-30-17.25-51t-46.75-21q-10.25 0-48.75 5.25-17.75 2.75-39.25
+        2.75t-39.25-2.75q-38-5.25-48.75-5.25-29.5 0-46.75 21t-17.25 51q0 22 8
+        38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0
+        37.25-1.75t35-7.375 30.5-15 20.25-25.75 8-38.375zM416 260q0 51.75-15.25
+        82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5-41.75
+        1.125q-19.5 0-35.5-0.75t-36.875-3.125-38.125-7.5-34.25-12.875-30.25-20.25-21.5-28.75q-15.5-30.75-15.5-82.75
+        0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25
+        30.875q36.75-8.75 77.25-8.75 37 0 70 8 26.25-20.5
+        46.75-30.25t47.25-9.75q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34
+        99.5z" />
+</svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+    
+      <a href="#intra-domain-routing" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
+    
+      <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<style>
+  .topnav {
+    background-color: #33383d;
+    overflow: hidden;
+    z-index: 10;
+    display: flex;
+    position: fixed;
+    width: 100%;
+    font-family: Arial;
+    transition: background-color 0.25s, color 0.25s, box-shadow 0.25s;
+    box-shadow: 0 0 6px rgba(0,0,0,.35);
+  }
+
+  .topnav a {
+    float: left;
+    display: block;
+    color: #ECEFF1;
+    text-align: center;
+    padding: 25px 30px;
+    text-decoration: none;
+    font-size: 16px;
+  }
+
+  a.logo {
+    padding-left: 15px;
+    padding-top: 11px;
+    height: 70px;
+  }
+
+  .topnav a:hover {
+    color: rgb(98, 190, 92);
+  }
+
+  .topnav .icon {
+    display: none;
+  }
+
+  @media screen and (max-width: 600px) {
+    .topnav a:not(:first-child) {display: none;}
+    .topnav a.icon {
+      float: right;
+      display: block;
+    }
+  }
+
+  @media screen and (max-width: 600px) {
+    .topnav.responsive {
+      display: block;
+    }
+    .topnav.responsive a.icon {
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+    .topnav.responsive a {
+      float: none;
+      display: block;
+      text-align: left;
+    }
+  }
+
+  div.md-content {
+    margin-top: 60px;
+  }
+  div.md-sidebar {
+    margin-top: 60px;
+  }
+</style>
+
+<div class="topnav" id="topnav">
+  <a class="logo" href="/"><img src="/docs/assets/logo.png" height="45"/></a>
+  <span style="flex:1"></span>
+  <a href="https://demo.routr.io">Demo</a>
+  <a href="/community">Community</a>
+  <a href="/">About</a>
+  <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+    <i class="fa fa-bars"></i>
+  </a>
+</div>
+
+<script type="text/javascript">
+  /* Toggle between adding and removing the "responsive" class to topnav when the user clicks on the icon */
+  function myFunction() {
+    var x = document.getElementById("topnav");
+    if (x.className === "topnav") {
+      x.className += " responsive";
+    } else {
+      x.className = "topnav";
+    }
+  }
+</script>
+
+<!-- Application header -->
+<header class="md-header" data-md-component="header" style="top: 70px;">
+
+  <!-- Top-level navigation -->
+  <nav class="md-header-nav md-grid" >
+    <div class="md-flex">
+
+      <!-- Link to home -->
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="https://routr.io/docs"
+            title="Documentation"
+            class="md-header-nav__button md-logo">
+          
+            <i class="md-icon"></i>
+          
+        </a>
+      </div>
+
+      <!-- Button to toggle drawer -->
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button"
+            for="__drawer"></label>
+      </div>
+
+      <!-- Header title -->
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title"
+            data-md-component="title">
+          
+            
+              <span class="md-header-nav__topic">
+                Documentation
+              </span>
+              <span class="md-header-nav__topic">
+                Concepts
+              </span>
+            
+          
+        </div>
+      </div>
+
+      <!-- Button to open search dialogue -->
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          
+            <label class="md-icon md-icon--search md-header-nav__button"
+                for="__search"></label>
+
+            <!-- Search interface -->
+            
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+          
+        
+      </div>
+
+      <!-- Repository containing source -->
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+
+  <a href="https://github.com/fonoster/routr/" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#__github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      fonoster/routr
+    </div>
+  </a>
+
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+        
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href="https://routr.io/docs" title="Documentation" class="md-nav__button md-logo">
+      
+        <i class="md-icon"></i>
+      
+    </a>
+    Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/fonoster/routr/" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#__github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      fonoster/routr
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-1" type="checkbox" id="nav-1">
+    
+    <label class="md-nav__link" for="nav-1">
+      Introduction
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-1">
+        Introduction
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../introduction/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../introduction/installation/" title="Installation" class="md-nav__link">
+      Installation
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../introduction/comparison/" title="Comparison to Alternatives" class="md-nav__link">
+      Comparison to Alternatives
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../introduction/community/" title="Community" class="md-nav__link">
+      Community
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../introduction/faq/" title="FAQ" class="md-nav__link">
+      FAQ
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../introduction/roadmap/" title="Roadmap" class="md-nav__link">
+      Roadmap
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../introduction/media/" title="Media" class="md-nav__link">
+      Media
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../introduction/glossary/" title="Glossary" class="md-nav__link">
+      Glossary
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Concepts
+      </label>
+    
+    <a href="./" title="Concepts" class="md-nav__link md-nav__link--active">
+      Concepts
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#intra-domain-routing" title="Intra-Domain Routing" class="md-nav__link">
+    Intra-Domain Routing
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#double-agents" title="Double Agents" class="md-nav__link">
+    Double Agents
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-domain-example" title="Single Domain Example" class="md-nav__link">
+    Single Domain Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-ingress-routing" title="Domain Ingress Routing" class="md-nav__link">
+    Domain Ingress Routing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-egress-routing" title="Domain Egress Routing" class="md-nav__link">
+    Domain Egress Routing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#peers-routing" title="Peers Routing" class="md-nav__link">
+    Peers Routing
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Configuration
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        Configuration
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3-1" type="checkbox" id="nav-3-1">
+    
+    <label class="md-nav__link" for="nav-3-1">
+      General Configuration
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-3-1">
+        General Configuration
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/general/transport/" title="Transport Settings" class="md-nav__link">
+      Transport Settings
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/general/signaling-security/" title="Signaling Security(TLS)" class="md-nav__link">
+      Signaling Security(TLS)
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/general/restful-api/" title="Restful API" class="md-nav__link">
+      Restful API
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/general/datasource/" title="Datasource Setting" class="md-nav__link">
+      Datasource Setting
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/general/logging/" title="Logging" class="md-nav__link">
+      Logging
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/users/" title="Users Configuration" class="md-nav__link">
+      Users Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/gateways/" title="Carriers(Gateways) Configuration" class="md-nav__link">
+      Carriers(Gateways) Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/dids/" title="Virtual Numbers(DIDs) Configuration" class="md-nav__link">
+      Virtual Numbers(DIDs) Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/domains/" title="Domains Configuration" class="md-nav__link">
+      Domains Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/agents/" title="Agents Configuration" class="md-nav__link">
+      Agents Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configuration/peers/" title="Peers Configuration" class="md-nav__link">
+      Peers Configuration
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4" type="checkbox" id="nav-4">
+    
+    <label class="md-nav__link" for="nav-4">
+      Administration
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-4">
+        Administration
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../administration/cli/" title="Command-Line" class="md-nav__link">
+      Command-Line
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../administration/webconsole/" title="Web Console" class="md-nav__link">
+      Web Console
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+    
+    <label class="md-nav__link" for="nav-5">
+      API
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-5">
+        API
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../api/reference/" title="Reference" class="md-nav__link">
+      Reference
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../api/resources/" title="Resources" class="md-nav__link">
+      Resources
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Guides
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        Guides
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../guides/basic-setup/" title="Basic Setup" class="md-nav__link">
+      Basic Setup
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../guides/routr-as-asterisk-frontend/" title="Routr as Asterisk frontend" class="md-nav__link">
+      Routr as Asterisk frontend
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../guides/routr-as-freeswitch-frontend/" title="Routr as FreeSWITCH frontend" class="md-nav__link">
+      Routr as FreeSWITCH frontend
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../guides/securing-the-signaling-path/" title="Securing the Signaling Path" class="md-nav__link">
+      Securing the Signaling Path
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../guides/running-with-docker-or-compose/" title="Running with Docker or Compose" class="md-nav__link">
+      Running with Docker or Compose
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../guides/running-on-kubernetes/" title="Running on Kubernetes" class="md-nav__link">
+      Running on Kubernetes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../guides/benchmarking/" title="Benchmarking" class="md-nav__link">
+      Benchmarking
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#intra-domain-routing" title="Intra-Domain Routing" class="md-nav__link">
+    Intra-Domain Routing
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#double-agents" title="Double Agents" class="md-nav__link">
+    Double Agents
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#single-domain-example" title="Single Domain Example" class="md-nav__link">
+    Single Domain Example
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-ingress-routing" title="Domain Ingress Routing" class="md-nav__link">
+    Domain Ingress Routing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-egress-routing" title="Domain Egress Routing" class="md-nav__link">
+    Domain Egress Routing
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#peers-routing" title="Peers Routing" class="md-nav__link">
+    Peers Routing
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/fonoster/routr/edit/master/docs/concepts.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
+                
+                  <h1>Concepts</h1>
+                
+                <h2 id="intra-domain-routing">Intra-Domain Routing<a class="headerlink" href="#intra-domain-routing" title="Permanent link">&para;</a></h2>
+<p><em>Intra-Domain Routing(IDR)</em> offers a mechanism for user segmentation. For a small or medium size company a single domain may be sufficient, but for a multinational or an IP telephony service provider, it may not.</p>
+<p>For a small company with less than 50 users, you may define a domain <code>sip.domain.com</code>. Regardless of how many offices they have, chances are that they still need to communicate with each other, and therefore we keep them in the same domain. Needless to say, that in a company this size you are not going to run out usernames.</p>
+<p>A multinational company like <em>Walmart</em> have thousands of stores that operate independently. In such case, you will need a multi-domain setting. For example, you may define the domains <code>sip.0001.walmart.com</code> and <code>sip.0002.walmart.com</code>, and... you get the idea.</p>
+<h3 id="double-agents">Double Agents<a class="headerlink" href="#double-agents" title="Permanent link">&para;</a></h3>
+<p><img src="https://raw.githubusercontent.com/wiki/fonoster/routr/images/double_agent.png" width=400 style="margin-bottom: 50px">
+<br></p>
+<p>Yes, you can have double Agents, or Agents that exist in a multi-domain setup. All you need to do is include the domain in the Agent's <code>spec.domain[*]</code> list. In the example before, john can send or receive calls from both domains, while the rest of the Agents are only allowed to call within the domain.</p>
+<p>Perhaps, could this "double agent" be the operator at a remote office?</p>
+<h3 id="single-domain-example">Single Domain Example<a class="headerlink" href="#single-domain-example" title="Permanent link">&para;</a></h3>
+<p>The following yaml configuration shows a simple setup, involving one Domain and two Agents:</p>
+<p><strong>Domain configuration</strong></p>
+<div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
+  <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Domain</span>
+  <span class="nt">metadata</span><span class="p">:</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Local Office</span>
+  <span class="nt">spec</span><span class="p">:</span>
+    <span class="nt">context</span><span class="p">:</span>
+      <span class="nt">domainUri</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">sip.local</span>
+</pre></div>
+
+<p><strong>Agents configuration</strong></p>
+<div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
+  <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Agent</span>
+  <span class="nt">metadata</span><span class="p">:</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">John Doe</span>
+  <span class="nt">spec</span><span class="p">:</span>
+    <span class="nt">credentials</span><span class="p">:</span>
+      <span class="nt">username</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">john</span>
+      <span class="nt">secret</span><span class="p">:</span> <span class="s">&#39;1234&#39;</span>
+    <span class="nt">domains</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">sip.local</span><span class="p p-Indicator">]</span>
+<span class="p p-Indicator">-</span> <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Agent</span>
+  <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
+  <span class="nt">metadata</span><span class="p">:</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Janie Doe</span>
+  <span class="nt">spec</span><span class="p">:</span>
+    <span class="nt">credentials</span><span class="p">:</span>
+      <span class="nt">username</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">janie</span>
+      <span class="nt">secret</span><span class="p">:</span> <span class="s">&#39;1234&#39;</span>
+    <span class="nt">domains</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">sip.local</span><span class="p p-Indicator">]</span>
+</pre></div>
+
+<p>And voila! That's all the configuration you need for intra-domain communication. For calls outside the domain, see "Domain Egress Routing" section and to receive calls from the PSTN check section "Domain Ingress Routing"</p>
+<blockquote>
+<p>To setup your sip devices use information found in <code>config/agents.yml</code>. Also, you must use the Host/IP of Routr server as
+the OUTBOUND PROXY of your sip device.</p>
+</blockquote>
+<p><strong>Routing Rules</strong></p>
+<p>The following rules apply to Intra-Domain Routing:</p>
+<ul>
+<li>Agents can only call other Agents in the same Domain</li>
+<li>Agents must belong to a Domain</li>
+<li>Agents Are not allowed to send a Digest username different than the username in the <code>From-Header</code></li>
+</ul>
+<h2 id="domain-ingress-routing">Domain Ingress Routing<a class="headerlink" href="#domain-ingress-routing" title="Permanent link">&para;</a></h2>
+<p>The process of receiving a call from PSTN to a domain is known in <strong>Routr</strong> as <em>Domain Ingress Routing(DIR)</em> and it is done using Gateway. Gateways are defined in the yaml file <code>config/gateways.yml</code>. The following example shows a typical Gateway configuration.</p>
+<div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
+  <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Gateway</span>
+  <span class="nt">metadata</span><span class="p">:</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Plain Old Phone Service Provider</span>
+  <span class="nt">spec</span><span class="p">:</span>
+    <span class="nt">regService</span><span class="p">:</span>
+      <span class="nt">host</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">sip.provider.net</span>
+      <span class="nt">credentials</span><span class="p">:</span>
+        <span class="nt">username</span><span class="p">:</span> <span class="s">&#39;gwuser&#39;</span>
+        <span class="nt">secret</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">gwsecret</span>
+      <span class="nt">transport</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">udp</span>
+      <span class="nt">registries</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">sip.nyc.provider.net</span><span class="p p-Indicator">]</span>     <span class="c1"># This are additional registrars within the providers network</span>
+</pre></div>
+
+<p>You also need to define DIDs. Incoming calls from a DID will be routed to an existing Agent or Peer using the Address Of Record(AOR). The AOR must be available in the location service at the time of the call or the call will be rejected.</p>
+<p>Please examine the following example:</p>
+<div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
+  <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DID</span>
+  <span class="nt">metadata</span><span class="p">:</span>
+    <span class="nt">gwRef</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">dd50baa4</span>
+    <span class="nt">geoInfo</span><span class="p">:</span>
+      <span class="nt">city</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Columbus, GA</span>
+      <span class="nt">country</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">USA</span>
+      <span class="nt">countryISOCode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">US</span>
+  <span class="nt">spec</span><span class="p">:</span>
+    <span class="nt">location</span><span class="p">:</span>
+      <span class="nt">telUri</span><span class="p">:</span> <span class="s">&#39;tel:17066041487&#39;</span>
+      <span class="nt">aorLink</span><span class="p">:</span> <span class="s">&#39;sip:john@sip.local&#39;</span>      <span class="c1"># This is the sip uri of an agent that is spected to be logged in</span>
+</pre></div>
+
+<p>Easy right? Any incoming call from this Gateway and DID will be routed to "Jhon Doe" @ Ocean New York.</p>
+<p><strong>Routing Rules</strong></p>
+<p>As mention before, the path of an inbound PSTN call is determined by the <code>spec.location</code> block of a <code>DID</code> resource.
+The <code>aorLink</code> refers to an Address of Record(Agent or Peer) that is available in the <code>location service</code>.</p>
+<h2 id="domain-egress-routing">Domain Egress Routing<a class="headerlink" href="#domain-egress-routing" title="Permanent link">&para;</a></h2>
+<p><em>Domain Egress Routing(DER)</em> is the way that <strong>Routr</strong> deals with a call request to a <em>callee</em> that exist in the Public Switched Telephone Network(PSTN) and not in the <em>callers</em> domain. The Egress Policy consists in a <code>rule</code> and a <code>didRef</code>, and it is defined in the <code>spec.context</code> section of <code>Domains</code> resources.</p>
+<p>The <code>rule</code> and <code>didRef</code> are defined as follows:</p>
+<ul>
+<li>
+<p><code>rule</code> is a regex to match callee in the call request. The location service will resort to this only after a search in the caller's Domain first.</p>
+</li>
+<li>
+<p><code>didRef</code> is the identifier of the DID that will to route the call. This DID must already exist and have a parent Gateway.</p>
+</li>
+</ul>
+<p><strong>Routing Rules</strong></p>
+<p>Agents can only perform outbound calls using the <code>Egress Policy</code> of their own Domains.</p>
+<h2 id="peers-routing">Peers Routing<a class="headerlink" href="#peers-routing" title="Permanent link">&para;</a></h2>
+<p>Peers are very similar to Agents but they are not bound to any Domain, and they are usually collocated in the same network with Routr. A common case will be peering with Asterisk, where Asterisk acts as a Media Server and Routr is used for signaling.</p>
+<p>Peers can perform inbound/outbound signaling within the network without any especial consideration since they exist inside the <em>Location Service</em> just like Agents. So it is possible to perform signaling from Peer to Peer, Peer to Agent.</p>
+<p>The same is true for Inbound from the PSTN. For example, we can redirect incoming calls from the PSTN using the <code>spec.location</code> settings in the <code>dids.yml</code> configuration file.</p>
+<p><strong>Routing Rules</strong></p>
+<p>Agents are not allowed to call Peers.</p>
+<blockquote>
+<p>A future version of the <code>Peer resource</code> will feature a <code>spec.acceptFrom.*</code> field to allow calls from Domains or specific Agents.</p>
+</blockquote>
+                
+                  
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+
+<!-- Application footer -->
+<footer class="md-footer">
+
+  <!-- Link to previous and/or next page -->
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+
+        <!-- Link to previous page -->
+        
+          <a href="../introduction/glossary/"
+              title="Glossary"
+              class="md-flex md-footer-nav__link md-footer-nav__link--prev"
+              rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back
+                    md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch
+                  md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Glossary
+              </span>
+            </div>
+          </a>
+        
+
+        <!-- Link to next page -->
+        
+          <a href="../configuration/general/transport/"
+              title="Transport Settings"
+              class="md-flex md-footer-nav__link md-footer-nav__link--next"
+              rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch
+                  md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Transport Settings
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward
+                    md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+
+  <!-- Further information -->
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+
+      <!-- Copyright and theme information -->
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Copyright &copy; 2018 Fonoster Inc
+          </div>
+        
+        build with love by
+        <a href="https://github.com/fonoster">Fonoster</a>
+        and
+        <a href="https://github.com/fonoster/routr/graphs/contributors">
+          Friends</a>
+      </div>
+
+      <!-- Social links -->
+      
+        
+  <div class="md-footer-social">
+    <link rel="stylesheet" href="../assets/fonts/font-awesome.css">
+    
+      <a href="https://fonoster.com" class="md-footer-social__link fa fa-globe"></a>
+    
+      <a href="https://github.com/fonoster" class="md-footer-social__link fa fa-github-alt"></a>
+    
+      <a href="https://twitter.com/fonoster" class="md-footer-social__link fa fa-twitter"></a>
+    
+      <a href="https://www.linkedin.com/company/fonoster/about/" class="md-footer-social__link fa fa-linkedin"></a>
+    
+  </div>
+
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/application.9e1f3b71.js"></script>
+      
+      <script>app.initialize({version:"1.0.4",url:{base:".."}})</script>
+      
+    
+    
+      
+    
+  </body>
+</html>

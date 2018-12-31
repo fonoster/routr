@@ -1,62 +1,157 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-     <loc>https://routr.io/docs/</loc>
+     <loc>https://routr.io/docs/introduction/overview/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/getting-started-installation/</loc>
+     <loc>https://routr.io/docs/introduction/installation/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/getting-started-routing/</loc>
+     <loc>https://routr.io/docs/introduction/comparison/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/api-cli-commands/</loc>
+     <loc>https://routr.io/docs/introduction/community/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/api-reference/</loc>
+     <loc>https://routr.io/docs/introduction/faq/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/api-resources/</loc>
+     <loc>https://routr.io/docs/introduction/roadmap/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/guide-voip-network-setup/</loc>
+     <loc>https://routr.io/docs/introduction/media/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/guide-routr-as-asterisk-frontend/</loc>
+     <loc>https://routr.io/docs/introduction/glossary/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/guide-securing-the-signal/</loc>
+     <loc>https://routr.io/docs/concepts/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/api-webconsole/</loc>
+     <loc>https://routr.io/docs/configuration/general/transport/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/community/</loc>
+     <loc>https://routr.io/docs/configuration/general/signaling-security/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/faqs/</loc>
+     <loc>https://routr.io/docs/configuration/general/restful-api/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/configuration/general/datasource/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/configuration/general/logging/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/configuration/users/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/configuration/gateways/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/configuration/dids/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/configuration/domains/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/configuration/agents/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/configuration/peers/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/administration/cli/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/administration/webconsole/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/api/reference/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/api/resources/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/guides/basic-setup/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/guides/routr-as-asterisk-frontend/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/guides/routr-as-freeswitch-frontend/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/guides/securing-the-signaling-path/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/guides/running-with-docker-or-compose/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/guides/running-on-kubernetes/</loc>
+     <lastmod>2018-12-30</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/guides/benchmarking/</loc>
      <lastmod>2018-12-30</lastmod>
      <changefreq>daily</changefreq>
     </url>
