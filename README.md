@@ -3,7 +3,7 @@
 
 <br />
 
-[![Build Status](https://travis-ci.org/fonoster/routr.svg?branch=master)](https://travis-ci.org/fonoster/routr) [![Maintainability](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/maintainability)](https://codeclimate.com/github/fonoster/routr/maintainability) <!-- [![Test Coverage](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/test_coverage)](https://codeclimate.com/github/fonoster/routr/test_coverage)--> [![Join the chat Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/fonoster/routr?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) 
+[![Build Status](https://travis-ci.org/fonoster/routr.svg?branch=master)](https://travis-ci.org/fonoster/routr) [![Maintainability](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/maintainability)](https://codeclimate.com/github/fonoster/routr/maintainability) <!-- [![Test Coverage](https://api.codeclimate.com/v1/badges/beb25546dbb26fd600d2/test_coverage)](https://codeclimate.com/github/fonoster/routr/test_coverage)--> [![Join the chat Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/fonoster/routr?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Join the chat on Slack](https://img.shields.io/badge/slack-join%20chat-pink.svg)](https://fonosterteam.typeform.com/to/Xy8Oc0)
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="license: MIT"></a>
 
@@ -57,31 +57,18 @@ To learn more, read the [documentation](https://routr.io/docs). :books:
 | Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.zip) |  
 | Docker | [img](https://hub.docker.com/r/fonoster/routr/) |  
 
-&#10123; Use the following command to run the server using docker
+&#10123; Then extract it:
 
 ```bash
-docker pull fonoster/routr
-docker run -it \
-    -p 4567:4567 \
-    -p 5060:5060 \
-    -p 5060:5060/udp \
-    -p 5061-5063:5061-5063 \
-    -e ROUTR_EXTERN_ADDR=${your host address} \
-    fonoster/routr
+tar xvfz routr-*.tar.gz
+cd routr-*
 ```
 
-or if using `docker-compose`
+&#10124; Run the server using the `routr` command
 
+```bash
+./routr
 ```
-git clone https://github.com/fonoster/routr
-cd routr
-docker-compose pull
-docker-compose up --abort-on-container-exit
-```
-
-for any other plattform use the `./routr` command at the root of your download
-
-&#10124; Use the command-line tool `rctl` to control the server or to launch the `web console`
 
 > Instructions to install the command-line tool are available at https://github.com/fonoster/routr-ctl
 
