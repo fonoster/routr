@@ -10,7 +10,7 @@
 <p align="left">
   <a href="#key-features">Key Features</a> •
   <a href="#quick-start">Quick Start</a> •
-  <a href="https://routr.io/docs">Documentation</a> •
+  <a href="https://routr.io/docs/overview">Documentation</a> •
   <a href="#bugs-and-feedback">Bugs and Feedback</a> •
   <a href="#Contributing">Contributing</a> •
   <a href="#license">License</a>
@@ -44,18 +44,19 @@ Be sure to see the [demo](https://demo.routr.io/login)
   - Domain Access Control List (DACL)
   - Restful service secured with TLS and JWT tokens
 
-To learn more, read the [documentation](https://routr.io/docs). :books:
+To learn more, read the [documentation](https://routr.io/docs/overview). :books:
 
 ## Quick Start
 
-&#10122; Download the server for your plattform
+There are no special requirements to install and run the server. Just follow this easy steps:
+
+&#10122; Download the server for your platform
 
 | Platform | Download |
 | -- | -- |
 | Linux | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_linux-x64_bin.tar.gz) |  
 | macOS | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_osx-x64_bin.tar.gz) |  
 | Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.zip) |  
-| Docker | [img](https://hub.docker.com/r/fonoster/routr/) |  
 
 &#10123; Then extract it:
 
@@ -69,6 +70,10 @@ cd routr-*
 ```bash
 ./routr
 ```
+
+Have 10 minutes? Try the interactive tutorial
+
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.png)](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/fonoster/routr-walkthrough-tutorial&tutorial=tutorial.md)
 
 ## Bugs and Feedback
 
