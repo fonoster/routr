@@ -10,7 +10,7 @@
 <p align="left">
   <a href="#key-features">Key Features</a> •
   <a href="#quick-start">Quick Start</a> •
-  <a href="https://routr.io/docs">Documentation</a> •
+  <a href="https://routr.io/docs/overview">Documentation</a> •
   <a href="#bugs-and-feedback">Bugs and Feedback</a> •
   <a href="#Contributing">Contributing</a> •
   <a href="#license">License</a>
@@ -44,7 +44,7 @@ Be sure to see the [demo](https://demo.routr.io/login)
   - Domain Access Control List (DACL)
   - Restful service secured with TLS and JWT tokens
 
-To learn more, read the [documentation](https://routr.io/docs). :books:
+To learn more, read the [documentation](https://routr.io/docs/overview). :books:
 
 ## Quick Start
 
