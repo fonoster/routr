@@ -186,7 +186,7 @@
   <a class="logo" href="/"><img src="/docs/assets/logo.png" height="45"/></a>
   <span style="flex:1"></span>
   <a href="https://demo.routr.io">Demo</a>
-  <a href="introduction/community">Community</a>
+  <a href="/docs/introduction/community">Community</a>
   <a href="/">About</a>
   <a href="javascript:void(0);" class="icon" onclick="myFunction()">
     <i class="fa fa-bars"></i>
@@ -693,10 +693,58 @@
           
 
 
-  <li class="md-nav__item">
-    <a href="../../administration/cli/" title="Command-Line" class="md-nav__link">
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4-1" type="checkbox" id="nav-4-1">
+    
+    <label class="md-nav__link" for="nav-4-1">
       Command-Line
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-4-1">
+        Command-Line
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/installation/" title="Installation" class="md-nav__link">
+      Installation
     </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/cheatsheet/" title="Cheatsheet" class="md-nav__link">
+      Cheatsheet
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/remote-access/" title="Remote Access to a Routr Server" class="md-nav__link">
+      Remote Access to a Routr Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
         
@@ -1025,7 +1073,7 @@
                 
                 <p>Follow this guide to secure the signaling between your endpoints and <strong>Routr</strong>. Keep in mind that <strong>Routr</strong> will only secure the signaling and that the endpoints are ultimately responsible for securing the media.</p>
 <blockquote>
-<p>For this guide we will use a fictitious domain name to demonstrate the process of securing the signaling path</p>
+<p>For this guide, we will use a fictitious domain name to demonstrate the process of securing the signaling path</p>
 </blockquote>
 <p><img src="/docs/assets/images/secure_signaling.png" width=600 vspace=30></p>
 <h2 id="creating-a-java-keystorejks-certificate">Creating a Java Keystore(.JKS) Certificate<a class="headerlink" href="#creating-a-java-keystorejks-certificate" title="Permanent link">&para;</a></h2>
@@ -1093,7 +1141,7 @@ spec:
 </blockquote>
 <p>Go to the account that you want to secure, select <code>Advanced -&gt; Sip Signaling</code> and change the parameter <code>Primary Proxy</code> to <code>${proxyHost}:${proxyPort};transport=tls</code>. See the example in the following image:</p>
 <p><img src="/docs/assets/images/blinkpro_tls_config.png" width=600></p>
-<p>If everything went well you should see a green padlock like the one in the image bellow:</p>
+<p>If everything went well you should see a green padlock like the one in the image below:</p>
 <p><img src="/docs/assets/images/blinkpro_tls_secured.png" width=400></p>
                 
                   

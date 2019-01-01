@@ -105,6 +105,10 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
+      <a href="#accounting-authentication-and-authorization" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
     
       <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -182,7 +186,7 @@
   <a class="logo" href="/"><img src="/docs/assets/logo.png" height="45"/></a>
   <span style="flex:1"></span>
   <a href="https://demo.routr.io">Demo</a>
-  <a href="introduction/community">Community</a>
+  <a href="/docs/introduction/community">Community</a>
   <a href="/">About</a>
   <a href="javascript:void(0);" class="icon" onclick="myFunction()">
     <i class="fa fa-bars"></i>
@@ -446,9 +450,57 @@
     <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
     
     
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Roadmap
+      </label>
+    
     <a href="./" title="Roadmap" class="md-nav__link md-nav__link--active">
       Roadmap
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#accounting-authentication-and-authorization" title="Accounting, Authentication, and Authorization" class="md-nav__link">
+    Accounting, Authentication, and Authorization
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#im-and-presence" title="IM and Presence" class="md-nav__link">
+    IM and Presence
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-domain-certificate" title="Per-domain Certificate" class="md-nav__link">
+    Per-domain Certificate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-the-ecosystem" title="Support the Ecosystem" class="md-nav__link">
+    Support the Ecosystem
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -698,10 +750,58 @@
           
 
 
-  <li class="md-nav__item">
-    <a href="../../administration/cli/" title="Command-Line" class="md-nav__link">
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4-1" type="checkbox" id="nav-4-1">
+    
+    <label class="md-nav__link" for="nav-4-1">
       Command-Line
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-4-1">
+        Command-Line
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/installation/" title="Installation" class="md-nav__link">
+      Installation
     </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/cheatsheet/" title="Cheatsheet" class="md-nav__link">
+      Cheatsheet
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/remote-access/" title="Remote Access to a Routr Server" class="md-nav__link">
+      Remote Access to a Routr Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
         
@@ -885,6 +985,56 @@
               </div>
             
             
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#accounting-authentication-and-authorization" title="Accounting, Authentication, and Authorization" class="md-nav__link">
+    Accounting, Authentication, and Authorization
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#im-and-presence" title="IM and Presence" class="md-nav__link">
+    IM and Presence
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-domain-certificate" title="Per-domain Certificate" class="md-nav__link">
+    Per-domain Certificate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support-the-ecosystem" title="Support the Ecosystem" class="md-nav__link">
+    Support the Ecosystem
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
@@ -895,7 +1045,15 @@
                 
                   <h1>Roadmap</h1>
                 
-                <p>Coming soon!</p>
+                <p>The following is only a selection of some of the major features we plan to implement in the near future. To get a more complete overview of planned features and current work, see the issue trackers for the various repositories, for example, the <a href="https://github.com/fonoster/routr/issues">Routr server</a>.</p>
+<h2 id="accounting-authentication-and-authorization">Accounting, Authentication, and Authorization<a class="headerlink" href="#accounting-authentication-and-authorization" title="Permanent link">&para;</a></h2>
+<p>Routr, does not currently provide any mechanism for aid the accounting. Our current priority is to implement a module to support pushing accounting, authentication and authorization events.</p>
+<h2 id="im-and-presence">IM and Presence<a class="headerlink" href="#im-and-presence" title="Permanent link">&para;</a></h2>
+<p>We understand that instant-messaging and presence are an important piece of any VoIP network. We are currently looking into the SIMPLE and XCAP protocols to provide IM and Presence in Routr.</p>
+<h2 id="per-domain-certificate">Per-domain Certificate<a class="headerlink" href="#per-domain-certificate" title="Permanent link">&para;</a></h2>
+<p>To secure the signal path, it is necessary to install a certificate. Routr, currently its only possible to install a single certificate with multiple-domains. In the future, we want to ease the certificate installation/updating process by allowing a per-domain certificate.</p>
+<h2 id="support-the-ecosystem">Support the Ecosystem<a class="headerlink" href="#support-the-ecosystem" title="Permanent link">&para;</a></h2>
+<p>In the near future, we want to release a stable version of the <a href="https://github.com/fonoster/routr-ui">web UI</a> which is one of our main strategy to facilitate the deployment of VoIP networks with Routr.</p>
                 
                   
                 

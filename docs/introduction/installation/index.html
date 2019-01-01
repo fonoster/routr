@@ -105,10 +105,6 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#download-the-server" tabindex="1" class="md-skip">
-        Skip to content
-      </a>
-    
     
       <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -186,7 +182,7 @@
   <a class="logo" href="/"><img src="/docs/assets/logo.png" height="45"/></a>
   <span style="flex:1"></span>
   <a href="https://demo.routr.io">Demo</a>
-  <a href="introduction/community">Community</a>
+  <a href="/docs/introduction/community">Community</a>
   <a href="/">About</a>
   <a href="javascript:void(0);" class="icon" onclick="myFunction()">
     <i class="fa fa-bars"></i>
@@ -402,57 +398,9 @@
     <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
     
     
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        Installation
-      </label>
-    
     <a href="./" title="Installation" class="md-nav__link md-nav__link--active">
       Installation
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#download-the-server" title="Download the Server" class="md-nav__link">
-    Download the Server
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#or-build-from-source" title="Or Build from Source" class="md-nav__link">
-    Or Build from Source
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#running-with-docker" title="Running with Docker" class="md-nav__link">
-    Running with Docker
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#running-in-any-other-plattform" title="Running in any other Plattform" class="md-nav__link">
-    Running in any other Plattform
-  </a>
-  
-</li>
-      
-      
-      
-      
-      
-    </ul>
-  
-</nav>
     
   </li>
 
@@ -750,10 +698,58 @@
           
 
 
-  <li class="md-nav__item">
-    <a href="../../administration/cli/" title="Command-Line" class="md-nav__link">
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4-1" type="checkbox" id="nav-4-1">
+    
+    <label class="md-nav__link" for="nav-4-1">
       Command-Line
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-4-1">
+        Command-Line
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/installation/" title="Installation" class="md-nav__link">
+      Installation
     </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/cheatsheet/" title="Cheatsheet" class="md-nav__link">
+      Cheatsheet
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/remote-access/" title="Remote Access to a Routr Server" class="md-nav__link">
+      Remote Access to a Routr Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
         
@@ -937,56 +933,6 @@
               </div>
             
             
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
-                <div class="md-sidebar__scrollwrap">
-                  <div class="md-sidebar__inner">
-                    
-<nav class="md-nav md-nav--secondary">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#download-the-server" title="Download the Server" class="md-nav__link">
-    Download the Server
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#or-build-from-source" title="Or Build from Source" class="md-nav__link">
-    Or Build from Source
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#running-with-docker" title="Running with Docker" class="md-nav__link">
-    Running with Docker
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#running-in-any-other-plattform" title="Running in any other Plattform" class="md-nav__link">
-    Running in any other Plattform
-  </a>
-  
-</li>
-      
-      
-      
-      
-      
-    </ul>
-  
-</nav>
-                  </div>
-                </div>
-              </div>
-            
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
@@ -997,8 +943,8 @@
                 
                   <h1>Installation</h1>
                 
-                <p>There are no special requirements to install the server. Just download, decompress, and move the folder to a location of your choice.</p>
-<h2 id="download-the-server">Download the Server<a class="headerlink" href="#download-the-server" title="Permanent link">&para;</a></h2>
+                <p>There are no special requirements to install and run the server. Just follow this easy steps:</p>
+<p>&#10122; Download the server for your platform</p>
 <table>
 <thead>
 <tr>
@@ -1019,45 +965,20 @@
 <td>Windows</td>
 <td><a href="https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.tar.gz">tar.gz</a>, <a href="https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.zip">zip</a></td>
 </tr>
-<tr>
-<td>Docker</td>
-<td><a href="https://hub.docker.com/r/fonoster/routr/">img</a></td>
-</tr>
 </tbody>
 </table>
-<h2 id="or-build-from-source">Or Build from Source<a class="headerlink" href="#or-build-from-source" title="Permanent link">&para;</a></h2>
+<p>&#10123; Then extract it:</p>
+<div class="codehilite"><pre><span></span>tar xvfz routr-*.tar.gz
+<span class="nb">cd</span> routr-*
+</pre></div>
+
+<p>&#10124; Run the server using the <code>routr</code> command</p>
+<div class="codehilite"><pre><span></span>./routr
+</pre></div>
+
 <blockquote>
-<p>Building from source requires of Java 1.8+, Gradle, and NPM</p>
+<p>If you are interested in running Routr on Docker please see the guide <a href="https://routr.io/docs/guides/running-with-docker-or-compose/">Running with Docker or Compose</a></p>
 </blockquote>
-<div class="codehilite"><pre><span></span>git clone https://github.com/fonoster/routr
-<span class="nb">cd</span> routr
-npm i
-npm run pack
-</pre></div>
-
-<h2 id="running-with-docker">Running with Docker<a class="headerlink" href="#running-with-docker" title="Permanent link">&para;</a></h2>
-<div class="codehilite"><pre><span></span>docker pull fonoster/routr
-docker run -it <span class="se">\</span>
-    -p <span class="m">4567</span>:4567 <span class="se">\</span>
-    -p <span class="m">5060</span>:5060 <span class="se">\</span>
-    -p <span class="m">5060</span>:5060/udp <span class="se">\</span>
-    -p <span class="m">5061</span>-5063:5061-5063 <span class="se">\</span>
-    -e <span class="nv">ROUTR_EXTERN_ADDR</span><span class="o">=</span><span class="si">${</span><span class="nv">your</span><span class="p"> host address</span><span class="si">}</span> <span class="se">\</span>
-    fonoster/routr
-</pre></div>
-
-<h2 id="running-in-any-other-plattform">Running in any other Plattform<a class="headerlink" href="#running-in-any-other-plattform" title="Permanent link">&para;</a></h2>
-<p>To start the server just run the script <code>./routr</code> at the root of this
-project. Your output will look similar to this:</p>
-<div class="codehilite"><pre><span></span>$ ./routr
-<span class="o">[</span>INFO <span class="o">]</span> Starting Routr
-<span class="o">[</span>INFO <span class="o">]</span> Listening @ <span class="m">172</span>.18.0.4:5060 <span class="o">[</span>udp<span class="o">]</span>
-<span class="o">[</span>INFO <span class="o">]</span> Listening @ <span class="m">172</span>.18.0.4:5060 <span class="o">[</span>tcp<span class="o">]</span>
-<span class="o">[</span>INFO <span class="o">]</span> Listening @ <span class="m">172</span>.18.0.4:5061 <span class="o">[</span>tls<span class="o">]</span>
-<span class="o">[</span>INFO <span class="o">]</span> Starting Location service
-<span class="o">[</span>INFO <span class="o">]</span> Starting Registry service
-<span class="o">[</span>INFO <span class="o">]</span> Starting Restful service on port <span class="m">4567</span>
-</pre></div>
                 
                   
                 

@@ -105,6 +105,10 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
+      <a href="#user" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
     
       <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -182,7 +186,7 @@
   <a class="logo" href="/"><img src="/docs/assets/logo.png" height="45"/></a>
   <span style="flex:1"></span>
   <a href="https://demo.routr.io">Demo</a>
-  <a href="introduction/community">Community</a>
+  <a href="/docs/introduction/community">Community</a>
   <a href="/">About</a>
   <a href="javascript:void(0);" class="icon" onclick="myFunction()">
     <i class="fa fa-bars"></i>
@@ -470,9 +474,99 @@
     <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
     
     
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Glossary
+      </label>
+    
     <a href="./" title="Glossary" class="md-nav__link md-nav__link--active">
       Glossary
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#user" title="User" class="md-nav__link">
+    User
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent" title="Agent" class="md-nav__link">
+    Agent
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain" title="Domain" class="md-nav__link">
+    Domain
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#peer" title="Peer" class="md-nav__link">
+    Peer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gateway" title="Gateway" class="md-nav__link">
+    Gateway
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#did" title="DID" class="md-nav__link">
+    DID
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#intra-domain-routing-idr" title="Intra-Domain Routing (IDR)" class="md-nav__link">
+    Intra-Domain Routing (IDR)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-ingress-routing-dir" title="Domain Ingress Routing (DIR)" class="md-nav__link">
+    Domain Ingress Routing (DIR)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-egress-routing-der" title="Domain Egress Routing (DER)" class="md-nav__link">
+    Domain Egress Routing (DER)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#peer-egress-routing-per" title="Peer Egress Routing (PER)" class="md-nav__link">
+    Peer Egress Routing (PER)
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -698,10 +792,58 @@
           
 
 
-  <li class="md-nav__item">
-    <a href="../../administration/cli/" title="Command-Line" class="md-nav__link">
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4-1" type="checkbox" id="nav-4-1">
+    
+    <label class="md-nav__link" for="nav-4-1">
       Command-Line
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-4-1">
+        Command-Line
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/installation/" title="Installation" class="md-nav__link">
+      Installation
     </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/cheatsheet/" title="Cheatsheet" class="md-nav__link">
+      Cheatsheet
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/remote-access/" title="Remote Access to a Routr Server" class="md-nav__link">
+      Remote Access to a Routr Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
         
@@ -885,6 +1027,98 @@
               </div>
             
             
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#user" title="User" class="md-nav__link">
+    User
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent" title="Agent" class="md-nav__link">
+    Agent
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain" title="Domain" class="md-nav__link">
+    Domain
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#peer" title="Peer" class="md-nav__link">
+    Peer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gateway" title="Gateway" class="md-nav__link">
+    Gateway
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#did" title="DID" class="md-nav__link">
+    DID
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#intra-domain-routing-idr" title="Intra-Domain Routing (IDR)" class="md-nav__link">
+    Intra-Domain Routing (IDR)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-ingress-routing-dir" title="Domain Ingress Routing (DIR)" class="md-nav__link">
+    Domain Ingress Routing (DIR)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-egress-routing-der" title="Domain Egress Routing (DER)" class="md-nav__link">
+    Domain Egress Routing (DER)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#peer-egress-routing-per" title="Peer Egress Routing (PER)" class="md-nav__link">
+    Peer Egress Routing (PER)
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
@@ -896,56 +1130,27 @@
                   <h1>Glossary</h1>
                 
                 <p>This following table features some important concepts, including the different routing types implemented by the server.</p>
-<table>
-<thead>
-<tr>
-<th>Concept</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>User</td>
-<td>Users perform administrative actions on the server</td>
-</tr>
-<tr>
-<td>Agent</td>
-<td>Agents represent SIP endpoints such as softphones and IP phones</td>
-</tr>
-<tr>
-<td>Domain</td>
-<td>Enables the creation of isolated groups of Agents</td>
-</tr>
-<tr>
-<td>Peer</td>
-<td>Similar to Agents but without Domain boundaries</td>
-</tr>
-<tr>
-<td>Gateway</td>
-<td>SIP entity that allows call termination</td>
-</tr>
-<tr>
-<td>DID</td>
-<td>Routes and translate calls between the PSTN and Routr</td>
-</tr>
-<tr>
-<td>Intra-Domain Routing</td>
-<td>Routing type for calling within the same Domain</td>
-</tr>
-<tr>
-<td>Domain Ingress Routing</td>
-<td>Calling from the PSTN to an Agent or Peer</td>
-</tr>
-<tr>
-<td>Domain Egress Routing</td>
-<td>Calling from an Agent to the PSTN thru a Gateway</td>
-</tr>
-<tr>
-<td>Peer Egress Routing</td>
-<td>Similar to <em>DER</em> but applies only to Peers</td>
-</tr>
-</tbody>
-</table>
+<h3 id="user">User<a class="headerlink" href="#user" title="Permanent link">&para;</a></h3>
+<p>Users perform administrative actions on the server             </p>
+<h3 id="agent">Agent<a class="headerlink" href="#agent" title="Permanent link">&para;</a></h3>
+<p>Agents represent SIP endpoints such as softphones and IP phones, or paging speakers</p>
+<h3 id="domain">Domain<a class="headerlink" href="#domain" title="Permanent link">&para;</a></h3>
+<p>Enables the creation of isolated groups of Agents</p>
+<h3 id="peer">Peer<a class="headerlink" href="#peer" title="Permanent link">&para;</a></h3>
+<p>Similar to Agents but without Domain boundaries</p>
+<h3 id="gateway">Gateway<a class="headerlink" href="#gateway" title="Permanent link">&para;</a></h3>
+<p>IP entity that allows call termination</p>
+<h3 id="did">DID<a class="headerlink" href="#did" title="Permanent link">&para;</a></h3>
+<p>Routes and translate calls between the PSTN and Routr</p>
+<h3 id="intra-domain-routing-idr">Intra-Domain Routing (IDR)<a class="headerlink" href="#intra-domain-routing-idr" title="Permanent link">&para;</a></h3>
+<p>Routing strategy for signaling within the same Domain</p>
+<h3 id="domain-ingress-routing-dir">Domain Ingress Routing (DIR)<a class="headerlink" href="#domain-ingress-routing-dir" title="Permanent link">&para;</a></h3>
+<p>Routing strategy use when an Agent or Peer must go outside the domain using
+a Gateway</p>
+<h3 id="domain-egress-routing-der">Domain Egress Routing (DER)<a class="headerlink" href="#domain-egress-routing-der" title="Permanent link">&para;</a></h3>
+<p>Calling from an Agent to the PSTN thru a Gateway</p>
+<h3 id="peer-egress-routing-per">Peer Egress Routing (PER)<a class="headerlink" href="#peer-egress-routing-per" title="Permanent link">&para;</a></h3>
+<p>Similar to <em>DER</em> but applies only to Peers</p>
                 
                   
                 

@@ -105,7 +105,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#features" tabindex="1" class="md-skip">
+      <a href="#what-is-routr" tabindex="1" class="md-skip">
         Skip to content
       </a>
     
@@ -186,7 +186,7 @@
   <a class="logo" href="/"><img src="/docs/assets/logo.png" height="45"/></a>
   <span style="flex:1"></span>
   <a href="https://demo.routr.io">Demo</a>
-  <a href="introduction/community">Community</a>
+  <a href="/docs/introduction/community">Community</a>
   <a href="/">About</a>
   <a href="javascript:void(0);" class="icon" onclick="myFunction()">
     <i class="fa fa-bars"></i>
@@ -407,8 +407,36 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-is-routr" title="What is Routr?" class="md-nav__link">
+    What is Routr?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#features" title="Features" class="md-nav__link">
     Features
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#components" title="Components" class="md-nav__link">
+    Components
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" title="Architecture" class="md-nav__link">
+    Architecture
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" title="Use cases" class="md-nav__link">
+    Use cases
   </a>
   
 </li>
@@ -729,10 +757,58 @@
           
 
 
-  <li class="md-nav__item">
-    <a href="../../administration/cli/" title="Command-Line" class="md-nav__link">
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4-1" type="checkbox" id="nav-4-1">
+    
+    <label class="md-nav__link" for="nav-4-1">
       Command-Line
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-4-1">
+        Command-Line
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/installation/" title="Installation" class="md-nav__link">
+      Installation
     </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/cheatsheet/" title="Cheatsheet" class="md-nav__link">
+      Cheatsheet
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/remote-access/" title="Remote Access to a Routr Server" class="md-nav__link">
+      Remote Access to a Routr Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
         
@@ -928,8 +1004,36 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#what-is-routr" title="What is Routr?" class="md-nav__link">
+    What is Routr?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#features" title="Features" class="md-nav__link">
     Features
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#components" title="Components" class="md-nav__link">
+    Components
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" title="Architecture" class="md-nav__link">
+    Architecture
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" title="Use cases" class="md-nav__link">
+    Use cases
   </a>
   
 </li>
@@ -955,33 +1059,35 @@
                 
                   <h1>Overview</h1>
                 
-                <p><strong>Routr</strong> is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. To get involved in the development of this project please contact us at <a href="https://twitter.com/fonoster">@fonoster</a>.</p>
+                <h2 id="what-is-routr">What is Routr?<a class="headerlink" href="#what-is-routr" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/fonoster/routr">Routr</a> is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. To get involved in the development of this project please contact us at <a href="https://twitter.com/fonoster">@fonoster</a>.</p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<p>Routr's main features are:</p>
 <ul>
-<li>Proxy</li>
-<li>Registrar Service</li>
-<li>Location Service</li>
-<li>Call Forking</li>
-<li>Multi-Tenancy/Multi-Domain</li>
-<li>Access to the PSTN Using SIP Gateways</li>
+<li>Typical Sip Server functions; Proxy, Registrar, Location Service</li>
+<li>Per node Multi-Tenancy/Multi-Domain with Domain level Access Control List</li>
 <li>Transport: TCP, UDP, TLS, WebSocket</li>
-<li>Data Sources: Redis, RESTful API, Files</li>
-<li>Security<ul>
-<li>Digest SIP User Authentication</li>
-<li>Domain Access Control List (DACL)</li>
-<li>RESTful service secured with TLS and JWT tokens</li>
+<li>Routr currently support Redis, HTTP Requests, and YAML files as the data source</li>
+<li>Server management and monitoring with the RESTful API, CLI, and Web Console</li>
+<li>Configurable routing strategies; Intra-Domain, Domain Ingress, Domain Egress and Peer Egress</li>
 </ul>
-</li>
-<li>Rest API</li>
-<li>Command Line Tool for Admin Operations</li>
-<li>Routing Capabilities<ul>
-<li>Intra-Domain Routing (IDR)</li>
-<li>Domain Ingress Routing(DIR)</li>
-<li>Domain Egress Routing (DER)</li>
-<li>Peer Egress Routing (PER)</li>
+<h2 id="components">Components<a class="headerlink" href="#components" title="Permanent link">&para;</a></h2>
+<p>The Routr ecosystem consists of three main components:</p>
+<ul>
+<li>The <a href="https://github.com/fonoster/routr">Routr server</a> which is the main component of the ecosystem</li>
+<li>The command-line interface, <a href="https://github.com/fonoster/routr-ctl">rctl</a>, for remote management of the server</li>
+<li>An optional <a href="https://github.com/fonoster/routr-ui">web console</a> for easy management of the server</li>
 </ul>
-</li>
-</ul>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<p>This diagram illustrates the architecture of Routr and some of its ecosystem components:</p>
+<p><br/>
+<img src="/assets/images/architecture.png" >
+<br/>
+<br/></p>
+<p>At the center of Routr are the routing rules. These rules are the core of Routr, in addition to the typical SIP Server the functions such as Proxy, Location, and Registrar. The main integration points are the data abstraction layer, the event publisher, and the RESTful API. This integration points, allow for easy integration with third-party software.</p>
+<h2 id="use-cases">Use cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h2>
+<p>Routr specializes in the management of SIP resources and domain-centric routing strategies. It works well in front of the Media servers like Asterisk or FreeSWITCH. Routr runs in all major operating systems, in <a href="https://www.docker.com/">Docker</a>, and can be deployed as in cloud system such as <a href="https://kubernetes.io/">Kubernetes</a>.</p>
+<p>Unlike Kamailio and OpenSIPS, Routr does not require any type of scripting to perform any of its typical routing tasks. Routing rules are configured not programmed. The monitoring tasks are centralized using a RESTful API, and from that API it is possible to control de service using the command-line interface or the web UI.</p>
                 
                   
                 

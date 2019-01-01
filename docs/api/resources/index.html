@@ -186,7 +186,7 @@
   <a class="logo" href="/"><img src="/docs/assets/logo.png" height="45"/></a>
   <span style="flex:1"></span>
   <a href="https://demo.routr.io">Demo</a>
-  <a href="introduction/community">Community</a>
+  <a href="/docs/introduction/community">Community</a>
   <a href="/">About</a>
   <a href="javascript:void(0);" class="icon" onclick="myFunction()">
     <i class="fa fa-bars"></i>
@@ -693,10 +693,58 @@
           
 
 
-  <li class="md-nav__item">
-    <a href="../../administration/cli/" title="Command-Line" class="md-nav__link">
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4-1" type="checkbox" id="nav-4-1">
+    
+    <label class="md-nav__link" for="nav-4-1">
       Command-Line
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-4-1">
+        Command-Line
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/installation/" title="Installation" class="md-nav__link">
+      Installation
     </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/cheatsheet/" title="Cheatsheet" class="md-nav__link">
+      Cheatsheet
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/remote-access/" title="Remote Access to a Routr Server" class="md-nav__link">
+      Remote Access to a Routr Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
         
@@ -1467,7 +1515,7 @@
 </tr>
 <tr>
 <td>spec.context.domainUri</td>
-<td>Domain URI. FQDN is recomended</td>
+<td>Domain URI. FQDN is recommended</td>
 <td>Yes</td>
 </tr>
 <tr>
@@ -1728,7 +1776,7 @@ of rules are:
     <span class="nt">credentials</span><span class="p">:</span>
       <span class="nt">username</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ast</span>
       <span class="nt">secret</span><span class="p">:</span> <span class="s">&#39;astsecret&#39;</span>
-    <span class="nt">device</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">astserver</span>      <span class="c1"># If is not define the IP address will be use</span>
+    <span class="nt">device</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">astserver</span>      <span class="c1"># If is not define the IP address will be used</span>
     <span class="nt">contactAddr</span><span class="p">:</span> <span class="s">&#39;192.168.1.2:6060&#39;</span>
 </pre></div>
 

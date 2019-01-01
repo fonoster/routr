@@ -186,7 +186,7 @@
   <a class="logo" href="/"><img src="/docs/assets/logo.png" height="45"/></a>
   <span style="flex:1"></span>
   <a href="https://demo.routr.io">Demo</a>
-  <a href="introduction/community">Community</a>
+  <a href="/docs/introduction/community">Community</a>
   <a href="/">About</a>
   <a href="javascript:void(0);" class="icon" onclick="myFunction()">
     <i class="fa fa-bars"></i>
@@ -768,10 +768,58 @@
           
 
 
-  <li class="md-nav__item">
-    <a href="../administration/cli/" title="Command-Line" class="md-nav__link">
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4-1" type="checkbox" id="nav-4-1">
+    
+    <label class="md-nav__link" for="nav-4-1">
       Command-Line
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-4-1">
+        Command-Line
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../administration/cli/installation/" title="Installation" class="md-nav__link">
+      Installation
     </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../administration/cli/cheatsheet/" title="Cheatsheet" class="md-nav__link">
+      Cheatsheet
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../administration/cli/remote-access/" title="Remote Access to a Routr Server" class="md-nav__link">
+      Remote Access to a Routr Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
         
@@ -1035,15 +1083,15 @@
                 
                   <h1>Concepts</h1>
                 
-                <h2 id="intra-domain-routing">Intra-Domain Routing<a class="headerlink" href="#intra-domain-routing" title="Permanent link">&para;</a></h2>
+                <p>The following are some key concepts including some of the most important routing strategies implemented in Routr.</p>
+<h2 id="intra-domain-routing">Intra-Domain Routing<a class="headerlink" href="#intra-domain-routing" title="Permanent link">&para;</a></h2>
 <p><em>Intra-Domain Routing(IDR)</em> offers a mechanism for user segmentation. For a small or medium size company a single domain may be sufficient, but for a multinational or an IP telephony service provider, it may not.</p>
 <p>For a small company with less than 50 users, you may define a domain <code>sip.domain.com</code>. Regardless of how many offices they have, chances are that they still need to communicate with each other, and therefore we keep them in the same domain. Needless to say, that in a company this size you are not going to run out usernames.</p>
-<p>A multinational company like <em>Walmart</em> have thousands of stores that operate independently. In such case, you will need a multi-domain setting. For example, you may define the domains <code>sip.0001.walmart.com</code> and <code>sip.0002.walmart.com</code>, and... you get the idea.</p>
+<p>A multinational company like <em>Walmart</em> have thousands of stores that operate independently. In such a case, you will need a multi-domain setting. For example, you may define the domains <code>sip.0001.walmart.com</code> and <code>sip.0002.walmart.com</code>, and... you get the idea.</p>
 <h3 id="double-agents">Double Agents<a class="headerlink" href="#double-agents" title="Permanent link">&para;</a></h3>
 <p><img src="https://raw.githubusercontent.com/wiki/fonoster/routr/images/double_agent.png" width=400 style="margin-bottom: 50px">
 <br></p>
 <p>Yes, you can have double Agents, or Agents that exist in a multi-domain setup. All you need to do is include the domain in the Agent's <code>spec.domain[*]</code> list. In the example before, john can send or receive calls from both domains, while the rest of the Agents are only allowed to call within the domain.</p>
-<p>Perhaps, could this "double agent" be the operator at a remote office?</p>
 <h3 id="single-domain-example">Single Domain Example<a class="headerlink" href="#single-domain-example" title="Permanent link">&para;</a></h3>
 <p>The following yaml configuration shows a simple setup, involving one Domain and two Agents:</p>
 <p><strong>Domain configuration</strong></p>
@@ -1079,7 +1127,7 @@
 
 <p>And voila! That's all the configuration you need for intra-domain communication. For calls outside the domain, see "Domain Egress Routing" section and to receive calls from the PSTN check section "Domain Ingress Routing"</p>
 <blockquote>
-<p>To setup your sip devices use information found in <code>config/agents.yml</code>. Also, you must use the Host/IP of Routr server as
+<p>To configure your sip devices use information found in <code>config/agents.yml</code>. Also, you must use the Host/IP of Routr server as
 the OUTBOUND PROXY of your sip device.</p>
 </blockquote>
 <p><strong>Routing Rules</strong></p>
@@ -1102,7 +1150,7 @@ the OUTBOUND PROXY of your sip device.</p>
         <span class="nt">username</span><span class="p">:</span> <span class="s">&#39;gwuser&#39;</span>
         <span class="nt">secret</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">gwsecret</span>
       <span class="nt">transport</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">udp</span>
-      <span class="nt">registries</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">sip.nyc.provider.net</span><span class="p p-Indicator">]</span>     <span class="c1"># This are additional registrars within the providers network</span>
+      <span class="nt">registries</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">sip.nyc.provider.net</span><span class="p p-Indicator">]</span>     <span class="c1"># These are additional registrars within the provider&#39;s network</span>
 </pre></div>
 
 <p>You also need to define DIDs. Incoming calls from a DID will be routed to an existing Agent or Peer using the Address Of Record(AOR). The AOR must be available in the location service at the time of the call or the call will be rejected.</p>
@@ -1118,7 +1166,7 @@ the OUTBOUND PROXY of your sip device.</p>
   <span class="nt">spec</span><span class="p">:</span>
     <span class="nt">location</span><span class="p">:</span>
       <span class="nt">telUri</span><span class="p">:</span> <span class="s">&#39;tel:17066041487&#39;</span>
-      <span class="nt">aorLink</span><span class="p">:</span> <span class="s">&#39;sip:john@sip.local&#39;</span>      <span class="c1"># This is the sip uri of an agent that is spected to be logged in</span>
+      <span class="nt">aorLink</span><span class="p">:</span> <span class="s">&#39;sip:john@sip.local&#39;</span>      <span class="c1"># This is the sip uri of an agent that is expected to be logged in</span>
 </pre></div>
 
 <p>Easy right? Any incoming call from this Gateway and DID will be routed to "Jhon Doe" @ Ocean New York.</p>
@@ -1126,7 +1174,7 @@ the OUTBOUND PROXY of your sip device.</p>
 <p>As mention before, the path of an inbound PSTN call is determined by the <code>spec.location</code> block of a <code>DID</code> resource.
 The <code>aorLink</code> refers to an Address of Record(Agent or Peer) that is available in the <code>location service</code>.</p>
 <h2 id="domain-egress-routing">Domain Egress Routing<a class="headerlink" href="#domain-egress-routing" title="Permanent link">&para;</a></h2>
-<p><em>Domain Egress Routing(DER)</em> is the way that <strong>Routr</strong> deals with a call request to a <em>callee</em> that exist in the Public Switched Telephone Network(PSTN) and not in the <em>callers</em> domain. The Egress Policy consists in a <code>rule</code> and a <code>didRef</code>, and it is defined in the <code>spec.context</code> section of <code>Domains</code> resources.</p>
+<p><em>Domain Egress Routing(DER)</em> is the way that <strong>Routr</strong> deals with a call request to a <em>callee</em> that exists in the Public Switched Telephone Network(PSTN) and not in the <em>callers'</em> domain. The Egress Policy consists of a <code>rule</code> and a <code>didRef</code>, and it is defined in the <code>spec.context</code> section of <code>Domains</code> resources.</p>
 <p>The <code>rule</code> and <code>didRef</code> are defined as follows:</p>
 <ul>
 <li>
@@ -1140,7 +1188,7 @@ The <code>aorLink</code> refers to an Address of Record(Agent or Peer) that is a
 <p>Agents can only perform outbound calls using the <code>Egress Policy</code> of their own Domains.</p>
 <h2 id="peers-routing">Peers Routing<a class="headerlink" href="#peers-routing" title="Permanent link">&para;</a></h2>
 <p>Peers are very similar to Agents but they are not bound to any Domain, and they are usually collocated in the same network with Routr. A common case will be peering with Asterisk, where Asterisk acts as a Media Server and Routr is used for signaling.</p>
-<p>Peers can perform inbound/outbound signaling within the network without any especial consideration since they exist inside the <em>Location Service</em> just like Agents. So it is possible to perform signaling from Peer to Peer, Peer to Agent.</p>
+<p>Peers can perform inbound/outbound signaling within the network without any special consideration since they exist inside the <em>Location Service</em> just like Agents. So it is possible to perform signaling from Peer to Peer, Peer to Agent.</p>
 <p>The same is true for Inbound from the PSTN. For example, we can redirect incoming calls from the PSTN using the <code>spec.location</code> settings in the <code>dids.yml</code> configuration file.</p>
 <p><strong>Routing Rules</strong></p>
 <p>Agents are not allowed to call Peers.</p>

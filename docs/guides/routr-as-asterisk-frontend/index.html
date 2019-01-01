@@ -186,7 +186,7 @@
   <a class="logo" href="/"><img src="/docs/assets/logo.png" height="45"/></a>
   <span style="flex:1"></span>
   <a href="https://demo.routr.io">Demo</a>
-  <a href="introduction/community">Community</a>
+  <a href="/docs/introduction/community">Community</a>
   <a href="/">About</a>
   <a href="javascript:void(0);" class="icon" onclick="myFunction()">
     <i class="fa fa-bars"></i>
@@ -693,10 +693,58 @@
           
 
 
-  <li class="md-nav__item">
-    <a href="../../administration/cli/" title="Command-Line" class="md-nav__link">
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-4-1" type="checkbox" id="nav-4-1">
+    
+    <label class="md-nav__link" for="nav-4-1">
       Command-Line
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-4-1">
+        Command-Line
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/installation/" title="Installation" class="md-nav__link">
+      Installation
     </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/cheatsheet/" title="Cheatsheet" class="md-nav__link">
+      Cheatsheet
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../administration/cli/remote-access/" title="Remote Access to a Routr Server" class="md-nav__link">
+      Remote Access to a Routr Server
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
         
@@ -1011,7 +1059,7 @@
                 
                   <h1>Routr as Asterisk frontend</h1>
                 
-                <p>This guide explores the use case of using Asterisk merely as a Media Server and a more specialized software, like <strong>Routr</strong>, to take care of the signaling and resource management. In other words, Asterisk will be in charge of the ivrs, voice mail, call recording, while <strong>Routr</strong> deals with connecting Agents, Peers, and Gateways. The following illustration depicts our scenario:</p>
+                <p>This guide explores the use case of using Asterisk merely as a Media Server and more specialized software, like <strong>Routr</strong>, to take care of the signaling and resource management. In other words, Asterisk will be in charge of the ivrs, voice mail, call recording, while <strong>Routr</strong> deals with connecting Agents, Peers, and Gateways. The following illustration depicts our scenario:</p>
 <p><img src="/docs/assets/images/peering_ilustration.png" width=600 vspace=50></p>
 <p><strong>Content</strong></p>
 <ul>
@@ -1032,7 +1080,7 @@
 <p>Before starting this guide make sure to have a fresh installation of <strong>Routr</strong> server.</p>
 </blockquote>
 <h2 id="configuration-overview">Configuration Overview<a class="headerlink" href="#configuration-overview" title="Permanent link">&para;</a></h2>
-<p>With a fresh installation of <strong>Routr</strong> you will have most of the configuration you need to follow this tutorial. We, however, need to make some minor changes to configuration files to run our scenario.</p>
+<p>With a fresh installation of <strong>Routr</strong>, you will have most of the configuration you need to follow this tutorial. We, however, need to make some minor changes to configuration files to run our scenario.</p>
 <p>The first file we will examine and change is <code>config/peers.yml</code>. Make note of the username and secret for the Peer "ast" since we will be using this to configure Asterisk. Also, search for the field <code>spec.device</code> and change it to match the Agents domain(<code>sip.local</code>). The file now will look similar to this:</p>
 <p><code>config/peers.yml</code></p>
 <div class="codehilite"><pre><span></span>- apiVersion: v1beta1
@@ -1048,7 +1096,7 @@
 
 <p>Head to the console and run the command <code>rctl -- get peers</code> to confirm that the Peer exist. The result should be as follows:</p>
 <p><img src="/docs/assets/images/get_peers_cmd_output.png" width=600 ></p>
-<p>Next, we focus our attention to <code>domains.yml</code> and <code>agents.yml</code>. With a fresh installation, we don't need to make any changes to this files. However, you could run the commands <code>get domains</code> and <code>get agents</code> to ensure that both, the Agent and the Domain, exist on the server. Your output should look similar to:</p>
+<p>Next, we focus our attention on <code>domains.yml</code> and <code>agents.yml</code>. With a fresh installation, we don't need to make any changes to these files. However, you could run the commands <code>get domains</code> and <code>get agents</code> to ensure that both, the Agent and the Domain, exist on the server. Your output should look similar to:</p>
 <p><img src="/docs/assets/images/get_domains_and_agents.png" width=600 ></p>
 <p>Use the information in <code>agents.yml</code> to configure your SIP phone. The relevant information is found in <code>spec.credentials</code>. Mine looks like this:</p>
 <p><img src="/docs/assets/images/john_telephone_setup_general.png" width=500 >
