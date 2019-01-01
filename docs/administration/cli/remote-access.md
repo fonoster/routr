@@ -1,4 +1,4 @@
-By default Routr installs a certificate that only allows for connections using the `localhost` or `127.0.0.1`. To use `rctl` tool from a remote host, you must generate a certificate that accepts connections to the desired domain name or ip and update the `spec.restService` section of the `config.yml`.
+By default, Routr installs a certificate that only allows for connections using the `localhost` or `127.0.0.1`. To use `rctl` tool from a remote host, you must generate a certificate that accepts connections to the desired domain name or IP and then update the `spec.restService` section of the `config.yml`.
 
 Here is an example using a self-signed certificate(usually enough).
 

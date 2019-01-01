@@ -10,7 +10,7 @@ rctl COMMAND [REF] [flags]
 
 where `COMMAND`, `subcommand` `REF`, and `flags` are:
 
-- `COMMAND`: Specifies the operation that you want to perform on one or more resources. For example: create, get, delete, locate(loc).
+- `COMMAND`: Specifies the operation that you want to perform on one or more resources. For example create, get, delete, locate(loc).
 
 - `subcommand`: Specifies the resource type. Resource types are case-sensitive and you can specify the singular, plural, or abbreviated forms. For example, the following commands produce the same output:
 
@@ -20,7 +20,7 @@ where `COMMAND`, `subcommand` `REF`, and `flags` are:
   $ rctl get gw gweef506
 ```
 
-- `REF`: Specifies the reference to the resource. References are case-sensitive. If the reference is omitted, details for all resources are displayed. For example: `$ rctl get agents`.
+- `REF`: Specifies the reference to the resource. References are case-sensitive. If the reference is omitted, details for all resources are displayed. For example, `$ rctl get agents`.
 
 - `flags`: Specifies optional flags. For example, you can use the --filter to further reduce the output of `get` command.
 
@@ -124,7 +124,7 @@ $ rctl del agent ag3f77f6
 ### Request and store token
 
 ```
-# Request authentication for subsecuent commands
+# Request authentication for subsequent commands
 $ rctl login https://127.0.0.1/api/{apiVersion} -u admin -p changeit
 ```
 

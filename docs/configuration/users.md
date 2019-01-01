@@ -1,9 +1,9 @@
 
 ## 1. Changing the password?
 
-If you are using the `files_data_provider` then you must change the password in the `users.yml` file. For the `redis_data_provider` follow this steps:
+If you are using the `files_data_provider` then you must change the password in the `users.yml` file. For the `redis_data_provider` follow these steps:
 
-First run the command `redis-cli smembers users` to obtain the reference to the user. Here is an example:
+First, run the command `redis-cli smembers users` to obtain the reference to the user. Here is an example:
 
 ```
 $ redis-cli smembers users

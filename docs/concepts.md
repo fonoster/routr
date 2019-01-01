@@ -1,4 +1,4 @@
-The following are some key concepts including some the most important routing strategies implemented in Routr.
+The following are some key concepts including some of the most important routing strategies implemented in Routr.
 
 ## Intra-Domain Routing
 
@@ -6,7 +6,7 @@ _Intra-Domain Routing(IDR)_ offers a mechanism for user segmentation. For a smal
 
 For a small company with less than 50 users, you may define a domain `sip.domain.com`. Regardless of how many offices they have, chances are that they still need to communicate with each other, and therefore we keep them in the same domain. Needless to say, that in a company this size you are not going to run out usernames.
 
-A multinational company like _Walmart_ have thousands of stores that operate independently. In such case, you will need a multi-domain setting. For example, you may define the domains `sip.0001.walmart.com` and `sip.0002.walmart.com`, and... you get the idea.
+A multinational company like _Walmart_ have thousands of stores that operate independently. In such a case, you will need a multi-domain setting. For example, you may define the domains `sip.0001.walmart.com` and `sip.0002.walmart.com`, and... you get the idea.
 
 ### Double Agents
 
@@ -14,8 +14,6 @@ A multinational company like _Walmart_ have thousands of stores that operate ind
 <br>
 
 Yes, you can have double Agents, or Agents that exist in a multi-domain setup. All you need to do is include the domain in the Agent's `spec.domain[*]` list. In the example before, john can send or receive calls from both domains, while the rest of the Agents are only allowed to call within the domain.
-
-Perhaps, could this "double agent" be the operator at a remote office?
 
 ### Single Domain Example
 
@@ -58,7 +56,7 @@ The following yaml configuration shows a simple setup, involving one Domain and 
 
 And voila! That's all the configuration you need for intra-domain communication. For calls outside the domain, see "Domain Egress Routing" section and to receive calls from the PSTN check section "Domain Ingress Routing"
 
-> To setup your sip devices use information found in `config/agents.yml`. Also, you must use the Host/IP of Routr server as
+> To configure your sip devices use information found in `config/agents.yml`. Also, you must use the Host/IP of Routr server as
 > the OUTBOUND PROXY of your sip device.
 
 **Routing Rules**
@@ -85,7 +83,7 @@ The process of receiving a call from PSTN to a domain is known in **Routr** as _
         username: 'gwuser'
         secret: gwsecret
       transport: udp
-      registries: [sip.nyc.provider.net]     # This are additional registrars within the providers network
+      registries: [sip.nyc.provider.net]     # These are additional registrars within the provider's network
 ```
 
 You also need to define DIDs. Incoming calls from a DID will be routed to an existing Agent or Peer using the Address Of Record(AOR). The AOR must be available in the location service at the time of the call or the call will be rejected.
@@ -104,7 +102,7 @@ Please examine the following example:
   spec:
     location:
       telUri: 'tel:17066041487'
-      aorLink: 'sip:john@sip.local'      # This is the sip uri of an agent that is spected to be logged in
+      aorLink: 'sip:john@sip.local'      # This is the sip uri of an agent that is expected to be logged in
 ```
 
 Easy right? Any incoming call from this Gateway and DID will be routed to "Jhon Doe" @ Ocean New York.
@@ -116,7 +114,7 @@ The `aorLink` refers to an Address of Record(Agent or Peer) that is available in
 
 ## Domain Egress Routing
 
-_Domain Egress Routing(DER)_ is the way that **Routr** deals with a call request to a _callee_ that exist in the Public Switched Telephone Network(PSTN) and not in the _callers_ domain. The Egress Policy consists in a `rule` and a `didRef`, and it is defined in the `spec.context` section of `Domains` resources.
+_Domain Egress Routing(DER)_ is the way that **Routr** deals with a call request to a _callee_ that exists in the Public Switched Telephone Network(PSTN) and not in the _callers'_ domain. The Egress Policy consists of a `rule` and a `didRef`, and it is defined in the `spec.context` section of `Domains` resources.
 
 The `rule` and `didRef` are defined as follows:
 
@@ -132,7 +130,7 @@ Agents can only perform outbound calls using the `Egress Policy` of their own Do
 
 Peers are very similar to Agents but they are not bound to any Domain, and they are usually collocated in the same network with Routr. A common case will be peering with Asterisk, where Asterisk acts as a Media Server and Routr is used for signaling.
 
-Peers can perform inbound/outbound signaling within the network without any especial consideration since they exist inside the _Location Service_ just like Agents. So it is possible to perform signaling from Peer to Peer, Peer to Agent.
+Peers can perform inbound/outbound signaling within the network without any special consideration since they exist inside the _Location Service_ just like Agents. So it is possible to perform signaling from Peer to Peer, Peer to Agent.
 
 The same is true for Inbound from the PSTN. For example, we can redirect incoming calls from the PSTN using the `spec.location` settings in the `dids.yml` configuration file.
 

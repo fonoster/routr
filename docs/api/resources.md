@@ -147,7 +147,7 @@ The parameters for `restful_data_provider` are:
 | apiVersion | Indicates the version of the resource (Not yet implemented)| Yes |
 | kind | Defines the type of resource | Yes |
 | metadata.name | Friendly name for the SIP domain | Yes |
-| spec.context.domainUri | Domain URI. FQDN is recomended | Yes |
+| spec.context.domainUri | Domain URI. FQDN is recommended | Yes |
 | spec.context.egressPolicy.rule | Regular expression indicating when a call will be routed via $spec.context.egressPolicy.didRef | No |
 | spec.context.egressPolicy.didRef | Reference to the DID that will route the call | No |
 | spec.context.accessControlList.allow[*] | Traffic allow for Network in list | No |
@@ -272,7 +272,7 @@ The parameters for `restful_data_provider` are:
     credentials:
       username: ast
       secret: 'astsecret'
-    device: astserver      # If is not define the IP address will be use
+    device: astserver      # If is not define the IP address will be used
     contactAddr: '192.168.1.2:6060'
 ```
 

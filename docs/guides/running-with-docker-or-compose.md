@@ -1,8 +1,8 @@
-This is a short-guide about running the dockerized version of Routr Server.
+This is a short guide about running the dockerized version of Routr Server.
 
 ## Run Environment
 
-Run environment variables are used in the entry point script to render configuration templates. The values of this variables can be specified during docker run, or in Kubernetes manifests in the env array.
+Run environment variables are used in the entry point script to render configuration templates. The values of these variables can be specified during docker run, or in Kubernetes manifests in the env array.
 
 - ROUTR_JAVA_OPTS
 - ROUTR_EXTERN_ADDR

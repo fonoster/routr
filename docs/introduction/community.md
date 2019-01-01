@@ -23,7 +23,7 @@ Development mailing list: [routr-developers](https://groups.google.com/forum/#!f
 
 ## Developer Summits
 
-We strive to be as open and public as possible. Technical discussions happen on the development list, our in-person meeting notes are public, and we have public calls. Below, you can find links to our developer summits at JConfDominicana 2019. These deveolper summits are open to join upon request as long as we have capacity. Preference is given to friendly projects and companies, plus diversity. Attendees are free not to be listed in the public meeting notes.
+We strive to be as open and public as possible. Technical discussions happen on the development list, our in-person meeting notes are public, and we have public calls. Below, you can find links to our developer summits at JConfDominicana 2019.
 
 2019 developer summit notes (Come back to see updated link)
 
@@ -37,7 +37,7 @@ This is a list of third-party companies and individuals who provide products or 
 
 [Pedro Sanders](https://github.com/psanders) (independent contractor)
 
-## Acknowledgements
+## Acknowledgments
 
 Routr was initially started by [Pedro Sanders](https://github.com/psanders). The majority of its development has been sponsored by [Fonoster](https://fonoster.com).
 

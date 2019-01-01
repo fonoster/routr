@@ -1,4 +1,4 @@
-This guide explores the use case of using Asterisk merely as a Media Server and a more specialized software, like **Routr**, to take care of the signaling and resource management. In other words, Asterisk will be in charge of the ivrs, voice mail, call recording, while **Routr** deals with connecting Agents, Peers, and Gateways. The following illustration depicts our scenario:
+This guide explores the use case of using Asterisk merely as a Media Server and more specialized software, like **Routr**, to take care of the signaling and resource management. In other words, Asterisk will be in charge of the ivrs, voice mail, call recording, while **Routr** deals with connecting Agents, Peers, and Gateways. The following illustration depicts our scenario:
 
 <img src="/docs/assets/images/peering_ilustration.png" width=600 vspace=50>
 
@@ -22,7 +22,7 @@ This tutorial assumes the following:
 
 ## Configuration Overview
 
-With a fresh installation of **Routr** you will have most of the configuration you need to follow this tutorial. We, however, need to make some minor changes to configuration files to run our scenario.
+With a fresh installation of **Routr**, you will have most of the configuration you need to follow this tutorial. We, however, need to make some minor changes to configuration files to run our scenario.
 
 The first file we will examine and change is `config/peers.yml`. Make note of the username and secret for the Peer "ast" since we will be using this to configure Asterisk. Also, search for the field `spec.device` and change it to match the Agents domain(`sip.local`). The file now will look similar to this:
 
@@ -44,7 +44,7 @@ Head to the console and run the command `rctl -- get peers` to confirm that the 
 
 <img src="/docs/assets/images/get_peers_cmd_output.png" width=600 >
 
-Next, we focus our attention to `domains.yml` and `agents.yml`. With a fresh installation, we don't need to make any changes to this files. However, you could run the commands `get domains` and `get agents` to ensure that both, the Agent and the Domain, exist on the server. Your output should look similar to:
+Next, we focus our attention on `domains.yml` and `agents.yml`. With a fresh installation, we don't need to make any changes to these files. However, you could run the commands `get domains` and `get agents` to ensure that both, the Agent and the Domain, exist on the server. Your output should look similar to:
 
 <img src="/docs/assets/images/get_domains_and_agents.png" width=600 >
 

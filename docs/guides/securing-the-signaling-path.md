@@ -1,6 +1,6 @@
 Follow this guide to secure the signaling between your endpoints and **Routr**. Keep in mind that **Routr** will only secure the signaling and that the endpoints are ultimately responsible for securing the media.
 
-> For this guide we will use a fictitious domain name to demonstrate the process of securing the signaling path
+> For this guide, we will use a fictitious domain name to demonstrate the process of securing the signaling path
 
 <img src="/docs/assets/images/secure_signaling.png" width=600 vspace=30>
 
@@ -91,6 +91,6 @@ Go to the account that you want to secure, select `Advanced -> Sip Signaling` an
 
 <img src="/docs/assets/images/blinkpro_tls_config.png" width=600>
 
-If everything went well you should see a green padlock like the one in the image bellow:
+If everything went well you should see a green padlock like the one in the image below:
 
 <img src="/docs/assets/images/blinkpro_tls_secured.png" width=400>
