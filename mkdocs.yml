@@ -35,7 +35,10 @@ nav:
     - Agents Configuration: configuration/agents.md
     - Peers Configuration: configuration/peers.md
   - Administration:
-    - Command-Line: administration/cli.md
+    - Command-Line:
+      - Installation: administration/cli/installation.md
+      - Cheatsheet: administration/cli/cheatsheet.md
+      - Remote Access to a Routr Server: administration/cli/remote-access.md
     - Web Console: administration/webconsole.md
   - API:
     - Reference: api/reference.md

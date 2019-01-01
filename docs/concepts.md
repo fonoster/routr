@@ -1,3 +1,5 @@
+The following are some key concepts including some the most important routing strategies implemented in Routr.
+
 ## Intra-Domain Routing
 
 _Intra-Domain Routing(IDR)_ offers a mechanism for user segmentation. For a small or medium size company a single domain may be sufficient, but for a multinational or an IP telephony service provider, it may not.
