@@ -55,7 +55,6 @@ To learn more, read the [documentation](https://routr.io/docs). :books:
 | Linux | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_linux-x64_bin.tar.gz) |  
 | macOS | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_osx-x64_bin.tar.gz) |  
 | Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.0-rc1/routr-1.0.0-rc1_windows-x64_bin.zip) |  
-| Docker | [img](https://hub.docker.com/r/fonoster/routr/) |  
 
 &#10123; Then extract it:
 
@@ -69,6 +68,8 @@ cd routr-*
 ```bash
 ./routr
 ```
+
+> If you are instered in running Routr on Docker please see the [running with docker or docker-compose guide](https://routr.io/docs/guides/running-with-docker-or-compose/)
 
 ## Bugs and Feedback
 
