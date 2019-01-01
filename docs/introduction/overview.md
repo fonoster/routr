@@ -26,7 +26,7 @@ The Routr ecosystem consists of three main components:
 This diagram illustrates the architecture of Routr and some of its ecosystem components:
 
 <br/>
-<img src="/assets/images/architecture.png" >
+<img src="/docs/assets/images/architecture.png" >
 <br/>
 <br/>
 
