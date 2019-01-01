@@ -48,7 +48,9 @@ To learn more, read the [documentation](https://routr.io/docs). :books:
 
 ## Quick Start
 
-&#10122; Download the server for your plattform
+There are no special requirements to install and run the server. Just follow this easy steps:
+
+&#10122; Download the server for your platform
 
 | Platform | Download |
 | -- | -- |
@@ -69,7 +71,7 @@ cd routr-*
 ./routr
 ```
 
-> If you are instered in running Routr on Docker please see the [running with docker or docker-compose guide](https://routr.io/docs/guides/running-with-docker-or-compose/)
+> If you are interested in running Routr on Docker please see the guide [Running with Docker or Compose](https://routr.io/docs/guides/running-with-docker-or-compose/)
 
 ## Bugs and Feedback
 
