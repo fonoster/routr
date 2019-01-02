@@ -22,7 +22,7 @@
 
 Be sure to see the [demo](https://demo.routr.io/login)
 
-Features
+## Features
 
 Routr's main features are:
 
