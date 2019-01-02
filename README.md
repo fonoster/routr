@@ -8,9 +8,10 @@
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="license: MIT"></a>
 
 <p align="left">
-  <a href="#key-features">Key Features</a> •
+  <a href="#features">Features</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="https://routr.io/docs/overview">Documentation</a> •
+  <a href="https://demo.routr.io/login">Demo</a> •
   <a href="#bugs-and-feedback">Bugs and Feedback</a> •
   <a href="#Contributing">Contributing</a> •
   <a href="#license">License</a>
@@ -20,7 +21,9 @@
 
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Next-generation%20SIP%20Server&url=https://github.com/fonoster/routr&via=fonoster&hashtags=voip,sip,webrtc,telephony)
 
-Be sure to see the [demo](https://demo.routr.io/login)
+Have 10 minutes? Try the interactive tutorial
+
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/fonoster/routr-walkthrough-tutorial&tutorial=tutorial.md)
 
 ## Features
 
@@ -59,10 +62,6 @@ cd routr-*
 ```bash
 ./routr
 ```
-
-Have 10 minutes? Try the interactive tutorial
-
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/fonoster/routr-walkthrough-tutorial&tutorial=tutorial.md)
 
 ## Bugs and Feedback
 
