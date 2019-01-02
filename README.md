@@ -22,27 +22,16 @@
 
 Be sure to see the [demo](https://demo.routr.io/login)
 
-## Key Features
+Features
 
-- Proxy
-- Registrar Service
-- Location Service
-- Call Forking
-- Multi-Tenancy/Multi-Domain
-- Access to the PSTN Using SIP Gateways
+Routr's main features are:
+
+- Typical SIP Server functions; Proxy, Registrar, Location Service
+- Per node Multi-Tenancy/Multi-Domain with Domain level Access Control List
 - Transport: TCP, UDP, TLS, WebSocket
-- Data Sources: Redis, Restful API, Files
-- Restful API
-- Command Line Tool for Admin Operations
-- Routing Capabilities
-  - Intra-Domain Routing (IDR)
-  - Domain Ingress Routing(DIR)
-  - Domain Egress Routing (DER)
-  - Peer Egress Routing (PER)
-- Security
-  - Digest SIP User Authentication
-  - Domain Access Control List (DACL)
-  - Restful service secured with TLS and JWT tokens
+- Routr currently support Redis, HTTP Requests, and YAML files as the data source
+- Server management and monitoring with the RESTful API, CLI, and Web Console
+- Configurable routing strategies; Intra-Domain, Domain Ingress, Domain Egress and Peer Egress
 
 To learn more, read the [documentation](https://routr.io/docs/overview). :books:
 
