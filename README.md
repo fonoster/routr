@@ -8,9 +8,10 @@
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="license: MIT"></a>
 
 <p align="left">
-  <a href="#key-features">Key Features</a> •
+  <a href="#features">Features</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="https://routr.io/docs/overview">Documentation</a> •
+  <a href="https://demo.routr.io/login">Demo</a> •
   <a href="#bugs-and-feedback">Bugs and Feedback</a> •
   <a href="#Contributing">Contributing</a> •
   <a href="#license">License</a>
@@ -20,29 +21,16 @@
 
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Next-generation%20SIP%20Server&url=https://github.com/fonoster/routr&via=fonoster&hashtags=voip,sip,webrtc,telephony)
 
-Be sure to see the [demo](https://demo.routr.io/login)
+## Features
 
-## Key Features
+Routr's main features are:
 
-- Proxy
-- Registrar Service
-- Location Service
-- Call Forking
-- Multi-Tenancy/Multi-Domain
-- Access to the PSTN Using SIP Gateways
+- Typical SIP Server functions; Proxy, Registrar, Location Service
+- Per node Multi-Tenancy/Multi-Domain with Domain level Access Control List
 - Transport: TCP, UDP, TLS, WebSocket
-- Data Sources: Redis, Restful API, Files
-- Restful API
-- Command Line Tool for Admin Operations
-- Routing Capabilities
-  - Intra-Domain Routing (IDR)
-  - Domain Ingress Routing(DIR)
-  - Domain Egress Routing (DER)
-  - Peer Egress Routing (PER)
-- Security
-  - Digest SIP User Authentication
-  - Domain Access Control List (DACL)
-  - Restful service secured with TLS and JWT tokens
+- Routr currently support Redis, HTTP Requests, and YAML files as the data source
+- Server management and monitoring with the RESTful API, CLI, and Web Console
+- Configurable routing strategies; Intra-Domain, Domain Ingress, Domain Egress and Peer Egress
 
 To learn more, read the [documentation](https://routr.io/docs/overview). :books:
 
@@ -73,7 +61,7 @@ cd routr-*
 
 Have 10 minutes? Try the interactive tutorial
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.png)](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/fonoster/routr-walkthrough-tutorial&tutorial=tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/fonoster/routr-walkthrough-tutorial&tutorial=tutorial.md)
 
 ## Bugs and Feedback
 
