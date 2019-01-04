@@ -10,7 +10,7 @@
 <p align="left">
   <a href="#features">Features</a> •
   <a href="#quick-start">Quick Start</a> •
-  <a href="https://routr.io/docs/overview">Documentation</a> •
+  <a href="https://routr.io/docs/introduction/overview">Documentation</a> •
   <a href="https://demo.routr.io/login">Demo</a> •
   <a href="#bugs-and-feedback">Bugs and Feedback</a> •
   <a href="#Contributing">Contributing</a> •
