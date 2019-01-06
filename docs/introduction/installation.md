@@ -23,6 +23,6 @@ cd routr-*
 
 Have 10 minutes? Try the interactive tutorial
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.png)](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/fonoster/routr-walkthrough-tutorial&tutorial=tutorial.md)
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/fonoster/routr-walkthrough-tutorial&tutorial=tutorial.md)
 
 > If you are interested in running Routr on Docker please see the guide [Running with Docker or Compose](https://routr.io/docs/guides/running-with-docker-or-compose/)
