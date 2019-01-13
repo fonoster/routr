@@ -7,7 +7,7 @@ import getConfig from 'core/config_util'
 import { Status } from 'core/status'
 import getJWTToken from 'rest/jwt_token_generator'
 import agentsService from 'rest/agents_service.js'
-import PeersService from 'rest/peers_service.js'
+import peersService from 'rest/peers_service.js'
 import domainsService from 'rest/domains_service.js'
 import gatewaysService from 'rest/gateways_service.js'
 import didsService from 'rest/dids_service.js'
@@ -58,7 +58,6 @@ export default class Rest {
     }
 
     start() {
-
         options('/*', (req, res) => {
               const accessControlRequestHeaders = req.headers('Access-Control-Request-Headers')
               if (accessControlRequestHeaders != null) {
@@ -73,17 +72,14 @@ export default class Rest {
         })
 
         path(this.system.apiPath, (r) => {
-            before('/*', (req, res) => res.header('Access-Control-Allow-Origin', '*'))
-
-            before('/credentials', (req, res) => basicAuthFilter(req, res, this.dataAPIs.UsersAPI))
-
-            before('/system/status',  (req, res) => parameterAuthFilter(req, res, this.config.salt))
-
-            before('/system/info',  (req, res) => parameterAuthFilter(req, res, this.config.salt))
-
-            before('/location',  (req, res) => parameterAuthFilter(req, res, this.config.salt))
-
-            before('/registry',  (req, res) => parameterAuthFilter(req, res, this.config.salt))
+            before('/*', (req, res) => {
+              res.header('Access-Control-Allow-Origin', '*')
+              if (req.pathInfo().endsWith('/credentials')) {
+                basicAuthFilter(req, res, this.dataAPIs.UsersAPI)
+              } else {
+                parameterAuthFilter(req, res, this.config.salt)
+              }
+            })
 
             // Its always running! Use to ping Sip IO server
             get('/system/status', (req, res) => '{\"status\": \"Up\"}')
@@ -107,11 +103,11 @@ export default class Rest {
 
             get('/registry', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, this.registry.listAsJSON())))
 
-            agentsService(this.dataAPIs.AgentsAPI, this.config.salt)
-            new PeersService(this.dataAPIs.PeersAPI, this.config.salt).attachEndpoints()
-            domainsService(this.dataAPIs.DomainsAPI, this.config.salt)
-            gatewaysService(this.dataAPIs.GatewaysAPI, this.config.salt)
-            didsService(this.dataAPIs.DIDsAPI, this.config.salt)
+            agentsService(this.dataAPIs.AgentsAPI)
+            peersService(this.dataAPIs.PeersAPI)
+            domainsService(this.dataAPIs.DomainsAPI)
+            gatewaysService(this.dataAPIs.GatewaysAPI)
+            didsService(this.dataAPIs.DIDsAPI)
         })
     }
 

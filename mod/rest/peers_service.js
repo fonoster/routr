@@ -10,38 +10,26 @@ const get = Packages.spark.Spark.get
 const post = Packages.spark.Spark.post
 const put = Packages.spark.Spark.put
 const del = Packages.spark.Spark.delete
-const before = Packages.spark.Spark.before
 
-export default class PeersService {
+export default function (peersAPI) {
 
-    constructor(peersAPI, salt) {
-        this.peersAPI = peersAPI
-        this.salt = salt
-    }
+    post('/peers', (req, res) => RestUtil.createFromFile(req, this.peersAPI))
 
-    attachEndpoints() {
-        before('/peers', (req, res) => parameterAuthFilter(req, res, this.salt))
+    get('/peers', (req, res) => {
+        let filter = ''
+        if(!isEmpty(req.queryParams('filter'))) {
+            filter = req.queryParams('filter')
+        }
+        return JSON.stringify(this.peersAPI.getPeers(filter))
+    })
 
-        before('/peers/*', (req, res) => parameterAuthFilter(req, res, this.salt))
+    get('/peers/:ref', (req, res) => JSON.stringify(this.peersAPI.getPeer(req.params(':ref'))))
 
-        post('/peers', (req, res) => RestUtil.createFromFile(req, this.peersAPI))
+    put('/peers/:ref', (req, res) => {
+        const jsonObj = JSON.parse(req.body())
+        jsonObj.metadata.ref = req.params(':ref')
+        return JSON.stringify(this.peersAPI.updateFromJSON(jsonObj))
+    })
 
-        get('/peers', (req, res) => {
-            let filter = ''
-            if(!isEmpty(req.queryParams('filter'))) {
-                filter = req.queryParams('filter')
-            }
-            return JSON.stringify(this.peersAPI.getPeers(filter))
-        })
-
-        get('/peers/:ref', (req, res) => JSON.stringify(this.peersAPI.getPeer(req.params(':ref'))))
-
-        put('/peers/:ref', (req, res) => {
-            const jsonObj = JSON.parse(req.body())
-            jsonObj.metadata.ref = req.params(':ref')
-            return JSON.stringify(this.peersAPI.updateFromJSON(jsonObj))
-        })
-
-        del('/peers/:ref', (req, res) => JSON.stringify(this.peersAPI.deletePeer(req.params(':ref'))))
-    }
+    del('/peers/:ref', (req, res) => JSON.stringify(this.peersAPI.deletePeer(req.params(':ref'))))
 }

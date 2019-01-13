@@ -10,13 +10,8 @@ const get = Packages.spark.Spark.get
 const post = Packages.spark.Spark.post
 const put = Packages.spark.Spark.put
 const del = Packages.spark.Spark.delete
-const before = Packages.spark.Spark.before
 
-export default function (didsAPI, salt) {
-
-    before('/dids', (req, res) => parameterAuthFilter(req, res, salt))
-
-    before('/dids/*', (req, res) => parameterAuthFilter(req, res, salt))
+export default function (didsAPI) {
 
     post('/dids', (req, res) => RestUtil.createFromFile(req, didsAPI))
 
