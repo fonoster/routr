@@ -98,7 +98,7 @@ function getRequest(from, to) {
 
     const toAddress = addressFactory.createAddress('sip:' + to)
     const toHeader = headerFactory.createToHeader(toAddress, null)
-    const expireHeader = headerFactory.createExpiresHeader(300)
+    const expireHeader = headerFactory.createExpiresHeader(3600)
     const contactAddress = addressFactory.createAddress('sip:' + from  + ':' + port)
     const contactHeader = headerFactory.createContactHeader(contactAddress)
     const userAgentHeader = headerFactory.createUserAgentHeader(userAgent)

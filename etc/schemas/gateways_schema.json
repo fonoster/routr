@@ -33,6 +33,7 @@
                           },
                           "required": ["username", "secret"]
                       },
+                      "expires": {"type": "integer"},
                       "host": {"type": "string"},
                       "transport": {"type": "string"},
                       "registries": {

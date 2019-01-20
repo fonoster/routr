@@ -49,13 +49,13 @@ export default class ResponseProcessor {
     storeInRegistry(response) {
         const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
         const expiresHeader = response.getHeader(ExpiresHeader.NAME)
-        const expires  = expiresHeader != null? expiresHeader.getExpires() : 300
-        this.registry.storeRegistry(fromURI.getUser(), fromURI.getHost(), expires)
+        const expires  = expiresHeader != null? expiresHeader.getExpires() : 3600
+        this.registry.storeRegistry(fromURI, expires)
     }
 
     removeFromRegistry(response) {
         const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
-        this.registry.removeRegistry(fromURI.getHost())
+        this.registry.removeRegistry(fromURI.toString())
     }
 
     handleAuthChallenge(event) {

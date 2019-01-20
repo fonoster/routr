@@ -192,6 +192,7 @@ The parameters for `restful_data_provider` are:
 | spec.credentials.secret |  Gateway secret  | Yes |
 | spec.host | Gateway host | Yes |
 | spec.transport | Transport protocol | Yes |
+| spec.expires | Requested lifespan of the registration in seconds. Defaults to `3600` | No |
 | spec.registries.[*] | Additional registries for ingress calls | No |
 
 **Example**

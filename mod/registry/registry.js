@@ -18,11 +18,10 @@ var cseq = 0
 
 export default class Registry {
 
-    constructor(sipProvider, dataAPIs, expires = 300, checkExpiresTime = .5) {
+    constructor(sipProvider, dataAPIs) {
         this.dataAPIs = dataAPIs.GatewaysAPI
         this.gatewaysAPI = dataAPIs.GatewaysAPI
-        this.expires = expires
-        this.checkExpiresTime = checkExpiresTime
+        this.checkExpiresTime = .5
         this.sipProvider = sipProvider
         this.config = getConfig()
         this.messageFactory = SipFactory.getInstance().createMessageFactory()
@@ -33,7 +32,7 @@ export default class Registry {
         this.registry = new HashMap()
     }
 
-    getHostAddress(transport, received, rport) {
+    getLPAddress(transport, received, rport) {
         try {
             const lp = this.sipProvider.getListeningPoint(transport)
             const host = this.config.spec.externAddr? this.config.spec.externAddr : lp.getIPAddress()
@@ -45,90 +44,73 @@ export default class Registry {
         }
     }
 
-    requestChallenge(username, gwRef, peerHost, transport, received, rport) {
-        const address = this.getHostAddress(transport, received, rport)
-        const host = address.host
-        const port = address.port
-        const request = this.messageFactory.createRequest('REGISTER sip:' + peerHost + ' SIP/2.0\r\n\r\n')
-        const fromAddress = this.addressFactory.createAddress('sip:' + username + '@' + peerHost)
-        const contactAddress = this.addressFactory.createAddress('sip:' + username + '@' + host + ':' + port)
-        const viaHeader = this.headerFactory.createViaHeader(host, port, transport, null)
-
-        let headers = []
+    requestChallenge(username, gwRef, gwHost, transport, received, rport, expires) {
+        const contactAddr = this.getLPAddress(transport, received, rport)
+        const viaAddr = this.getLPAddress(transport)
+        const request = this.messageFactory.createRequest('REGISTER sip:' + gwHost + ' SIP/2.0\r\n\r\n')
+        const fromAddress = this.addressFactory.createAddress('sip:' + username + '@' + gwHost)
+        const contactAddress = this.addressFactory.createAddress('sip:' + username + '@' + contactAddr.host + ':' + contactAddr.port)
+        const viaHeader = this.headerFactory.createViaHeader(viaAddr.host, viaAddr.port, transport, null)
+        const headers = []
 
         viaHeader.setRPort()
         headers.push(viaHeader)
-        headers.push(this.headerFactory.createMaxForwardsHeader(70))
         headers.push(this.sipProvider.getNewCallId())
+        headers.push(this.headerFactory.createExpiresHeader(expires))
+        headers.push(this.headerFactory.createMaxForwardsHeader(70))
         headers.push(this.headerFactory.createCSeqHeader(cseq++, Request.REGISTER))
         headers.push(this.headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag()))
         headers.push(this.headerFactory.createToHeader(fromAddress, null))
         headers.push(this.headerFactory.createContactHeader(contactAddress))
         headers.push(this.headerFactory.createUserAgentHeader(this.userAgent))
-        headers.push(this.headerFactory.createHeader('X-Gateway-Ref', gwRef))
         headers.push(this.headerFactory.createAllowHeader('INVITE'))
         headers.push(this.headerFactory.createAllowHeader('ACK'))
         headers.push(this.headerFactory.createAllowHeader('BYE'))
         headers.push(this.headerFactory.createAllowHeader('CANCEL'))
         headers.push(this.headerFactory.createAllowHeader('REGISTER'))
         headers.push(this.headerFactory.createAllowHeader('OPTIONS'))
+        headers.push(this.headerFactory.createHeader('X-Gateway-Ref', gwRef))
         headers.forEach(header => request.addHeader(header))
-        this.sendRequest(request, peerHost)
+        this.sendRequest(request, gwHost)
     }
 
-    sendRequest(request, peerHost) {
+    sendRequest(request, gwHost) {
         try {
             const clientTransaction = this.sipProvider.getNewClientTransaction(request)
             clientTransaction.sendRequest()
         } catch(e) {
-            this.handleChallengeException(e, peerHost)
+            this.handleChallengeException(e, gwHost)
         }
         LOG.debug(request)
     }
 
-    handleChallengeException(e, peerHost) {
-        this.registry.remove(peerHost)
+    handleChallengeException(e, gwHost) {
+        this.registry.remove(gwHost)
         if(e instanceof javax.sip.TransactionUnavailableException || e instanceof javax.sip.SipException) {
-            LOG.warn('Unable to register with Gateway -> ' + peerHost + '. (Verify your network status)')
+            LOG.warn('Unable to register with Gateway -> ' + gwHost + '. (Verify your network status)')
         } else {
             LOG.warn(e)
         }
     }
 
-    storeRegistry(username, host, expires = 300) {
+    storeRegistry(gwURI, expires) {
         // Re-register before actual time expiration
         let actualExpires = expires - 2 * 60 * this.checkExpiresTime
 
         const reg = {
-            username: username,
-            host: host,
-            ip: InetAddress.getByName(host).getHostAddress(),
+            username: gwURI.getUser(),
+            host: gwURI.getHost(),
+            ip: InetAddress.getByName(gwURI.getHost()).getHostAddress(),
             expires: actualExpires,
             registeredOn: Date.now(),
             regOnFormatted: moment(new Date(Date.now())).fromNow()
         }
 
-        this.registry.put(host, reg)
+        this.registry.put(gwURI.toString(), reg)
     }
 
-    removeRegistry (host) {
-        this.registry.remove(host)
-    }
-
-    hasHost(host) {
-        return this.registry.get(host) != null
-    }
-
-    hasIp(ip) {
-        const iterator = this.registry.values().iterator()
-
-        while(iterator.hasNext()) {
-            const reg = iterator.next()
-            if (reg.ip.equals(ip)) {
-                return true
-            }
-        }
-        return false
+    removeRegistry (gwURIStr) {
+        this.registry.remove(gwURIStr)
     }
 
     listAsJSON() {
@@ -143,8 +125,8 @@ export default class Registry {
         return s
     }
 
-    isExpired (host) {
-        const reg = this.registry.get(host)
+    isExpired (gwURIStr) {
+        const reg = this.registry.get(gwURIStr)
 
         if (reg == null) {
           return true
@@ -165,20 +147,22 @@ export default class Registry {
 
                 if (response.status == Status.OK) {
                     response.result.forEach (function(gateway) {
-                        if (myRegistry.isExpired(gateway.spec.host)) {
+                        const gwURIStr = 'sip:' + gateway.spec.credentials.username + '@' + gateway.spec.host
+                        const expires = gateway.spec.expires? gateway.spec.expires : 3600
+                        if (myRegistry.isExpired(gwURIStr)) {
                             LOG.debug('Register with ' + gateway.metadata.name +  ' using '
                                 + gateway.spec.credentials.username + '@' + gateway.spec.host)
                             myRegistry.requestChallenge(gateway.spec.credentials.username,
-                                gateway.metadata.ref, gateway.spec.host, gateway.spec.transport)
+                                gateway.metadata.ref, gateway.spec.host, gateway.spec.transport, null, null, expires)
                         }
 
                         let registries = gateway.spec.registries
 
                         if (registries != undefined) {
                             registries.forEach (function(h) {
-                                if (myRegistry.isExpired(gateway.spec.host)) {
+                                if (myRegistry.isExpired(gwURIStr)) {
                                     LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.credentials.username + '@' + h)
-                                    myRegistry.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport)
+                                    myRegistry.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport, null, null, expires)
                                 }
                             })
                         }
