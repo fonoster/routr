@@ -7,6 +7,7 @@ import AccountManagerService from 'core/account_manager_service'
 const SipFactory = Packages.javax.sip.SipFactory
 const FromHeader = Packages.javax.sip.header.FromHeader
 const ViaHeader = Packages.javax.sip.header.ViaHeader
+const ContactHeader = Packages.javax.sip.header.ContactHeader
 const CSeqHeader = Packages.javax.sip.header.CSeqHeader
 const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
 const Request = Packages.javax.sip.message.Request
@@ -33,8 +34,7 @@ export default class ResponseProcessor {
         }
 
         if (ResponseProcessor.isRegisterOk(response)) {
-            const viaHeader = response.getHeader(ViaHeader.NAME)
-            if (ResponseProcessor.isBehindNat(viaHeader)) {
+            if (ResponseProcessor.isBehindNat(response)) {
                 return this.reRegister(event)
             }
             this.storeInRegistry(response)
@@ -73,6 +73,7 @@ export default class ResponseProcessor {
         const response = event.getResponse()
         const clientTransaction = event.getClientTransaction()
         const viaHeader = response.getHeader(ViaHeader.NAME)
+        const expires = response.getHeader(ExpiresHeader.NAME).getExpires()
 
         LOG.debug('Routr is behind a NAT. Re-registering using Received and RPort')
 
@@ -84,7 +85,8 @@ export default class ResponseProcessor {
                 fromURI.getHost(),
                 viaHeader.getTransport().toLowerCase(),
                 viaHeader.getReceived(),
-                viaHeader.getRPort())
+                viaHeader.getRPort(),
+                expires)
         } catch(e) {
             LOG.error(e)
         }
@@ -145,11 +147,13 @@ export default class ResponseProcessor {
         return false
     }
 
-    static isBehindNat(viaHeader) {
-        const rPort = viaHeader.getRPort()
-        const port = viaHeader.getPort()
-        const host = viaHeader.getHost()
+    static isBehindNat(response) {
+        const viaHeader = response.getHeader(ViaHeader.NAME)
+        const contactHeader = response.getHeader(ContactHeader.NAME)
+        const host = contactHeader.getAddress().getHost()
+        const port = contactHeader.getAddress().getPort()
         const received = viaHeader.getReceived()
+        const rPort = viaHeader.getRPort()
         return (!!received && !host.equals(received)) || port != rPort? true : false
     }
 
