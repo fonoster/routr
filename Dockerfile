@@ -4,7 +4,7 @@ MAINTAINER Pedro Sanders <fonosterteam@fonoster.com>
 ENV LANG C.UTF-8
 ENV PATH=/opt/gradle/bin:${PATH}
 ENV PATH $PATH:/usr/lib/jvm/java-1.8-openjdk/jre/bin:/usr/lib/jvm/java-1.8-openjdk/bin
-ENV CTL_VERSION 1.0.0-alpha
+ENV CTL_VERSION 1.0.2-alpha
 
 COPY . /opt/routr
 COPY etc/api-access.json /root/.routr-access.json
@@ -32,6 +32,11 @@ RUN wget https://services.gradle.org/distributions/gradle-4.5-bin.zip  \
         docker-compose.yml \
         Dockerfile \
         pack.sh \
+        brand.png \
+        gradle* \
+        mkdocs.yml \
+        k8s \
+        docs \
         routr.bat \
         webpack.config.js \
         build.gradle \
