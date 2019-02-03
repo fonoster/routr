@@ -78,4 +78,4 @@ For contributing, please see the following links:
  - [Pedro Sanders](https://github.com/psanders)
 
 ## LICENSE
-Copyright (C) 2018 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/routr/blob/master/LICENSE) for details).
+Copyright (C) 2019 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/routr/blob/master/LICENSE) for details).
