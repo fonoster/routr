@@ -105,7 +105,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#1-changing-the-password" tabindex="1" class="md-skip">
+      <a href="#user-resource" tabindex="1" class="md-skip">
         Skip to content
       </a>
     
@@ -515,82 +515,10 @@
           
 
 
-  <li class="md-nav__item md-nav__item--nested">
-    
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3-1" type="checkbox" id="nav-3-1">
-    
-    <label class="md-nav__link" for="nav-3-1">
+  <li class="md-nav__item">
+    <a href="../general/" title="General Configuration" class="md-nav__link">
       General Configuration
-    </label>
-    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-3-1">
-        General Configuration
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../general/transport/" title="Transport Settings" class="md-nav__link">
-      Transport Settings
     </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../general/signaling-security/" title="Signaling Security(TLS)" class="md-nav__link">
-      Signaling Security(TLS)
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../general/restful-api/" title="Restful API" class="md-nav__link">
-      Restful API
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../general/datasource/" title="Datasource Setting" class="md-nav__link">
-      Datasource Setting
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../general/logging/" title="Logging" class="md-nav__link">
-      Logging
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
   </li>
 
         
@@ -623,8 +551,22 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-changing-the-password" title="1. Changing the password?" class="md-nav__link">
-    1. Changing the password?
+  <a href="#user-resource" title="User Resource" class="md-nav__link">
+    User Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example" title="Example" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-the-password-redis" title="Changing the password? (Redis)" class="md-nav__link">
+    Changing the password? (Redis)
   </a>
   
 </li>
@@ -806,46 +748,10 @@
       
 
 
-  <li class="md-nav__item md-nav__item--nested">
-    
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
-    
-    <label class="md-nav__link" for="nav-5">
-      API
-    </label>
-    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-5">
-        API
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
   <li class="md-nav__item">
-    <a href="../../api/reference/" title="Reference" class="md-nav__link">
-      Reference
+    <a href="../../api/reference/" title="API Reference" class="md-nav__link">
+      API Reference
     </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../api/resources/" title="Resources" class="md-nav__link">
-      Resources
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
   </li>
 
     
@@ -976,8 +882,22 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-changing-the-password" title="1. Changing the password?" class="md-nav__link">
-    1. Changing the password?
+  <a href="#user-resource" title="User Resource" class="md-nav__link">
+    User Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example" title="Example" class="md-nav__link">
+    Example
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-the-password-redis" title="Changing the password? (Redis)" class="md-nav__link">
+    Changing the password? (Redis)
   </a>
   
 </li>
@@ -1003,8 +923,60 @@
                 
                   <h1>Users Configuration</h1>
                 
-                <h2 id="1-changing-the-password">1. Changing the password?<a class="headerlink" href="#1-changing-the-password" title="Permanent link">&para;</a></h2>
-<p>If you are using the <code>files_data_provider</code> then you must change the password in the <code>users.yml</code> file. For the <code>redis_data_provider</code> follow these steps:</p>
+                <p>Users exist in Routr to perform administrative actions on a Routr instance.
+The Users configuration can be provided using the file <code>config/users.yml</code> located at the root of your Routr installation.</p>
+<blockquote>
+<p>If using Redis this configuration will be store in the database.</p>
+</blockquote>
+<h2 id="user-resource">User Resource<a class="headerlink" href="#user-resource" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>apiVersion</td>
+<td>Indicates the version of the resource (Not yet implemented)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>kind</td>
+<td>Defines the type of resource</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>metadata.name</td>
+<td>Friendly name for the User device</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>spec.credentials.username</td>
+<td>User's credential username</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>spec.credentials.secret</td>
+<td>User's credential secret</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
+  <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">User</span>
+  <span class="nt">metadata</span><span class="p">:</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Administrator</span>
+  <span class="nt">spec</span><span class="p">:</span>
+    <span class="nt">credentials</span><span class="p">:</span>
+      <span class="nt">username</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">admin</span>
+      <span class="nt">secret</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">changeit</span>
+</pre></div>
+
+<h2 id="changing-the-password-redis">Changing the password? (Redis)<a class="headerlink" href="#changing-the-password-redis" title="Permanent link">&para;</a></h2>
 <p>First, run the command <code>redis-cli smembers users</code> to obtain the reference to the user. Here is an example:</p>
 <p><div class="codehilite"><pre><span></span>$ redis-cli smembers users
 1) &quot;5aa69ead8fd6861d92385bac&quot;
@@ -1048,8 +1020,8 @@ Then, retrieve the document for reference running <code>redis-cli get {REF}</cod
 
         <!-- Link to previous page -->
         
-          <a href="../general/logging/"
-              title="Logging"
+          <a href="../general/"
+              title="General Configuration"
               class="md-flex md-footer-nav__link md-footer-nav__link--prev"
               rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
@@ -1062,7 +1034,7 @@ Then, retrieve the document for reference running <code>redis-cli get {REF}</cod
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Logging
+                General Configuration
               </span>
             </div>
           </a>
