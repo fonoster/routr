@@ -85,7 +85,7 @@ The parameters for `restful_data_provider` are:
 
 The `spec.externAddr` and `spec.localnets` parameters help Routr identify the
 correct path for any given traffic. The `spec.externAddr` is typically the Internet
-facing IP address. The `spec.localnets` is array with valid CIDR, IP/Mask, or single IP values.
+facing IP address. The `spec.localnets` is an array with valid CIDR, IP/Mask, or single IP values.
 here is quick example:
 
 ```yaml
