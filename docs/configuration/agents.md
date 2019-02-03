@@ -1,6 +1,11 @@
-## Agent Resource
+Agents represent SIP endpoints such as softphones, IP phones, or paging speakers.
+In Routr, Agents are bound by a Domain. An Agent can belong to one or multiple Domains.
 
-> This file can be found at 'config/agents.yml' in the root of this project.
+The Agents configuration can be provided using the file `config/agents.yml` located at the root of your Routr installation.
+
+> If using Redis this configuration will be store in the database.
+
+## Agent Resource
 
 | Property | Description | Required |
 | --- | --- | --- |
@@ -11,10 +16,9 @@
 | spec.credentials.secret | Agent's credential secret | Yes |
 | spec.domains[*] | Context/s in which this Agent is allowed to communicate. FQDN is recommended | Yes |
 
-**Example**
+## Example
 
 ```yaml
-# Peers and Agents can register in Routr location service
 - apiVersion: v1beta1
   kind: Agent
   metadata:

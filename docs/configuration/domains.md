@@ -1,6 +1,9 @@
-## Domain Resource
+Domains group Agents together. They help isolate groups and allow the creation of rule for incoming and
+outgoing calling. The domains configuration can be provided using the file `config/domains.yml` located at the root of your Routr installation.
 
-> This file can be found at 'config/domains.yml' in the root of this project.
+> If using Redis this configuration will be store in the database.
+
+## Domain Resource
 
 | Property | Description | Required |
 | --- | --- | --- |
@@ -13,14 +16,13 @@
 | spec.context.accessControlList.allow[*] | Traffic allow for Network in list | No |
 | spec.context.accessControlList.deny[*] | Traffic disabled for Network in list| No |
 
-> Access Control List
-> Rules may be in CIDR, IP/Mask, or single IP format. Example
-> of rules are:
-> - 0.0.0.0/1 # all
-> - 192.168.1.0/255.255.255.0
-> - 192.168.0.1/31
+ACL Rules may be in CIDR, IP/Mask, or single IP format. Example of rules are:
 
-**Example**
+- 0.0.0.0/1 # all
+- 192.168.1.0/255.255.255.0
+- 192.168.0.1/31
+
+## Example
 
 ```yaml
 - apiVersion: v1beta1

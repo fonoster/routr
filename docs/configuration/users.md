@@ -1,6 +1,9 @@
-## User Resource
+Users exist in Routr to perform administrative actions on a Routr instance.
+The Users configuration can be provided using the file `config/users.yml` located at the root of your Routr installation.
 
-> This file can be found at 'config/users.yml' in the root of this project.
+> If using Redis this configuration will be store in the database.
+
+## User Resource
 
 | Property | Description | Required |
 | --- | --- | --- |
@@ -10,10 +13,9 @@
 | spec.credentials.username | User's credential username | Yes |
 | spec.credentials.secret | User's credential secret | Yes |
 
-**Example**
+## Example
 
 ```yaml
-# Users exist in Routr to perform administrative actions on the server
 - apiVersion: v1beta1
   kind: User
   metadata:
@@ -24,9 +26,7 @@
       secret: changeit
 ```
 
-## 1. Changing the password?
-
-If you are using the `files_data_provider` then you must change the password in the `users.yml` file. For the `redis_data_provider` follow these steps:
+## Changing the password? (Redis)
 
 First, run the command `redis-cli smembers users` to obtain the reference to the user. Here is an example:
 

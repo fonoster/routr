@@ -1,6 +1,5 @@
-General configuration have an effect in the elements of a Routr instance.
-All the general configuration can be found in the `config/config.yml` file
-at the root of your Routr installation.
+The general configuration affects your entire Routr instance. The general configuration
+can be provided using the file `config/config.yml` located at the root of your Routr installation.
 
 ## General Configuration Parameters
 
@@ -42,7 +41,7 @@ at the root of your Routr installation.
 
 Routr supports `tcp`, `udp`, `tls`, `sctp`, `ws`, and `wss` as transport protocols.
 
-The server requires of at least one transport protocol to be able to operate.
+To operate, the server requires of at least one transport protocol.
 To bind a transport protocol to an specific IP address you can use the `spec.transport.bindAddr`,
 otherwise the `spec.bindAddr` will be use.
 
@@ -84,15 +83,31 @@ The parameters for `restful_data_provider` are:
 
 ## Configuring the server behind a NAT
 
+The `spec.externAddr` and `spec.localnets` parameters help Routr identify the
+correct path for any given traffic. The `spec.externAddr` is typically the Internet
+facing IP address. The `spec.localnets` is array with valid CIDR, IP/Mask, or single IP values.
+here is quick example:
 
+```yaml
+spec:
+  externAddr: 172.220.231.23
+  localnets: [172.17.0.2/16]
+```
 
 ## Access Control List
 
-## Restful API
+The Access Control List(ACL) provides with a security mechanism to disable network
+access from unwanted sources. ACL can be define per Domain basis. Here are example,
+blocking all traffic except from IP address `192.168.0.1`.
 
-## Logging
+```yaml
+spec:
+  accessControlList:
+    deny: [0.0.0.0/1]        # Deny all
+    allow: [192.168.0.1/31]
+```
 
-## Example
+## Basic Example
 
 ```yaml
 apiVersion: v1beta1

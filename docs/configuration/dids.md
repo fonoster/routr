@@ -1,6 +1,10 @@
-## DID Resource
+DIDs represent virtual numbers use to route calls from/to the PSTN through Gateways
 
-> This file can be found at 'config/dids.yml' in the root of this project.
+The DIDs configuration can be provided using the file `config/dids.yml` located at the root of your Routr installation.
+
+> If using Redis this configuration will be store in the database.
+
+## DID Resource
 
 | Property | Description | Required |
 | --- | --- | --- |
@@ -14,7 +18,7 @@
 | spec.location.telUrl | DID URI available in the location server | Yes |
 | spec.location.aorLink | Address of record of SIP device for call routing | Yes |
 
-**Example**
+## Example
 
 ```yaml
 - apiVersion: v1beta1

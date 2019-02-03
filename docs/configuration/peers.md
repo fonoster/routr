@@ -1,6 +1,11 @@
-## Peer Resource
+Like Agents, Peers represent SIP endpoints such as Media Servers.
+Unlike Agents, Peers aren't bound to a Domain.
 
-> This file can be found at 'config/peers.yml' in the root of this project.
+The Peers configuration can be provided using the file `config/peers.yml` located at the root of your Routr installation.
+
+> If using Redis this configuration will be store in the database.
+
+## Peer Resource
 
 | Property | Description | Required |
 | --- | --- | --- |
@@ -12,10 +17,9 @@
 | spec.device | When set it will be used by the location service  | No |
 | spec.contactAddr | When set will advertise this as the contactURI | No |
 
-**Example**
+## Example
 
 ```yaml
-# Peers and Agents can register on Routr location service
 - apiVersion: v1beta1
   kind: Peer
   metadata:
@@ -28,4 +32,4 @@
     contactAddr: '192.168.1.2:6060'
 ```
 
-This peer can be reached using `ast@astserver`.
+> This peer can be reached using the AOR: `ast@astserver`.

@@ -1,6 +1,10 @@
-## Gateway Resource
+Use the Gateway resource to register with a Sip Gateways or SBCs and send or receive calls from the PSTN.
 
-> This file can be found at 'config/gateways.yml' in the root of this project.
+The Gateways configuration can be provided using the file `config/gateways.yml` located at the root of your Routr installation.
+
+> If using Redis this configuration will be store in the database.
+
+## Gateway Resource
 
 | Property | Description | Required |
 | --- | --- | --- |
@@ -15,11 +19,9 @@
 | spec.expires | Requested lifespan of the registration in seconds. Defaults to `3600` | No |
 | spec.registries.[*] | Additional registries for ingress calls | No |
 
-**Example**
+## Example
 
 ```yaml
-# Use gateway to register with a Sip Gateways or SBCs and send
-# or receive calls from the PSTN
 - apiVersion: v1beta1
   kind: Gateway
   metadata:
