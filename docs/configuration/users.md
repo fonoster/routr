@@ -1,3 +1,28 @@
+## User Resource
+
+> This file can be found at 'config/users.yml' in the root of this project.
+
+| Property | Description | Required |
+| --- | --- | --- |
+| apiVersion | Indicates the version of the resource (Not yet implemented)| Yes |
+| kind | Defines the type of resource | Yes |
+| metadata.name | Friendly name for the User device | Yes |
+| spec.credentials.username | User's credential username | Yes |
+| spec.credentials.secret | User's credential secret | Yes |
+
+**Example**
+
+```yaml
+# Users exist in Routr to perform administrative actions on the server
+- apiVersion: v1beta1
+  kind: User
+  metadata:
+    name: Administrator
+  spec:
+    credentials:
+      username: admin
+      secret: changeit
+```
 
 ## 1. Changing the password?
 
