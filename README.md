@@ -32,7 +32,7 @@ Routr's main features are:
 - Server management and monitoring with the RESTful API, CLI, and Web Console
 - Configurable routing strategies; Intra-Domain, Domain Ingress, Domain Egress and Peer Egress
 
-To learn more, read the [documentation](https://routr.io/docs/overview). :books:
+To learn more, read the [documentation](https://routr.io/docs/introduction/overview/). :books:
 
 ## Quick Start
 
