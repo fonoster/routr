@@ -10,6 +10,7 @@ import agentsService from 'rest/agents_service.js'
 import peersService from 'rest/peers_service.js'
 import domainsService from 'rest/domains_service.js'
 import gatewaysService from 'rest/gateways_service.js'
+import resourcesService from 'rest/resources_service.js'
 import didsService from 'rest/dids_service.js'
 import parameterAuthFilter from 'rest/parameter_auth_filter'
 import basicAuthFilter from 'rest/basic_auth_filter'
@@ -103,11 +104,12 @@ export default class Rest {
 
             get('/registry', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, this.registry.listAsJSON())))
 
-            agentsService(this.dataAPIs.AgentsAPI)
-            peersService(this.dataAPIs.PeersAPI)
-            domainsService(this.dataAPIs.DomainsAPI)
-            gatewaysService(this.dataAPIs.GatewaysAPI)
-            didsService(this.dataAPIs.DIDsAPI)
+            //agentsService(this.dataAPIs.AgentsAPI)
+            resourcesService(this.dataAPIs.AgentsAPI, 'Agent')
+            resourcesService(this.dataAPIs.PeersAPI, 'Peer')
+            resourcesService(this.dataAPIs.DomainsAPI, 'Domain')
+            resourcesService(this.dataAPIs.GatewaysAPI, 'Gateway')
+            resourcesService(this.dataAPIs.DIDsAPI, 'DID')
         })
     }
 
