@@ -6,5 +6,4 @@
  */
 export let testGroup = { name: 'Rest Service Module' }
 
-testGroup.no_op = function () {
-}
+testGroup.no_op = function () {}

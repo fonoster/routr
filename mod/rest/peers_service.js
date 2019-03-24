@@ -4,7 +4,6 @@
  */
 import RestUtil from 'rest/utils'
 import isEmpty from 'utils/obj_util'
-import parameterAuthFilter from 'rest/parameter_auth_filter'
 
 const get = Packages.spark.Spark.get
 const post = Packages.spark.Spark.post
