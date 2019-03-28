@@ -1,21 +1,22 @@
-FROM alpine
+FROM alpine:3.9
 MAINTAINER Pedro Sanders <fonosterteam@fonoster.com>
 
 ENV LANG C.UTF-8
 ENV PATH=/opt/gradle/bin:${PATH}
 ENV PATH $PATH:/usr/lib/jvm/java-1.8-openjdk/jre/bin:/usr/lib/jvm/java-1.8-openjdk/bin
 ENV CTL_VERSION 1.0.2-alpha
+ENV GRADLE_VERSION=5.2.1
 
 COPY . /opt/routr
 COPY etc/api-access.json /root/.routr-access.json
 COPY etc/salt /root/.routr.salt
 WORKDIR /opt/routr
 
-RUN wget https://services.gradle.org/distributions/gradle-4.5-bin.zip  \
+RUN wget https://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip  \
     && mkdir -p /opt/gradle \
-    && unzip gradle-4.5-bin.zip \
-    && mv gradle-4.5/* /opt/gradle \
-    && rm gradle-4.5-bin.zip \
+    && unzip gradle-$GRADLE_VERSION-bin.zip \
+    && mv gradle-$GRADLE_VERSION/* /opt/gradle \
+    && rm gradle-$GRADLE_VERSION-bin.zip \
     && apk add --update openjdk8 nodejs nodejs-npm redis \
     && npm i && npm test && npm prune && rm -rf node_modules \
     && apk del nodejs nodejs-npm \

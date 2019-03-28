@@ -29,12 +29,6 @@ export default class TestUtils {
         return agent
     }
 
-    static buildPeer(name, device, username, secret = '1234') {
-         const peer = TestUtils.buildEndpoint('Peer', name, username, secret)
-         peer.spec.device = device
-         return peer
-    }
-
     static buildGateway(name, username, ref = '1234', secret = '1234') {
         const gateway = {
             apiVersion: 'v1.0',

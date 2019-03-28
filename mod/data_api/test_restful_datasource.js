@@ -107,7 +107,8 @@ testGroup.update_did = function () {
 
 // This also validates the other resources
 testGroup.update_peer = function () {
-    const peer = TestUtils.buildPeer('Asterisk PBX', 'ast', 'node1')
+    const peer = TestUtils.buildEndpoint('Peer', 'Asterisk PBX', 'node1')
+    peer.spec.device = 'ast'
     let response = ds.insert(peer)
     const ref = response.result
     assertTrue(response.status == Status.CREATED)
