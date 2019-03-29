@@ -131,16 +131,16 @@ export default class Locator {
 
     getPeerRouteByHost(addressOfRecord) {
         const aors = this.db.keySet().iterator()
+        const peerHost = addressOfRecord.getHost().toString()
+        const peerPort = addressOfRecord.getPort() === -1? 5060 : addressOfRecord.getPort()
 
         while(aors.hasNext()) {
             let key = aors.next()
             let routes = this.db.get(key)
             for (const x in routes) {
                 const h1 = routes[x].contactURI.getHost().toString()
-                const h2 = addressOfRecord.getHost().toString()
-                const p1 = routes[x].contactURI.getPort() == -1? 5060 : routes[x].contactURI.getPort()
-                const p2 = addressOfRecord.getPort() == -1? 5060 : addressOfRecord.getPort()
-                if (h1.equals(h2) && p1 == p2) {
+                const p1 = routes[x].contactURI.getPort() === -1? 5060 : routes[x].contactURI.getPort()
+                if (h1.equals(peerHost) && p1 === peerPort) {
                     return CoreUtils.buildResponse(Status.OK, routes)
                 }
             }
