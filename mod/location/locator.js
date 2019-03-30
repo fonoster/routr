@@ -30,6 +30,10 @@ export default class Locator {
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
     }
 
+    getPort(uri) {
+      return uri.getPort() === -1? 5060 : uri.getPort()
+    }
+
     addEndpoint(addressOfRecord, route) {
         const response = this.findEndpoint(addressOfRecord)
         let routes
@@ -69,7 +73,7 @@ export default class Locator {
     }
 
     /**
-     * DIDs required an "aorLink" enter the network
+     * DIDs required an "aorLink" to enter the network
      */
     findEndpointByTelUrl(addressOfRecord) {
         const response = this.didsAPI.getDIDByTelUrl(addressOfRecord)
@@ -132,14 +136,13 @@ export default class Locator {
     getPeerRouteByHost(addressOfRecord) {
         const aors = this.db.keySet().iterator()
         const peerHost = addressOfRecord.getHost().toString()
-        const peerPort = addressOfRecord.getPort() === -1? 5060 : addressOfRecord.getPort()
+        const peerPort = this.getPort(addressOfRecord)
 
         while(aors.hasNext()) {
-            let key = aors.next()
-            let routes = this.db.get(key)
+            let routes = this.db.get(aors.next())
             for (const x in routes) {
                 const h1 = routes[x].contactURI.getHost().toString()
-                const p1 = routes[x].contactURI.getPort() === -1? 5060 : routes[x].contactURI.getPort()
+                const p1 = this.getPort(routes[x].contactURI)
                 if (h1.equals(peerHost) && p1 === peerPort) {
                     return CoreUtils.buildResponse(Status.OK, routes)
                 }
@@ -151,14 +154,14 @@ export default class Locator {
 
     getEgressRouteForAOR(addressOfRecord) {
         if (!(addressOfRecord instanceof Packages.javax.sip.address.SipURI))
-            throw 'AOR must be an instance of javax.sip.address.SipURI'
+            throw 'AOR must be instance of javax.sip.address.SipURI'
 
-        let response = this.domainsAPI.getDomains()
+        const response = this.domainsAPI.getDomains()
         let route
 
         if (response.status == Status.OK) {
             response.result.forEach(domain => {
-                const r = this.getEgressRouteForDomain(domain, addressOfRecord)
+                const r = this.getEgressRouteForDomain(addressOfRecord, domain)
                 if (r.status == Status.OK) {
                     route = r.result
                 }
@@ -169,7 +172,7 @@ export default class Locator {
             CoreUtils.buildResponse(Status.OK, LocatorUtils.buildForwardRoute(addressOfRecord))
     }
 
-    getEgressRouteForDomain(domain, addressOfRecord) {
+    getEgressRouteForDomain(addressOfRecord, domain) {
         if (isEmpty(domain.spec.context.egressPolicy) == false) {
             // Get DID and Gateway info
             let response = this.didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
