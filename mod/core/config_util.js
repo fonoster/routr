@@ -21,33 +21,13 @@ export default function () {
     config.spec.restService = getRestfulPresets(config.spec.restService)
     config.system = getSystemConfig()
 
-    if (config.spec.registrarIntf == undefined) {
-        config.spec.registrarIntf = 'External'
-    }
-
-    if (config.spec.useToAsAOR == undefined) {
-        config.spec.useToAsAOR = false
-    }
-
-    if (config.spec.bindAddr == undefined) {
-        config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
-    }
-
-    if (config.spec.logging == undefined) {
-        config.spec.logging = { traceLevel: 0 }
-    }
-
-    if (config.spec.dataSource == undefined) {
-        config.spec.dataSource = { provider: 'files_data_provider' }
-    }
-
-    if (config.metadata == undefined) {
-        config.metadata = {}
-    }
-
-    if (config.metadata.userAgent == undefined) {
-        config.metadata.userAgent = 'Routr ' + config.system.version
-    }
+    if (config.spec.registrarIntf == undefined) config.spec.registrarIntf = 'External'
+    if (config.spec.useToAsAOR == undefined) config.spec.useToAsAOR = false
+    if (config.spec.bindAddr == undefined) config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
+    if (config.spec.logging == undefined) config.spec.logging = { traceLevel: 0 }
+    if (config.spec.dataSource == undefined) config.spec.dataSource = { provider: 'files_data_provider' }
+    if (config.metadata == undefined) config.metadata = {}
+    if (config.metadata.userAgent == undefined) config.metadata.userAgent = 'Routr ' + config.system.version
 
     return config
 }
@@ -60,25 +40,11 @@ function getRestfulPresets(rs) {
         restService.keyStorePassword = 'changeit'
     }
 
-    if (restService.unsecured == undefined) {
-        restService.unsecured = false
-    }
-
-    if (restService.trustStore == undefined) {
-        restService.trustStore = null
-    }
-
-    if (restService.trustStorePassword == undefined) {
-        restService.trustStorePassword = null
-    }
-
-    if (restService.bindAddr == undefined) {
-        restService.bindAddr = '0.0.0.0'
-    }
-
-    if (restService.port == undefined) {
-        restService.port = 4567
-    }
+    if (restService.unsecured == undefined) restService.unsecured = false
+    if (restService.trustStore == undefined) restService.trustStore = null
+    if (restService.trustStorePassword == undefined) restService.trustStorePassword = null
+    if (restService.bindAddr == undefined) restService.bindAddr = '0.0.0.0'
+    if (restService.port == undefined) restService.port = 4567
 
     return restService
 }
@@ -181,16 +147,12 @@ function getConfigFromFile() {
 }
 
 function getSalt() {
-    if (System.getenv("ROUTR_SALT") != null) {
-        return System.getenv("ROUTR_SALT")
-    }
-
+    if (System.getenv("ROUTR_SALT") != null) return System.getenv("ROUTR_SALT")
+  
     const pathToSalt = System.getProperty("user.home") + "/.routr.salt"
     const f = new File(pathToSalt)
 
-    if(f.exists() && !f.isDirectory()) {
-        return FilesUtil.readFile(pathToSalt)
-    }
+    if(f.exists() && !f.isDirectory()) return FilesUtil.readFile(pathToSalt)
 
     const genSalt = UUID.randomUUID().toString().replaceAll("-", "")
     FilesUtil.writeFile(pathToSalt, genSalt)
