@@ -12,12 +12,12 @@ export default class PeersAPI {
         this.ds = dataSource
     }
 
-    createFromJSON(jsonObj) {
-        return this.peerExist(jsonObj.spec.credentials.username)? CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
-    }
-
     updateFromJSON(jsonObj) {
         return !this.peerExist(jsonObj.spec.credentials.username)? CoreUtils.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
+    }
+
+    createFromJSON(jsonObj) {
+        return this.peerExist(jsonObj.spec.credentials.username)? CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
     }
 
     getPeers(filter) {
@@ -28,12 +28,12 @@ export default class PeersAPI {
         return DSUtil.deepSearch(this.getPeers(), "metadata.ref", ref)
     }
 
-    getPeerByUsername(username) {
-        return DSUtil.deepSearch(this.getPeers(), "spec.credentials.username", username)
-    }
-
     peerExist(username) {
         return DSUtil.objExist(this.getPeerByUsername(username))
+    }
+
+    getPeerByUsername(username) {
+        return DSUtil.deepSearch(this.getPeers(), "spec.credentials.username", username)
     }
 
     deletePeer(ref) {
