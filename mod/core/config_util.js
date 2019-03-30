@@ -181,19 +181,19 @@ function getConfigFromFile() {
 }
 
 function getSalt() {
-    // Find or generate SALT
     if (System.getenv("ROUTR_SALT") != null) {
         return System.getenv("ROUTR_SALT")
-    } else {
-        const pathToSalt = System.getProperty("user.home") + "/.routr.salt"
-        const f = new File(pathToSalt)
-
-        if(f.exists() && !f.isDirectory()) {
-            return FilesUtil.readFile(pathToSalt)
-        } else {
-            const genSalt = UUID.randomUUID().toString().replaceAll("-", "")
-            FilesUtil.writeFile(pathToSalt, genSalt)
-            return genSalt
-        }
     }
+
+    const pathToSalt = System.getProperty("user.home") + "/.routr.salt"
+    const f = new File(pathToSalt)
+
+    if(f.exists() && !f.isDirectory()) {
+        return FilesUtil.readFile(pathToSalt)
+    }
+
+    const genSalt = UUID.randomUUID().toString().replaceAll("-", "")
+    FilesUtil.writeFile(pathToSalt, genSalt)
+
+    return genSalt
 }
