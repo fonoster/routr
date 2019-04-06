@@ -2,6 +2,8 @@
 
 VERSION=1.0.0-rc2
 
+set -e
+
 build_for_platform() {
     PLATFORM=$1
     DOWNLOAD_FILE=$2
@@ -18,8 +20,7 @@ build_for_platform() {
     cp routr.bat $BUILD_NAME/
     cp README.md $BUILD_NAME/
     cp LICENSE $BUILD_NAME/
-
-    wget -N "https://storage.googleapis.com/sipio_assets/$DOWNLOAD_FILE"
+    wget -N "https://storage.googleapis.com/routr/$DOWNLOAD_FILE"
     tar xvf $DOWNLOAD_FILE
     mv jre-$PLATFORM $BUILD_NAME/jre
     tar -czvf $BUILD_NAME.tar.gz $BUILD_NAME
