@@ -1,4 +1,4 @@
-FROM alpine:3.9
+FROM alpine:3.9.2
 MAINTAINER Pedro Sanders <fonosterteam@fonoster.com>
 
 ENV LANG C.UTF-8
