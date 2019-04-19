@@ -26,7 +26,7 @@ export default class RouteInfo {
 
         // Overwrites callee info if addressInfo is present
         if(!!this.config.spec.addressInfo) {
-            const callee = getCalleeFromAddressInfo(request, this.config.spec.addressInfo)
+            const callee = this.getCalleeFromAddressInfo(request, this.config.spec.addressInfo)
             this._calleeUser = callee.user
             this._calleeHost = callee.host
         }

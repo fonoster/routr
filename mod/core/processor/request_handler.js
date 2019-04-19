@@ -4,7 +4,6 @@
  */
 import ProcessorUtils from 'core/processor/utils'
 import IPUtil from 'core/ip_util'
-import Context from 'core/context'
 import getConfig from 'core/config_util'
 import { Status } from 'core/status'
 
@@ -150,7 +149,7 @@ export default class RequestHandler {
 
     saveContext(requestIn, requestOut, clientTransaction, serverTransaction) {
         // Transaction context
-        const context = new Context()
+        const context = {}
         context.clientTransaction = clientTransaction
         context.serverTransaction = serverTransaction
         context.method = requestIn.getMethod()
