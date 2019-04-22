@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-main_js="$(pwd)/etc/tests/test_helper.js"
+main_js="$(pwd)/etc/tests/test_helper.mjs"
 
 jjs -Dlog4j.configurationFile=./config/log4j2.xml -cp libs/app.deps.jar \
     -doe=true -ot=true -strict=false -scripting=true "$main_js" -- "$@"

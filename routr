@@ -1,4 +1,11 @@
-#!jre/bin/jjs -Dlog4j.configurationFile=config/log4j2.xml -cp libs/app.deps.jar --optimistic-types=true -dump-on-error=true
+#!/usr/bin/env bash
 
-load ('libs/jvm-npm.js')
-load ('libs/app.bundle.js')
+set -ex
+
+$GRAALVM_HOME/bin/node \
+  --experimental-worker \
+  --experimental-options --nashorn-compat \
+  --vm.Dlog4j.configurationFile=config/log4j2.xml \
+  --vm.cp=libs/app.deps.jar \
+  --jvm --polyglot --experimental-modules \
+   mod/core/main.mjs

@@ -1,7 +1,7 @@
 {
   "name": "routr",
   "version": "1.0.0",
-  "description": "Next generation proxy server",
+  "description": "Next-generation SIP Server",
   "scripts": {
     "transpile": "babel --out-dir node_modules mod",
     "bundle": "webpack --config webpack.config.js --mode production",
@@ -12,16 +12,19 @@
     "prepack": "npm test"
   },
   "dependencies": {
-    "jvm-npm": "^0.1.1",
+    "@routr/core": "file:mod/core",
+    "@routr/data_api": "file:mod/data_api",
+    "@routr/location": "file:mod/location",
+    "@routr/registrar": "file:mod/registrar",
+    "@routr/registry": "file:mod/registry",
+    "@routr/rest": "file:mod/rest",
+    "@routr/utils": "file:mod/utils",
     "moment": "^2.22.2",
-    "npm": "^6.1.0"
+    "npm": "^6.1.0",
+    "tasktimer": "^2.0.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-preset-env": "^1.7.0",
-    "cross-env": "^5.2.0",
-    "webpack": "^4.11.1",
-    "webpack-command": "^0.2.0"
+    "cross-env": "^5.2.0"
   },
   "repository": {
     "type": "git",
