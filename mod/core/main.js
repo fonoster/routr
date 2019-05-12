@@ -19,6 +19,9 @@ const RedisDataSource = require('@routr/data_api/redis_datasource')
 const RestfulDataSource = require('@routr/data_api/restful_datasource')
 const getConfig = require('@routr/core/config_util')
 
+// XXX: This feals a bit like a hack. But it is ok for now.
+global.timer = timer
+
 // Avoids old log4j and jetty logs
 java.lang.System.setProperty("org.eclipse.jetty.LEVEL", "WARN")
 org.apache.log4j.BasicConfigurator.configure(new

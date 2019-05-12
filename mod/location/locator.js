@@ -245,38 +245,29 @@ class Locator {
         LOG.info('Starting Location service')
         const self = this
 
-        const t = new java.lang.Thread(new java.lang.Runnable() {
-          run: () => {
-              console.log('Buh!')
-          }
-        })
+        global.timer.schedule(
+          () => {
+            const e = self.db.values().iterator()
 
-        t.start()
+            while(e.hasNext()) {
+                let routes = e.next()
 
-        /*const unbindExpiredTask = new java.util.TimerTask({
-            run: () => {
-                console.log('DBG001')
-                const e = self.db.values().iterator()
+                for (const x in routes) {
+                    const route = routes[x]
+                    const elapsed = (Date.now() - route.registeredOn) / 1000
+                    if ((route.expires - elapsed) <= 0) {
+                        routes.splice(x, 1)
+                    }
 
-                while(e.hasNext()) {
-                    let routes = e.next()
-
-                    for (const x in routes) {
-                        const route = routes[x]
-                        const elapsed = (Date.now() - route.registeredOn) / 1000
-                        if ((route.expires - elapsed) <= 0) {
-                            routes.splice(x,1)
-                        }
-
-                        if (routes.length == 0) {
-                            e.remove()
-                        }
+                    if (routes.length == 0) {
+                        e.remove()
                     }
                 }
             }
-        })
-
-        self.timer.scheduleAtFixedRate(unbindExpiredTask, 5000, this.checkExpiresTime * 60 * 1000)*/
+          },
+          5000,
+          this.checkExpiresTime * 60 * 1000
+        )
     }
 
     stop() {
