@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
-set -ex
+set -e
 
-$GRAALVM_HOME/bin/node \
-  --experimental-worker \
-  --experimental-options --nashorn-compat \
-  --vm.Dlog4j.configurationFile=config/log4j2.xml \
-  --vm.cp=libs/app.deps.jar \
-  --jvm --polyglot --experimental-modules \
-   mod/core/main.mjs
+$GRAALVM_HOME/bin/java \
+  -Dpolyglot.js.nashorn-compat=true \
+  -Dlog4j.configurationFile=config/log4j2.xml \
+  -cp libs/app.deps.jar \
+    com.fonoster.routr.core.Main
