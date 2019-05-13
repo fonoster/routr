@@ -78,7 +78,7 @@ class DSUtil {
     static deepSearch(response, path, value) {
         let result
         response.result.forEach(obj => {
-            if (DSUtil.resolve(path, obj) == value) {
+            if (DSUtil.resolve(path, obj) === value.toString()) {
                 result = obj
             }
         })

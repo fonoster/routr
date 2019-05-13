@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Next-generation SIP Server",
   "scripts": {
-    "test": "cross-env ./etc/tests/tester 'utils/test' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'rest/test' 'data_api/test_apis' 'data_api/test_redis_datasource' 'data_api/test_files_datasource' 'data_api/test_restful_datasource'",
+    "test": "cross-env ./etc/tests/tester 'utils/test' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'rest/test' 'data_api/test_apis' 'data_api/test_files_datasource' 'data_api/test_restful_datasource' 'data_api/test_redis_datasource' ",
     "shadow-jar": "cross-env ./gradlew shadowJar"
   },
   "dependencies": {

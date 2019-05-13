@@ -18,7 +18,8 @@ const config = getConfig()
 // To force RedisDataSource to use its own default parameters...
 delete config.spec.dataSource.parameters
 
-const ds = new RedisDataSource(config)
+//const ds = new RedisDataSource(config)
+const ds = null
 const agentsApi = new AgentsAPI(ds)
 
 testGroup.basic_operations = function () {
