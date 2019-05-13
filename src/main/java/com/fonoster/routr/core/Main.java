@@ -27,8 +27,7 @@ public class Main {
           polyglot.getBindings("js").putMember("timer", timer);
 
           Value s = polyglot.eval("js", "const System = Java.type('java.lang.System');"
-            + "load(System.getProperty('user.dir') + '/node_modules/jvm-npm/src/main/javascript/jvm-npm.js');"
-            + "load(System.getProperty('user.dir') + '/mod/core/main.js');");
+            + "load(System.getProperty('user.dir') + '/mod/core/main.js')");
     }
 
     public static class Timer {

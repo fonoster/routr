@@ -2,6 +2,8 @@
  * @author Pedro Sanders
  * @since v1
  */
+load(System.getProperty('user.dir') + '/node_modules/jvm-npm/src/main/javascript/jvm-npm.js')
+
 const Server = require('@routr/core/server')
 const Locator = require('@routr/location/locator')
 const Registrar = require('@routr/registrar/registrar')
