@@ -123,7 +123,7 @@ class Server {
         properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'false')
         properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', this.config.spec.logging.traceLevel)
         properties.setProperty('gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY', 'gov.nist.javax.sip.stack.NioMessageProcessorFactory')
-        /*properties.setProperty('gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS', 'false')
+        properties.setProperty('gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS', 'false')
         properties.setProperty('gov.nist.javax.sip.REENTRANT_LISTENER', 'true')
         properties.setProperty('gov.nist.javax.sip.NIO_BLOCKING_MODE', 'NONBLOCKING')
 
@@ -136,7 +136,7 @@ class Server {
             properties.setProperty('javax.net.ssl.trustStore', this.config.spec.securityContext.trustStore)
             properties.setProperty('javax.net.ssl.keyStorePassword', this.config.spec.securityContext.keyStorePassword)
             properties.setProperty('javax.net.ssl.keyStoreType', this.config.spec.securityContext.keyStoreType)
-        }*/
+        }
         return properties
     }
 
