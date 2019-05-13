@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-const IPUtil = '@routr/core/ip_util'
+const IPUtil = require('@routr/core/ip_util')
 
 class Rule {
 

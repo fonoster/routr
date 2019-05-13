@@ -4,13 +4,13 @@
  *
  * Unit Test for the "Files Data Source"
  */
-import FilesDataSource from '@routr/data_api/files_datasource'
-import FilesUtil from '@routr/utils/files_util'
-import DSUtil from '@routr/data_api/utils'
-import { Status } from '@routr/core/status'
-import getConfig from '@routr/core/config_util'
+const FilesDataSource = require('@routr/data_api/files_datasource')
+const FilesUtil = require('@routr/utils/files_util')
+const DSUtil = require('@routr/data_api/utils')
+const { Status } = require('@routr/core/status')
+const getConfig = require('@routr/core/config_util')
 
-export const testGroup = { name: "Files Data Source" }
+const testGroup = { name: "Files Data Source" }
 
 const config = getConfig()
 // Forces data source to use its own default parameters...
@@ -36,3 +36,5 @@ testGroup.get_collections = function () {
     response = ds.withCollection('agents').find("@.spec.credentials.username==1001'")
     assertTrue(response.status == Status.BAD_REQUEST)
 }
+
+module.exports.testGroup = testGroup

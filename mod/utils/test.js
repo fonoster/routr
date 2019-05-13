@@ -4,8 +4,10 @@
  *
  * Unit Test for the "Utils Module"
  */
-export let testGroup = { name: "Utils Module" }
+const testGroup = { name: "Utils Module" }
 
 // Tests
 testGroup.noop = function () {
 }
+
+module.exports.testGroup = testGroup

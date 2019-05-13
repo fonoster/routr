@@ -7,6 +7,8 @@
 const DSUtil = require('@routr/data_api/utils')
 const TestUtil = require( '@routr/data_api/test_utils')
 
+const testGroup = { name: "Data APIS" }
+
 testGroup.deep_search = function () {
     const agents = []
     agents.push(TestUtil.buildAgent('John Doe', ['sip.local'], '1001'))
@@ -23,4 +25,4 @@ testGroup.deep_search = function () {
     assertTrue(agent.metadata.name == 'John Doe')
 }
 
-module.exports.testGroup = { name: "Data APIS" }
+module.exports.testGroup = testGroup

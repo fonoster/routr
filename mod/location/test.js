@@ -5,13 +5,13 @@
  * Unit Test for the "Location Service Module"
  */
 const FilesDataSource = require('@routr/data_api/files_datasource')
-const Locator require('@routr/location/locator')
-const LocatorUtils require('@routr/location/utils')
-const DIDsAPI require('@routr/data_api/dids_api')
-const DomainsAPI require('@routr/data_api/domains_api')
-const GatewaysAPI require('@routr/data_api/gateways_api')
-const { Status } require('@routr/core/status')
-const getConfig require('@routr/core/config_util')
+const Locator = require('@routr/location/locator')
+const LocatorUtils = require('@routr/location/utils')
+const DIDsAPI = require('@routr/data_api/dids_api')
+const DomainsAPI = require('@routr/data_api/domains_api')
+const GatewaysAPI = require('@routr/data_api/gateways_api')
+const { Status } = require('@routr/core/status')
+const getConfig = require('@routr/core/config_util')
 
 const config = getConfig()
 // Forces data source to use its own default parameters...
@@ -28,7 +28,7 @@ const SipFactory = Packages.javax.sip.SipFactory
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 const locator = new Locator(dataAPIs)
 
-export let testGroup = { name: "Location Service Module" }
+const testGroup = { name: "Location Service Module" }
 
 // Tests
 testGroup.aor_as_string = function () {
@@ -100,3 +100,5 @@ function testFE(aor, thruGw = false) {
   assertEquals(Status.OK, response.status)
   response.result.forEach(route => assertEquals(thruGw, route.thruGw))
 }
+
+module.exports.testGroup = testGroup

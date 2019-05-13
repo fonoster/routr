@@ -4,15 +4,15 @@
  *
  * Unit Test for the "Redis Data Source"
  */
-import RedisDataSource from '@routr/data_api/redis_datasource'
-import AgentsAPI from '@routr/data_api/agents_api'
-import { Status } from '@routr/core/status'
-import TestUtils from '@routr/data_api/test_utils'
-import getConfig from '@routr/core/config_util'
+const RedisDataSource = require('@routr/data_api/redis_datasource')
+const AgentsAPI = require('@routr/data_api/agents_api')
+const { Status } = require('@routr/core/status')
+const TestUtils = require('@routr/data_api/test_utils')
+const getConfig = require('@routr/core/config_util')
 
 const ObjectId = Packages.org.bson.types.ObjectId
 
-export let testGroup = { name: "Redis Data Source", enabled: false }
+const testGroup = { name: "Redis Data Source", enabled: false }
 
 const config = getConfig()
 // To force RedisDataSource to use its own default parameters...
@@ -94,3 +94,5 @@ testGroup.get_agent = function () {
     // Cleanup
     ds.withCollection('agents').remove(ref)
 }
+
+module.exports.testGroup = testGroup

@@ -4,13 +4,13 @@
  *
  * Unit Test for the "Restful Data Source"
  */
-import RestfulDataSource from '@routr/data_api/restful_datasource'
-import GatewaysAPI from '@routr/data_api/gateways_api'
-import { Status } from '@routr/core/status'
-import TestUtils from '@routr/data_api/test_utils'
-import getConfig from '@routr/core/config_util'
+const RestfulDataSource = require('@routr/data_api/restful_datasource')
+const GatewaysAPI = require('@routr/data_api/gateways_api')
+const { Status } = require('@routr/core/status')
+const TestUtils = require('@routr/data_api/test_utils')
+const getConfig = require('@routr/core/config_util')
 
-export let testGroup = { name: "Restful Data Source", enabled: false}
+const testGroup = { name: "Restful Data Source", enabled: false}
 
 const config = getConfig()
 // Forces data source to use its own default parameters...
@@ -121,3 +121,5 @@ testGroup.update_peer = function () {
     response = ds.withCollection('peers').remove(ref)
     assertTrue(response.status == Status.OK)
 }
+
+module.exports.testGroup = testGroup
