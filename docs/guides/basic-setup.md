@@ -1,4 +1,4 @@
-This is a step-by-step guide on VoIP setup at home or at the office. For calls to the PSTN you will need to have a sip provider like `voip.ms` or `didlogic.com`.
+This is a step-by-step guide on VoIP setup at home or at the office. For calls to the PSTN you will need to have a SIP provider like `voip.ms` or `didlogic.com`.
 
 **Content**
 
@@ -8,7 +8,7 @@ This is a step-by-step guide on VoIP setup at home or at the office. For calls t
     - [Configuring the DID ](#configuring-the-did)
     - [Creating a new Domain and EgressPolicy](#creating-a-new-domain-and-egresspolicy)
     - [Creating the Agents](#creating-the-agents)
-- [Configuring the Sip devices](#configuring-the-sip-devices)
+- [Configuring the SIP devices](#configuring-the-sip-devices)
 - [Making calls](#making-calls)
 - [What's Next](whats-next)
 
@@ -26,7 +26,7 @@ A set of sample configuration covering this scenario can be found at [basic samp
 
 ### Configuring the Gateway
 
-To configure the Gateway you must consult your sip provider and obtain the credentials and `registration host`. The key fields for the configuration are `metadata.ref`, `spec.regService.host` and `spec.regService.credentials`. Here is an example:
+To configure the Gateway you must consult your SIP provider and obtain the credentials and `registration host`. The key fields for the configuration are `metadata.ref`, `spec.regService.host` and `spec.regService.credentials`. Here is an example:
 
 ```yml
 - apiVersion: v1beta1
@@ -63,7 +63,7 @@ To configure your DID or virtual number, you must open and edit the file `config
 
 ### Creating a new Domain and EgressPolicy
 
-**Routr** is a Domain centric Sip Server. A Domain is used to group several Agents in the same context. The Domain URI can be an arbitrary name but we recommend using a fully qualified domain name (FQDN). You will also need to setup and *EgressPolicy* to allow calls outside the Domain. Here is how the file `config/domains.yml` needs to look like:
+**Routr** is a Domain centric SIP Server. A Domain is used to group several Agents in the same context. The Domain URI can be an arbitrary name but we recommend using a fully qualified domain name (FQDN). You will also need to setup and *EgressPolicy* to allow calls outside the Domain. Here is how the file `config/domains.yml` needs to look like:
 
 ```yml
 - apiVersion: v1beta1
@@ -122,7 +122,7 @@ Your output should be as follows:
 
 <img src="/docs/assets/images/verify_configuration.png" width=600 >
 
-## Configuring the Sip devices
+## Configuring the SIP devices
 
 > We are using "Telephone" for this example. You might use any softphone you wish, just keep in mind that the configuration will look slightly different.
 
