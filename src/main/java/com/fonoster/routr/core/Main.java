@@ -4,13 +4,9 @@
  */
 package com.fonoster.routr.core;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Value;
 
 public class Main {
-    private Logger LOG = LogManager.getLogger();
 
     static public void main(String... args) {
         new Main().jsLaunch();
@@ -26,7 +22,7 @@ public class Main {
           Timer timer = new Timer();
           polyglot.getBindings("js").putMember("timer", timer);
 
-          Value s = polyglot.eval("js", "const System = Java.type('java.lang.System');"
+          polyglot.eval("js", "const System = Java.type('java.lang.System');"
             + "load(System.getProperty('user.dir') + '/mod/core/main.js')");
     }
 
