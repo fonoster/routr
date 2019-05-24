@@ -1,12 +1,12 @@
-Follow this guide to secure the signaling between your endpoints and **Routr**. Keep in mind that **Routr** will only secure the signaling and that the endpoints are ultimately responsible for securing the media.
+Follow this guide to secure the signaling between your endpoints and Routr. Keep in mind that *Routr* only secures the signaling and that the endpoints are ultimately responsible for securing the media.
 
-> For this guide, we will use a fictitious domain name to demonstrate the process of securing the signaling path
+> For this guide, we used a fictitious domain name to demonstrate the process of securing the signaling path
 
 <img src="/docs/assets/images/secure_signaling.png" width=600 vspace=30>
 
-## Creating a Java Keystore(.JKS) Certificate
+## Creating a Java Keystore(.JKS) certificate
 
-**Routr** needs a keystore (.jks) in order to properly handling the certificates. The following steps will create a valid keystore file using a self-signed method or using the free [Let's Encrypt service](https://letsencrypt.org/).
+We need a keystore (.jks) to properly handling the certificates. The following steps create a valid keystore file using a self-signed method or using the free [Let's Encrypt service](https://letsencrypt.org/).
 
 ### Creating a self-signed Certificate
 
@@ -27,9 +27,9 @@ keytool -genkey -keyalg RSA \
 
 Remember to adjust the values to match your project's information.
 
-> `WSS` will not work with a self-signed certificate. However, you can add a security exception by using `https` instead of `wss` in your browser's search bar and then accepting the security certificate.
+> `WSS` does not work with a self-signed certificate. However, you can add a security exception by using `https` instead of `wss` in your browser's search bar and then accepting the security certificate.
 
-### Creating a Certificate using Let’s Encrypt
+### Creating a Certificate using 'Let's Encrypt
 
 The recommended way to create a valid certificate for **Routr** is using the free service [Let's Encrypt](https://letsencrypt.org). Please go to https://letsencrypt.org/ for details on how to install the required tooling. To generate the certificate, use the following steps:
 
@@ -37,9 +37,9 @@ The recommended way to create a valid certificate for **Routr** is using the fre
 
 ```bash
 certbot certonly --standalone -d sip.ocean.com --email admin@sip.ocean.com
-```
+`""
 
-Change to the directory where the certificates were created(normally at /etc/letsencrypt/live/sip.ocean.com).
+Change to the directory where we created the certificates(generally at /etc/letsencrypt/live/sip.ocean.com).
 
 **2. Create a PKCS12 file containing full chain and private key**
 
@@ -47,7 +47,7 @@ Change to the directory where the certificates were created(normally at /etc/let
 openssl pkcs12 -export -in fullchain.pem -inkey privkey.pem -out pkcs.p12 -name domains-cert.jks
 ```
 
-Please make note of the password since you will need it in the following step and also for your settings in **Routr**.
+Please make a note of the password since you need it in the next step.
 
 **3. Convert PKCS12 to Keystore**
 
@@ -75,22 +75,22 @@ spec:
     - protocol: tls
       port: 5061
 ...
-```
+`""
 
-With the property `spec.securityContext.debugging` set to `true` you can get some valuable information about the status of the configuration. You can also test your configuration using the following command:
+If you set the property `spec.securityContext.debugging`  to `true`, you can get some valuable information about the status of the configuration. You can also test your configuration using the following command:
 
-```
+`""
 openssl s_client -host 192.168.1.2 -port 5061    # Remember to use Routr's IP
-```
+`""
 
 ## Setting up the Sip Phones
 
-> For the purpose of this guide, we are using `Blink Pro`.
+> For this guide, we are using `Blink Pro`.
 
 Go to the account that you want to secure, select `Advanced -> Sip Signaling` and change the parameter `Primary Proxy` to `${proxyHost}:${proxyPort};transport=tls`. See the example in the following image:
 
 <img src="/docs/assets/images/blinkpro_tls_config.png" width=600>
 
-If everything went well you should see a green padlock like the one in the image below:
+If everything went well, you should see a green padlock like the one in the image below:
 
 <img src="/docs/assets/images/blinkpro_tls_secured.png" width=400>
