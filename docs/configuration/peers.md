@@ -1,9 +1,9 @@
 Like Agents, Peers represent SIP endpoints such as Media Servers.
-Unlike Agents, Peers aren't bound to a Domain.
+Unlike Agents, Peers aren't bound by a Domain.
 
 The Peers configuration can be provided using the file `config/peers.yml` located at the root of your Routr installation.
 
-> If using Redis this configuration will be store in the database.
+> If using Redis this configuration gets stored in the database.
 
 ## Peer Resource
 
@@ -14,8 +14,8 @@ The Peers configuration can be provided using the file `config/peers.yml` locate
 | metadata.name | Friendly name for the SIP device | Yes |
 | spec.credentials.username | Peer's credential username | Yes |
 | spec.credentials.secret | Peer's credential secret | Yes |
-| spec.device | When set it will be used by the location service  | No |
-| spec.contactAddr | When set will advertise this as the contactURI | No |
+| spec.device | When set it is used by the location service  | No |
+| spec.contactAddr | When set advertises this as the contactURI | No |
 
 ## Example
 
