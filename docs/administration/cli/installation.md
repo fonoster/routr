@@ -4,11 +4,11 @@ To get the Routr Command-Line Tool run the following command:
 npm install -g routr-ctl
 ```
 
-This will provide you with the globally accessible `rctl` command.
+The command-line tool is now globally accessible.
 
-## Log in to a Routr server
+## Login to a Routr server
 
-To log in to a Routr server and being issuing commands run the following commands
+To log in to a Routr server and being issuing commands run the following commands.
 
 ```bash
 rctl login https://127.0.0.1/api/{apiVersion} -u admin -p changeit
