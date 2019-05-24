@@ -1,7 +1,7 @@
 Users exist in Routr to perform administrative actions on a Routr instance.
 The Users configuration can be provided using the file `config/users.yml` located at the root of your Routr installation.
 
-> If using Redis this configuration will be store in the database.
+> If using Redis this configuration gets stored in the database.
 
 ## User Resource
 
@@ -48,4 +48,4 @@ $ redis-cli set 5aa69ead8fd6861d92385bac
 "{\"apiVersion\":\"v1beta1\",\"kind\":\"User\",\"metadata\":{\"name\":\"Ctl\",\"ref\":\"5aa69ead8fd6861d92385bac\"},\"spec\":{\"credentials\":{\"username\":\"admin\",\"secret\":\"newpass\"}}}"
 ```
 
-> A new token will be issued after your next login with `rctl`
+> A new token is issued after your next login with `rctl`
