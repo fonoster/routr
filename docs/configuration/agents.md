@@ -1,9 +1,9 @@
 Agents represent SIP endpoints such as softphones, IP phones, or paging speakers.
-In Routr, Agents are bound by a Domain. An Agent can belong to one or multiple Domains.
+A Domain binds agents together. An Agent can belong to one or multiple Domains.
 
 The Agents configuration can be provided using the file `config/agents.yml` located at the root of your Routr installation.
 
-> If using Redis this configuration will be store in the database.
+> If using Redis this configuration gets stored in the database.
 
 ## Agent Resource
 
