@@ -1,8 +1,8 @@
-DIDs represent virtual numbers use to route calls from/to the PSTN through Gateways
+DIDs represent virtual numbers use to route calls from/to the PSTN through Gateways.
 
 The DIDs configuration can be provided using the file `config/dids.yml` located at the root of your Routr installation.
 
-> If using Redis this configuration will be store in the database.
+> If using Redis this configuration gets stored in the database.
 
 ## DID Resource
 
@@ -14,7 +14,7 @@ The DIDs configuration can be provided using the file `config/dids.yml` located 
 | metadata.gwRef| Reference to parent Gateway | Yes |
 | metadata.geoInfo.city | City of the DID | No |
 | metadata.geoInfo.country | Country of the DID | No |
-| metadata.geoInfo.countryISOCode| Country ISO code for the DID (ie.: US) | No |
+| metadata.geoInfo.countryISOCode| The Country ISO code for the DID (i.e., US) | No |
 | spec.location.telUrl | DID URI available in the location server | Yes |
 | spec.location.aorLink | Address of record of SIP device for call routing | Yes |
 
