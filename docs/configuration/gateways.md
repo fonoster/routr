@@ -2,7 +2,7 @@ Use the Gateway resource to register with a Sip Gateways or SBCs and send or rec
 
 The Gateways configuration can be provided using the file `config/gateways.yml` located at the root of your Routr installation.
 
-> If using Redis this configuration will be store in the database.
+> If using Redis this configuration gets stored in the database.
 
 ## Gateway Resource
 
