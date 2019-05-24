@@ -1,7 +1,7 @@
 Domains group Agents together. They help isolate groups and allow the creation of rule for incoming and
 outgoing calling. The domains configuration can be provided using the file `config/domains.yml` located at the root of your Routr installation.
 
-> If using Redis this configuration will be store in the database.
+> If using Redis this configuration gets stored in the database.
 
 ## Domain Resource
 
