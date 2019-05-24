@@ -33,12 +33,12 @@ To make Routr a welcoming and harassment-free experience for everyone, we follow
 
 ## Commercial Support
 
-This is a list of third-party companies and individuals who provide products or services related to Routr. Routr is an independent open source project which does not endorse any company. The list is provided in alphabetical order.
+The following is a list of third-party companies and individuals who provide products or services related to Routr. Routr is an independent open source project which does not endorse any company. This list goes down alphabetically.
 
 [Pedro Sanders](https://github.com/psanders) (independent contractor)
 
 ## Acknowledgments
 
-Routr was initially started by [Pedro Sanders](https://github.com/psanders). The majority of its development has been sponsored by [Fonoster](https://fonoster.com).
+Routr was developed initially by [Pedro Sanders](https://github.com/psanders). [Fonoster](https://fonoster.com) sponsored the majority of its development.
 
-The Routr logo was contributed by Pedro Sanders.
+Pedro Sanders contributed the Routr's logo.
