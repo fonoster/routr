@@ -4,7 +4,8 @@ The following selection of resources is particularly useful to get started with 
 
 ## Blogs
 
-Coming soon!
+- [Getting started with Routr SIP Server](https://medium.com/@pedrosanders/tutorial-getting-started-with-routr-sip-server-f66c5216690a)
+- [Migrating Routr from Nashorn to GraalJS: Lessons Learn](https://medium.com/@pedrosanders/migrating-from-nashorn-to-graaljs-lessons-learn-2385aa62e35d)
 
 ## Tutorials
 
