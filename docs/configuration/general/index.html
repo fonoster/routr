@@ -1190,9 +1190,8 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 </table>
 <h2 id="transport-configuration">Transport Configuration<a class="headerlink" href="#transport-configuration" title="Permanent link">&para;</a></h2>
 <p>Routr supports <code>tcp</code>, <code>udp</code>, <code>tls</code>, <code>sctp</code>, <code>ws</code>, and <code>wss</code> as transport protocols.</p>
-<p>To operate, the server requires of at least one transport protocol.
-To bind a transport protocol to an specific IP address you can use the <code>spec.transport.bindAddr</code>,
-otherwise the <code>spec.bindAddr</code> will be use.</p>
+<p>The server requires at least one transport protocol.
+To bind a transport protocol to a specific IP address, you can use the <code>spec.transport.bindAddr</code> or more generally <code>spec.bindAddr</code>.</p>
 <h2 id="datasource-providers">Datasource Providers<a class="headerlink" href="#datasource-providers" title="Permanent link">&para;</a></h2>
 <p>Routr currently implements three data providers: <code>redis_data_provider</code>, <code>files_data_provider</code> and <code>restful_data_provider</code>. The default data provider is the <code>files_data_provider</code>.</p>
 <blockquote>
@@ -1276,7 +1275,7 @@ otherwise the <code>spec.bindAddr</code> will be use.</p>
 <h2 id="configuring-the-server-behind-a-nat">Configuring the server behind a NAT<a class="headerlink" href="#configuring-the-server-behind-a-nat" title="Permanent link">&para;</a></h2>
 <p>The <code>spec.externAddr</code> and <code>spec.localnets</code> parameters help Routr identify the
 correct path for any given traffic. The <code>spec.externAddr</code> is typically the Internet
-facing IP address. The <code>spec.localnets</code> is array with valid CIDR, IP/Mask, or single IP values.
+facing IP address. The <code>spec.localnets</code> is an array with valid CIDR, IP/Mask, or single IP values.
 here is quick example:</p>
 <div class="codehilite"><pre><span></span><span class="nt">spec</span><span class="p">:</span>
   <span class="nt">externAddr</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">172.220.231.23</span>
@@ -1285,7 +1284,7 @@ here is quick example:</p>
 
 <h2 id="access-control-list">Access Control List<a class="headerlink" href="#access-control-list" title="Permanent link">&para;</a></h2>
 <p>The Access Control List(ACL) provides with a security mechanism to disable network
-access from unwanted sources. ACL can be define per Domain basis. Here are example,
+access from unwanted sources. ACL rules exist at general or Domain level. Here is an example,
 blocking all traffic except from IP address <code>192.168.0.1</code>.</p>
 <div class="codehilite"><pre><span></span><span class="nt">spec</span><span class="p">:</span>
   <span class="nt">accessControlList</span><span class="p">:</span>

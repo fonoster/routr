@@ -1047,7 +1047,7 @@
                 
                   <h1>Cheatsheet</h1>
                 
-                <p><code>rctl</code> is a command line interface for running commands against a <strong>Routr</strong> server. This overview covers <code>rctl</code> syntax, describes the command operations and provides common examples. For details about each command, including all the supported flags and subcommands, see the <code>rctl</code> reference documentation. This tool ships separately from the Routr server.</p>
+                <p><code>rctl</code> is a command line interface for running commands against a <strong>Routr</strong> server. This overview covers <code>rctl</code> syntax, describes the command operations, and provides common examples. For details about each command, including all the supported flags and subcommands, see the <code>rctl</code> reference documentation. This tool ships separately from the Routr server.</p>
 <h2 id="syntax">Syntax<a class="headerlink" href="#syntax" title="Permanent link">&para;</a></h2>
 <p>Use the following syntax to run <code>rctl</code> commands from your terminal window:</p>
 <div class="codehilite"><pre><span></span>rctl COMMAND [REF] [flags]
@@ -1056,10 +1056,10 @@
 <p>where <code>COMMAND</code>, <code>subcommand</code> <code>REF</code>, and <code>flags</code> are:</p>
 <ul>
 <li>
-<p><code>COMMAND</code>: Specifies the operation that you want to perform on one or more resources. For example create, get, delete, locate(loc).</p>
+<p><code>COMMAND</code>: Specifies the operation that you want to perform on one or more resources. For example, create, get, delete, locate(loc).</p>
 </li>
 <li>
-<p><code>subcommand</code>: Specifies the resource type. Resource types are case-sensitive and you can specify the singular, plural, or abbreviated forms. For example, the following commands produce the same output:</p>
+<p><code>subcommand</code>: Specifies the resource type. Resource types are case-sensitive, and you can specify the singular, plural, or abbreviated forms. For example, the following commands produce the same output:</p>
 </li>
 </ul>
 <div class="codehilite"><pre><span></span>  $ rctl get gateway gweef506
@@ -1069,15 +1069,15 @@
 
 <ul>
 <li>
-<p><code>REF</code>: Specifies the reference to the resource. References are case-sensitive. If the reference is omitted, details for all resources are displayed. For example, <code>$ rctl get agents</code>.</p>
+<p><code>REF</code>: Specifies the reference to the resource. References are case-sensitive. For a full list, omit the reference. For example, <code>$ rctl get agents</code>.</p>
 </li>
 <li>
-<p><code>flags</code>: Specifies optional flags. For example, you can use the --filter to further reduce the output of <code>get</code> command.</p>
+<p><code>flags</code>: Specifies optional flags. For example, you can use the --filter to reduce the output of <code>get</code> command further.</p>
 </li>
 </ul>
-<p>The --filter flag uses <a href="https://github.com/json-path/JsonPath">JsonPath</a> to perform the filtering. The root is always '$'
-so all you need to add is the path to the property and the filter operators. For example:</p>
-<div class="codehilite"><pre><span></span># This will return all the DIDs in Gateway &#39;gweef506&#39;
+<p>The --filter flag uses <a href="https://github.com/json-path/JsonPath">JsonPath</a> to perform the filtering. The root is always '$'.
+All you need to add is the path to the property and the filter operators. For example:</p>
+<div class="codehilite"><pre><span></span># This returns all the DIDs in Gateway &#39;gweef506&#39;
 ./rctl get dids --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;    
 </pre></div>
 
@@ -1105,7 +1105,7 @@ More information at https://github.com/fonoster/routr/wiki
 </pre></div>
 
 <blockquote>
-<p><strong>Important</strong>: Some commands (ie.: create, delete) are not available in the default implementation of the <code>resources</code> modules. Only persistent implementations will allow such command.</p>
+<p><strong>Important</strong>: Some commands (i.e.: create, delete) are not available in the default implementation of the <code>resources</code> modules. Only persistent implementations support these commands.</p>
 </blockquote>
 <h3 id="examples-common-operations">Examples: Common operations<a class="headerlink" href="#examples-common-operations" title="Permanent link">&para;</a></h3>
 <p>Use the following set of examples to help you familiarize yourself with running the commonly used <code>rctl</code> operations:</p>
@@ -1114,7 +1114,7 @@ More information at https://github.com/fonoster/routr/wiki
 $ rctl loc
 </pre></div>
 
-<p><code>rctl registry</code> or <code>rctl reg</code> - Shows Gateways current registration</p>
+<p><code>rctl registry</code> or <code>rctl reg</code> - Shows Gateways current registration.</p>
 <div class="codehilite"><pre><span></span>// Shows the registry
 $ rctl reg
 </pre></div>
@@ -1167,7 +1167,7 @@ $ rctl registry                                       # Shows only current regis
 
 <h3 id="locating-sip-devices">Locating Sip Devices<a class="headerlink" href="#locating-sip-devices" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span># Find all sip devices available at the location service
-$ rctl locate                                         # This list will not include did-ingress-routes or domain-egress-routes
+$ rctl locate                                         # This list does not include did-ingress-routes or domain-egress-routes
 </pre></div>
 
 <h3 id="creating-resources">Creating Resources<a class="headerlink" href="#creating-resources" title="Permanent link">&para;</a></h3>

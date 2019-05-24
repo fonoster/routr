@@ -975,15 +975,15 @@
                 
                   <h1>Concepts</h1>
                 
-                <p>The following are some key concepts including some of the most important routing strategies implemented in Routr.</p>
+                <p>The following are some key concepts, including some of the essential routing strategies implemented in Routr.</p>
 <h2 id="intra-domain-routing">Intra-Domain Routing<a class="headerlink" href="#intra-domain-routing" title="Permanent link">&para;</a></h2>
-<p><em>Intra-Domain Routing(IDR)</em> offers a mechanism for user segmentation. For a small or medium size company a single domain may be sufficient, but for a multinational or an IP telephony service provider, it may not.</p>
-<p>For a small company with less than 50 users, you may define a domain <code>sip.domain.com</code>. Regardless of how many offices they have, chances are that they still need to communicate with each other, and therefore we keep them in the same domain. Needless to say, that in a company this size you are not going to run out usernames.</p>
-<p>A multinational company like <em>Walmart</em> have thousands of stores that operate independently. In such a case, you will need a multi-domain setting. For example, you may define the domains <code>sip.0001.walmart.com</code> and <code>sip.0002.walmart.com</code>, and... you get the idea.</p>
+<p><em>Intra-Domain Routing(IDR)</em> offers a mechanism for user segmentation. For a small or medium size company, a single domain may be sufficient, but for a multinational or an IP telephony service provider, it may not.</p>
+<p>For a small company with less than 50 users, you may define a domain <code>sip.domain.com</code>. Regardless of how many offices they have, the chances are that they still need to communicate with each other, and therefore we keep them in the same Domain. Needless to say, that in a company this size you are not going to run out usernames.</p>
+<p>A multinational company like <em>Walmart</em> have thousands of stores that operate independently. In such a case, you need a multi-domain setting. For example, you may define the domains <code>sip.0001.walmart.com</code> and <code>sip.0002.walmart.com</code>, and... you get the idea.</p>
 <h3 id="double-agents">Double Agents<a class="headerlink" href="#double-agents" title="Permanent link">&para;</a></h3>
 <p><img src="https://raw.githubusercontent.com/wiki/fonoster/routr/images/double_agent.png" width=400 style="margin-bottom: 50px">
 <br></p>
-<p>Yes, you can have double Agents, or Agents that exist in a multi-domain setup. All you need to do is include the domain in the Agent's <code>spec.domain[*]</code> list. In the example before, john can send or receive calls from both domains, while the rest of the Agents are only allowed to call within the domain.</p>
+<p>Yes, you can have double Agents, or Agents that exist in a multi-domain setup. All you need to do is include the Domain in the Agent's <code>spec.domain[*]</code> list. In the example before, John can send or receive calls from both domains, while the rest of the Agents are only allowed to call within the Domain.</p>
 <h3 id="single-domain-example">Single Domain Example<a class="headerlink" href="#single-domain-example" title="Permanent link">&para;</a></h3>
 <p>The following yaml configuration shows a simple setup, involving one Domain and two Agents:</p>
 <p><strong>Domain configuration</strong></p>
@@ -1017,9 +1017,9 @@
     <span class="nt">domains</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">sip.local</span><span class="p p-Indicator">]</span>
 </pre></div>
 
-<p>And voila! That's all the configuration you need for intra-domain communication. For calls outside the domain, see "Domain Egress Routing" section and to receive calls from the PSTN check section "Domain Ingress Routing"</p>
+<p>Voila! That's all the configuration you need for intra-domain communication. For calls outside the Domain, see "Domain Egress Routing" section and to receive calls from the PSTN check section "Domain Ingress Routing."</p>
 <blockquote>
-<p>To configure your sip devices use information found in <code>config/agents.yml</code>. Also, you must use the Host/IP of Routr server as
+<p>To configure your sip devices use the information found in <code>config/agents.yml</code>. Also, you must use the Host/IP of Routr server as
 the OUTBOUND PROXY of your sip device.</p>
 </blockquote>
 <p><strong>Routing Rules</strong></p>
@@ -1030,7 +1030,7 @@ the OUTBOUND PROXY of your sip device.</p>
 <li>Agents Are not allowed to send a Digest username different than the username in the <code>From-Header</code></li>
 </ul>
 <h2 id="domain-ingress-routing">Domain Ingress Routing<a class="headerlink" href="#domain-ingress-routing" title="Permanent link">&para;</a></h2>
-<p>The process of receiving a call from PSTN to a domain is known in <strong>Routr</strong> as <em>Domain Ingress Routing(DIR)</em> and it is done using Gateway. Gateways are defined in the yaml file <code>config/gateways.yml</code>. The following example shows a typical Gateway configuration.</p>
+<p>In Routr, the process of receiving a call from PSTN to a Domain is as <em>Domain Ingress Routing(DIR)</em> and it is done using a Gateway resource. The yaml file <code>config/gateways.yml</code> contains the Gateways. The following example shows a typical Gateway configuration.</p>
 <div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
   <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Gateway</span>
   <span class="nt">metadata</span><span class="p">:</span>
@@ -1045,7 +1045,7 @@ the OUTBOUND PROXY of your sip device.</p>
       <span class="nt">registries</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">sip.nyc.provider.net</span><span class="p p-Indicator">]</span>     <span class="c1"># These are additional registrars within the provider&#39;s network</span>
 </pre></div>
 
-<p>You also need to define DIDs. Incoming calls from a DID will be routed to an existing Agent or Peer using the Address Of Record(AOR). The AOR must be available in the location service at the time of the call or the call will be rejected.</p>
+<p>You also need to define DIDs. Routr uses the Address Of Record(AOR) to routes incoming calls from a DID  to an existing Agent or Peer. The AOR must be available in the location service at the time of the call, or the call gets rejected.</p>
 <p>Please examine the following example:</p>
 <div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
   <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DID</span>
@@ -1061,31 +1061,30 @@ the OUTBOUND PROXY of your sip device.</p>
       <span class="nt">aorLink</span><span class="p">:</span> <span class="s">&#39;sip:john@sip.local&#39;</span>      <span class="c1"># This is the sip uri of an agent that is expected to be logged in</span>
 </pre></div>
 
-<p>Easy right? Any incoming call from this Gateway and DID will be routed to "Jhon Doe" @ Ocean New York.</p>
+<p>Easy right? Any incoming call is routed from this Gateway and DID to "Jhon Doe" @ Ocean New York.</p>
 <p><strong>Routing Rules</strong></p>
-<p>As mention before, the path of an inbound PSTN call is determined by the <code>spec.location</code> block of a <code>DID</code> resource.
-The <code>aorLink</code> refers to an Address of Record(Agent or Peer) that is available in the <code>location service</code>.</p>
+<p>The <code>spec.location</code> block of a <code>DID</code> resource configuration, determines the path of an inbound call from the PSTN. The <code>aorLink</code> refers to an Address of Record(Agent or Peer) that is available in the <code>location service</code>.</p>
 <h2 id="domain-egress-routing">Domain Egress Routing<a class="headerlink" href="#domain-egress-routing" title="Permanent link">&para;</a></h2>
-<p><em>Domain Egress Routing(DER)</em> is the way that <strong>Routr</strong> deals with a call request to a <em>callee</em> that exists in the Public Switched Telephone Network(PSTN) and not in the <em>callers'</em> domain. The Egress Policy consists of a <code>rule</code> and a <code>didRef</code>, and it is defined in the <code>spec.context</code> section of <code>Domains</code> resources.</p>
-<p>The <code>rule</code> and <code>didRef</code> are defined as follows:</p>
+<p><em>Domain Egress Routing(DER)</em> is the way that <strong>Routr</strong> deals with a call request to a <em>callee</em> that exists in the Public Switched Telephone Network(PSTN) and not in the <em>callers'</em> Domain. The EgressPolicy consists of a <code>rule</code>, and a <code>didRef</code> defined in the <code>spec.context</code> section of <code>Domains</code> resources.</p>
+<p>The <code>rule</code> and <code>didRef</code> is defined as follows:</p>
 <ul>
 <li>
-<p><code>rule</code> is a regex to match callee in the call request. The location service will resort to this only after a search in the caller's Domain first.</p>
+<p><code>rule</code> is a regex to match callee in the call request. The location service uses this only after a search in the caller's Domain first.</p>
 </li>
 <li>
-<p><code>didRef</code> is the identifier of the DID that will to route the call. This DID must already exist and have a parent Gateway.</p>
+<p><code>didRef</code> is the identifier of the DID that will to route the call. The DID must already exist and have a parent Gateway.</p>
 </li>
 </ul>
 <p><strong>Routing Rules</strong></p>
-<p>Agents can only perform outbound calls using the <code>Egress Policy</code> of their own Domains.</p>
+<p>Agents can only perform outbound calls using the <code>Egress Policy</code> of their Domains.</p>
 <h2 id="peers-routing">Peers Routing<a class="headerlink" href="#peers-routing" title="Permanent link">&para;</a></h2>
-<p>Peers are very similar to Agents but they are not bound to any Domain, and they are usually collocated in the same network with Routr. A common case will be peering with Asterisk, where Asterisk acts as a Media Server and Routr is used for signaling.</p>
+<p>Peers are very similar to Agents, but they are not bound to any Domain, and usually, collocated in the same network with Routr. A typical case is peering with Asterisk, where Asterisk acts as a Media Server and Routr provides the signaling.</p>
 <p>Peers can perform inbound/outbound signaling within the network without any special consideration since they exist inside the <em>Location Service</em> just like Agents. So it is possible to perform signaling from Peer to Peer, Peer to Agent.</p>
 <p>The same is true for Inbound from the PSTN. For example, we can redirect incoming calls from the PSTN using the <code>spec.location</code> settings in the <code>dids.yml</code> configuration file.</p>
 <p><strong>Routing Rules</strong></p>
 <p>Agents are not allowed to call Peers.</p>
 <blockquote>
-<p>A future version of the <code>Peer resource</code> will feature a <code>spec.acceptFrom.*</code> field to allow calls from Domains or specific Agents.</p>
+<p>A future version of the <code>Peer resource</code> might feature a <code>spec.acceptFrom.*</code> field to allow calls from Domains or specific Agents.</p>
 </blockquote>
                 
                   

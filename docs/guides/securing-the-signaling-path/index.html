@@ -791,8 +791,8 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#creating-a-java-keystorejks-certificate" title="Creating a Java Keystore(.JKS) Certificate" class="md-nav__link">
-    Creating a Java Keystore(.JKS) Certificate
+  <a href="#creating-a-java-keystorejks-certificate" title="Creating a Java Keystore(.JKS) certificate" class="md-nav__link">
+    Creating a Java Keystore(.JKS) certificate
   </a>
   
     <nav class="md-nav">
@@ -806,8 +806,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#creating-a-certificate-using-lets-encrypt" title="Creating a Certificate using Let’s Encrypt" class="md-nav__link">
-    Creating a Certificate using Let’s Encrypt
+  <a href="#creating-a-certificate-using-lets-encrypt" title="Creating a Certificate using 'Let's Encrypt" class="md-nav__link">
+    Creating a Certificate using 'Let's Encrypt
   </a>
   
 </li>
@@ -902,8 +902,8 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#creating-a-java-keystorejks-certificate" title="Creating a Java Keystore(.JKS) Certificate" class="md-nav__link">
-    Creating a Java Keystore(.JKS) Certificate
+  <a href="#creating-a-java-keystorejks-certificate" title="Creating a Java Keystore(.JKS) certificate" class="md-nav__link">
+    Creating a Java Keystore(.JKS) certificate
   </a>
   
     <nav class="md-nav">
@@ -917,8 +917,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#creating-a-certificate-using-lets-encrypt" title="Creating a Certificate using Let’s Encrypt" class="md-nav__link">
-    Creating a Certificate using Let’s Encrypt
+  <a href="#creating-a-certificate-using-lets-encrypt" title="Creating a Certificate using 'Let's Encrypt" class="md-nav__link">
+    Creating a Certificate using 'Let's Encrypt
   </a>
   
 </li>
@@ -963,13 +963,13 @@
                 
                   <h1>Securing the Signaling Path</h1>
                 
-                <p>Follow this guide to secure the signaling between your endpoints and <strong>Routr</strong>. Keep in mind that <strong>Routr</strong> will only secure the signaling and that the endpoints are ultimately responsible for securing the media.</p>
+                <p>Follow this guide to secure the signaling between your endpoints and Routr. Keep in mind that <em>Routr</em> only secures the signaling and that the endpoints are ultimately responsible for securing the media.</p>
 <blockquote>
-<p>For this guide, we will use a fictitious domain name to demonstrate the process of securing the signaling path</p>
+<p>For this guide, we used a fictitious domain name to demonstrate the process of securing the signaling path</p>
 </blockquote>
 <p><img src="/docs/assets/images/secure_signaling.png" width=600 vspace=30></p>
-<h2 id="creating-a-java-keystorejks-certificate">Creating a Java Keystore(.JKS) Certificate<a class="headerlink" href="#creating-a-java-keystorejks-certificate" title="Permanent link">&para;</a></h2>
-<p><strong>Routr</strong> needs a keystore (.jks) in order to properly handling the certificates. The following steps will create a valid keystore file using a self-signed method or using the free <a href="https://letsencrypt.org/">Let's Encrypt service</a>.</p>
+<h2 id="creating-a-java-keystorejks-certificate">Creating a Java Keystore(.JKS) certificate<a class="headerlink" href="#creating-a-java-keystorejks-certificate" title="Permanent link">&para;</a></h2>
+<p>We need a keystore (.jks) to properly handling the certificates. The following steps create a valid keystore file using a self-signed method or using the free <a href="https://letsencrypt.org/">Let's Encrypt service</a>.</p>
 <h3 id="creating-a-self-signed-certificate">Creating a self-signed Certificate<a class="headerlink" href="#creating-a-self-signed-certificate" title="Permanent link">&para;</a></h3>
 <p>Perhaps the easiest way to create a valid certificate for <strong>Routr</strong> is using a self-signed certificate. To generate the certificate change into <code>etc/certs</code> in your <strong>Routr</strong> installation and run the following script:</p>
 <div class="codehilite"><pre><span></span>keytool -genkey -keyalg RSA <span class="se">\</span>
@@ -986,54 +986,55 @@
 
 <p>Remember to adjust the values to match your project's information.</p>
 <blockquote>
-<p><code>WSS</code> will not work with a self-signed certificate. However, you can add a security exception by using <code>https</code> instead of <code>wss</code> in your browser's search bar and then accepting the security certificate.</p>
+<p><code>WSS</code> does not work with a self-signed certificate. However, you can add a security exception by using <code>https</code> instead of <code>wss</code> in your browser's search bar and then accepting the security certificate.</p>
 </blockquote>
-<h3 id="creating-a-certificate-using-lets-encrypt">Creating a Certificate using Let’s Encrypt<a class="headerlink" href="#creating-a-certificate-using-lets-encrypt" title="Permanent link">&para;</a></h3>
+<h3 id="creating-a-certificate-using-lets-encrypt">Creating a Certificate using 'Let's Encrypt<a class="headerlink" href="#creating-a-certificate-using-lets-encrypt" title="Permanent link">&para;</a></h3>
 <p>The recommended way to create a valid certificate for <strong>Routr</strong> is using the free service <a href="https://letsencrypt.org">Let's Encrypt</a>. Please go to <a href="https://letsencrypt.org/">https://letsencrypt.org/</a> for details on how to install the required tooling. To generate the certificate, use the following steps:</p>
 <p><strong>1. Create keys</strong></p>
 <div class="codehilite"><pre><span></span>certbot certonly --standalone -d sip.ocean.com --email admin@sip.ocean.com
+<span class="sb">`</span><span class="s2">&quot;&quot;</span>
+
+Change to the directory where we created the certificates<span class="o">(</span>generally at /etc/letsencrypt/live/sip.ocean.com<span class="o">)</span>.
+
+**2. Create a PKCS12 file containing full chain and private key**
+
+<span class="sb">```</span>bash
+openssl pkcs12 -export -in fullchain.pem -inkey privkey.pem -out pkcs.p12 -name domains-cert.jks
 </pre></div>
 
-<p>Change to the directory where the certificates were created(normally at /etc/letsencrypt/live/sip.ocean.com).</p>
-<p><strong>2. Create a PKCS12 file containing full chain and private key</strong></p>
-<div class="codehilite"><pre><span></span>openssl pkcs12 -export -in fullchain.pem -inkey privkey.pem -out pkcs.p12 -name domains-cert.jks
-</pre></div>
-
-<p>Please make note of the password since you will need it in the following step and also for your settings in <strong>Routr</strong>.</p>
+<p>Please make a note of the password since you need it in the next step.</p>
 <p><strong>3. Convert PKCS12 to Keystore</strong></p>
 <div class="codehilite"><pre><span></span>keytool -importkeystore -srckeystore keystore.pkcs12 -srcstoretype PKCS12 -destkeystore domains-cert.jks
 </pre></div>
 
 <h2 id="installing-the-certificate-in-routr">Installing the Certificate in Routr<a class="headerlink" href="#installing-the-certificate-in-routr" title="Permanent link">&para;</a></h2>
 <p>To enable secure signaling in <strong>Routr</strong>, copy your certificate in <code>etc/certs</code> and edit the file <code>config/config.yml</code> to look like this:</p>
-<div class="codehilite"><pre><span></span>apiVersion: v1beta1
+<p><code>``yml
+apiVersion: v1beta1
 metadata:
   userAgent: Routr v1.0
 spec:
   securityContext:
     keyStore: etc/certs/domains-cert.jks
     trustStore: etc/certs/domains-cert.jks
-    keyStorePassword: &#39;changeit&#39;
-    trustStorePassword: &#39;changeit&#39;
-    keyStoreType: &#39;jks&#39;
+    keyStorePassword: 'changeit'
+    trustStorePassword: 'changeit'
+    keyStoreType: 'jks'
     debugging: true                  # Enabled debug only for testing
   transport:
     - protocol: tls
       port: 5061
-...
-</pre></div>
-
-<p>With the property <code>spec.securityContext.debugging</code> set to <code>true</code> you can get some valuable information about the status of the configuration. You can also test your configuration using the following command:</p>
-<div class="codehilite"><pre><span></span>openssl s_client -host 192.168.1.2 -port 5061    # Remember to use Routr&#39;s IP
-</pre></div>
-
+...</code>""</p>
+<p>If you set the property <code>spec.securityContext.debugging</code>  to <code>true</code>, you can get some valuable information about the status of the configuration. You can also test your configuration using the following command:</p>
+<p><code>""
+openssl s_client -host 192.168.1.2 -port 5061    # Remember to use Routr's IP</code>""</p>
 <h2 id="setting-up-the-sip-phones">Setting up the Sip Phones<a class="headerlink" href="#setting-up-the-sip-phones" title="Permanent link">&para;</a></h2>
 <blockquote>
-<p>For the purpose of this guide, we are using <code>Blink Pro</code>.</p>
+<p>For this guide, we are using <code>Blink Pro</code>.</p>
 </blockquote>
 <p>Go to the account that you want to secure, select <code>Advanced -&gt; Sip Signaling</code> and change the parameter <code>Primary Proxy</code> to <code>${proxyHost}:${proxyPort};transport=tls</code>. See the example in the following image:</p>
 <p><img src="/docs/assets/images/blinkpro_tls_config.png" width=600></p>
-<p>If everything went well you should see a green padlock like the one in the image below:</p>
+<p>If everything went well, you should see a green padlock like the one in the image below:</p>
 <p><img src="/docs/assets/images/blinkpro_tls_secured.png" width=400></p>
                 
                   

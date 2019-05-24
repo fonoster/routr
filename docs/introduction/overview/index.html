@@ -952,14 +952,14 @@
                   <h1>Overview</h1>
                 
                 <h2 id="what-is-routr">What is Routr?<a class="headerlink" href="#what-is-routr" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/fonoster/routr">Routr</a> is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. To get involved in the development of this project please contact us at <a href="https://twitter.com/fonoster">@fonoster</a>.</p>
+<p>Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. To get involved in the development of this project, please contact us at <a href="https://twitter.com/fonoster">@fonoster</a>.</p>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <p>Routr's main features are:</p>
 <ul>
 <li>Typical Sip Server functions; Proxy, Registrar, Location Service</li>
 <li>Per node Multi-Tenancy/Multi-Domain with Domain level Access Control List</li>
 <li>Transport: TCP, UDP, TLS, WebSocket</li>
-<li>Routr currently support Redis, HTTP Requests, and YAML files as the data source</li>
+<li>Routr currently supports Redis, HTTP Requests, and YAML files as the data source</li>
 <li>Server management and monitoring with the RESTful API, CLI, and Web Console</li>
 <li>Configurable routing strategies; Intra-Domain, Domain Ingress, Domain Egress and Peer Egress</li>
 </ul>
@@ -976,10 +976,10 @@
 <img src="/docs/assets/images/architecture.png" >
 <br/>
 <br/></p>
-<p>At the center of Routr are the routing rules. These rules are the core of Routr, in addition to the typical SIP Server the functions such as Proxy, Location, and Registrar. The main integration points are the data abstraction layer, the event publisher, and the RESTful API. This integration points, allow for easy integration with third-party software.</p>
+<p>At the center of Routr are the routing rules. These rules are the core of Routr, in addition to the typical SIP Server the functions such as Proxy, Location, and Registrar. The primary integration points are the data abstraction layer, the event publisher, and the RESTful API. This integration points, allow for easy integration with third-party software.</p>
 <h2 id="use-cases">Use cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h2>
-<p>Routr specializes in the management of SIP resources and domain-centric routing strategies. It works well in front of the Media servers like Asterisk or FreeSWITCH. Routr runs in all major operating systems, in <a href="https://www.docker.com/">Docker</a>, and can be deployed as in cloud system such as <a href="https://kubernetes.io/">Kubernetes</a>.</p>
-<p>Unlike Kamailio and OpenSIPS, Routr does not require any type of scripting to perform any of its typical routing tasks. Routing rules are configured not programmed. The monitoring tasks are centralized using a RESTful API, and from that API it is possible to control de service using the command-line interface or the web UI.</p>
+<p>Routr specializes in the management of SIP resources and domain-centric routing strategies. It works well in front of the Media servers like Asterisk or FreeSWITCH. Routr runs in all major operating systems, in <a href="https://www.docker.com/">Docker</a>, and <a href="https://kubernetes.io/">Kubernetes</a>.</p>
+<p>Unlike Kamailio and OpenSIPS, Routr does not require any scripting to perform any of its typical routing tasks. Routing rules are configured, not programmed. The monitoring tasks are centralized using a RESTful API, and from that API, it is possible to control de service using the command-line interface or the web UI.</p>
                 
                   
                 
