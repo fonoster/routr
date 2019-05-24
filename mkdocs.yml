@@ -39,7 +39,7 @@ nav:
   - Guides:
     - Basic Setup: guides/basic-setup.md
     - Routr as Asterisk frontend: guides/routr-as-asterisk-frontend.md
-    - Routr as FreeSWITCH frontend: guides/routr-as-freeswitch-frontend.md
+    #- Routr as FreeSWITCH frontend: guides/routr-as-freeswitch-frontend.md
     - Securing the Signaling Path: guides/securing-the-signaling-path.md
     - Running with Docker or Compose: guides/running-with-docker-or-compose.md
     - Running on Kubernetes: guides/running-on-kubernetes.md
