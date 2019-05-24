@@ -22,7 +22,7 @@ This tutorial assumes the following:
 
 ## Setting up the Server
 
-A set of sample configuration covering this scenario can be found at [basic sample files](https://github.com/fonoster../tree/master/config/samples/basic_setup). You might overwrite the files in the `config` folder if you wish to skip this section.
+A set of sample configuration covering this scenario can be found at [basic sample files](https://github.com/fonoster/routr/tree/master/config). You might overwrite the files in the `config` folder if you wish to skip this section.
 
 ### Configuring the Gateway
 
