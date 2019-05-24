@@ -1,4 +1,4 @@
-This guide explores the use case of using Asterisk merely as a Media Server and more specialized software, like **Routr**, to take care of the signaling and resource management. In other words, Asterisk will be in charge of the ivrs, voice mail, call recording, while **Routr** deals with connecting Agents, Peers, and Gateways. The following illustration depicts our scenario:
+This guide explores the use case of using Asterisk merely as a Media Server and more specialized software, like Routr, to take care of the signaling and resource management. In other words, Asterisk is in charge of the IVR, voice mail, call recording, while Routr deals with connecting Agents, Peers, and Gateways. The following illustration depicts our scenario:
 
 <img src="/docs/assets/images/peering_ilustration.png" width=600 vspace=50>
 
@@ -14,7 +14,7 @@ This guide explores the use case of using Asterisk merely as a Media Server and 
 
 This tutorial assumes the following:
 
-- You have a SIP phone connected to the same LAN where Routr and Asterisk are in.
+- You have a SIP phone connected to the same LAN as Routr and Asterisk
 - If using a hardware phone, this can reach Asterisk and Routr and the other way around
 - You have a fresh installation of Routr and Asterisk
 
@@ -22,9 +22,9 @@ This tutorial assumes the following:
 
 ## Configuration Overview
 
-With a fresh installation of **Routr**, you will have most of the configuration you need to follow this tutorial. We, however, need to make some minor changes to configuration files to run our scenario.
+With a fresh installation of **Routr**, you have most of the configuration you need to follow this tutorial. We, however, need to make some minor changes to configuration files to run our scenario.
 
-The first file we will examine and change is `config/peers.yml`. Make note of the username and secret for the Peer "ast" since we will be using this to configure Asterisk. Also, search for the field `spec.device` and change it to match the Agents domain(`sip.local`). The file now will look similar to this:
+The first file we need to examine and change is `config/peers.yml`. Make a note of the username and secret for the Peer "ast" since we are using this to configure Asterisk. Also, search for the field `spec.device` and change it to match the Agents domain(`sip.local`). The file now looks similar to this:
 
 `config/peers.yml`
 
@@ -113,7 +113,7 @@ exten => 1001,n,Playback(tt-monkeys)
 exten => 1001,n,Hangup
 ```
 
-Restart your Asterisk and check the location service. A new device will appear.
+Restart your Asterisk and check the location service. A new device now appears.
 
 <img src="/docs/assets/images/locate_john_and_ast.png" width=600 >
 
@@ -121,7 +121,7 @@ Restart your Asterisk and check the location service. A new device will appear.
 
 We can now call `ast@sip.local` and if everything went well listen to a group of really annoying monkeys :).
 
-## What’s Next?
+## What's Next?
 
 You can check out the [wiki](https://github.com/fonoster../wiki/Home) to see more examples. If you have any questions start an issue or contact us via:
 
