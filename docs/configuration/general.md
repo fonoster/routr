@@ -41,9 +41,8 @@ can be provided using the file `config/config.yml` located at the root of your R
 
 Routr supports `tcp`, `udp`, `tls`, `sctp`, `ws`, and `wss` as transport protocols.
 
-To operate, the server requires of at least one transport protocol.
-To bind a transport protocol to an specific IP address you can use the `spec.transport.bindAddr`,
-otherwise the `spec.bindAddr` will be use.
+The server requires at least one transport protocol.
+To bind a transport protocol to a specific IP address, you can use the `spec.transport.bindAddr` or more generally `spec.bindAddr`.
 
 ## Datasource Providers
 
@@ -97,7 +96,7 @@ spec:
 ## Access Control List
 
 The Access Control List(ACL) provides with a security mechanism to disable network
-access from unwanted sources. ACL can be define per Domain basis. Here are example,
+access from unwanted sources. ACL rules exist at general or Domain level. Here is an example,
 blocking all traffic except from IP address `192.168.0.1`.
 
 ```yaml
