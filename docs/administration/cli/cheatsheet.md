@@ -28,7 +28,7 @@ The --filter flag uses [JsonPath](https://github.com/json-path/JsonPath) to perf
 All you need to add is the path to the property and the filter operators. For example:
 
 ```
-# This will return all the DIDs in Gateway 'gweef506'
+# This returns all the DIDs in Gateway 'gweef506'
 ./rctl get dids --filter "@.metadata.gwRef=='gweef506'"    
 ```
 
@@ -57,7 +57,7 @@ Basic Commands:
 More information at https://github.com/fonoster/routr/wiki
 ```
 
-> **Important**: Some commands (i.e.: create, delete) are not available in the default implementation of the `resources` modules. Only persistent implementations will allow such command.
+> **Important**: Some commands (i.e.: create, delete) are not available in the default implementation of the `resources` modules. Only persistent implementations support these commands.
 
 ### Examples: Common operations
 
@@ -139,7 +139,7 @@ $ rctl registry                                       # Shows only current regis
 
 ```
 # Find all sip devices available at the location service
-$ rctl locate                                         # This list will not include did-ingress-routes or domain-egress-routes
+$ rctl locate                                         # This list does not include did-ingress-routes or domain-egress-routes
 ```
 
 ### Creating Resources
