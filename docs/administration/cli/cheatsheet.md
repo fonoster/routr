@@ -1,4 +1,4 @@
-`rctl` is a command line interface for running commands against a **Routr** server. This overview covers `rctl` syntax, describes the command operations and provides common examples. For details about each command, including all the supported flags and subcommands, see the `rctl` reference documentation. This tool ships separately from the Routr server.
+`rctl` is a command line interface for running commands against a **Routr** server. This overview covers `rctl` syntax, describes the command operations, and provides common examples. For details about each command, including all the supported flags and subcommands, see the `rctl` reference documentation. This tool ships separately from the Routr server.
 
 ## Syntax
 
@@ -10,9 +10,9 @@ rctl COMMAND [REF] [flags]
 
 where `COMMAND`, `subcommand` `REF`, and `flags` are:
 
-- `COMMAND`: Specifies the operation that you want to perform on one or more resources. For example create, get, delete, locate(loc).
+- `COMMAND`: Specifies the operation that you want to perform on one or more resources. For example, create, get, delete, locate(loc).
 
-- `subcommand`: Specifies the resource type. Resource types are case-sensitive and you can specify the singular, plural, or abbreviated forms. For example, the following commands produce the same output:
+- `subcommand`: Specifies the resource type. Resource types are case-sensitive, and you can specify the singular, plural, or abbreviated forms. For example, the following commands produce the same output:
 
 ```
   $ rctl get gateway gweef506
@@ -20,12 +20,12 @@ where `COMMAND`, `subcommand` `REF`, and `flags` are:
   $ rctl get gw gweef506
 ```
 
-- `REF`: Specifies the reference to the resource. References are case-sensitive. If the reference is omitted, details for all resources are displayed. For example, `$ rctl get agents`.
+- `REF`: Specifies the reference to the resource. References are case-sensitive. For a full list, omit the reference. For example, `$ rctl get agents`.
 
-- `flags`: Specifies optional flags. For example, you can use the --filter to further reduce the output of `get` command.
+- `flags`: Specifies optional flags. For example, you can use the --filter to reduce the output of `get` command further.
 
-The --filter flag uses [JsonPath](https://github.com/json-path/JsonPath) to perform the filtering. The root is always '$'
-so all you need to add is the path to the property and the filter operators. For example:
+The --filter flag uses [JsonPath](https://github.com/json-path/JsonPath) to perform the filtering. The root is always '$'.
+All you need to add is the path to the property and the filter operators. For example:
 
 ```
 # This will return all the DIDs in Gateway 'gweef506'
@@ -57,7 +57,7 @@ Basic Commands:
 More information at https://github.com/fonoster/routr/wiki
 ```
 
-> **Important**: Some commands (ie.: create, delete) are not available in the default implementation of the `resources` modules. Only persistent implementations will allow such command.
+> **Important**: Some commands (i.e.: create, delete) are not available in the default implementation of the `resources` modules. Only persistent implementations will allow such command.
 
 ### Examples: Common operations
 
@@ -70,7 +70,7 @@ Use the following set of examples to help you familiarize yourself with running 
 $ rctl loc
 ```
 
-`rctl registry` or `rctl reg` - Shows Gateways current registration
+`rctl registry` or `rctl reg` - Shows Gateways current registration.
 
 ```
 // Shows the registry
