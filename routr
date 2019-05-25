@@ -1,9 +1,26 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
-set -e
+[ ! -z "$JAVA_HOME" ] && VM_HOME=$JAVA_HOME
+[ ! -z "$GRAALVM_HOME" ] && VM_HOME=$GRAALVM_HOME
+[ ! -z "$CUSTOM_RUNTIME" ] && VM_HOME=$CUSTOM_RUNTIME
 
-$GRAALVM_HOME/bin/java \
-  -Dpolyglot.js.nashorn-compat=true \
-  -Dlog4j.configurationFile=config/log4j2.xml \
-  -cp libs/app.deps.jar \
-    com.fonoster.routr.core.Main
+running_in_docker() {
+  [ -f /proc/self/cgroup ] && awk -F/ '$2 == "docker"' /proc/self/cgroup | read
+}
+
+run() {
+  $1/bin/java \
+    -Dlog4j.configurationFile=config/log4j2.xml \
+    $ROUTR_JAVA_OPTS \
+    -classpath "libs/*" \
+      com.fonoster.routr.core.Launcher
+}
+
+if running_in_docker ; then
+  [ -z "$ROUTR_EXTERN_ADDR" ] && { echo "Must define environment variable ROUTR_EXTERN_ADDR when running inside a container"; exit 1; }
+  [ -z "$ROUTR_LOCALNETS" ] && export ROUTR_LOCALNETS=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}');
+fi
+
+[ -z "$VM_HOME" ] && { echo "Could not find a runtime environment"; exit 1; }
+
+run $VM_HOME

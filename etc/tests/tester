@@ -5,4 +5,4 @@ $GRAALVM_HOME/bin/js \
   --vm.Dlog4j.configurationFile=config/log4j2.xml \
   --jvm \
   --experimental-options --js.nashorn-compat=true --js.scripting=true \
-  --vm.cp=libs/app.deps.jar "$main_js" -- "$@"
+  --vm.classpath="libs/*" "$main_js" -- "$@"

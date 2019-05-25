@@ -3,26 +3,24 @@
   "version": "1.0.0",
   "description": "Next-generation SIP Server",
   "scripts": {
-    "test": "cross-env ./etc/tests/tester 'utils/test' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'rest/test' 'data_api/test_apis' 'data_api/test_files_datasource' 'data_api/test_restful_datasource' 'data_api/test_redis_datasource' ",
-    "shadow-jar": "cross-env ./gradlew shadowJar"
+    "transpile": "babel --out-dir node_modules/@routr mod",
+    "test": "cross-env ./etc/tests/tester 'utils/test.js' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'rest/test' 'data_api/test_apis' 'data_api/test_files_datasource' 'data_api/test_restful_datasource' 'data_api/test_redis_datasource' ",
+    "prebundle": "cross-env ./gradlew build && ./gradlew copyRuntimeLibs && npm run transpile",
+    "bundle": "webpack --config webpack.config.js --mode production",
+    "pretest": "npm run bundle",
+    "prepack": "npm test"
   },
   "dependencies": {
-    "@routr/core": "file:mod/core",
-    "@routr/data_api": "file:mod/data_api",
-    "@routr/location": "file:mod/location",
-    "@routr/registrar": "file:mod/registrar",
-    "@routr/registry": "file:mod/registry",
-    "@routr/rest": "file:mod/rest",
-    "@routr/utils": "file:mod/utils",
     "jvm-npm": "^0.1.1",
     "moment": "^2.22.2",
-    "npm": "^6.1.0",
-    "tasktimer": "^2.0.1"
+    "npm": "^6.1.0"
   },
   "devDependencies": {
-    "babel-plugin-transform-esm-to-cjs": "0.0.0",
     "cross-env": "^5.2.0",
-    "esm-to-cjs": "^1.2.0"
+    "babel-cli": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "webpack": "^4.11.1",
+    "webpack-command": "^0.2.0"
   },
   "repository": {
     "type": "git",

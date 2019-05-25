@@ -1,10 +1,4 @@
 {
-    "presets": [
-        ["es2015", { "modules": false }]
-    ],
-    "plugins": [
-        ["transform-es2015-modules-commonjs", {
-            "spec": true
-        }]
-    ]
+  "presets": ["env"],
+  "plugins": ["transform-es2015-arrow-functions", "transform-es2015-for-of"]
 }
