@@ -54,11 +54,11 @@ function getSysPresets(s) {
     const spec = s == undefined ? {} : s
 
     if (System.getenv("ROUTR_EXTERN_ADDR") != null) {
-        spec.externAddr = Packages.java.lang.System.getenv("ROUTR_EXTERN_ADDR")
+        spec.externAddr = System.getenv("ROUTR_EXTERN_ADDR")
     }
 
     if (System.getenv("ROUTR_LOCALNETS") != null) {
-        spec.localnets = Packages.java.lang.System.getenv("ROUTR_LOCALNETS").split(",")
+        spec.localnets = System.getenv("ROUTR_LOCALNETS").split(",")
     }
 
     if (System.getenv("ROUTR_DS_PROVIDER") != null) {
@@ -129,6 +129,7 @@ function getSystemConfig() {
     system.env.push({"var":'ROUTR_EXTERN_ADDR', "value":System.getenv("ROUTR_EXTERN_ADDR")})
     system.env.push({"var":'ROUTR_LOCALNETS', "value":System.getenv("ROUTR_LOCALNETS")})
     system.env.push({"var":'ROUTR_REGISTRAR_INTF', "value":System.getenv("ROUTR_REGISTRAR_INTF")})
+    system.env.push({"var":'ROUTR_JS_ENGINE', "value":System.getenv("ROUTR_JS_ENGINE")})
     return system
 }
 

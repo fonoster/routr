@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const System = Java.type('java.lang.System')
 load(System.getProperty('user.dir') + '/node_modules/jvm-npm/src/main/javascript/jvm-npm.js')
 
 const Server = require('@routr/core/server')
