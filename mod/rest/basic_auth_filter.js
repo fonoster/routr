@@ -5,10 +5,16 @@
 const halt = Packages.spark.Spark.halt
 const Base64 = Packages.org.apache.commons.codec.binary.Base64
 const StringUtils = Packages.org.apache.commons.lang3.StringUtils
+const String = Packages.java.lang.String
 
 module.exports = function (req, res, usersAPI) {
     if (!validAuthHeader(req)) halt(401, '{\"status\": \"401\", \"message\":\"Unauthorized\"}')
-    if (!authentic(usersAPI, getUserFromHeader(req))) halt(401, '{\"status\": \"401\", \"message\":\"Unauthorized\"}')
+    try {
+      if (!authentic(usersAPI, getUserFromHeader(req))) halt(401, '{\"status\": \"401\", \"message\":\"Unauthorized\"}')
+    } catch(e) {
+      // If it gets here is because it din't send its credentials
+      halt(401, '{\"status\": \"401\", \"message\":\"Unauthorized\"}')
+    }
 }
 
 function validAuthHeader(req) {
@@ -21,25 +27,18 @@ function validAuthHeader(req) {
 }
 
 function getUserFromHeader(req) {
-    let encodedHeader = StringUtils.substringAfter(req.headers('Authorization'), 'Basic')
-
-    let decodedHeader = new java.lang.String(Base64.decodeBase64(encodedHeader))
-
-    let username = decodedHeader.split(':')[0]
-    let password = decodedHeader.split(':')[1]
-
+    const encodedHeader = StringUtils.substringAfter(req.headers('Authorization'), 'Basic')
+    const decodedHeader = new String(Base64.decodeBase64(encodedHeader))
     return {
-        username: username,
-        password: password
+        username: decodedHeader.split(':')[0],
+        password: decodedHeader.split(':')[1]
     }
 }
 
 function authentic(usersAPI, user) {
     try {
         const response = usersAPI.getUserByUsername(user.username)
-        let dbUser = response.result
-
-        if (!dbUser.spec.credentials.secret.equals(user.password)) {
+        if (!response.result.spec.credentials.secret.equals(user.password)) {
             return false
         }
     } catch (e) {

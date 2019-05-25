@@ -77,7 +77,7 @@ class Rest {
               }
             })
 
-            // Its always running! Use to ping Sip IO server
+            // Its always running! Use to ping Routr server
             get('/system/status', (req, res) => '{\"status\": \"Up\"}')
 
             post('/system/status/:status', (req, res) => {
