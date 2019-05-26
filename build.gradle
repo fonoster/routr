@@ -35,6 +35,7 @@ dependencies {
     compile 'redis.clients:jedis:2.9.0'
     compile 'org.mongodb:bson:3.7.1'
     compile 'junit:junit:4.+'
+    compile 'com.github.ben-manes.caffeine:caffeine:2.7.0'
     compile 'org.graalvm.sdk:graal-sdk:19.0.0'
     compile 'org.graalvm.truffle:truffle-api:19.0.0'
     compile 'org.graalvm.js:js:19.0.0'

@@ -7,11 +7,17 @@ const DSUtil = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
 const { UNFULFILLED_DEPENDENCY_RESPONSE } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
 class AgentsAPI {
 
     constructor(dataSource) {
         this.ds = dataSource
+        this.cache = Caffeine.newBuilder()
+          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .maximumSize(5000)
+          .build();
     }
 
     save(agent, operation) {
@@ -36,23 +42,29 @@ class AgentsAPI {
     }
 
     getAgentByDomain(domainUri, username) {
-        const response = this.getAgents()
-        let agent
-        response.result.forEach(obj => {
-            if (obj.spec.credentials.username == username) {
-                obj.spec.domains.forEach(d => {
-                    if (domainUri == d) {
-                        agent = obj
-                    }
-                })
-            }
-        })
+        const key = domainUri.trim() + '.' + username.trim()
+        let agent = this.cache.getIfPresent(key)
+
+        if(agent == null) {
+            const response = this.getAgents()
+
+            response.result.forEach(obj => {
+                if (obj.spec.credentials.username == username) {
+                    obj.spec.domains.forEach(d => {
+                        if (domainUri == d) {
+                            agent = obj
+                            this.cache.put(key, agent)
+                        }
+                    })
+                }
+            })
+        }
 
         return isEmpty(agent)? CoreUtils.buildResponse(Status.NOT_FOUND): CoreUtils.buildResponse(Status.OK, agent)
     }
 
     getAgentByRef(ref) {
-        return DSUtil.deepSearch(this.getAgents(), "metadata.ref", ref)
+        return this.ds.withCollection('agents').get(ref)
     }
 
     /**
@@ -67,6 +79,14 @@ class AgentsAPI {
     }
 
     deleteAgent(ref) {
+        const agent = this.getAgent(ref)
+        agent.spec.domains.forEach(domain => {
+            const key = domain.trim() + '.' + agent.spec.credentials.username.trim()
+            if (this.cache.getIfPresent(key)) {
+                this.cache.invalidate(key)
+            }
+        })
+
         return this.ds.withCollection('agents').remove(ref)
     }
 

@@ -25,7 +25,7 @@ class UsersAPI {
     }
 
     getUser(ref) {
-        return DSUtil.deepSearch(this.getUsers(), "metadata.ref", ref)
+        return this.ds.withCollection('users').get(ref)
     }
 
     getUserByUsername(username) {

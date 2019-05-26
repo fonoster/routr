@@ -6,6 +6,8 @@
 const CoreUtils = require('@routr/core/utils')
 const DSUtil = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
 const foundDependentObjects = { status: Status.CONFLICT, message: Status.message[4092].value }
 
@@ -13,6 +15,10 @@ class DomainsAPI {
 
     constructor(dataSource) {
         this.ds = dataSource
+        this.cache = Caffeine.newBuilder()
+          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .maximumSize(5000)
+          .build();
     }
 
     createFromJSON(jsonObj) {
@@ -28,11 +34,18 @@ class DomainsAPI {
     }
 
     getDomain(ref) {
-        return DSUtil.deepSearch(this.getDomains(), "metadata.ref", ref)
+        returnthis.ds.withCollection('domains').get(ref)
     }
 
     getDomainByUri(domainUri) {
-        return DSUtil.deepSearch(this.getDomains(), "spec.context.domainUri", domainUri)
+        let domain = this.cache.getIfPresent(domainUri)
+
+        if (domain == null) {
+            domain = DSUtil.deepSearch(this.getDomains(), "spec.context.domainUri", domainUri)
+            this.cache.put(domainUri, domain)
+        }
+
+        return domain
     }
 
     domainExist(domainUri) {
@@ -40,6 +53,10 @@ class DomainsAPI {
     }
 
     deleteDomain(ref) {
+        if (this.cache.getIfPresent(ref)) {
+          this.cache.invalidate(ref)
+        }
+
         let response = this.getDomain(ref)
 
         if (response.status != Status.OK) {

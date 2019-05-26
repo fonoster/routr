@@ -6,11 +6,17 @@ const CoreUtils = require('@routr/core/utils')
 const DSUtil = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
 const { UNFULFILLED_DEPENDENCY_RESPONSE } = require('@routr/core/status')
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
 class DIDsAPI {
 
     constructor(dataSource) {
         this.ds = dataSource
+        this.cache = Caffeine.newBuilder()
+          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .maximumSize(5000)
+          .build();
     }
 
     createFromJSON(jsonObj) {
@@ -40,7 +46,7 @@ class DIDsAPI {
     }
 
     getDID(ref) {
-        return DSUtil.deepSearch(this.getDIDs(), "metadata.ref", ref)
+        return this.ds.withCollection('gateways').get(ref)
     }
 
     /**
@@ -48,7 +54,14 @@ class DIDsAPI {
      * a TelURL Object.
      */
     getDIDByTelUrl(telUrl) {
-        return DSUtil.deepSearch(this.getDIDs(), "spec.location.telUrl", telUrl)
+        let did = this.cache.getIfPresent(telUrl)
+
+        if (did == null) {
+            did = DSUtil.deepSearch(this.getDIDs(), "spec.location.telUrl", telUrl)
+            this.cache.put(telUrl, did)
+        }
+
+        return did
     }
 
     didExist(telUrl) {
@@ -56,6 +69,9 @@ class DIDsAPI {
     }
 
     deleteDID(ref) {
+        if (this.cache.getIfPresent(ref)) {
+          this.cache.invalidate(ref)
+        }
         return this.ds.withCollection('dids').remove(ref)
     }
 

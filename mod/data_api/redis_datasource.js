@@ -15,7 +15,7 @@ const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
 const LogManager = Packages.org.apache.logging.log4j.LogManager
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
-const defaultRedisParameters = { host: 'localhost', port: '6379', }
+const defaultRedisParameters = { host: 'localhost', port: '6379'}
 const defUser = {
     kind: 'User',
     metadata: {
@@ -32,19 +32,25 @@ const defUser = {
 class RedisDataSource {
 
     constructor(config = getConfig()) {
-        const parameters = DSUtil.getParameters(config, defaultRedisParameters,
+        this.parameters = DSUtil.getParameters(config, defaultRedisParameters,
            ['host', 'port', 'secret'])
 
-        this.jedisPool = new JedisPool(parameters.host, parameters.port)
-
-        if (parameters.secret) {
-            this.jedisPool.auth(parameters.secret)
-        }
+        this.jedisPool = new JedisPool(this.parameters.host, this.parameters.port)
 
         if(this.withCollection('users').find().result.length == 0) {
             LOG.info("No user found. Creating default 'admin' user.")
             this.createDefaultUser(config.system.apiVersion)
         }
+    }
+
+    getJedisConn() {
+      const jedisConn = this.jedisPool.getResource()
+
+      if (this.parameters.secret) {
+          jedisConn.auth(this.parameters.secret)
+      }
+
+      return jedisConn
     }
 
     buildPoolConfig() {
@@ -84,7 +90,7 @@ class RedisDataSource {
                 obj.metadata.ref = new ObjectId().toString()
             }
 
-            jedis = this.jedisPool.getResource()
+            jedis = this.getJedisConn()
             jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
             const kind = DSUtil.getKind(obj)
@@ -104,8 +110,8 @@ class RedisDataSource {
         let jedis
 
         try {
-            jedis = this.jedisPool.getResource()
-            const result = jedis.get(obj.metadata.ref)
+            jedis = this.getJedisConn()
+            const result = jedis.get(ref)
             return result == null? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
         } catch(e) {
             return CoreUtils.buildErrResponse(e)
@@ -121,7 +127,7 @@ class RedisDataSource {
         let jedis
 
         try {
-            jedis = this.jedisPool.getResource()
+            jedis = this.getJedisConn()
             jedis.smembers(this.collection)
                 .forEach(ref =>
                     list.push(JSON.parse(jedis.get(ref))))
@@ -153,7 +159,7 @@ class RedisDataSource {
         let jedis
 
         try {
-            jedis = this.jedisPool.getResource()
+            jedis = this.getJedisConn()
             jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
             return CoreUtils.buildResponse(Status.OK, obj.metadata.ref)
@@ -171,7 +177,7 @@ class RedisDataSource {
         let jedis
 
         try {
-            jedis = this.jedisPool.getResource()
+            jedis = this.getJedisConn()
             let cnt = jedis.del(ref)
 
             if (cnt == 0) {

@@ -5,11 +5,17 @@
 const CoreUtils = require('@routr/core/utils')
 const DSUtil = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
 class PeersAPI {
 
     constructor(dataSource) {
         this.ds = dataSource
+        this.cache = Caffeine.newBuilder()
+          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .maximumSize(100)
+          .build();
     }
 
     updateFromJSON(jsonObj) {
@@ -25,7 +31,7 @@ class PeersAPI {
     }
 
     getPeer(ref) {
-        return DSUtil.deepSearch(this.getPeers(), "metadata.ref", ref)
+        return this.ds.withCollection('peers').get(ref)
     }
 
     peerExist(username) {
@@ -33,10 +39,21 @@ class PeersAPI {
     }
 
     getPeerByUsername(username) {
-        return DSUtil.deepSearch(this.getPeers(), "spec.credentials.username", username)
+        let peer = this.cache.getIfPresent(username)
+
+        if (peer == null) {
+            peer = DSUtil.deepSearch(this.getPeers(), "spec.credentials.username", username)
+            this.cache.put(username, peer)
+        }
+
+        return peer
     }
 
     deletePeer(ref) {
+        if (this.cache.getIfPresent(ref)) {
+          this.cache.invalidate(ref)
+        }
+
         return this.ds.withCollection('peers').remove(ref)
     }
 

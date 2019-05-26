@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 SIPP_PORT=5080
-ROUTR_HOST=192.168.1.12
+ROUTR_HOST=192.168.1.127
 SCENARIO_FILE=uac_register.xml
 REGISTER_FILE=register.csv
 
@@ -14,6 +14,6 @@ docker run -it -p $SIPP_PORT:$SIPP_PORT/udp \
     -p $SIPP_PORT \
     -sf $SCENARIO_FILE \
     -inf $REGISTER_FILE \
-    -r 20000 \
-    -m 100000 \
-    -l 500
+    -r 5000 \
+    -m 200000 \
+    -l 100000
