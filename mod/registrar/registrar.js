@@ -90,26 +90,28 @@ class Registrar {
     }
 
     getUser(username, host) {
-            let user
-            let response = this.peersAPI.getPeerByUsername(username)
+        let user
+        // TODO: Consider placing all the peer entities in a cache, for less
+        // calls to the datasource.
+        let response = this.peersAPI.getPeerByUsername(username)
 
-            if (response.status == Status.OK) {
+        if (response.status == Status.OK) {
+            user = response.result
+        } else {
+            // Then lets check agents
+            response = this.agentsAPI.getAgent(host, username)
+
+            if (response.status == Status.OK ) {
                 user = response.result
-            } else {
-                // Then lets check agents
-                response = this.agentsAPI.getAgent(host, username)
-
-                if (response.status == Status.OK ) {
-                    user = response.result
-                }
             }
-
-            if (user == null) {
-                throw 'Could not find agent or peer \'' + username + '\''
-            }
-
-            return user
         }
+
+        if (user == null) {
+            throw 'Could not find agent or peer \'' + username + '\''
+        }
+
+        return user
+    }
 
     static buildRoute(user, viaHeader, contactURI, expires) {
         // Detect NAT
