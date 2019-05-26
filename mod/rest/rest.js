@@ -4,6 +4,7 @@
  */
 const CoreUtils = require('@routr/core/utils')
 const getConfig = require('@routr/core/config_util')
+const { reloadConfig } =require('@routr/core/config_util')
 const { Status } = require('@routr/core/status')
 const getJWTToken = require('@routr/rest/jwt_token_generator')
 const resourcesService = require('@routr/rest/resources_service')
@@ -85,6 +86,10 @@ class Rest {
                 const status = req.params(':status')
                 if (status.equals('down')) {
                     this.server.stop()
+                } else if (status.equals('reload')) {
+                    reloadConfig()
+                    res.status(200);
+                    res.body('{\"status\": \"200\", \"message\":\"Reloaded configuration from file.\"}')
                 } else {
                     res.status(401);
                     res.body('{\"status\": \"400\", \"message\":\"Bad Request\"}')

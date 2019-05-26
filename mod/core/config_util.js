@@ -10,7 +10,13 @@ const File = Packages.java.io.File
 const System = Packages.java.lang.System
 const UUID = Packages.java.util.UUID
 
-module.exports = function () {
+// Loading and "assembly the configuration"
+let config = loadConfig()
+
+module.exports = () => config
+module.exports.reloadConfig = () => config = loadConfig()
+
+function loadConfig () {
     const config = getConfigFromFile()
     config.salt = getSalt()
     config.spec.securityContext = getDefaultSecContext(config.spec.securityContext)
