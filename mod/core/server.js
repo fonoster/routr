@@ -112,7 +112,7 @@ class Server {
     getProperties() {
         const properties = new Properties()
         // See https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java for
-        // many other options
+        // more options
         properties.setProperty('javax.sip.STACK_NAME', 'routr')
         // Default host
         properties.setProperty('javax.sip.IP_ADDRESS', this.host)
