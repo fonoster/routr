@@ -105,6 +105,10 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
+      <a href="#how-to-install-the-web-console" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
     
       <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -686,9 +690,50 @@
     <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
     
     
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Web Console
+      </label>
+    
     <a href="./" title="Web Console" class="md-nav__link md-nav__link--active">
       Web Console
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-install-the-web-console" title="How to install the Web Console?" class="md-nav__link">
+    How to install the Web Console?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#launching-the-web-console" title="Launching the Web Console" class="md-nav__link">
+    Launching the Web Console
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-the-wc-affect-the-servers-performance" title="Does the WC affect the server's performance?" class="md-nav__link">
+    Does the WC affect the server's performance?
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -813,6 +858,49 @@
               </div>
             
             
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-install-the-web-console" title="How to install the Web Console?" class="md-nav__link">
+    How to install the Web Console?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#launching-the-web-console" title="Launching the Web Console" class="md-nav__link">
+    Launching the Web Console
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-the-wc-affect-the-servers-performance" title="Does the WC affect the server's performance?" class="md-nav__link">
+    Does the WC affect the server's performance?
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
@@ -823,7 +911,20 @@
                 
                   <h1>Web Console</h1>
                 
-                <p>Coming soon!</p>
+                <p>The Web Console — WC for short — is an additional tool for remote control of Routr server that ships with the Command-Line tool.  The Web Console accesses your Routr server remotely using a Restful API. </p>
+<p><img src="/docs/assets/images/routr_animation.gif"/></p>
+<h2 id="how-to-install-the-web-console">How to install the Web Console?<a class="headerlink" href="#how-to-install-the-web-console" title="Permanent link">&para;</a></h2>
+<p>The WC ships with the Command-Line tool. You do not need to install it separately. </p>
+<h2 id="launching-the-web-console">Launching the Web Console<a class="headerlink" href="#launching-the-web-console" title="Permanent link">&para;</a></h2>
+<p>To launch the WC, first, make sure you have a Rout server running. You are also going to have to install the Command-Line tool.   To launch the server run the following command:</p>
+<div class="codehilite"><pre><span></span>rctl proxy
+</pre></div>
+
+<blockquote>
+<p>The WC re-uses the credentials of your Command-Line Tool</p>
+</blockquote>
+<h2 id="does-the-wc-affect-the-servers-performance">Does the WC affect the server's performance?<a class="headerlink" href="#does-the-wc-affect-the-servers-performance" title="Permanent link">&para;</a></h2>
+<p>No. The WC is launched on the client side. It is not part of the Routr server and does not affect its performance.</p>
                 
                   
                 
