@@ -1,8 +1,10 @@
+<img src="https://github.com/fonoster/routr/blob/master/docs/assets/images/routr_animation.gif" width="100%"/>
+
 The Web Console — WC for short — is an additional tool for remote control of Routr server that ships with the Command-Line tool.  The Web Console accesses your Routr server remotely using a Restful API. 
 
 ## How to install the Web Console?
 
-The Web Console ships with the Command-Line tool. You do not need to install it separately. 
+The WC ships with the Command-Line tool. You do not need to install it separately. 
 
 ## Launching the Web Console
 
@@ -14,6 +16,6 @@ rctl proxy
 
 > The WC re-uses the credentials of your Command-Line Tool
 
-## Does the Web Console affect the server's performance?
+## Does the WC affect the server's performance?
 
 No. The WC is launched on the client side. It is not part of the Routr server and does not affect its performance.
