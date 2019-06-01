@@ -37,18 +37,17 @@ nav:
     - Web Console: administration/webconsole.md
   - Rest API:
     - Overview: api/overview.md
-    - API Permissions: api/api-permissions.md
-    - Admin APIs:
-        - Credentials: api/credentials.md
-        - Location: api/location.md
-        - Registry: api/registry.md
-        - Agents: api/agents.md
-        - Peers: api/peers.md
-        - Domains: api/domains.md
-        - Gateways: api/gateways.md
-        - DIDs: api/dids.md
-        - System.status: api/system-status.md
-        - System.info: api/system-info.md
+    - Credentials: api/credentials.md
+    - Location: api/location.md
+    - Registry: api/registry.md
+    - Agents: api/agents.md
+    - Peers: api/peers.md
+    - Domains: api/domains.md
+    - Gateways: api/gateways.md
+    - DIDs: api/dids.md
+    - System:
+      - Status: api/system-status.md
+      - Info: api/system-info.md
   - Guides:
     - Basic Setup: guides/basic-setup.md
     - Routr as Asterisk frontend: guides/routr-as-asterisk-frontend.md

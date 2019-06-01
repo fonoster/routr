@@ -1,28 +1,25 @@
-# Location
-
-Gets a list of registered devices
+Gets a list of registered devices.
 
 **URL**
 
-  `/location`
+`/location`
 
 **Method**
 
-  `GET`
+`GET`
 
-**URL Params**
+**Parameters**
 
-  None
+This method does not receive any parameters.
 
-**Data Params**
+**Request body**
 
-  None
+Do not supply a request body with this method.
 
-**Success Response**
+**Response**
 
-| Code | Content   |
-| ---  |:------    |
-| 200  |  |
+This method returns a list with registered devices in
+the response body.
 
 **Sample Call**
 
@@ -33,5 +30,14 @@ GET /api/{apiversion}/location
 }
 
 HTTP/1.1 200 OK
-"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiJ9.O7hC-ta225epRQlJZO44WC-l2cWohKnJ8lkmlOQpw8Z_xYiwJ6-qDUhHeJEZH9DmwIwz_jD77sj1kQUkXHsbOg"
+{  
+   "status":200,
+   "message":"Successful request",
+   "result":[  
+      {  
+         "addressOfRecord":"sip:1001@sip.local",
+         "contactInfo":"sip:45962087@192.168.1.127:59985;transport=tcp;nat=false;expires=600"
+      }
+   ]
+}
 ```

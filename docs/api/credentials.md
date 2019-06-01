@@ -1,6 +1,4 @@
-# Credentials
-
-Gets a token for subsequent API calls
+Gets a token for subsequent API calls.
 
 **URL**
 
@@ -10,25 +8,17 @@ Gets a token for subsequent API calls
 
   `GET`
 
-**URL Params**
+**Parameters**
 
-  None
+  This method does not receive any parameters.
 
-**Data Params**
+**Request body**
 
-  None
+  Do not supply a request body with this method.
 
-**Success Response**
+**Response**
 
-| Code | Content|
-| ---  |:------ |
-| 200 OK  | JWT Token |
-
-**Error Response**
-
-| Code | Content   |
-| ---  | :--------- |
-| 401 UNAUTHORIZED | `{ status: "401", message : "You are unauthorized to make this request." }`|
+  If successful this method returns a string with a token.
 
 **Sample Call**
 
