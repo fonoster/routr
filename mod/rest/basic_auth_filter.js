@@ -8,9 +8,9 @@ const StringUtils = Packages.org.apache.commons.lang3.StringUtils
 const String = Packages.java.lang.String
 
 module.exports = function (req, res, usersAPI) {
-    if (!validAuthHeader(req)) halt(401, '{\"status\": \"401\", \"message\":\"Unauthorized\"}')
+    if (!validAuthHeader(req)) halt(401, '{\"status\": \"401\", \"message\":\"You are unauthorized to make this request.\"}')
     try {
-      if (!authentic(usersAPI, getUserFromHeader(req))) halt(401, '{\"status\": \"401\", \"message\":\"Unauthorized\"}')
+      if (!authentic(usersAPI, getUserFromHeader(req))) halt(401, '{\"status\": \"401\", \"message\":\"You are unauthorized to make this request.\"}')
     } catch(e) {
       // If it gets here is because it din't send its credentials
       halt(401, '{\"status\": \"401\", \"message\":\"Unauthorized\"}')
