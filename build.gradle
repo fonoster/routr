@@ -22,6 +22,7 @@ dependencies {
     compile 'commons-net:commons-net:3.6'
     compile 'commons-lang:commons-lang:2.6'
     compile 'commons-io:commons-io:2.6'
+    compile 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
     compile 'com.sparkjava:spark-core:2.9.0'
