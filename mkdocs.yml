@@ -40,11 +40,36 @@ nav:
     - Credentials: api/credentials.md
     - Location: api/location.md
     - Registry: api/registry.md
-    - Agents: api/agents.md
-    - Peers: api/peers.md
-    - Domains: api/domains.md
-    - Gateways: api/gateways.md
-    - DIDs: api/dids.md
+    - Agents:
+      - create: api/agents/create.md
+      - delete: api/agents/delete.md
+      - get: api/agents/get.md
+      - list: api/agents/list.md
+      - update: api/agents/update.md
+    - Peers:
+      - create: api/peers/create.md
+      - delete: api/peers/delete.md
+      - get: api/peers/get.md
+      - list: api/peers/list.md
+      - update: api/peers/update.md
+    - Domains:
+      - create: api/domains/create.md
+      - delete: api/domains/delete.md
+      - get: api/domains/get.md
+      - list: api/domains/list.md
+      - update: api/domains/update.md
+    - Gateways:
+      - create: api/gateways/create.md
+      - delete: api/gateways/delete.md
+      - get: api/gateways/get.md
+      - list: api/gateways/list.md
+      - update: api/gateways/update.md
+    - DIDs:
+      - create: api/dids/create.md
+      - delete: api/dids/delete.md
+      - get: api/dids/get.md
+      - list: api/dids/list.md
+      - update: api/dids/update.md
     - System:
       - Status: api/system-status.md
       - Info: api/system-info.md
