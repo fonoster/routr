@@ -14,7 +14,7 @@ module.exports = function (api, resource) {
     const resBase = ('/' + resource + 's').toLowerCase()
     const resByRef = resBase + '/:ref'
 
-    post(resBase, (req, res) => RestUtil.createFromFile(req, api))
+    post(resBase, (req, res) => JSON.stringify(RestUtil.createFromFile(req, api)))
 
     get(resBase, (req, res) => {
         let filter = '@'
