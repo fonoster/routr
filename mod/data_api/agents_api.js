@@ -79,8 +79,14 @@ class AgentsAPI {
     }
 
     deleteAgent(ref) {
-        const agent = this.getAgent(ref)
+        const response = this.getAgent(ref)
+
+        if(response.status !== Status.OK) return response
+
+        const agent = response.result
+
         agent.spec.domains.forEach(domain => {
+            print('DBG002')
             const key = domain.trim() + '.' + agent.spec.credentials.username.trim()
             if (this.cache.getIfPresent(key)) {
                 this.cache.invalidate(key)

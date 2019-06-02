@@ -111,7 +111,7 @@ class RedisDataSource {
 
         try {
             jedis = this.getJedisConn()
-            const result = jedis.get(ref)
+            const result = JSON.parse(jedis.get(ref)) 
             return result == null? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
         } catch(e) {
             return CoreUtils.buildErrResponse(e)

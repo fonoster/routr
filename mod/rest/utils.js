@@ -3,6 +3,7 @@
  * @since v1
  */
 const DSUtil = require('@routr/data_api/utils')
+const isEmpty = require('@routr/utils/obj_util')
 
 const MultipartConfigElement = Packages.javax.servlet.MultipartConfigElement
 const IOUtils = Packages.org.apache.commons.io.IOUtils
@@ -11,7 +12,7 @@ const StandardCharsets = Packages.java.nio.charset.StandardCharsets
 class RestUtil {
 
     static createFromFile(req, api) {
-        if (req.contentType().indexOf('multipart/form-data') !== -1) {
+        if (!isEmpty(req.contentType()) && req.contentType().indexOf('multipart/form-data') !== -1) {
             req.attribute('org.eclipse.jetty.multipartConfig', new MultipartConfigElement('/temp'))
             const is = req.raw().getPart('file').getInputStream()
             const fileContent = IOUtils.toString(is, StandardCharsets.UTF_8.name());
