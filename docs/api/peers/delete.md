@@ -1,8 +1,8 @@
-Removes an Agent resource from a persistent database.
+Removes a Peer resource from a persistent database.
 
 **URL**
 
-`/agents/{ref}`
+`/peers/{ref}`
 
 **Method**
 
@@ -20,12 +20,12 @@ Do not supply a request body with this method.
 
 **Response**
 
-If successful this method removes an Agent resource.
+If successful this method removes a Peer resource.
 
 **Sample Call**
 
 ```json
-DELETE /api/v1beta1/agents/ag3f77f6
+DELETE /api/v1beta1/peers/pr2c77f4
 {
 
 }

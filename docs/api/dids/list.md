@@ -1,8 +1,8 @@
-This method returns a list of Agent resources.
+This method returns a list of DID resources.
 
 **URL**
 
-`/agents`
+`/dids`
 
 **Method**
 
@@ -22,12 +22,12 @@ Do not supply a request body with this method.
 
 **Response**
 
-If successful this method returns a list of Agent resources.
+If successful this method returns a list of DID resources.
 
 **Sample Call**
 
 ```json
-GET /api/v1beta1/agents
+GET /api/v1beta1/dids
 {
 
 }
@@ -37,21 +37,23 @@ HTTP/1.1 200 OK
   "status": "200",
   "message": "Successful request",
   "result" : [{
-      "apiVersion": "v1beta1",
-      "kind": "Agent",
-      "metadata": {
-      	"name": "John Doe",
-        "ref": "ag3f77f6"
-      },
-      "spec": {
-      	"credentials": {
-      		"username": "1001",
-      		"secret": "1234"
-      	},
-      	"domains": [
-      		"sip.local"
-      	]
-      }
+  	"apiVersion": "v1beta1",
+  	"kind": "DID",
+  	"metadata": {
+      "ref": "dd50baa4",
+  		"gwRef": "gweef506",
+  		"geoInfo": {
+  			"city": "City, State",
+  			"country": "Country",
+  			"countryISOCode": "US"
+  		}
+  	},
+  	"spec": {
+  		"location": {
+  			"telUrl": "tel:0000000000",
+  			"aorLink": "sip:1001@sip.local"
+  		}
+  	}
   }]
 }
 ```

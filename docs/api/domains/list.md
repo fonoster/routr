@@ -1,8 +1,8 @@
-This method returns a list of Agent resources.
+This method returns a list of Domain resources.
 
 **URL**
 
-`/agents`
+`/domains`
 
 **Method**
 
@@ -22,12 +22,12 @@ Do not supply a request body with this method.
 
 **Response**
 
-If successful this method returns a list of Agent resources.
+If successful this method returns a list of Domain resources.
 
 **Sample Call**
 
 ```json
-GET /api/v1beta1/agents
+GET /api/v1beta1/domains
 {
 
 }
@@ -37,21 +37,17 @@ HTTP/1.1 200 OK
   "status": "200",
   "message": "Successful request",
   "result" : [{
-      "apiVersion": "v1beta1",
-      "kind": "Agent",
-      "metadata": {
-      	"name": "John Doe",
-        "ref": "ag3f77f6"
-      },
-      "spec": {
-      	"credentials": {
-      		"username": "1001",
-      		"secret": "1234"
-      	},
-      	"domains": [
-      		"sip.local"
-      	]
-      }
+  	"apiVersion": "v1beta1",
+  	"kind": "Domain",
+  	"metadata": {
+  		"name": "Another Office",
+      "ref": "dm6c87r2"
+  	},
+  	"spec": {
+  		"context": {
+  			"domainUri": "sip2.local"
+  		}
+  	}
   }]
 }
 ```

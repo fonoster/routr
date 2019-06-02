@@ -1,8 +1,10 @@
-Removes an Agent resource from a persistent database.
+Removes a Gateway resource from a persistent database. Before removing
+a Gateway, ensure you have remove all of it child DIDs. Otherwise,
+this method returns a `FOUND_DEPENDENT_OBJECTS_RESPONSE`
 
 **URL**
 
-`/agents/{ref}`
+`/gateways/{ref}`
 
 **Method**
 
@@ -20,12 +22,12 @@ Do not supply a request body with this method.
 
 **Response**
 
-If successful this method removes an Agent resource.
+If successful this method removes a Gateway resource.
 
 **Sample Call**
 
 ```json
-DELETE /api/v1beta1/agents/ag3f77f6
+DELETE /api/v1beta1/gateways/gw5c77t2
 {
 
 }

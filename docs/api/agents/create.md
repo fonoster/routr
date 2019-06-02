@@ -1,4 +1,5 @@
-Creates a new Agent resource. The Domain must exist before creating the Agent. Otherwise, this method responds with a `UNFULFILLED_DEPENDENCY_RESPONSE`.
+Creates a new Agent resource. The Domain must exist before creating the Agent.
+Otherwise, this method responds with a `UNFULFILLED_DEPENDENCY_RESPONSE`.
 
 **URL**
 
@@ -14,7 +15,7 @@ This method does not receive any parameters.
 
 **Request body**
 
-A file containing an [Agent](/configuration/agents) resource in `json` or `yaml` format.
+A file containing an [Agent](/configuration/agents) resource in `json` format.
 
 **Response**
 
@@ -23,17 +24,24 @@ If successful this method creates an Agent resource.
 **Sample Call**
 
 ```json
-POST /api/{apiversion}/agents
-- apiVersion: v1beta1
-  kind: Agent
-  metadata:
-    name: John Doe
-  spec:
-    credentials:
-      username: '1001'
-      secret: '1234'
-    domains: [sip.local]
+POST /api/v1beta1/agents
+{
+    "apiVersion": "v1beta1",
+    "kind": "Agent",
+    "metadata": {
+    	"name": "John Doe"
+    },
+    "spec": {
+    	"credentials": {
+    		"username": "1001",
+    		"secret": "1234"
+    	},
+    	"domains": [
+    		"sip.local"
+    	]
+    }
+}
 
 HTTP/1.1 201 Created
-{"status": "201", "Successful request"}
+{"status": "201", "message": "Created"}
 ```

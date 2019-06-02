@@ -71,8 +71,8 @@ nav:
       - list: api/dids/list.md
       - update: api/dids/update.md
     - System:
-      - Status: api/system-status.md
-      - Info: api/system-info.md
+      - Status: api/status.md
+      - Info: api/info.md
   - Guides:
     - Basic Setup: guides/basic-setup.md
     - Routr as Asterisk frontend: guides/routr-as-asterisk-frontend.md
