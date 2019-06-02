@@ -7,9 +7,10 @@ The endpoint for the API is:
 ## Authentication
 
 Routr's API is authenticated with a JWT token. To obtain the token use the
-`/api/{apiversion}/credentials` endpoint with basic authentication present
-in the [User](/configuration/user) resource. You must them append the `token`
-as a query parameter.
+`/api/{apiversion}/credentials` endpoint with basic authentication. Use the information
+from the [User](/configuration/user) resource.
+
+> You must append the `token` to all requests as a query parameter.
 
 **Sample call**
 
