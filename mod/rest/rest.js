@@ -71,7 +71,8 @@ class Rest {
         path(this.system.apiPath, (r) => {
             before('/*', (req, res) => {
               res.header('Access-Control-Allow-Origin', '*')
-              if (req.pathInfo().endsWith('/credentials')) {
+              if (req.pathInfo().endsWith('/credentials') ||
+                  req.pathInfo().endsWith('/token')) {
                 basicAuthFilter(req, res, this.dataAPIs.UsersAPI)
               } else {
                 parameterAuthFilter(req, res, this.config.salt)
@@ -98,7 +99,10 @@ class Rest {
 
             get('/system/info', (req, res) => JSON.stringify(this.system))
 
+            // Deprecate
             get('/credentials', (req, res) => getJWTToken(req, res, this.config.salt))
+
+            get('/token', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, getJWTToken(req, res, this.config.salt))))
 
             get('/location', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, this.locator.listAsJSON())))
 
