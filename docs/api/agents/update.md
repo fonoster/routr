@@ -28,7 +28,7 @@ PUT /api/v1beta1/agents/ag3f77f6
     "apiVersion": "v1beta1",
     "kind": "Agent",
     "metadata": {
-    	"name": "John Doe",
+      "name": "John Doe",
       "ref": "ag3f77f6"
     },
     "spec": {
