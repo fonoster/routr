@@ -17,7 +17,7 @@ module.exports = function (api, resource) {
     post(resBase, (req, res) => RestUtil.createFromFile(req, api))
 
     get(resBase, (req, res) => {
-        let filter = ''
+        let filter = '@'
         if(!isEmpty(req.queryParams('filter'))) filter = req.queryParams('filter')
         return JSON.stringify(api['get' + resource + 's'](filter))
     })
