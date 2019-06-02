@@ -1,4 +1,4 @@
-Gets a token for subsequent API calls.
+This method gets a token for subsequent API calls.
 
 **URL**
 
@@ -18,7 +18,7 @@ Gets a token for subsequent API calls.
 
 **Response**
 
-  If successful this method returns a string with a token.
+  If successful, this method returns a string with a token.
 
 **Sample Call**
 
@@ -34,4 +34,4 @@ HTTP/1.1 200 OK
 
 **Notes**
 
-You must send a basic authentication header with this request
+You must send a basic authentication header with this request.

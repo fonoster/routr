@@ -1,4 +1,4 @@
-Gets a list of gateways the server is registered on.
+This method gets a list of available(online) gateways.
 
 **URL**
 

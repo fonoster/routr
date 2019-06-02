@@ -1,4 +1,4 @@
-Routr API version is currently `v1beta1`. We continue to improve the API, resource definition, and other artifacts until we reach a final version. We can then establish an update policy to ensure backward compatibility. Until then keep an eye on this document.
+Routr API version is currently `v1beta1`. We continue to improve the API, resource definition, and other artifacts until we reach a final version. We can then establish a policy to ensure backward compatibility. Until then keep an eye on this document.
 
 The endpoint for the API is:
 
@@ -6,9 +6,7 @@ The endpoint for the API is:
 
 ## Authentication
 
-Routr's API is authenticated with a JWT token. To obtain the token use the
-`/api/{apiversion}/credentials` endpoint with basic authentication. Use the information
-from the [User](/configuration/user) resource.
+A JWT token is used to authenticate the server. To obtain the token, use the `/api/{apiversion}/credentials` endpoint with basic authentication. Use the information from the [User](/configuration/user) resource.
 
 > You must append the `token` to all requests as a query parameter.
 
