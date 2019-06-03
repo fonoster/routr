@@ -2,9 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
-const SipFactory = Packages.javax.sip.SipFactory
-const Response = Packages.javax.sip.message.Response
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const SipFactory = Java.type('javax.sip.SipFactory')
+const Response = Java.type('javax.sip.message.Response')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
 class CancelHandler {

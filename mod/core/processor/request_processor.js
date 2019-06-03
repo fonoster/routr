@@ -9,12 +9,12 @@ const RequestHandler = require('@routr/core/processor/request_handler')
 const RouteInfo = require('@routr/core/processor/route_info')
 const getConfig = require('@routr/core/config_util')
 const AclUtil = require('@routr/core/acl/acl_util')
-const RoutingType = require('@routr/core/routing_type').RoutingType
+const { RoutingType } = require('@routr/core/routing_type')
 const { Status } = require('@routr/core/status')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const Request = Packages.javax.sip.message.Request
-const Response = Packages.javax.sip.message.Response
+const SipFactory = Java.type('javax.sip.SipFactory')
+const Request = Java.type('javax.sip.message.Request')
+const Response = Java.type('javax.sip.message.Response')
 
 class RequestProcessor {
 

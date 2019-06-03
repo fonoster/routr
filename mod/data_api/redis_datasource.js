@@ -7,12 +7,13 @@ const DSUtil = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
 const getConfig = require('@routr/core/config_util')
 
-const JedisPoolConfig = Packages.redis.clients.jedis.JedisPoolConfig
-const JedisPool = Packages.redis.clients.jedis.JedisPool
-const ObjectId = Packages.org.bson.types.ObjectId
-const JsonPath = Packages.com.jayway.jsonpath.JsonPath
-const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const JedisPoolConfig = Java.type('redis.clients.jedis.JedisPoolConfig')
+const JedisPool = Java.type('redis.clients.jedis.JedisPool')
+const ObjectId = Java.type('org.bson.types.ObjectId')
+const JsonPath = Java.type('com.jayway.jsonpath.JsonPath')
+const InvalidPathException = Java.type('com.jayway.jsonpath.InvalidPathException')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
 const defaultRedisParameters = { host: 'localhost', port: '6379'}
@@ -111,7 +112,7 @@ class RedisDataSource {
 
         try {
             jedis = this.getJedisConn()
-            const result = JSON.parse(jedis.get(ref)) 
+            const result = JSON.parse(jedis.get(ref))
             return result == null? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
         } catch(e) {
             return CoreUtils.buildErrResponse(e)

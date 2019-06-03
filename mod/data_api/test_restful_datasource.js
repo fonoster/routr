@@ -17,7 +17,6 @@ const config = getConfig()
 delete config.spec.dataSource.parameters
 
 const ds = new RestfulDataSource(config)
-const ObjectId = Packages.org.bson.types.ObjectId
 const gatewaysAPI = new GatewaysAPI(ds)
 
 testGroup.basic_operations = function () {

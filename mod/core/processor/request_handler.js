@@ -5,16 +5,17 @@
 const ProcessorUtils = require('@routr/core/processor/utils')
 const IPUtil = require('@routr/core/ip_util')
 const getConfig = require('@routr/core/config_util')
-const Status = require('@routr/core/status').Status
+const { Status } = require('@routr/core/status')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const Request = Packages.javax.sip.message.Request
-const Response = Packages.javax.sip.message.Response
-const RouteHeader = Packages.javax.sip.header.RouteHeader
-const CSeqHeader = Packages.javax.sip.header.CSeqHeader
-const ViaHeader = Packages.javax.sip.header.ViaHeader
-const MaxForwardsHeader = Packages.javax.sip.header.MaxForwardsHeader
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const InetAddress = Java.type('java.net.InetAddress') 
+const SipFactory = Java.type('javax.sip.SipFactory')
+const Request = Java.type('javax.sip.message.Request')
+const Response = Java.type('javax.sip.message.Response')
+const RouteHeader = Java.type('javax.sip.header.RouteHeader')
+const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
+const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const MaxForwardsHeader = Java.type('javax.sip.header.MaxForwardsHeader')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
 class RequestHandler {
@@ -77,7 +78,7 @@ class RequestHandler {
         const routeHeader = request.getHeader(RouteHeader.NAME)
         if (routeHeader) {
             const h = routeHeader.getAddress().getURI().getHost()
-            const host = IPUtil.isIp(h)? h : Packages.java.net.InetAddress.getByName(h).getHostAddress()
+            const host = IPUtil.isIp(h)? h : InetAddress.getByName(h).getHostAddress()
             const port = routeHeader.getAddress().getURI().getPort() == -1? 5060 : routeHeader.getAddress().getURI().getPort()
 
             if (host.equals(advertisedAddr.host) && port.equals(advertisedAddr.port)) {

@@ -4,6 +4,7 @@
  *
  * Unit Test for core functionalities
  */
+const getConfig = require('@routr/core/config_util')
 const FilesDataSource = require('@routr/data_api/files_datasource')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const PeersAPI = require('@routr/data_api/peers_api')
@@ -11,15 +12,18 @@ const DIDsAPI = require('@routr/data_api/dids_api')
 const DomainsAPI = require('@routr/data_api/domains_api')
 const AgentsAPI = require('@routr/data_api/agents_api')
 const RouteInfo = require('@routr/core/processor/route_info')
-const getConfig = require('@routr/core/config_util')
 
-const sipFactory = Packages.javax.sip.SipFactory.getInstance()
+const ArrayList = Java.type('java.util.ArrayList')
+const SipFactory = Java.type('javax.sip.SipFactory')
+const SipUtils = Java.type('gov.nist.javax.sip.Utils')
+const Request = Java.type('javax.sip.message.Request')
+
+const sipFactory = SipFactory.getInstance()
 const messageFactory = sipFactory.createMessageFactory()
 const headerFactory = sipFactory.createHeaderFactory()
 const addressFactory = sipFactory.createAddressFactory()
-const SipUtils = Packages.gov.nist.javax.sip.Utils
-const Request = Packages.javax.sip.message.Request
-const userAgent = new java.util.ArrayList()
+const userAgent = new ArrayList()
+
 userAgent.add('Test I/O v1.0')
 
 const config = getConfig()

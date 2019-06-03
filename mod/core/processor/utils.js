@@ -2,9 +2,10 @@
  * @author Pedro Sanders
  * @since v1
  */
-const SipFactory = Packages.javax.sip.SipFactory
-const ToHeader = Packages.javax.sip.header.ToHeader
 const getConfig = require('@routr/core/config_util')
+
+const SipFactory = Java.type('javax.sip.SipFactory')
+const ToHeader = Java.type('javax.sip.header.ToHeader')
 
 class ProcessorUtils {
 

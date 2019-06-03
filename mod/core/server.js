@@ -8,9 +8,10 @@ const getConfig = require('@routr/core/config_util')
 const Registry = require('@routr/registry/registry')
 const RestService = require('@routr/rest/rest')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const Properties = Packages.java.util.Properties
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const SipFactory = Java.type('javax.sip.SipFactory')
+const Properties = Java.type('java.util.Properties')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
 const LOG = LogManager.getLogger()
 const ANSI_GREEN = "\u001B[32m"
 const ANSI_YELLOW = "\u001B[33m"
@@ -71,7 +72,7 @@ class Server {
         this.showExternInfo()
 
         if(this.config.spec.securityContext.debugging) {
-            Packages.java.lang.System.setProperty('javax.net.debug', 'ssl')
+            Java.type('java.lang.System').setProperty('javax.net.debug', 'ssl')
         }
 
         const sipFactory = SipFactory.getInstance()

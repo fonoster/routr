@@ -7,12 +7,13 @@ const FilesUtil = require('@routr/utils/files_util')
 const { Status } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
 
-const System = Packages.java.lang.System
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const System = Java.type('java.lang.System')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const YAMLFactory = Java.type('com.fasterxml.jackson.dataformat.yaml.YAMLFactory')
+const JsonSchemaFactory = Java.type('com.networknt.schema.JsonSchemaFactory')
+const ObjectMapper = Java.type('com.fasterxml.jackson.databind.ObjectMapper')
+
 const LOG = LogManager.getLogger()
-const YAMLFactory = Packages.com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-const JsonSchemaFactory = Packages.com.networknt.schema.JsonSchemaFactory
-const ObjectMapper = Packages.com.fasterxml.jackson.databind.ObjectMapper
 const schemaPath = 'etc/schemas'
 
 class DSUtil {

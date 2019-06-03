@@ -7,9 +7,9 @@ const CoreUtils = require('@routr/core/utils')
 const { Status } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
 
-const MultipartConfigElement = Packages.javax.servlet.MultipartConfigElement
-const IOUtils = Packages.org.apache.commons.io.IOUtils
-const StandardCharsets = Packages.java.nio.charset.StandardCharsets
+const MultipartConfigElement = Java.type('javax.servlet.MultipartConfigElement')
+const IOUtils = Java.type('org.apache.commons.io.IOUtils')
+const StandardCharsets = Java.type('java.nio.charset.StandardCharsets')
 
 class RestUtil {
 

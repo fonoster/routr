@@ -6,14 +6,14 @@ const getConfig = require('@routr/core/config_util')
 const { Status } = require('@routr/core/status')
 const moment = require('moment')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const SipUtils = Packages.gov.nist.javax.sip.Utils
-const Request = Packages.javax.sip.message.Request
-const InetAddress = Packages.java.net.InetAddress
-const HashMap = Packages.java.util.HashMap
-const LogManager = Packages.org.apache.logging.log4j.LogManager
-const LOG = LogManager.getLogger()
+const SipFactory = Java.type('javax.sip.SipFactory')
+const SipUtils = Java.type('gov.nist.javax.sip.Utils')
+const Request = Java.type('javax.sip.message.Request')
+const InetAddress = Java.type('java.net.InetAddress')
+const HashMap = Java.type('java.util.HashMap')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
+const LOG = LogManager.getLogger()
 var cseq = 0
 
 class Registry {

@@ -7,9 +7,10 @@ const DSUtil = require('@routr/data_api/utils')
 const getConfig = require('@routr/core/config_util')
 const { Status } = require('@routr/core/status')
 
-const URLEncoder = Packages.java.net.URLEncoder
-const Unirest = Packages.com.mashape.unirest.http.Unirest
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const URLEncoder = Java.type('java.net.URLEncoder')
+const Unirest = Java.type('com.mashape.unirest.http.Unirest')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
 const defaultRestfulParams = { baseUrl: 'http://localhost:8080/v1/ctl', username: 'admin', secret: 'changeit' }

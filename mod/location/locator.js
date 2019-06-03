@@ -10,10 +10,11 @@ const LocatorUtils = require('@routr/location/utils')
 const isEmpty = require('@routr/utils/obj_util')
 const { Status } = require('@routr/core/status')
 
-const HashMap = Packages.java.util.HashMap
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const HashMap = Java.type('java.util.HashMap')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const SipFactory = Java.type('javax.sip.SipFactory')
+
 const LOG = LogManager.getLogger()
-const SipFactory = Packages.javax.sip.SipFactory
 
 /**
  * NOTE #1: Notice that addressOfRecord.toString !eq to LocatorUtils.aorAsString(addressOfRecord). This is important to ensure
@@ -66,7 +67,7 @@ class Locator {
     }
 
     findEndpoint(addressOfRecord) {
-        if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
+        if (addressOfRecord instanceof Java.type('javax.sip.address.TelURL')) {
             return this.findEndpointByTelUrl(addressOfRecord)
         }
         return this.findEndpointBySipURI(addressOfRecord)
@@ -153,7 +154,7 @@ class Locator {
     }
 
     getEgressRouteForAOR(addressOfRecord) {
-        if (!(addressOfRecord instanceof Packages.javax.sip.address.SipURI))
+        if (!(addressOfRecord instanceof Java.type('javax.sip.address.SipURI')))
             throw 'AOR must be instance of javax.sip.address.SipURI'
 
         const response = this.domainsAPI.getDomains()

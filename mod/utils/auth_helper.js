@@ -2,11 +2,12 @@
  * @author Pedro Sanders
  * @since v1
  */
+const DigestUtils = Java.type('org.apache.commons.codec.digest.DigestUtils')
+const MessageDigest = Java.type('java.security.MessageDigest')
+const Long = Java.type('java.lang.Long')
+const Random = Java.type('java.util.Random')
+
 module.exports = function AuthHelper (headerFactory) {
-    const DigestUtils = Packages.org.apache.commons.codec.digest.DigestUtils
-    const MessageDigest = Packages.java.security.MessageDigest
-    const Long = Packages.java.lang.Long
-    const Random = Packages.java.util.Random
     const DEFAULT_ALGORITHM = 'MD5'
 
     this.calcFromHeader = a => this.calculateResponse(a.username, a.secret, a.realm, a.nonce, a.nc, a.cnonce, a.uri,

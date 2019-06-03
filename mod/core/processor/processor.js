@@ -5,8 +5,9 @@
 const RequestProcessor = require('@routr/core/processor/request_processor')
 const ResponseProcessor = require('@routr/core/processor/response_processor')
 
-const SipListener = Packages.javax.sip.SipListener
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const SipListener = Java.type('javax.sip.SipListener')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
 const LOG = LogManager.getLogger()
 
 class Processor {

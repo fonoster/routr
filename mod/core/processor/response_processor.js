@@ -4,15 +4,15 @@
  */
 const AccountManagerService = require('@routr/core/account_manager_service')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const FromHeader = Packages.javax.sip.header.FromHeader
-const ViaHeader = Packages.javax.sip.header.ViaHeader
-const ContactHeader = Packages.javax.sip.header.ContactHeader
-const CSeqHeader = Packages.javax.sip.header.CSeqHeader
-const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
-const Request = Packages.javax.sip.message.Request
-const Response = Packages.javax.sip.message.Response
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const SipFactory = Java.type('javax.sip.SipFactory')
+const FromHeader = Java.type('javax.sip.header.FromHeader')
+const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const ContactHeader = Java.type('javax.sip.header.ContactHeader')
+const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
+const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
+const Request = Java.type('javax.sip.message.Request')
+const Response = Java.type('javax.sip.message.Response')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
 class ResponseProcessor {

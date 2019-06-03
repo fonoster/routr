@@ -4,13 +4,14 @@
  */
 const AuthHelper = require('@routr/utils/auth_helper')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const ToHeader = Packages.javax.sip.header.ToHeader
-const ContactHeader = Packages.javax.sip.header.ContactHeader
-const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
-const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
-const Response = Packages.javax.sip.message.Response
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const SipFactory = Java.type('javax.sip.SipFactory')
+const ToHeader = Java.type('javax.sip.header.ToHeader')
+const ContactHeader = Java.type('javax.sip.header.ContactHeader')
+const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
+const AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
+const Response = Java.type('javax.sip.message.Response')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
 const LOG = LogManager.getLogger()
 
 class RegisterHandler {

@@ -8,8 +8,10 @@ const isEmpty = require('@routr/utils/obj_util')
 const DSUtils = require('@routr/data_api/utils')
 const FilesUtil = require('@routr/utils/files_util')
 
-const JsonPath = Packages.com.jayway.jsonpath.JsonPath
-const System = Packages.java.lang.System
+const JsonPath = Java.type('com.jayway.jsonpath.JsonPath')
+const System = Java.type('java.lang.System')
+const NoSuchFileException = Java.type('java.nio.file.NoSuchFileException')
+const JsonMappingException = Java.type('com.fasterxml.jackson.databind.JsonMappingException')
 
 class FilesDataSource {
 
@@ -68,8 +70,8 @@ class FilesDataSource {
                 return FilesDataSource.emptyResult()
             }
         } catch(e) {
-            if(e instanceof Packages.java.nio.file.NoSuchFileException ||
-               e instanceof Packages.com.fasterxml.jackson.databind.JsonMappingException) {
+            if(e instanceof NoSuchFileException ||
+               e instanceof JsonMappingException)  {
                 return FilesDataSource.emptyResult()
             }
 

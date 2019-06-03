@@ -2,11 +2,10 @@
  * @author Pedro Sanders
  * @since v1
  */
-const halt = Packages.spark.Spark.halt
-const Base64 = Packages.org.apache.commons.codec.binary.Base64
-const StringUtils = Packages.org.apache.commons.lang3.StringUtils
-const String = Packages.java.lang.String
-const unauthorized = "You are unauthorized to make this request."
+const halt = Java.type('spark.Spark').halt
+const Base64 = Java.type('org.apache.commons.codec.binary.Base64')
+const StringUtils = Java.type('org.apache.commons.lang3.StringUtils')
+const String = Java.type('java.lang.String')
 
 module.exports = function (req, res, usersAPI) {
     if (!validAuthHeader(req)) halt(401, '{\"status\": \"401\", \"message\":\"You are unauthorized to make this request.\"}')

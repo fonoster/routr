@@ -7,14 +7,11 @@
 const Registry = require('@routr/registry/registry')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 
-const InetAddress = Packages.java.net.InetAddress
-const SipFactory = Packages.javax.sip.SipFactory
+const InetAddress = Java.type('java.net.InetAddress')
+const SipFactory = Java.type('javax.sip.SipFactory')
+
 const addressFactory = SipFactory.getInstance().createAddressFactory()
-
-const dataAPIs = {
-    GatewaysAPI: new GatewaysAPI()
-}
-
+const dataAPIs = { GatewaysAPI: new GatewaysAPI() }
 const testGroup = { name: "Registry Module" }
 
 // Tests

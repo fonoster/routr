@@ -5,9 +5,9 @@
 class LocatorUtils {
 
     static aorAsString(addressOfRecord) {
-        if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
+        if (addressOfRecord instanceof Java.type('javax.sip.address.TelURL')) {
             return 'tel:' + addressOfRecord.getPhoneNumber()
-        } else if (addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
+        } else if (addressOfRecord instanceof Java.type('javax.sip.address.SipURI')) {
             if (addressOfRecord.isSecure()) {
                 return 'sips:' + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
             } else {

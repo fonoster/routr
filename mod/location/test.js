@@ -13,6 +13,8 @@ const GatewaysAPI = require('@routr/data_api/gateways_api')
 const { Status } = require('@routr/core/status')
 const getConfig = require('@routr/core/config_util')
 
+const SipFactory = Java.type('javax.sip.SipFactory')
+
 const config = getConfig()
 // Forces data source to use its own default parameters...
 delete config.spec.dataSource.parameters
@@ -23,8 +25,6 @@ const dataAPIs = {
     GatewaysAPI: new GatewaysAPI(ds),
     DIDsAPI: new DIDsAPI(ds)
 }
-
-const SipFactory = Packages.javax.sip.SipFactory
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 const locator = new Locator(dataAPIs)
 

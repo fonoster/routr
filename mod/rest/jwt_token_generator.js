@@ -2,10 +2,10 @@
  * @author Pedro Sanders
  * @since v1
  */
-const Jwts = Packages.io.jsonwebtoken.Jwts
-const SignatureAlgorithm = Packages.io.jsonwebtoken.SignatureAlgorithm
-const Base64 = Packages.java.util.Base64
-const String = Packages.java.lang.String
+const Jwts = Java.type('io.jsonwebtoken.Jwts')
+const SignatureAlgorithm = Java.type('io.jsonwebtoken.SignatureAlgorithm')
+const Base64 = Java.type('java.util.Base64')
+const String = Java.type('java.lang.String')
 
 module.exports = function (req, res, salt) {
     const eUsername = req.headers('Authorization').split(' ')[1]

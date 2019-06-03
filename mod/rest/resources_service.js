@@ -5,10 +5,10 @@
 const RestUtil = require('@routr/rest/utils')
 const isEmpty = require('@routr/utils/obj_util')
 
-const get = Packages.spark.Spark.get
-const post = Packages.spark.Spark.post
-const put = Packages.spark.Spark.put
-const del = Packages.spark.Spark.delete
+const get = Java.type('spark.Spark').get
+const post = Java.type('spark.Spark').post
+const put = Java.type('spark.Spark').put
+const del = Java.type('spark.Spark').delete
 
 module.exports = function (api, resource) {
     const resBase = ('/' + resource + 's').toLowerCase()

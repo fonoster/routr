@@ -5,10 +5,10 @@
 const DSUtil = require('@routr/data_api/utils')
 const FilesUtil = require('@routr/utils/files_util')
 
-const InetAddress = Packages.java.net.InetAddress
-const File = Packages.java.io.File
-const System = Packages.java.lang.System
-const UUID = Packages.java.util.UUID
+const InetAddress = Java.type('java.net.InetAddress')
+const File = Java.type('java.io.File')
+const System = Java.type('java.lang.System')
+const UUID = Java.type('java.util.UUID')
 
 // Loading and "assembly the configuration"
 let config = loadConfig()

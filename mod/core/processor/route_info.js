@@ -6,16 +6,17 @@ const { RouteEntityType } = require('@routr/core/route_entity_type')
 const { RoutingType } = require('@routr/core/routing_type')
 const getConfig = require('@routr/core/config_util')
 
-const ToHeader = Packages.javax.sip.header.ToHeader
-const FromHeader = Packages.javax.sip.header.FromHeader
-const StringUtils = Packages.org.apache.commons.lang3.StringUtils
+const ToHeader = Java.type('javax.sip.header.ToHeader')
+const FromHeader = Java.type('javax.sip.header.FromHeader')
+const StringUtils = Java.type('org.apache.commons.lang3.StringUtils')
+const SipFactory = Java.type('javax.sip.SipFactory')
 
 class RouteInfo {
 
     constructor(request, dataAPIs) {
         const fromHeader = request.getHeader(FromHeader.NAME)
         const toHeader = request.getHeader(ToHeader.NAME)
-        const sipFactory = Packages.javax.sip.SipFactory.getInstance()
+        const sipFactory = SipFactory.getInstance()
         this.config = getConfig()
         this.addressFactory = sipFactory.createAddressFactory()
         this.request = request

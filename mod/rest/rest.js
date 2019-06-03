@@ -11,13 +11,14 @@ const resourcesService = require('@routr/rest/resources_service')
 const parameterAuthFilter = require('@routr/rest/parameter_auth_filter')
 const basicAuthFilter = require('@routr/rest/basic_auth_filter')
 
-const Spark = Packages.spark.Spark
-const options = Packages.spark.Spark.options
-const get = Packages.spark.Spark.get
-const post = Packages.spark.Spark.post
-const before = Packages.spark.Spark.before
-const path = Packages.spark.Spark.path
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const Spark = Java.type('spark.Spark')
+const options = Java.type('spark.Spark').options
+const get = Java.type('spark.Spark').get
+const post = Java.type('spark.Spark').post
+const before = Java.type('spark.Spark').before
+const path = Java.type('spark.Spark').path
+
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
 class Rest {

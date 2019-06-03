@@ -2,8 +2,8 @@
  * @author Pedro Sanders
  * @since v1
  */
-const AccountManager  = Packages.gov.nist.javax.sip.clientauthutils.AccountManager
-const UserCredentials = Packages.gov.nist.javax.sip.clientauthutils.UserCredentials
+const AccountManager = Java.type('gov.nist.javax.sip.clientauthutils.AccountManager')
+const UserCredentials = Java.type('gov.nist.javax.sip.clientauthutils.UserCredentials')
 
 // There is something mysterious about this class that
 // makes gatewaysAPI null beyond the constructor.

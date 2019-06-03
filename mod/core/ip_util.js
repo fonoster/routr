@@ -5,7 +5,8 @@
 const getConfig = require('@routr/core/config_util')
 const isEmpty = require('@routr/utils/obj_util')
 
-const SubnetUtils = Packages.org.apache.commons.net.util.SubnetUtils
+const SubnetUtils = Java.type('org.apache.commons.net.util.SubnetUtils')
+
 const cidrPattern = /^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/
 const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
 

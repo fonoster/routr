@@ -7,12 +7,12 @@ const { Status } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
 const getConfig = require('@routr/core/config_util')
 
-const ViaHeader = Packages.javax.sip.header.ViaHeader
-const ContactHeader = Packages.javax.sip.header.ContactHeader
-const FromHeader = Packages.javax.sip.header.FromHeader
-const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
-const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
-const SipFactory = Packages.javax.sip.SipFactory
+const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const ContactHeader = Java.type('javax.sip.header.ContactHeader')
+const FromHeader = Java.type('javax.sip.header.FromHeader')
+const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
+const AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
+const SipFactory = Java.type('javax.sip.SipFactory')
 
 class Registrar {
 
@@ -55,7 +55,7 @@ class Registrar {
     }
 
     static getNonceCount(d) {
-        const h = Packages.java.lang.Integer.toHexString(d)
+        const h = Java.type('java.lang.Integer').toHexString(d)
         const cSize = 8 - h.toString().length()
         let nc = ''
         let cnt = 0
