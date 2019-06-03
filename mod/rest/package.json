@@ -1,5 +1,5 @@
 {
-  "name": "@routr/core",
+  "name": "@routr/rest",
   "version": "1.0.0",
   "description": "Routr's rest api",
   "scripts": {
