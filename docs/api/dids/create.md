@@ -45,5 +45,5 @@ POST /api/v1beta1/dids
 }
 
 HTTP/1.1 201 Created
-{"status": "201", "message": "Created"}
+{"status": "201", "message": "Created", "result": "dd50baa4"}
 ```
