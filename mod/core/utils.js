@@ -4,13 +4,18 @@
  */
 const { Status } = require('@routr/core/status')
 
+const JedisConnectionException = Java.type('redis.clients.jedis.exceptions.JedisConnectionException')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
 class CoreUtils {
 
     static buildErrResponse(e) {
-        LOG.error(e)
+        if (e instanceof JedisConnectionException) {
+            LOG.error('Unable to connect with Redis')
+        } else {
+          LOG.error(e)
+        }
         return CoreUtils.buildResponse(Status.INTERNAL_SERVER_ERROR, [], e)
     }
 
