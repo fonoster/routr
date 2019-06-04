@@ -6,6 +6,7 @@
 const CoreUtils = require('@routr/core/utils')
 const DSUtil = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
+const { UNFULFILLED_DEPENDENCY_RESPONSE } = require('@routr/core/status')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
@@ -22,11 +23,33 @@ class DomainsAPI {
     }
 
     createFromJSON(jsonObj) {
-        return this.domainExist(jsonObj.spec.context.domainUri)? CoreUtils.buildResponse(Status.CONFLICT) : this.ds.insert(jsonObj)
+        if(jsonObj.spec.context.egressPolicy
+            && !this.doesDIDExist(jsonObj.spec.context.egressPolicy.didRef)) {
+              return UNFULFILLED_DEPENDENCY_RESPONSE
+        }
+
+        if (!this.domainExist(jsonObj.spec.context.domainUri)) {
+            const response = this.ds.insert(jsonObj)
+            this.cache.put(jsonObj.spec.context.domainUri, response)
+            return response
+        }
+
+        return CoreUtils.buildResponse(Status.CONFLICT)
     }
 
     updateFromJSON(jsonObj) {
-        return !this.domainExist(jsonObj.spec.context.domainUri)? CoreUtils.buildResponse(Status.NOT_FOUND) : this.ds.update(jsonObj)
+        if(jsonObj.spec.context.egressPolicy
+            && !this.doesDIDExist(json.spec.context.egressPolicy.didRef)) {
+              return UNFULFILLED_DEPENDENCY_RESPONSE
+        }
+
+        if (this.domainExist(jsonObj.spec.context.domainUri)) {
+            const response = this.ds.update(jsonObj)
+            this.cache.put(jsonObj.spec.context.domainUri, response)
+            return response
+        }
+
+        return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     getDomains(filter) {
@@ -38,14 +61,13 @@ class DomainsAPI {
     }
 
     getDomainByUri(domainUri) {
-        let domain = this.cache.getIfPresent(domainUri)
+        let response = this.cache.getIfPresent(domainUri)
 
-        if (domain == null) {
-            domain = DSUtil.deepSearch(this.getDomains(), "spec.context.domainUri", domainUri)
-            this.cache.put(domainUri, domain)
+        if (response === null) {
+            response = DSUtil.deepSearch(this.getDomains(), "spec.context.domainUri", domainUri)
+            this.cache.put(domainUri, response)
         }
-
-        return domain
+        return response
     }
 
     domainExist(domainUri) {
@@ -68,7 +90,12 @@ class DomainsAPI {
         response = this.ds.withCollection('agents').find("'" + domain.spec.context.domainUri + "' in @.spec.domains")
         const agents = response.result
 
-        return agents.length == 0? this.ds.withCollection('domains').remove(ref) : foundDependentObjects
+        return agents.length === 0? this.ds.withCollection('domains').remove(ref) : foundDependentObjects
+    }
+
+    doesDIDExist(didRef) {
+        const response = this.ds.withCollection('dids').get(didRef)
+        return response.status == Status.OK
     }
 }
 

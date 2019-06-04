@@ -20,11 +20,23 @@ class GatewaysAPI {
     }
 
     createFromJSON(jsonObj) {
-        return this.gatewayExist(jsonObj.spec.host)? CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+        if (!this.gatewayExist(jsonObj.spec.host)) {
+            const response = this.ds.insert(jsonObj)
+            this.cache.put(jsonObj.spec.host, response)
+            return response
+        }
+
+        return CoreUtils.buildResponse(Status.CONFLICT)
     }
 
     updateFromJSON(jsonObj) {
-        return !this.gatewayExist(jsonObj.spec.host)? CoreUtils.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
+        if (this.gatewayExist(jsonObj.spec.host)) {
+            const response = this.ds.update(jsonObj)
+            this.cache(jsonObj.spec.host, response)
+            return response
+        }
+
+        return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     getGateways(filter)  {
@@ -36,14 +48,14 @@ class GatewaysAPI {
     }
 
     getGatewayByHost(host) {
-        let gw = this.cache.getIfPresent(host)
+        let response = this.cache.getIfPresent(host)
 
-        if (gw == null) {
-            gw = DSUtil.deepSearch(this.getGateways(), "spec.host", host)
-            this.cache.put(host, gw)
+        if (response === null) {
+            response = DSUtil.deepSearch(this.getGateways(), "spec.host", host)
+            this.cache.put(host, response)
         }
 
-        return gw
+        return response
     }
 
     gatewayExist(host) {
@@ -52,7 +64,7 @@ class GatewaysAPI {
 
     deleteGateway(ref) {
         if (this.cache.getIfPresent(ref)) {
-          this.cache.invalidate(ref)
+            this.cache.invalidate(ref)
         }
 
         let response = this.getGateway(ref)

@@ -87,7 +87,8 @@ class DSUtil {
     }
 
     static objExist(response) {
-       return response.status == Status.OK? true: false
+        const status = response.status
+        return status === Status.OK || status === Status.CREATED? true: false
     }
 
     static transformFilter(filter = '*') {

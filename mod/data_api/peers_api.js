@@ -19,11 +19,23 @@ class PeersAPI {
     }
 
     updateFromJSON(jsonObj) {
-        return !this.peerExist(jsonObj.spec.credentials.username)? CoreUtils.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
+        if (this.peerExist(jsonObj.spec.credentials.username)) {
+            const response = this.ds.update(jsonObj)
+            this.cache.put(jsonObj.spec.credentials.username, response)
+            return response
+        }
+
+        return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     createFromJSON(jsonObj) {
-        return this.peerExist(jsonObj.spec.credentials.username)? CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+        if (!this.peerExist(jsonObj.spec.credentials.username)) {
+            const response = this.ds.insert(jsonObj)
+            this.cache.put(jsonObj.spec.credentials.username, response)
+            return response
+        }
+
+        return CoreUtils.buildResponse(Status.CONFLICT)
     }
 
     getPeers(filter) {
@@ -39,19 +51,19 @@ class PeersAPI {
     }
 
     getPeerByUsername(username) {
-        let peer = this.cache.getIfPresent(username)
+        let response = this.cache.getIfPresent(username)
 
-        if (peer == null) {
-            peer = DSUtil.deepSearch(this.getPeers(), "spec.credentials.username", username)
-            this.cache.put(username, peer)
+        if (response === null) {
+            response = DSUtil.deepSearch(this.getPeers(), "spec.credentials.username", username)
+            this.cache.put(username, response)
         }
 
-        return peer
+        return response
     }
 
     deletePeer(ref) {
         if (this.cache.getIfPresent(ref)) {
-          this.cache.invalidate(ref)
+            this.cache.invalidate(ref)
         }
 
         return this.ds.withCollection('peers').remove(ref)

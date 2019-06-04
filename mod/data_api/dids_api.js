@@ -20,25 +20,35 @@ class DIDsAPI {
     }
 
     createFromJSON(jsonObj) {
-        const response = this.ds.withCollection('gateways').find("@.metadata.ref=='" + jsonObj.metadata.gwRef + "'")
+        const response = this.ds.withCollection('gateways').get(jsonObj.metadata.gwRef)
 
-        if (response.result.length == 0) {
+        if (response.status != Status.OK) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
-        return this.didExist(jsonObj.spec.location.telUrl)?
-          CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+        if (!this.didExist(jsonObj.spec.location.telUrl)) {
+            const response = this.ds.insert(jsonObj)
+            this.cache.put(jsonObj.spec.location.telUrl, response)
+            return response
+        }
+
+        return  CoreUtils.buildResponse(Status.CONFLICT)
     }
 
     updateFromJSON(jsonObj) {
-        const response = this.ds.withCollection('gateways').find("@.metadata.ref=='" + jsonObj.metadata.gwRef + "'")
+        const response = this.ds.withCollection('gateways').get(jsonObj.metadata.gwRef)
 
-        if (response.result.length == 0) {
+        if (response.status != Status.OK) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
-        return !this.didExist(jsonObj.spec.location.telUrl)?
-          CoreUtils.buildResponse(Status.NOT_FOUND) : this.ds.update(jsonObj)
+        if (this.didExist(jsonObj.spec.location.telUrl)) {
+            const response = this.ds.update(jsonObj)
+            this.cache.put(jsonObj.spec.location.telUrl, response)
+            return response
+        }
+
+        return  CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     getDIDs(filter) {
@@ -54,14 +64,14 @@ class DIDsAPI {
      * a TelURL Object.
      */
     getDIDByTelUrl(telUrl) {
-        let did = this.cache.getIfPresent(telUrl)
+        let response = this.cache.getIfPresent(telUrl)
 
-        if (did == null) {
-            did = DSUtil.deepSearch(this.getDIDs(), "spec.location.telUrl", telUrl)
-            this.cache.put(telUrl, did)
+        if (response == null) {
+            response = DSUtil.deepSearch(this.getDIDs(), "spec.location.telUrl", telUrl)
+            this.cache.put(telUrl, response)
         }
 
-        return did
+        return response
     }
 
     didExist(telUrl) {
