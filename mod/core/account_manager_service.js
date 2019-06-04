@@ -2,6 +2,8 @@
  * @author Pedro Sanders
  * @since v1
  */
+const { Status } = require('@routr/core/status')
+
 const AccountManager = Java.type('gov.nist.javax.sip.clientauthutils.AccountManager')
 const UserCredentials = Java.type('gov.nist.javax.sip.clientauthutils.UserCredentials')
 
@@ -23,7 +25,7 @@ class AccountManagerService {
         const gwRef = ct.getRequest().getHeader('X-Gateway-Ref').value
         const response = gatewaysAPI.getGateway(gwRef)
 
-        if (response.status === 200) {
+        if (response.status === Status.OK) {
             const gateway = response.result
 
             return {
