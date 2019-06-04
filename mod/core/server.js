@@ -8,6 +8,7 @@ const getConfig = require('@routr/core/config_util')
 const Registry = require('@routr/registry/registry')
 const RestService = require('@routr/rest/rest')
 
+const System = Java.type('java.lang.System')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const Properties = Java.type('java.util.Properties')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -107,7 +108,7 @@ class Server {
         this.restService.stop()
         this.sipStack.stop()
         this.locator.stop()
-        exit(0)
+        System.exit(0)
     }
 
     getProperties() {

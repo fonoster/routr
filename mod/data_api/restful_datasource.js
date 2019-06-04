@@ -7,6 +7,7 @@ const DSUtil = require('@routr/data_api/utils')
 const getConfig = require('@routr/core/config_util')
 const { Status } = require('@routr/core/status')
 
+const System = Java.type('java.lang.System')
 const URLEncoder = Java.type('java.net.URLEncoder')
 const Unirest = Java.type('com.mashape.unirest.http.Unirest')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -23,7 +24,7 @@ class RestfulDataSource {
 
         if (!parameters.baseUrl || !parameters.username || !parameters.secret) {
             LOG.error("Restful Data Source incorrectly configured.\nYou must specify the baseUrl, username and secret when using this data provider")
-            exit(1)
+            System.exit(1)
         }
 
         this.baseUrl = parameters.baseUrl

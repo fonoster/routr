@@ -150,7 +150,7 @@ function getConfigFromFile() {
         return config
     } catch(e) {
         print('Unable to open configuration file')
-        exit(1)
+        System.exit(1)
     }
 }
 

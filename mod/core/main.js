@@ -3,6 +3,8 @@
  * @since v1
  */
 const System = Java.type('java.lang.System')
+const BasicConfigurator = Java.type('org.apache.log4j.BasicConfigurator')
+const NullAppender = Java.type('org.apache.log4j.varia.NullAppender')
 load(System.getProperty('user.dir') + '/node_modules/jvm-npm/src/main/javascript/jvm-npm.js')
 
 const Server = require('@routr/core/server')
@@ -26,9 +28,8 @@ const getConfig = require('@routr/core/config_util')
 global.timer = timer
 
 // Avoids old log4j and jetty logs
-java.lang.System.setProperty("org.eclipse.jetty.LEVEL", "WARN")
-org.apache.log4j.BasicConfigurator.configure(new
-    org.apache.log4j.varia.NullAppender())
+System.setProperty("org.eclipse.jetty.LEVEL", "WARN")
+BasicConfigurator.configure(new NullAppender())
 
 let config = getConfig()
 let dataSource
@@ -41,7 +42,7 @@ if (config.spec.dataSource.provider == 'files_data_provider') {
     dataSource = new RedisDataSource()
 } else {
     print ('Invalid data source')
-    exit(1)
+    System.exit(1)
 }
 
 const dataAPIs = {
