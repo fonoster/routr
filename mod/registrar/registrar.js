@@ -56,7 +56,7 @@ class Registrar {
 
     static getNonceCount(d) {
         const h = Java.type('java.lang.Integer').toHexString(d)
-        const cSize = 8 - h.toString().length()
+        const cSize = 8 - h.toString().length
         let nc = ''
         let cnt = 0
 

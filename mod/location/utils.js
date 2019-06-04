@@ -33,10 +33,12 @@ class LocatorUtils {
     }
 
     static buildEgressRoute(contactURI, gateway, did, domain) {
+        const username = gateway.spec.credentials? gateway.spec.credentials.username:
+          null
         const route = {
             isLinkAOR: false,
             thruGw: true,
-            gwUsername: gateway.spec.credentials.username,
+            gwUsername: username,
             gwRef: gateway.metadata.ref,
             gwHost: gateway.spec.host,
             didRef: did.metadata.ref,

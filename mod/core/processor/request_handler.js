@@ -7,7 +7,7 @@ const IPUtil = require('@routr/core/ip_util')
 const getConfig = require('@routr/core/config_util')
 const { Status } = require('@routr/core/status')
 
-const InetAddress = Java.type('java.net.InetAddress') 
+const InetAddress = Java.type('java.net.InetAddress')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')

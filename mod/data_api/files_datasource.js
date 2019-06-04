@@ -135,7 +135,7 @@ class FilesDataSource {
         let md5 = java.security.MessageDigest.getInstance("MD5")
         md5.update(java.nio.charset.StandardCharsets.UTF_8.encode(uniqueFactor))
         let hash = java.lang.String.format("%032x", new java.math.BigInteger(1, md5.digest()))
-        return hash.substring(hash.length() - 6).toLowerCase()
+        return hash.substring(hash.length - 6).toLowerCase()
     }
 
 }
