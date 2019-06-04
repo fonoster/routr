@@ -26,7 +26,7 @@ class AgentsAPI {
         } else if(this.existInAnotherDomain(agent)) {
             return CoreUtils.buildResponse(Status.CONFLICT)
         }
-        return operation == 'insert'?  this.ds.insert(agent) : this.ds.update(agent)
+        return operation === 'insert'?  this.ds.insert(agent) : this.ds.update(agent)
     }
 
     createFromJSON(agent) {
@@ -45,13 +45,13 @@ class AgentsAPI {
         const key = domainUri.trim() + '.' + username.trim()
         let agent = this.cache.getIfPresent(key)
 
-        if(agent == null) {
+        if(agent === null) {
             const response = this.getAgents()
 
             response.result.forEach(obj => {
-                if (obj.spec.credentials.username == username) {
+                if (obj.spec.credentials.username === username) {
                     obj.spec.domains.forEach(d => {
-                        if (domainUri == d) {
+                        if (domainUri === d) {
                             agent = obj
                             this.cache.put(key, agent)
                         }
@@ -71,7 +71,7 @@ class AgentsAPI {
      * Takes either one argument(ref) or two arguments(domainUri and username)
      */
     getAgent(arg1, arg2) {
-        return arguments.length == 2? this.getAgentByDomain(arg1, arg2): this.getAgentByRef(arg1)
+        return arguments.length === 2? this.getAgentByDomain(arg1, arg2): this.getAgentByRef(arg1)
     }
 
     agentExist(domainUri, username) {
@@ -102,7 +102,7 @@ class AgentsAPI {
             const curAgent = response.result[x]
             for (var y in curAgent.spec.domains) {
                 const curDomain = curAgent.spec.domains[y]
-                if (agent.spec.domains.indexOf(curDomain) != -1) {
+                if (agent.spec.domains.indexOf(curDomain) !== -1) {
                     return true
                 }
             }
@@ -113,7 +113,7 @@ class AgentsAPI {
     doesDomainExist(agent) {
         const domains = JSON.stringify(agent.spec.domains).replaceAll("\"","'")
         const response = this.ds.withCollection('domains').find("@.spec.context.domainUri in " + domains)
-        return response.result.length != agent.spec.domains.length? false: true
+        return response.result.length !== agent.spec.domains.length? false: true
     }
 }
 

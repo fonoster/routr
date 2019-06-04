@@ -34,11 +34,11 @@ BasicConfigurator.configure(new NullAppender())
 let config = getConfig()
 let dataSource
 
-if (config.spec.dataSource.provider == 'files_data_provider') {
+if (config.spec.dataSource.provider === 'files_data_provider') {
     dataSource = new FilesDataSource()
-} else if(config.spec.dataSource.provider == 'restful_data_provider') {
+} else if(config.spec.dataSource.provider === 'restful_data_provider') {
     dataSource = new RestfulDataSource()
-} else if(config.spec.dataSource.provider == 'redis_data_provider') {
+} else if(config.spec.dataSource.provider === 'redis_data_provider') {
     dataSource = new RedisDataSource()
 } else {
     print ('Invalid data source')

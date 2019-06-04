@@ -62,21 +62,21 @@ class RouteInfo {
         const calleetype = this.getCalleeType()
         const belongToSameDomain = this.isSameDomain()
 
-        if (callerType == RouteEntityType.AGENT && calleetype == RouteEntityType.AGENT && belongToSameDomain) routingType = RoutingType.INTRA_DOMAIN_ROUTING
-        if (callerType == RouteEntityType.AGENT && calleetype == RouteEntityType.PEER && belongToSameDomain) routingType = RoutingType.INTRA_DOMAIN_ROUTING
+        if (callerType === RouteEntityType.AGENT && calleetype === RouteEntityType.AGENT && belongToSameDomain) routingType = RoutingType.INTRA_DOMAIN_ROUTING
+        if (callerType === RouteEntityType.AGENT && calleetype === RouteEntityType.PEER && belongToSameDomain) routingType = RoutingType.INTRA_DOMAIN_ROUTING
 
-        if (callerType == RouteEntityType.AGENT && calleetype == RouteEntityType.AGENT && !belongToSameDomain) routingType = RoutingType.INTER_DOMAIN_ROUTING
-        if (callerType == RouteEntityType.AGENT && calleetype == RouteEntityType.PEER && !belongToSameDomain) routingType = RoutingType.INTER_DOMAIN_ROUTING
-        if (callerType == RouteEntityType.AGENT && calleetype == RouteEntityType.THRU_GW) routingType = RoutingType.DOMAIN_EGRESS_ROUTING
+        if (callerType === RouteEntityType.AGENT && calleetype === RouteEntityType.AGENT && !belongToSameDomain) routingType = RoutingType.INTER_DOMAIN_ROUTING
+        if (callerType === RouteEntityType.AGENT && calleetype === RouteEntityType.PEER && !belongToSameDomain) routingType = RoutingType.INTER_DOMAIN_ROUTING
+        if (callerType === RouteEntityType.AGENT && calleetype === RouteEntityType.THRU_GW) routingType = RoutingType.DOMAIN_EGRESS_ROUTING
 
-        if (callerType == RouteEntityType.PEER && calleetype == RouteEntityType.AGENT && !belongToSameDomain) routingType = RoutingType.INTER_DOMAIN_ROUTING
-        if (callerType == RouteEntityType.PEER && calleetype == RouteEntityType.AGENT && belongToSameDomain) routingType = RoutingType.INTRA_DOMAIN_ROUTING
-        if (callerType == RouteEntityType.PEER && this.getCalleeType() == RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
+        if (callerType === RouteEntityType.PEER && calleetype === RouteEntityType.AGENT && !belongToSameDomain) routingType = RoutingType.INTER_DOMAIN_ROUTING
+        if (callerType === RouteEntityType.PEER && calleetype === RouteEntityType.AGENT && belongToSameDomain) routingType = RoutingType.INTRA_DOMAIN_ROUTING
+        if (callerType === RouteEntityType.PEER && this.getCalleeType() === RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
 
-        if (callerType == RouteEntityType.THRU_GW && calleetype == RouteEntityType.DID) routingType = RoutingType.DOMAIN_INGRESS_ROUTING
+        if (callerType === RouteEntityType.THRU_GW && calleetype === RouteEntityType.DID) routingType = RoutingType.DOMAIN_INGRESS_ROUTING
 
         // This is consider PEER_EGRESS_ROUTING because peers are the only one allow to overwrite the FromHeader.
-        if (callerType == RouteEntityType.DID && this.getCalleeType() == RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
+        if (callerType === RouteEntityType.DID && this.getCalleeType() === RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
 
         return routingType
     }

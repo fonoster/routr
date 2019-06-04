@@ -128,7 +128,7 @@ class Registry {
     isExpired (gwURIStr) {
         const reg = this.registry.get(gwURIStr)
 
-        if (reg == null) {
+        if (reg === null) {
           return true
         }
 
@@ -144,7 +144,7 @@ class Registry {
           () => {
               const response = self.gatewaysAPI.getGateways()
 
-              if (response.status == Status.OK) {
+              if (response.status === Status.OK) {
                   response.result.forEach (function(gateway) {
                       const gwURIStr = 'sip:' + gateway.spec.credentials.username + '@' + gateway.spec.host
                       const expires = gateway.spec.expires? gateway.spec.expires : 3600
@@ -157,7 +157,7 @@ class Registry {
 
                       let registries = gateway.spec.registries
 
-                      if (registries != undefined) {
+                      if (registries !== undefined) {
                           registries.forEach (function(h) {
                               if (self.isExpired(gwURIStr)) {
                                   LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.credentials.username + '@' + h)

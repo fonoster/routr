@@ -32,7 +32,7 @@ class RegisterHandler {
             return this.removeEndpoint(request, transaction)
         }
 
-        if (authHeader == null) {
+        if (authHeader === null) {
             return this.sendUnauthorized(request, transaction)
         }
 

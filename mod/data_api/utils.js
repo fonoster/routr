@@ -70,7 +70,7 @@ class DSUtil {
 
     static getKind(obj) {
         if(['user', 'agent', 'peer', 'domain', 'gateway', 'did']
-            .indexOf(obj.kind.toLowerCase()) == -1) {
+            .indexOf(obj.kind.toLowerCase()) === -1) {
             throw "Not a valid entity. `kind` must be: User, Agent, Peer, Domain, Gateway, DID"
         }
         return obj.kind
@@ -104,10 +104,10 @@ class DSUtil {
     }
 
     static getParameters(config, defaultParameters, allowedKeys) {
-        let parameters = isEmpty(config.spec.dataSource.parameters) == false?
+        let parameters = isEmpty(config.spec.dataSource.parameters) === false?
             config.spec.dataSource.parameters: defaultParameters
 
-        if (System.getenv("ROUTR_DS_PARAMETERS") != null) {
+        if (System.getenv("ROUTR_DS_PARAMETERS") !== null) {
             parameters = DSUtil.getFromEnv(System.getenv("ROUTR_DS_PARAMETERS"), allowedKeys)
         }
 
@@ -119,7 +119,7 @@ class DSUtil {
         params.split(",").forEach(par => {
             const key = par.split("=")[0]
             const value =  par.split("=")[1]
-            allowedKeys.indexOf(key) == -1? LOG.warn('Invalid parameter: ' + key) : parameters[key] = value
+            allowedKeys.indexOf(key) === -1? LOG.warn('Invalid parameter: ' + key) : parameters[key] = value
         })
         return parameters
     }

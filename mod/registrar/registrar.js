@@ -46,7 +46,7 @@ class Registrar {
     }
 
     hasDomain(user, domain) {
-        if (user.spec.domains == null || user.spec.domains.length == 0) return false
+        if (user.spec.domains === null || user.spec.domains.length === 0) return false
         let result = false
         user.spec.domains.forEach(function(d) {
             if (domain === d) result=true
@@ -95,18 +95,18 @@ class Registrar {
         // calls to the datasource.
         let response = this.peersAPI.getPeerByUsername(username)
 
-        if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
             user = response.result
         } else {
             // Then lets check agents
             response = this.agentsAPI.getAgent(host, username)
 
-            if (response.status == Status.OK ) {
+            if (response.status === Status.OK ) {
                 user = response.result
             }
         }
 
-        if (user == null) {
+        if (user === null) {
             throw 'Could not find agent or peer \'' + username + '\''
         }
 
@@ -115,12 +115,12 @@ class Registrar {
 
     static buildRoute(user, viaHeader, contactURI, expires) {
         // Detect NAT
-        const nat = (viaHeader.getHost() + viaHeader.getPort()) != (viaHeader.getReceived() + viaHeader.getParameter('rport'))
+        const nat = (viaHeader.getHost() + viaHeader.getPort()) !== (viaHeader.getReceived() + viaHeader.getParameter('rport'))
         return {
             isLinkAOR: false,
             thruGw: false,
             sentByAddress: viaHeader.getHost(),
-            sentByPort: (viaHeader.getPort() == -1 ? 5060 : viaHeader.getPort()),
+            sentByPort: (viaHeader.getPort() === -1 ? 5060 : viaHeader.getPort()),
             received: viaHeader.getReceived(),
             rport: viaHeader.getParameter('rport'),
             contactURI: Registrar.getUpdatedContactURI(user, viaHeader, contactURI),
@@ -139,11 +139,11 @@ class Registrar {
                 contactURI.setHost(user.spec.contactAddr)
             }
         } else if(Registrar.useInternalInterface(viaHeader)) {
-            if(viaHeader.getReceived() != null) {
+            if(viaHeader.getReceived() !== null) {
                 contactURI.setHost(viaHeader.getReceived())
             }
 
-            if(viaHeader.getParameter('rport') != null) {
+            if(viaHeader.getParameter('rport') !== null) {
                 contactURI.setPort(viaHeader.getParameter('rport'))
             }
         }

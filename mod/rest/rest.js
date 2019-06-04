@@ -58,12 +58,12 @@ class Rest {
     start() {
         options('/*', (req, res) => {
               const accessControlRequestHeaders = req.headers('Access-Control-Request-Headers')
-              if (accessControlRequestHeaders != null) {
+              if (accessControlRequestHeaders !== null) {
                   res.header('Access-Control-Allow-Headers', accessControlRequestHeaders)
               }
 
               const accessControlRequestMethod = req.headers('Access-Control-Request-Method')
-              if (accessControlRequestMethod != null) {
+              if (accessControlRequestMethod !== null) {
                   res.header('Access-Control-Allow-Methods', accessControlRequestMethod)
               }
               return 'OK'

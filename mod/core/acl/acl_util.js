@@ -23,7 +23,7 @@ class AclUtil {
     }
 
     isIpAllowed(ip) {
-        return ACLHelper.mostSpecific(ip, this.rules).action == 'allow'
+        return ACLHelper.mostSpecific(ip, this.rules).action === 'allow'
     }
 }
 

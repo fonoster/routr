@@ -39,9 +39,9 @@ class Locator {
         const response = this.findEndpoint(addressOfRecord)
         let routes
 
-        if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
             // Only use if is a "local" route
-            routes = response.result.thruGw == false? response.result : []
+            routes = response.result.thruGw === false? response.result : []
         } else {
             // Did not found any round at all
             routes = []
@@ -57,7 +57,7 @@ class Locator {
     removeEndpoint(addressOfRecord, contactURI) {
         const aor = LocatorUtils.aorAsString(addressOfRecord)
         // Remove all bindings
-        if (contactURI == null) {
+        if (contactURI === null) {
             return this.db.remove(aor)
         }
         // Not using aorAsString because we need to consider the port, etc.
@@ -78,11 +78,11 @@ class Locator {
      */
     findEndpointByTelUrl(addressOfRecord) {
         const response = this.didsAPI.getDIDByTelUrl(addressOfRecord)
-        if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
             const did = response.result
             const route = this.db.get(LocatorUtils.aorAsString(did.spec.location.aorLink))
 
-            if (route != null) {
+            if (route !== null) {
                 return CoreUtils.buildResponse(Status.OK, route)
             }
 
@@ -95,21 +95,21 @@ class Locator {
         // First just look into the 'db'
         const routes = this.db.get(LocatorUtils.aorAsString(addressOfRecord))
 
-        if (routes != null) {
+        if (routes !== null) {
             return CoreUtils.buildResponse(Status.OK, routes)
         }
 
         // Check peer's route by host
         let response = this.getPeerRouteByHost(addressOfRecord)
 
-        if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
             return response
         }
 
         // Then search for a DID
         try {
             response = this.findEndpointForDID(addressOfRecord)
-            if (response.status == Status.OK) {
+            if (response.status === Status.OK) {
                 return response
             }
         } catch(e) {
@@ -118,16 +118,16 @@ class Locator {
 
         // Endpoint can only be reach thru a gateway
         response = this.getEgressRouteForAOR(addressOfRecord)
-        return response.status == Status.OK? response : CoreUtils.buildResponse(Status.NOT_FOUND)
+        return response.status === Status.OK? response : CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     findEndpointForDID(addressOfRecord) {
         const telUrl = this.addressFactory.createTelURL(addressOfRecord.getUser())
         const response = this.didsAPI.getDIDByTelUrl(telUrl)
-        if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
             const did = response.result
             const route = this.db.get(LocatorUtils.aorAsString(did.spec.location.aorLink))
-            if (route != null) {
+            if (route !== null) {
                 return CoreUtils.buildResponse(Status.OK, route)
             }
         }
@@ -160,10 +160,10 @@ class Locator {
         const response = this.domainsAPI.getDomains()
         let route
 
-        if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
             response.result.forEach(domain => {
                 const r = this.getEgressRouteForDomain(addressOfRecord, domain)
-                if (r.status == Status.OK) {
+                if (r.status === Status.OK) {
                     route = r.result
                 }
             })
@@ -174,15 +174,15 @@ class Locator {
     }
 
     getEgressRouteForDomain(addressOfRecord, domain) {
-        if (isEmpty(domain.spec.context.egressPolicy) == false) {
+        if (isEmpty(domain.spec.context.egressPolicy) === false) {
             // Get DID and Gateway info
             let response = this.didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
             const did = response.result
 
-            if (response.status == Status.OK) {
+            if (response.status === Status.OK) {
                 response = this.gatewaysAPI.getGateway(did.metadata.gwRef)
 
-                if (response.status == Status.OK) {
+                if (response.status === Status.OK) {
                     const gateway = response.result
                     const pattern = 'sip:' + domain.spec.context.egressPolicy.rule + '@' + domain.spec.context.domainUri
 
@@ -204,11 +204,11 @@ class Locator {
         let response = this.didsAPI.getDID(didRef)
         let route
 
-        if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
             const did = response.result
             response = this.gatewaysAPI.getGateway(did.metadata.gwRef)
 
-            if (response.status == Status.OK) {
+            if (response.status === Status.OK) {
                 const gateway = response.result
                 const contactURI = this.addressFactory.createSipURI(addressOfRecord.getUser(), gateway.spec.host)
                 route = LocatorUtils.buildEgressRoute(contactURI, gateway, did)
@@ -260,7 +260,7 @@ class Locator {
                         routes.splice(x, 1)
                     }
 
-                    if (routes.length == 0) {
+                    if (routes.length === 0) {
                         e.remove()
                     }
                 }

@@ -12,7 +12,7 @@ const testGroup = { name: "Core Module" }
 // Tests
 testGroup.config_func = function () {
     const result = getConfig()
-    assertTrue(result != undefined)
+    assertTrue(result !== undefined)
 }
 
 testGroup.ip_utils = function () {

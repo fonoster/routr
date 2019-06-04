@@ -23,7 +23,7 @@ class AccountManagerService {
         const gwRef = ct.getRequest().getHeader('X-Gateway-Ref').value
         const response = gatewaysAPI.getGateway(gwRef)
 
-        if (response.status == 200) {
+        if (response.status === 200) {
             const gateway = response.result
 
             return {

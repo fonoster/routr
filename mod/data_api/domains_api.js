@@ -81,7 +81,7 @@ class DomainsAPI {
 
         let response = this.getDomain(ref)
 
-        if (response.status != Status.OK) {
+        if (response.status !== Status.OK) {
             return response
         }
 
@@ -95,7 +95,7 @@ class DomainsAPI {
 
     doesDIDExist(didRef) {
         const response = this.ds.withCollection('dids').get(didRef)
-        return response.status == Status.OK
+        return response.status === Status.OK
     }
 }
 

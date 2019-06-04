@@ -49,7 +49,7 @@ class ResponseProcessor {
     storeInRegistry(response) {
         const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
         const expiresHeader = response.getHeader(ExpiresHeader.NAME)
-        const expires  = expiresHeader != null? expiresHeader.getExpires() : 3600
+        const expires  = expiresHeader !== null? expiresHeader.getExpires() : 3600
         this.registry.storeRegistry(fromURI, expires)
     }
 
@@ -99,12 +99,12 @@ class ResponseProcessor {
         if (ResponseProcessor.isInviteWithCT(event)) {
             const context = this.contextStorage.findContext(event.getClientTransaction())
 
-            if (context != null && context.serverTransaction != null) {
+            if (context !== null && context.serverTransaction !== null) {
                 context.serverTransaction.sendResponse(responseOut)
-            } else if (responseOut.getHeader(ViaHeader.NAME) != null) {
+            } else if (responseOut.getHeader(ViaHeader.NAME) !== null) {
                 this.sipProvider.sendResponse(responseOut)
             }
-        } else if(responseOut.getHeader(ViaHeader.NAME) != null) {
+        } else if(responseOut.getHeader(ViaHeader.NAME) !== null) {
             // Could be a BYE due to Record-Route
             // There is no more Via headers; the response was intended for the proxy.
             this.sipProvider.sendResponse(responseOut)
@@ -114,12 +114,12 @@ class ResponseProcessor {
     }
 
     static isOk(response) {
-        return response.getStatusCode() == Response.OK
+        return response.getStatusCode() === Response.OK
     }
 
     static mustAuthenticate(response) {
-        if(response.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED ||
-          response.getStatusCode() == Response.UNAUTHORIZED) {
+        if(response.getStatusCode() === Response.PROXY_AUTHENTICATION_REQUIRED ||
+          response.getStatusCode() === Response.UNAUTHORIZED) {
             return true
         }
         return false
@@ -138,8 +138,8 @@ class ResponseProcessor {
     }
 
     static isStackJob(response) {
-        if(response.getStatusCode() == Response.TRYING              ||
-            response.getStatusCode() == Response.REQUEST_TERMINATED ||
+        if(response.getStatusCode() === Response.TRYING              ||
+            response.getStatusCode() === Response.REQUEST_TERMINATED ||
             response.getHeader(CSeqHeader.NAME).getMethod()
               .equals(Request.CANCEL)) {
               return true
@@ -154,7 +154,7 @@ class ResponseProcessor {
         const port = contactHeader.getAddress().getPort()
         const received = viaHeader.getReceived()
         const rPort = viaHeader.getRPort()
-        return (!!received && !host.equals(received)) || port != rPort? true : false
+        return (!!received && !host.equals(received)) || port !== rPort? true : false
     }
 
     static isRegister(response) {
@@ -178,7 +178,7 @@ class ResponseProcessor {
 
     static isInviteWithCT(event) {
         return ResponseProcessor.isInvite(event.getResponse())
-          && event.getClientTransaction() != null? true : false
+          && event.getClientTransaction() !== null? true : false
     }
 
 }

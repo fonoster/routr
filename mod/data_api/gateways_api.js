@@ -69,7 +69,7 @@ class GatewaysAPI {
 
         let response = this.getGateway(ref)
 
-        if (response.status != Status.OK) {
+        if (response.status !== Status.OK) {
             return response
         }
 
@@ -78,7 +78,7 @@ class GatewaysAPI {
         response = this.ds.withCollection('dids').find("@.metadata.gwRef=='" + gateway.metadata.ref + "'")
         const dids = response.result
 
-        return dids.length == 0? this.ds.withCollection('gateways').remove(ref): FOUND_DEPENDENT_OBJECTS_RESPONSE
+        return dids.length === 0? this.ds.withCollection('gateways').remove(ref): FOUND_DEPENDENT_OBJECTS_RESPONSE
     }
 
 }

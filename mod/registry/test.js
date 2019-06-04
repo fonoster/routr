@@ -19,7 +19,7 @@ const testGroup = { name: "Registry Module" }
 testGroup.store_registry = function () {
     const registry = new Registry(null, dataAPIs)
     registry.storeRegistry(addressFactory.createSipURI('29121', 'sanjose2.voip.ms'), 200)
-    assertTrue(registry.listAsJSON().length == 1)
+    assertTrue(registry.listAsJSON().length === 1)
 }
 
 module.exports.testGroup = testGroup

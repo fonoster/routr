@@ -19,7 +19,7 @@ module.exports = function AuthHelper (headerFactory) {
         const ha1 = DigestUtils.md5Hex(a1)
         const ha2 =  DigestUtils.md5Hex(a2)
 
-        if (qop != null && qop.equals('auth')) {
+        if (qop !== null && qop.equals('auth')) {
             return DigestUtils.md5Hex(ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2)
         }
 

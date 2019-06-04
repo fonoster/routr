@@ -27,7 +27,7 @@ class ProcessorUtils {
     static getAOR (request, addressInfo = []) {
       for (const x in addressInfo) {
           let info = addressInfo[x]
-          if (request.getHeader(info) != undefined) {
+          if (request.getHeader(info) !== undefined) {
               let v = request.getHeader(info).getValue()
               if (/sips?:.*@.*/.test(v) || /tel:\d+/.test(v)) {
                   const addressFactory = SipFactory.getInstance().createAddressFactory()

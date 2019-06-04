@@ -33,13 +33,13 @@ class RequestProcessor {
         const request = event.getRequest()
         let serverTransaction = event.getServerTransaction()
 
-        if (serverTransaction == null && request.getMethod().equals(Request.ACK) == false) {
+        if (serverTransaction === null && request.getMethod().equals(Request.ACK) === false) {
             serverTransaction = this.sipProvider.getNewServerTransaction(request)
         }
 
         const procUtils = new ProcessorUtils(request, serverTransaction, this.messageFactory)
 
-        if (this.allowedAccess(event) == false) {
+        if (this.allowedAccess(event) === false) {
             return procUtils.sendResponse(Response.FORBIDDEN)
         }
 
@@ -63,7 +63,7 @@ class RequestProcessor {
         const acl = this.config.spec.accessControlList
 
         if(acl) {
-            if(new AclUtil(acl).isIpAllowed(remoteIp) == false) {
+            if(new AclUtil(acl).isIpAllowed(remoteIp) === false) {
                 return false
             }
         }
@@ -72,9 +72,9 @@ class RequestProcessor {
 
         if (routeInfo.getRoutingType().equals(RoutingType.INTRA_DOMAIN_ROUTING)) {
             const response = this.domainsAPI.getDomainByUri(addressOfRecord.getHost())
-            if (response.status == Status.OK) {
+            if (response.status === Status.OK) {
                 const acl  = response.result.spec.context.accessControlList
-                if(acl && new AclUtil(acl).isIpAllowed(remoteIp) == false) {
+                if(acl && new AclUtil(acl).isIpAllowed(remoteIp) === false) {
                     return false
                 }
             }

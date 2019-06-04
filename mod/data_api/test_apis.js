@@ -22,7 +22,7 @@ testGroup.deep_search = function () {
 
     response = DSUtil.deepSearch(response, 'spec.credentials.username', '1001')
     const agent = response.result
-    assertTrue(agent.metadata.name == 'John Doe')
+    assertTrue(agent.metadata.name === 'John Doe')
 }
 
 module.exports.testGroup = testGroup

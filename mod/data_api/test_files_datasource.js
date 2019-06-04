@@ -25,16 +25,16 @@ testGroup.yaml_from_file = function () {
 
 testGroup.get_collections = function () {
     let response = ds.withCollection('agents').find()
-    assertTrue(response.status == Status.OK)
+    assertTrue(response.status === Status.OK)
     // Existing Agent
     response = ds.withCollection('agents').find("@.spec.credentials.username=='1001'")
-    assertTrue(response.status == Status.OK)
+    assertTrue(response.status === Status.OK)
     // Non-Existing Agent
     response = ds.withCollection('agents').find("@.spec.credentials.username=='mike'")
-    assertTrue(response.result.length == 0)
+    assertTrue(response.result.length === 0)
     // Invalid filter
     response = ds.withCollection('agents').find("@.spec.credentials.username==1001'")
-    assertTrue(response.status == Status.BAD_REQUEST)
+    assertTrue(response.status === Status.BAD_REQUEST)
 }
 
 module.exports.testGroup = testGroup

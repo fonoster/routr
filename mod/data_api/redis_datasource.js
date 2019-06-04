@@ -38,7 +38,7 @@ class RedisDataSource {
 
         this.jedisPool = new JedisPool(this.parameters.host, this.parameters.port)
 
-        if(this.withCollection('users').find().result.length == 0) {
+        if(this.withCollection('users').find().result.length === 0) {
             LOG.info("No user found. Creating default 'admin' user.")
             this.createDefaultUser(config.system.apiVersion)
         }
@@ -113,7 +113,7 @@ class RedisDataSource {
         try {
             jedis = this.getJedisConn()
             const result = JSON.parse(jedis.get(ref))
-            return result == null? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
+            return result === null? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
         } catch(e) {
             return CoreUtils.buildErrResponse(e)
         } finally {
@@ -133,7 +133,7 @@ class RedisDataSource {
                 .forEach(ref =>
                     list.push(JSON.parse(jedis.get(ref))))
 
-            if (list.length == 0) {
+            if (list.length === 0) {
                 return CoreUtils.buildResponse(Status.OK, [])
             }
             // JsonPath does not parse properly when using Json objects from JavaScript
@@ -181,13 +181,13 @@ class RedisDataSource {
             jedis = this.getJedisConn()
             let cnt = jedis.del(ref)
 
-            if (cnt == 0) {
+            if (cnt === 0) {
                 return CoreUtils.buildResponse(Status.NOT_FOUND)
             }
 
             cnt = jedis.srem(this.collection, ref)
 
-            return cnt == 0? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK)
+            return cnt === 0? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK)
         } catch(e) {
             return CoreUtils.buildErrResponse(e)
         } finally {

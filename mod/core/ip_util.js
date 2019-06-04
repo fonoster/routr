@@ -60,7 +60,7 @@ class IPUtil {
 
     static isIpAndMask(v) {
         const s = v.split('/')
-        if (s.length != 2) return false
+        if (s.length !== 2) return false
         if (IPUtil.isIp(s[0]) && IPUtil.isIp(s[1])) return true
         return false
     }

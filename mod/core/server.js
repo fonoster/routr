@@ -38,12 +38,12 @@ class Server {
             const curTransport = transport[key]
             const proto = curTransport.protocol.toLowerCase()
 
-            if ((proto == 'wss' || proto == 'tls') && !this.config.spec.securityContext) {
+            if ((proto === 'wss' || proto === 'tls') && !this.config.spec.securityContext) {
                 LOG.warn(ANSI_YELLOW + 'Security context could not found. Ignoring protocol: ' + proto + ANSI_RESET)
                 continue;
             }
 
-            if (curTransport.bindAddr == undefined) {
+            if (curTransport.bindAddr === undefined) {
                 curTransport.bindAddr = this.host
             }
 

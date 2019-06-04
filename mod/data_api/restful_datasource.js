@@ -39,11 +39,11 @@ class RestfulDataSource {
 
     save(obj, method, ref = '') {
         try {
-            if (obj != 'noobj' && DSUtil.isValidEntity(obj) == false) {
+            if (obj !== 'noobj' && DSUtil.isValidEntity(obj) === false) {
                 return badRequest
             }
 
-            const path = obj == 'noobj'? '/' + this.collection + ref
+            const path = obj === 'noobj'? '/' + this.collection + ref
                 : '/' + obj.kind.toString().toLowerCase() + 's' + ref
             const r = method(this.baseUrl + path)
                 .header("Content-Type", "application/json")
@@ -78,7 +78,7 @@ class RestfulDataSource {
 
             const response = JSON.parse(r.getBody())
 
-            return response.status != Status.OK? CoreUtils.buildResponse(response.status, []): response
+            return response.status !== Status.OK? CoreUtils.buildResponse(response.status, []): response
         } catch(e) {
             return CoreUtils.buildErrResponse(e)
         }

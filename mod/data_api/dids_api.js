@@ -22,7 +22,7 @@ class DIDsAPI {
     createFromJSON(jsonObj) {
         const response = this.ds.withCollection('gateways').get(jsonObj.metadata.gwRef)
 
-        if (response.status != Status.OK) {
+        if (response.status !== Status.OK) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
@@ -38,7 +38,7 @@ class DIDsAPI {
     updateFromJSON(jsonObj) {
         const response = this.ds.withCollection('gateways').get(jsonObj.metadata.gwRef)
 
-        if (response.status != Status.OK) {
+        if (response.status !== Status.OK) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
@@ -66,7 +66,7 @@ class DIDsAPI {
     getDIDByTelUrl(telUrl) {
         let response = this.cache.getIfPresent(telUrl)
 
-        if (response == null) {
+        if (response === null) {
             response = DSUtil.deepSearch(this.getDIDs(), "spec.location.telUrl", telUrl)
             this.cache.put(telUrl, response)
         }

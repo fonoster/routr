@@ -35,7 +35,7 @@ class RequestHandler {
         const procUtils = new ProcessorUtils(request, serverTransaction, this.messageFactory)
         const response = this.locator.findEndpoint(ProcessorUtils.getAOR(request))
 
-        if (response.status == Status.NOT_FOUND) {
+        if (response.status === Status.NOT_FOUND) {
             return procUtils.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
         }
 
@@ -79,7 +79,7 @@ class RequestHandler {
         if (routeHeader) {
             const h = routeHeader.getAddress().getURI().getHost()
             const host = IPUtil.isIp(h)? h : InetAddress.getByName(h).getHostAddress()
-            const port = routeHeader.getAddress().getURI().getPort() == -1? 5060 : routeHeader.getAddress().getURI().getPort()
+            const port = routeHeader.getAddress().getURI().getPort() === -1? 5060 : routeHeader.getAddress().getURI().getPort()
 
             if (host.equals(advertisedAddr.host) && port.equals(advertisedAddr.port)) {
                 return true
@@ -161,7 +161,7 @@ class RequestHandler {
 
     getAdvertizedAddr(route, localAddr, externAddr) {
         // No egress routing has sentByAddress. They are assume to be entities outside the local network.
-        if (externAddr && (route.sentByAddress == undefined
+        if (externAddr && (route.sentByAddress === undefined
             || route.sentByAddress.endsWith(".invalid")
             || !this.ipUtil.isLocalnet(route.sentByAddress))) {
 

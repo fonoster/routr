@@ -16,10 +16,10 @@ const JsonMappingException = Java.type('com.fasterxml.jackson.databind.JsonMappi
 class FilesDataSource {
 
     constructor(config = getConfig()) {
-        if (System.getenv("ROUTR_DS_PARAMETERS") != null) {
+        if (System.getenv("ROUTR_DS_PARAMETERS") !== null) {
             config.spec.dataSource.parameters = {}
             const key = System.getenv("ROUTR_DS_PARAMETERS").split("=")[0]
-            if (key == 'path') {
+            if (key === 'path') {
                config.spec.dataSource.parameters.path = System.getenv("ROUTR_DS_PARAMETERS").split("=")[1]
             }
         }
@@ -62,7 +62,7 @@ class FilesDataSource {
             const resource = DSUtils.convertToJson(FilesUtil.readFile(this.filesPath + '/' + this.collection + '.yml'))
 
             // JsonPath does not parse properly when using Json objects from JavaScript
-            if(isEmpty(resource) == false) {
+            if(isEmpty(resource) === false) {
                 list = JSON.parse(JsonPath.parse(JSON.stringify(resource)).read(filter).toJSONString())
             }
 
