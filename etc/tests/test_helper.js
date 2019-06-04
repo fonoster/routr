@@ -1,18 +1,18 @@
-load('./node_modules/jvm-npm/src/main/javascript/jvm-npm.js')
+load('../../node_modules/jvm-npm/src/main/javascript/jvm-npm.js')
 
-var TestCase = Packages.junit.framework.TestCase
-var TestSuite = Packages.junit.framework.TestSuite
-var TestResult = Packages.junit.framework.TestResult
+var TestCase = Java.type('junit.framework.TestCase')
+var TestSuite = Java.type('junit.framework.TestSuite')
+var TestResult = Java.type('junit.framework.TestResult')
 // Assertions
-var assertEquals = Packages.org.junit.Assert.assertEquals
-var assertNotEquals = Packages.org.junit.Assert.assertNotEquals
-var assertTrue = Packages.org.junit.Assert.assertTrue
-var assertFalse = Packages.org.junit.Assert.assertFalse
-var assertArrayEquals = Packages.org.junit.Assert.assertArrayEquals
-var assertNotNull = Packages.org.junit.Assert.assertNotNull
-var assertSame = Packages.org.junit.Assert.assertSame
-var assertNotSame = Packages.org.junit.Assert.assertNotSame
-var fail = Packages.org.junit.Assert.fail
+var assertEquals = Java.type('org.junit.Assert').assertEquals
+var assertNotEquals = Java.type('org.junit.Assert').assertNotEquals
+var assertTrue = Java.type('org.junit.Assert').assertTrue
+var assertFalse = Java.type('org.junit.Assert').assertFalse
+var assertArrayEquals = Java.type('org.junit.Assert').assertArrayEquals
+var assertNotNull = Java.type('org.junit.Assert').assertNotNull
+var assertSame = Java.type('org.junit.Assert').assertSame
+var assertNotSame = Java.type('org.junit.Assert').assertNotSame
+var fail = Java.type('org.junit.Assert').fail
 
 var ANSI_GREEN = "\u001B[32m"
 var ANSI_YELLOW = "\u001B[33m"
@@ -24,33 +24,34 @@ var THelper =  {
         // WARN: This line makes makes the helper less portable
         var obj = require(path).testGroup
 
-        if (obj == undefined) {
-            print ('Nothing test found')
+        if (obj === undefined) {
+            print ('Nothing to test')
             return
         }
 
-        var group = name != undefined? name : obj.name
+        var group = name !== undefined? name : obj.name
 
         if (obj.enabled === false) {
             print('Test group', "'" + group + "'", ANSI_YELLOW + '#disabled' + ANSI_RESET)
             return
-        } else {
-            print('Test group \'' + group + '\'')
         }
 
-        for (var key in obj){
-            var funName = key;
-            var fun = obj[key];
+        print('Test group \'' + group + '\'')
 
-            if (typeof fun != "function") continue
-            if (funName == "setup" || funName == "teardown") continue
+        for (var key in obj){
+            var funName = key
+            var fun = obj[key]
+
+            if (typeof fun !== "function") continue
+            if (funName === "setup" || funName === "teardown") continue
 
             var TCase = Java.extend(TestCase, {
-                runTest: fun
-            });
+                run: fun
+            })
 
             var result = new TCase().run()
 
+            print('DBG003')
             if (result.wasSuccessful()) {
                 print(' ', '[', funName, '] =>', ANSI_GREEN + 'passed' + ANSI_RESET)
             } else {
@@ -68,7 +69,7 @@ var THelper =  {
 var tests = $ARG
 
 if (tests.length == 0) {
-    print ('Nothing test found')
+    print ('Nothing to test')
 }
 
 tests.forEach(function(t) {
