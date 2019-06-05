@@ -1,4 +1,4 @@
-load('../../node_modules/jvm-npm/src/main/javascript/jvm-npm.js')
+load('./node_modules/jvm-npm/src/main/javascript/jvm-npm.js')
 
 var TestCase = Java.type('junit.framework.TestCase')
 var TestSuite = Java.type('junit.framework.TestSuite')
@@ -46,12 +46,11 @@ var THelper =  {
             if (funName === "setup" || funName === "teardown") continue
 
             var TCase = Java.extend(TestCase, {
-                run: fun
+                runTest: fun
             })
 
             var result = new TCase().run()
 
-            print('DBG003')
             if (result.wasSuccessful()) {
                 print(' ', '[', funName, '] =>', ANSI_GREEN + 'passed' + ANSI_RESET)
             } else {
@@ -68,7 +67,7 @@ var THelper =  {
 
 var tests = $ARG
 
-if (tests.length == 0) {
+if (tests.length === 0) {
     print ('Nothing to test')
 }
 
