@@ -3,7 +3,7 @@
  * @since v1
  */
 const CoreUtils = require('@routr/core/utils')
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
 const getConfig = require('@routr/core/config_util')
 
@@ -33,7 +33,7 @@ const defUser = {
 class RedisDataSource {
 
     constructor(config = getConfig()) {
-        this.parameters = DSUtil.getParameters(config, defaultRedisParameters,
+        this.parameters = DSUtils.getParameters(config, defaultRedisParameters,
            ['host', 'port', 'secret'])
 
         this.jedisPool = new JedisPool(this.parameters.host, this.parameters.port)
@@ -83,7 +83,7 @@ class RedisDataSource {
         let jedis
 
         try {
-            if (!DSUtil.isValidEntity(obj)) {
+            if (!DSUtils.isValidEntity(obj)) {
                 return badRequest
             }
 
@@ -94,7 +94,7 @@ class RedisDataSource {
             jedis = this.getJedisConn()
             jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
-            const kind = DSUtil.getKind(obj)
+            const kind = DSUtils.getKind(obj)
             jedis.sadd(kind.toLowerCase() + 's', obj.metadata.ref)
 
             return CoreUtils.buildResponse(Status.CREATED, obj.metadata.ref)
@@ -138,7 +138,7 @@ class RedisDataSource {
             }
             // JsonPath does not parse properly when using Json objects from JavaScript
             list = JsonPath.parse(JSON.stringify(list))
-                .read(DSUtil.transformFilter(filter))
+                .read(DSUtils.transformFilter(filter))
                     .toJSONString()
 
             return CoreUtils.buildResponse(Status.OK, JSON.parse(list))
@@ -153,7 +153,7 @@ class RedisDataSource {
     }
 
     update(obj) {
-        if (!DSUtil.isValidEntity(obj)) {
+        if (!DSUtils.isValidEntity(obj)) {
             return badRequest
         }
 

@@ -3,7 +3,7 @@
  * @since v1
  */
 const CoreUtils = require('@routr/core/utils')
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
@@ -47,14 +47,14 @@ class PeersAPI {
     }
 
     peerExist(username) {
-        return DSUtil.objExist(this.getPeerByUsername(username))
+        return DSUtils.objExist(this.getPeerByUsername(username))
     }
 
     getPeerByUsername(username) {
         let response = this.cache.getIfPresent(username)
 
         if (response === null) {
-            response = DSUtil.deepSearch(this.getPeers(), "spec.credentials.username", username)
+            response = DSUtils.deepSearch(this.getPeers(), "spec.credentials.username", username)
             this.cache.put(username, response)
         }
 

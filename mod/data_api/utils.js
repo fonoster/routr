@@ -16,7 +16,7 @@ const ObjectMapper = Java.type('com.fasterxml.jackson.databind.ObjectMapper')
 const LOG = LogManager.getLogger()
 const schemaPath = 'etc/schemas'
 
-class DSUtil {
+class DSUtils {
 
     static convertToJson(yamlStr) {
         const yamlReader = new ObjectMapper(new YAMLFactory())
@@ -28,7 +28,7 @@ class DSUtil {
     static isValidEntity(obj) {
         let kind
         try {
-            kind = DSUtil.getKind(obj)
+            kind = DSUtils.getKind(obj)
         } catch(e) {
             return false
         }
@@ -79,7 +79,7 @@ class DSUtil {
     static deepSearch(response, path, value) {
         let result
         response.result.forEach(obj => {
-            if (DSUtil.resolve(path, obj) === value.toString()) {
+            if (DSUtils.resolve(path, obj) === value.toString()) {
                 result = obj
             }
         })
@@ -108,7 +108,7 @@ class DSUtil {
             config.spec.dataSource.parameters: defaultParameters
 
         if (System.getenv("ROUTR_DS_PARAMETERS") !== null) {
-            parameters = DSUtil.getFromEnv(System.getenv("ROUTR_DS_PARAMETERS"), allowedKeys)
+            parameters = DSUtils.getFromEnv(System.getenv("ROUTR_DS_PARAMETERS"), allowedKeys)
         }
 
         return parameters
@@ -125,4 +125,4 @@ class DSUtil {
     }
 }
 
-module.exports = DSUtil
+module.exports = DSUtils

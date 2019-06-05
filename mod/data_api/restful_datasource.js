@@ -3,7 +3,7 @@
  * @since v1
  */
 const CoreUtils = require('@routr/core/utils')
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const getConfig = require('@routr/core/config_util')
 const { Status } = require('@routr/core/status')
 
@@ -19,7 +19,7 @@ const defaultRestfulParams = { baseUrl: 'http://localhost:8080/v1/ctl', username
 class RestfulDataSource {
 
     constructor(config = getConfig()) {
-        const parameters = DSUtil.getParameters(config, defaultRestfulParams,
+        const parameters = DSUtils.getParameters(config, defaultRestfulParams,
             ['baseUrl', 'username', 'secret'])
 
         if (!parameters.baseUrl || !parameters.username || !parameters.secret) {
@@ -39,7 +39,7 @@ class RestfulDataSource {
 
     save(obj, method, ref = '') {
         try {
-            if (obj !== 'noobj' && DSUtil.isValidEntity(obj) === false) {
+            if (obj !== 'noobj' && DSUtils.isValidEntity(obj) === false) {
                 return badRequest
             }
 

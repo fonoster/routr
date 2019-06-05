@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const CoreUtils = require('@routr/core/utils')
 const { Status } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
@@ -18,7 +18,7 @@ class RestUtil {
             req.attribute('org.eclipse.jetty.multipartConfig', new MultipartConfigElement('/temp'))
             const is = req.raw().getPart('file').getInputStream()
             const fileContent = IOUtils.toString(is, StandardCharsets.UTF_8.name());
-            const jsonObjs = DSUtil.convertToJson(fileContent)
+            const jsonObjs = DSUtils.convertToJson(fileContent)
             let compoundResponse = ''
             jsonObjs.forEach(jsonObj => {
                 const response = api.createFromJSON(jsonObj)

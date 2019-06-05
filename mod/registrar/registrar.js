@@ -46,7 +46,7 @@ class Registrar {
     }
 
     hasDomain(user, domain) {
-        if (user.spec.domains === null || user.spec.domains.length === 0) return false
+        if (isEmpty(user.spec.domains)) return false
         let result = false
         user.spec.domains.forEach(function(d) {
             if (domain === d) result=true
@@ -106,7 +106,7 @@ class Registrar {
             }
         }
 
-        if (user === null) {
+        if (user === undefined) {
             throw 'Could not find agent or peer \'' + username + '\''
         }
 

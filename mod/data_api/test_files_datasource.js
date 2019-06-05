@@ -6,7 +6,7 @@
  */
 const FilesDataSource = require('@routr/data_api/files_datasource')
 const FilesUtil = require('@routr/utils/files_util')
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
 const getConfig = require('@routr/core/config_util')
 
@@ -19,7 +19,7 @@ delete config.spec.dataSource.parameters
 const ds = new FilesDataSource(config)
 
 testGroup.yaml_from_file = function () {
-    const jsonObj = DSUtil.convertToJson(FilesUtil.readFile('config/agents.yml'))
+    const jsonObj = DSUtils.convertToJson(FilesUtil.readFile('config/agents.yml'))
     assertTrue(jsonObj instanceof Object)
 }
 

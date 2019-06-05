@@ -99,9 +99,10 @@ class RouteInfo {
             }
         }
 
-        if (this.agentsAPI.agentExist(domain, entity)) {
-            entityType = RouteEntityType.AGENT
-        }
+        // Warning: This seems to do nothing. It is repeated
+        //if (this.agentsAPI.agentExist(domain, entity)) {
+        //    entityType = RouteEntityType.AGENT
+        //}
 
         return entityType
     }

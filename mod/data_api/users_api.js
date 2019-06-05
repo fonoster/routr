@@ -3,7 +3,7 @@
  * @since v1
  */
 const CoreUtils = require('@routr/core/utils')
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
 
 class UsersAPI {
@@ -29,11 +29,11 @@ class UsersAPI {
     }
 
     getUserByUsername(username) {
-        return DSUtil.deepSearch(this.getUsers(), "spec.credentials.username", username)
+        return DSUtils.deepSearch(this.getUsers(), "spec.credentials.username", username)
     }
 
     userExist(username) {
-        return DSUtil.objExist(this.getUser(username))
+        return DSUtils.objExist(this.getUser(username))
     }
 
     deleteUser(ref) {

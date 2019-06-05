@@ -3,7 +3,7 @@
  * @since v1
  */
 const CoreUtils = require('@routr/core/utils')
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
 const { UNFULFILLED_DEPENDENCY_RESPONSE } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
@@ -75,7 +75,7 @@ class AgentsAPI {
     }
 
     agentExist(domainUri, username) {
-       return DSUtil.objExist(this.getAgent(domainUri, username))
+       return DSUtils.objExist(this.getAgent(domainUri, username))
     }
 
     deleteAgent(ref) {

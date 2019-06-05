@@ -73,11 +73,10 @@ class FilesDataSource {
         }
     }
 
-    get() {
-        return {
-            status: Status.NOT_SUPPORTED,
-            message: Status.message[Status.NOT_SUPPORTED].value
-        }
+    // Warn: Not very efficient. This will list all the resource before
+    // finding the one it needs
+    get(ref) {
+        return DSUtils.deepSearch(this.find(), "metadata.ref", ref)
     }
 
     find(filter = '*') {

@@ -3,7 +3,7 @@
  * @since v1
  */
 const CoreUtils = require('@routr/core/utils')
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
 const { FOUND_DEPENDENT_OBJECTS_RESPONSE } = require ('@routr/core/status')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
@@ -51,7 +51,7 @@ class GatewaysAPI {
         let response = this.cache.getIfPresent(host)
 
         if (response === null) {
-            response = DSUtil.deepSearch(this.getGateways(), "spec.host", host)
+            response = DSUtils.deepSearch(this.getGateways(), "spec.host", host)
             this.cache.put(host, response)
         }
 
@@ -59,7 +59,7 @@ class GatewaysAPI {
     }
 
     gatewayExist(host) {
-        return DSUtil.objExist(this.getGatewayByHost(host))
+        return DSUtils.objExist(this.getGatewayByHost(host))
     }
 
     deleteGateway(ref) {

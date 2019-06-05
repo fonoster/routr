@@ -3,7 +3,7 @@
  * @since v1
  */
 const CoreUtils = require('@routr/core/utils')
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
 const { UNFULFILLED_DEPENDENCY_RESPONSE } = require('@routr/core/status')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
@@ -67,7 +67,7 @@ class DIDsAPI {
         let response = this.cache.getIfPresent(telUrl)
 
         if (response === null) {
-            response = DSUtil.deepSearch(this.getDIDs(), "spec.location.telUrl", telUrl)
+            response = DSUtils.deepSearch(this.getDIDs(), "spec.location.telUrl", telUrl)
             this.cache.put(telUrl, response)
         }
 
@@ -75,7 +75,7 @@ class DIDsAPI {
     }
 
     didExist(telUrl) {
-        return DSUtil.objExist(this.getDIDByTelUrl(telUrl))
+        return DSUtils.objExist(this.getDIDByTelUrl(telUrl))
     }
 
     deleteDID(ref) {

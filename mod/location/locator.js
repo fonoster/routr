@@ -57,7 +57,7 @@ class Locator {
     removeEndpoint(addressOfRecord, contactURI) {
         const aor = LocatorUtils.aorAsString(addressOfRecord)
         // Remove all bindings
-        if (contactURI === null) {
+        if (contactURI === undefined) {
             return this.db.remove(aor)
         }
         // Not using aorAsString because we need to consider the port, etc.
@@ -81,7 +81,6 @@ class Locator {
         if (response.status === Status.OK) {
             const did = response.result
             const route = this.db.get(LocatorUtils.aorAsString(did.spec.location.aorLink))
-
             if (route !== null) {
                 return CoreUtils.buildResponse(Status.OK, route)
             }
@@ -157,7 +156,9 @@ class Locator {
         if (!(addressOfRecord instanceof Java.type('javax.sip.address.SipURI')))
             throw 'AOR must be instance of javax.sip.address.SipURI'
 
+        // WARN: This is very inefficient
         const response = this.domainsAPI.getDomains()
+
         let route
 
         if (response.status === Status.OK) {
@@ -174,7 +175,7 @@ class Locator {
     }
 
     getEgressRouteForDomain(addressOfRecord, domain) {
-        if (isEmpty(domain.spec.context.egressPolicy) === false) {
+        if (!isEmpty(domain.spec.context.egressPolicy)) {
             // Get DID and Gateway info
             let response = this.didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
             const did = response.result

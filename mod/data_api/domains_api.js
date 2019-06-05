@@ -4,7 +4,7 @@
  * @since v1
  */
 const CoreUtils = require('@routr/core/utils')
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
 const { UNFULFILLED_DEPENDENCY_RESPONSE } = require('@routr/core/status')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
@@ -64,14 +64,14 @@ class DomainsAPI {
         let response = this.cache.getIfPresent(domainUri)
 
         if (response === null) {
-            response = DSUtil.deepSearch(this.getDomains(), "spec.context.domainUri", domainUri)
+            response = DSUtils.deepSearch(this.getDomains(), "spec.context.domainUri", domainUri)
             this.cache.put(domainUri, response)
         }
         return response
     }
 
     domainExist(domainUri) {
-        return DSUtil.objExist(this.getDomainByUri(domainUri))
+        return DSUtils.objExist(this.getDomainByUri(domainUri))
     }
 
     deleteDomain(ref) {

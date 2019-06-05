@@ -4,7 +4,7 @@
  *
  * Unit Test for the "Data APIS"
  */
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const TestUtils = require('@routr/data_api/test_utils')
 
 const testGroup = { name: "Data APIS" }
@@ -20,7 +20,7 @@ testGroup.deep_search = function () {
         result: agents
     }
 
-    response = DSUtil.deepSearch(response, 'spec.credentials.username', '1001')
+    response = DSUtils.deepSearch(response, 'spec.credentials.username', '1001')
     const agent = response.result
     assertTrue(agent.metadata.name === 'John Doe')
 }

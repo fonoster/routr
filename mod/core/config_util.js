@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-const DSUtil = require('@routr/data_api/utils')
+const DSUtils = require('@routr/data_api/utils')
 const FilesUtil = require('@routr/utils/files_util')
 
 const InetAddress = Java.type('java.net.InetAddress')
@@ -143,9 +143,9 @@ function getConfigFromFile() {
     let config
     try {
         if (System.getenv("ROUTR_CONFIG_FILE") !== null) {
-            config = DSUtil.convertToJson(FilesUtil.readFile(System.getenv("ROUTR_CONFIG_FILE")))
+            config = DSUtils.convertToJson(FilesUtil.readFile(System.getenv("ROUTR_CONFIG_FILE")))
         } else {
-            config = DSUtil.convertToJson(FilesUtil.readFile('config/config.yml'))
+            config = DSUtils.convertToJson(FilesUtil.readFile('config/config.yml'))
         }
         return config
     } catch(e) {
