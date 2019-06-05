@@ -4,10 +4,10 @@
     name: My Home or Office Setup
   spec:
     context:
-      domainUri: sip.local
+      domainUri: sip3.local
       egressPolicy:
         rule: .*
-        didRef: dd50baa4
+        didRef: dd50baa5
 - apiVersion: v1beta1
   kind: Domain
   metadata:

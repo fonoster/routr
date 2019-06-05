@@ -15,6 +15,7 @@ const JsonMappingException = Java.type('com.fasterxml.jackson.databind.JsonMappi
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
+const RESOURCES = ['agents', 'domains', 'gateways', 'dids', 'peers', 'users']
 
 class FilesDataSource {
 
@@ -38,27 +39,65 @@ class FilesDataSource {
         this.staticConfigValidation()
 
         // Check constrains
+        this.resourceConstraintValidation()
     }
 
     staticConfigValidation() {
-        const resources = ['agents', 'domains', 'gateways', 'dids', 'peers', 'users']
-
-        for(const cnt in resources) {
+        for(const cnt in RESOURCES) {
             try {
-                const res = FilesUtil.readFile(this.filesPath + '/' + resources[cnt] + '.yml')
+                const res = FilesUtil.readFile(this.filesPath + '/' + RESOURCES[cnt] + '.yml')
                 const jsonObjs = DSUtils.convertToJson(res)
                 for (const cntObj in jsonObjs) {
                     DSUtils.isValidEntity(jsonObjs[cntObj])
                 }
             } catch(e) {
                 if (e instanceof Java.type('com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException')) {
-                    LOG.warn('The format of file `' + this.filesPath + '/' +  resources[cnt] + '.yml` is invalid')
+                    LOG.warn('The format of file `' + this.filesPath + '/' +  RESOURCES[cnt] + '.yml` is invalid')
                     continue
                 } else {
-                    LOG.warn('Unable to open configuration file `' + this.filesPath + '/' + resources[cnt] + '.yml`')
+                    LOG.warn('Unable to open configuration file `' + this.filesPath + '/' + RESOURCES[cnt] + '.yml`')
                 }
             }
         }
+    }
+
+    resourceConstraintValidation() {
+        // Ensure GW for gwRef
+        let response = this.withCollection('dids').find()
+        response.result.forEach( did => {
+            const gwRef = did.metadata.gwRef
+            response = this.withCollection('gateways').get(gwRef)
+            if (response.status !== Status.OK) {
+                LOG.error('Gateway with ref `' + gwRef + '` does not exist.')
+            }
+        })
+
+        // Ensure Domains have valid DIDs
+        response = this.withCollection('domains').find()
+        response.result.forEach( domain => {
+            if(domain.spec.context.egressPolicy !== undefined) {
+              const didRef = domain.spec.context.egressPolicy.didRef
+              response = DSUtils.deepSearch(this.withCollection('dids').find(), "metadata.ref", didRef)
+              if (response.status !== Status.OK) {
+                  LOG.error('DID with ref `' + didRef + '` does not exist.')
+              }
+            }
+        })
+
+        // Ensure Agents have existing Domains
+        response = this.withCollection('agents').find()
+        response.result.forEach( agent => {
+            const domains = agent.spec.domains
+            for (const cnt in domains) {
+                const domain = domains[cnt]
+                response = this.withCollection('domains').find("@.spec.context.domainUri=='" + domain + "'")
+                if (response.result.length === 0) {
+                    LOG.error('Agent `' + agent.metadata.name + '(' + agent.spec.credentials.username
+                      + ')` has a non-existent domain/s.')
+                    break
+                }
+            }
+        })
     }
 
     withCollection(collection) {
@@ -160,9 +199,9 @@ class FilesDataSource {
     }
 
     static generateRef(uniqueFactor) {
-        let md5 = java.security.MessageDigest.getInstance("MD5")
-        md5.update(java.nio.charset.StandardCharsets.UTF_8.encode(uniqueFactor))
-        let hash = java.lang.String.format("%032x", new java.math.BigInteger(1, md5.digest()))
+        let md5 = Java.type('java.security.MessageDigest').getInstance("MD5")
+        md5.update(Java.type('java.nio.charset.StandardCharsets').UTF_8.encode(uniqueFactor))
+        let hash = Java.type('java.lang.String').format("%032x", new java.math.BigInteger(1, md5.digest()))
         return hash.substring(hash.length - 6).toLowerCase()
     }
 
