@@ -145,27 +145,32 @@ class Registry {
               const response = self.gatewaysAPI.getGateways()
 
               if (response.status === Status.OK) {
-                  response.result.forEach (function(gateway) {
-                      const gwURIStr = 'sip:' + gateway.spec.credentials.username + '@' + gateway.spec.host
-                      const expires = gateway.spec.expires? gateway.spec.expires : 3600
-                      if (self.isExpired(gwURIStr)) {
-                          LOG.debug('Register with ' + gateway.metadata.name +  ' using '
-                              + gateway.spec.credentials.username + '@' + gateway.spec.host)
-                          self.requestChallenge(gateway.spec.credentials.username,
-                              gateway.metadata.ref, gateway.spec.host, gateway.spec.transport, null, null, expires)
-                      }
+                  for (const cnt in response.result) {
+                    const gateway = response.result[cnt]
 
-                      let registries = gateway.spec.registries
+                    if (gateway.spec.credentials === undefined) continue
 
-                      if (registries !== undefined) {
-                          registries.forEach (function(h) {
-                              if (self.isExpired(gwURIStr)) {
-                                  LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.credentials.username + '@' + h)
-                                  self.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport, null, null, expires)
-                              }
-                          })
-                      }
-                  })
+                    const gwURIStr = 'sip:' + gateway.spec.credentials.username + '@' + gateway.spec.host
+                    const expires = gateway.spec.expires? gateway.spec.expires : 3600
+                    if (self.isExpired(gwURIStr)) {
+                        LOG.debug('Register with ' + gateway.metadata.name +  ' using '
+                            + gateway.spec.credentials.username + '@' + gateway.spec.host)
+                        self.requestChallenge(gateway.spec.credentials.username,
+                            gateway.metadata.ref, gateway.spec.host, gateway.spec.transport, null, null, expires)
+                    }
+
+                    let registries = gateway.spec.registries
+
+                    if (registries !== undefined) {
+                        registries.forEach (function(h) {
+                            if (self.isExpired(gwURIStr)) {
+                                LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.credentials.username + '@' + h)
+                                self.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport, null, null, expires)
+                            }
+                        })
+                    }
+
+                  }
               }
           },
           10000,
