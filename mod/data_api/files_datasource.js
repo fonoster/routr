@@ -13,6 +13,9 @@ const System = Java.type('java.lang.System')
 const NoSuchFileException = Java.type('java.nio.file.NoSuchFileException')
 const JsonMappingException = Java.type('com.fasterxml.jackson.databind.JsonMappingException')
 
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const LOG = LogManager.getLogger()
+
 class FilesDataSource {
 
     constructor(config = getConfig()) {
@@ -30,6 +33,32 @@ class FilesDataSource {
         }
 
         this.filesPath = config.spec.dataSource.parameters.path
+
+        // Static validation
+        this.staticConfigValidation()
+
+        // Check constrains
+    }
+
+    staticConfigValidation() {
+        const resources = ['agents', 'domains', 'gateways', 'dids', 'peers', 'users']
+
+        for(const cnt in resources) {
+            try {
+                const res = FilesUtil.readFile(this.filesPath + '/' + resources[cnt] + '.yml')
+                const jsonObjs = DSUtils.convertToJson(res)
+                for (const cntObj in jsonObjs) {
+                    DSUtils.isValidEntity(jsonObjs[cntObj])
+                }
+            } catch(e) {
+                if (e instanceof Java.type('com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException')) {
+                    LOG.warn('The format of file `' + this.filesPath + '/' +  resources[cnt] + '.yml` is invalid')
+                    continue
+                } else {
+                    LOG.warn('Unable to open configuration file `' + this.filesPath + '/' + resources[cnt] + '.yml`')
+                }
+            }
+        }
     }
 
     withCollection(collection) {
