@@ -4,6 +4,8 @@ The Gateways configuration can be provided using the file `config/gateways.yml` 
 
 > If using Redis this configuration gets stored in the database.
 
+For static IP authentication be sure to properly configure the `spec.externAddr` and `spec.localnets` in `config.yml`.
+
 ## Gateway Resource
 
 | Property | Description | Required |
@@ -12,8 +14,8 @@ The Gateways configuration can be provided using the file `config/gateways.yml` 
 | kind | Defines the type of resource | Yes |
 | metadata.name | Friendly name for the SIP device | Yes |
 | metadata.ref | Reference to this resource | Yes |
-| spec.credentials.username | Gateway username | Yes |
-| spec.credentials.secret |  Gateway secret  | Yes |
+| spec.credentials.username | Gateway username. No required for static IP authentication | No |
+| spec.credentials.secret |  Gateway secret. No required for static IP authentication | No |
 | spec.host | Gateway host | Yes |
 | spec.transport | Transport protocol | Yes |
 | spec.expires | Requested lifespan of the registration in seconds. Defaults to `3600` | No |
@@ -30,7 +32,7 @@ The Gateways configuration can be provided using the file `config/gateways.yml` 
   spec:
     host: sip.provider.com
     transport: tcp
-    credentials:
+    credentials:                  # Static IP authentication is assumed if this section is omitted
       username: 'user'
       secret: changeit
 ```
