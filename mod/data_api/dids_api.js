@@ -56,7 +56,7 @@ class DIDsAPI {
     }
 
     getDID(ref) {
-        return this.ds.withCollection('gateways').get(ref)
+        return this.ds.withCollection('dids').get(ref)
     }
 
     /**
