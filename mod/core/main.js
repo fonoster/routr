@@ -5,7 +5,7 @@
 const System = Java.type('java.lang.System')
 const BasicConfigurator = Java.type('org.apache.log4j.BasicConfigurator')
 const NullAppender = Java.type('org.apache.log4j.varia.NullAppender')
-load(System.getProperty('user.dir') + '/node_modules/jvm-npm/src/main/javascript/jvm-npm.js')
+load(System.getProperty('user.dir') + '/libs/jvm-npm.js')
 
 const Server = require('@routr/core/server')
 const Locator = require('@routr/location/locator')

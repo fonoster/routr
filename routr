@@ -1,5 +1,9 @@
 #!/usr/bin/env sh
 
+BASE_DIR="$(cd "$(dirname "$0")"; pwd)";
+
+[ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
+
 # Ensure Java is at least 8
 
 running_in_docker() {
@@ -7,6 +11,7 @@ running_in_docker() {
 }
 
 run() {
+  cd $BASE_DIR
   $JAVA_HOME/bin/java \
     -Dlog4j.configurationFile=config/log4j2.xml \
     $ROUTR_JAVA_OPTS \
