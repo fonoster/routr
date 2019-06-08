@@ -14,30 +14,30 @@ public class Launcher {
       + "load(System.getProperty('user.dir') + '/libs/app.bundle.js')";
 
     static public void main(String... args) {
-        new Launcher().launch();
+        try {
+            new Launcher().launch();
+        } catch(ScriptException ex) {
+            System.out.println("Unable to run server: " + ex.getMessage());
+        }
     }
 
     // TODO: Check Java version and show warning if version >= 11
-    public void launch() {
+    public void launch() throws ScriptException {
         String engine = System.getenv("ROUTR_JS_ENGINE");
 
-        if (engine != null && engine.equals("graal.js")) {
+        if (engine.equals("graal.js")) {
           launchWithGraalJS();
-        } else if (engine != null && engine.equals("nashorn")) {
+        } else if (engine.equals("nashorn")) {
           launchWithNashorn();
         } else {
           launchWithNashorn();
         }
     }
 
-    public void launchWithNashorn() {
-        try {
-            ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-            engine.put("timer", new Timer());
-            engine.eval(launchScript);
-        } catch(ScriptException ex) {
-            System.out.println("Unable to run with 'nashorn' engine: " + ex.getMessage());
-        }
+    public void launchWithNashorn() throws ScriptException {
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+        engine.put("timer", new Timer());
+        engine.eval(launchScript);
     }
 
     public void launchWithGraalJS() {

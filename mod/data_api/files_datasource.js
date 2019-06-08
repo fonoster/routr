@@ -119,7 +119,7 @@ class FilesDataSource {
     }
 
     find(filter = '*') {
-        if (!isEmpty(filter) && !filter.equals('*')) {
+        if (!isEmpty(filter) && filter !== '*') {
             filter = "*.[?(" + filter + ")]"
         }
 
