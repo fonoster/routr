@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-BASE_DIR="$(cd "$(dirname "$0")"; pwd)";
+BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 
 [ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
 
@@ -21,7 +21,7 @@ run() {
 
 if running_in_docker ; then
   [ -z "$ROUTR_EXTERN_ADDR" ] && { echo "Must define environment variable ROUTR_EXTERN_ADDR when running inside a container"; exit 1; }
-  [ -z "$ROUTR_LOCALNETS" ] && export ROUTR_LOCALNETS=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}');
+  [ -z "$ROUTR_LOCALNETS" ] && export ROUTR_LOCALNETS=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}')
 fi
 
 [ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment"; exit 1; }

@@ -30,7 +30,7 @@ class IPUtil {
             const subnetUtils = IPUtil.getSubnetUtils(localnets[x])
             if (subnetUtils.getInfo().isInRange(address)) return true
         }
-        return false;
+        return false
     }
 
     static getSubnetUtils(net) {

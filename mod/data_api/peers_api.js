@@ -15,7 +15,7 @@ class PeersAPI {
         this.cache = Caffeine.newBuilder()
           .expireAfterWrite(5, TimeUnit.MINUTES)
           .maximumSize(100)
-          .build();
+          .build()
     }
 
     updateFromJSON(jsonObj) {

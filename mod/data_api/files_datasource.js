@@ -101,8 +101,8 @@ class FilesDataSource {
     }
 
     withCollection(collection) {
-        this.collection = collection;
-        return this;
+        this.collection = collection
+        return this
     }
 
     insert() {

@@ -17,7 +17,7 @@ class RestUtil {
         if (!isEmpty(req.contentType()) && req.contentType().indexOf('multipart/form-data') !== -1) {
             req.attribute('org.eclipse.jetty.multipartConfig', new MultipartConfigElement('/temp'))
             const is = req.raw().getPart('file').getInputStream()
-            const fileContent = IOUtils.toString(is, StandardCharsets.UTF_8.name());
+            const fileContent = IOUtils.toString(is, StandardCharsets.UTF_8.name())
             const jsonObjs = DSUtils.convertToJson(fileContent)
             let compoundResponse = ''
             jsonObjs.forEach(jsonObj => {

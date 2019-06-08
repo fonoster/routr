@@ -40,7 +40,7 @@ class Server {
 
             if ((proto === 'wss' || proto === 'tls') && !this.config.spec.securityContext) {
                 LOG.warn(ANSI_YELLOW + 'Security context could not found. Ignoring protocol: ' + proto + ANSI_RESET)
-                continue;
+                continue
             }
 
             if (curTransport.bindAddr === undefined) {

@@ -55,7 +55,7 @@ class RedisDataSource {
     }
 
     buildPoolConfig() {
-        const poolConfig = new JedisPoolConfig();
+        const poolConfig = new JedisPoolConfig()
         poolConfig.setMaxTotal(128)
         poolConfig.setMaxIdle(128)
         poolConfig.setMinIdle(16)

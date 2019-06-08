@@ -47,11 +47,11 @@ class Rest {
         Spark.port(this.rest.port)
         Spark.internalServerError((req, res) => {
             res.type('application/json')
-            return '{\"status\": \"500\", \"message\":\"Internal server error\"}';
+            return '{\"status\": \"500\", \"message\":\"Internal server error\"}'
         })
         Spark.notFound((req, res) => {
             res.type('application/json')
-            return '{\"status\": \"404\", \"message\":\"Not found\"}';
+            return '{\"status\": \"404\", \"message\":\"Not found\"}'
         })
     }
 
@@ -90,10 +90,10 @@ class Rest {
                     this.server.stop()
                 } else if (status.equals('reload')) {
                     reloadConfig()
-                    res.status(200);
+                    res.status(200)
                     res.body('{\"status\": \"200\", \"message\":\"Reloaded configuration from file.\"}')
                 } else {
-                    res.status(401);
+                    res.status(401)
                     res.body('{\"status\": \"400\", \"message\":\"Bad Request\"}')
                 }
             })
