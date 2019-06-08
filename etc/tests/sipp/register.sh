@@ -17,7 +17,7 @@ docker run -it -p $SIPP_PORT:$SIPP_PORT/udp \
     -p $SIPP_PORT \
     -sf $SCENARIO_FILE \
     -inf $REGISTER_FILE \
-    -r 1000 \
-    -m 100000 \
-    -l 10000 \
-    -rate_increase 1000 -fd 5s
+    -r 1400 \
+    -m 200000 \
+    -l 1400 \
+    #-rate_increase 1000 -fd 5s
