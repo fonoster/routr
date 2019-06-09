@@ -32,7 +32,7 @@ class Registrar {
         const fromURI = fromHeader.getAddress().getURI()
         const host = fromURI.getHost()
 
-        // Get user from db or file
+        // Get user from api
         const user = this.getUser(authHeader.getUsername(), host)
         const aHeaderJson = Registrar.buildHeader(user, authHeader)
 
@@ -91,8 +91,6 @@ class Registrar {
 
     getUser(username, host) {
         let user
-        // TODO: Consider placing all the peer entities in a cache, for less
-        // calls to the datasource.
         let response = this.peersAPI.getPeerByUsername(username)
 
         if (response.status === Status.OK) {
