@@ -19,7 +19,6 @@ var cseq = 0
 class Registry {
 
     constructor(sipProvider, dataAPIs) {
-        this.dataAPIs = dataAPIs.GatewaysAPI
         this.gatewaysAPI = dataAPIs.GatewaysAPI
         this.checkExpiresTime = .5
         this.sipProvider = sipProvider
