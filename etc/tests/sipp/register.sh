@@ -19,5 +19,5 @@ docker run -it -p $SIPP_PORT:$SIPP_PORT/udp \
     -inf $REGISTER_FILE \
     -r 1400 \
     -m 200000 \
-    -l 1400 \
+    -l 1400
     #-rate_increase 1000 -fd 5s

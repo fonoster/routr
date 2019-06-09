@@ -25,9 +25,9 @@ public class Launcher {
     public void launch() throws ScriptException {
         String engine = System.getenv("ROUTR_JS_ENGINE");
 
-        if (engine.equals("graal.js")) {
+        if (engine != null && engine.equals("graal.js")) {
           launchWithGraalJS();
-        } else if (engine.equals("nashorn")) {
+        } else if (engine != null && engine.equals("nashorn")) {
           launchWithNashorn();
         } else {
           launchWithNashorn();
