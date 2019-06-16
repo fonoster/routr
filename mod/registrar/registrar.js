@@ -32,6 +32,7 @@ class Registrar {
         const fromURI = fromHeader.getAddress().getURI()
         const host = fromURI.getHost()
 
+        // Warning: This is just for testing purposes 
         if(host === 'guest' && getConfig().spec.allowGuest === true) {
             const user = fromHeader.getAddress().getURI().getUser()
             this.addAnonymousEndpoint({username: user, kind: 'User'}, host, request)
