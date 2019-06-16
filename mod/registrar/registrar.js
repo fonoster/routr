@@ -32,6 +32,16 @@ class Registrar {
         const fromURI = fromHeader.getAddress().getURI()
         const host = fromURI.getHost()
 
+        if(host === 'guest' && getConfig().spec.allowGuest === true) {
+            const user = fromHeader.getAddress().getURI().getUser()
+            this.addAnonymousEndpoint({username: user, kind: 'User'}, host, request)
+            return true
+        }
+
+        if (authHeader === null) {
+            return false
+        }
+
         // Get user from api
         const user = this.getUser(authHeader.getUsername(), host)
         const aHeaderJson = Registrar.buildHeader(user, authHeader)
@@ -66,6 +76,18 @@ class Registrar {
         }
 
         return nc + h
+    }
+
+    addAnonymousEndpoint(user, host, request) {
+        const contactHeader = request.getHeader(ContactHeader.NAME)
+        const contactURI = contactHeader.getAddress().getURI()
+        const viaHeader = request.getHeader(ViaHeader.NAME)
+        const route = Registrar.buildRoute(user, viaHeader, contactURI, Registrar.getExpires(request))
+        let addressOfRecord
+
+        addressOfRecord = this.addressFactory.createSipURI(user.username, host)
+        addressOfRecord.setSecure(contactURI.isSecure())
+        this.locator.addEndpoint(addressOfRecord, route)
     }
 
     addEndpoint(user, host, request) {
