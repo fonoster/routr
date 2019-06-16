@@ -18,11 +18,10 @@ const Response = Java.type('javax.sip.message.Response')
 
 class RequestProcessor {
 
-    constructor(sipProvider, locator, registrar, dataAPIs, contextStorage) {
+    constructor(sipProvider, locator, dataAPIs, contextStorage) {
         this.sipProvider = sipProvider
         this.contextStorage = contextStorage
         this.locator = locator
-        this.registrar = registrar
         this.dataAPIs = dataAPIs
         this.domainsAPI = dataAPIs.DomainsAPI
         this.messageFactory = SipFactory.getInstance().createMessageFactory()
@@ -45,7 +44,7 @@ class RequestProcessor {
 
         switch (request.getMethod()) {
             case Request.REGISTER:
-              new RegisterHandler(this.locator, this.registrar).doProcess(request, serverTransaction)
+              new RegisterHandler(this.dataAPIs).doProcess(request, serverTransaction)
               break
             case Request.CANCEL:
               new CancelHandler(this.sipProvider, this.contextStorage).doProcess(request, serverTransaction)
@@ -73,7 +72,7 @@ class RequestProcessor {
         if (routeInfo.getRoutingType().equals(RoutingType.INTRA_DOMAIN_ROUTING)) {
             const response = this.domainsAPI.getDomainByUri(addressOfRecord.getHost())
             if (response.status === Status.OK) {
-                const acl  = response.result.spec.context.accessControlList
+                const acl = response.result.spec.context.accessControlList
                 if(acl && new AclUtil(acl).isIpAllowed(remoteIp) === false) {
                     return false
                 }

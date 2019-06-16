@@ -2,7 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
+const postal = require('postal')
 const AuthHelper = require('@routr/utils/auth_helper')
+const Registrar = require('@routr/registrar/registrar')
 
 const SipFactory = Java.type('javax.sip.SipFactory')
 const ToHeader = Java.type('javax.sip.header.ToHeader')
@@ -16,9 +18,8 @@ const LOG = LogManager.getLogger()
 
 class RegisterHandler {
 
-    constructor(locator, registrar) {
-        this.locator = locator
-        this.registrar = registrar
+    constructor(dataAPIs) {
+        this.registrar = new Registrar(dataAPIs)
         this.messageFactory = SipFactory.getInstance().createMessageFactory()
         this.headerFactory = SipFactory.getInstance().createHeaderFactory()
         this.authHelper = new AuthHelper(this.headerFactory)
@@ -52,11 +53,16 @@ class RegisterHandler {
         const contactURI = contactHeader.getAddress().getURI()
         const addressOfRecord = RegisterHandler.getAddressOfRecord(request)
 
-        if (contactHeader.getAddress().isWildcard()) {
-            this.locator.removeEndpoint(addressOfRecord, contactURI)
-        } else {
-            this.locator.removeEndpoint(addressOfRecord)
-        }
+        postal.publish({
+          channel: "locator",
+          topic: "endpoint.remove",
+          data: {
+              addressOfRecord: addressOfRecord,
+              contactURI: contactHeader.getAddress().getURI().toString(),
+              isWildcard: contactHeader.getAddress().isWildcard()
+          }
+        });
+
         this.sendOk(request, transaction)
     }
 

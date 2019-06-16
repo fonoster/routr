@@ -9,6 +9,7 @@ const CoreUtils = require('@routr/core/utils')
 const LocatorUtils = require('@routr/location/utils')
 const isEmpty = require('@routr/utils/obj_util')
 const { Status } = require('@routr/core/status')
+const postal = require('postal')
 
 const HashMap = Java.type('java.util.HashMap')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -17,8 +18,9 @@ const SipFactory = Java.type('javax.sip.SipFactory')
 const LOG = LogManager.getLogger()
 
 /**
- * NOTE #1: Notice that addressOfRecord.toString !eq to LocatorUtils.aorAsString(addressOfRecord). This is important to ensure
- * the location of the devices regardless of any additional parameters that they may have.
+ * NOTE #1: Notice that addressOfRecord.toString !eq to LocatorUtils.aorAsString(addressOfRecord).
+ * This is important to ensure the location of the devices regardless of any additional
+ * parameters that they may have.
  */
 class Locator {
 
@@ -29,10 +31,27 @@ class Locator {
         this.domainsAPI = dataAPIs.DomainsAPI
         this.gatewaysAPI = dataAPIs.GatewaysAPI
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
+
+        postal.subscribe({
+      		channel: "locator",
+      		topic: "endpoint.remove",
+      		callback: (data, envelope) => {
+              this.removeEndpoint(data.addressOfRecord, data.contactURI, data.isWildcard)
+      		}
+      	})
+
+        postal.subscribe({
+      		channel: "locator",
+      		topic: "endpoint.add",
+      		callback: (data, envelope) => {
+              this.addEndpoint(data.addressOfRecord, data.route)
+      		}
+      	})
     }
 
     getPort(uri) {
-      return uri.getPort() === -1? 5060 : uri.getPort()
+      const uriObj = LocatorUtils.aorAsObj(uri)
+      return uriObj.getPort() === -1? 5060 : uriObj.getPort()
     }
 
     addEndpoint(addressOfRecord, route) {
@@ -54,30 +73,32 @@ class Locator {
     }
 
     // See NOTE #1
-    removeEndpoint(addressOfRecord, contactURI) {
+    removeEndpoint(addressOfRecord, contactURI, isWildcard) {
         const aor = LocatorUtils.aorAsString(addressOfRecord)
         // Remove all bindings
-        if (contactURI === undefined) {
+        if (isWildcard !== true) {
             return this.db.remove(aor)
         }
         // Not using aorAsString because we need to consider the port, etc.
-        this.db.get(aor).remove(contactURI.toString())
+        this.db.get(aor).remove(contactURI)
 
+        // This is just a hashmap of hashmaps...
         if (this.db.get(aor).isEmpty()) this.db.remove(aor)
     }
 
     findEndpoint(addressOfRecord) {
-        if (addressOfRecord instanceof Java.type('javax.sip.address.TelURL')) {
+        const aor = LocatorUtils.aorAsString(addressOfRecord)
+        if (aor.startsWith("tel:")) {
             return this.findEndpointByTelUrl(addressOfRecord)
         }
-        return this.findEndpointBySipURI(addressOfRecord)
+        return this.findEndpointBySipURI(aor)
     }
 
     /**
      * DIDs required an "aorLink" to enter the network
      */
     findEndpointByTelUrl(addressOfRecord) {
-        const response = this.didsAPI.getDIDByTelUrl(addressOfRecord)
+        const response = this.didsAPI.getDIDByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
         if (response.status === Status.OK) {
             const did = response.result
             const route = this.db.get(LocatorUtils.aorAsString(did.spec.location.aorLink))
@@ -121,8 +142,7 @@ class Locator {
     }
 
     findEndpointForDID(addressOfRecord) {
-        const telUrl = this.addressFactory.createTelURL(addressOfRecord.getUser())
-        const response = this.didsAPI.getDIDByTelUrl(telUrl)
+        const response = this.didsAPI.getDIDByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
         if (response.status === Status.OK) {
             const did = response.result
             const route = this.db.get(LocatorUtils.aorAsString(did.spec.location.aorLink))
@@ -135,13 +155,15 @@ class Locator {
 
     getPeerRouteByHost(addressOfRecord) {
         const aors = this.db.keySet().iterator()
-        const peerHost = addressOfRecord.getHost().toString()
-        const peerPort = this.getPort(addressOfRecord)
+        const aor = LocatorUtils.aorAsObj(addressOfRecord)
+        const peerHost = aor.getHost().toString()
+        const peerPort = this.getPort(aor)
 
         while(aors.hasNext()) {
             let routes = this.db.get(aors.next())
             for (const x in routes) {
-                const h1 = routes[x].contactURI.getHost().toString()
+                const contactURI = LocatorUtils.aorAsObj(routes[x].contactURI)
+                const h1 = contactURI.getHost().toString()
                 const p1 = this.getPort(routes[x].contactURI)
                 if (h1.equals(peerHost) && p1 === peerPort) {
                     return CoreUtils.buildResponse(Status.OK, routes)
@@ -153,9 +175,6 @@ class Locator {
     }
 
     getEgressRouteForAOR(addressOfRecord) {
-        if (!(addressOfRecord instanceof Java.type('javax.sip.address.SipURI')))
-            throw 'AOR must be instance of javax.sip.address.SipURI'
-
         // WARN: This is very inefficient
         const response = this.domainsAPI.getDomains()
 
@@ -186,12 +205,13 @@ class Locator {
                 if (response.status === Status.OK) {
                     const gateway = response.result
                     const pattern = 'sip:' + domain.spec.context.egressPolicy.rule + '@' + domain.spec.context.domainUri
+                    const aor = LocatorUtils.aorAsString(addressOfRecord)
 
-                    if (new RegExp(pattern).test(addressOfRecord.toString())) {
-                        const contactURI = this.addressFactory
-                            .createSipURI(addressOfRecord.getUser(), gateway.spec.host)
-                        contactURI.setSecure(addressOfRecord.isSecure())
-                        const route = LocatorUtils.buildEgressRoute(contactURI, gateway, did, domain)
+                    if (new RegExp(pattern).test(aor)) {
+                        //const contactURI = this.addressFactory
+                        //    .createSipURI(addressOfRecord.getUser(), gateway.spec.host)
+                        //contactURI.setSecure(addressOfRecord.isSecure())
+                        const route = LocatorUtils.buildEgressRoute(aor, gateway, did, domain)
                         return CoreUtils.buildResponse(Status.OK, [route])
                     }
                 }

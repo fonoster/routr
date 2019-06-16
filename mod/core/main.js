@@ -8,8 +8,6 @@ const NullAppender = Java.type('org.apache.log4j.varia.NullAppender')
 load(System.getProperty('user.dir') + '/libs/jvm-npm.js')
 
 const Server = require('@routr/core/server')
-const Locator = require('@routr/location/locator')
-const Registrar = require('@routr/registrar/registrar')
 // Default Data Provider (from files)
 const UsersAPI = require('@routr/data_api/users_api')
 const AgentsAPI = require('@routr/data_api/agents_api')
@@ -22,7 +20,7 @@ const DIDsAPI = require('@routr/data_api/dids_api')
 const FilesDataSource = require('@routr/data_api/files_datasource')
 const RedisDataSource = require('@routr/data_api/redis_datasource')
 const RestfulDataSource = require('@routr/data_api/restful_datasource')
-const getConfig = require('@routr/core/config_util')
+const config = require('@routr/core/config_util')()
 
 // XXX: This feals a bit like a hack. But it is ok for now.
 global.timer = timer
@@ -31,7 +29,6 @@ global.timer = timer
 System.setProperty("org.eclipse.jetty.LEVEL", "WARN")
 BasicConfigurator.configure(new NullAppender())
 
-let config = getConfig()
 let dataSource
 
 if (config.spec.dataSource.provider === 'files_data_provider') {
@@ -54,6 +51,4 @@ const dataAPIs = {
     PeersAPI: new PeersAPI(dataSource)
 }
 
-const locator = new Locator(dataAPIs)
-const registrar = new Registrar(locator, dataAPIs)
-new Server(locator, registrar, dataAPIs).start()
+new Server(dataAPIs).start()

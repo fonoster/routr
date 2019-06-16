@@ -3,6 +3,7 @@
  * @since v1
  */
 const Processor = require('@routr/core/processor/processor')
+const Locator = require('@routr/location/locator')
 const ContextStorage = require('@routr/core/context_storage')
 const getConfig = require('@routr/core/config_util')
 const Registry = require('@routr/registry/registry')
@@ -21,9 +22,8 @@ const ANSI_RESET = "\u001B[0m"
 
 class Server {
 
-    constructor(locator, registrar, dataAPIs) {
-        this.locator = locator
-        this.registrar = registrar
+    constructor(dataAPIs) {
+        this.locator = new Locator(dataAPIs)
         this.dataAPIs = dataAPIs
         this.contextStorage = new ContextStorage()
         this.config = getConfig()
@@ -89,8 +89,7 @@ class Server {
 
         const processor = new Processor(sipProvider,
             this.locator,
-                this.registry,
-                    this.registrar, this.dataAPIs, this.contextStorage)
+                this.registry, this.dataAPIs, this.contextStorage)
 
         sipProvider.addSipListener(processor.listener)
     }
@@ -115,7 +114,7 @@ class Server {
     getProperties() {
         let properties = new Properties()
         // for more options see:
-        // https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java 
+        // https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java
         properties.setProperty('javax.sip.STACK_NAME', 'routr')
         properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'OFF')
         properties.setProperty('gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY', 'gov.nist.javax.sip.stack.NioMessageProcessorFactory')

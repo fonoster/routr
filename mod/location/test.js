@@ -31,6 +31,11 @@ const locator = new Locator(dataAPIs)
 const testGroup = { name: "Location Service Module" }
 
 // Tests
+testGroup.create_sip_uri = function() {
+    const sipUri = LocatorUtils.createSipURI("sip:1001@sip.ocean.com")
+    print('sipUri: ' + sipUri)
+}
+
 testGroup.aor_as_string = function () {
     const sipURI = addressFactory.createSipURI('john', 'sip.ocean.com')
     let aorString = LocatorUtils.aorAsString(sipURI)
@@ -52,15 +57,15 @@ testGroup.find_local_endpoint = function() {
     locator.addEndpoint(peerEndpoint.aor, peerEndpoint.route)
     testFE(agentEndpoint.aor)
     testFE(peerEndpoint.aor)
-    locator.removeEndpoint(agentEndpoint.aor)
+    locator.removeEndpoint(agentEndpoint.aor, agentEndpoint.route.contactUri)
 }
 
 testGroup.find_endpoint_for_did = function() {
     // This is the local aor for the did '0000000000'
     const endpoint = buildEndpoint('1001', 'sip.local', '192.168.1.2:5061')
     locator.addEndpoint(endpoint.aor, endpoint.route)
-    testFE(addressFactory.createSipURI('0000000000', 'sip.local'))
-    locator.removeEndpoint(endpoint.aor)
+    testFE(addressFactory.createSipURI('0000000000', 'sip.local'), true)
+    locator.removeEndpoint(endpoint.aor, endpoint.route.contactUri)
 }
 
 testGroup.find_remote_endpoint = function() {
@@ -80,7 +85,7 @@ function buildEndpoint(username, domain, host) {
     const aor = addressFactory.createSipURI(username, domain)
     const contactURI = addressFactory.createSipURI(username, host)
     return {
-      aor: aor,
+      aor: LocatorUtils.aorAsString(aor),
       route: {
           isLinkAOR: false,
           thruGw: false,

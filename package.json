@@ -13,7 +13,8 @@
   "dependencies": {
     "jvm-npm": "^0.1.1",
     "moment": "^2.22.2",
-    "npm": "^6.1.0"
+    "npm": "^6.1.0",
+    "postal": "^2.0.5"
   },
   "devDependencies": {
     "cross-env": "^5.2.0",

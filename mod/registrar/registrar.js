@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const postal = require('postal')
 const AuthHelper = require('@routr/utils/auth_helper')
 const { Status } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
@@ -13,11 +14,13 @@ const FromHeader = Java.type('javax.sip.header.FromHeader')
 const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
 const AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
 const SipFactory = Java.type('javax.sip.SipFactory')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
+const LOG = LogManager.getLogger()
 
 class Registrar {
 
-    constructor(locator, dataAPIs) {
-        this.locator = locator
+    constructor(dataAPIs) {
         this.peersAPI = dataAPIs.PeersAPI
         this.agentsAPI = dataAPIs.AgentsAPI
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
@@ -44,7 +47,14 @@ class Registrar {
         }
 
         // Get user from api
-        const user = this.getUser(authHeader.getUsername(), host)
+        let user
+
+        try {
+            user = this.getUser(authHeader.getUsername(), host)
+        } catch(e) {
+            LOG.warn(e)
+            return false
+        }
         const aHeaderJson = Registrar.buildHeader(user, authHeader)
 
         if (new AuthHelper()
@@ -88,7 +98,15 @@ class Registrar {
 
         addressOfRecord = this.addressFactory.createSipURI(user.username, host)
         addressOfRecord.setSecure(contactURI.isSecure())
-        this.locator.addEndpoint(addressOfRecord, route)
+
+        postal.publish({
+          channel: "locator",
+          topic: "endpoint.add",
+          data: {
+              addressOfRecord: addressOfRecord,
+              route: route
+          }
+        })
     }
 
     addEndpoint(user, host, request) {
@@ -109,7 +127,14 @@ class Registrar {
             })
         }
 
-        this.locator.addEndpoint(addressOfRecord, route)
+        postal.publish({
+          channel: "locator",
+          topic: "endpoint.add",
+          data: {
+              addressOfRecord: addressOfRecord,
+              route: route
+          }
+        })
     }
 
     getUser(username, host) {
