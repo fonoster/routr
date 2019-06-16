@@ -8,5 +8,5 @@
       countryISOCode: US
   spec:
     location:
-      telUrl: 'tel:0000000000 '        # Use your DID number as given by your provider
+      telUrl: 'tel:0000000000'        # Use your DID number as given by your provider
       aorLink: 'sip:1001@sip.local'
