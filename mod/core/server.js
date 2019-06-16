@@ -8,6 +8,7 @@ const getConfig = require('@routr/core/config_util')
 const Registry = require('@routr/registry/registry')
 const RestService = require('@routr/rest/rest')
 
+const FileInputStream = Java.type('java.io.FileInputStream')
 const System = Java.type('java.lang.System')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const Properties = Java.type('java.util.Properties')
@@ -112,22 +113,24 @@ class Server {
     }
 
     getProperties() {
-        const properties = new Properties()
-        // See https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java for
-        // more options
+        let properties = new Properties()
+        // for more options see:
+        // https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java 
         properties.setProperty('javax.sip.STACK_NAME', 'routr')
-        // Default host
-        properties.setProperty('javax.sip.IP_ADDRESS', this.host)
         properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'OFF')
-        // Guard against denial of service attack.
-        properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576')
-        // Drop the client connection after we are done with the transaction.
-        properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'false')
-        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', this.config.spec.logging.traceLevel)
         properties.setProperty('gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY', 'gov.nist.javax.sip.stack.NioMessageProcessorFactory')
         properties.setProperty('gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS', 'false')
+        properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'true')
         properties.setProperty('gov.nist.javax.sip.REENTRANT_LISTENER', 'true')
         properties.setProperty('gov.nist.javax.sip.NIO_BLOCKING_MODE', 'NONBLOCKING')
+
+        // Guard against denial of service attack.
+        properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576')
+        properties.setProperty('gov.nist.javax.sip.LOG_MESSAGE_CONTENT', 'false')
+        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', this.config.spec.logging.traceLevel)
+
+        // Default host
+        properties.setProperty('javax.sip.IP_ADDRESS', this.host)
 
         // See https://groups.google.com/forum/#!topic/mobicents-public/U_c7aLAJ_MU for useful info
         if (this.config.spec.securityContext) {
@@ -139,6 +142,13 @@ class Server {
             properties.setProperty('javax.net.ssl.keyStorePassword', this.config.spec.securityContext.keyStorePassword)
             properties.setProperty('javax.net.ssl.keyStoreType', this.config.spec.securityContext.keyStoreType)
         }
+
+        try {
+            const filesPath = this.config.spec.dataSource.parameters.path
+            properties.load(new FileInputStream(filesPath + '/stack.properties'))
+        } catch(e) {
+        }
+
         return properties
     }
 
