@@ -7,7 +7,7 @@
       domainUri: sip.local
       egressPolicy:
         rule: .*
-        didRef: dddb23d4
+        didRef: dd50baa4
 - apiVersion: v1beta1
   kind: Domain
   metadata:
