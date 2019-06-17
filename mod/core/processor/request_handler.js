@@ -63,7 +63,7 @@ class RequestHandler {
             channel: "locator",
             topic: "endpoint.find",
             data: {
-                addressOfRecord: ProcessorUtils.getAOR(request),
+                addressOfRecord: ProcessorUtils.getAOR(serverTransaction.getRequest()),
                 requestId: requestId
             }
         })
