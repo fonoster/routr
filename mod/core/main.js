@@ -6,22 +6,6 @@ const System = Java.type('java.lang.System')
 const BasicConfigurator = Java.type('org.apache.log4j.BasicConfigurator')
 const NullAppender = Java.type('org.apache.log4j.varia.NullAppender')
 load(System.getProperty('user.dir') + '/libs/jvm-npm.js')
-load('classpath:net/arnx/nashorn/lib/promise.js')
-
-const lodash = require('lodash')
-const postal = require('postal')
-require('postal.request-response')
-
-postal.configuration.promise.createDeferred = () => {
-		var deferred = {}
-		deferred.promise = new Promise((resolve, reject) => {
-				deferred.resolve = resolve
-				deferred.reject = reject
-		})
-		return deferred
-}
-
-postal.configuration.promise.getPromise = deferred => deferred.promise
 
 const Server = require('@routr/core/server')
 // Default Data Provider (from files)
@@ -39,7 +23,7 @@ const RestfulDataSource = require('@routr/data_api/restful_datasource')
 const config = require('@routr/core/config_util')()
 
 // XXX: This feals a bit like a hack. But it is ok for now.
-global.timer = timer
+var global = { timer }
 
 // Avoids old log4j and jetty logs
 System.setProperty("org.eclipse.jetty.LEVEL", "WARN")

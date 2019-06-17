@@ -5,7 +5,6 @@
  * @since v1
  */
 const postal = require('postal')
-
 const Response = Java.type('javax.sip.message.Response')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const ArrayList = Java.type('java.util.ArrayList')

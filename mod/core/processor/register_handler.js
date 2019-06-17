@@ -25,16 +25,17 @@ class RegisterHandler {
         this.authHelper = new AuthHelper(this.headerFactory)
     }
 
-    doProcess (request, transaction) {
+    doProcess (serverTransaction) {
+        const request = serverTransaction.getRequest()
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
         const expHeader = this.getExpHeader(request)
 
         if (expHeader.getExpires() <= 0) {
-            return this.removeEndpoint(request, transaction)
+            return this.removeEndpoint(request, serverTransaction)
         }
 
-        this.registrar.register(request)? this.sendOk(request, transaction)
-            : this.sendUnauthorized(request, transaction)         
+        this.registrar.register(request)? this.sendOk(request, serverTransaction)
+            : this.sendUnauthorized(request, serverTransaction)
     }
 
     getExpHeader(request) {

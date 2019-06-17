@@ -52,7 +52,15 @@ class Locator {
         		channel: "locator",
         		topic: "endpoint.find",
         		callback: (data, envelope) => {
-                envelope.reply(null, this.findEndpoint(data.addressOfRecord))
+                const response = this.findEndpoint(data.addressOfRecord)
+                postal.publish({
+                    channel: "locator",
+                    topic: "endpoint.find.reply",
+                    data: {
+                        response: response,
+                        requestId: data.requestId
+                    }
+                })
         		}
       	})
     }

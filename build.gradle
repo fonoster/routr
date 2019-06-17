@@ -41,7 +41,6 @@ dependencies {
     compile 'org.graalvm.truffle:truffle-api:19.0.0'
     compile 'org.graalvm.js:js:19.0.0'
     compile 'org.graalvm.regex:regex:19.0.0'
-    compile 'net.arnx:nashorn-promise:0.1.1'
 }
 
 repositories {

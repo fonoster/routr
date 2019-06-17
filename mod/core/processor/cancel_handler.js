@@ -5,12 +5,12 @@
 const postal = require('postal')
 
 class CancelHandler {
-    doProcess(request, serverTransaction) {
+    doProcess(transaction) {
         postal.publish({
             channel: "processor",
             topic: "transaction.cancel",
             data: {
-                transactionId: serverTransaction.getBranchId()
+                transactionId: transaction.getBranchId()
             }
         })
     }

@@ -11,7 +11,9 @@ import javax.script.ScriptException;
 
 public class Launcher {
     private static String launchScript = "var System = Java.type('java.lang.System');"
-      + "load(System.getProperty('user.dir') + '/libs/app.bundle.js')";
+        + "load(System.getProperty('user.dir') + '/libs/app.bundle.js')";
+    private static String launchScriptDev = "var System = Java.type('java.lang.System');"
+        + "load(System.getProperty('user.dir') + '/node_modules/@routr/core/main.js')";
 
     static public void main(String... args) {
         try {
@@ -24,23 +26,29 @@ public class Launcher {
     // TODO: Check Java version and show warning if version >= 11
     public void launch() throws ScriptException {
         String engine = System.getenv("ROUTR_JS_ENGINE");
+        String mode = System.getenv("ROUTR_LAUNCH_MODE");
+        String launchScript = this.launchScript;
+
+        if (mode != null && System.getenv("ROUTR_LAUNCH_MODE").equalsIgnoreCase("dev")) {
+            launchScript = this.launchScriptDev;
+        }
 
         if (engine != null && engine.equals("graal.js")) {
-          launchWithGraalJS();
+          launchWithGraalJS(launchScript);
         } else if (engine != null && engine.equals("nashorn")) {
-          launchWithNashorn();
+          launchWithNashorn(launchScript);
         } else {
-          launchWithNashorn();
+          launchWithNashorn(launchScript);
         }
     }
 
-    public void launchWithNashorn() throws ScriptException {
+    public void launchWithNashorn(String launchScript) throws ScriptException {
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
         engine.put("timer", new Timer());
         engine.eval(launchScript);
     }
 
-    public void launchWithGraalJS() {
+    public void launchWithGraalJS(String launchScript) {
         Context polyglot = Context
           .newBuilder()
           .option("js.nashorn-compat", "true")

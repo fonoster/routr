@@ -43,14 +43,14 @@ class RequestProcessor {
 
         switch (request.getMethod()) {
             case Request.REGISTER:
-              new RegisterHandler(this.dataAPIs).doProcess(request, serverTransaction)
+              new RegisterHandler(this.dataAPIs).doProcess(serverTransaction)
               break
             case Request.CANCEL:
-              new CancelHandler().doProcess(request, serverTransaction)
+              new CancelHandler().doProcess(serverTransaction)
               break
             default:
               new RequestHandler(this.sipProvider, this.dataAPIs, this.contextStorage)
-                .doProcess(request, serverTransaction)
+                .doProcess(serverTransaction)
         }
     }
 

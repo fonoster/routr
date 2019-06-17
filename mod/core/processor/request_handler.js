@@ -9,6 +9,7 @@ const getConfig = require('@routr/core/config_util')
 const { Status } = require('@routr/core/status')
 const LocatorUtils = require('@routr/location/utils')
 
+const ObjectId = Java.type('org.bson.types.ObjectId')
 const InetAddress = Java.type('java.net.InetAddress')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const Request = Java.type('javax.sip.message.Request')
@@ -18,6 +19,13 @@ const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const MaxForwardsHeader = Java.type('javax.sip.header.MaxForwardsHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const ConcurrentHashMap = Java.type('java.util.concurrent.ConcurrentHashMap')
+const requestStore = new ConcurrentHashMap()
+const messageFactory = SipFactory.getInstance().createMessageFactory()
+const headerFactory = SipFactory.getInstance().createHeaderFactory()
+const addressFactory = SipFactory.getInstance().createAddressFactory()
+const ipUtil = new IPUtil(getConfig())
+const config = getConfig()
 const LOG = LogManager.getLogger()
 
 class RequestHandler {
@@ -25,33 +33,39 @@ class RequestHandler {
     constructor(sipProvider, dataAPIs, contextStorage) {
         this.sipProvider = sipProvider
         this.contextStorage = contextStorage
-        this.messageFactory = SipFactory.getInstance().createMessageFactory()
-        this.headerFactory = SipFactory.getInstance().createHeaderFactory()
-        this.addressFactory = SipFactory.getInstance().createAddressFactory()
-        this.config = getConfig()
-        this.ipUtil = new IPUtil(getConfig())
-    }
-
-    doProcess(request, serverTransaction) {
-        const procUtils = new ProcessorUtils(request, serverTransaction, this.messageFactory)
-        const locChannel = postal.channel("locator");
-
-        locChannel.request({
-        		topic: "endpoint.find",
-        		data: { addressOfRecord: ProcessorUtils.getAOR(request) }
-        })
 
         postal.subscribe({
-        		channel: "postal.request-response",
-        		topic: "*",
-        		callback: (response, envelope) => {
-                if (response.status === Status.NOT_FOUND) {
-                    procUtils.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
-                } else {
-                    // Call forking
-                    response.result.forEach(route => this.processRoute(request, serverTransaction, route))
+        		channel: "locator",
+        		topic: "endpoint.find.reply",
+        		callback: (data, envelope) => {
+                const serverTransaction = requestStore.get(data.requestId)
+
+                if (serverTransaction === null) return
+
+                const response = data.response
+                const procUtils = new ProcessorUtils(serverTransaction.getRequest(), serverTransaction, messageFactory)
+
+                if (response.status == Status.NOT_FOUND) {
+                    return procUtils.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
                 }
+
+                // Call forking
+                response.result.forEach(route => this.processRoute(serverTransaction.getRequest(), serverTransaction, route))
+                requestStore.remove(data.requestId)
         		}
+      	})
+    }
+
+    doProcess(serverTransaction) {
+        const requestId = new ObjectId().toString()
+        requestStore.put(requestId, serverTransaction)
+        postal.publish({
+            channel: "locator",
+            topic: "endpoint.find",
+            data: {
+                addressOfRecord: ProcessorUtils.getAOR(request),
+                requestId: requestId
+            }
         })
     }
 
@@ -60,7 +74,7 @@ class RequestHandler {
         const transport = requestIn.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
         const lp = this.sipProvider.getListeningPoint(transport)
         const localAddr = { host: lp.getIPAddress().toString(), port: lp.getPort() }
-        const advertisedAddr = this.getAdvertizedAddr(route, localAddr, this.config.spec.externAddr)
+        const advertisedAddr = this.getAdvertizedAddr(route, localAddr, config.spec.externAddr)
 
         LOG.debug('advertised addr: ' + JSON.stringify(advertisedAddr))
         LOG.debug('flow: ' + JSON.stringify(route))
@@ -83,7 +97,7 @@ class RequestHandler {
     }
 
     stayInSignalingPath() {
-        return this.config.spec.recordRoute? true : false
+        return config.spec.recordRoute? true : false
     }
 
     proxyOwnsRequest(request, localAddr, advertisedAddr) {
@@ -106,7 +120,7 @@ class RequestHandler {
     configureGeneral(request, route, advertisedAddr) {
         const transport = request.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
         request.setRequestURI(LocatorUtils.aorAsObj(route.contactURI))
-        const viaHeader = this.headerFactory
+        const viaHeader = headerFactory
           .createViaHeader(advertisedAddr.host, advertisedAddr.port, transport, null)
         viaHeader.setRPort()
         request.addFirst(viaHeader)
@@ -116,11 +130,11 @@ class RequestHandler {
     }
 
     configureRecordRoute(request, advertisedAddr) {
-        const proxyURI = this.addressFactory.createSipURI(null, advertisedAddr.host)
+        const proxyURI = addressFactory.createSipURI(null, advertisedAddr.host)
         proxyURI.setLrParam()
         proxyURI.setPort(advertisedAddr.port)
-        const proxyAddress = this.addressFactory.createAddress(proxyURI)
-        const recordRouteHeader = this.headerFactory.createRecordRouteHeader(proxyAddress)
+        const proxyAddress = addressFactory.createAddress(proxyURI)
+        const recordRouteHeader = headerFactory.createRecordRouteHeader(proxyAddress)
         request.addHeader(recordRouteHeader)
     }
 
@@ -130,8 +144,8 @@ class RequestHandler {
             const cseq = request.getHeader(CSeqHeader.NAME).getSeqNumber() - 1
             request.getHeader(CSeqHeader.NAME).setSeqNumber(cseq)
         }
-        const gwRefHeader = this.headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
-        const remotePartyIdHeader = this.headerFactory
+        const gwRefHeader = headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
+        const remotePartyIdHeader = headerFactory
             .createHeader('Remote-Party-ID', '<sip:'+ route.did + '@' + route.gwHost+ '>;screen=yes;party=calling')
         request.setHeader(gwRefHeader)
         request.setHeader(remotePartyIdHeader)
@@ -174,7 +188,7 @@ class RequestHandler {
         // No egress routing has sentByAddress. They are assume to be entities outside the local network.
         if (externAddr && (route.sentByAddress === undefined
             || route.sentByAddress.endsWith(".invalid")
-            || !this.ipUtil.isLocalnet(route.sentByAddress))) {
+            || !ipUtil.isLocalnet(route.sentByAddress))) {
 
             return {
                 host: externAddr.contains(":") ? externAddr.split(":")[0] : externAddr,
