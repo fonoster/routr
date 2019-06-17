@@ -57,7 +57,7 @@ testGroup.find_local_endpoint = function() {
     locator.addEndpoint(peerEndpoint.aor, peerEndpoint.route)
     testFE(agentEndpoint.aor)
     testFE(peerEndpoint.aor)
-    locator.removeEndpoint(agentEndpoint.aor, agentEndpoint.route.contactUri)
+    locator.removeEndpoint(agentEndpoint.aor, agentEndpoint.route.contactURI)
 }
 
 testGroup.find_endpoint_for_did = function() {
@@ -65,7 +65,7 @@ testGroup.find_endpoint_for_did = function() {
     const endpoint = buildEndpoint('1001', 'sip.local', '192.168.1.2:5061')
     locator.addEndpoint(endpoint.aor, endpoint.route)
     testFE(addressFactory.createSipURI('0000000000', 'sip.local'), true)
-    locator.removeEndpoint(endpoint.aor, endpoint.route.contactUri)
+    locator.removeEndpoint(endpoint.aor, endpoint.route.contactURI)
 }
 
 testGroup.find_remote_endpoint = function() {

@@ -34,7 +34,7 @@ class RegisterHandler {
         }
 
         this.registrar.register(request)? this.sendOk(request, transaction)
-            : this.sendUnauthorized(request, transaction)
+            : this.sendUnauthorized(request, transaction)         
     }
 
     getExpHeader(request) {

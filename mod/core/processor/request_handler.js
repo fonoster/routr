@@ -7,6 +7,7 @@ const ProcessorUtils = require('@routr/core/processor/utils')
 const IPUtil = require('@routr/core/ip_util')
 const getConfig = require('@routr/core/config_util')
 const { Status } = require('@routr/core/status')
+const LocatorUtils = require('@routr/location/utils')
 
 const InetAddress = Java.type('java.net.InetAddress')
 const SipFactory = Java.type('javax.sip.SipFactory')
@@ -91,7 +92,6 @@ class RequestHandler {
             const h = routeHeader.getAddress().getURI().getHost()
             const host = IPUtil.isIp(h)? h : InetAddress.getByName(h).getHostAddress()
             const port = routeHeader.getAddress().getURI().getPort() === -1? 5060 : routeHeader.getAddress().getURI().getPort()
-
             if (host.equals(advertisedAddr.host) && port.equals(advertisedAddr.port)) {
                 return true
             }
@@ -105,7 +105,7 @@ class RequestHandler {
 
     configureGeneral(request, route, advertisedAddr) {
         const transport = request.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
-        request.setRequestURI(route.contactURI)
+        request.setRequestURI(LocatorUtils.aorAsObj(route.contactURI))
         const viaHeader = this.headerFactory
           .createViaHeader(advertisedAddr.host, advertisedAddr.port, transport, null)
         viaHeader.setRPort()
