@@ -18,10 +18,9 @@ const Response = Java.type('javax.sip.message.Response')
 
 class RequestProcessor {
 
-    constructor(sipProvider, locator, dataAPIs, contextStorage) {
+    constructor(sipProvider, dataAPIs, contextStorage) {
         this.sipProvider = sipProvider
         this.contextStorage = contextStorage
-        this.locator = locator
         this.dataAPIs = dataAPIs
         this.domainsAPI = dataAPIs.DomainsAPI
         this.messageFactory = SipFactory.getInstance().createMessageFactory()
@@ -47,10 +46,10 @@ class RequestProcessor {
               new RegisterHandler(this.dataAPIs).doProcess(request, serverTransaction)
               break
             case Request.CANCEL:
-              new CancelHandler(this.sipProvider, this.contextStorage).doProcess(request, serverTransaction)
+              new CancelHandler().doProcess(request, serverTransaction)
               break
             default:
-              new RequestHandler(this.locator, this.sipProvider, this.dataAPIs, this.contextStorage)
+              new RequestHandler(this.sipProvider, this.dataAPIs, this.contextStorage)
                 .doProcess(request, serverTransaction)
         }
     }

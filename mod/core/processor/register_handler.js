@@ -61,7 +61,7 @@ class RegisterHandler {
               contactURI: contactHeader.getAddress().getURI().toString(),
               isWildcard: contactHeader.getAddress().isWildcard()
           }
-        });
+        })
 
         this.sendOk(request, transaction)
     }

@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const postal = require('postal')
 const ProcessorUtils = require('@routr/core/processor/utils')
 const IPUtil = require('@routr/core/ip_util')
 const getConfig = require('@routr/core/config_util')
@@ -20,9 +21,8 @@ const LOG = LogManager.getLogger()
 
 class RequestHandler {
 
-    constructor(locator, sipProvider, dataAPIs, contextStorage) {
+    constructor(sipProvider, dataAPIs, contextStorage) {
         this.sipProvider = sipProvider
-        this.locator = locator
         this.contextStorage = contextStorage
         this.messageFactory = SipFactory.getInstance().createMessageFactory()
         this.headerFactory = SipFactory.getInstance().createHeaderFactory()
@@ -33,14 +33,25 @@ class RequestHandler {
 
     doProcess(request, serverTransaction) {
         const procUtils = new ProcessorUtils(request, serverTransaction, this.messageFactory)
-        const response = this.locator.findEndpoint(ProcessorUtils.getAOR(request))
+        const locChannel = postal.channel("locator");
 
-        if (response.status === Status.NOT_FOUND) {
-            return procUtils.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
-        }
+        locChannel.request({
+        		topic: "endpoint.find",
+        		data: { addressOfRecord: ProcessorUtils.getAOR(request) }
+        })
 
-        // Call forking
-        response.result.forEach(route => this.processRoute(request, serverTransaction, route))
+        postal.subscribe({
+        		channel: "postal.request-response",
+        		topic: "*",
+        		callback: (response, envelope) => {
+                if (response.status === Status.NOT_FOUND) {
+                    procUtils.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
+                } else {
+                    // Call forking
+                    response.result.forEach(route => this.processRoute(request, serverTransaction, route))
+                }
+        		}
+        })
     }
 
     processRoute(requestIn, serverTransaction, route) {
@@ -156,7 +167,7 @@ class RequestHandler {
         context.method = requestIn.getMethod()
         context.requestIn = requestIn
         context.requestOut = requestOut
-        this.contextStorage.saveContext(context)
+        this.contextStorage.addContext(context)
     }
 
     getAdvertizedAddr(route, localAddr, externAddr) {

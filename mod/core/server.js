@@ -88,8 +88,7 @@ class Server {
         this.registry = new Registry(sipProvider, this.dataAPIs)
 
         const processor = new Processor(sipProvider,
-            this.locator,
-                this.registry, this.dataAPIs, this.contextStorage)
+            this.registry, this.dataAPIs, this.contextStorage)
 
         sipProvider.addSipListener(processor.listener)
     }

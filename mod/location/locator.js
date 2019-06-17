@@ -5,11 +5,11 @@
  * @author Pedro Sanders
  * @since v1
  */
+const postal = require('postal')
 const CoreUtils = require('@routr/core/utils')
 const LocatorUtils = require('@routr/location/utils')
 const isEmpty = require('@routr/utils/obj_util')
 const { Status } = require('@routr/core/status')
-const postal = require('postal')
 
 const HashMap = Java.type('java.util.HashMap')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -33,19 +33,27 @@ class Locator {
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
 
         postal.subscribe({
-      		channel: "locator",
-      		topic: "endpoint.remove",
-      		callback: (data, envelope) => {
-              this.removeEndpoint(data.addressOfRecord, data.contactURI, data.isWildcard)
-      		}
+        		channel: "locator",
+        		topic: "endpoint.remove",
+        		callback: (data, envelope) => {
+                this.removeEndpoint(data.addressOfRecord, data.contactURI, data.isWildcard)
+        		}
       	})
 
         postal.subscribe({
-      		channel: "locator",
-      		topic: "endpoint.add",
-      		callback: (data, envelope) => {
-              this.addEndpoint(data.addressOfRecord, data.route)
-      		}
+        		channel: "locator",
+        		topic: "endpoint.add",
+        		callback: (data, envelope) => {
+                this.addEndpoint(data.addressOfRecord, data.route)
+        		}
+      	})
+
+        postal.subscribe({
+        		channel: "locator",
+        		topic: "endpoint.find",
+        		callback: (data, envelope) => {
+                envelope.reply(null, this.findEndpoint(data.addressOfRecord))
+        		}
       	})
     }
 
