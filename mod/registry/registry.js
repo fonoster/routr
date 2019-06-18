@@ -10,7 +10,8 @@ const SipFactory = Java.type('javax.sip.SipFactory')
 const SipUtils = Java.type('gov.nist.javax.sip.Utils')
 const Request = Java.type('javax.sip.message.Request')
 const InetAddress = Java.type('java.net.InetAddress')
-const HashMap = Java.type('java.util.HashMap')
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
 const LOG = LogManager.getLogger()
@@ -28,7 +29,10 @@ class Registry {
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
         this.userAgent = new java.util.ArrayList()
         this.userAgent.add(this.config.metadata.userAgent)
-        this.registry = new HashMap()
+        this.registry = Caffeine.newBuilder()
+            .expireAfterWrite(this.checkExpiresTime, TimeUnit.MINUTES)
+            .maximumSize(5000)    // TODO: This should be a parameter
+            .build()
     }
 
     getLPAddress(transport, received, rport) {
@@ -114,7 +118,7 @@ class Registry {
 
     listAsJSON() {
         const s = []
-        const iterator = this.registry.values().iterator()
+        const iterator = this.registry.asMap().values().iterator()
 
         while(iterator.hasNext()) {
             const reg = iterator.next()
@@ -124,8 +128,9 @@ class Registry {
         return s
     }
 
+    // Deprecated
     isExpired (gwURIStr) {
-        const reg = this.registry.get(gwURIStr)
+        const reg = this.registry.getIfPresent(gwURIStr)
 
         if (reg === null) {
           return true
@@ -135,6 +140,7 @@ class Registry {
         return reg.expires - elapsed <= 0? true : false
     }
 
+    // Deprecated
     start() {
         LOG.info('Starting Registry service')
         const self = this

@@ -96,8 +96,8 @@ class Server {
     start()  {
       LOG.info('Starting Routr')
         this.setup()
-        this.locator.start()
-        this.registry.start()
+        //this.locator.start()
+        //this.registry.start()
         this.restService = new RestService(this, this.locator, this.registry, this.dataAPIs)
         this.restService.start()
     }

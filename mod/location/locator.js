@@ -11,7 +11,8 @@ const LocatorUtils = require('@routr/location/utils')
 const isEmpty = require('@routr/utils/obj_util')
 const { Status } = require('@routr/core/status')
 
-const HashMap = Java.type('java.util.HashMap')
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const SipFactory = Java.type('javax.sip.SipFactory')
 
@@ -26,7 +27,11 @@ class Locator {
 
     constructor(dataAPIs, checkExpiresTime = 1) {
         this.checkExpiresTime = checkExpiresTime
-        this.db = new HashMap()
+        this.db = Caffeine.newBuilder()
+            .expireAfterWrite(checkExpiresTime, TimeUnit.MINUTES)
+            .maximumSize(500000)  // TODO: This should be a parameter
+            .build()
+
         this.didsAPI = dataAPIs.DIDsAPI
         this.domainsAPI = dataAPIs.DomainsAPI
         this.gatewaysAPI = dataAPIs.GatewaysAPI
@@ -96,10 +101,10 @@ class Locator {
             return this.db.remove(aor)
         }
         // Not using aorAsString because we need to consider the port, etc.
-        this.db.get(aor).remove(contactURI)
+        this.db.getIfPresent(aor).remove(contactURI)
 
         // This is just a hashmap of hashmaps...
-        if (this.db.get(aor).isEmpty()) this.db.remove(aor)
+        if (this.db.getIfPresent(aor).isEmpty()) this.db.remove(aor)
     }
 
     findEndpoint(addressOfRecord) {
@@ -117,7 +122,7 @@ class Locator {
         const response = this.didsAPI.getDIDByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
         if (response.status === Status.OK) {
             const did = response.result
-            const route = this.db.get(LocatorUtils.aorAsString(did.spec.location.aorLink))
+            const route = this.db.getIfPresent(LocatorUtils.aorAsString(did.spec.location.aorLink))
             if (route !== null) {
                 return CoreUtils.buildResponse(Status.OK, route)
             }
@@ -129,7 +134,7 @@ class Locator {
 
     findEndpointBySipURI(addressOfRecord) {
         // First just look into the 'db'
-        const routes = this.db.get(LocatorUtils.aorAsString(addressOfRecord))
+        const routes = this.db.getIfPresent(LocatorUtils.aorAsString(addressOfRecord))
 
         if (routes !== null) {
             return CoreUtils.buildResponse(Status.OK, routes)
@@ -161,7 +166,7 @@ class Locator {
         const response = this.didsAPI.getDIDByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
         if (response.status === Status.OK) {
             const did = response.result
-            const route = this.db.get(LocatorUtils.aorAsString(did.spec.location.aorLink))
+            const route = this.db.getIfPresent(LocatorUtils.aorAsString(did.spec.location.aorLink))
             if (route !== null) {
                 return CoreUtils.buildResponse(Status.OK, route)
             }
@@ -170,13 +175,13 @@ class Locator {
     }
 
     getPeerRouteByHost(addressOfRecord) {
-        const aors = this.db.keySet().iterator()
+        const aors = this.db.asMap().keySet().iterator()
         const aor = LocatorUtils.aorAsObj(addressOfRecord)
         const peerHost = aor.getHost().toString()
         const peerPort = this.getPort(aor)
 
         while(aors.hasNext()) {
-            let routes = this.db.get(aors.next())
+            let routes = this.db.getIfPresent(aors.next())
             for (const x in routes) {
                 const contactURI = LocatorUtils.aorAsObj(routes[x].contactURI)
                 const h1 = contactURI.getHost().toString()
@@ -210,6 +215,7 @@ class Locator {
     }
 
     getEgressRouteForDomain(addressOfRecord, domain) {
+        print('Domain1.0: ' + JSON.stringify(domain))
         if (!isEmpty(domain.spec.context.egressPolicy)) {
             // Get DID and Gateway info
             let response = this.didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
@@ -257,11 +263,11 @@ class Locator {
 
     listAsJSON (domainUri) {
         let s = []
-        const aors = this.db.keySet().iterator()
+        const aors = this.db.asMap().keySet().iterator()
 
         while(aors.hasNext()) {
             let key = aors.next()
-            let routes = this.db.get(key)
+            let routes = this.db.getIfPresent(key)
             let contactInfo = ''
 
             if (routes.length > 0) {
@@ -279,6 +285,7 @@ class Locator {
         return s
     }
 
+    // Deprecated
     start() {
         LOG.info('Starting Location service')
         const self = this
