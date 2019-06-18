@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -e
+
 BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 
 [ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
