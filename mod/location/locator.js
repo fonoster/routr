@@ -215,7 +215,6 @@ class Locator {
     }
 
     getEgressRouteForDomain(addressOfRecord, domain) {
-        print('Domain1.0: ' + JSON.stringify(domain))
         if (!isEmpty(domain.spec.context.egressPolicy)) {
             // Get DID and Gateway info
             let response = this.didsAPI.getDID(domain.spec.context.egressPolicy.didRef)

@@ -26,7 +26,6 @@ class Processor {
                 try {
                     requestProcessor.process(event)
                 } catch(e) {
-                    e.printStackTrace()
                     LOG.error(e)
                 }
             },
