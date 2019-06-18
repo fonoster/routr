@@ -88,7 +88,7 @@ class Registry {
     }
 
     handleChallengeException(e, gwHost) {
-        this.registry.remove(gwHost)
+        this.registry.invalidate(gwHost)
         if(e instanceof Java.type('javax.sip.TransactionUnavailableException')
             || e instanceof Java.type('javax.sip.SipException')) {
             LOG.warn('Unable to register with Gateway -> ' + gwHost + '. (Verify your network status)')
@@ -114,7 +114,7 @@ class Registry {
     }
 
     removeRegistry (gwURIStr) {
-        this.registry.remove(gwURIStr)
+        this.registry.invalidate(gwURIStr)
     }
 
     listAsJSON() {
