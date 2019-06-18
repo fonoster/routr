@@ -291,7 +291,7 @@ class Locator {
 
         global.timer.schedule(
           () => {
-            const e = self.db.values().iterator()
+            const e = self.db.asMap().values().iterator()
 
             while(e.hasNext()) {
                 let routes = e.next()

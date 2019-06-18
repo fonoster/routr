@@ -89,7 +89,8 @@ class Registry {
 
     handleChallengeException(e, gwHost) {
         this.registry.remove(gwHost)
-        if(e instanceof javax.sip.TransactionUnavailableException || e instanceof javax.sip.SipException) {
+        if(e instanceof Java.type('javax.sip.TransactionUnavailableException')
+            || e instanceof Java.type('javax.sip.SipException')) {
             LOG.warn('Unable to register with Gateway -> ' + gwHost + '. (Verify your network status)')
         } else {
             LOG.warn(e)
@@ -128,7 +129,6 @@ class Registry {
         return s
     }
 
-    // Deprecated
     isExpired (gwURIStr) {
         const reg = this.registry.getIfPresent(gwURIStr)
 
@@ -140,7 +140,6 @@ class Registry {
         return reg.expires - elapsed <= 0? true : false
     }
 
-    // Deprecated
     start() {
         LOG.info('Starting Registry service')
         const self = this
