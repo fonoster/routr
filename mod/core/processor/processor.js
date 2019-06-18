@@ -14,7 +14,7 @@ class Processor {
     constructor(sipProvider, registry, dataAPIs, contextStorage) {
         this.contextStorage = contextStorage
         this.requestProcessor = new RequestProcessor(sipProvider, dataAPIs, contextStorage)
-        this.responseProcessor = new ResponseProcessor(sipProvider, registry, dataAPIs, contextStorage)
+        this.responseProcessor = new ResponseProcessor(sipProvider, dataAPIs, contextStorage, registry)
     }
 
     get listener () {
@@ -26,6 +26,7 @@ class Processor {
                 try {
                     requestProcessor.process(event)
                 } catch(e) {
+                    e.printStackTrace()
                     LOG.error(e)
                 }
             },

@@ -17,7 +17,7 @@ const LOG = LogManager.getLogger()
 
 class ResponseProcessor {
 
-    constructor(sipProvider, registry, dataAPIs, contextStorage) {
+    constructor(sipProvider, dataAPIs, contextStorage, registry) {
         this.sipProvider = sipProvider
         this.registry = registry
         this.contextStorage = contextStorage
