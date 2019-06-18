@@ -1,5 +1,6 @@
 apiVersion: v1beta1
 spec:
+  allowGuest: true
   transport:
     - protocol: udp
       port: 5060
