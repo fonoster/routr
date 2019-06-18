@@ -57,7 +57,7 @@ class DomainsAPI {
     }
 
     getDomain(ref) {
-        returnthis.ds.withCollection('domains').get(ref)
+        return this.ds.withCollection('domains').get(ref)
     }
 
     getDomainByUri(domainUri) {

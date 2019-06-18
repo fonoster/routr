@@ -12,6 +12,8 @@ const JsonPath = Java.type('com.jayway.jsonpath.JsonPath')
 const System = Java.type('java.lang.System')
 const NoSuchFileException = Java.type('java.nio.file.NoSuchFileException')
 const JsonMappingException = Java.type('com.fasterxml.jackson.databind.JsonMappingException')
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
@@ -20,6 +22,11 @@ const RESOURCES = ['agents', 'domains', 'gateways', 'dids', 'peers', 'users']
 class FilesDataSource {
 
     constructor(config = getConfig()) {
+        this.cache = Caffeine.newBuilder()
+          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .maximumSize(8)
+          .build()
+
         if (System.getenv("ROUTR_DS_PARAMETERS") !== null) {
             config.spec.dataSource.parameters = {}
             const key = System.getenv("ROUTR_DS_PARAMETERS").split("=")[0]
@@ -126,7 +133,15 @@ class FilesDataSource {
         let list = []
 
         try {
-            const resource = DSUtils.convertToJson(FilesUtil.readFile(this.filesPath + '/' + this.collection + '.yml'))
+            const filePath = this.filesPath + '/' + this.collection + '.yml'
+            let resourceStr = this.cache.getIfPresent(filePath)
+
+            if (resourceStr === null) {
+                resourceStr = FilesUtil.readFile(filePath)
+                this.cache.put(filePath, resourceStr)
+            }
+
+            const resource = DSUtils.convertToJson(resourceStr)
 
             // JsonPath does not parse properly when using Json objects from JavaScript
             if(isEmpty(resource) === false) {
