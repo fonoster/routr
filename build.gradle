@@ -2,12 +2,19 @@ buildscript {
     repositories {
         mavenCentral()
         jcenter()
+        maven { url "https://jitpack.io" }
     }
 }
 
 plugins {
     id 'java'
     id 'com.github.ben-manes.versions' version '0.17.0'
+}
+
+allprojects {
+  repositories {
+    maven { url 'https://jitpack.io' }
+  }
 }
 
 dependencies {
@@ -41,6 +48,7 @@ dependencies {
     compile 'org.graalvm.truffle:truffle-api:19.0.0'
     compile 'org.graalvm.js:js:19.0.0'
     compile 'org.graalvm.regex:regex:19.0.0'
+    compile 'com.github.uber-common:jvm-profiler:master-SNAPSHOT' // Uber Profiler    
 }
 
 repositories {
