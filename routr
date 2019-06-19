@@ -8,6 +8,9 @@ BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 
 # Ensure Java is at least 8
 
+# Uncomment to activate jvm profiler. You must use a full JVM(not the custom one) to profile CPU usage
+#ROUTR_JAVA_OPTS=-javaagent:$BASE_DIR/libs/jvm-profiler-master-SNAPSHOT.jar=reporter=com.uber.profiling.reporters.FileOutputReporter,outputDir=$BASE_DIR/out,tag=routr,metricInterval=5000
+
 running_in_docker() {
   [ -f /proc/self/cgroup ] && awk -F/ '$2 == "docker"' /proc/self/cgroup | read
 }
