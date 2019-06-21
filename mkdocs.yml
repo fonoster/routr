@@ -19,6 +19,8 @@ nav:
     - FAQ: introduction/faq.md
     - Roadmap: introduction/roadmap.md
     - Media: introduction/media.md
+    - Performance Tests:
+      - User Location: introduction/performance-tests/user-location.md
     - Glossary: introduction/glossary.md
   - Concepts: concepts.md
   - Configuration:
