@@ -2,7 +2,7 @@
 * @author Pedro Sanders
 * @since v1
 */
-export const RouteEntityType = {
+module.exports.RouteEntityType = {
     THRU_GW: 'THRU_GW',
     AGENT: 'AGENT',
     PEER: 'PEER',

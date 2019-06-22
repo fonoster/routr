@@ -4,26 +4,22 @@
  *
  * Unit Test for the "Redis Data Source"
  */
-import RedisDataSource from 'data_api/redis_datasource'
-import AgentsAPI from 'data_api/agents_api'
-import { Status } from 'core/status'
-import TestUtils from 'data_api/test_utils.js'
-import getConfig from 'core/config_util.js'
+const AgentsAPI = require('@routr/data_api/agents_api')
+const { Status } = require('@routr/core/status')
+const TestUtils = require('@routr/data_api/test_utils')
+const getConfig = require('@routr/core/config_util')
 
-const ObjectId = Packages.org.bson.types.ObjectId
+const ObjectId = Java.type('org.bson.types.ObjectId')
 
-export let testGroup = { name: "Redis Data Source", enabled: false }
-
+const testGroup = { name: "Redis Data Source", enabled: false }
 const config = getConfig()
 // To force RedisDataSource to use its own default parameters...
 delete config.spec.dataSource.parameters
-
-const ds = new RedisDataSource(config)
+const ds = null
 const agentsApi = new AgentsAPI(ds)
 
 testGroup.basic_operations = function () {
     const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
-
     const initSize = ds.withCollection('agents').find().result.length
     const response = ds.insert(agent)
     let endSize = ds.withCollection('agents').find().result.length
@@ -94,3 +90,5 @@ testGroup.get_agent = function () {
     // Cleanup
     ds.withCollection('agents').remove(ref)
 }
+
+module.exports.testGroup = testGroup

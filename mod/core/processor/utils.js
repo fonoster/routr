@@ -2,11 +2,12 @@
  * @author Pedro Sanders
  * @since v1
  */
-const SipFactory = Packages.javax.sip.SipFactory
-const ToHeader = Packages.javax.sip.header.ToHeader
-import getConfig from 'core/config_util.js'
+const getConfig = require('@routr/core/config_util')
 
-export default class ProcessorUtils {
+const SipFactory = Java.type('javax.sip.SipFactory')
+const ToHeader = Java.type('javax.sip.header.ToHeader')
+
+class ProcessorUtils {
 
     constructor(request, serverTransaction, messageFactory) {
         this.request = request
@@ -26,7 +27,7 @@ export default class ProcessorUtils {
     static getAOR (request, addressInfo = []) {
       for (const x in addressInfo) {
           let info = addressInfo[x]
-          if (request.getHeader(info) != undefined) {
+          if (request.getHeader(info) !== undefined) {
               let v = request.getHeader(info).getValue()
               if (/sips?:.*@.*/.test(v) || /tel:\d+/.test(v)) {
                   const addressFactory = SipFactory.getInstance().createAddressFactory()
@@ -40,3 +41,5 @@ export default class ProcessorUtils {
         request.getRequestURI()
     }
 }
+
+module.exports = ProcessorUtils

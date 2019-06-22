@@ -2,41 +2,40 @@
  * @author Pedro Sanders
  * @since v1
  */
-import AuthHelper from 'utils/auth_helper'
+const postal = require('postal')
+const AuthHelper = require('@routr/utils/auth_helper')
+const Registrar = require('@routr/registrar/registrar')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const ToHeader = Packages.javax.sip.header.ToHeader
-const ContactHeader = Packages.javax.sip.header.ContactHeader
-const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
-const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
-const Response = Packages.javax.sip.message.Response
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const SipFactory = Java.type('javax.sip.SipFactory')
+const ToHeader = Java.type('javax.sip.header.ToHeader')
+const ContactHeader = Java.type('javax.sip.header.ContactHeader')
+const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
+const AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
+const Response = Java.type('javax.sip.message.Response')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
 const LOG = LogManager.getLogger()
 
-export default class RegisterHandler {
+class RegisterHandler {
 
-    constructor(locator, registrar) {
-        this.locator = locator
-        this.registrar = registrar
+    constructor(dataAPIs) {
+        this.registrar = new Registrar(dataAPIs)
         this.messageFactory = SipFactory.getInstance().createMessageFactory()
         this.headerFactory = SipFactory.getInstance().createHeaderFactory()
         this.authHelper = new AuthHelper(this.headerFactory)
     }
 
-    doProcess (request, transaction) {
+    doProcess (serverTransaction) {
+        const request = serverTransaction.getRequest()
         const authHeader = request.getHeader(AuthorizationHeader.NAME)
         const expHeader = this.getExpHeader(request)
 
         if (expHeader.getExpires() <= 0) {
-            return this.removeEndpoint(request, transaction)
+            return this.removeEndpoint(request, serverTransaction)
         }
 
-        if (authHeader == null) {
-            return this.sendUnauthorized(request, transaction)
-        }
-
-        this.registrar.register(request)? this.sendOk(request, transaction)
-            : this.sendUnauthorized(request, transaction)
+        this.registrar.register(request)? this.sendOk(request, serverTransaction)
+            : this.sendUnauthorized(request, serverTransaction)
     }
 
     getExpHeader(request) {
@@ -55,11 +54,16 @@ export default class RegisterHandler {
         const contactURI = contactHeader.getAddress().getURI()
         const addressOfRecord = RegisterHandler.getAddressOfRecord(request)
 
-        if (contactHeader.getAddress().isWildcard()) {
-            this.locator.removeEndpoint(addressOfRecord, contactURI)
-        } else {
-            this.locator.removeEndpoint(addressOfRecord)
-        }
+        postal.publish({
+          channel: "locator",
+          topic: "endpoint.remove",
+          data: {
+              addressOfRecord: addressOfRecord,
+              contactURI: contactHeader.getAddress().getURI().toString(),
+              isWildcard: contactHeader.getAddress().isWildcard()
+          }
+        })
+
         this.sendOk(request, transaction)
     }
 
@@ -88,3 +92,5 @@ export default class RegisterHandler {
         return toHeader.getAddress().getURI()
     }
 }
+
+module.exports = RegisterHandler

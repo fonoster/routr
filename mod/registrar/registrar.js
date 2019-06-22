@@ -2,22 +2,25 @@
  * @author Pedro Sanders
  * @since v1
  */
-import AuthHelper from 'utils/auth_helper'
-import { Status } from 'core/status'
-import isEmpty from 'utils/obj_util'
-import getConfig from 'core/config_util.js'
+const postal = require('postal')
+const AuthHelper = require('@routr/utils/auth_helper')
+const { Status } = require('@routr/core/status')
+const isEmpty = require('@routr/utils/obj_util')
+const getConfig = require('@routr/core/config_util')
 
-const ViaHeader = Packages.javax.sip.header.ViaHeader
-const ContactHeader = Packages.javax.sip.header.ContactHeader
-const FromHeader = Packages.javax.sip.header.FromHeader
-const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
-const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
-const SipFactory = Packages.javax.sip.SipFactory
+const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const ContactHeader = Java.type('javax.sip.header.ContactHeader')
+const FromHeader = Java.type('javax.sip.header.FromHeader')
+const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
+const AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
+const SipFactory = Java.type('javax.sip.SipFactory')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
-export default class Registrar {
+const LOG = LogManager.getLogger()
 
-    constructor(locator, dataAPIs) {
-        this.locator = locator
+class Registrar {
+
+    constructor(dataAPIs) {
         this.peersAPI = dataAPIs.PeersAPI
         this.agentsAPI = dataAPIs.AgentsAPI
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
@@ -32,8 +35,26 @@ export default class Registrar {
         const fromURI = fromHeader.getAddress().getURI()
         const host = fromURI.getHost()
 
-        // Get user from db or file
-        const user = this.getUser(authHeader.getUsername(), host)
+        // Warning: This is just for testing purposes
+        if(host === 'guest' && getConfig().spec.allowGuest === true) {
+            const user = fromHeader.getAddress().getURI().getUser()
+            this.addAnonymousEndpoint({username: user, kind: 'User'}, host, request)
+            return true
+        }
+
+        if (authHeader === null) {
+            return false
+        }
+
+        // Get user from api
+        let user
+
+        try {
+            user = this.getUser(authHeader.getUsername(), host)
+        } catch(e) {
+            LOG.warn(e)
+            return false
+        }
         const aHeaderJson = Registrar.buildHeader(user, authHeader)
 
         if (new AuthHelper()
@@ -46,7 +67,7 @@ export default class Registrar {
     }
 
     hasDomain(user, domain) {
-        if (user.spec.domains == null || user.spec.domains.length == 0) return false
+        if (isEmpty(user.spec.domains)) return false
         let result = false
         user.spec.domains.forEach(function(d) {
             if (domain === d) result=true
@@ -55,8 +76,8 @@ export default class Registrar {
     }
 
     static getNonceCount(d) {
-        const h = Packages.java.lang.Integer.toHexString(d)
-        const cSize = 8 - h.toString().length()
+        const h = Java.type('java.lang.Integer').toHexString(d)
+        const cSize = 8 - h.toString().length
         let nc = ''
         let cnt = 0
 
@@ -66,6 +87,26 @@ export default class Registrar {
         }
 
         return nc + h
+    }
+
+    addAnonymousEndpoint(user, host, request) {
+        const contactHeader = request.getHeader(ContactHeader.NAME)
+        const contactURI = contactHeader.getAddress().getURI()
+        const viaHeader = request.getHeader(ViaHeader.NAME)
+        const route = Registrar.buildRoute(user, viaHeader, contactURI, Registrar.getExpires(request))
+        let addressOfRecord
+
+        addressOfRecord = this.addressFactory.createSipURI(user.username, host)
+        addressOfRecord.setSecure(contactURI.isSecure())
+
+        postal.publish({
+          channel: "locator",
+          topic: "endpoint.add",
+          data: {
+              addressOfRecord: addressOfRecord,
+              route: route
+          }
+        })
     }
 
     addEndpoint(user, host, request) {
@@ -86,39 +127,45 @@ export default class Registrar {
             })
         }
 
-        this.locator.addEndpoint(addressOfRecord, route)
+        postal.publish({
+          channel: "locator",
+          topic: "endpoint.add",
+          data: {
+              addressOfRecord: addressOfRecord,
+              route: route
+          }
+        })
     }
 
     getUser(username, host) {
-            let user
-            let response = this.peersAPI.getPeerByUsername(username)
+        let user
+        let response = this.agentsAPI.getAgent(host, username)
 
-            if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
+            user = response.result
+        } else {
+            response = this.peersAPI.getPeerByUsername(username)
+
+            if (response.status === Status.OK ) {
                 user = response.result
-            } else {
-                // Then lets check agents
-                response = this.agentsAPI.getAgent(host, username)
-
-                if (response.status == Status.OK ) {
-                    user = response.result
-                }
             }
-
-            if (user == null) {
-                throw 'Could not find agent or peer \'' + username + '\''
-            }
-
-            return user
         }
+
+        if (user === undefined) {
+            throw 'Could not find agent or peer \'' + username + '\''
+        }
+
+        return user
+    }
 
     static buildRoute(user, viaHeader, contactURI, expires) {
         // Detect NAT
-        const nat = (viaHeader.getHost() + viaHeader.getPort()) != (viaHeader.getReceived() + viaHeader.getParameter('rport'))
+        const nat = (viaHeader.getHost() + viaHeader.getPort()) !== (viaHeader.getReceived() + viaHeader.getParameter('rport'))
         return {
             isLinkAOR: false,
             thruGw: false,
             sentByAddress: viaHeader.getHost(),
-            sentByPort: (viaHeader.getPort() == -1 ? 5060 : viaHeader.getPort()),
+            sentByPort: (viaHeader.getPort() === -1 ? 5060 : viaHeader.getPort()),
             received: viaHeader.getReceived(),
             rport: viaHeader.getParameter('rport'),
             contactURI: Registrar.getUpdatedContactURI(user, viaHeader, contactURI),
@@ -137,11 +184,11 @@ export default class Registrar {
                 contactURI.setHost(user.spec.contactAddr)
             }
         } else if(Registrar.useInternalInterface(viaHeader)) {
-            if(viaHeader.getReceived() != null) {
+            if(viaHeader.getReceived() !== null) {
                 contactURI.setHost(viaHeader.getReceived())
             }
 
-            if(viaHeader.getParameter('rport') != null) {
+            if(viaHeader.getParameter('rport') !== null) {
                 contactURI.setPort(viaHeader.getParameter('rport'))
             }
         }
@@ -176,3 +223,5 @@ export default class Registrar {
             contactHeader.getExpires()
     }
 }
+
+module.exports = Registrar

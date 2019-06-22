@@ -2,9 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
-import IPUtil from 'core/ip_util'
+const IPUtil = require('@routr/core/ip_util')
 
-export default class Rule {
+class Rule {
 
     constructor(net, action) {
         if (action.equals('allow') || action.equals('deny')) {
@@ -33,3 +33,5 @@ export default class Rule {
         return this._net
     }
 }
+
+module.exports = Rule

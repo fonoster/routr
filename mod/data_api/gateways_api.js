@@ -2,23 +2,41 @@
  * @author Pedro Sanders
  * @since v1
  */
-import CoreUtils from 'core/utils'
-import DSUtil from 'data_api/utils'
-import { Status } from 'core/status'
-import { FOUND_DEPENDENT_OBJECTS_RESPONSE } from 'core/status'
+const CoreUtils = require('@routr/core/utils')
+const DSUtils = require('@routr/data_api/utils')
+const { Status } = require('@routr/core/status')
+const { FOUND_DEPENDENT_OBJECTS_RESPONSE } = require ('@routr/core/status')
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
-export default class GatewaysAPI {
+class GatewaysAPI {
 
     constructor(dataSource) {
         this.ds = dataSource
+        this.cache = Caffeine.newBuilder()
+          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .maximumSize(100)
+          .build()
     }
 
     createFromJSON(jsonObj) {
-        return this.gatewayExist(jsonObj.spec.host)? CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+        if (!this.gatewayExist(jsonObj.spec.host)) {
+            const response = this.ds.insert(jsonObj)
+            this.cache.put(jsonObj.spec.host, response)
+            return response
+        }
+
+        return CoreUtils.buildResponse(Status.CONFLICT)
     }
 
     updateFromJSON(jsonObj) {
-        return !this.gatewayExist(jsonObj.spec.host)? CoreUtils.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
+        if (this.gatewayExist(jsonObj.spec.host)) {
+            const response = this.ds.update(jsonObj)
+            this.cache(jsonObj.spec.host, response)
+            return response
+        }
+
+        return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     getGateways(filter)  {
@@ -26,21 +44,32 @@ export default class GatewaysAPI {
     }
 
     getGateway(ref) {
-       return DSUtil.deepSearch(this.getGateways(), "metadata.ref", ref)
+       return this.ds.withCollection('gateways').get(ref)
     }
 
     getGatewayByHost(host) {
-       return DSUtil.deepSearch(this.getGateways(), "spec.host", host)
+        let response = this.cache.getIfPresent(host)
+
+        if (response === null) {
+            response = DSUtils.deepSearch(this.getGateways(), "spec.host", host)
+            this.cache.put(host, response)
+        }
+
+        return response
     }
 
     gatewayExist(host) {
-        return DSUtil.objExist(this.getGatewayByHost(host))
+        return DSUtils.objExist(this.getGatewayByHost(host))
     }
 
     deleteGateway(ref) {
+        if (this.cache.getIfPresent(ref)) {
+            this.cache.invalidate(ref)
+        }
+
         let response = this.getGateway(ref)
 
-        if (response.status != Status.OK) {
+        if (response.status !== Status.OK) {
             return response
         }
 
@@ -49,7 +78,9 @@ export default class GatewaysAPI {
         response = this.ds.withCollection('dids').find("@.metadata.gwRef=='" + gateway.metadata.ref + "'")
         const dids = response.result
 
-        return dids.length == 0? this.ds.withCollection('gateways').remove(ref): FOUND_DEPENDENT_OBJECTS_RESPONSE
+        return dids.length === 0? this.ds.withCollection('gateways').remove(ref): FOUND_DEPENDENT_OBJECTS_RESPONSE
     }
 
 }
+
+module.exports = GatewaysAPI

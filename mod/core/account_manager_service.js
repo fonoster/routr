@@ -2,8 +2,10 @@
  * @author Pedro Sanders
  * @since v1
  */
-const AccountManager  = Packages.gov.nist.javax.sip.clientauthutils.AccountManager
-const UserCredentials = Packages.gov.nist.javax.sip.clientauthutils.UserCredentials
+const { Status } = require('@routr/core/status')
+
+const AccountManager = Java.type('gov.nist.javax.sip.clientauthutils.AccountManager')
+const UserCredentials = Java.type('gov.nist.javax.sip.clientauthutils.UserCredentials')
 
 // There is something mysterious about this class that
 // makes gatewaysAPI null beyond the constructor.
@@ -13,7 +15,7 @@ var gatewaysAPI
 /**
  * This serves as an authentication helper for Gateways
  */
-export default class AccountManagerService {
+class AccountManagerService {
 
     constructor(dataAPIs) {
         gatewaysAPI = dataAPIs.GatewaysAPI
@@ -23,7 +25,7 @@ export default class AccountManagerService {
         const gwRef = ct.getRequest().getHeader('X-Gateway-Ref').value
         const response = gatewaysAPI.getGateway(gwRef)
 
-        if (response.status == 200) {
+        if (response.status === Status.OK) {
             const gateway = response.result
 
             return {
@@ -56,3 +58,5 @@ export default class AccountManagerService {
         })
     }
 }
+
+module.exports = AccountManagerService

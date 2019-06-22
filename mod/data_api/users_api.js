@@ -2,11 +2,11 @@
  * @author Pedro Sanders
  * @since v1
  */
-import CoreUtils from 'core/utils'
-import DSUtil from 'data_api/utils'
-import { Status } from 'core/status'
+const CoreUtils = require('@routr/core/utils')
+const DSUtils = require('@routr/data_api/utils')
+const { Status } = require('@routr/core/status')
 
-export default class UsersAPI {
+class UsersAPI {
 
     constructor(dataSource) {
         this.ds = dataSource
@@ -25,15 +25,15 @@ export default class UsersAPI {
     }
 
     getUser(ref) {
-        return DSUtil.deepSearch(this.getUsers(), "metadata.ref", ref)
+        return this.ds.withCollection('users').get(ref)
     }
 
     getUserByUsername(username) {
-        return DSUtil.deepSearch(this.getUsers(), "spec.credentials.username", username)
+        return DSUtils.deepSearch(this.getUsers(), "spec.credentials.username", username)
     }
 
     userExist(username) {
-        return DSUtil.objExist(this.getUser(username))
+        return DSUtils.objExist(this.getUser(username))
     }
 
     deleteUser(ref) {
@@ -41,3 +41,5 @@ export default class UsersAPI {
     }
 
 }
+
+module.exports = UsersAPI

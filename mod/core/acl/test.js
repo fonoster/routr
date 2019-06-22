@@ -4,10 +4,10 @@
  *
  * Unit Test for the "Utils Module"
  */
-import ACLUtil from 'core/acl/acl_util'
-import Rule from 'core/acl/acl_rule'
+const ACLUtil = require('@routr/core/acl/acl_util')
+const Rule = require('@routr/core/acl/acl_rule')
 
-export let testGroup = { name: "Access Control List Submodule" }
+const testGroup = { name: "Access Control List Submodule" }
 
 // Tests
 testGroup.rules = function () {
@@ -35,3 +35,5 @@ testGroup.is_network_allowed = function () {
     assertFalse(aclUtil.isIpAllowed('192.168.0.4'))
     assertFalse(aclUtil.isIpAllowed('192.168.0.16'))
 }
+
+module.exports.testGroup = testGroup

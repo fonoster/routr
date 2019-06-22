@@ -2,10 +2,10 @@
  * @author Pedro Sanders
  * @since v1
  */
-import ACLHelper from 'core/acl/acl_helper'
-import Rule from 'core/acl/acl_rule'
+const ACLHelper = require('@routr/core/acl/acl_helper')
+const Rule = require('@routr/core/acl/acl_rule')
 
-export default class AclUtil {
+class AclUtil {
 
     constructor(accessControlList) {
         this.rules = new java.util.ArrayList()
@@ -23,6 +23,8 @@ export default class AclUtil {
     }
 
     isIpAllowed(ip) {
-        return ACLHelper.mostSpecific(ip, this.rules).action == 'allow'
+        return ACLHelper.mostSpecific(ip, this.rules).action === 'allow'
     }
 }
+
+module.exports = AclUtil

@@ -2,26 +2,51 @@
  * @author Pedro Sanders
  * @since v1
  */
-export default class LocatorUtils {
+
+const SipFactory = Java.type('javax.sip.SipFactory')
+const addressFactory = SipFactory.getInstance().createAddressFactory()
+
+class LocatorUtils {
 
     static aorAsString(addressOfRecord) {
-        if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
-            return 'tel:' + addressOfRecord.getPhoneNumber()
-        } else if (addressOfRecord instanceof Packages.javax.sip.address.SipURI) {
+        if (typeof(addressOfRecord) === 'string' || addressOfRecord instanceof String) {
+            if (/sips?:.*@.*/.test(addressOfRecord) ||
+                /tel:\d+/.test(addressOfRecord)) {
+                return addressOfRecord
+            }
+        } else if (addressOfRecord instanceof Java.type('javax.sip.address.SipURI')) {
             if (addressOfRecord.isSecure()) {
                 return 'sips:' + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
             } else {
                 return 'sip:' + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
             }
-        } else {
-            if (/sips?:.*@.*/.test(addressOfRecord) ||
-                /tel:\d+/.test(addressOfRecord)) {
-                return addressOfRecord
-            }
-           LOG.error('Invalid AOR: ' + addressOfRecord)
+        } else if (addressOfRecord instanceof Java.type('javax.sip.address.TelURL')) {
+            return 'tel:' + addressOfRecord.getPhoneNumber()
         }
 
         throw 'Invalid AOR: ' + addressOfRecord
+    }
+
+    static aorAsObj(addressOfRecord) {
+        if (typeof(addressOfRecord) === 'string' || addressOfRecord instanceof String) {
+            if (/sips?:.*@.*/.test(addressOfRecord)) {
+                return LocatorUtils.createSipURI(addressOfRecord)
+            } else if (/tel:\d+/.test(addressOfRecord)) {
+                return addressFactory.createTelURI(addressOfRecord)
+            }
+        } else if (addressOfRecord instanceof Java.type('javax.sip.address.SipURI') ||
+            addressOfRecord instanceof Java.type('javax.sip.address.TelURL')) {
+            return addressOfRecord
+        }
+
+        throw 'Invalid AOR: ' + addressOfRecord
+    }
+
+    // Cheap implementation :(
+    static createSipURI(fromString) {
+        const user = fromString.substring(fromString.indexOf(':') + 1, fromString.indexOf('@'))
+        const host = fromString.substring(fromString.indexOf('@') + 1, fromString.length)
+        return addressFactory.createSipURI(user, host)
     }
 
     static buildForwardRoute(contactURI) {
@@ -33,10 +58,12 @@ export default class LocatorUtils {
     }
 
     static buildEgressRoute(contactURI, gateway, did, domain) {
+        const username = gateway.spec.credentials? gateway.spec.credentials.username:
+          null
         const route = {
             isLinkAOR: false,
             thruGw: true,
-            gwUsername: gateway.spec.credentials.username,
+            gwUsername: username,
             gwRef: gateway.metadata.ref,
             gwHost: gateway.spec.host,
             didRef: did.metadata.ref,
@@ -49,3 +76,5 @@ export default class LocatorUtils {
         return route
     }
 }
+
+module.exports = LocatorUtils

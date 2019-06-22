@@ -4,15 +4,15 @@
  *
  * Unit Test for the "Core Module"
  */
-import getConfig from 'core/config_util'
-import IPUtil from 'core/ip_util'
+const getConfig = require('@routr/core/config_util')
+const IPUtil = require( '@routr/core/ip_util')
 
-export let testGroup = { name: "Core Module" }
+const testGroup = { name: "Core Module" }
 
 // Tests
 testGroup.config_func = function () {
     const result = getConfig()
-    assertTrue(result != undefined)
+    assertTrue(result !== undefined)
 }
 
 testGroup.ip_utils = function () {
@@ -29,3 +29,5 @@ testGroup.ip_utils = function () {
     assertFalse(ipUtil.isLocalnet('35.196.78.166'))
     assertTrue(IPUtil.isCidr('10.0.0.1/28'))
 }
+
+module.exports.testGroup = testGroup

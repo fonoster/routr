@@ -1,0 +1,10 @@
+{
+  "name": "@routr/data_api",
+  "version": "1.0.0",
+  "description": "Routr Data API",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Pedro Sanders",
+  "license": "MIT"
+}

@@ -2,41 +2,53 @@ buildscript {
     repositories {
         mavenCentral()
         jcenter()
+        maven { url "https://jitpack.io" }
     }
 }
 
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
-    id "com.github.ben-manes.versions" version '0.17.0'
+    id 'com.github.ben-manes.versions' version '0.17.0'
+}
+
+allprojects {
+  repositories {
+    maven { url 'https://jitpack.io' }
+  }
 }
 
 dependencies {
-    // Newer versions of JAIN-SIP are causing the registration service fail
-    compile "javax.sip:jain-sip-ri:1.2.324"
-    compile "log4j:log4j:1.2.17"
-    compile "org.apache.logging.log4j:log4j-1.2-api:2.11.0"
-    compile "org.apache.logging.log4j:log4j-api:2.11.0"
-    compile "org.apache.logging.log4j:log4j-core:2.11.0"
-    compile "org.slf4j:slf4j-api:1.7.25"
-    compile "org.slf4j:slf4j-nop:1.7.25"
-    compile "commons-codec:commons-codec:1.11"
-    compile "commons-net:commons-net:3.6"
-    compile "commons-lang:commons-lang:2.6"
-    compile "commons-io:commons-io:2.6"
-    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.9.5"
-    compile "com.sparkjava:spark-core:2.7.2"
-    compile "io.jsonwebtoken:jjwt:0.9.0"
-    compile "com.qmetric:spark-authentication:1.4"
-    compile "com.mashape.unirest:unirest-java:1.4.9"
-    compile "net.sourceforge.argparse4j:argparse4j:0.8.1"
-    compile "com.networknt:json-schema-validator:0.1.19"
-    compile "com.jayway.jsonpath:json-path:2.4.0"
-    compile "com.github.steveash.itxttbl:inamik-text-tables:0.1"
+    compile 'javax.sip:jain-sip-ri:1.3.0-91'
+    compile 'log4j:log4j:1.2.17'
+    compile 'org.apache.logging.log4j:log4j-1.2-api:2.11.0'
+    compile 'org.apache.logging.log4j:log4j-api:2.11.0'
+    compile 'org.apache.logging.log4j:log4j-core:2.11.0'
+    compile 'org.slf4j:slf4j-api:1.7.25'
+    compile 'org.slf4j:slf4j-nop:1.7.25'
+    compile 'commons-codec:commons-codec:1.11'
+    compile 'commons-net:commons-net:3.6'
+    compile 'commons-lang:commons-lang:2.6'
+    compile 'commons-io:commons-io:2.6'
+    compile 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
+    compile 'com.sparkjava:spark-core:2.9.0'
+    compile 'io.jsonwebtoken:jjwt:0.9.0'
+    compile 'com.qmetric:spark-authentication:1.4'
+    compile 'com.mashape.unirest:unirest-java:1.4.9'
+    compile 'net.sourceforge.argparse4j:argparse4j:0.8.1'
+    compile 'com.networknt:json-schema-validator:0.1.19'
+    compile 'com.jayway.jsonpath:json-path:2.4.0'
+    compile 'com.github.steveash.itxttbl:inamik-text-tables:0.1'
     compile 'redis.clients:jedis:2.9.0'
     compile 'org.mongodb:bson:3.7.1'
-    compile "junit:junit:4.+"
+    compile 'junit:junit:4.+'
+    compile 'com.github.ben-manes.caffeine:caffeine:2.7.0'
+    compile 'org.graalvm.sdk:graal-sdk:19.0.0'
+    compile 'org.graalvm.truffle:truffle-api:19.0.0'
+    compile 'org.graalvm.js:js:19.0.0'
+    compile 'org.graalvm.regex:regex:19.0.0'
+    compile 'com.github.uber-common:jvm-profiler:master-SNAPSHOT' // Uber Profiler    
 }
 
 repositories {
@@ -47,8 +59,7 @@ tasks.withType(Jar) {
     destinationDir = file("$rootDir/libs")
 }
 
-shadowJar {
-    baseName = 'app.deps'
-    classifier = null
-    version = null
+task copyRuntimeLibs(type: Copy) {
+  into "libs"
+  from configurations.testRuntime
 }

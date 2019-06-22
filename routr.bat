@@ -1,11 +1,18 @@
 @echo off
 setlocal
 
+set BASE_DIR=%~dp0
+
+if exist %BASE_DIR%jre (set JAVA_HOME=%BASE_DIR%jre)
 if defined JAVA_HOME goto run
-set JAVA_HOME=jre
+echo 'Could not find a runtime environment'
+exit 1
 
 :run
-"%JAVA_HOME%\bin\jrunscript.exe" -Dlog4j.configurationFile=config/log4j2.xml -cp libs\app.deps.jar -e "var home = Packages.java.lang.System.getProperty('user.dir');load(home + '\\libs\\jvm-npm.js');load(home + '\\libs\\app.bundle.js')"
+cd %BASE_DIR%
+REM Uncomment to activate jvm profiler. You must use a full JVM(not the custom one) to profile CPU usage
+REM set ROUTR_JAVA_OPTS=-javaagent:libs/jvm-profiler-master-SNAPSHOT.jar=reporter=com.uber.profiling.reporters.FileOutputReporter,outputDir=out,tag=routr,metricInterval=5000
+"%JAVA_HOME%\bin\java" %ROUTR_JAVA_OPTS% -Dlog4j.configurationFile=config\log4j2.xml -classpath libs\* com.fonoster.routr.core.Launcher
 
 endlocal
 @echo on

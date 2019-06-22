@@ -2,22 +2,35 @@
  * @author Pedro Sanders
  * @since v1
  */
-import { Status } from 'core/status'
-import getConfig from 'core/config_util'
-import isEmpty from 'utils/obj_util'
-import DSUtils from 'data_api/utils'
-import FilesUtil from 'utils/files_util'
+const { Status } = require('@routr/core/status')
+const getConfig = require('@routr/core/config_util')
+const isEmpty = require('@routr/utils/obj_util')
+const DSUtils = require('@routr/data_api/utils')
+const FilesUtil = require('@routr/utils/files_util')
 
-const JsonPath = Packages.com.jayway.jsonpath.JsonPath
-const System = Packages.java.lang.System
+const JsonPath = Java.type('com.jayway.jsonpath.JsonPath')
+const System = Java.type('java.lang.System')
+const NoSuchFileException = Java.type('java.nio.file.NoSuchFileException')
+const JsonMappingException = Java.type('com.fasterxml.jackson.databind.JsonMappingException')
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
-export default class FilesDataSource {
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const LOG = LogManager.getLogger()
+const RESOURCES = ['agents', 'domains', 'gateways', 'dids', 'peers', 'users']
+
+class FilesDataSource {
 
     constructor(config = getConfig()) {
-        if (System.getenv("ROUTR_DS_PARAMETERS") != null) {
+        this.cache = Caffeine.newBuilder()
+          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .maximumSize(8)
+          .build()
+
+        if (System.getenv("ROUTR_DS_PARAMETERS") !== null) {
             config.spec.dataSource.parameters = {}
             const key = System.getenv("ROUTR_DS_PARAMETERS").split("=")[0]
-            if (key == 'path') {
+            if (key === 'path') {
                config.spec.dataSource.parameters.path = System.getenv("ROUTR_DS_PARAMETERS").split("=")[1]
             }
         }
@@ -28,11 +41,75 @@ export default class FilesDataSource {
         }
 
         this.filesPath = config.spec.dataSource.parameters.path
+
+        // Static validation
+        this.staticConfigValidation()
+
+        // Check constrains
+        this.resourceConstraintValidation()
+    }
+
+    staticConfigValidation() {
+        for(const cnt in RESOURCES) {
+            try {
+                const res = FilesUtil.readFile(this.filesPath + '/' + RESOURCES[cnt] + '.yml')
+                const jsonObjs = DSUtils.convertToJson(res)
+                for (const cntObj in jsonObjs) {
+                    DSUtils.isValidEntity(jsonObjs[cntObj])
+                }
+            } catch(e) {
+                if (e instanceof Java.type('com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException')) {
+                    LOG.warn('The format of file `' + this.filesPath + '/' +  RESOURCES[cnt] + '.yml` is invalid')
+                    continue
+                } else {
+                    LOG.warn('Unable to open configuration file `' + this.filesPath + '/' + RESOURCES[cnt] + '.yml`')
+                }
+            }
+        }
+    }
+
+    resourceConstraintValidation() {
+        // Ensure GW for gwRef
+        let response = this.withCollection('dids').find()
+        response.result.forEach( did => {
+            const gwRef = did.metadata.gwRef
+            response = this.withCollection('gateways').get(gwRef)
+            if (response.status !== Status.OK) {
+                LOG.error('Gateway with ref `' + gwRef + '` does not exist.')
+            }
+        })
+
+        // Ensure Domains have valid DIDs
+        response = this.withCollection('domains').find()
+        response.result.forEach( domain => {
+            if(domain.spec.context.egressPolicy !== undefined) {
+              const didRef = domain.spec.context.egressPolicy.didRef
+              response = DSUtils.deepSearch(this.withCollection('dids').find(), "metadata.ref", didRef)
+              if (response.status !== Status.OK) {
+                  LOG.error('DID with ref `' + didRef + '` does not exist.')
+              }
+            }
+        })
+
+        // Ensure Agents have existing Domains
+        response = this.withCollection('agents').find()
+        response.result.forEach( agent => {
+            const domains = agent.spec.domains
+            for (const cnt in domains) {
+                const domain = domains[cnt]
+                response = this.withCollection('domains').find("@.spec.context.domainUri=='" + domain + "'")
+                if (response.result.length === 0) {
+                    LOG.error('Agent `' + agent.metadata.name + '(' + agent.spec.credentials.username
+                      + ')` has a non-existent domain/s.')
+                    break
+                }
+            }
+        })
     }
 
     withCollection(collection) {
-        this.collection = collection;
-        return this;
+        this.collection = collection
+        return this
     }
 
     insert() {
@@ -42,25 +119,32 @@ export default class FilesDataSource {
         }
     }
 
-    get() {
-        return {
-            status: Status.NOT_SUPPORTED,
-            message: Status.message[Status.NOT_SUPPORTED].value
-        }
+    // Warn: Not very efficient. This will list all the resource before
+    // finding the one it needs
+    get(ref) {
+        return DSUtils.deepSearch(this.find(), "metadata.ref", ref)
     }
 
     find(filter = '*') {
-        if (!isEmpty(filter) && !filter.equals('*')) {
+        if (!isEmpty(filter) && filter !== '*') {
             filter = "*.[?(" + filter + ")]"
         }
 
         let list = []
 
         try {
-            const resource = DSUtils.convertToJson(FilesUtil.readFile(this.filesPath + '/' + this.collection + '.yml'))
+            const filePath = this.filesPath + '/' + this.collection + '.yml'
+            let resourceStr = this.cache.getIfPresent(filePath)
+
+            if (resourceStr === null) {
+                resourceStr = FilesUtil.readFile(filePath)
+                this.cache.put(filePath, resourceStr)
+            }
+
+            const resource = DSUtils.convertToJson(resourceStr)
 
             // JsonPath does not parse properly when using Json objects from JavaScript
-            if(isEmpty(resource) == false) {
+            if(isEmpty(resource) === false) {
                 list = JSON.parse(JsonPath.parse(JSON.stringify(resource)).read(filter).toJSONString())
             }
 
@@ -68,8 +152,8 @@ export default class FilesDataSource {
                 return FilesDataSource.emptyResult()
             }
         } catch(e) {
-            if(e instanceof Packages.java.nio.file.NoSuchFileException ||
-               e instanceof Packages.com.fasterxml.jackson.databind.JsonMappingException) {
+            if(e instanceof NoSuchFileException ||
+               e instanceof JsonMappingException)  {
                 return FilesDataSource.emptyResult()
             }
 
@@ -130,10 +214,12 @@ export default class FilesDataSource {
     }
 
     static generateRef(uniqueFactor) {
-        let md5 = java.security.MessageDigest.getInstance("MD5")
-        md5.update(java.nio.charset.StandardCharsets.UTF_8.encode(uniqueFactor))
-        let hash = java.lang.String.format("%032x", new java.math.BigInteger(1, md5.digest()))
-        return hash.substring(hash.length() - 6).toLowerCase()
+        let md5 = Java.type('java.security.MessageDigest').getInstance("MD5")
+        md5.update(Java.type('java.nio.charset.StandardCharsets').UTF_8.encode(uniqueFactor))
+        let hash = Java.type('java.lang.String').format("%032x", new java.math.BigInteger(1, md5.digest()))
+        return hash.substring(hash.length - 6).toLowerCase()
     }
 
 }
+
+module.exports = FilesDataSource

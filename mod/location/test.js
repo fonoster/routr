@@ -4,14 +4,16 @@
  *
  * Unit Test for the "Location Service Module"
  */
-import FilesDataSource from 'data_api/files_datasource'
-import Locator from 'location/locator.js'
-import LocatorUtils from 'location/utils.js'
-import DIDsAPI from 'data_api/dids_api'
-import DomainsAPI from 'data_api/domains_api'
-import GatewaysAPI from 'data_api/gateways_api'
-import { Status } from 'core/status'
-import getConfig from 'core/config_util.js'
+const FilesDataSource = require('@routr/data_api/files_datasource')
+const Locator = require('@routr/location/locator')
+const LocatorUtils = require('@routr/location/utils')
+const DIDsAPI = require('@routr/data_api/dids_api')
+const DomainsAPI = require('@routr/data_api/domains_api')
+const GatewaysAPI = require('@routr/data_api/gateways_api')
+const { Status } = require('@routr/core/status')
+const getConfig = require('@routr/core/config_util')
+
+const SipFactory = Java.type('javax.sip.SipFactory')
 
 const config = getConfig()
 // Forces data source to use its own default parameters...
@@ -23,14 +25,17 @@ const dataAPIs = {
     GatewaysAPI: new GatewaysAPI(ds),
     DIDsAPI: new DIDsAPI(ds)
 }
-
-const SipFactory = Packages.javax.sip.SipFactory
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 const locator = new Locator(dataAPIs)
 
-export let testGroup = { name: "Location Service Module" }
+const testGroup = { name: "Location Service Module" }
 
 // Tests
+testGroup.create_sip_uri = function() {
+    const sipUri = LocatorUtils.createSipURI("sip:1001@sip.ocean.com")
+    print('sipUri: ' + sipUri)
+}
+
 testGroup.aor_as_string = function () {
     const sipURI = addressFactory.createSipURI('john', 'sip.ocean.com')
     let aorString = LocatorUtils.aorAsString(sipURI)
@@ -52,15 +57,15 @@ testGroup.find_local_endpoint = function() {
     locator.addEndpoint(peerEndpoint.aor, peerEndpoint.route)
     testFE(agentEndpoint.aor)
     testFE(peerEndpoint.aor)
-    locator.removeEndpoint(agentEndpoint.aor)
+    locator.removeEndpoint(agentEndpoint.aor, agentEndpoint.route.contactURI)
 }
 
 testGroup.find_endpoint_for_did = function() {
     // This is the local aor for the did '0000000000'
     const endpoint = buildEndpoint('1001', 'sip.local', '192.168.1.2:5061')
     locator.addEndpoint(endpoint.aor, endpoint.route)
-    testFE(addressFactory.createSipURI('0000000000', 'sip.local'))
-    locator.removeEndpoint(endpoint.aor)
+    testFE(addressFactory.createSipURI('0000000000', 'sip.local'), true)
+    locator.removeEndpoint(endpoint.aor, endpoint.route.contactURI)
 }
 
 testGroup.find_remote_endpoint = function() {
@@ -80,7 +85,7 @@ function buildEndpoint(username, domain, host) {
     const aor = addressFactory.createSipURI(username, domain)
     const contactURI = addressFactory.createSipURI(username, host)
     return {
-      aor: aor,
+      aor: LocatorUtils.aorAsString(aor),
       route: {
           isLinkAOR: false,
           thruGw: false,
@@ -100,3 +105,5 @@ function testFE(aor, thruGw = false) {
   assertEquals(Status.OK, response.status)
   response.result.forEach(route => assertEquals(thruGw, route.thruGw))
 }
+
+module.exports.testGroup = testGroup

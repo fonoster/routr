@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-export const RoutingType = {
+module.exports.RoutingType = {
     DOMAIN_INGRESS_ROUTING: 'DOMAIN_INGRESS_ROUTING',
     DOMAIN_EGRESS_ROUTING: 'DOMAIN_EGRESS_ROUTING',
     INTER_DOMAIN_ROUTING: 'INTER_DOMAIN_ROUTING',

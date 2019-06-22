@@ -2,22 +2,22 @@
  * @author Pedro Sanders
  * @since v1
  */
-import AccountManagerService from 'core/account_manager_service'
+const AccountManagerService = require('@routr/core/account_manager_service')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const FromHeader = Packages.javax.sip.header.FromHeader
-const ViaHeader = Packages.javax.sip.header.ViaHeader
-const ContactHeader = Packages.javax.sip.header.ContactHeader
-const CSeqHeader = Packages.javax.sip.header.CSeqHeader
-const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
-const Request = Packages.javax.sip.message.Request
-const Response = Packages.javax.sip.message.Response
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const SipFactory = Java.type('javax.sip.SipFactory')
+const FromHeader = Java.type('javax.sip.header.FromHeader')
+const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const ContactHeader = Java.type('javax.sip.header.ContactHeader')
+const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
+const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
+const Request = Java.type('javax.sip.message.Request')
+const Response = Java.type('javax.sip.message.Response')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
-export default class ResponseProcessor {
+class ResponseProcessor {
 
-    constructor(sipProvider, locator, registry, registrar, dataAPIs, contextStorage) {
+    constructor(sipProvider, dataAPIs, contextStorage, registry) {
         this.sipProvider = sipProvider
         this.registry = registry
         this.contextStorage = contextStorage
@@ -49,7 +49,7 @@ export default class ResponseProcessor {
     storeInRegistry(response) {
         const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
         const expiresHeader = response.getHeader(ExpiresHeader.NAME)
-        const expires  = expiresHeader != null? expiresHeader.getExpires() : 3600
+        const expires  = expiresHeader !== null? expiresHeader.getExpires() : 3600
         this.registry.storeRegistry(fromURI, expires)
     }
 
@@ -99,12 +99,12 @@ export default class ResponseProcessor {
         if (ResponseProcessor.isInviteWithCT(event)) {
             const context = this.contextStorage.findContext(event.getClientTransaction())
 
-            if (context != null && context.serverTransaction != null) {
+            if (context !== null && context.serverTransaction !== null) {
                 context.serverTransaction.sendResponse(responseOut)
-            } else if (responseOut.getHeader(ViaHeader.NAME) != null) {
+            } else if (responseOut.getHeader(ViaHeader.NAME) !== null) {
                 this.sipProvider.sendResponse(responseOut)
             }
-        } else if(responseOut.getHeader(ViaHeader.NAME) != null) {
+        } else if(responseOut.getHeader(ViaHeader.NAME) !== null) {
             // Could be a BYE due to Record-Route
             // There is no more Via headers; the response was intended for the proxy.
             this.sipProvider.sendResponse(responseOut)
@@ -114,12 +114,12 @@ export default class ResponseProcessor {
     }
 
     static isOk(response) {
-        return response.getStatusCode() == Response.OK
+        return response.getStatusCode() === Response.OK
     }
 
     static mustAuthenticate(response) {
-        if(response.getStatusCode() == Response.PROXY_AUTHENTICATION_REQUIRED ||
-          response.getStatusCode() == Response.UNAUTHORIZED) {
+        if(response.getStatusCode() === Response.PROXY_AUTHENTICATION_REQUIRED ||
+          response.getStatusCode() === Response.UNAUTHORIZED) {
             return true
         }
         return false
@@ -138,8 +138,8 @@ export default class ResponseProcessor {
     }
 
     static isStackJob(response) {
-        if(response.getStatusCode() == Response.TRYING              ||
-            response.getStatusCode() == Response.REQUEST_TERMINATED ||
+        if(response.getStatusCode() === Response.TRYING              ||
+            response.getStatusCode() === Response.REQUEST_TERMINATED ||
             response.getHeader(CSeqHeader.NAME).getMethod()
               .equals(Request.CANCEL)) {
               return true
@@ -154,7 +154,7 @@ export default class ResponseProcessor {
         const port = contactHeader.getAddress().getPort()
         const received = viaHeader.getReceived()
         const rPort = viaHeader.getRPort()
-        return (!!received && !host.equals(received)) || port != rPort? true : false
+        return (!!received && !host.equals(received)) || port !== rPort? true : false
     }
 
     static isRegister(response) {
@@ -178,7 +178,9 @@ export default class ResponseProcessor {
 
     static isInviteWithCT(event) {
         return ResponseProcessor.isInvite(event.getResponse())
-          && event.getClientTransaction() != null? true : false
+          && event.getClientTransaction() !== null? true : false
     }
 
 }
+
+module.exports = ResponseProcessor

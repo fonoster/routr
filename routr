@@ -1,4 +1,34 @@
-#!jre/bin/jjs -Dlog4j.configurationFile=config/log4j2.xml -cp libs/app.deps.jar --optimistic-types=true -dump-on-error=true
+#!/usr/bin/env sh
 
-load ('libs/jvm-npm.js')
-load ('libs/app.bundle.js')
+set -e
+
+BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
+
+[ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
+
+# Ensure Java is at least 8
+
+# Uncomment to activate jvm profiler. You must use a full JVM(not the custom one) to profile CPU usage
+#ROUTR_JAVA_OPTS=-javaagent:$BASE_DIR/libs/jvm-profiler-master-SNAPSHOT.jar=reporter=com.uber.profiling.reporters.FileOutputReporter,outputDir=$BASE_DIR/out,tag=routr,metricInterval=5000
+
+running_in_docker() {
+  [ -f /proc/self/cgroup ] && awk -F/ '$2 == "docker"' /proc/self/cgroup | read
+}
+
+run() {
+  cd $BASE_DIR
+  $JAVA_HOME/bin/java \
+    -Dlog4j.configurationFile=config/log4j2.xml \
+    $ROUTR_JAVA_OPTS \
+    -classpath "libs/*" \
+      com.fonoster.routr.core.Launcher
+}
+
+if running_in_docker ; then
+  [ -z "$ROUTR_EXTERN_ADDR" ] && { echo "Must define environment variable ROUTR_EXTERN_ADDR when running inside a container"; exit 1; }
+  [ -z "$ROUTR_LOCALNETS" ] && export ROUTR_LOCALNETS=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}')
+fi
+
+[ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment"; exit 1; }
+
+run

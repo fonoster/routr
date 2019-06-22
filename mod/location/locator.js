@@ -5,42 +5,83 @@
  * @author Pedro Sanders
  * @since v1
  */
-import CoreUtils from 'core/utils'
-import LocatorUtils from 'location/utils'
-import isEmpty from 'utils/obj_util'
-import { Status } from 'core/status'
+const postal = require('postal')
+const CoreUtils = require('@routr/core/utils')
+const LocatorUtils = require('@routr/location/utils')
+const isEmpty = require('@routr/utils/obj_util')
+const { Status } = require('@routr/core/status')
 
-const HashMap = Packages.java.util.HashMap
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const SipFactory = Java.type('javax.sip.SipFactory')
+
 const LOG = LogManager.getLogger()
-const SipFactory = Packages.javax.sip.SipFactory
 
 /**
- * NOTE #1: Notice that addressOfRecord.toString !eq to LocatorUtils.aorAsString(addressOfRecord). This is important to ensure
- * the location of the devices regardless of any additional parameters that they may have.
+ * NOTE #1: Notice that addressOfRecord.toString !eq to LocatorUtils.aorAsString(addressOfRecord).
+ * This is important to ensure the location of the devices regardless of any additional
+ * parameters that they may have.
  */
-export default class Locator {
+class Locator {
 
     constructor(dataAPIs, checkExpiresTime = 1) {
         this.checkExpiresTime = checkExpiresTime
-        this.db = new HashMap()
+        this.db = Caffeine.newBuilder()
+            .expireAfterWrite(checkExpiresTime, TimeUnit.MINUTES)
+            .maximumSize(500000)  // TODO: This should be a parameter
+            .build()
+
         this.didsAPI = dataAPIs.DIDsAPI
         this.domainsAPI = dataAPIs.DomainsAPI
         this.gatewaysAPI = dataAPIs.GatewaysAPI
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
+
+        postal.subscribe({
+        		channel: "locator",
+        		topic: "endpoint.remove",
+        		callback: (data, envelope) => {
+                this.removeEndpoint(data.addressOfRecord, data.contactURI, data.isWildcard)
+        		}
+      	})
+
+        postal.subscribe({
+        		channel: "locator",
+        		topic: "endpoint.add",
+        		callback: (data, envelope) => {
+                this.addEndpoint(data.addressOfRecord, data.route)
+        		}
+      	})
+
+        postal.subscribe({
+        		channel: "locator",
+        		topic: "endpoint.find",
+        		callback: (data, envelope) => {
+                const response = this.findEndpoint(data.addressOfRecord)
+                postal.publish({
+                    channel: "locator",
+                    topic: "endpoint.find.reply",
+                    data: {
+                        response: response,
+                        requestId: data.requestId
+                    }
+                })
+        		}
+      	})
     }
 
     getPort(uri) {
-      return uri.getPort() === -1? 5060 : uri.getPort()
+      const uriObj = LocatorUtils.aorAsObj(uri)
+      return uriObj.getPort() === -1? 5060 : uriObj.getPort()
     }
 
     addEndpoint(addressOfRecord, route) {
         const response = this.findEndpoint(addressOfRecord)
         let routes
 
-        if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
             // Only use if is a "local" route
-            routes = response.result.thruGw == false? response.result : []
+            routes = response.result.thruGw === false? response.result : []
         } else {
             // Did not found any round at all
             routes = []
@@ -53,35 +94,36 @@ export default class Locator {
     }
 
     // See NOTE #1
-    removeEndpoint(addressOfRecord, contactURI) {
+    removeEndpoint(addressOfRecord, contactURI, isWildcard) {
         const aor = LocatorUtils.aorAsString(addressOfRecord)
         // Remove all bindings
-        if (contactURI == null) {
+        if (isWildcard !== true) {
             return this.db.remove(aor)
         }
         // Not using aorAsString because we need to consider the port, etc.
-        this.db.get(aor).remove(contactURI.toString())
+        this.db.getIfPresent(aor).remove(contactURI)
 
-        if (this.db.get(aor).isEmpty()) this.db.remove(aor)
+        // This is just a hashmap of hashmaps...
+        if (this.db.getIfPresent(aor).isEmpty()) this.db.remove(aor)
     }
 
     findEndpoint(addressOfRecord) {
-        if (addressOfRecord instanceof Packages.javax.sip.address.TelURL) {
+        const aor = LocatorUtils.aorAsString(addressOfRecord)
+        if (aor.startsWith("tel:")) {
             return this.findEndpointByTelUrl(addressOfRecord)
         }
-        return this.findEndpointBySipURI(addressOfRecord)
+        return this.findEndpointBySipURI(aor)
     }
 
     /**
      * DIDs required an "aorLink" to enter the network
      */
     findEndpointByTelUrl(addressOfRecord) {
-        const response = this.didsAPI.getDIDByTelUrl(addressOfRecord)
-        if (response.status == Status.OK) {
+        const response = this.didsAPI.getDIDByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
+        if (response.status === Status.OK) {
             const did = response.result
-            const route = this.db.get(LocatorUtils.aorAsString(did.spec.location.aorLink))
-
-            if (route != null) {
+            const route = this.db.getIfPresent(LocatorUtils.aorAsString(did.spec.location.aorLink))
+            if (route !== null) {
                 return CoreUtils.buildResponse(Status.OK, route)
             }
 
@@ -92,23 +134,23 @@ export default class Locator {
 
     findEndpointBySipURI(addressOfRecord) {
         // First just look into the 'db'
-        const routes = this.db.get(LocatorUtils.aorAsString(addressOfRecord))
+        const routes = this.db.getIfPresent(LocatorUtils.aorAsString(addressOfRecord))
 
-        if (routes != null) {
+        if (routes !== null) {
             return CoreUtils.buildResponse(Status.OK, routes)
         }
 
         // Check peer's route by host
         let response = this.getPeerRouteByHost(addressOfRecord)
 
-        if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
             return response
         }
 
         // Then search for a DID
         try {
             response = this.findEndpointForDID(addressOfRecord)
-            if (response.status == Status.OK) {
+            if (response.status === Status.OK) {
                 return response
             }
         } catch(e) {
@@ -117,16 +159,15 @@ export default class Locator {
 
         // Endpoint can only be reach thru a gateway
         response = this.getEgressRouteForAOR(addressOfRecord)
-        return response.status == Status.OK? response : CoreUtils.buildResponse(Status.NOT_FOUND)
+        return response.status === Status.OK? response : CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     findEndpointForDID(addressOfRecord) {
-        const telUrl = this.addressFactory.createTelURL(addressOfRecord.getUser())
-        const response = this.didsAPI.getDIDByTelUrl(telUrl)
-        if (response.status == Status.OK) {
+        const response = this.didsAPI.getDIDByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
+        if (response.status === Status.OK) {
             const did = response.result
-            const route = this.db.get(LocatorUtils.aorAsString(did.spec.location.aorLink))
-            if (route != null) {
+            const route = this.db.getIfPresent(LocatorUtils.aorAsString(did.spec.location.aorLink))
+            if (route !== null) {
                 return CoreUtils.buildResponse(Status.OK, route)
             }
         }
@@ -134,14 +175,16 @@ export default class Locator {
     }
 
     getPeerRouteByHost(addressOfRecord) {
-        const aors = this.db.keySet().iterator()
-        const peerHost = addressOfRecord.getHost().toString()
-        const peerPort = this.getPort(addressOfRecord)
+        const aors = this.db.asMap().keySet().iterator()
+        const aor = LocatorUtils.aorAsObj(addressOfRecord)
+        const peerHost = aor.getHost().toString()
+        const peerPort = this.getPort(aor)
 
         while(aors.hasNext()) {
-            let routes = this.db.get(aors.next())
+            let routes = this.db.getIfPresent(aors.next())
             for (const x in routes) {
-                const h1 = routes[x].contactURI.getHost().toString()
+                const contactURI = LocatorUtils.aorAsObj(routes[x].contactURI)
+                const h1 = contactURI.getHost().toString()
                 const p1 = this.getPort(routes[x].contactURI)
                 if (h1.equals(peerHost) && p1 === peerPort) {
                     return CoreUtils.buildResponse(Status.OK, routes)
@@ -153,16 +196,15 @@ export default class Locator {
     }
 
     getEgressRouteForAOR(addressOfRecord) {
-        if (!(addressOfRecord instanceof Packages.javax.sip.address.SipURI))
-            throw 'AOR must be instance of javax.sip.address.SipURI'
-
+        // WARN: This is very inefficient
         const response = this.domainsAPI.getDomains()
+
         let route
 
-        if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
             response.result.forEach(domain => {
                 const r = this.getEgressRouteForDomain(addressOfRecord, domain)
-                if (r.status == Status.OK) {
+                if (r.status === Status.OK) {
                     route = r.result
                 }
             })
@@ -173,23 +215,24 @@ export default class Locator {
     }
 
     getEgressRouteForDomain(addressOfRecord, domain) {
-        if (isEmpty(domain.spec.context.egressPolicy) == false) {
+        if (!isEmpty(domain.spec.context.egressPolicy)) {
             // Get DID and Gateway info
             let response = this.didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
             const did = response.result
 
-            if (response.status == Status.OK) {
+            if (response.status === Status.OK) {
                 response = this.gatewaysAPI.getGateway(did.metadata.gwRef)
 
-                if (response.status == Status.OK) {
+                if (response.status === Status.OK) {
                     const gateway = response.result
                     const pattern = 'sip:' + domain.spec.context.egressPolicy.rule + '@' + domain.spec.context.domainUri
+                    const aor = LocatorUtils.aorAsString(addressOfRecord)
 
-                    if (new RegExp(pattern).test(addressOfRecord.toString())) {
-                        const contactURI = this.addressFactory
-                            .createSipURI(addressOfRecord.getUser(), gateway.spec.host)
-                        contactURI.setSecure(addressOfRecord.isSecure())
-                        const route = LocatorUtils.buildEgressRoute(contactURI, gateway, did, domain)
+                    if (new RegExp(pattern).test(aor)) {
+                        //const contactURI = this.addressFactory
+                        //    .createSipURI(addressOfRecord.getUser(), gateway.spec.host)
+                        //contactURI.setSecure(addressOfRecord.isSecure())
+                        const route = LocatorUtils.buildEgressRoute(aor, gateway, did, domain)
                         return CoreUtils.buildResponse(Status.OK, [route])
                     }
                 }
@@ -203,11 +246,11 @@ export default class Locator {
         let response = this.didsAPI.getDID(didRef)
         let route
 
-        if (response.status == Status.OK) {
+        if (response.status === Status.OK) {
             const did = response.result
             response = this.gatewaysAPI.getGateway(did.metadata.gwRef)
 
-            if (response.status == Status.OK) {
+            if (response.status === Status.OK) {
                 const gateway = response.result
                 const contactURI = this.addressFactory.createSipURI(addressOfRecord.getUser(), gateway.spec.host)
                 route = LocatorUtils.buildEgressRoute(contactURI, gateway, did)
@@ -219,11 +262,11 @@ export default class Locator {
 
     listAsJSON (domainUri) {
         let s = []
-        const aors = this.db.keySet().iterator()
+        const aors = this.db.asMap().keySet().iterator()
 
         while(aors.hasNext()) {
             let key = aors.next()
-            let routes = this.db.get(key)
+            let routes = this.db.getIfPresent(key)
             let contactInfo = ''
 
             if (routes.length > 0) {
@@ -241,36 +284,39 @@ export default class Locator {
         return s
     }
 
+    // Deprecated
     start() {
         LOG.info('Starting Location service')
-        var locDB = this.db
+        const self = this
 
-        const unbindExpiredTask = new java.util.TimerTask({
-            run: function() {
-                const e = locDB.values().iterator()
+        global.timer.schedule(
+          () => {
+            const e = self.db.asMap().values().iterator()
 
-                while(e.hasNext()) {
-                    let routes = e.next()
+            while(e.hasNext()) {
+                let routes = e.next()
 
-                    for (const x in routes) {
-                        const route = routes[x]
-                        const elapsed = (Date.now() - route.registeredOn) / 1000
-                        if ((route.expires - elapsed) <= 0) {
-                            routes.splice(x,1)
-                        }
+                for (const x in routes) {
+                    const route = routes[x]
+                    const elapsed = (Date.now() - route.registeredOn) / 1000
+                    if ((route.expires - elapsed) <= 0) {
+                        routes.splice(x, 1)
+                    }
 
-                        if (routes.length == 0) {
-                            e.remove()
-                        }
+                    if (routes.length === 0) {
+                        e.remove()
                     }
                 }
             }
-        })
-
-        new java.util.Timer().schedule(unbindExpiredTask, 5000, this.checkExpiresTime * 60 * 1000)
+          },
+          5000,
+          this.checkExpiresTime * 60 * 1000
+        )
     }
 
     stop() {
         // ??
     }
 }
+
+module.exports = Locator

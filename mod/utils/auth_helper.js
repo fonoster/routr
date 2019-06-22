@@ -2,11 +2,12 @@
  * @author Pedro Sanders
  * @since v1
  */
-export default function AuthHelper (headerFactory) {
-    const DigestUtils = Packages.org.apache.commons.codec.digest.DigestUtils
-    const MessageDigest = Packages.java.security.MessageDigest
-    const Long = Packages.java.lang.Long
-    const Random = Packages.java.util.Random
+const DigestUtils = Java.type('org.apache.commons.codec.digest.DigestUtils')
+const MessageDigest = Java.type('java.security.MessageDigest')
+const Long = Java.type('java.lang.Long')
+const Random = Java.type('java.util.Random')
+
+module.exports = function AuthHelper (headerFactory) {
     const DEFAULT_ALGORITHM = 'MD5'
 
     this.calcFromHeader = a => this.calculateResponse(a.username, a.secret, a.realm, a.nonce, a.nc, a.cnonce, a.uri,
@@ -18,7 +19,7 @@ export default function AuthHelper (headerFactory) {
         const ha1 = DigestUtils.md5Hex(a1)
         const ha2 =  DigestUtils.md5Hex(a2)
 
-        if (qop != null && qop.equals('auth')) {
+        if (qop !== null && qop.equals('auth')) {
             return DigestUtils.md5Hex(ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2)
         }
 
@@ -44,7 +45,7 @@ export default function AuthHelper (headerFactory) {
         const pad = rand.nextLong()
         const nonceString = (new Long(time)).toString() + (new Long(pad)).toString()
         const messageDigest = MessageDigest.getInstance(DEFAULT_ALGORITHM)
-        const mdbytes = messageDigest.digest(nonceString.getBytes())
+        const mdbytes = messageDigest.digest(new java.lang.String(nonceString).getBytes())
         return DigestUtils.md5Hex(mdbytes)
     }
 }
