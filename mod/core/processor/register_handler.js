@@ -16,7 +16,6 @@ const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
 const messageFactory = SipFactory.getInstance().createMessageFactory()
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
-const authHelper = new AuthHelper(this.headerFactory)
 const LOG = LogManager.getLogger()
 
 class RegisterHandler {
@@ -76,7 +75,7 @@ class RegisterHandler {
     static sendUnauthorized(request, transaction) {
         const realm = RegisterHandler.getAddressOfRecord(request).getHost()
         const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
-        unauthorized.addHeader(authHelper.generateChallenge(realm))
+        unauthorized.addHeader(AuthHelper.generateChallenge(realm))
         transaction.sendResponse(unauthorized)
         LOG.debug(unauthorized)
     }

@@ -10,7 +10,7 @@ const ToHeader = Java.type('javax.sip.header.ToHeader')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
 const StringUtils = Java.type('org.apache.commons.lang3.StringUtils')
 const SipFactory = Java.type('javax.sip.SipFactory')
-const addressFactory = sipFactory.createAddressFactory()
+const addressFactory = SipFactory.getInstance().createAddressFactory()
 
 class RouteInfo {
 

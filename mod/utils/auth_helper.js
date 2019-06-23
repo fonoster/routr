@@ -6,7 +6,8 @@ const DigestUtils = Java.type('org.apache.commons.codec.digest.DigestUtils')
 const MessageDigest = Java.type('java.security.MessageDigest')
 const Long = Java.type('java.lang.Long')
 const Random = Java.type('java.util.Random')
-const headerFactory = SipFactory.getInstance().createHeadersFactory()
+const SipFactory = Java.type('javax.sip.SipFactory')
+const headerFactory = SipFactory.getInstance().createHeaderFactory()
 const DEFAULT_ALGORITHM = 'MD5'
 
 class AuthHelper {
