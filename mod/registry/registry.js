@@ -21,7 +21,7 @@ class Registry {
 
     constructor(sipProvider, dataAPIs) {
         this.gatewaysAPI = dataAPIs.GatewaysAPI
-        this.checkExpiresTime = .5
+        this.checkExpiresTime = 1
         this.sipProvider = sipProvider
         this.config = getConfig()
         this.messageFactory = SipFactory.getInstance().createMessageFactory()
