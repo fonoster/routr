@@ -5,7 +5,7 @@
   "scripts": {
     "transpile": "babel --out-dir node_modules/@routr mod",
     "test": "cross-env ./etc/tests/tester 'utils/test.js' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'rest/test' 'data_api/test_apis' 'data_api/test_files_datasource' 'data_api/test_restful_datasource' 'data_api/test_redis_datasource' ",
-    "prebundle": "cross-env ./gradlew build && ./gradlew copyRuntimeLibs && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs && npm run transpile",
+    "prebundle": "cross-env gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
     "bundle": "webpack --config webpack.config.js --mode production",
     "pretest": "npm run bundle",
     "prepack": "npm test"
@@ -13,8 +13,6 @@
   "dependencies": {
     "moment": "^2.22.2",
     "npm": "^6.1.0",
-    "lodash": "^4.17.11",
-    "postal.request-response": "github:tine20/postal.request-response",
     "postal": "^2.0.5"
   },
   "devDependencies": {

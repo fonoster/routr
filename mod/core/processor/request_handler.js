@@ -21,7 +21,6 @@ const MaxForwardsHeader = Java.type('javax.sip.header.MaxForwardsHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const ConcurrentHashMap = Java.type('java.util.concurrent.ConcurrentHashMap')
 const requestStore = new ConcurrentHashMap()
-const messageFactory = SipFactory.getInstance().createMessageFactory()
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 const ipUtil = new IPUtil(getConfig())
@@ -43,9 +42,9 @@ class RequestHandler {
                 if (serverTransaction === null) return
 
                 const response = data.response
-                const procUtils = new ProcessorUtils(serverTransaction.getRequest(), serverTransaction, messageFactory)
 
                 if (response.status == Status.NOT_FOUND) {
+                    const procUtils = new ProcessorUtils(serverTransaction.getRequest(), serverTransaction)
                     return procUtils.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
                 }
 

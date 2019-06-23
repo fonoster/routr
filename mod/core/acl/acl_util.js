@@ -4,11 +4,12 @@
  */
 const ACLHelper = require('@routr/core/acl/acl_helper')
 const Rule = require('@routr/core/acl/acl_rule')
+const ArrayList = Java.type('java.util.ArrayList')
 
 class AclUtil {
 
     constructor(accessControlList) {
-        this.rules = new java.util.ArrayList()
+        this.rules = new ArrayList()
 
         if (accessControlList) {
             this.addRules(accessControlList.allow, 'allow')

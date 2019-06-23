@@ -15,6 +15,8 @@ const { Status } = require('@routr/core/status')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')
+const messageFactory = SipFactory.getInstance().createMessageFactory()
+const globalACL = getConfig().spec.accessControlList
 
 class RequestProcessor {
 
@@ -23,8 +25,6 @@ class RequestProcessor {
         this.contextStorage = contextStorage
         this.dataAPIs = dataAPIs
         this.domainsAPI = dataAPIs.DomainsAPI
-        this.messageFactory = SipFactory.getInstance().createMessageFactory()
-        this.config = getConfig()
     }
 
     process(event) {
@@ -35,9 +35,8 @@ class RequestProcessor {
             serverTransaction = this.sipProvider.getNewServerTransaction(request)
         }
 
-        const procUtils = new ProcessorUtils(request, serverTransaction, this.messageFactory)
-
         if (this.allowedAccess(event) === false) {
+            const procUtils = new ProcessorUtils(request, serverTransaction)
             return procUtils.sendResponse(Response.FORBIDDEN)
         }
 
@@ -58,22 +57,20 @@ class RequestProcessor {
         const request = event.getRequest()
         const remoteIp = event.getRemoteIpAddress()
         const routeInfo = new RouteInfo(request, this.dataAPIs)
-        const acl = this.config.spec.accessControlList
 
-        if(acl) {
-            if(new AclUtil(acl).isIpAllowed(remoteIp) === false) {
+        if(globalACL) {
+            if(new AclUtil(globalACL).isIpAllowed(remoteIp) === false) {
                 return false
             }
         }
 
-        const addressOfRecord = ProcessorUtils.getAOR(request)
-
         if (routeInfo.getRoutingType().equals(RoutingType.INTRA_DOMAIN_ROUTING)) {
+            const addressOfRecord = ProcessorUtils.getAOR(request)
             const response = this.domainsAPI.getDomainByUri(addressOfRecord.getHost())
             if (response.status === Status.OK) {
                 const acl = response.result.spec.context.accessControlList
-                if(acl && new AclUtil(acl).isIpAllowed(remoteIp) === false) {
-                    return false
+                if(acl) {
+                    return new AclUtil(acl).isIpAllowed(remoteIp)
                 }
             }
         }

@@ -14,38 +14,26 @@ const AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
 const Response = Java.type('javax.sip.message.Response')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
+const messageFactory = SipFactory.getInstance().createMessageFactory()
+const headerFactory = SipFactory.getInstance().createHeaderFactory()
+const authHelper = new AuthHelper(this.headerFactory)
 const LOG = LogManager.getLogger()
 
 class RegisterHandler {
 
     constructor(dataAPIs) {
         this.registrar = new Registrar(dataAPIs)
-        this.messageFactory = SipFactory.getInstance().createMessageFactory()
-        this.headerFactory = SipFactory.getInstance().createHeaderFactory()
-        this.authHelper = new AuthHelper(this.headerFactory)
     }
 
     doProcess (serverTransaction) {
         const request = serverTransaction.getRequest()
-        const authHeader = request.getHeader(AuthorizationHeader.NAME)
-        const expHeader = this.getExpHeader(request)
 
-        if (expHeader.getExpires() <= 0) {
+        if (RegisterHandler.getExpHeader(request).getExpires() <= 0) {
             return this.removeEndpoint(request, serverTransaction)
         }
 
-        this.registrar.register(request)? this.sendOk(request, serverTransaction)
-            : this.sendUnauthorized(request, serverTransaction)
-    }
-
-    getExpHeader(request) {
-        let expires
-        if (request.getHeader(ExpiresHeader.NAME)) {
-            expires =  request.getHeader(ExpiresHeader.NAME).getExpires()
-        } else {
-            expires = RegisterHandler.getContactHeader(request).getExpires()
-        }
-        return this.headerFactory.createExpiresHeader(expires)
+        this.registrar.register(request)? RegisterHandler.sendOk(request, serverTransaction)
+            : RegisterHandler.sendUnauthorized(request, serverTransaction)
     }
 
     // See: Removing bindings -> https://tools.ietf.org/html/rfc3261#section-10.2.2
@@ -64,21 +52,31 @@ class RegisterHandler {
           }
         })
 
-        this.sendOk(request, transaction)
+        RegisterHandler.sendOk(request, transaction)
     }
 
-    sendOk(request, transaction) {
-        const ok = this.messageFactory.createResponse(Response.OK, request)
+    static getExpHeader(request) {
+        let expires
+        if (request.getHeader(ExpiresHeader.NAME)) {
+            expires = request.getHeader(ExpiresHeader.NAME).getExpires()
+        } else {
+            expires = RegisterHandler.getContactHeader(request).getExpires()
+        }
+        return headerFactory.createExpiresHeader(expires)
+    }
+
+    static sendOk(request, transaction) {
+        const ok = messageFactory.createResponse(Response.OK, request)
         ok.addHeader(RegisterHandler.getContactHeader(request))
-        ok.addHeader(this.getExpHeader(request))
+        ok.addHeader(RegisterHandler.getExpHeader(request))
         transaction.sendResponse(ok)
         LOG.debug(ok)
     }
 
-    sendUnauthorized(request, transaction) {
+    static sendUnauthorized(request, transaction) {
         const realm = RegisterHandler.getAddressOfRecord(request).getHost()
-        const unauthorized = this.messageFactory.createResponse(Response.UNAUTHORIZED, request)
-        unauthorized.addHeader(this.authHelper.generateChallenge(realm))
+        const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
+        unauthorized.addHeader(authHelper.generateChallenge(realm))
         transaction.sendResponse(unauthorized)
         LOG.debug(unauthorized)
     }

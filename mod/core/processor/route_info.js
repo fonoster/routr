@@ -10,6 +10,7 @@ const ToHeader = Java.type('javax.sip.header.ToHeader')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
 const StringUtils = Java.type('org.apache.commons.lang3.StringUtils')
 const SipFactory = Java.type('javax.sip.SipFactory')
+const addressFactory = sipFactory.createAddressFactory()
 
 class RouteInfo {
 
@@ -17,8 +18,6 @@ class RouteInfo {
         const fromHeader = request.getHeader(FromHeader.NAME)
         const toHeader = request.getHeader(ToHeader.NAME)
         const sipFactory = SipFactory.getInstance()
-        this.config = getConfig()
-        this.addressFactory = sipFactory.createAddressFactory()
         this.request = request
         this._callerUser = fromHeader.getAddress().getURI().getUser()
         this._callerHost = fromHeader.getAddress().getURI().getHost()
@@ -26,8 +25,8 @@ class RouteInfo {
         this._calleeHost = toHeader.getAddress().getURI().getHost()
 
         // Overwrites callee info if addressInfo is present
-        if(!!this.config.spec.addressInfo) {
-            const callee = this.getCalleeFromAddressInfo(request, this.config.spec.addressInfo)
+        if(!!getConfig().spec.addressInfo) {
+            const callee = RouteInfo.getCalleeFromAddressInfo(request, getConfig().spec.addressInfo)
             this._calleeUser = callee.user
             this._calleeHost = callee.host
         }
@@ -38,14 +37,14 @@ class RouteInfo {
         this.agentsAPI = dataAPIs.AgentsAPI
     }
 
-    getCalleeFromAddressInfo(request, addressInfo) {
+    static getCalleeFromAddressInfo(request, addressInfo) {
         const callee = {}
         for (const x in addressInfo) {
             let info = addressInfo[x]
             if (!!request.getHeader(info)) {
                 let v = request.getHeader(info).getValue()
                 if (/sips?:.*@.*/.test(v)) {
-                    const calleeURI = this.addressFactory.createURI(v)
+                    const calleeURI = addressFactory.createURI(v)
                     callee.user = calleeURI.getUser()
                     callee.host = calleeURI.getHost()
                     break
@@ -84,25 +83,16 @@ class RouteInfo {
     getRouteEntityType(domain, entity) {
         let entityType = RouteEntityType.THRU_GW
 
-        if (this.peersAPI.peerExist(entity)) {
-            entityType = RouteEntityType.PEER
-        }
-
         if (this.agentsAPI.agentExist(domain, entity)) {
             entityType = RouteEntityType.AGENT
-        }
-
-        if (StringUtils.isNumeric(this.callerUser)) {
-            const telUrl = this.addressFactory.createTelURL(entity)
+        } else if (this.peersAPI.peerExist(entity)) {
+            entityType = RouteEntityType.PEER
+        } else if (StringUtils.isNumeric(this.callerUser)) {
+            const telUrl = addressFactory.createTelURL(entity)
             if (this.didsAPI.didExist(telUrl)) {
                 entityType = RouteEntityType.DID
             }
         }
-
-        // Warning: This seems to do nothing. It is repeated
-        //if (this.agentsAPI.agentExist(domain, entity)) {
-        //    entityType = RouteEntityType.AGENT
-        //}
 
         return entityType
     }

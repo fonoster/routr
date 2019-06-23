@@ -6,14 +6,17 @@ const DigestUtils = Java.type('org.apache.commons.codec.digest.DigestUtils')
 const MessageDigest = Java.type('java.security.MessageDigest')
 const Long = Java.type('java.lang.Long')
 const Random = Java.type('java.util.Random')
+const headerFactory = SipFactory.getInstance().createHeadersFactory()
+const DEFAULT_ALGORITHM = 'MD5'
 
-module.exports = function AuthHelper (headerFactory) {
-    const DEFAULT_ALGORITHM = 'MD5'
+class AuthHelper {
 
-    this.calcFromHeader = a => this.calculateResponse(a.username, a.secret, a.realm, a.nonce, a.nc, a.cnonce, a.uri,
-        a.method, a.qop)
+    static calcFromHeader(a) {
+        return AuthHelper.calculateResponse(a.username, a.secret, a.realm,
+          a.nonce, a.nc, a.cnonce, a.uri, a.method, a.qop)
+    }
 
-    this.calculateResponse = (username, secret, realm, nonce, nc, cnonce, uri, method, qop) => {
+    static calculateResponse(username, secret, realm, nonce, nc, cnonce, uri, method, qop) {
         const a1 = username + ':' + realm + ':' + secret
         const a2 = method.toUpperCase() + ':' + uri
         const ha1 = DigestUtils.md5Hex(a1)
@@ -27,18 +30,18 @@ module.exports = function AuthHelper (headerFactory) {
     }
 
     // Generates WWW-Authorization header
-    this.generateChallenge = (realm) => {
+    static generateChallenge(realm) {
         const wwwAuthHeader = headerFactory.createWWWAuthenticateHeader('Digest')
         wwwAuthHeader.setRealm(realm)
         wwwAuthHeader.setQop('auth')
         wwwAuthHeader.setOpaque('')
         wwwAuthHeader.setStale(false)
-        wwwAuthHeader.setNonce(generateNonce())
+        wwwAuthHeader.setNonce(AuthHelper.generateNonce())
         wwwAuthHeader.setAlgorithm(DEFAULT_ALGORITHM)
         return wwwAuthHeader
     }
 
-    function generateNonce() {
+    static generateNonce() {
         const date = new Date()
         const time = date.getTime()
         const rand = new Random()
@@ -49,3 +52,5 @@ module.exports = function AuthHelper (headerFactory) {
         return DigestUtils.md5Hex(mdbytes)
     }
 }
+
+module.exports = AuthHelper
