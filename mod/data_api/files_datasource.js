@@ -23,8 +23,12 @@ class FilesDataSource {
 
     constructor(config = getConfig()) {
         this.cache = Caffeine.newBuilder()
-          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .expireAfterWrite(60, TimeUnit.MINUTES)
           .maximumSize(8)
+          .build()
+        this.refs = Caffeine.newBuilder()
+          .expireAfterWrite(60, TimeUnit.MINUTES)
+          .maximumSize(5000)
           .build()
 
         if (System.getenv("ROUTR_DS_PARAMETERS") !== null) {
@@ -134,18 +138,17 @@ class FilesDataSource {
 
         try {
             const filePath = this.filesPath + '/' + this.collection + '.yml'
-            let resourceStr = this.cache.getIfPresent(filePath)
+            let resource = this.cache.getIfPresent(filePath)
 
-            if (resourceStr === null) {
-                resourceStr = FilesUtil.readFile(filePath)
-                this.cache.put(filePath, resourceStr)
+            if (resource === null) {
+                const resourceStr = FilesUtil.readFile(filePath)
+                resource =  DSUtils.convertToJson(resourceStr)
+                this.cache.put(filePath, JSON.stringify(resource))
             }
-
-            const resource = DSUtils.convertToJson(resourceStr)
 
             // JsonPath does not parse properly when using Json objects from JavaScript
             if(isEmpty(resource) === false) {
-                list = JSON.parse(JsonPath.parse(JSON.stringify(resource)).read(filter).toJSONString())
+                list = JSON.parse(JsonPath.parse(resource).read(filter).toJSONString())
             }
 
             if (isEmpty(list)) {
@@ -166,7 +169,7 @@ class FilesDataSource {
         return {
             status: Status.OK,
             message: Status.message[Status.OK].value,
-            result: FilesDataSource.getWithReferences(list)
+            result: this.getWithReferences(list)
         }
     }
 
@@ -184,40 +187,45 @@ class FilesDataSource {
         }
     }
 
-    static emptyResult() {
-        return {
-            status: Status.OK,
-            message: Status.message[Status.OK].value,
-            result: []
-        }
-    }
-
-    static getWithReferences(list) {
+    getWithReferences(list) {
         list.forEach(obj => {
             if (!obj.metadata.ref) {
                 if (obj.kind.equals('Agent')) {
-                    obj.metadata.ref = 'ag' + FilesDataSource.generateRef(obj.spec.credentials.username + obj.spec.domains[0])
+                    obj.metadata.ref = 'ag' + this.generateRef(obj.spec.credentials.username + obj.spec.domains[0])
                 } else if (obj.kind.equals('Domain')) {
-                    obj.metadata.ref =  'dm' + FilesDataSource.generateRef(obj.spec.context.domainUri)
+                    obj.metadata.ref =  'dm' + this.generateRef(obj.spec.context.domainUri)
                 } else if (obj.kind.equals('Peer')) {
-                    obj.metadata.ref = 'pr' + FilesDataSource.generateRef(obj.spec.credentials.username)
+                    obj.metadata.ref = 'pr' + this.generateRef(obj.spec.credentials.username)
                 } else if (obj.kind.equals('Gateway')) {
-                    obj.metadata.ref = 'gw' + FilesDataSource.generateRef(obj.spec.host)
+                    obj.metadata.ref = 'gw' + this.generateRef(obj.spec.host)
                 } else if (obj.kind.equals('DID')) {
-                    obj.metadata.ref = 'dd' + FilesDataSource.generateRef(obj.spec.location.telUrl)
+                    obj.metadata.ref = 'dd' + this.generateRef(obj.spec.location.telUrl)
                 } else if (obj.kind.equals('User')) {
-                    obj.metadata.ref = 'us' + FilesDataSource.generateRef(obj.spec.credentials.username)
+                    obj.metadata.ref = 'us' + this.generateRef(obj.spec.credentials.username)
                 }
             }
         })
         return list
     }
 
-    static generateRef(uniqueFactor) {
-        let md5 = Java.type('java.security.MessageDigest').getInstance("MD5")
-        md5.update(Java.type('java.nio.charset.StandardCharsets').UTF_8.encode(uniqueFactor))
-        let hash = Java.type('java.lang.String').format("%032x", new java.math.BigInteger(1, md5.digest()))
-        return hash.substring(hash.length - 6).toLowerCase()
+    generateRef(uniqueFactor) {
+        let ref = this.refs.getIfPresent(uniqueFactor)
+        if (ref === null) {
+          let md5 = Java.type('java.security.MessageDigest').getInstance("MD5")
+          md5.update(Java.type('java.nio.charset.StandardCharsets').UTF_8.encode(uniqueFactor))
+          let hash = Java.type('java.lang.String').format("%032x", new java.math.BigInteger(1, md5.digest()))
+          ref = hash.substring(hash.length - 6).toLowerCase()
+          this.refs.put(uniqueFactor, ref)
+        }
+        return ref
+    }
+
+    static emptyResult() {
+        return {
+            status: Status.OK,
+            message: Status.message[Status.OK].value,
+            result: []
+        }
     }
 
 }

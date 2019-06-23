@@ -32,7 +32,7 @@ class Registrar {
         let user
 
         // Warning: This is just for testing purposes
-        if(Registrar.isGuest(request) && this.allowGuest()) {
+        if(Registrar.isGuest(request) && this.isAllowGuest()) {
             user =  Registrar.getGuessUser(request)
         } else if(this.isAuthorized(request)) {
             // Todo: Avoid making this second trip to the API
@@ -41,25 +41,9 @@ class Registrar {
             return false
         }
 
-        const aors = this.generateAors(request, user)
+        const aors = Registrar.generateAors(request, user, Registrar.isGuest(request))
         this.addEndpoints(aors, Registrar.buildRoute(request, user))
         return true
-    }
-
-    generateAors(request, user) {
-        const aors = []
-        if (user.kind.equalsIgnoreCase('peer')) {
-            const host = Registrar.getFromHost(request)
-            const peerHost = isEmpty(user.spec.device) ?  host : user.spec.device
-            aors.push(addressFactory.createSipURI(user.spec.credentials.username, peerHost))
-        } else {
-            user.spec.domains.forEach(domain => {
-                const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, domain)
-                addressOfRecord.setSecure(contactURI.isSecure())
-                aors.push(addressOfRecord)
-            })
-        }
-        return aors
     }
 
     addEndpoints(aors, route) {
@@ -113,13 +97,30 @@ class Registrar {
       return getConfig().spec.allowGuest === true
     }
 
+    static generateAors(request, user, isGuest) {
+        const aors = []
+
+        if (isGuest || user.kind.equalsIgnoreCase('peer')) {
+            const host = Registrar.getFromHost(request)
+            const peerHost = isEmpty(user.spec.device) ?  host : user.spec.device
+            aors.push(addressFactory.createSipURI(user.spec.credentials.username, peerHost))
+        } else {
+            user.spec.domains.forEach(domain => {
+                const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, domain)
+                addressOfRecord.setSecure(contactURI.isSecure())
+                aors.push(addressOfRecord)
+            })
+        }
+        return aors
+    }
+
     static isGuest(request) {
       return Registrar.getFromHost(request).equalsIgnoreCase('guest')
     }
 
     static getGuessUser(request) {
         const fromHeader = request.getHeader(FromHeader.NAME)
-        const user = {
+        return {
             kind: 'User',
             spec: {
                 credentials: {
