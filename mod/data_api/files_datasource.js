@@ -138,17 +138,17 @@ class FilesDataSource {
 
         try {
             const filePath = this.filesPath + '/' + this.collection + '.yml'
-            let resource = this.cache.getIfPresent(filePath)
+            let jsonPath = this.cache.getIfPresent(filePath)
 
-            if (resource === null) {
-                const resourceStr = FilesUtil.readFile(filePath)
-                resource =  DSUtils.convertToJson(resourceStr)
-                this.cache.put(filePath, JSON.stringify(resource))
+            if (jsonPath === null) {
+                const resource =  DSUtils.toJsonStr(FilesUtil.readFile(filePath))
+                jsonPath = JsonPath.parse(resource)
+                this.cache.put(filePath, jsonPath)
             }
 
             // JsonPath does not parse properly when using Json objects from JavaScript
-            if(isEmpty(resource) === false) {
-                list = JSON.parse(JsonPath.parse(resource).read(filter).toJSONString())
+            if(isEmpty(jsonPath) === false) {
+                list = JSON.parse(jsonPath.read(filter).toJSONString())
             }
 
             if (isEmpty(list)) {

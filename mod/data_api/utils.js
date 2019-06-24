@@ -18,11 +18,19 @@ const schemaPath = 'etc/schemas'
 
 class DSUtils {
 
+    // Deprecated
     static convertToJson(yamlStr) {
         const yamlReader = new ObjectMapper(new YAMLFactory())
         const mapper = new ObjectMapper()
         const obj = yamlReader.readValue(yamlStr, Java.type('java.lang.Object').class)
         return JSON.parse(mapper.writeValueAsString(obj))
+    }
+
+    static toJsonStr(yamlStr) {
+        const yamlReader = new ObjectMapper(new YAMLFactory())
+        const mapper = new ObjectMapper()
+        const obj = yamlReader.readValue(yamlStr, Java.type('java.lang.Object').class)
+        return mapper.writeValueAsString(obj)
     }
 
     static isValidEntity(obj) {
