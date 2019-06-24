@@ -2,37 +2,53 @@
  * @author Pedro Sanders
  * @since v1
  */
-import CoreUtils from 'core/utils'
-import DSUtil from 'data_api/utils'
-import { Status } from 'core/status'
-import { UNFULFILLED_DEPENDENCY_RESPONSE } from 'core/status'
+const CoreUtils = require('@routr/core/utils')
+const DSUtils = require('@routr/data_api/utils')
+const { Status } = require('@routr/core/status')
+const { UNFULFILLED_DEPENDENCY_RESPONSE } = require('@routr/core/status')
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
-export default class DIDsAPI {
+class DIDsAPI {
 
     constructor(dataSource) {
         this.ds = dataSource
+        this.cache = Caffeine.newBuilder()
+          .expireAfterWrite(5, TimeUnit.MINUTES)
+          .maximumSize(5000)
+          .build()
     }
 
     createFromJSON(jsonObj) {
-        const response = this.ds.withCollection('gateways').find("@.metadata.ref=='" + jsonObj.metadata.gwRef + "'")
+        const response = this.ds.withCollection('gateways').get(jsonObj.metadata.gwRef)
 
-        if (response.result.length == 0) {
+        if (response.status !== Status.OK) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
-        return this.didExist(jsonObj.spec.location.telUrl)?
-          CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+        if (!this.didExist(jsonObj.spec.location.telUrl)) {
+            const response = this.ds.insert(jsonObj)
+            this.cache.put(jsonObj.spec.location.telUrl, response)
+            return response
+        }
+
+        return  CoreUtils.buildResponse(Status.CONFLICT)
     }
 
     updateFromJSON(jsonObj) {
-        const response = this.ds.withCollection('gateways').find("@.metadata.ref=='" + jsonObj.metadata.gwRef + "'")
+        const response = this.ds.withCollection('gateways').get(jsonObj.metadata.gwRef)
 
-        if (response.result.length == 0) {
+        if (response.status !== Status.OK) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
-        return !this.didExist(jsonObj.spec.location.telUrl)?
-          CoreUtils.buildResponse(Status.NOT_FOUND) : this.ds.update(jsonObj)
+        if (this.didExist(jsonObj.spec.location.telUrl)) {
+            const response = this.ds.update(jsonObj)
+            this.cache.put(jsonObj.spec.location.telUrl, response)
+            return response
+        }
+
+        return  CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     getDIDs(filter) {
@@ -40,7 +56,7 @@ export default class DIDsAPI {
     }
 
     getDID(ref) {
-        return DSUtil.deepSearch(this.getDIDs(), "metadata.ref", ref)
+        return this.ds.withCollection('dids').get(ref)
     }
 
     /**
@@ -48,15 +64,27 @@ export default class DIDsAPI {
      * a TelURL Object.
      */
     getDIDByTelUrl(telUrl) {
-        return DSUtil.deepSearch(this.getDIDs(), "spec.location.telUrl", telUrl)
+        let response = this.cache.getIfPresent(telUrl)
+
+        if (response === null) {
+            response = DSUtils.deepSearch(this.getDIDs(), "spec.location.telUrl", telUrl)
+            this.cache.put(telUrl, response)
+        }
+
+        return response
     }
 
     didExist(telUrl) {
-        return DSUtil.objExist(this.getDIDByTelUrl(telUrl))
+        return DSUtils.objExist(this.getDIDByTelUrl(telUrl))
     }
 
     deleteDID(ref) {
+        if (this.cache.getIfPresent(ref)) {
+          this.cache.invalidate(ref)
+        }
         return this.ds.withCollection('dids').remove(ref)
     }
 
 }
+
+module.exports = DIDsAPI

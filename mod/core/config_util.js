@@ -2,14 +2,21 @@
  * @author Pedro Sanders
  * @since v1
  */
-import DSUtil from 'data_api/utils'
-import FilesUtil from 'utils/files_util'
-const InetAddress = Packages.java.net.InetAddress
-const File = Packages.java.io.File
-const System = Packages.java.lang.System
-const UUID = Packages.java.util.UUID
+const DSUtils = require('@routr/data_api/utils')
+const FilesUtil = require('@routr/utils/files_util')
 
-export default function () {
+const InetAddress = Java.type('java.net.InetAddress')
+const File = Java.type('java.io.File')
+const System = Java.type('java.lang.System')
+const UUID = Java.type('java.util.UUID')
+
+// Loading and "assembly the configuration"
+let config = loadConfig()
+
+module.exports = () => config
+module.exports.reloadConfig = () => config = loadConfig()
+
+function loadConfig () {
     const config = getConfigFromFile()
     config.salt = getSalt()
     config.spec.securityContext = getDefaultSecContext(config.spec.securityContext)
@@ -21,50 +28,50 @@ export default function () {
     config.spec.restService = getRestfulPresets(config.spec.restService)
     config.system = getSystemConfig()
 
-    if (config.spec.registrarIntf == undefined) config.spec.registrarIntf = 'External'
-    if (config.spec.useToAsAOR == undefined) config.spec.useToAsAOR = false
-    if (config.spec.bindAddr == undefined) config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
-    if (config.spec.logging == undefined) config.spec.logging = { traceLevel: 0 }
-    if (config.spec.dataSource == undefined) config.spec.dataSource = { provider: 'files_data_provider' }
-    if (config.metadata == undefined) config.metadata = {}
-    if (config.metadata.userAgent == undefined) config.metadata.userAgent = 'Routr ' + config.system.version
+    if (config.spec.registrarIntf === undefined) config.spec.registrarIntf = 'External'
+    if (config.spec.useToAsAOR === undefined) config.spec.useToAsAOR = false
+    if (config.spec.bindAddr === undefined) config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
+    if (config.spec.logging === undefined) config.spec.logging = { traceLevel: '0' }
+    if (config.spec.dataSource === undefined) config.spec.dataSource = { provider: 'files_data_provider' }
+    if (config.metadata === undefined) config.metadata = {}
+    if (config.metadata.userAgent === undefined) config.metadata.userAgent = 'Routr ' + config.system.version
 
     return config
 }
 
 function getRestfulPresets(rs) {
-    let restService = rs == undefined ? {} : rs
+    let restService = rs === undefined ? {} : rs
 
-    if (restService.keyStore == undefined) {
+    if (restService.keyStore === undefined) {
         restService.keyStore = 'etc/certs/api-cert.jks'
         restService.keyStorePassword = 'changeit'
     }
 
-    if (restService.unsecured == undefined) restService.unsecured = false
-    if (restService.trustStore == undefined) restService.trustStore = null
-    if (restService.trustStorePassword == undefined) restService.trustStorePassword = null
-    if (restService.bindAddr == undefined) restService.bindAddr = '0.0.0.0'
-    if (restService.port == undefined) restService.port = 4567
+    if (restService.unsecured === undefined) restService.unsecured = false
+    if (restService.trustStore === undefined) restService.trustStore = null
+    if (restService.trustStorePassword === undefined) restService.trustStorePassword = null
+    if (restService.bindAddr === undefined) restService.bindAddr = '0.0.0.0'
+    if (restService.port === undefined) restService.port = 4567
 
     return restService
 }
 
 function getSysPresets(s) {
-    const spec = s == undefined ? {} : s
+    const spec = s === undefined ? {} : s
 
-    if (System.getenv("ROUTR_EXTERN_ADDR") != null) {
-        spec.externAddr = Packages.java.lang.System.getenv("ROUTR_EXTERN_ADDR")
+    if (System.getenv("ROUTR_EXTERN_ADDR") !== null) {
+        spec.externAddr = System.getenv("ROUTR_EXTERN_ADDR")
     }
 
-    if (System.getenv("ROUTR_LOCALNETS") != null) {
-        spec.localnets = Packages.java.lang.System.getenv("ROUTR_LOCALNETS").split(",")
+    if (System.getenv("ROUTR_LOCALNETS") !== null) {
+        spec.localnets = System.getenv("ROUTR_LOCALNETS").split(",")
     }
 
-    if (System.getenv("ROUTR_DS_PROVIDER") != null) {
+    if (System.getenv("ROUTR_DS_PROVIDER") !== null) {
         spec.dataSource = { provider : System.getenv("ROUTR_DS_PROVIDER") }
     }
 
-    if (System.getenv("ROUTR_REGISTRAR_INTF") != null) {
+    if (System.getenv("ROUTR_REGISTRAR_INTF") !== null) {
         spec.registrarIntf = System.getenv("ROUTR_REGISTRAR_INTF")
     }
 
@@ -73,41 +80,41 @@ function getSysPresets(s) {
 
 function getDefaultSecContext(sc) {
     let securityContext
-    sc == undefined? securityContext = {} : securityContext = sc
+    sc === undefined? securityContext = {} : securityContext = sc
 
-    if (securityContext.client == undefined) {
+    if (securityContext.client === undefined) {
         securityContext.client = {}
     }
 
-    if (securityContext.client.authType == undefined) {
+    if (securityContext.client.authType === undefined) {
         securityContext.client.authType = 'Disabled'
     }
 
-    if (securityContext.client.protocols == undefined) {
+    if (securityContext.client.protocols === undefined) {
         securityContext.client.protocols = ['SSLv3', 'TLSv1.2', 'TLSv1.1', 'TLSv1']
     }
 
-    if (securityContext.debugging == undefined) {
+    if (securityContext.debugging === undefined) {
         securityContext.debugging = false
     }
 
-    if (securityContext.keyStore == undefined) {
+    if (securityContext.keyStore === undefined) {
         securityContext.keyStore = 'etc/certs/domains-cert.jks'
     }
 
-    if (securityContext.trustStore == undefined) {
+    if (securityContext.trustStore === undefined) {
         securityContext.trustStore = 'etc/certs/domains-cert.jks'
     }
 
-    if (securityContext.keyStorePassword == undefined) {
+    if (securityContext.keyStorePassword === undefined) {
         securityContext.keyStorePassword = 'changeit'
     }
 
-    if (securityContext.trustStorePassword == undefined) {
+    if (securityContext.trustStorePassword === undefined) {
         securityContext.trustStorePassword = 'changeit'
     }
 
-    if (securityContext.keyStoreType == undefined) {
+    if (securityContext.keyStoreType === undefined) {
         securityContext.keyStoreType = 'jks'
     }
 
@@ -128,27 +135,28 @@ function getSystemConfig() {
     system.env.push({"var":'ROUTR_EXTERN_ADDR', "value":System.getenv("ROUTR_EXTERN_ADDR")})
     system.env.push({"var":'ROUTR_LOCALNETS', "value":System.getenv("ROUTR_LOCALNETS")})
     system.env.push({"var":'ROUTR_REGISTRAR_INTF', "value":System.getenv("ROUTR_REGISTRAR_INTF")})
+    system.env.push({"var":'ROUTR_JS_ENGINE', "value":System.getenv("ROUTR_JS_ENGINE")})
     return system
 }
 
 function getConfigFromFile() {
     let config
     try {
-        if (System.getenv("ROUTR_CONFIG_FILE") != null) {
-            config = DSUtil.convertToJson(FilesUtil.readFile(System.getenv("ROUTR_CONFIG_FILE")))
+        if (System.getenv("ROUTR_CONFIG_FILE") !== null) {
+            config = DSUtils.convertToJson(FilesUtil.readFile(System.getenv("ROUTR_CONFIG_FILE")))
         } else {
-            config = DSUtil.convertToJson(FilesUtil.readFile('config/config.yml'))
+            config = DSUtils.convertToJson(FilesUtil.readFile('config/config.yml'))
         }
         return config
     } catch(e) {
         print('Unable to open configuration file')
-        exit(1)
+        System.exit(1)
     }
 }
 
 function getSalt() {
-    if (System.getenv("ROUTR_SALT") != null) return System.getenv("ROUTR_SALT")
-  
+    if (System.getenv("ROUTR_SALT") !== null) return System.getenv("ROUTR_SALT")
+
     const pathToSalt = System.getProperty("user.home") + "/.routr.salt"
     const f = new File(pathToSalt)
 

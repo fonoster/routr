@@ -2,25 +2,28 @@
  * @author Pedro Sanders
  * @since v1
  */
-import Processor from 'core/processor/processor'
-import ContextStorage from 'core/context_storage'
-import Registry from 'registry/registry'
-import RestService from 'rest/rest'
-import getConfig from 'core/config_util.js'
+const Processor = require('@routr/core/processor/processor')
+const Locator = require('@routr/location/locator')
+const ContextStorage = require('@routr/core/context_storage')
+const getConfig = require('@routr/core/config_util')
+const Registry = require('@routr/registry/registry')
+const RestService = require('@routr/rest/rest')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const Properties = Packages.java.util.Properties
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const FileInputStream = Java.type('java.io.FileInputStream')
+const System = Java.type('java.lang.System')
+const SipFactory = Java.type('javax.sip.SipFactory')
+const Properties = Java.type('java.util.Properties')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
 const LOG = LogManager.getLogger()
 const ANSI_GREEN = "\u001B[32m"
 const ANSI_YELLOW = "\u001B[33m"
 const ANSI_RESET = "\u001B[0m"
 
-export default class Server {
+class Server {
 
-    constructor(locator, registrar, dataAPIs) {
-        this.locator = locator
-        this.registrar = registrar
+    constructor(dataAPIs) {
+        this.locator = new Locator(dataAPIs)
         this.dataAPIs = dataAPIs
         this.contextStorage = new ContextStorage()
         this.config = getConfig()
@@ -28,24 +31,24 @@ export default class Server {
         this.host = this.config.spec.bindAddr
     }
 
-    buildSipProvider(transport) {
-        const defListeningPoint = this.sipStack.createListeningPoint(transport[0].port, transport[0].protocol.toLowerCase())
-        const sipProvider = this.sipStack.createSipProvider(defListeningPoint)
+    buildSipProvider(sipStack, transport) {
+        const defListeningPoint = sipStack.createListeningPoint(transport[0].port, transport[0].protocol.toLowerCase())
+        const sipProvider = sipStack.createSipProvider(defListeningPoint)
 
         for (const key in transport) {
             const curTransport = transport[key]
             const proto = curTransport.protocol.toLowerCase()
 
-            if ((proto == 'wss' || proto == 'tls') && !this.config.spec.securityContext) {
+            if ((proto === 'wss' || proto === 'tls') && !this.config.spec.securityContext) {
                 LOG.warn(ANSI_YELLOW + 'Security context could not found. Ignoring protocol: ' + proto + ANSI_RESET)
-                continue;
+                continue
             }
 
-            if (curTransport.bindAddr == undefined) {
+            if (curTransport.bindAddr === undefined) {
                 curTransport.bindAddr = this.host
             }
 
-            const lp = this.sipStack.createListeningPoint(curTransport.bindAddr, curTransport.port, proto)
+            const lp = sipStack.createListeningPoint(curTransport.bindAddr, curTransport.port, proto)
             sipProvider.addListeningPoint(lp)
 
             LOG.info('Listening  on ' + ANSI_GREEN  + curTransport.bindAddr
@@ -71,7 +74,7 @@ export default class Server {
         this.showExternInfo()
 
         if(this.config.spec.securityContext.debugging) {
-            Packages.java.lang.System.setProperty('javax.net.debug', 'ssl')
+            Java.type('java.lang.System').setProperty('javax.net.debug', 'ssl')
         }
 
         const sipFactory = SipFactory.getInstance()
@@ -79,26 +82,24 @@ export default class Server {
 
         this.sipStack = sipFactory.createSipStack(this.getProperties())
 
-        const sipProvider = this.buildSipProvider(this.config.spec.transport)
+        const sipProvider = this.buildSipProvider(this.sipStack,
+          this.config.spec.transport)
 
         this.registry = new Registry(sipProvider, this.dataAPIs)
 
         const processor = new Processor(sipProvider,
-            this.locator,
-                this.registry,
-                    this.registrar, this.dataAPIs, this.contextStorage)
+            this.registry, this.dataAPIs, this.contextStorage)
 
         sipProvider.addSipListener(processor.listener)
     }
 
     start()  {
-        LOG.info('Starting Routr')
+      LOG.info('Starting Routr')
         this.setup()
-        this.locator.start()
+        //this.locator.start()
         this.registry.start()
         this.restService = new RestService(this, this.locator, this.registry, this.dataAPIs)
         this.restService.start()
-        java.lang.Thread.sleep(java.lang.Long.MAX_VALUE)
     }
 
     stop() {
@@ -106,24 +107,28 @@ export default class Server {
         this.restService.stop()
         this.sipStack.stop()
         this.locator.stop()
-        exit(0)
+        System.exit(0)
     }
 
     getProperties() {
-        const properties = new Properties()
-        // See https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java for
-        // many other options
+        let properties = new Properties()
+        // for more options see:
+        // https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java
         properties.setProperty('javax.sip.STACK_NAME', 'routr')
-        // Default host
-        properties.setProperty('javax.sip.IP_ADDRESS', this.host)
         properties.setProperty('javax.sip.AUTOMATIC_DIALOG_SUPPORT', 'OFF')
-        // Guard against denial of service attack.
-        properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576')
-        // Drop the client connection after we are done with the transaction.
-        properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'false')
-        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', this.config.spec.logging.traceLevel)
         properties.setProperty('gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY', 'gov.nist.javax.sip.stack.NioMessageProcessorFactory')
         properties.setProperty('gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS', 'false')
+        properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'true')
+        properties.setProperty('gov.nist.javax.sip.REENTRANT_LISTENER', 'true')
+        properties.setProperty('gov.nist.javax.sip.NIO_BLOCKING_MODE', 'NONBLOCKING')
+
+        // Guard against denial of service attack.
+        properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576')
+        properties.setProperty('gov.nist.javax.sip.LOG_MESSAGE_CONTENT', 'false')
+        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', this.config.spec.logging.traceLevel)
+
+        // Default host
+        properties.setProperty('javax.sip.IP_ADDRESS', this.host)
 
         // See https://groups.google.com/forum/#!topic/mobicents-public/U_c7aLAJ_MU for useful info
         if (this.config.spec.securityContext) {
@@ -135,7 +140,16 @@ export default class Server {
             properties.setProperty('javax.net.ssl.keyStorePassword', this.config.spec.securityContext.keyStorePassword)
             properties.setProperty('javax.net.ssl.keyStoreType', this.config.spec.securityContext.keyStoreType)
         }
+
+        try {
+            const filesPath = this.config.spec.dataSource.parameters.path
+            properties.load(new FileInputStream(filesPath + '/stack.properties'))
+        } catch(e) {
+        }
+
         return properties
     }
 
 }
+
+module.exports = Server

@@ -2,39 +2,44 @@
  * @author Pedro Sanders
  * @since v1
  */
-import Server from 'core/server'
-import Locator from 'location/locator.js'
-import Registrar from 'registrar/registrar'
+const System = Java.type('java.lang.System')
+const BasicConfigurator = Java.type('org.apache.log4j.BasicConfigurator')
+const NullAppender = Java.type('org.apache.log4j.varia.NullAppender')
+load(System.getProperty('user.dir') + '/libs/jvm-npm.js')
+
+const Server = require('@routr/core/server')
 // Default Data Provider (from files)
-import UsersAPI from 'data_api/users_api'
-import AgentsAPI from 'data_api/agents_api'
-import DomainsAPI from 'data_api/domains_api'
-import PeersAPI from 'data_api/peers_api'
-import GatewaysAPI from 'data_api/gateways_api'
-import DIDsAPI from 'data_api/dids_api'
+const UsersAPI = require('@routr/data_api/users_api')
+const AgentsAPI = require('@routr/data_api/agents_api')
+const DomainsAPI = require('@routr/data_api/domains_api')
+const PeersAPI = require('@routr/data_api/peers_api')
+const GatewaysAPI = require('@routr/data_api/gateways_api')
+const DIDsAPI = require('@routr/data_api/dids_api')
+
 // Data sources
-import FilesDataSource from 'data_api/files_datasource'
-import RedisDataSource from 'data_api/redis_datasource'
-import RestfulDataSource from 'data_api/restful_datasource'
-import getConfig from 'core/config_util.js'
+const FilesDataSource = require('@routr/data_api/files_datasource')
+const RedisDataSource = require('@routr/data_api/redis_datasource')
+const RestfulDataSource = require('@routr/data_api/restful_datasource')
+const config = require('@routr/core/config_util')()
+
+// XXX: This feals a bit like a hack. But it is ok for now.
+var global = { timer }
 
 // Avoids old log4j and jetty logs
-java.lang.System.setProperty("org.eclipse.jetty.LEVEL", "WARN")
-org.apache.log4j.BasicConfigurator.configure(new
-    org.apache.log4j.varia.NullAppender())
+System.setProperty("org.eclipse.jetty.LEVEL", "WARN")
+BasicConfigurator.configure(new NullAppender())
 
-let config = getConfig()
 let dataSource
 
-if (config.spec.dataSource.provider == 'files_data_provider') {
+if (config.spec.dataSource.provider === 'files_data_provider') {
     dataSource = new FilesDataSource()
-} else if(config.spec.dataSource.provider == 'restful_data_provider') {
+} else if(config.spec.dataSource.provider === 'restful_data_provider') {
     dataSource = new RestfulDataSource()
-} else if(config.spec.dataSource.provider == 'redis_data_provider') {
+} else if(config.spec.dataSource.provider === 'redis_data_provider') {
     dataSource = new RedisDataSource()
 } else {
     print ('Invalid data source')
-    exit(1)
+    System.exit(1)
 }
 
 const dataAPIs = {
@@ -46,6 +51,4 @@ const dataAPIs = {
     PeersAPI: new PeersAPI(dataSource)
 }
 
-const locator = new Locator(dataAPIs)
-const registrar = new Registrar(locator, dataAPIs)
-new Server(locator, registrar, dataAPIs).start()
+new Server(dataAPIs).start()

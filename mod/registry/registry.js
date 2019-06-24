@@ -2,26 +2,26 @@
  * @author Pedro Sanders
  * @since v1
  */
-import getConfig from 'core/config_util'
-import { Status } from 'core/status'
-import moment from 'moment'
+const getConfig = require('@routr/core/config_util')
+const { Status } = require('@routr/core/status')
+const moment = require('moment')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const SipUtils = Packages.gov.nist.javax.sip.Utils
-const Request = Packages.javax.sip.message.Request
-const InetAddress = Packages.java.net.InetAddress
-const HashMap = Packages.java.util.HashMap
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const SipFactory = Java.type('javax.sip.SipFactory')
+const SipUtils = Java.type('gov.nist.javax.sip.Utils')
+const Request = Java.type('javax.sip.message.Request')
+const InetAddress = Java.type('java.net.InetAddress')
+const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
+const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
 const LOG = LogManager.getLogger()
-
 var cseq = 0
 
-export default class Registry {
+class Registry {
 
     constructor(sipProvider, dataAPIs) {
-        this.dataAPIs = dataAPIs.GatewaysAPI
         this.gatewaysAPI = dataAPIs.GatewaysAPI
-        this.checkExpiresTime = .5
+        this.checkExpiresTime = 1
         this.sipProvider = sipProvider
         this.config = getConfig()
         this.messageFactory = SipFactory.getInstance().createMessageFactory()
@@ -29,7 +29,10 @@ export default class Registry {
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
         this.userAgent = new java.util.ArrayList()
         this.userAgent.add(this.config.metadata.userAgent)
-        this.registry = new HashMap()
+        this.registry = Caffeine.newBuilder()
+            .expireAfterWrite(this.checkExpiresTime, TimeUnit.MINUTES)
+            .maximumSize(5000)    // TODO: This should be a parameter
+            .build()
     }
 
     getLPAddress(transport, received, rport) {
@@ -85,8 +88,9 @@ export default class Registry {
     }
 
     handleChallengeException(e, gwHost) {
-        this.registry.remove(gwHost)
-        if(e instanceof javax.sip.TransactionUnavailableException || e instanceof javax.sip.SipException) {
+        this.registry.invalidate(gwHost)
+        if(e instanceof Java.type('javax.sip.TransactionUnavailableException')
+            || e instanceof Java.type('javax.sip.SipException')) {
             LOG.warn('Unable to register with Gateway -> ' + gwHost + '. (Verify your network status)')
         } else {
             LOG.warn(e)
@@ -110,12 +114,12 @@ export default class Registry {
     }
 
     removeRegistry (gwURIStr) {
-        this.registry.remove(gwURIStr)
+        this.registry.invalidate(gwURIStr)
     }
 
     listAsJSON() {
         const s = []
-        const iterator = this.registry.values().iterator()
+        const iterator = this.registry.asMap().values().iterator()
 
         while(iterator.hasNext()) {
             const reg = iterator.next()
@@ -126,9 +130,9 @@ export default class Registry {
     }
 
     isExpired (gwURIStr) {
-        const reg = this.registry.get(gwURIStr)
+        const reg = this.registry.getIfPresent(gwURIStr)
 
-        if (reg == null) {
+        if (reg === null) {
           return true
         }
 
@@ -138,43 +142,49 @@ export default class Registry {
 
     start() {
         LOG.info('Starting Registry service')
-        var gatewaysAPI = this.gatewaysAPI
-        var myRegistry = this
+        const self = this
 
-        let registerTask = new java.util.TimerTask({
-            run: function() {
-                const response = gatewaysAPI.getGateways()
+        global.timer.schedule(
+          () => {
+              const response = self.gatewaysAPI.getGateways()
 
-                if (response.status == Status.OK) {
-                    response.result.forEach (function(gateway) {
-                        const gwURIStr = 'sip:' + gateway.spec.credentials.username + '@' + gateway.spec.host
-                        const expires = gateway.spec.expires? gateway.spec.expires : 3600
-                        if (myRegistry.isExpired(gwURIStr)) {
-                            LOG.debug('Register with ' + gateway.metadata.name +  ' using '
-                                + gateway.spec.credentials.username + '@' + gateway.spec.host)
-                            myRegistry.requestChallenge(gateway.spec.credentials.username,
-                                gateway.metadata.ref, gateway.spec.host, gateway.spec.transport, null, null, expires)
-                        }
+              if (response.status === Status.OK) {
+                  for (const cnt in response.result) {
+                    const gateway = response.result[cnt]
 
-                        let registries = gateway.spec.registries
+                    if (gateway.spec.credentials === undefined) continue
 
-                        if (registries != undefined) {
-                            registries.forEach (function(h) {
-                                if (myRegistry.isExpired(gwURIStr)) {
-                                    LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.credentials.username + '@' + h)
-                                    myRegistry.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport, null, null, expires)
-                                }
-                            })
-                        }
-                    })
-                }
-           }
-        })
+                    const gwURIStr = 'sip:' + gateway.spec.credentials.username + '@' + gateway.spec.host
+                    const expires = gateway.spec.expires? gateway.spec.expires : 3600
+                    if (self.isExpired(gwURIStr)) {
+                        LOG.debug('Register with ' + gateway.metadata.name +  ' using '
+                            + gateway.spec.credentials.username + '@' + gateway.spec.host)
+                        self.requestChallenge(gateway.spec.credentials.username,
+                            gateway.metadata.ref, gateway.spec.host, gateway.spec.transport, null, null, expires)
+                    }
 
-        new java.util.Timer().schedule(registerTask, 10000, this.checkExpiresTime * 60 * 1000)
+                    let registries = gateway.spec.registries
+
+                    if (registries !== undefined) {
+                        registries.forEach (function(h) {
+                            if (self.isExpired(gwURIStr)) {
+                                LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.credentials.username + '@' + h)
+                                self.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport, null, null, expires)
+                            }
+                        })
+                    }
+
+                  }
+              }
+          },
+          10000,
+          this.checkExpiresTime * 60 * 1000
+        )
     }
 
     stop() {
         // ??
     }
 }
+
+module.exports = Registry

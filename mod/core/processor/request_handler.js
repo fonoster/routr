@@ -2,44 +2,70 @@
  * @author Pedro Sanders
  * @since v1
  */
-import ProcessorUtils from 'core/processor/utils'
-import IPUtil from 'core/ip_util'
-import getConfig from 'core/config_util'
-import { Status } from 'core/status'
+const postal = require('postal')
+const ProcessorUtils = require('@routr/core/processor/utils')
+const IPUtil = require('@routr/core/ip_util')
+const getConfig = require('@routr/core/config_util')
+const { Status } = require('@routr/core/status')
+const LocatorUtils = require('@routr/location/utils')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const Request = Packages.javax.sip.message.Request
-const Response = Packages.javax.sip.message.Response
-const RouteHeader = Packages.javax.sip.header.RouteHeader
-const CSeqHeader = Packages.javax.sip.header.CSeqHeader
-const ViaHeader = Packages.javax.sip.header.ViaHeader
-const MaxForwardsHeader = Packages.javax.sip.header.MaxForwardsHeader
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const ObjectId = Java.type('org.bson.types.ObjectId')
+const InetAddress = Java.type('java.net.InetAddress')
+const SipFactory = Java.type('javax.sip.SipFactory')
+const Request = Java.type('javax.sip.message.Request')
+const Response = Java.type('javax.sip.message.Response')
+const RouteHeader = Java.type('javax.sip.header.RouteHeader')
+const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
+const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const MaxForwardsHeader = Java.type('javax.sip.header.MaxForwardsHeader')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const ConcurrentHashMap = Java.type('java.util.concurrent.ConcurrentHashMap')
+const requestStore = new ConcurrentHashMap()
+const headerFactory = SipFactory.getInstance().createHeaderFactory()
+const addressFactory = SipFactory.getInstance().createAddressFactory()
+const ipUtil = new IPUtil(getConfig())
+const config = getConfig()
 const LOG = LogManager.getLogger()
 
-export default class RequestHandler {
+class RequestHandler {
 
-    constructor(locator, sipProvider, dataAPIs, contextStorage) {
+    constructor(sipProvider, dataAPIs, contextStorage) {
         this.sipProvider = sipProvider
-        this.locator = locator
         this.contextStorage = contextStorage
-        this.messageFactory = SipFactory.getInstance().createMessageFactory()
-        this.headerFactory = SipFactory.getInstance().createHeaderFactory()
-        this.addressFactory = SipFactory.getInstance().createAddressFactory()
-        this.config = getConfig()
-        this.ipUtil = new IPUtil(getConfig())
+
+        postal.subscribe({
+        		channel: "locator",
+        		topic: "endpoint.find.reply",
+        		callback: (data, envelope) => {
+                const serverTransaction = requestStore.get(data.requestId)
+
+                if (serverTransaction === null) return
+
+                const response = data.response
+
+                if (response.status == Status.NOT_FOUND) {
+                    const procUtils = new ProcessorUtils(serverTransaction.getRequest(), serverTransaction)
+                    return procUtils.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
+                }
+
+                // Call forking
+                response.result.forEach(route => this.processRoute(serverTransaction.getRequest(), serverTransaction, route))
+                requestStore.remove(data.requestId)
+        		}
+      	})
     }
 
-    doProcess(request, serverTransaction) {
-        const procUtils = new ProcessorUtils(request, serverTransaction, this.messageFactory)
-        const response = this.locator.findEndpoint(ProcessorUtils.getAOR(request))
-
-        if (response.status == Status.NOT_FOUND) {
-            return procUtils.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
-        }
-
-        // Call forking
-        response.result.forEach(route => this.processRoute(request, serverTransaction, route))
+    doProcess(serverTransaction) {
+        const requestId = new ObjectId().toString()
+        requestStore.put(requestId, serverTransaction)
+        postal.publish({
+            channel: "locator",
+            topic: "endpoint.find",
+            data: {
+                addressOfRecord: ProcessorUtils.getAOR(serverTransaction.getRequest()),
+                requestId: requestId
+            }
+        })
     }
 
     processRoute(requestIn, serverTransaction, route) {
@@ -47,7 +73,7 @@ export default class RequestHandler {
         const transport = requestIn.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
         const lp = this.sipProvider.getListeningPoint(transport)
         const localAddr = { host: lp.getIPAddress().toString(), port: lp.getPort() }
-        const advertisedAddr = this.getAdvertizedAddr(route, localAddr, this.config.spec.externAddr)
+        const advertisedAddr = this.getAdvertizedAddr(route, localAddr, config.spec.externAddr)
 
         LOG.debug('advertised addr: ' + JSON.stringify(advertisedAddr))
         LOG.debug('flow: ' + JSON.stringify(route))
@@ -70,16 +96,15 @@ export default class RequestHandler {
     }
 
     stayInSignalingPath() {
-        return this.config.spec.recordRoute? true : false
+        return config.spec.recordRoute? true : false
     }
 
     proxyOwnsRequest(request, localAddr, advertisedAddr) {
         const routeHeader = request.getHeader(RouteHeader.NAME)
         if (routeHeader) {
             const h = routeHeader.getAddress().getURI().getHost()
-            const host = IPUtil.isIp(h)? h : Packages.java.net.InetAddress.getByName(h).getHostAddress()
-            const port = routeHeader.getAddress().getURI().getPort() == -1? 5060 : routeHeader.getAddress().getURI().getPort()
-
+            const host = IPUtil.isIp(h)? h : InetAddress.getByName(h).getHostAddress()
+            const port = routeHeader.getAddress().getURI().getPort() === -1? 5060 : routeHeader.getAddress().getURI().getPort()
             if (host.equals(advertisedAddr.host) && port.equals(advertisedAddr.port)) {
                 return true
             }
@@ -93,8 +118,8 @@ export default class RequestHandler {
 
     configureGeneral(request, route, advertisedAddr) {
         const transport = request.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
-        request.setRequestURI(route.contactURI)
-        const viaHeader = this.headerFactory
+        request.setRequestURI(LocatorUtils.aorAsObj(route.contactURI))
+        const viaHeader = headerFactory
           .createViaHeader(advertisedAddr.host, advertisedAddr.port, transport, null)
         viaHeader.setRPort()
         request.addFirst(viaHeader)
@@ -104,11 +129,11 @@ export default class RequestHandler {
     }
 
     configureRecordRoute(request, advertisedAddr) {
-        const proxyURI = this.addressFactory.createSipURI(null, advertisedAddr.host)
+        const proxyURI = addressFactory.createSipURI(null, advertisedAddr.host)
         proxyURI.setLrParam()
         proxyURI.setPort(advertisedAddr.port)
-        const proxyAddress = this.addressFactory.createAddress(proxyURI)
-        const recordRouteHeader = this.headerFactory.createRecordRouteHeader(proxyAddress)
+        const proxyAddress = addressFactory.createAddress(proxyURI)
+        const recordRouteHeader = headerFactory.createRecordRouteHeader(proxyAddress)
         request.addHeader(recordRouteHeader)
     }
 
@@ -118,8 +143,8 @@ export default class RequestHandler {
             const cseq = request.getHeader(CSeqHeader.NAME).getSeqNumber() - 1
             request.getHeader(CSeqHeader.NAME).setSeqNumber(cseq)
         }
-        const gwRefHeader = this.headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
-        const remotePartyIdHeader = this.headerFactory
+        const gwRefHeader = headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
+        const remotePartyIdHeader = headerFactory
             .createHeader('Remote-Party-ID', '<sip:'+ route.did + '@' + route.gwHost+ '>;screen=yes;party=calling')
         request.setHeader(gwRefHeader)
         request.setHeader(remotePartyIdHeader)
@@ -155,14 +180,14 @@ export default class RequestHandler {
         context.method = requestIn.getMethod()
         context.requestIn = requestIn
         context.requestOut = requestOut
-        this.contextStorage.saveContext(context)
+        this.contextStorage.addContext(context)
     }
 
     getAdvertizedAddr(route, localAddr, externAddr) {
         // No egress routing has sentByAddress. They are assume to be entities outside the local network.
-        if (externAddr && (route.sentByAddress == undefined
+        if (externAddr && (route.sentByAddress === undefined
             || route.sentByAddress.endsWith(".invalid")
-            || !this.ipUtil.isLocalnet(route.sentByAddress))) {
+            || !ipUtil.isLocalnet(route.sentByAddress))) {
 
             return {
                 host: externAddr.contains(":") ? externAddr.split(":")[0] : externAddr,
@@ -174,3 +199,5 @@ export default class RequestHandler {
     }
 
 }
+
+module.exports = RequestHandler

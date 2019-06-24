@@ -2,20 +2,21 @@
  * @author Pedro Sanders
  * @since v1
  */
-import CoreUtils from 'core/utils'
-import DSUtil from 'data_api/utils'
-import { Status } from 'core/status'
-import getConfig from 'core/config_util'
+const CoreUtils = require('@routr/core/utils')
+const DSUtils = require('@routr/data_api/utils')
+const { Status } = require('@routr/core/status')
+const getConfig = require('@routr/core/config_util')
 
-const JedisPoolConfig = Packages.redis.clients.jedis.JedisPoolConfig
-const JedisPool = Packages.redis.clients.jedis.JedisPool
-const ObjectId = Packages.org.bson.types.ObjectId
-const JsonPath = Packages.com.jayway.jsonpath.JsonPath
-const InvalidPathException = Packages.com.jayway.jsonpath.InvalidPathException
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const JedisPoolConfig = Java.type('redis.clients.jedis.JedisPoolConfig')
+const JedisPool = Java.type('redis.clients.jedis.JedisPool')
+const ObjectId = Java.type('org.bson.types.ObjectId')
+const JsonPath = Java.type('com.jayway.jsonpath.JsonPath')
+const InvalidPathException = Java.type('com.jayway.jsonpath.InvalidPathException')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
-const defaultRedisParameters = { host: 'localhost', port: '6379', }
+const defaultRedisParameters = { host: 'localhost', port: '6379'}
 const defUser = {
     kind: 'User',
     metadata: {
@@ -29,26 +30,32 @@ const defUser = {
     }
 }
 
-export default class RedisDataSource {
+class RedisDataSource {
 
     constructor(config = getConfig()) {
-        const parameters = DSUtil.getParameters(config, defaultRedisParameters,
+        this.parameters = DSUtils.getParameters(config, defaultRedisParameters,
            ['host', 'port', 'secret'])
 
-        this.jedisPool = new JedisPool(parameters.host, parameters.port)
+        this.jedisPool = new JedisPool(this.parameters.host, this.parameters.port)
 
-        if (parameters.secret) {
-            this.jedisPool.auth(parameters.secret)
-        }
-
-        if(this.withCollection('users').find().result.length == 0) {
+        if(this.withCollection('users').find().result.length === 0) {
             LOG.info("No user found. Creating default 'admin' user.")
             this.createDefaultUser(config.system.apiVersion)
         }
     }
 
+    getJedisConn() {
+      const jedisConn = this.jedisPool.getResource()
+
+      if (this.parameters.secret) {
+          jedisConn.auth(this.parameters.secret)
+      }
+
+      return jedisConn
+    }
+
     buildPoolConfig() {
-        const poolConfig = new JedisPoolConfig();
+        const poolConfig = new JedisPoolConfig()
         poolConfig.setMaxTotal(128)
         poolConfig.setMaxIdle(128)
         poolConfig.setMinIdle(16)
@@ -76,7 +83,7 @@ export default class RedisDataSource {
         let jedis
 
         try {
-            if (!DSUtil.isValidEntity(obj)) {
+            if (!DSUtils.isValidEntity(obj)) {
                 return badRequest
             }
 
@@ -84,10 +91,10 @@ export default class RedisDataSource {
                 obj.metadata.ref = new ObjectId().toString()
             }
 
-            jedis = this.jedisPool.getResource()
+            jedis = this.getJedisConn()
             jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
-            const kind = DSUtil.getKind(obj)
+            const kind = DSUtils.getKind(obj)
             jedis.sadd(kind.toLowerCase() + 's', obj.metadata.ref)
 
             return CoreUtils.buildResponse(Status.CREATED, obj.metadata.ref)
@@ -104,9 +111,9 @@ export default class RedisDataSource {
         let jedis
 
         try {
-            jedis = this.jedisPool.getResource()
-            const result = jedis.get(obj.metadata.ref)
-            return result == null? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
+            jedis = this.getJedisConn()
+            const result = JSON.parse(jedis.get(ref))
+            return result === null? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
         } catch(e) {
             return CoreUtils.buildErrResponse(e)
         } finally {
@@ -121,17 +128,17 @@ export default class RedisDataSource {
         let jedis
 
         try {
-            jedis = this.jedisPool.getResource()
+            jedis = this.getJedisConn()
             jedis.smembers(this.collection)
                 .forEach(ref =>
                     list.push(JSON.parse(jedis.get(ref))))
 
-            if (list.length == 0) {
+            if (list.length === 0) {
                 return CoreUtils.buildResponse(Status.OK, [])
             }
             // JsonPath does not parse properly when using Json objects from JavaScript
             list = JsonPath.parse(JSON.stringify(list))
-                .read(DSUtil.transformFilter(filter))
+                .read(DSUtils.transformFilter(filter))
                     .toJSONString()
 
             return CoreUtils.buildResponse(Status.OK, JSON.parse(list))
@@ -146,14 +153,14 @@ export default class RedisDataSource {
     }
 
     update(obj) {
-        if (!DSUtil.isValidEntity(obj)) {
+        if (!DSUtils.isValidEntity(obj)) {
             return badRequest
         }
 
         let jedis
 
         try {
-            jedis = this.jedisPool.getResource()
+            jedis = this.getJedisConn()
             jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
             return CoreUtils.buildResponse(Status.OK, obj.metadata.ref)
@@ -171,16 +178,16 @@ export default class RedisDataSource {
         let jedis
 
         try {
-            jedis = this.jedisPool.getResource()
+            jedis = this.getJedisConn()
             let cnt = jedis.del(ref)
 
-            if (cnt == 0) {
+            if (cnt === 0) {
                 return CoreUtils.buildResponse(Status.NOT_FOUND)
             }
 
             cnt = jedis.srem(this.collection, ref)
 
-            return cnt == 0? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK)
+            return cnt === 0? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK)
         } catch(e) {
             return CoreUtils.buildErrResponse(e)
         } finally {
@@ -191,3 +198,5 @@ export default class RedisDataSource {
     }
 
 }
+
+module.exports = RedisDataSource

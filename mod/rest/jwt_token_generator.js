@@ -2,17 +2,17 @@
  * @author Pedro Sanders
  * @since v1
  */
-const Jwts = Packages.io.jsonwebtoken.Jwts
-const SignatureAlgorithm = Packages.io.jsonwebtoken.SignatureAlgorithm
-const Base64 = Packages.java.util.Base64
+const Jwts = Java.type('io.jsonwebtoken.Jwts')
+const SignatureAlgorithm = Java.type('io.jsonwebtoken.SignatureAlgorithm')
+const Base64 = Java.type('java.util.Base64')
+const String = Java.type('java.lang.String')
 
-export default function (req, res, salt) {
-    const eAuth = req.headers('Authorization')
-    const eUsername = eAuth.split(' ')[1]
-    const username = new Packages.java.lang.String(Base64.getDecoder()
-        .decode(eUsername)).split(':')[0]
-    return Jwts.builder()
+module.exports = function (req, res, salt) {
+    const eUsername = req.headers('Authorization').split(' ')[1]
+    const username = new String(Base64.getDecoder().decode(eUsername)).split(':')[0]
+    const token = Jwts.builder()
         .setSubject(username)
-        .signWith(SignatureAlgorithm.HS512, salt)
-        .compact();
+          .signWith(SignatureAlgorithm.HS512, salt)
+            .compact()
+    return token
 }

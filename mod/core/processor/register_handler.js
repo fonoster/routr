@@ -2,51 +2,37 @@
  * @author Pedro Sanders
  * @since v1
  */
-import AuthHelper from 'utils/auth_helper'
+const postal = require('postal')
+const AuthHelper = require('@routr/utils/auth_helper')
+const Registrar = require('@routr/registrar/registrar')
 
-const SipFactory = Packages.javax.sip.SipFactory
-const ToHeader = Packages.javax.sip.header.ToHeader
-const ContactHeader = Packages.javax.sip.header.ContactHeader
-const ExpiresHeader = Packages.javax.sip.header.ExpiresHeader
-const AuthorizationHeader = Packages.javax.sip.header.AuthorizationHeader
-const Response = Packages.javax.sip.message.Response
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const SipFactory = Java.type('javax.sip.SipFactory')
+const ToHeader = Java.type('javax.sip.header.ToHeader')
+const ContactHeader = Java.type('javax.sip.header.ContactHeader')
+const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
+const AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
+const Response = Java.type('javax.sip.message.Response')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
+const messageFactory = SipFactory.getInstance().createMessageFactory()
+const headerFactory = SipFactory.getInstance().createHeaderFactory()
 const LOG = LogManager.getLogger()
 
-export default class RegisterHandler {
+class RegisterHandler {
 
-    constructor(locator, registrar) {
-        this.locator = locator
-        this.registrar = registrar
-        this.messageFactory = SipFactory.getInstance().createMessageFactory()
-        this.headerFactory = SipFactory.getInstance().createHeaderFactory()
-        this.authHelper = new AuthHelper(this.headerFactory)
+    constructor(dataAPIs) {
+        this.registrar = new Registrar(dataAPIs)
     }
 
-    doProcess (request, transaction) {
-        const authHeader = request.getHeader(AuthorizationHeader.NAME)
-        const expHeader = this.getExpHeader(request)
+    doProcess (serverTransaction) {
+        const request = serverTransaction.getRequest()
 
-        if (expHeader.getExpires() <= 0) {
-            return this.removeEndpoint(request, transaction)
+        if (RegisterHandler.getExpHeader(request).getExpires() <= 0) {
+            return this.removeEndpoint(request, serverTransaction)
         }
 
-        if (authHeader == null) {
-            return this.sendUnauthorized(request, transaction)
-        }
-
-        this.registrar.register(request)? this.sendOk(request, transaction)
-            : this.sendUnauthorized(request, transaction)
-    }
-
-    getExpHeader(request) {
-        let expires
-        if (request.getHeader(ExpiresHeader.NAME)) {
-            expires =  request.getHeader(ExpiresHeader.NAME).getExpires()
-        } else {
-            expires = RegisterHandler.getContactHeader(request).getExpires()
-        }
-        return this.headerFactory.createExpiresHeader(expires)
+        this.registrar.register(request)? RegisterHandler.sendOk(request, serverTransaction)
+            : RegisterHandler.sendUnauthorized(request, serverTransaction)
     }
 
     // See: Removing bindings -> https://tools.ietf.org/html/rfc3261#section-10.2.2
@@ -55,26 +41,41 @@ export default class RegisterHandler {
         const contactURI = contactHeader.getAddress().getURI()
         const addressOfRecord = RegisterHandler.getAddressOfRecord(request)
 
-        if (contactHeader.getAddress().isWildcard()) {
-            this.locator.removeEndpoint(addressOfRecord, contactURI)
-        } else {
-            this.locator.removeEndpoint(addressOfRecord)
-        }
-        this.sendOk(request, transaction)
+        postal.publish({
+          channel: "locator",
+          topic: "endpoint.remove",
+          data: {
+              addressOfRecord: addressOfRecord,
+              contactURI: contactHeader.getAddress().getURI().toString(),
+              isWildcard: contactHeader.getAddress().isWildcard()
+          }
+        })
+
+        RegisterHandler.sendOk(request, transaction)
     }
 
-    sendOk(request, transaction) {
-        const ok = this.messageFactory.createResponse(Response.OK, request)
+    static getExpHeader(request) {
+        let expires
+        if (request.getHeader(ExpiresHeader.NAME)) {
+            expires = request.getHeader(ExpiresHeader.NAME).getExpires()
+        } else {
+            expires = RegisterHandler.getContactHeader(request).getExpires()
+        }
+        return headerFactory.createExpiresHeader(expires)
+    }
+
+    static sendOk(request, transaction) {
+        const ok = messageFactory.createResponse(Response.OK, request)
         ok.addHeader(RegisterHandler.getContactHeader(request))
-        ok.addHeader(this.getExpHeader(request))
+        ok.addHeader(RegisterHandler.getExpHeader(request))
         transaction.sendResponse(ok)
         LOG.debug(ok)
     }
 
-    sendUnauthorized(request, transaction) {
+    static sendUnauthorized(request, transaction) {
         const realm = RegisterHandler.getAddressOfRecord(request).getHost()
-        const unauthorized = this.messageFactory.createResponse(Response.UNAUTHORIZED, request)
-        unauthorized.addHeader(this.authHelper.generateChallenge(realm))
+        const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
+        unauthorized.addHeader(AuthHelper.generateChallenge(realm))
         transaction.sendResponse(unauthorized)
         LOG.debug(unauthorized)
     }
@@ -88,3 +89,5 @@ export default class RegisterHandler {
         return toHeader.getAddress().getURI()
     }
 }
+
+module.exports = RegisterHandler

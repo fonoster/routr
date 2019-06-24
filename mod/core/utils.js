@@ -2,14 +2,20 @@
  * @author Pedro Sanders
  * @since v1
  */
-import { Status } from 'core/status'
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const { Status } = require('@routr/core/status')
+
+const JedisConnectionException = Java.type('redis.clients.jedis.exceptions.JedisConnectionException')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
-export default class CoreUtils {
+class CoreUtils {
 
     static buildErrResponse(e) {
-        LOG.error(e)
+        if (e instanceof JedisConnectionException) {
+            LOG.error('Unable to connect with Redis')
+        } else {
+          LOG.error(e)
+        }
         return CoreUtils.buildResponse(Status.INTERNAL_SERVER_ERROR, [], e)
     }
 
@@ -30,3 +36,5 @@ export default class CoreUtils {
         return response
     }
 }
+
+module.exports = CoreUtils

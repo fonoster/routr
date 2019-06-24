@@ -2,27 +2,29 @@
  * @author Pedro Sanders
  * @since v1
  */
-import CoreUtils from 'core/utils'
-import DSUtil from 'data_api/utils'
-import getConfig from 'core/config_util'
-import { Status } from 'core/status'
+const CoreUtils = require('@routr/core/utils')
+const DSUtils = require('@routr/data_api/utils')
+const getConfig = require('@routr/core/config_util')
+const { Status } = require('@routr/core/status')
 
-const URLEncoder = Packages.java.net.URLEncoder
-const Unirest = Packages.com.mashape.unirest.http.Unirest
-const LogManager = Packages.org.apache.logging.log4j.LogManager
+const System = Java.type('java.lang.System')
+const URLEncoder = Java.type('java.net.URLEncoder')
+const Unirest = Java.type('com.mashape.unirest.http.Unirest')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+
 const LOG = LogManager.getLogger()
 const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
 const defaultRestfulParams = { baseUrl: 'http://localhost:8080/v1/ctl', username: 'admin', secret: 'changeit' }
 
-export default class RestfulDataSource {
+class RestfulDataSource {
 
     constructor(config = getConfig()) {
-        const parameters = DSUtil.getParameters(config, defaultRestfulParams,
+        const parameters = DSUtils.getParameters(config, defaultRestfulParams,
             ['baseUrl', 'username', 'secret'])
 
         if (!parameters.baseUrl || !parameters.username || !parameters.secret) {
             LOG.error("Restful Data Source incorrectly configured.\nYou must specify the baseUrl, username and secret when using this data provider")
-            exit(1)
+            System.exit(1)
         }
 
         this.baseUrl = parameters.baseUrl
@@ -37,11 +39,11 @@ export default class RestfulDataSource {
 
     save(obj, method, ref = '') {
         try {
-            if (obj != 'noobj' && DSUtil.isValidEntity(obj) == false) {
+            if (obj !== 'noobj' && DSUtils.isValidEntity(obj) === false) {
                 return badRequest
             }
 
-            const path = obj == 'noobj'? '/' + this.collection + ref
+            const path = obj === 'noobj'? '/' + this.collection + ref
                 : '/' + obj.kind.toString().toLowerCase() + 's' + ref
             const r = method(this.baseUrl + path)
                 .header("Content-Type", "application/json")
@@ -76,7 +78,7 @@ export default class RestfulDataSource {
 
             const response = JSON.parse(r.getBody())
 
-            return response.status != Status.OK? CoreUtils.buildResponse(response.status, []): response
+            return response.status !== Status.OK? CoreUtils.buildResponse(response.status, []): response
         } catch(e) {
             return CoreUtils.buildErrResponse(e)
         }
@@ -90,3 +92,5 @@ export default class RestfulDataSource {
         return this.save('noobj', Unirest.delete, '/' + ref)
     }
 }
+
+module.exports = RestfulDataSource

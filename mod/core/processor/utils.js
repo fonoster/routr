@@ -2,20 +2,21 @@
  * @author Pedro Sanders
  * @since v1
  */
-const SipFactory = Packages.javax.sip.SipFactory
-const ToHeader = Packages.javax.sip.header.ToHeader
-import getConfig from 'core/config_util.js'
+const getConfig = require('@routr/core/config_util')
+const SipFactory = Java.type('javax.sip.SipFactory')
+const ToHeader = Java.type('javax.sip.header.ToHeader')
+const addressFactory = SipFactory.getInstance().createAddressFactory()
+const messageFactory = SipFactory.getInstance().createMessageFactory()
 
-export default class ProcessorUtils {
+class ProcessorUtils {
 
     constructor(request, serverTransaction, messageFactory) {
         this.request = request
         this.st = serverTransaction
-        this.messageFactory = messageFactory
     }
 
     sendResponse(responseType) {
-        this.st.sendResponse(this.messageFactory.createResponse(responseType, this.request))
+        this.st.sendResponse(messageFactory.createResponse(responseType, this.request))
     }
 
     /**
@@ -26,10 +27,9 @@ export default class ProcessorUtils {
     static getAOR (request, addressInfo = []) {
       for (const x in addressInfo) {
           let info = addressInfo[x]
-          if (request.getHeader(info) != undefined) {
+          if (request.getHeader(info) !== undefined) {
               let v = request.getHeader(info).getValue()
               if (/sips?:.*@.*/.test(v) || /tel:\d+/.test(v)) {
-                  const addressFactory = SipFactory.getInstance().createAddressFactory()
                   return addressFactory.createURI(v)
               }
               LOG.error('Invalid address: ' + v)
@@ -40,3 +40,5 @@ export default class ProcessorUtils {
         request.getRequestURI()
     }
 }
+
+module.exports = ProcessorUtils

@@ -2,8 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-
-export default class TestUtils {
+class TestUtils {
 
     static buildEndpoint(kind, name, username, secret = '1234') {
         const endpoint = {
@@ -95,3 +94,5 @@ export default class TestUtils {
     }
 
 }
+
+module.exports = TestUtils

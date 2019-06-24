@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-export const Status = {
+const Status = {
   OK: 200,
   CREATED: 201,
   BAD_REQUEST: 400,
@@ -25,10 +25,12 @@ export const Status = {
   }
 }
 
-export const UNFULFILLED_DEPENDENCY_RESPONSE = {
+module.exports.UNFULFILLED_DEPENDENCY_RESPONSE = {
     status: Status.CONFLICT, message: Status.message[4091].value
 }
 
-export const FOUND_DEPENDENT_OBJECTS_RESPONSE = {
+module.exports.FOUND_DEPENDENT_OBJECTS_RESPONSE = {
   status: Status.CONFLICT, message: Status.message[4092].value
 }
+
+module.exports.Status = Status

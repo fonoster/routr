@@ -1,5 +1,11 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 main_js="$(pwd)/etc/tests/test_helper.js"
 
-jjs -Dlog4j.configurationFile=./config/log4j2.xml -cp libs/app.deps.jar \
+#$GRAALVM_HOME/bin/js \
+#  --vm.Dlog4j.configurationFile=config/log4j2.xml \
+#  --jvm --syntax-extensions \
+#  --experimental-options --js.nashorn-compat=true --js.scripting=true \
+#  --vm.classpath="libs/*" "$main_js" -- "$@"
+
+$JAVA_HOME/bin/jjs  -Dlog4j.configurationFile=./config/log4j2.xml -cp $(for i in libs/*.jar ; do echo -n $i: ; done). \
     -doe=true -ot=true -strict=false -scripting=true "$main_js" -- "$@"

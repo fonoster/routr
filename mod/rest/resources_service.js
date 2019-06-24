@@ -2,22 +2,22 @@
  * @author Pedro Sanders
  * @since v1
  */
-import RestUtil from 'rest/utils'
-import isEmpty from 'utils/obj_util'
+const RestUtil = require('@routr/rest/utils')
+const isEmpty = require('@routr/utils/obj_util')
 
-const get = Packages.spark.Spark.get
-const post = Packages.spark.Spark.post
-const put = Packages.spark.Spark.put
-const del = Packages.spark.Spark.delete
+const get = Java.type('spark.Spark').get
+const post = Java.type('spark.Spark').post
+const put = Java.type('spark.Spark').put
+const del = Java.type('spark.Spark').delete
 
-export default function (api, resource) {
+module.exports = function (api, resource) {
     const resBase = ('/' + resource + 's').toLowerCase()
     const resByRef = resBase + '/:ref'
 
-    post(resBase, (req, res) => RestUtil.createFromFile(req, api))
+    post(resBase, (req, res) => JSON.stringify(RestUtil.createFromFile(req, api)))
 
     get(resBase, (req, res) => {
-        let filter = ''
+        let filter = '@'
         if(!isEmpty(req.queryParams('filter'))) filter = req.queryParams('filter')
         return JSON.stringify(api['get' + resource + 's'](filter))
     })

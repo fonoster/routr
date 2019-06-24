@@ -4,7 +4,7 @@
     name: Provider Inc.
   spec:
     host: sip.provider.net
+    transport: udp
     credentials:
       username: 'youruser'
       secret: 'yoursecret'
-    transport: udp

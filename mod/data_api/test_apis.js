@@ -4,23 +4,25 @@
  *
  * Unit Test for the "Data APIS"
  */
-import DSUtil from 'data_api/utils'
-import TestUtil from 'data_api/test_utils'
+const DSUtils = require('@routr/data_api/utils')
+const TestUtils = require('@routr/data_api/test_utils')
 
-export const testGroup = { name: "Data APIS" }
+const testGroup = { name: "Data APIS" }
 
 testGroup.deep_search = function () {
     const agents = []
-    agents.push(TestUtil.buildAgent('John Doe', ['sip.local'], '1001'))
-    agents.push(TestUtil.buildAgent('Jane Doe', ['sip.local'], '1002'))
-    agents.push(TestUtil.buildAgent('Jake Doe', ['sip.local'], '1003'))
+    agents.push(TestUtils.buildAgent('John Doe', ['sip.local'], '1001'))
+    agents.push(TestUtils.buildAgent('Jane Doe', ['sip.local'], '1002'))
+    agents.push(TestUtils.buildAgent('Jake Doe', ['sip.local'], '1003'))
 
     let response = {
         status: 200,
         result: agents
     }
 
-    response = DSUtil.deepSearch(response, 'spec.credentials.username', '1001')
+    response = DSUtils.deepSearch(response, 'spec.credentials.username', '1001')
     const agent = response.result
-    assertTrue(agent.metadata.name == 'John Doe')
+    assertTrue(agent.metadata.name === 'John Doe')
 }
+
+module.exports.testGroup = testGroup

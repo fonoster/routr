@@ -2,20 +2,23 @@
  * @author Pedro Sanders
  * @since v1
  */
-import DSUtil from 'data_api/utils'
+const DSUtils = require('@routr/data_api/utils')
+const CoreUtils = require('@routr/core/utils')
+const { Status } = require('@routr/core/status')
+const isEmpty = require('@routr/utils/obj_util')
 
-const MultipartConfigElement = Packages.javax.servlet.MultipartConfigElement
-const IOUtils = Packages.org.apache.commons.io.IOUtils
-const StandardCharsets = Packages.java.nio.charset.StandardCharsets
+const MultipartConfigElement = Java.type('javax.servlet.MultipartConfigElement')
+const IOUtils = Java.type('org.apache.commons.io.IOUtils')
+const StandardCharsets = Java.type('java.nio.charset.StandardCharsets')
 
-export default class RestUtil {
+class RestUtil {
 
     static createFromFile(req, api) {
-        if (req.contentType().indexOf('multipart/form-data') !== -1) {
+        if (!isEmpty(req.contentType()) && req.contentType().indexOf('multipart/form-data') !== -1) {
             req.attribute('org.eclipse.jetty.multipartConfig', new MultipartConfigElement('/temp'))
             const is = req.raw().getPart('file').getInputStream()
-            const fileContent = IOUtils.toString(is, StandardCharsets.UTF_8.name());
-            const jsonObjs = DSUtil.convertToJson(fileContent)
+            const fileContent = IOUtils.toString(is, StandardCharsets.UTF_8.name())
+            const jsonObjs = DSUtils.convertToJson(fileContent)
             let compoundResponse = ''
             jsonObjs.forEach(jsonObj => {
                 const response = api.createFromJSON(jsonObj)
@@ -23,9 +26,17 @@ export default class RestUtil {
             })
             return compoundResponse
         } else {
-            const jsonObj = JSON.parse(req.body())
-            const response = api.createFromJSON(jsonObj)
-            return JSON.stringify(response)
+            try {
+                const jsonObj = JSON.parse(req.body())
+                return api.createFromJSON(jsonObj)
+            } catch (e) {
+                if(e instanceof SyntaxError) {
+                    return CoreUtils.buildResponse(Status.BAD_REQUEST, null, "SyntaxError: Invalid JSON")
+                }
+                return CoreUtils.buildResponse(Status.BAD_REQUEST, null, e)
+            }
         }
     }
 }
+
+module.exports = RestUtil

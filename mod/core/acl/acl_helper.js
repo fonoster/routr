@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-import Rule from 'core/acl/acl_rule'
+const Rule = require('@routr/core/acl/acl_rule')
 
 /**
  * Helps verify if a device is allow or not to REGISTER and place calls.
@@ -17,7 +17,7 @@ import Rule from 'core/acl/acl_rule'
  *    - 192.168.1.0/255.255.255.0
  *    - 192.168.0.1/31
  */
-export default class ACLHelper {
+class ACLHelper {
     static mostSpecific(ip, rules) {
         const r = rules
             .stream()
@@ -28,3 +28,5 @@ export default class ACLHelper {
         return r.isPresent()? r.get() : new Rule('0.0.0.0/0', 'deny')
     }
 }
+
+module.exports = ACLHelper
