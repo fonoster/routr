@@ -147,9 +147,7 @@ class FilesDataSource {
             }
 
             // JsonPath does not parse properly when using Json objects from JavaScript
-            if(isEmpty(jsonPath) === false) {
-                list = JSON.parse(jsonPath.read(filter).toJSONString())
-            }
+            list = JSON.parse(jsonPath.read(filter).toJSONString())
 
             if (isEmpty(list)) {
                 return FilesDataSource.emptyResult()

@@ -98,13 +98,13 @@ class Locator {
         const aor = LocatorUtils.aorAsString(addressOfRecord)
         // Remove all bindings
         if (isWildcard !== true) {
-            return this.db.remove(aor)
+            return this.db.invalidate(aor)
         }
         // Not using aorAsString because we need to consider the port, etc.
-        this.db.getIfPresent(aor).remove(contactURI)
+        this.db.getIfPresent(aor).invalidate(contactURI)
 
         // This is just a hashmap of hashmaps...
-        if (this.db.getIfPresent(aor).isEmpty()) this.db.remove(aor)
+        if (this.db.getIfPresent(aor).isEmpty()) this.db.invalidate(aor)
     }
 
     findEndpoint(addressOfRecord) {

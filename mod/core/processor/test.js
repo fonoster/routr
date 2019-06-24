@@ -46,8 +46,8 @@ const testGroup = { name: "Core Processor Module" }
 testGroup.caller_type = function () {
     const request = getRequest('1001@sip.local', '1002@sip.local')
     const routeInfo = new RouteInfo(request, dataAPIs)
-    assertEquals(routeInfo.getCallerType(), 'AGENT')
-    assertEquals(routeInfo.getCalleeType(), 'AGENT')
+    assertEquals('AGENT', routeInfo.getCallerType())
+    assertEquals('AGENT', routeInfo.getCalleeType())
     assertTrue(routeInfo.isSameDomain())
 }
 
