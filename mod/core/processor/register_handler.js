@@ -12,11 +12,9 @@ const ContactHeader = Java.type('javax.sip.header.ContactHeader')
 const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
 const AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
 const Response = Java.type('javax.sip.message.Response')
-const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
 const messageFactory = SipFactory.getInstance().createMessageFactory()
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
-const LOG = LogManager.getLogger()
 
 class RegisterHandler {
 
@@ -69,7 +67,6 @@ class RegisterHandler {
         ok.addHeader(RegisterHandler.getContactHeader(request))
         ok.addHeader(RegisterHandler.getExpHeader(request))
         transaction.sendResponse(ok)
-        LOG.debug(ok)
     }
 
     static sendUnauthorized(request, transaction) {
@@ -77,7 +74,6 @@ class RegisterHandler {
         const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
         unauthorized.addHeader(AuthHelper.generateChallenge(realm))
         transaction.sendResponse(unauthorized)
-        LOG.debug(unauthorized)
     }
 
     static getContactHeader(request) {

@@ -35,6 +35,8 @@ class RequestProcessor {
             serverTransaction = this.sipProvider.getNewServerTransaction(request)
         }
 
+        // Warning: This is a very expensive function. Considere making it optional
+        // Or optimize
         if (this.allowedAccess(event) === false) {
             const procUtils = new ProcessorUtils(request, serverTransaction)
             return procUtils.sendResponse(Response.FORBIDDEN)
