@@ -29,7 +29,7 @@ class Locator {
         this.checkExpiresTime = checkExpiresTime
         this.db = Caffeine.newBuilder()
             .expireAfterWrite(checkExpiresTime, TimeUnit.MINUTES)
-            .maximumSize(500000)  // TODO: This should be a parameter
+            .maximumSize(100000)  // TODO: This should be a parameter
             .build()
 
         this.didsAPI = dataAPIs.DIDsAPI
@@ -76,21 +76,21 @@ class Locator {
     }
 
     addEndpoint(addressOfRecord, route) {
-        const response = this.findEndpoint(addressOfRecord)
-        let routes
+        const aor = LocatorUtils.aorAsString(addressOfRecord)
+        let routes = this.db.getIfPresent(aor)
+        if (routes === null) routes = []
 
-        if (response.status === Status.OK) {
+        /*if (response.status === Status.OK) {
             // Only use if is a "local" route
             routes = response.result.thruGw === false? response.result : []
         } else {
-            // Did not found any round at all
             routes = []
-        }
+        }*/
 
         routes.push(route)
 
         // See NOTE #1
-        this.db.put(LocatorUtils.aorAsString(addressOfRecord), routes)
+        this.db.put(aor, routes)
     }
 
     // See NOTE #1
@@ -175,8 +175,8 @@ class Locator {
     }
 
     getPeerRouteByHost(addressOfRecord) {
-        const aors = this.db.asMap().keySet().iterator()
         const aor = LocatorUtils.aorAsObj(addressOfRecord)
+        const aors = this.db.asMap().keySet().iterator()
         const peerHost = aor.getHost().toString()
         const peerPort = this.getPort(aor)
 

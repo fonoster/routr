@@ -2,26 +2,34 @@
  * @author Pedro Sanders
  * @since v1
  */
-
 const SipFactory = Java.type('javax.sip.SipFactory')
 const addressFactory = SipFactory.getInstance().createAddressFactory()
+const StringBuilder = Java.type('java.lang.StringBuilder')
 
 class LocatorUtils {
 
     static aorAsString(addressOfRecord) {
-        if (typeof(addressOfRecord) === 'string' || addressOfRecord instanceof String) {
+        if (addressOfRecord instanceof Java.type('javax.sip.address.SipURI')) {
+            if (addressOfRecord.isSecure()) {
+                return new StringBuilder()
+                  .append('sips:')
+                    .append(addressOfRecord.getUser())
+                      .append('@')
+                        .append(addressOfRecord.getHost()).toString()
+            } else {
+                return new StringBuilder()
+                  .append('sip:')
+                    .append(addressOfRecord.getUser())
+                      .append('@')
+                        .append(addressOfRecord.getHost()).toString()
+            }
+        } else if (addressOfRecord instanceof Java.type('javax.sip.address.TelURL')) {
+            return 'tel:' + addressOfRecord.getPhoneNumber()
+        } else if (typeof(addressOfRecord) === 'string' || addressOfRecord instanceof String) {
             if (/sips?:.*@.*/.test(addressOfRecord) ||
                 /tel:\d+/.test(addressOfRecord)) {
                 return addressOfRecord
             }
-        } else if (addressOfRecord instanceof Java.type('javax.sip.address.SipURI')) {
-            if (addressOfRecord.isSecure()) {
-                return 'sips:' + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
-            } else {
-                return 'sip:' + addressOfRecord.getUser() + '@' + addressOfRecord.getHost()
-            }
-        } else if (addressOfRecord instanceof Java.type('javax.sip.address.TelURL')) {
-            return 'tel:' + addressOfRecord.getPhoneNumber()
         }
 
         throw 'Invalid AOR: ' + addressOfRecord

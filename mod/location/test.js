@@ -39,14 +39,14 @@ testGroup.create_sip_uri = function() {
 testGroup.aor_as_string = function () {
     const sipURI = addressFactory.createSipURI('john', 'sip.ocean.com')
     let aorString = LocatorUtils.aorAsString(sipURI)
-    assertEquals(aorString, 'sip:john@sip.ocean.com')
+    assertEquals('sip:john@sip.ocean.com', aorString)
     // Testing TelURL
     const telURL = addressFactory.createTelURL('tel:8095863314')
     aorString = LocatorUtils.aorAsString(telURL)
-    assertEquals(aorString, 'tel:8095863314')
+    assertEquals('tel:8095863314', aorString)
     // Test text format
     aorString = LocatorUtils.aorAsString('sip:john@sip.ocean.com')
-    assertEquals(aorString, 'sip:john@sip.ocean.com')
+    assertEquals('sip:john@sip.ocean.com', aorString)
 }
 
 testGroup.find_local_endpoint = function() {
