@@ -13,7 +13,8 @@
   "dependencies": {
     "moment": "^2.22.2",
     "npm": "^6.1.0",
-    "postal": "^2.0.5"
+    "postal": "^2.0.5",
+    "xxhashjs": "^0.2.2"
   },
   "devDependencies": {
     "jvm-npm": "^0.1.1",
