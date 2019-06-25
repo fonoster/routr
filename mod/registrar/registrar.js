@@ -29,10 +29,11 @@ class Registrar {
     register(r) {
         // Prevents any chances of overwriting the original object
         const request = r.clone()
+        const isGuest = Registrar.isGuest(request)
         let user
 
         // Warning: This is just for testing purposes
-        if(Registrar.isGuest(request) && this.isAllowGuest()) {
+        if(isGuest && this.isAllowGuest()) {
             user =  Registrar.getGuessUser(request)
         } else if(this.isAuthorized(request)) {
             // Todo: Avoid making this second trip to the API
@@ -41,7 +42,7 @@ class Registrar {
             return false
         }
 
-        const aors = Registrar.generateAors(request, user, Registrar.isGuest(request))
+        const aors = Registrar.generateAors(request, user, isGuest)
         this.addEndpoints(aors, Registrar.buildRoute(request, user))
         return true
     }

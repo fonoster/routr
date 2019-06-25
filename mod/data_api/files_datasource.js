@@ -7,6 +7,7 @@ const getConfig = require('@routr/core/config_util')
 const isEmpty = require('@routr/utils/obj_util')
 const DSUtils = require('@routr/data_api/utils')
 const FilesUtil = require('@routr/utils/files_util')
+const XXH = require('xxhashjs')
 
 const JsonPath = Java.type('com.jayway.jsonpath.JsonPath')
 const System = Java.type('java.lang.System')
@@ -14,6 +15,8 @@ const NoSuchFileException = Java.type('java.nio.file.NoSuchFileException')
 const JsonMappingException = Java.type('com.fasterxml.jackson.databind.JsonMappingException')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
+const ReentrantLock = Java.type('java.util.concurrent.locks.ReentrantLock')
+const lock = new ReentrantLock()
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
@@ -137,6 +140,7 @@ class FilesDataSource {
         let list = []
 
         try {
+            lock.lock()
             const filePath = this.filesPath + '/' + this.collection + '.yml'
             let jsonPath = this.cache.getIfPresent(filePath)
 
@@ -162,6 +166,8 @@ class FilesDataSource {
                 status: Status.BAD_REQUEST,
                 message: Status.message[Status.BAD_REQUEST].value
             }
+        } finally {
+          lock.unlock()
         }
 
         return {
@@ -209,10 +215,7 @@ class FilesDataSource {
     generateRef(uniqueFactor) {
         let ref = this.refs.getIfPresent(uniqueFactor)
         if (ref === null) {
-          let md5 = Java.type('java.security.MessageDigest').getInstance("MD5")
-          md5.update(Java.type('java.nio.charset.StandardCharsets').UTF_8.encode(uniqueFactor))
-          let hash = Java.type('java.lang.String').format("%032x", new java.math.BigInteger(1, md5.digest()))
-          ref = hash.substring(hash.length - 6).toLowerCase()
+          ref = XXH.h32(uniqueFactor, 0xABCD ).toString(16).toLowerCase()
           this.refs.put(uniqueFactor, ref)
         }
         return ref
