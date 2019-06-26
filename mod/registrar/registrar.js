@@ -99,12 +99,16 @@ class Registrar {
     }
 
     static generateAors(request, user, isGuest) {
+        const contactHeader = request.getHeader(ContactHeader.NAME)
+        const contactURI = contactHeader.getAddress().getURI()
         const aors = []
 
         if (isGuest || user.kind.equalsIgnoreCase('peer')) {
             const host = Registrar.getFromHost(request)
             const peerHost = isEmpty(user.spec.device) ?  host : user.spec.device
-            aors.push(addressFactory.createSipURI(user.spec.credentials.username, peerHost))
+            const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, peerHost)
+            addressOfRecord.setSecure(contactURI.isSecure())
+            aors.push()
         } else {
             user.spec.domains.forEach(domain => {
                 const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, domain)
