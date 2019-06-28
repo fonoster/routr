@@ -27,11 +27,9 @@ class FilesDataSource {
     constructor(config = getConfig()) {
         this.cache = Caffeine.newBuilder()
           .expireAfterWrite(60, TimeUnit.MINUTES)
-          .maximumSize(8)
           .build()
         this.refs = Caffeine.newBuilder()
           .expireAfterWrite(60, TimeUnit.MINUTES)
-          .maximumSize(5000)
           .build()
 
         if (System.getenv("ROUTR_DS_PARAMETERS") !== null) {

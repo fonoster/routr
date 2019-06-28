@@ -14,7 +14,6 @@ class PeersAPI {
         this.ds = dataSource
         this.cache = Caffeine.newBuilder()
           .expireAfterWrite(5, TimeUnit.MINUTES)
-          .maximumSize(100)
           .build()
     }
 

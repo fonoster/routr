@@ -16,7 +16,6 @@ class AgentsAPI {
         this.ds = dataSource
         this.cache = Caffeine.newBuilder()
           .expireAfterWrite(5, TimeUnit.MINUTES)
-          .maximumSize(5000)
           .build()
     }
 
