@@ -31,7 +31,6 @@ class Registry {
         this.userAgent.add(this.config.metadata.userAgent)
         this.registry = Caffeine.newBuilder()
             .expireAfterWrite(this.checkExpiresTime, TimeUnit.MINUTES)
-            .maximumSize(5000)    // TODO: This should be a parameter
             .build()
     }
 
