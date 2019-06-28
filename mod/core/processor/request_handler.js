@@ -155,20 +155,23 @@ class RequestHandler {
         if(requestIn.getMethod().equals(Request.ACK)) {
             return this.sipProvider.sendRequest(requestOut)
         }
-
         try {
             // The request must be cloned or the stack will not fork the call
             const clientTransaction = this.sipProvider.getNewClientTransaction(requestOut.clone())
             clientTransaction.sendRequest()
             this.saveContext(requestIn, requestOut, clientTransaction, serverTransaction)
         } catch (e) {
-            if (e instanceof java.net.ConnectException) {
+            if (e instanceof Java.type('java.net.ConnectException')) {
                 LOG.error('Connection refused. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/ConnectException.html')
-            } else if (e instanceof java.net.NoRouteToHostException) {
+                return
+            } else if (e instanceof Java.type('java.net.NoRouteToHostException')) {
                 LOG.error('No route to host. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/NoRouteToHostException.html')
-            } else {
-                LOG.error(e)
+                return
+            } else if (e instanceof Java.type('javax.sip.TransactionUnavailableException')) {
+                LOG.error('Could not resolve next hop' + + ' or listening point unavailable!')
+                return
             }
+            LOG.error(e)
         }
     }
 
