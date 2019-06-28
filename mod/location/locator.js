@@ -25,11 +25,10 @@ const LOG = LogManager.getLogger()
  */
 class Locator {
 
-    constructor(dataAPIs, checkExpiresTime = 1) {
+    constructor(dataAPIs, checkExpiresTime = 3600) {
         this.checkExpiresTime = checkExpiresTime
         this.db = Caffeine.newBuilder()
             .expireAfterWrite(checkExpiresTime, TimeUnit.MINUTES)
-            .maximumSize(100000)  // TODO: This should be a parameter
             .build()
 
         this.didsAPI = dataAPIs.DIDsAPI
@@ -240,24 +239,6 @@ class Locator {
             return CoreUtils.buildResponse(Status.NOT_FOUND)
         }
         return CoreUtils.buildResponse(Status.BAD_REQUEST, 'No egressPolicy found')
-    }
-
-    getEgressRouteForPeer(addressOfRecord, didRef) {
-        let response = this.didsAPI.getDID(didRef)
-        let route
-
-        if (response.status === Status.OK) {
-            const did = response.result
-            response = this.gatewaysAPI.getGateway(did.metadata.gwRef)
-
-            if (response.status === Status.OK) {
-                const gateway = response.result
-                const contactURI = this.addressFactory.createSipURI(addressOfRecord.getUser(), gateway.spec.host)
-                route = LocatorUtils.buildEgressRoute(contactURI, gateway, did)
-           }
-        }
-
-        return route? CoreUtils.buildResponse(Status.OK, route) : CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     listAsJSON (domainUri) {
