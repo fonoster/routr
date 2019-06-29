@@ -108,7 +108,7 @@ class Registrar {
             const peerHost = isEmpty(user.spec.device) ?  host : user.spec.device
             const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, peerHost)
             addressOfRecord.setSecure(contactURI.isSecure())
-            aors.push()
+            aors.push(addressOfRecord)
         } else {
             user.spec.domains.forEach(domain => {
                 const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, domain)
