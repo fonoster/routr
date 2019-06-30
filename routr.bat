@@ -5,7 +5,7 @@ set BASE_DIR=%~dp0
 
 if exist %BASE_DIR%jre (set JAVA_HOME=%BASE_DIR%jre)
 if defined JAVA_HOME goto run
-echo 'Could not find a runtime environment'
+echo 'Could not find a runtime environment. Please setup environment variable JAVA_HOME'
 exit 1
 
 :run
