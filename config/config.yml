@@ -6,7 +6,3 @@ spec:
       port: 5060
     - protocol: tcp
       port: 5060
-  data_source:
-    provider: redis_data_provider
-    host: 192.168.1.127
-    secret: changeit

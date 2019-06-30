@@ -33,7 +33,6 @@ const testGroup = { name: "Location Service Module" }
 // Tests
 testGroup.create_sip_uri = function() {
     const sipUri = LocatorUtils.createSipURI("sip:1001@sip.ocean.com")
-    print('sipUri: ' + sipUri)
 }
 
 testGroup.aor_as_string = function () {

@@ -168,7 +168,7 @@ class RequestHandler {
                 LOG.error('No route to host. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/NoRouteToHostException.html')
                 return
             } else if (e instanceof Java.type('javax.sip.TransactionUnavailableException')) {
-                LOG.error('Could not resolve next hop' + + ' or listening point unavailable!')
+                LOG.error('Could not resolve next hop or listening point unavailable!')
                 return
             }
             LOG.error(e)
