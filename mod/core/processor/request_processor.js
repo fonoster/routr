@@ -35,14 +35,20 @@ class RequestProcessor {
             serverTransaction = this.sipProvider.getNewServerTransaction(request)
         }
 
+        const procUtils = new ProcessorUtils(request, serverTransaction)
+
         // Warning: This is a very expensive function. Considere making it optional
         // Or optimize
         if (this.allowedAccess(event) === false) {
-            const procUtils = new ProcessorUtils(request, serverTransaction)
             return procUtils.sendResponse(Response.FORBIDDEN)
         }
 
         switch (request.getMethod()) {
+            case Request.PUBLISH:
+            case Request.NOTIFY:
+            case Request.SUBSCRIBE:
+              procUtils.sendResponse(Response.METHOD_NOT_ALLOWED)
+              break
             case Request.REGISTER:
               new RegisterHandler(this.dataAPIs).doProcess(serverTransaction)
               break
