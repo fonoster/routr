@@ -1,5 +1,5 @@
 
-<img src="https://raw.githubusercontent.com/fonoster/routr/master/brand.png" alt="Routr Logo" height="100">
+<img src="https://raw.githubusercontent.com/fonoster/routr/master/docs/assets/brand.png" alt="Routr Logo" height="100">
 
 <br />
 
