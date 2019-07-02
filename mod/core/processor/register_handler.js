@@ -5,6 +5,7 @@
 const postal = require('postal')
 const AuthHelper = require('@routr/utils/auth_helper')
 const Registrar = require('@routr/registrar/registrar')
+const RegistrarUtils = require('@routr/registrar/utils')
 
 const SipFactory = Java.type('javax.sip.SipFactory')
 const ToHeader = Java.type('javax.sip.header.ToHeader')
@@ -25,7 +26,7 @@ class RegisterHandler {
     doProcess (serverTransaction) {
         const request = serverTransaction.getRequest()
 
-        if (RegisterHandler.getExpHeader(request).getExpires() <= 0) {
+        if (RegistrarUtils.getExpires(request) <= 0) {
             return this.removeEndpoint(request, serverTransaction)
         }
 
