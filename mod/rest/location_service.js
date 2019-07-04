@@ -40,7 +40,7 @@ module.exports = function (locator) {
                 contactURI: addressFactory.createSipURI(body.user, `${body.address}:${body.port}`),
                 registeredOn: Date.now(),
                 expires: body.expires,
-                nat: false
+                nat: true
             }
 
             postal.publish({
