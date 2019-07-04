@@ -96,7 +96,7 @@ class Locator {
     removeEndpoint(addressOfRecord, contactURI, isWildcard) {
         const aor = LocatorUtils.aorAsString(addressOfRecord)
         // Remove all bindings
-        if (isWildcard !== true) {
+        if (isWildcard === true) {
             return this.db.invalidate(aor)
         }
         // Not using aorAsString because we need to consider the port, etc.

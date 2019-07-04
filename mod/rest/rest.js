@@ -8,6 +8,7 @@ const { reloadConfig } =require('@routr/core/config_util')
 const { Status } = require('@routr/core/status')
 const getJWTToken = require('@routr/rest/jwt_token_generator')
 const resourcesService = require('@routr/rest/resources_service')
+const locationService = require('@routr/rest/location_service')
 const parameterAuthFilter = require('@routr/rest/parameter_auth_filter')
 const basicAuthFilter = require('@routr/rest/basic_auth_filter')
 
@@ -100,15 +101,14 @@ class Rest {
 
             get('/system/info', (req, res) => JSON.stringify(this.system))
 
-            // Deprecate
+            // Deprecated
             get('/credentials', (req, res) => getJWTToken(req, res, this.config.salt))
 
             get('/token', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, getJWTToken(req, res, this.config.salt))))
 
-            get('/location', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, this.locator.listAsJSON())))
-
             get('/registry', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, this.registry.listAsJSON())))
 
+            locationService(this.locator)
             resourcesService(this.dataAPIs.AgentsAPI, 'Agent')
             resourcesService(this.dataAPIs.PeersAPI, 'Peer')
             resourcesService(this.dataAPIs.DomainsAPI, 'Domain')
