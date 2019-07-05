@@ -19,7 +19,6 @@ const DIDsAPI = require('@routr/data_api/dids_api')
 // Data sources
 const FilesDataSource = require('@routr/data_api/files_datasource')
 const RedisDataSource = require('@routr/data_api/redis_datasource')
-const RestfulDataSource = require('@routr/data_api/restful_datasource')
 const config = require('@routr/core/config_util')()
 
 // XXX: This feals a bit like a hack. But it is ok for now.
@@ -35,8 +34,6 @@ let dataSource
 
 if (config.spec.dataSource.provider === 'files_data_provider') {
     dataSource = new FilesDataSource()
-} else if (config.spec.dataSource.provider === 'restful_data_provider') {
-    dataSource = new RestfulDataSource()
 } else if (config.spec.dataSource.provider === 'redis_data_provider') {
     dataSource = new RedisDataSource()
 } else {
