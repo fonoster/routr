@@ -15,10 +15,14 @@ A JWT token is used to authenticate the server. To obtain the token, use the `/a
 To obtain the token
 
 ```bash
-curl -k -u "admin:changeit" https://localhost:4567/api/v1beta1/credentials
+curl -k -u "admin:changeit" https://localhost:4567/api/v1beta1/token
 
 # Resulted in
-eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiJ9.O7hC-ta225epRQlJZO44WC-l2cWohKnJ8lkmlOQpw8Z_xYiwJ6-qDUhHeJEZH9DmwIwz_jD77sj1kQUkXHsbOg
+{
+    "status":200,
+    "message":"Successful request",
+    "result":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiJ9.TZZ4kp5xIdYzs5RRt6_qVxJcOiLdk1IEHFMBSZ7SRENx6kyVhwfAlm-oeM4L2XFIr4evlTCxKEIKc0fZKwPcjw"
+}
 ```
 
 To use the token

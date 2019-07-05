@@ -40,7 +40,10 @@ nav:
   - Rest API:
     - Overview: api/overview.md
     - Credentials: api/credentials.md
-    - Location: api/location.md
+    - Location:
+      - create: api/location/create.md
+      - delete: api/location/delete.md
+      - list: api/location/list.md
     - Registry: api/registry.md
     - Agents:
       - create: api/agents/create.md
