@@ -4,7 +4,7 @@
     "indent_with_tabs": false,
     "editorconfig": false,
     "eol": "\n",
-    "end_with_newline": false,
+    "end_with_newline": true,
     "indent_level": 0,
     "preserve_newlines": true,
     "max_preserve_newlines": 10,
