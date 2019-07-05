@@ -2,7 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { Status } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
 
 const AccountManager = Java.type('gov.nist.javax.sip.clientauthutils.AccountManager')
 const UserCredentials = Java.type('gov.nist.javax.sip.clientauthutils.UserCredentials')
@@ -42,7 +44,7 @@ class AccountManagerService {
         var getGateway = this.getGateway
 
         return new AccountManager({
-            getCredentials: function (challengedTransaction, realm) {
+            getCredentials: function(challengedTransaction, realm) {
                 return new UserCredentials({
                     getUserName: function() {
                         return getGateway(challengedTransaction).username

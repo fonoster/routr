@@ -3,7 +3,9 @@
  * @since v1
  */
 const getConfig = require('@routr/core/config_util')
-const { Status } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
 const moment = require('moment')
 
 const SipFactory = Java.type('javax.sip.SipFactory')
@@ -37,10 +39,16 @@ class Registry {
     getLPAddress(transport, received, rport) {
         try {
             const lp = this.sipProvider.getListeningPoint(transport)
-            const host = this.config.spec.externAddr? this.config.spec.externAddr : lp.getIPAddress()
-            const port = rport? rport : lp.getPort()
-            return received? { host: received, port: port } : { host: host, port: port }
-        } catch(e) {
+            const host = this.config.spec.externAddr ? this.config.spec.externAddr : lp.getIPAddress()
+            const port = rport ? rport : lp.getPort()
+            return received ? {
+                host: received,
+                port: port
+            } : {
+                host: host,
+                port: port
+            }
+        } catch (e) {
             LOG.error("Transport '" + transport + "' not found in configs => .spec.transport.[*]")
             return
         }
@@ -80,7 +88,7 @@ class Registry {
         try {
             const clientTransaction = this.sipProvider.getNewClientTransaction(request)
             clientTransaction.sendRequest()
-        } catch(e) {
+        } catch (e) {
             this.handleChallengeException(e, gwHost)
         }
         LOG.debug(request)
@@ -88,8 +96,8 @@ class Registry {
 
     handleChallengeException(e, gwHost) {
         this.registry.invalidate(gwHost)
-        if(e instanceof Java.type('javax.sip.TransactionUnavailableException')
-            || e instanceof Java.type('javax.sip.SipException')) {
+        if (e instanceof Java.type('javax.sip.TransactionUnavailableException') ||
+            e instanceof Java.type('javax.sip.SipException')) {
             LOG.warn('Unable to register with Gateway -> ' + gwHost + '. (Verify your network status)')
         } else {
             LOG.warn(e)
@@ -112,7 +120,7 @@ class Registry {
         this.registry.put(gwURI.toString(), reg)
     }
 
-    removeRegistry (gwURIStr) {
+    removeRegistry(gwURIStr) {
         this.registry.invalidate(gwURIStr)
     }
 
@@ -120,7 +128,7 @@ class Registry {
         const s = []
         const iterator = this.registry.asMap().values().iterator()
 
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             const reg = iterator.next()
             s.push(reg)
         }
@@ -128,15 +136,15 @@ class Registry {
         return s
     }
 
-    isExpired (gwURIStr) {
+    isExpired(gwURIStr) {
         const reg = this.registry.getIfPresent(gwURIStr)
 
         if (reg === null) {
-          return true
+            return true
         }
 
         const elapsed = (Date.now() - reg.registeredOn) / 1000
-        return reg.expires - elapsed <= 0? true : false
+        return reg.expires - elapsed <= 0 ? true : false
     }
 
     start() {
@@ -144,40 +152,40 @@ class Registry {
         const self = this
 
         global.timer.schedule(
-          () => {
-              const response = self.gatewaysAPI.getGateways()
+            () => {
+                const response = self.gatewaysAPI.getGateways()
 
-              if (response.status === Status.OK) {
-                  for (const cnt in response.result) {
-                    const gateway = response.result[cnt]
+                if (response.status === Status.OK) {
+                    for (const cnt in response.result) {
+                        const gateway = response.result[cnt]
 
-                    if (gateway.spec.credentials === undefined) continue
+                        if (gateway.spec.credentials === undefined) continue
 
-                    const gwURIStr = 'sip:' + gateway.spec.credentials.username + '@' + gateway.spec.host
-                    const expires = gateway.spec.expires? gateway.spec.expires : 3600
-                    if (self.isExpired(gwURIStr)) {
-                        LOG.debug('Register with ' + gateway.metadata.name +  ' using '
-                            + gateway.spec.credentials.username + '@' + gateway.spec.host)
-                        self.requestChallenge(gateway.spec.credentials.username,
-                            gateway.metadata.ref, gateway.spec.host, gateway.spec.transport, null, null, expires)
+                        const gwURIStr = 'sip:' + gateway.spec.credentials.username + '@' + gateway.spec.host
+                        const expires = gateway.spec.expires ? gateway.spec.expires : 3600
+                        if (self.isExpired(gwURIStr)) {
+                            LOG.debug('Register with ' + gateway.metadata.name + ' using ' +
+                                gateway.spec.credentials.username + '@' + gateway.spec.host)
+                            self.requestChallenge(gateway.spec.credentials.username,
+                                gateway.metadata.ref, gateway.spec.host, gateway.spec.transport, null, null, expires)
+                        }
+
+                        let registries = gateway.spec.registries
+
+                        if (registries !== undefined) {
+                            registries.forEach(function(h) {
+                                if (self.isExpired(gwURIStr)) {
+                                    LOG.debug('Register with ' + gateway.metadata.name + ' using ' + gateway.spec.credentials.username + '@' + h)
+                                    self.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport, null, null, expires)
+                                }
+                            })
+                        }
+
                     }
-
-                    let registries = gateway.spec.registries
-
-                    if (registries !== undefined) {
-                        registries.forEach (function(h) {
-                            if (self.isExpired(gwURIStr)) {
-                                LOG.debug('Register with ' + gateway.metadata.name +  ' using '  + gateway.spec.credentials.username + '@' + h)
-                                self.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport, null, null, expires)
-                            }
-                        })
-                    }
-
-                  }
-              }
-          },
-          10000,
-          this.checkExpiresTime * 60 * 1000
+                }
+            },
+            10000,
+            this.checkExpiresTime * 60 * 1000
         )
     }
 

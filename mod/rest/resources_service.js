@@ -10,7 +10,7 @@ const post = Java.type('spark.Spark').post
 const put = Java.type('spark.Spark').put
 const del = Java.type('spark.Spark').delete
 
-module.exports = function (api, resource) {
+module.exports = function(api, resource) {
     const resBase = ('/' + resource + 's').toLowerCase()
     const resByRef = resBase + '/:ref'
 
@@ -18,7 +18,7 @@ module.exports = function (api, resource) {
 
     get(resBase, (req, res) => {
         let filter = '@'
-        if(!isEmpty(req.queryParams('filter'))) filter = req.queryParams('filter')
+        if (!isEmpty(req.queryParams('filter'))) filter = req.queryParams('filter')
         return JSON.stringify(api['get' + resource + 's'](filter))
     })
 

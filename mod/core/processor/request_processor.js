@@ -3,14 +3,18 @@
  * @since v1
  */
 const ProcessorUtils = require('@routr/core/processor/utils')
-const RegisterHandler = require( '@routr/core/processor/register_handler')
+const RegisterHandler = require('@routr/core/processor/register_handler')
 const CancelHandler = require('@routr/core/processor/cancel_handler')
 const RequestHandler = require('@routr/core/processor/request_handler')
 const RouteInfo = require('@routr/core/processor/route_info')
 const getConfig = require('@routr/core/config_util')
 const AclUtil = require('@routr/core/acl/acl_util')
-const { RoutingType } = require('@routr/core/routing_type')
-const { Status } = require('@routr/core/status')
+const {
+    RoutingType
+} = require('@routr/core/routing_type')
+const {
+    Status
+} = require('@routr/core/status')
 
 const SipFactory = Java.type('javax.sip.SipFactory')
 const Request = Java.type('javax.sip.message.Request')
@@ -47,17 +51,17 @@ class RequestProcessor {
             case Request.PUBLISH:
             case Request.NOTIFY:
             case Request.SUBSCRIBE:
-              procUtils.sendResponse(Response.METHOD_NOT_ALLOWED)
-              break
+                procUtils.sendResponse(Response.METHOD_NOT_ALLOWED)
+                break
             case Request.REGISTER:
-              new RegisterHandler(this.dataAPIs).doProcess(serverTransaction)
-              break
+                new RegisterHandler(this.dataAPIs).doProcess(serverTransaction)
+                break
             case Request.CANCEL:
-              new CancelHandler().doProcess(serverTransaction)
-              break
+                new CancelHandler().doProcess(serverTransaction)
+                break
             default:
-              new RequestHandler(this.sipProvider, this.dataAPIs, this.contextStorage)
-                .doProcess(serverTransaction)
+                new RequestHandler(this.sipProvider, this.dataAPIs, this.contextStorage)
+                    .doProcess(serverTransaction)
         }
     }
 
@@ -66,8 +70,8 @@ class RequestProcessor {
         const remoteIp = event.getRemoteIpAddress()
         const routeInfo = new RouteInfo(request, this.dataAPIs)
 
-        if(globalACL) {
-            if(new AclUtil(globalACL).isIpAllowed(remoteIp) === false) {
+        if (globalACL) {
+            if (new AclUtil(globalACL).isIpAllowed(remoteIp) === false) {
                 return false
             }
         }
@@ -77,7 +81,7 @@ class RequestProcessor {
             const response = this.domainsAPI.getDomainByUri(addressOfRecord.getHost())
             if (response.status === Status.OK) {
                 const acl = response.result.spec.context.accessControlList
-                if(acl) {
+                if (acl) {
                     return new AclUtil(acl).isIpAllowed(remoteIp)
                 }
             }

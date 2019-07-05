@@ -4,8 +4,12 @@
  */
 const CoreUtils = require('@routr/core/utils')
 const getConfig = require('@routr/core/config_util')
-const { reloadConfig } =require('@routr/core/config_util')
-const { Status } = require('@routr/core/status')
+const {
+    reloadConfig
+} = require('@routr/core/config_util')
+const {
+    Status
+} = require('@routr/core/status')
 const getJWTToken = require('@routr/rest/jwt_token_generator')
 const resourcesService = require('@routr/rest/resources_service')
 const locationService = require('@routr/rest/location_service')
@@ -38,11 +42,11 @@ class Rest {
 
         Spark.ipAddress(this.rest.bindAddr)
 
-        if(!this.rest.unsecured) {
+        if (!this.rest.unsecured) {
             Spark.secure(config.spec.restService.keyStore,
                 config.spec.restService.keyStorePassword,
-                    config.spec.restService.trustStore,
-                        config.spec.restService.trustStorePassword)
+                config.spec.restService.trustStore,
+                config.spec.restService.trustStorePassword)
         }
 
         Spark.port(this.rest.port)
@@ -58,27 +62,27 @@ class Rest {
 
     start() {
         options('/*', (req, res) => {
-              const accessControlRequestHeaders = req.headers('Access-Control-Request-Headers')
-              if (accessControlRequestHeaders !== null) {
-                  res.header('Access-Control-Allow-Headers', accessControlRequestHeaders)
-              }
+            const accessControlRequestHeaders = req.headers('Access-Control-Request-Headers')
+            if (accessControlRequestHeaders !== null) {
+                res.header('Access-Control-Allow-Headers', accessControlRequestHeaders)
+            }
 
-              const accessControlRequestMethod = req.headers('Access-Control-Request-Method')
-              if (accessControlRequestMethod !== null) {
-                  res.header('Access-Control-Allow-Methods', accessControlRequestMethod)
-              }
-              return 'OK'
+            const accessControlRequestMethod = req.headers('Access-Control-Request-Method')
+            if (accessControlRequestMethod !== null) {
+                res.header('Access-Control-Allow-Methods', accessControlRequestMethod)
+            }
+            return 'OK'
         })
 
         path(this.system.apiPath, (r) => {
             before('/*', (req, res) => {
-              res.header('Access-Control-Allow-Origin', '*')
-              if (req.pathInfo().endsWith('/credentials') ||
-                  req.pathInfo().endsWith('/token')) {
-                basicAuthFilter(req, res, this.dataAPIs.UsersAPI)
-              } else {
-                parameterAuthFilter(req, res, this.config.salt)
-              }
+                res.header('Access-Control-Allow-Origin', '*')
+                if (req.pathInfo().endsWith('/credentials') ||
+                    req.pathInfo().endsWith('/token')) {
+                    basicAuthFilter(req, res, this.dataAPIs.UsersAPI)
+                } else {
+                    parameterAuthFilter(req, res, this.config.salt)
+                }
             })
 
             // Its always running! Use to ping Routr server

@@ -4,8 +4,12 @@
  */
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
-const { Status } = require('@routr/core/status')
-const { UNFULFILLED_DEPENDENCY_RESPONSE } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
+const {
+    UNFULFILLED_DEPENDENCY_RESPONSE
+} = require('@routr/core/status')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
@@ -14,8 +18,8 @@ class DIDsAPI {
     constructor(dataSource) {
         this.ds = dataSource
         this.cache = Caffeine.newBuilder()
-          .expireAfterWrite(5, TimeUnit.MINUTES)
-          .build()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build()
     }
 
     createFromJSON(jsonObj) {
@@ -31,7 +35,7 @@ class DIDsAPI {
             return response
         }
 
-        return  CoreUtils.buildResponse(Status.CONFLICT)
+        return CoreUtils.buildResponse(Status.CONFLICT)
     }
 
     updateFromJSON(jsonObj) {
@@ -47,7 +51,7 @@ class DIDsAPI {
             return response
         }
 
-        return  CoreUtils.buildResponse(Status.NOT_FOUND)
+        return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     getDIDs(filter) {
@@ -79,7 +83,7 @@ class DIDsAPI {
 
     deleteDID(ref) {
         if (this.cache.getIfPresent(ref)) {
-          this.cache.invalidate(ref)
+            this.cache.invalidate(ref)
         }
         return this.ds.withCollection('dids').remove(ref)
     }

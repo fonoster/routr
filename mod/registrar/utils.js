@@ -21,7 +21,7 @@ class RegistrarUtils {
 
         if (isGuest || user.kind.equalsIgnoreCase('peer')) {
             const host = RegistrarUtils.getFromHost(request)
-            const peerHost = isEmpty(user.spec.device) ?  host : user.spec.device
+            const peerHost = isEmpty(user.spec.device) ? host : user.spec.device
             const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, peerHost)
             addressOfRecord.setSecure(contactURI.isSecure())
             aors.push(addressOfRecord)
@@ -36,11 +36,11 @@ class RegistrarUtils {
     }
 
     static isGuest(request) {
-      return RegistrarUtils.getFromHost(request).equalsIgnoreCase('guest')
+        return RegistrarUtils.getFromHost(request).equalsIgnoreCase('guest')
     }
 
     static isAllowGuest() {
-      return getConfig().spec.allowGuest === true
+        return getConfig().spec.allowGuest === true
     }
 
     static getGuessUser(request) {
@@ -56,8 +56,8 @@ class RegistrarUtils {
     }
 
     static getFromHost(request) {
-      return request.getHeader(FromHeader.NAME)
-          .getAddress().getURI().getHost()
+        return request.getHeader(FromHeader.NAME)
+            .getAddress().getURI().getHost()
     }
 
     static buildRoute(request, user) {
@@ -77,9 +77,9 @@ class RegistrarUtils {
     }
 
     static isNat(request) {
-       const viaHeader = request.getHeader(ViaHeader.NAME)
-       return (viaHeader.getHost() + viaHeader.getPort()) !==
-          (viaHeader.getReceived() + viaHeader.getParameter('rport'))
+        const viaHeader = request.getHeader(ViaHeader.NAME)
+        return (viaHeader.getHost() + viaHeader.getPort()) !==
+            (viaHeader.getReceived() + viaHeader.getParameter('rport'))
     }
 
     static getUpdatedContactURI(request, user) {
@@ -94,12 +94,12 @@ class RegistrarUtils {
             } else {
                 contactURI.setHost(user.spec.contactAddr)
             }
-        } else if(RegistrarUtils.useInternalInterface(request)) {
-            if(viaHeader.getReceived() !== null) {
+        } else if (RegistrarUtils.useInternalInterface(request)) {
+            if (viaHeader.getReceived() !== null) {
                 contactURI.setHost(viaHeader.getReceived())
             }
 
-            if(viaHeader.getParameter('rport') !== null) {
+            if (viaHeader.getParameter('rport') !== null) {
                 contactURI.setPort(viaHeader.getParameter('rport'))
             }
         }
@@ -111,7 +111,7 @@ class RegistrarUtils {
         if (getConfig().spec.registrarIntf.equalsIgnoreCase('Internal')) {
             return true
         }
-        return viaHeader.getTransport().equalsIgnoreCase('udp')? true : false
+        return viaHeader.getTransport().equalsIgnoreCase('udp') ? true : false
     }
 
     static buildAuthHeader(user, authHeader) {
@@ -131,7 +131,7 @@ class RegistrarUtils {
 
     static getExpires(request) {
         const contactHeader = request.getHeader(ContactHeader.NAME)
-        return request.getHeader(ExpiresHeader.NAME)? request.getHeader(ExpiresHeader.NAME).getExpires() :
+        return request.getHeader(ExpiresHeader.NAME) ? request.getHeader(ExpiresHeader.NAME).getExpires() :
             contactHeader.getExpires()
     }
 

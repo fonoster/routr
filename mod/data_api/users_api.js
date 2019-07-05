@@ -4,7 +4,9 @@
  */
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
-const { Status } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
 
 class UsersAPI {
 
@@ -13,11 +15,11 @@ class UsersAPI {
     }
 
     createFromJSON(jsonObj) {
-        return this.userExist(jsonObj.spec.credentials.username)? CoreUtils.buildResponse(Status.CONFLICT):this.ds.insert(jsonObj)
+        return this.userExist(jsonObj.spec.credentials.username) ? CoreUtils.buildResponse(Status.CONFLICT) : this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        return !this.userExist(jsonObj.spec.credentials.username)? CoreUtils.buildResponse(Status.NOT_FOUND):this.ds.update(jsonObj)
+        return !this.userExist(jsonObj.spec.credentials.username) ? CoreUtils.buildResponse(Status.NOT_FOUND) : this.ds.update(jsonObj)
     }
 
     getUsers(filter) {

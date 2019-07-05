@@ -16,7 +16,7 @@ let config = loadConfig()
 module.exports = () => config
 module.exports.reloadConfig = () => config = loadConfig()
 
-function loadConfig () {
+function loadConfig() {
     const config = getConfigFromFile()
     config.salt = getSalt()
     config.spec.securityContext = getDefaultSecContext(config.spec.securityContext)
@@ -31,8 +31,12 @@ function loadConfig () {
     if (config.spec.registrarIntf === undefined) config.spec.registrarIntf = 'External'
     if (config.spec.useToAsAOR === undefined) config.spec.useToAsAOR = false
     if (config.spec.bindAddr === undefined) config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
-    if (config.spec.logging === undefined) config.spec.logging = { traceLevel: '0' }
-    if (config.spec.dataSource === undefined) config.spec.dataSource = { provider: 'files_data_provider' }
+    if (config.spec.logging === undefined) config.spec.logging = {
+        traceLevel: '0'
+    }
+    if (config.spec.dataSource === undefined) config.spec.dataSource = {
+        provider: 'files_data_provider'
+    }
     if (config.metadata === undefined) config.metadata = {}
     if (config.metadata.userAgent === undefined) config.metadata.userAgent = 'Routr ' + config.system.version
 
@@ -68,7 +72,9 @@ function getSysPresets(s) {
     }
 
     if (System.getenv("ROUTR_DS_PROVIDER") !== null) {
-        spec.dataSource = { provider : System.getenv("ROUTR_DS_PROVIDER") }
+        spec.dataSource = {
+            provider: System.getenv("ROUTR_DS_PROVIDER")
+        }
     }
 
     if (System.getenv("ROUTR_REGISTRAR_INTF") !== null) {
@@ -80,7 +86,7 @@ function getSysPresets(s) {
 
 function getDefaultSecContext(sc) {
     let securityContext
-    sc === undefined? securityContext = {} : securityContext = sc
+    sc === undefined ? securityContext = {} : securityContext = sc
 
     if (securityContext.client === undefined) {
         securityContext.client = {}
@@ -127,15 +133,42 @@ function getSystemConfig() {
     system.apiVersion = 'v1beta1'
     system.apiPath = '/api' + '/' + system.apiVersion
     system.env = []
-    system.env.push({"var":'ROUTR_JAVA_OPTS', "value":System.getenv("ROUTR_JAVA_OPTS")})
-    system.env.push({"var":'ROUTR_DS_PROVIDER', "value":System.getenv("ROUTR_DS_PROVIDER")})
-    system.env.push({"var":'ROUTR_DS_PARAMETERS', "value":System.getenv("ROUTR_DS_PARAMETERS")})
-    system.env.push({"var":'ROUTR_CONFIG_PATH', "value":System.getenv("ROUTR_CONFIG_PATH")})
-    system.env.push({"var":'ROUTR_SALT', "value":System.getenv("ROUTR_SALT")})
-    system.env.push({"var":'ROUTR_EXTERN_ADDR', "value":System.getenv("ROUTR_EXTERN_ADDR")})
-    system.env.push({"var":'ROUTR_LOCALNETS', "value":System.getenv("ROUTR_LOCALNETS")})
-    system.env.push({"var":'ROUTR_REGISTRAR_INTF', "value":System.getenv("ROUTR_REGISTRAR_INTF")})
-    system.env.push({"var":'ROUTR_JS_ENGINE', "value":System.getenv("ROUTR_JS_ENGINE")})
+    system.env.push({
+        "var": 'ROUTR_JAVA_OPTS',
+        "value": System.getenv("ROUTR_JAVA_OPTS")
+    })
+    system.env.push({
+        "var": 'ROUTR_DS_PROVIDER',
+        "value": System.getenv("ROUTR_DS_PROVIDER")
+    })
+    system.env.push({
+        "var": 'ROUTR_DS_PARAMETERS',
+        "value": System.getenv("ROUTR_DS_PARAMETERS")
+    })
+    system.env.push({
+        "var": 'ROUTR_CONFIG_PATH',
+        "value": System.getenv("ROUTR_CONFIG_PATH")
+    })
+    system.env.push({
+        "var": 'ROUTR_SALT',
+        "value": System.getenv("ROUTR_SALT")
+    })
+    system.env.push({
+        "var": 'ROUTR_EXTERN_ADDR',
+        "value": System.getenv("ROUTR_EXTERN_ADDR")
+    })
+    system.env.push({
+        "var": 'ROUTR_LOCALNETS',
+        "value": System.getenv("ROUTR_LOCALNETS")
+    })
+    system.env.push({
+        "var": 'ROUTR_REGISTRAR_INTF',
+        "value": System.getenv("ROUTR_REGISTRAR_INTF")
+    })
+    system.env.push({
+        "var": 'ROUTR_JS_ENGINE',
+        "value": System.getenv("ROUTR_JS_ENGINE")
+    })
     return system
 }
 
@@ -148,7 +181,7 @@ function getConfigFromFile() {
             config = DSUtils.convertToJson(FilesUtil.readFile('config/config.yml'))
         }
         return config
-    } catch(e) {
+    } catch (e) {
         print('Unable to open configuration file')
         System.exit(1)
     }
@@ -160,7 +193,7 @@ function getSalt() {
     const pathToSalt = System.getProperty("user.home") + "/.routr.salt"
     const f = new File(pathToSalt)
 
-    if(f.exists() && !f.isDirectory()) return FilesUtil.readFile(pathToSalt)
+    if (f.exists() && !f.isDirectory()) return FilesUtil.readFile(pathToSalt)
 
     const genSalt = UUID.randomUUID().toString().replaceAll("-", "")
     FilesUtil.writeFile(pathToSalt, genSalt)

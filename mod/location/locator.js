@@ -9,7 +9,9 @@ const postal = require('postal')
 const CoreUtils = require('@routr/core/utils')
 const LocatorUtils = require('@routr/location/utils')
 const isEmpty = require('@routr/utils/obj_util')
-const { Status } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
 
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
@@ -37,25 +39,25 @@ class Locator {
         this.addressFactory = SipFactory.getInstance().createAddressFactory()
 
         postal.subscribe({
-        		channel: "locator",
-        		topic: "endpoint.remove",
-        		callback: (data, envelope) => {
+            channel: "locator",
+            topic: "endpoint.remove",
+            callback: (data, envelope) => {
                 this.removeEndpoint(data.addressOfRecord, data.contactURI, data.isWildcard)
-        		}
-      	})
+            }
+        })
 
         postal.subscribe({
-        		channel: "locator",
-        		topic: "endpoint.add",
-        		callback: (data, envelope) => {
+            channel: "locator",
+            topic: "endpoint.add",
+            callback: (data, envelope) => {
                 this.addEndpoint(data.addressOfRecord, data.route)
-        		}
-      	})
+            }
+        })
 
         postal.subscribe({
-        		channel: "locator",
-        		topic: "endpoint.find",
-        		callback: (data, envelope) => {
+            channel: "locator",
+            topic: "endpoint.find",
+            callback: (data, envelope) => {
                 const response = this.findEndpoint(data.addressOfRecord)
                 postal.publish({
                     channel: "locator",
@@ -65,13 +67,13 @@ class Locator {
                         requestId: data.requestId
                     }
                 })
-        		}
-      	})
+            }
+        })
     }
 
     getPort(uri) {
-      const uriObj = LocatorUtils.aorAsObj(uri)
-      return uriObj.getPort() === -1? 5060 : uriObj.getPort()
+        const uriObj = LocatorUtils.aorAsObj(uri)
+        return uriObj.getPort() === -1 ? 5060 : uriObj.getPort()
     }
 
     addEndpoint(addressOfRecord, route) {
@@ -152,13 +154,13 @@ class Locator {
             if (response.status === Status.OK) {
                 return response
             }
-        } catch(e) {
+        } catch (e) {
             //noop
         }
 
         // Endpoint can only be reach thru a gateway
         response = this.getEgressRouteForAOR(addressOfRecord)
-        return response.status === Status.OK? response : CoreUtils.buildResponse(Status.NOT_FOUND)
+        return response.status === Status.OK ? response : CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     findEndpointForDID(addressOfRecord) {
@@ -179,7 +181,7 @@ class Locator {
         const peerHost = aor.getHost().toString()
         const peerPort = this.getPort(aor)
 
-        while(aors.hasNext()) {
+        while (aors.hasNext()) {
             let routes = this.db.getIfPresent(aors.next())
             for (const x in routes) {
                 const contactURI = LocatorUtils.aorAsObj(routes[x].contactURI)
@@ -209,7 +211,7 @@ class Locator {
             })
         }
 
-        return route? CoreUtils.buildResponse(Status.OK, route) :
+        return route ? CoreUtils.buildResponse(Status.OK, route) :
             CoreUtils.buildResponse(Status.OK, LocatorUtils.buildForwardRoute(addressOfRecord))
     }
 
@@ -241,11 +243,11 @@ class Locator {
         return CoreUtils.buildResponse(Status.BAD_REQUEST, 'No egressPolicy found')
     }
 
-    listAsJSON (domainUri) {
+    listAsJSON(domainUri) {
         let s = []
         const aors = this.db.asMap().keySet().iterator()
 
-        while(aors.hasNext()) {
+        while (aors.hasNext()) {
             let key = aors.next()
             let routes = this.db.getIfPresent(key)
             let contactInfo = ''
@@ -258,7 +260,10 @@ class Locator {
                 contactInfo = contactInfo + r
             }
 
-            let tmp = { 'addressOfRecord': key, 'contactInfo': contactInfo }
+            let tmp = {
+                'addressOfRecord': key,
+                'contactInfo': contactInfo
+            }
             s.push(tmp)
         }
 
@@ -271,27 +276,27 @@ class Locator {
         const self = this
 
         global.timer.schedule(
-          () => {
-            const e = self.db.asMap().values().iterator()
+            () => {
+                const e = self.db.asMap().values().iterator()
 
-            while(e.hasNext()) {
-                let routes = e.next()
+                while (e.hasNext()) {
+                    let routes = e.next()
 
-                for (const x in routes) {
-                    const route = routes[x]
-                    const elapsed = (Date.now() - route.registeredOn) / 1000
-                    if ((route.expires - elapsed) <= 0) {
-                        routes.splice(x, 1)
-                    }
+                    for (const x in routes) {
+                        const route = routes[x]
+                        const elapsed = (Date.now() - route.registeredOn) / 1000
+                        if ((route.expires - elapsed) <= 0) {
+                            routes.splice(x, 1)
+                        }
 
-                    if (routes.length === 0) {
-                        e.remove()
+                        if (routes.length === 0) {
+                            e.remove()
+                        }
                     }
                 }
-            }
-          },
-          5000,
-          this.checkExpiresTime * 60 * 1000
+            },
+            5000,
+            this.checkExpiresTime * 60 * 1000
         )
     }
 

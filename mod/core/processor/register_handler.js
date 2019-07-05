@@ -23,15 +23,15 @@ class RegisterHandler {
         this.registrar = new Registrar(dataAPIs)
     }
 
-    doProcess (serverTransaction) {
+    doProcess(serverTransaction) {
         const request = serverTransaction.getRequest()
 
         if (RegistrarUtils.getExpires(request) <= 0) {
             return this.removeEndpoint(request, serverTransaction)
         }
 
-        this.registrar.register(request)? RegisterHandler.sendOk(request, serverTransaction)
-            : RegisterHandler.sendUnauthorized(request, serverTransaction)
+        this.registrar.register(request) ? RegisterHandler.sendOk(request, serverTransaction) :
+            RegisterHandler.sendUnauthorized(request, serverTransaction)
     }
 
     // See: Removing bindings -> https://tools.ietf.org/html/rfc3261#section-10.2.2
@@ -41,13 +41,13 @@ class RegisterHandler {
         const addressOfRecord = RegisterHandler.getAddressOfRecord(request)
 
         postal.publish({
-          channel: "locator",
-          topic: "endpoint.remove",
-          data: {
-              addressOfRecord: addressOfRecord,
-              contactURI: contactHeader.getAddress().getURI().toString(),
-              isWildcard: contactHeader.getAddress().isWildcard()
-          }
+            channel: "locator",
+            topic: "endpoint.remove",
+            data: {
+                addressOfRecord: addressOfRecord,
+                contactURI: contactHeader.getAddress().getURI().toString(),
+                isWildcard: contactHeader.getAddress().isWildcard()
+            }
         })
 
         RegisterHandler.sendOk(request, transaction)

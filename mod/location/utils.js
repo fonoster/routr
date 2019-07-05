@@ -12,16 +12,16 @@ class LocatorUtils {
         if (addressOfRecord instanceof Java.type('javax.sip.address.SipURI')) {
             if (addressOfRecord.isSecure()) {
                 return new StringBuilder()
-                  .append('sips:')
+                    .append('sips:')
                     .append(addressOfRecord.getUser())
-                      .append('@')
-                        .append(addressOfRecord.getHost()).toString()
+                    .append('@')
+                    .append(addressOfRecord.getHost()).toString()
             } else {
                 return new StringBuilder()
-                  .append('sip:')
+                    .append('sip:')
                     .append(addressOfRecord.getUser())
-                      .append('@')
-                        .append(addressOfRecord.getHost()).toString()
+                    .append('@')
+                    .append(addressOfRecord.getHost()).toString()
             }
         } else if (addressOfRecord instanceof Java.type('javax.sip.address.TelURL')) {
             return 'tel:' + addressOfRecord.getPhoneNumber()
@@ -66,8 +66,8 @@ class LocatorUtils {
     }
 
     static buildEgressRoute(contactURI, gateway, did, domain) {
-        const username = gateway.spec.credentials? gateway.spec.credentials.username:
-          null
+        const username = gateway.spec.credentials ? gateway.spec.credentials.username :
+            null
         const route = {
             isLinkAOR: false,
             thruGw: true,

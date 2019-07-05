@@ -25,7 +25,7 @@ class ACLHelper {
             .sorted((r1, r2) => java.lang.Long.compare(r1.getAddressCount(), r2.getAddressCount()))
             .findFirst()
 
-        return r.isPresent()? r.get() : new Rule('0.0.0.0/0', 'deny')
+        return r.isPresent() ? r.get() : new Rule('0.0.0.0/0', 'deny')
     }
 }
 

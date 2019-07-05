@@ -8,12 +8,12 @@ class Rule {
 
     constructor(net, action) {
         if (action.equals('allow') || action.equals('deny')) {
-          const subnetUtils = IPUtil.getSubnetUtils(net)
-          this.subnetUtils = subnetUtils
-          this._action = action
-          this._net = net
+            const subnetUtils = IPUtil.getSubnetUtils(net)
+            this.subnetUtils = subnetUtils
+            this._action = action
+            this._net = net
         } else {
-          throw "Parameter action can only be 'allow' or 'deny'"
+            throw "Parameter action can only be 'allow' or 'deny'"
         }
     }
 
@@ -25,11 +25,11 @@ class Rule {
         return this.subnetUtils.getInfo().getAddressCountLong()
     }
 
-    get action () {
+    get action() {
         return this._action
     }
 
-    get net () {
+    get net() {
         return this._net
     }
 }

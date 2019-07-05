@@ -19,12 +19,12 @@ class ContextStorage {
         this.sipProvider = sipProvider
 
         postal.subscribe({
-        		channel: "processor",
-        		topic: "transaction.terminated",
-        		callback: (data, envelope) => {
+            channel: "processor",
+            topic: "transaction.terminated",
+            callback: (data, envelope) => {
                 this.removeContext(data.transactionId)
-        		}
-      	})
+            }
+        })
 
         postal.subscribe({
             channel: "processor",
@@ -43,7 +43,7 @@ class ContextStorage {
     findContext(transactionId) {
         LOG.debug(`core.ContextStorage.findContext [transactionId: ${transactionId}]`)
         const iterator = this.storage.iterator()
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             const context = iterator.next()
 
             if (context.clientTransaction.getBranchId() === transactionId ||
@@ -57,7 +57,7 @@ class ContextStorage {
     removeContext(transactionId) {
         LOG.debug(`core.ContextStorage.removeContext [transactionId: ${transactionId}]`)
         const iterator = this.storage.iterator()
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             const context = iterator.next()
             if (context.clientTransaction.getBranchId() === transactionId ||
                 context.serverTransaction.getBranchId() === transactionId) {

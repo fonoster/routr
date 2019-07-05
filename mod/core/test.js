@@ -5,17 +5,18 @@
  * Unit Test for the "Core Module"
  */
 const getConfig = require('@routr/core/config_util')
-const IPUtil = require( '@routr/core/ip_util')
-
-const testGroup = { name: "Core Module" }
+const IPUtil = require('@routr/core/ip_util')
+const testGroup = {
+    name: "Core Module"
+}
 
 // Tests
-testGroup.config_func = function () {
+testGroup.config_func = function() {
     const result = getConfig()
     assertTrue(result !== undefined)
 }
 
-testGroup.ip_utils = function () {
+testGroup.ip_utils = function() {
     const partialConfig = {
         spec: {
             localnets: ['192.168.1.2', '10.88.1.0/255.255.255.0', '192.168.0.1/28']

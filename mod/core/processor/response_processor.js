@@ -38,18 +38,18 @@ class ResponseProcessor {
                 return this.reRegister(event)
             }
             this.storeInRegistry(response)
-        } else if(ResponseProcessor.isRegisterNok(response)) {
+        } else if (ResponseProcessor.isRegisterNok(response)) {
             this.removeFromRegistry(response)
         }
 
-        ResponseProcessor.mustAuthenticate(response)? this.handleAuthChallenge(event)
-            : this.sendResponse(event)
+        ResponseProcessor.mustAuthenticate(response) ? this.handleAuthChallenge(event) :
+            this.sendResponse(event)
     }
 
     storeInRegistry(response) {
         const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
         const expiresHeader = response.getHeader(ExpiresHeader.NAME)
-        const expires  = expiresHeader !== null? expiresHeader.getExpires() : 3600
+        const expires = expiresHeader !== null ? expiresHeader.getExpires() : 3600
         this.registry.storeRegistry(fromURI, expires)
     }
 
@@ -61,12 +61,12 @@ class ResponseProcessor {
     handleAuthChallenge(event) {
         const authHelper = this.sipProvider
             .getSipStack()
-                .getAuthenticationHelper(this.accountManagerService
-                    .getAccountManager(), this.headerFactory)
+            .getAuthenticationHelper(this.accountManagerService
+                .getAccountManager(), this.headerFactory)
         // Setting looseRouting to false will cause https://github.com/fonoster/routr/issues/18
         authHelper.handleChallenge(
             event.getResponse(), event.getClientTransaction(),
-              event.getSource(), 5, true).sendRequest()
+            event.getSource(), 5, true).sendRequest()
     }
 
     reRegister(event) {
@@ -87,7 +87,7 @@ class ResponseProcessor {
                 viaHeader.getReceived(),
                 viaHeader.getRPort(),
                 expires)
-        } catch(e) {
+        } catch (e) {
             LOG.error(e)
         }
     }
@@ -104,7 +104,7 @@ class ResponseProcessor {
             } else if (responseOut.getHeader(ViaHeader.NAME) !== null) {
                 this.sipProvider.sendResponse(responseOut)
             }
-        } else if(responseOut.getHeader(ViaHeader.NAME) !== null) {
+        } else if (responseOut.getHeader(ViaHeader.NAME) !== null) {
             // Could be a BYE due to Record-Route
             // There is no more Via headers; the response was intended for the proxy.
             this.sipProvider.sendResponse(responseOut)
@@ -118,8 +118,8 @@ class ResponseProcessor {
     }
 
     static mustAuthenticate(response) {
-        if(response.getStatusCode() === Response.PROXY_AUTHENTICATION_REQUIRED ||
-          response.getStatusCode() === Response.UNAUTHORIZED) {
+        if (response.getStatusCode() === Response.PROXY_AUTHENTICATION_REQUIRED ||
+            response.getStatusCode() === Response.UNAUTHORIZED) {
             return true
         }
         return false
@@ -138,11 +138,11 @@ class ResponseProcessor {
     }
 
     static isStackJob(response) {
-        if(response.getStatusCode() === Response.TRYING              ||
+        if (response.getStatusCode() === Response.TRYING ||
             response.getStatusCode() === Response.REQUEST_TERMINATED ||
             response.getHeader(CSeqHeader.NAME).getMethod()
-              .equals(Request.CANCEL)) {
-              return true
+            .equals(Request.CANCEL)) {
+            return true
         }
         return false
     }
@@ -154,31 +154,31 @@ class ResponseProcessor {
         const port = contactHeader.getAddress().getPort()
         const received = viaHeader.getReceived()
         const rPort = viaHeader.getRPort()
-        return (!!received && !host.equals(received)) || port !== rPort? true : false
+        return (!!received && !host.equals(received)) || port !== rPort ? true : false
     }
 
     static isRegister(response) {
         const cseq = response.getHeader(CSeqHeader.NAME)
-        return cseq.getMethod().equals(Request.REGISTER)? true : false
+        return cseq.getMethod().equals(Request.REGISTER) ? true : false
     }
 
     static isRegisterOk(response) {
-        if(ResponseProcessor.isRegister(response) && ResponseProcessor.isOk(response)) {
+        if (ResponseProcessor.isRegister(response) && ResponseProcessor.isOk(response)) {
             return true
         }
         return false
     }
 
     static isRegisterNok(response) {
-        if(!ResponseProcessor.isOk(response) && ResponseProcessor.isRegister(response)) {
+        if (!ResponseProcessor.isOk(response) && ResponseProcessor.isRegister(response)) {
             return true
         }
         return false
     }
 
     static isInviteWithCT(event) {
-        return ResponseProcessor.isInvite(event.getResponse())
-          && event.getClientTransaction() !== null? true : false
+        return ResponseProcessor.isInvite(event.getResponse()) &&
+            event.getClientTransaction() !== null ? true : false
     }
 
 }

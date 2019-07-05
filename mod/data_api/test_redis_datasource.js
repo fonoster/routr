@@ -5,20 +5,25 @@
  * Unit Test for the "Redis Data Source"
  */
 const AgentsAPI = require('@routr/data_api/agents_api')
-const { Status } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
 const TestUtils = require('@routr/data_api/test_utils')
 const getConfig = require('@routr/core/config_util')
 
 const ObjectId = Java.type('org.bson.types.ObjectId')
 
-const testGroup = { name: "Redis Data Source", enabled: false }
+const testGroup = {
+    name: "Redis Data Source",
+    enabled: false
+}
 const config = getConfig()
 // To force RedisDataSource to use its own default parameters...
 delete config.spec.dataSource.parameters
 const ds = null
 const agentsApi = new AgentsAPI(ds)
 
-testGroup.basic_operations = function () {
+testGroup.basic_operations = function() {
     const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
     const initSize = ds.withCollection('agents').find().result.length
     const response = ds.insert(agent)
@@ -30,10 +35,10 @@ testGroup.basic_operations = function () {
 
     ds.withCollection('agents').remove(response.result)
     endSize = ds.withCollection('agents').find().result.length
-    assertTrue (initSize == endSize)
+    assertTrue(initSize == endSize)
 }
 
-testGroup.get_collections = function () {
+testGroup.get_collections = function() {
     const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
     const initSize = ds.withCollection('agents').find().result.length
     const ref = ds.insert(agent).result
@@ -56,7 +61,7 @@ testGroup.get_collections = function () {
 }
 
 // This also validates the other resources
-testGroup.get_agents = function () {
+testGroup.get_agents = function() {
     const john = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
     const jane = TestUtils.buildAgent('Jane Doe', ['sip.local'], '1002')
 
@@ -80,7 +85,7 @@ testGroup.get_agents = function () {
 }
 
 // This also validates the other resources
-testGroup.get_agent = function () {
+testGroup.get_agent = function() {
     const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
     agent.metadata.ref = 'ag3f77f6'
     const ref = ds.insert(agent).result

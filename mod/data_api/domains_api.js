@@ -1,30 +1,36 @@
-
 /**
  * @author Pedro Sanders
  * @since v1
  */
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
-const { Status } = require('@routr/core/status')
-const { UNFULFILLED_DEPENDENCY_RESPONSE } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
+const {
+    UNFULFILLED_DEPENDENCY_RESPONSE
+} = require('@routr/core/status')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
-const foundDependentObjects = { status: Status.CONFLICT, message: Status.message[4092].value }
+const foundDependentObjects = {
+    status: Status.CONFLICT,
+    message: Status.message[4092].value
+}
 
 class DomainsAPI {
 
     constructor(dataSource) {
         this.ds = dataSource
         this.cache = Caffeine.newBuilder()
-          .expireAfterWrite(5, TimeUnit.MINUTES)
-          .build()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build()
     }
 
     createFromJSON(jsonObj) {
-        if(jsonObj.spec.context.egressPolicy
-            && !this.doesDIDExist(jsonObj.spec.context.egressPolicy.didRef)) {
-              return UNFULFILLED_DEPENDENCY_RESPONSE
+        if (jsonObj.spec.context.egressPolicy &&
+            !this.doesDIDExist(jsonObj.spec.context.egressPolicy.didRef)) {
+            return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
         if (!this.domainExist(jsonObj.spec.context.domainUri)) {
@@ -37,9 +43,9 @@ class DomainsAPI {
     }
 
     updateFromJSON(jsonObj) {
-        if(jsonObj.spec.context.egressPolicy
-            && !this.doesDIDExist(json.spec.context.egressPolicy.didRef)) {
-              return UNFULFILLED_DEPENDENCY_RESPONSE
+        if (jsonObj.spec.context.egressPolicy &&
+            !this.doesDIDExist(json.spec.context.egressPolicy.didRef)) {
+            return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
         if (this.domainExist(jsonObj.spec.context.domainUri)) {
@@ -75,7 +81,7 @@ class DomainsAPI {
 
     deleteDomain(ref) {
         if (this.cache.getIfPresent(ref)) {
-          this.cache.invalidate(ref)
+            this.cache.invalidate(ref)
         }
 
         let response = this.getDomain(ref)
@@ -89,7 +95,7 @@ class DomainsAPI {
         response = this.ds.withCollection('agents').find("'" + domain.spec.context.domainUri + "' in @.spec.domains")
         const agents = response.result
 
-        return agents.length === 0? this.ds.withCollection('domains').remove(ref) : foundDependentObjects
+        return agents.length === 0 ? this.ds.withCollection('domains').remove(ref) : foundDependentObjects
     }
 
     doesDIDExist(didRef) {

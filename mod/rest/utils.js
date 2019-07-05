@@ -4,7 +4,9 @@
  */
 const DSUtils = require('@routr/data_api/utils')
 const CoreUtils = require('@routr/core/utils')
-const { Status } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
 
 const MultipartConfigElement = Java.type('javax.servlet.MultipartConfigElement')
@@ -30,7 +32,7 @@ class RestUtil {
                 const jsonObj = JSON.parse(req.body())
                 return api.createFromJSON(jsonObj)
             } catch (e) {
-                if(e instanceof SyntaxError) {
+                if (e instanceof SyntaxError) {
                     return CoreUtils.buildResponse(Status.BAD_REQUEST, null, "SyntaxError: Invalid JSON")
                 }
                 return CoreUtils.buildResponse(Status.BAD_REQUEST, null, e)

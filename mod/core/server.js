@@ -51,10 +51,10 @@ class Server {
             const lp = sipStack.createListeningPoint(curTransport.bindAddr, curTransport.port, proto)
             sipProvider.addListeningPoint(lp)
 
-            LOG.info('Listening  on ' + ANSI_GREEN  + curTransport.bindAddr
-                + ':' + curTransport.port
-                    + ' [' + proto + ']'
-                        + ANSI_RESET)
+            LOG.info('Listening on ' + ANSI_GREEN + curTransport.bindAddr +
+                ':' + curTransport.port +
+                ' [' + proto + ']' +
+                ANSI_RESET)
         }
 
         return sipProvider
@@ -62,10 +62,10 @@ class Server {
 
     showExternInfo() {
         if (this.config.spec.externAddr) {
-            LOG.info("ExternAddr is " + ANSI_GREEN  + this.config.spec.externAddr + ANSI_RESET)
+            LOG.info("ExternAddr is " + ANSI_GREEN + this.config.spec.externAddr + ANSI_RESET)
 
-            if(this.config.spec.localnets) {
-                LOG.info("Localnets  is " + ANSI_GREEN  + this.config.spec.localnets.join(",") + ANSI_RESET)
+            if (this.config.spec.localnets) {
+                LOG.info("Localnets is " + ANSI_GREEN + this.config.spec.localnets.join(",") + ANSI_RESET)
             }
         }
     }
@@ -73,7 +73,7 @@ class Server {
     setup() {
         this.showExternInfo()
 
-        if(this.config.spec.securityContext.debugging) {
+        if (this.config.spec.securityContext.debugging) {
             Java.type('java.lang.System').setProperty('javax.net.debug', 'ssl')
         }
 
@@ -83,7 +83,7 @@ class Server {
         this.sipStack = sipFactory.createSipStack(this.getProperties())
 
         const sipProvider = this.buildSipProvider(this.sipStack,
-          this.config.spec.transport)
+            this.config.spec.transport)
 
         this.registry = new Registry(sipProvider, this.dataAPIs)
 
@@ -93,8 +93,8 @@ class Server {
         sipProvider.addSipListener(processor.listener)
     }
 
-    start()  {
-      LOG.info('Starting Routr')
+    start() {
+        LOG.info('Starting Routr')
         this.setup()
         //this.locator.start()
         this.registry.start()
@@ -144,8 +144,7 @@ class Server {
         try {
             const filesPath = this.config.spec.dataSource.parameters.path
             properties.load(new FileInputStream(filesPath + '/stack.properties'))
-        } catch(e) {
-        }
+        } catch (e) {}
 
         return properties
     }

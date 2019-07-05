@@ -4,7 +4,9 @@
  */
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
-const { Status } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
 const getConfig = require('@routr/core/config_util')
 
 const JedisPoolConfig = Java.type('redis.clients.jedis.JedisPoolConfig')
@@ -15,8 +17,14 @@ const InvalidPathException = Java.type('com.jayway.jsonpath.InvalidPathException
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
 const LOG = LogManager.getLogger()
-const badRequest = { status: Status.BAD_REQUEST, message: Status.message[Status.BAD_REQUEST].value }
-const defaultRedisParameters = { host: 'localhost', port: '6379'}
+const badRequest = {
+    status: Status.BAD_REQUEST,
+    message: Status.message[Status.BAD_REQUEST].value
+}
+const defaultRedisParameters = {
+    host: 'localhost',
+    port: '6379'
+}
 const defUser = {
     kind: 'User',
     metadata: {
@@ -34,24 +42,24 @@ class RedisDataSource {
 
     constructor(config = getConfig()) {
         this.parameters = DSUtils.getParameters(config, defaultRedisParameters,
-           ['host', 'port', 'secret'])
+            ['host', 'port', 'secret'])
 
         this.jedisPool = new JedisPool(this.parameters.host, this.parameters.port)
 
-        if(this.withCollection('users').find().result.length === 0) {
+        if (this.withCollection('users').find().result.length === 0) {
             LOG.info("No user found. Creating default 'admin' user.")
             this.createDefaultUser(config.system.apiVersion)
         }
     }
 
     getJedisConn() {
-      const jedisConn = this.jedisPool.getResource()
+        const jedisConn = this.jedisPool.getResource()
 
-      if (this.parameters.secret) {
-          jedisConn.auth(this.parameters.secret)
-      }
+        if (this.parameters.secret) {
+            jedisConn.auth(this.parameters.secret)
+        }
 
-      return jedisConn
+        return jedisConn
     }
 
     buildPoolConfig() {
@@ -98,7 +106,7 @@ class RedisDataSource {
             jedis.sadd(kind.toLowerCase() + 's', obj.metadata.ref)
 
             return CoreUtils.buildResponse(Status.CREATED, obj.metadata.ref)
-        } catch(e) {
+        } catch (e) {
             return CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
@@ -113,8 +121,8 @@ class RedisDataSource {
         try {
             jedis = this.getJedisConn()
             const result = JSON.parse(jedis.get(ref))
-            return result === null? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
-        } catch(e) {
+            return result === null ? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
+        } catch (e) {
             return CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
@@ -139,12 +147,12 @@ class RedisDataSource {
             // JsonPath does not parse properly when using Json objects from JavaScript
             list = JsonPath.parse(JSON.stringify(list))
                 .read(DSUtils.transformFilter(filter))
-                    .toJSONString()
+                .toJSONString()
 
             return CoreUtils.buildResponse(Status.OK, JSON.parse(list))
-        } catch(e) {
-            return e instanceof InvalidPathException? CoreUtils.buildResponse(Status.BAD_REQUEST, null, e)
-                : CoreUtils.buildErrResponse(e)
+        } catch (e) {
+            return e instanceof InvalidPathException ? CoreUtils.buildResponse(Status.BAD_REQUEST, null, e) :
+                CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -164,9 +172,9 @@ class RedisDataSource {
             jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
             return CoreUtils.buildResponse(Status.OK, obj.metadata.ref)
-        } catch(e) {
-            return e instanceof InvalidPathException? CoreUtils.buildResponse(Status.BAD_REQUEST, null, e)
-                :CoreUtils.buildErrResponse(e)
+        } catch (e) {
+            return e instanceof InvalidPathException ? CoreUtils.buildResponse(Status.BAD_REQUEST, null, e) :
+                CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -187,8 +195,8 @@ class RedisDataSource {
 
             cnt = jedis.srem(this.collection, ref)
 
-            return cnt === 0? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK)
-        } catch(e) {
+            return cnt === 0 ? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK)
+        } catch (e) {
             return CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {

@@ -4,7 +4,9 @@
  */
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
-const { Status } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
@@ -13,8 +15,8 @@ class PeersAPI {
     constructor(dataSource) {
         this.ds = dataSource
         this.cache = Caffeine.newBuilder()
-          .expireAfterWrite(5, TimeUnit.MINUTES)
-          .build()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build()
     }
 
     updateFromJSON(jsonObj) {

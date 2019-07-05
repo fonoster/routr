@@ -2,8 +2,12 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { RouteEntityType } = require('@routr/core/route_entity_type')
-const { RoutingType } = require('@routr/core/routing_type')
+const {
+    RouteEntityType
+} = require('@routr/core/route_entity_type')
+const {
+    RoutingType
+} = require('@routr/core/routing_type')
 const getConfig = require('@routr/core/config_util')
 
 const ToHeader = Java.type('javax.sip.header.ToHeader')
@@ -25,7 +29,7 @@ class RouteInfo {
         this._calleeHost = toHeader.getAddress().getURI().getHost()
 
         // Overwrites callee info if addressInfo is present
-        if(!!getConfig().spec.addressInfo) {
+        if (!!getConfig().spec.addressInfo) {
             const callee = RouteInfo.getCalleeFromAddressInfo(request, getConfig().spec.addressInfo)
             this._calleeUser = callee.user
             this._calleeHost = callee.host
@@ -97,7 +101,7 @@ class RouteInfo {
         return entityType
     }
 
-    getCallerType () {
+    getCallerType() {
         return this.getRouteEntityType(this.callerDomain, this.callerUser)
     }
 

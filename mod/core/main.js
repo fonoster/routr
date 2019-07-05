@@ -23,7 +23,9 @@ const RestfulDataSource = require('@routr/data_api/restful_datasource')
 const config = require('@routr/core/config_util')()
 
 // XXX: This feals a bit like a hack. But it is ok for now.
-var global = { timer }
+var global = {
+    timer
+}
 
 // Avoids old log4j and jetty logs
 System.setProperty("org.eclipse.jetty.LEVEL", "WARN")
@@ -33,12 +35,12 @@ let dataSource
 
 if (config.spec.dataSource.provider === 'files_data_provider') {
     dataSource = new FilesDataSource()
-} else if(config.spec.dataSource.provider === 'restful_data_provider') {
+} else if (config.spec.dataSource.provider === 'restful_data_provider') {
     dataSource = new RestfulDataSource()
-} else if(config.spec.dataSource.provider === 'redis_data_provider') {
+} else if (config.spec.dataSource.provider === 'redis_data_provider') {
     dataSource = new RedisDataSource()
 } else {
-    print ('Invalid data source')
+    print('Invalid data source')
     System.exit(1)
 }
 

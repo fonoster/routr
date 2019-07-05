@@ -14,20 +14,20 @@ class AuthHelper {
 
     static calcFromHeader(a) {
         return AuthHelper.calculateResponse(a.username, a.secret, a.realm,
-          a.nonce, a.nc, a.cnonce, a.uri, a.method, a.qop)
+            a.nonce, a.nc, a.cnonce, a.uri, a.method, a.qop)
     }
 
     static calculateResponse(username, secret, realm, nonce, nc, cnonce, uri, method, qop) {
         const a1 = username + ':' + realm + ':' + secret
         const a2 = method.toUpperCase() + ':' + uri
         const ha1 = DigestUtils.md5Hex(a1)
-        const ha2 =  DigestUtils.md5Hex(a2)
+        const ha2 = DigestUtils.md5Hex(a2)
 
         if (qop !== null && qop.equals('auth')) {
             return DigestUtils.md5Hex(ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2)
         }
 
-        return DigestUtils.md5Hex(ha1 + ':' + nonce +  ':' + ha2)
+        return DigestUtils.md5Hex(ha1 + ':' + nonce + ':' + ha2)
     }
 
     // Generates WWW-Authorization header

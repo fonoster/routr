@@ -4,7 +4,9 @@
  */
 const postal = require('postal')
 const AuthHelper = require('@routr/utils/auth_helper')
-const { Status } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
 const getConfig = require('@routr/core/config_util')
 const RegistrarUtils = require('@routr/registrar/utils')
@@ -34,9 +36,9 @@ class Registrar {
         let user
 
         // Warning: This is just for testing purposes
-        if(isGuest && RegistrarUtils.isAllowGuest()) {
-            user =  RegistrarUtils.getGuessUser(request)
-        } else if(this.isAuthorized(request)) {
+        if (isGuest && RegistrarUtils.isAllowGuest()) {
+            user = RegistrarUtils.getGuessUser(request)
+        } else if (this.isAuthorized(request)) {
             // Todo: Avoid making this second trip to the API
             user = this.getUserFromAPI(request)
         } else {
@@ -71,7 +73,7 @@ class Registrar {
         } else {
             response = this.peersAPI.getPeerByUsername(username)
 
-            if (response.status === Status.OK ) {
+            if (response.status === Status.OK) {
                 return response.result
             }
         }

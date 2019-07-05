@@ -10,7 +10,9 @@ const LocatorUtils = require('@routr/location/utils')
 const DIDsAPI = require('@routr/data_api/dids_api')
 const DomainsAPI = require('@routr/data_api/domains_api')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
-const { Status } = require('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
 const getConfig = require('@routr/core/config_util')
 
 const SipFactory = Java.type('javax.sip.SipFactory')
@@ -28,14 +30,16 @@ const dataAPIs = {
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 const locator = new Locator(dataAPIs)
 
-const testGroup = { name: "Location Service Module" }
+const testGroup = {
+    name: "Location Service Module"
+}
 
 // Tests
 testGroup.create_sip_uri = function() {
     const sipUri = LocatorUtils.createSipURI("sip:1001@sip.ocean.com")
 }
 
-testGroup.aor_as_string = function () {
+testGroup.aor_as_string = function() {
     const sipURI = addressFactory.createSipURI('john', 'sip.ocean.com')
     let aorString = LocatorUtils.aorAsString(sipURI)
     assertEquals('sip:john@sip.ocean.com', aorString)
@@ -68,7 +72,7 @@ testGroup.find_endpoint_for_did = function() {
 }
 
 testGroup.find_remote_endpoint = function() {
-    testFE(addressFactory.createSipURI('17853178070',  'sip.local'), true)
+    testFE(addressFactory.createSipURI('17853178070', 'sip.local'), true)
 }
 
 // Test having more than one route per address of record
@@ -84,25 +88,25 @@ function buildEndpoint(username, domain, host) {
     const aor = addressFactory.createSipURI(username, domain)
     const contactURI = addressFactory.createSipURI(username, host)
     return {
-      aor: LocatorUtils.aorAsString(aor),
-      route: {
-          isLinkAOR: false,
-          thruGw: false,
-          sentByAddress: 'localhost',
-          sentByPort: 5060,
-          received: 'remotehost',
-          rport: 5061,
-          contactURI: contactURI,
-          registeredOn: Date.now(),
-          nat: false
-      }
+        aor: LocatorUtils.aorAsString(aor),
+        route: {
+            isLinkAOR: false,
+            thruGw: false,
+            sentByAddress: 'localhost',
+            sentByPort: 5060,
+            received: 'remotehost',
+            rport: 5061,
+            contactURI: contactURI,
+            registeredOn: Date.now(),
+            nat: false
+        }
     }
 }
 
 function testFE(aor, thruGw = false) {
-  const response = locator.findEndpoint(aor)
-  assertEquals(Status.OK, response.status)
-  response.result.forEach(route => assertEquals(thruGw, route.thruGw))
+    const response = locator.findEndpoint(aor)
+    assertEquals(Status.OK, response.status)
+    response.result.forEach(route => assertEquals(thruGw, route.thruGw))
 }
 
 module.exports.testGroup = testGroup

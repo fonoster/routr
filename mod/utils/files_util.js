@@ -13,15 +13,17 @@ class FilesUtil {
     static readFile(path) {
         const lines = Files.readAllLines(Paths.get(path), Java.type('java.nio.charset.StandardCharsets').UTF_8)
         const data = []
-        lines.forEach(line => { data.push(line) })
+        lines.forEach(line => {
+            data.push(line)
+        })
         return data.join('\n').trim()
     }
 
     static writeFile(path, text) {
-      const file = new File (path)
-      const out = new BufferedWriter(new FileWriter(file))
-      out.write(text)
-      out.close()
+        const file = new File(path)
+        const out = new BufferedWriter(new FileWriter(file))
+        out.write(text)
+        out.close()
     }
 
 }

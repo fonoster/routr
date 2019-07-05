@@ -40,10 +40,12 @@ const dataAPIs = {
     PeersAPI: new PeersAPI(ds)
 }
 
-const testGroup = { name: "Core Processor Module" }
+const testGroup = {
+    name: "Core Processor Module"
+}
 
 // Tests
-testGroup.caller_type = function () {
+testGroup.caller_type = function() {
     const request = getRequest('1001@sip.local', '1002@sip.local')
     const routeInfo = new RouteInfo(request, dataAPIs)
     assertEquals('AGENT', routeInfo.getCallerType())
@@ -52,7 +54,7 @@ testGroup.caller_type = function () {
 }
 
 // Tests
-testGroup.routing_type = function () {
+testGroup.routing_type = function() {
     // Same Domain
     let request = getRequest('1001@sip.local', '1002@sip.local')
     let routeInfo = new RouteInfo(request, dataAPIs)
@@ -103,7 +105,7 @@ function getRequest(from, to) {
     const toAddress = addressFactory.createAddress('sip:' + to)
     const toHeader = headerFactory.createToHeader(toAddress, null)
     const expireHeader = headerFactory.createExpiresHeader(3600)
-    const contactAddress = addressFactory.createAddress('sip:' + from  + ':' + port)
+    const contactAddress = addressFactory.createAddress('sip:' + from + ':' + port)
     const contactHeader = headerFactory.createContactHeader(contactAddress)
     const userAgentHeader = headerFactory.createUserAgentHeader(userAgent)
 

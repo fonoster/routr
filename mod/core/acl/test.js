@@ -7,10 +7,12 @@
 const ACLUtil = require('@routr/core/acl/acl_util')
 const Rule = require('@routr/core/acl/acl_rule')
 
-const testGroup = { name: "Access Control List Submodule" }
+const testGroup = {
+    name: "Access Control List Submodule"
+}
 
 // Tests
-testGroup.rules = function () {
+testGroup.rules = function() {
     let rule = new Rule('10.0.0.1/28', 'allow')
     assertEquals(16, rule.getAddressCount())
     assertTrue(rule.hasIp('10.0.0.4'))
@@ -22,7 +24,7 @@ testGroup.rules = function () {
 }
 
 // Tests
-testGroup.is_network_allowed = function () {
+testGroup.is_network_allowed = function() {
     const accessControlList = {
         allow: ['192.168.0.1/28'],
         deny: ['192.168.0.4']

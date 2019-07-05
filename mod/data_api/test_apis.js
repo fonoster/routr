@@ -7,9 +7,11 @@
 const DSUtils = require('@routr/data_api/utils')
 const TestUtils = require('@routr/data_api/test_utils')
 
-const testGroup = { name: "Data APIS" }
+const testGroup = {
+    name: "Data APIS"
+}
 
-testGroup.deep_search = function () {
+testGroup.deep_search = function() {
     const agents = []
     agents.push(TestUtils.buildAgent('John Doe', ['sip.local'], '1001'))
     agents.push(TestUtils.buildAgent('Jane Doe', ['sip.local'], '1002'))

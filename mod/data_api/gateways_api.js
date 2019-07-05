@@ -4,8 +4,12 @@
  */
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
-const { Status } = require('@routr/core/status')
-const { FOUND_DEPENDENT_OBJECTS_RESPONSE } = require ('@routr/core/status')
+const {
+    Status
+} = require('@routr/core/status')
+const {
+    FOUND_DEPENDENT_OBJECTS_RESPONSE
+} = require('@routr/core/status')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
@@ -14,8 +18,8 @@ class GatewaysAPI {
     constructor(dataSource) {
         this.ds = dataSource
         this.cache = Caffeine.newBuilder()
-          .expireAfterWrite(5, TimeUnit.MINUTES)
-          .build()
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build()
     }
 
     createFromJSON(jsonObj) {
@@ -38,12 +42,12 @@ class GatewaysAPI {
         return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
-    getGateways(filter)  {
+    getGateways(filter) {
         return this.ds.withCollection('gateways').find(filter)
     }
 
     getGateway(ref) {
-       return this.ds.withCollection('gateways').get(ref)
+        return this.ds.withCollection('gateways').get(ref)
     }
 
     getGatewayByHost(host) {
@@ -77,7 +81,7 @@ class GatewaysAPI {
         response = this.ds.withCollection('dids').find("@.metadata.gwRef=='" + gateway.metadata.ref + "'")
         const dids = response.result
 
-        return dids.length === 0? this.ds.withCollection('gateways').remove(ref): FOUND_DEPENDENT_OBJECTS_RESPONSE
+        return dids.length === 0 ? this.ds.withCollection('gateways').remove(ref) : FOUND_DEPENDENT_OBJECTS_RESPONSE
     }
 
 }

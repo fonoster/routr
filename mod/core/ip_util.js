@@ -36,11 +36,11 @@ class IPUtil {
     static getSubnetUtils(net) {
         let subnetUtils
 
-        if(IPUtil.isIp(net)) {
+        if (IPUtil.isIp(net)) {
             subnetUtils = new SubnetUtils(net + '/31')
-        } else if(IPUtil.isCidr(net)) {
+        } else if (IPUtil.isCidr(net)) {
             subnetUtils = new SubnetUtils(net)
-        } else if(IPUtil.isIpAndMask(net)) {
+        } else if (IPUtil.isIpAndMask(net)) {
             const s = net.split('/')
             subnetUtils = new SubnetUtils(s[0], s[1])
         } else {

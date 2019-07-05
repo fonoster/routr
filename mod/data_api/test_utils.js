@@ -78,9 +78,9 @@ class TestUtils {
                 userId: 'john@doe.com',
                 gwRef: '595bc68492bccf1454883d0b',
                 geoInfo: {
-                  city: 'Sanford, GA',
-                  country: 'United States',
-                  countryISOCode: 'DR'
+                    city: 'Sanford, GA',
+                    country: 'United States',
+                    countryISOCode: 'DR'
                 }
             },
             spec: {
