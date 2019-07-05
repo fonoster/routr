@@ -2,287 +2,302 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
      <loc>https://routr.io/docs/introduction/overview/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/introduction/installation/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/introduction/comparison/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/introduction/community/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/introduction/faq/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/introduction/roadmap/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/introduction/media/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/introduction/performance-tests/user-location/</loc>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/introduction/glossary/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/concepts/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/configuration/general/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/configuration/users/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/configuration/gateways/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/configuration/dids/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/configuration/domains/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/configuration/agents/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/configuration/peers/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/administration/cli/installation/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/administration/cli/cheatsheet/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/administration/cli/remote-access/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/administration/webconsole/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/overview/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/credentials/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/api/location/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <loc>https://routr.io/docs/api/location/create/</loc>
+     <lastmod>2019-07-05</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/api/location/delete/</loc>
+     <lastmod>2019-07-05</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    <url>
+     <loc>https://routr.io/docs/api/location/list/</loc>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/registry/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/agents/create/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/agents/delete/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/agents/get/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/agents/list/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/agents/update/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/peers/create/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/peers/delete/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/peers/get/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/peers/list/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/peers/update/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/domains/create/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/domains/delete/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/domains/get/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/domains/list/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/domains/update/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/gateways/create/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/gateways/delete/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/gateways/get/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/gateways/list/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/gateways/update/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/dids/create/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/dids/delete/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/dids/get/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/dids/list/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/api/dids/update/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc></loc>
-     
+     <loc>https://routr.io/docs/api/system/status/</loc>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc></loc>
-     
+     <loc>https://routr.io/docs/api/system/info/</loc>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/guides/basic-setup/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/guides/routr-as-asterisk-frontend/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/guides/securing-the-signaling-path/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/guides/running-with-docker-or-compose/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/guides/running-on-kubernetes/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
      <loc>https://routr.io/docs/guides/benchmarking/</loc>
-     <lastmod>2019-06-02</lastmod>
+     <lastmod>2019-07-05</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>
