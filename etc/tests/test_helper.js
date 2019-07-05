@@ -19,17 +19,17 @@ var ANSI_YELLOW = "\u001B[33m"
 var ANSI_RESET = "\u001B[0m"
 var ANSI_RED = "\u001B[31m"
 
-var THelper =  {
-    test: function (path, name) {
+var THelper = {
+    test: function(path, name) {
         // WARN: This line makes makes the helper less portable
         var obj = require(path).testGroup
 
         if (obj === undefined) {
-            print ('Nothing to test')
+            print('Nothing to test')
             return
         }
 
-        var group = name !== undefined? name : obj.name
+        var group = name !== undefined ? name : obj.name
 
         if (obj.enabled === false) {
             print('Test group', "'" + group + "'", ANSI_YELLOW + '#disabled' + ANSI_RESET)
@@ -38,7 +38,7 @@ var THelper =  {
 
         print('Test group \'' + group + '\'')
 
-        for (var key in obj){
+        for (var key in obj) {
             var funName = key
             var fun = obj[key]
 
@@ -61,14 +61,14 @@ var THelper =  {
                     print(' ', '[x]', errors.nextElement());
                 }
             }
-       }
+        }
     }
 }
 
 var tests = $ARG
 
 if (tests.length === 0) {
-    print ('Nothing to test')
+    print('Nothing to test')
 }
 
 tests.forEach(function(t) {
