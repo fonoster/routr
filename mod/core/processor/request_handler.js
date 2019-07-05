@@ -75,9 +75,6 @@ class RequestHandler {
         const localAddr = { host: lp.getIPAddress().toString(), port: lp.getPort() }
         const advertisedAddr = this.getAdvertizedAddr(route, localAddr, config.spec.externAddr)
 
-        LOG.debug('advertised addr: ' + JSON.stringify(advertisedAddr))
-        LOG.debug('flow: ' + JSON.stringify(route))
-
         this.configureGeneral(requestOut, route, advertisedAddr)
 
         if(this.proxyOwnsRequest(requestOut, localAddr, advertisedAddr)) {
@@ -92,6 +89,9 @@ class RequestHandler {
             this.configureRoutingHeaders(requestOut, route)
         }
 
+
+        LOG.debug(`core.processor.RequestHandler.processRoute [advertised addr ${JSON.stringify(advertisedAddr)}]`)
+        LOG.debug(`core.processor.RequestHandler.processRoute [route ${JSON.stringify(route)}]`)
         this.sendRequest(requestIn, requestOut, serverTransaction)
     }
 
@@ -151,6 +151,7 @@ class RequestHandler {
     }
 
     sendRequest(requestIn, requestOut, serverTransaction) {
+
         // Does not need a transaction
         if(requestIn.getMethod().equals(Request.ACK)) {
             return this.sipProvider.sendRequest(requestOut)
@@ -159,6 +160,11 @@ class RequestHandler {
             // The request must be cloned or the stack will not fork the call
             const clientTransaction = this.sipProvider.getNewClientTransaction(requestOut.clone())
             clientTransaction.sendRequest()
+
+            LOG.debug(`core.processor.RequestHandler.sendRequest [clientTransactionId is ${clientTransaction.getBranchId()}]`)
+            LOG.debug(`core.processor.RequestHandler.sendRequest [serverTransactionId is ${serverTransaction.getBranchId()}]`)
+            LOG.debug(`core.processor.RequestHandler.sendRequest [request out is => \n${requestOut}]`)
+
             this.saveContext(requestIn, requestOut, clientTransaction, serverTransaction)
         } catch (e) {
             if (e instanceof Java.type('java.net.ConnectException')) {

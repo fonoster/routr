@@ -37,32 +37,36 @@ class ContextStorage {
 
     addContext(context) {
         this.storage.add(context)
+        LOG.debug(`core.ContextStorage.addContext [storage size is now ${this.getStorage().size()}]`)
     }
 
-    findContext(trans) {
-        const iterator = this.storage.iterator()
-        while(iterator.hasNext()) {
-            const context = iterator.next()
-
-            if (context.clientTransaction === trans ||
-                context.serverTransaction === trans) {
-                return context
-            }
-        }
-    }
-
-    removeContext(transactionId) {
+    findContext(transactionId) {
+        LOG.debug(`core.ContextStorage.findContext [transactionId: ${transactionId}]`)
         const iterator = this.storage.iterator()
         while(iterator.hasNext()) {
             const context = iterator.next()
 
             if (context.clientTransaction.getBranchId() === transactionId ||
                 context.serverTransaction.getBranchId() === transactionId) {
+                LOG.debug(`ContextStorage.findContext [context: ${JSON.stringify(context)}]`)
+                return context
+            }
+        }
+    }
+
+    removeContext(transactionId) {
+        LOG.debug(`core.ContextStorage.removeContext [transactionId: ${transactionId}]`)
+        const iterator = this.storage.iterator()
+        while(iterator.hasNext()) {
+            const context = iterator.next()
+            if (context.clientTransaction.getBranchId() === transactionId ||
+                context.serverTransaction.getBranchId() === transactionId) {
                 iterator.remove()
+                LOG.debug(`ContextStorage.removeContext [removed transactionId: ${transactionId}]`)
                 return true
             }
         }
-        LOG.trace("Ongoing Transaction")
+        LOG.debug(`core.ContextStorage.removeContext [transaction ongoing transactionId: ${transactionId}]`)
     }
 
     cancelTransaction(transactionId) {
@@ -86,9 +90,11 @@ class ContextStorage {
                 serverTransaction.sendResponse(cancelResponse)
                 clientTransaction.sendRequest()
 
-                LOG.trace('Original response: ' + originResponse)
-                LOG.trace('Cancel response: ' + cancelResponse)
-                LOG.trace('Cancel request: ' + cancelRequest)
+                iterator.remove()
+
+                LOG.debug(`core.ContextStorage.cancelTransaction [original response is \n ${originResponse}]`)
+                LOG.debug(`core.ContextStorage.cancelTransaction [cancel request is \n ${cancelRequest}]`)
+                LOG.debug(`core.ContextStorage.cancelTransaction [cancel response is \n ${originResponse}]`)
             }
         }
     }

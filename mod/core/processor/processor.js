@@ -12,7 +12,6 @@ const LOG = LogManager.getLogger()
 class Processor {
 
     constructor(sipProvider, registry, dataAPIs, contextStorage) {
-        this.contextStorage = contextStorage
         this.requestProcessor = new RequestProcessor(sipProvider, dataAPIs, contextStorage)
         this.responseProcessor = new ResponseProcessor(sipProvider, dataAPIs, contextStorage, registry)
     }
@@ -55,12 +54,15 @@ class Processor {
             },
 
             processTransactionTerminated: function(event) {
+                const transactionId = event.isServerTransaction()?
+                  event.getServerTransaction().getBranchId():
+                      event.getClientTransaction().getBranchId()
                 if (event.isServerTransaction()) {
                     postal.publish({
                       channel: "processor",
                       topic: "transaction.terminated",
                       data: {
-                          transactionId: event.getServerTransaction().getBranchId()
+                          transactionId: transactionId
                       }
                     })
                 }

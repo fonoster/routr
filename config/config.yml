@@ -1,6 +1,7 @@
 apiVersion: v1beta1
 spec:
   allowGuest: true
+  registrarIntf: Internal
   transport:
     - protocol: udp
       port: 5060
