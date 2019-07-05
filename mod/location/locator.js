@@ -142,8 +142,6 @@ class Locator {
 
     findEndpointBySipURI(addressOfRecord) {
         // First just look into the 'db'
-        print('DBBG005', addressOfRecord)
-        print('DBBG005', LocatorUtils.aorAsString(addressOfRecord))
         const routes = this.db.getIfPresent(LocatorUtils.aorAsString(addressOfRecord))
 
         if (routes !== null) {
