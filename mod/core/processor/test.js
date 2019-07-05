@@ -73,7 +73,7 @@ testGroup.routing_type = function() {
     // Call from the PSTN
     request = getRequest('17853178070@sip.provider.com', '0000000000@sip.provider.com')
     routeInfo = new RouteInfo(request, dataAPIs)
-    assertEquals('DOMAIN_INGRESS_ROUTING', routeInfo.getRoutingType())
+    assertEquals('DOMAIN_INGRESS_ROUTINGL', routeInfo.getRoutingType())
 
     // Peer call
     request = getRequest('0000000000@sip.provider.com', '17853178070@sip.provider.com')

@@ -60,6 +60,7 @@ var THelper = {
                 while (errors.hasMoreElements()) {
                     print(' ', '[x]', errors.nextElement());
                 }
+                exit(1)
             }
         }
     }
