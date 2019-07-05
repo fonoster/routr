@@ -95,9 +95,8 @@ class ResponseProcessor {
     sendResponse(event) {
         const responseOut = event.getResponse().clone()
         responseOut.removeFirst(ViaHeader.NAME)
-
-        if (ResponseProcessor.isInviteWithCT(event)) {
-            const context = this.contextStorage.findContext(event.getClientTransaction())
+        if (ResponseProcessor.isTransactional(event) === true) {
+            const context = this.contextStorage.findContext(event.getClientTransaction().getBranchId())
 
             if (context !== null && context.serverTransaction !== null) {
                 context.serverTransaction.sendResponse(responseOut)
@@ -118,33 +117,27 @@ class ResponseProcessor {
     }
 
     static mustAuthenticate(response) {
-        if (response.getStatusCode() === Response.PROXY_AUTHENTICATION_REQUIRED ||
-            response.getStatusCode() === Response.UNAUTHORIZED) {
-            return true
-        }
-        return false
+        return response.getStatusCode() === Response.PROXY_AUTHENTICATION_REQUIRED ||
+            response.getStatusCode() === Response.UNAUTHORIZED
     }
 
-    static isInvite(response) {
-        return response.getHeader(CSeqHeader.NAME).getMethod().equals(Request.INVITE)
+    static isInviteOrMessage(response) {
+        return response.getHeader(CSeqHeader.NAME).getMethod() === Request.INVITE ||
+            Request.MESSAGE
     }
 
-    static isInviteOk(response) {
-        return ResponseProcessor.isInvite(response) && ResponseProcessor.isOk(response)
+    static isInviteOrMessageOk(response) {
+        return ResponseProcessor.isInviteOrMessage(response) && ResponseProcessor.isOk(response)
     }
 
-    static isInviteNok(response) {
-        return ResponseProcessor.isInvite(response) && !ResponseProcessor.isOk(response)
+    static isInviteOrMessageNok(response) {
+        return ResponseProcessor.isInviteOrMessage(response) && !ResponseProcessor.isOk(response)
     }
 
     static isStackJob(response) {
-        if (response.getStatusCode() === Response.TRYING ||
+        return response.getStatusCode() === Response.TRYING ||
             response.getStatusCode() === Response.REQUEST_TERMINATED ||
-            response.getHeader(CSeqHeader.NAME).getMethod()
-            .equals(Request.CANCEL)) {
-            return true
-        }
-        return false
+            response.getHeader(CSeqHeader.NAME).getMethod() === Request.CANCEL
     }
 
     static isBehindNat(response) {
@@ -154,31 +147,24 @@ class ResponseProcessor {
         const port = contactHeader.getAddress().getPort()
         const received = viaHeader.getReceived()
         const rPort = viaHeader.getRPort()
-        return (!!received && !host.equals(received)) || port !== rPort ? true : false
+        return (!!received && !host.equals(received)) || port !== rPort
     }
 
     static isRegister(response) {
         const cseq = response.getHeader(CSeqHeader.NAME)
-        return cseq.getMethod().equals(Request.REGISTER) ? true : false
+        return cseq.getMethod() === Request.REGISTER
     }
 
     static isRegisterOk(response) {
-        if (ResponseProcessor.isRegister(response) && ResponseProcessor.isOk(response)) {
-            return true
-        }
-        return false
+        return ResponseProcessor.isRegister(response) && ResponseProcessor.isOk(response)
     }
 
     static isRegisterNok(response) {
-        if (!ResponseProcessor.isOk(response) && ResponseProcessor.isRegister(response)) {
-            return true
-        }
-        return false
+        return !ResponseProcessor.isOk(response) && ResponseProcessor.isRegister(response)
     }
 
-    static isInviteWithCT(event) {
-        return ResponseProcessor.isInvite(event.getResponse()) &&
-            event.getClientTransaction() !== null ? true : false
+    static isTransactional(event) {
+        return ResponseProcessor.isInviteOrMessage(event.getResponse()) && event.getClientTransaction() !== null
     }
 
 }
