@@ -101,11 +101,18 @@ class Locator {
         if (isWildcard === true) {
             return this.db.invalidate(aor)
         }
-        // Not using aorAsString because we need to consider the port, etc.
-        this.db.getIfPresent(aor).invalidate(contactURI)
 
-        // This is just a hashmap of hashmaps...
-        if (this.db.getIfPresent(aor).isEmpty()) this.db.invalidate(aor)
+        let routes = this.db.getIfPresent(aor)
+        if (routes) {
+            // Not using aorAsString because we need to consider the port, etc.
+            const index = routes.indexOf(contactURI)
+            if (index > -1) {
+                routes.splice(index, 1);
+                this.db.put(aor, routes)
+            }
+
+            if (routes.length === 0) this.db.invalidate(aor)
+        }
     }
 
     findEndpoint(addressOfRecord) {
@@ -135,6 +142,8 @@ class Locator {
 
     findEndpointBySipURI(addressOfRecord) {
         // First just look into the 'db'
+        print('DBBG005', addressOfRecord)
+        print('DBBG005', LocatorUtils.aorAsString(addressOfRecord))
         const routes = this.db.getIfPresent(LocatorUtils.aorAsString(addressOfRecord))
 
         if (routes !== null) {

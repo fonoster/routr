@@ -48,7 +48,7 @@ class ContextStorage {
 
             if (context.clientTransaction.getBranchId() === transactionId ||
                 context.serverTransaction.getBranchId() === transactionId) {
-                LOG.debug(`ContextStorage.findContext [context: ${JSON.stringify(context)}]`)
+                LOG.debug(`core.ContextStorage.findContext [context: ${JSON.stringify(context)}]`)
                 return context
             }
         }
@@ -66,7 +66,8 @@ class ContextStorage {
                 return true
             }
         }
-        LOG.debug(`core.ContextStorage.removeContext [transaction ongoing transactionId: ${transactionId}]`)
+        LOG.debug(`core.ContextStorage.removeContext [transaction ongoing / transactionId: ${transactionId}]`)
+        LOG.debug(`core.ContextStorage.removeContext [storage size is now ${this.getStorage().size()}]`)
     }
 
     cancelTransaction(transactionId) {
