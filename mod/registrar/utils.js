@@ -68,7 +68,7 @@ class RegistrarUtils {
             sentByAddress: viaHeader.getHost(),
             sentByPort: (viaHeader.getPort() === -1 ? 5060 : viaHeader.getPort()),
             received: viaHeader.getReceived(),
-            rport: viaHeader.getParameter('rport'),
+            rport: viaHeader.getRPort(),
             contactURI: RegistrarUtils.getUpdatedContactURI(request, user),
             registeredOn: Date.now(),
             expires: RegistrarUtils.getExpires(request),
@@ -79,7 +79,7 @@ class RegistrarUtils {
     static isNat(request) {
         const viaHeader = request.getHeader(ViaHeader.NAME)
         return (viaHeader.getHost() + viaHeader.getPort()) !==
-            (viaHeader.getReceived() + viaHeader.getParameter('rport'))
+            (viaHeader.getReceived() + viaHeader.getRPort())
     }
 
     static getUpdatedContactURI(request, user) {
@@ -99,8 +99,8 @@ class RegistrarUtils {
                 contactURI.setHost(viaHeader.getReceived())
             }
 
-            if (viaHeader.getParameter('rport') !== null) {
-                contactURI.setPort(viaHeader.getParameter('rport'))
+            if (viaHeader.getRPort() !== -1) {
+                contactURI.setPort(viaHeader.getRPort())
             }
         }
         return contactURI
