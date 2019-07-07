@@ -32,9 +32,9 @@ dependencies {
     compile 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
-    compile 'com.sparkjava:spark-core:2.9.0'
-    compile 'io.jsonwebtoken:jjwt:0.9.0'
+    compile 'com.sparkjava:spark-core:2.9.1'
     compile 'com.qmetric:spark-authentication:1.4'
+    compile 'io.jsonwebtoken:jjwt:0.9.1'
     compile 'com.mashape.unirest:unirest-java:1.4.9'
     compile 'net.sourceforge.argparse4j:argparse4j:0.8.1'
     compile 'com.networknt:json-schema-validator:0.1.19'
@@ -44,11 +44,11 @@ dependencies {
     compile 'org.mongodb:bson:3.7.1'
     compile 'junit:junit:4.+'
     compile 'com.github.ben-manes.caffeine:caffeine:2.7.0'
-    compile 'org.graalvm.sdk:graal-sdk:19.0.0'
-    compile 'org.graalvm.truffle:truffle-api:19.0.0'
-    compile 'org.graalvm.js:js:19.0.0'
-    compile 'org.graalvm.regex:regex:19.0.0'
-    compile 'com.github.uber-common:jvm-profiler:master-SNAPSHOT' // Uber Profiler    
+    compile 'org.graalvm.sdk:graal-sdk:19.1.0'
+    compile 'org.graalvm.truffle:truffle-api:19.1.0'
+    compile 'org.graalvm.js:js:19.1.0'
+    compile 'org.graalvm.regex:regex:19.1.0'
+    compile 'com.github.uber-common:jvm-profiler:master-SNAPSHOT' // Uber Profiler
 }
 
 repositories {

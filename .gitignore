@@ -8,7 +8,7 @@ node_modules
 *.tar.gz
 *.zip
 build
-libs/*
+libs
 config/*.yml
 .gradle
 .idea
