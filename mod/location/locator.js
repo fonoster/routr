@@ -36,7 +36,6 @@ class Locator {
         this.didsAPI = dataAPIs.DIDsAPI
         this.domainsAPI = dataAPIs.DomainsAPI
         this.gatewaysAPI = dataAPIs.GatewaysAPI
-        this.addressFactory = SipFactory.getInstance().createAddressFactory()
 
         postal.subscribe({
             channel: "locator",
@@ -80,13 +79,6 @@ class Locator {
         const aor = LocatorUtils.aorAsString(addressOfRecord)
         let routes = this.db.getIfPresent(aor)
         if (routes === null) routes = []
-
-        /*if (response.status === Status.OK) {
-            // Only use if is a "local" route
-            routes = response.result.thruGw === false? response.result : []
-        } else {
-            routes = []
-        }*/
 
         routes.push(route)
 
@@ -237,9 +229,6 @@ class Locator {
                     const aor = LocatorUtils.aorAsString(addressOfRecord)
 
                     if (new RegExp(pattern).test(aor)) {
-                        //const contactURI = this.addressFactory
-                        //    .createSipURI(addressOfRecord.getUser(), gateway.spec.host)
-                        //contactURI.setSecure(addressOfRecord.isSecure())
                         const route = LocatorUtils.buildEgressRoute(aor, gateway, did, domain)
                         return CoreUtils.buildResponse(Status.OK, [route])
                     }
