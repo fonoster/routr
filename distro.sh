@@ -14,6 +14,7 @@ build_for_platform() {
     mkdir -p $BUILD_NAME/libs
 
     cp -a config $BUILD_NAME
+    rm $BUILD_NAME/stack.properties
     cp -a etc $BUILD_NAME
     cp libs/* $BUILD_NAME/libs
     cp routr $BUILD_NAME/

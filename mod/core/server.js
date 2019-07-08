@@ -119,7 +119,8 @@ class Server {
         properties.setProperty('gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY', 'gov.nist.javax.sip.stack.NioMessageProcessorFactory')
         properties.setProperty('gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS', 'false')
         properties.setProperty('gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS', 'true')
-        properties.setProperty('gov.nist.javax.sip.REENTRANT_LISTENER', 'true')
+        properties.setProperty('gov.nist.javax.sip.REENTRANT_LISTENER', 'false')
+        properties.setProperty('gov.nist.javax.sip.THREAD_POOL_SIZE', '16')
         properties.setProperty('gov.nist.javax.sip.NIO_BLOCKING_MODE', 'NONBLOCKING')
 
         // Guard against denial of service attack.
