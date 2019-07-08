@@ -6,9 +6,6 @@ BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 
 [ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
 
-# Use the following option to activate the jvm-profiler
-# ROUTR_JAVA_OPTS=-javaagent:$BASE_DIR/libs/jvm-profiler-master-SNAPSHOT.jar=reporter=com.uber.profiling.reporters.FileOutputReporter,outputDir=$BASE_DIR/out,tag=routr,metricInterval=5000
-
 running_in_docker() {
   [ -f /proc/self/cgroup ] && awk -F/ '$2 == "docker"' /proc/self/cgroup | read
 }
