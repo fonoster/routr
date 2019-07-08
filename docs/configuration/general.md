@@ -18,6 +18,9 @@ can be provided using the file `config/config.yml` located at the root of your R
 | spec.accessControlList.allow.[*] | Allow incoming traffic from network list | No |
 | spec.restService.bindAddr | Restful service listening address | No |
 | spec.restService.port | Restful service port. Defaults to 4567 | No |
+| spec.restService.minThreads | Minimum thread allocation. Default is 8 | No |
+| spec.restService.maxThreads | Maximum thread allocation. Default is 200 | No |
+| spec.restService.timeOutMillis | Will reject requests that last more than this value. Default is 5000(5 seconds) | No |
 | spec.restService.unsecured | Disabled https for restful calls. Default is `false` | No |
 | spec.restService.keyStore | Path to keyStore | No |
 | spec.restService.trueStore | Path to trueStore | No |

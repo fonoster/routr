@@ -41,6 +41,7 @@ class Rest {
         LOG.info('Starting Restful service (port: ' + this.rest.port + ', apiPath: ' + this.system.apiPath + ')')
 
         Spark.ipAddress(this.rest.bindAddr)
+        Spark.threadPool(this.rest.maxThreads, this.rest.minThreads, this.rest.timeOutMillis)
 
         if (!this.rest.unsecured) {
             Spark.secure(config.spec.restService.keyStore,

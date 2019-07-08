@@ -45,6 +45,9 @@
                     "properties": {
                         "unsecured": { "type": "boolean" },
                         "port": { "type": "integer" },
+                        "maxThreads": { "type": "integer" },
+                        "minThreads": { "type": "integer" },
+                        "timeOutMillis": { "type": "integer" },
                         "bindAddr": { "type": "string" },
                         "keyStore": { "type": "string" },
                         "trustStore": { "type": "string" },

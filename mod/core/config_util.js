@@ -56,6 +56,9 @@ function getRestfulPresets(rs) {
     if (restService.trustStorePassword === undefined) restService.trustStorePassword = null
     if (restService.bindAddr === undefined) restService.bindAddr = '0.0.0.0'
     if (restService.port === undefined) restService.port = 4567
+    if (restService.maxThreads === undefined) restService.maxThreads = 200
+    if (restService.minThreads === undefined) restService.minThreads = 8
+    if (restService.timeOutMillis === undefined) restService.timeOutMillis = 5000
 
     return restService
 }
