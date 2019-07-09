@@ -82,4 +82,11 @@ module.exports = function(locator) {
         res.body('{\"status\": \"200\", \"message\":\"Location entry evicted.\"}')
         return '{\"status\": \"200\", \"message\":\"Location entry evicted.\"}'
     })
+
+    del('/location', (req, res) => {
+        locator.evictAll()
+        res.status(200)
+        res.body('{\"status\": \"200\", \"message\":\"Evicted All!\"}')
+        return '{\"status\": \"200\", \"message\":\"Evicted All!\"}'
+    })
 }

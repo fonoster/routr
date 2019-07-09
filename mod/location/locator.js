@@ -107,6 +107,12 @@ class Locator {
         }
     }
 
+    evictAll() {
+        // WARNING: Should we provide a way to disable this?
+        LOG.warn('Emptying location table.')
+        this.db.invalidateAll()
+    }
+
     findEndpoint(addressOfRecord) {
         const aor = LocatorUtils.aorAsString(addressOfRecord)
         if (aor.startsWith("tel:")) {
