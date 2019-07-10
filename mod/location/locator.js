@@ -109,8 +109,9 @@ class Locator {
 
     evictAll() {
         // WARNING: Should we provide a way to disable this?
-        LOG.warn('Emptying location table.')
+        const cnt = this.db.estimatedSize()
         this.db.invalidateAll()
+        LOG.warn(`Evicted ${cnt} entries from location table`)
     }
 
     findEndpoint(addressOfRecord) {
