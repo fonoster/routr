@@ -1,6 +1,13 @@
 # Test Plan
 
-## Requirements
+## DUT and Endpoints Configuration
+
+- Routr has a Gateway resource configured to use TCP transport.
+- The Gateway resource is configured with a range of E.164 numbers.
+- Routr is configured to support Registration mode.
+- A Domain named `sip.local` exist with Agents `1001@sip.local` and `1002@sip.local`
+- The Gateway is capable of handling RFC6140 registrations
+
 ## Test Case Summary
 
 | Test Case ID | Title                                                | Required  |
@@ -29,3 +36,13 @@
 |  1.6.1       |  Peer-Egress Routing    / Successful Invite Setup    | Yes       |
 
 ## Test Cases
+
+### Test Case 1.1.1:Registration Setup
+
+*Objective*: This test verifies the correctness of a Routr when sending a REGISTER request.
+
+*Procedure*:
+
+|         | Description                                                             | Expected Result  |
+| ------- |:----------------------------------------------------------------------- | ----------------:|
+| Step 1  | Reset or restart Routr to trigger to send REGISTER message to Gateway   | Yes              |
