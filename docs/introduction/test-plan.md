@@ -39,7 +39,7 @@
 
 ### Test Case 1.1.1: Registration Setup
 
-*Objective*: This section tests the the registration compatibility between Routr and the SIP Trunk provider. If the SIP Trunk provider under testing is IP-based, this section can be skipped.
+*Objective*: This section tests the registration compatibility between Routr and the SIP Trunk provider. If the SIP Trunk provider under testing is IP-based, this section can be skipped.
 
 *Procedure*:
 
