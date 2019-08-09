@@ -16,11 +16,11 @@
 |  1.1.2       |  Registration Failure                                | Yes       |
 |  1.1.3       |  Maintaining Registration                            | Yes       |
 |  1.1.4       |  Authentication                                      | Yes       |
-|  1.1.5       |  TLS Server Mode                                     | Yes       |
+|  1.1.5       |  TLS Server Mode                                     | No        |
 |  1.2.1       |  DNS Lookup                                          | Yes       |
 |  1.2.2       |  Static Mode Failure Detection                       | No        |
 |  1.2.3       |  TLS Authentication                                  | No        |
-|  1.2.4       |  TLS Certificate Validation                          | Yes       |
+|  1.2.4       |  TLS Certificate Validation                          | No        |
 |  1.3.1       |  Intra-Domain Routing   / Successful Invite Setup    | Yes       |
 |  1.3.2       |  Intra-Domain Routing   / Invite Rejected by Callee  | Yes       |
 |  1.3.3       |  Intra-Domain Routing   / Invite Cancelled by Caller | Yes       |
@@ -37,12 +37,16 @@
 
 ## Test Cases
 
-### Test Case 1.1.1:Registration Setup
+### Test Case 1.1.1: Registration Setup
 
-*Objective*: This test verifies the correctness of a Routr when sending a REGISTER request.
+*Objective*: This section tests the the registration compatibility between Routr and the SIP Trunk provider. If the SIP Trunk provider under testing is IP-based, this section can be skipped.
 
 *Procedure*:
 
-|         | Description                                                             | Expected Result  |
-| ------- |:----------------------------------------------------------------------- | ----------------:|
-| Step 1  | Reset or restart Routr to trigger to send REGISTER message to Gateway   | Yes              |
+|         | Description                                                 | Expected Result  |
+| ------- |:------------------------------------------------------------| ----------------:|
+| Step 1  | Restart Routr to send a REGISTER message to the Gateway     | Routr restarts   |
+| Step 2  | Wait for the server to restart                              | UAS receives correct registration sequence |
+| Step 3  | Clear the registration table                                | Registry table is empty |
+
+
