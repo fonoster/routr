@@ -44,7 +44,7 @@
 *Procedure*:
 
 |         | Description                                                 | Expected Result  |
-| ------- |:------------------------------------------------------------| ----------------:|
+| ------- |:------------------------------------------------------------|:-----------------|
 | Step 1  | Restart Routr to send a REGISTER message to the Gateway     | Routr restarts   |
 | Step 2  | Wait for the server to restart                              | UAS receives correct registration sequence |
 | Step 3  | Clear the registration table                                | Registry table is empty |
