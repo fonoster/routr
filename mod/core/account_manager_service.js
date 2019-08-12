@@ -41,20 +41,16 @@ class AccountManagerService {
     }
 
     getAccountManager() {
-        var getGateway = this.getGateway
+        const self = this
 
         return new AccountManager({
-            getCredentials: function(challengedTransaction, realm) {
+            getCredentials: (challengedTransaction, realm) => {
+                const gateway = self.getGateway(challengedTransaction)
+
                 return new UserCredentials({
-                    getUserName: function() {
-                        return getGateway(challengedTransaction).username
-                    },
-                    getPassword: function() {
-                        return getGateway(challengedTransaction).secret
-                    },
-                    getSipDomain: function() {
-                        return getGateway(challengedTransaction).host
-                    }
+                    getUserName: () => gateway.username,
+                    getPassword: () => gateway.secret,
+                    getSipDomain: () => gateway.host
                 })
             }
         })
