@@ -3,6 +3,7 @@
  * @since v1
  */
 const AccountManagerService = require('@routr/core/account_manager_service')
+const RegistrarUtils = require('@routr/registrar/utils')
 
 const SipFactory = Java.type('javax.sip.SipFactory')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
@@ -48,9 +49,7 @@ class ResponseProcessor {
 
     storeInRegistry(response) {
         const fromURI = response.getHeader(FromHeader.NAME).getAddress().getURI()
-        const expiresHeader = response.getHeader(ExpiresHeader.NAME)
-        const expires = expiresHeader !== null ? expiresHeader.getExpires() : 3600
-        this.registry.storeRegistry(fromURI, expires)
+        this.registry.storeRegistry(fromURI, RegistrarUtils.getExpires(response))
     }
 
     removeFromRegistry(response) {
@@ -73,7 +72,7 @@ class ResponseProcessor {
         const response = event.getResponse()
         const clientTransaction = event.getClientTransaction()
         const viaHeader = response.getHeader(ViaHeader.NAME)
-        const expires = response.getHeader(ExpiresHeader.NAME).getExpires()
+        const expires = RegistrarUtils.getExpires(response)
 
         LOG.debug('Routr is behind a NAT. Re-registering using Received and RPort')
 

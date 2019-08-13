@@ -54,13 +54,7 @@ class RegisterHandler {
     }
 
     static getExpHeader(request) {
-        let expires
-        if (request.getHeader(ExpiresHeader.NAME)) {
-            expires = request.getHeader(ExpiresHeader.NAME).getExpires()
-        } else {
-            expires = RegisterHandler.getContactHeader(request).getExpires()
-        }
-        return headerFactory.createExpiresHeader(expires)
+        return headerFactory.createExpiresHeader(RegistrarUtils.getExpires(request))
     }
 
     static sendOk(request, transaction) {

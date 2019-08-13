@@ -129,10 +129,17 @@ class RegistrarUtils {
         }
     }
 
-    static getExpires(request) {
-        const contactHeader = request.getHeader(ContactHeader.NAME)
-        return request.getHeader(ExpiresHeader.NAME) ? request.getHeader(ExpiresHeader.NAME).getExpires() :
-            contactHeader.getExpires()
+    static getExpires(message) {
+        const contactHeader = message.getHeader(ContactHeader.NAME)
+
+        if (contactHeader.getParameter('expires')) {
+            return contactHeader.getExpires()
+        }
+
+        const expiresHeader = message.getHeader(ExpiresHeader.NAME)
+
+        // Considere instead triggering an exception
+        return expiresHeader ? expiresHeader.getExpires() : 0
     }
 
     static getNonceCount(d) {

@@ -150,7 +150,7 @@ class Registry {
         }
 
         const elapsed = (Date.now() - reg.registeredOn) / 1000
-        return reg.expires - elapsed <= 0 ? true : false
+        return reg.expires - elapsed <= 0
     }
 
     start() {
@@ -186,7 +186,6 @@ class Registry {
                                 }
                             })
                         }
-
                     }
                 }
             },
