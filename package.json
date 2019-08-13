@@ -6,7 +6,7 @@
     "transpile": "babel --out-dir node_modules/@routr mod",
     "test": "cross-env ./etc/tests/tester 'utils/test.js' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'rest/test' 'data_api/test_apis' 'data_api/test_files_datasource' 'data_api/test_redis_datasource' ",
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
-    "bundle": "webpack --config webpack.config.js --mode production",
+    "bundle": "webpack --config webpack.config.js --mode none",
     "pretest": "npm run bundle",
     "prepack": "npm test"
   },
@@ -18,10 +18,11 @@
     "xxhashjs": "^0.2.2"
   },
   "devDependencies": {
-    "jvm-npm": "^0.1.1",
-    "cross-env": "^5.2.0",
     "babel-cli": "^6.24.1",
     "babel-preset-env": "^1.7.0",
+    "cross-env": "^5.2.0",
+    "jvm-npm": "^0.1.1",
+    "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.11.1",
     "webpack-command": "^0.2.0"
   },
