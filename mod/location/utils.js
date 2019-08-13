@@ -2,11 +2,25 @@
  * @author Pedro Sanders
  * @since v1
  */
+const StringBuilder = Java.type('java.lang.StringBuilder')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const addressFactory = SipFactory.getInstance().createAddressFactory()
-const StringBuilder = Java.type('java.lang.StringBuilder')
 
 class LocatorUtils {
+
+    static getPort(uri) {
+        const uriObj = LocatorUtils.aorAsObj(uri)
+        return uriObj.getPort() === -1 ? 5060 : uriObj.getPort()
+    }
+
+    static expiredRouteFilter(route) {
+        const elapsed = (Date.now() - route.registeredOn) / 1000
+        return route.expires - elapsed <= 0
+    }
+
+    static contactURIFilter(route, contactURI) {
+        return route.contactURI.toString().equals(contactURI.toString())
+    }
 
     static aorAsString(addressOfRecord) {
         if (addressOfRecord instanceof Java.type('javax.sip.address.SipURI')) {

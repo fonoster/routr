@@ -106,7 +106,7 @@ class Server {
         LOG.info('Stopping server')
         this.restService.stop()
         this.sipStack.stop()
-        this.locator.stop()
+        //this.locator.stop()
         System.exit(0)
     }
 

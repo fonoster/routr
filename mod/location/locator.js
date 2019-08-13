@@ -13,11 +13,10 @@ const {
     Status
 } = require('@routr/core/status')
 
+const Expiry = Java.type('com.github.benmanes.caffeine.cache.Expiry')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const SipFactory = Java.type('javax.sip.SipFactory')
-
 const LOG = LogManager.getLogger()
 
 /**
@@ -29,10 +28,25 @@ class Locator {
 
     constructor(dataAPIs, checkExpiresTime = 3600) {
         this.checkExpiresTime = checkExpiresTime
-        this.db = Caffeine.newBuilder()
-            .expireAfterWrite(checkExpiresTime, TimeUnit.MINUTES)
+        const db = Caffeine.newBuilder()
+            .expireAfter(new Expiry({
+                expireAfterCreate: function(key, graph, currentTime) {
+                    const data = graph.map(route => route.expires)
+                    const expires = Math.max.apply(Math, data)
+                    return TimeUnit.SECONDS.toNanos(expires)
+                },
+                expireAfterUpdate: function(key, graph, currentTime, currentDuration) {
+                    const data = graph.map(route => route.expires)
+                    const expires = Math.max.apply(Math, data)
+                    return TimeUnit.SECONDS.toNanos(expires)
+                },
+                expireAfterRead: function (key, graph, currentTime, currentDuration) {
+                    return currentDuration
+                }
+            }))
             .build()
 
+        this.db = db
         this.didsAPI = dataAPIs.DIDsAPI
         this.domainsAPI = dataAPIs.DomainsAPI
         this.gatewaysAPI = dataAPIs.GatewaysAPI
@@ -70,16 +84,12 @@ class Locator {
         })
     }
 
-    getPort(uri) {
-        const uriObj = LocatorUtils.aorAsObj(uri)
-        return uriObj.getPort() === -1 ? 5060 : uriObj.getPort()
-    }
-
     addEndpoint(addressOfRecord, route) {
         const aor = LocatorUtils.aorAsString(addressOfRecord)
         let routes = this.db.getIfPresent(aor)
         if (routes === null) routes = []
 
+        routes = routes.filter(r => !LocatorUtils.contactURIFilter(r, route.contactURI))
         routes.push(route)
 
         // See NOTE #1
@@ -96,14 +106,13 @@ class Locator {
 
         let routes = this.db.getIfPresent(aor)
         if (routes) {
-            // Not using aorAsString because we need to consider the port, etc.
-            const index = routes.indexOf(contactURI)
-            if (index > -1) {
-                routes.splice(index, 1);
-                this.db.put(aor, routes)
-            }
+            routes = routes.filter(route => !LocatorUtils.contactURIFilter(route, contactURI))
 
-            if (routes.length === 0) this.db.invalidate(aor)
+            if (routes.length === 0) {
+              this.db.invalidate(aor)
+              return
+            }
+            this.db.put(aor, routes)
         }
     }
 
@@ -141,9 +150,10 @@ class Locator {
 
     findEndpointBySipURI(addressOfRecord) {
         // First just look into the 'db'
-        const routes = this.db.getIfPresent(LocatorUtils.aorAsString(addressOfRecord))
+        let routes = this.db.getIfPresent(LocatorUtils.aorAsString(addressOfRecord))
+        routes = routes ? routes.filter(route => !LocatorUtils.expiredRouteFilter(route)) : null
 
-        if (routes !== null) {
+        if (routes && routes.length > 0) {
             return CoreUtils.buildResponse(Status.OK, routes)
         }
 
@@ -185,14 +195,14 @@ class Locator {
         const aor = LocatorUtils.aorAsObj(addressOfRecord)
         const aors = this.db.asMap().keySet().iterator()
         const peerHost = aor.getHost().toString()
-        const peerPort = this.getPort(aor)
+        const peerPort = LocatorUtils.getPort(aor)
 
         while (aors.hasNext()) {
             let routes = this.db.getIfPresent(aors.next())
             for (const x in routes) {
                 const contactURI = LocatorUtils.aorAsObj(routes[x].contactURI)
                 const h1 = contactURI.getHost().toString()
-                const p1 = this.getPort(routes[x].contactURI)
+                const p1 = LocatorUtils.getPort(routes[x].contactURI)
                 if (h1.equals(peerHost) && p1 === peerPort) {
                     return CoreUtils.buildResponse(Status.OK, routes)
                 }
@@ -247,12 +257,12 @@ class Locator {
     }
 
     listAsJSON(domainUri) {
-        let s = []
+        const s = []
         const aors = this.db.asMap().keySet().iterator()
 
         while (aors.hasNext()) {
-            let key = aors.next()
-            let routes = this.db.getIfPresent(key)
+            const key = aors.next()
+            const routes = this.db.getIfPresent(key).filter(route => !LocatorUtils.expiredRouteFilter(route))
             let contactInfo = ''
 
             if (routes.length > 0) {
@@ -271,40 +281,6 @@ class Locator {
         }
 
         return s
-    }
-
-    // Deprecated
-    start() {
-        LOG.info('Starting Location service')
-        const self = this
-
-        global.timer.schedule(
-            () => {
-                const e = self.db.asMap().values().iterator()
-
-                while (e.hasNext()) {
-                    let routes = e.next()
-
-                    for (const x in routes) {
-                        const route = routes[x]
-                        const elapsed = (Date.now() - route.registeredOn) / 1000
-                        if ((route.expires - elapsed) <= 0) {
-                            routes.splice(x, 1)
-                        }
-
-                        if (routes.length === 0) {
-                            e.remove()
-                        }
-                    }
-                }
-            },
-            5000,
-            this.checkExpiresTime * 60 * 1000
-        )
-    }
-
-    stop() {
-        // ??
     }
 }
 
