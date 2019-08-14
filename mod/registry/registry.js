@@ -49,7 +49,7 @@ class Registry {
                 port: port
             }
         } catch (e) {
-            LOG.error("Transport '" + transport + "' not found in configs => .spec.transport.[*]")
+            LOG.error(`Transport ${transport} not found in configs => .spec.transport.[*]`)
             return
         }
     }
@@ -57,11 +57,10 @@ class Registry {
     requestChallenge(username, gwRef, gwHost, transport, received, rport, expires) {
         const contactAddr = this.getLPAddress(transport, received, rport)
         const viaAddr = this.getLPAddress(transport)
-        const request = this.messageFactory.createRequest('REGISTER sip:' + gwHost + ' SIP/2.0\r\n\r\n')
-        const fromAddress = this.addressFactory.createAddress('sip:' + username + '@' + gwHost)
-        const contactAddress = this.addressFactory.createAddress('sip:' + username + '@' + contactAddr.host + ':' + contactAddr.port)
+        const request = this.messageFactory.createRequest(`REGISTER sip:${gwHost} SIP/2.0\r\n\r\n`)
+        const fromAddress = this.addressFactory.createAddress(`sip:${username}@${gwHost}`)
+        const contactAddress = this.addressFactory.createAddress(`sip:${contactAddr.host}:${contactAddr.port};bnc`)
         const contactHeader = this.headerFactory.createContactHeader(contactAddress)
-        contactHeader.setParameter('bnc', '')
         const viaHeader = this.headerFactory.createViaHeader(viaAddr.host, viaAddr.port, transport, null)
         viaHeader.setRPort()
 
@@ -104,7 +103,7 @@ class Registry {
         this.registry.invalidate(gwHost)
         if (e instanceof Java.type('javax.sip.TransactionUnavailableException') ||
             e instanceof Java.type('javax.sip.SipException')) {
-            LOG.warn('Unable to register with Gateway -> ' + gwHost + '. (Verify your network status)')
+            LOG.warn(`Unable to register with Gateway -> ${gwHost}. (Verify your network status)`)
         } else {
             LOG.warn(e)
         }
@@ -112,13 +111,14 @@ class Registry {
 
     storeRegistry(gwURI, expires) {
         // Re-register before actual time expiration
-        let actualExpires = expires - 2 * 60 * this.checkExpiresTime
+        //let actualExpires = expires - 2 * 60 * this.checkExpiresTime
 
         const reg = {
             username: gwURI.getUser(),
             host: gwURI.getHost(),
             ip: InetAddress.getByName(gwURI.getHost()).getHostAddress(),
-            expires: actualExpires,
+            //expires: actualExpires,
+            expires: expires,
             registeredOn: Date.now(),
             regOnFormatted: moment(new Date(Date.now())).fromNow()
         }
@@ -167,11 +167,10 @@ class Registry {
 
                         if (gateway.spec.credentials === undefined) continue
 
-                        const gwURIStr = 'sip:' + gateway.spec.credentials.username + '@' + gateway.spec.host
+                        const gwURIStr = `sip:${gateway.spec.credentials.username}@${gateway.spec.host}`
                         const expires = gateway.spec.expires ? gateway.spec.expires : 3600
                         if (self.isExpired(gwURIStr)) {
-                            LOG.debug('Register with ' + gateway.metadata.name + ' using ' +
-                                gateway.spec.credentials.username + '@' + gateway.spec.host)
+                            LOG.debug(`Register with ${gateway.metadata.name} using ${gateway.spec.credentials.username}@${gateway.spec.host}`)
                             self.requestChallenge(gateway.spec.credentials.username,
                                 gateway.metadata.ref, gateway.spec.host, gateway.spec.transport, null, null, expires)
                         }
@@ -181,7 +180,7 @@ class Registry {
                         if (registries !== undefined) {
                             registries.forEach(function(h) {
                                 if (self.isExpired(gwURIStr)) {
-                                    LOG.debug('Register with ' + gateway.metadata.name + ' using ' + gateway.spec.credentials.username + '@' + h)
+                                    LOG.debug(`Register with ${gateway.metadata.name} using ${gateway.spec.credentials.username}@${h}`)
                                     self.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport, null, null, expires)
                                 }
                             })
