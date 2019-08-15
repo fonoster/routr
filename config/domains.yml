@@ -8,10 +8,3 @@
       egressPolicy:
         rule: .*
         didRef: dd76afc94b
-- apiVersion: v1beta1
-  kind: Domain
-  metadata:
-    name: Another Office
-  spec:
-    context:
-      domainUri: sip2.local
