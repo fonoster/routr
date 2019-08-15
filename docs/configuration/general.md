@@ -37,7 +37,7 @@ can be provided using the file `config/config.yml` located at the root of your R
 | spec.securityContext.client.protocols.[*] | Accepted tls protocols. Default is [`TLSv1.2`, `TLSv1.1`, `TLSv1`] | No |
 | spec.securityContext.debugging | Turns ON or OFF ssl debugging. Default is `false` | No |
 | spec.dataSource.provider | Defines data provider. Defaults to `files_data_provider` | No |
-| spec.dataSource.parameters | Provider specific parameters. Use a string with format 'key1:value1,key2:value2...'| No |
+| spec.dataSource.parameters | Provider specific parameters. Use a string with format 'key1=value1,key2=value2...'| No |
 | spec.logging.traceLevel | Verbosity of the sip-stack logging. Default is `0` | No |
 
 ## Transport Configuration
