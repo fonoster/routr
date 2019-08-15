@@ -37,7 +37,7 @@ can be provided using the file `config/config.yml` located at the root of your R
 | spec.securityContext.client.protocols.[*] | Accepted tls protocols. Default is [`TLSv1.2`, `TLSv1.1`, `TLSv1`] | No |
 | spec.securityContext.debugging | Turns ON or OFF ssl debugging. Default is `false` | No |
 | spec.dataSource.provider | Defines data provider. Defaults to `files_data_provider` | No |
-| spec.dataSource.parameters | Implementation specific parameters | No |
+| spec.dataSource.parameters | Provider specific parameters. Use a string with format 'key1:value1,key2:value2...'| No |
 | spec.logging.traceLevel | Verbosity of the sip-stack logging. Default is `0` | No |
 
 ## Transport Configuration
@@ -49,7 +49,7 @@ To bind a transport protocol to a specific IP address, you can use the `spec.tra
 
 ## Datasource Providers
 
-Routr currently implements three data providers: `redis_data_provider`, `files_data_provider` and `restful_data_provider`. The default data provider is the `files_data_provider`.
+Routr currently implements two data providers: `redis_data_provider` and `files_data_provider`. The default data provider is the `files_data_provider`.
 
 > The docker distribution of the server uses `redis_data_provider` by default
 
@@ -72,16 +72,6 @@ The parameters for `files_data_provider` are:
 | path | Path to configuration files. Defaults to 'config' folder | No |
 
 This implementation has the limitation that writes operations have to be performed manually on the files.
-
-### Restful Data Provider
-
-The parameters for `restful_data_provider` are:
-
-| Parameter | Description | Required |
-| --- | --- | --- |
-| baseUrl | Endpoint base url | yes |
-| username | Basic authentication username | yes |
-| secret | Basic authentication password | yes |
 
 ## Configuring the server behind a NAT
 
