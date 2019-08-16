@@ -91,7 +91,6 @@ class Registry {
     }
 
     sendRequest(request, gwHost) {
-              print('DBG000')
         try {
             const clientTransaction = this.sipProvider.getNewClientTransaction(request)
             clientTransaction.sendRequest()
