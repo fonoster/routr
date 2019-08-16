@@ -95,14 +95,12 @@ class Registry {
             const clientTransaction = this.sipProvider.getNewClientTransaction(request)
             clientTransaction.sendRequest()
         } catch (e) {
-            print('DBG001')
             this.handleChallengeException(e, gwHost)
         }
         LOG.debug(request)
     }
 
     handleChallengeException(e, gwHost) {
-        print('DBG002')
         this.registry.invalidate(gwHost)
         if (e instanceof Java.type('javax.sip.TransactionUnavailableException') ||
             e instanceof Java.type('javax.sip.SipException')) {
@@ -115,7 +113,6 @@ class Registry {
     storeRegistry(gwURI, expires) {
         // Re-register before actual time expiration
         //let actualExpires = expires - 2 * 60 * this.checkExpiresTime
-                print('DBG004')
 
         const reg = {
             username: gwURI.getUser(),
@@ -131,7 +128,6 @@ class Registry {
     }
 
     removeRegistry(gwURIStr) {
-              print('DBG005')
         this.registry.invalidate(gwURIStr)
     }
 
