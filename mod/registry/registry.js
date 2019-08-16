@@ -3,6 +3,7 @@
  * @since v1
  */
 const getConfig = require('@routr/core/config_util')
+const LocatorUtils = require('@routr/location/utils')
 const {
     Status
 } = require('@routr/core/status')
@@ -40,7 +41,7 @@ class Registry {
         try {
             const lp = this.sipProvider.getListeningPoint(transport)
             const host = this.config.spec.externAddr ? this.config.spec.externAddr : lp.getIPAddress()
-            const port = rport ? rport : lp.getPort()
+            const port = rport ? LocatorUtils.fixPort(rport) : LocatorUtils.fixPort(lp.getPort())
             return received ? {
                 host: received,
                 port: port
@@ -90,16 +91,19 @@ class Registry {
     }
 
     sendRequest(request, gwHost) {
+              print('DBG000')
         try {
             const clientTransaction = this.sipProvider.getNewClientTransaction(request)
             clientTransaction.sendRequest()
         } catch (e) {
+            print('DBG001')
             this.handleChallengeException(e, gwHost)
         }
         LOG.debug(request)
     }
 
     handleChallengeException(e, gwHost) {
+        print('DBG002')
         this.registry.invalidate(gwHost)
         if (e instanceof Java.type('javax.sip.TransactionUnavailableException') ||
             e instanceof Java.type('javax.sip.SipException')) {
@@ -112,6 +116,7 @@ class Registry {
     storeRegistry(gwURI, expires) {
         // Re-register before actual time expiration
         //let actualExpires = expires - 2 * 60 * this.checkExpiresTime
+                print('DBG004')
 
         const reg = {
             username: gwURI.getUser(),
@@ -127,6 +132,7 @@ class Registry {
     }
 
     removeRegistry(gwURIStr) {
+              print('DBG005')
         this.registry.invalidate(gwURIStr)
     }
 

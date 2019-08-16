@@ -8,9 +8,13 @@ const addressFactory = SipFactory.getInstance().createAddressFactory()
 
 class LocatorUtils {
 
+    static fixPort(port) {
+        return port === -1? 5060 : port
+    }
+
     static getPort(uri) {
         const uriObj = LocatorUtils.aorAsObj(uri)
-        return uriObj.getPort() === -1 ? 5060 : uriObj.getPort()
+        return LocatorUtils.fixPort(uriObj.getPort())
     }
 
     static expiredRouteFilter(route) {

@@ -35,10 +35,9 @@ class ResponseProcessor {
         }
 
         if (ResponseProcessor.isRegisterOk(response)) {
-            if (ResponseProcessor.isBehindNat(response)) {
-                return this.reRegister(event)
-            }
-            this.storeInRegistry(response)
+            return ResponseProcessor.isBehindNat(response) ?
+              this.reRegister(event):
+              this.storeInRegistry(response)
         } else if (ResponseProcessor.isRegisterNok(response)) {
             this.removeFromRegistry(response)
         }
@@ -146,6 +145,7 @@ class ResponseProcessor {
         const port = contactHeader.getAddress().getPort()
         const received = viaHeader.getReceived()
         const rPort = viaHeader.getRPort()
+
         return (!!received && !host.equals(received)) || port !== rPort
     }
 

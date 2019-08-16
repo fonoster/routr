@@ -94,19 +94,13 @@ testGroup.add_multi_aor = function() {
     const ep1 = buildEndpoint('1001', 'sip.local', '192.168.1.2:5061')
     const ep2 = buildEndpoint('1001', 'sip.local', '192.168.1.3:5061', 32)
     locator.addEndpoint(ep1.aor, ep1.route)
-    print('dbg001')
     locator.addEndpoint(ep2.aor, ep2.route)
-    print('dbg002')
     testFE(ep1.aor)
 
-    print('dbg003')
     // Attempt to add duplicate
     locator.addEndpoint(ep1.aor, ep1.route)
-
-    print('dbg004')
     // Ensure only one entry for contactURI...
     const response = locator.findEndpoint(ep1.aor)
-    print('dbg005')
     assertEquals(2, response.result.length)
 }
 
