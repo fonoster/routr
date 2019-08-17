@@ -34,6 +34,7 @@ class ResponseProcessor {
             return
         }
 
+        // This response is owned by server
         if (ResponseProcessor.isRegisterOk(response)) {
             return ResponseProcessor.isBehindNat(response) ?
               this.reRegister(event):
@@ -140,11 +141,14 @@ class ResponseProcessor {
 
     static isBehindNat(response) {
         const viaHeader = response.getHeader(ViaHeader.NAME)
-        const contactHeader = response.getHeader(ContactHeader.NAME)
-        const host = contactHeader.getAddress().getHost()
-        const port = contactHeader.getAddress().getPort()
+        //const contactHeader = response.getHeader(ContactHeader.NAME)
+        //const host = contactHeader.getAddress().getHost()
+        //const port = contactHeader.getAddress().getPort()
+        const host = viaHeader.getHost()
+        const port = viaHeader.getPort()
         const received = viaHeader.getReceived()
         const rPort = viaHeader.getRPort()
+        print('host=', host, 'received=', received, 'port=', port, 'rPort=', rPort)
 
         return (!!received && !host.equals(received)) || port !== rPort
     }
