@@ -148,7 +148,6 @@ class ResponseProcessor {
         const port = viaHeader.getPort()
         const received = viaHeader.getReceived()
         const rPort = viaHeader.getRPort()
-        print('host=', host, 'received=', received, 'port=', port, 'rPort=', rPort)
 
         return (!!received && !host.equals(received)) || port !== rPort
     }
