@@ -39,32 +39,35 @@ class RequestHandler {
             channel: "locator",
             topic: "endpoint.find.reply",
             callback: (data, envelope) => {
-                const serverTransaction = requestStore.get(data.requestId)
+                const requestInfo = requestStore.get(data.requestId)
 
-                if (serverTransaction === null) return
+                if (requestInfo === null) return
+
+                const request = requestInfo.request
+                const serverTransaction = requestInfo.serverTransaction
 
                 const response = data.response
 
                 if (response.status == Status.NOT_FOUND) {
-                    const procUtils = new ProcessorUtils(serverTransaction.getRequest(), serverTransaction)
+                    const procUtils = new ProcessorUtils(request, serverTransaction)
                     return procUtils.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
                 }
 
                 // Call forking
-                response.result.forEach(route => this.processRoute(serverTransaction.getRequest(), serverTransaction, route))
+                response.result.forEach(route => this.processRoute(request, serverTransaction, route))
                 requestStore.remove(data.requestId)
             }
         })
     }
 
-    doProcess(serverTransaction) {
+    doProcess(serverTransaction, request) {
         const requestId = new ObjectId().toString()
-        requestStore.put(requestId, serverTransaction)
+        requestStore.put(requestId, {serverTransaction: serverTransaction, request: request})
         postal.publish({
             channel: "locator",
             topic: "endpoint.find",
             data: {
-                addressOfRecord: ProcessorUtils.getAOR(serverTransaction.getRequest()),
+                addressOfRecord: ProcessorUtils.getAOR(request),
                 requestId: requestId
             }
         })
@@ -94,7 +97,6 @@ class RequestHandler {
             this.configureRoutingHeaders(requestOut, route)
         }
 
-
         LOG.debug(`core.processor.RequestHandler.processRoute [advertised addr ${JSON.stringify(advertisedAddr)}]`)
         LOG.debug(`core.processor.RequestHandler.processRoute [route ${JSON.stringify(route)}]`)
         this.sendRequest(requestIn, requestOut, serverTransaction)
@@ -123,6 +125,8 @@ class RequestHandler {
 
     configureGeneral(request, route, advertisedAddr) {
         const transport = request.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
+        // XXX: This is probably wrong :( because I'm converting the contactURI to an aor.
+        // by time the route gets here, the route should have a proper contactURI object.
         request.setRequestURI(LocatorUtils.aorAsObj(route.contactURI))
         const viaHeader = headerFactory
             .createViaHeader(advertisedAddr.host, advertisedAddr.port, transport, null)
@@ -144,13 +148,13 @@ class RequestHandler {
 
     configureRoutingHeaders(request, route) {
         // Lower the cseq to match the original request
-        if (request.getMethod().equals(Request.INVITE)) {
-            const cseq = request.getHeader(CSeqHeader.NAME).getSeqNumber() - 1
-            request.getHeader(CSeqHeader.NAME).setSeqNumber(cseq)
-        }
+        //if (request.getMethod().equals(Request.INVITE)) {
+        //    const cseq = request.getHeader(CSeqHeader.NAME).getSeqNumber() - 1
+        //    request.getHeader(CSeqHeader.NAME).setSeqNumber(cseq)
+        //}
         const gwRefHeader = headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
         const remotePartyIdHeader = headerFactory
-            .createHeader('Remote-Party-ID', '<sip:' + route.did + '@' + route.gwHost + '>;screen=yes;party=calling')
+            .createHeader('Remote-Party-ID', `<sip:${route.did}@${route.gwHost}>;screen=yes;party=calling`)
         request.setHeader(gwRefHeader)
         request.setHeader(remotePartyIdHeader)
     }

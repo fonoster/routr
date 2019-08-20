@@ -97,7 +97,7 @@ class ResponseProcessor {
         if (ResponseProcessor.isTransactional(event) === true) {
             const context = this.contextStorage.findContext(event.getClientTransaction().getBranchId())
 
-            if (context !== null && context.serverTransaction !== null) {
+            if (context && context.serverTransaction) {
                 context.serverTransaction.sendResponse(responseOut)
             } else if (responseOut.getHeader(ViaHeader.NAME) !== null) {
                 this.sipProvider.sendResponse(responseOut)

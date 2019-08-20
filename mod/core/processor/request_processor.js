@@ -61,7 +61,7 @@ class RequestProcessor {
                 break
             default:
                 new RequestHandler(this.sipProvider, this.dataAPIs, this.contextStorage)
-                    .doProcess(serverTransaction)
+                    .doProcess(serverTransaction, request)
         }
     }
 
