@@ -143,7 +143,7 @@ class Locator {
                 return CoreUtils.buildResponse(Status.OK, route)
             }
 
-            return CoreUtils.buildResponse(Status.NOT_FOUND, 'No route for aorLink: ' + did.spec.location.aorLink)
+            return CoreUtils.buildResponse(Status.NOT_FOUND, `No route for aorLink: ${did.spec.location.aorLink}`)
         }
         return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
@@ -151,7 +151,7 @@ class Locator {
     findEndpointBySipURI(addressOfRecord) {
         // First just look into the 'db'
         let routes = this.db.getIfPresent(LocatorUtils.aorAsString(addressOfRecord))
-        routes = routes ? routes.filter(route => !LocatorUtils.expiredRouteFilter(route)) : null
+        routes = routes ? routes.filter(route => !LocatorUtils.expiredRouteFilter(route)) : void(0)
 
         if (routes && routes.length > 0) {
             return CoreUtils.buildResponse(Status.OK, routes)
@@ -200,9 +200,9 @@ class Locator {
         while (aors.hasNext()) {
             let routes = this.db.getIfPresent(aors.next())
             for (const x in routes) {
-                const contactURI = LocatorUtils.aorAsObj(routes[x].contactURI)
+                const contactURI = routes[x].contactURI
                 const h1 = contactURI.getHost().toString()
-                const p1 = LocatorUtils.getPort(routes[x].contactURI)
+                const p1 = LocatorUtils.fixPort(contactURI.getPort())
                 if (h1.equals(peerHost) && p1 === peerPort) {
                     return CoreUtils.buildResponse(Status.OK, routes)
                 }
@@ -232,6 +232,9 @@ class Locator {
     }
 
     getEgressRouteForDomain(addressOfRecord, domain) {
+        const SipFactory = Java.type('javax.sip.SipFactory')
+        const addressFactory = SipFactory.getInstance().createAddressFactory()
+
         if (!isEmpty(domain.spec.context.egressPolicy)) {
             // Get DID and Gateway info
             let response = this.didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
@@ -242,11 +245,14 @@ class Locator {
 
                 if (response.status === Status.OK) {
                     const gateway = response.result
-                    const pattern = 'sip:' + domain.spec.context.egressPolicy.rule + '@' + domain.spec.context.domainUri
-                    const aor = LocatorUtils.aorAsString(addressOfRecord)
+                    const pattern = `sip:${domain.spec.context.egressPolicy.rule}@${domain.spec.context.domainUri}`
+                    const aorObj = LocatorUtils.aorAsObj(addressOfRecord)
 
-                    if (new RegExp(pattern).test(aor)) {
-                        const route = LocatorUtils.buildEgressRoute(aor, gateway, did, domain)
+                    if (new RegExp(pattern).test(addressOfRecord)) {
+                        const contactURI = addressFactory
+                            .createSipURI(aorObj.getUser(), gateway.spec.host)
+                        contactURI.setSecure(aorObj.isSecure())
+                        const route = LocatorUtils.buildEgressRoute(contactURI, gateway, did, domain)
                         return CoreUtils.buildResponse(Status.OK, [route])
                     }
                 }
@@ -267,9 +273,9 @@ class Locator {
 
             if (routes.length > 0) {
                 const rObj = routes[0]
-                let r = rObj.contactURI + ';nat=' + rObj.nat + ';expires=' + rObj.expires
+                let r = `${rObj.contactURI};nat=${rObj.nat};expires=${rObj.expires}`
 
-                if (routes.length > 1) r = r + ' [...]'
+                if (routes.length > 1) r = `${r} [...]`
                 contactInfo = contactInfo + r
             }
 

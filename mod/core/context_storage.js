@@ -1,5 +1,5 @@
 /**
- * Stores transaction information in memory. Used by processor.js and registry_helper
+ * Stores in memory information about sip transactions.
  *
  * @author Pedro Sanders
  * @since v1
@@ -62,7 +62,7 @@ class ContextStorage {
             if (context.clientTransaction.getBranchId() === transactionId ||
                 context.serverTransaction.getBranchId() === transactionId) {
                 iterator.remove()
-                LOG.debug(`ContextStorage.removeContext [removed transactionId: ${transactionId}]`)
+                LOG.debug(`core.ContextStorage.removeContext [removed transactionId: ${transactionId}]`)
                 return true
             }
         }
