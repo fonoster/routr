@@ -19,6 +19,7 @@ const Response = Java.type('javax.sip.message.Response')
 const RouteHeader = Java.type('javax.sip.header.RouteHeader')
 const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const FromHeader = Java.type('javax.sip.header.FromHeader')
 const MaxForwardsHeader = Java.type('javax.sip.header.MaxForwardsHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const ConcurrentHashMap = Java.type('java.util.concurrent.ConcurrentHashMap')
@@ -155,8 +156,13 @@ class RequestHandler {
         const gwRefHeader = headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
         const remotePartyIdHeader = headerFactory
             .createHeader('Remote-Party-ID', `<sip:${route.did}@${route.gwHost}>;screen=yes;party=calling`)
+        const dp = request.getHeader(FromHeader.NAME).getAddress().getDisplayName()
+        const displayName = dp? `"${dp}" ` : ''
+        const pAssertedIdentity = headerFactory
+            .createHeader('P-Asserted-Identity', `${displayName}<sip:${route.did}@${route.gwHost}>`)
         request.setHeader(gwRefHeader)
         request.setHeader(remotePartyIdHeader)
+        request.setHeader(pAssertedIdentity)
     }
 
     sendRequest(requestIn, requestOut, serverTransaction) {
