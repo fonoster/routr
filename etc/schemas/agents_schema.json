@@ -22,6 +22,9 @@
             "spec": {
                 "type": "object",
                 "properties": {
+                    "privacy": {
+                        "enum": ["Private", "None"]
+                    },
                     "credentials": {
                         "type": "object",
                         "properties": {

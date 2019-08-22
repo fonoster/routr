@@ -15,6 +15,9 @@
         "spec": {
             "type": "object",
             "properties": {
+                "registrarIntf": {
+                    "enum": ["Internal", "External"]
+                },
                 "bindAddr": {
                     "type": "string"
                 },
