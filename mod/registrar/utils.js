@@ -60,6 +60,7 @@ class RegistrarUtils {
             .getAddress().getURI().getHost()
     }
 
+    // TODO: Please consolidate all the route builders :(
     static buildRoute(request, user) {
         const viaHeader = request.getHeader(ViaHeader.NAME)
         return {
@@ -111,7 +112,7 @@ class RegistrarUtils {
         if (getConfig().spec.registrarIntf.equalsIgnoreCase('Internal')) {
             return true
         }
-        return viaHeader.getTransport().equalsIgnoreCase('udp') ? true : false
+        return viaHeader.getTransport().equalsIgnoreCase('udp')
     }
 
     static buildAuthHeader(user, authHeader) {

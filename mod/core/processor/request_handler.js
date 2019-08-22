@@ -32,7 +32,7 @@ const LOG = LogManager.getLogger()
 
 class RequestHandler {
 
-    constructor(sipProvider, dataAPIs, contextStorage) {
+    constructor(sipProvider, contextStorage) {
         this.sipProvider = sipProvider
         this.contextStorage = contextStorage
 
@@ -46,6 +46,7 @@ class RequestHandler {
 
                 const request = requestInfo.request
                 const serverTransaction = requestInfo.serverTransaction
+                const routeInfo = requestInfo.routeInfo
 
                 const response = data.response
 
@@ -55,15 +56,15 @@ class RequestHandler {
                 }
 
                 // Call forking
-                response.result.forEach(route => this.processRoute(request, serverTransaction, route))
+                response.result.forEach(route => this.processRoute(request, serverTransaction, route, routeInfo))
                 requestStore.remove(data.requestId)
             }
         })
     }
 
-    doProcess(serverTransaction, request) {
+    doProcess(serverTransaction, request, routeInfo) {
         const requestId = new ObjectId().toString()
-        requestStore.put(requestId, {serverTransaction: serverTransaction, request: request})
+        requestStore.put(requestId, {serverTransaction, request, routeInfo})
         postal.publish({
             channel: "locator",
             topic: "endpoint.find",
@@ -74,7 +75,7 @@ class RequestHandler {
         })
     }
 
-    processRoute(requestIn, serverTransaction, route) {
+    processRoute(requestIn, serverTransaction, route, routeInfo) {
         const requestOut = requestIn.clone()
         const transport = requestIn.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
         const lp = this.sipProvider.getListeningPoint(transport)
@@ -84,7 +85,7 @@ class RequestHandler {
         }
         const advertisedAddr = this.getAdvertizedAddr(route, localAddr, config.spec.externAddr)
 
-        this.configureGeneral(requestOut, route, advertisedAddr)
+        this.configureGeneral(requestOut, advertisedAddr, route, routeInfo)
 
         if (this.proxyOwnsRequest(requestOut, localAddr, advertisedAddr)) {
             requestOut.removeFirst(RouteHeader.NAME)
@@ -124,7 +125,7 @@ class RequestHandler {
         return false
     }
 
-    configureGeneral(request, route, advertisedAddr) {
+    configureGeneral(request, advertisedAddr, route, routeInfo) {
         const transport = request.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
         // XXX: This is probably wrong :( because I'm converting the contactURI to an aor.
         // by time the route gets here, the route should have a proper contactURI object.
@@ -134,8 +135,26 @@ class RequestHandler {
         viaHeader.setRPort()
         request.addFirst(viaHeader)
         request.removeHeader("Proxy-Authorization")
+        request.removeHeader("Privacy")
         const maxForwardsHeader = request.getHeader(MaxForwardsHeader.NAME)
         maxForwardsHeader.decrementMaxForwards()
+
+        const callee = routeInfo.getCallee()
+
+        if (callee && callee.kind.equalsIgnoreCase('agent')) {
+            let factoryHeader
+
+            if (callee.spec.privacy && callee.spec.privacy.equalsIgnoreCase('private')) {
+                const fromHeaderAddrs = addressFactory.createAddress(`"Anonymous" <sip:anonymous@anonymous.invalid>`)
+                const fromHeader = headerFactory.createHeader('From', fromHeaderAddrs.toString())
+                request.setHeader(fromHeader)
+                factoryHeader = headerFactory.createHeader('Privacy', 'id')
+            } else {
+                factoryHeader = headerFactory.createHeader('Privacy', 'none')
+            }
+
+            request.addHeader(factoryHeader)
+        }
     }
 
     configureRecordRoute(request, advertisedAddr) {

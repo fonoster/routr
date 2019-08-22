@@ -8,6 +8,9 @@ const {
 const {
     RoutingType
 } = require('@routr/core/routing_type')
+const {
+    Status
+} = require('@routr/core/status')
 const getConfig = require('@routr/core/config_util')
 
 const ToHeader = Java.type('javax.sip.header.ToHeader')
@@ -99,6 +102,11 @@ class RouteInfo {
         }
 
         return entityType
+    }
+
+    getCallee() {
+        const response = this.agentsAPI.getAgentByDomain(this.callerDomain, this.callerUser)
+        return response.status === Status.OK ? response.result : null
     }
 
     getCallerType() {

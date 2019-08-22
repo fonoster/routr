@@ -194,17 +194,17 @@ class FilesDataSource {
     getWithReferences(list) {
         list.forEach(obj => {
             if (!obj.metadata.ref) {
-                if (obj.kind.equals('Agent')) {
+                if (obj.kind.equalsIgnoreCase('agent')) {
                     obj.metadata.ref = 'ag' + this.generateRef(obj.spec.credentials.username + obj.spec.domains[0])
-                } else if (obj.kind.equals('Domain')) {
+                } else if (obj.kind.equalsIgnoreCase('domain')) {
                     obj.metadata.ref = 'dm' + this.generateRef(obj.spec.context.domainUri)
-                } else if (obj.kind.equals('Peer')) {
+                } else if (obj.kind.equalsIgnoreCase('peer')) {
                     obj.metadata.ref = 'pr' + this.generateRef(obj.spec.credentials.username)
-                } else if (obj.kind.equals('Gateway')) {
+                } else if (obj.kind.equalsIgnoreCase('gateway')) {
                     obj.metadata.ref = 'gw' + this.generateRef(obj.spec.host)
-                } else if (obj.kind.equals('DID')) {
+                } else if (obj.kind.equalsIgnoreCase('did')) {
                     obj.metadata.ref = 'dd' + this.generateRef(obj.spec.location.telUrl)
-                } else if (obj.kind.equals('User')) {
+                } else if (obj.kind.equalsIgnoreCase('user')) {
                     obj.metadata.ref = 'us' + this.generateRef(obj.spec.credentials.username)
                 }
             }

@@ -19,6 +19,9 @@ const {
 const SipFactory = Java.type('javax.sip.SipFactory')
 const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const LOG = LogManager.getLogger()
+
 const messageFactory = SipFactory.getInstance().createMessageFactory()
 const globalACL = getConfig().spec.accessControlList
 
@@ -39,11 +42,15 @@ class RequestProcessor {
             serverTransaction = this.sipProvider.getNewServerTransaction(request)
         }
 
+        const routeInfo = new RouteInfo(request, this.dataAPIs)
         const procUtils = new ProcessorUtils(request, serverTransaction)
+
+        LOG.debug(`core.processor.RequestProcessor.process [route type ${routeInfo.getRoutingType()}]`)
+        LOG.debug(`core.processor.RequestProcessor.process [entity info ${JSON.stringify(routeInfo.getCallee())}]`)
 
         // Warning: This is a very expensive function. Considere making it optional
         // Or optimize
-        if (this.allowedAccess(event) === false) {
+        if (this.allowedAccess(event, routeInfo) === false) {
             return procUtils.sendResponse(Response.FORBIDDEN)
         }
 
@@ -60,15 +67,14 @@ class RequestProcessor {
                 new CancelHandler().doProcess(serverTransaction)
                 break
             default:
-                new RequestHandler(this.sipProvider, this.dataAPIs, this.contextStorage)
-                    .doProcess(serverTransaction, request)
+                new RequestHandler(this.sipProvider, this.contextStorage)
+                    .doProcess(serverTransaction, request, routeInfo)
         }
     }
 
-    allowedAccess(event) {
+    allowedAccess(event, routeInfo) {
         const request = event.getRequest()
         const remoteIp = event.getRemoteIpAddress()
-        const routeInfo = new RouteInfo(request, this.dataAPIs)
 
         if (globalACL) {
             if (new AclUtil(globalACL).isIpAllowed(remoteIp) === false) {
