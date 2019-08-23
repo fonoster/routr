@@ -9,6 +9,7 @@ const {
 } = require('@routr/core/status')
 const moment = require('moment')
 
+const Expiry = Java.type('com.github.benmanes.caffeine.cache.Expiry')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const SipUtils = Java.type('gov.nist.javax.sip.Utils')
 const Request = Java.type('javax.sip.message.Request')
@@ -33,7 +34,17 @@ class Registry {
         this.userAgent = new java.util.ArrayList()
         this.userAgent.add(this.config.metadata.userAgent)
         this.registry = Caffeine.newBuilder()
-            .expireAfterWrite(this.checkExpiresTime, TimeUnit.MINUTES)
+            .expireAfter(new Expiry({
+                expireAfterCreate: function(key, graph, currentTime) {
+                    return TimeUnit.SECONDS.toNanos(graph.expires)
+                },
+                expireAfterUpdate: function(key, graph, currentTime, currentDuration) {
+                    return TimeUnit.SECONDS.toNanos(graph.expires)
+                },
+                expireAfterRead: function (key, graph, currentTime, currentDuration) {
+                    return currentDuration
+                }
+            }))
             .build()
     }
 
@@ -120,8 +131,7 @@ class Registry {
             ip: InetAddress.getByName(gwURI.getHost()).getHostAddress(),
             //expires: actualExpires,
             expires: expires,
-            registeredOn: Date.now(),
-            regOnFormatted: moment(new Date(Date.now())).fromNow()
+            registeredOn: Date.now()
         }
 
         this.registry.put(gwURI.toString(), reg)
@@ -137,6 +147,7 @@ class Registry {
 
         while (iterator.hasNext()) {
             const reg = iterator.next()
+            reg.regOnFormatted = moment(reg.registeredOn).fromNow()
             s.push(reg)
         }
 
