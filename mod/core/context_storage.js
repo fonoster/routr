@@ -81,21 +81,30 @@ class ContextStorage {
 
                 const originRequest = context.requestIn
                 const originResponse = messageFactory.createResponse(Response.REQUEST_TERMINATED, originRequest)
-                // Not sure about originRequest :(
                 const cancelResponse = messageFactory.createResponse(Response.OK, originRequest)
+                // Not sure about originRequest :(
                 const cancelRequest = context.clientTransaction.createCancel()
                 const serverTransaction = context.serverTransaction
-                const clientTransaction = this.sipProvider.getNewClientTransaction(cancelRequest)
 
-                context.serverTransaction.sendResponse(originResponse)
-                serverTransaction.sendResponse(cancelResponse)
-                clientTransaction.sendRequest()
+                try {
+                    const clientTransaction = this.sipProvider.getNewClientTransaction(cancelRequest)
 
-                iterator.remove()
+                    context.serverTransaction.sendResponse(originResponse)
+                    serverTransaction.sendResponse(cancelResponse)
+                    clientTransaction.sendRequest()
+                } catch(e) {
+                    if (e instanceof Java.type('javax.sip.TransactionUnavailableException')) {
+                        LOG.error('Could not resolve next hop or listening point unavailable!')
+                    } else {
+                        LOG.error(e)
+                    }
+                }
 
                 LOG.debug(`core.ContextStorage.cancelTransaction [original response is \n ${originResponse}]`)
                 LOG.debug(`core.ContextStorage.cancelTransaction [cancel request is \n ${cancelRequest}]`)
-                LOG.debug(`core.ContextStorage.cancelTransaction [cancel response is \n ${originResponse}]`)
+                LOG.debug(`core.ContextStorage.cancelTransaction [cancel response is \n ${cancelResponse}]`)
+
+                iterator.remove()
             }
         }
     }

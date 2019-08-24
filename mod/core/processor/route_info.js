@@ -94,7 +94,7 @@ class RouteInfo {
             entityType = RouteEntityType.AGENT
         } else if (this.peersAPI.peerExist(entity)) {
             entityType = RouteEntityType.PEER
-        } else if (StringUtils.isNumeric(this.callerUser)) {
+        } else if (StringUtils.isNumeric(entity)) {
             const telUrl = addressFactory.createTelURL(entity)
             if (this.didsAPI.didExist(telUrl)) {
                 entityType = RouteEntityType.DID

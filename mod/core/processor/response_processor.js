@@ -58,14 +58,22 @@ class ResponseProcessor {
     }
 
     handleAuthChallenge(event) {
-        const authHelper = this.sipProvider
-            .getSipStack()
-            .getAuthenticationHelper(this.accountManagerService
-                .getAccountManager(), this.headerFactory)
-        // Setting looseRouting to false will cause https://github.com/fonoster/routr/issues/18
-        authHelper.handleChallenge(
-            event.getResponse(), event.getClientTransaction(),
-            event.getSource(), 5, true).sendRequest()
+        try {
+            const authHelper = this.sipProvider
+                .getSipStack()
+                .getAuthenticationHelper(this.accountManagerService
+                    .getAccountManager(), this.headerFactory)
+            // Setting looseRouting to false will cause https://github.com/fonoster/routr/issues/18
+            authHelper.handleChallenge(
+                event.getResponse(), event.getClientTransaction(),
+                event.getSource(), 5, true).sendRequest()
+        } catch(e) {
+            if (e instanceof Java.type('javax.sip.TransactionUnavailableException')) {
+                LOG.error('Could not resolve next hop or listening point unavailable!')
+            } else {
+                LOG.error(e)
+            }
+        }
     }
 
     reRegister(event) {

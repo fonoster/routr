@@ -25,7 +25,6 @@ class Server {
     constructor(dataAPIs) {
         this.locator = new Locator(dataAPIs)
         this.dataAPIs = dataAPIs
-        this.contextStorage = new ContextStorage()
         this.config = getConfig()
         // Not sure if this is a good idea in terms of performance
         this.host = this.config.spec.bindAddr
@@ -88,7 +87,7 @@ class Server {
         this.registry = new Registry(sipProvider, this.dataAPIs)
 
         const processor = new Processor(sipProvider,
-            this.registry, this.dataAPIs, this.contextStorage)
+            this.registry, this.dataAPIs, new ContextStorage(sipProvider))
 
         sipProvider.addSipListener(processor.listener)
     }
