@@ -51,9 +51,10 @@ class FilesDataSource {
 
         // Static validation
         this.staticConfigValidation()
-
         // Check constrains
         this.resourceConstraintValidation()
+        // Look for duplicate entries in all resource files
+        this.checkForDuplicates()
     }
 
     staticConfigValidation() {
@@ -66,10 +67,11 @@ class FilesDataSource {
                 }
             } catch (e) {
                 if (e instanceof Java.type('com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException')) {
-                    LOG.warn('The format of file `' + this.filesPath + '/' + RESOURCES[cnt] + '.yml` is invalid')
-                    continue
+                    throw `The format of file \`${this.filesPath}/${RESOURCES[CNT]}.yml\` is invalid`
+                    exit(1)
                 } else {
-                    LOG.warn('Unable to open configuration file `' + this.filesPath + '/' + RESOURCES[cnt] + '.yml`')
+                    throw `Unable to open configuration file \`${this.filesPath}/${RESOURCES[cnt]}.yml\``
+                    exit(1)
                 }
             }
         }
@@ -82,7 +84,8 @@ class FilesDataSource {
             const gwRef = did.metadata.gwRef
             response = this.withCollection('gateways').get(gwRef)
             if (response.status !== Status.OK) {
-                LOG.error('Gateway with ref `' + gwRef + '` does not exist.')
+                throw `Gateway with ref \`${gwRef}\`does not exist.`
+                exit(1)
             }
         })
 
@@ -93,7 +96,8 @@ class FilesDataSource {
                 const didRef = domain.spec.context.egressPolicy.didRef
                 response = DSUtils.deepSearch(this.withCollection('dids').find(), "metadata.ref", didRef)
                 if (response.status !== Status.OK) {
-                    LOG.error('DID with ref `' + didRef + '` does not exist.')
+                    throw `DID with ref \`${didRef}\` does not exist.`
+                    exit(1)
                 }
             }
         })
@@ -106,9 +110,22 @@ class FilesDataSource {
                 const domain = domains[cnt]
                 response = this.withCollection('domains').find("@.spec.context.domainUri=='" + domain + "'")
                 if (response.result.length === 0) {
-                    LOG.error('Agent `' + agent.metadata.name + '(' + agent.spec.credentials.username +
-                        ')` has a non-existent domain/s.')
-                    break
+                    throw `Agent \`${agent.metadata.name}\`(${agent.spec.credentials.username}) has a non-existent domain/s.`
+                    exit(1)
+                }
+            }
+        })
+    }
+
+    checkForDuplicates() {
+        const findDuplicates = arr => arr.filter((item, index) => arr.indexOf(item) != index)
+        RESOURCES.forEach(resource => {
+            const response = this.withCollection(resource).find()
+            if (response.status === Status.OK) {
+                const refs = response.result.map(entity => entity.metadata.ref)
+                if (findDuplicates(refs).length >  0) {
+                    throw `Found duplicate entries in ${this.filesPath}/${resource}.yml`
+                    exit(1)
                 }
             }
         })
@@ -126,7 +143,7 @@ class FilesDataSource {
         }
     }
 
-    // Warn: Not very efficient. This will list all the resource before
+    // Warn: Not very efficient. This will list all existing resources before
     // finding the one it needs
     get(ref) {
         return DSUtils.deepSearch(this.find(), "metadata.ref", ref)
