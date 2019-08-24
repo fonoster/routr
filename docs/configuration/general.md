@@ -12,7 +12,7 @@ can be provided using the file `config/config.yml` located at the root of your R
 | spec.localnets | Local networks. Use in combination with spec.externAddr | No |
 | spec.recordRoute | Stay within the signaling path | No |
 | spec.useToAsAOR | Use the TO header instead of Request URI | No |
-| spec.registrarIntf | `Internal` will cause the server to use the IP and port it sees(received & rport) from a device attempting to register. Default is `External` | No |
+| spec.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register. Default is `External` | No |
 | spec.addressInfo.[*] | Custom tag with the DID information | No |
 | spec.accessControlList.deny.[*] | Deny incoming traffic from network list | No |
 | spec.accessControlList.allow.[*] | Allow incoming traffic from network list | No |
