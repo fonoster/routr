@@ -43,7 +43,7 @@ class AgentsAPI {
     }
 
     getAgentByDomain(domainUri, username) {
-        const key = domainUri.trim() + '.' + username.trim()
+        const key = `${domainUri.trim()}.${username.trim()}` 
         let agent = this.cache.getIfPresent(key)
 
         if (agent === null) {

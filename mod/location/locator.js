@@ -47,6 +47,9 @@ class Locator {
             .build()
 
         this.db = db
+
+        this.agentsAPI = dataAPIs.AgentsAPI
+        this.peersAPI = dataAPIs.PeersAPI
         this.didsAPI = dataAPIs.DIDsAPI
         this.domainsAPI = dataAPIs.DomainsAPI
         this.gatewaysAPI = dataAPIs.GatewaysAPI
@@ -150,7 +153,8 @@ class Locator {
 
     findEndpointBySipURI(addressOfRecord) {
         // First just look into the 'db'
-        let routes = this.db.getIfPresent(LocatorUtils.aorAsString(addressOfRecord))
+        const aorString = LocatorUtils.aorAsString(addressOfRecord)
+        let routes = this.db.getIfPresent(aorString)
         routes = routes ? routes.filter(route => !LocatorUtils.expiredRouteFilter(route)) : void(0)
 
         if (routes && routes.length > 0) {
@@ -158,7 +162,7 @@ class Locator {
         }
 
         // Check peer's route by host
-        let response = this.getPeerRouteByHost(addressOfRecord)
+        let response = this.getPeerRouteByHost(aorString)
 
         if (response.status === Status.OK) {
             return response
@@ -166,7 +170,7 @@ class Locator {
 
         // Then search for a DID
         try {
-            response = this.findEndpointForDID(addressOfRecord)
+            response = this.findEndpointForDID(aorString)
             if (response.status === Status.OK) {
                 return response
             }
@@ -174,8 +178,19 @@ class Locator {
             //noop
         }
 
+        const splitAor = aorString.split('@')
+        if (splitAor.length === 2) {
+            const userPart = splitAor[0].split(':')[1]
+
+            response = this.agentsAPI.getAgentByDomain(splitAor[1], userPart)
+            if (response.status === Status.OK ) return CoreUtils.buildResponse(Status.NOT_FOUND)
+
+            response = this.peersAPI.getPeerByUsername(userPart)
+            if (response.status === Status.OK ) return CoreUtils.buildResponse(Status.NOT_FOUND)
+        }
+
         // Endpoint can only be reach thru a gateway
-        response = this.getEgressRouteForAOR(addressOfRecord)
+        response = this.getEgressRouteForAOR(aorString)
         return response.status === Status.OK ? response : CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 

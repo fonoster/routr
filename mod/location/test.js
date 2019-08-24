@@ -7,6 +7,8 @@
 const FilesDataSource = require('@routr/data_api/files_datasource')
 const Locator = require('@routr/location/locator')
 const LocatorUtils = require('@routr/location/utils')
+const AgentsAPI = require('@routr/data_api/agents_api')
+const PeersAPI = require('@routr/data_api/peers_api')
 const DIDsAPI = require('@routr/data_api/dids_api')
 const DomainsAPI = require('@routr/data_api/domains_api')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
@@ -23,6 +25,8 @@ delete config.spec.dataSource.parameters
 
 const ds = new FilesDataSource(config)
 const dataAPIs = {
+    PeersAPI: new PeersAPI(ds),
+    AgentsAPI: new AgentsAPI(ds),
     DomainsAPI: new DomainsAPI(ds),
     GatewaysAPI: new GatewaysAPI(ds),
     DIDsAPI: new DIDsAPI(ds)
@@ -60,9 +64,7 @@ testGroup.add_remove_local_endpoint = function() {
     const currentCount = response.result.length
     locator.removeEndpoint(agentEndpoint.aor, agentEndpoint.route.contactURI)
     response = locator.findEndpoint(agentEndpoint.aor)
-    // This should actually failed because there is no more local endpoints and gateway routes don't apply
-    // Please fix this ASAP!!!
-    // assertNotEquals(Status.OK, response.status)
+    assertNotEquals(Status.OK, response.status)
 }
 
 testGroup.find_local_endpoint = function() {
