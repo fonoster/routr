@@ -145,8 +145,10 @@ class RequestHandler {
             let factoryHeader
 
             if (callee.spec.privacy && callee.spec.privacy.equalsIgnoreCase('private')) {
+                const originFromHeader = request.getHeader(FromHeader.NAME)
                 const fromHeaderAddrs = addressFactory.createAddress(`"Anonymous" <sip:anonymous@anonymous.invalid>`)
                 const fromHeader = headerFactory.createHeader('From', fromHeaderAddrs.toString())
+                fromHeader.setTag(originFromHeader.getTag())
                 request.setHeader(fromHeader)
                 factoryHeader = headerFactory.createHeader('Privacy', 'id')
             } else {
@@ -168,10 +170,10 @@ class RequestHandler {
 
     configureRoutingHeaders(request, route) {
         // Lower the cseq to match the original request
-        //if (request.getMethod().equals(Request.INVITE)) {
-        //    const cseq = request.getHeader(CSeqHeader.NAME).getSeqNumber() - 1
-        //    request.getHeader(CSeqHeader.NAME).setSeqNumber(cseq)
-        //}
+        if (request.getMethod().equals(Request.INVITE)) {
+            const cseq = request.getHeader(CSeqHeader.NAME).getSeqNumber() - 1
+            request.getHeader(CSeqHeader.NAME).setSeqNumber(cseq)
+        }
         const gwRefHeader = headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
         const remotePartyIdHeader = headerFactory
             .createHeader('Remote-Party-ID', `<sip:${route.did}@${route.gwHost}>;screen=yes;party=calling`)

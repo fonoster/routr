@@ -131,7 +131,7 @@ class Locator {
         if (aor.startsWith("tel:")) {
             return this.findEndpointByTelUrl(addressOfRecord)
         }
-        return this.findEndpointBySipURI(aor)
+        return this.findEndpointBySipURI(addressOfRecord)
     }
 
     /**
@@ -190,7 +190,8 @@ class Locator {
         }
 
         // Endpoint can only be reach thru a gateway
-        response = this.getEgressRouteForAOR(aorString)
+        // Here we need the full addressOfRecord and not the aorString
+        response = this.getEgressRouteForAOR(addressOfRecord)
         return response.status === Status.OK ? response : CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
@@ -235,7 +236,7 @@ class Locator {
 
         if (response.status === Status.OK) {
             response.result.forEach(domain => {
-                const r = this.getEgressRouteForDomain(addressOfRecord, domain)
+                const r = this.getEgressRouteForDomain(LocatorUtils.aorAsString(addressOfRecord), domain)
                 if (r.status === Status.OK) {
                     route = r.result
                 }
