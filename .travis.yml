@@ -1,11 +1,15 @@
 language: node_js
 node_js:
   - "10"
-script: npm i && npm test
+script: npm i && npm run test2
 env:
   global:
     - CC_TEST_REPORTER_ID=19325f806984a923fa5ca65ee90ca519fc2bf3debc03634943aa36c5e57f6207
 before_script:
+  - curl -L https://github.com/oracle/graal/releases/download/vm-19.2.0/graalvm-ce-linux-amd64-19.2.0.tar.gz > graalvm-ce-linux-amd64-19.2.0.tar.gz
+  - tar xvf graalvm-ce-linux-amd64-19.2.0.tar.gz
+  - export GRAALVM_HOME=$(pwd)/graalvm-ce-19.2.0
+  - echo $GRAALVM_HOME
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
