@@ -5,6 +5,7 @@
   "scripts": {
     "transpile": "babel --out-dir node_modules/@routr mod",
     "test": "cross-env ./etc/tests/tester 'utils/test.js' 'core/test' 'core/acl/test' 'core/processor/test' 'registry/test' 'registrar/test' 'location/test' 'rest/test' 'data_api/test_apis' 'data_api/test_files_datasource' 'data_api/test_redis_datasource' ",
+    "test2": "cross-env ./etc/tests/tester2 mod/location/test2.js",
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
     "bundle": "webpack --config webpack.config.js --mode none",
     "pretest": "npm run bundle",
@@ -18,6 +19,8 @@
     "xxhashjs": "^0.2.2"
   },
   "devDependencies": {
+    "nyc": "^14.1.1",
+    "mocha": "^6.2.0",
     "babel-cli": "^6.24.1",
     "babel-preset-env": "^1.7.0",
     "cross-env": "^5.2.0",
