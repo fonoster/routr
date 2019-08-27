@@ -4,11 +4,6 @@
  *
  * Unit Test for the "Utils Module"
  */
-const testGroup = {
-    name: "Utils Module"
-}
-
-// Tests
-testGroup.noop = function() {}
-
-module.exports.testGroup = testGroup
+describe('Utils Module', () => {
+    it.skip('Noop', void(0))
+})

@@ -13,7 +13,7 @@ const {
     Status
 } = require('@routr/core/status')
 
-const Expiry = Java.type('com.github.benmanes.caffeine.cache.Expiry')
+const Expiry = Java.extend(Java.type('com.github.benmanes.caffeine.cache.Expiry'))
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -219,7 +219,7 @@ class Locator {
                 const contactURI = routes[x].contactURI
                 const h1 = contactURI.getHost().toString()
                 const p1 = LocatorUtils.fixPort(contactURI.getPort())
-                if (h1.equals(peerHost) && p1 === peerPort) {
+                if (h1 === peerHost && p1 === peerPort) {
                     return CoreUtils.buildResponse(Status.OK, routes)
                 }
             }

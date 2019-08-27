@@ -211,18 +211,25 @@ class FilesDataSource {
     getWithReferences(list) {
         list.forEach(obj => {
             if (!obj.metadata.ref) {
-                if (obj.kind.equalsIgnoreCase('agent')) {
-                    obj.metadata.ref = 'ag' + this.generateRef(obj.spec.credentials.username + obj.spec.domains[0])
-                } else if (obj.kind.equalsIgnoreCase('domain')) {
-                    obj.metadata.ref = 'dm' + this.generateRef(obj.spec.context.domainUri)
-                } else if (obj.kind.equalsIgnoreCase('peer')) {
-                    obj.metadata.ref = 'pr' + this.generateRef(obj.spec.credentials.username)
-                } else if (obj.kind.equalsIgnoreCase('gateway')) {
-                    obj.metadata.ref = 'gw' + this.generateRef(obj.spec.host)
-                } else if (obj.kind.equalsIgnoreCase('did')) {
-                    obj.metadata.ref = 'dd' + this.generateRef(obj.spec.location.telUrl)
-                } else if (obj.kind.equalsIgnoreCase('user')) {
-                    obj.metadata.ref = 'us' + this.generateRef(obj.spec.credentials.username)
+                switch(obj.kind.toLowerCase()) {
+                    case 'agent':
+                        obj.metadata.ref = `ag${this.generateRef(obj.spec.credentials.username + obj.spec.domains[0])}`
+                        break
+                    case 'domain':
+                        obj.metadata.ref = `dm${this.generateRef(obj.spec.context.domainUri)}`
+                        break
+                    case 'peer':
+                        obj.metadata.ref = `pr${this.generateRef(obj.spec.credentials.username)}`
+                        break
+                    case 'gateway':
+                        obj.metadata.ref = `gw${this.generateRef(obj.spec.host)}`
+                        break
+                    case 'did':
+                        obj.metadata.ref = `dd${this.generateRef(obj.spec.location.telUrl)}`
+                        break
+                    case 'user':
+                        obj.metadata.ref = `ur${this.generateRef(obj.spec.credentials.username)}`
+                        break
                 }
             }
         })

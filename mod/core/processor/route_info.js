@@ -118,7 +118,7 @@ class RouteInfo {
     }
 
     isSameDomain() {
-        return this.callerDomain.equals(this.calleeDomain)
+        return this.callerDomain === this.calleeDomain
     }
 
     get callerUser() {

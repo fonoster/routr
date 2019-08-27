@@ -9,7 +9,7 @@ const {
 } = require('@routr/core/status')
 const moment = require('moment')
 
-const Expiry = Java.type('com.github.benmanes.caffeine.cache.Expiry')
+const Expiry = Java.extend(Java.type('com.github.benmanes.caffeine.cache.Expiry'))
 const SipFactory = Java.type('javax.sip.SipFactory')
 const SipUtils = Java.type('gov.nist.javax.sip.Utils')
 const Request = Java.type('javax.sip.message.Request')

@@ -7,7 +7,7 @@ const IPUtil = require('@routr/core/ip_util')
 class Rule {
 
     constructor(net, action) {
-        if (action.equals('allow') || action.equals('deny')) {
+        if (action === 'allow' || action === 'deny') {
             const subnetUtils = IPUtil.getSubnetUtils(net)
             this.subnetUtils = subnetUtils
             this._action = action

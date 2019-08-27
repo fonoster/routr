@@ -4,10 +4,6 @@
  *
  * Unit Test for the "Rest Service Module"
  */
-const testGroup = {
-    name: 'Rest Service Module'
-}
-
-testGroup.no_op = function() {}
-
-module.exports.testGroup = testGroup
+describe('Rest Service Module', () => {
+    it.skip('Noop', void(0))
+})

@@ -56,7 +56,7 @@ class IPUtil {
     }
 
     static isCidr(v) {
-        return cidrPattern.test(v) && new String(v).contains('/')
+        return cidrPattern.test(v) && v.includes('/')
     }
 
     static isIpAndMask(v) {

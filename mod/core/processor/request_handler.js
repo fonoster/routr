@@ -5,6 +5,7 @@
 const postal = require('postal')
 const ProcessorUtils = require('@routr/core/processor/utils')
 const IPUtil = require('@routr/core/ip_util')
+const { equalsIgnoreCase } = require('@routr/utils/misc_util')
 const getConfig = require('@routr/core/config_util')
 const {
     Status
@@ -141,10 +142,10 @@ class RequestHandler {
 
         const callee = routeInfo.getCallee()
 
-        if (callee && callee.kind.equalsIgnoreCase('agent')) {
+        if (callee && equalsIgnoreCase(callee.kind, 'agent')) {
             let factoryHeader
 
-            if (callee.spec.privacy && callee.spec.privacy.equalsIgnoreCase('private')) {
+            if (callee.spec.privacy && equalsIgnoreCase(callee.spec.privacy, 'private')) {
                 const originFromHeader = request.getHeader(FromHeader.NAME)
                 const fromHeaderAddrs = addressFactory.createAddress(`"Anonymous" <sip:anonymous@anonymous.invalid>`)
                 const fromHeader = headerFactory.createHeader('From', fromHeaderAddrs.toString())
