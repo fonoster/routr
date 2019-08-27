@@ -198,7 +198,7 @@ function getSalt() {
 
     if (f.exists() && !f.isDirectory()) return FilesUtil.readFile(pathToSalt)
 
-    const genSalt = UUID.randomUUID().toString().replaceAll("-", "")
+    const genSalt = UUID.randomUUID().toString().replace(/\-/g,"")
     FilesUtil.writeFile(pathToSalt, genSalt)
 
     return genSalt
