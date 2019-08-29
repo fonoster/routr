@@ -65,7 +65,6 @@ class DSUtils {
             }
             return false
         }
-
         return true
     }
 
