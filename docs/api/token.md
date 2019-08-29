@@ -2,7 +2,7 @@ This method gets a token for subsequent API calls.
 
 **URL**
 
-  `/credentials`
+  `/token`
 
 **Method**
 
@@ -23,13 +23,17 @@ This method gets a token for subsequent API calls.
 **Sample Call**
 
 ```json
-GET /api/{apiversion}/credentials
+GET /api/{apiversion}/token
 {
 
 }
 
 HTTP/1.1 200 OK
-"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiJ9.O7hC-ta225epRQlJZO44WC-l2cWohKnJ8lkmlOQpw8Z_xYiwJ6-qDUhHeJEZH9DmwIwz_jD77sj1kQUkXHsbOg"
+{
+  "status": 200,
+  "message": "Successful request",
+  "result": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiJ9.TZZ4kp5xIdYzs5RRt6_qVxJcOiLdk1IEHFMBSZ7SRENx6kyVhwfAlm-oeM4L2XFIr4evlTCxKEIKc0fZKwPcjw"
+}
 ```
 
 **Notes**

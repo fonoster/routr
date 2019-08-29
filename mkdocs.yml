@@ -39,7 +39,7 @@ nav:
     - Web Console: administration/webconsole.md
   - Rest API:
     - Overview: api/overview.md
-    - Credentials: api/credentials.md
+    - Credentials: api/token.md
     - Location:
       - create: api/location/create.md
       - delete: api/location/delete.md

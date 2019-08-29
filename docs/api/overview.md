@@ -6,7 +6,7 @@ The endpoint for the API is:
 
 ## Authentication
 
-A JWT token is used to authenticate the server. To obtain the token, use the `/api/{apiversion}/credentials` endpoint with basic authentication. Use the information from the [User](/configuration/user) resource.
+A JWT token is used to authenticate the server. To obtain the token, use the `/api/{apiversion}/token` endpoint with basic authentication. Use the information from the [User](/configuration/user) resource.
 
 > You must append the `token` to all requests as a query parameter.
 
