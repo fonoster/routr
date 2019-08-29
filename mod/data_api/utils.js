@@ -53,7 +53,6 @@ class DSUtils {
             obj = o
         }
 
-
         const schema = factory.getSchema(FilesUtil.readFile(`${schemaPath}/${kind.toLowerCase()}s_schema.json`))
         const node = mapper.readTree(JSON.stringify(obj))
         const errors = schema.validate(node)
