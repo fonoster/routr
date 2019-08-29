@@ -22,7 +22,7 @@ const lock = new ReentrantLock()
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
-const RESOURCES = ['agents', 'domains', 'gateways', 'dids', 'peers', 'users']
+const RESOURCES = ['agents', 'domains', 'gateways', 'numbers', 'peers', 'users']
 
 class FilesDataSource {
 
@@ -67,11 +67,11 @@ class FilesDataSource {
                 }
             } catch (e) {
                 if (e instanceof Java.type('com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException')) {
-                    throw `The format of file \`${this.filesPath}/${RESOURCES[CNT]}.yml\` is invalid`
-                    exit(1)
+                    LOG.error(`The format of file \`${this.filesPath}/${RESOURCES[CNT]}.yml\` is invalid`)
+                    System.exit(1)
                 } else {
-                    throw `Unable to open configuration file \`${this.filesPath}/${RESOURCES[cnt]}.yml\``
-                    exit(1)
+                    LOG.error(`Unable to open configuration file \`${this.filesPath}/${RESOURCES[cnt]}.yml\``)
+                    System.exit(1)
                 }
             }
         }
@@ -79,25 +79,23 @@ class FilesDataSource {
 
     resourceConstraintValidation() {
         // Ensure GW for gwRef
-        let response = this.withCollection('dids').find()
-        response.result.forEach(did => {
-            const gwRef = did.metadata.gwRef
+        let response = this.withCollection('numbers').find()
+        response.result.forEach(number => {
+            const gwRef = number.metadata.gwRef
             response = this.withCollection('gateways').get(gwRef)
             if (response.status !== Status.OK) {
-                throw `Gateway with ref \`${gwRef}\`does not exist.`
-                exit(1)
+                LOG.error(`Gateway with ref \`${gwRef}\` does not exist`)
             }
         })
 
-        // Ensure Domains have valid DIDs
+        // Ensure Domains have valid Numbers
         response = this.withCollection('domains').find()
         response.result.forEach(domain => {
             if (domain.spec.context.egressPolicy !== undefined) {
-                const didRef = domain.spec.context.egressPolicy.didRef
-                response = DSUtils.deepSearch(this.withCollection('dids').find(), "metadata.ref", didRef)
+                const numberRef = domain.spec.context.egressPolicy.numberRef
+                response = DSUtils.deepSearch(this.withCollection('numbers').find(), "metadata.ref", numberRef)
                 if (response.status !== Status.OK) {
-                    throw `DID with ref \`${didRef}\` does not exist.`
-                    exit(1)
+                    LOG.error(`Number with ref \`${numberRef}\` does not exist`)
                 }
             }
         })
@@ -110,8 +108,7 @@ class FilesDataSource {
                 const domain = domains[cnt]
                 response = this.withCollection('domains').find(`@.spec.context.domainUri=='${domain}'`)
                 if (response.result.length === 0) {
-                    throw `Agent \`${agent.metadata.name}\`(${agent.spec.credentials.username}) has a non-existent domain/s.`
-                    exit(1)
+                    LOG.error(`Agent \`${agent.metadata.name}\`(${agent.spec.credentials.username}) has a non-existent domain/s`)
                 }
             }
         })
@@ -124,7 +121,7 @@ class FilesDataSource {
             if (response.status === Status.OK) {
                 const refs = response.result.map(entity => entity.metadata.ref)
                 if (findDuplicates(refs).length >  0) {
-                    throw `Found duplicate entries in ${this.filesPath}/${resource}.yml`
+                    LOG.error(`Found duplicate entries in ${this.filesPath}/${resource}.yml`)
                     exit(1)
                 }
             }
@@ -224,7 +221,7 @@ class FilesDataSource {
                     case 'gateway':
                         obj.metadata.ref = `gw${this.generateRef(obj.spec.host)}`
                         break
-                    case 'did':
+                    case 'number':
                         obj.metadata.ref = `dd${this.generateRef(obj.spec.location.telUrl)}`
                         break
                     case 'user':

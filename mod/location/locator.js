@@ -9,6 +9,7 @@ const postal = require('postal')
 const CoreUtils = require('@routr/core/utils')
 const LocatorUtils = require('@routr/location/utils')
 const isEmpty = require('@routr/utils/obj_util')
+const { gatewayPatch } = require('@routr/utils/misc_util')
 const {
     Status
 } = require('@routr/core/status')
@@ -50,7 +51,7 @@ class Locator {
 
         this.agentsAPI = dataAPIs.AgentsAPI
         this.peersAPI = dataAPIs.PeersAPI
-        this.didsAPI = dataAPIs.DIDsAPI
+        this.numbersAPI = dataAPIs.NumbersAPI
         this.domainsAPI = dataAPIs.DomainsAPI
         this.gatewaysAPI = dataAPIs.GatewaysAPI
 
@@ -135,18 +136,18 @@ class Locator {
     }
 
     /**
-     * DIDs required an "aorLink" to enter the network
+     * Numbers required an "aorLink" to enter the network
      */
     findEndpointByTelUrl(addressOfRecord) {
-        const response = this.didsAPI.getDIDByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
+        const response = this.numbersAPI.getNumberByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
         if (response.status === Status.OK) {
-            const did = response.result
-            const route = this.db.getIfPresent(LocatorUtils.aorAsString(did.spec.location.aorLink))
+            const number = response.result
+            const route = this.db.getIfPresent(LocatorUtils.aorAsString(number.spec.location.aorLink))
             if (route !== null) {
                 return CoreUtils.buildResponse(Status.OK, route)
             }
 
-            return CoreUtils.buildResponse(Status.NOT_FOUND, `No route for aorLink: ${did.spec.location.aorLink}`)
+            return CoreUtils.buildResponse(Status.NOT_FOUND, `No route for aorLink: ${number.spec.location.aorLink}`)
         }
         return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
@@ -168,9 +169,9 @@ class Locator {
             return response
         }
 
-        // Then search for a DID
+        // Then search for a Number
         try {
-            response = this.findEndpointForDID(aorString)
+            response = this.findEndpointForNumber(aorString)
             if (response.status === Status.OK) {
                 return response
             }
@@ -195,11 +196,11 @@ class Locator {
         return response.status === Status.OK ? response : CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
-    findEndpointForDID(addressOfRecord) {
-        const response = this.didsAPI.getDIDByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
+    findEndpointForNumber(addressOfRecord) {
+        const response = this.numbersAPI.getNumberByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
         if (response.status === Status.OK) {
-            const did = response.result
-            const route = this.db.getIfPresent(LocatorUtils.aorAsString(did.spec.location.aorLink))
+            const number = response.result
+            const route = this.db.getIfPresent(LocatorUtils.aorAsString(number.spec.location.aorLink))
             if (route !== null) {
                 return CoreUtils.buildResponse(Status.OK, route)
             }
@@ -252,12 +253,12 @@ class Locator {
         const addressFactory = SipFactory.getInstance().createAddressFactory()
 
         if (!isEmpty(domain.spec.context.egressPolicy)) {
-            // Get DID and Gateway info
-            let response = this.didsAPI.getDID(domain.spec.context.egressPolicy.didRef)
-            const did = response.result
+            // Get Number and Gateway info
+            let response = this.numbersAPI.getNumber(domain.spec.context.egressPolicy.numberRef)
+            const number = response.result
 
             if (response.status === Status.OK) {
-                response = this.gatewaysAPI.getGateway(did.metadata.gwRef)
+                response = this.gatewaysAPI.getGateway(number.metadata.gwRef)
 
                 if (response.status === Status.OK) {
                     const gateway = response.result
@@ -266,9 +267,9 @@ class Locator {
 
                     if (new RegExp(pattern).test(addressOfRecord)) {
                         const contactURI = addressFactory
-                            .createSipURI(aorObj.getUser(), gateway.spec.host)
+                            .createSipURI(aorObj.getUser(), gatewayPatch(gateway.spec.host, gateway.spec.port))
                         contactURI.setSecure(aorObj.isSecure())
-                        const route = LocatorUtils.buildEgressRoute(contactURI, gateway, did, domain)
+                        const route = LocatorUtils.buildEgressRoute(contactURI, gateway, number, domain)
                         return CoreUtils.buildResponse(Status.OK, [route])
                     }
                 }

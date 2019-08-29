@@ -62,7 +62,7 @@ class TestUtils {
                     domainUri: domainUri,
                     egressPolicy: {
                         rule: '.*',
-                        didRef: 'DID0001'
+                        numberRef: 'DID0001'
                     }
                 }
             }
@@ -70,10 +70,10 @@ class TestUtils {
         return domain
     }
 
-    static buildDID() {
-        const did = {
+    static buildNumber() {
+        const number = {
             apiVersion: 'v1.0',
-            kind: 'DID',
+            kind: 'Number',
             metadata: {
                 userId: 'john@doe.com',
                 gwRef: '595bc68492bccf1454883d0b',
@@ -90,7 +90,7 @@ class TestUtils {
                 }
             }
         }
-        return did
+        return number
     }
 
 }

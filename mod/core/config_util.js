@@ -28,11 +28,10 @@ function loadConfig() {
     config.system = getSystemConfig()
 
     if (config.spec.registrarIntf === undefined) config.spec.registrarIntf = 'External'
-    if (config.spec.useToAsAOR === undefined) config.spec.useToAsAOR = false
     if (config.spec.bindAddr === undefined) config.spec.bindAddr = InetAddress.getLocalHost().getHostAddress()
-    if (config.spec.logging === undefined) config.spec.logging = {
-        traceLevel: '0'
-    }
+    //if (config.spec.logging === undefined) config.spec.logging = {
+    //    traceLevel: '0'
+    //}
     if (config.spec.dataSource === undefined) config.spec.dataSource = {
         provider: 'files_data_provider'
     }

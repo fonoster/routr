@@ -1,5 +1,5 @@
 Removes a Gateway resource from a persistent database. Before removing
-a Gateway, ensure you have remove all of it child DIDs. Otherwise,
+a Gateway, ensure you have remove all of it child Numbers. Otherwise,
 this method returns a `FOUND_DEPENDENT_OBJECTS_RESPONSE`
 
 **URL**

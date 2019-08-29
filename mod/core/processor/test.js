@@ -10,7 +10,7 @@ const { createRequest } = require('@routr/utils/test_util')
 const FilesDataSource = require('@routr/data_api/files_datasource')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const PeersAPI = require('@routr/data_api/peers_api')
-const DIDsAPI = require('@routr/data_api/dids_api')
+const NumbersAPI = require('@routr/data_api/numbers_api')
 const DomainsAPI = require('@routr/data_api/domains_api')
 const AgentsAPI = require('@routr/data_api/agents_api')
 const RouteInfo = require('@routr/core/processor/route_info')
@@ -21,7 +21,7 @@ const ds = new FilesDataSource(config)
 const dataAPIs = {
     AgentsAPI: new AgentsAPI(ds),
     DomainsAPI: new DomainsAPI(ds),
-    DIDsAPI: new DIDsAPI(ds),
+    NumbersAPI: new NumbersAPI(ds),
     GatewaysAPI: new GatewaysAPI(ds),
     PeersAPI: new PeersAPI(ds)
 }

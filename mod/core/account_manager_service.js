@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const { gatewayPatch } = require('@routr/utils/misc_util')
 const {
     Status
 } = require('@routr/core/status')
@@ -33,7 +34,7 @@ class AccountManagerService {
             return {
                 username: gateway.spec.credentials.username,
                 secret: gateway.spec.credentials.secret,
-                host: gateway.spec.host
+                host: gatewayPatch(gateway.spec.host, gateway.spec.port)
             }
         }
 
@@ -50,7 +51,7 @@ class AccountManagerService {
                 return new UserCredentials({
                     getUserName: () => gateway.username,
                     getPassword: () => gateway.secret,
-                    getSipDomain: () => gateway.host
+                    getSipDomain: () => gatewayPatch(gateway.spec.host, gateway.spec.port)
                 })
             }
         })

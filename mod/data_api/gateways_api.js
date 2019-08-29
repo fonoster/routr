@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const { gatewayPatch } = require('@routr/utils/misc_util')
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
 const {
@@ -23,9 +24,10 @@ class GatewaysAPI {
     }
 
     createFromJSON(jsonObj) {
-        if (!this.gatewayExist(jsonObj.spec.host)) {
+        if (!this.gatewayExist(jsonObj.spec.host, jsonObj.spec.port)) {
             const response = this.ds.insert(jsonObj)
-            this.cache.put(jsonObj.spec.host, response)
+            const host = gatewayPatch(jsonObj.spec.host, jsonObj.spec.port)
+            this.cache.put(host, response)
             return response
         }
 
@@ -33,9 +35,10 @@ class GatewaysAPI {
     }
 
     updateFromJSON(jsonObj) {
-        if (this.gatewayExist(jsonObj.spec.host)) {
+        if (this.gatewayExist(jsonObj.spec.host, jsonObj.spec.port)) {
             const response = this.ds.update(jsonObj)
-            this.cache(jsonObj.spec.host, response)
+            const host = gatewayPatch(jsonObj.spec.host, jsonObj.spec.port)
+            this.cache(host, response)
             return response
         }
 
@@ -50,19 +53,40 @@ class GatewaysAPI {
         return this.ds.withCollection('gateways').get(ref)
     }
 
-    getGatewayByHost(host) {
+    getGatewayByHostAndPort(h, port) {
+        if (!port) return this.getGatewayByHost(host)
+        const host = gatewayPatch(h, port)
+
         let response = this.cache.getIfPresent(host)
 
         if (response === null) {
-            response = DSUtils.deepSearch(this.getGateways(), "spec.host", host)
+            const r1 = DSUtils.deepSearch(this.getGateways(), 'spec.port', port)
+            const r2 = DSUtils.deepSearch(this.getGateways(), 'spec.host', host)
+
+            if (r1.status === Status.NOT_FOUND || r2.status === Status.NOT_FOUND) {
+                response = { status: Status.NOT_FOUND }
+            }
+
             this.cache.put(host, response)
         }
 
         return response
     }
 
-    gatewayExist(host) {
-        return DSUtils.objExist(this.getGatewayByHost(host))
+
+    getGatewayByHost(host) {
+        let response = this.cache.getIfPresent(host)
+
+        if (response === null) {
+            response = DSUtils.deepSearch(this.getGateways(), 'spec.host', host)
+            this.cache.put(host, response)
+        }
+
+        return response
+    }
+
+    gatewayExist(host, port) {
+        return DSUtils.objExist(this.getGatewayByHostAndPort(host, port))
     }
 
     deleteGateway(ref) {
@@ -78,10 +102,10 @@ class GatewaysAPI {
 
         const gateway = response.result
 
-        response = this.ds.withCollection('dids').find(`@.metadata.gwRef=='${gateway.metadata.ref}'`)
-        const dids = response.result
+        response = this.ds.withCollection('numbers').find(`@.metadata.gwRef=='${gateway.metadata.ref}'`)
+        const numbers = response.result
 
-        return dids.length === 0 ? this.ds.withCollection('gateways').remove(ref) : FOUND_DEPENDENT_OBJECTS_RESPONSE
+        return numbers.length === 0 ? this.ds.withCollection('gateways').remove(ref) : FOUND_DEPENDENT_OBJECTS_RESPONSE
     }
 
 }

@@ -13,7 +13,7 @@ For static IP authentication be sure to properly configure the `spec.externAddr`
 | apiVersion | Indicates the version of the resource (Not yet implemented)| Yes |
 | kind | Defines the type of resource | Yes |
 | metadata.name | Friendly name for the SIP device | Yes |
-| metadata.ref | Reference to this resource | Yes |
+| metadata.ref | Reference to this resource | No |
 | spec.credentials.username | Gateway username. No required for static IP authentication | No |
 | spec.credentials.secret |  Gateway secret. No required for static IP authentication | No |
 | spec.host | Gateway host | Yes |

@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const { gatewayPatch } = require('@routr/utils/misc_util')
 const getConfig = require('@routr/core/config_util')
 const LocatorUtils = require('@routr/location/utils')
 const {
@@ -179,10 +180,11 @@ class Registry {
 
                         if (gateway.spec.credentials === undefined) continue
 
-                        const gwURIStr = `sip:${gateway.spec.credentials.username}@${gateway.spec.host}`
+                        const host = gatewayPatch(gateway.spec.host, gateway.spec.port)
+                        const gwURIStr = `sip:${gateway.spec.credentials.username}@${host}`
                         const expires = gateway.spec.expires ? gateway.spec.expires : 3600
                         if (self.isExpired(gwURIStr)) {
-                            LOG.debug(`Register with ${gateway.metadata.name} using ${gateway.spec.credentials.username}@${gateway.spec.host}`)
+                            LOG.debug(`Register with ${gateway.metadata.name} using ${gateway.spec.credentials.username}@${host}`)
                             self.requestChallenge(gateway.spec.credentials.username,
                                 gateway.metadata.ref, gateway.spec.host, gateway.spec.transport, null, null, expires)
                         }

@@ -13,7 +13,7 @@ const {
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 
-class DIDsAPI {
+class NumbersAPI {
 
     constructor(dataSource) {
         this.ds = dataSource
@@ -29,7 +29,7 @@ class DIDsAPI {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
-        if (!this.didExist(jsonObj.spec.location.telUrl)) {
+        if (!this.numberExist(jsonObj.spec.location.telUrl)) {
             const response = this.ds.insert(jsonObj)
             this.cache.put(jsonObj.spec.location.telUrl, response)
             return response
@@ -45,7 +45,7 @@ class DIDsAPI {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
-        if (this.didExist(jsonObj.spec.location.telUrl)) {
+        if (this.numberExist(jsonObj.spec.location.telUrl)) {
             const response = this.ds.update(jsonObj)
             this.cache.put(jsonObj.spec.location.telUrl, response)
             return response
@@ -54,40 +54,40 @@ class DIDsAPI {
         return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
-    getDIDs(filter) {
-        return this.ds.withCollection('dids').find(filter)
+    getNumbers(filter) {
+        return this.ds.withCollection('numbers').find(filter)
     }
 
-    getDID(ref) {
-        return this.ds.withCollection('dids').get(ref)
+    getNumber(ref) {
+        return this.ds.withCollection('numbers').get(ref)
     }
 
     /**
      * note: telUrl maybe a string in form of 'tel:${number}' or
      * a TelURL Object.
      */
-    getDIDByTelUrl(telUrl) {
+    getNumberByTelUrl(telUrl) {
         let response = this.cache.getIfPresent(telUrl)
 
         if (response === null) {
-            response = DSUtils.deepSearch(this.getDIDs(), "spec.location.telUrl", telUrl)
+            response = DSUtils.deepSearch(this.getNumbers(), "spec.location.telUrl", telUrl)
             this.cache.put(telUrl, response)
         }
 
         return response
     }
 
-    didExist(telUrl) {
-        return DSUtils.objExist(this.getDIDByTelUrl(telUrl))
+    numberExist(telUrl) {
+        return DSUtils.objExist(this.getNumberByTelUrl(telUrl))
     }
 
-    deleteDID(ref) {
+    deleteNumber(ref) {
         if (this.cache.getIfPresent(ref)) {
             this.cache.invalidate(ref)
         }
-        return this.ds.withCollection('dids').remove(ref)
+        return this.ds.withCollection('numbers').remove(ref)
     }
 
 }
 
-module.exports = DIDsAPI
+module.exports = NumbersAPI

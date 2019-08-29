@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const { gatewayPatch } = require('@routr/utils/misc_util')
 const StringBuilder = Java.type('java.lang.StringBuilder')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const addressFactory = SipFactory.getInstance().createAddressFactory()
@@ -83,7 +84,7 @@ class LocatorUtils {
         }]
     }
 
-    static buildEgressRoute(contactURI, gateway, did, domain) {
+    static buildEgressRoute(contactURI, gateway, number, domain) {
         const username = gateway.spec.credentials ? gateway.spec.credentials.username :
             null
         const route = {
@@ -91,9 +92,9 @@ class LocatorUtils {
             thruGw: true,
             gwUsername: username,
             gwRef: gateway.metadata.ref,
-            gwHost: gateway.spec.host,
-            didRef: did.metadata.ref,
-            did: did.spec.location.telUrl.split(':')[1],
+            gwHost: gatewayPatch(gateway.spec.host, gateway.spec.port),
+            numberRef: number.metadata.ref,
+            number: number.spec.location.telUrl.split(':')[1],
             contactURI: contactURI
         }
         if (domain) {

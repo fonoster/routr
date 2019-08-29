@@ -83,7 +83,7 @@ class RequestProcessor {
         }
 
         if (routeInfo.getRoutingType().equals(RoutingType.INTRA_DOMAIN_ROUTING)) {
-            const addressOfRecord = ProcessorUtils.getAOR(request)
+            const addressOfRecord = request.getRequestURI()
             const response = this.domainsAPI.getDomainByUri(addressOfRecord.getHost())
             if (response.status === Status.OK) {
                 const acl = response.result.spec.context.accessControlList

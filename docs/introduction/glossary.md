@@ -20,7 +20,7 @@ Similar to Agents but without Domain boundaries
 
 IP entity that allows call termination
 
-### DID
+### Number
 
 Routes and translate calls between the PSTN and Routr
 

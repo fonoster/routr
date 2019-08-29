@@ -6,6 +6,7 @@
  */
 const assert = require('assert')
 const FilesDataSource = require('@routr/data_api/files_datasource')
+const GatewaysAPI = require('@routr/data_api/gateways_api')
 const FilesUtil = require('@routr/utils/files_util')
 const DSUtils = require('@routr/data_api/utils')
 const {
@@ -16,6 +17,7 @@ const config = getConfig()
 // Forces data source to use its own default parameters...
 delete config.spec.dataSource.parameters
 const ds = new FilesDataSource(config)
+const gwAPI = new GatewaysAPI(ds)
 
 describe('Files Data Source', () => {
     it('YAML from file', function(done) {
@@ -36,6 +38,19 @@ describe('Files Data Source', () => {
         // Invalid filter
         response = ds.withCollection('agents').find("@.spec.credentials.username==1001'")
         assert.ok(response.status === Status.BAD_REQUEST)
+        done()
+    })
+
+    it('Get gateway by host and port', function(done) {
+        let response  = gwAPI.getGatewayByHostAndPort('sip.provider.net', 5090)
+        assert.ok(response.status !== Status.OK)
+
+        response  = gwAPI.getGatewayByHost('sip.provider.net')
+        assert.ok(response.status === Status.OK)
+
+        response  = gwAPI.getGatewayByHost('sip2.provider.net', 5061)
+        assert.ok(response.status === Status.OK)
+
         done()
     })
 })

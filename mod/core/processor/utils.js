@@ -18,27 +18,6 @@ class ProcessorUtils {
     sendResponse(responseType) {
         this.st.sendResponse(messageFactory.createResponse(responseType, this.request))
     }
-
-    /**
-     * Discover DIDs sent via a non-standard header
-     * The header must be added at config.spec.addressInfo[*]
-     * If the such header is present then overwrite the AOR
-     */
-    static getAOR(request, addressInfo = []) {
-        for (const x in addressInfo) {
-            let info = addressInfo[x]
-            if (request.getHeader(info) !== undefined) {
-                let v = request.getHeader(info).getValue()
-                if (/sips?:.*@.*/.test(v) || /tel:\d+/.test(v)) {
-                    return addressFactory.createURI(v)
-                }
-                LOG.error(`Invalid address: ${v}`)
-            }
-        }
-
-        return getConfig().spec.useToAsAOR ? request.getHeader(ToHeader.NAME).getAddress().getURI() :
-            request.getRequestURI()
-    }
 }
 
 module.exports = ProcessorUtils

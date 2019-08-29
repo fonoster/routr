@@ -8,3 +8,14 @@
     credentials:
       username: 'youruser'
       secret: 'yoursecret'
+- apiVersion: v1beta1
+  kind: Gateway
+  metadata:
+    name: Provider Inc.
+  spec:
+    host: sip2.provider.net
+    port: 5061
+    transport: udp
+    credentials:
+      username: 'youruser'
+      secret: 'yoursecret'

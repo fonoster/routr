@@ -70,7 +70,7 @@ class RequestHandler {
             channel: "locator",
             topic: "endpoint.find",
             data: {
-                addressOfRecord: ProcessorUtils.getAOR(request),
+                addressOfRecord: request.getRequestURI(),
                 requestId: requestId
             }
         })
@@ -178,11 +178,11 @@ class RequestHandler {
         }
         const gwRefHeader = headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
         const remotePartyIdHeader = headerFactory
-            .createHeader('Remote-Party-ID', `<sip:${route.did}@${route.gwHost}>;screen=yes;party=calling`)
+            .createHeader('Remote-Party-ID', `<sip:${route.number}@${route.gwHost}>;screen=yes;party=calling`)
         const dp = request.getHeader(FromHeader.NAME).getAddress().getDisplayName()
         const displayName = dp? `"${dp}" ` : ''
         const pAssertedIdentity = headerFactory
-            .createHeader('P-Asserted-Identity', `${displayName}<sip:${route.did}@${route.gwHost}>`)
+            .createHeader('P-Asserted-Identity', `${displayName}<sip:${route.number}@${route.gwHost}>`)
         request.setHeader(gwRefHeader)
         request.setHeader(remotePartyIdHeader)
         request.setHeader(pAssertedIdentity)

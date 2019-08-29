@@ -2,7 +2,7 @@ This method returns an Agent resource.
 
 **URL**
 
-`/dids/{ref}`
+`/numbers/{ref}`
 
 **Method**
 
@@ -20,12 +20,12 @@ Do not supply a request body with this method.
 
 **Response**
 
-If successful this method returns a DID resource.
+If successful this method returns a Number.
 
 **Sample Call**
 
 ```json
-GET /api/v1beta1/dids/dd50baa4
+GET /api/v1beta1/numbers/dd50baa4
 {
 
 }
@@ -36,7 +36,7 @@ HTTP/1.1 200 OK
   "message": "Successful request",
   "result" : {
   	"apiVersion": "v1beta1",
-  	"kind": "DID",
+  	"kind": "Number",
   	"metadata": {
       "ref": "dd50baa4",
   		"gwRef": "gweef506",

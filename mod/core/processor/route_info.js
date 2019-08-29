@@ -40,7 +40,7 @@ class RouteInfo {
 
         this.peersAPI = dataAPIs.PeersAPI
         this.domainsAPI = dataAPIs.DomainsAPI
-        this.didsAPI = dataAPIs.DIDsAPI
+        this.numbersAPI = dataAPIs.NumbersAPI
         this.agentsAPI = dataAPIs.AgentsAPI
     }
 
@@ -79,10 +79,10 @@ class RouteInfo {
         if (callerType === RouteEntityType.PEER && calleetype === RouteEntityType.AGENT && belongToSameDomain) routingType = RoutingType.INTRA_DOMAIN_ROUTING
         if (callerType === RouteEntityType.PEER && this.getCalleeType() === RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
 
-        if (callerType === RouteEntityType.THRU_GW && calleetype === RouteEntityType.DID) routingType = RoutingType.DOMAIN_INGRESS_ROUTING
+        if (callerType === RouteEntityType.THRU_GW && calleetype === RouteEntityType.NUMBER) routingType = RoutingType.DOMAIN_INGRESS_ROUTING
 
         // This is consider PEER_EGRESS_ROUTING because peers are the only one allow to overwrite the FromHeader.
-        if (callerType === RouteEntityType.DID && this.getCalleeType() === RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
+        if (callerType === RouteEntityType.NUMBER && this.getCalleeType() === RouteEntityType.THRU_GW) routingType = RoutingType.PEER_EGRESS_ROUTING
 
         return routingType
     }
@@ -96,8 +96,8 @@ class RouteInfo {
             entityType = RouteEntityType.PEER
         } else if (StringUtils.isNumeric(entity)) {
             const telUrl = addressFactory.createTelURL(entity)
-            if (this.didsAPI.didExist(telUrl)) {
-                entityType = RouteEntityType.DID
+            if (this.numbersAPI.numberExist(telUrl)) {
+                entityType = RouteEntityType.NUMBER
             }
         }
 

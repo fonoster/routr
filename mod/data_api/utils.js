@@ -78,9 +78,9 @@ class DSUtils {
     }
 
     static getKind(obj) {
-        if (['user', 'agent', 'peer', 'domain', 'gateway', 'did']
+        if (['user', 'agent', 'peer', 'domain', 'gateway', 'number']
             .indexOf(obj.kind.toLowerCase()) === -1) {
-            throw "Not a valid entity. `kind` must be: User, Agent, Peer, Domain, Gateway, DID"
+            throw 'Not a valid entity. \`kind\` must be: User, Agent, Peer, Domain, Gateway, Number'
         }
         return obj.kind
     }
@@ -88,7 +88,7 @@ class DSUtils {
     static deepSearch(response, path, value) {
         let result
         response.result.forEach(obj => {
-            if (DSUtils.resolve(path, obj) === value.toString()) {
+            if (value && DSUtils.resolve(path, obj) === value.toString()) {
                 result = obj
             }
         })

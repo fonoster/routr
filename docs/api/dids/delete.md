@@ -1,8 +1,8 @@
-Removes a DID resource from a persistent database.
+Removes a Number from a persistent database.
 
 **URL**
 
-`/dids/{ref}`
+`/numbers/{ref}`
 
 **Method**
 
@@ -20,12 +20,12 @@ Do not supply a request body with this method.
 
 **Response**
 
-If successful this method removes a DID resource.
+If successful this method removes a Number.
 
 **Sample Call**
 
 ```json
-DELETE /api/v1beta1/dids/dd50baa4
+DELETE /api/v1beta1/numbers/dd50baa4
 {
 
 }

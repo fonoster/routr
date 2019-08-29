@@ -118,7 +118,7 @@ class Rest {
             resourcesService(this.dataAPIs.PeersAPI, 'Peer')
             resourcesService(this.dataAPIs.DomainsAPI, 'Domain')
             resourcesService(this.dataAPIs.GatewaysAPI, 'Gateway')
-            resourcesService(this.dataAPIs.DIDsAPI, 'DID')
+            resourcesService(this.dataAPIs.NumbersAPI, 'Number')
         })
     }
 

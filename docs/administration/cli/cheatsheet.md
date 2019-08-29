@@ -28,8 +28,8 @@ The --filter flag uses [JsonPath](https://github.com/json-path/JsonPath) to perf
 All you need to add is the path to the property and the filter operators. For example:
 
 ```
-# This returns all the DIDs in Gateway 'gweef506'
-./rctl get dids --filter "@.metadata.gwRef=='gweef506'"    
+# This returns all the Numbers in Gateway 'gweef506'
+./rctl get numbers --filter "@.metadata.gwRef=='gweef506'"    
 ```
 
 If you need help, just run `rctl --help` from the terminal window.
@@ -80,14 +80,14 @@ $ rctl reg
 `rctl get` - List one or more resources.
 
 ```
-// List all dids
-$ rctl get dids
+// List all numbers
+$ rctl get numbers
 
-// List all dids that belong to gateway reference gweef506
-$ rctl get dids --filter "@.metadata.ref=='gweef506'"
+// List all numbers that belong to gateway reference gweef506
+$ rctl get numbers --filter "@.metadata.ref=='gweef506'"
 
-// List did by reference
-$ rctl get dids dd50baa4
+// List numberby reference
+$ rctl get numbers dd50baa4
 
 // List all agents
 $ rctl get agents
@@ -110,8 +110,8 @@ $ rctl apply -f new-gateway.yaml
 `rctl delete` - delete a resource.
 
 ```
-// Delete all did for gateway reference gweef506
-$ rctl delete dids --filter "@.metadata.gwRef=='gweef506'"
+// Delete all numbers for gateway reference gweef506
+$ rctl delete numbers --filter "@.metadata.gwRef=='gweef506'"
 
 // Delete a single agent (using delete alias)
 $ rctl del agent ag3f77f6
@@ -139,7 +139,7 @@ $ rctl registry                                       # Shows only current regis
 
 ```
 # Find all sip devices available at the location service
-$ rctl locate                                         # This list does not include did-ingress-routes or domain-egress-routes
+$ rctl locate                                         # This list does not include number-ingress-routes or domain-egress-routes
 ```
 
 ### Creating Resources
@@ -153,11 +153,11 @@ $ rctl create -f agents-list.yaml                     # Create Agents in file ag
 ### Finding Resources
 
 ```
-# Get DIDs
-$ rctl get dids                                          # List all available DIDs
-$ rctl get did                                           # List all available DIDs
-$ rctl get did --filter "@.metadata.ref=='dd50baa4'"     # Shows DID with reference 'DID0001'
-$ rctl get did --filter "@.metadata.gwRef=='gweef506'"   # Shows DIDs with Gateway reference 'GW1232'
+# Get Numbers
+$ rctl get numbers                                          # List all available Numbers
+$ rctl get number                                          # List all available Numbers
+$ rctl get number--filter "@.metadata.ref=='dd50baa4'"     # Shows Number with reference 'Number0001'
+$ rctl get number--filter "@.metadata.gwRef=='gweef506'"   # Shows Numbers with Gateway reference 'GW1232'
 
 # Get agents
 $ rctl get agents                                        # List all Agents
@@ -168,7 +168,7 @@ $ rctl get agents                                        # List all Agents
 ```
 # Delete command by refernce or filter
 $ rctl delete agent ag3f77f6                             # Delete Agent by reference
-$ rctl del dids --filter '@.metadata.gwRef=gweef506'     # Delete DIDs using a filter
+$ rctl del numbers --filter '@.metadata.gwRef=gweef506'     # Delete Numbers using a filter
 ```
 
 ### Updating Resources

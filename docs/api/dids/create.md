@@ -1,9 +1,9 @@
-Creates a new DID resource. The Gateway must exist before creating the DID.
+Creates a new Number. The Gateway must exist before creating the Number.
 Otherwise, this method responds with a `UNFULFILLED_DEPENDENCY_RESPONSE`.
 
 **URL**
 
-`/dids`
+`/numbers`
 
 **Method**
 
@@ -15,19 +15,19 @@ This method does not receive any parameters.
 
 **Request body**
 
-A file containing a [DID](/configuration/dids) resource in `json` format.
+A file containing a [Number](/configuration/numbers) resource in `json` format.
 
 **Response**
 
-If successful this method creates an DID resource.
+If successful this method creates a Number.
 
 **Sample Call**
 
 ```json
-POST /api/v1beta1/dids
+POST /api/v1beta1/numbers
 {
 	"apiVersion": "v1beta1",
-	"kind": "DID",
+	"kind": "Number",
 	"metadata": {
 		"gwRef": "gweef506",
 		"geoInfo": {

@@ -27,7 +27,7 @@ nav:
     - General Configuration: configuration/general.md
     - Users Configuration: configuration/users.md
     - Carriers(Gateways) Configuration: configuration/gateways.md
-    - Virtual Numbers(DIDs) Configuration: configuration/dids.md
+    - Numbers(DID/DOD) Configuration: configuration/numbers.md
     - Domains Configuration: configuration/domains.md
     - Agents Configuration: configuration/agents.md
     - Peers Configuration: configuration/peers.md
@@ -69,12 +69,12 @@ nav:
       - get: api/gateways/get.md
       - list: api/gateways/list.md
       - update: api/gateways/update.md
-    - DIDs:
-      - create: api/dids/create.md
-      - delete: api/dids/delete.md
-      - get: api/dids/get.md
-      - list: api/dids/list.md
-      - update: api/dids/update.md
+    - Numbers:
+      - create: api/numbers/create.md
+      - delete: api/numbers/delete.md
+      - get: api/numbers/get.md
+      - list: api/numbers/list.md
+      - update: api/numbers/update.md
     - System:
       - Status: api/system/status.md
       - Info: api/system/info.md

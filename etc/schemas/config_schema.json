@@ -137,12 +137,6 @@
                     },
                     "minItems": 1,
                     "uniqueItems": true
-                },
-                "logging": {
-                    "type": "object",
-                    "properties": {
-                        "traceLevel": {"type": "integer"}
-                    }
                 }
             },
             "required": ["transport"]

@@ -86,13 +86,13 @@ In Routr, the process of receiving a call from PSTN to a Domain is as _Domain In
       registries: [sip.nyc.provider.net]     # These are additional registrars within the provider's network
 ```
 
-You also need to define DIDs. Routr uses the Address Of Record(AOR) to routes incoming calls from a DID  to an existing Agent or Peer. The AOR must be available in the location service at the time of the call, or the call gets rejected.
+You also need to define Numbers. Routr uses the Address Of Record(AOR) to routes incoming calls from a Number  to an existing Agent or Peer. The AOR must be available in the location service at the time of the call, or the call gets rejected.
 
 Please examine the following example:
 
 ```yaml
 - apiVersion: v1beta1
-  kind: DID
+  kind: Number
   metadata:
     gwRef: dd50baa4
     geoInfo:
@@ -105,21 +105,21 @@ Please examine the following example:
       aorLink: 'sip:john@sip.local'      # This is the sip uri of an agent that is expected to be logged in
 ```
 
-Easy right? Any incoming call is routed from this Gateway and DID to "Jhon Doe" @ Ocean New York.
+Easy right? Any incoming call is routed from this Gateway and Number to "Jhon Doe" @ Ocean New York.
 
 **Routing Rules**
 
-The `spec.location` block of a `DID` resource configuration, determines the path of an inbound call from the PSTN. The `aorLink` refers to an Address of Record(Agent or Peer) that is available in the `location service`.
+The `spec.location` block of a `Number` resource configuration, determines the path of an inbound call from the PSTN. The `aorLink` refers to an Address of Record(Agent or Peer) that is available in the `location service`.
 
 ## Domain Egress Routing
 
-_Domain Egress Routing(DER)_ is the way that **Routr** deals with a call request to a _callee_ that exists in the Public Switched Telephone Network(PSTN) and not in the _callers'_ Domain. The EgressPolicy consists of a `rule`, and a `didRef` defined in the `spec.context` section of `Domains` resources.
+_Domain Egress Routing(DER)_ is the way that **Routr** deals with a call request to a _callee_ that exists in the Public Switched Telephone Network(PSTN) and not in the _callers'_ Domain. The EgressPolicy consists of a `rule`, and a `numberRef` defined in the `spec.context` section of `Domains` resources.
 
-The `rule` and `didRef` is defined as follows:
+The `rule` and `numberRef` is defined as follows:
 
 * `rule` is a regex to match callee in the call request. The location service uses this only after a search in the caller's Domain first.
 
-* `didRef` is the identifier of the DID that will to route the call. The DID must already exist and have a parent Gateway.
+* `numberRef` is the identifier of the Number that will to route the call. The Number must already exist and have a parent Gateway.
 
 **Routing Rules**
 
@@ -131,7 +131,7 @@ Peers are very similar to Agents, but they are not bound to any Domain, and usua
 
 Peers can perform inbound/outbound signaling within the network without any special consideration since they exist inside the _Location Service_ just like Agents. So it is possible to perform signaling from Peer to Peer, Peer to Agent.
 
-The same is true for Inbound from the PSTN. For example, we can redirect incoming calls from the PSTN using the `spec.location` settings in the `dids.yml` configuration file.
+The same is true for Inbound from the PSTN. For example, we can redirect incoming calls from the PSTN using the `spec.location` settings in the `numbers.yml` configuration file.
 
 **Routing Rules**
 

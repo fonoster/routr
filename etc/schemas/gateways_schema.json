@@ -35,6 +35,7 @@
                       },
                       "expires": {"type": "integer"},
                       "host": {"type": "string"},
+                      "port": {"type": "integer"},
                       "transport": {"type": "string"},
                       "registries": {
                           "type": "array",

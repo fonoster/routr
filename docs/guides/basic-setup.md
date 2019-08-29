@@ -1,11 +1,11 @@
-This document is a step-by-step guide on VoIP setup at home or the office. For calls to the PSTN you need to have a SIP provider like `voip.ms` or `didlogic.com`.
+This document is a step-by-step guide on VoIP setup at home or the office. For calls to the PSTN you need to have a SIP provider like `voip.ms` or `did.logic.com`.
 
 **Content**
 
 - [Requirements](#requirements)
 - [Setting up the Server](#setting-up-the-server)
     - [Configuring the Gateway](#configuring-the-gateway)
-    - [Configuring the DID ](#configuring-the-did)
+    - [Configuring the Number ](#configuring-the-number)
     - [Creating a new Domain and EgressPolicy](#creating-a-new-domain-and-egresspolicy)
     - [Creating the Agents](#creating-the-agents)
 - [Configuring the SIP devices](#configuring-the-sip-devices)
@@ -18,7 +18,7 @@ This tutorial assumes the following:
 
 - Two SIP phones connected to the same LAN
 - A fresh installation of Routr
-- SIP providers such as `voip.ms` or `didlogic.com`
+- SIP providers such as `voip.ms` or `did.logic.com`
 
 ## Setting up the Server
 
@@ -42,13 +42,13 @@ To configure the Gateway, you must consult your SIP provider and obtain the cred
       transport: udp
 ```
 
-### Configuring the DID
+### Configuring the Number
 
-To configure your DID or virtual number, you must open and edit the file `config/dids.yml`. Notice in the example below, how your reference the Gateway by using the field `metadata.geRef`. The key field while configuring DIDs are `spec.location.telUrl` and `spec.location.aorLink`. Keep in mind that the value in `spec.location.telUrl` must be formatted, precisely, as sent by the provider.
+To configure your Number or virtual number, you must open and edit the file `config/numbers.yml`. Notice in the example below, how your reference the Gateway by using the field `metadata.geRef`. The key field while configuring Numbers are `spec.location.telUrl` and `spec.location.aorLink`. Keep in mind that the value in `spec.location.telUrl` must be formatted, precisely, as sent by the provider.
 
 ```yml
 - apiVersion: v1beta1
-  kind: DID
+  kind: Number
   metadata:
     gwRef: gweef506
     geoInfo:
@@ -75,7 +75,7 @@ To configure your DID or virtual number, you must open and edit the file `config
       domainUri: sip.local
       egressPolicy:
         rule: .*
-        didRef: dd50baa4
+        numberRef: dd50baa4
 ```
 
 ### Creating the Agents
@@ -108,7 +108,7 @@ Pay close attention to the credentials block since it contains the username and 
 To verify your configuration, start the server by issuing the command `routr`. In a separate window, use the following commands:
 
 - `rctl get gateway`
-- `rctl get did`
+- `rctl get number`
 - `rctl get domain`
 - `rctl get agents`
 

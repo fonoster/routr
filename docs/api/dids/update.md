@@ -1,8 +1,8 @@
-Updates an existing DID resource.
+Updates an existing Number.
 
 **URL**
 
-`/dids/{ref}`
+`/numbers/{ref}`
 
 **Method**
 
@@ -14,19 +14,19 @@ This method does not receive any parameters.
 
 **Request body**
 
-A file containing a [DID](/configuration/dids) resource in `json` format.
+A file containing a [Number](/configuration/numbers) resource in `json` format.
 
 **Response**
 
-If successful this method updates a DID resource.
+If successful this method updates a Number.
 
 **Sample Call**
 
 ```json
-PUT /api/v1beta1/dids/dd50baa4
+PUT /api/v1beta1/numbers/dd50baa4
 {
   "apiVersion": "v1beta1",
-  "kind": "DID",
+  "kind": "Number",
   "metadata": {
     "ref": "dd50baa4",
     "gwRef": "gweef506",

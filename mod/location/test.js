@@ -10,7 +10,7 @@ const Locator = require('@routr/location/locator')
 const LocatorUtils = require('@routr/location/utils')
 const AgentsAPI = require('@routr/data_api/agents_api')
 const PeersAPI = require('@routr/data_api/peers_api')
-const DIDsAPI = require('@routr/data_api/dids_api')
+const NumbersAPI = require('@routr/data_api/numbers_api')
 const DomainsAPI = require('@routr/data_api/domains_api')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const {
@@ -28,7 +28,7 @@ const dataAPIs = {
     AgentsAPI: new AgentsAPI(ds),
     DomainsAPI: new DomainsAPI(ds),
     GatewaysAPI: new GatewaysAPI(ds),
-    DIDsAPI: new DIDsAPI(ds)
+    NumbersAPI: new NumbersAPI(ds)
 }
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 const locator = new Locator(dataAPIs)
@@ -103,8 +103,8 @@ describe('Location Service Module', () => {
         done()
     })
 
-    it('Find endpoint for did', function(done) {
-        // This is the local aor for the did '0000000000'
+    it('Find endpoint for number', function(done) {
+        // This is the local aor for the number '0000000000'
         const endpoint = buildEndpoint('1001', 'sip.local', '192.168.1.2:5061')
         locator.addEndpoint(endpoint.aor, endpoint.route)
         testFE(addressFactory.createSipURI('0000000000', 'sip.local'), true)

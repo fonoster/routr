@@ -22,7 +22,7 @@ delete config.spec.dataSource.parameters
 const ds = null
 const agentsApi = new AgentsAPI(ds)
 
-describe('Files Data Source', () => {
+describe('Redis Data Source', () => {
     it.skip('Basic operations', function(done) {
         const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
         const initSize = ds.withCollection('agents').find().result.length

@@ -1,8 +1,8 @@
-This method returns a list of DID resources.
+This method returns a list of Numbers.
 
 **URL**
 
-`/dids`
+`/numbers`
 
 **Method**
 
@@ -22,12 +22,12 @@ Do not supply a request body with this method.
 
 **Response**
 
-If successful this method returns a list of DID resources.
+If successful this method returns a list of Numbers.
 
 **Sample Call**
 
 ```json
-GET /api/v1beta1/dids
+GET /api/v1beta1/numbers
 {
 
 }
@@ -38,7 +38,7 @@ HTTP/1.1 200 OK
   "message": "Successful request",
   "result" : [{
   	"apiVersion": "v1beta1",
-  	"kind": "DID",
+  	"kind": "Number",
   	"metadata": {
       "ref": "dd50baa4",
   		"gwRef": "gweef506",

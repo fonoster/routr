@@ -11,9 +11,7 @@ can be provided using the file `config/config.yml` located at the root of your R
 | spec.externAddr | IP address to advertise | No |
 | spec.localnets | Local networks. Use in combination with spec.externAddr | No |
 | spec.recordRoute | Stay within the signaling path | No |
-| spec.useToAsAOR | Use the TO header instead of Request URI | No |
 | spec.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register. Default is `External` | No |
-| spec.addressInfo.[*] | Custom tag with the DID information | No |
 | spec.accessControlList.deny.[*] | Deny incoming traffic from network list | No |
 | spec.accessControlList.allow.[*] | Allow incoming traffic from network list | No |
 | spec.restService.bindAddr | Restful service listening address | No |
@@ -26,9 +24,9 @@ can be provided using the file `config/config.yml` located at the root of your R
 | spec.restService.trueStore | Path to trueStore | No |
 | spec.restService.keyStorePassword | Password for keyStore | No |
 | spec.restService.trueStorePassword | Password for trueStore | No |
-| spec.transport.bindAddr | Overwrites `spec.bindAddr` for transport entry | No |
-| spec.transport.port | Transport port | Yes |
-| spec.transport.protocol | Valid values are: `tcp`, `udp`, `tls`, `sctp`, `ws`, `wss` | Yes |
+| spec.transport.[*].bindAddr | Overwrites `spec.bindAddr` for transport entry | No |
+| spec.transport.[*].port | Transport port | Yes |
+| spec.transport.[*].protocol | Valid values are: `tcp`, `udp`, `tls`, `sctp`, `ws`, `wss` | Yes |
 | spec.securityContext.keyStore | Path to keyStore  | Yes |
 | spec.securityContext.trustStore | Path to trueStore  | Yes |
 | spec.securityContext.keyStorePassword | Password for keyStore  | Yes |
@@ -38,7 +36,6 @@ can be provided using the file `config/config.yml` located at the root of your R
 | spec.securityContext.debugging | Turns ON or OFF ssl debugging. Default is `false` | No |
 | spec.dataSource.provider | Defines data provider. Defaults to `files_data_provider` | No |
 | spec.dataSource.parameters | Provider specific parameters | No |
-| spec.logging.traceLevel | Verbosity of the sip-stack logging. Default is `0` | No |
 
 ## Transport Configuration
 
@@ -69,7 +66,7 @@ The parameters for `files_data_provider` are:
 
 | Parameter | Description | Required |
 | --- | --- | --- |
-| path | Path to configuration files. Defaults to 'config' folder | No |
+| path | Path to configuration files. Defaults to the `config` folder | No |
 
 This implementation has the limitation that writes operations have to be performed manually on the files.
 

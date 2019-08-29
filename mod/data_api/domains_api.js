@@ -29,7 +29,7 @@ class DomainsAPI {
 
     createFromJSON(jsonObj) {
         if (jsonObj.spec.context.egressPolicy &&
-            !this.doesDIDExist(jsonObj.spec.context.egressPolicy.didRef)) {
+            !this.doesNumberExist(jsonObj.spec.context.egressPolicy.numberRef)) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
@@ -44,7 +44,7 @@ class DomainsAPI {
 
     updateFromJSON(jsonObj) {
         if (jsonObj.spec.context.egressPolicy &&
-            !this.doesDIDExist(json.spec.context.egressPolicy.didRef)) {
+            !this.doesNumberExist(json.spec.context.egressPolicy.numberRef)) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
@@ -98,8 +98,8 @@ class DomainsAPI {
         return agents.length === 0 ? this.ds.withCollection('domains').remove(ref) : foundDependentObjects
     }
 
-    doesDIDExist(didRef) {
-        const response = this.ds.withCollection('dids').get(didRef)
+    doesNumberExist(numberRef) {
+        const response = this.ds.withCollection('numbers').get(numberRef)
         return response.status === Status.OK
     }
 }
