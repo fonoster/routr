@@ -32,7 +32,7 @@ class ProcessorUtils {
                 if (/sips?:.*@.*/.test(v) || /tel:\d+/.test(v)) {
                     return addressFactory.createURI(v)
                 }
-                LOG.error('Invalid address: ' + v)
+                LOG.error(`Invalid address: ${v}`)
             }
         }
 

@@ -103,7 +103,7 @@ class RedisDataSource {
             jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
             const kind = DSUtils.getKind(obj)
-            jedis.sadd(kind.toLowerCase() + 's', obj.metadata.ref)
+            jedis.sadd(`${kind.toLowerCase()}s`, obj.metadata.ref)
 
             return CoreUtils.buildResponse(Status.CREATED, obj.metadata.ref)
         } catch (e) {

@@ -24,7 +24,7 @@ class RestUtil {
             let compoundResponse = ''
             jsonObjs.forEach(jsonObj => {
                 const response = api.createFromJSON(jsonObj)
-                compoundResponse = compoundResponse + '\n' + response.message
+                compoundResponse = `${compoundResponse}\n${response.message}`
             })
             return compoundResponse
         } else {
@@ -33,7 +33,7 @@ class RestUtil {
                 return api.createFromJSON(jsonObj)
             } catch (e) {
                 if (e instanceof SyntaxError) {
-                    return CoreUtils.buildResponse(Status.BAD_REQUEST, null, "SyntaxError: Invalid JSON")
+                    return CoreUtils.buildResponse(Status.BAD_REQUEST, null, 'SyntaxError: Invalid JSON')
                 }
                 return CoreUtils.buildResponse(Status.BAD_REQUEST, null, e)
             }

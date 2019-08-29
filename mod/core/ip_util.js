@@ -37,7 +37,7 @@ class IPUtil {
         let subnetUtils
 
         if (IPUtil.isIp(net)) {
-            subnetUtils = new SubnetUtils(net + '/31')
+            subnetUtils = new SubnetUtils(`${net}/31`)
         } else if (IPUtil.isCidr(net)) {
             subnetUtils = new SubnetUtils(net)
         } else if (IPUtil.isIpAndMask(net)) {

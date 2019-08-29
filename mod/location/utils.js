@@ -50,7 +50,7 @@ class LocatorUtils {
             }
         }
 
-        throw 'Invalid AOR: ' + addressOfRecord
+
     }
 
     static aorAsObj(addressOfRecord) {
@@ -65,7 +65,7 @@ class LocatorUtils {
             return addressOfRecord
         }
 
-        throw 'Invalid AOR: ' + addressOfRecord
+        throw `Invalid AOR: ${addressOfRecord}`
     }
 
     // Cheap implementation :(

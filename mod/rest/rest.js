@@ -38,7 +38,7 @@ class Rest {
         this.server = server
         this.config = config
 
-        LOG.info('Starting Restful service (port: ' + this.rest.port + ', apiPath: ' + this.system.apiPath + ')')
+        LOG.info(`Starting Restful service (port: ${this.rest.port}, apiPath: ${this.system.apiPath})`)
 
         Spark.ipAddress(this.rest.bindAddr)
         Spark.threadPool(this.rest.maxThreads, this.rest.minThreads, this.rest.timeOutMillis)

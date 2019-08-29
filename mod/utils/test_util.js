@@ -24,13 +24,13 @@ module.exports.createRequest = function(from, to, withExpiresInContact = false) 
     const maxForwardsHeader = headerFactory.createMaxForwardsHeader(70)
     const callIdHeader = headerFactory.createCallIdHeader('call0001')
     const cSeqHeader = headerFactory.createCSeqHeader(cseq, Request.REGISTER)
-    const fromAddress = addressFactory.createAddress('sip:' + from)
+    const fromAddress = addressFactory.createAddress(`sip:${from}`)
     const fromHeader = headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag())
 
-    const toAddress = addressFactory.createAddress('sip:' + to)
+    const toAddress = addressFactory.createAddress(`sip:${to}`)
     const toHeader = headerFactory.createToHeader(toAddress, null)
     const expireHeader = headerFactory.createExpiresHeader(3600)
-    const contactAddress = addressFactory.createAddress('sip:' + from + ':' + port)
+    const contactAddress = addressFactory.createAddress(`sip:${from}:${port}`)
     const contactHeader = headerFactory.createContactHeader(contactAddress)
 
     if (withExpiresInContact) {

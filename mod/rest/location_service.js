@@ -27,8 +27,8 @@ module.exports = function(locator) {
             const body = JSON.parse(req.body())
 
             if (!validator.isIP(body.address) ||
-                !validator.isPort(body.port + '') ||
-                !validator.isInt(body.expires + '') ||
+                !validator.isPort(`${body.port}`) ||
+                !validator.isInt(`${body.expires}`) ||
                 !body.user
             ) throw 'Bad Request'
 
@@ -46,8 +46,8 @@ module.exports = function(locator) {
             }
 
             postal.publish({
-                channel: "locator",
-                topic: "endpoint.add",
+                channel: 'locator',
+                topic: 'endpoint.add',
                 data: {
                     addressOfRecord: aor,
                     route: route
@@ -70,8 +70,8 @@ module.exports = function(locator) {
         const aor = req.params(':aor')
 
         postal.publish({
-            channel: "locator",
-            topic: "endpoint.remove",
+            channel: 'locator',
+            topic: 'endpoint.remove',
             data: {
                 addressOfRecord: aor,
                 isWildcard: true

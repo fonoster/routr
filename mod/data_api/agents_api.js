@@ -43,7 +43,7 @@ class AgentsAPI {
     }
 
     getAgentByDomain(domainUri, username) {
-        const key = `${domainUri.trim()}.${username.trim()}` 
+        const key = `${domainUri.trim()}.${username.trim()}`
         let agent = this.cache.getIfPresent(key)
 
         if (agent === null) {
@@ -87,7 +87,7 @@ class AgentsAPI {
         const agent = response.result
 
         agent.spec.domains.forEach(domain => {
-            const key = domain.trim() + '.' + agent.spec.credentials.username.trim()
+            const key = `${domain.trim()}.${agent.spec.credentials.username.trim()}`
             if (this.cache.getIfPresent(key)) {
                 this.cache.invalidate(key)
             }
@@ -97,8 +97,7 @@ class AgentsAPI {
     }
 
     existInAnotherDomain(agent) {
-        const response = this.getAgents("@.spec.credentials.username==" +
-            agent.spec.credentials.username)
+        const response = this.getAgents(`@.spec.credentials.username==${agent.spec.credentials.username}`)
         for (const x in response.result) {
             const curAgent = response.result[x]
             for (var y in curAgent.spec.domains) {
@@ -113,8 +112,8 @@ class AgentsAPI {
 
     doesDomainExist(agent) {
         const domains = JSON.stringify(agent.spec.domains).replaceAll("\"", "'")
-        const response = this.ds.withCollection('domains').find("@.spec.context.domainUri in " + domains)
-        return response.result.length !== agent.spec.domains.length ? false : true
+        const response = this.ds.withCollection('domains').find(`@.spec.context.domainUri in ${domains}`)
+        return response.result.length === agent.spec.domains.length
     }
 }
 

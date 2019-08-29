@@ -78,7 +78,7 @@ class GatewaysAPI {
 
         const gateway = response.result
 
-        response = this.ds.withCollection('dids').find("@.metadata.gwRef=='" + gateway.metadata.ref + "'")
+        response = this.ds.withCollection('dids').find(`@.metadata.gwRef=='${gateway.metadata.ref}'`)
         const dids = response.result
 
         return dids.length === 0 ? this.ds.withCollection('gateways').remove(ref) : FOUND_DEPENDENT_OBJECTS_RESPONSE

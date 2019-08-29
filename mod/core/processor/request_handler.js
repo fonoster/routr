@@ -102,11 +102,12 @@ class RequestHandler {
 
         LOG.debug(`core.processor.RequestHandler.processRoute [advertised addr ${JSON.stringify(advertisedAddr)}]`)
         LOG.debug(`core.processor.RequestHandler.processRoute [route ${JSON.stringify(route)}]`)
+
         this.sendRequest(requestIn, requestOut, serverTransaction)
     }
 
     stayInSignalingPath() {
-        return config.spec.recordRoute ? true : false
+        return config.spec.recordRoute
     }
 
     proxyOwnsRequest(request, localAddr, advertisedAddr) {

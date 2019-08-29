@@ -60,7 +60,7 @@ class FilesDataSource {
     staticConfigValidation() {
         for (const cnt in RESOURCES) {
             try {
-                const res = FilesUtil.readFile(this.filesPath + '/' + RESOURCES[cnt] + '.yml')
+                const res = FilesUtil.readFile(`${this.filesPath}/${RESOURCES[cnt]}.yml`)
                 const jsonObjs = DSUtils.convertToJson(res)
                 for (const cntObj in jsonObjs) {
                     DSUtils.isValidEntity(jsonObjs[cntObj])
@@ -108,7 +108,7 @@ class FilesDataSource {
             const domains = agent.spec.domains
             for (const cnt in domains) {
                 const domain = domains[cnt]
-                response = this.withCollection('domains').find("@.spec.context.domainUri=='" + domain + "'")
+                response = this.withCollection('domains').find(`@.spec.context.domainUri=='${domain}'`)
                 if (response.result.length === 0) {
                     throw `Agent \`${agent.metadata.name}\`(${agent.spec.credentials.username}) has a non-existent domain/s.`
                     exit(1)
@@ -151,14 +151,14 @@ class FilesDataSource {
 
     find(filter = '*') {
         if (!isEmpty(filter) && filter !== '*') {
-            filter = "*.[?(" + filter + ")]"
+            filter = `*.[?(${filter})]`
         }
 
         let list = []
 
         try {
             lock.lock()
-            const filePath = this.filesPath + '/' + this.collection + '.yml'
+            const filePath = `${this.filesPath}/${this.collection}.yml`
             let jsonPath = this.cache.getIfPresent(filePath)
 
             if (jsonPath === null) {

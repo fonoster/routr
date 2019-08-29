@@ -18,16 +18,16 @@ class AuthHelper {
     }
 
     static calculateResponse(username, secret, realm, nonce, nc, cnonce, uri, method, qop) {
-        const a1 = username + ':' + realm + ':' + secret
-        const a2 = method.toUpperCase() + ':' + uri
+        const a1 = `${username}:${realm}:${secret}`
+        const a2 = `${method.toUpperCase()}:${uri}`
         const ha1 = DigestUtils.md5Hex(a1)
         const ha2 = DigestUtils.md5Hex(a2)
 
         if (qop !== null && qop.equals('auth')) {
-            return DigestUtils.md5Hex(ha1 + ':' + nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2)
+            return DigestUtils.md5Hex(`${ha1}:${nonce}:${nc}:${cnonce}:${qop}:${ha2}`)
         }
 
-        return DigestUtils.md5Hex(ha1 + ':' + nonce + ':' + ha2)
+        return DigestUtils.md5Hex(`${ha1}:${nonce}:${ha2}`)
     }
 
     // Generates WWW-Authorization header
@@ -47,7 +47,7 @@ class AuthHelper {
         const time = date.getTime()
         const rand = new Random()
         const pad = rand.nextLong()
-        const nonceString = (new Long(time)).toString() + (new Long(pad)).toString()
+        const nonceString = `${new Long(time)}${new Long(pad)}`
         const messageDigest = MessageDigest.getInstance(DEFAULT_ALGORITHM)
         const mdbytes = messageDigest.digest(new java.lang.String(nonceString).getBytes())
         return DigestUtils.md5Hex(mdbytes)

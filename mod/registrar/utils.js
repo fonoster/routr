@@ -90,8 +90,8 @@ class RegistrarUtils {
 
         if (user.kind.equalsIgnoreCase('peer') && !isEmpty(user.spec.contactAddr)) {
             if (user.spec.contactAddr.contains(":")) {
-                contactURI.setHost(user.spec.contactAddr.split(":")[0])
-                contactURI.setPort(user.spec.contactAddr.split(":")[1])
+                contactURI.setHost(user.spec.contactAddr.split(':')[0])
+                contactURI.setPort(user.spec.contactAddr.split(':')[1])
             } else {
                 contactURI.setHost(user.spec.contactAddr)
             }

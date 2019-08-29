@@ -292,7 +292,7 @@ class Locator {
                 let r = `${rObj.contactURI};nat=${rObj.nat};expires=${rObj.expires}`
 
                 if (routes.length > 1) r = `${r} [...]`
-                contactInfo = contactInfo + r
+                contactInfo = `${contactInfo}${r}`
             }
 
             let tmp = {

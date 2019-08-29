@@ -92,7 +92,7 @@ class DomainsAPI {
 
         const domain = response.result
 
-        response = this.ds.withCollection('agents').find("'" + domain.spec.context.domainUri + "' in @.spec.domains")
+        response = this.ds.withCollection('agents').find(`'${domain.spec.context.domainUri}' in @.spec.domains`)
         const agents = response.result
 
         return agents.length === 0 ? this.ds.withCollection('domains').remove(ref) : foundDependentObjects

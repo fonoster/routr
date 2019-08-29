@@ -39,7 +39,7 @@ class Server {
             const proto = curTransport.protocol.toLowerCase()
 
             if ((proto === 'wss' || proto === 'tls') && !this.config.spec.securityContext) {
-                LOG.warn(ANSI_YELLOW + 'Security context could not found. Ignoring protocol: ' + proto + ANSI_RESET)
+                LOG.warn(`${ANSI_YELLOW }Security context could not found. Ignoring protocol: ${proto}${ANSI_RESET}`)
                 continue
             }
 
@@ -50,10 +50,7 @@ class Server {
             const lp = sipStack.createListeningPoint(curTransport.bindAddr, curTransport.port, proto)
             sipProvider.addListeningPoint(lp)
 
-            LOG.info('Listening on ' + ANSI_GREEN + curTransport.bindAddr +
-                ':' + curTransport.port +
-                ' [' + proto + ']' +
-                ANSI_RESET)
+            LOG.info(`Listening on ${ANSI_GREEN}${curTransport.bindAddr}:${curTransport.port} [${proto}]${ANSI_RESET}`)
         }
 
         return sipProvider
@@ -61,10 +58,10 @@ class Server {
 
     showExternInfo() {
         if (this.config.spec.externAddr) {
-            LOG.info("ExternAddr is " + ANSI_GREEN + this.config.spec.externAddr + ANSI_RESET)
+            LOG.info(`ExternAddr is ${ANSI_GREEN}${this.config.spec.externAddr}${ANSI_RESET}`)
 
             if (this.config.spec.localnets) {
-                LOG.info("Localnets is " + ANSI_GREEN + this.config.spec.localnets.join(",") + ANSI_RESET)
+                LOG.info(`Localnets is ${ANSI_GREEN}${this.config.spec.localnets.join(',')}${ANSI_RESET}`)
             }
         }
     }
@@ -143,7 +140,7 @@ class Server {
 
         try {
             const filesPath = this.config.spec.dataSource.parameters.path
-            properties.load(new FileInputStream(filesPath + '/stack.properties'))
+            properties.load(new FileInputStream(`${filesPath}/stack.properties`))
         } catch (e) {}
 
         return properties

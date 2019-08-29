@@ -56,7 +56,7 @@ class RouteInfo {
                     callee.host = calleeURI.getHost()
                     break
                 }
-                LOG.error('Invalid address: ' + v)
+                LOG.error(`Invalid address: ${v}`)
             }
         }
         return callee

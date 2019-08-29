@@ -17,7 +17,7 @@ const dataAPIs = {
 }
 
 describe('Registry Module', () => {
-    it.skip('Store registry', function(done) {
+    it('Store registry', function(done) {
         const registry = new Registry(null, dataAPIs)
         registry.storeRegistry(addressFactory.createSipURI('29121', 'sanjose2.voip.ms'), 200)
         assert.ok(registry.listAsJSON().length === 1)

@@ -53,13 +53,14 @@ class DSUtils {
             obj = o
         }
 
-        const schema = factory.getSchema(FilesUtil.readFile(schemaPath + '/' + kind.toLowerCase() + 's_schema.json'))
+
+        const schema = factory.getSchema(FilesUtil.readFile(`${schemaPath}/${kind.toLowerCase()}s_schema.json`))
         const node = mapper.readTree(JSON.stringify(obj))
         const errors = schema.validate(node)
 
         if (errors.size() > 0) {
             const i = errors.iterator()
-            LOG.warn('We found some errors in your resource ' + node)
+            LOG.warn(`We found some errors in your resource ${node}`)
             while (i.hasNext()) {
                 LOG.warn(i.next())
             }
@@ -98,11 +99,11 @@ class DSUtils {
 
     static objExist(response) {
         const status = response.status
-        return status === Status.OK || status === Status.CREATED ? true : false
+        return status === Status.OK || status === Status.CREATED
     }
 
     static transformFilter(filter = '*') {
-        return !isEmpty(filter) && !filter.equals('*') ? "*.[?(" + filter + ")]" : filter
+        return !isEmpty(filter) && !filter.equals('*') ? `*.[?(${filter})]` : filter
     }
 
     static resolve(path, obj) {
@@ -126,10 +127,10 @@ class DSUtils {
 
     static getFromEnv(params, allowedKeys) {
         const parameters = {}
-        params.split(",").forEach(par => {
-            const key = par.split("=")[0]
-            const value = par.split("=")[1]
-            allowedKeys.indexOf(key) === -1 ? LOG.warn('Invalid parameter: ' + key) : parameters[key] = value
+        params.split(',').forEach(par => {
+            const key = par.split('=')[0]
+            const value = par.split('=')[1]
+            allowedKeys.indexOf(key) === -1 ? LOG.warn(`Invalid parameter: ${key}`) : parameters[key] = value
         })
         return parameters
     }
