@@ -4,6 +4,7 @@ services:
     build:
       context: .
     image: fonoster/routr:latest
+    depends_on: [redis]
     environment:
       ROUTR_EXTERN_ADDR: ${ROUTR_EXTERN_ADDR}
       ROUTR_DS_PROVIDER: redis_data_provider

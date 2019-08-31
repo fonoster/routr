@@ -6,10 +6,6 @@ BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 
 [ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
 
-running_in_docker() {
-  [ -f /proc/self/cgroup ] && awk -F/ '$2 == "docker"' /proc/self/cgroup | read
-}
-
 run() {
   cd $BASE_DIR
   $JAVA_HOME/bin/java \
@@ -20,7 +16,7 @@ run() {
       com.fonoster.routr.core.Launcher
 }
 
-if running_in_docker ; then
+if [ -f /.dockerenv ]; then
   [ -z "$ROUTR_EXTERN_ADDR" ] && { echo "Must define environment variable ROUTR_EXTERN_ADDR when running inside a container"; exit 1; }
   [ -z "$ROUTR_LOCALNETS" ] && export ROUTR_LOCALNETS=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}')
 fi
