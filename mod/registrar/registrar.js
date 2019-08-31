@@ -77,7 +77,10 @@ class Registrar {
                 return response.result
             }
         }
-        return
+
+        LOG.debug(`registrar.Registrar.getUserFromAPI [Unable to authenticate Agent with username: ${username}]`)
+
+        return null
     }
 
     isAuthorized(request) {
