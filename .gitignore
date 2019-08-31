@@ -10,7 +10,7 @@ node_modules
 *.zip
 build
 libs
-config/*.yml
+config/sc/*.yml
 .gradle
 .idea
 *.iml
