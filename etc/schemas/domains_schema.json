@@ -30,9 +30,9 @@
                                 "type": "object",
                                 "properties": {
                                     "rule": {"type": "string"},
-                                    "didRef": {"type": "string"}
+                                    "numberRef": {"type": "string"}
                                 },
-                                "required": ["rule", "didRef"]
+                                "required": ["rule", "numberRef"]
                             },
                             "accessControlList": {
                                 "type": "object",

@@ -122,7 +122,7 @@ class Server {
         // Guard against denial of service attack.
         properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576')
         properties.setProperty('gov.nist.javax.sip.LOG_MESSAGE_CONTENT', 'false')
-        properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', this.config.spec.logging.traceLevel)
+        //properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', this.config.spec.logging.traceLevel)
 
         // Default host
         properties.setProperty('javax.sip.IP_ADDRESS', this.host)
