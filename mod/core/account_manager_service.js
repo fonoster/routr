@@ -51,7 +51,7 @@ class AccountManagerService {
                 return new UserCredentials({
                     getUserName: () => gateway.username,
                     getPassword: () => gateway.secret,
-                    getSipDomain: () => gatewayPatch(gateway.spec.host, gateway.spec.port)
+                    getSipDomain: () => gateway.host
                 })
             }
         })
