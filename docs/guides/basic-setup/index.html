@@ -611,8 +611,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../configuration/dids/" title="Virtual Numbers(DIDs) Configuration" class="md-nav__link">
-      Virtual Numbers(DIDs) Configuration
+    <a href="../../configuration/numbers/" title="Numbers(DID/DOD) Configuration" class="md-nav__link">
+      Numbers(DID/DOD) Configuration
     </a>
   </li>
 
@@ -791,7 +791,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/credentials/" title="Credentials" class="md-nav__link">
+    <a href="../../api/token/" title="Credentials" class="md-nav__link">
       Credentials
     </a>
   </li>
@@ -1215,11 +1215,11 @@
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5-9" type="checkbox" id="nav-5-9">
     
     <label class="md-nav__link" for="nav-5-9">
-      DIDs
+      Numbers
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
       <label class="md-nav__title" for="nav-5-9">
-        DIDs
+        Numbers
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -1230,7 +1230,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/create/" title="create" class="md-nav__link">
+    <a href="../../api/numbers/create/" title="create" class="md-nav__link">
       create
     </a>
   </li>
@@ -1242,7 +1242,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/delete/" title="delete" class="md-nav__link">
+    <a href="../../api/numbers/delete/" title="delete" class="md-nav__link">
       delete
     </a>
   </li>
@@ -1254,7 +1254,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/get/" title="get" class="md-nav__link">
+    <a href="../../api/numbers/get/" title="get" class="md-nav__link">
       get
     </a>
   </li>
@@ -1266,7 +1266,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/list/" title="list" class="md-nav__link">
+    <a href="../../api/numbers/list/" title="list" class="md-nav__link">
       list
     </a>
   </li>
@@ -1278,7 +1278,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/update/" title="update" class="md-nav__link">
+    <a href="../../api/numbers/update/" title="update" class="md-nav__link">
       update
     </a>
   </li>
@@ -1314,7 +1314,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/system/status/" title="Status" class="md-nav__link">
+    <a href="../../api/system/status.md" title="Status" class="md-nav__link">
       Status
     </a>
   </li>
@@ -1326,7 +1326,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/system/info/" title="Info" class="md-nav__link">
+    <a href="../../api/system/info.md" title="Info" class="md-nav__link">
       Info
     </a>
   </li>
@@ -1414,8 +1414,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuring-the-did" title="Configuring the DID" class="md-nav__link">
-    Configuring the DID
+  <a href="#configuring-the-number" title="Configuring the Number" class="md-nav__link">
+    Configuring the Number
   </a>
   
 </li>
@@ -1577,8 +1577,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuring-the-did" title="Configuring the DID" class="md-nav__link">
-    Configuring the DID
+  <a href="#configuring-the-number" title="Configuring the Number" class="md-nav__link">
+    Configuring the Number
   </a>
   
 </li>
@@ -1644,13 +1644,13 @@
                 
                   <h1>Basic Setup</h1>
                 
-                <p>This document is a step-by-step guide on VoIP setup at home or the office. For calls to the PSTN you need to have a SIP provider like <code>voip.ms</code> or <code>didlogic.com</code>.</p>
+                <p>This document is a step-by-step guide on VoIP setup at home or the office. For calls to the PSTN you need to have a SIP provider like <code>voip.ms</code> or <code>did.logic.com</code>.</p>
 <p><strong>Content</strong></p>
 <ul>
 <li><a href="#requirements">Requirements</a></li>
 <li><a href="#setting-up-the-server">Setting up the Server</a><ul>
 <li><a href="#configuring-the-gateway">Configuring the Gateway</a></li>
-<li><a href="#configuring-the-did">Configuring the DID </a></li>
+<li><a href="#configuring-the-number">Configuring the Number </a></li>
 <li><a href="#creating-a-new-domain-and-egresspolicy">Creating a new Domain and EgressPolicy</a></li>
 <li><a href="#creating-the-agents">Creating the Agents</a></li>
 </ul>
@@ -1664,7 +1664,7 @@
 <ul>
 <li>Two SIP phones connected to the same LAN</li>
 <li>A fresh installation of Routr</li>
-<li>SIP providers such as <code>voip.ms</code> or <code>didlogic.com</code></li>
+<li>SIP providers such as <code>voip.ms</code> or <code>did.logic.com</code></li>
 </ul>
 <h2 id="setting-up-the-server">Setting up the Server<a class="headerlink" href="#setting-up-the-server" title="Permanent link">&para;</a></h2>
 <p>A set of sample configuration covering this scenario is available in the Github <a href="https://github.com/fonoster/routr/tree/master/config">repo</a>. You might overwrite the files in the <code>config</code> folder if you wish to skip this section.</p>
@@ -1683,10 +1683,10 @@
       transport: udp
 </pre></div>
 
-<h3 id="configuring-the-did">Configuring the DID<a class="headerlink" href="#configuring-the-did" title="Permanent link">&para;</a></h3>
-<p>To configure your DID or virtual number, you must open and edit the file <code>config/dids.yml</code>. Notice in the example below, how your reference the Gateway by using the field <code>metadata.geRef</code>. The key field while configuring DIDs are <code>spec.location.telUrl</code> and <code>spec.location.aorLink</code>. Keep in mind that the value in <code>spec.location.telUrl</code> must be formatted, precisely, as sent by the provider.</p>
+<h3 id="configuring-the-number">Configuring the Number<a class="headerlink" href="#configuring-the-number" title="Permanent link">&para;</a></h3>
+<p>To configure your Number or virtual number, you must open and edit the file <code>config/numbers.yml</code>. Notice in the example below, how your reference the Gateway by using the field <code>metadata.geRef</code>. The key field while configuring Numbers are <code>spec.location.telUrl</code> and <code>spec.location.aorLink</code>. Keep in mind that the value in <code>spec.location.telUrl</code> must be formatted, precisely, as sent by the provider.</p>
 <div class="codehilite"><pre><span></span>- apiVersion: v1beta1
-  kind: DID
+  kind: Number
   metadata:
     gwRef: gweef506
     geoInfo:
@@ -1710,7 +1710,7 @@
       domainUri: sip.local
       egressPolicy:
         rule: .*
-        didRef: dd50baa4
+        numberRef: dd50baa4
 </pre></div>
 
 <h3 id="creating-the-agents">Creating the Agents<a class="headerlink" href="#creating-the-agents" title="Permanent link">&para;</a></h3>
@@ -1739,7 +1739,7 @@
 <p>To verify your configuration, start the server by issuing the command <code>routr</code>. In a separate window, use the following commands:</p>
 <ul>
 <li><code>rctl get gateway</code></li>
-<li><code>rctl get did</code></li>
+<li><code>rctl get number</code></li>
 <li><code>rctl get domain</code></li>
 <li><code>rctl get agents</code></li>
 </ul>
@@ -1794,8 +1794,8 @@
 
         <!-- Link to previous page -->
         
-          <a href="../../api/system/info/"
-              title="Info"
+          <a href="../../api/numbers/update/"
+              title="update"
               class="md-flex md-footer-nav__link md-footer-nav__link--prev"
               rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
@@ -1808,7 +1808,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Info
+                update
               </span>
             </div>
           </a>

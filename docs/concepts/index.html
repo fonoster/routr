@@ -686,8 +686,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../configuration/dids/" title="Virtual Numbers(DIDs) Configuration" class="md-nav__link">
-      Virtual Numbers(DIDs) Configuration
+    <a href="../configuration/numbers/" title="Numbers(DID/DOD) Configuration" class="md-nav__link">
+      Numbers(DID/DOD) Configuration
     </a>
   </li>
 
@@ -866,7 +866,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../api/credentials/" title="Credentials" class="md-nav__link">
+    <a href="../api/token/" title="Credentials" class="md-nav__link">
       Credentials
     </a>
   </li>
@@ -1290,11 +1290,11 @@
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5-9" type="checkbox" id="nav-5-9">
     
     <label class="md-nav__link" for="nav-5-9">
-      DIDs
+      Numbers
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
       <label class="md-nav__title" for="nav-5-9">
-        DIDs
+        Numbers
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -1305,7 +1305,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../api/dids/create/" title="create" class="md-nav__link">
+    <a href="../api/numbers/create/" title="create" class="md-nav__link">
       create
     </a>
   </li>
@@ -1317,7 +1317,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../api/dids/delete/" title="delete" class="md-nav__link">
+    <a href="../api/numbers/delete/" title="delete" class="md-nav__link">
       delete
     </a>
   </li>
@@ -1329,7 +1329,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../api/dids/get/" title="get" class="md-nav__link">
+    <a href="../api/numbers/get/" title="get" class="md-nav__link">
       get
     </a>
   </li>
@@ -1341,7 +1341,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../api/dids/list/" title="list" class="md-nav__link">
+    <a href="../api/numbers/list/" title="list" class="md-nav__link">
       list
     </a>
   </li>
@@ -1353,7 +1353,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../api/dids/update/" title="update" class="md-nav__link">
+    <a href="../api/numbers/update/" title="update" class="md-nav__link">
       update
     </a>
   </li>
@@ -1389,7 +1389,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../api/system/status/" title="Status" class="md-nav__link">
+    <a href="../api/system/status.md" title="Status" class="md-nav__link">
       Status
     </a>
   </li>
@@ -1401,7 +1401,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../api/system/info/" title="Info" class="md-nav__link">
+    <a href="../api/system/info.md" title="Info" class="md-nav__link">
       Info
     </a>
   </li>
@@ -1670,10 +1670,10 @@ the OUTBOUND PROXY of your sip device.</p>
       <span class="nt">registries</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">sip.nyc.provider.net</span><span class="p p-Indicator">]</span>     <span class="c1"># These are additional registrars within the provider&#39;s network</span>
 </pre></div>
 
-<p>You also need to define DIDs. Routr uses the Address Of Record(AOR) to routes incoming calls from a DID  to an existing Agent or Peer. The AOR must be available in the location service at the time of the call, or the call gets rejected.</p>
+<p>You also need to define Numbers. Routr uses the Address Of Record(AOR) to routes incoming calls from a Number  to an existing Agent or Peer. The AOR must be available in the location service at the time of the call, or the call gets rejected.</p>
 <p>Please examine the following example:</p>
 <div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
-  <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DID</span>
+  <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Number</span>
   <span class="nt">metadata</span><span class="p">:</span>
     <span class="nt">gwRef</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">dd50baa4</span>
     <span class="nt">geoInfo</span><span class="p">:</span>
@@ -1686,18 +1686,18 @@ the OUTBOUND PROXY of your sip device.</p>
       <span class="nt">aorLink</span><span class="p">:</span> <span class="s">&#39;sip:john@sip.local&#39;</span>      <span class="c1"># This is the sip uri of an agent that is expected to be logged in</span>
 </pre></div>
 
-<p>Easy right? Any incoming call is routed from this Gateway and DID to "Jhon Doe" @ Ocean New York.</p>
+<p>Easy right? Any incoming call is routed from this Gateway and Number to "Jhon Doe" @ Ocean New York.</p>
 <p><strong>Routing Rules</strong></p>
-<p>The <code>spec.location</code> block of a <code>DID</code> resource configuration, determines the path of an inbound call from the PSTN. The <code>aorLink</code> refers to an Address of Record(Agent or Peer) that is available in the <code>location service</code>.</p>
+<p>The <code>spec.location</code> block of a <code>Number</code> resource configuration, determines the path of an inbound call from the PSTN. The <code>aorLink</code> refers to an Address of Record(Agent or Peer) that is available in the <code>location service</code>.</p>
 <h2 id="domain-egress-routing">Domain Egress Routing<a class="headerlink" href="#domain-egress-routing" title="Permanent link">&para;</a></h2>
-<p><em>Domain Egress Routing(DER)</em> is the way that <strong>Routr</strong> deals with a call request to a <em>callee</em> that exists in the Public Switched Telephone Network(PSTN) and not in the <em>callers'</em> Domain. The EgressPolicy consists of a <code>rule</code>, and a <code>didRef</code> defined in the <code>spec.context</code> section of <code>Domains</code> resources.</p>
-<p>The <code>rule</code> and <code>didRef</code> is defined as follows:</p>
+<p><em>Domain Egress Routing(DER)</em> is the way that <strong>Routr</strong> deals with a call request to a <em>callee</em> that exists in the Public Switched Telephone Network(PSTN) and not in the <em>callers'</em> Domain. The EgressPolicy consists of a <code>rule</code>, and a <code>numberRef</code> defined in the <code>spec.context</code> section of <code>Domains</code> resources.</p>
+<p>The <code>rule</code> and <code>numberRef</code> is defined as follows:</p>
 <ul>
 <li>
 <p><code>rule</code> is a regex to match callee in the call request. The location service uses this only after a search in the caller's Domain first.</p>
 </li>
 <li>
-<p><code>didRef</code> is the identifier of the DID that will to route the call. The DID must already exist and have a parent Gateway.</p>
+<p><code>numberRef</code> is the identifier of the Number that will to route the call. The Number must already exist and have a parent Gateway.</p>
 </li>
 </ul>
 <p><strong>Routing Rules</strong></p>
@@ -1705,7 +1705,7 @@ the OUTBOUND PROXY of your sip device.</p>
 <h2 id="peers-routing">Peers Routing<a class="headerlink" href="#peers-routing" title="Permanent link">&para;</a></h2>
 <p>Peers are very similar to Agents, but they are not bound to any Domain, and usually, collocated in the same network with Routr. A typical case is peering with Asterisk, where Asterisk acts as a Media Server and Routr provides the signaling.</p>
 <p>Peers can perform inbound/outbound signaling within the network without any special consideration since they exist inside the <em>Location Service</em> just like Agents. So it is possible to perform signaling from Peer to Peer, Peer to Agent.</p>
-<p>The same is true for Inbound from the PSTN. For example, we can redirect incoming calls from the PSTN using the <code>spec.location</code> settings in the <code>dids.yml</code> configuration file.</p>
+<p>The same is true for Inbound from the PSTN. For example, we can redirect incoming calls from the PSTN using the <code>spec.location</code> settings in the <code>numbers.yml</code> configuration file.</p>
 <p><strong>Routing Rules</strong></p>
 <p>Agents are not allowed to call Peers.</p>
 <blockquote>

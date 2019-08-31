@@ -635,13 +635,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#restful-data-provider" title="Restful Data Provider" class="md-nav__link">
-    Restful Data Provider
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -709,8 +702,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../dids/" title="Virtual Numbers(DIDs) Configuration" class="md-nav__link">
-      Virtual Numbers(DIDs) Configuration
+    <a href="../numbers/" title="Numbers(DID/DOD) Configuration" class="md-nav__link">
+      Numbers(DID/DOD) Configuration
     </a>
   </li>
 
@@ -889,7 +882,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/credentials/" title="Credentials" class="md-nav__link">
+    <a href="../../api/token/" title="Credentials" class="md-nav__link">
       Credentials
     </a>
   </li>
@@ -1313,11 +1306,11 @@
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5-9" type="checkbox" id="nav-5-9">
     
     <label class="md-nav__link" for="nav-5-9">
-      DIDs
+      Numbers
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
       <label class="md-nav__title" for="nav-5-9">
-        DIDs
+        Numbers
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -1328,7 +1321,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/create/" title="create" class="md-nav__link">
+    <a href="../../api/numbers/create/" title="create" class="md-nav__link">
       create
     </a>
   </li>
@@ -1340,7 +1333,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/delete/" title="delete" class="md-nav__link">
+    <a href="../../api/numbers/delete/" title="delete" class="md-nav__link">
       delete
     </a>
   </li>
@@ -1352,7 +1345,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/get/" title="get" class="md-nav__link">
+    <a href="../../api/numbers/get/" title="get" class="md-nav__link">
       get
     </a>
   </li>
@@ -1364,7 +1357,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/list/" title="list" class="md-nav__link">
+    <a href="../../api/numbers/list/" title="list" class="md-nav__link">
       list
     </a>
   </li>
@@ -1376,7 +1369,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/update/" title="update" class="md-nav__link">
+    <a href="../../api/numbers/update/" title="update" class="md-nav__link">
       update
     </a>
   </li>
@@ -1412,7 +1405,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/system/status/" title="Status" class="md-nav__link">
+    <a href="../../api/system/status.md" title="Status" class="md-nav__link">
       Status
     </a>
   </li>
@@ -1424,7 +1417,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/system/info/" title="Info" class="md-nav__link">
+    <a href="../../api/system/info.md" title="Info" class="md-nav__link">
       Info
     </a>
   </li>
@@ -1590,13 +1583,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#restful-data-provider" title="Restful Data Provider" class="md-nav__link">
-    Restful Data Provider
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1687,18 +1673,8 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 <td>No</td>
 </tr>
 <tr>
-<td>spec.useToAsAOR</td>
-<td>Use the TO header instead of Request URI</td>
-<td>No</td>
-</tr>
-<tr>
 <td>spec.registrarIntf</td>
-<td><code>Internal</code> will cause the server to use the IP and port it sees(received &amp; rport) from a device attempting to register. Default is <code>External</code></td>
-<td>No</td>
-</tr>
-<tr>
-<td>spec.addressInfo.[*]</td>
-<td>Custom tag with the DID information</td>
+<td><code>Internal</code> causes the server to use the IP and port it "sees"(received &amp; rport) from a device attempting to register. Default is <code>External</code></td>
 <td>No</td>
 </tr>
 <tr>
@@ -1719,6 +1695,21 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 <tr>
 <td>spec.restService.port</td>
 <td>Restful service port. Defaults to 4567</td>
+<td>No</td>
+</tr>
+<tr>
+<td>spec.restService.minThreads</td>
+<td>Minimum thread allocation. Default is 8</td>
+<td>No</td>
+</tr>
+<tr>
+<td>spec.restService.maxThreads</td>
+<td>Maximum thread allocation. Default is 200</td>
+<td>No</td>
+</tr>
+<tr>
+<td>spec.restService.timeOutMillis</td>
+<td>Will reject requests that last more than this value. Default is 5000(5 seconds)</td>
 <td>No</td>
 </tr>
 <tr>
@@ -1747,17 +1738,17 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 <td>No</td>
 </tr>
 <tr>
-<td>spec.transport.bindAddr</td>
+<td>spec.transport.[*].bindAddr</td>
 <td>Overwrites <code>spec.bindAddr</code> for transport entry</td>
 <td>No</td>
 </tr>
 <tr>
-<td>spec.transport.port</td>
+<td>spec.transport.[*].port</td>
 <td>Transport port</td>
 <td>Yes</td>
 </tr>
 <tr>
-<td>spec.transport.protocol</td>
+<td>spec.transport.[*].protocol</td>
 <td>Valid values are: <code>tcp</code>, <code>udp</code>, <code>tls</code>, <code>sctp</code>, <code>ws</code>, <code>wss</code></td>
 <td>Yes</td>
 </tr>
@@ -1803,12 +1794,7 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 </tr>
 <tr>
 <td>spec.dataSource.parameters</td>
-<td>Implementation specific parameters</td>
-<td>No</td>
-</tr>
-<tr>
-<td>spec.logging.traceLevel</td>
-<td>Verbosity of the sip-stack logging. Default is <code>0</code></td>
+<td>Provider specific parameters</td>
 <td>No</td>
 </tr>
 </tbody>
@@ -1818,7 +1804,7 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 <p>The server requires at least one transport protocol.
 To bind a transport protocol to a specific IP address, you can use the <code>spec.transport.bindAddr</code> or more generally <code>spec.bindAddr</code>.</p>
 <h2 id="datasource-providers">Datasource Providers<a class="headerlink" href="#datasource-providers" title="Permanent link">&para;</a></h2>
-<p>Routr currently implements three data providers: <code>redis_data_provider</code>, <code>files_data_provider</code> and <code>restful_data_provider</code>. The default data provider is the <code>files_data_provider</code>.</p>
+<p>Routr currently implements two data providers: <code>redis_data_provider</code> and <code>files_data_provider</code>. The default data provider is the <code>files_data_provider</code>.</p>
 <blockquote>
 <p>The docker distribution of the server uses <code>redis_data_provider</code> by default</p>
 </blockquote>
@@ -1863,40 +1849,12 @@ To bind a transport protocol to a specific IP address, you can use the <code>spe
 <tbody>
 <tr>
 <td>path</td>
-<td>Path to configuration files. Defaults to 'config' folder</td>
+<td>Path to configuration files. Defaults to the <code>config</code> folder</td>
 <td>No</td>
 </tr>
 </tbody>
 </table>
 <p>This implementation has the limitation that writes operations have to be performed manually on the files.</p>
-<h3 id="restful-data-provider">Restful Data Provider<a class="headerlink" href="#restful-data-provider" title="Permanent link">&para;</a></h3>
-<p>The parameters for <code>restful_data_provider</code> are:</p>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-<th>Required</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>baseUrl</td>
-<td>Endpoint base url</td>
-<td>yes</td>
-</tr>
-<tr>
-<td>username</td>
-<td>Basic authentication username</td>
-<td>yes</td>
-</tr>
-<tr>
-<td>secret</td>
-<td>Basic authentication password</td>
-<td>yes</td>
-</tr>
-</tbody>
-</table>
 <h2 id="configuring-the-server-behind-a-nat">Configuring the server behind a NAT<a class="headerlink" href="#configuring-the-server-behind-a-nat" title="Permanent link">&para;</a></h2>
 <p>The <code>spec.externAddr</code> and <code>spec.localnets</code> parameters help Routr identify the
 correct path for any given traffic. The <code>spec.externAddr</code> is typically the Internet

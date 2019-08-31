@@ -13,7 +13,7 @@
         <meta name="description" content="Next-generation SIP Server">
       
       
-        <link rel="canonical" href="https://routr.io/docs/api/dids/get/">
+        <link rel="canonical" href="https://routr.io/docs/api/numbers/create/">
       
       
         <meta name="author" content="Pedro Sanders">
@@ -42,7 +42,7 @@
     
     
       
-        <title>get - Documentation</title>
+        <title>create - Documentation</title>
       
     
     
@@ -264,7 +264,7 @@
                 Documentation
               </span>
               <span class="md-header-nav__topic">
-                get
+                create
               </span>
             
           
@@ -607,8 +607,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../../configuration/dids/" title="Virtual Numbers(DIDs) Configuration" class="md-nav__link">
-      Virtual Numbers(DIDs) Configuration
+    <a href="../../../configuration/numbers/" title="Numbers(DID/DOD) Configuration" class="md-nav__link">
+      Numbers(DID/DOD) Configuration
     </a>
   </li>
 
@@ -789,7 +789,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../credentials/" title="Credentials" class="md-nav__link">
+    <a href="../../token/" title="Credentials" class="md-nav__link">
       Credentials
     </a>
   </li>
@@ -1215,11 +1215,11 @@
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5-9" type="checkbox" id="nav-5-9" checked>
     
     <label class="md-nav__link" for="nav-5-9">
-      DIDs
+      Numbers
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
       <label class="md-nav__title" for="nav-5-9">
-        DIDs
+        Numbers
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -1228,11 +1228,18 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="../create/" title="create" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+    <a href="./" title="create" class="md-nav__link md-nav__link--active">
       create
     </a>
+    
   </li>
 
         
@@ -1252,18 +1259,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-    <a href="./" title="get" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../get/" title="get" class="md-nav__link">
       get
     </a>
-    
   </li>
 
         
@@ -1321,7 +1321,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../system/status/" title="Status" class="md-nav__link">
+    <a href="../../system/status.md" title="Status" class="md-nav__link">
       Status
     </a>
   </li>
@@ -1333,7 +1333,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../system/info/" title="Info" class="md-nav__link">
+    <a href="../../system/info.md" title="Info" class="md-nav__link">
       Info
     </a>
   </li>
@@ -1457,54 +1457,29 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/fonoster/routr/edit/master/docs/api/dids/get.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/fonoster/routr/edit/master/docs/api/numbers/create.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                  <h1>get</h1>
+                  <h1>create</h1>
                 
-                <p>This method returns an Agent resource.</p>
+                <p>Creates a new Number. The Gateway must exist before creating the Number.
+Otherwise, this method responds with a <code>UNFULFILLED_DEPENDENCY_RESPONSE</code>.</p>
 <p><strong>URL</strong></p>
-<p><code>/dids/{ref}</code></p>
+<p><code>/numbers</code></p>
 <p><strong>Method</strong></p>
-<p><code>GET</code></p>
+<p><code>POST</code></p>
 <p><strong>Parameters</strong></p>
-<table>
-<thead>
-<tr>
-<th>Parameter Name</th>
-<th align="left">Type</th>
-<th align="left">Value</th>
-<th align="left">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>ref</td>
-<td align="left">path</td>
-<td align="left">string</td>
-<td align="left">Resource reference</td>
-</tr>
-</tbody>
-</table>
+<p>This method does not receive any parameters.</p>
 <p><strong>Request body</strong></p>
-<p>Do not supply a request body with this method.</p>
+<p>A file containing a <a href="/configuration/numbers">Number</a> resource in <code>json</code> format.</p>
 <p><strong>Response</strong></p>
-<p>If successful this method returns a DID resource.</p>
+<p>If successful this method creates a Number.</p>
 <p><strong>Sample Call</strong></p>
-<div class="codehilite"><pre><span></span><span class="err">GET</span> <span class="err">/api/v</span><span class="mi">1</span><span class="err">beta</span><span class="mi">1</span><span class="err">/dids/dd</span><span class="mi">50</span><span class="err">baa</span><span class="mi">4</span>
+<div class="codehilite"><pre><span></span><span class="err">POST</span> <span class="err">/api/v</span><span class="mi">1</span><span class="err">beta</span><span class="mi">1</span><span class="err">/numbers</span>
 <span class="p">{</span>
-
-<span class="p">}</span>
-
-<span class="err">HTTP/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="err">OK</span>
-<span class="p">{</span>
-  <span class="nt">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;200&quot;</span><span class="p">,</span>
-  <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Successful request&quot;</span><span class="p">,</span>
-  <span class="nt">&quot;result&quot;</span> <span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;apiVersion&quot;</span><span class="p">:</span> <span class="s2">&quot;v1beta1&quot;</span><span class="p">,</span>
-    <span class="nt">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;DID&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;Number&quot;</span><span class="p">,</span>
     <span class="nt">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
-      <span class="nt">&quot;ref&quot;</span><span class="p">:</span> <span class="s2">&quot;dd50baa4&quot;</span><span class="p">,</span>
         <span class="nt">&quot;gwRef&quot;</span><span class="p">:</span> <span class="s2">&quot;gweef506&quot;</span><span class="p">,</span>
         <span class="nt">&quot;geoInfo&quot;</span><span class="p">:</span> <span class="p">{</span>
             <span class="nt">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;City, State&quot;</span><span class="p">,</span>
@@ -1518,8 +1493,10 @@
             <span class="nt">&quot;aorLink&quot;</span><span class="p">:</span> <span class="s2">&quot;sip:1001@sip.local&quot;</span>
         <span class="p">}</span>
     <span class="p">}</span>
-  <span class="p">}</span>
 <span class="p">}</span>
+
+<span class="err">HTTP/</span><span class="mf">1.1</span> <span class="mi">201</span> <span class="err">Created</span>
+<span class="p">{</span><span class="nt">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;201&quot;</span><span class="p">,</span> <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Created&quot;</span><span class="p">,</span> <span class="nt">&quot;result&quot;</span><span class="p">:</span> <span class="s2">&quot;dd50baa4&quot;</span><span class="p">}</span>
 </pre></div>
                 
                   
@@ -1547,8 +1524,8 @@
 
         <!-- Link to previous page -->
         
-          <a href="../delete/"
-              title="delete"
+          <a href="../../gateways/update/"
+              title="update"
               class="md-flex md-footer-nav__link md-footer-nav__link--prev"
               rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
@@ -1561,7 +1538,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                delete
+                update
               </span>
             </div>
           </a>
@@ -1569,8 +1546,8 @@
 
         <!-- Link to next page -->
         
-          <a href="../list/"
-              title="list"
+          <a href="../delete/"
+              title="delete"
               class="md-flex md-footer-nav__link md-footer-nav__link--next"
               rel="next">
             <div class="md-flex__cell md-flex__cell--stretch
@@ -1579,7 +1556,7 @@
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                list
+                delete
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">

@@ -13,7 +13,7 @@
         <meta name="description" content="Next-generation SIP Server">
       
       
-        <link rel="canonical" href="https://routr.io/docs/configuration/dids/">
+        <link rel="canonical" href="https://routr.io/docs/api/numbers/update/">
       
       
         <meta name="author" content="Pedro Sanders">
@@ -42,13 +42,13 @@
     
     
       
-        <title>Virtual Numbers(DIDs) Configuration - Documentation</title>
+        <title>update - Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/application.0284f74d.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/application.0284f74d.css">
       
-        <link rel="stylesheet" href="../../assets/stylesheets/application-palette.01803549.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/application-palette.01803549.css">
       
       
         
@@ -57,7 +57,7 @@
       
     
     
-      <script src="../../assets/javascripts/modernizr.74668098.js"></script>
+      <script src="../../../assets/javascripts/modernizr.74668098.js"></script>
     
     
       
@@ -66,7 +66,7 @@
         <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
       
     
-    <link rel="stylesheet" href="../../assets/fonts/material-icons.css">
+    <link rel="stylesheet" href="../../../assets/fonts/material-icons.css">
     
     
     
@@ -115,10 +115,6 @@
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
-    
-      <a href="#did-resource" tabindex="1" class="md-skip">
-        Skip to content
-      </a>
     
     
       <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
@@ -268,7 +264,7 @@
                 Documentation
               </span>
               <span class="md-header-nav__topic">
-                Virtual Numbers(DIDs) Configuration
+                update
               </span>
             
           
@@ -407,7 +403,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../introduction/overview/" title="Overview" class="md-nav__link">
+    <a href="../../../introduction/overview/" title="Overview" class="md-nav__link">
       Overview
     </a>
   </li>
@@ -419,7 +415,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../introduction/installation/" title="Installation" class="md-nav__link">
+    <a href="../../../introduction/installation/" title="Installation" class="md-nav__link">
       Installation
     </a>
   </li>
@@ -431,7 +427,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../introduction/comparison/" title="Comparison to Alternatives" class="md-nav__link">
+    <a href="../../../introduction/comparison/" title="Comparison to Alternatives" class="md-nav__link">
       Comparison to Alternatives
     </a>
   </li>
@@ -443,7 +439,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../introduction/community/" title="Community" class="md-nav__link">
+    <a href="../../../introduction/community/" title="Community" class="md-nav__link">
       Community
     </a>
   </li>
@@ -455,7 +451,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../introduction/faq/" title="FAQ" class="md-nav__link">
+    <a href="../../../introduction/faq/" title="FAQ" class="md-nav__link">
       FAQ
     </a>
   </li>
@@ -467,7 +463,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../introduction/roadmap/" title="Roadmap" class="md-nav__link">
+    <a href="../../../introduction/roadmap/" title="Roadmap" class="md-nav__link">
       Roadmap
     </a>
   </li>
@@ -479,7 +475,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../introduction/media/" title="Media" class="md-nav__link">
+    <a href="../../../introduction/media/" title="Media" class="md-nav__link">
       Media
     </a>
   </li>
@@ -510,7 +506,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../introduction/performance-tests/user-location/" title="User Location" class="md-nav__link">
+    <a href="../../../introduction/performance-tests/user-location/" title="User Location" class="md-nav__link">
       User Location
     </a>
   </li>
@@ -527,7 +523,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../introduction/glossary/" title="Glossary" class="md-nav__link">
+    <a href="../../../introduction/glossary/" title="Glossary" class="md-nav__link">
       Glossary
     </a>
   </li>
@@ -544,7 +540,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../concepts/" title="Concepts" class="md-nav__link">
+    <a href="../../../concepts/" title="Concepts" class="md-nav__link">
       Concepts
     </a>
   </li>
@@ -554,12 +550,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
     
     <label class="md-nav__link" for="nav-3">
       Configuration
@@ -577,7 +571,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../general/" title="General Configuration" class="md-nav__link">
+    <a href="../../../configuration/general/" title="General Configuration" class="md-nav__link">
       General Configuration
     </a>
   </li>
@@ -589,7 +583,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../users/" title="Users Configuration" class="md-nav__link">
+    <a href="../../../configuration/users/" title="Users Configuration" class="md-nav__link">
       Users Configuration
     </a>
   </li>
@@ -601,7 +595,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../gateways/" title="Carriers(Gateways) Configuration" class="md-nav__link">
+    <a href="../../../configuration/gateways/" title="Carriers(Gateways) Configuration" class="md-nav__link">
       Carriers(Gateways) Configuration
     </a>
   </li>
@@ -611,52 +605,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        Virtual Numbers(DIDs) Configuration
-      </label>
-    
-    <a href="./" title="Virtual Numbers(DIDs) Configuration" class="md-nav__link md-nav__link--active">
-      Virtual Numbers(DIDs) Configuration
+  <li class="md-nav__item">
+    <a href="../../../configuration/numbers/" title="Numbers(DID/DOD) Configuration" class="md-nav__link">
+      Numbers(DID/DOD) Configuration
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#did-resource" title="DID Resource" class="md-nav__link">
-    DID Resource
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example" title="Example" class="md-nav__link">
-    Example
-  </a>
-  
-</li>
-      
-      
-      
-      
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -666,7 +619,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../domains/" title="Domains Configuration" class="md-nav__link">
+    <a href="../../../configuration/domains/" title="Domains Configuration" class="md-nav__link">
       Domains Configuration
     </a>
   </li>
@@ -678,7 +631,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../agents/" title="Agents Configuration" class="md-nav__link">
+    <a href="../../../configuration/agents/" title="Agents Configuration" class="md-nav__link">
       Agents Configuration
     </a>
   </li>
@@ -690,7 +643,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../peers/" title="Peers Configuration" class="md-nav__link">
+    <a href="../../../configuration/peers/" title="Peers Configuration" class="md-nav__link">
       Peers Configuration
     </a>
   </li>
@@ -745,7 +698,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../administration/cli/installation/" title="Installation" class="md-nav__link">
+    <a href="../../../administration/cli/installation/" title="Installation" class="md-nav__link">
       Installation
     </a>
   </li>
@@ -757,7 +710,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../administration/cli/cheatsheet/" title="Cheatsheet" class="md-nav__link">
+    <a href="../../../administration/cli/cheatsheet/" title="Cheatsheet" class="md-nav__link">
       Cheatsheet
     </a>
   </li>
@@ -769,7 +722,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../administration/cli/remote-access/" title="Remote Access to a Routr Server" class="md-nav__link">
+    <a href="../../../administration/cli/remote-access/" title="Remote Access to a Routr Server" class="md-nav__link">
       Remote Access to a Routr Server
     </a>
   </li>
@@ -786,7 +739,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../administration/webconsole/" title="Web Console" class="md-nav__link">
+    <a href="../../../administration/webconsole/" title="Web Console" class="md-nav__link">
       Web Console
     </a>
   </li>
@@ -801,10 +754,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" checked>
     
     <label class="md-nav__link" for="nav-5">
       Rest API
@@ -822,7 +777,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/overview/" title="Overview" class="md-nav__link">
+    <a href="../../overview/" title="Overview" class="md-nav__link">
       Overview
     </a>
   </li>
@@ -834,7 +789,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/credentials/" title="Credentials" class="md-nav__link">
+    <a href="../../token/" title="Credentials" class="md-nav__link">
       Credentials
     </a>
   </li>
@@ -865,7 +820,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/location/create/" title="create" class="md-nav__link">
+    <a href="../../location/create/" title="create" class="md-nav__link">
       create
     </a>
   </li>
@@ -877,7 +832,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/location/delete/" title="delete" class="md-nav__link">
+    <a href="../../location/delete/" title="delete" class="md-nav__link">
       delete
     </a>
   </li>
@@ -889,7 +844,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/location/list/" title="list" class="md-nav__link">
+    <a href="../../location/list/" title="list" class="md-nav__link">
       list
     </a>
   </li>
@@ -906,7 +861,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/registry/" title="Registry" class="md-nav__link">
+    <a href="../../registry/" title="Registry" class="md-nav__link">
       Registry
     </a>
   </li>
@@ -937,7 +892,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/agents/create/" title="create" class="md-nav__link">
+    <a href="../../agents/create/" title="create" class="md-nav__link">
       create
     </a>
   </li>
@@ -949,7 +904,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/agents/delete/" title="delete" class="md-nav__link">
+    <a href="../../agents/delete/" title="delete" class="md-nav__link">
       delete
     </a>
   </li>
@@ -961,7 +916,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/agents/get/" title="get" class="md-nav__link">
+    <a href="../../agents/get/" title="get" class="md-nav__link">
       get
     </a>
   </li>
@@ -973,7 +928,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/agents/list/" title="list" class="md-nav__link">
+    <a href="../../agents/list/" title="list" class="md-nav__link">
       list
     </a>
   </li>
@@ -985,7 +940,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/agents/update/" title="update" class="md-nav__link">
+    <a href="../../agents/update/" title="update" class="md-nav__link">
       update
     </a>
   </li>
@@ -1021,7 +976,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/peers/create/" title="create" class="md-nav__link">
+    <a href="../../peers/create/" title="create" class="md-nav__link">
       create
     </a>
   </li>
@@ -1033,7 +988,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/peers/delete/" title="delete" class="md-nav__link">
+    <a href="../../peers/delete/" title="delete" class="md-nav__link">
       delete
     </a>
   </li>
@@ -1045,7 +1000,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/peers/get/" title="get" class="md-nav__link">
+    <a href="../../peers/get/" title="get" class="md-nav__link">
       get
     </a>
   </li>
@@ -1057,7 +1012,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/peers/list/" title="list" class="md-nav__link">
+    <a href="../../peers/list/" title="list" class="md-nav__link">
       list
     </a>
   </li>
@@ -1069,7 +1024,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/peers/update/" title="update" class="md-nav__link">
+    <a href="../../peers/update/" title="update" class="md-nav__link">
       update
     </a>
   </li>
@@ -1105,7 +1060,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/domains/create/" title="create" class="md-nav__link">
+    <a href="../../domains/create/" title="create" class="md-nav__link">
       create
     </a>
   </li>
@@ -1117,7 +1072,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/domains/delete/" title="delete" class="md-nav__link">
+    <a href="../../domains/delete/" title="delete" class="md-nav__link">
       delete
     </a>
   </li>
@@ -1129,7 +1084,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/domains/get/" title="get" class="md-nav__link">
+    <a href="../../domains/get/" title="get" class="md-nav__link">
       get
     </a>
   </li>
@@ -1141,7 +1096,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/domains/list/" title="list" class="md-nav__link">
+    <a href="../../domains/list/" title="list" class="md-nav__link">
       list
     </a>
   </li>
@@ -1153,7 +1108,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/domains/update/" title="update" class="md-nav__link">
+    <a href="../../domains/update/" title="update" class="md-nav__link">
       update
     </a>
   </li>
@@ -1189,7 +1144,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/gateways/create/" title="create" class="md-nav__link">
+    <a href="../../gateways/create/" title="create" class="md-nav__link">
       create
     </a>
   </li>
@@ -1201,7 +1156,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/gateways/delete/" title="delete" class="md-nav__link">
+    <a href="../../gateways/delete/" title="delete" class="md-nav__link">
       delete
     </a>
   </li>
@@ -1213,7 +1168,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/gateways/get/" title="get" class="md-nav__link">
+    <a href="../../gateways/get/" title="get" class="md-nav__link">
       get
     </a>
   </li>
@@ -1225,7 +1180,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/gateways/list/" title="list" class="md-nav__link">
+    <a href="../../gateways/list/" title="list" class="md-nav__link">
       list
     </a>
   </li>
@@ -1237,7 +1192,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/gateways/update/" title="update" class="md-nav__link">
+    <a href="../../gateways/update/" title="update" class="md-nav__link">
       update
     </a>
   </li>
@@ -1252,17 +1207,19 @@
           
           
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5-9" type="checkbox" id="nav-5-9">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5-9" type="checkbox" id="nav-5-9" checked>
     
     <label class="md-nav__link" for="nav-5-9">
-      DIDs
+      Numbers
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
       <label class="md-nav__title" for="nav-5-9">
-        DIDs
+        Numbers
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -1273,7 +1230,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/create/" title="create" class="md-nav__link">
+    <a href="../create/" title="create" class="md-nav__link">
       create
     </a>
   </li>
@@ -1285,7 +1242,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/delete/" title="delete" class="md-nav__link">
+    <a href="../delete/" title="delete" class="md-nav__link">
       delete
     </a>
   </li>
@@ -1297,7 +1254,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/get/" title="get" class="md-nav__link">
+    <a href="../get/" title="get" class="md-nav__link">
       get
     </a>
   </li>
@@ -1309,7 +1266,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/dids/list/" title="list" class="md-nav__link">
+    <a href="../list/" title="list" class="md-nav__link">
       list
     </a>
   </li>
@@ -1319,11 +1276,18 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="../../api/dids/update/" title="update" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+    
+    <a href="./" title="update" class="md-nav__link md-nav__link--active">
       update
     </a>
+    
   </li>
 
         
@@ -1357,7 +1321,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/system/status/" title="Status" class="md-nav__link">
+    <a href="../../system/status.md" title="Status" class="md-nav__link">
       Status
     </a>
   </li>
@@ -1369,7 +1333,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/system/info/" title="Info" class="md-nav__link">
+    <a href="../../system/info.md" title="Info" class="md-nav__link">
       Info
     </a>
   </li>
@@ -1410,7 +1374,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../guides/basic-setup/" title="Basic Setup" class="md-nav__link">
+    <a href="../../../guides/basic-setup/" title="Basic Setup" class="md-nav__link">
       Basic Setup
     </a>
   </li>
@@ -1422,7 +1386,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../guides/routr-as-asterisk-frontend/" title="Routr as Asterisk frontend" class="md-nav__link">
+    <a href="../../../guides/routr-as-asterisk-frontend/" title="Routr as Asterisk frontend" class="md-nav__link">
       Routr as Asterisk frontend
     </a>
   </li>
@@ -1434,7 +1398,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../guides/securing-the-signaling-path/" title="Securing the Signaling Path" class="md-nav__link">
+    <a href="../../../guides/securing-the-signaling-path/" title="Securing the Signaling Path" class="md-nav__link">
       Securing the Signaling Path
     </a>
   </li>
@@ -1446,7 +1410,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../guides/running-with-docker-or-compose/" title="Running with Docker or Compose" class="md-nav__link">
+    <a href="../../../guides/running-with-docker-or-compose/" title="Running with Docker or Compose" class="md-nav__link">
       Running with Docker or Compose
     </a>
   </li>
@@ -1458,7 +1422,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../guides/running-on-kubernetes/" title="Running on Kubernetes" class="md-nav__link">
+    <a href="../../../guides/running-on-kubernetes/" title="Running on Kubernetes" class="md-nav__link">
       Running on Kubernetes
     </a>
   </li>
@@ -1470,7 +1434,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../guides/benchmarking/" title="Benchmarking" class="md-nav__link">
+    <a href="../../../guides/benchmarking/" title="Benchmarking" class="md-nav__link">
       Benchmarking
     </a>
   </li>
@@ -1488,128 +1452,51 @@
               </div>
             
             
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
-                <div class="md-sidebar__scrollwrap">
-                  <div class="md-sidebar__inner">
-                    
-<nav class="md-nav md-nav--secondary">
-  
-  
-  
-    <label class="md-nav__title" for="__toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#did-resource" title="DID Resource" class="md-nav__link">
-    DID Resource
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example" title="Example" class="md-nav__link">
-    Example
-  </a>
-  
-</li>
-      
-      
-      
-      
-      
-    </ul>
-  
-</nav>
-                  </div>
-                </div>
-              </div>
-            
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/fonoster/routr/edit/master/docs/configuration/dids.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/fonoster/routr/edit/master/docs/api/numbers/update.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                  <h1>Virtual Numbers(DIDs) Configuration</h1>
+                  <h1>update</h1>
                 
-                <p>DIDs represent virtual numbers use to route calls from/to the PSTN through Gateways.</p>
-<p>The DIDs configuration can be provided using the file <code>config/dids.yml</code> located at the root of your Routr installation.</p>
-<blockquote>
-<p>If using Redis this configuration gets stored in the database.</p>
-</blockquote>
-<h2 id="did-resource">DID Resource<a class="headerlink" href="#did-resource" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Description</th>
-<th>Required</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>apiVersion</td>
-<td>Indicates the version of the resource (Not yet implemented)</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td>kind</td>
-<td>Defines the type of resource</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td>metadata.ref</td>
-<td>Reference to this resource</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td>metadata.gwRef</td>
-<td>Reference to parent Gateway</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td>metadata.geoInfo.city</td>
-<td>City of the DID</td>
-<td>No</td>
-</tr>
-<tr>
-<td>metadata.geoInfo.country</td>
-<td>Country of the DID</td>
-<td>No</td>
-</tr>
-<tr>
-<td>metadata.geoInfo.countryISOCode</td>
-<td>The Country ISO code for the DID (i.e., US)</td>
-<td>No</td>
-</tr>
-<tr>
-<td>spec.location.telUrl</td>
-<td>DID URI available in the location server</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td>spec.location.aorLink</td>
-<td>Address of record of SIP device for call routing</td>
-<td>Yes</td>
-</tr>
-</tbody>
-</table>
-<h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
-<div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
-  <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DID</span>
-  <span class="nt">metadata</span><span class="p">:</span>
-    <span class="nt">ref</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DID0001</span>
-    <span class="nt">gwRef</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">GW0001</span>
-    <span class="nt">geoInfo</span><span class="p">:</span>
-      <span class="nt">city</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Columbus, GA</span>
-      <span class="nt">country</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">USA</span>
-      <span class="nt">countryISOCode</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">US</span>
-  <span class="nt">spec</span><span class="p">:</span>
-    <span class="nt">location</span><span class="p">:</span>
-      <span class="nt">telUrl</span><span class="p">:</span> <span class="s">&#39;tel:17066041487&#39;</span>
-      <span class="nt">aorLink</span><span class="p">:</span> <span class="s">&#39;sip:john@sip.local&#39;</span>
+                <p>Updates an existing Number.</p>
+<p><strong>URL</strong></p>
+<p><code>/numbers/{ref}</code></p>
+<p><strong>Method</strong></p>
+<p><code>PUT</code></p>
+<p><strong>Parameters</strong></p>
+<p>This method does not receive any parameters.</p>
+<p><strong>Request body</strong></p>
+<p>A file containing a <a href="/configuration/numbers">Number</a> resource in <code>json</code> format.</p>
+<p><strong>Response</strong></p>
+<p>If successful this method updates a Number.</p>
+<p><strong>Sample Call</strong></p>
+<div class="codehilite"><pre><span></span><span class="err">PUT</span> <span class="err">/api/v</span><span class="mi">1</span><span class="err">beta</span><span class="mi">1</span><span class="err">/numbers/dd</span><span class="mi">50</span><span class="err">baa</span><span class="mi">4</span>
+<span class="p">{</span>
+  <span class="nt">&quot;apiVersion&quot;</span><span class="p">:</span> <span class="s2">&quot;v1beta1&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;Number&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;ref&quot;</span><span class="p">:</span> <span class="s2">&quot;dd50baa4&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;gwRef&quot;</span><span class="p">:</span> <span class="s2">&quot;gweef506&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;geoInfo&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nt">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;City, State&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;country&quot;</span><span class="p">:</span> <span class="s2">&quot;Country&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;countryISOCode&quot;</span><span class="p">:</span> <span class="s2">&quot;US&quot;</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="nt">&quot;spec&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;location&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nt">&quot;telUrl&quot;</span><span class="p">:</span> <span class="s2">&quot;tel:0000000000&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;aorLink&quot;</span><span class="p">:</span> <span class="s2">&quot;sip:1001@sip.local&quot;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="err">HTTP/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="err">OK</span>
+<span class="p">{</span><span class="nt">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;200&quot;</span><span class="p">,</span> <span class="nt">&quot;Successful request&quot;</span><span class="p">}</span>
 </pre></div>
                 
                   
@@ -1637,8 +1524,8 @@
 
         <!-- Link to previous page -->
         
-          <a href="../gateways/"
-              title="Carriers(Gateways) Configuration"
+          <a href="../list/"
+              title="list"
               class="md-flex md-footer-nav__link md-footer-nav__link--prev"
               rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
@@ -1651,7 +1538,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Carriers(Gateways) Configuration
+                list
               </span>
             </div>
           </a>
@@ -1659,8 +1546,8 @@
 
         <!-- Link to next page -->
         
-          <a href="../domains/"
-              title="Domains Configuration"
+          <a href="../../../guides/basic-setup/"
+              title="Basic Setup"
               class="md-flex md-footer-nav__link md-footer-nav__link--next"
               rel="next">
             <div class="md-flex__cell md-flex__cell--stretch
@@ -1669,7 +1556,7 @@
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Domains Configuration
+                Basic Setup
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">
@@ -1704,7 +1591,7 @@
       
         
   <div class="md-footer-social">
-    <link rel="stylesheet" href="../../assets/fonts/font-awesome.css">
+    <link rel="stylesheet" href="../../../assets/fonts/font-awesome.css">
     
       <a href="https://fonoster.com" class="md-footer-social__link fa fa-globe"></a>
     
@@ -1723,9 +1610,9 @@
       
     </div>
     
-      <script src="../../assets/javascripts/application.245445c6.js"></script>
+      <script src="../../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.0.4",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.0.4",url:{base:"../../.."}})</script>
       
     
   </body>

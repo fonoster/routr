@@ -611,8 +611,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../../configuration/dids/" title="Virtual Numbers(DIDs) Configuration" class="md-nav__link">
-      Virtual Numbers(DIDs) Configuration
+    <a href="../../../configuration/numbers/" title="Numbers(DID/DOD) Configuration" class="md-nav__link">
+      Numbers(DID/DOD) Configuration
     </a>
   </li>
 
@@ -904,7 +904,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../../api/credentials/" title="Credentials" class="md-nav__link">
+    <a href="../../../api/token/" title="Credentials" class="md-nav__link">
       Credentials
     </a>
   </li>
@@ -1328,11 +1328,11 @@
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5-9" type="checkbox" id="nav-5-9">
     
     <label class="md-nav__link" for="nav-5-9">
-      DIDs
+      Numbers
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
       <label class="md-nav__title" for="nav-5-9">
-        DIDs
+        Numbers
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -1343,7 +1343,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../../api/dids/create/" title="create" class="md-nav__link">
+    <a href="../../../api/numbers/create/" title="create" class="md-nav__link">
       create
     </a>
   </li>
@@ -1355,7 +1355,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../../api/dids/delete/" title="delete" class="md-nav__link">
+    <a href="../../../api/numbers/delete/" title="delete" class="md-nav__link">
       delete
     </a>
   </li>
@@ -1367,7 +1367,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../../api/dids/get/" title="get" class="md-nav__link">
+    <a href="../../../api/numbers/get/" title="get" class="md-nav__link">
       get
     </a>
   </li>
@@ -1379,7 +1379,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../../api/dids/list/" title="list" class="md-nav__link">
+    <a href="../../../api/numbers/list/" title="list" class="md-nav__link">
       list
     </a>
   </li>
@@ -1391,7 +1391,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../../api/dids/update/" title="update" class="md-nav__link">
+    <a href="../../../api/numbers/update/" title="update" class="md-nav__link">
       update
     </a>
   </li>
@@ -1427,7 +1427,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../../api/system/status/" title="Status" class="md-nav__link">
+    <a href="../../../api/system/status.md" title="Status" class="md-nav__link">
       Status
     </a>
   </li>
@@ -1439,7 +1439,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../../api/system/info/" title="Info" class="md-nav__link">
+    <a href="../../../api/system/info.md" title="Info" class="md-nav__link">
       Info
     </a>
   </li>
@@ -1702,8 +1702,8 @@
 </ul>
 <p>The --filter flag uses <a href="https://github.com/json-path/JsonPath">JsonPath</a> to perform the filtering. The root is always '$'.
 All you need to add is the path to the property and the filter operators. For example:</p>
-<div class="codehilite"><pre><span></span># This returns all the DIDs in Gateway &#39;gweef506&#39;
-./rctl get dids --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;    
+<div class="codehilite"><pre><span></span># This returns all the Numbers in Gateway &#39;gweef506&#39;
+./rctl get numbers --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;    
 </pre></div>
 
 <p>If you need help, just run <code>rctl --help</code> from the terminal window.</p>
@@ -1745,14 +1745,14 @@ $ rctl reg
 </pre></div>
 
 <p><code>rctl get</code> - List one or more resources.</p>
-<div class="codehilite"><pre><span></span>// List all dids
-$ rctl get dids
+<div class="codehilite"><pre><span></span>// List all numbers
+$ rctl get numbers
 
-// List all dids that belong to gateway reference gweef506
-$ rctl get dids --filter &quot;@.metadata.ref==&#39;gweef506&#39;&quot;
+// List all numbers that belong to gateway reference gweef506
+$ rctl get numbers --filter &quot;@.metadata.ref==&#39;gweef506&#39;&quot;
 
-// List did by reference
-$ rctl get dids dd50baa4
+// List numberby reference
+$ rctl get numbers dd50baa4
 
 // List all agents
 $ rctl get agents
@@ -1769,8 +1769,8 @@ $ rctl apply -f new-gateway.yaml
 </pre></div>
 
 <p><code>rctl delete</code> - delete a resource.</p>
-<div class="codehilite"><pre><span></span>// Delete all did for gateway reference gweef506
-$ rctl delete dids --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;
+<div class="codehilite"><pre><span></span>// Delete all numbers for gateway reference gweef506
+$ rctl delete numbers --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;
 
 // Delete a single agent (using delete alias)
 $ rctl del agent ag3f77f6
@@ -1792,7 +1792,7 @@ $ rctl registry                                       # Shows only current regis
 
 <h3 id="locating-sip-devices">Locating Sip Devices<a class="headerlink" href="#locating-sip-devices" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span># Find all sip devices available at the location service
-$ rctl locate                                         # This list does not include did-ingress-routes or domain-egress-routes
+$ rctl locate                                         # This list does not include number-ingress-routes or domain-egress-routes
 </pre></div>
 
 <h3 id="creating-resources">Creating Resources<a class="headerlink" href="#creating-resources" title="Permanent link">&para;</a></h3>
@@ -1802,11 +1802,11 @@ $ rctl create -f agents-list.yaml                     # Create Agents in file ag
 </pre></div>
 
 <h3 id="finding-resources">Finding Resources<a class="headerlink" href="#finding-resources" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># Get DIDs
-$ rctl get dids                                          # List all available DIDs
-$ rctl get did                                           # List all available DIDs
-$ rctl get did --filter &quot;@.metadata.ref==&#39;dd50baa4&#39;&quot;     # Shows DID with reference &#39;DID0001&#39;
-$ rctl get did --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;   # Shows DIDs with Gateway reference &#39;GW1232&#39;
+<div class="codehilite"><pre><span></span># Get Numbers
+$ rctl get numbers                                          # List all available Numbers
+$ rctl get number                                          # List all available Numbers
+$ rctl get number--filter &quot;@.metadata.ref==&#39;dd50baa4&#39;&quot;     # Shows Number with reference &#39;Number0001&#39;
+$ rctl get number--filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;   # Shows Numbers with Gateway reference &#39;GW1232&#39;
 
 # Get agents
 $ rctl get agents                                        # List all Agents
@@ -1815,7 +1815,7 @@ $ rctl get agents                                        # List all Agents
 <h3 id="deleting-resources">Deleting Resources<a class="headerlink" href="#deleting-resources" title="Permanent link">&para;</a></h3>
 <div class="codehilite"><pre><span></span># Delete command by refernce or filter
 $ rctl delete agent ag3f77f6                             # Delete Agent by reference
-$ rctl del dids --filter &#39;@.metadata.gwRef=gweef506&#39;     # Delete DIDs using a filter
+$ rctl del numbers --filter &#39;@.metadata.gwRef=gweef506&#39;     # Delete Numbers using a filter
 </pre></div>
 
 <h3 id="updating-resources">Updating Resources<a class="headerlink" href="#updating-resources" title="Permanent link">&para;</a></h3>
