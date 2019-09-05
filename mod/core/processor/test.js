@@ -5,7 +5,6 @@
  * Unit Test for core functionalities
  */
 const assert = require('assert')
-const getConfig = require('@routr/core/config_util')
 const { createRequest } = require('@routr/utils/test_util')
 const FilesDataSource = require('@routr/data_api/files_datasource')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
@@ -14,7 +13,7 @@ const NumbersAPI = require('@routr/data_api/numbers_api')
 const DomainsAPI = require('@routr/data_api/domains_api')
 const AgentsAPI = require('@routr/data_api/agents_api')
 const RouteInfo = require('@routr/core/processor/route_info')
-const config = getConfig()
+const config = require('@routr/core/config_util')()
 // Forces data source to use its own default parameters...
 delete config.spec.dataSource.parameters
 const ds = new FilesDataSource(config)
