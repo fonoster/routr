@@ -146,8 +146,8 @@ function getSystemConfig() {
         'value': System.getenv('ROUTR_DS_PARAMETERS')
     })
     system.env.push({
-        'var': 'ROUTR_CONFIG_PATH',
-        'value': System.getenv('ROUTR_CONFIG_PATH')
+        'var': 'ROUTR_CONFIG_FILE',
+        'value': System.getenv('ROUTR_CONFIG_FILE')
     })
     system.env.push({
         'var': 'ROUTR_SALT',
