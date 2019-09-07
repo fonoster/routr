@@ -6,6 +6,12 @@
  */
 const assert = require('assert')
 const { createRequest } = require('@routr/utils/test_util')
+const {
+    isOk,
+    isStackJob,
+    mustAuthenticate,
+    isMethod
+} = require('@routr/core/processor/response_utils')
 const FilesDataSource = require('@routr/data_api/files_datasource')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const PeersAPI = require('@routr/data_api/peers_api')
@@ -66,6 +72,31 @@ describe('Core Processor Module', () => {
         request = createRequest('ast@astserver', '17853178070@sip.provider.com')
         routeInfo = new RouteInfo(request, dataAPIs)
         assert.equal(routeInfo.getRoutingType(), 'PEER_EGRESS_ROUTING')
+        done()
+    })
+
+    it.only('Response utils', function(done) {
+        const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
+        const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+        const Request = Java.type('javax.sip.message.Request')
+        const Response = Java.type('javax.sip.message.Response')
+
+        const response = (statusCode, method) => {
+            return {
+                getStatusCode: () =>  statusCode,
+                getHeader: () => {
+                    return {
+                        getMethod: () => method
+                    }
+                }
+            }
+        }
+
+        assert.ok(isOk(response(Response.OK)))
+        assert.ok(isStackJob(response(Response.TRYING)))
+        assert.ok(mustAuthenticate(response(Response.UNAUTHORIZED)))
+        assert.ok(isMethod(response(void(0), Request.INVITE), [Request.INVITE]))
+
         done()
     })
 
