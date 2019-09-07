@@ -61,11 +61,6 @@ function testFE(aor, thruGw = false) {
 
 describe('Location Service Module', () => {
 
-    it('Create sipURI', function(done) {
-        const sipUri = LocatorUtils.createSipURI("sip:1001@sip.ocean.com")
-        done()
-    })
-
     it('AOR as string', function(done) {
         const sipURI = addressFactory.createSipURI('john', 'sip.ocean.com')
         let aorString = LocatorUtils.aorAsString(sipURI)
