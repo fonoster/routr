@@ -15,7 +15,7 @@ const isStackJob = r => hasCodes(r, [Response.TRYING, Response.REQUEST_TERMINATE
     isMethod(r, [Request.CANCEL])
 const isTransactional = event => event.getClientTransaction() !== null &&
     isMethod(event.getResponse(), [Request.INVITE, Request.MESSAGE])
-const isRegister = r => isMethod(r, Request.REGISTER)
+const isRegister = r => isMethod(r, [Request.REGISTER])
 const isRegisterOk = r => isOk(r) && isRegister(r)
 const isRegisterNok = r => !isOk(r) && isRegister(r)
 const isBehindNat = r =>  {
