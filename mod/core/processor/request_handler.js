@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const { connectionException } = require('@routr/utils/exception_helpers') 
 const postal = require('postal')
 const ProcessorUtils = require('@routr/core/processor/utils')
 const IPUtil = require('@routr/core/ip_util')
@@ -205,17 +206,7 @@ class RequestHandler {
 
             this.saveContext(requestIn, requestOut, clientTransaction, serverTransaction)
         } catch (e) {
-            if (e instanceof Java.type('java.net.ConnectException')) {
-                LOG.error('Connection refused. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/ConnectException.html')
-                return
-            } else if (e instanceof Java.type('java.net.NoRouteToHostException')) {
-                LOG.error('No route to host. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/NoRouteToHostException.html')
-                return
-            } else if (e instanceof Java.type('javax.sip.TransactionUnavailableException')) {
-                LOG.error('Could not resolve next hop or listening point unavailable!')
-                return
-            }
-            LOG.error(e)
+            connectionException(e, requestOut.getRequestURI().getHost())
         }
     }
 

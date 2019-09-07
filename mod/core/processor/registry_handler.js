@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-
+const { connectionException } = require('@routr/utils/exception_helpers')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const MaxForwardsHeader = Java.type('javax.sip.header.MaxForwardsHeader')
@@ -32,14 +32,7 @@ class RegistryHandler {
         try {
             this.sipProvider.sendRequest(requestOut)
         } catch(e) {
-            if (e instanceof Java.type('javax.sip.TransactionUnavailableException') ||
-                e instanceof Java.type('java.net.ConnectException')                 ||
-                e instanceof Java.type('java.net.NoRouteToHostException')           ||
-                e.toString().includes('Could not create a message channel for')) {
-                LOG.warn(`Unable to register to Gateway -> \`${requestOut.getRequestURI().getHost()}\`.(Verify your network status)`)
-                return
-            }
-            LOG.error(e)
+            connectionException(e, requestOut.getRequestURI().getHost())
         }
     }
 

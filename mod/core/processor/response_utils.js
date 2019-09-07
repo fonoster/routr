@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const { connectionException } = require('@routr/utils/exception_helpers')
 const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const Request = Java.type('javax.sip.message.Request')
@@ -44,13 +45,9 @@ const handleAuthChallenge = (sipStack, e, gateway) => {
         const authHelper = sipStack.getAuthenticationHelper(accountManager, headerFactory)
         // Setting looseRouting to false will cause https://github.com/fonoster/routr/issues/18
         authHelper.handleChallenge(e.getResponse(), e.getClientTransaction(), e.getSource(), 5, true).sendRequest()
-    } catch(e) {
-        if (e instanceof Java.type('javax.sip.TransactionUnavailableException')) {
-            LOG.error('Could not resolve next hop or listening point unavailable!')
-        } else {
-            LOG.error(e)
-        }
-        e.printStackTrace()
+    } catch(ex) {
+        connectionException(ex,
+            e.getClientTransaction().getRequest().getRequestURI().getHost())
     }
 }
 
