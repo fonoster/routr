@@ -32,14 +32,11 @@ class RegistryHandler {
         try {
             this.sipProvider.sendRequest(requestOut)
         } catch(e) {
-            if (e instanceof Java.type('java.net.ConnectException')) {
-                LOG.error('Connection refused. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/ConnectException.html')
-                return
-            } else if (e instanceof Java.type('java.net.NoRouteToHostException')) {
-                LOG.error('No route to host. Please see: https://docs.oracle.com/javase/7/docs/api/java/net/NoRouteToHostException.html')
-                return
-            } else if (e instanceof Java.type('javax.sip.TransactionUnavailableException')) {
-                LOG.error('Could not resolve next hop or listening point unavailable!')
+            if (e instanceof Java.type('javax.sip.TransactionUnavailableException') ||
+                e instanceof Java.type('java.net.ConnectException')                 ||
+                e instanceof Java.type('java.net.NoRouteToHostException')           ||
+                e.toString().includes('Could not create a message channel for')) {
+                LOG.warn(`Unable to register to Gateway -> \`${requestOut.getRequestURI().getHost()}\`.(Verify your network status)`)
                 return
             }
             LOG.error(e)
