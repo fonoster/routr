@@ -6,6 +6,7 @@
 # Other
 coverage
 node_modules
+.nyc_output
 *.tar.gz
 *.zip
 build
