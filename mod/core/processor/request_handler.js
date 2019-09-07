@@ -5,7 +5,7 @@
 const postal = require('postal')
 const ProcessorUtils = require('@routr/core/processor/utils')
 const IPUtil = require('@routr/core/ip_util')
-const { equalsIgnoreCase } = require('@routr/utils/misc_util')
+const { equalsIgnoreCase } = require('@routr/utils/misc_utils')
 const getConfig = require('@routr/core/config_util')
 const {
     Status

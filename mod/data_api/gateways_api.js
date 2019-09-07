@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { gatewayPatch } = require('@routr/utils/misc_util')
+const { buildAddr } = require('@routr/utils/misc_utils')
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
 const {
@@ -26,7 +26,7 @@ class GatewaysAPI {
     createFromJSON(jsonObj) {
         if (!this.gatewayExist(jsonObj.spec.host, jsonObj.spec.port)) {
             const response = this.ds.insert(jsonObj)
-            const host = gatewayPatch(jsonObj.spec.host, jsonObj.spec.port)
+            const host = buildAddr(jsonObj.spec.host, jsonObj.spec.port)
             this.cache.put(host, response)
             return response
         }
@@ -37,7 +37,7 @@ class GatewaysAPI {
     updateFromJSON(jsonObj) {
         if (this.gatewayExist(jsonObj.spec.host, jsonObj.spec.port)) {
             const response = this.ds.update(jsonObj)
-            const host = gatewayPatch(jsonObj.spec.host, jsonObj.spec.port)
+            const host = buildAddr(jsonObj.spec.host, jsonObj.spec.port)
             this.cache(host, response)
             return response
         }
@@ -55,7 +55,7 @@ class GatewaysAPI {
 
     getGatewayByHostAndPort(h, port) {
         if (!port) return this.getGatewayByHost(host)
-        const host = gatewayPatch(h, port)
+        const host = buildAddr(h, port)
 
         let response = this.cache.getIfPresent(host)
 

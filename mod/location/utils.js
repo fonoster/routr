@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { gatewayPatch } = require('@routr/utils/misc_util')
+const { buildAddr } = require('@routr/utils/misc_utils')
 const StringBuilder = Java.type('java.lang.StringBuilder')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const addressFactory = SipFactory.getInstance().createAddressFactory()
@@ -29,19 +29,15 @@ class LocatorUtils {
 
     static aorAsString(addressOfRecord) {
         if (addressOfRecord instanceof Java.type('javax.sip.address.SipURI')) {
-            if (addressOfRecord.isSecure()) {
-                return new StringBuilder()
-                    .append('sips:')
-                    .append(addressOfRecord.getUser())
-                    .append('@')
-                    .append(addressOfRecord.getHost()).toString()
-            } else {
-                return new StringBuilder()
-                    .append('sip:')
-                    .append(addressOfRecord.getUser())
-                    .append('@')
-                    .append(addressOfRecord.getHost()).toString()
+            const strBuilder = new StringBuilder(addressOfRecord.isSecure()? 'sips:' : 'sip:')
+
+            if (addressOfRecord.getUser()) {
+                strBuilder
+                .append(addressOfRecord.getUser())
+                .append('@')
             }
+
+            return strBuilder.append(addressOfRecord.getHost()).toString()
         } else if (addressOfRecord instanceof Java.type('javax.sip.address.TelURL')) {
             return 'tel:' + addressOfRecord.getPhoneNumber()
         } else if (typeof(addressOfRecord) === 'string' || addressOfRecord instanceof String) {
@@ -50,14 +46,14 @@ class LocatorUtils {
                 return addressOfRecord
             }
         }
-
-
     }
 
     static aorAsObj(addressOfRecord) {
         if (typeof(addressOfRecord) === 'string' || addressOfRecord instanceof String) {
-            if (/sips?:.*@.*/.test(addressOfRecord)) {
-                return LocatorUtils.createSipURI(addressOfRecord)
+            const rx = /sip?:(.*)@(.*)/
+            if (rx.test(addressOfRecord)) {
+                const addr = rx.exec(addressOfRecord)
+                return addressFactory.createSipURI(addr[1], addr[2])
             } else if (/tel:\d+/.test(addressOfRecord)) {
                 return addressFactory.createTelURI(addressOfRecord)
             }
@@ -67,13 +63,6 @@ class LocatorUtils {
         }
 
         throw `Invalid AOR: ${addressOfRecord}`
-    }
-
-    // Cheap implementation :(
-    static createSipURI(fromString) {
-        const user = fromString.substring(fromString.indexOf(':') + 1, fromString.indexOf('@'))
-        const host = fromString.substring(fromString.indexOf('@') + 1, fromString.length)
-        return addressFactory.createSipURI(user, host)
     }
 
     static buildForwardRoute(contactURI) {
@@ -92,7 +81,7 @@ class LocatorUtils {
             thruGw: true,
             gwUsername: username,
             gwRef: gateway.metadata.ref,
-            gwHost: gatewayPatch(gateway.spec.host, gateway.spec.port),
+            gwHost: buildAddr(gateway.spec.host, gateway.spec.port),
             numberRef: number.metadata.ref,
             number: number.spec.location.telUrl.split(':')[1],
             contactURI: contactURI

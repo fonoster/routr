@@ -9,7 +9,7 @@ const postal = require('postal')
 const CoreUtils = require('@routr/core/utils')
 const LocatorUtils = require('@routr/location/utils')
 const isEmpty = require('@routr/utils/obj_util')
-const { gatewayPatch } = require('@routr/utils/misc_util')
+const { buildAddr } = require('@routr/utils/misc_utils')
 const {
     Status
 } = require('@routr/core/status')
@@ -267,7 +267,7 @@ class Locator {
 
                     if (new RegExp(pattern).test(addressOfRecord)) {
                         const contactURI = addressFactory
-                            .createSipURI(aorObj.getUser(), gatewayPatch(gateway.spec.host, gateway.spec.port))
+                            .createSipURI(aorObj.getUser(), buildAddr(gateway.spec.host, gateway.spec.port))
                         contactURI.setSecure(aorObj.isSecure())
                         const route = LocatorUtils.buildEgressRoute(contactURI, gateway, number, domain)
                         return CoreUtils.buildResponse(Status.OK, [route])
