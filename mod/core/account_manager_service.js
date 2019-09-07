@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { gatewayPatch } = require('@routr/utils/misc_util')
+const { buildAddr } = require('@routr/utils/misc_utils')
 const {
     Status
 } = require('@routr/core/status')
@@ -34,7 +34,7 @@ class AccountManagerService {
             return {
                 username: gateway.spec.credentials.username,
                 secret: gateway.spec.credentials.secret,
-                host: gatewayPatch(gateway.spec.host, gateway.spec.port)
+                host: buildAddr(gateway.spec.host, gateway.spec.port)
             }
         }
 
