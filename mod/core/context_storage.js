@@ -5,6 +5,7 @@
  * @since v1
  */
 const postal = require('postal')
+const { connectionException } = require('@routr/utils/exception_helpers')
 const Response = Java.type('javax.sip.message.Response')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const ArrayList = Java.type('java.util.ArrayList')
@@ -93,11 +94,7 @@ class ContextStorage {
                     serverTransaction.sendResponse(cancelResponse)
                     clientTransaction.sendRequest()
                 } catch(e) {
-                    if (e instanceof Java.type('javax.sip.TransactionUnavailableException')) {
-                        LOG.error('Could not resolve next hop or listening point unavailable!')
-                    } else {
-                        LOG.error(e)
-                    }
+                    connectionException(e, cancelRequest.getRequestURI().getHost())
                 }
 
                 LOG.debug(`core.ContextStorage.cancelTransaction [original response is \n ${originResponse}]`)
