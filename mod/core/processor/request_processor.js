@@ -4,6 +4,7 @@
  */
 const ProcessorUtils = require('@routr/core/processor/utils')
 const RegisterHandler = require('@routr/core/processor/register_handler')
+const RegistryHandler = require('@routr/core/processor/registry_handler')
 const CancelHandler = require('@routr/core/processor/cancel_handler')
 const RequestHandler = require('@routr/core/processor/request_handler')
 const RouteInfo = require('@routr/core/processor/route_info')
@@ -51,8 +52,11 @@ class RequestProcessor {
         // Warning: This is a very expensive function. Considere making it optional
         // Or optimize
         if (this.allowedAccess(event, routeInfo) === false) {
+            LOG.debug(`core.processor.RequestProcessor.process [access denied for ${JSON.stringify(routeInfo.getCallee())}]`)
             return procUtils.sendResponse(Response.FORBIDDEN)
         }
+
+        LOG.debug(`core.processor.RequestProcessor.process [running handler for method \`${request.getMethod()}\`]`)
 
         switch (request.getMethod()) {
             case Request.PUBLISH:
@@ -61,6 +65,10 @@ class RequestProcessor {
                 procUtils.sendResponse(Response.METHOD_NOT_ALLOWED)
                 break
             case Request.REGISTER:
+                if (routeInfo.getRoutingType() === RoutingType.UNKNOWN) {
+                    new RegistryHandler(this.sipProvider).doProcess(request)
+                    break
+                }
                 new RegisterHandler(this.dataAPIs).doProcess(serverTransaction)
                 break
             case Request.CANCEL:
