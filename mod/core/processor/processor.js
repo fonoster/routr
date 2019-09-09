@@ -11,9 +11,9 @@ const LOG = LogManager.getLogger()
 
 class Processor {
 
-    constructor(sipProvider, registry, dataAPIs, contextStorage) {
+    constructor(sipProvider, dataAPIs, contextStorage) {
         this.requestProcessor = new RequestProcessor(sipProvider, dataAPIs, contextStorage)
-        this.responseProcessor = new ResponseProcessor(sipProvider, dataAPIs, contextStorage, registry)
+        this.responseProcessor = new ResponseProcessor(sipProvider, dataAPIs, contextStorage)
     }
 
     get listener() {

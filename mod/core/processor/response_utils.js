@@ -3,6 +3,8 @@
  * @since v1
  */
 const { connectionException } = require('@routr/utils/exception_helpers')
+const ContactHeader = Java.type('javax.sip.header.ContactHeader')
+const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
 const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const Request = Java.type('javax.sip.message.Request')
@@ -51,6 +53,16 @@ const handleAuthChallenge = (sipStack, e, gateway) => {
     }
 }
 
+const getExpires = message => {
+    const contactHeader = message.getHeader(ContactHeader.NAME)
+    if (contactHeader.getParameter('expires')) {
+        return contactHeader.getExpires()
+    }
+    const expiresHeader = message.getHeader(ExpiresHeader.NAME)
+    // Considere instead triggering an exception
+    return expiresHeader ? expiresHeader.getExpires() : 0
+}
+
 module.exports.hasCodes = hasCodes
 module.exports.isMethod = isMethod
 module.exports.isOk = isOk
@@ -63,3 +75,4 @@ module.exports.isRegisterNok = isRegisterNok
 module.exports.isBehindNat = isBehindNat
 module.exports.isBehindNat = isBehindNat
 module.exports.handleAuthChallenge = handleAuthChallenge
+module.exports.getExpires = getExpires

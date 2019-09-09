@@ -50,6 +50,8 @@ dependencies {
     compile 'org.graalvm.js:js:19.1.0'
     compile 'org.graalvm.regex:regex:19.1.0'
     compile 'com.github.uber-common:jvm-profiler:master-SNAPSHOT' // Uber Profiler
+    compile 'org.apache.activemq:activemq-all:5.15.10'
+    compile 'it.unimi.dsi:dsiutils:2.6.0'
 }
 
 repositories {

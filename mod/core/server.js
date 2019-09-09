@@ -5,15 +5,15 @@
 const Processor = require('@routr/core/processor/processor')
 const Locator = require('@routr/location/locator')
 const ContextStorage = require('@routr/core/context_storage')
-const getConfig = require('@routr/core/config_util')
-const Registry = require('@routr/registry/registry')
 const RestService = require('@routr/rest/rest')
+const config = require('@routr/core/config_util')()
 
 const FileInputStream = Java.type('java.io.FileInputStream')
 const System = Java.type('java.lang.System')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const Properties = Java.type('java.util.Properties')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const NHTServer = Java.type('io.routr.nht.NHTServer')
 
 const LOG = LogManager.getLogger()
 const ANSI_GREEN = "\u001B[32m"
@@ -25,9 +25,7 @@ class Server {
     constructor(dataAPIs) {
         this.locator = new Locator(dataAPIs)
         this.dataAPIs = dataAPIs
-        this.config = getConfig()
-        // Not sure if this is a good idea in terms of performance
-        this.host = this.config.spec.bindAddr
+        this.nhtServer = new NHTServer("vm://routr")
     }
 
     buildSipProvider(sipStack, transport) {
@@ -38,13 +36,13 @@ class Server {
             const curTransport = transport[key]
             const proto = curTransport.protocol.toLowerCase()
 
-            if ((proto === 'wss' || proto === 'tls') && !this.config.spec.securityContext) {
+            if ((proto === 'wss' || proto === 'tls') && !config.spec.securityContext) {
                 LOG.warn(`${ANSI_YELLOW }Security context could not found. Ignoring protocol: ${proto}${ANSI_RESET}`)
                 continue
             }
 
             if (curTransport.bindAddr === undefined) {
-                curTransport.bindAddr = this.host
+                curTransport.bindAddr = config.spec.bindAddr
             }
 
             const lp = sipStack.createListeningPoint(curTransport.bindAddr, curTransport.port, proto)
@@ -57,11 +55,11 @@ class Server {
     }
 
     showExternInfo() {
-        if (this.config.spec.externAddr) {
-            LOG.info(`ExternAddr is ${ANSI_GREEN}${this.config.spec.externAddr}${ANSI_RESET}`)
+        if (config.spec.externAddr) {
+            LOG.info(`ExternAddr is ${ANSI_GREEN}${config.spec.externAddr}${ANSI_RESET}`)
 
-            if (this.config.spec.localnets) {
-                LOG.info(`Localnets is ${ANSI_GREEN}${this.config.spec.localnets.join(',')}${ANSI_RESET}`)
+            if (config.spec.localnets) {
+                LOG.info(`Localnets is ${ANSI_GREEN}${config.spec.localnets.join(',')}${ANSI_RESET}`)
             }
         }
     }
@@ -69,32 +67,28 @@ class Server {
     setup() {
         this.showExternInfo()
 
-        if (this.config.spec.securityContext.debugging) {
+        if (config.spec.securityContext.debugging) {
             Java.type('java.lang.System').setProperty('javax.net.debug', 'ssl')
         }
 
         const sipFactory = SipFactory.getInstance()
         sipFactory.setPathName('gov.nist')
 
-        this.sipStack = sipFactory.createSipStack(this.getProperties())
+        this.sipStack = sipFactory.createSipStack(this.getProperties(config))
 
         const sipProvider = this.buildSipProvider(this.sipStack,
-            this.config.spec.transport)
+            config.spec.transport)
 
-        this.registry = new Registry(sipProvider, this.dataAPIs)
-
-        const processor = new Processor(sipProvider,
-            this.registry, this.dataAPIs, new ContextStorage(sipProvider))
+        const processor = new Processor(sipProvider, this.dataAPIs, new ContextStorage(sipProvider))
 
         sipProvider.addSipListener(processor.listener)
     }
 
     start() {
         LOG.info('Starting Routr')
+        this.nhtServer.start()
         this.setup()
-        //this.locator.start()
-        this.registry.start()
-        this.restService = new RestService(this, this.locator, this.registry, this.dataAPIs)
+        this.restService = new RestService(this, this.locator, this.dataAPIs)
         this.restService.start()
     }
 
@@ -102,12 +96,14 @@ class Server {
         LOG.info('Stopping server')
         this.restService.stop()
         this.sipStack.stop()
+        this.nhtServer.stop()
         //this.locator.stop()
         System.exit(0)
     }
 
-    getProperties() {
-        let properties = new Properties()
+    // TODO: Take this to is own file :(
+    getProperties(config) {
+        const properties = new Properties()
         // for more options see:
         // https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java
         properties.setProperty('javax.sip.STACK_NAME', 'routr')
@@ -122,24 +118,24 @@ class Server {
         // Guard against denial of service attack.
         properties.setProperty('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576')
         properties.setProperty('gov.nist.javax.sip.LOG_MESSAGE_CONTENT', 'false')
-        //properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', this.config.spec.logging.traceLevel)
+        //properties.setProperty('gov.nist.javax.sip.TRACE_LEVEL', config.spec.logging.traceLevel)
 
         // Default host
-        properties.setProperty('javax.sip.IP_ADDRESS', this.host)
+        properties.setProperty('javax.sip.IP_ADDRESS', config.spec.bindAddr)
 
         // See https://groups.google.com/forum/#!topic/mobicents-public/U_c7aLAJ_MU for useful info
-        if (this.config.spec.securityContext) {
-            properties.setProperty('gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS', this.config.spec.securityContext.client.protocols.join())
+        if (config.spec.securityContext) {
+            properties.setProperty('gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS', config.spec.securityContext.client.protocols.join())
             // This must be set to 'Disabled' when using WSS
-            properties.setProperty('gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE', this.config.spec.securityContext.client.authType)
-            properties.setProperty('javax.net.ssl.keyStore', this.config.spec.securityContext.keyStore)
-            properties.setProperty('javax.net.ssl.trustStore', this.config.spec.securityContext.trustStore)
-            properties.setProperty('javax.net.ssl.keyStorePassword', this.config.spec.securityContext.keyStorePassword)
-            properties.setProperty('javax.net.ssl.keyStoreType', this.config.spec.securityContext.keyStoreType)
+            properties.setProperty('gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE', config.spec.securityContext.client.authType)
+            properties.setProperty('javax.net.ssl.keyStore', config.spec.securityContext.keyStore)
+            properties.setProperty('javax.net.ssl.trustStore', config.spec.securityContext.trustStore)
+            properties.setProperty('javax.net.ssl.keyStorePassword', config.spec.securityContext.keyStorePassword)
+            properties.setProperty('javax.net.ssl.keyStoreType', config.spec.securityContext.keyStoreType)
         }
 
         try {
-            const filesPath = this.config.spec.dataSource.parameters.path
+            const filesPath = config.spec.dataSource.parameters.path
             properties.load(new FileInputStream(`${filesPath}/stack.properties`))
         } catch (e) {}
 

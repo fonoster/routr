@@ -2,213 +2,79 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { gatewayPatch } = require('@routr/utils/misc_util')
-const getConfig = require('@routr/core/config_util')
-const LocatorUtils = require('@routr/location/utils')
+const System = Java.type('java.lang.System')
+const NHTClient = Java.type('io.routr.nht.NHTClient')
+load(`${System.getProperty('user.dir')}/libs/jvm-npm.js`)
+const DSSelector = require('@routr/data_api/ds_selector')
+const GatewaysAPI = require('@routr/data_api/gateways_api')
+const config = require('@routr/core/config_util')()
+const getProperties = require('@routr/registry/reg_properties')
+const createSipListener = require('@routr/registry/sip_listener')
+const createSipProvider = require('@routr/registry/sip_provider')
+const buildRegRequest = require('@routr/registry/request_builder')
+const { connectionException } = require('@routr/utils/exception_helpers')
 const {
-    Status
-} = require('@routr/core/status')
-const moment = require('moment')
-
-const Expiry = Java.extend(Java.type('com.github.benmanes.caffeine.cache.Expiry'))
-const SipFactory = Java.type('javax.sip.SipFactory')
-const SipUtils = Java.type('gov.nist.javax.sip.Utils')
-const Request = Java.type('javax.sip.message.Request')
-const InetAddress = Java.type('java.net.InetAddress')
-const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
-const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
+    buildAddr,
+    protocolTransport,
+    nearestInterface
+} = require('@routr/utils/misc_utils')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-
 const LOG = LogManager.getLogger()
-var cseq = 0
+
+var cseq = 0  // We might need to share this across instances :(
 
 class Registry {
 
-    constructor(sipProvider, dataAPIs) {
-        this.gatewaysAPI = dataAPIs.GatewaysAPI
-        this.checkExpiresTime = 1
-        this.sipProvider = sipProvider
-        this.config = getConfig()
-        this.messageFactory = SipFactory.getInstance().createMessageFactory()
-        this.headerFactory = SipFactory.getInstance().createHeaderFactory()
-        this.addressFactory = SipFactory.getInstance().createAddressFactory()
-        this.userAgent = new java.util.ArrayList()
-        this.userAgent.add(this.config.metadata.userAgent)
-        this.registry = Caffeine.newBuilder()
-            .expireAfter(new Expiry({
-                expireAfterCreate: function(key, graph, currentTime) {
-                    return TimeUnit.SECONDS.toNanos(graph.expires)
-                },
-                expireAfterUpdate: function(key, graph, currentTime, currentDuration) {
-                    return TimeUnit.SECONDS.toNanos(graph.expires)
-                },
-                expireAfterRead: function (key, graph, currentTime, currentDuration) {
-                    return currentDuration
-                }
-            }))
-            .build()
-    }
-
-    getLPAddress(transport, received, rport) {
+    constructor() {
+        // They must be at least one entry for tcp. Use it...
+        const proxyTransport = protocolTransport(config, 'tcp')
+        const outboundProxy = `${proxyTransport.bindAddr}:${proxyTransport.port}/${proxyTransport.protocol}`
+        const properties = getProperties('routr-registry', outboundProxy)
+        this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS())
+        this.registryStore = new NHTClient('vm:/routr')
+        this.sipProvider = createSipProvider(properties)
         try {
-            const lp = this.sipProvider.getListeningPoint(transport)
-            const host = this.config.spec.externAddr ? this.config.spec.externAddr : lp.getIPAddress()
-            const port = rport ? LocatorUtils.fixPort(rport) : LocatorUtils.fixPort(lp.getPort())
-            return received ? {
-                host: received,
-                port: port
-            } : {
-                host: host,
-                port: port
-            }
-        } catch (e) {
-            LOG.error(`Transport ${transport} not found in configs => .spec.transport.[*]`)
-            return
+            this.sipProvider.addSipListener(
+                createSipListener(this.sipProvider.getSipStack(),
+                    this.gatewaysAPI, this.registryStore))
+        } catch(e) {
+            // I'm having issues while trying to creating new instances of
+            // the class Registry.
         }
+        this.userAgent = config.metadata.userAgent
     }
 
-    requestChallenge(username, gwRef, gwHost, transport, received, rport, expires) {
-        const contactAddr = this.getLPAddress(transport, received, rport)
-        const viaAddr = this.getLPAddress(transport)
-        const request = this.messageFactory.createRequest(`REGISTER sip:${gwHost} SIP/2.0\r\n\r\n`)
-        const fromAddress = this.addressFactory.createAddress(`sip:${username}@${gwHost}`)
-        const contactAddress = this.addressFactory.createAddress(`sip:${contactAddr.host}:${contactAddr.port};bnc`)
-        const contactHeader = this.headerFactory.createContactHeader(contactAddress)
-        const viaHeader = this.headerFactory.createViaHeader(viaAddr.host, viaAddr.port, transport, null)
-        viaHeader.setRPort()
+    register(gateway, received, rport) {
+        LOG.debug(`registry.Registry.register [gateway ${JSON.stringify(gateway)}]`)
+        const lp = this.sipProvider.getListeningPoint(gateway.spec.transport)
+        const viaAddr = { host: lp.getIPAddress(), port: lp.getPort()}
+        // Use the proxys addrs info
+        const proxyTransport = protocolTransport(config, gateway.spec.transport)
+        const contactAddr = nearestInterface(proxyTransport.bindAddr,
+          proxyTransport.port, received, rport)
 
-        const headers = []
-
-        headers.push(viaHeader)
-        headers.push(this.sipProvider.getNewCallId())
-        headers.push(this.headerFactory.createProxyRequireHeader('gin'))
-        headers.push(this.headerFactory.createRequireHeader('gin'))
-        headers.push(this.headerFactory.createExpiresHeader(expires))
-        headers.push(this.headerFactory.createMaxForwardsHeader(70))
-        headers.push(this.headerFactory.createCSeqHeader(cseq++, Request.REGISTER))
-        headers.push(this.headerFactory.createFromHeader(fromAddress, new SipUtils().generateTag()))
-        headers.push(this.headerFactory.createToHeader(fromAddress, null))
-        headers.push(contactHeader)
-        headers.push(this.headerFactory.createUserAgentHeader(this.userAgent))
-        headers.push(this.headerFactory.createAllowHeader('INVITE'))
-        headers.push(this.headerFactory.createAllowHeader('ACK'))
-        headers.push(this.headerFactory.createAllowHeader('BYE'))
-        headers.push(this.headerFactory.createAllowHeader('CANCEL'))
-        headers.push(this.headerFactory.createAllowHeader('REGISTER'))
-        headers.push(this.headerFactory.createAllowHeader('OPTIONS'))
-        headers.push(this.headerFactory.createSupportedHeader('path'))
-        headers.push(this.headerFactory.createHeader('X-Gateway-Ref', gwRef))
-        headers.forEach(header => request.addHeader(header))
-        this.sendRequest(request, gwHost)
+        const callId = this.sipProvider.getNewCallId()
+        const request = buildRegRequest(gateway, contactAddr, viaAddr, callId,
+          cseq++, this.userAgent, buildAddr)
+        Registry.sendRequest(this.sipProvider, request)
     }
 
-    sendRequest(request, gwHost) {
+    registerAll() {
+        LOG.debug(`registry.Registry.registerAll [beging registry of all gateways]`)
+        // Filter unexpired and static gateway
+        const response = this.gatewaysAPI.getGateways()
+        const gateways = response.result
+        gateways.forEach(gateway => this.register(gateway))
+    }
+
+    static sendRequest(sipProvider, request) {
         try {
-            const clientTransaction = this.sipProvider.getNewClientTransaction(request)
+            const clientTransaction = sipProvider
+              .getNewClientTransaction(request)
             clientTransaction.sendRequest()
-        } catch (e) {
-            this.handleChallengeException(e, gwHost)
+        } catch(e) {
+            connectionException(e, request.getRequestURI().toString())
         }
-        LOG.debug(request)
-    }
-
-    handleChallengeException(e, gwHost) {
-        this.registry.invalidate(gwHost)
-        if (e instanceof Java.type('javax.sip.TransactionUnavailableException') ||
-            e instanceof Java.type('javax.sip.SipException')) {
-            LOG.warn(`Unable to register with Gateway -> ${gwHost}. (Verify your network status)`)
-        } else {
-            LOG.warn(e)
-        }
-    }
-
-    storeRegistry(gwURI, expires) {
-        // Re-register before actual time expiration
-        //let actualExpires = expires - 2 * 60 * this.checkExpiresTime
-
-        const reg = {
-            username: gwURI.getUser(),
-            host: gwURI.getHost(),
-            ip: InetAddress.getByName(gwURI.getHost()).getHostAddress(),
-            //expires: actualExpires,
-            expires: expires,
-            registeredOn: Date.now()
-        }
-
-        this.registry.put(gwURI.toString(), reg)
-    }
-
-    removeRegistry(gwURIStr) {
-        this.registry.invalidate(gwURIStr)
-    }
-
-    listAsJSON() {
-        const s = []
-        const iterator = this.registry.asMap().values().iterator()
-
-        while (iterator.hasNext()) {
-            const reg = iterator.next()
-            reg.regOnFormatted = moment(reg.registeredOn).fromNow()
-            s.push(reg)
-        }
-
-        return s
-    }
-
-    isExpired(gwURIStr) {
-        const reg = this.registry.getIfPresent(gwURIStr)
-
-        if (reg === null) {
-            return true
-        }
-
-        const elapsed = (Date.now() - reg.registeredOn) / 1000
-        return reg.expires - elapsed <= 0
-    }
-
-    start() {
-        LOG.info('Starting Registry service')
-        const self = this
-
-        global.timer.schedule(
-            () => {
-                const response = self.gatewaysAPI.getGateways()
-
-                if (response.status === Status.OK) {
-                    for (const cnt in response.result) {
-                        const gateway = response.result[cnt]
-
-                        if (gateway.spec.credentials === undefined) continue
-
-                        const host = gatewayPatch(gateway.spec.host, gateway.spec.port)
-                        const gwURIStr = `sip:${gateway.spec.credentials.username}@${host}`
-                        const expires = gateway.spec.expires ? gateway.spec.expires : 3600
-                        if (self.isExpired(gwURIStr)) {
-                            LOG.debug(`Register with ${gateway.metadata.name} using ${gateway.spec.credentials.username}@${host}`)
-                            self.requestChallenge(gateway.spec.credentials.username,
-                                gateway.metadata.ref, gateway.spec.host, gateway.spec.transport, null, null, expires)
-                        }
-
-                        let registries = gateway.spec.registries
-
-                        if (registries !== undefined) {
-                            registries.forEach(function(h) {
-                                if (self.isExpired(gwURIStr)) {
-                                    LOG.debug(`Register with ${gateway.metadata.name} using ${gateway.spec.credentials.username}@${h}`)
-                                    self.requestChallenge(gateway.spec.credentials.username, gateway.metadata.ref, h, gateway.spec.transport, null, null, expires)
-                                }
-                            })
-                        }
-                    }
-                }
-            },
-            10000,
-            this.checkExpiresTime * 60 * 1000
-        )
-    }
-
-    stop() {
-        // ??
     }
 }
 

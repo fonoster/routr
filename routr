@@ -13,7 +13,7 @@ run() {
     -Dnashorn.args="--no-deprecation-warning" \
     $ROUTR_JAVA_OPTS \
     -classpath "libs/*" \
-      com.fonoster.routr.core.Launcher
+      io.routr.core.Launcher
 }
 
 if [ -f /.dockerenv ]; then

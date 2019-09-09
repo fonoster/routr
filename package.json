@@ -4,7 +4,7 @@
   "description": "Next-generation SIP Server",
   "scripts": {
     "transpile": "babel --out-dir node_modules/@routr mod",
-    "test": "cross-env ./etc/tests/tester2 mod/core/test mod/core/acl/test mod/core/processor/test mod/registry/test mod/location/test mod/registrar/test mod/rest/test mod/utils/test mod/data_api/test_apis mod/data_api/test_files_datasource mod/data_api/test_redis_datasource",
+    "test": "cross-env ./etc/tests/tester2 mod/core/test mod/core/acl/test mod/core/processor/test mod/registry/test mod/location/test mod/registrar/test mod/rest/test mod/utils/test mod/data_api/test_apis mod/data_api/test_files_datasource mod/data_api/test_redis_datasource mod/data_api/test_nht",
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
     "bundle": "webpack --config webpack.config.js --mode none",
     "pretest": "npm run bundle",
@@ -18,12 +18,12 @@
     "xxhashjs": "^0.2.2"
   },
   "devDependencies": {
-    "nyc": "^14.1.1",
-    "mocha": "^6.2.0",
     "babel-cli": "^6.24.1",
     "babel-preset-env": "^1.7.0",
     "cross-env": "^5.2.0",
     "jvm-npm": "^0.1.1",
+    "mocha": "^6.2.0",
+    "nyc": "^14.1.1",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.11.1",
     "webpack-command": "^0.2.0"
