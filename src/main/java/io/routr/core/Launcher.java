@@ -15,47 +15,55 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.varia.NullAppender;
 
 public class Launcher {
+    private static String baseScript = String.join(
+        System.getProperty("line.separator"),
+        "var System = Java.type('java.lang.System')",
+        "load(System.getProperty('user.dir') + '/libs/jvm-npm.js')"
+    );
+
     private static String mainScript =
-        "var System = Java.type('java.lang.System');"
-            + "load(System.getProperty('user.dir') + '/libs/app.bundle.js')";
-    private static String mainScriptDev =
-        "var System = Java.type('java.lang.System');"
-            + "load(System.getProperty('user.dir') + "
-                + "'/node_modules/@routr/core/main.js')";
-    private static String registryScript =
-        "var System = Java.type('java.lang.System');"
-            + "load(System.getProperty('user.dir') + "
-                + "'/node_modules/@routr/registry/registry.js');"
-                    + "new Registry().registerAll()";
+      "load(System.getProperty('user.dir') + '/libs/app.bundle.js')";
+
+    private static String mainScriptDev = String.join(
+        System.getProperty("line.separator"),
+        "load(System.getProperty('user.dir') + ",
+        "'/node_modules/@routr/core/main.js')"
+    );
+
+    private static String registryScript = String.join(
+        System.getProperty("line.separator"),
+        "load(System.getProperty('user.dir') + ",
+        "'/node_modules/@routr/registry/registry.js')"
+    );
 
     static public void main(String... args) {
         // Avoids old log4j and jetty logs
         System.setProperty("org.eclipse.jetty.LEVEL", "WARN");
         BasicConfigurator.configure(new NullAppender());
         try {
-            new Launcher().launch();
+            new Launcher().launch(baseScript, mainScript,
+              registryScript);
         } catch(ScriptException ex) {
             System.out.println("Unable to run server: " + ex.getMessage());
         }
     }
 
     // TODO: Check Java version and show warning if version >= 11
-    public void launch() throws ScriptException {
+    public void launch(String baseScript, String mainScript,
+      String registryScript) throws ScriptException {
         String engine = System.getenv("ROUTR_JS_ENGINE");
         String mode = System.getenv("ROUTR_LAUNCH_MODE");
-        String mainScript = this.mainScript;
 
-        if (mode != null && System.getenv("ROUTR_LAUNCH_MODE")
-            .equalsIgnoreCase("dev")) {
+        if (mode != null && mode.equalsIgnoreCase("dev")) {
             mainScript = this.mainScriptDev;
         }
 
-        if (engine != null && engine.equals("graal.js")) {
-            launchWithGraalJS(mainScript, registryScript);
+        if (engine == null || engine.equals("graal.js")) {
+            launchWithGraalJS(baseScript, mainScript, registryScript);
         } else if (engine != null && engine.equals("nashorn")) {
             launchWithNashorn(mainScript);
         } else {
-            launchWithNashorn(mainScript);
+            throws new RuntimeException("Invalid js engine: " + engine);
         }
     }
 
@@ -66,30 +74,34 @@ public class Launcher {
         engine.eval(mainScript);
     }
 
-    public void launchWithGraalJS(String mainScript, String registryScript) {
-        Context mainCtx = Context
-          .newBuilder()
-          .option("js.nashorn-compat", "true")
-          .allowExperimentalOptions(true)
-          .allowIO(true)
-          .allowAllAccess(true).build();
+    public Context createGraalJSContext() {
+        return Context
+            .newBuilder()
+            .option("js.nashorn-compat", "true")
+            .allowExperimentalOptions(true)
+            .allowIO(true)
+            .allowAllAccess(true).build();
+    }
 
-          mainCtx.eval("js", mainScript);
+    public void launchWithGraalJS(String baseScript,
+        String mainScript, String registryScript) {
+        Context mainCtx = createGraalJSContext();
+        Context registryCtx = createGraalJSContext();
 
-          java.util.Timer timer = new java.util.Timer();
-          timer.schedule(new TimerTask() {
-              @Override
-              public void run () {
-                  Context registryCtx = Context
-                    .newBuilder()
-                    .option("js.nashorn-compat", "true")
-                    .allowExperimentalOptions(true)
-                    .allowIO(true)
-                    .allowAllAccess(true).build();
-                    registryCtx.eval("js", registryScript);
-                    registryCtx.close();
-              }
-          }, 10000, 60 * 1000);
+        // Runs the main thread
+        mainCtx.eval("js", baseScript);
+        mainCtx.eval("js", mainScript);
 
+        // Runs the main registry thread
+        registryCtx.eval("js", baseScript);
+        registryCtx.eval("js", registryScript);
+
+        java.util.Timer timer = new java.util.Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run () {
+                registryCtx.eval("js", "new Registry().registerAll()");
+            }
+        }, 10000, 60 * 1000);
     }
 }

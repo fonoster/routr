@@ -4,7 +4,6 @@
  */
 const System = Java.type('java.lang.System')
 const NHTClient = Java.type('io.routr.nht.NHTClient')
-load(`${System.getProperty('user.dir')}/libs/jvm-npm.js`)
 const DSSelector = require('@routr/data_api/ds_selector')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const config = require('@routr/core/config_util')()

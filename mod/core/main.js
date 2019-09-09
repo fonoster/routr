@@ -11,9 +11,6 @@ const GatewaysAPI = require('@routr/data_api/gateways_api')
 const NumbersAPI = require('@routr/data_api/numbers_api')
 const DSSelector = require('@routr/data_api/ds_selector')
 
-const System = Java.type('java.lang.System')
-load(`${System.getProperty('user.dir')}/libs/jvm-npm.js`)
-
 const ds = DSSelector.getDS()
 const dataAPIs = {
     UsersAPI: new UsersAPI(ds),
