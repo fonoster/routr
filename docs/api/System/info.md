@@ -47,7 +47,7 @@ HTTP/1.1 200 OK
          "value":null
       },
       {  
-         "var":"ROUTR_CONFIG_PATH",
+         "var":"ROUTR_CONFIG_FILE",
          "value":null
       },
       {  
