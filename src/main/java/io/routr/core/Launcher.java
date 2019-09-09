@@ -63,7 +63,7 @@ public class Launcher {
         } else if (engine != null && engine.equals("nashorn")) {
             launchWithNashorn(mainScript);
         } else {
-            throws new RuntimeException("Invalid js engine: " + engine);
+            throw new RuntimeException("Invalid js engine: " + engine);
         }
     }
 
