@@ -11,8 +11,6 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import org.graalvm.polyglot.Context;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.varia.NullAppender;
 
 public class Launcher {
     private static String baseScript = String.join(
@@ -37,12 +35,8 @@ public class Launcher {
     );
 
     static public void main(String... args) {
-        // Avoids old log4j and jetty logs
-        System.setProperty("org.eclipse.jetty.LEVEL", "WARN");
-        BasicConfigurator.configure(new NullAppender());
         try {
-            new Launcher().launch(baseScript, mainScript,
-              registryScript);
+            new Launcher().launch(baseScript, mainScript, registryScript);
         } catch(ScriptException ex) {
             System.out.println("Unable to run server: " + ex.getMessage());
         }
@@ -61,16 +55,16 @@ public class Launcher {
         if (engine == null || engine.equals("graal.js")) {
             launchWithGraalJS(baseScript, mainScript, registryScript);
         } else if (engine != null && engine.equals("nashorn")) {
-            launchWithNashorn(mainScript);
+            launchWithNashorn(baseScript, mainScript);
         } else {
             throw new RuntimeException("Invalid js engine: " + engine);
         }
     }
 
-    public void launchWithNashorn(String mainScript) throws ScriptException {
+    public void launchWithNashorn(String baseScript, String mainScript) throws ScriptException {
         ScriptEngine engine = new ScriptEngineManager()
             .getEngineByName("nashorn");
-        engine.put("timer", new Timer());
+        engine.eval(baseScript);
         engine.eval(mainScript);
     }
 

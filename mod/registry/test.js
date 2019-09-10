@@ -10,7 +10,6 @@ const DSSelector = require('@routr/data_api/ds_selector')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const config = require('@routr/core/config_util')()
 const getProperties = require('@routr/registry/reg_properties')
-const createSipListener = require('@routr/registry/sip_listener')
 const createSipProvider = require('@routr/registry/sip_provider')
 const buildRegRequest = require('@routr/registry/request_builder')
 
@@ -32,7 +31,7 @@ describe('Registry Module', () => {
 
     it('Create sip provider', function(done) {
         // If errors we are good...
-        createSipProvider(getProperties('stack-1', '0.0.0.0:5060/TCP'), createSipListener(), void(0), 5091)
+        createSipProvider(getProperties('stack-1', '0.0.0.0:5060/TCP'), void(0), 5091)
         done()
     })
 
@@ -44,7 +43,7 @@ describe('Registry Module', () => {
         const contactAddr = nearestInterface(transport.bindAddr, transport.port)
 
         // Creating sip provider
-        const sipProvider = createSipProvider(getProperties('stack-2', '0.0.0.0:5060/TCP'), createSipListener(), void(0), 5092)
+        const sipProvider = createSipProvider(getProperties('stack-2', '0.0.0.0:5060/TCP'), void(0), 5092)
         const callId = sipProvider.getNewCallId()
         // If errors we are good...
         const request = buildRegRequest(gateway, contactAddr, viaAddr, callId, 1, 'routr v1.x', buildAddr)

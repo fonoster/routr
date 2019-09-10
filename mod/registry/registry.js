@@ -30,7 +30,7 @@ class Registry {
         const outboundProxy = `${proxyTransport.bindAddr}:${proxyTransport.port}/${proxyTransport.protocol}`
         const properties = getProperties('routr-registry', outboundProxy)
         this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS())
-        this.registryStore = new NHTClient('vm:/routr')
+        this.registryStore = new NHTClient('vm://routr')
         this.sipProvider = createSipProvider(properties)
         try {
             this.sipProvider.addSipListener(

@@ -3,7 +3,7 @@
  * @since v1
  */
 const CoreUtils = require('@routr/core/utils')
-const getConfig = require('@routr/core/config_util')
+const config = require('@routr/core/config_util')()
 const {
     reloadConfig
 } = require('@routr/core/config_util')
@@ -16,6 +16,7 @@ const locationService = require('@routr/rest/location_service')
 const parameterAuthFilter = require('@routr/rest/parameter_auth_filter')
 const basicAuthFilter = require('@routr/rest/basic_auth_filter')
 
+const NHTClient = Java.type('io.routr.nht.NHTClient')
 const Spark = Java.type('spark.Spark')
 const options = Java.type('spark.Spark').options
 const get = Java.type('spark.Spark').get
@@ -28,29 +29,26 @@ const LOG = LogManager.getLogger()
 
 class Rest {
 
-    constructor(server, locator, registry, dataAPIs) {
-        const config = getConfig()
-        this.rest = config.spec.restService
-        this.system = config.system
+    constructor(server, locator, dataAPIs) {
+        const rest = config.spec.restService
         this.dataAPIs = dataAPIs
         this.locator = locator
-        this.registry = registry
         this.server = server
-        this.config = config
+        this.nht = new NHTClient('vm://routr')
 
-        LOG.info(`Starting Restful service (port: ${this.rest.port}, apiPath: ${this.system.apiPath})`)
+        LOG.info(`Starting Restful service (port: ${rest.port}, apiPath: ${config.system.apiPath})`)
 
-        Spark.ipAddress(this.rest.bindAddr)
-        Spark.threadPool(this.rest.maxThreads, this.rest.minThreads, this.rest.timeOutMillis)
+        Spark.ipAddress(rest.bindAddr)
+        Spark.threadPool(rest.maxThreads, rest.minThreads, rest.timeOutMillis)
 
-        if (!this.rest.unsecured) {
+        if (!rest.unsecured) {
             Spark.secure(config.spec.restService.keyStore,
                 config.spec.restService.keyStorePassword,
                 config.spec.restService.trustStore,
                 config.spec.restService.trustStorePassword)
         }
 
-        Spark.port(this.rest.port)
+        Spark.port(rest.port)
         Spark.internalServerError((req, res) => {
             res.type('application/json')
             return '{\"status\": \"500\", \"message\":\"Internal server error\"}'
@@ -59,30 +57,35 @@ class Rest {
             res.type('application/json')
             return '{\"status\": \"404\", \"message\":\"Not found\"}'
         })
+
     }
 
     start() {
         options('/*', (req, res) => {
-            const accessControlRequestHeaders = req.headers('Access-Control-Request-Headers')
+            const accessControlRequestHeaders =
+              req.headers('Access-Control-Request-Headers')
             if (accessControlRequestHeaders !== null) {
-                res.header('Access-Control-Allow-Headers', accessControlRequestHeaders)
+                res.header('Access-Control-Allow-Headers',
+                  accessControlRequestHeaders)
             }
 
-            const accessControlRequestMethod = req.headers('Access-Control-Request-Method')
+            const accessControlRequestMethod =
+              req.headers('Access-Control-Request-Method')
             if (accessControlRequestMethod !== null) {
-                res.header('Access-Control-Allow-Methods', accessControlRequestMethod)
+                res.header('Access-Control-Allow-Methods',
+                  accessControlRequestMethod)
             }
             return 'OK'
         })
 
-        path(this.system.apiPath, (r) => {
+        path(config.system.apiPath, (r) => {
             before('/*', (req, res) => {
                 res.header('Access-Control-Allow-Origin', '*')
                 if (req.pathInfo().endsWith('/credentials') ||
                     req.pathInfo().endsWith('/token')) {
                     basicAuthFilter(req, res, this.dataAPIs.UsersAPI)
                 } else {
-                    parameterAuthFilter(req, res, this.config.salt)
+                    parameterAuthFilter(req, res, config.salt)
                 }
             })
 
@@ -90,28 +93,33 @@ class Rest {
             get('/system/status', (req, res) => '{\"status\": \"Up\"}')
 
             post('/system/status/:status', (req, res) => {
-                // halt or error
-                const status = req.params(':status')
-                if (status.equals('down')) {
-                    this.server.stop()
-                } else if (status.equals('reload')) {
-                    reloadConfig()
-                    res.status(200)
-                    res.body('{\"status\": \"200\", \"message\":\"Reloaded configuration from file.\"}')
-                } else {
-                    res.status(401)
-                    res.body('{\"status\": \"400\", \"message\":\"Bad Request\"}')
+                switch (req.params(':status')) {
+                    case 'down':
+                        this.server.stop()
+                        break;
+                    case 'reload':
+                        reloadConfig()
+                        res.status(200)
+                        res.body('{\"status\": \"200\", \"message\":\"Reloaded configuration from file.\"}')
+                        break;
+                    default:
+                      res.status(401)
+                      res.body('{\"status\": \"400\", \"message\":\"Bad Request\"}')
                 }
             })
 
-            get('/system/info', (req, res) => JSON.stringify(this.system))
+            get('/system/info', (req, res) => JSON.stringify(config.system))
 
             // Deprecated
-            get('/credentials', (req, res) => getJWTToken(req, res, this.config.salt))
+            get('/credentials', (req, res) => getJWTToken(req, res,
+                config.salt))
 
-            get('/token', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, getJWTToken(req, res, this.config.salt))))
+            get('/token', (req, res) => JSON.stringify(
+                CoreUtils.buildResponse(Status.OK,
+                    getJWTToken(req, res, config.salt))))
 
-            get('/registry', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, this.registry.listAsJSON())))
+            get('/registry', (req, res) => JSON.stringify(
+                CoreUtils.buildResponse(Status.OK, this.nht.list())))
 
             locationService(this.locator)
             resourcesService(this.dataAPIs.AgentsAPI, 'Agent')

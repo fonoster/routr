@@ -50,7 +50,7 @@ function storeRegistry(registryStore, response) {
 
     LOG.debug(`registry.listener.storeRegistry [storing gw -> ${gwURI.toString()}]`)
 
-    registryStore.put(gwURI.toString(), reg)
+    registryStore.put(gwURI.toString(), JSON.stringify(reg))
 }
 
 function removeRegistry(registryStore, response) {

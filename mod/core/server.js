@@ -86,8 +86,8 @@ class Server {
 
     start() {
         LOG.info('Starting Routr')
-        this.nhtServer.start()
         this.setup()
+        this.nhtServer.start()
         this.restService = new RestService(this, this.locator, this.dataAPIs)
         this.restService.start()
     }
@@ -97,7 +97,6 @@ class Server {
         this.restService.stop()
         this.sipStack.stop()
         this.nhtServer.stop()
-        //this.locator.stop()
         System.exit(0)
     }
 
