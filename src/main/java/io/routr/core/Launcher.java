@@ -72,6 +72,7 @@ public class Launcher {
         return Context
             .newBuilder()
             .option("js.nashorn-compat", "true")
+            .option("js.experimental-foreign-object-prototype", "true")
             .allowExperimentalOptions(true)
             .allowIO(true)
             .allowAllAccess(true).build();
@@ -89,12 +90,13 @@ public class Launcher {
         // Runs the main registry thread
         registryCtx.eval("js", baseScript);
         registryCtx.eval("js", registryScript);
+        registryCtx.eval("js", "var reg = new Registry()");
 
         java.util.Timer timer = new java.util.Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run () {
-                registryCtx.eval("js", "new Registry().registerAll()");
+                registryCtx.eval("js", "reg.registerAll()");
             }
         }, 10000, 60 * 1000);
     }

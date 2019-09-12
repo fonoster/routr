@@ -15,6 +15,7 @@ const resourcesService = require('@routr/rest/resources_service')
 const locationService = require('@routr/rest/location_service')
 const parameterAuthFilter = require('@routr/rest/parameter_auth_filter')
 const basicAuthFilter = require('@routr/rest/basic_auth_filter')
+const moment = require('moment')
 
 const NHTClient = Java.type('io.routr.nht.NHTClient')
 const Spark = Java.type('spark.Spark')
@@ -119,7 +120,13 @@ class Rest {
                     getJWTToken(req, res, config.salt))))
 
             get('/registry', (req, res) => JSON.stringify(
-                CoreUtils.buildResponse(Status.OK, this.nht.list())))
+                CoreUtils.buildResponse(Status.OK,
+                  this.nht.list().map(r => {
+                    const reg = JSON.parse(r)
+                    reg.regOnFormatted = moment(reg.registeredOn).fromNow()
+                    return reg
+                  })))
+            )
 
             locationService(this.locator)
             resourcesService(this.dataAPIs.AgentsAPI, 'Agent')
