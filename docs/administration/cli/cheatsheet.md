@@ -125,7 +125,7 @@ $ rctl del agent ag3f77f6
 
 ```
 # Request authentication for subsequent commands
-$ rctl login https://127.0.0.1/api/{apiVersion} -u admin -p changeit
+$ rctl login https://127.0.0.1:4567/api/{apiVersion} -u admin -p changeit
 ```
 
 ### Showing the Registry
