@@ -9,7 +9,10 @@ const postal = require('postal')
 const CoreUtils = require('@routr/core/utils')
 const LocatorUtils = require('@routr/location/utils')
 const isEmpty = require('@routr/utils/obj_util')
-const { buildAddr } = require('@routr/utils/misc_utils')
+const {
+    buildAddr,
+    fixPort
+} = require('@routr/utils/misc_utils')
 const {
     Status
 } = require('@routr/core/status')
@@ -219,7 +222,7 @@ class Locator {
             for (const x in routes) {
                 const contactURI = routes[x].contactURI
                 const h1 = contactURI.getHost().toString()
-                const p1 = LocatorUtils.fixPort(contactURI.getPort())
+                const p1 = fixPort(contactURI.getPort())
                 if (h1 === peerHost && p1 === peerPort) {
                     return CoreUtils.buildResponse(Status.OK, routes)
                 }

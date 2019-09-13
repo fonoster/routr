@@ -4,16 +4,16 @@
  *
  * Miscellaneous utilities
  */
-module.exports.equalsIgnoreCase = (a, b) => a.toLowerCase() === b.toLowerCase()
 module.exports.buildAddr = (h, p) => `${h}${p? ':' + p: ''}`
+module.exports.fixPort = port => port === -1? 5060 : port
 module.exports.protocolTransport = (config, proto) => {
-    try {
-        const transport = config.spec.transport.filter(trans => trans.protocol === proto)[0]
-        if (!transport.bindAddr) transport.bindAddr = config.spec.bindAddr
-        return transport
-    } catch(e) {
-        throw `Transport \'${proto}\' not found in configs => .spec.transport.[*]`
-    }
+   try {
+       const transport = config.spec.transport.filter(trans => trans.protocol === proto)[0]
+       if (!transport.bindAddr) transport.bindAddr = config.spec.bindAddr
+       return transport
+   } catch(e) {
+       throw `Transport \'${proto}\' not found in configs => .spec.transport.[*]`
+   }
 }
 // Returns the address for the neareast interface to a targeted host
 module.exports.nearestInterface = (h, p, h1, p1) => {
@@ -21,3 +21,4 @@ module.exports.nearestInterface = (h, p, h1, p1) => {
     const port = p1? p1 : p
     return { host, port }
 }
+module.exports.equalsIgnoreCase = (a, b) => a.toLowerCase() === b.toLowerCase()

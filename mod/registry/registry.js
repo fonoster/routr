@@ -17,6 +17,12 @@ const {
     protocolTransport,
     nearestInterface
 } = require('@routr/utils/misc_utils')
+const {
+    isRegistered,
+    isExpired,
+    isStaticMode,
+    unregistered,
+} = require('@routr/registry/utils')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
@@ -30,17 +36,13 @@ class Registry {
         const outboundProxy = `${proxyTransport.bindAddr}:${proxyTransport.port}/${proxyTransport.protocol}`
         const properties = getProperties('routr-registry', outboundProxy)
         this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS())
-        this.registryStore = new NHTClient('vm://routr')
         this.sipProvider = createSipProvider(properties)
-        try {
-            this.sipProvider.addSipListener(
-                createSipListener(this.sipProvider.getSipStack(),
-                    this.gatewaysAPI, this.registryStore))
-        } catch(e) {
-            // I'm having issues while trying to creating new instances of
-            // the class Registry.
-        }
+        this.sipProvider.addSipListener(
+          createSipListener(this, this.sipProvider.getSipStack(),
+            this.gatewaysAPI))
+
         this.userAgent = config.metadata.userAgent
+        this.nht = new NHTClient('vm://routr')
     }
 
     register(gateway, received, rport) {
@@ -59,11 +61,17 @@ class Registry {
     }
 
     registerAll() {
-        LOG.debug(`registry.Registry.registerAll [beging registry of all gateways]`)
-        // Filter unexpired and static gateway
-        const response = this.gatewaysAPI.getGateways()
-        const gateways = response.result
-        gateways.forEach(gateway => this.register(gateway))
+        LOG.debug(`registry.Registry.registerAll [sending gateways registration]`)
+        this.nht.list().forEach(r => {
+            const reg = JSON.parse(r)
+            if (isExpired(reg)) {
+                LOG.debug(`registry.Registry.registerAll [removing expired registry \`${reg.gwURI}\`]`)
+                this.nht.remove(reg.gwURI)
+            }
+        })
+        const gateways = this.gatewaysAPI.getGateways().result
+        const unreg = unregistered(this.nht.list(), gateways)
+        unreg.forEach(gw => this.register(gw))
     }
 
     static sendRequest(sipProvider, request) {

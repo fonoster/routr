@@ -2,20 +2,19 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { buildAddr } = require('@routr/utils/misc_utils')
+const {
+    buildAddr,
+    fixPort
+} = require('@routr/utils/misc_utils')
 const StringBuilder = Java.type('java.lang.StringBuilder')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 
 class LocatorUtils {
 
-    static fixPort(port) {
-        return port === -1? 5060 : port
-    }
-
     static getPort(uri) {
         const uriObj = LocatorUtils.aorAsObj(uri)
-        return LocatorUtils.fixPort(uriObj.getPort())
+        return fixPort(uriObj.getPort())
     }
 
     static expiredRouteFilter(route) {

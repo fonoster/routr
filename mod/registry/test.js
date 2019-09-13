@@ -19,6 +19,12 @@ const {
     nearestInterface
 } = require('@routr/utils/misc_utils')
 
+const {
+    isRegistered,
+    isStaticMode,
+    unregistered
+} = require('@routr/registry/utils')
+
 const ds = DSSelector.getDS()
 const gatewaysAPI = new GatewaysAPI(ds)
 
@@ -50,14 +56,35 @@ describe('Registry Module', () => {
         done()
     })
 
-    it('Store registry', function(done) {
-      //  const addressFactory = SipFactory.getInstance().createAddressFactory()
-      //  const InetAddress = Java.type('java.net.InetAddress')
-      //  const SipFactory = Java.type('javax.sip.SipFactory')
-        /*const registry = new Registry(null)
-        registry.storeRegistry(addressFactory.createSipURI('29121', 'sanjose2.voip.ms'), 200)
-        assert.ok(registry.listAsJSON().length === 1)
-        done()*/
-        done()
+    it('Util', function(done) {
+        // Check if a reg is present in
+        const regs = [JSON.stringify({
+            username: 'gw1',
+            host: 'sp.labl.com',
+            ip: '0.0.0.1',
+            expires: 400,
+            registeredOn: Date.now(),
+            gwRef: 'abcd'
+        })]
+        assert.ok(isRegistered(regs, 'abcd'))
+
+        // Is this a static gateway?
+        let response = gatewaysAPI.getGateway('gw1ec5e36a')
+        const gateway = response.result
+        assert.ok(isStaticMode(gateway))
+
+        // Show the unregistered gateways
+        response = gatewaysAPI.getGateways()
+        const gateways = response.result
+        assert.ok(unregistered(regs, gateways).length > 0)
+
+        try {
+            unregistered(null, null)
+            unregistered(void(0), void(0))
+            done()
+        } catch(e) {
+            done(e)
+        }
     })
+
 })

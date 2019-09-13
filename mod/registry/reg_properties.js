@@ -1,4 +1,9 @@
-
+/**
+ * @author Pedro Sanders
+ * @since v1
+ *
+ * Registry's properties
+ */
 module.exports = (stackName = 'routr', proxyAddr) => {
     const Properties = Java.type('java.util.Properties')
     const properties = new Properties()
