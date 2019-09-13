@@ -58,7 +58,6 @@ class Rest {
             res.type('application/json')
             return '{\"status\": \"404\", \"message\":\"Not found\"}'
         })
-
     }
 
     start() {
@@ -101,11 +100,11 @@ class Rest {
                     case 'reload':
                         reloadConfig()
                         res.status(200)
-                        res.body('{\"status\": \"200\", \"message\":\"Reloaded configuration from file.\"}')
+                        return '{\"status\": \"200\", \"message\":\"Reloaded configuration from file.\"}'
                         break;
                     default:
-                      res.status(401)
-                      res.body('{\"status\": \"400\", \"message\":\"Bad Request\"}')
+                        res.status(400)
+                        return '{\"status\": \"400\", \"message\":\"Bad Request\"}'
                 }
             })
 

@@ -11,6 +11,8 @@ public class NHTServer implements MessageListener {
     private static String messageQueueName;
     private static String url;
 
+    private Connection connection;
+    private BrokerService broker;
     private Session session;
     private boolean transacted = false;
     private MessageProducer replyProducer;
@@ -23,21 +25,35 @@ public class NHTServer implements MessageListener {
 
     public NHTServer(String url) {
         this.url = url;
-    }
-
-    public void start() {
         try {
             BrokerService broker = new BrokerService();
             broker.setPersistent(false);
             broker.setBrokerName("routr");
             broker.setUseJmx(false);
             broker.addConnector(this.url);
-            broker.start();
+            this.broker = broker;
+        } catch (Exception e) {
+            // TODO: Handle the exception appropriately
+        }
+    }
+
+    public void start() {
+        try {
+            this.broker.start();
         } catch (Exception e) {
             // TODO: Handle the exception appropriately
         }
         this.messageProtocol = new MessageProtocol();
         this.setupMessageQueueConsumer();
+    }
+
+    public void stop() {
+        try {
+            this.broker.stop();
+            this.connection.stop();
+        } catch (Exception e) {
+            // TODO: Handle the exception appropriately
+        }
     }
 
     private void setupMessageQueueConsumer() {
@@ -54,6 +70,7 @@ public class NHTServer implements MessageListener {
 
             MessageConsumer consumer = this.session.createConsumer(adminQueue);
             consumer.setMessageListener(this);
+            this.connection = connection;
         } catch (JMSException e) {
             // TODO: Handle the exception appropriately
         }
