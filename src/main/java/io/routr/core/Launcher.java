@@ -54,22 +54,18 @@ public class Launcher {
         ScriptEngine registryCtx = createJSContext(engine);
         ScriptEngine restCtx = createJSContext(engine);
 
-        System.out.println("DBG001");
         // Runs the main thread
         mainCtx.eval(this.baseScript);
         mainCtx.eval("new Server().start()");
 
-        System.out.println("DBG002");
         // Runs the restful api threadPool
         restCtx.eval(this.baseScript);
         restCtx.eval("new Rest().start()");
 
-        System.out.println("DBG003");
         // Runs the main registry thread
         registryCtx.eval(this.baseScript);
         registryCtx.eval("var reg = new Registry()");
 
-        System.out.println("DBG004");
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -78,7 +74,6 @@ public class Launcher {
                     registryCtx.eval("reg.registerAll()");
                 } catch(ScriptException e) {
                     // ?
-                    e.printStackTrace();
                 }
             }
         }, 10000, 60 * 1000);
