@@ -5,7 +5,6 @@
 const Processor = require('@routr/core/processor/processor')
 const Locator = require('@routr/location/locator')
 const ContextStorage = require('@routr/core/context_storage')
-const RestService = require('@routr/rest/rest')
 const config = require('@routr/core/config_util')()
 
 const FileInputStream = Java.type('java.io.FileInputStream')
@@ -88,13 +87,10 @@ class Server {
         LOG.info('Starting Routr')
         this.setup()
         this.nhtServer.start()
-        this.restService = new RestService(this, this.locator, this.dataAPIs)
-        this.restService.start()
     }
 
     stop() {
         LOG.info('Stopping server')
-        this.restService.stop()
         this.sipStack.stop()
         this.nhtServer.stop()
         System.exit(0)

@@ -3,6 +3,13 @@
  * @since v1
  */
 const CoreUtils = require('@routr/core/utils')
+const UsersAPI = require('@routr/data_api/users_api')
+const AgentsAPI = require('@routr/data_api/agents_api')
+const DomainsAPI = require('@routr/data_api/domains_api')
+const PeersAPI = require('@routr/data_api/peers_api')
+const GatewaysAPI = require('@routr/data_api/gateways_api')
+const NumbersAPI = require('@routr/data_api/numbers_api')
+const DSSelector = require('@routr/data_api/ds_selector')
 const config = require('@routr/core/config_util')()
 const {
     reloadConfig
@@ -30,26 +37,26 @@ const LOG = LogManager.getLogger()
 
 class Rest {
 
-    constructor(server, locator, dataAPIs) {
-        const rest = config.spec.restService
-        this.dataAPIs = dataAPIs
-        this.locator = locator
+    constructor(server) {
+        this.locator = null
         this.server = server
         this.nht = new NHTClient('vm://routr')
 
-        LOG.info(`Starting Restful service (port: ${rest.port}, apiPath: ${config.system.apiPath})`)
+        LOG.info(`Starting Restful service (port: ${config.spec.restService.port}, apiPath: ${config.system.apiPath})`)
 
-        Spark.ipAddress(rest.bindAddr)
-        Spark.threadPool(rest.maxThreads, rest.minThreads, rest.timeOutMillis)
+        Spark.ipAddress(config.spec.restService.bindAddr)
+        Spark.threadPool(config.spec.restService.maxThreads,
+            config.spec.restService.minThreads,
+                config.spec.restService.timeOutMillis)
 
-        if (!rest.unsecured) {
+        if (!config.spec.restService.unsecured) {
             Spark.secure(config.spec.restService.keyStore,
                 config.spec.restService.keyStorePassword,
                 config.spec.restService.trustStore,
                 config.spec.restService.trustStorePassword)
         }
 
-        Spark.port(rest.port)
+        Spark.port(config.spec.restService.port)
         Spark.internalServerError((req, res) => {
             res.type('application/json')
             return '{\"status\": \"500\", \"message\":\"Internal server error\"}'
@@ -128,11 +135,14 @@ class Rest {
             )
 
             locationService(this.locator)
-            resourcesService(this.dataAPIs.AgentsAPI, 'Agent')
-            resourcesService(this.dataAPIs.PeersAPI, 'Peer')
-            resourcesService(this.dataAPIs.DomainsAPI, 'Domain')
-            resourcesService(this.dataAPIs.GatewaysAPI, 'Gateway')
-            resourcesService(this.dataAPIs.NumbersAPI, 'Number')
+
+            const ds = DSSelector.getDS()
+
+            resourcesService(new AgentsAPI(ds), 'Agent')
+            resourcesService(new PeersAPI(ds), 'Peer')
+            resourcesService(new DomainsAPI(ds), 'Domain')
+            resourcesService(new GatewaysAPI(ds), 'Gateway')
+            resourcesService(new NumbersAPI(ds), 'Number')
         })
     }
 
