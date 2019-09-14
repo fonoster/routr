@@ -10,6 +10,11 @@ const PeersAPI = require('@routr/data_api/peers_api')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const NumbersAPI = require('@routr/data_api/numbers_api')
 const DSSelector = require('@routr/data_api/ds_selector')
+const BasicConfigurator = Java.type('org.apache.log4j.BasicConfigurator')
+const NullAppender = Java.type('org.apache.log4j.varia.NullAppender')
+
+// Mutes legacy loggers
+BasicConfigurator.configure(new NullAppender())
 
 const ds = DSSelector.getDS()
 const dataAPIs = {

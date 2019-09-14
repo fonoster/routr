@@ -92,12 +92,18 @@ public class Launcher {
         }, 10000, 60 * 1000);
     }
 
-    public ScriptEngine createJSContext(JSEngine e) throws ScriptException {
-        ScriptEngine engine = engine = new ScriptEngineManager().getEngineByName(e.getName());
-        Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-        bindings.put("polyglot.js.allowIO", true);
-        bindings.put("polyglot.js.allowAllAccess", true);
-        bindings.put("polyglot.js.allowCreateThread", true);
+    public ScriptEngine createJSContext(JSEngine eng) throws ScriptException {
+        ScriptEngine engine = null;
+        try {
+            engine = new ScriptEngineManager().getEngineByName(eng.getName());
+            Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+            bindings.put("polyglot.js.allowIO", true);
+            bindings.put("polyglot.js.allowAllAccess", true);
+            bindings.put("polyglot.js.allowCreateThread", true);
+        } catch(NullPointerException e) {
+            System.out.println("Unable to run server [Invalid js engine => '" + eng.getName() + "']");
+            System.exit(1);
+        }
         return engine;
     }
 

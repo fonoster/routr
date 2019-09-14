@@ -2,7 +2,7 @@ buildscript {
     repositories {
         mavenCentral()
         jcenter()
-        maven { url "https://jitpack.io" }
+        maven { url 'https://jitpack.io' }
     }
 }
 
@@ -18,40 +18,39 @@ allprojects {
 }
 
 dependencies {
-    compile 'org.apache.logging.log4j:log4j-api:2.11.0'
+    compile 'org.apache.activemq:activemq-client:5.15.10'
+    compile 'org.apache.activemq:activemq-broker:5.15.10'
+    compile 'org.apache.activemq:activemq-kahadb-store:5.15.10'
+    compile 'log4j:log4j:1.2.17'
+    compile 'org.slf4j:slf4j-nop:1.7.28'
     compile 'org.apache.logging.log4j:log4j-core:2.11.0'
-    // Newer versions of JAIN-SIP are causing critical regression with Routr
-    compile 'javax.sip:jain-sip-ri:1.2.324'
-    compile 'commons-codec:commons-codec:1.11'
-    compile 'commons-net:commons-net:3.6'
-    compile 'commons-lang:commons-lang:2.6'
-    compile 'commons-io:commons-io:2.6'
-    compile 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
-    compile ('com.sparkjava:spark-core:2.9.1') {
-        exclude group: 'org.slf4j', module: 'slf4j-api'
-        exclude group: 'org.slf4j', module: 'slf4j-ext'
-    }
-    compile 'com.qmetric:spark-authentication:1.4'
-    compile 'io.jsonwebtoken:jjwt:0.9.1'
-    compile 'com.networknt:json-schema-validator:1.0.20'
-    compile 'com.jayway.jsonpath:json-path:2.4.0'
-    compile 'redis.clients:jedis:2.9.0'
+    compile 'org.apache.logging.log4j:log4j-1.2-api:2.11.0'
     compile 'org.mongodb:bson:3.7.1'
-    compile 'com.github.ben-manes.caffeine:caffeine:2.8.0'
-    compile 'org.graalvm.sdk:graal-sdk:19.2.0'
-    compile 'org.graalvm.truffle:truffle-api:19.2.0'
     compile 'org.graalvm.js:js:19.2.0'
     compile 'org.graalvm.js:js-scriptengine:19.2.0'
-    compile 'org.graalvm.regex:regex:19.2.0'
-    compile 'org.apache.activemq:activemq-all:5.15.10'
-    compile ('it.unimi.dsi:dsiutils:2.6.0') {
-        exclude group: 'org.slf4j', module: 'slf4j-api'
-        exclude group: 'org.slf4j', module: 'slf4j-ext'
-        exclude group: 'ch.qos.logback', module: 'logback-core'
-        exclude group: 'ch.qos.logback', module: 'logback-classic'
-    }
+    compile 'javax.sip:jain-sip-ri:1.2.324' // Newer versions of JAIN-SIP are causing critical regression with Routr
+    compile 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
+    compile 'redis.clients:jedis:2.9.0'
+    compile 'io.jsonwebtoken:jjwt:0.9.1'
+    compile 'it.unimi.dsi:dsiutils:2.6.0'
+    compile 'commons-codec:commons-codec:1.13'
+    compile 'commons-net:commons-net:3.6'
+    compile 'commons-io:commons-io:2.6'
+    compile 'com.github.ben-manes.caffeine:caffeine:2.8.0'
+    compile 'com.networknt:json-schema-validator:1.0.20'
+    compile 'com.networknt:json-schema-validator:1.0.20'
+    compile 'com.jayway.jsonpath:json-path:2.4.0'
+    compile 'com.jayway.jsonpath:json-path:2.4.0'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
+    compile 'com.sparkjava:spark-core:2.9.1'
+    compile 'com.qmetric:spark-authentication:1.4'
+}
+
+configurations.all {
+    // Mutes 3rd party loggers
+    exclude group: 'ch.qos.logback', module: 'logback-classic'
+    exclude group: 'ch.qos.logback', module: 'logback-core'
 }
 
 repositories {
@@ -63,6 +62,6 @@ tasks.withType(Jar) {
 }
 
 task copyRuntimeLibs(type: Copy) {
-  into "libs"
+  into 'libs'
   from configurations.testRuntime
 }
