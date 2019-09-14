@@ -2,11 +2,20 @@
  * @author Pedro Sanders
  * @since v1
  */
+const UsersAPI = require('@routr/data_api/users_api')
+const AgentsAPI = require('@routr/data_api/agents_api')
+const DomainsAPI = require('@routr/data_api/domains_api')
+const PeersAPI = require('@routr/data_api/peers_api')
+const GatewaysAPI = require('@routr/data_api/gateways_api')
+const NumbersAPI = require('@routr/data_api/numbers_api')
+const DSSelector = require('@routr/data_api/ds_selector')
 const Processor = require('@routr/core/processor/processor')
 const Locator = require('@routr/location/locator')
 const ContextStorage = require('@routr/core/context_storage')
 const config = require('@routr/core/config_util')()
 
+const BasicConfigurator = Java.type('org.apache.log4j.BasicConfigurator')
+const NullAppender = Java.type('org.apache.log4j.varia.NullAppender')
 const FileInputStream = Java.type('java.io.FileInputStream')
 const System = Java.type('java.lang.System')
 const SipFactory = Java.type('javax.sip.SipFactory')
@@ -21,7 +30,20 @@ const ANSI_RESET = "\u001B[0m"
 
 class Server {
 
-    constructor(dataAPIs) {
+    constructor() {
+        // Mutes legacy loggers
+        BasicConfigurator.configure(new NullAppender())
+
+        const ds = DSSelector.getDS()
+        const dataAPIs = {
+            UsersAPI: new UsersAPI(ds),
+            AgentsAPI: new AgentsAPI(ds),
+            DomainsAPI: new DomainsAPI(ds),
+            NumbersAPI: new NumbersAPI(ds),
+            GatewaysAPI: new GatewaysAPI(ds),
+            PeersAPI: new PeersAPI(ds)
+        }
+
         this.locator = new Locator(dataAPIs)
         this.dataAPIs = dataAPIs
         this.nhtServer = new NHTServer("vm://routr")

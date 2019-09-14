@@ -11,7 +11,7 @@ run() {
   cd $BASE_DIR
   $JAVA_HOME/bin/java \
     -Dlog4j.configurationFile=config/log4j2.xml \
-    -Djs.experimental-foreign-object-prototype=true \
+    -Dpolyglot.js.experimental-foreign-object-prototype=true \
     -Dpolyglot.js.nashorn-compat=true \
     -Dnashorn.args="--no-deprecation-warning" \
     $ROUTR_JAVA_OPTS \

@@ -19,28 +19,18 @@ public class Launcher {
         NASHORN_POLYFILL_STRING_PROTOTYPE_INCLUDES,
         NASHORN_POLYFILL_ARRAY_PROTOTYPE_INCLUDES,
         "var System = Java.type('java.lang.System')",
-        "load(System.getProperty('user.dir') + '/libs/jvm-npm.js')"
+        "load(System.getProperty('user.dir') + '/libs/jvm-npm.js')",
+        "load(System.getProperty('user.dir') + ",
+        "'/libs/app.bundle.js')",
+        "var Server = require('@routr/core/server')",
+        "var Rest = require('@routr/rest/rest')",
+        "var Registry = require('@routr/registry/registry')"
     );
 
-    private static String mainScript =
-      "load(System.getProperty('user.dir') + '/libs/app.bundle.js')";
-
-    private final static String mainScriptDev = String.join(
+    private final static String baseScriptDev = String.join(
         System.getProperty("line.separator"),
         "load(System.getProperty('user.dir') + ",
-        "'/node_modules/@routr/core/main.js')"
-    );
-
-    private final static String registryScript = String.join(
-        System.getProperty("line.separator"),
-        "load(System.getProperty('user.dir') + ",
-        "'/node_modules/@routr/registry/registry.js')"
-    );
-
-    private final static String restScript = String.join(
-        System.getProperty("line.separator"),
-        "load(System.getProperty('user.dir') + ",
-        "'/node_modules/@routr/rest/rest.js')"
+        "'/node_modules/@routr/core/server.js')"
     );
 
     static public void main(String... args) {
@@ -56,29 +46,30 @@ public class Launcher {
         String mode = System.getenv("ROUTR_LAUNCH_MODE");
 
         if (mode != null && mode.equalsIgnoreCase("dev")) {
-            this.mainScript = this.mainScriptDev;
+            this.baseScript = this.baseScriptDev;
         }
 
         JSEngine engine = JSEngine.get(System.getenv("ROUTR_JS_ENGINE"));
-
         ScriptEngine mainCtx = createJSContext(engine);
         ScriptEngine registryCtx = createJSContext(engine);
         ScriptEngine restCtx = createJSContext(engine);
 
+        System.out.println("DBG001");
         // Runs the main thread
         mainCtx.eval(this.baseScript);
-        mainCtx.eval(this.mainScript);
+        mainCtx.eval("new Server().start()");
 
+        System.out.println("DBG002");
         // Runs the restful api threadPool
         restCtx.eval(this.baseScript);
-        restCtx.eval(this.restScript);
         restCtx.eval("new Rest().start()");
 
+        System.out.println("DBG003");
         // Runs the main registry thread
         registryCtx.eval(this.baseScript);
-        registryCtx.eval(this.registryScript);
         registryCtx.eval("var reg = new Registry()");
 
+        System.out.println("DBG004");
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -87,6 +78,7 @@ public class Launcher {
                     registryCtx.eval("reg.registerAll()");
                 } catch(ScriptException e) {
                     // ?
+                    e.printStackTrace();
                 }
             }
         }, 10000, 60 * 1000);

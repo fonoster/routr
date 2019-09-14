@@ -14,6 +14,7 @@ const {
     fixPort
 } = require('@routr/utils/misc_utils')
 
+const NHTClient = Java.type('io.routr.nht.NHTClient')
 const InetAddress = Java.type('java.net.InetAddress')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
