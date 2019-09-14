@@ -45,7 +45,7 @@ describe('Network Hashtable', () => {
         done()
     })
 
-    it('Adding thousands of values normal hashmap', function(done) {
+    it.skip('Adding thousands of values normal hashmap', function(done) {
         for (let i = 0; i < 10000; i++) {
             const value = 'v' + i
             hasmap.put(value, value)
@@ -53,7 +53,7 @@ describe('Network Hashtable', () => {
         done()
     })
 
-    it('Adding thousands of values', function(done) {
+    it.skip('Adding thousands of values', function(done) {
         this.timeout(4000);
         for (let i = 0; i < 10000; i++) {
             const value = 'v' + i
