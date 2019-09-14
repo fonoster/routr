@@ -4,7 +4,7 @@
     name: Provider Inc.
   spec:
     host: sip.provider.net
-    port: 5080
+    port: 5061
     transport: tcp
     credentials:
       username: 'pbx-1'
