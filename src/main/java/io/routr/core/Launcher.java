@@ -5,12 +5,8 @@
 package io.routr.core;
 
 import java.util.TimerTask;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-
-import org.graalvm.polyglot.Context;
+import java.util.Timer;
+import javax.script.*;
 
 public class Launcher {
     private static String baseScript = String.join(
@@ -22,82 +18,80 @@ public class Launcher {
     private static String mainScript =
       "load(System.getProperty('user.dir') + '/libs/app.bundle.js')";
 
-    private static String mainScriptDev = String.join(
+    private final static String mainScriptDev = String.join(
         System.getProperty("line.separator"),
         "load(System.getProperty('user.dir') + ",
         "'/node_modules/@routr/core/main.js')"
     );
 
-    private static String registryScript = String.join(
+    private final static String registryScript = String.join(
         System.getProperty("line.separator"),
         "load(System.getProperty('user.dir') + ",
         "'/node_modules/@routr/registry/registry.js')"
     );
 
+    private final static String restScript = String.join(
+        System.getProperty("line.separator"),
+        "load(System.getProperty('user.dir') + ",
+        "'/node_modules/@routr/rest/rest.js')"
+    );
+
     static public void main(String... args) {
         try {
-            new Launcher().launch(baseScript, mainScript, registryScript);
+            new Launcher().launch();
         } catch(ScriptException ex) {
             System.out.println("Unable to run server: " + ex.getMessage());
         }
     }
 
     // TODO: Check Java version and show warning if version >= 11
-    public void launch(String baseScript, String mainScript,
-      String registryScript) throws ScriptException {
-        String engine = System.getenv("ROUTR_JS_ENGINE");
+    public void launch() throws ScriptException {
         String mode = System.getenv("ROUTR_LAUNCH_MODE");
 
         if (mode != null && mode.equalsIgnoreCase("dev")) {
-            mainScript = this.mainScriptDev;
+            this.mainScript = this.mainScriptDev;
         }
 
-        if (engine == null || engine.equals("graal.js")) {
-            launchWithGraalJS(baseScript, mainScript, registryScript);
-        } else if (engine != null && engine.equals("nashorn")) {
-            launchWithNashorn(baseScript, mainScript);
-        } else {
-            throw new RuntimeException("Invalid js engine: " + engine);
-        }
-    }
-
-    public void launchWithNashorn(String baseScript, String mainScript) throws ScriptException {
-        ScriptEngine engine = new ScriptEngineManager()
-            .getEngineByName("nashorn");
-        engine.eval(baseScript);
-        engine.eval(mainScript);
-    }
-
-    public Context createGraalJSContext() {
-        return Context
-            .newBuilder()
-            .option("js.nashorn-compat", "true")
-            .option("js.experimental-foreign-object-prototype", "true")
-            .allowExperimentalOptions(true)
-            .allowIO(true)
-            .allowAllAccess(true).build();
-    }
-
-    public void launchWithGraalJS(String baseScript,
-        String mainScript, String registryScript) {
-        Context mainCtx = createGraalJSContext();
-        Context registryCtx = createGraalJSContext();
+        JSEngine engine = JSEngine.get(System.getenv("ROUTR_JS_ENGINE"));
+  
+        ScriptEngine mainCtx = createJSContext(engine);
+        ScriptEngine registryCtx = createJSContext(engine);
+        ScriptEngine restCtx = createJSContext(engine);
 
         // Runs the main thread
-        mainCtx.eval("js", baseScript);
-        mainCtx.eval("js", mainScript);
+        mainCtx.eval(this.baseScript);
+        mainCtx.eval(this.mainScript);
+
+        // Runs the restful api threadPool
+        restCtx.eval(this.baseScript);
+        restCtx.eval(this.restScript);
+        restCtx.eval("new Rest().start()");
 
         // Runs the main registry thread
-        registryCtx.eval("js", baseScript);
-        registryCtx.eval("js", registryScript);
-        registryCtx.eval("js", "var reg = new Registry()");
+        registryCtx.eval(this.baseScript);
+        registryCtx.eval(this.registryScript);
+        registryCtx.eval("var reg = new Registry()");
 
-        java.util.Timer timer = new java.util.Timer();
+        Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
             public void run () {
-                registryCtx.eval("js", "reg.registerAll()");
+                try {
+                    registryCtx.eval("reg.registerAll()");
+                } catch(ScriptException e) {
+                    // ?
+                }
             }
         }, 10000, 60 * 1000);
     }
+
+    public ScriptEngine createJSContext(JSEngine e) throws ScriptException {
+        ScriptEngine engine = engine = new ScriptEngineManager().getEngineByName(e.getName());
+        Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+        bindings.put("polyglot.js.allowIO", true);
+        bindings.put("polyglot.js.allowAllAccess", true);
+        bindings.put("polyglot.js.allowCreateThread", true);
+        return engine;
+    }
+
 }
