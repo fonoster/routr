@@ -1,14 +1,7 @@
 #!/usr/bin/env bash
 
-[ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment. Please setup environment variable JAVA_HOME"; exit 1; }
+[ -z "$GRAALVM_HOME" ] && { echo "Could not find a runtime environment. Please setup environment variable GRAALVM_HOME"; exit 1; }
 
-main_js="$(pwd)/etc/tests/test_helper.js"
-
-#$GRAALVM_HOME/bin/js \
-#  --vm.Dlog4j.configurationFile=config/log4j2.xml \
-#  --jvm --syntax-extensions \
-#  --experimental-options --js.nashorn-compat=true --js.scripting=true \
-#  --vm.classpath="libs/*" "$main_js" -- "$@"
-
-$JAVA_HOME/bin/jjs  -Dlog4j.configurationFile=./config/log4j2.xml -cp $(for i in libs/*.jar ; do echo -n $i: ; done). \
-    -doe=true -ot=true -strict=false -scripting=true "$main_js" -- "$@"
+$GRAALVM_HOME/bin/node --jvm --polyglot --experimental-options --nashorn-compat \
+  --vm.classpath=$(for i in libs/*.jar ; do echo -n $i: ; done). \
+  node_modules/nyc/bin/nyc --reporter=lcov node_modules/mocha/bin/mocha -t 360000 "$@"

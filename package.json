@@ -4,7 +4,7 @@
   "description": "Next-generation SIP Server",
   "scripts": {
     "transpile": "babel --out-dir node_modules/@routr mod",
-    "test": "cross-env ./etc/tests/tester2 mod/core/test mod/core/acl/test mod/core/processor/test mod/registry/test mod/location/test mod/registrar/test mod/rest/test mod/utils/test mod/data_api/test_apis mod/data_api/test_files_datasource mod/data_api/test_redis_datasource mod/data_api/test_nht",
+    "test": "cross-env ./etc/tests/tester mod/core/test mod/core/acl/test mod/core/processor/test mod/registry/test mod/location/test mod/registrar/test mod/rest/test mod/utils/test mod/data_api/test_apis mod/data_api/test_files_datasource mod/data_api/test_redis_datasource mod/data_api/test_nht",
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
     "bundle": "webpack --config webpack.config.js --mode none",
     "pretest": "npm run bundle",

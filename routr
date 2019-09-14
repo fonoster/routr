@@ -6,7 +6,6 @@ BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 
 [ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
 
-#
 run() {
   cd $BASE_DIR
   $JAVA_HOME/bin/java \
