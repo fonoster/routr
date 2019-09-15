@@ -2,16 +2,19 @@ This document is a short guide about running the dockerized version of Routr Ser
 
 ## Run Environment
 
-Run environment variables are used in the entry point script to render configuration templates. You can specify the values of these variables during docker run, or in Kubernetes manifests in the env array.
+Run environment variables are used in the entry point script to render configuration templates. You can specify the values of these variables during `docker run`, `docker-compose up`, or in Kubernetes manifests in the env array.
 
-- ROUTR_JAVA_OPTS
-- ROUTR_EXTERN_ADDR
-- ROUTR_LOCALNETS
-- ROUTR_REGISTRAR_INTF
-- ROUTR_DS_PROVIDER
-- ROUTR_DS_PARAMETERS
-- ROUTR_CONFIG_FILE
-- ROUTR_SALT
+| Variable | Description | Required |
+| --- | --- | --- |
+| ROUTR_EXTERN_ADDR | IP address to advertise  | Yes |
+| ROUTR_LOCALNETS | Local networks. Use in combination with ROUTR_EXTERN_ADDR | No |
+| ROUTR_REGISTRAR_INTF | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register. Defaults to `External` | No |
+| ROUTR_DS_PROVIDER | Defines data provider. Defaults to `files_data_provider` | No |
+| ROUTR_DS_PARAMETERS | Provider specific parameters. See [general config for examples](https://)  | No |
+| ROUTR_CONFIG_FILE | Path to the configuration file. Defaults to `config/config.yml` | No |
+| ROUTR_SALT | Use defined JWT salt. By default Routr will generated its own  | No |
+| ROUTR_JS_ENGINE | Setup the Javascript engine. Available options are `nashorn` and `graal.js`. Defaults to `graal.js` | No |
+| ROUTR_JAVA_OPTS | Use this env variable to pass parameters to the JVM | No |
 
 ## Usage
 

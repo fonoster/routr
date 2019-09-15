@@ -5,21 +5,21 @@ can be provided using the file `config/config.yml` located at the root of your R
 
 | Property | Description | Required |
 | --- | --- | --- |
-| apiVersion | Indicates the version of the resource (Not yet implemented) | yes |
+| apiVersion | Indicates the version of the resource (Not yet implemented) | Yes |
 | metadata.userAgent| Sets sip header `User-Agent` to the desired value | No |
 | spec.bindAddr | Default stack IP address  | No |
 | spec.externAddr | IP address to advertise | No |
 | spec.localnets | Local networks. Use in combination with spec.externAddr | No |
 | spec.recordRoute | Stay within the signaling path | No |
-| spec.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register. Default is `External` | No |
+| spec.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register. Defaults to `External` | No |
 | spec.accessControlList.deny.[*] | Deny incoming traffic from network list | No |
 | spec.accessControlList.allow.[*] | Allow incoming traffic from network list | No |
 | spec.restService.bindAddr | Restful service listening address | No |
 | spec.restService.port | Restful service port. Defaults to 4567 | No |
-| spec.restService.minThreads | Minimum thread allocation. Default is 8 | No |
-| spec.restService.maxThreads | Maximum thread allocation. Default is 200 | No |
-| spec.restService.timeOutMillis | Will reject requests that last more than this value. Default is 5000(5 seconds) | No |
-| spec.restService.unsecured | Disabled https for restful calls. Default is `false` | No |
+| spec.restService.minThreads | Minimum thread allocation. Defaults to 8 | No |
+| spec.restService.maxThreads | Maximum thread allocation. Defaults to 200 | No |
+| spec.restService.timeOutMillis | Will reject requests that last more than this value. Defaults to 5000(5 seconds) | No |
+| spec.restService.unsecured | Disabled https for restful calls. Defaults to `false` | No |
 | spec.restService.keyStore | Path to keyStore | No |
 | spec.restService.trueStore | Path to trueStore | No |
 | spec.restService.keyStorePassword | Password for keyStore | No |
@@ -31,9 +31,9 @@ can be provided using the file `config/config.yml` located at the root of your R
 | spec.securityContext.trustStore | Path to trueStore  | Yes |
 | spec.securityContext.keyStorePassword | Password for keyStore  | Yes |
 | spec.securityContext.keyStoreType | KeyStore type  | Yes |
-| spec.securityContext.client.authType | Type of client authentication. Default is `Disabled`. See https://goo.gl/1vKbXW for more options | No |
-| spec.securityContext.client.protocols.[*] | Accepted tls protocols. Default is [`TLSv1.2`, `TLSv1.1`, `TLSv1`] | No |
-| spec.securityContext.debugging | Turns ON or OFF ssl debugging. Default is `false` | No |
+| spec.securityContext.client.authType | Type of client authentication. Defaults to `Disabled`. See https://goo.gl/1vKbXW for more options | No |
+| spec.securityContext.client.protocols.[*] | Accepted tls protocols. Defaults to [`TLSv1.2`, `TLSv1.1`, `TLSv1`] | No |
+| spec.securityContext.debugging | Turns ON or OFF ssl debugging. Defaults to `false` | No |
 | spec.dataSource.provider | Defines data provider. Defaults to `files_data_provider` | No |
 | spec.dataSource.parameters | Provider specific parameters | No |
 

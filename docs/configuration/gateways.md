@@ -1,6 +1,6 @@
 Use the Gateway resource to register with a Sip Gateways or SBCs and send or receive calls from the PSTN.
 
-The Gateways configuration can be provided using the file `config/gateways.yml` located at the root of your Routr installation.
+The Gateways configuration can be provided using the file `config/gateways.yml`. The file located at the root of your Routr installation, or as defined in the environmental variable `ROUTR_CONFIG_FILE.`
 
 > If using Redis this configuration gets stored in the database.
 
@@ -21,7 +21,7 @@ For static IP authentication be sure to properly configure the `spec.externAddr`
 | spec.expires | Requested lifespan of the registration in seconds. Defaults to `3600` | No |
 | spec.registries.[*] | Additional registries for ingress calls | No |
 
-## Example
+## Example of Gateway in `Registration Mode`
 
 ```yaml
 - apiVersion: v1beta1
@@ -32,7 +32,21 @@ For static IP authentication be sure to properly configure the `spec.externAddr`
   spec:
     host: sip.provider.com
     transport: tcp
-    credentials:                  # Static IP authentication is assumed if this section is omitted
+    credentials:
       username: 'user'
       secret: changeit
+```
+
+## Example if Gateway using `Static Mode`
+
+```yaml
+- apiVersion: v1beta1
+  kind: Gateway
+  metadata:
+    name: Provider 2, Inc
+    ref:  GW0002
+  spec:
+    host: sip2.provider.com
+    port: 5080
+    transport: udp
 ```
