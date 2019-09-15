@@ -9,6 +9,16 @@ const NHTServer = Java.type('io.routr.nht.NHTServer')
 const NHTClient = Java.type('io.routr.nht.NHTClient')
 const HashMap = Java.type('java.util.HashMap')
 
+/*
+ * KNOWN ISSUES:
+ * 1. There is a bug that I can't reproduce here, where the NHTClient
+ * gets a "java.rmi.NoSuchObjectException". This happens when the broker is is
+ * yet available.
+ *
+ * 2. Another issue is that I dont have a way to setup a timeout for requests
+ * to the NHTClient, which could cause the server to hangup watting for a
+ * response that will never come.
+ */
 describe('Network Hashtable', () => {
     let nht
     const hasmap = new HashMap()
@@ -17,6 +27,11 @@ describe('Network Hashtable', () => {
         nhtServer = new NHTServer("vm://routr")
         nhtServer.start()
         nht = new NHTClient("vm://routr")
+    })
+
+    it.only('Connection retry', function(done) {
+        new NHTClient("vm://test").put('test', 'test')
+        done()
     })
 
     it('Adding new (key,value) pair', function(done) {

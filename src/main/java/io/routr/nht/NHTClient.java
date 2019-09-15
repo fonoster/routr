@@ -42,7 +42,6 @@ public class NHTClient {
             this.tempDest = tempDest;
             this.responseConsumer = responseConsumer;
         } catch (JMSException e) {
-            e.printStackTrace();
             //Handle the exception appropriately
         }
     }
