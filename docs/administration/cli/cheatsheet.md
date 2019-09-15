@@ -54,7 +54,7 @@ Basic Commands:
     system (sys)         display a list of resources
     login                sets connection info
 
-More information at https://github.com/fonoster/routr/wiki
+More information at https://routr.io
 ```
 
 > **Important**: Some commands (i.e.: create, delete) are not available in the default implementation of the `resources` modules. Only persistent implementations support these commands.

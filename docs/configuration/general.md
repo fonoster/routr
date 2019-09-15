@@ -75,7 +75,7 @@ This implementation has the limitation that writes operations have to be perform
 The `spec.externAddr` and `spec.localnets` parameters help Routr identify the
 correct path for any given traffic. The `spec.externAddr` is typically the Internet
 facing IP address. The `spec.localnets` is an array with valid CIDR, IP/Mask, or single IP values.
-here is quick example:
+Here is quick example:
 
 ```yaml
 spec:
