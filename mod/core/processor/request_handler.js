@@ -2,11 +2,14 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { connectionException } = require('@routr/utils/exception_helpers') 
+const { connectionException } = require('@routr/utils/exception_helpers')
 const postal = require('postal')
 const ProcessorUtils = require('@routr/core/processor/utils')
 const IPUtil = require('@routr/core/ip_util')
-const { equalsIgnoreCase } = require('@routr/utils/misc_utils')
+const {
+  equalsIgnoreCase,
+  fixPort
+} = require('@routr/utils/misc_utils')
 const getConfig = require('@routr/core/config_util')
 const {
     Status
@@ -85,7 +88,7 @@ class RequestHandler {
             host: lp.getIPAddress().toString(),
             port: lp.getPort()
         }
-        const advertisedAddr = this.getAdvertizedAddr(route, localAddr, config.spec.externAddr)
+        const advertisedAddr = RequestHandler.getAdvertizedAddr(route, localAddr, config.spec.externAddr)
 
         this.configureGeneral(requestOut, advertisedAddr, route, routeInfo)
 
@@ -93,7 +96,8 @@ class RequestHandler {
             requestOut.removeFirst(RouteHeader.NAME)
         }
 
-        if (this.stayInSignalingPath()) {
+        // Stay in signaling path
+        if (config.spec.recordRoute) {
             this.configureRecordRoute(requestOut, advertisedAddr)
         }
 
@@ -107,21 +111,17 @@ class RequestHandler {
         this.sendRequest(requestIn, requestOut, serverTransaction)
     }
 
-    stayInSignalingPath() {
-        return config.spec.recordRoute
-    }
-
     proxyOwnsRequest(request, localAddr, advertisedAddr) {
         const routeHeader = request.getHeader(RouteHeader.NAME)
         if (routeHeader) {
             const h = routeHeader.getAddress().getURI().getHost()
             const host = IPUtil.isIp(h) ? h : InetAddress.getByName(h).getHostAddress()
-            const port = routeHeader.getAddress().getURI().getPort() === -1 ? 5060 : routeHeader.getAddress().getURI().getPort()
-            if (host.equals(advertisedAddr.host) && port.equals(advertisedAddr.port)) {
+            const port = fixPort(routeHeader.getAddress().getURI().getPort())
+            if (host.equals(advertisedAddr.host) && port === advertisedAddr.port) {
                 return true
             }
 
-            if (host.equals(localAddr.host) && port.equals(localAddr.port)) {
+            if (host.equals(localAddr.host) && port === localAddr.port) {
                 return true
             }
         }
@@ -221,7 +221,7 @@ class RequestHandler {
         this.contextStorage.addContext(context)
     }
 
-    getAdvertizedAddr(route, localAddr, externAddr) {
+    static getAdvertizedAddr(route, localAddr, externAddr) {
         // No egress routing has sentByAddress. They are assume to be entities outside the local network.
         if (externAddr && (route.sentByAddress === undefined ||
                 route.sentByAddress.endsWith(".invalid") ||
