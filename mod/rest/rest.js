@@ -68,6 +68,8 @@ class Rest {
     }
 
     start() {
+        const ds = DSSelector.getDS()
+
         options('/*', (req, res) => {
             const accessControlRequestHeaders =
               req.headers('Access-Control-Request-Headers')
@@ -90,7 +92,7 @@ class Rest {
                 res.header('Access-Control-Allow-Origin', '*')
                 if (req.pathInfo().endsWith('/credentials') ||
                     req.pathInfo().endsWith('/token')) {
-                    basicAuthFilter(req, res, this.dataAPIs.UsersAPI)
+                    basicAuthFilter(req, res, new UsersAPI(ds))
                 } else {
                     parameterAuthFilter(req, res, config.salt)
                 }
@@ -136,7 +138,7 @@ class Rest {
 
             locationService(this.locator)
 
-            const ds = DSSelector.getDS()
+
 
             resourcesService(new AgentsAPI(ds), 'Agent')
             resourcesService(new PeersAPI(ds), 'Peer')
