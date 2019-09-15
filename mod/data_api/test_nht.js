@@ -29,7 +29,7 @@ describe('Network Hashtable', () => {
         nht = new NHTClient("vm://routr")
     })
 
-    it.only('Connection retry', function(done) {
+    it.skip('Connection retry', function(done) {
         new NHTClient("vm://test").put('test', 'test')
         done()
     })
