@@ -1314,7 +1314,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/system/status/" title="Status" class="md-nav__link">
+    <a href="../../api/system/status.md" title="Status" class="md-nav__link">
       Status
     </a>
   </li>
@@ -1326,7 +1326,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/system/info/" title="Info" class="md-nav__link">
+    <a href="../../api/system/info.md" title="Info" class="md-nav__link">
       Info
     </a>
   </li>
@@ -1576,17 +1576,63 @@
                 
                 <p>This document is a short guide about running the dockerized version of Routr Server.</p>
 <h2 id="run-environment">Run Environment<a class="headerlink" href="#run-environment" title="Permanent link">&para;</a></h2>
-<p>Run environment variables are used in the entry point script to render configuration templates. You can specify the values of these variables during docker run, or in Kubernetes manifests in the env array.</p>
-<ul>
-<li>ROUTR_JAVA_OPTS</li>
-<li>ROUTR_EXTERN_ADDR</li>
-<li>ROUTR_LOCALNETS</li>
-<li>ROUTR_REGISTRAR_INTF</li>
-<li>ROUTR_DS_PROVIDER</li>
-<li>ROUTR_DS_PARAMETERS</li>
-<li>ROUTR_CONFIG_FILE</li>
-<li>ROUTR_SALT</li>
-</ul>
+<p>Run environment variables are used in the entry point script to render configuration templates. You can specify the values of these variables during <code>docker run</code>, <code>docker-compose up</code>, or in Kubernetes manifests in the env array.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ROUTR_EXTERN_ADDR</td>
+<td>IP address to advertise</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>ROUTR_LOCALNETS</td>
+<td>Local networks. Use in combination with ROUTR_EXTERN_ADDR</td>
+<td>No</td>
+</tr>
+<tr>
+<td>ROUTR_REGISTRAR_INTF</td>
+<td><code>Internal</code> causes the server to use the IP and port it "sees"(received &amp; rport) from a device attempting to register. Defaults to <code>External</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>ROUTR_DS_PROVIDER</td>
+<td>Defines data provider. Defaults to <code>files_data_provider</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>ROUTR_DS_PARAMETERS</td>
+<td>Provider specific parameters. See <a href="https://">general config for examples</a></td>
+<td>No</td>
+</tr>
+<tr>
+<td>ROUTR_CONFIG_FILE</td>
+<td>Path to the configuration file. Defaults to <code>config/config.yml</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>ROUTR_SALT</td>
+<td>Use defined JWT salt. By default Routr will generated its own</td>
+<td>No</td>
+</tr>
+<tr>
+<td>ROUTR_JS_ENGINE</td>
+<td>Setup the Javascript engine. Available options are <code>nashorn</code> and <code>graal.js</code>. Defaults to <code>graal.js</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>ROUTR_JAVA_OPTS</td>
+<td>Use this env variable to pass parameters to the JVM</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <h3 id="running-with-docker-pre-built">Running with docker (pre-built)<a class="headerlink" href="#running-with-docker-pre-built" title="Permanent link">&para;</a></h3>
 <p><strong>Pull the images</strong></p>

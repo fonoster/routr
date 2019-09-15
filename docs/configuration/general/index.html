@@ -1405,7 +1405,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/system/status/" title="Status" class="md-nav__link">
+    <a href="../../api/system/status.md" title="Status" class="md-nav__link">
       Status
     </a>
   </li>
@@ -1417,7 +1417,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../api/system/info/" title="Info" class="md-nav__link">
+    <a href="../../api/system/info.md" title="Info" class="md-nav__link">
       Info
     </a>
   </li>
@@ -1645,7 +1645,7 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 <tr>
 <td>apiVersion</td>
 <td>Indicates the version of the resource (Not yet implemented)</td>
-<td>yes</td>
+<td>Yes</td>
 </tr>
 <tr>
 <td>metadata.userAgent</td>
@@ -1674,7 +1674,7 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 </tr>
 <tr>
 <td>spec.registrarIntf</td>
-<td><code>Internal</code> causes the server to use the IP and port it "sees"(received &amp; rport) from a device attempting to register. Default is <code>External</code></td>
+<td><code>Internal</code> causes the server to use the IP and port it "sees"(received &amp; rport) from a device attempting to register. Defaults to <code>External</code></td>
 <td>No</td>
 </tr>
 <tr>
@@ -1699,22 +1699,22 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 </tr>
 <tr>
 <td>spec.restService.minThreads</td>
-<td>Minimum thread allocation. Default is 8</td>
+<td>Minimum thread allocation. Defaults to 8</td>
 <td>No</td>
 </tr>
 <tr>
 <td>spec.restService.maxThreads</td>
-<td>Maximum thread allocation. Default is 200</td>
+<td>Maximum thread allocation. Defaults to 200</td>
 <td>No</td>
 </tr>
 <tr>
 <td>spec.restService.timeOutMillis</td>
-<td>Will reject requests that last more than this value. Default is 5000(5 seconds)</td>
+<td>Will reject requests that last more than this value. Defaults to 5000(5 seconds)</td>
 <td>No</td>
 </tr>
 <tr>
 <td>spec.restService.unsecured</td>
-<td>Disabled https for restful calls. Default is <code>false</code></td>
+<td>Disabled https for restful calls. Defaults to <code>false</code></td>
 <td>No</td>
 </tr>
 <tr>
@@ -1774,17 +1774,17 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 </tr>
 <tr>
 <td>spec.securityContext.client.authType</td>
-<td>Type of client authentication. Default is <code>Disabled</code>. See <a href="https://goo.gl/1vKbXW">https://goo.gl/1vKbXW</a> for more options</td>
+<td>Type of client authentication. Defaults to <code>Disabled</code>. See <a href="https://goo.gl/1vKbXW">https://goo.gl/1vKbXW</a> for more options</td>
 <td>No</td>
 </tr>
 <tr>
 <td>spec.securityContext.client.protocols.[*]</td>
-<td>Accepted tls protocols. Default is [<code>TLSv1.2</code>, <code>TLSv1.1</code>, <code>TLSv1</code>]</td>
+<td>Accepted tls protocols. Defaults to [<code>TLSv1.2</code>, <code>TLSv1.1</code>, <code>TLSv1</code>]</td>
 <td>No</td>
 </tr>
 <tr>
 <td>spec.securityContext.debugging</td>
-<td>Turns ON or OFF ssl debugging. Default is <code>false</code></td>
+<td>Turns ON or OFF ssl debugging. Defaults to <code>false</code></td>
 <td>No</td>
 </tr>
 <tr>
@@ -1859,7 +1859,7 @@ To bind a transport protocol to a specific IP address, you can use the <code>spe
 <p>The <code>spec.externAddr</code> and <code>spec.localnets</code> parameters help Routr identify the
 correct path for any given traffic. The <code>spec.externAddr</code> is typically the Internet
 facing IP address. The <code>spec.localnets</code> is an array with valid CIDR, IP/Mask, or single IP values.
-here is quick example:</p>
+Here is quick example:</p>
 <div class="codehilite"><pre><span></span><span class="nt">spec</span><span class="p">:</span>
   <span class="nt">externAddr</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">172.220.231.23</span>
   <span class="nt">localnets</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">172.17.0.2/16</span><span class="p p-Indicator">]</span>
