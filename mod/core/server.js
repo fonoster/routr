@@ -44,7 +44,9 @@ class Server {
             PeersAPI: new PeersAPI(ds)
         }
 
-        this.locator = new Locator(dataAPIs)
+        // I know this looks strange. But it is need to start postal bindings
+        new Locator()
+
         this.dataAPIs = dataAPIs
         this.nhtServer = new NHTServer("vm://routr")
     }
@@ -73,16 +75,6 @@ class Server {
         }
 
         return sipProvider
-    }
-
-    showExternInfo() {
-        if (config.spec.externAddr) {
-            LOG.info(`ExternAddr is ${ANSI_GREEN}${config.spec.externAddr}${ANSI_RESET}`)
-
-            if (config.spec.localnets) {
-                LOG.info(`Localnets is ${ANSI_GREEN}${config.spec.localnets.join(',')}${ANSI_RESET}`)
-            }
-        }
     }
 
     setup() {
@@ -157,6 +149,16 @@ class Server {
         } catch (e) {}
 
         return properties
+    }
+
+    showExternInfo() {
+        if (config.spec.externAddr) {
+            LOG.info(`ExternAddr is ${ANSI_GREEN}${config.spec.externAddr}${ANSI_RESET}`)
+
+            if (config.spec.localnets) {
+                LOG.info(`Localnets is ${ANSI_GREEN}${config.spec.localnets.join(',')}${ANSI_RESET}`)
+            }
+        }
     }
 
 }

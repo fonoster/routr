@@ -3,7 +3,7 @@
  * @since v1
  */
 const isEmpty = require('@routr/utils/obj_util')
-const getConfig = require('@routr/core/config_util')
+const config = require('@routr/core/config_util')()
 
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const ContactHeader = Java.type('javax.sip.header.ContactHeader')
@@ -40,7 +40,7 @@ class RegistrarUtils {
     }
 
     static isAllowGuest() {
-        return getConfig().spec.allowGuest === true
+        return config.spec.allowGuest === true
     }
 
     static getGuessUser(request) {
@@ -109,10 +109,8 @@ class RegistrarUtils {
 
     static useInternalInterface(request) {
         const viaHeader = request.getHeader(ViaHeader.NAME)
-        if (getConfig().spec.registrarIntf.equalsIgnoreCase('Internal')) {
-            return true
-        }
-        return viaHeader.getTransport().equalsIgnoreCase('udp')
+        return config.spec.registrarIntf.equalsIgnoreCase('Internal')
+          || viaHeader.getTransport().equalsIgnoreCase('udp')
     }
 
     static buildAuthHeader(user, authHeader) {

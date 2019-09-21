@@ -17,6 +17,13 @@ const {
     Status
 } = require('@routr/core/status')
 
+const UsersAPI = require('@routr/data_api/users_api')
+const AgentsAPI = require('@routr/data_api/agents_api')
+const DomainsAPI = require('@routr/data_api/domains_api')
+const PeersAPI = require('@routr/data_api/peers_api')
+const GatewaysAPI = require('@routr/data_api/gateways_api')
+const NumbersAPI = require('@routr/data_api/numbers_api')
+const DSSelector = require('@routr/data_api/ds_selector')
 const Expiry = Java.extend(Java.type('com.github.benmanes.caffeine.cache.Expiry'))
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
@@ -30,8 +37,7 @@ const LOG = LogManager.getLogger()
  */
 class Locator {
 
-    constructor(dataAPIs, checkExpiresTime = 3600) {
-        this.checkExpiresTime = checkExpiresTime
+    constructor() {
         const db = Caffeine.newBuilder()
             .expireAfter(new Expiry({
                 expireAfterCreate: function(key, graph, currentTime) {
@@ -52,11 +58,12 @@ class Locator {
 
         this.db = db
 
-        this.agentsAPI = dataAPIs.AgentsAPI
-        this.peersAPI = dataAPIs.PeersAPI
-        this.numbersAPI = dataAPIs.NumbersAPI
-        this.domainsAPI = dataAPIs.DomainsAPI
-        this.gatewaysAPI = dataAPIs.GatewaysAPI
+        const ds = DSSelector.getDS()
+        this.agentsAPI = new AgentsAPI(ds)
+        this.peersAPI = new PeersAPI(ds)
+        this.numbersAPI = new NumbersAPI(ds)
+        this.domainsAPI = new DomainsAPI(ds)
+        this.gatewaysAPI = new GatewaysAPI(ds)
 
         postal.subscribe({
             channel: "locator",
@@ -93,6 +100,10 @@ class Locator {
 
     addEndpoint(addressOfRecord, route) {
         const aor = LocatorUtils.aorAsString(addressOfRecord)
+
+        LOG.debug(`location.Locator.addEndpoint [adding endpoint ${aor} with rout => ${JSON.stringify(route)}]`)
+        LOG.debug(`location.Locator.addEndpoint [contactURI => ${LocatorUtils.aorAsObj(route.contactURI)}]`)
+
         let routes = this.db.getIfPresent(aor)
         if (routes === null) routes = []
 
