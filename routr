@@ -9,7 +9,7 @@ BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 run() {
   cd $BASE_DIR
   $JAVA_HOME/bin/java \
-    -Dlog4j.configurationFile=config/log4j2.xml \
+    -Dlog4j.configurationFile=config/log4j2.yml \
     -Dpolyglot.js.experimental-foreign-object-prototype=true \
     -Dpolyglot.js.nashorn-compat=true \
     -Dnashorn.args="--no-deprecation-warning" \
