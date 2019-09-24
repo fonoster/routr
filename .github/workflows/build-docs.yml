@@ -8,7 +8,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: build docs with mkdocs
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y mkdocs
           mkdocs build
           ls .
