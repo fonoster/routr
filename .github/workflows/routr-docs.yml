@@ -17,6 +17,7 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install mkdocs
+        pip install pymdown-extensions
     - name: Build
       run: mkdocs build
     - name: Deploy
