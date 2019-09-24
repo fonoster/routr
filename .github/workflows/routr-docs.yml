@@ -20,10 +20,13 @@ jobs:
         pip install pymdown-extensions
         pip install mkdocs-material
     - name: Build
-      run: mkdocs build
+      run: |
+        mkdocs build
+        mkdir -p out/docs
+        mv site/* out/docs
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v2.3.2
       env:
         ACTIONS_DEPLOY_KEY: ${{ secrets.ACTIONS_DEPLOY_KEY }}
         PUBLISH_BRANCH: gh-pages
-        PUBLISH_DIR: ./site
+        PUBLISH_DIR: ./out
