@@ -1,4 +1,4 @@
-name: Build Routr Documentation
+name: Routr Docs
 on: [push]
 jobs:
   build:
