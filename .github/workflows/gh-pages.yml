@@ -24,6 +24,9 @@ jobs:
         mkdocs build
         mkdir -p out/docs
         mv site/* out/docs
+        mv docs/CNAME out/docs
+        mv docs/site_assets out/docs
+        mv docs/index.html out/docs
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v2.3.2
       env:
