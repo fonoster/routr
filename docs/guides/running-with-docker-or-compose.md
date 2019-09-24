@@ -10,7 +10,7 @@ Run environment variables are used in the entry point script to render configura
 | ROUTR_LOCALNETS | Local networks. Use in combination with ROUTR_EXTERN_ADDR | No |
 | ROUTR_REGISTRAR_INTF | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register. Defaults to `External` | No |
 | ROUTR_DS_PROVIDER | Defines data provider. Defaults to `files_data_provider` | No |
-| ROUTR_DS_PARAMETERS | Provider specific parameters. See [general config for examples](https://)  | No |
+| ROUTR_DS_PARAMETERS | Provider specific parameters. For examples, see the [general config](https://routr.io/docs/configuration/general/)  | No |
 | ROUTR_CONFIG_FILE | Path to the configuration file. Defaults to `config/config.yml` | No |
 | ROUTR_SALT | Use defined JWT salt. By default Routr will generated its own  | No |
 | ROUTR_JS_ENGINE | Setup the Javascript engine. Available options are `nashorn` and `graal.js`. Defaults to `graal.js` | No |
