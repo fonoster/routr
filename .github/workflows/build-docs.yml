@@ -1,0 +1,13 @@
+name: Build Routr Documentation
+on: [push]
+jobs:
+  build:
+    name: Build Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: build docs with mkdocs
+        run: |
+          apt-get install -y mkdocs
+          mkdocs build
+          ls .
