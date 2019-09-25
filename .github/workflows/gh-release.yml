@@ -1,9 +1,6 @@
 name: Routr Release
 
-on:
-  push:
-    tags:
-      - '1.0.0-rc*'
+on: push
 
 jobs:
   build:
@@ -17,8 +14,9 @@ jobs:
         run: cat Release.txt
       - name: Release
         uses: softprops/action-gh-release@v1
-        prerelease: true
+        if: startsWith(github.ref, 'refs/tags/')        
         with:
+          prerelease: true
           files: Release.txt        
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_DEPLOY_KEY }}
