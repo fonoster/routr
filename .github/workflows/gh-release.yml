@@ -26,4 +26,5 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: Release.txt
           asset_name: Release2.txt
+          overwrite: true
           tag: 1.0.0-rcx
