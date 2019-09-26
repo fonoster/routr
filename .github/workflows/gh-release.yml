@@ -12,6 +12,14 @@ jobs:
         run: echo ${{ github.sha }} > Release.txt
       - name: Test
         run: cat Release.txt
+      # Drafts your next Release notes as Pull Requests are merged into "master"
+      - uses: toolmantim/release-drafter@v5.2.0
+        template: |
+          ## What’s Changed
+
+          $CHANGES      
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
         with:
