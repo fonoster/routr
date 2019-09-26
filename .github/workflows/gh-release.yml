@@ -15,7 +15,7 @@ jobs:
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
         with:
-          repo_token: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: Release.txt
           asset_name: Release2.txt
           tag: 1.0.0-rcx
