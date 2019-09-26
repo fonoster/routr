@@ -18,4 +18,4 @@ jobs:
           repo_token: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           file: Release.txt
           asset_name: Release2.txt
-          tag: ${{ github.ref }}
+          tag: 1.0.0-rcx
