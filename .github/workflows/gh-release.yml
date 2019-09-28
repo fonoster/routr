@@ -26,3 +26,17 @@ jobs:
           export ROUTR_VERSION=${{ github.ref }}
           ./distro.sh
           ls
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Routr ${{ github.ref }}
+          body: Build on
+          prerelease: true
+          files: |
+            export ROUTR_VERSION=${{ github.ref }}
+            routr-${{ github.ref }}_linux-x64_bin.tar.gz
+            routr-${{ github.ref }}_linux-x64_bin.zip
+            routr-${{ github.ref }}_osx-x64_bin.tar.gz
+            routr-${{ github.ref }}_osx-x64_bin.zip
+            routr-${{ github.ref }}_windows-x64_bin.tar.gz
+            routr-${{ github.ref }}_windows-x64_bin.zip
