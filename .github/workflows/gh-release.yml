@@ -1,7 +1,5 @@
 name: Routr Release
-
 on: push
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,7 +27,7 @@ jobs:
       - name: Release
         uses: xresloader/upload-to-github-release@v1
         with:
-          file: "*.tar.gz,*.zip"
+          file: "routr-1.*"
           tags: true
           draft: true
           prerelease: true

@@ -6,4 +6,4 @@
 
 git tag 1.0.0-rc4.pre
 git push
-#git push --tags
+git push --tags
