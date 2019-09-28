@@ -33,11 +33,11 @@ jobs:
           body: Build on
           draft: true
           prerelease: true
+          run: export ROUTR_VERSION=$(cut -d'/' -f4 <<<"/refs/tags/${{ github.ref }}")
           files: |
-            export ROUTR_VERSION="$(cut -d'/' -f4 <<<'/refs/tags/${{ github.ref }}')"
-            routr-$ROUTR_VERSION_linux-x64_bin.tar.gz
-            routr-$ROUTR_VERSION_linux-x64_bin.zip
-            routr-$ROUTR_VERSION_osx-x64_bin.tar.gz
-            routr-$ROUTR_VERSION_osx-x64_bin.zip
-            routr-$ROUTR_VERSION_windows-x64_bin.tar.gz
-            routr-$ROUTR_VERSION_windows-x64_bin.zip
+            routr-${{ ROUTR_VERSION }}_linux-x64_bin.tar.gz
+            routr-${{ ROUTR_VERSION }}_linux-x64_bin.zip
+            routr-${{ ROUTR_VERSION }}_osx-x64_bin.tar.gz
+            routr-${{ ROUTR_VERSION }}_osx-x64_bin.zip
+            routr-${{ ROUTR_VERSION }}_windows-x64_bin.tar.gz
+            routr-${{ ROUTR_VERSION }}_windows-x64_bin.zip
