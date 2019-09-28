@@ -35,9 +35,9 @@ jobs:
           prerelease: true
           run: export ROUTR_VERSION=$(cut -d'/' -f4 <<<"/refs/tags/${{ github.ref }}")
           files: |
-            routr-${{ ROUTR_VERSION }}_linux-x64_bin.tar.gz
-            routr-${{ ROUTR_VERSION }}_linux-x64_bin.zip
-            routr-${{ ROUTR_VERSION }}_osx-x64_bin.tar.gz
-            routr-${{ ROUTR_VERSION }}_osx-x64_bin.zip
-            routr-${{ ROUTR_VERSION }}_windows-x64_bin.tar.gz
-            routr-${{ ROUTR_VERSION }}_windows-x64_bin.zip
+            routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz
+            routr-${ROUTR_VERSION}_linux-x64_bin.zip
+            routr-${ROUTR_VERSION}_osx-x64_bin.tar.gz
+            routr-${ROUTR_VERSION}_osx-x64_bin.zip
+            routr-${ROUTR_VERSION}_windows-x64_bin.tar.gz
+            routr-${ROUTR_VERSION}_windows-x64_bin.zip
