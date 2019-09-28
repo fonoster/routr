@@ -26,12 +26,12 @@ jobs:
           ls
       - uses: ncipollo/release-action@v1
         with:
+          if: startsWith(github.ref, 'refs/tags/')
           run: export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
-          name: Routr ${ ROUTR_VERSION }
+          name: Routr 1.0 RCX
           artifacts: "routr-1.*"
-          bodyFile: "CHANGELOG.md"
+          bodyFile: "RELEASE.md"
           draft: true
-          tag: ${ ROUTR_VERSION }
           token: ${{ secrets.GITHUB_TOKEN }}
       #- name: Release
       #  uses: xresloader/upload-to-github-release@v1
