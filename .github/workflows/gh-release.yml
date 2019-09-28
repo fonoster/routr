@@ -23,7 +23,7 @@ jobs:
           npm test
       - name: Package
         run: |
-          export ROUTR_VERSION=$(cut -d'/' -f4 <<<"/refs/tags/${{ github.ref }}")
+          export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
           ./distro.sh
           ls
       - name: Release
@@ -33,7 +33,7 @@ jobs:
           body: Build on
           draft: true
           prerelease: true
-          run: export ROUTR_VERSION=$(cut -d'/' -f4 <<<"/refs/tags/${{ github.ref }}")
+          run: export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
           files: |
             routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz
             routr-${ROUTR_VERSION}_linux-x64_bin.zip
