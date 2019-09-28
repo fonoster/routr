@@ -23,9 +23,7 @@ jobs:
           npm test
       - name: Package
         run: |
-          echo ${github.ref}
-          echo ${{github.ref}}
-          export ROUTR_VERSION=$(cut -d'/' -f4 <<<"/refs/tags/${ github.ref }")
+          export ROUTR_VERSION=$(cut -d'/' -f4 <<<"/refs/tags/${{ github.ref }}")
           ./distro.sh
           ls
       - name: Release
