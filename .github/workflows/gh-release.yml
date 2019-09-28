@@ -25,22 +25,12 @@ jobs:
           ./distro.sh
           ls
       - uses: ncipollo/release-action@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          if: startsWith(github.ref, 'refs/tags/')
           run: export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
-          name: Routr 1.0 RC4
+          name: Routr 1.0 RC4.pre
           artifacts: "routr-1.*"
           bodyFile: "RELEASE.md"
           draft: true
           tag: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
-      #- name: Release
-      #  uses: xresloader/upload-to-github-release@v1
-      #  with:
-      #    file: "routr-1.*"
-      #    tags: true
-      #    draft: true
-      #    prerelease: true
-      #    overwrite: true
-      #  env:
-      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
