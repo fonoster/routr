@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 
-VERSION=1.0.0-rc3
-
 set -e
 
 build_for_platform() {
     PLATFORM=$1
     DOWNLOAD_FILE=$2
 
-    BUILD_NAME="routr-$VERSION""_$PLATFORM-x64_bin"
+    # ROUTR_VERSION is set at the CI/CD process
+    BUILD_NAME="routr-$ROUTR_VERSION""_$PLATFORM-x64_bin"
     # Cleanup
     rm -rf $BUILD_NAME
     mkdir -p $BUILD_NAME/libs
