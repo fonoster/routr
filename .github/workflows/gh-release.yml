@@ -28,10 +28,11 @@ jobs:
         with:
           if: startsWith(github.ref, 'refs/tags/')
           run: export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
-          name: Routr 1.0 RCX
+          name: Routr 1.0 RCX4
           artifacts: "routr-1.*"
           bodyFile: "RELEASE.md"
           draft: true
+          tag: 1.0.0-rc4.pre
           token: ${{ secrets.GITHUB_TOKEN }}
       #- name: Release
       #  uses: xresloader/upload-to-github-release@v1
