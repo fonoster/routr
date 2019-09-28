@@ -12,13 +12,13 @@ jobs:
         run: |
           curl -L https://github.com/oracle/graal/releases/download/vm-19.2.0/graalvm-ce-linux-amd64-19.2.0.tar.gz > graalvm-ce-linux-amd64-19.2.0.tar.gz
           tar xvf graalvm-ce-linux-amd64-19.2.0.tar.gz
-          export GRAALVM_HOME=$(pwd)/graalvm-ce-19.2.0
-          export JAVA_HOME=$GRAALVM_HOME
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
           chmod +x ./cc-test-reporter
           ./cc-test-reporter before-build
       - name: Build and Test
         run: |
+          export GRAALVM_HOME=$(pwd)/graalvm-ce-19.2.0
+          export JAVA_HOME=$GRAALVM_HOME
           npm i 
           npm test
  
