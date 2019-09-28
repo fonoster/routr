@@ -26,18 +26,14 @@ jobs:
           export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
           ./distro.sh
           ls
-      - name: Release
-        uses: softprops/action-gh-release@v1
+      - name: Update Release Artifacts
+        uses: actions/upload-artifact@master
         with:
-          name: Routr ${{ github.ref }}
-          body: Build on
-          draft: true
-          prerelease: true
-          run: export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
-          files: |
-            routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz
-            routr-${ROUTR_VERSION}_linux-x64_bin.zip
-            routr-${ROUTR_VERSION}_osx-x64_bin.tar.gz
-            routr-${ROUTR_VERSION}_osx-x64_bin.zip
-            routr-${ROUTR_VERSION}_windows-x64_bin.tar.gz
-            routr-${ROUTR_VERSION}_windows-x64_bin.zip
+          name: routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz
+          path: ./routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz
+          name: routr-${ROUTR_VERSION}_osx-x64_bin.tar.gz
+          path: ./routr-${ROUTR_VERSION}_osx-x64_bin.tar.gz
+          name: routr-${ROUTR_VERSION}_windows-x64_bin.tar.gz
+          path: ./routr-${ROUTR_VERSION}_windows-x64_bin.tar.gz
+          name: routr-${ROUTR_VERSION}_windows-x64_bin.zip
+          path: ./routr-${ROUTR_VERSION}_windows-x64_bin.zip
