@@ -8,19 +8,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Build
-        run: echo ${{ github.sha }} > Release.txt
-      - name: Test
-        run: cat Release.txt
-      # Drafts your next Release notes as Pull Requests are merged into "master"
-      - uses: toolmantim/release-drafter@v5.2.0  
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v1-release
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: Release.txt
-          asset_name: Release2.txt
-          overwrite: true
-          tag: ${{ github.ref }}
+      - name: Prepare environment
+        run: |
+          curl -L https://github.com/oracle/graal/releases/download/vm-19.2.0/graalvm-ce-linux-amd64-19.2.0.tar.gz > graalvm-ce-linux-amd64-19.2.0.tar.gz
+          tar xvf graalvm-ce-linux-amd64-19.2.0.tar.gz
+          export GRAALVM_HOME=$(pwd)/graalvm-ce-19.2.0
+          export JAVA_HOME=$GRAALVM_HOME
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+      - name: Build and Test
+        run: |
+          npm i 
+          npm test
+ 
