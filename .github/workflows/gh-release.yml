@@ -26,14 +26,12 @@ jobs:
           export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
           ./distro.sh
           ls
-      - name: Update Release Artifacts
-        uses: actions/upload-artifact@master
+      - name: Release
+        uses: xresloader/upload-to-github-release@v1
         with:
-          name: routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz
-          path: ./routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz
-          name: routr-${ROUTR_VERSION}_osx-x64_bin.tar.gz
-          path: ./routr-${ROUTR_VERSION}_osx-x64_bin.tar.gz
-          name: routr-${ROUTR_VERSION}_windows-x64_bin.tar.gz
-          path: ./routr-${ROUTR_VERSION}_windows-x64_bin.tar.gz
-          name: routr-${ROUTR_VERSION}_windows-x64_bin.zip
-          path: ./routr-${ROUTR_VERSION}_windows-x64_bin.zip
+          file: "*.tar.gz,*.zip"
+          tags: true
+          draft: true
+          prerelease: true
+                env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
