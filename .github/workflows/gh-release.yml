@@ -27,11 +27,11 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           run: export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
-          name: Routr ${{ ROUTR_VERSION }}
+          name: Routr ${ ROUTR_VERSION }
           artifacts: "routr-1.*"
           bodyFile: "CHANGELOG.md"
           draft: true
-          tag: ${{ ROUTR_VERSION }}
+          tag: ${ ROUTR_VERSION }
           token: ${{ secrets.GITHUB_TOKEN }}
       #- name: Release
       #  uses: xresloader/upload-to-github-release@v1
