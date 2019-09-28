@@ -31,5 +31,6 @@ jobs:
           tags: true
           draft: true
           prerelease: true
+          overwrite: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
