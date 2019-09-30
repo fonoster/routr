@@ -37,8 +37,8 @@ describe('Network Hashtable', () => {
         done()
     })
 
-    it.only('Adding new (key,value) pair with collection', function(done) {
-        assert.equal(nht.withCollection('test2').put('test', 'test'), null)
+    it('Adding new (key,value) pair with collection', function(done) {
+        assert.equal(nht.withCollection('test').put('test', 'test'), null)
         done()
     })
 
@@ -49,7 +49,7 @@ describe('Network Hashtable', () => {
 
     it('Listing values in the hastable', function(done) {
         nht.put('test', 'test')
-        assert.ok(nht.list().length > 0)
+        assert.ok(nht.values().length > 0)
         done()
     })
 

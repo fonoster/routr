@@ -31,7 +31,7 @@ public class MessageProtocol {
                 return (Serializable) h.get(message.getObject("KEY"));
             case "REMOVE":
                 return (Serializable) h.remove(message.getObject("KEY"));
-            case "LIST":
+            case "VALUES":
                 return (Serializable) h.values().toArray();
             default:
                 throw new RuntimeException("Invalid verb: " + message.getString("VERB"));

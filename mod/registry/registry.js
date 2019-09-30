@@ -62,7 +62,7 @@ class Registry {
 
     registerAll() {
         LOG.debug(`registry.Registry.registerAll [sending gateways registration]`)
-        this.nht.withCollection('registry').list().forEach(r => {
+        this.nht.withCollection('registry').values().forEach(r => {
             const reg = JSON.parse(r)
             if (isExpired(reg)) {
                 LOG.debug(`registry.Registry.registerAll [removing expired registry \`${reg.gwURI}\`]`)
@@ -71,7 +71,7 @@ class Registry {
         })
         const gateways = this.gatewaysAPI.getGateways().result
         const unreg = unregistered(
-          this.nht.withCollection('registry').list(), gateways)
+          this.nht.withCollection('registry').values(), gateways)
         unreg.forEach(gw => this.register(gw))
     }
 

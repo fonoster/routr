@@ -71,8 +71,8 @@ public class NHTClient {
         return sendCmd(this.collectionName, "REMOVE", k, null);
     }
 
-    public Serializable list() throws JMSException {
-        return sendCmd(this.collectionName, "LIST", null, null);
+    public Serializable values() throws JMSException {
+        return sendCmd(this.collectionName, "VALUES", null, null);
     }
 
     private Serializable sendCmd(String c, String v, Object k, Object p)
