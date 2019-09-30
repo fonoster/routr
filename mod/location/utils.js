@@ -83,7 +83,8 @@ class LocatorUtils {
             gwHost: buildAddr(gateway.spec.host, gateway.spec.port),
             numberRef: number.metadata.ref,
             number: number.spec.location.telUrl.split(':')[1],
-            contactURI: contactURI
+            contactURI: contactURI,
+            expires: -1
         }
         if (domain) {
             route.rule = domain.spec.context.egressPolicy.rule

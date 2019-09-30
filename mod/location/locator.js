@@ -5,29 +5,30 @@
  * @author Pedro Sanders
  * @since v1
  */
-const postal = require('postal')
 const CoreUtils = require('@routr/core/utils')
 const LocatorUtils = require('@routr/location/utils')
-const isEmpty = require('@routr/utils/obj_util')
-const {
-    buildAddr,
-    fixPort
-} = require('@routr/utils/misc_utils')
-const {
-    Status
-} = require('@routr/core/status')
-
-const UsersAPI = require('@routr/data_api/users_api')
 const AgentsAPI = require('@routr/data_api/agents_api')
 const DomainsAPI = require('@routr/data_api/domains_api')
 const PeersAPI = require('@routr/data_api/peers_api')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const NumbersAPI = require('@routr/data_api/numbers_api')
 const DSSelector = require('@routr/data_api/ds_selector')
+const isEmpty = require('@routr/utils/obj_util')
+const postal = require('postal')
+const {
+   buildAddr
+} = require('@routr/utils/misc_utils')
+const {
+   Status
+} = require('@routr/core/status')
+
+const NHTClient = Java.type('io.routr.nht.NHTClient')
 const Expiry = Java.extend(Java.type('com.github.benmanes.caffeine.cache.Expiry'))
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
+const HashMap = Java.type('java.util.HashMap')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const Long = Java.type('java.lang.Long')
 const LOG = LogManager.getLogger()
 
 /**
@@ -38,38 +39,143 @@ const LOG = LogManager.getLogger()
 class Locator {
 
     constructor() {
-        const db = Caffeine.newBuilder()
-            .expireAfter(new Expiry({
-                expireAfterCreate: function(key, graph, currentTime) {
-                    const data = graph.map(route => route.expires)
-                    const expires = Math.max.apply(Math, data)
-                    return TimeUnit.SECONDS.toNanos(expires)
-                },
-                expireAfterUpdate: function(key, graph, currentTime, currentDuration) {
-                    const data = graph.map(route => route.expires)
-                    const expires = Math.max.apply(Math, data)
-                    return TimeUnit.SECONDS.toNanos(expires)
-                },
-                expireAfterRead: function (key, graph, currentTime, currentDuration) {
-                    return currentDuration
-                }
-            }))
-            .build()
-
-        this.db = db
-
         const ds = DSSelector.getDS()
-        this.agentsAPI = new AgentsAPI(ds)
-        this.peersAPI = new PeersAPI(ds)
         this.numbersAPI = new NumbersAPI(ds)
-        this.domainsAPI = new DomainsAPI(ds)
-        this.gatewaysAPI = new GatewaysAPI(ds)
+        this.db = Locator.createCache()
+        this.loadStaticRoutes()
+        this.subscribeToPostal()
+        this.nht = new NHTClient('vm://routr')
+    }
 
+    addEndpoint(addressOfRecord, route) {
+        LOG.debug(`location.Locator.addEndpoint [adding endpoint ${addressOfRecord} with rout => ${JSON.stringify(route)}]`)
+        LOG.debug(`location.Locator.addEndpoint [contactURI => ${LocatorUtils.aorAsObj(route.contactURI)}]`)
+
+        let routes = this.db.getIfPresent(addressOfRecord)
+        if (routes === null) routes = []
+
+        routes = routes.filter(r => !LocatorUtils.contactURIFilter(r, route.contactURI))
+        routes.push(route)
+
+        // See NOTE #1
+        this.db.put(addressOfRecord, routes)
+    }
+
+    findEndpoint(addressOfRecord) {
+        LOG.debug(`location.Locator.findEndpoint [lookup route for aor ${addressOfRecord}]`)
+
+        if (addressOfRecord.startsWith('tel:')) {
+            return this.findEndpointByTelUrl(addressOfRecord)
+        }
+
+        const routes = this.db.getIfPresent(addressOfRecord)
+
+        if (routes !== null ) {
+            return CoreUtils.buildResponse(Status.OK, routes)
+        }
+
+        const defaultRouteKey = this.db.asMap().keySet()
+            .stream()
+            .filter(key => new RegExp(key).test(addressOfRecord))
+            .findFirst()
+
+        return  defaultRouteKey.isPresent()
+          ? CoreUtils.buildResponse(Status.OK, this.db.getIfPresent(defaultRouteKey.get()))
+          : CoreUtils.buildResponse(Status.NOT_FOUND)
+    }
+
+    findEndpointByTelUrl(addressOfRecord) {
+        LOG.debug(`location.Locator.findEndpointByTelUrl [lookup route for aor ${addressOfRecord}]`)
+        const response = this.numbersAPI.getNumberByTelUrl(addressOfRecord)
+        if (response.status === Status.OK) {
+            const number = response.result
+            const route = this.db.getIfPresent(number.spec.location.aorLink)
+            return route !== null
+              ? CoreUtils.buildResponse(Status.OK, route)
+              : CoreUtils.buildResponse(Status.NOT_FOUND,
+                `No route found for aorLink: ${number.spec.location.aorLink}`)
+        }
+        return CoreUtils.buildResponse(Status.NOT_FOUND)
+    }
+
+    removeEndpoint(addressOfRecord, contactURI, isWildcard) {
+        LOG.debug(`location.Locator.removeEndpoint [remove route for aor => ${addressOfRecord}, isWildcard => ${isWildcard}]`)
+        // Remove all bindings
+        if (isWildcard === true) {
+            return this.db.invalidate(addressOfRecord)
+        }
+
+        let routes = this.db.getIfPresent(addressOfRecord)
+        if (routes) {
+            routes = routes.filter(route => !LocatorUtils.contactURIFilter(route, contactURI))
+
+            if (routes.length === 0) {
+              this.db.invalidate(addressOfRecord)
+              return
+            }
+            this.db.put(addressOfRecord, routes)
+        }
+    }
+
+    getDomainEgressRoutes(domains, numbersAPI, gatewaysAPI) {
+        const SipFactory = Java.type('javax.sip.SipFactory')
+        const addressFactory = SipFactory.getInstance().createAddressFactory()
+        const routes = new HashMap()
+
+        domains.forEach(domain => {
+            if (!isEmpty(domain.spec.context.egressPolicy)) {
+                // Get Number and Gateway info
+                let response = numbersAPI.getNumber(domain.spec.context
+                  .egressPolicy.numberRef)
+                const number = response.result
+
+                if (response.status === Status.OK) {
+                    response = gatewaysAPI.getGateway(number.metadata.gwRef)
+
+                    if (response.status === Status.OK) {
+                        const gateway = response.result
+                        const contactURI = addressFactory.createSipURI(
+                          gateway.metadata.ref, buildAddr(gateway.spec.host,
+                            gateway.spec.port))
+                        //contactURI.setSecure(aorObj.isSecure())
+                        const route = LocatorUtils.buildEgressRoute(contactURI,
+                          gateway, number, domain)
+
+                        routes.put(`sip:${domain.spec.context.egressPolicy.rule}@${domain.spec.context.domainUri}`, [route])
+                    }
+                }
+            }
+        })
+
+        return routes
+    }
+
+    listAsJSON(page, count) {
+    }
+
+    // What if the number of numbers is massive?
+    loadStaticRoutes() {
+        LOG.debug(`location.Locator.loadStaticRoutes [loading static routes]`)
+        const ds = DSSelector.getDS()
+        const numbersAPI = new NumbersAPI(ds)
+        const domainsAPI = new DomainsAPI(ds)
+        const gatewaysAPI = new GatewaysAPI(ds)
+        const domains = domainsAPI.getDomains().result
+        const egressRoutes = this.getDomainEgressRoutes(domains, numbersAPI,
+          gatewaysAPI)
+        this.db.putAll(egressRoutes)
+    }
+
+    subscribeToPostal() {
+
+        const aorAsString = a => LocatorUtils.aorAsString(a)
         postal.subscribe({
             channel: "locator",
             topic: "endpoint.remove",
             callback: (data, envelope) => {
-                this.removeEndpoint(data.addressOfRecord, data.contactURI, data.isWildcard)
+                const aor = aorAsString(data.addressOfRecord)
+                this.removeEndpoint(aor, data.contactURI, data.isWildcard)
+                this.nht.withCollection('location').remove(aor)
             }
         })
 
@@ -77,7 +183,9 @@ class Locator {
             channel: "locator",
             topic: "endpoint.add",
             callback: (data, envelope) => {
-                this.addEndpoint(data.addressOfRecord, data.route)
+                const aor = aorAsString(data.addressOfRecord)
+                this.addEndpoint(aor, data.route)
+                this.nht.withCollection('location').put(aor, JSON.stringify(data.route))
             }
         })
 
@@ -85,7 +193,8 @@ class Locator {
             channel: "locator",
             topic: "endpoint.find",
             callback: (data, envelope) => {
-                const response = this.findEndpoint(data.addressOfRecord)
+                const response = this.
+                  findEndpoint(LocatorUtils.aorAsString(data.addressOfRecord))
                 postal.publish({
                     channel: "locator",
                     topic: "endpoint.find.reply",
@@ -98,226 +207,33 @@ class Locator {
         })
     }
 
-    addEndpoint(addressOfRecord, route) {
-        const aor = LocatorUtils.aorAsString(addressOfRecord)
-
-        LOG.debug(`location.Locator.addEndpoint [adding endpoint ${aor} with rout => ${JSON.stringify(route)}]`)
-        LOG.debug(`location.Locator.addEndpoint [contactURI => ${LocatorUtils.aorAsObj(route.contactURI)}]`)
-
-        let routes = this.db.getIfPresent(aor)
-        if (routes === null) routes = []
-
-        routes = routes.filter(r => !LocatorUtils.contactURIFilter(r, route.contactURI))
-        routes.push(route)
-
-        // See NOTE #1
-        this.db.put(aor, routes)
-    }
-
-    // See NOTE #1
-    removeEndpoint(addressOfRecord, contactURI, isWildcard) {
-        const aor = LocatorUtils.aorAsString(addressOfRecord)
-        // Remove all bindings
-        if (isWildcard === true) {
-            return this.db.invalidate(aor)
+    static createCache() {
+        const exp = graph => {
+          const data = graph.map(route => route.expires)
+          const expires = Math.max.apply(Math, data)
+          return expires === -1
+            ? TimeUnit.SECONDS.toNanos(Long.MAX_VALUE)
+            : TimeUnit.SECONDS.toNanos(expires)
         }
 
-        let routes = this.db.getIfPresent(aor)
-        if (routes) {
-            routes = routes.filter(route => !LocatorUtils.contactURIFilter(route, contactURI))
-
-            if (routes.length === 0) {
-              this.db.invalidate(aor)
-              return
-            }
-            this.db.put(aor, routes)
-        }
+        const db = Caffeine.newBuilder()
+        .expireAfter(new Expiry({
+              expireAfterCreate: (key, graph, currentTime) => exp(graph),
+              expireAfterUpdate: (key, graph, currentTime, currentDuration) => exp(graph),
+              expireAfterRead: function (key, graph, currentTime, currentDuration) {
+                  return currentDuration
+              }
+          }))
+        .build()
+        return db
     }
 
     evictAll() {
+        LOG.debug(`location.Locator.evictAll [emptying location table]`)
         // WARNING: Should we provide a way to disable this?
         const cnt = this.db.estimatedSize()
         this.db.invalidateAll()
-        LOG.warn(`Evicted ${cnt} entries from location table`)
-    }
-
-    findEndpoint(addressOfRecord) {
-        const aor = LocatorUtils.aorAsString(addressOfRecord)
-        if (aor.startsWith("tel:")) {
-            return this.findEndpointByTelUrl(addressOfRecord)
-        }
-        return this.findEndpointBySipURI(addressOfRecord)
-    }
-
-    /**
-     * Numbers required an "aorLink" to enter the network
-     */
-    findEndpointByTelUrl(addressOfRecord) {
-        const response = this.numbersAPI.getNumberByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
-        if (response.status === Status.OK) {
-            const number = response.result
-            const route = this.db.getIfPresent(LocatorUtils.aorAsString(number.spec.location.aorLink))
-            if (route !== null) {
-                return CoreUtils.buildResponse(Status.OK, route)
-            }
-
-            return CoreUtils.buildResponse(Status.NOT_FOUND, `No route for aorLink: ${number.spec.location.aorLink}`)
-        }
-        return CoreUtils.buildResponse(Status.NOT_FOUND)
-    }
-
-    findEndpointBySipURI(addressOfRecord) {
-        // First just look into the 'db'
-        const aorString = LocatorUtils.aorAsString(addressOfRecord)
-        let routes = this.db.getIfPresent(aorString)
-        routes = routes ? routes.filter(route => !LocatorUtils.expiredRouteFilter(route)) : void(0)
-
-        if (routes && routes.length > 0) {
-            return CoreUtils.buildResponse(Status.OK, routes)
-        }
-
-        // Check peer's route by host
-        let response = this.getPeerRouteByHost(aorString)
-
-        if (response.status === Status.OK) {
-            return response
-        }
-
-        // Then search for a Number
-        try {
-            response = this.findEndpointForNumber(aorString)
-            if (response.status === Status.OK) {
-                return response
-            }
-        } catch (e) {
-            //noop
-        }
-
-        const splitAor = aorString.split('@')
-        if (splitAor.length === 2) {
-            const userPart = splitAor[0].split(':')[1]
-
-            response = this.agentsAPI.getAgentByDomain(splitAor[1], userPart)
-            if (response.status === Status.OK ) return CoreUtils.buildResponse(Status.NOT_FOUND)
-
-            response = this.peersAPI.getPeerByUsername(userPart)
-            if (response.status === Status.OK ) return CoreUtils.buildResponse(Status.NOT_FOUND)
-        }
-
-        // Endpoint can only be reach thru a gateway
-        // Here we need the full addressOfRecord and not the aorString
-        response = this.getEgressRouteForAOR(addressOfRecord)
-        return response.status === Status.OK ? response : CoreUtils.buildResponse(Status.NOT_FOUND)
-    }
-
-    findEndpointForNumber(addressOfRecord) {
-        const response = this.numbersAPI.getNumberByTelUrl(LocatorUtils.aorAsString(addressOfRecord))
-        if (response.status === Status.OK) {
-            const number = response.result
-            const route = this.db.getIfPresent(LocatorUtils.aorAsString(number.spec.location.aorLink))
-            if (route !== null) {
-                return CoreUtils.buildResponse(Status.OK, route)
-            }
-        }
-        return CoreUtils.buildResponse(Status.NOT_FOUND)
-    }
-
-    getPeerRouteByHost(addressOfRecord) {
-        const aor = LocatorUtils.aorAsObj(addressOfRecord)
-        const aors = this.db.asMap().keySet().iterator()
-        const peerHost = aor.getHost().toString()
-        const peerPort = LocatorUtils.getPort(aor)
-
-        while (aors.hasNext()) {
-            let routes = this.db.getIfPresent(aors.next())
-            for (const x in routes) {
-                const contactURI = routes[x].contactURI
-                const h1 = contactURI.getHost().toString()
-                const p1 = fixPort(contactURI.getPort())
-                if (h1 === peerHost && p1 === peerPort) {
-                    return CoreUtils.buildResponse(Status.OK, routes)
-                }
-            }
-        }
-
-        return CoreUtils.buildResponse(Status.NOT_FOUND)
-    }
-
-    getEgressRouteForAOR(addressOfRecord) {
-        // WARN: This is very inefficient
-        const response = this.domainsAPI.getDomains()
-
-        let route
-
-        if (response.status === Status.OK) {
-            response.result.forEach(domain => {
-                const r = this.getEgressRouteForDomain(LocatorUtils.aorAsString(addressOfRecord), domain)
-                if (r.status === Status.OK) {
-                    route = r.result
-                }
-            })
-        }
-
-        return route ? CoreUtils.buildResponse(Status.OK, route) :
-            CoreUtils.buildResponse(Status.OK, LocatorUtils.buildForwardRoute(addressOfRecord))
-    }
-
-    getEgressRouteForDomain(addressOfRecord, domain) {
-        const SipFactory = Java.type('javax.sip.SipFactory')
-        const addressFactory = SipFactory.getInstance().createAddressFactory()
-
-        if (!isEmpty(domain.spec.context.egressPolicy)) {
-            // Get Number and Gateway info
-            let response = this.numbersAPI.getNumber(domain.spec.context.egressPolicy.numberRef)
-            const number = response.result
-
-            if (response.status === Status.OK) {
-                response = this.gatewaysAPI.getGateway(number.metadata.gwRef)
-
-                if (response.status === Status.OK) {
-                    const gateway = response.result
-                    const pattern = `sip:${domain.spec.context.egressPolicy.rule}@${domain.spec.context.domainUri}`
-                    const aorObj = LocatorUtils.aorAsObj(addressOfRecord)
-
-                    if (new RegExp(pattern).test(addressOfRecord)) {
-                        const contactURI = addressFactory
-                            .createSipURI(aorObj.getUser(), buildAddr(gateway.spec.host, gateway.spec.port))
-                        contactURI.setSecure(aorObj.isSecure())
-                        const route = LocatorUtils.buildEgressRoute(contactURI, gateway, number, domain)
-                        return CoreUtils.buildResponse(Status.OK, [route])
-                    }
-                }
-            }
-            return CoreUtils.buildResponse(Status.NOT_FOUND)
-        }
-        return CoreUtils.buildResponse(Status.BAD_REQUEST, 'No egressPolicy found')
-    }
-
-    listAsJSON(domainUri) {
-        const s = []
-        const aors = this.db.asMap().keySet().iterator()
-
-        while (aors.hasNext()) {
-            const key = aors.next()
-            const routes = this.db.getIfPresent(key).filter(route => !LocatorUtils.expiredRouteFilter(route))
-            let contactInfo = ''
-
-            if (routes.length > 0) {
-                const rObj = routes[0]
-                let r = `${rObj.contactURI};nat=${rObj.nat};expires=${rObj.expires}`
-
-                if (routes.length > 1) r = `${r} [...]`
-                contactInfo = `${contactInfo}${r}`
-            }
-
-            let tmp = {
-                'addressOfRecord': key,
-                'contactInfo': contactInfo
-            }
-            s.push(tmp)
-        }
-
-        return s
+        LOG.debug(`location.Locator.evictAll [evicted ${cnt} entries from location table]`)
     }
 }
 

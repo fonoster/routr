@@ -44,11 +44,11 @@ class Server {
             PeersAPI: new PeersAPI(ds)
         }
 
-        // I know this looks strange. But it is need to start postal bindings
-        new Locator()
-
         this.dataAPIs = dataAPIs
         this.nhtServer = new NHTServer("vm://routr")
+        // I know this looks strange. But it is need to start postal bindings
+        // Also, it needs to be startarted after the NHTServer or it will fail
+        new Locator()
     }
 
     buildSipProvider(sipStack, transport) {

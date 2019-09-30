@@ -21,6 +21,7 @@ const HashMap = Java.type('java.util.HashMap')
  */
 describe('Network Hashtable', () => {
     let nht
+    let nhtServer
     const hasmap = new HashMap()
 
     before(() => {
@@ -29,8 +30,15 @@ describe('Network Hashtable', () => {
         nht = new NHTClient("vm://routr")
     })
 
+    after(() => nhtServer.stop())
+
     it.skip('Connection retry', function(done) {
-        new NHTClient("vm://test").put('test', 'test')
+        new NHTClient("vm://routr").put('test', 'test')
+        done()
+    })
+
+    it.only('Adding new (key,value) pair with collection', function(done) {
+        assert.equal(nht.withCollection('test2').put('test', 'test'), null)
         done()
     })
 

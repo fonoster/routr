@@ -2,6 +2,8 @@ package io.routr.nht;
 
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.Serializable;
 import javax.jms.*;
@@ -21,6 +23,7 @@ public class NHTServer implements MessageListener {
     private boolean transacted = false;
     private MessageProducer replyProducer;
     private MessageProtocol messageProtocol;
+    private static Logger LOG = LogManager.getLogger();
 
     static {
         messageQueueName = "client.messages";
@@ -34,10 +37,10 @@ public class NHTServer implements MessageListener {
             broker.setPersistent(false);
             broker.setBrokerName("routr");
             broker.setUseJmx(false);
-            broker.addConnector(this.url);
+            broker.addConnector(url);
             this.broker = broker;
         } catch (Exception e) {
-            // TODO: Handle the exception appropriately
+            LOG.error(e);
         }
     }
 
@@ -47,7 +50,7 @@ public class NHTServer implements MessageListener {
             this.messageProtocol = new MessageProtocol();
             this.setupMessageQueueConsumer();
         } catch (Exception e) {
-            // TODO: Handle the exception appropriately
+            LOG.error(e);
         }
     }
 
@@ -56,13 +59,13 @@ public class NHTServer implements MessageListener {
             this.broker.stop();
             this.connection.stop();
         } catch (Exception e) {
-            // TODO: Handle the exception appropriately
+            LOG.error(e);
         }
     }
 
     private void setupMessageQueueConsumer() {
         ActiveMQConnectionFactory connectionFactory =
-          new ActiveMQConnectionFactory("vm://routr");
+          new ActiveMQConnectionFactory(this.url);
         Connection connection;
         try {
             connection = connectionFactory.createConnection();
@@ -77,7 +80,7 @@ public class NHTServer implements MessageListener {
             consumer.setMessageListener(this);
             this.connection = connection;
         } catch (JMSException e) {
-            // TODO: Handle the exception appropriately
+            LOG.error(e);
         }
     }
 
@@ -92,7 +95,7 @@ public class NHTServer implements MessageListener {
             response.setJMSCorrelationID(message.getJMSCorrelationID());
             this.replyProducer.send(message.getJMSReplyTo(), response);
         } catch (JMSException e) {
-            // TODO: Handle the exception appropriately
+            LOG.error(e);
         }
     }
 

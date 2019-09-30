@@ -38,7 +38,6 @@ const LOG = LogManager.getLogger()
 class Rest {
 
     constructor(server) {
-        this.locator = null
         this.server = server
         this.nht = new NHTClient('vm://routr')
 
@@ -136,9 +135,7 @@ class Rest {
                   })))
             )
 
-            locationService(this.locator)
-
-
+            locationService(this.nht)
 
             resourcesService(new AgentsAPI(ds), 'Agent')
             resourcesService(new PeersAPI(ds), 'Peer')

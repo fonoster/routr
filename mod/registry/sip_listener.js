@@ -33,12 +33,12 @@ function storeRegistry(registryStore, gwRef, gwURI, expires) {
         gwRef: gwRef,
         gwURI: gwURI.toString()
     }
-    registryStore.put(gwURI.toString(), JSON.stringify(reg))
+    registryStore.withCollection('registry').put(gwURI.toString(), JSON.stringify(reg))
 }
 
 function removeRegistry(registryStore, gwURI) {
     LOG.debug(`registry.listener.removeRegistry [removing gw -> ${gwURI.toString()}]`)
-    registryStore.remove(gwURI.toString())
+    registryStore.withCollection('registry').remove(gwURI.toString())
 }
 
 module.exports = (registry, sipStack, gatewaysAPI) => {

@@ -15,7 +15,7 @@ const get = Java.type('spark.Spark').get
 const post = Java.type('spark.Spark').post
 const del = Java.type('spark.Spark').delete
 
-module.exports = function(locator) {
+module.exports = function(nht) {
 
     /**
      * Expects json with: address, port, user, expires
@@ -64,7 +64,13 @@ module.exports = function(locator) {
         }
     })
 
-    get('/location', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, locator.listAsJSON())))
+    get('/location', (req, res) => JSON.stringify(
+        CoreUtils.buildResponse(Status.OK,
+          nht.withCollection('location')
+            .list().map(l => JSON.parse(l)))
+    ))
+
+    //get('/location', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, locator.listAsJSON())))
 
     del('/location/:aor', (req, res) => {
         const aor = req.params(':aor')

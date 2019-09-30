@@ -9,22 +9,30 @@ import java.io.Serializable;
  * @since v1
  */
 public class MessageProtocol {
-    private HashMap h;
+    private HashMap collections;
 
     public MessageProtocol() {
-        this.h = new HashMap();
+        this.collections = new HashMap();
     }
 
     public Serializable handleProtocolMessage(MapMessage message) throws JMSException {
+        String collection = message.getString("COLLECTION");
+
+        HashMap h = (HashMap) this.collections.get(collection);
+        if (h == null) {
+            h = new HashMap();
+            this.collections.put(collection, h);
+        }
+
         switch (message.getString("VERB")) {
             case "PUT":
-                return (Serializable) this.h.put(message.getObject("KEY"), message.getObject("VALUE"));
+                return (Serializable) h.put(message.getObject("KEY"), message.getObject("VALUE"));
             case "GET":
-                return (Serializable) this.h.get(message.getObject("KEY"));
+                return (Serializable) h.get(message.getObject("KEY"));
             case "REMOVE":
-                return (Serializable) this.h.remove(message.getObject("KEY"));
+                return (Serializable) h.remove(message.getObject("KEY"));
             case "LIST":
-                return (Serializable) this.h.values().toArray();
+                return (Serializable) h.values().toArray();
             default:
                 throw new RuntimeException("Invalid verb: " + message.getString("VERB"));
         }
