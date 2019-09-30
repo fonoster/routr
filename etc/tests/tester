@@ -3,5 +3,6 @@
 [ -z "$GRAALVM_HOME" ] && { echo "Could not find a runtime environment. Please setup environment variable GRAALVM_HOME"; exit 1; }
 
 $GRAALVM_HOME/bin/node --jvm --polyglot --experimental-options --nashorn-compat \
+  --vm.Dlog4j.configurationFile=config/log4j2.yml \
   --vm.classpath=$(for i in libs/*.jar ; do echo -n $i: ; done). \
   node_modules/nyc/bin/nyc --reporter=lcov node_modules/mocha/bin/mocha -t 360000 "$@"
