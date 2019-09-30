@@ -6,7 +6,7 @@
     context:
       domainUri: sip.local
       egressPolicy:
-        rule: .*
+        rule: .{5,}             # Egress only if callee's aor len is 5 or more
         numberRef: dd76afc94b
 - apiVersion: v1beta1
   kind: Domain
