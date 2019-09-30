@@ -19,12 +19,14 @@ jobs:
           export JAVA_HOME=$GRAALVM_HOME
           npm i
           npm test
+          ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
       - name: Package
         run: |
           export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
           ./distro.sh
           ls
-      - uses: ncipollo/release-action@v1
+      - name: Publish Draft Release
+        uses: ncipollo/release-action@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           run: export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")

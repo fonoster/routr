@@ -6,6 +6,10 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import java.io.Serializable;
 import javax.jms.*;
 
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
 public class NHTServer implements MessageListener {
     private static int ackMode;
     private static String messageQueueName;
@@ -40,11 +44,11 @@ public class NHTServer implements MessageListener {
     public void start() {
         try {
             this.broker.start();
+            this.messageProtocol = new MessageProtocol();
+            this.setupMessageQueueConsumer();
         } catch (Exception e) {
             // TODO: Handle the exception appropriately
         }
-        this.messageProtocol = new MessageProtocol();
-        this.setupMessageQueueConsumer();
     }
 
     public void stop() {
@@ -57,7 +61,8 @@ public class NHTServer implements MessageListener {
     }
 
     private void setupMessageQueueConsumer() {
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("vm://routr");
+        ActiveMQConnectionFactory connectionFactory =
+          new ActiveMQConnectionFactory("vm://routr");
         Connection connection;
         try {
             connection = connectionFactory.createConnection();
@@ -80,7 +85,8 @@ public class NHTServer implements MessageListener {
         try {
             ObjectMessage response = this.session.createObjectMessage();
             if (message instanceof MapMessage) {
-                Serializable answer = this.messageProtocol.handleProtocolMessage((MapMessage) message);
+                Serializable answer = this.messageProtocol
+                  .handleProtocolMessage((MapMessage) message);
                 response.setObject(answer);
             }
             response.setJMSCorrelationID(message.getJMSCorrelationID());

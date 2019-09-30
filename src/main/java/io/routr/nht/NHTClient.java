@@ -6,6 +6,10 @@ import javax.jms.*;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import it.unimi.dsi.util.XoRoShiRo128PlusRandom;
 
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
 public class NHTClient {
     private static int ackMode;
     private static String clientQueueName;

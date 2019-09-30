@@ -4,6 +4,10 @@ import java.util.HashMap;
 import javax.jms.*;
 import java.io.Serializable;
 
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
 public class MessageProtocol {
     private HashMap h;
 
