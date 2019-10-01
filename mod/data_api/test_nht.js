@@ -25,25 +25,25 @@ describe('Network Hashtable', () => {
     const hasmap = new HashMap()
 
     before(() => {
-        nhtServer = new NHTServer("vm://routr")
+        nhtServer = new NHTServer("vm://test")
         nhtServer.start()
-        nht = new NHTClient("vm://routr")
+        nht = new NHTClient("vm://test")
     })
 
     after(() => nhtServer.stop())
 
     it.skip('Connection retry', function(done) {
-        new NHTClient("vm://routr").put('test', 'test')
+        new NHTClient("vm://test").put('test', 'test')
         done()
     })
 
-    it('Adding new (key,value) pair with collection', function(done) {
-        assert.equal(nht.withCollection('test').put('test', 'test'), null)
+    it('Adding new (key,value) for collection', function(done) {
+        assert.equal(nht.withCollection('c1').put('test', 'test'), null)
         done()
     })
 
-    it('Adding new (key,value) pair', function(done) {
-        assert.equal(nht.put('test', 'test'), null)
+    it('Adding new (key,value) using default collection', function(done) {
+        assert.equal(nht.put('test1', 'test1'), null)
         done()
     })
 

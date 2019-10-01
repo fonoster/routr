@@ -5,6 +5,7 @@
 const postal = require('postal')
 const validator = require('validator')
 const CoreUtils = require('@routr/core/utils')
+const LocatorUtils = require('@routr/location/utils')
 const {
     Status
 } = require('@routr/core/status')
@@ -14,6 +15,23 @@ const addressFactory = SipFactory.getInstance().createAddressFactory()
 const get = Java.type('spark.Spark').get
 const post = Java.type('spark.Spark').post
 const del = Java.type('spark.Spark').delete
+
+function routeFromString (e) {
+    let contactInfo = ''
+    const entry = JSON.parse(e)
+    const routes = entry.routes
+
+    const rObj = routes[0]
+    let r = `${rObj.contactURI};nat=${rObj.nat};expires=${rObj.expires}`
+
+    if (routes.length > 1) r = `${r} [...]`
+    contactInfo = `${contactInfo}${r}`
+
+    return {
+        addressOfRecord: entry.addressOfRecord,
+        contactInfo: contactInfo
+    }
+}
 
 module.exports = function(nht) {
 
@@ -67,10 +85,10 @@ module.exports = function(nht) {
     get('/location', (req, res) => JSON.stringify(
         CoreUtils.buildResponse(Status.OK,
           nht.withCollection('location')
-            .list().map(l => JSON.parse(l)))
-    ))
-
-    //get('/location', (req, res) => JSON.stringify(CoreUtils.buildResponse(Status.OK, locator.listAsJSON())))
+            .values()
+            .filter(entries => !LocatorUtils.expiredRouteFilter(JSON.parse(entries).routes))
+            .map(entries => routeFromString(entries))
+    )))
 
     del('/location/:aor', (req, res) => {
         const aor = req.params(':aor')

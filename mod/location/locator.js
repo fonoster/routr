@@ -167,7 +167,6 @@ class Locator {
     }
 
     subscribeToPostal() {
-
         const aorAsString = a => LocatorUtils.aorAsString(a)
         postal.subscribe({
             channel: "locator",
@@ -185,7 +184,18 @@ class Locator {
             callback: (data, envelope) => {
                 const aor = aorAsString(data.addressOfRecord)
                 this.addEndpoint(aor, data.route)
-                this.nht.withCollection('location').put(aor, JSON.stringify(data.route))
+
+                // Also add to the network hashtable
+                const routes = this.db.getIfPresent(aor)
+                  .map(route => {
+                      route.contactURI = aorAsString(route.contactURI)
+                      return route
+                  })
+                const entry = {
+                  addressOfRecord: aor,
+                  routes: routes
+                }
+                this.nht.withCollection('location').put(aor, JSON.stringify(entry))
             }
         })
 
@@ -193,8 +203,8 @@ class Locator {
             channel: "locator",
             topic: "endpoint.find",
             callback: (data, envelope) => {
-                const response = this.
-                  findEndpoint(LocatorUtils.aorAsString(data.addressOfRecord))
+                const response = this.findEndpoint(
+                  LocatorUtils.aorAsString(data.addressOfRecord))
                 postal.publish({
                     channel: "locator",
                     topic: "endpoint.find.reply",
