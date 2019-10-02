@@ -30,7 +30,7 @@ describe('Network Hashtable', () => {
         nht = new NHTClient("vm://test")
     })
 
-    after(() => nhtServer.stop())
+    //after(() => nhtServer.stop())
 
     it.skip('Connection retry', function(done) {
         new NHTClient("vm://test").put('test', 'test')

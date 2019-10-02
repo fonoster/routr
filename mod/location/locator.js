@@ -55,10 +55,7 @@ class Locator {
         if (routes === null) routes = []
 
         routes = routes.filter(r => !LocatorUtils.contactURIFilter(r.contactURI, route.contactURI))
-
-        console.log('routes.length: ' + routes.length)
         routes.push(route)
-
         // See NOTE #1
         this.db.put(addressOfRecord, routes)
     }

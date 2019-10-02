@@ -128,11 +128,13 @@ class Rest {
 
             get('/registry', (req, res) => JSON.stringify(
                 CoreUtils.buildResponse(Status.OK,
-                  this.nht.list().map(r => {
-                    const reg = JSON.parse(r)
-                    reg.regOnFormatted = moment(reg.registeredOn).fromNow()
-                    return reg
-                  })))
+                  this.nht.withCollection('registry')
+                    .values()
+                    .map(r => {
+                      const reg = JSON.parse(r)
+                      reg.regOnFormatted = moment(reg.registeredOn).fromNow()
+                      return reg
+                    })))
             )
 
             locationService(this.nht)
