@@ -1,4 +1,4 @@
-  name: Routr Release
+name: Routr Release
 on: push
 jobs:
   build:
