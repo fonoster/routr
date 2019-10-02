@@ -116,16 +116,6 @@
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://routr.io/docs/api/location/create/</loc>
-     <lastmod>2019-10-02</lastmod>
-     <changefreq>daily</changefreq>
-    </url>
-    <url>
-     <loc>https://routr.io/docs/api/location/delete/</loc>
-     <lastmod>2019-10-02</lastmod>
-     <changefreq>daily</changefreq>
-    </url>
-    <url>
      <loc>https://routr.io/docs/api/location/list/</loc>
      <lastmod>2019-10-02</lastmod>
      <changefreq>daily</changefreq>
