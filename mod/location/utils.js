@@ -22,8 +22,8 @@ class LocatorUtils {
         return route.expires - elapsed <= 0
     }
 
-    static contactURIFilter(route, contactURI) {
-        return route.contactURI.toString() === contactURI.toString()
+    static contactURIFilter(c1, c2) {
+        return c1.toString() === c2.toString()
     }
 
     static aorAsString(addressOfRecord) {

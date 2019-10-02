@@ -54,7 +54,9 @@ class Locator {
         let routes = this.db.getIfPresent(addressOfRecord)
         if (routes === null) routes = []
 
-        routes = routes.filter(r => !LocatorUtils.contactURIFilter(r, route.contactURI))
+        routes = routes.filter(r => !LocatorUtils.contactURIFilter(r.contactURI, route.contactURI))
+
+        console.log('routes.length: ' + routes.length)
         routes.push(route)
 
         // See NOTE #1
@@ -185,16 +187,13 @@ class Locator {
                 const aor = aorAsString(data.addressOfRecord)
                 this.addEndpoint(aor, data.route)
 
-                // Also add to the network hashtable
+                // Also adding to the network hashtable
                 const routes = this.db.getIfPresent(aor)
                   .map(route => {
-                      route.contactURI = aorAsString(route.contactURI)
+                      route.contactURI = route.contactURI.toString()
                       return route
                   })
-                const entry = {
-                  addressOfRecord: aor,
-                  routes: routes
-                }
+                const entry = { addressOfRecord: aor, routes: routes }
                 this.nht.withCollection('location').put(aor, JSON.stringify(entry))
             }
         })
