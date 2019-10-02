@@ -88,9 +88,9 @@ class Locator {
         const response = this.numbersAPI.getNumberByTelUrl(addressOfRecord)
         if (response.status === Status.OK) {
             const number = response.result
-            const route = this.db.getIfPresent(number.spec.location.aorLink)
-            return route !== null
-              ? CoreUtils.buildResponse(Status.OK, route)
+            const routes = this.db.getIfPresent(number.spec.location.aorLink)
+            return routes !== null
+              ? CoreUtils.buildResponse(Status.OK, routes)
               : CoreUtils.buildResponse(Status.NOT_FOUND,
                 `No route found for aorLink: ${number.spec.location.aorLink}`)
         }
@@ -106,7 +106,7 @@ class Locator {
 
         let routes = this.db.getIfPresent(addressOfRecord)
         if (routes) {
-            routes = routes.filter(route => !LocatorUtils.contactURIFilter(route, contactURI))
+            routes = routes.filter(route => !LocatorUtils.contactURIFilter(route.contactURI, contactURI))
 
             if (routes.length === 0) {
               this.db.invalidate(addressOfRecord)
