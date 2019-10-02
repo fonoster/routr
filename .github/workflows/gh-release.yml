@@ -1,4 +1,4 @@
-name: Routr Release
+  name: Routr Release
 on: push
 jobs:
   build:
@@ -19,7 +19,7 @@ jobs:
           export JAVA_HOME=$GRAALVM_HOME
           npm i
           npm test
-          ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+          ./cc-test-reporter after-build
       - name: Package
         run: |
           export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
