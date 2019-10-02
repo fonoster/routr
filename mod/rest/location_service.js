@@ -38,7 +38,7 @@ module.exports = function(nht) {
     /**
      * Expects json with: address, port, user, expires
      */
-    post('/location/:aor', (req, res) => {
+    /*post('/location/:aor', (req, res) => {
         const aor = req.params(':aor')
 
         try {
@@ -80,7 +80,7 @@ module.exports = function(nht) {
             res.body('{\"status\": \"400\", \"message\":\"Bad Request\"}')
             return '{\"status\": \"400\", \"message\":\"Bad Request\"}'
         }
-    })
+    })*/
 
     get('/location', (req, res) => JSON.stringify(
         CoreUtils.buildResponse(Status.OK,
@@ -90,7 +90,7 @@ module.exports = function(nht) {
             .map(entries => routeFromString(entries))
     )))
 
-    del('/location/:aor', (req, res) => {
+    /*del('/location/:aor', (req, res) => {
         const aor = req.params(':aor')
 
         postal.publish({
@@ -112,5 +112,5 @@ module.exports = function(nht) {
         res.status(200)
         res.body('{\"status\": \"200\", \"message\":\"Evicted All!\"}')
         return '{\"status\": \"200\", \"message\":\"Evicted All!\"}'
-    })
+    })*/
 }

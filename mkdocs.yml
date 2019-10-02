@@ -41,8 +41,8 @@ nav:
     - Overview: api/overview.md
     - Credentials: api/token.md
     - Location:
-      - create: api/location/create.md
-      - delete: api/location/delete.md
+      #- create: api/location/create.md
+      #- delete: api/location/delete.md
       - list: api/location/list.md
     - Registry: api/registry.md
     - Agents:

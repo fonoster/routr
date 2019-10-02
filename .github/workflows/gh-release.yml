@@ -19,7 +19,8 @@ jobs:
           export JAVA_HOME=$GRAALVM_HOME
           npm i
           npm test
-          ./cc-test-reporter after-build
+          # this must be fixed to send test coverage to codeclimate
+          # ./cc-test-reporter after-build --exit-code
       - name: Package
         run: |
           export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
