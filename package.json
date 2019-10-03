@@ -8,14 +8,17 @@
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
     "bundle": "webpack --config webpack.config.js --mode none",
     "pretest": "npm run bundle",
-    "prepack": "npm test"
+    "prepack": "npm test",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "dependencies": {
     "moment": "^2.22.2",
     "npm": "^6.1.0",
     "postal": "^2.0.5",
     "validator": "^11.0.0",
-    "xxhashjs": "^0.2.2"
+    "xxhashjs": "^0.2.2",
+    "snyk": "^1.230.5"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
@@ -33,5 +36,6 @@
     "url": "git://github.com/fonoster/routr.git"
   },
   "author": "Pedro Sanders",
-  "license": "MIT"
+  "license": "MIT",
+  "snyk": true
 }
