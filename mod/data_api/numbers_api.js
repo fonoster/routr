@@ -54,8 +54,8 @@ class NumbersAPI {
         return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
-    getNumbers(filter) {
-        return this.ds.withCollection('numbers').find(filter)
+    getNumbers(filter, page, itemsPerPage) {
+        return this.ds.withCollection('numbers').find(filter, page, itemsPerPage)
     }
 
     getNumber(ref) {

@@ -34,7 +34,7 @@ describe('Files Data Source', () => {
         assert.ok(response.status === Status.OK)
         // Non-Existing Agent
         response = ds.withCollection('agents').find("@.spec.credentials.username=='mike'")
-        assert.ok(response.result.length === 0)
+        assert.ok(response.data.length === 0)
         // Invalid filter
         response = ds.withCollection('agents').find("@.spec.credentials.username==1001'")
         assert.ok(response.status === Status.BAD_REQUEST)
@@ -51,6 +51,13 @@ describe('Files Data Source', () => {
         response  = gwAPI.getGatewayByHost('sip2.provider.net', 5061)
         assert.ok(response.status === Status.OK)
 
+        done()
+    })
+
+    it('Pagination', function(done) {
+        let response = ds.withCollection('agents').find(void(0), 1, 10)
+        assert.ok(response.status === Status.OK)
+        assert.equal(response.meta.totalItems, 3)
         done()
     })
 })

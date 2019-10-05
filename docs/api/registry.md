@@ -32,6 +32,6 @@ HTTP/1.1 200 OK
 {  
    "status":200,
    "message":"Successful request",
-   "result":[]
+   "data":[]
 }
 ```

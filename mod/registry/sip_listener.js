@@ -51,7 +51,7 @@ module.exports = (registry, sipStack, gatewaysAPI) => {
               .getAddress().getURI()
             const gwRef = event.getClientTransaction().getRequest()
                       .getHeader('X-Gateway-Ref').value
-            const gateway = gatewaysAPI.getGateway(gwRef).result
+            const gateway = gatewaysAPI.getGateway(gwRef).data
 
             try {
                 if (isRegisterOk(response)) {

@@ -69,12 +69,12 @@ class Registrar {
         let response = this.agentsAPI.getAgent(host, username)
 
         if (response.status === Status.OK) {
-            return response.result
+            return response.data
         } else {
             response = this.peersAPI.getPeerByUsername(username)
 
             if (response.status === Status.OK) {
-                return response.result
+                return response.data
             }
         }
 

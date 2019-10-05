@@ -29,7 +29,7 @@ class ResponseProcessor {
             const gwRef = event.getClientTransaction().getRequest()
               .getHeader('X-Gateway-Ref').value
             const r = gatewaysAPI.getGateway(gwRef)
-            handleAuthChallenge(his.sipProvider.getSipStack(), event, r.result)
+            handleAuthChallenge(his.sipProvider.getSipStack(), event, r.data)
             return
         }
         this.sendResponse(event)

@@ -43,8 +43,8 @@ describe('Location Service Module', () => {
     it('Add/remove local endpoint', function(done) {
         locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
         let response = locator.findEndpoint(agentEndpoint.aor)
-        assert.ok(response.result.length > 0)
-        const currentCount = response.result.length
+        assert.ok(response.data.length > 0)
+        const currentCount = response.data.length
         locator.removeEndpoint(agentEndpoint.aor, agentEndpoint.route.contactURI)
         response = locator.findEndpoint(agentEndpoint.aor)
         assert.notEqual(response.status, Status.OK)
@@ -83,7 +83,7 @@ describe('Location Service Module', () => {
         locator.addEndpoint(ep1.aor, ep1.route)
         // Ensure only one entry for contactURI...
         const response = locator.findEndpoint(ep1.aor)
-        assert.equal(response.result.length, 2)
+        assert.equal(response.data.length, 2)
         done()
     })
 
@@ -92,7 +92,7 @@ describe('Location Service Module', () => {
 function testFE(locator, aor, thruGw = false) {
     const response = locator.findEndpoint(aor)
     assert.equal(response.status, Status.OK)
-    response.result.forEach(route => assert.equal(route.thruGw, thruGw))
+    response.data.forEach(route => assert.equal(route.thruGw, thruGw))
 }
 
 function buildEndpoint(username, domain, host, expires = 60) {

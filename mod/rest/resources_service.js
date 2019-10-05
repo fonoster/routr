@@ -18,8 +18,13 @@ module.exports = function(api, resource) {
 
     get(resBase, (req, res) => {
         let filter = '@'
+        let page = 1
+        let itemsPerPage = 30
         if (!isEmpty(req.queryParams('filter'))) filter = req.queryParams('filter')
-        return JSON.stringify(api[`get${resource}s`](filter))
+        if (!isEmpty(req.queryParams('page'))) page = req.queryParams('page')
+        if (!isEmpty(req.queryParams('itemsPerPage'))) itemsPerPage = req.queryParams('itemsPerPage')
+
+        return JSON.stringify(api[`get${resource}s`](filter, page, itemsPerPage))
     })
 
     get(resByRef, (req, res) => JSON.stringify(api[`get${resource}`](req.params(':ref'))))

@@ -10,6 +10,8 @@ const PeersAPI = require('@routr/data_api/peers_api')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const NumbersAPI = require('@routr/data_api/numbers_api')
 const DSSelector = require('@routr/data_api/ds_selector')
+const DSUtils = require('@routr/data_api/utils')
+const isEmpty = require('@routr/utils/obj_util')
 const config = require('@routr/core/config_util')()
 const {
     reloadConfig
@@ -126,16 +128,22 @@ class Rest {
                 CoreUtils.buildResponse(Status.OK,
                     getJWTToken(req, res, config.salt))))
 
-            get('/registry', (req, res) => JSON.stringify(
-                CoreUtils.buildResponse(Status.OK,
-                  this.nht.withCollection('registry')
+            get('/registry', (req, res) => {
+                const items = this.nht.withCollection('registry')
                     .values()
                     .map(r => {
                       const reg = JSON.parse(r)
                       reg.regOnFormatted = moment(reg.registeredOn).fromNow()
                       return reg
-                    })))
-            )
+                    })
+
+                let page = 1
+                let itemsPerPage = 30
+                if (!isEmpty(req.queryParams('page'))) page = req.queryParams('page')
+                if (!isEmpty(req.queryParams('itemsPerPage'))) itemsPerPage = req.queryParams('itemsPerPage')
+
+                return DSUtils.paginate(items, page, itemsPerPage)
+            })
 
             locationService(this.nht)
 

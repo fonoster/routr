@@ -38,7 +38,7 @@ function getUserFromHeader(req) {
 function authentic(usersAPI, user) {
     try {
         const response = usersAPI.getUserByUsername(user.username)
-        if (!response.result.spec.credentials.secret.equals(user.password)) {
+        if (!response.data.spec.credentials.secret.equals(user.password)) {
             return false
         }
     } catch (e) {

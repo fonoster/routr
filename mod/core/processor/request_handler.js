@@ -61,7 +61,7 @@ class RequestHandler {
                 }
 
                 // Call forking
-                response.result.forEach(route => this.processRoute(request, serverTransaction, route, routeInfo))
+                response.data.forEach(route => this.processRoute(request, serverTransaction, route, routeInfo))
                 requestStore.remove(data.requestId)
             }
         })

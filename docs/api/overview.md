@@ -21,7 +21,7 @@ curl -k -u "admin:changeit" https://localhost:4567/api/v1beta1/token
 {
     "status":200,
     "message":"Successful request",
-    "result":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiJ9.TZZ4kp5xIdYzs5RRt6_qVxJcOiLdk1IEHFMBSZ7SRENx6kyVhwfAlm-oeM4L2XFIr4evlTCxKEIKc0fZKwPcjw"
+    "data":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiJ9.TZZ4kp5xIdYzs5RRt6_qVxJcOiLdk1IEHFMBSZ7SRENx6kyVhwfAlm-oeM4L2XFIr4evlTCxKEIKc0fZKwPcjw"
 }
 ```
 
@@ -34,7 +34,7 @@ curl -k -u "admin:changeit" https://localhost:4567/api/v1beta1/location?token=ey
 {  
    "status":200,
    "message":"Successful request",
-   "result":[  
+   "data":[  
       {  
          "addressOfRecord":"sip:1001@sip.local",
          "contactInfo":"sip:45962087@192.168.1.127:61147;transport=tcp;nat=false;expires=600"

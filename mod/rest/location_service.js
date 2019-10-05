@@ -2,10 +2,12 @@
  * @author Pedro Sanders
  * @since v1
  */
-const postal = require('postal')
-const validator = require('validator')
 const CoreUtils = require('@routr/core/utils')
 const LocatorUtils = require('@routr/location/utils')
+const DSUtils = require('@routr/data_api/utils')
+const isEmpty = require('@routr/utils/obj_util')
+const postal = require('postal')
+const validator = require('validator')
 const {
     Status
 } = require('@routr/core/status')
@@ -34,6 +36,20 @@ function routeFromString (e) {
 }
 
 module.exports = function(nht) {
+
+    get('/location', (req, res) => {
+        const items = nht.withCollection('location')
+          .values()
+          .filter(entries => !LocatorUtils.expiredRouteFilter(JSON.parse(entries).routes))
+          .map(entries => routeFromString(entries))
+
+        let page = 1
+        let itemsPerPage = 30
+        if (!isEmpty(req.queryParams('page'))) page = req.queryParams('page')
+        if (!isEmpty(req.queryParams('itemsPerPage'))) itemsPerPage = req.queryParams('itemsPerPage')
+
+        return DSUtils.paginate(items, page, itemsPerPage)
+    })
 
     /**
      * Expects json with: address, port, user, expires
@@ -80,17 +96,9 @@ module.exports = function(nht) {
             res.body('{\"status\": \"400\", \"message\":\"Bad Request\"}')
             return '{\"status\": \"400\", \"message\":\"Bad Request\"}'
         }
-    })*/
+    })
 
-    get('/location', (req, res) => JSON.stringify(
-        CoreUtils.buildResponse(Status.OK,
-          nht.withCollection('location')
-            .values()
-            .filter(entries => !LocatorUtils.expiredRouteFilter(JSON.parse(entries).routes))
-            .map(entries => routeFromString(entries))
-    )))
-
-    /*del('/location/:aor', (req, res) => {
+    del('/location/:aor', (req, res) => {
         const aor = req.params(':aor')
 
         postal.publish({

@@ -87,7 +87,7 @@ class Locator {
         LOG.debug(`location.Locator.findEndpointByTelUrl [lookup route for aor ${addressOfRecord}]`)
         const response = this.numbersAPI.getNumberByTelUrl(addressOfRecord)
         if (response.status === Status.OK) {
-            const number = response.result
+            const number = response.data
             const routes = this.db.getIfPresent(number.spec.location.aorLink)
             return routes !== null
               ? CoreUtils.buildResponse(Status.OK, routes)
@@ -126,13 +126,13 @@ class Locator {
                 // Get Number and Gateway info
                 let response = numbersAPI.getNumber(domain.spec.context
                   .egressPolicy.numberRef)
-                const number = response.result
+                const number = response.data
 
                 if (response.status === Status.OK) {
                     response = gatewaysAPI.getGateway(number.metadata.gwRef)
 
                     if (response.status === Status.OK) {
-                        const gateway = response.result
+                        const gateway = response.data
                         const contactURI = addressFactory.createSipURI(
                           gateway.metadata.ref, buildAddr(gateway.spec.host,
                             gateway.spec.port))
@@ -149,9 +149,6 @@ class Locator {
         return routes
     }
 
-    listAsJSON(page, count) {
-    }
-
     // What if the number of numbers is massive?
     loadStaticRoutes() {
         LOG.debug(`location.Locator.loadStaticRoutes [loading static routes]`)
@@ -159,7 +156,7 @@ class Locator {
         const numbersAPI = new NumbersAPI(ds)
         const domainsAPI = new DomainsAPI(ds)
         const gatewaysAPI = new GatewaysAPI(ds)
-        const domains = domainsAPI.getDomains().result
+        const domains = domainsAPI.getDomains().data
         const egressRoutes = this.getDomainEgressRoutes(domains, numbersAPI,
           gatewaysAPI)
         this.db.putAll(egressRoutes)

@@ -43,7 +43,7 @@ describe('Registry Module', () => {
 
     it('Build request', function(done) {
         const response = gatewaysAPI.getGateway('gw50a1a4ca')
-        const gateway = response.result
+        const gateway = response.data
         const transport = protocolTransport(config, gateway.spec.transport)
         const viaAddr = { host: transport.bindAddr, port: transport.port}
         const contactAddr = nearestInterface(transport.bindAddr, transport.port)
@@ -70,12 +70,12 @@ describe('Registry Module', () => {
 
         // Is this a static gateway?
         let response = gatewaysAPI.getGateway('gw1ec5e36a')
-        const gateway = response.result
+        const gateway = response.data
         assert.ok(isStaticMode(gateway))
 
         // Show the unregistered gateways
         response = gatewaysAPI.getGateways()
-        const gateways = response.result
+        const gateways = response.data
         assert.ok(unregistered(regs, gateways).length > 0)
 
         try {

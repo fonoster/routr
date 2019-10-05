@@ -27,7 +27,7 @@ PUT /api/v1beta1/domains/dm6c87r2
 {
   "status": "200",
   "message": "Successful request",
-  "result" : {
+  "data" : {
   	"apiVersion": "v1beta1",
   	"kind": "Domain",
   	"metadata": {

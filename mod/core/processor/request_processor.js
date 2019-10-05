@@ -94,7 +94,7 @@ class RequestProcessor {
             const addressOfRecord = request.getRequestURI()
             const response = this.domainsAPI.getDomainByUri(addressOfRecord.getHost())
             if (response.status === Status.OK) {
-                const acl = response.result.spec.context.accessControlList
+                const acl = response.data.spec.context.accessControlList
                 if (acl) {
                     return new AclUtil(acl).isIpAllowed(remoteIp)
                 }

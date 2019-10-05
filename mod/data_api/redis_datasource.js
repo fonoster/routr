@@ -46,7 +46,7 @@ class RedisDataSource {
 
         this.jedisPool = new JedisPool(this.parameters.host, this.parameters.port)
 
-        if (this.withCollection('users').find().result.length === 0) {
+        if (this.withCollection('users').find().data.length === 0) {
             LOG.info("No user found. Creating default 'admin' user.")
             this.createDefaultUser(config.system.apiVersion)
         }
@@ -120,8 +120,8 @@ class RedisDataSource {
 
         try {
             jedis = this.getJedisConn()
-            const result = JSON.parse(jedis.get(ref))
-            return result === null ? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
+            const data = JSON.parse(jedis.get(ref))
+            return data === null ? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, data)
         } catch (e) {
             return CoreUtils.buildErrResponse(e)
         } finally {
@@ -131,7 +131,7 @@ class RedisDataSource {
         }
     }
 
-    find(filter) {
+    find(filter = '*', page = 1, itemsPerPage = Long.MAX_VALUE) {
         let list = []
         let jedis
 
@@ -149,7 +149,7 @@ class RedisDataSource {
                 .read(DSUtils.transformFilter(filter))
                 .toJSONString()
 
-            return CoreUtils.buildResponse(Status.OK, JSON.parse(list))
+            return DSUtils.paginate(JSON.parse(list), page, itemsPerPage)
         } catch (e) {
             return e instanceof InvalidPathException ? CoreUtils.buildResponse(Status.BAD_REQUEST, null, e) :
                 CoreUtils.buildErrResponse(e)

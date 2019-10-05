@@ -39,8 +39,8 @@ class PeersAPI {
         return CoreUtils.buildResponse(Status.CONFLICT)
     }
 
-    getPeers(filter) {
-        return this.ds.withCollection('peers').find(filter)
+    getPeers(filter, page, itemsPerPage) {
+        return this.ds.withCollection('peers').find(filter, page, itemsPerPage)
     }
 
     getPeer(ref) {

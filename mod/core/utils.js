@@ -21,18 +21,18 @@ class CoreUtils {
         return CoreUtils.buildResponse(Status.INTERNAL_SERVER_ERROR, [], e)
     }
 
-    static buildResponse(status, result, e) {
+    static buildResponse(status, data, e) {
         const response = {
             status: status,
             message: Status.message[status].value
         }
 
-        if (result) {
-            response.result = result
+        if (data) {
+            response.data = data
         }
 
         if (e) {
-            response.result = e.toString()
+            response.data = e.toString()
         }
 
         return response

@@ -5,14 +5,13 @@
  * Unit Test for the "Core Module"
  */
 const assert = require('assert')
-const getConfig = require('@routr/core/config_util')
 const IPUtil = require('@routr/core/ip_util')
 
 describe('Core tests', () => {
 
     it('Checks configuration', function(done) {
-        const result = getConfig()
-        assert.ok(result !== undefined)
+        const config = require('@routr/core/config_util')()
+        assert.ok(config !== undefined)
         done()
     })
 

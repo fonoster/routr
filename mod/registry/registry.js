@@ -69,7 +69,7 @@ class Registry {
                 this.nht.remove(reg.gwURI)
             }
         })
-        const gateways = this.gatewaysAPI.getGateways().result
+        const gateways = this.gatewaysAPI.getGateways().data
         const unreg = unregistered(
           this.nht.withCollection('registry').values(), gateways)
         unreg.forEach(gw => this.register(gw))

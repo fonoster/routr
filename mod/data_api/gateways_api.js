@@ -45,8 +45,8 @@ class GatewaysAPI {
         return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
-    getGateways(filter) {
-        return this.ds.withCollection('gateways').find(filter)
+    getGateways(filter, page, itemsPerPage) {
+        return this.ds.withCollection('gateways').find(filter, page, itemsPerPage)
     }
 
     getGateway(ref) {
@@ -100,10 +100,10 @@ class GatewaysAPI {
             return response
         }
 
-        const gateway = response.result
+        const gateway = response.data
 
         response = this.ds.withCollection('numbers').find(`@.metadata.gwRef=='${gateway.metadata.ref}'`)
-        const numbers = response.result
+        const numbers = response.data
 
         return numbers.length === 0 ? this.ds.withCollection('gateways').remove(ref) : FOUND_DEPENDENT_OBJECTS_RESPONSE
     }

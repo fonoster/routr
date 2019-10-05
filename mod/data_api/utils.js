@@ -8,6 +8,7 @@ const {
     Status
 } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
+const paginateArray = require("paginate-array")
 
 const System = Java.type('java.lang.System')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -86,13 +87,13 @@ class DSUtils {
     }
 
     static deepSearch(response, path, value) {
-        let result
-        response.result.forEach(obj => {
+        let data
+        response.data.forEach(obj => {
             if (value && DSUtils.resolve(path, obj) === value.toString()) {
-                result = obj
+                data = obj
             }
         })
-        return isEmpty(result) ? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, result)
+        return isEmpty(data) ? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, data)
     }
 
     static objExist(response) {
@@ -131,6 +132,22 @@ class DSUtils {
             allowedKeys.indexOf(key) === -1 ? LOG.warn(`Invalid parameter: ${key}`) : parameters[key] = value
         })
         return parameters
+    }
+
+    static paginate(items, page, itemsPerPage) {
+        const pagination = paginateArray(items, page, itemsPerPage)
+
+        return {
+            status: Status.OK,
+            message: Status.message[Status.OK].value,
+            meta: {
+                currentPage: pagination.currentPage,
+                totalPages: pagination.totalPages,
+                itemsPerPage: pagination.perPage,
+                totalItems: pagination.total
+            },
+            data: pagination.data
+        }
     }
 }
 

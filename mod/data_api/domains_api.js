@@ -57,8 +57,8 @@ class DomainsAPI {
         return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
-    getDomains(filter) {
-        return this.ds.withCollection('domains').find(filter)
+    getDomains(filter, page, itemsPerPage) {
+        return this.ds.withCollection('domains').find(filter, page, itemsPerPage)
     }
 
     getDomain(ref) {
@@ -90,10 +90,10 @@ class DomainsAPI {
             return response
         }
 
-        const domain = response.result
+        const domain = response.data
 
         response = this.ds.withCollection('agents').find(`'${domain.spec.context.domainUri}' in @.spec.domains`)
-        const agents = response.result
+        const agents = response.data
 
         return agents.length === 0 ? this.ds.withCollection('domains').remove(ref) : foundDependentObjects
     }

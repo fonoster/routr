@@ -17,11 +17,11 @@ describe('Data APIS', () => {
 
         let response = {
             status: 200,
-            result: agents
+            data: agents
         }
 
         response = DSUtils.deepSearch(response, 'spec.credentials.username', '1001')
-        const agent = response.result
+        const agent = response.data
         assert.ok(agent.metadata.name === 'John Doe')
         done()
     })

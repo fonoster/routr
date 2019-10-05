@@ -25,24 +25,24 @@ const agentsApi = new AgentsAPI(ds)
 describe('Redis Data Source', () => {
     it.skip('Basic operations', function(done) {
         const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
-        const initSize = ds.withCollection('agents').find().result.length
+        const initSize = ds.withCollection('agents').find().data.length
         const response = ds.insert(agent)
-        let endSize = ds.withCollection('agents').find().result.length
+        let endSize = ds.withCollection('agents').find().data.length
 
-        assert.ok(ObjectId.isValid(response.result))
+        assert.ok(ObjectId.isValid(response.data))
         assert.ok(endSize == (initSize + 1))
         assert.ok(agent.metadata.name.equals('John Doe'))
 
-        ds.withCollection('agents').remove(response.result)
-        endSize = ds.withCollection('agents').find().result.length
+        ds.withCollection('agents').remove(response.data)
+        endSize = ds.withCollection('agents').find().data.length
         assert.ok(initSize == endSize)
         done()
     })
 
     it.skip('Get collections', function(done) {
         const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
-        const initSize = ds.withCollection('agents').find().result.length
-        const ref = ds.insert(agent).result
+        const initSize = ds.withCollection('agents').find().data.length
+        const ref = ds.insert(agent).data
 
         // Existing Agent
         let response = ds.withCollection('agents').find("@.spec.credentials.username==1001")
@@ -50,14 +50,14 @@ describe('Redis Data Source', () => {
 
         // Non-Existing Agent
         response = ds.withCollection('agents').find("@.spec.credentials.username=='peter'")
-        assert.ok(response.result.length == 0)
+        assert.ok(response.data.length == 0)
 
         // Invalid filter
         response = ds.withCollection('agents').find("@.spec.credentials.username==mike'")
         assert.ok(response.status == Status.BAD_REQUEST)
 
         ds.withCollection('agents').remove(ref)
-        const endSize = ds.withCollection('agents').find().result.length
+        const endSize = ds.withCollection('agents').find().data.length
         assert.ok(initSize == endSize)
         done()
     })
@@ -66,11 +66,11 @@ describe('Redis Data Source', () => {
         const john = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
         const jane = TestUtils.buildAgent('Jane Doe', ['sip.local'], '1002')
 
-        const ref1 = ds.insert(john).result
-        const ref2 = ds.insert(jane).result
+        const ref1 = ds.insert(john).data
+        const ref2 = ds.insert(jane).data
 
         const l = ds.withCollection('agents')
-            .find("'sip.local' in @.spec.domains").result
+            .find("'sip.local' in @.spec.domains").data
 
         assert.ok(l.length == 2)
 
@@ -78,7 +78,7 @@ describe('Redis Data Source', () => {
         const response = agentsApi.getAgents("@.spec.credentials.username=='1001' || @.spec.credentials.username=='1002'")
 
         assert.ok(response.status == Status.OK)
-        assert.ok(response.result.length == 2)
+        assert.ok(response.data.length == 2)
 
         // Cleanup
         ds.withCollection('agents').remove(ref1)
@@ -89,10 +89,10 @@ describe('Redis Data Source', () => {
     it.skip('Get agent', function(done) {
         const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
         agent.metadata.ref = 'ag3f77f6'
-        const ref = ds.insert(agent).result
+        const ref = ds.insert(agent).data
         const response = agentsApi.getAgent('ag3f77f6')
         assert.ok(response.status == Status.OK)
-        assert.ok(response.result.kind == 'Agent')
+        assert.ok(response.data.kind == 'Agent')
         // Cleanup
         ds.withCollection('agents').remove(ref)
         done()

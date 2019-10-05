@@ -5,13 +5,13 @@
 const DSUtils = require('@routr/data_api/utils')
 const FilesUtil = require('@routr/utils/files_util')
 const XXH = require('xxhashjs')
-const paginate = require("paginate-array")
 const {
     Status
 } = require('@routr/core/status')
 const getConfig = require('@routr/core/config_util')
 const isEmpty = require('@routr/utils/obj_util')
 
+const Long = Java.type('java.lang.Long')
 const JsonPath = Java.type('com.jayway.jsonpath.JsonPath')
 const System = Java.type('java.lang.System')
 const NoSuchFileException = Java.type('java.nio.file.NoSuchFileException')
@@ -80,7 +80,7 @@ class FilesDataSource {
         let response = this.withCollection('numbers').find()
 
         if (response.status === Status.OK) {
-            response.result.forEach(number => {
+            response.data.forEach(number => {
                 const gwRef = number.metadata.gwRef
                 response = this.withCollection('gateways').get(gwRef)
                 if (response.status !== Status.OK) {
@@ -94,7 +94,7 @@ class FilesDataSource {
         response = this.withCollection('domains').find()
 
         if (response.status === Status.OK) {
-            response.result.forEach(domain => {
+            response.data.forEach(domain => {
                 if (domain.spec.context.egressPolicy !== undefined) {
                     const numberRef = domain.spec.context.egressPolicy.numberRef
                     response = DSUtils.deepSearch(this.withCollection('numbers').find(), "metadata.ref", numberRef)
@@ -110,12 +110,12 @@ class FilesDataSource {
         response = this.withCollection('agents').find()
 
         if (response.status === Status.OK) {
-            response.result.forEach(agent => {
+            response.data.forEach(agent => {
                 const domains = agent.spec.domains
                 for (const cnt in domains) {
                     const domain = domains[cnt]
-                    response = this.withCollection('domains').find(void(0), void(0), `@.spec.context.domainUri=='${domain}'`)
-                    if (response.result.length === 0) {
+                    response = this.withCollection('domains').find(`@.spec.context.domainUri=='${domain}'`)
+                    if (response.data.length === 0) {
                         LOG.error(`Agent \`${agent.metadata.name}\`(${agent.spec.credentials.username}) has a non-existent domain/s`)
                         System.exit(1)
                     }
@@ -129,7 +129,7 @@ class FilesDataSource {
         RESOURCES.forEach(resource => {
             const response = this.withCollection(resource).find()
             if (response.status === Status.OK) {
-                const refs = response.result.map(entity => entity.metadata.ref)
+                const refs = response.data.map(entity => entity.metadata.ref)
                 if (findDuplicates(refs).length >  0) {
                     LOG.error(`Found duplicate entries in ${this.filesPath}/${resource}.yml`)
                     System.exit(1)
@@ -153,10 +153,10 @@ class FilesDataSource {
     // Warn: Not very efficient. This will list all existing resources before
     // finding the one it needs
     get(ref) {
-        return DSUtils.deepSearch(this.find(), "metadata.ref", ref)
+        return DSUtils.deepSearch(this.find(void(0), 1, Long.MAX_VALUE), "metadata.ref", ref)
     }
 
-    find(filter = '*') {
+    find(filter = '*', page = 1, itemsPerPage = Long.MAX_VALUE) {
         if (!isEmpty(filter) && filter !== '*') {
             filter = `*.[?(${filter})]`
         }
@@ -178,12 +178,12 @@ class FilesDataSource {
             list = JSON.parse(jsonPath.read(filter).toJSONString())
 
             if (isEmpty(list)) {
-                return FilesDataSource.emptyResult()
+                return FilesDataSource.emptyResponse()
             }
         } catch (e) {
             if (e instanceof NoSuchFileException ||
                 e instanceof JsonMappingException) {
-                return FilesDataSource.emptyResult()
+                return FilesDataSource.emptyResponse()
             }
 
             return {
@@ -194,11 +194,7 @@ class FilesDataSource {
             lock.unlock()
         }
 
-        return {
-            status: Status.OK,
-            message: Status.message[Status.OK].value,
-            result: this.getWithReferences(list)
-        }
+        return DSUtils.paginate(this.getWithReferences(list), page, itemsPerPage)
     }
 
     update() {
@@ -252,11 +248,11 @@ class FilesDataSource {
         return ref
     }
 
-    static emptyResult() {
+    static emptyResponse() {
         return {
             status: Status.OK,
             message: Status.message[Status.OK].value,
-            result: []
+            data: []
         }
     }
 
