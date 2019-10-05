@@ -2,14 +2,15 @@
  * @author Pedro Sanders
  * @since v1
  */
+const DSUtils = require('@routr/data_api/utils')
+const FilesUtil = require('@routr/utils/files_util')
+const XXH = require('xxhashjs')
+const paginate = require("paginate-array")
 const {
     Status
 } = require('@routr/core/status')
 const getConfig = require('@routr/core/config_util')
 const isEmpty = require('@routr/utils/obj_util')
-const DSUtils = require('@routr/data_api/utils')
-const FilesUtil = require('@routr/utils/files_util')
-const XXH = require('xxhashjs')
 
 const JsonPath = Java.type('com.jayway.jsonpath.JsonPath')
 const System = Java.type('java.lang.System')
@@ -69,9 +70,6 @@ class FilesDataSource {
                 if (e instanceof Java.type('com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException')) {
                     LOG.error(`The format of file \`${this.filesPath}/${RESOURCES[CNT]}.yml\` is invalid`)
                     System.exit(1)
-                } else {
-                    LOG.error(`Unable to open configuration file \`${this.filesPath}/${RESOURCES[cnt]}.yml\``)
-                    System.exit(1)
                 }
             }
         }
@@ -80,38 +78,50 @@ class FilesDataSource {
     resourceConstraintValidation() {
         // Ensure GW for gwRef
         let response = this.withCollection('numbers').find()
-        response.result.forEach(number => {
-            const gwRef = number.metadata.gwRef
-            response = this.withCollection('gateways').get(gwRef)
-            if (response.status !== Status.OK) {
-                LOG.error(`Gateway with ref \`${gwRef}\` does not exist`)
-            }
-        })
+
+        if (response.status === Status.OK) {
+            response.result.forEach(number => {
+                const gwRef = number.metadata.gwRef
+                response = this.withCollection('gateways').get(gwRef)
+                if (response.status !== Status.OK) {
+                    LOG.error(`Gateway with ref \`${gwRef}\` does not exist`)
+                    System.exit(1)
+                }
+            })
+        }
 
         // Ensure Domains have valid Numbers
         response = this.withCollection('domains').find()
-        response.result.forEach(domain => {
-            if (domain.spec.context.egressPolicy !== undefined) {
-                const numberRef = domain.spec.context.egressPolicy.numberRef
-                response = DSUtils.deepSearch(this.withCollection('numbers').find(), "metadata.ref", numberRef)
-                if (response.status !== Status.OK) {
-                    LOG.error(`Number with ref \`${numberRef}\` does not exist`)
+
+        if (response.status === Status.OK) {
+            response.result.forEach(domain => {
+                if (domain.spec.context.egressPolicy !== undefined) {
+                    const numberRef = domain.spec.context.egressPolicy.numberRef
+                    response = DSUtils.deepSearch(this.withCollection('numbers').find(), "metadata.ref", numberRef)
+                    if (response.status !== Status.OK) {
+                        LOG.error(`Number with ref \`${numberRef}\` does not exist`)
+                        System.exit(1)
+                    }
                 }
-            }
-        })
+            })
+        }
 
         // Ensure Agents have existing Domains
         response = this.withCollection('agents').find()
-        response.result.forEach(agent => {
-            const domains = agent.spec.domains
-            for (const cnt in domains) {
-                const domain = domains[cnt]
-                response = this.withCollection('domains').find(`@.spec.context.domainUri=='${domain}'`)
-                if (response.result.length === 0) {
-                    LOG.error(`Agent \`${agent.metadata.name}\`(${agent.spec.credentials.username}) has a non-existent domain/s`)
+
+        if (response.status === Status.OK) {
+            response.result.forEach(agent => {
+                const domains = agent.spec.domains
+                for (const cnt in domains) {
+                    const domain = domains[cnt]
+                    response = this.withCollection('domains').find(void(0), void(0), `@.spec.context.domainUri=='${domain}'`)
+                    if (response.result.length === 0) {
+                        LOG.error(`Agent \`${agent.metadata.name}\`(${agent.spec.credentials.username}) has a non-existent domain/s`)
+                        System.exit(1)
+                    }
                 }
-            }
-        })
+            })
+        }
     }
 
     checkForDuplicates() {
@@ -122,7 +132,7 @@ class FilesDataSource {
                 const refs = response.result.map(entity => entity.metadata.ref)
                 if (findDuplicates(refs).length >  0) {
                     LOG.error(`Found duplicate entries in ${this.filesPath}/${resource}.yml`)
-                    exit(1)
+                    System.exit(1)
                 }
             }
         })
