@@ -78,7 +78,7 @@ class Locator {
             .filter(key => new RegExp(key).test(addressOfRecord))
             .findFirst()
 
-        return  defaultRouteKey.isPresent()
+        return defaultRouteKey.isPresent()
           ? CoreUtils.buildResponse(Status.OK, this.db.getIfPresent(defaultRouteKey.get()))
           : CoreUtils.buildResponse(Status.NOT_FOUND)
     }
