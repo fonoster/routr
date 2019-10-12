@@ -2,7 +2,6 @@
  * @author Pedro Sanders
  * @since v1
  */
-const System = Java.type('java.lang.System')
 const DSSelector = require('@routr/data_api/ds_selector')
 const SDSelector = require('@routr/data_api/store_driver_selector')
 const GatewaysAPI = require('@routr/data_api/gateways_api')

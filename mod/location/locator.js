@@ -13,6 +13,8 @@ const PeersAPI = require('@routr/data_api/peers_api')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const NumbersAPI = require('@routr/data_api/numbers_api')
 const DSSelector = require('@routr/data_api/ds_selector')
+const SDSelector = require('@routr/data_api/store_driver_selector')
+const StoreAPI = require('@routr/data_api/store_api')
 const isEmpty = require('@routr/utils/obj_util')
 const postal = require('postal')
 const {
@@ -22,7 +24,6 @@ const {
    Status
 } = require('@routr/core/status')
 
-const NHTClient = Java.type('io.routr.nht.NHTClient')
 const Expiry = Java.extend(Java.type('com.github.benmanes.caffeine.cache.Expiry'))
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
@@ -39,12 +40,11 @@ const LOG = LogManager.getLogger()
 class Locator {
 
     constructor() {
-        const ds = DSSelector.getDS()
-        this.numbersAPI = new NumbersAPI(ds)
+        this.numbersAPI = new NumbersAPI(DSSelector.getDS())
         this.db = Locator.createCache()
         this.loadStaticRoutes()
         this.subscribeToPostal()
-        this.nht = new NHTClient('vm://routr')
+        this.store = new StoreAPI(SDSelector.getDriver())
     }
 
     addEndpoint(addressOfRecord, route) {
@@ -69,7 +69,7 @@ class Locator {
 
         const routes = this.db.getIfPresent(addressOfRecord)
 
-        if (routes !== null ) {
+        if (routes !== null) {
             return CoreUtils.buildResponse(Status.OK, routes)
         }
 
@@ -170,7 +170,7 @@ class Locator {
             callback: (data, envelope) => {
                 const aor = aorAsString(data.addressOfRecord)
                 this.removeEndpoint(aor, data.contactURI, data.isWildcard)
-                this.nht.withCollection('location').remove(aor)
+                this.store.withCollection('location').remove(aor)
             }
         })
 
@@ -188,7 +188,7 @@ class Locator {
                       return route
                   })
                 const entry = { addressOfRecord: aor, routes: routes }
-                this.nht.withCollection('location').put(aor, JSON.stringify(entry))
+                this.store.withCollection('location').put(aor, JSON.stringify(entry))
             }
         })
 
