@@ -11,13 +11,13 @@ const {
     Status
 } = require('@routr/core/status')
 const TestUtils = require('@routr/data_api/test_utils')
-const getConfig = require('@routr/core/config_util')
+const config = require('@routr/core/config_util')()
 const ObjectId = Java.type('org.bson.types.ObjectId')
 const testGroup = {
     name: "Redis Data Source",
     enabled: false
 }
-const config = getConfig()
+
 // To force RedisDataSource to use its own default parameters...
 delete config.spec.dataSource.parameters
 const ds = new RedisDataSource(config)

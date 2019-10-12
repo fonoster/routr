@@ -23,7 +23,7 @@ class LocatorUtils {
     }
 
     static contactURIFilter(c1, c2) {
-        return c1.toString() === c2.toString()
+        return c1 === c2
     }
 
     static aorAsString(addressOfRecord) {
