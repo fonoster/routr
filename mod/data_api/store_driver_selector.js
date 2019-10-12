@@ -8,7 +8,6 @@ class StoreDriverSelector {
         if (config.spec.dataSource.provider === 'redis_data_provider') {
             this.storeDriver = new RedisStore()
         } else {
-            console.log('DBG001')
             this.storeDriver = new FilesStore()
         }
     }
