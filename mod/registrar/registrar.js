@@ -46,18 +46,19 @@ class Registrar {
         }
 
         const aors = RegistrarUtils.generateAors(request, user, isGuest)
-        this.addEndpoints(aors, RegistrarUtils.buildRoute(request, user))
+        this.addEndpoints(aors, request, user)
         return true
     }
 
-    addEndpoints(aors, route) {
+    addEndpoints(aors, request, user) {
         aors.forEach(addressOfRecord => {
             postal.publish({
                 channel: "locator",
                 topic: "endpoint.add",
                 data: {
                     addressOfRecord: addressOfRecord,
-                    route: route
+                    route: RegistrarUtils.buildRoute(addressOfRecord,
+                      request, user)
                 }
             })
         })

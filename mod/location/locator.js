@@ -24,9 +24,6 @@ const {
    Status
 } = require('@routr/core/status')
 
-const Expiry = Java.extend(Java.type('com.github.benmanes.caffeine.cache.Expiry'))
-const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
-const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 const HashMap = Java.type('java.util.HashMap')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const Long = Java.type('java.lang.Long')
@@ -41,23 +38,25 @@ class Locator {
 
     constructor() {
         this.numbersAPI = new NumbersAPI(DSSelector.getDS())
-        this.db = Locator.createCache()
+        this.store = new StoreAPI(SDSelector.getDriver()).withCollection('location')
         this.loadStaticRoutes()
         this.subscribeToPostal()
-        this.store = new StoreAPI(SDSelector.getDriver())
     }
 
     addEndpoint(addressOfRecord, route) {
-        LOG.debug(`location.Locator.addEndpoint [adding endpoint ${addressOfRecord} with rout => ${JSON.stringify(route)}]`)
+        LOG.debug(`location.Locator.addEndpoint [adding endpoint ${addressOfRecord} with route => ${JSON.stringify(route)}]`)
         LOG.debug(`location.Locator.addEndpoint [contactURI => ${LocatorUtils.aorAsObj(route.contactURI)}]`)
 
-        let routes = this.db.getIfPresent(addressOfRecord)
-        if (routes === null) routes = []
+        let jsonRoutes = this.store.get(addressOfRecord)
+        let routes = jsonRoutes ? JSON.parse(jsonRoutes) : []
 
-        routes = routes.filter(r => !LocatorUtils.contactURIFilter(r.contactURI, route.contactURI))
+        route.contactURI = route.contactURI.toString()
+        routes = routes
+          .filter(r => !LocatorUtils.expiredRouteFilter(r))
+          .filter(r => !LocatorUtils.contactURIFilter(r.contactURI, route.contactURI))
         routes.push(route)
         // See NOTE #1
-        this.db.put(addressOfRecord, routes)
+        this.store.put(addressOfRecord, JSON.stringify(routes))
     }
 
     findEndpoint(addressOfRecord) {
@@ -67,19 +66,23 @@ class Locator {
             return this.findEndpointByTelUrl(addressOfRecord)
         }
 
-        const routes = this.db.getIfPresent(addressOfRecord)
+        const jsonRoutes = this.store.get(addressOfRecord)
 
-        if (routes !== null) {
+        if (jsonRoutes !== null) {
+            let routes = JSON.parse(jsonRoutes)
+            routes = routes
+              .filter(r => !LocatorUtils.expiredRouteFilter(r))
+
             return CoreUtils.buildResponse(Status.OK, routes)
         }
 
-        const defaultRouteKey = this.db.asMap().keySet()
-            .stream()
+        const defaultRouteKey = this.store.keySet()
             .filter(key => new RegExp(key).test(addressOfRecord))
-            .findFirst()
 
-        return defaultRouteKey.isPresent()
-          ? CoreUtils.buildResponse(Status.OK, this.db.getIfPresent(defaultRouteKey.get()))
+        const parse = (s, k) => JSON.parse(s.get(k[0]))
+
+        return defaultRouteKey.length > 0
+          ? CoreUtils.buildResponse(Status.OK, parse(this.store, defaultRouteKey))
           : CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
@@ -88,7 +91,11 @@ class Locator {
         const response = this.numbersAPI.getNumberByTelUrl(addressOfRecord)
         if (response.status === Status.OK) {
             const number = response.data
-            const routes = this.db.getIfPresent(number.spec.location.aorLink)
+            const jsonRoutes = this.store.get(number.spec.location.aorLink)
+            let routes = JSON.parse(jsonRoutes)
+            routes = routes
+              .filter(r => !LocatorUtils.expiredRouteFilter(r))
+
             return routes !== null
               ? CoreUtils.buildResponse(Status.OK, routes)
               : CoreUtils.buildResponse(Status.NOT_FOUND,
@@ -101,18 +108,19 @@ class Locator {
         LOG.debug(`location.Locator.removeEndpoint [remove route for aor => ${addressOfRecord}, isWildcard => ${isWildcard}]`)
         // Remove all bindings
         if (isWildcard === true) {
-            return this.db.invalidate(addressOfRecord)
+            return this.store.remove(addressOfRecord)
         }
 
-        let routes = this.db.getIfPresent(addressOfRecord)
-        if (routes) {
+        let jsonRoutes = this.store.get(addressOfRecord)
+        if (jsonRoutes) {
+            let routes = JSON.parse(jsonRoutes)
             routes = routes.filter(route => !LocatorUtils.contactURIFilter(route.contactURI, contactURI))
 
             if (routes.length === 0) {
-              this.db.invalidate(addressOfRecord)
+              this.store.remove(addressOfRecord)
               return
             }
-            this.db.put(addressOfRecord, routes)
+            this.store.put(addressOfRecord, routes)
         }
     }
 
@@ -137,10 +145,11 @@ class Locator {
                           gateway.metadata.ref, buildAddr(gateway.spec.host,
                             gateway.spec.port))
                         //contactURI.setSecure(aorObj.isSecure())
-                        const route = LocatorUtils.buildEgressRoute(contactURI,
-                          gateway, number, domain)
-
-                        routes.put(`sip:${domain.spec.context.egressPolicy.rule}@${domain.spec.context.domainUri}`, [route])
+                        const addressOfRecord = `sip:${domain.spec.context.egressPolicy.rule}@${domain.spec.context.domainUri}`
+                        const route = LocatorUtils
+                          .buildEgressRoute(addressOfRecord, contactURI, gateway,
+                            number, domain)
+                        routes.put(addressOfRecord, [route])
                     }
                 }
             }
@@ -159,7 +168,10 @@ class Locator {
         const domains = domainsAPI.getDomains().data
         const egressRoutes = this.getDomainEgressRoutes(domains, numbersAPI,
           gatewaysAPI)
-        this.db.putAll(egressRoutes)
+
+        egressRoutes.keySet().toArray().forEach(key => {
+            this.store.put(key, JSON.stringify(egressRoutes.get(key)))
+        })
     }
 
     subscribeToPostal() {
@@ -170,7 +182,6 @@ class Locator {
             callback: (data, envelope) => {
                 const aor = aorAsString(data.addressOfRecord)
                 this.removeEndpoint(aor, data.contactURI, data.isWildcard)
-                this.store.withCollection('location').remove(aor)
             }
         })
 
@@ -180,15 +191,6 @@ class Locator {
             callback: (data, envelope) => {
                 const aor = aorAsString(data.addressOfRecord)
                 this.addEndpoint(aor, data.route)
-
-                // Also adding to the network hashtable
-                const routes = this.db.getIfPresent(aor)
-                  .map(route => {
-                      route.contactURI = route.contactURI.toString()
-                      return route
-                  })
-                const entry = { addressOfRecord: aor, routes: routes }
-                this.store.withCollection('location').put(aor, JSON.stringify(entry))
             }
         })
 
@@ -210,33 +212,14 @@ class Locator {
         })
     }
 
-    static createCache() {
-        const exp = graph => {
-          const data = graph.map(route => route.expires)
-          const expires = Math.max.apply(Math, data)
-          return expires === -1
-            ? TimeUnit.SECONDS.toNanos(Long.MAX_VALUE)
-            : TimeUnit.SECONDS.toNanos(expires)
-        }
-
-        const db = Caffeine.newBuilder()
-        .expireAfter(new Expiry({
-              expireAfterCreate: (key, graph, currentTime) => exp(graph),
-              expireAfterUpdate: (key, graph, currentTime, currentDuration) => exp(graph),
-              expireAfterRead: function (key, graph, currentTime, currentDuration) {
-                  return currentDuration
-              }
-          }))
-        .build()
-        return db
-    }
-
     evictAll() {
         LOG.debug(`location.Locator.evictAll [emptying location table]`)
         // WARNING: Should we provide a way to disable this?
-        const cnt = this.db.estimatedSize()
-        this.db.invalidateAll()
-        LOG.debug(`location.Locator.evictAll [evicted ${cnt} entries from location table]`)
+        const keys = this.store.keySet()
+        keys.forEach(key => {
+            this.store.remove(key)
+        })
+        LOG.debug(`location.Locator.evictAll [evicted ${keys.length} entries from location table]`)
     }
 }
 

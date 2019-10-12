@@ -20,8 +20,7 @@ const del = Java.type('spark.Spark').delete
 
 function routeFromString (e) {
     let contactInfo = ''
-    const entry = JSON.parse(e)
-    const routes = entry.routes
+    const routes = JSON.parse(e)
 
     const rObj = routes[0]
     let r = `${rObj.contactURI};nat=${rObj.nat};expires=${rObj.expires}`
@@ -30,7 +29,7 @@ function routeFromString (e) {
     contactInfo = `${contactInfo}${r}`
 
     return {
-        addressOfRecord: entry.addressOfRecord,
+        addressOfRecord: rObj.addressOfRecord,
         contactInfo: contactInfo
     }
 }
@@ -40,7 +39,7 @@ module.exports = function(store) {
     get('/location', (req, res) => {
         const items = store.withCollection('location')
           .values()
-          .filter(entries => !LocatorUtils.expiredRouteFilter(JSON.parse(entries).routes))
+          .filter(entries => !LocatorUtils.expiredRouteFilter(JSON.parse(entries)))
           .map(entries => routeFromString(entries))
 
         let page = 1

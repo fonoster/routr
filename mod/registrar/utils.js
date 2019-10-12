@@ -24,12 +24,12 @@ class RegistrarUtils {
             const peerHost = isEmpty(user.spec.device) ? host : user.spec.device
             const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, peerHost)
             addressOfRecord.setSecure(contactURI.isSecure())
-            aors.push(addressOfRecord)
+            aors.push(addressOfRecord.toString())
         } else {
             user.spec.domains.forEach(domain => {
                 const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, domain)
                 addressOfRecord.setSecure(contactURI.isSecure())
-                aors.push(addressOfRecord)
+                aors.push(addressOfRecord.toString())
             })
         }
         return aors
@@ -61,9 +61,10 @@ class RegistrarUtils {
     }
 
     // TODO: Please consolidate all the route builders :(
-    static buildRoute(request, user) {
+    static buildRoute(addressOfRecord, request, user) {
         const viaHeader = request.getHeader(ViaHeader.NAME)
         return {
+            addressOfRecord: addressOfRecord,
             isLinkAOR: false,
             thruGw: false,
             sentByAddress: viaHeader.getHost(),
