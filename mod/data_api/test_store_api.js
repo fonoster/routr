@@ -6,6 +6,7 @@
  */
 const StoreAPI = require('@routr/data_api/store_api')
 const RedisStore = require('@routr/data_api/redis_store')
+const FilesStore = require('@routr/data_api/files_store')
 const assert = require('assert')
 
 describe('Store API', () => {
@@ -13,6 +14,7 @@ describe('Store API', () => {
 
     before(() => {
         storeDriverImpls.push(new RedisStore())
+        storeDriverImpls.push(new FilesStore())
     })
 
     it('Basic store api functions', function(done) {

@@ -67,23 +67,26 @@ describe('Redis Data Source', () => {
         const john = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
         const jane = TestUtils.buildAgent('Jane Doe', ['sip.local'], '1002')
 
-        const ref1 = ds.insert(john).data
-        const ref2 = ds.insert(jane).data
+        const oldCnt = ds.withCollection('agents')
+          .find("'sip.local' in @.spec.domains").data.length
 
-        const l = ds.withCollection('agents')
-            .find("'sip.local' in @.spec.domains").data
-
-        assert.equal(2, l.length)
+        const ref1 = ds.withCollection('agents').insert(john).data
+        const ref2 = ds.withCollection('agents').insert(jane).data
 
         // NOTE: The space will not work in the console because is considered another parameter
         const response = agentsApi.getAgents("@.spec.credentials.username=='1001' || @.spec.credentials.username=='1002'")
 
         assert.equal(Status.OK, response.status)
-        assert.equal(2, response.data.length)
 
         // Cleanup
         ds.withCollection('agents').remove(ref1)
         ds.withCollection('agents').remove(ref2)
+
+        const newCnt = ds.withCollection('agents')
+          .find("'sip.local' in @.spec.domains").data.length
+
+        assert.equal(oldCnt, newCnt)
+
         done()
     })
 
