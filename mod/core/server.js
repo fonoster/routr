@@ -21,7 +21,6 @@ const System = Java.type('java.lang.System')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const Properties = Java.type('java.util.Properties')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const NHTServer = Java.type('io.routr.nht.NHTServer')
 
 const LOG = LogManager.getLogger()
 const ANSI_GREEN = "\u001B[32m"
@@ -45,7 +44,6 @@ class Server {
         }
 
         this.dataAPIs = dataAPIs
-        this.nhtServer = new NHTServer("vm://routr")
         // I know this looks strange. But it is need to start postal bindings
         // Also, it needs to be startarted after the NHTServer or it will fail
         new Locator()
@@ -100,13 +98,11 @@ class Server {
     start() {
         LOG.info('Starting Routr')
         this.setup()
-        this.nhtServer.start()
     }
 
     stop() {
         LOG.info('Stopping server')
         this.sipStack.stop()
-        this.nhtServer.stop()
         System.exit(0)
     }
 
