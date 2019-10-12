@@ -35,10 +35,10 @@ function routeFromString (e) {
     }
 }
 
-module.exports = function(nht) {
+module.exports = function(store) {
 
     get('/location', (req, res) => {
-        const items = nht.withCollection('location')
+        const items = store.withCollection('location')
           .values()
           .filter(entries => !LocatorUtils.expiredRouteFilter(JSON.parse(entries).routes))
           .map(entries => routeFromString(entries))

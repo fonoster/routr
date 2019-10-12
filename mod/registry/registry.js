@@ -3,9 +3,10 @@
  * @since v1
  */
 const System = Java.type('java.lang.System')
-const NHTClient = Java.type('io.routr.nht.NHTClient')
 const DSSelector = require('@routr/data_api/ds_selector')
+const SDSelector = require('@routr/data_api/store_driver_selector')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
+const StoreAPI = require('@routr/data_api/store_api')
 const config = require('@routr/core/config_util')()
 const getProperties = require('@routr/registry/reg_properties')
 const createSipListener = require('@routr/registry/sip_listener')
@@ -42,7 +43,7 @@ class Registry {
             this.gatewaysAPI))
 
         this.userAgent = config.metadata.userAgent
-        this.nht = new NHTClient('vm://routr')
+        this.store = new StoreAPI(SDSelector.getDriver())
     }
 
     register(gateway, received, rport) {
@@ -71,7 +72,7 @@ class Registry {
         })
         const gateways = this.gatewaysAPI.getGateways().data
         const unreg = unregistered(
-          this.nht.withCollection('registry').values(), gateways)
+          this.store.withCollection('registry').values(), gateways)
         unreg.forEach(gw => this.register(gw))
     }
 

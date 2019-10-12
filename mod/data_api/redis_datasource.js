@@ -13,8 +13,10 @@ const JedisPoolConfig = Java.type('redis.clients.jedis.JedisPoolConfig')
 const JedisPool = Java.type('redis.clients.jedis.JedisPool')
 const ObjectId = Java.type('org.bson.types.ObjectId')
 const JsonPath = Java.type('com.jayway.jsonpath.JsonPath')
+const Duration = Java.type('java.time.Duration')
 const InvalidPathException = Java.type('com.jayway.jsonpath.InvalidPathException')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const Long = Java.type('java.lang.Long')
 
 const LOG = LogManager.getLogger()
 const badRequest = {
@@ -23,7 +25,7 @@ const badRequest = {
 }
 const defaultRedisParameters = {
     host: 'localhost',
-    port: '6379'
+    port: 6379
 }
 const defUser = {
     kind: 'User',
@@ -44,7 +46,7 @@ class RedisDataSource {
         this.parameters = DSUtils.getParameters(config, defaultRedisParameters,
             ['host', 'port', 'secret'])
 
-        this.jedisPool = new JedisPool(this.parameters.host, this.parameters.port)
+        this.jedisPool = new JedisPool(this.buildPoolConfig(), this.parameters.host, this.parameters.port)
 
         if (this.withCollection('users').find().data.length === 0) {
             LOG.info("No user found. Creating default 'admin' user.")

@@ -3,6 +3,7 @@
  * @since v1
  */
 const Rule = require('@routr/core/acl/acl_rule')
+const Long = Java.type('java.lang.Long')
 
 /**
  * Helps verify if a device is allow or not to REGISTER and place calls.
@@ -22,7 +23,7 @@ class ACLHelper {
         const r = rules
             .stream()
             .filter(rule => rule.hasIp(ip))
-            .sorted((r1, r2) => java.lang.Long.compare(r1.getAddressCount(), r2.getAddressCount()))
+            .sorted((r1, r2) => Long.compare(r1.getAddressCount(), r2.getAddressCount()))
             .findFirst()
 
         return r.isPresent() ? r.get() : new Rule('0.0.0.0/0', 'deny')

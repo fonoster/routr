@@ -1,7 +1,7 @@
 {
   "name": "@routr/registry",
   "version": "1.0.0",
-  "description": "Core functionalities for Routr server",
+  "description": "Registry module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

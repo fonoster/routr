@@ -14,14 +14,15 @@ const {
     fixPort
 } = require('@routr/utils/misc_utils')
 
-const NHTClient = Java.type('io.routr.nht.NHTClient')
+const SDSelector = require('@routr/data_api/store_driver_selector')
+const StoreAPI = require('@routr/data_api/store_api')
 const InetAddress = Java.type('java.net.InetAddress')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
-function storeRegistry(registryStore, gwRef, gwURI, expires) {
+function storeRegistry(store, gwRef, gwURI, expires) {
     LOG.debug(`registry.listener.storeRegistry [storing gw -> ${gwURI.toString()}]`)
     const reg = {
         username: gwURI.getUser(),
@@ -33,17 +34,17 @@ function storeRegistry(registryStore, gwRef, gwURI, expires) {
         gwRef: gwRef,
         gwURI: gwURI.toString()
     }
-    registryStore.withCollection('registry').put(gwURI.toString(), JSON.stringify(reg))
+    store.withCollection('registry').put(gwURI.toString(), JSON.stringify(reg))
 }
 
-function removeRegistry(registryStore, gwURI) {
+function removeRegistry(store, gwURI) {
     LOG.debug(`registry.listener.removeRegistry [removing gw -> ${gwURI.toString()}]`)
-    registryStore.withCollection('registry').remove(gwURI.toString())
+    store.withCollection('registry').remove(gwURI.toString())
 }
 
 module.exports = (registry, sipStack, gatewaysAPI) => {
     const SipListener = Java.extend(Java.type('javax.sip.SipListener'))
-    const registryStore = new NHTClient('vm://routr')
+    const store = new StoreAPI(SDSelector.getDriver())
     return new SipListener({
         processResponse: event => {
             const response = event.getResponse()
@@ -65,10 +66,10 @@ module.exports = (registry, sipStack, gatewaysAPI) => {
                         registry.register(gateway, received, rport)
                         return
                     }
-                    storeRegistry(registryStore, gwRef, gwURI,
+                    storeRegistry(store, gwRef, gwURI,
                       getExpires(response))
                 } else if (isRegisterNok(response)) {
-                    removeRegistry(registryStore, gwURI)
+                    removeRegistry(store, gwURI)
                 }
 
                 if(mustAuthenticate(response)) {

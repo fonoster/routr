@@ -4,6 +4,7 @@
  *
  * Unit Test for the "Redis Data Source"
  */
+const RedisDataSource = require('@routr/data_api/redis_datasource')
 const assert = require('assert')
 const AgentsAPI = require('@routr/data_api/agents_api')
 const {
@@ -19,50 +20,50 @@ const testGroup = {
 const config = getConfig()
 // To force RedisDataSource to use its own default parameters...
 delete config.spec.dataSource.parameters
-const ds = null
+const ds = new RedisDataSource(config)
 const agentsApi = new AgentsAPI(ds)
 
 describe('Redis Data Source', () => {
-    it.skip('Basic operations', function(done) {
+    it('Basic operations', function(done) {
         const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
         const initSize = ds.withCollection('agents').find().data.length
         const response = ds.insert(agent)
         let endSize = ds.withCollection('agents').find().data.length
 
         assert.ok(ObjectId.isValid(response.data))
-        assert.ok(endSize == (initSize + 1))
-        assert.ok(agent.metadata.name.equals('John Doe'))
+        assert.equal(endSize, initSize + 1)
+        assert.equal(agent.metadata.name, 'John Doe')
 
         ds.withCollection('agents').remove(response.data)
         endSize = ds.withCollection('agents').find().data.length
-        assert.ok(initSize == endSize)
+        assert.equal(initSize, endSize)
         done()
     })
 
-    it.skip('Get collections', function(done) {
+    it('Get collections', function(done) {
         const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
         const initSize = ds.withCollection('agents').find().data.length
         const ref = ds.insert(agent).data
 
         // Existing Agent
         let response = ds.withCollection('agents').find("@.spec.credentials.username==1001")
-        assert.ok(response.status == Status.OK)
+        assert.equal(Status.OK, response.status)
 
         // Non-Existing Agent
         response = ds.withCollection('agents').find("@.spec.credentials.username=='peter'")
-        assert.ok(response.data.length == 0)
+        assert.equal(0, response.data.length)
 
         // Invalid filter
         response = ds.withCollection('agents').find("@.spec.credentials.username==mike'")
-        assert.ok(response.status == Status.BAD_REQUEST)
+        assert.equal(Status.BAD_REQUEST, response.status)
 
         ds.withCollection('agents').remove(ref)
         const endSize = ds.withCollection('agents').find().data.length
-        assert.ok(initSize == endSize)
+        assert.equal(initSize, endSize)
         done()
     })
 
-    it.skip('Get agents', function(done) {
+    it('Get agents', function(done) {
         const john = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
         const jane = TestUtils.buildAgent('Jane Doe', ['sip.local'], '1002')
 
@@ -72,13 +73,13 @@ describe('Redis Data Source', () => {
         const l = ds.withCollection('agents')
             .find("'sip.local' in @.spec.domains").data
 
-        assert.ok(l.length == 2)
+        assert.equal(2, l.length)
 
         // NOTE: The space will not work in the console because is considered another parameter
         const response = agentsApi.getAgents("@.spec.credentials.username=='1001' || @.spec.credentials.username=='1002'")
 
-        assert.ok(response.status == Status.OK)
-        assert.ok(response.data.length == 2)
+        assert.equal(Status.OK, response.status)
+        assert.equal(2, response.data.length)
 
         // Cleanup
         ds.withCollection('agents').remove(ref1)
@@ -86,13 +87,13 @@ describe('Redis Data Source', () => {
         done()
     })
 
-    it.skip('Get agent', function(done) {
+    it('Get agent', function(done) {
         const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
         agent.metadata.ref = 'ag3f77f6'
         const ref = ds.insert(agent).data
         const response = agentsApi.getAgent('ag3f77f6')
-        assert.ok(response.status == Status.OK)
-        assert.ok(response.data.kind == 'Agent')
+        assert.equal(Status.OK, response.status)
+        assert.equal('Agent', response.data.kind)
         // Cleanup
         ds.withCollection('agents').remove(ref)
         done()

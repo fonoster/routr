@@ -10,6 +10,8 @@ const PeersAPI = require('@routr/data_api/peers_api')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const NumbersAPI = require('@routr/data_api/numbers_api')
 const DSSelector = require('@routr/data_api/ds_selector')
+const SDSelector = require('@routr/data_api/store_driver_selector')
+const StoreAPI = require('@routr/data_api/store_api')
 const DSUtils = require('@routr/data_api/utils')
 const isEmpty = require('@routr/utils/obj_util')
 const config = require('@routr/core/config_util')()
@@ -26,7 +28,6 @@ const parameterAuthFilter = require('@routr/rest/parameter_auth_filter')
 const basicAuthFilter = require('@routr/rest/basic_auth_filter')
 const moment = require('moment')
 
-const NHTClient = Java.type('io.routr.nht.NHTClient')
 const Spark = Java.type('spark.Spark')
 const options = Java.type('spark.Spark').options
 const get = Java.type('spark.Spark').get
@@ -41,7 +42,7 @@ class Rest {
 
     constructor(server) {
         this.server = server
-        this.nht = new NHTClient('vm://routr')
+        this.store = new StoreAPI(SDSelector.getDriver())
 
         LOG.info(`Starting Restful service (port: ${config.spec.restService.port}, apiPath: ${config.system.apiPath})`)
 
@@ -129,7 +130,7 @@ class Rest {
                     getJWTToken(req, res, config.salt))))
 
             get('/registry', (req, res) => {
-                const items = this.nht.withCollection('registry')
+                const items = this.store.withCollection('registry')
                     .values()
                     .map(r => {
                       const reg = JSON.parse(r)
@@ -145,7 +146,7 @@ class Rest {
                 return DSUtils.paginate(items, page, itemsPerPage)
             })
 
-            locationService(this.nht)
+            locationService(this.store)
 
             resourcesService(new AgentsAPI(ds), 'Agent')
             resourcesService(new PeersAPI(ds), 'Peer')

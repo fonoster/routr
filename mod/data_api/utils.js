@@ -102,7 +102,7 @@ class DSUtils {
     }
 
     static transformFilter(filter = '*') {
-        return !isEmpty(filter) && !filter.equals('*') ? `*.[?(${filter})]` : filter
+        return !isEmpty(filter) && filter !== '*' ? `*.[?(${filter})]` : filter
     }
 
     static resolve(path, obj) {
