@@ -13,6 +13,10 @@ jobs:
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
           chmod +x ./cc-test-reporter
           ./cc-test-reporter before-build
+      - name: Setup Redis DB
+        uses: zhulik/redis-action@v1.0.0
+        with:
+          redis version: '5'
       - name: Build and Test
         run: |
           export GRAALVM_HOME=$(pwd)/graalvm-ce-19.2.0
