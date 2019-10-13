@@ -130,9 +130,9 @@ class DSUtils {
         params.split(',').forEach(par => {
             const key = par.split('=')[0]
             const value = par.split('=')[1]
-            allowedKeys.indexOf(key) === -1
-                ? LOG.warn(`Invalid parameter: ${key}`)
-                : parameters[key] = value
+            allowedKeys.indexOf(key) === -1 ?
+                LOG.warn(`Invalid parameter: ${key}`) :
+                parameters[key] = value
         })
         return parameters
     }

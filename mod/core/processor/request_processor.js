@@ -2,13 +2,14 @@
  * @author Pedro Sanders
  * @since v1
  */
-const ProcessorUtils = require('@routr/core/processor/utils')
+const {
+    sendResponse
+} = require('@routr/core/processor/processor_utils')
 const RegisterHandler = require('@routr/core/processor/register_handler')
 const RegistryHandler = require('@routr/core/processor/registry_handler')
 const CancelHandler = require('@routr/core/processor/cancel_handler')
 const RequestHandler = require('@routr/core/processor/request_handler')
 const RouteInfo = require('@routr/core/processor/route_info')
-const getConfig = require('@routr/core/config_util')
 const AclUtil = require('@routr/core/acl/acl_util')
 const {
     RoutingType
@@ -16,15 +17,14 @@ const {
 const {
     Status
 } = require('@routr/core/status')
+const config = require('@routr/core/config_util')()
 
-const SipFactory = Java.type('javax.sip.SipFactory')
 const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
-const messageFactory = SipFactory.getInstance().createMessageFactory()
-const globalACL = getConfig().spec.accessControlList
+const globalACL = config.spec.accessControlList
 
 class RequestProcessor {
 
@@ -44,7 +44,6 @@ class RequestProcessor {
         }
 
         const routeInfo = new RouteInfo(request, this.dataAPIs)
-        const procUtils = new ProcessorUtils(request, serverTransaction)
 
         LOG.debug(`core.processor.RequestProcessor.process [route type ${routeInfo.getRoutingType()}]`)
         LOG.debug(`core.processor.RequestProcessor.process [entity info ${JSON.stringify(routeInfo.getCallee())}]`)
@@ -53,7 +52,7 @@ class RequestProcessor {
         // Or optimize
         if (this.allowedAccess(event, routeInfo) === false) {
             LOG.debug(`core.processor.RequestProcessor.process [access denied for ${JSON.stringify(routeInfo.getCallee())}]`)
-            return procUtils.sendResponse(Response.FORBIDDEN)
+            return sendResponse(serverTransaction, Response.FORBIDDEN)
         }
 
         LOG.debug(`core.processor.RequestProcessor.process [running handler for method \`${request.getMethod()}\`]`)
@@ -62,14 +61,14 @@ class RequestProcessor {
             case Request.PUBLISH:
             case Request.NOTIFY:
             case Request.SUBSCRIBE:
-                procUtils.sendResponse(Response.METHOD_NOT_ALLOWED)
+                sendResponse(serverTransaction, Response.METHOD_NOT_ALLOWED)
                 break
             case Request.REGISTER:
                 if (routeInfo.getRoutingType() === RoutingType.UNKNOWN) {
                     new RegistryHandler(this.sipProvider).doProcess(request)
                     break
                 }
-                new RegisterHandler(this.dataAPIs).doProcess(serverTransaction)
+                new RegisterHandler().doProcess(serverTransaction)
                 break
             case Request.CANCEL:
                 new CancelHandler().doProcess(serverTransaction)

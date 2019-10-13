@@ -13,7 +13,7 @@ const {
     isStackJob,
     mustAuthenticate,
     isMethod
-} = require('@routr/core/processor/response_utils')
+} = require('@routr/core/processor/processor_utils')
 const FilesDataSource = require('@routr/data_api/files_datasource')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const PeersAPI = require('@routr/data_api/peers_api')

@@ -2,21 +2,23 @@
  * @author Pedro Sanders
  * @since v1
  */
+const LocatorUtils = require('@routr/location/utils')
+const IPUtil = require('@routr/core/ip_util')
 const {
     connectionException
 } = require('@routr/utils/exception_helpers')
-const postal = require('postal')
-const ProcessorUtils = require('@routr/core/processor/utils')
-const IPUtil = require('@routr/core/ip_util')
+const {
+    sendResponse
+} = require('@routr/core/processor/processor_utils')
 const {
     equalsIgnoreCase,
     fixPort
 } = require('@routr/utils/misc_utils')
-const getConfig = require('@routr/core/config_util')
 const {
     Status
 } = require('@routr/core/status')
-const LocatorUtils = require('@routr/location/utils')
+const config = require('@routr/core/config_util')()
+const postal = require('postal')
 
 const ObjectId = Java.type('org.bson.types.ObjectId')
 const InetAddress = Java.type('java.net.InetAddress')
@@ -33,8 +35,7 @@ const ConcurrentHashMap = Java.type('java.util.concurrent.ConcurrentHashMap')
 const requestStore = new ConcurrentHashMap()
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
 const addressFactory = SipFactory.getInstance().createAddressFactory()
-const ipUtil = new IPUtil(getConfig())
-const config = getConfig()
+const ipUtil = new IPUtil(config)
 const LOG = LogManager.getLogger()
 
 class RequestHandler {
@@ -51,19 +52,17 @@ class RequestHandler {
 
                 if (requestInfo === null) return
 
-                const request = requestInfo.request
                 const serverTransaction = requestInfo.serverTransaction
                 const routeInfo = requestInfo.routeInfo
 
                 const response = data.response
 
                 if (response.status == Status.NOT_FOUND) {
-                    const procUtils = new ProcessorUtils(request, serverTransaction)
-                    return procUtils.sendResponse(Response.TEMPORARILY_UNAVAILABLE)
+                    return sendResponse(serverTransaction, Response.TEMPORARILY_UNAVAILABLE)
                 }
 
                 // Call forking
-                response.data.forEach(route => this.processRoute(request, serverTransaction, route, routeInfo))
+                response.data.forEach(route => this.processRoute(serverTransaction, route, routeInfo))
                 requestStore.remove(data.requestId)
             }
         })
@@ -86,7 +85,8 @@ class RequestHandler {
         })
     }
 
-    processRoute(requestIn, serverTransaction, route, routeInfo) {
+    processRoute(serverTransaction, route, routeInfo) {
+        const requestIn = serverTransaction.getRequest()
         const requestOut = requestIn.clone()
         const transport = requestIn.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
         const lp = this.sipProvider.getListeningPoint(transport)

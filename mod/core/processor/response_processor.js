@@ -7,7 +7,7 @@ const {
     isTransactional,
     mustAuthenticate,
     handleAuthChallenge
-} = require('@routr/core/processor/response_utils')
+} = require('@routr/core/processor/processor_utils')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()

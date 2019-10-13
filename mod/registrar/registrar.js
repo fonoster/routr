@@ -11,6 +11,9 @@ const isEmpty = require('@routr/utils/obj_util')
 const getConfig = require('@routr/core/config_util')
 const RegistrarUtils = require('@routr/registrar/utils')
 
+const DSSelector = require('@routr/data_api/ds_selector')
+const AgentsAPI = require('@routr/data_api/agents_api')
+const PeersAPI = require('@routr/data_api/peers_api')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const ContactHeader = Java.type('javax.sip.header.ContactHeader')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
@@ -24,28 +27,24 @@ const LOG = LogManager.getLogger()
 
 class Registrar {
 
-    constructor(dataAPIs) {
-        this.peersAPI = dataAPIs.PeersAPI
-        this.agentsAPI = dataAPIs.AgentsAPI
+    constructor() {
+        this.peersAPI = new PeersAPI(DSSelector.getDS())
+        this.agentsAPI = new AgentsAPI(DSSelector.getDS())
     }
 
     register(r) {
         // Prevents any chances of overwriting the original object
         const request = r.clone()
-        const isGuest = RegistrarUtils.isGuest(request)
         let user
 
-        // Warning: This is just for testing purposes
-        if (isGuest && RegistrarUtils.isAllowGuest()) {
-            user = RegistrarUtils.getGuessUser(request)
-        } else if (this.isAuthorized(request)) {
+        if (this.isAuthorized(request)) {
             // Todo: Avoid making this second trip to the API
             user = this.getUserFromAPI(request)
         } else {
             return false
         }
 
-        const aors = RegistrarUtils.generateAors(request, user, isGuest)
+        const aors = RegistrarUtils.generateAors(request, user)
         this.addEndpoints(aors, request, user)
         return true
     }

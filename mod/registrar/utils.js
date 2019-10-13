@@ -14,13 +14,14 @@ const addressFactory = SipFactory.getInstance().createAddressFactory()
 
 class RegistrarUtils {
 
-    static generateAors(request, user, isGuest) {
+    static generateAors(request, user) {
         const contactHeader = request.getHeader(ContactHeader.NAME)
         const contactURI = contactHeader.getAddress().getURI()
         const aors = []
 
-        if (isGuest || user.kind.equalsIgnoreCase('peer')) {
-            const host = RegistrarUtils.getFromHost(request)
+        if (user.kind.equalsIgnoreCase('peer')) {
+            const host = equest.getHeader(FromHeader.NAME).getAddress()
+                .getURI().getHost()
             const peerHost = isEmpty(user.spec.device) ? host : user.spec.device
             const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, peerHost)
             addressOfRecord.setSecure(contactURI.isSecure())
@@ -33,31 +34,6 @@ class RegistrarUtils {
             })
         }
         return aors
-    }
-
-    static isGuest(request) {
-        return RegistrarUtils.getFromHost(request).equalsIgnoreCase('guest')
-    }
-
-    static isAllowGuest() {
-        return config.spec.allowGuest === true
-    }
-
-    static getGuessUser(request) {
-        const fromHeader = request.getHeader(FromHeader.NAME)
-        return {
-            kind: 'User',
-            spec: {
-                credentials: {
-                    username: fromHeader.getAddress().getURI().getUser()
-                }
-            }
-        }
-    }
-
-    static getFromHost(request) {
-        return request.getHeader(FromHeader.NAME)
-            .getAddress().getURI().getHost()
     }
 
     // TODO: Please consolidate all the route builders :(
@@ -127,19 +103,6 @@ class RegistrarUtils {
             method: 'REGISTER',
             qop: authHeader.getQop()
         }
-    }
-
-    static getExpires(message) {
-        const contactHeader = message.getHeader(ContactHeader.NAME)
-
-        if (contactHeader.getParameter('expires')) {
-            return contactHeader.getExpires()
-        }
-
-        const expiresHeader = message.getHeader(ExpiresHeader.NAME)
-
-        // Considere instead triggering an exception
-        return expiresHeader ? expiresHeader.getExpires() : 0
     }
 
     static getNonceCount(d) {

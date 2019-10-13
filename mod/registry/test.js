@@ -4,10 +4,10 @@
  *
  * Unit Test for the "Registry Module"
  */
-const assert = require('assert')
 const Registry = require('@routr/registry/registry')
 const DSSelector = require('@routr/data_api/ds_selector')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
+const assert = require('assert')
 const config = require('@routr/core/config_util')()
 const getProperties = require('@routr/registry/reg_properties')
 const createSipProvider = require('@routr/registry/sip_provider')

@@ -13,9 +13,7 @@ const isExpired = (reg, gwRef) => {
     if (reg === null) {
         return true
     }
-    console.log('FUCK YEAH')
     const elapsed = (Date.now() - reg.registeredOn) / 1000
-    console.log('elapsed: ' + elapsed)
     return reg.expires - elapsed <= 0
 }
 

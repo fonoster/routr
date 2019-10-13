@@ -63,8 +63,8 @@ class GatewaysAPI {
 
         if (response === null) {
             const gws = this.getGateways()
-              .data
-              .filter(g => g.spec.port + '' === p + '' && g.spec.host === h)
+                .data
+                .filter(g => g.spec.port + '' === p + '' && g.spec.host === h)
 
             if (gws.length === 0) {
                 return {
@@ -73,8 +73,8 @@ class GatewaysAPI {
             }
 
             response = {
-               status: Status.OK,
-               data: gws[0]
+                status: Status.OK,
+                data: gws[0]
             }
 
             this.cache.put(host, response)

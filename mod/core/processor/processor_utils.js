@@ -5,6 +5,8 @@
 const {
     connectionException
 } = require('@routr/utils/exception_helpers')
+
+const ToHeader = Java.type('javax.sip.header.ToHeader')
 const ContactHeader = Java.type('javax.sip.header.ContactHeader')
 const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
 const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
@@ -15,6 +17,7 @@ const AccountManager = Java.type('gov.nist.javax.sip.clientauthutils.AccountMana
 const UserCredentials = Java.type('gov.nist.javax.sip.clientauthutils.UserCredentials')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
+const messageFactory = SipFactory.getInstance().createMessageFactory()
 
 const hasCodes = (r, c) => c.filter(code => r.getStatusCode() === code).length > 0
 const isMethod = (r, m) => m.filter(method => r.getHeader(CSeqHeader.NAME).getMethod() === method).length > 0
@@ -65,6 +68,35 @@ const getExpires = message => {
     return expiresHeader ? expiresHeader.getExpires() : 0
 }
 
+const sendResponse = (transaction, type) => {
+    const request = transaction.getRequest()
+    const response = messageFactory.createResponse(type, request)
+    transaction.setResponse(response)
+}
+
+const sendUnauthorized = transaction => {
+    const request = transaction.getRequest()
+    const toHeader = request.getHeader(ToHeader.NAME)
+    const realm = toHeader.getAddress().getURI().getHost()
+    const unauthorized = messageFactory.createResponse(Response.UNAUTHORIZED, request)
+    unauthorized.addHeader(AuthHelper.generateChallenge(realm))
+    transaction.sendResponse(unauthorized)
+}
+
+const sendOk = transaction => {
+    const request = transaction.getRequest()
+    const ok = messageFactory.createResponse(Response.OK, request)
+    const contactHeader = request.getHeader(ContactHeader.NAME)
+    const expiresHeader = headerFactory
+        .createExpiresHeader(getExpires(request))
+    ok.addHeader(contactHeader)
+    ok.addHeader(expiresHeader)
+    transaction.sendResponse(ok)
+}
+
+module.exports.sendResponse = sendResponse
+module.exports.sendOk = sendOk
+module.exports.sendUnauthorized = sendUnauthorized
 module.exports.hasCodes = hasCodes
 module.exports.isMethod = isMethod
 module.exports.isOk = isOk
