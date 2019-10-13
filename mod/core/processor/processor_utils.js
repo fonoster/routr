@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const AuthHelper = require('@routr/utils/auth_helper')
 const {
     connectionException
 } = require('@routr/utils/exception_helpers')
@@ -34,6 +35,7 @@ const isBehindNat = r => {
     const v = r.getHeader(ViaHeader.NAME)
     return !v.getHost().equals(v.getReceived()) || v.getPort() !== v.getRPort()
 }
+
 const getAccountManager = gateway => {
     const buildAddr = (h, p) => `${h}${p? ':' + p: ''}`
     return new AccountManager({
@@ -46,6 +48,7 @@ const getAccountManager = gateway => {
         }
     })
 }
+
 const handleAuthChallenge = (sipStack, e, gateway) => {
     try {
         const accountManager = getAccountManager(gateway)

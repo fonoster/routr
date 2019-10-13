@@ -36,22 +36,22 @@ class ResponseProcessor {
     }
 
     sendResponse(event) {
-        const responseOut = event.getResponse().clone()
-        responseOut.removeFirst(ViaHeader.NAME)
+        const response = event.getResponse().clone()
+        response.removeFirst(ViaHeader.NAME)
         if (isTransactional(event)) {
             const context = this.contextStorage.findContext(event.getClientTransaction().getBranchId())
 
             if (context && context.serverTransaction) {
-                context.serverTransaction.sendResponse(responseOut)
-            } else if (responseOut.getHeader(ViaHeader.NAME) !== null) {
-                this.sipProvider.sendResponse(responseOut)
+                context.serverTransaction.sendResponse(response)
+            } else if (response.getHeader(ViaHeader.NAME) !== null) {
+                this.sipProvider.sendResponse(response)
             }
-        } else if (responseOut.getHeader(ViaHeader.NAME) !== null) {
+        } else if (response.getHeader(ViaHeader.NAME) !== null) {
             // Could be a BYE due to Record-Route
-            this.sipProvider.sendResponse(responseOut)
+            this.sipProvider.sendResponse(response)
         }
 
-        LOG.debug(responseOut)
+        LOG.debug(response)
     }
 
 }

@@ -64,8 +64,10 @@ class Registrar {
     }
 
     getUserFromAPI(request) {
-        const host = RegistrarUtils.getFromHost(request)
-        const username = request.getHeader(AuthorizationHeader.NAME).getUsername()
+        const host = request.getHeader(FromHeader.NAME).getAddress().getURI()
+            .getHost()
+        const username = request.getHeader(AuthorizationHeader.NAME)
+            .getUsername()
         let response = this.agentsAPI.getAgent(host, username)
 
         if (response.status === Status.OK) {
@@ -78,7 +80,7 @@ class Registrar {
             }
         }
 
-        LOG.debug(`registrar.Registrar.getUserFromAPI [Unable to authenticate Agent with username: ${username}]`)
+        LOG.debug(`registrar.Registrar.getUserFromAPI [Can't authenticate Agent => ${username}]`)
 
         return null
     }
@@ -97,7 +99,8 @@ class Registrar {
         }
 
         const aHeaderJson = RegistrarUtils.buildAuthHeader(user, authHeader)
-        return AuthHelper.calcFromHeader(aHeaderJson).equals(authHeader.getResponse())
+        return AuthHelper.calcFromHeader(aHeaderJson)
+            .equals(authHeader.getResponse())
     }
 
 }

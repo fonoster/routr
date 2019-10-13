@@ -3,7 +3,6 @@
  * @since v1
  */
 const postal = require('postal')
-const AuthHelper = require('@routr/utils/auth_helper')
 const Registrar = require('@routr/registrar/registrar')
 const RegistrarUtils = require('@routr/registrar/utils')
 const {
@@ -24,7 +23,7 @@ class RegisterHandler {
     doProcess(transaction) {
         const request = transaction.getRequest()
         // See: Removing bindings -> https://tools.ietf.org/html/rfc3261#section-10.2.2
-        if (getExpires(transaction.getRequest()) <= 0) {            
+        if (getExpires(request) <= 0) {
             const contactHeader = request.getHeader(ContactHeader.NAME)
             const contactURI = contactHeader.getAddress().getURI()
             const toHeader = request.getHeader(ToHeader.NAME)
@@ -40,7 +39,7 @@ class RegisterHandler {
                 }
             })
 
-            sendOk(transaction, request)
+            sendOk(transaction)
         } else {
             this.registrar.register(request) ?
                 sendOk(transaction) :

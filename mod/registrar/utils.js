@@ -2,6 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
+const {
+  getExpires
+} = require('@routr/core/processor/processor_utils')
 const isEmpty = require('@routr/utils/obj_util')
 const config = require('@routr/core/config_util')()
 
@@ -20,7 +23,7 @@ class RegistrarUtils {
         const aors = []
 
         if (user.kind.equalsIgnoreCase('peer')) {
-            const host = equest.getHeader(FromHeader.NAME).getAddress()
+            const host = request.getHeader(FromHeader.NAME).getAddress()
                 .getURI().getHost()
             const peerHost = isEmpty(user.spec.device) ? host : user.spec.device
             const addressOfRecord = addressFactory.createSipURI(user.spec.credentials.username, peerHost)
@@ -49,7 +52,7 @@ class RegistrarUtils {
             rport: viaHeader.getRPort(),
             contactURI: RegistrarUtils.getUpdatedContactURI(request, user),
             registeredOn: Date.now(),
-            expires: RegistrarUtils.getExpires(request),
+            expires: getExpires(request),
             nat: RegistrarUtils.isNat(request)
         }
     }

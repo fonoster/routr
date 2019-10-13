@@ -18,28 +18,30 @@ class RegistryHandler {
         this.sipProvider = sipProvider
     }
 
-    doProcess(requestIn) {
-        const requestOut = requestIn.clone()
-        const transport = requestIn.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
+    doProcess(transaction) {
+        const request = transaction.getRequest().clone()
+        const transport = request.getHeader(ViaHeader.NAME)
+          .getTransport().toLowerCase()
         const lp = this.sipProvider.getListeningPoint(transport)
         const localAddr = {
             host: lp.getIPAddress().toString(),
             port: lp.getPort()
         }
 
-        this.configureGeneral(requestOut, localAddr)
+        this.configureGeneral(request, localAddr)
 
         LOG.debug(`core.processor.RegistryHandler.doProcess [via addr ${JSON.stringify(localAddr)}]`)
 
         try {
-            this.sipProvider.sendRequest(requestOut)
+            this.sipProvider.sendRequest(request)
         } catch (e) {
-            connectionException(e, requestOut.getRequestURI().getHost())
+            connectionException(e, request.getRequestURI().getHost())
         }
     }
 
     configureGeneral(request, viaAddr) {
-        const transport = request.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
+        const transport = request.getHeader(ViaHeader.NAME)
+          .getTransport().toLowerCase()
         const viaHeader = headerFactory
             .createViaHeader(viaAddr.host, viaAddr.port, transport, null)
         viaHeader.setRPort()

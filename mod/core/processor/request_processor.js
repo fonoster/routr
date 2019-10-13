@@ -37,10 +37,10 @@ class RequestProcessor {
 
     process(event) {
         const request = event.getRequest()
-        let serverTransaction = event.getServerTransaction()
+        let transaction = event.getServerTransaction()
 
-        if (serverTransaction === null && request.getMethod().equals(Request.ACK) === false) {
-            serverTransaction = this.sipProvider.getNewServerTransaction(request)
+        if (transaction === null && request.getMethod().equals(Request.ACK) === false) {
+            transaction = this.sipProvider.getNewServerTransaction(request)
         }
 
         const routeInfo = new RouteInfo(request, this.dataAPIs)
@@ -52,7 +52,7 @@ class RequestProcessor {
         // Or optimize
         if (this.allowedAccess(event, routeInfo) === false) {
             LOG.debug(`core.processor.RequestProcessor.process [access denied for ${JSON.stringify(routeInfo.getCallee())}]`)
-            return sendResponse(serverTransaction, Response.FORBIDDEN)
+            return sendResponse(transaction, Response.FORBIDDEN)
         }
 
         LOG.debug(`core.processor.RequestProcessor.process [running handler for method \`${request.getMethod()}\`]`)
@@ -61,21 +61,21 @@ class RequestProcessor {
             case Request.PUBLISH:
             case Request.NOTIFY:
             case Request.SUBSCRIBE:
-                sendResponse(serverTransaction, Response.METHOD_NOT_ALLOWED)
+                sendResponse(transaction, Response.METHOD_NOT_ALLOWED)
                 break
             case Request.REGISTER:
                 if (routeInfo.getRoutingType() === RoutingType.UNKNOWN) {
-                    new RegistryHandler(this.sipProvider).doProcess(request)
+                    new RegistryHandler(this.sipProvider).doProcess(transaction)
                     break
                 }
-                new RegisterHandler().doProcess(serverTransaction)
+                new RegisterHandler().doProcess(transaction)
                 break
             case Request.CANCEL:
-                new CancelHandler().doProcess(serverTransaction)
+                new CancelHandler().doProcess(transaction)
                 break
             default:
                 new RequestHandler(this.sipProvider, this.contextStorage)
-                    .doProcess(serverTransaction, request, routeInfo)
+                    .doProcess(transaction, request, routeInfo)
         }
     }
 

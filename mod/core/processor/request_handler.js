@@ -52,26 +52,27 @@ class RequestHandler {
 
                 if (requestInfo === null) return
 
-                const serverTransaction = requestInfo.serverTransaction
+                const transaction = requestInfo.serverTransaction
                 const routeInfo = requestInfo.routeInfo
+                const request = requestInfo.request
 
                 const response = data.response
 
                 if (response.status == Status.NOT_FOUND) {
-                    return sendResponse(serverTransaction, Response.TEMPORARILY_UNAVAILABLE)
+                    return sendResponse(transaction, Response.TEMPORARILY_UNAVAILABLE)
                 }
 
                 // Call forking
-                response.data.forEach(route => this.processRoute(serverTransaction, route, routeInfo))
+                response.data.forEach(route => this.processRoute(transaction, request, route, routeInfo))
                 requestStore.remove(data.requestId)
             }
         })
     }
 
-    doProcess(serverTransaction, request, routeInfo) {
+    doProcess(transaction, request, routeInfo) {
         const requestId = new ObjectId().toString()
         requestStore.put(requestId, {
-            serverTransaction,
+            serverTransaction: transaction,
             request,
             routeInfo
         })
@@ -85,8 +86,7 @@ class RequestHandler {
         })
     }
 
-    processRoute(serverTransaction, route, routeInfo) {
-        const requestIn = serverTransaction.getRequest()
+    processRoute(transaction, requestIn, route, routeInfo) {
         const requestOut = requestIn.clone()
         const transport = requestIn.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
         const lp = this.sipProvider.getListeningPoint(transport)
@@ -114,7 +114,7 @@ class RequestHandler {
         LOG.debug(`core.processor.RequestHandler.processRoute [advertised addr ${JSON.stringify(advertisedAddr)}]`)
         LOG.debug(`core.processor.RequestHandler.processRoute [route ${JSON.stringify(route)}]`)
 
-        this.sendRequest(requestIn, requestOut, serverTransaction)
+        this.sendRequest(transaction, requestIn, requestOut)
     }
 
     proxyOwnsRequest(request, localAddr, advertisedAddr) {
@@ -195,7 +195,7 @@ class RequestHandler {
         request.setHeader(pAssertedIdentity)
     }
 
-    sendRequest(requestIn, requestOut, serverTransaction) {
+    sendRequest(serverTransaction, requestIn, requestOut) {
 
         // Does not need a transaction
         if (requestIn.getMethod().equals(Request.ACK)) {
