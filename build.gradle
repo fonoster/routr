@@ -18,9 +18,6 @@ allprojects {
 }
 
 dependencies {
-    compile 'org.apache.activemq:activemq-client:5.15.10'
-    compile 'org.apache.activemq:activemq-broker:5.15.10'
-    compile 'org.apache.activemq:activemq-kahadb-store:5.15.10'
     compile 'net.openhft:chronicle-map:3.17.6'
     compile 'log4j:log4j:1.2.17'
     compile 'org.slf4j:slf4j-nop:1.7.28'
