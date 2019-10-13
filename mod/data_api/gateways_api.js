@@ -55,20 +55,26 @@ class GatewaysAPI {
         return this.ds.withCollection('gateways').get(ref)
     }
 
-    getGatewayByHostAndPort(h, port) {
-        if (!port) return this.getGatewayByHost(host)
-        const host = buildAddr(h, port)
+    getGatewayByHostAndPort(h, p) {
+        if (!p) return this.getGatewayByHost(h)
+        const host = buildAddr(h, p)
 
         let response = this.cache.getIfPresent(host)
 
         if (response === null) {
-            const r1 = DSUtils.deepSearch(this.getGateways(), 'spec.port', port)
-            const r2 = DSUtils.deepSearch(this.getGateways(), 'spec.host', host)
+            const gws = this.getGateways()
+              .data
+              .filter(g => g.spec.port + '' === p + '' && g.spec.host === h)
 
-            if (r1.status === Status.NOT_FOUND || r2.status === Status.NOT_FOUND) {
-                response = {
+            if (gws.length === 0) {
+                return {
                     status: Status.NOT_FOUND
                 }
+            }
+
+            response = {
+               status: Status.OK,
+               data: gws[0]
             }
 
             this.cache.put(host, response)

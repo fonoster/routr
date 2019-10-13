@@ -42,15 +42,10 @@ describe('Files Data Source', () => {
     })
 
     it('Get gateway by host and port', function(done) {
-        let response = gwAPI.getGatewayByHostAndPort('sip.provider.net', 5090)
+        let response = gwAPI.getGatewayByHostAndPort('sip.provider.net', 5061)
         assert.equal(Status.OK, response.status)
-
         response = gwAPI.getGatewayByHost('sip.provider.net')
         assert.equal(Status.OK, response.status)
-
-        response = gwAPI.getGatewayByHost('sip2.provider.net', 5061)
-        assert.equal(Status.OK, response.status)
-
         done()
     })
 

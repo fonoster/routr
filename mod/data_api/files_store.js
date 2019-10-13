@@ -10,6 +10,7 @@ const ChronicleMap = Java.type('net.openhft.chronicle.map.ChronicleMap')
 const String = Java.type('java.lang.String')
 const Long = Java.type('java.lang.Long')
 const File = Java.type('java.io.File')
+const System = Java.type('java.lang.System')
 const ONE_MILLION = new Long(1000000)
 
 class FilesStore {

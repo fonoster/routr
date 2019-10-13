@@ -118,7 +118,8 @@ class DSUtils {
             config.spec.dataSource.parameters : defaultParameters
 
         if (System.getenv("ROUTR_DS_PARAMETERS") !== null) {
-            parameters = DSUtils.getFromEnv(System.getenv("ROUTR_DS_PARAMETERS"), allowedKeys)
+            parameters = DSUtils.getFromEnv(
+                System.getenv("ROUTR_DS_PARAMETERS"), allowedKeys)
         }
 
         return parameters
@@ -129,7 +130,9 @@ class DSUtils {
         params.split(',').forEach(par => {
             const key = par.split('=')[0]
             const value = par.split('=')[1]
-            allowedKeys.indexOf(key) === -1 ? LOG.warn(`Invalid parameter: ${key}`) : parameters[key] = value
+            allowedKeys.indexOf(key) === -1
+                ? LOG.warn(`Invalid parameter: ${key}`)
+                : parameters[key] = value
         })
         return parameters
     }
