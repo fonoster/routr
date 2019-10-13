@@ -10,7 +10,7 @@ const {
 } = require('@routr/utils/test_util')
 const {
     getExpires
-} = require('@routr/core/processor/response_utils')
+} = require('@routr/core/processor/processor_utils')
 const RegistrarUtils = require('@routr/registrar/utils')
 
 describe('Registrar checks', () => {

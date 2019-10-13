@@ -9,7 +9,7 @@ const {
     mustAuthenticate,
     handleAuthChallenge,
     getExpires
-} = require('@routr/core/processor/response_utils')
+} = require('@routr/core/processor/processor_utils')
 const {
     fixPort
 } = require('@routr/utils/misc_utils')
