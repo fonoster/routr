@@ -6,21 +6,6 @@
  */
 const assert = require('assert')
 const IPUtil = require('@routr/core/ip_util')
-const {
-    findMatch
-} = require('@routr/core/route_manager')
-const request = {
-    getMethod: () => 'ACK'
-}
-const rules = [{
-        name: 'ack-routing',
-        match: 'return request.getMethod() === \'ACK\''
-    },
-    {
-        name: 'other-routing',
-        match: 'return request.getMethod() === \'MESSAGE\''
-    },
-]
 
 describe('Core tests', () => {
 
@@ -43,12 +28,6 @@ describe('Core tests', () => {
         assert.ok(ipUtil.isLocalnet('192.168.0.14'))
         assert.ok(!ipUtil.isLocalnet('35.196.78.166'))
         assert.ok(IPUtil.isCidr('10.0.0.1/28'))
-        done()
-    })
-
-    it('Route manager #findMatch', done => {
-        const rule = findMatch(rules, request)
-        assert.equal(rule.name, 'ack-routing')
         done()
     })
 
