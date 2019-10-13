@@ -2,13 +2,15 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { connectionException } = require('@routr/utils/exception_helpers')
+const {
+    connectionException
+} = require('@routr/utils/exception_helpers')
 const postal = require('postal')
 const ProcessorUtils = require('@routr/core/processor/utils')
 const IPUtil = require('@routr/core/ip_util')
 const {
-  equalsIgnoreCase,
-  fixPort
+    equalsIgnoreCase,
+    fixPort
 } = require('@routr/utils/misc_utils')
 const getConfig = require('@routr/core/config_util')
 const {
@@ -69,7 +71,11 @@ class RequestHandler {
 
     doProcess(serverTransaction, request, routeInfo) {
         const requestId = new ObjectId().toString()
-        requestStore.put(requestId, {serverTransaction, request, routeInfo})
+        requestStore.put(requestId, {
+            serverTransaction,
+            request,
+            routeInfo
+        })
         postal.publish({
             channel: "locator",
             topic: "endpoint.find",
@@ -181,7 +187,7 @@ class RequestHandler {
         const remotePartyIdHeader = headerFactory
             .createHeader('Remote-Party-ID', `<sip:${route.number}@${route.gwHost}>;screen=yes;party=calling`)
         const dp = request.getHeader(FromHeader.NAME).getAddress().getDisplayName()
-        const displayName = dp? `"${dp}" ` : ''
+        const displayName = dp ? `"${dp}" ` : ''
         const pAssertedIdentity = headerFactory
             .createHeader('P-Asserted-Identity', `${displayName}<sip:${route.number}@${route.gwHost}>`)
         request.setHeader(gwRefHeader)

@@ -2,7 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { connectionException } = require('@routr/utils/exception_helpers')
+const {
+    connectionException
+} = require('@routr/utils/exception_helpers')
 const ContactHeader = Java.type('javax.sip.header.ContactHeader')
 const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
 const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
@@ -25,7 +27,7 @@ const isTransactional = event => event.getClientTransaction() !== null &&
 const isRegister = r => isMethod(r, [Request.REGISTER])
 const isRegisterOk = r => isOk(r) && isRegister(r)
 const isRegisterNok = r => !isOk(r) && isRegister(r)
-const isBehindNat = r =>  {
+const isBehindNat = r => {
     const v = r.getHeader(ViaHeader.NAME)
     return !v.getHost().equals(v.getReceived()) || v.getPort() !== v.getRPort()
 }
@@ -47,7 +49,7 @@ const handleAuthChallenge = (sipStack, e, gateway) => {
         const authHelper = sipStack.getAuthenticationHelper(accountManager, headerFactory)
         // Setting looseRouting to false will cause https://github.com/fonoster/routr/issues/18
         authHelper.handleChallenge(e.getResponse(), e.getClientTransaction(), e.getSource(), 5, true).sendRequest()
-    } catch(ex) {
+    } catch (ex) {
         connectionException(ex,
             e.getClientTransaction().getRequest().getRequestURI().getHost())
     }

@@ -5,7 +5,9 @@
  * Unit Test for core functionalities
  */
 const assert = require('assert')
-const { createRequest } = require('@routr/utils/test_util')
+const {
+    createRequest
+} = require('@routr/utils/test_util')
 const {
     isOk,
     isStackJob,
@@ -83,7 +85,7 @@ describe('Core Processor Module', () => {
 
         const response = (statusCode, method) => {
             return {
-                getStatusCode: () =>  statusCode,
+                getStatusCode: () => statusCode,
                 getHeader: () => {
                     return {
                         getMethod: () => method

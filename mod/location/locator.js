@@ -18,10 +18,10 @@ const StoreAPI = require('@routr/data_api/store_api')
 const isEmpty = require('@routr/utils/obj_util')
 const postal = require('postal')
 const {
-   buildAddr
+    buildAddr
 } = require('@routr/utils/misc_utils')
 const {
-   Status
+    Status
 } = require('@routr/core/status')
 
 const HashMap = Java.type('java.util.HashMap')
@@ -52,8 +52,8 @@ class Locator {
 
         route.contactURI = route.contactURI.toString()
         routes = routes
-          .filter(r => !LocatorUtils.expiredRouteFilter(r))
-          .filter(r => !LocatorUtils.contactURIFilter(r.contactURI, route.contactURI))
+            .filter(r => !LocatorUtils.expiredRouteFilter(r))
+            .filter(r => !LocatorUtils.contactURIFilter(r.contactURI, route.contactURI))
         routes.push(route)
         // See NOTE #1
         this.store.put(addressOfRecord, JSON.stringify(routes))
@@ -71,7 +71,7 @@ class Locator {
         if (jsonRoutes !== null) {
             let routes = JSON.parse(jsonRoutes)
             routes = routes
-              .filter(r => !LocatorUtils.expiredRouteFilter(r))
+                .filter(r => !LocatorUtils.expiredRouteFilter(r))
 
             return CoreUtils.buildResponse(Status.OK, routes)
         }
@@ -81,9 +81,9 @@ class Locator {
 
         const parse = (s, k) => JSON.parse(s.get(k[0]))
 
-        return defaultRouteKey.length > 0
-          ? CoreUtils.buildResponse(Status.OK, parse(this.store, defaultRouteKey))
-          : CoreUtils.buildResponse(Status.NOT_FOUND)
+        return defaultRouteKey.length > 0 ?
+            CoreUtils.buildResponse(Status.OK, parse(this.store, defaultRouteKey)) :
+            CoreUtils.buildResponse(Status.NOT_FOUND)
     }
 
     findEndpointByTelUrl(addressOfRecord) {
@@ -94,12 +94,12 @@ class Locator {
             const jsonRoutes = this.store.get(number.spec.location.aorLink)
             let routes = JSON.parse(jsonRoutes)
             routes = routes
-              .filter(r => !LocatorUtils.expiredRouteFilter(r))
+                .filter(r => !LocatorUtils.expiredRouteFilter(r))
 
-            return routes !== null
-              ? CoreUtils.buildResponse(Status.OK, routes)
-              : CoreUtils.buildResponse(Status.NOT_FOUND,
-                `No route found for aorLink: ${number.spec.location.aorLink}`)
+            return routes !== null ?
+                CoreUtils.buildResponse(Status.OK, routes) :
+                CoreUtils.buildResponse(Status.NOT_FOUND,
+                    `No route found for aorLink: ${number.spec.location.aorLink}`)
         }
         return CoreUtils.buildResponse(Status.NOT_FOUND)
     }
@@ -117,8 +117,8 @@ class Locator {
             routes = routes.filter(route => !LocatorUtils.contactURIFilter(route.contactURI, contactURI))
 
             if (routes.length === 0) {
-              this.store.remove(addressOfRecord)
-              return
+                this.store.remove(addressOfRecord)
+                return
             }
             this.store.put(addressOfRecord, routes)
         }
@@ -133,7 +133,7 @@ class Locator {
             if (!isEmpty(domain.spec.context.egressPolicy)) {
                 // Get Number and Gateway info
                 let response = numbersAPI.getNumber(domain.spec.context
-                  .egressPolicy.numberRef)
+                    .egressPolicy.numberRef)
                 const number = response.data
 
                 if (response.status === Status.OK) {
@@ -142,13 +142,13 @@ class Locator {
                     if (response.status === Status.OK) {
                         const gateway = response.data
                         const contactURI = addressFactory.createSipURI(
-                          gateway.metadata.ref, buildAddr(gateway.spec.host,
-                            gateway.spec.port))
+                            gateway.metadata.ref, buildAddr(gateway.spec.host,
+                                gateway.spec.port))
                         //contactURI.setSecure(aorObj.isSecure())
                         const addressOfRecord = `sip:${domain.spec.context.egressPolicy.rule}@${domain.spec.context.domainUri}`
                         const route = LocatorUtils
-                          .buildEgressRoute(addressOfRecord, contactURI, gateway,
-                            number, domain)
+                            .buildEgressRoute(addressOfRecord, contactURI.toString(), gateway,
+                                number, domain)
                         routes.put(addressOfRecord, [route])
                     }
                 }
@@ -167,7 +167,7 @@ class Locator {
         const gatewaysAPI = new GatewaysAPI(ds)
         const domains = domainsAPI.getDomains().data
         const egressRoutes = this.getDomainEgressRoutes(domains, numbersAPI,
-          gatewaysAPI)
+            gatewaysAPI)
 
         egressRoutes.keySet().toArray().forEach(key => {
             this.store.put(key, JSON.stringify(egressRoutes.get(key)))
@@ -199,7 +199,7 @@ class Locator {
             topic: "endpoint.find",
             callback: (data, envelope) => {
                 const response = this.findEndpoint(
-                  LocatorUtils.aorAsString(data.addressOfRecord))
+                    LocatorUtils.aorAsString(data.addressOfRecord))
                 postal.publish({
                     channel: "locator",
                     topic: "endpoint.find.reply",

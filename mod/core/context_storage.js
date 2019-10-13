@@ -5,7 +5,9 @@
  * @since v1
  */
 const postal = require('postal')
-const { connectionException } = require('@routr/utils/exception_helpers')
+const {
+    connectionException
+} = require('@routr/utils/exception_helpers')
 const Response = Java.type('javax.sip.message.Response')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const ArrayList = Java.type('java.util.ArrayList')
@@ -93,7 +95,7 @@ class ContextStorage {
                     context.serverTransaction.sendResponse(originResponse)
                     serverTransaction.sendResponse(cancelResponse)
                     clientTransaction.sendRequest()
-                } catch(e) {
+                } catch (e) {
                     connectionException(e, cancelRequest.getRequestURI().getHost())
                 }
 

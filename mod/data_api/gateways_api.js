@@ -2,7 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { buildAddr } = require('@routr/utils/misc_utils')
+const {
+    buildAddr
+} = require('@routr/utils/misc_utils')
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
 const {
@@ -64,7 +66,9 @@ class GatewaysAPI {
             const r2 = DSUtils.deepSearch(this.getGateways(), 'spec.host', host)
 
             if (r1.status === Status.NOT_FOUND || r2.status === Status.NOT_FOUND) {
-                response = { status: Status.NOT_FOUND }
+                response = {
+                    status: Status.NOT_FOUND
+                }
             }
 
             this.cache.put(host, response)

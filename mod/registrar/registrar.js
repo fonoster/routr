@@ -58,7 +58,7 @@ class Registrar {
                 data: {
                     addressOfRecord: addressOfRecord,
                     route: RegistrarUtils.buildRoute(addressOfRecord,
-                      request, user)
+                        request, user)
                 }
             })
         })

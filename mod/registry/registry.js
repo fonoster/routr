@@ -11,7 +11,9 @@ const getProperties = require('@routr/registry/reg_properties')
 const createSipListener = require('@routr/registry/sip_listener')
 const createSipProvider = require('@routr/registry/sip_provider')
 const buildRegRequest = require('@routr/registry/request_builder')
-const { connectionException } = require('@routr/utils/exception_helpers')
+const {
+    connectionException
+} = require('@routr/utils/exception_helpers')
 const {
     buildAddr,
     protocolTransport,
@@ -26,7 +28,7 @@ const {
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
-var cseq = 0  // We might need to share this across instances :(
+var cseq = 0 // We might need to share this across instances :(
 
 class Registry {
 
@@ -38,8 +40,8 @@ class Registry {
         this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS())
         this.sipProvider = createSipProvider(properties)
         this.sipProvider.addSipListener(
-          createSipListener(this, this.sipProvider.getSipStack(),
-            this.gatewaysAPI))
+            createSipListener(this, this.sipProvider.getSipStack(),
+                this.gatewaysAPI))
 
         this.userAgent = config.metadata.userAgent
         this.store = new StoreAPI(SDSelector.getDriver())
@@ -48,15 +50,18 @@ class Registry {
     register(gateway, received, rport) {
         LOG.debug(`registry.Registry.register [gateway ${JSON.stringify(gateway)}]`)
         const lp = this.sipProvider.getListeningPoint(gateway.spec.transport)
-        const viaAddr = { host: lp.getIPAddress(), port: lp.getPort()}
+        const viaAddr = {
+            host: lp.getIPAddress(),
+            port: lp.getPort()
+        }
         // Use the proxys addrs info
         const proxyTransport = protocolTransport(config, gateway.spec.transport)
         const contactAddr = nearestInterface(proxyTransport.bindAddr,
-          proxyTransport.port, received, rport)
+            proxyTransport.port, received, rport)
 
         const callId = this.sipProvider.getNewCallId()
         const request = buildRegRequest(gateway, contactAddr, viaAddr, callId,
-          cseq++, this.userAgent, buildAddr)
+            cseq++, this.userAgent, buildAddr)
         Registry.sendRequest(this.sipProvider, request)
     }
 
@@ -71,16 +76,16 @@ class Registry {
         })
         const gateways = this.gatewaysAPI.getGateways().data
         const unreg = unregistered(
-          this.store.withCollection('registry').values(), gateways)
+            this.store.withCollection('registry').values(), gateways)
         unreg.forEach(gw => this.register(gw))
     }
 
     static sendRequest(sipProvider, request) {
         try {
             const clientTransaction = sipProvider
-              .getNewClientTransaction(request)
+                .getNewClientTransaction(request)
             clientTransaction.sendRequest()
-        } catch(e) {
+        } catch (e) {
             connectionException(e, request.getRequestURI().toString())
         }
     }

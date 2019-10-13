@@ -49,9 +49,9 @@ module.exports = (registry, sipStack, gatewaysAPI) => {
         processResponse: event => {
             const response = event.getResponse()
             const gwURI = response.getHeader(FromHeader.NAME)
-              .getAddress().getURI()
+                .getAddress().getURI()
             const gwRef = event.getClientTransaction().getRequest()
-                      .getHeader('X-Gateway-Ref').value
+                .getHeader('X-Gateway-Ref').value
             const gateway = gatewaysAPI.getGateway(gwRef).data
 
             try {
@@ -62,20 +62,20 @@ module.exports = (registry, sipStack, gatewaysAPI) => {
                         LOG.debug(`Routr is behind a NAT. Re-registering to '${gwRef}' using Received and RPort`)
                         const viaHeader = response.getHeader(ViaHeader.NAME)
                         const received = viaHeader.getReceived()
-                        const rport =  fixPort(viaHeader.getRPort())
+                        const rport = fixPort(viaHeader.getRPort())
                         registry.register(gateway, received, rport)
                         return
                     }
                     storeRegistry(store, gwRef, gwURI,
-                      getExpires(response))
+                        getExpires(response))
                 } else if (isRegisterNok(response)) {
                     removeRegistry(store, gwURI)
                 }
 
-                if(mustAuthenticate(response)) {
+                if (mustAuthenticate(response)) {
                     handleAuthChallenge(sipStack, event, gateway)
                 }
-            } catch(e) {
+            } catch (e) {
                 LOG.error(e)
             }
         }

@@ -45,7 +45,10 @@ describe('Registry Module', () => {
         const response = gatewaysAPI.getGateway('gw50a1a4ca')
         const gateway = response.data
         const transport = protocolTransport(config, gateway.spec.transport)
-        const viaAddr = { host: transport.bindAddr, port: transport.port}
+        const viaAddr = {
+            host: transport.bindAddr,
+            port: transport.port
+        }
         const contactAddr = nearestInterface(transport.bindAddr, transport.port)
 
         // Creating sip provider
@@ -82,7 +85,7 @@ describe('Registry Module', () => {
             unregistered(null, null)
             unregistered(void(0), void(0))
             done()
-        } catch(e) {
+        } catch (e) {
             done(e)
         }
     })

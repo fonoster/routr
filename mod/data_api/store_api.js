@@ -24,15 +24,15 @@ class StoreAPI {
     }
 
     remove(k) {
-      this.store.remove(this.c, k)
+        return this.store.remove(this.c, k)
     }
 
     values() {
-      return this.store.values(this.c)
+        return this.store.values(this.c)
     }
 
     keySet() {
-      return this.store.keySet(this.c)
+        return this.store.keySet(this.c)
     }
 }
 

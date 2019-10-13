@@ -28,36 +28,36 @@ describe('Files Data Source', () => {
 
     it('Get collections', function(done) {
         let response = ds.withCollection('agents').find()
-        assert.ok(response.status === Status.OK)
+        assert.equal(Status.OK, response.status)
         // Existing Agent
         response = ds.withCollection('agents').find("@.spec.credentials.username=='1001'")
-        assert.ok(response.status === Status.OK)
+        assert.equal(Status.OK, response.status)
         // Non-Existing Agent
         response = ds.withCollection('agents').find("@.spec.credentials.username=='mike'")
-        assert.ok(response.data.length === 0)
+        assert.equal(0, response.data.length)
         // Invalid filter
         response = ds.withCollection('agents').find("@.spec.credentials.username==1001'")
-        assert.ok(response.status === Status.BAD_REQUEST)
+        assert.equal(Status.BAD_REQUEST, response.status)
         done()
     })
 
     it('Get gateway by host and port', function(done) {
-        let response  = gwAPI.getGatewayByHostAndPort('sip.provider.net', 5090)
-        assert.ok(response.status !== Status.OK)
+        let response = gwAPI.getGatewayByHostAndPort('sip.provider.net', 5090)
+        assert.equal(Status.OK, response.status)
 
-        response  = gwAPI.getGatewayByHost('sip.provider.net')
-        assert.ok(response.status === Status.OK)
+        response = gwAPI.getGatewayByHost('sip.provider.net')
+        assert.equal(Status.OK, response.status)
 
-        response  = gwAPI.getGatewayByHost('sip2.provider.net', 5061)
-        assert.ok(response.status === Status.OK)
+        response = gwAPI.getGatewayByHost('sip2.provider.net', 5061)
+        assert.equal(Status.OK, response.status)
 
         done()
     })
 
     it('Pagination', function(done) {
         let response = ds.withCollection('agents').find(void(0), 1, 10)
-        assert.ok(response.status === Status.OK)
-        assert.equal(response.meta.totalItems, 3)
+        assert.equal(Status.OK, response.status)
+        assert.equal(3, response.meta.totalItems)
         done()
     })
 })

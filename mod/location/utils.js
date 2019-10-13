@@ -28,12 +28,12 @@ class LocatorUtils {
 
     static aorAsString(addressOfRecord) {
         if (addressOfRecord instanceof Java.type('javax.sip.address.SipURI')) {
-            const strBuilder = new StringBuilder(addressOfRecord.isSecure()? 'sips:' : 'sip:')
+            const strBuilder = new StringBuilder(addressOfRecord.isSecure() ? 'sips:' : 'sip:')
 
             if (addressOfRecord.getUser()) {
                 strBuilder
-                .append(addressOfRecord.getUser())
-                .append('@')
+                    .append(addressOfRecord.getUser())
+                    .append('@')
             }
 
             return strBuilder.append(addressOfRecord.getHost()).toString()

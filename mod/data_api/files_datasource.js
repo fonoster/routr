@@ -130,7 +130,7 @@ class FilesDataSource {
             const response = this.withCollection(resource).find()
             if (response.status === Status.OK) {
                 const refs = response.data.map(entity => entity.metadata.ref)
-                if (findDuplicates(refs).length >  0) {
+                if (findDuplicates(refs).length > 0) {
                     LOG.error(`Found duplicate entries in ${this.filesPath}/${resource}.yml`)
                     System.exit(1)
                 }
@@ -214,7 +214,7 @@ class FilesDataSource {
     getWithReferences(list) {
         list.forEach(obj => {
             if (!obj.metadata.ref) {
-                switch(obj.kind.toLowerCase()) {
+                switch (obj.kind.toLowerCase()) {
                     case 'agent':
                         obj.metadata.ref = `ag${this.generateRef(obj.spec.credentials.username + obj.spec.domains[0])}`
                         break

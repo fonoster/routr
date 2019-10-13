@@ -18,7 +18,7 @@ class RedisStore {
         this.parameters = DSUtils.getParameters(config, defaultRedisParameters,
             ['host', 'port', 'secret'])
         this.jedisPool = new JedisPool(this.buildPoolConfig(),
-          this.parameters.host, this.parameters.port)
+            this.parameters.host, this.parameters.port)
     }
 
     getJedisConn() {
@@ -40,8 +40,10 @@ class RedisStore {
         poolConfig.setTestOnBorrow(true)
         poolConfig.setTestOnReturn(true)
         poolConfig.setTestWhileIdle(true)
-        poolConfig.setMinEvictableIdleTimeMillis(Duration.ofSeconds(60).toMillis())
-        poolConfig.setTimeBetweenEvictionRunsMillis(Duration.ofSeconds(30).toMillis())
+        poolConfig.setMinEvictableIdleTimeMillis(Duration.ofSeconds(60)
+            .toMillis())
+        poolConfig.setTimeBetweenEvictionRunsMillis(
+            Duration.ofSeconds(30).toMillis())
         poolConfig.setNumTestsPerEvictionRun(3)
         poolConfig.setBlockWhenExhausted(true)
         return poolConfig
@@ -73,18 +75,18 @@ class RedisStore {
         try {
             jedis = this.getJedisConn()
 
-            switch(params.length) {
+            switch (params.length) {
                 case 3:
-                  return jedis[funcName](params[0], params[1], params[2])
-                  break;
+                    return jedis[funcName](params[0], params[1], params[2])
+                    break;
                 case 2:
-                  return jedis[funcName](params[0], params[1])
-                  break;
+                    return jedis[funcName](params[0], params[1])
+                    break;
                 case 1:
-                  return jedis[funcName](params[0])
-                  break;
+                    return jedis[funcName](params[0])
+                    break;
                 default:
-                  throw 'Wrong number of arguments'
+                    throw 'Wrong number of arguments'
             }
         } finally {
             if (jedis) {

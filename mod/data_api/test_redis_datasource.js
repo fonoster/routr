@@ -68,7 +68,7 @@ describe('Redis Data Source', () => {
         const jane = TestUtils.buildAgent('Jane Doe', ['sip.local'], '1002')
 
         const oldCnt = ds.withCollection('agents')
-          .find("'sip.local' in @.spec.domains").data.length
+            .find("'sip.local' in @.spec.domains").data.length
 
         const ref1 = ds.withCollection('agents').insert(john).data
         const ref2 = ds.withCollection('agents').insert(jane).data
@@ -83,7 +83,7 @@ describe('Redis Data Source', () => {
         ds.withCollection('agents').remove(ref2)
 
         const newCnt = ds.withCollection('agents')
-          .find("'sip.local' in @.spec.domains").data.length
+            .find("'sip.local' in @.spec.domains").data.length
 
         assert.equal(oldCnt, newCnt)
 

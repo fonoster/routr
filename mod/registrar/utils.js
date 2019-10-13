@@ -110,8 +110,8 @@ class RegistrarUtils {
 
     static useInternalInterface(request) {
         const viaHeader = request.getHeader(ViaHeader.NAME)
-        return config.spec.registrarIntf.equalsIgnoreCase('Internal')
-          || viaHeader.getTransport().equalsIgnoreCase('udp')
+        return config.spec.registrarIntf.equalsIgnoreCase('Internal') ||
+            viaHeader.getTransport().equalsIgnoreCase('udp')
     }
 
     static buildAuthHeader(user, authHeader) {

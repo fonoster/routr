@@ -49,7 +49,7 @@ class Rest {
         Spark.ipAddress(config.spec.restService.bindAddr)
         Spark.threadPool(config.spec.restService.maxThreads,
             config.spec.restService.minThreads,
-                config.spec.restService.timeOutMillis)
+            config.spec.restService.timeOutMillis)
 
         if (!config.spec.restService.unsecured) {
             Spark.secure(config.spec.restService.keyStore,
@@ -74,17 +74,17 @@ class Rest {
 
         options('/*', (req, res) => {
             const accessControlRequestHeaders =
-              req.headers('Access-Control-Request-Headers')
+                req.headers('Access-Control-Request-Headers')
             if (accessControlRequestHeaders !== null) {
                 res.header('Access-Control-Allow-Headers',
-                  accessControlRequestHeaders)
+                    accessControlRequestHeaders)
             }
 
             const accessControlRequestMethod =
-              req.headers('Access-Control-Request-Method')
+                req.headers('Access-Control-Request-Method')
             if (accessControlRequestMethod !== null) {
                 res.header('Access-Control-Allow-Methods',
-                  accessControlRequestMethod)
+                    accessControlRequestMethod)
             }
             return 'OK'
         })
@@ -133,9 +133,9 @@ class Rest {
                 const items = this.store.withCollection('registry')
                     .values()
                     .map(r => {
-                      const reg = JSON.parse(r)
-                      reg.regOnFormatted = moment(reg.registeredOn).fromNow()
-                      return reg
+                        const reg = JSON.parse(r)
+                        reg.regOnFormatted = moment(reg.registeredOn).fromNow()
+                        return reg
                     })
 
                 let page = 1

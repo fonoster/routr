@@ -7,9 +7,9 @@
 const assert = require('assert')
 const config = require('@routr/core/config_util')()
 const {
-  buildAddr,
-  protocolTransport,
-  nearestInterface
+    buildAddr,
+    protocolTransport,
+    nearestInterface
 } = require('@routr/utils/misc_utils')
 
 describe('Utils Module', () => {
@@ -25,8 +25,8 @@ describe('Utils Module', () => {
             protocolTransport(config, 'wss')
             done(new Error(`Force the test to fail since error wasn't thrown`));
         } catch (error) {
-          // Constructor threw Error, so test succeeded.
-          done();
+            // Constructor threw Error, so test succeeded.
+            done();
         }
     })
 

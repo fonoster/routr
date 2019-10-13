@@ -1,5 +1,3 @@
-
-
 module.exports.createRequest = function(from, to, withExpiresInContact = false) {
     const SipFactory = Java.type('javax.sip.SipFactory')
     const SipUtils = Java.type('gov.nist.javax.sip.Utils')

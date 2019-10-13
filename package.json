@@ -8,7 +8,8 @@
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
     "bundle": "webpack --config webpack.config.js --mode none",
     "pretest": "npm run bundle",
-    "prepack": "npm test"
+    "prepack": "npm test",
+    "beautify": "find mod -type f -name \"*.js\" -exec js-beautify -r {} +"
   },
   "dependencies": {
     "moment": "^2.22.2",

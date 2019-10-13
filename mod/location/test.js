@@ -8,7 +8,7 @@ const assert = require('assert')
 const LocatorUtils = require('@routr/location/utils')
 const Locator = require('@routr/location/locator')
 const {
-   Status
+    Status
 } = require('@routr/core/status')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const addressFactory = SipFactory.getInstance().createAddressFactory()

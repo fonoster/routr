@@ -18,7 +18,7 @@ const get = Java.type('spark.Spark').get
 const post = Java.type('spark.Spark').post
 const del = Java.type('spark.Spark').delete
 
-function routeFromString (routes) {
+function routeFromString(routes) {
     let contactInfo = ''
 
     const rObj = routes[0]
@@ -37,11 +37,11 @@ module.exports = function(store) {
 
     get('/location', (req, res) => {
         const items = store.withCollection('location')
-          .values()
-          .map(entries => JSON.parse(entries))
-          .filter(e => e[0].thruGw === false)
-          .filter(e => !LocatorUtils.expiredRouteFilter(e))
-          .map(e => routeFromString(e))
+            .values()
+            .map(entries => JSON.parse(entries))
+            .filter(e => e[0].thruGw === false)
+            .filter(e => !LocatorUtils.expiredRouteFilter(e))
+            .map(e => routeFromString(e))
 
         let page = 1
         let itemsPerPage = 30

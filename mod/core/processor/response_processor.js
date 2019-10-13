@@ -25,9 +25,9 @@ class ResponseProcessor {
         }
         // If it is not transactional and athentication is required it means
         // that the REGISTER request was originated by another sipStack
-        if(mustAuthenticate(event.getResponse()) && isTransactional(event)) {
+        if (mustAuthenticate(event.getResponse()) && isTransactional(event)) {
             const gwRef = event.getClientTransaction().getRequest()
-              .getHeader('X-Gateway-Ref').value
+                .getHeader('X-Gateway-Ref').value
             const r = gatewaysAPI.getGateway(gwRef)
             handleAuthChallenge(his.sipProvider.getSipStack(), event, r.data)
             return
