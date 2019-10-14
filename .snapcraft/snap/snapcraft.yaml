@@ -1,0 +1,20 @@
+name: routr-server
+base: core18
+version: 1.0.0-rc4.pre
+summary: Next-generation SIP Server
+description: |
+  Routr – a lightweight sip proxy, location server, and registrar that provides
+  a reliable and scalable SIP infrastructure for telephony carriers,
+  communication service providers, and integrators. It also provides with
+  capabilities that are suitable for the enterprise and personal needs.
+grade: devel # must be 'stable' to release into candidate/stable channels
+confinement: devmode # use 'strict' once you have the right plugs and slots
+
+parts:
+  router-server:
+    plugin: dump
+    source: https://github.com/fonoster/routr/releases/download/$SNAPCRAFT_PROJECT_VERSION/routr-$SNAPCRAFT_PROJECT_VERSION_linux-x64_bin.tar.gz
+
+apps:
+  router-server:
+    command: routr-server
