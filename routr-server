@@ -4,11 +4,13 @@ set -e
 
 BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 
+[ -f "/bin/java" ] && JAVA_HOME=/
+[ -f "/usr/bin/java" ] && JAVA_HOME=/usr
 [ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
 
 run() {
   cd $BASE_DIR
-  $JAVA_HOME/bin/java \
+    $JAVA_HOME/bin/java \
     -Dlog4j.configurationFile=config/log4j2.yml \
     -Dpolyglot.js.experimental-foreign-object-prototype=true \
     -Dpolyglot.js.nashorn-compat=true \
