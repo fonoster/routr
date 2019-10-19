@@ -4,8 +4,6 @@ set -e
 
 BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 
-[ -f "/bin/java" ] && JAVA_HOME=/
-[ -f "/usr/bin/java" ] && JAVA_HOME=/usr
 [ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
 
 run() {
@@ -16,8 +14,8 @@ run() {
     -Dpolyglot.js.nashorn-compat=true \
     -Dnashorn.args="--no-deprecation-warning" \
     $ROUTR_JAVA_OPTS \
-    -classpath "libs/*" \
-      io.routr.core.Launcher
+    -classpath "$BASE_DIR/libs/*" \
+    io.routr.core.Launcher
 }
 
 if [ -f /.dockerenv ]; then
