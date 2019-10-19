@@ -16,8 +16,8 @@ build_for_platform() {
     rm -rf $BUILD_NAME/stack.properties
     cp -a etc $BUILD_NAME
     cp libs/* $BUILD_NAME/libs
-    cp routr-server $BUILD_NAME/
-    cp routr-server.bat $BUILD_NAME/
+    cp routr $BUILD_NAME/
+    cp routr.bat $BUILD_NAME/
     cp README.md $BUILD_NAME/
     cp LICENSE $BUILD_NAME/
     wget -N "https://storage.googleapis.com/routr/$DOWNLOAD_FILE"

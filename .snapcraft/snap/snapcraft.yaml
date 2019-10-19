@@ -1,13 +1,13 @@
 name: routr-server
 base: core18
 version: 1.0.0-rc4
-environment:
 summary: Next-generation SIP Server
 description: |
   Routr – a lightweight sip proxy, location server, and registrar that provides
   a reliable and scalable SIP infrastructure for telephony carriers,
   communication service providers, and integrators. It also provides with
   capabilities that are suitable for the enterprise and personal needs.
+assumes: [snapd2.42]
 grade: devel # must be 'stable' to release into candidate/stable channels
 confinement: devmode # use 'strict' once you have the right plugs and slots
 
@@ -20,6 +20,17 @@ parts:
       cp -a * $SNAPCRAFT_PART_INSTALL/
     stage-packages:
       - openjdk-8-jdk
+      - redis-server
+  scripts:
+      plugin: dump
+      source: resources/
+      organize:
+          routr: routr-server
 apps:
   routr-server:
     command: routr-server
+    plugs: [network, network-bind]
+  routr-server-redis:
+      command: redis-server
+      daemon: simple
+      plugs: [network, network-bind]
