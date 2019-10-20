@@ -16,13 +16,16 @@ apps:
   routr-server:
     environment:
       JAVA_HOME: $SNAP/usr/lib/jvm/java-8-openjdk-amd64
+      ROUTR_SALT_FILE: $SNAP_USER_DATA/.routr.salt
     command: routr-server
-    plugs: [network, network-bind, user-files]
-
-plugs:
-  user-files:
-    interface: personal-files
-    write: [$HOME/.routr.salt]
+    plugs: [network, network-bind]
+  service:
+    environment:
+      JAVA_HOME: $SNAP/usr/lib/jvm/java-8-openjdk-amd64
+      ROUTR_SALT_FILE: $SNAP_USER_DATA/.routr.salt      
+    command: routr-server
+    daemon: simple
+    plugs: [network, network-bind]
 
 parts:
   build:
