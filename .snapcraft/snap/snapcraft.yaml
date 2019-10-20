@@ -9,7 +9,7 @@ description: |
   communication service providers, and integrators. It also provides with
   capabilities that are suitable for the enterprise and personal needs.
 assumes: [snapd2.42]
-grade: devel
+grade: stable
 confinement: strict
 
 apps:
@@ -22,7 +22,7 @@ apps:
   service:
     environment:
       JAVA_HOME: $SNAP/usr/lib/jvm/java-8-openjdk-amd64
-      ROUTR_SALT_FILE: $SNAP_USER_DATA/.routr.salt      
+      ROUTR_SALT_FILE: $SNAP_USER_DATA/.routr.salt
     command: routr-server
     daemon: simple
     plugs: [network, network-bind]
