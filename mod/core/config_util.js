@@ -190,7 +190,10 @@ function getConfigFromFile() {
 function getSalt() {
     if (System.getenv('ROUTR_SALT') !== null) return System.getenv('ROUTR_SALT')
 
-    const pathToSalt = `${System.getProperty('user.dir')}/.routr.salt`
+    const pathToSalt = System.getenv('ROUTR_SALT_FILE') !== null ?
+        System.getenv('ROUTR_SALT_FILE') :
+        `${System.getProperty('user.dir')}/.routr.salt`
+
     const f = new File(pathToSalt)
 
     if (f.exists() && !f.isDirectory()) return FilesUtil.readFile(pathToSalt)
