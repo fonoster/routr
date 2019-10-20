@@ -10,24 +10,19 @@ description: |
   capabilities that are suitable for the enterprise and personal needs.
 assumes: [snapd2.42]
 grade: devel
-confinement: devmode
+confinement: strict
 
 apps:
   routr-server:
     environment:
       JAVA_HOME: $SNAP/usr/lib/jvm/java-8-openjdk-amd64
     command: routr-server
-    plugs: [network, network-bind, user-files, sys-files, sys-observe, mount-observe]
+    plugs: [network, network-bind, user-files]
 
 plugs:
   user-files:
     interface: personal-files
     write: [$HOME/.routr.salt]
-  sys-files:
-    interface: system-files
-    read: [/sys/fs/cgroup]
-  sys-observe:
-    interface: system-observe
 
 parts:
   build:

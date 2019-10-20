@@ -9,6 +9,8 @@ node_modules
 .nyc_output
 *.tar.gz
 *.zip
+*.dat
+.routr.salt
 build
 libs
 config/sc/*.yml
@@ -19,6 +21,7 @@ config/sc/*.yml
 mod/vendor
 jre
 package-lock.json
+logs
 
 # User-specific stuff:
 .idea/workspace.xml

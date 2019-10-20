@@ -48,7 +48,7 @@ class FilesStore {
                 .averageValueSize(300)
                 .entries(ONE_MILLION)
                 .name(name)
-                .createPersistedTo(new File(`${System.getProperty('user.home')}/${name}.dat`))
+                .createPersistedTo(new File(`${System.getProperty('user.dir')}/${name}.dat`))
 
             this.collections.put(name, h)
         }
