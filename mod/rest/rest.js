@@ -162,4 +162,4 @@ class Rest {
     }
 }
 
-module.exports = Rest
+new Rest().start()

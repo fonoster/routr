@@ -91,4 +91,4 @@ class Registry {
     }
 }
 
-module.exports = Registry
+reg = new Registry()

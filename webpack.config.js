@@ -2,7 +2,9 @@ var path = require('path');
 
 module.exports = {
     entry: {
-        app: './node_modules/@routr/core/server.js'    
+        server: './node_modules/@routr/core/server.js',
+        rest: './node_modules/@routr/rest/rest.js',
+        registry: './node_modules/@routr/registry/registry.js'
     },
     output: {
         filename: "[name].bundle.js",

@@ -1,6 +1,7 @@
 name: routr-server
 base: core18
 version: 1.0.0-rc4
+license: MIT
 summary: Next-generation SIP Server
 description: |
   Routr – a lightweight sip proxy, location server, and registrar that provides
@@ -8,29 +9,41 @@ description: |
   communication service providers, and integrators. It also provides with
   capabilities that are suitable for the enterprise and personal needs.
 assumes: [snapd2.42]
-grade: devel # must be 'stable' to release into candidate/stable channels
-confinement: devmode # use 'strict' once you have the right plugs and slots
+grade: devel
+confinement: devmode
+
+apps:
+  routr-server:
+    environment:
+      JAVA_HOME: $SNAP/usr/lib/jvm/java-8-openjdk-amd64
+    command: routr-server
+    plugs: [network, network-bind, user-files, sys-files, sys-observe, mount-observe]
+
+plugs:
+  user-files:
+    interface: personal-files
+    write: [$HOME/.routr.salt]
+  sys-files:
+    interface: system-files
+    read: [/sys/fs/cgroup]
+  sys-observe:
+    interface: system-observe
 
 parts:
-  routr-server:
+  build:
     plugin: dump
     source: https://github.com/fonoster/routr/releases/download/$SNAPCRAFT_PROJECT_VERSION/routr-$SNAPCRAFT_PROJECT_VERSION_linux-x64_bin.tar.gz
     override-build: |
-      rm -rf jre
       cp -a * $SNAPCRAFT_PART_INSTALL/
+      rm -rf $SNAPCRAFT_PART_INSTALL/jre
+      rm -rf $SNAPCRAFT_PART_INSTALL/config
+      rm $SNAPCRAFT_PART_INSTALL/routr.bat
+      mv $SNAPCRAFT_PART_INSTALL/routr $SNAPCRAFT_PART_INSTALL/routr-server
     stage-packages:
       - openjdk-8-jdk
-      - redis-server
-  scripts:
+  prepare:
       plugin: dump
       source: resources/
       organize:
-          routr: routr-server
-apps:
-  routr-server:
-    command: routr-server
-    plugs: [network, network-bind]
-  routr-server-redis:
-      command: redis-server
-      daemon: simple
-      plugs: [network, network-bind]
+          config.yml: config/config.yml
+          log4j2.yml: config/log4j2.yml

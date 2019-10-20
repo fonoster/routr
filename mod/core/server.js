@@ -157,4 +157,4 @@ class Server {
 
 }
 
-module.exports = Server
+new Server().start()
