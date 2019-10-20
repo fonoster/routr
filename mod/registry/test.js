@@ -4,7 +4,6 @@
  *
  * Unit Test for the "Registry Module"
  */
-const Registry = require('@routr/registry/registry')
 const DSSelector = require('@routr/data_api/ds_selector')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const assert = require('assert')
