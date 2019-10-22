@@ -1,0 +1,47 @@
+{
+  "variables": {
+    "token": "{{env `DIGITALOCEAN_TOKEN`}}",
+    "image_name": "routr-server-{{timestamp}}",
+    "apt_packages": "redis-server snap"
+  },
+  "builders": [
+    {
+      "type": "digitalocean",
+      "api_token": "{{user `token`}}",
+      "image": "ubuntu-18-04-x64",
+      "region": "nyc3",
+      "size": "s-1vcpu-1gb",
+      "ssh_username": "root",
+      "snapshot_name": "{{user `image_name`}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "files/etc/",
+      "destination": "/etc/"
+    },
+    {
+      "type": "file",
+      "source": "files/var/",
+      "destination": "/var/"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "cloud-init status --wait",
+        "apt -qqy update",
+        "apt -qqy -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' full-upgrade",
+        "apt -qqy -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' install {{user `apt_packages`}}"
+      ]
+    },
+    {
+      "type": "shell",
+      "scripts": [
+        "scripts/01-install",
+        "scripts/90-cleanup.sh",
+        "scripts/99-img_check.sh"
+      ]
+    }
+  ]
+}
