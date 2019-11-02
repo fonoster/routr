@@ -43,8 +43,10 @@ parts:
       cd $SNAPCRAFT_PART_INSTALL
       rm -rf jre config/* routr.bat
       cp -a $SNAPCRAFT_PART_INSTALL/../../configure/build/*.yml config
-    stage-packages:
+    build-packages:
       - ca-certificates
       - ca-certificates-java
+      - openjdk-8-jre-headless
+    stage-packages:
       - openjdk-8-jre-headless
       - redis-server
