@@ -29,7 +29,7 @@ Remember to adjust the values to match your project's information.
 
 > `WSS` does not work with a self-signed certificate. However, you can add a security exception by using `https` instead of `wss` in your browser's search bar and then accepting the security certificate.
 
-### Creating a Certificate using 'Let's Encrypt
+### Creating a Certificate using Let's Encrypt
 
 The recommended way to create a valid certificate for Routr is using the free service [Let's Encrypt](https://letsencrypt.org). Please go to https://letsencrypt.org/ for details on how to install the required tooling. To generate the certificate, use the following steps:
 
