@@ -1,6 +1,6 @@
 {
   "name": "routr",
-  "version": "1.0.0",
+  "version": "1.0.0-rc4",
   "description": "Next-generation SIP Server",
   "scripts": {
     "transpile": "babel mod --out-dir node_modules/@routr",

@@ -42,8 +42,6 @@ parts:
       cp -a * $SNAPCRAFT_PART_INSTALL
       cd $SNAPCRAFT_PART_INSTALL
       rm -rf jre config/* routr.bat
-      # This feels a bit hacky :(
-      cp -a $SNAPCRAFT_PART_INSTALL/../../configure/build/redis $SNAPCRAFT_PART_INSTALL
       cp -a $SNAPCRAFT_PART_INSTALL/../../configure/build/*.yml config
     stage-packages:
       - ca-certificates
