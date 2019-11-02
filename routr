@@ -5,12 +5,13 @@ set -e
 BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 
 [ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
+[ -z "$ROUTR_LOG4J2" ] && ROUTR_LOG4J2=config/log4j2.yml
 
 run() {
   cd $BASE_DIR
     $JAVA_HOME/bin/java \
-    -DROUTR_DATA=${SNAP_USER_DATA} \
-    -Dlog4j.configurationFile=config/log4j2.yml \
+    -DROUTR_DATA=${SNAP_DATA} \
+    -Dlog4j.configurationFile=$ROUTR_LOG4J2 \
     -Dpolyglot.js.experimental-foreign-object-prototype=true \
     -Dpolyglot.js.nashorn-compat=true \
     -Dnashorn.args="--no-deprecation-warning" \

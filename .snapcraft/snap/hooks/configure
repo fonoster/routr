@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mkdir -p $SNAP_DATA/config
+cp -a $SNAP/config/*.yml $SNAP_DATA/config/

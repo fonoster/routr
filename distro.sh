@@ -11,10 +11,12 @@ build_for_platform() {
     # Cleanup
     rm -rf $BUILD_NAME
     mkdir -p $BUILD_NAME/libs
+    mkdir $BUILD_NAME/config
+    mkdir $BUILD_NAME/etc
 
-    cp -a config $BUILD_NAME
-    rm -rf $BUILD_NAME/stack.properties
-    cp -a etc $BUILD_NAME
+    cp -a config/*.yml $BUILD_NAME/config
+    cp -a etc/certs $BUILD_NAME/etc
+    cp -a etc/schemas $BUILD_NAME/etc
     cp libs/* $BUILD_NAME/libs
     cp routr $BUILD_NAME/
     cp routr.bat $BUILD_NAME/
