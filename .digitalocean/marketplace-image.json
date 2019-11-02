@@ -2,7 +2,7 @@
   "variables": {
     "token": "{{env `DIGITALOCEAN_TOKEN`}}",
     "image_name": "routr-server-{{timestamp}}",
-    "apt_packages": "redis-server snap"
+    "apt_packages": "snap"
   },
   "builders": [
     {

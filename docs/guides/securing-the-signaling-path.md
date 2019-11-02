@@ -10,7 +10,7 @@ We need a keystore (.jks) to properly handling the certificates. The following s
 
 ### Creating a self-signed Certificate
 
-Perhaps the easiest way to create a valid certificate for **Routr** is using a self-signed certificate. To generate the certificate change into `etc/certs` in your **Routr** installation and run the following script:
+Perhaps the easiest way to create a valid certificate for Routr is using a self-signed certificate. To generate the certificate change into `etc/certs` in your Routr installation and run the following script:
 
 ```bash
 keytool -genkey -keyalg RSA \
@@ -31,17 +31,17 @@ Remember to adjust the values to match your project's information.
 
 ### Creating a Certificate using 'Let's Encrypt
 
-The recommended way to create a valid certificate for **Routr** is using the free service [Let's Encrypt](https://letsencrypt.org). Please go to https://letsencrypt.org/ for details on how to install the required tooling. To generate the certificate, use the following steps:
+The recommended way to create a valid certificate for Routr is using the free service [Let's Encrypt](https://letsencrypt.org). Please go to https://letsencrypt.org/ for details on how to install the required tooling. To generate the certificate, use the following steps:
 
-**1. Create keys**
+&#10122; Create keys
 
 ```bash
 certbot certonly --standalone -d sip.ocean.com --email admin@sip.ocean.com
-`""
+```
 
 Change to the directory where we created the certificates(generally at /etc/letsencrypt/live/sip.ocean.com).
 
-**2. Create a PKCS12 file containing full chain and private key**
+&#10123; Create a PKCS12 file containing full chain and private key
 
 ```bash
 openssl pkcs12 -export -in fullchain.pem -inkey privkey.pem -out pkcs.p12 -name domains-cert.jks
@@ -49,7 +49,7 @@ openssl pkcs12 -export -in fullchain.pem -inkey privkey.pem -out pkcs.p12 -name 
 
 Please make a note of the password since you need it in the next step.
 
-**3. Convert PKCS12 to Keystore**
+&#10124; Convert PKCS12 to Keystore
 
 ```bash
 keytool -importkeystore -srckeystore keystore.pkcs12 -srcstoretype PKCS12 -destkeystore domains-cert.jks
@@ -57,7 +57,7 @@ keytool -importkeystore -srckeystore keystore.pkcs12 -srcstoretype PKCS12 -destk
 
 ## Installing the Certificate in Routr
 
-To enable secure signaling in **Routr**, copy your certificate in `etc/certs` and edit the file `config/config.yml` to look like this:
+To enable secure signaling in Routr, copy your certificate in `etc/certs` and edit the file `config/config.yml` to look like this:
 
 ```yml
 apiVersion: v1beta1
@@ -75,13 +75,13 @@ spec:
     - protocol: tls
       port: 5061
 ...
-`""
+```
 
 If you set the property `spec.securityContext.debugging`  to `true`, you can get some valuable information about the status of the configuration. You can also test your configuration using the following command:
 
-`""
+```
 openssl s_client -host 192.168.1.2 -port 5061    # Remember to use Routr's IP
-`""
+```
 
 ## Setting up the Sip Phones
 
