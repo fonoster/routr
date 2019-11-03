@@ -151,5 +151,5 @@ For contributing, please see the following links:
 # Authors
  - [Pedro Sanders](https://github.com/psanders)
 
-# LICENSE
+# License
 Copyright (C) 2019 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/routr/blob/master/LICENSE) for details).
