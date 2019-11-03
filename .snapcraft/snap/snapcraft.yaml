@@ -19,7 +19,8 @@ apps:
       ROUTR_SALT_FILE: $SNAP_DATA/.routr.salt
       ROUTR_CONFIG_FILE: $SNAP_DATA/config/config.yml
       ROUTR_LOG4J2: $SNAP_DATA/config/log4j2.yml
-    command: routr
+      ROUTR_DATA: $SNAP_DATA
+    command: start.sh
     daemon: simple
     plugs: [network, network-bind]
   routr-redis:
@@ -42,6 +43,7 @@ parts:
       cp -a * $SNAPCRAFT_PART_INSTALL
       cd $SNAPCRAFT_PART_INSTALL
       rm -rf jre config/* routr.bat
+      cp $SNAPCRAFT_PART_INSTALL/../../configure/build/start.sh .
       cp -a $SNAPCRAFT_PART_INSTALL/../../configure/build/*.yml config
     build-packages:
       - ca-certificates

@@ -1,2 +1,3 @@
 #!/bin/bash
-snap install routr-server --channel=edge
+
+snap install routr-server --channel=candidate

@@ -10,7 +10,7 @@ BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 run() {
   cd $BASE_DIR
     $JAVA_HOME/bin/java \
-    -DROUTR_DATA=${SNAP_DATA} \
+    -DROUTR_DATA=$ROUTR_DATA \
     -Dlog4j.configurationFile=$ROUTR_LOG4J2 \
     -Dpolyglot.js.experimental-foreign-object-prototype=true \
     -Dpolyglot.js.nashorn-compat=true \
