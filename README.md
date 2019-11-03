@@ -48,7 +48,7 @@ Routr is developed in the open. Here are some of the channels we use to communic
 
 **Issue tracker:** Use the GitHub issue tracker for the various [Routr repositories](https://github.com/fonoster/) to file bugs and features request. If you need support, please send your questions to the routr-users mailing list rather than filing a GitHub issue.
 
->Please do not ask individual project members for support. Use the channels above instead, where the whole community can help you and benefit from the solutions provided. If community support is insufficient for your situation, please refer to the Commercial Support section below.
+>Please do not ask individual project members for support. Use the channels above instead, where the whole community can help you and benefit from the solutions provided. If community support is insufficient for your situation, please contact us for Commercial Support.
 
 # Deployment
 
