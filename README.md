@@ -1,7 +1,7 @@
 
 <img src="https://raw.githubusercontent.com/fonoster/routr/master/docs/assets/brand.png" alt="Routr Logo" height="100">
 
-<br />
+<hr/>
 
 [![Build Status](https://github.com/fonoster/routr/workflows/build/badge.svg)](https://github.com/fonoster/routr/actions?workflow=build) [![Maintainability](https://api.codeclimate.com/v1/badges/49ea061777d76c003b71/maintainability)](https://codeclimate.com/github/fonoster/routr/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/49ea061777d76c003b71/test_coverage)](https://codeclimate.com/github/fonoster/routr/test_coverage)
@@ -22,7 +22,7 @@
 * [Documentation](https://routr.io/docs/introduction/overview)
 * [Demo](https://demo.routr.io/login)
 * [Bugs and Feedback](#bugs-and-feedback)
-* [Contributing](#Contributing)
+* [Contributing](#contributing)
 * [License](#license)
 
 # About
