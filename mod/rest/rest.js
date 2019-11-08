@@ -143,7 +143,7 @@ class Rest {
                 if (!isEmpty(req.queryParams('page'))) page = req.queryParams('page')
                 if (!isEmpty(req.queryParams('itemsPerPage'))) itemsPerPage = req.queryParams('itemsPerPage')
 
-                return DSUtils.paginate(items, page, itemsPerPage)
+                return JSON.stringify(DSUtils.paginate(items, page, itemsPerPage))
             })
 
             locationService(this.store)

@@ -18,6 +18,8 @@ module.exports.reloadConfig = () => config = loadConfig()
 function loadConfig() {
     const config = getConfigFromFile()
     config.salt = getSalt()
+
+    if (config.spec === undefined) config.spec = {}
     config.spec.securityContext = getDefaultSecContext(config.spec.securityContext)
     const spec = getSysPresets(config.spec)
     config.spec.externAddr = spec.externAddr
@@ -37,6 +39,7 @@ function loadConfig() {
     }
     if (config.metadata === undefined) config.metadata = {}
     if (config.metadata.userAgent === undefined) config.metadata.userAgent = `Routr ${config.system.version}`
+    if (config.spec.transport === undefined) config.spec.transport = [{ protocol: 'tcp', port: 5060 }]
 
     return config
 }

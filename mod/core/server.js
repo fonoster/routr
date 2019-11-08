@@ -48,15 +48,14 @@ class Server {
     }
 
     buildSipProvider(sipStack, transport) {
-        const defListeningPoint = sipStack.createListeningPoint(transport[0].port, transport[0].protocol.toLowerCase())
-        const sipProvider = sipStack.createSipProvider(defListeningPoint)
+        let sipProvider
 
         for (const key in transport) {
             const curTransport = transport[key]
             const proto = curTransport.protocol.toLowerCase()
 
             if ((proto === 'wss' || proto === 'tls') && !config.spec.securityContext) {
-                LOG.warn(`${ANSI_YELLOW }Security context could not found. Ignoring protocol: ${proto}${ANSI_RESET}`)
+                LOG.warn(`${ANSI_YELLOW }Unable to find security context. Ignoring protocol: ${proto}${ANSI_RESET}`)
                 continue
             }
 
@@ -65,7 +64,12 @@ class Server {
             }
 
             const lp = sipStack.createListeningPoint(curTransport.bindAddr, curTransport.port, proto)
-            sipProvider.addListeningPoint(lp)
+
+            if(sipProvider) {
+                sipProvider.addListeningPoint(lp)
+            } else {
+              sipProvider = sipStack.createSipProvider(lp)
+            }
 
             LOG.info(`Listening on ${ANSI_GREEN}${curTransport.bindAddr}:${curTransport.port} [${proto}]${ANSI_RESET}`)
         }
