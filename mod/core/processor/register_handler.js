@@ -25,7 +25,6 @@ class RegisterHandler {
         // See: Removing bindings -> https://tools.ietf.org/html/rfc3261#section-10.2.2
         if (getExpires(request) <= 0) {
             const contactHeader = request.getHeader(ContactHeader.NAME)
-            const contactURI = contactHeader.getAddress().getURI()
             const toHeader = request.getHeader(ToHeader.NAME)
             const addressOfRecord = toHeader.getAddress().getURI()
 
