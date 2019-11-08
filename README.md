@@ -85,7 +85,7 @@ docker pull fonoster/routr:latest
 
 OR select a specific release ([details of releases available](https://github.com/fonoster/routr/releases)):
 ```
-docker pull fonoster/routr.chat:vX.X.X
+docker pull fonoster/routr:vX.X.X
 ```
 
 ## Kubernetes
