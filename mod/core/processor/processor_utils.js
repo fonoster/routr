@@ -74,7 +74,7 @@ const getExpires = message => {
 const sendResponse = (transaction, type) => {
     const request = transaction.getRequest()
     const response = messageFactory.createResponse(type, request)
-    transaction.setResponse(response)
+    transaction.sendResponse(response)
 }
 
 const sendUnauthorized = transaction => {
