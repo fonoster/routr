@@ -110,6 +110,5 @@ module.exports.isRegister = isRegister
 module.exports.isRegisterOk = isRegisterOk
 module.exports.isRegisterNok = isRegisterNok
 module.exports.isBehindNat = isBehindNat
-module.exports.isBehindNat = isBehindNat
 module.exports.handleAuthChallenge = handleAuthChallenge
 module.exports.getExpires = getExpires

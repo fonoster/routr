@@ -3,7 +3,8 @@
  * @since v1
  */
 const {
-  getExpires
+  getExpires,
+  isBehindNat
 } = require('@routr/core/processor/processor_utils')
 const isEmpty = require('@routr/utils/obj_util')
 const config = require('@routr/core/config_util')()
@@ -53,15 +54,10 @@ class RegistrarUtils {
             contactURI: RegistrarUtils.getUpdatedContactURI(request, user),
             registeredOn: Date.now(),
             expires: getExpires(request),
-            nat: RegistrarUtils.isNat(request)
+            nat: isBehindNat(request)
         }
     }
 
-    static isNat(request) {
-        const viaHeader = request.getHeader(ViaHeader.NAME)
-        return (viaHeader.getHost() + viaHeader.getPort()) !==
-            (viaHeader.getReceived() + viaHeader.getRPort())
-    }
 
     static getUpdatedContactURI(request, user) {
         const contactHeader = request.getHeader(ContactHeader.NAME)
