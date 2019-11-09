@@ -5,7 +5,6 @@
 const {
     isRegisterOk,
     isRegisterNok,
-    isBehindNat,
     mustAuthenticate,
     handleAuthChallenge,
     getExpires
@@ -18,7 +17,7 @@ const SDSelector = require('@routr/data_api/store_driver_selector')
 const StoreAPI = require('@routr/data_api/store_api')
 const InetAddress = Java.type('java.net.InetAddress')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
-const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const ContactHeader = Java.type('javax.sip.header.ContactHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
@@ -58,20 +57,24 @@ module.exports = (registry, sipStack, gatewaysAPI) => {
                 if (isRegisterOk(response)) {
                     // BEWARE: This is not being cover by the SEET test. It will always
                     // be "behind nat" and registry will no be stored.
-                    if (isBehindNat(response)) {
+                    const xReceivedHeader = response.getHeader('X-Inf-Received')
+                    const xRPortHeader = response.getHeader('X-Inf-RPort')
+                    const contactHeader = response.getHeader(ContactHeader.NAME)
+                    const received = contactHeader.getAddress().getHost()
+                    const rport = fixPort(contactHeader.getAddress().getPort())
+
+                    if (!xReceivedHeader.value.equals(received)
+                        || !xRPortHeader.value.equals(`${rport}`)) {
                         LOG.debug(`Routr is behind a NAT. Re-registering to '${gwRef}' using Received and RPort`)
-                        const viaHeader = response.getHeader(ViaHeader.NAME)
-                        const received = viaHeader.getReceived()
-                        const rport = fixPort(viaHeader.getRPort())
-                        registry.register(gateway, received, rport)
+                        registry.register(gateway, xReceivedHeader.value, xRPortHeader.value)
                         return
                     }
-                    storeRegistry(store, gwRef, gwURI,
-                        getExpires(response))
+                    storeRegistry(store, gwRef, gwURI, getExpires(response))
                 } else if (isRegisterNok(response)) {
                     removeRegistry(store, gwURI)
                 }
 
+                // Warning: Is this really needed?
                 if (mustAuthenticate(response)) {
                     handleAuthChallenge(sipStack, event, gateway)
                 }

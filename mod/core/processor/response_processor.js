@@ -11,8 +11,10 @@ const {
     handleAuthChallenge
 } = require('@routr/core/processor/processor_utils')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const SipFactory = Java.type('javax.sip.SipFactory')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
+const headerFactory = SipFactory.getInstance().createHeaderFactory()
 
 class ResponseProcessor {
 
@@ -40,6 +42,11 @@ class ResponseProcessor {
 
     sendResponse(event) {
         const response = event.getResponse().clone()
+        const viaHeader = response.getHeader(ViaHeader.NAME)
+        const xReceivedHeader = headerFactory.createHeader('X-Inf-Received', viaHeader.getReceived())
+        const xRPortHeader = headerFactory.createHeader('X-Inf-RPort', `${viaHeader.getRPort()}`)
+        response.addHeader(xReceivedHeader)
+        response.addHeader(xRPortHeader)
         response.removeFirst(ViaHeader.NAME)
         if (isTransactional(event)) {
             const context = this.contextStorage.findContext(event.getClientTransaction().getBranchId())
@@ -53,7 +60,6 @@ class ResponseProcessor {
             // Could be a BYE due to Record-Route
             this.sipProvider.sendResponse(response)
         }
-
         LOG.debug(response)
     }
 
