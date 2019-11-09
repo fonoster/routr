@@ -105,7 +105,7 @@ class RouteInfo {
     }
 
     getCallee() {
-        const response = this.agentsAPI.getAgentByDomain(this.callerDomain, this.callerUser)
+        const response = this.agentsAPI.getAgentByDomain(this.calleeDomain, this.calleeUser)
         return response.status === Status.OK ? response.data : null
     }
 

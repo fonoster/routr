@@ -19,6 +19,9 @@ const {
 } = require('@routr/core/status')
 const config = require('@routr/core/config_util')()
 const postal = require('postal')
+const {
+    RoutingType
+} = require('@routr/core/routing_type')
 
 const ObjectId = Java.type('org.bson.types.ObjectId')
 const InetAddress = Java.type('java.net.InetAddress')
@@ -28,6 +31,7 @@ const Response = Java.type('javax.sip.message.Response')
 const RouteHeader = Java.type('javax.sip.header.RouteHeader')
 const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const ToHeader = Java.type('javax.sip.header.ToHeader')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
 const MaxForwardsHeader = Java.type('javax.sip.header.MaxForwardsHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -138,7 +142,14 @@ class RequestHandler {
         const transport = request.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
         // XXX: This is probably wrong :( because I'm converting the contactURI to an aor.
         // by time the route gets here, the route should have a proper contactURI object.
-        request.setRequestURI(LocatorUtils.aorAsObj(route.contactURI))
+        if (routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING) {
+            const toHeader = request.getHeader(ToHeader.NAME)
+            const toUser = toHeader.getAddress().getURI().getUser()
+            request.setRequestURI(
+              LocatorUtils.aorAsObj(`sip:${toUser}@${route.gwHost}`))
+        } else {
+            request.setRequestURI(LocatorUtils.aorAsObj(route.contactURI))
+        }
         const viaHeader = headerFactory
             .createViaHeader(advertisedAddr.host, advertisedAddr.port, transport, null)
         viaHeader.setRPort()

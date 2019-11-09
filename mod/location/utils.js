@@ -73,8 +73,7 @@ class LocatorUtils {
         }]
     }
 
-    static buildEgressRoute(addressOfRecord, contactURI, gateway, number,
-        domain) {
+    static buildEgressRoute(addressOfRecord, gateway, number, domain) {
         const username = gateway.spec.credentials ? gateway.spec.credentials.username :
             null
         const route = {
@@ -86,7 +85,6 @@ class LocatorUtils {
             gwHost: buildAddr(gateway.spec.host, gateway.spec.port),
             numberRef: number.metadata.ref,
             number: number.spec.location.telUrl.split(':')[1],
-            contactURI: contactURI,
             expires: -1
         }
         if (domain) {

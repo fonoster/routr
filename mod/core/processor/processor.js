@@ -13,7 +13,7 @@ class Processor {
 
     constructor(sipProvider, dataAPIs, contextStorage) {
         this.requestProcessor = new RequestProcessor(sipProvider, dataAPIs, contextStorage)
-        this.responseProcessor = new ResponseProcessor(sipProvider, dataAPIs, contextStorage)
+        this.responseProcessor = new ResponseProcessor(sipProvider, contextStorage)
     }
 
     get listener() {

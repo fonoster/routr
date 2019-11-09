@@ -141,14 +141,10 @@ class Locator {
 
                     if (response.status === Status.OK) {
                         const gateway = response.data
-                        const contactURI = addressFactory.createSipURI(
-                            gateway.metadata.ref, buildAddr(gateway.spec.host,
-                                gateway.spec.port))
-                        //contactURI.setSecure(aorObj.isSecure())
                         const addressOfRecord = `sip:${domain.spec.context.egressPolicy.rule}@${domain.spec.context.domainUri}`
                         const route = LocatorUtils
-                            .buildEgressRoute(addressOfRecord, contactURI.toString(), gateway,
-                                number, domain)
+                            .buildEgressRoute(addressOfRecord, gateway, number,
+                                domain)
                         routes.put(addressOfRecord, [route])
                     }
                 }

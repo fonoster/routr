@@ -2,6 +2,8 @@
  * @author Pedro Sanders
  * @since v1
  */
+const DSSelector = require('@routr/data_api/ds_selector')
+const GatewaysAPI = require('@routr/data_api/gateways_api')
 const {
     isStackJob,
     isTransactional,
@@ -14,9 +16,10 @@ const LOG = LogManager.getLogger()
 
 class ResponseProcessor {
 
-    constructor(sipProvider, dataAPIs, contextStorage) {
+    constructor(sipProvider, contextStorage) {
         this.sipProvider = sipProvider
         this.contextStorage = contextStorage
+        this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS())
     }
 
     process(event) {
@@ -28,8 +31,8 @@ class ResponseProcessor {
         if (mustAuthenticate(event.getResponse()) && isTransactional(event)) {
             const gwRef = event.getClientTransaction().getRequest()
                 .getHeader('X-Gateway-Ref').value
-            const r = gatewaysAPI.getGateway(gwRef)
-            handleAuthChallenge(his.sipProvider.getSipStack(), event, r.data)
+            const r = this.gatewaysAPI.getGateway(gwRef)
+            handleAuthChallenge(this.sipProvider.getSipStack(), event, r.data)
             return
         }
         this.sendResponse(event)
