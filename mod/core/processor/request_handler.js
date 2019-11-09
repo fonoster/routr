@@ -196,7 +196,6 @@ class RequestHandler {
     }
 
     sendRequest(serverTransaction, requestIn, requestOut) {
-
         // Does not need a transaction
         if (requestIn.getMethod().equals(Request.ACK)) {
             return this.sipProvider.sendRequest(requestOut)
