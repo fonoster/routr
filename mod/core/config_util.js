@@ -10,12 +10,12 @@ const File = Java.type('java.io.File')
 const System = Java.type('java.lang.System')
 const UUID = Java.type('java.util.UUID')
 
-let config = loadConfig()
+const upSince = new Date().getTime()
 
-module.exports = () => config
-module.exports.reloadConfig = () => config = loadConfig()
+module.exports = () => loadConfig(upSince)
+module.exports.reloadConfig = () => loadConfig(upSince)
 
-function loadConfig() {
+function loadConfig(upSince) {
     const config = getConfigFromFile()
     config.salt = getSalt()
 
@@ -27,7 +27,7 @@ function loadConfig() {
     config.spec.dataSource = spec.dataSource
     config.spec.registrarIntf = spec.registrarIntf
     config.spec.restService = getRestfulPresets(config.spec.restService)
-    config.system = getSystemConfig()
+    config.system = getSystemConfig(upSince)
 
     if (config.spec.registrarIntf === undefined) config.spec.registrarIntf = 'External'
     if (config.spec.bindAddr === undefined) config.spec.bindAddr = '0.0.0.0'
@@ -130,11 +130,12 @@ function getDefaultSecContext(sc) {
     return securityContext
 }
 
-function getSystemConfig() {
+function getSystemConfig(upSince) {
     const system = {}
     system.version = 'v1.0'
     system.apiVersion = 'v1beta1'
     system.apiPath = `/api/${system.apiVersion}`
+    system.upSince = upSince
     system.env = []
     system.env.push({
         'var': 'ROUTR_JAVA_OPTS',
