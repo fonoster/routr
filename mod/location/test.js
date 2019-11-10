@@ -71,16 +71,16 @@ describe('Location Service Module', () => {
         done()
     })
 
-    it('This call will ingress thru a aorLink', done => {
+    it.only('This call will ingress thru a aorLink', done => {
         locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
-        const response = locator.findEndpoint('tel:9198972120')
+        const response = locator.findEndpoint('tel:0000000000')
         assert.equal(response.status, Status.OK)
         done()
     })
 
     it('This call will ingress thru a aorLink', done => {
         locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
-        const response = locator.findEndpoint('sip:9198972120@192.168.1.2')
+        const response = locator.findEndpoint('sip:0000000000@192.168.1.2')
         assert.equal(response.status, Status.OK)
         done()
     })
