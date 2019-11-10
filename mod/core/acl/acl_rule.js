@@ -5,7 +5,7 @@
  const {
    hasIp,
    addressCount
- } = require('@routr/core/ip_util2')
+ } = require('@routr/core/ip_util')
 
 class Rule {
 
