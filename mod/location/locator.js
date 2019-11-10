@@ -62,10 +62,6 @@ class Locator {
     findEndpoint(addressOfRecord) {
         LOG.debug(`location.Locator.findEndpoint [lookup route for aor ${addressOfRecord}]`)
 
-        if (addressOfRecord.startsWith('tel:')) {
-            return this.findEndpointByTelUrl(addressOfRecord)
-        }
-
         const jsonRoutes = this.store.get(addressOfRecord)
 
         if (jsonRoutes !== null) {
@@ -74,6 +70,14 @@ class Locator {
                 .filter(r => !LocatorUtils.expiredRouteFilter(r))
 
             return CoreUtils.buildResponse(Status.OK, routes)
+        }
+
+        if (addressOfRecord.startsWith('tel:')) {
+            return this.findEndpointByTelUrl(addressOfRecord)
+        } else {
+            const tel = LocatorUtils.aorAsObj(addressOfRecord).getUser()
+            const response = this.findEndpointByTelUrl(`tel:${tel}`)
+            if (response.status === Status.OK) return response
         }
 
         const defaultRouteKey = this.store.keySet()
@@ -92,6 +96,9 @@ class Locator {
         if (response.status === Status.OK) {
             const number = response.data
             const jsonRoutes = this.store.get(number.spec.location.aorLink)
+
+            if(!jsonRoutes) return CoreUtils.buildResponse(Status.NOT_FOUND)
+
             let routes = JSON.parse(jsonRoutes)
             routes = routes
                 .filter(r => !LocatorUtils.expiredRouteFilter(r))
@@ -124,10 +131,11 @@ class Locator {
         }
     }
 
-    getDomainEgressRoutes(domains, numbersAPI, gatewaysAPI) {
+    getDomainEgressRoutes(domainsAPI, numbersAPI, gatewaysAPI) {
         const SipFactory = Java.type('javax.sip.SipFactory')
         const addressFactory = SipFactory.getInstance().createAddressFactory()
         const routes = new HashMap()
+        const domains = domainsAPI.getDomains().data
 
         domains.forEach(domain => {
             if (!isEmpty(domain.spec.context.egressPolicy)) {
@@ -161,11 +169,11 @@ class Locator {
         const numbersAPI = new NumbersAPI(ds)
         const domainsAPI = new DomainsAPI(ds)
         const gatewaysAPI = new GatewaysAPI(ds)
-        const domains = domainsAPI.getDomains().data
-        const egressRoutes = this.getDomainEgressRoutes(domains, numbersAPI,
+        const egressRoutes = this.getDomainEgressRoutes(domainsAPI, numbersAPI,
             gatewaysAPI)
 
         egressRoutes.keySet().toArray().forEach(key => {
+            LOG.debug(`loading route for key => ${key}`)
             this.store.put(key, JSON.stringify(egressRoutes.get(key)))
         })
     }

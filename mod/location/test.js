@@ -71,6 +71,20 @@ describe('Location Service Module', () => {
         done()
     })
 
+    it('This call will ingress thru a aorLink', done => {
+        locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
+        const response = locator.findEndpoint('tel:9198972120')
+        assert.equal(response.status, Status.OK)
+        done()
+    })
+
+    it('This call will ingress thru a aorLink', done => {
+        locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
+        const response = locator.findEndpoint('sip:9198972120@192.168.1.2')
+        assert.equal(response.status, Status.OK)
+        done()
+    })
+
     // Test having more than one route per address of record
     it('Add multiple endpoints per aor', function(done) {
         const ep1 = buildEndpoint('1001', 'sip.local', '192.168.1.2:5061')
