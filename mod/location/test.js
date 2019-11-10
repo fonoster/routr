@@ -71,7 +71,7 @@ describe('Location Service Module', () => {
         done()
     })
 
-    it.only('This call will ingress thru a aorLink', done => {
+    it('This call will ingress thru a aorLink', done => {
         locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
         const response = locator.findEndpoint('tel:0000000000')
         assert.equal(response.status, Status.OK)
