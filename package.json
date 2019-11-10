@@ -12,6 +12,7 @@
     "beautify": "find mod -type f -name \"*.js\" -exec js-beautify -r {} +"
   },
   "dependencies": {
+    "ip-utils": "^2.4.0",
     "moment": "^2.22.2",
     "npm": "^6.1.0",
     "paginate-array": "^2.1.0",

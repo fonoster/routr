@@ -2,14 +2,15 @@
  * @author Pedro Sanders
  * @since v1
  */
-const IPUtil = require('@routr/core/ip_util')
+ const {
+   hasIp,
+   addressCount
+ } = require('@routr/core/ip_util2')
 
 class Rule {
 
     constructor(net, action) {
         if (action === 'allow' || action === 'deny') {
-            const subnetUtils = IPUtil.getSubnetUtils(net)
-            this.subnetUtils = subnetUtils
             this._action = action
             this._net = net
         } else {
@@ -18,11 +19,11 @@ class Rule {
     }
 
     hasIp(address) {
-        return this.subnetUtils.getInfo().isInRange(address)
+        return hasIp(this._net, address)
     }
 
     getAddressCount() {
-        return this.subnetUtils.getInfo().getAddressCountLong()
+        return addressCount(this._net)
     }
 
     get action() {

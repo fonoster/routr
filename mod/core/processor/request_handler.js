@@ -3,7 +3,9 @@
  * @since v1
  */
 const LocatorUtils = require('@routr/location/utils')
-const IPUtil = require('@routr/core/ip_util')
+const {
+  isLocalnet,
+} = require('@routr/core/ip_util')
 const {
     connectionException
 } = require('@routr/utils/exception_helpers')
@@ -39,7 +41,6 @@ const ConcurrentHashMap = Java.type('java.util.concurrent.ConcurrentHashMap')
 const requestStore = new ConcurrentHashMap()
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
 const addressFactory = SipFactory.getInstance().createAddressFactory()
-const ipUtil = new IPUtil(config)
 const LOG = LogManager.getLogger()
 
 class RequestHandler {
@@ -124,8 +125,7 @@ class RequestHandler {
     proxyOwnsRequest(request, localAddr, advertisedAddr) {
         const routeHeader = request.getHeader(RouteHeader.NAME)
         if (routeHeader) {
-            const h = routeHeader.getAddress().getURI().getHost()
-            const host = IPUtil.isIp(h) ? h : InetAddress.getByName(h).getHostAddress()
+            const host = routeHeader.getAddress().getURI().getHost()
             const port = fixPort(routeHeader.getAddress().getURI().getPort())
             if (host.equals(advertisedAddr.host) && port === advertisedAddr.port) {
                 return true
@@ -241,7 +241,7 @@ class RequestHandler {
         // No egress routing has sentByAddress. They are assume to be entities outside the local network.
         if (externAddr && (route.sentByAddress === undefined ||
                 route.sentByAddress.endsWith(".invalid") ||
-                !ipUtil.isLocalnet(route.sentByAddress))) {
+                !isLocalnet(config.spec.localnets, route.sentByAddress))) {
 
             return {
                 host: externAddr.contains(":") ? externAddr.split(":")[0] : externAddr,
