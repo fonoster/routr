@@ -112,12 +112,12 @@ class Rest {
 
             post('/system/status/:status', (req, res) => {
                 switch (req.params(':status')) {
-                    case 'stop-server':
-                        this.grpc.run('stop-server')
-                        return '{\"status\": \"200\", \"message\":\"Stop request sent to server.\"}'
-                        break;
-                    case 'stop-server-now':
-                        this.grpc.run('stop-server-now')
+                    case 'down':
+                        if(req.queryParams('now') === 'true') {
+                            this.grpc.run('stop-server-now')
+                        } else {
+                            this.grpc.run('stop-server')
+                        }
                         return '{\"status\": \"200\", \"message\":\"Stop request sent to server.\"}'
                         break;
                     case 'reload':
