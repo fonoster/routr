@@ -111,7 +111,7 @@ class Server {
         if (this.ctxStorage.getStorage().size() === 0) {
             this.stop()
         }
-        LOG.info(`Waiting for ${this.ctxStorage.getStorage().size()} transactions`)
+        LOG.info(`Waiting for ${this.ctxStorage.getStorage().size()} transactions before shutdown`)
     }
 }
 
