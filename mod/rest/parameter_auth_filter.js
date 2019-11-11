@@ -9,6 +9,6 @@ module.exports = function(req, res, salt) {
     try {
         Jwts.parser().setSigningKey(salt).parseClaimsJws(req.queryParams('token'))
     } catch (e) {
-        halt(401, '{\"status\": \"401\", \"message\":\"Unauthorized\"}')
+        throw 'UNAUTHORIZED REQUEST'
     }
 }

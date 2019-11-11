@@ -27,6 +27,7 @@ function loadConfig(upSince) {
     config.spec.dataSource = spec.dataSource
     config.spec.registrarIntf = spec.registrarIntf
     config.spec.restService = getRestfulPresets(config.spec.restService)
+    config.spec.grpcService = getGRPCPresets(config.spec.grpcService)
     config.system = getSystemConfig(upSince)
 
     if (config.spec.registrarIntf === undefined) config.spec.registrarIntf = 'External'
@@ -62,6 +63,13 @@ function getRestfulPresets(rs) {
     if (restService.timeOutMillis === undefined) restService.timeOutMillis = 5000
 
     return restService
+}
+
+function getGRPCPresets(g) {
+    const grpcService = g === undefined ? {} : g
+    if (grpcService.bindAddr === undefined) grpcService.bindAddr = '0.0.0.0'
+    if (grpcService.port === undefined) grpcService.port = 50099
+    return grpcService
 }
 
 function getSysPresets(s) {

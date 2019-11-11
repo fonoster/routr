@@ -41,10 +41,9 @@ const LOG = LogManager.getLogger()
 
 class Rest {
 
-    constructor(server) {
-        this.server = server
+    constructor() {
         this.store = new StoreAPI(SDSelector.getDriver())
-        this.grpc = new GRPCClient('localhost', 50055);
+        this.grpc = new GRPCClient('localhost', config.spec.grpcService.port);
 
         LOG.info(`Starting Restful service (port: ${config.spec.restService.port}, apiPath: ${config.system.apiPath})`)
 
@@ -61,9 +60,15 @@ class Rest {
         }
 
         Spark.port(config.spec.restService.port)
-        Spark.internalServerError((req, res) => {
+        Spark.exception(Java.type('java.lang.Exception'),(e, req, res) => {
             res.type('application/json')
-            return '{\"status\": \"500\", \"message\":\"Internal server error\"}'
+            if (e.getMessage().equals('UNAUTHORIZED REQUEST')) {
+                res.status(401)
+                res.body('{\"status\": \"401\", \"message\":\"Unauthorized\"}')
+            } else {
+                res.status(500)
+                res.body('{\"status\": \"500\", \"message\":\"Internal server error\"}')
+            }
         })
         Spark.notFound((req, res) => {
             res.type('application/json')
@@ -91,7 +96,7 @@ class Rest {
             return 'OK'
         })
 
-        path(config.system.apiPath, (r) => {
+        path(config.system.apiPath, r => {
             before('/*', (req, res) => {
                 res.header('Access-Control-Allow-Origin', '*')
                 if (req.pathInfo().endsWith('/credentials') ||
@@ -107,11 +112,11 @@ class Rest {
 
             post('/system/status/:status', (req, res) => {
                 switch (req.params(':status')) {
-                    case 'down':
+                    case 'stop-server':
                         this.grpc.run('stop-server')
                         return '{\"status\": \"200\", \"message\":\"Stop request sent to server.\"}'
                         break;
-                    case 'down-now':
+                    case 'stop-server-now':
                         this.grpc.run('stop-server-now')
                         return '{\"status\": \"200\", \"message\":\"Stop request sent to server.\"}'
                         break;
