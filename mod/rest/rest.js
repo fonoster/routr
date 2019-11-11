@@ -120,11 +120,6 @@ class Rest {
                         }
                         return '{\"status\": \"200\", \"message\":\"Stop request sent to server.\"}'
                         break;
-                    case 'reload':
-                        reloadConfig()
-                        res.status(200)
-                        return '{\"status\": \"200\", \"message\":\"Reloaded configuration from file.\"}'
-                        break;
                     default:
                         res.status(400)
                         return '{\"status\": \"400\", \"message\":\"Bad Request\"}'
