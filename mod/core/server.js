@@ -44,7 +44,7 @@ class Server {
         }
 
         this.dataAPIs = dataAPIs
-        new Locator()
+        this.locator = new Locator()
     }
 
     buildSipProvider(sipStack, transport) {

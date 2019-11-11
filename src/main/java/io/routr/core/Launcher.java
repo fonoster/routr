@@ -77,7 +77,17 @@ public class Launcher {
                     // ?
                 }
             }
-        }, 10000, 60 * 1000);
+        }, 10 * 1000, 60 * 1000);
+
+        // TODO: This should be configurable
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run () {
+                try {
+                    mainCtx.eval("server.locator.loadStaticRoutes()");
+                } catch(ScriptException e) {}
+            }
+        }, 60 * 1000, 120 * 1000);
 
         server.start();
         server.blockUntilShutdown();
