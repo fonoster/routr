@@ -28,6 +28,7 @@ const parameterAuthFilter = require('@routr/rest/parameter_auth_filter')
 const basicAuthFilter = require('@routr/rest/basic_auth_filter')
 const moment = require('moment')
 
+const GRPCClient = Java.type('io.routr.core.GRPCClient')
 const Spark = Java.type('spark.Spark')
 const options = Java.type('spark.Spark').options
 const get = Java.type('spark.Spark').get
@@ -43,6 +44,7 @@ class Rest {
     constructor(server) {
         this.server = server
         this.store = new StoreAPI(SDSelector.getDriver())
+        this.grpc = new GRPCClient('localhost', 50055);
 
         LOG.info(`Starting Restful service (port: ${config.spec.restService.port}, apiPath: ${config.system.apiPath})`)
 
@@ -106,7 +108,12 @@ class Rest {
             post('/system/status/:status', (req, res) => {
                 switch (req.params(':status')) {
                     case 'down':
-                        this.server.stop()
+                        this.grpc.run('stop-server')
+                        return '{\"status\": \"200\", \"message\":\"Stop request sent to server.\"}'
+                        break;
+                    case 'down-now':
+                        this.grpc.run('stop-server-now')
+                        return '{\"status\": \"200\", \"message\":\"Stop request sent to server.\"}'
                         break;
                     case 'reload':
                         reloadConfig()
@@ -159,6 +166,7 @@ class Rest {
     stop() {
         LOG.info('Stopping Restful service')
         Spark.stop()
+        this.grpc.shutdown()
     }
 }
 

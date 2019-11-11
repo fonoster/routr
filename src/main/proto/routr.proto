@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.routr.core";
+option java_outer_classname = "RoutrProto";
+option objc_class_prefix = "HLW";
+
+package routr;
+
+service Controller {
+  rpc RunCommand (CommandRequest) returns (CommandReply) {}
+}
+
+message CommandRequest {
+  string name = 1;
+  string argument = 2;
+}
+
+message CommandReply {
+  string message = 1;
+}

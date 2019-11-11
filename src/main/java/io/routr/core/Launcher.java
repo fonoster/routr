@@ -3,6 +3,7 @@ package io.routr.core;
 import java.util.TimerTask;
 import java.util.Timer;
 import javax.script.*;
+import java.io.IOException;
 
 /**
  * @author Pedro Sanders
@@ -23,12 +24,15 @@ public class Launcher {
         NASHORN_POLYFILL_ARRAY_PROTOTYPE_INCLUDES,
         "var System = Java.type('java.lang.System')"
     );
+    private static ScriptEngine mainCtx;
 
-    static public void main(String... args) {
+    static public void main(String... args) throws IOException,
+        InterruptedException  {
         // Checks Java version and show error if 8 < version > 11
         int javaVersion = getVersion();
         if (javaVersion > 11 || javaVersion < 8) {
-            System.out.println("Routr is only supported in Java versions 8 through 11");
+            System.out
+              .println("Routr is only supported in Java versions 8 through 11");
             System.exit(1);
         }
         try {
@@ -38,7 +42,8 @@ public class Launcher {
         }
     }
 
-    public void launch() throws ScriptException {
+    public void launch() throws ScriptException, IOException,
+        InterruptedException  {
         String engineName = System.getenv("ROUTR_JS_ENGINE") != null
           ? System.getenv("ROUTR_JS_ENGINE")
           : "graal.js";
@@ -47,9 +52,13 @@ public class Launcher {
         ScriptEngine registryCtx = createJSContext(engine);
         ScriptEngine restCtx = createJSContext(engine);
 
+        GRPCServer server = new GRPCServer(mainCtx);
+
         // Runs the main thread
         mainCtx.eval(this.baseScript);
+        mainCtx.put("server", null);
         mainCtx.eval(serverRunner);
+
         // Runs the restful api threadPool
         restCtx.eval(this.baseScript);
         restCtx.eval(restRunner);
@@ -69,6 +78,9 @@ public class Launcher {
                 }
             }
         }, 10000, 60 * 1000);
+
+        server.start();
+        server.blockUntilShutdown();
     }
 
     public ScriptEngine createJSContext(JSEngine eng) throws ScriptException {

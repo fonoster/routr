@@ -9,6 +9,7 @@ buildscript {
 plugins {
     id 'java'
     id 'com.github.ben-manes.versions' version '0.17.0'
+    id 'com.google.protobuf' version '0.8.8'
 }
 
 allprojects {
@@ -18,6 +19,9 @@ allprojects {
 }
 
 dependencies {
+    compile 'io.grpc:grpc-all:1.19.0'
+    compile 'com.google.protobuf:protobuf-java:3.6.1'
+    compileOnly 'javax.annotation:javax.annotation-api:1.2'
     compile 'net.openhft:chronicle-map:3.17.6'
     compile 'log4j:log4j:1.2.17'
     compile 'org.slf4j:slf4j-nop:1.7.28'
@@ -43,6 +47,31 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
     compile 'com.sparkjava:spark-core:2.9.1'
     compile 'com.qmetric:spark-authentication:1.4'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'build/generated/source/proto/main/grpc'
+            srcDirs 'build/generated/source/proto/main/java'
+        }
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.7.0"
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.19.0"
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
 }
 
 configurations.all {
