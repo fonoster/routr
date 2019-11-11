@@ -24,7 +24,8 @@ public class GRPCServer {
     }
 
     public void start() throws IOException {
-        int port = 50055;
+        // TODO: Get this from config file :(
+        int port = 50099;
         server = ServerBuilder
           .forPort(port)
             .addService(new ControllerImpl(this.context))
