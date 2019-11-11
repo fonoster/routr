@@ -32,14 +32,14 @@ public class GRPCServer {
               .build()
                 .start();
 
-        LOG.debug("GRPC Server started, listening on " + port);
+        LOG.debug("Starting gRPC service, listening on " + port);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-              LOG.debug("*** shutting down gRPC server since JVM is shutting down");
+              LOG.debug("*** shutting down gRPC service since JVM is shutting down");
               GRPCServer.this.stop();
-              LOG.debug("*** server shut down");
+              LOG.debug("*** service shut down");
             }
         });
     }
@@ -78,7 +78,7 @@ public class GRPCServer {
                             } catch(ScriptException e) {}
                         }
                     }, 1000, 10 * 1000);
-                } else if(req.getName().equals("stop-server-now")){
+                } else if(req.getName().equals("stop-server-now")) {
                     context.eval("server.stop()");
                 }
             } catch(ScriptException e) {}
