@@ -56,8 +56,8 @@ class Registrar {
                 topic: "endpoint.add",
                 data: {
                     addressOfRecord: addressOfRecord,
-                    route: RegistrarUtils.buildRoute(addressOfRecord,
-                        request, user)
+                    route: RegistrarUtils.buildRoute(addressOfRecord, request,
+                        user)
                 }
             })
         })

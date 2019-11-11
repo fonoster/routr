@@ -127,7 +127,7 @@ class Locator {
                 this.store.remove(addressOfRecord)
                 return
             }
-            this.store.put(addressOfRecord, routes)
+            this.store.put(addressOfRecord, JSON.stringify(routes))
         }
     }
 
