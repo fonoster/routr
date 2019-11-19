@@ -51,10 +51,10 @@ class ContextStorage {
 
             if (context.clientTransaction.getBranchId() === transactionId ||
                 context.serverTransaction.getBranchId() === transactionId) {
-                LOG.debug(`core.ContextStorage.findContext [context: ${JSON.stringify(context)}]`)
                 return context
             }
         }
+        LOG.debug(`core.ContextStorage.findContext [context for transactionId: ${transactionId}] does not exist`)
     }
 
     removeContext(transactionId) {
