@@ -80,6 +80,9 @@ public class Launcher {
         }, 10 * 1000, 60 * 1000);
 
         // TODO: This should be configurable
+        // XXX: This is causing the exception:
+        // Multi threaded access requested by thread Thread[Timer-0,5,main] but
+        // is not allowed for language(s) js.
         timer.schedule(new TimerTask() {
             @Override
             public void run () {

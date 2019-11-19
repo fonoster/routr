@@ -6,6 +6,7 @@ const DSUtils = require('@routr/data_api/utils')
 const FilesUtil = require('@routr/utils/files_util')
 const File = Java.type('java.io.File')
 const System = Java.type('java.lang.System')
+const InetAddress = Java.type('java.net.InetAddress')
 const UUID = Java.type('java.util.UUID')
 
 const upSince = new Date().getTime()
@@ -29,7 +30,9 @@ function loadConfig(upSince) {
     config.system = getSystemConfig(upSince)
 
     if (config.spec.registrarIntf === undefined) config.spec.registrarIntf = 'External'
-    if (config.spec.bindAddr === undefined) config.spec.bindAddr = '0.0.0.0'
+    // Trying to use 0.0.0.0 or :: causes routing issues
+    if (config.spec.bindAddr === undefined) config.spec.bindAddr = InetAddress
+        .getLocalHost().getHostAddress()
     //if (config.spec.logging === undefined) config.spec.logging = {
     //    traceLevel: '0'
     //}
@@ -54,7 +57,8 @@ function getRestfulPresets(rs) {
     if (restService.unsecured === undefined) restService.unsecured = false
     if (restService.trustStore === undefined) restService.trustStore = null
     if (restService.trustStorePassword === undefined) restService.trustStorePassword = null
-    if (restService.bindAddr === undefined) restService.bindAddr = '0.0.0.0'
+    if (restService.bindAddr === undefined) restService.bindAddr = InetAddress
+        .getLocalHost().getHostAddress()
     if (restService.port === undefined) restService.port = 4567
     if (restService.maxThreads === undefined) restService.maxThreads = 200
     if (restService.minThreads === undefined) restService.minThreads = 8
@@ -65,7 +69,8 @@ function getRestfulPresets(rs) {
 
 function getGRPCPresets(g) {
     const grpcService = g === undefined ? {} : g
-    if (grpcService.bindAddr === undefined) grpcService.bindAddr = '0.0.0.0'
+    if (grpcService.bindAddr === undefined) grpcService.bindAddr = InetAddress
+        .getLocalHost().getHostAddress()
     if (grpcService.port === undefined) grpcService.port = 50099
     return grpcService
 }

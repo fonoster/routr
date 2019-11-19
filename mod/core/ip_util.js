@@ -23,7 +23,9 @@ const formatNet = net => {
 }
 const hasIp = (net, addr) => subnet(formatNet(net)).contains(addr)
 const addressCount = net => cidrInfo(formatNet(net)).inclusiveNumberHosts
-const isLocalnet = (nets, addr) => nets.filter(net => hasIp(net, addr)).length > 0
+const isLocalnet = (nets, addr) => nets &&
+  nets.length > 0 &&
+  nets.filter(net => hasIp(net, addr)).length > 0
 
 module.exports.addressCount = addressCount
 module.exports.isValidIp = isValidIp

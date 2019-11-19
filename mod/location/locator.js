@@ -30,39 +30,54 @@ const Long = Java.type('java.lang.Long')
 const LOG = LogManager.getLogger()
 
 /**
- * NOTE #1: Notice that addressOfRecord.toString !eq to LocatorUtils.aorAsString(addressOfRecord).
- * This is important to ensure the location of the devices regardless of any additional
- * parameters that they may have.
+ * NOTE #1: Notice that addressOfRecord.toString !eq to
+ * LocatorUtils.aorAsString(addressOfRecord). This is to ensure the location of
+ * the devices regardless of any additional parameters that they may have.
+ *
+ * NOTE #2: The `store_` storage is used to bind the contactURI to the routes.
+ * This is needed because only the initial request will have the addressOfRecord.
+ * Subsequent request will only the contactURI causing routing issues.
  */
 class Locator {
 
     constructor() {
         this.numbersAPI = new NumbersAPI(DSSelector.getDS())
         this.store = new StoreAPI(SDSelector.getDriver()).withCollection('location')
+        this.store_ = new StoreAPI(SDSelector.getDriver()).withCollection('location_')
         this.loadStaticRoutes()
         this.subscribeToPostal()
     }
 
     addEndpoint(addressOfRecord, route) {
+        // This must be done here before we convert contactURI into a string
+        const contactURI = LocatorUtils.aorAsString(route.contactURI)
+        route.contactURI = route.contactURI.toString()
+
         LOG.debug(`location.Locator.addEndpoint [adding endpoint ${addressOfRecord} with route => ${JSON.stringify(route)}]`)
         LOG.debug(`location.Locator.addEndpoint [contactURI => ${LocatorUtils.aorAsObj(route.contactURI)}]`)
 
         let jsonRoutes = this.store.get(addressOfRecord)
         let routes = jsonRoutes ? JSON.parse(jsonRoutes) : []
 
-        route.contactURI = route.contactURI.toString()
         routes = routes
             .filter(r => !LocatorUtils.expiredRouteFilter(r))
-            .filter(r => !LocatorUtils.contactURIFilter(r.contactURI, route.contactURI))
-        routes.push(route)
+            .filter(r => !LocatorUtils.contactURIFilter(r.contactURI,
+                route.contactURI))
+
         // See NOTE #1
+        routes.push(route)
         this.store.put(addressOfRecord, JSON.stringify(routes))
+        this.store_.put(contactURI, JSON.stringify([route]))
     }
 
     findEndpoint(addressOfRecord) {
         LOG.debug(`location.Locator.findEndpoint [lookup route for aor ${addressOfRecord}]`)
 
-        const jsonRoutes = this.store.get(addressOfRecord)
+        let jsonRoutes = this.store.get(addressOfRecord)
+
+        if (jsonRoutes === null) {
+            jsonRoutes = this.store_.get(addressOfRecord)
+        }
 
         if (jsonRoutes !== null) {
             let routes = JSON.parse(jsonRoutes)
@@ -113,17 +128,17 @@ class Locator {
 
     removeEndpoint(addressOfRecord, contactURI, isWildcard) {
         LOG.debug(`location.Locator.removeEndpoint [remove route for aor => ${addressOfRecord}, isWildcard => ${isWildcard}]`)
-        // Remove all bindings
-        if (isWildcard === true) {
-            return this.store.remove(addressOfRecord)
-        }
+
+        this.store_.remove(LocatorUtils.aorAsString(contactURI))
 
         let jsonRoutes = this.store.get(addressOfRecord)
         if (jsonRoutes) {
+
             let routes = JSON.parse(jsonRoutes)
             routes = routes.filter(route => !LocatorUtils.contactURIFilter(route.contactURI, contactURI))
 
-            if (routes.length === 0) {
+            // Remove all bindings
+            if (routes.length === 0 || isWildcard === true) {
                 this.store.remove(addressOfRecord)
                 return
             }
@@ -203,7 +218,7 @@ class Locator {
             topic: "endpoint.find",
             callback: (data, envelope) => {
                 const response = this.findEndpoint(
-                    LocatorUtils.aorAsString(data.addressOfRecord))
+                  aorAsString(data.addressOfRecord))
                 postal.publish({
                     channel: "locator",
                     topic: "endpoint.find.reply",

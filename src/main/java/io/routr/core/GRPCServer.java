@@ -37,9 +37,8 @@ public class GRPCServer {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-              LOG.debug("*** shutting down gRPC service since JVM is shutting down");
+              LOG.debug("Shutting down gRPC service");
               GRPCServer.this.stop();
-              LOG.debug("*** service shut down");
             }
         });
     }

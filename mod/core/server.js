@@ -68,7 +68,7 @@ class Server {
             if(sipProvider) {
                 sipProvider.addListeningPoint(lp)
             } else {
-              sipProvider = sipStack.createSipProvider(lp)
+                sipProvider = sipStack.createSipProvider(lp)
             }
 
             LOG.info(`Listening on ${ANSI_GREEN}${curTransport.bindAddr}:${curTransport.port} [${proto}]${ANSI_RESET}`)
