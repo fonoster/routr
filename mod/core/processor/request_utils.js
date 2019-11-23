@@ -80,7 +80,7 @@ const configureRoute = (request, advertisedAddr) => {
     }
     return requestOut
 }
-const configureNextHop = (request, advertisedAddr) => {
+const configureVia = (request, advertisedAddr) => {
     const requestOut = request.clone()
     const transport = requestOut.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
     const viaHeader = headerFactory
@@ -160,7 +160,7 @@ const configureXHeaders = (request, route) => {
 
 module.exports.getAdvertizedAddr = getAdvertizedAddr
 module.exports.configureRoute = configureRoute
-module.exports.configureNextHop = configureNextHop
+module.exports.configureVia = configureVia
 module.exports.configureProxyAuthorization = configureProxyAuthorization
 module.exports.configureRequestURI = configureRequestURI
 module.exports.configureMaxForwards = configureMaxForwards

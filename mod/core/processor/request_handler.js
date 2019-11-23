@@ -17,7 +17,7 @@ const postal = require('postal')
 const {
   getAdvertizedAddr,
   configureRoute,
-  configureNextHop,
+  configureVia,
   configureProxyAuthorization,
   configureRequestURI,
   configureMaxForwards,
@@ -104,7 +104,7 @@ class RequestHandler {
         // requestOut = configureCSeq(requestOut)
         requestOut = configureProxyAuthorization(requestOut)
         requestOut = configureRoute(requestOut, advertisedAddr)
-        requestOut = configureNextHop(requestOut, advertisedAddr)
+        requestOut = configureVia(requestOut, advertisedAddr)
         requestOut = configureRecordRoute(requestOut, advertisedAddr)
         requestOut = configurePrivacy(requestOut, routeInfo)
         requestOut = configureRequestURI(requestOut, routeInfo, route)
