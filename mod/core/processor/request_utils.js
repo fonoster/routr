@@ -23,32 +23,40 @@ const SipFactory = Java.type('javax.sip.SipFactory')
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 
-const isExternalDevice = r => !r.sentByAddress || r.sentByAddress.endsWith('.invalid')
-const hasPublicAddress = r => {
-    const contactHeader = r.getHeader(ContactHeader.NAME)
-    if (!contactHeader) return false
-    const callerHost = contactHeader.getAddress().getURI().getHost()
-    return !isLocalnet(config.spec.localnets, callerHost)
-}
-const needsExternAddress = (req, rte) => isExternalDevice(rte) || hasPublicAddress(req)
+const isExternalDevice = r =>
+    r && (!r.sentByAddress || r.sentByAddress.endsWith('.invalid'))
+const isPublicAddress = h => !isLocalnet(config.spec.localnets, h)
+const needsExternAddress = (route, host) => isExternalDevice(route)
+    || isPublicAddress(host)
 const addrHost = a => a.contains(':') ? a.split(':')[0] : a
 const addrPort = (a, p) => a.contains(':') ? a.split(':')[1] : p.port
-const getAdvertizedAddr = (request, route, localAddr, externAddr) =>
-    externAddr && needsExternAddress(request, route)
+const ownedAddresss = (localAddr, externAddr) =>
+    [localAddr, { host: addrHost(externAddr),
+        port: addrPort(externAddr, localAddr) }]
+const getAdvertizedAddr = (request, route, localAddr, externAddr) => {
+    // After the initial invite the route object will be null
+    // and we need to the the target address from the request uri.
+    // If the routing is type IDR the initial request uri will be a local
+    // domain and the isLocalnet function will return a wrong result.
+    const targetAddr = route && route.contactURI ? LocatorUtils
+        .aorAsObj(route.contactURI).getHost()
+            : request.getRequestURI().getHost()
+    return externAddr && needsExternAddress(route, targetAddr)
         ? { host: addrHost(externAddr), port: addrPort(externAddr, localAddr) }
-        : { host: localAddr.host, port: localAddr.port }
+            : localAddr
+}
 const configureMaxForwards = request => {
     const requestOut = request.clone()
     const maxForwardsHeader = requestOut.getHeader(MaxForwardsHeader.NAME)
     maxForwardsHeader.decrementMaxForwards()
     return requestOut
 }
-const configureContact = (request, route) => {
+const configureContact = request => {
     const requestOut = request.clone()
     const contactHeader = requestOut.getHeader(ContactHeader.NAME)
     if (contactHeader &&
         config.spec.externAddr &&
-        hasPublicAddress(requestOut)) {
+        isPublicAddress(requestOut.getRequestURI().getHost())) {
         contactHeader.getAddress().getURI().setHost(config.spec.externAddr)
         requestOut.setHeader(contactHeader)
     }
@@ -68,36 +76,51 @@ const configureProxyAuthorization = request => {
     requestOut.removeHeader('Proxy-Authorization')
     return requestOut
 }
-const configureRoute = (request, advertisedAddr) => {
+const configureRoute = (request, localAddr) => {
     const requestOut = request.clone()
     const routeHeader = request.getHeader(RouteHeader.NAME)
     if (routeHeader) {
         const host = routeHeader.getAddress().getURI().getHost()
         const port = fixPort(routeHeader.getAddress().getURI().getPort())
-        if (host.equals(advertisedAddr.host) && port === advertisedAddr.port) {
-            requestOut.removeFirst(RouteHeader.NAME)
+        const c = ownedAddresss(localAddr, config.spec.externAddr)
+          .filter(a => a.host === host && a.port === port).length
+        if (c > 0) {
+          requestOut.removeFirst(RouteHeader.NAME)
+          requestOut.removeFirst(RouteHeader.NAME)
         }
     }
     return requestOut
 }
 const configureVia = (request, advertisedAddr) => {
     const requestOut = request.clone()
-    const transport = requestOut.getHeader(ViaHeader.NAME).getTransport().toLowerCase()
+    const transport = requestOut.getHeader(ViaHeader.NAME)
+        .getTransport().toLowerCase()
     const viaHeader = headerFactory
-        .createViaHeader(advertisedAddr.host, advertisedAddr.port, transport, null)
+        .createViaHeader(advertisedAddr.host, advertisedAddr.port,
+            transport, null)
     viaHeader.setRPort()
     requestOut.addFirst(viaHeader)
     return requestOut
 }
-const configureRecordRoute = (request, advertisedAddr) => {
+const configureRecordRoute = (request, advertisedAddr, localAddr) => {
     const requestOut = request.clone()
-    if (config.spec.recordRoute && request.getMethod().equals(Request.INVITE)) {
-        const proxyURI = addressFactory.createSipURI(null, advertisedAddr.host)
-        proxyURI.setLrParam()
-        proxyURI.setPort(advertisedAddr.port)
-        const proxyAddress = addressFactory.createAddress(proxyURI)
-        const recordRouteHeader = headerFactory.createRecordRouteHeader(proxyAddress)
-        requestOut.addHeader(recordRouteHeader)
+    if (config.spec.recordRoute) {
+        const p1 = addressFactory.createSipURI(null, localAddr.host)
+        p1.setLrParam()
+        p1.setPort(localAddr.port)
+        const pa1 = addressFactory.createAddress(p1)
+        const rr1 = headerFactory.createRecordRouteHeader(pa1)
+        requestOut.addHeader(rr1)
+
+        if (config.spec.externAddr && isPublicAddress(advertisedAddr.host)) {
+            const p2 = addressFactory.createSipURI(null,
+                addrHost(config.spec.externAddr))
+            p2.setLrParam()
+            p2.setPort(addrPort(config.spec.externAddr, localAddr))
+            const pa2 = addressFactory.createAddress(p2)
+            const rr2 = headerFactory.createRecordRouteHeader(pa2)
+            requestOut.addFirst(rr2)
+        }
     }
     return requestOut
 }
@@ -118,7 +141,7 @@ const configurePrivacy = (request, routeInfo) => {
     requestOut.removeHeader('Privacy')
     const callee = routeInfo.getCallee()
     if (callee && equalsIgnoreCase(callee.kind, 'agent')) {
-        let factoryHeader
+        let privacyHeader
 
         if (callee.spec.privacy && equalsIgnoreCase(callee.spec.privacy, 'private')) {
             const originFromHeader = requestOut.getHeader(FromHeader.NAME)
@@ -126,12 +149,12 @@ const configurePrivacy = (request, routeInfo) => {
             const fromHeader = headerFactory.createHeader('From', fromHeaderAddrs.toString())
             fromHeader.setTag(originFromHeader.getTag())
             requestOut.setHeader(fromHeader)
-            factoryHeader = headerFactory.createHeader('Privacy', 'id')
+            privacyHeader = headerFactory.createHeader('Privacy', 'id')
         } else {
-            factoryHeader = headerFactory.createHeader('Privacy', 'none')
+            privacyHeader = headerFactory.createHeader('Privacy', 'none')
         }
 
-        requestOut.addHeader(factoryHeader)
+        requestOut.addHeader(privacyHeader)
     }
     return requestOut
 }
@@ -140,7 +163,8 @@ const configureIdentity = (request, route) => {
     if (route.thruGw) {
         const remotePartyIdHeader = headerFactory
             .createHeader('Remote-Party-ID', `<sip:${route.number}@${route.gwHost}>;screen=yes;party=calling`)
-        const dp = requestOut.getHeader(FromHeader.NAME).getAddress().getDisplayName()
+        const dp = requestOut.getHeader(FromHeader.NAME)
+            .getAddress().getDisplayName()
         const displayName = dp ? `"${dp}" ` : ''
         const pAssertedIdentity = headerFactory
             .createHeader('P-Asserted-Identity', `${displayName}<sip:${route.number}@${route.gwHost}>`)
@@ -152,7 +176,8 @@ const configureIdentity = (request, route) => {
 const configureXHeaders = (request, route) => {
     const requestOut = request.clone()
     if (route.thruGw) {
-        const gwRefHeader = headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
+        const gwRefHeader =
+            headerFactory.createHeader('X-Gateway-Ref', route.gwRef)
         requestOut.setHeader(gwRefHeader)
     }
     return requestOut

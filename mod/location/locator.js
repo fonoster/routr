@@ -33,17 +33,12 @@ const LOG = LogManager.getLogger()
  * NOTE #1: Notice that addressOfRecord.toString !eq to
  * LocatorUtils.aorAsString(addressOfRecord). This is to ensure the location of
  * the devices regardless of any additional parameters that they may have.
- *
- * NOTE #2: The `store_` storage is used to bind the contactURI to the routes.
- * This is needed because only the initial request will have the addressOfRecord.
- * Subsequent request will only the contactURI causing routing issues.
  */
 class Locator {
 
     constructor() {
         this.numbersAPI = new NumbersAPI(DSSelector.getDS())
         this.store = new StoreAPI(SDSelector.getDriver()).withCollection('location')
-        this.store_ = new StoreAPI(SDSelector.getDriver()).withCollection('location_')
         this.loadStaticRoutes()
         this.subscribeToPostal()
     }
@@ -67,23 +62,17 @@ class Locator {
         // See NOTE #1
         routes.push(route)
         this.store.put(addressOfRecord, JSON.stringify(routes))
-        this.store_.put(contactURI, JSON.stringify([route]))
     }
 
     findEndpoint(addressOfRecord) {
         LOG.debug(`location.Locator.findEndpoint [lookup route for aor ${addressOfRecord}]`)
 
-        let jsonRoutes = this.store.get(addressOfRecord)
-
-        if (jsonRoutes === null) {
-            jsonRoutes = this.store_.get(addressOfRecord)
-        }
+        const jsonRoutes = this.store.get(addressOfRecord)
 
         if (jsonRoutes !== null) {
             let routes = JSON.parse(jsonRoutes)
             routes = routes
                 .filter(r => !LocatorUtils.expiredRouteFilter(r))
-
             return CoreUtils.buildResponse(Status.OK, routes)
         }
 
@@ -128,8 +117,6 @@ class Locator {
 
     removeEndpoint(addressOfRecord, contactURI, isWildcard) {
         LOG.debug(`location.Locator.removeEndpoint [remove route for aor => ${addressOfRecord}, isWildcard => ${isWildcard}]`)
-
-        this.store_.remove(LocatorUtils.aorAsString(contactURI))
 
         let jsonRoutes = this.store.get(addressOfRecord)
         if (jsonRoutes) {

@@ -28,7 +28,9 @@ const {
   configureXHeaders,
   configureCSeq
 } = require('@routr/core/processor/request_utils')
-
+const {
+    RoutingType
+} = require('@routr/core/routing_type')
 const ObjectId = Java.type('org.bson.types.ObjectId')
 const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')
@@ -72,45 +74,55 @@ class RequestHandler {
     }
 
     doProcess(transaction, request, routeInfo) {
-        const requestId = new ObjectId().toString()
-        requestStore.put(requestId, {
-            serverTransaction: transaction,
-            request,
-            routeInfo
-        })
-        postal.publish({
-            channel: "locator",
-            topic: "endpoint.find",
-            data: {
-                addressOfRecord: request.getRequestURI(),
-                requestId: requestId
-            }
-        })
+        if (request.getMethod().equals(Request.INVITE)) {
+            const requestId = new ObjectId().toString()
+            requestStore.put(requestId, {
+                serverTransaction: transaction,
+                request,
+                routeInfo
+            })
+            postal.publish({
+                channel: "locator",
+                topic: "endpoint.find",
+                data: {
+                    addressOfRecord: request.getRequestURI(),
+                    requestId: requestId
+                }
+            })
+        } else {
+            this.processRoute(transaction, request, null, routeInfo)
+        }
     }
 
     processRoute(transaction, request, route, routeInfo) {
         const transport = request.getHeader(ViaHeader.NAME).getTransport()
             .toLowerCase()
         const lp = this.sipProvider.getListeningPoint(transport)
-        const localAddr = {
-            host: lp.getIPAddress().toString(),
-            port: lp.getPort()
-        }
+        const localAddr = { host: lp.getIPAddress().toString(),
+            port: lp.getPort() }
 
         const advertisedAddr = getAdvertizedAddr(request, route, localAddr,
             config.spec.externAddr)
 
         let requestOut = configureMaxForwards(request)
-        // requestOut = configureCSeq(requestOut)
         requestOut = configureProxyAuthorization(requestOut)
-        requestOut = configureRoute(requestOut, advertisedAddr)
+        requestOut = configureRoute(requestOut, localAddr)
         requestOut = configureVia(requestOut, advertisedAddr)
-        requestOut = configureRecordRoute(requestOut, advertisedAddr)
-        requestOut = configurePrivacy(requestOut, routeInfo)
-        requestOut = configureRequestURI(requestOut, routeInfo, route)
-        requestOut = configureIdentity(requestOut, route)
-        requestOut = configureXHeaders(requestOut, route)
-        requestOut = configureContact(requestOut, route)
+        //requestOut = configureContact(requestOut)
+
+        if (request.getMethod().equals(Request.INVITE)) {
+            requestOut = configureRequestURI(requestOut, routeInfo, route)
+            requestOut = configurePrivacy(requestOut, routeInfo)
+            requestOut = configureIdentity(requestOut, route)
+            requestOut = configureXHeaders(requestOut, route)
+            requestOut = configureRecordRoute(requestOut, advertisedAddr,
+                localAddr)
+        }
+
+        if (routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING) {
+            // XXX: Please document this situation :(
+            requestOut = configureCSeq(requestOut)
+        }
 
         LOG.debug(`core.processor.RequestHandler.processRoute [advertised addr ${JSON.stringify(advertisedAddr)}]`)
         LOG.debug(`core.processor.RequestHandler.processRoute [route ${JSON.stringify(route)}]`)
