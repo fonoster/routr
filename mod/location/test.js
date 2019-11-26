@@ -15,7 +15,6 @@ const addressFactory = SipFactory.getInstance().createAddressFactory()
 
 describe('Location Service Module', () => {
     let locator
-    const contactURI = 'sip:1001@192.168.1.2'
     const agentEndpoint = buildEndpoint('1001', 'sip.local', '192.168.1.2:5061')
     const peerEndpoint = buildEndpoint('ast', '192.168.1.2:5061', '192.168.1.2:5061')
 
@@ -43,24 +42,11 @@ describe('Location Service Module', () => {
 
     it('Add/remove local endpoint', function(done) {
         locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
-
         let response = locator.findEndpoint(agentEndpoint.aor)
         assert.ok(response.data.length > 0)
-
-        response = locator
-          .findEndpoint(contactURI)
-        assert.ok(response.data.length > 0)
-
-        const currentCount = response.data.length
         locator.removeEndpoint(agentEndpoint.aor, agentEndpoint.route.contactURI)
-
         response = locator.findEndpoint(agentEndpoint.aor)
         assert.notEqual(response.status, Status.OK)
-
-        response = locator
-          .findEndpoint(LocatorUtils.aorAsString(agentEndpoint.route.contactURI))
-        assert.notEqual(response.status, Status.OK)
-
         done()
     })
 
