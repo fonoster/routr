@@ -101,8 +101,7 @@ class RequestHandler {
         const localAddr = { host: lp.getIPAddress().toString(),
             port: lp.getPort() }
 
-        const advertisedAddr = getAdvertizedAddr(request, route, localAddr,
-            config.spec.externAddr)
+        const advertisedAddr = getAdvertizedAddr(request, route, localAddr)
 
         let requestOut = configureMaxForwards(request)
         requestOut = configureProxyAuthorization(requestOut)

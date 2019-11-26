@@ -30,10 +30,11 @@ const needsExternAddress = (route, host) => isExternalDevice(route)
     || isPublicAddress(host)
 const addrHost = a => a.contains(':') ? a.split(':')[0] : a
 const addrPort = (a, p) => a.contains(':') ? a.split(':')[1] : p.port
-const ownedAddresss = (localAddr, externAddr) =>
-    [localAddr, { host: addrHost(externAddr),
+const ownedAddresss = (localAddr) => config.spec.externAddr
+    ? [localAddr, { host: addrHost(externAddr),
         port: addrPort(externAddr, localAddr) }]
-const getAdvertizedAddr = (request, route, localAddr, externAddr) => {
+    : [localAddr]
+const getAdvertizedAddr = (request, route, localAddr) => {
     // After the initial invite the route object will be null
     // and we need to the the target address from the request uri.
     // If the routing is type IDR the initial request uri will be a local
@@ -41,7 +42,9 @@ const getAdvertizedAddr = (request, route, localAddr, externAddr) => {
     const targetAddr = route && route.contactURI ? LocatorUtils
         .aorAsObj(route.contactURI).getHost()
             : request.getRequestURI().getHost()
-    return externAddr && needsExternAddress(route, targetAddr)
+    const externAddr = config.spec.externAddr
+    return localAddr
+    return config.spec.externAddr && needsExternAddress(route, targetAddr)
         ? { host: addrHost(externAddr), port: addrPort(externAddr, localAddr) }
             : localAddr
 }
