@@ -10,13 +10,16 @@ jobs:
         uses: samuelmeuli/action-snapcraft@v1
         with:
           snapcraft_token: ${{ secrets.SNAPCRAFT_TOKEN }}
-      - name: Build snap
+      - name: Build and publish snap
         env:
           ROUTR_VERSION: 1.0.0-rc4
           SNAPCRAFT_BUILD_ENVIRONMENT: host
-        run: cd .snapcraft && snapcraft snap
+        run: |
+        cd .snapcraft
+        snapcraft snap --output=routr-server_$ROUTR_VERSION_amd64.snap
+        snapcraft push --release=candidate routr-server_$ROUTR_VERSION_amd64.snap
       - name: Publish snap
-        run: cd .snapcraft && snapcraft push routr-server_$ROUTR_VERSION_amd64.snap
+        run: cd .snapcraft &&
 
 #ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
   #push:
