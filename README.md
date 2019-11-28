@@ -129,7 +129,7 @@ Routr's main features are:
 
 - Typical SIP Server functions; Proxy, Registrar, Location Service
 - Multi-Tenant/Multi-Domain with Domain level Access Control List
-- Transport: TCP, UDP, TLS, WebSocket
+- Transport: TCP, UDP, TLS, WS, WSS
 - Currently supports Redis and YAML files as the data source
 - Server management and monitoring with the RESTful API, CLI, and Web Console
 - Configurable routing strategies; Intra-Domain, Domain Ingress, Domain Egress and Peer Egress
