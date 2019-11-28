@@ -1,27 +1,24 @@
 name: Publish to Snapcraft marketplace
 on: push
-  #push:
-  #  tags: ['1.0.0-rc*']
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=ROUTR_VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
       - name: Install Snapcraft
         uses: samuelmeuli/action-snapcraft@v1
         with:
           snapcraft_token: ${{ secrets.SNAPCRAFT_TOKEN }}
       - name: Publish to marketplace
         env:
-          #ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
           ROUTR_VERSION: 1.0.0-rc4
         run: |
           cd .snapcraft
-          sed s/#{ROUTR_VERSION}/$ROUTR_VERSION/ snap/snapcraft.yaml > snap/snapcraft.yaml
           cat snap/snapcraft.yaml
           snapcraft build
           snapcraft push routr-server_$ROUTR_VERSION_amd64.snap
+
+#ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
+  #push:
+  #  tags: ['1.0.0-rc*']
