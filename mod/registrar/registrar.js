@@ -80,7 +80,7 @@ class Registrar {
             }
         }
 
-        LOG.debug(`registrar.Registrar.getUserFromAPI [Can't authenticate Agent => ${username}]`)
+        LOG.debug(`registrar.Registrar.getUserFromAPI [Can't authenticate user => ${username}]`)
 
         return null
     }
