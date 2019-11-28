@@ -1,4 +1,4 @@
-name: Publish to Docker Registry
+name: Publish to Docker registry
 on:
   push:
     tags: ['1.0.0-rc*']
