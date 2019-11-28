@@ -8,11 +8,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Publish to Registry
+      - name: Publish to Registry(pushed tag)
+        env:
+          SERVER_VERSION: ${{ github.ref }}
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           workdir: .docker
-          tag_names: true
+          buildargs: SERVER_VERSION
+          tag_names: true        
+      - name: Publish to Registry(latest tag)
+        env:
+          SERVER_VERSION: ${{ github.ref }}
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          workdir: .docker
+          buildargs: SERVER_VERSION
