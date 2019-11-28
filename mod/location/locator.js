@@ -56,6 +56,7 @@ class Locator {
 
         routes = routes
             .filter(r => !LocatorUtils.expiredRouteFilter(r))
+            .filter(r => !LocatorUtils.sameSourceFilter(r, route))
             .filter(r => !LocatorUtils.contactURIFilter(r.contactURI,
                 route.contactURI))
 

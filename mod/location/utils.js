@@ -17,9 +17,13 @@ class LocatorUtils {
         return fixPort(uriObj.getPort())
     }
 
-    static expiredRouteFilter(route) {
-        const elapsed = (Date.now() - route.registeredOn) / 1000
-        return route.expires - elapsed <= 0
+    static expiredRouteFilter(r) {
+        const elapsed = (Date.now() - r.registeredOn) / 1000
+        return r.expires - elapsed <= 0
+    }
+
+    static sameSourceFilter(r1, r2) {
+        return r1.received.equals(r2.received) && r1.sentByPort === r2.sentByPort
     }
 
     static contactURIFilter(c1, c2) {

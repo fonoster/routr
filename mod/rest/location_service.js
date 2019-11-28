@@ -21,7 +21,7 @@ const del = Java.type('spark.Spark').delete
 function routeFromString(routes) {
     let contactInfo = ''
 
-    const rObj = routes[0]
+    const rObj = routes.sort((a, b) => a.registeredOn > b.registeredOn)[0]
     let r = `${rObj.contactURI};nat=${rObj.nat};expires=${rObj.expires}`
 
     if (routes.length > 1) r = `${r} [...]`
@@ -38,9 +38,11 @@ module.exports = function(store) {
     get('/location', (req, res) => {
         const items = store.withCollection('location')
             .values()
-            .map(entries => JSON.parse(entries))
-            .filter(e => e[0].thruGw === false)
-            .filter(e => !LocatorUtils.expiredRouteFilter(e))
+            .map(e => JSON.parse(e))
+            .filter(e => !e[0].thruGw)
+            .filter(e =>
+                e.filter(r => !LocatorUtils.expiredRouteFilter(r)).length > 0
+            )
             .map(e => routeFromString(e))
 
         let page = 1
