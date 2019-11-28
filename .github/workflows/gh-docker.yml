@@ -8,9 +8,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
       - name: Publish to Registry(pushed tag)
         env:
-          SERVER_VERSION: ${{ github.ref }}
+          SERVER_VERSION: ${{ steps.get_version.outputs.VERSION }}
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr
@@ -18,10 +21,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           workdir: .docker
           buildargs: SERVER_VERSION
-          tag_names: true        
+          tag_names: true
       - name: Publish to Registry(latest tag)
         env:
-          SERVER_VERSION: ${{ github.ref }}
+          SERVER_VERSION: ${{ steps.get_version.outputs.VERSION }}
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr
