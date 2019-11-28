@@ -16,9 +16,8 @@ jobs:
         run: |
           sudo snap install multipass --classic --beta
           cd .snapcraft
-          snapcraft --help
-          snapcraft
-          #snapcraft push routr-server_$ROUTR_VERSION_amd64.snap
+          sudo snapcraft
+          sudo snapcraft push routr-server_$ROUTR_VERSION_amd64.snap
 
 #ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
   #push:
