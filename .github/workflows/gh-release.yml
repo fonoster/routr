@@ -40,5 +40,5 @@ jobs:
           artifacts: "routr-1.*"
           bodyFile: "RELEASE.md"
           draft: true
-          tag: ${{ steps.get_version.outputs.ROUTR_VERSION }} s
+          tag: ${{ steps.get_version.outputs.ROUTR_VERSION }}
           token: ${{ secrets.GITHUB_TOKEN }}
