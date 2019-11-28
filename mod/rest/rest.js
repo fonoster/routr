@@ -153,7 +153,7 @@ class Rest {
                 return JSON.stringify(DSUtils.paginate(items, page, itemsPerPage))
             })
 
-            locationService(this.store)
+            locationService(this.store, this.grpc)
 
             resourcesService(new AgentsAPI(ds), 'Agent')
             resourcesService(new PeersAPI(ds), 'Peer')

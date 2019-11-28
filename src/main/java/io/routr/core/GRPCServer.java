@@ -79,6 +79,8 @@ public class GRPCServer {
                     }, 1000, 10 * 1000);
                 } else if(req.getName().equals("stop-server-now")) {
                     context.eval("server.stop()");
+                } else if(req.getName().equals("evict-all")) {
+                    context.eval("server.locator.evictAll()");
                 }
             } catch(ScriptException e) {}
             responseObserver.onNext(reply);

@@ -223,9 +223,7 @@ class Locator {
         LOG.debug(`location.Locator.evictAll [emptying location table]`)
         // WARNING: Should we provide a way to disable this?
         const keys = this.store.keySet()
-        keys.forEach(key => {
-            this.store.remove(key)
-        })
+        keys.forEach(key => this.store.remove(key))
         LOG.debug(`location.Locator.evictAll [evicted ${keys.length} entries from location table]`)
     }
 }

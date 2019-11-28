@@ -33,7 +33,7 @@ function routeFromString(routes) {
     }
 }
 
-module.exports = function(store) {
+module.exports = function(store, grpc) {
 
     get('/location', (req, res) => {
         const items = store.withCollection('location')
@@ -115,12 +115,12 @@ module.exports = function(store) {
         res.status(200)
         res.body('{\"status\": \"200\", \"message\":\"Location entry evicted.\"}')
         return '{\"status\": \"200\", \"message\":\"Location entry evicted.\"}'
-    })
+    })*/
 
     del('/location', (req, res) => {
-        locator.evictAll()
+        grpc.run('evict-all')
         res.status(200)
         res.body('{\"status\": \"200\", \"message\":\"Evicted All!\"}')
         return '{\"status\": \"200\", \"message\":\"Evicted All!\"}'
-    })*/
+    })
 }
