@@ -16,7 +16,7 @@ Perhaps the easiest way to create a valid certificate for Routr is using a self-
 keytool -genkey -keyalg RSA \
  -noprompt \
  -alias routr \
- -keystore domain-certs.jks \
+ -keystore domains-cert.jks \
  -storepass changeit \
  -keypass changeit \
  -validity 365 \
