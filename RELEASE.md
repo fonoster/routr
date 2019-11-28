@@ -5,13 +5,12 @@ The areas of focus for RC4 are:
 - [x] Bring [`GraalJS`](https://www.graalvm.org) as the default JS engine
 - [x] Re-write the `Location` module to improve performance
 - [x] Review the architecture to allow for better decoupling and scalability
-- [ ] Work on bringing the server to the following platforms:
+- [x] Work on bringing the server to the following platforms:
     - [x] Ubuntu Snaps
-    - [ ] DigitalOcean droplet
-    - [ ] Layershift
-    - [ ] Yunohost.org
-    - [ ] DPlatform
-    - [ ] Cloudron.io
-    - [ ] Scalingo
+    - [x] DigitalOcean droplet
+    - [x] Docker
+    - [x] Kubernetes
+    - [x] Google Cloud Shell
+    - [x] Custom
+- [x] Add experimental support for IPv6
 - [ ] Bring the [`routr-ui`](https://github.com/fonoster/routr-ui) to a beta version
-- [ ] Add experimental support for IPv6
