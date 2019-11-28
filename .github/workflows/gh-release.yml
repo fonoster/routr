@@ -17,7 +17,7 @@ jobs:
         uses: zhulik/redis-action@v1.0.0
         with:
           redis version: '5'
-      - name: Build and Test
+      - name: Build
         env:
           CC_TEST_REPORTER_ID: 19325f806984a923fa5ca65ee90ca519fc2bf3debc03634943aa36c5e57f6207
         run: |
@@ -26,19 +26,19 @@ jobs:
           npm i
           npm test
           ./cc-test-reporter after-build --exit-code $?
+      - name: Get version
+        id: get_version
+        run: echo ::set-output name=ROUTR_VERSION::$(node -e "console.log(require('./package.json').version)")
       - name: Package
-        run: |
-          export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
-          ./distro.sh
-          ls
-      - name: Publish Draft Release
+        env:
+          ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
+        run: ./distro.sh
+      - name: Publish draft release
         uses: ncipollo/release-action@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          run: export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
-          name: Routr 1.0
+          name: Routr 1.0 (Draft)
           artifacts: "routr-1.*"
           bodyFile: "RELEASE.md"
           draft: true
-          tag: ${{ github.ref }}
+          tag: ${{ steps.get_version.outputs.ROUTR_VERSION }} s
           token: ${{ secrets.GITHUB_TOKEN }}
