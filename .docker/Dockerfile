@@ -2,7 +2,7 @@ FROM debian:buster-20190812
 MAINTAINER Pedro Sanders <fonosterteam@fonoster.com>
 
 ENV LANG C.UTF-8
-ENV SERVER_VERSION 1.0.0-rc3
+ENV SERVER_VERSION 1.0.0-rc4
 
 WORKDIR /opt/routr
 
