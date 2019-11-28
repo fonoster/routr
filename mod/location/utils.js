@@ -23,7 +23,7 @@ class LocatorUtils {
     }
 
     static sameSourceFilter(r1, r2) {
-        return r1.received.equals(r2.received) && r1.sentByPort === r2.sentByPort
+        return r1.received === r2.received && r1.sentByPort === r2.sentByPort
     }
 
     static contactURIFilter(c1, c2) {

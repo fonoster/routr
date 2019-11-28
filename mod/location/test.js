@@ -111,13 +111,14 @@ function testFE(locator, aor, thruGw = false) {
 function buildEndpoint(username, domain, host, expires = 60) {
     const aor = addressFactory.createSipURI(username, domain)
     const contactURI = addressFactory.createSipURI(username, host)
+    const port = Math.floor(Math.random() * 6000) + 5080
     return {
         aor: LocatorUtils.aorAsString(aor),
         route: {
             isLinkAOR: false,
             thruGw: false,
             sentByAddress: 'localhost',
-            sentByPort: 5060,
+            sentByPort: port,
             received: 'remotehost',
             rport: 5061,
             contactURI: contactURI,
