@@ -22,5 +22,6 @@ jobs:
         run: |
           cd .snapcraft
           sed s/#{ROUTR_VERSION}/$ROUTR_VERSION/ snap/snapcraft.yaml > snap/snapcraft.yaml
+          cat snap/snapcraft.yaml
           snapcraft build
           snapcraft push routr-server_$ROUTR_VERSION_amd64.snap
