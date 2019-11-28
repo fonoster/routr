@@ -14,9 +14,9 @@ jobs:
         env:
           ROUTR_VERSION: 1.0.0-rc4
           SNAPCRAFT_BUILD_ENVIRONMENT: host
-        run: snapcraft snap
+        run: cd .snapcraft && snapcraft snap
       - name: Publish snap
-        run: snapcraft push routr-server_$ROUTR_VERSION_amd64.snap
+        run: cd .snapcraft && snapcraft push routr-server_$ROUTR_VERSION_amd64.snap
 
 #ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
   #push:
