@@ -2,6 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const LOG = LogManager.getLogger()
+
 module.exports = config => {
     const Properties = Java.type('java.util.Properties')
     const FileInputStream = Java.type('java.io.FileInputStream')
@@ -37,9 +40,11 @@ module.exports = config => {
     }
 
     try {
-      const filesPath = config.spec.dataSource.parameters.path
-      properties.load(new FileInputStream(`${filesPath}/stack.properties`))
-    } catch (e) {}
+        properties.load(new FileInputStream('config/stack.properties'))
+        LOG.debug(`core.server_properties [server properties => ${properties}]`)
+    } catch (e) {
+        LOG.warn(e)
+    }
 
     return properties
 }

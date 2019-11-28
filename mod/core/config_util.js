@@ -107,7 +107,7 @@ function getDefaultSecContext(sc) {
     }
 
     if (securityContext.client.authType === undefined) {
-        securityContext.client.authType = 'Disabled'
+        securityContext.client.authType = 'DisabledAll'
     }
 
     if (securityContext.client.protocols === undefined) {
