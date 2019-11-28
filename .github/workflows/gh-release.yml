@@ -23,7 +23,7 @@ jobs:
           export JAVA_HOME=$GRAALVM_HOME
           npm i
           npm test
-          ./cc-test-reporter after-build --exit-code
+          ./cc-test-reporter after-build --exit-code 0
       - name: Package
         run: |
           export ROUTR_VERSION=$(cut -d'/' -f3 <<<"${{ github.ref }}")
