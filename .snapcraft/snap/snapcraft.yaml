@@ -1,6 +1,6 @@
 name: routr-server
 base: core18
-version: 1.0.0-rc4
+version: #{ROUTR_VERSION}
 license: MIT
 summary: Next-generation SIP Server
 description: |

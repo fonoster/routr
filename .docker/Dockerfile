@@ -2,16 +2,16 @@ FROM debian:buster-20190812
 MAINTAINER Pedro Sanders <fonosterteam@fonoster.com>
 
 ENV LANG C.UTF-8
-ARG SERVER_VERSION=1.0.0-rc4
+ARG ROUTR_VERSION=1.0.0-rc4
 
 WORKDIR /opt/routr
 
 RUN apt-get update && apt-get install wget -y \
-    && wget https://github.com/fonoster/routr/releases/download/$SERVER_VERSION/routr-${SERVER_VERSION}_linux-x64_bin.tar.gz \
-    && tar xvf routr-${SERVER_VERSION}_linux-x64_bin.tar.gz \
-    && mv routr-${SERVER_VERSION}_linux-x64_bin/* . \
-    && rm -rf routr-${SERVER_VERSION}_linux-x64_bin.tar.gz \
-       routr-${SERVER_VERSION}_linux-x64_bin \
+    && wget https://github.com/fonoster/routr/releases/download/${ROUTR_VERSION}/routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz \
+    && tar xvf routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz \
+    && mv routr-${ROUTR_VERSION}_linux-x64_bin/* . \
+    && rm -rf routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz \
+       routr-${ROUTR_VERSION}_linux-x64_bin \
        routr.bat \
     && apt-get purge wget -y \
     && apt-get autoremove -y
