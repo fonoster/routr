@@ -19,8 +19,6 @@ jobs:
           SNAPCRAFT_BUILD_ENVIRONMENT: host
         run: |
           cd .snapcraft
-          echo ${{ steps.get_version.outputs.ROUTR_VERSION }}
-          sed s/#{ROUTR_VERSION}/${ROUTR_VERSION}/ snap/snapcraft.yaml > snap/snapcraft.yaml
-          cat snap/snapcraft.yaml
-          #snapcraft snap --output=routr-server_${ROUTR_VERSION}_amd64.snap
-          #snapcraft push --release=candidate routr-server_${ROUTR_VERSION}_amd64.snap
+          sed -i.bak s/#{ROUTR_VERSION}/${ROUTR_VERSION}/ snap/snapcraft.yaml snap/snapcraft.yaml
+          snapcraft snap --output=routr-server_${ROUTR_VERSION}_amd64.snap
+          snapcraft push --release=candidate routr-server_${ROUTR_VERSION}_amd64.snap
