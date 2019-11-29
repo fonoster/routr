@@ -2,6 +2,8 @@
 
 set -e
 
+export ROUTR_VERSION=$(node -e "console.log(require('./package.json').version)")
+
 build_for_platform() {
     PLATFORM=$1
     DOWNLOAD_FILE=$2
@@ -15,6 +17,7 @@ build_for_platform() {
     mkdir $BUILD_NAME/etc
 
     cp -a config/*.yml $BUILD_NAME/config
+    cp -a config/stack.properties $BUILD_NAME/config/stack.properties
     cp -a etc/certs $BUILD_NAME/etc
     cp -a etc/schemas $BUILD_NAME/etc
     cp libs/* $BUILD_NAME/libs
@@ -30,6 +33,6 @@ build_for_platform() {
     rm -rf $BUILD_NAME
 }
 
-build_for_platform 'windows' 'jre-12.0.2_windows-x64_bin.tar.gz'
-build_for_platform 'linux' 'jre-12.0.2_linux-x64_bin.tar.gz'
-build_for_platform 'osx' 'jre-12.0.1_osx-x64_bin.tar.gz'
+build_for_platform 'windows' 'jre-9.0.4_windows-x64_bin.tar.gz'
+build_for_platform 'linux' 'jre-9.0.4_linux-x64_bin.tar.gz'
+build_for_platform 'osx' 'jre-9.0.1_osx-x64_bin.tar.gz'
