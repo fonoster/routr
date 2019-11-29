@@ -46,7 +46,8 @@ class RedisDataSource {
         this.parameters = DSUtils.getParameters(config, defaultRedisParameters,
             ['host', 'port', 'secret'])
 
-        this.jedisPool = new JedisPool(this.buildPoolConfig(), this.parameters.host, this.parameters.port)
+        this.jedisPool = new JedisPool(this.buildPoolConfig(),
+            this.parameters.host, parseInt(this.parameters.port))
 
         if (this.withCollection('users').find().data.length === 0) {
             LOG.info("No user found. Creating default 'admin' user.")
@@ -72,8 +73,10 @@ class RedisDataSource {
         poolConfig.setTestOnBorrow(true)
         poolConfig.setTestOnReturn(true)
         poolConfig.setTestWhileIdle(true)
-        poolConfig.setMinEvictableIdleTimeMillis(Duration.ofSeconds(60).toMillis())
-        poolConfig.setTimeBetweenEvictionRunsMillis(Duration.ofSeconds(30).toMillis())
+        poolConfig.setMinEvictableIdleTimeMillis(Duration.ofSeconds(60)
+            .toMillis())
+        poolConfig.setTimeBetweenEvictionRunsMillis(Duration.ofSeconds(30)
+            .toMillis())
         poolConfig.setNumTestsPerEvictionRun(3)
         poolConfig.setBlockWhenExhausted(true)
         return poolConfig
@@ -123,7 +126,8 @@ class RedisDataSource {
         try {
             jedis = this.getJedisConn()
             const data = JSON.parse(jedis.get(ref))
-            return data === null ? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK, data)
+            return data === null ? CoreUtils.buildResponse(Status.NOT_FOUND) :
+                CoreUtils.buildResponse(Status.OK, data)
         } catch (e) {
             return CoreUtils.buildErrResponse(e)
         } finally {
@@ -146,15 +150,16 @@ class RedisDataSource {
             if (list.length === 0) {
                 return CoreUtils.buildResponse(Status.OK, [])
             }
-            // JsonPath does not parse properly when using Json objects from JavaScript
+            // JsonPath doesn't parse properly when using Json objects from JS
             list = JsonPath.parse(JSON.stringify(list))
                 .read(DSUtils.transformFilter(filter))
                 .toJSONString()
 
             return DSUtils.paginate(JSON.parse(list), page, itemsPerPage)
         } catch (e) {
-            return e instanceof InvalidPathException ? CoreUtils.buildResponse(Status.BAD_REQUEST, null, e) :
-                CoreUtils.buildErrResponse(e)
+            return e instanceof InvalidPathException ?
+                CoreUtils.buildResponse(Status.BAD_REQUEST, null, e) :
+                    CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -175,8 +180,9 @@ class RedisDataSource {
 
             return CoreUtils.buildResponse(Status.OK, obj.metadata.ref)
         } catch (e) {
-            return e instanceof InvalidPathException ? CoreUtils.buildResponse(Status.BAD_REQUEST, null, e) :
-                CoreUtils.buildErrResponse(e)
+            return e instanceof InvalidPathException ?
+                CoreUtils.buildResponse(Status.BAD_REQUEST, null, e) :
+                    CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
                 jedis.close()
@@ -197,7 +203,9 @@ class RedisDataSource {
 
             cnt = jedis.srem(this.collection, ref)
 
-            return cnt === 0 ? CoreUtils.buildResponse(Status.NOT_FOUND) : CoreUtils.buildResponse(Status.OK)
+            return cnt === 0 ?
+                CoreUtils.buildResponse(Status.NOT_FOUND) :
+                    CoreUtils.buildResponse(Status.OK)
         } catch (e) {
             return CoreUtils.buildErrResponse(e)
         } finally {

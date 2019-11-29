@@ -18,7 +18,7 @@ class RedisStore {
         this.parameters = DSUtils.getParameters(config, defaultRedisParameters,
             ['host', 'port', 'secret'])
         this.jedisPool = new JedisPool(this.buildPoolConfig(),
-            this.parameters.host, this.parameters.port)
+            this.parameters.host, parseInt(this.parameters.port))
     }
 
     getJedisConn() {
