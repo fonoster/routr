@@ -6,11 +6,17 @@ _config.yml
 *.tar.gz
 *.zip
 *.jar
+*.dat
+jre-*
+*_osx-x64_bin.tar.gz
+*_windows-x64_bin.tar.gz
 .DS_Store
 .dockerignore
 .git
 .gitignore
 .gradle
 .idea
+.snapcraft
+src
 build
 node_modules
