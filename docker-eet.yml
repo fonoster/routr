@@ -15,7 +15,7 @@ services:
     image: fonoster/routr:latest
     entrypoint: |
       sh -c '
-        while ! nc -z routr 6379 > /dev/null 2>&1; do sleep 0.1; done
+        while ! nc -z redis 6379 > /dev/null 2>&1; do sleep 0.1; done
         ./routr
       '
     environment:
