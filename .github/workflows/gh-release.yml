@@ -18,6 +18,9 @@ jobs:
         uses: zhulik/redis-action@v1.0.0
         with:
           redis version: '5'
+      - name: Get version
+        id: get_version
+        run: echo ::set-output name=ROUTR_VERSION::$(node -e "console.log(require('./package.json').version)")
       - name: UTs
         env:
           CC_TEST_REPORTER_ID: 19325f806984a923fa5ca65ee90ca519fc2bf3debc03634943aa36c5e57f6207
@@ -27,15 +30,14 @@ jobs:
           npm i
           npm test
           ./cc-test-reporter after-build --exit-code $?
-      - name: EETs
-        run: docker-compose -f docker-eet.yml up --abort-on-container-exit --exit-code-from routr-eet
-      - name: Get version
-        id: get_version
-        run: echo ::set-output name=ROUTR_VERSION::$(node -e "console.log(require('./package.json').version)")
-      - name: Package
+      - name: Create dist files
         env:
           ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
         run: ./distro.sh
+      - name: EETs
+        env:
+          ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
+        run: docker-compose -f docker-eet.yml up --abort-on-container-exit --exit-code-from routr-eet
       - name: Publish draft release
         uses: ncipollo/release-action@v1
         with:
