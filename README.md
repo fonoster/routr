@@ -3,7 +3,7 @@
 
 <hr/>
 
-[![Build Status](https://github.com/fonoster/routr/workflows/build/badge.svg)](https://github.com/fonoster/routr/actions?workflow=build) [![Maintainability](https://api.codeclimate.com/v1/badges/49ea061777d76c003b71/maintainability)](https://codeclimate.com/github/fonoster/routr/maintainability)
+[![Build Status](https://github.com/fonoster/routr/workflows/build/badge.svg)](https://github.com/fonoster/routr/actions?workflow=build) [![End to End Test Status](https://github.com/fonoster/routr-eet/workflows/eet/badge.svg)](https://github.com/fonoster/routr-eet/actions?workflow=eet) [![Maintainability](https://api.codeclimate.com/v1/badges/49ea061777d76c003b71/maintainability)](https://codeclimate.com/github/fonoster/routr/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/49ea061777d76c003b71/test_coverage)](https://codeclimate.com/github/fonoster/routr/test_coverage)
 [![Join the chat Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/fonoster/routr?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Join the chat on Slack](https://img.shields.io/badge/slack-join%20chat-pink.svg)](https://fonosterteam.typeform.com/to/Xy8Oc0)
