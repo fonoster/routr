@@ -31,8 +31,8 @@ const needsExternAddress = (route, host) => isExternalDevice(route)
 const addrHost = a => a.contains(':') ? a.split(':')[0] : a
 const addrPort = (a, p) => a.contains(':') ? a.split(':')[1] : p.port
 const ownedAddresss = (localAddr) => config.spec.externAddr
-    ? [localAddr, { host: addrHost(externAddr),
-        port: addrPort(externAddr, localAddr) }]
+    ? [localAddr, { host: addrHost(config.spec.externAddr),
+        port: addrPort(config.spec.externAddr, localAddr) }]
     : [localAddr]
 const getAdvertizedAddr = (request, route, localAddr) => {
     // After the initial invite the route object will be null
