@@ -1,8 +1,8 @@
-version: '3.2'
+version: '3.7'
 services:
   routr:
     build:
-      context: .docker
+      context: .
     image: fonoster/routr:latest
     depends_on: [redis]
     environment:
@@ -20,5 +20,4 @@ services:
     image: redis:4.0.5-alpine
     command: ['redis-server', '--appendonly', 'yes']
     hostname: redis
-    ports:
-      - '6379:6379'
+    expose: [6379]

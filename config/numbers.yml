@@ -1,6 +1,7 @@
 - apiVersion: v1beta1
   kind: Number
   metadata:
+    ref: dd76afc94b
     gwRef: gw50a1a4ca
     geoInfo:                  # Replace this using your DID's info
       city: City, State

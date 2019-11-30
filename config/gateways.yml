@@ -1,6 +1,7 @@
 - apiVersion: v1beta1
   kind: Gateway
   metadata:
+    ref: gw50a1a4ca
     name: Provider Inc.
   spec:
     host: sip.provider.net

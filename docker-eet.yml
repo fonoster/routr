@@ -7,15 +7,16 @@ services:
   routr-eet:
     image: fonoster/routr-eet:latest
     expose: [5061, 5062]
+    env_file: .env
   routr:
     links:
       - "routr-eet:sip.provider.net"
-    #build:
-    #  context: .
+    build:
+      context: .
     image: fonoster/routr:latest
     entrypoint: |
       sh -c '
-        while ! nc -z redis 6379 > /dev/null 2>&1; do sleep 0.1; done
+        while ! nc -z redis 6379; do sleep 0.1; done
         ./routr
       '
     environment:
@@ -28,12 +29,12 @@ services:
       context: .rctl
     entrypoint: |
       sh -c '
-        while ! nc -z routr 4567 > /dev/null 2>&1; do sleep 0.1; done
+        while ! nc -z routr 4567; do sleep 0.1; done
         rctl login https://routr:4567/api/v1beta1 -u admin -p changeit
-        rctl create -f /opt/routr/gateways.yml
-        rctl create -f /opt/routr/numbers.yml
-        rctl create -f /opt/routr/domains.yml
-        rctl create -f /opt/routr/agents.yml
+        rctl create -f /opt/routr/config/gateways.yml
+        rctl create -f /opt/routr/config/numbers.yml
+        rctl create -f /opt/routr/config/domains.yml
+        rctl create -f /opt/routr/config/agents.yml
         while sleep 3600; do :; done
       '
     volumes:
