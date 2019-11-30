@@ -1,6 +1,8 @@
 name: Publish to GH Pages
 on:
   push:
+    paths:
+    - 'docs/**'
     branches:
     - master
 jobs:

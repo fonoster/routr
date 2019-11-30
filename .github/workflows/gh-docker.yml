@@ -1,7 +1,7 @@
 name: Publish to Docker registry
 on:
-  push:
-    tags: ['1.0.0-rc*']
+  release:
+    types: [published]
 jobs:
   build:
     runs-on: ubuntu-latest
