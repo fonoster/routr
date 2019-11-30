@@ -1,22 +1,5 @@
-_config.yml
-*.md
-*.iml
-*.ipr
-*.iws
-*.tar.gz
-*.zip
-*.jar
-*.dat
-jre-*
-*_osx-x64_bin.tar.gz
-*_windows-x64_bin.tar.gz
-.DS_Store
-.dockerignore
-.git
-.gitignore
-.gradle
-.idea
-.snapcraft
-src
-build
-node_modules
+# Ignore everything
+**
+
+# Nothing else matters :)
+!/*_linux-x64_bin.tar.gz
