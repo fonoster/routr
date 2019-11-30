@@ -11,6 +11,14 @@ jobs:
       - name: Get the version
         id: get_version
         run: echo ::set-output name=ROUTR_VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+      - name: Download
+        env:
+          ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
+        run: |
+          BASE_URL=https://github.com/fonoster/routr/releases/download/$ROUTR_VERSION
+          FILE=routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz
+          curl -L $BASE_URL/$FILE > $FILE
+          tar xvf $FILE
       - name: Publish to Registry(pushed tag)
         env:
           ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
@@ -19,7 +27,7 @@ jobs:
           name: fonoster/routr
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          workdir: .docker
+          workdir: .
           buildargs: ROUTR_VERSION
           tag_names: true
       - name: Publish to Registry(latest tag)
@@ -30,5 +38,5 @@ jobs:
           name: fonoster/routr
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          workdir: .docker
+          workdir: .
           buildargs: ROUTR_VERSION
