@@ -34,12 +34,11 @@ To configure the Gateway, you must consult your SIP provider and obtain the cred
   metadata:
     name: Provider Inc
   spec:
-    regService:
-      host: sip.provider.net
-      credentials:
-        username: 'youruser'
-        secret: 'yoursecret'
-      transport: udp
+    host: sip.provider.net
+    credentials:
+      username: 'youruser'
+      secret: 'yoursecret'
+    transport: udp
 ```
 
 ### Configuring the Number
