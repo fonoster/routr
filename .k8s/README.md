@@ -9,7 +9,7 @@ To run Routr in Kubernetes, you must set your ROUTR_EXTERN_ADDR in `routr.yml`.
 Additionally, you must create the following Kubernetes resources:
 
 ```bash
-kubectl create -f k8s/configmaps.yml
-kubectl create -f k8s/redis.yml
-kubectl create -f k8s/routr.yml
+kubectl create -f configmaps.yml
+kubectl create -f redis.yml
+kubectl create -f routr.yml
 ```

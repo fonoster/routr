@@ -7,8 +7,7 @@ metadata:
 spec:
   type: NodePort
   externalTrafficPolicy: Local # This will cause the load balancer to send the client ip
-  externalIPs:
-  - 192.168.1.127
+  externalIPs: [192.168.1.149]
   ports:
   - name: sip
     port: 5060
@@ -37,15 +36,15 @@ spec:
       - name: routr
         image: fonoster/routr
         imagePullPolicy: Always
-        command: ["/bin/sh"]
-        args: ["-c", "sh /opt/routr/entrypoint.sh"]
+        command: ['/bin/sh']
+        args: ['-c', 'sh /opt/routr/entrypoint.sh']
         env:
         - name: ROUTR_DS_PROVIDER
           value: redis_data_provider
         - name: ROUTR_DS_PARAMETERS
-          value: 'host=redis,port=6379'
+          value: host=redis,port=6379
         - name: ROUTR_EXTERN_ADDR
-          value: '192.168.1.127'
+          value: 192.168.1.149
         ports:
          - containerPort: 5060
            name: sip
@@ -55,13 +54,7 @@ spec:
           - name: entrypoint
             mountPath: /opt/routr/entrypoint.sh
             subPath: entrypoint.sh
-          - name: bootstrap
-            mountPath: /opt/routr/bootstrap.yml
-            subPath: bootstrap.yml
       volumes:
       - name: entrypoint
         configMap:
           name: entrypoint
-      - name: bootstrap
-        configMap:
-          name: bootstrap
