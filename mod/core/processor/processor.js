@@ -17,27 +17,25 @@ class Processor {
     }
 
     get listener() {
-        const requestProcessor = this.requestProcessor
-        const responseProcessor = this.responseProcessor
 
         return new SipListener({
-            processRequest: function(event) {
+            processRequest: event => {
                 try {
-                    requestProcessor.process(event)
+                    this.requestProcessor.process(event)
                 } catch (e) {
                     LOG.error(e)
                 }
             },
 
-            processResponse: function(event) {
+            processResponse: event => {
                 try {
-                    responseProcessor.process(event)
+                    this.responseProcessor.process(event)
                 } catch (e) {
                     LOG.error(e)
                 }
             },
 
-            processTimeout: function(event) {
+            processTimeout: event => {
                 const transactionId = event.isServerTransaction() ?
                     event.getServerTransaction().getBranchId() :
                     event.getClientTransaction().getBranchId()
@@ -51,7 +49,7 @@ class Processor {
                 })
             },
 
-            processTransactionTerminated: function(event) {
+            processTransactionTerminated: event => {
                 const transactionId = event.isServerTransaction() ?
                     event.getServerTransaction().getBranchId() :
                     event.getClientTransaction().getBranchId()
@@ -65,7 +63,7 @@ class Processor {
                 })
             },
 
-            processDialogTerminated: function(event) {
+            processDialogTerminated: event => {
                 postal.publish({
                     channel: "processor",
                     topic: "dialog.terminated",
