@@ -26,7 +26,8 @@ const {
   configureRecordRoute,
   configureIdentity,
   configureXHeaders,
-  configureCSeq
+  configureCSeq,
+  isInDialog
 } = require('@routr/core/processor/request_utils')
 const {
     RoutingType
@@ -74,7 +75,7 @@ class RequestHandler {
     }
 
     doProcess(transaction, request, routeInfo) {
-        if (request.getMethod().equals(Request.INVITE)) {
+        if (request.getMethod().equals(Request.INVITE) && !isInDialog(request)) {
             const requestId = new ObjectId().toString()
             requestStore.put(requestId, {
                 serverTransaction: transaction,
@@ -109,7 +110,8 @@ class RequestHandler {
         requestOut = configureVia(requestOut, advertisedAddr)
         //requestOut = configureContact(requestOut)
 
-        if (request.getMethod().equals(Request.INVITE)) {
+        if (request.getMethod().equals(Request.INVITE)
+            && !isInDialog(request)) {
             requestOut = configureRequestURI(requestOut, routeInfo, route)
             requestOut = configurePrivacy(requestOut, routeInfo)
             requestOut = configureIdentity(requestOut, route)

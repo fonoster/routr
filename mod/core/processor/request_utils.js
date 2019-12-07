@@ -185,6 +185,8 @@ const configureXHeaders = (request, route) => {
     }
     return requestOut
 }
+const isInDialog = request => request.getHeader(ToHeader.NAME).getTag() !== null &&
+    request.getHeader(FromHeader.NAME).getTag() !== null
 
 module.exports.getAdvertizedAddr = getAdvertizedAddr
 module.exports.configureRoute = configureRoute
@@ -198,3 +200,4 @@ module.exports.configureRecordRoute = configureRecordRoute
 module.exports.configureIdentity = configureIdentity
 module.exports.configureXHeaders = configureXHeaders
 module.exports.configureCSeq = configureCSeq
+module.exports.isInDialog = isInDialog
