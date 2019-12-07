@@ -48,7 +48,12 @@ class Registry {
     }
 
     register(gateway, received, rport) {
-        LOG.debug(`registry.Registry.register [gateway ${JSON.stringify(gateway)}]`)
+        const gatewayCopy = gateway
+        if (gatewayCopy && gatewayCopy.spec && gatewayCopy.spec.credentials
+          && gatewayCopy.spec.credentials.secret) {
+            gatewayCopy.spec.credentials.secret = '****'
+        }
+        LOG.debug(`registry.Registry.register [gateway ${JSON.stringify(gatewayCopy)}]`)
         const lp = this.sipProvider.getListeningPoint(gateway.spec.transport)
         const viaAddr = {
             host: lp.getIPAddress(),

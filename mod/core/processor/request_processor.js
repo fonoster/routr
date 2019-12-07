@@ -45,13 +45,18 @@ class RequestProcessor {
 
         const routeInfo = new RouteInfo(request, this.dataAPIs)
 
+        const callee = routeInfo.getCallee()
+        if (callee && callee.spec && callee.spec.credentials
+          && callee.spec.credentials.secret) {
+            callee.spec.credentials.secret = '****'
+        }
         LOG.debug(`core.processor.RequestProcessor.process [route type ${routeInfo.getRoutingType()}]`)
-        LOG.debug(`core.processor.RequestProcessor.process [entity info ${JSON.stringify(routeInfo.getCallee())}]`)
+        LOG.debug(`core.processor.RequestProcessor.process [entity info ${JSON.stringify(callee)}]`)
 
         // Warning: This is a very expensive function. Considere making it optional
         // Or optimize
         if (this.allowedAccess(event, routeInfo) === false) {
-            LOG.debug(`core.processor.RequestProcessor.process [access denied for ${JSON.stringify(routeInfo.getCallee())}]`)
+            LOG.debug(`core.processor.RequestProcessor.process [access denied for ${JSON.stringify(callee)}]`)
             return sendResponse(transaction, Response.FORBIDDEN)
         }
 
