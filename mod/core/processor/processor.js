@@ -41,31 +41,28 @@ class Processor {
                 const transactionId = event.isServerTransaction() ?
                     event.getServerTransaction().getBranchId() :
                     event.getClientTransaction().getBranchId()
-                if (event.isServerTransaction()) {
-                    postal.publish({
-                        channel: "processor",
-                        topic: "transaction.timeout",
-                        data: {
-                            transactionId: transactionId,
-                            isServerTransaction: event.isServerTransaction()
-                        }
-                    })
-                }
+                postal.publish({
+                    channel: "processor",
+                    topic: "transaction.timeout",
+                    data: {
+                        transactionId: transactionId,
+                        isServerTransaction: event.isServerTransaction()
+                    }
+                })
             },
 
             processTransactionTerminated: function(event) {
                 const transactionId = event.isServerTransaction() ?
                     event.getServerTransaction().getBranchId() :
                     event.getClientTransaction().getBranchId()
-                if (event.isServerTransaction()) {
-                    postal.publish({
-                        channel: "processor",
-                        topic: "transaction.terminated",
-                        data: {
-                            transactionId: transactionId
-                        }
-                    })
-                }
+                postal.publish({
+                    channel: "processor",
+                    topic: "transaction.terminated",
+                    data: {
+                        transactionId: transactionId,
+                        isServerTransaction: event.isServerTransaction()
+                    }
+                })
             },
 
             processDialogTerminated: function(event) {

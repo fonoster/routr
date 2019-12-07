@@ -21,7 +21,7 @@ jobs:
       - name: Get version
         id: get_version
         run: echo ::set-output name=ROUTR_VERSION::$(node -e "console.log(require('./package.json').version)")
-      - name: UTs
+      - name: Unit tests
         env:
           CC_TEST_REPORTER_ID: 19325f806984a923fa5ca65ee90ca519fc2bf3debc03634943aa36c5e57f6207
         run: |
@@ -34,10 +34,10 @@ jobs:
         env:
           ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
         run: ./distro.sh
-      - name: EETs
+      - name: Compliance tests
         env:
           ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
-        run: docker-compose -f docker-eet.yml up --abort-on-container-exit --exit-code-from routr-eet
+        run: docker-compose -f compliance.yml up --abort-on-container-exit --exit-code-from routr-eet
       - name: Publish draft release
         uses: ncipollo/release-action@v1
         with:

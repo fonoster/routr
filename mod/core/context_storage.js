@@ -24,23 +24,19 @@ class ContextStorage {
         postal.subscribe({
             channel: "processor",
             topic: "transaction.terminated",
-            callback: (data, envelope) => {
-                this.removeContext(data.transactionId)
-            }
+            callback: data => this.removeContext(data.transactionId)
         })
 
         postal.subscribe({
             channel: "processor",
             topic: "transaction.cancel",
-            callback: (data, envelope) => {
-                this.cancelTransaction(data.transactionId)
-            }
+            callback: data => this.cancelTransaction(data.transactionId)
         })
     }
 
     addContext(context) {
         this.storage.add(context)
-        LOG.debug(`core.ContextStorage.addContext [storage size is now ${this.getStorage().size()}]`)
+        this.printContextStorageSize()
     }
 
     findContext(transactionId) {
@@ -66,11 +62,12 @@ class ContextStorage {
                 context.serverTransaction.getBranchId() === transactionId) {
                 iterator.remove()
                 LOG.debug(`core.ContextStorage.removeContext [removed transactionId: ${transactionId}]`)
+                this.printContextStorageSize()
                 return true
             }
         }
-        LOG.debug(`core.ContextStorage.removeContext [transaction ongoing / transactionId: ${transactionId}]`)
-        LOG.debug(`core.ContextStorage.removeContext [storage size is now ${this.getStorage().size()}]`)
+        LOG.debug(`core.ContextStorage.removeContext [transaction ongoing / won't remove transactionId: ${transactionId}]`)
+        this.printContextStorageSize()
     }
 
     cancelTransaction(transactionId) {
@@ -110,6 +107,10 @@ class ContextStorage {
 
     getStorage() {
         return this.storage
+    }
+
+    printContextStorageSize() {
+        LOG.debug(`core.ContextStorage [storage size => ${this.getStorage().size()}]`)
     }
 }
 
