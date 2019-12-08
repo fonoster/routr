@@ -3,6 +3,7 @@ var path = require('path');
 module.exports = {
     entry: {
         server: './node_modules/@routr/core/server.js',
+        route_loader: './node_modules/@routr/location/route_loader.js',
         rest: './node_modules/@routr/rest/rest.js',
         registry: './node_modules/@routr/registry/registry.js'
     },

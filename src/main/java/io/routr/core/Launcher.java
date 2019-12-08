@@ -12,10 +12,10 @@ import java.io.IOException;
 public class Launcher {
     // Copied from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes#Polyfill
     public static final String NASHORN_POLYFILL_STRING_PROTOTYPE_INCLUDES = "if (!String.prototype.includes) { Object.defineProperty(String.prototype, 'includes', { value: function(search, start) { if (typeof start !== 'number') { start = 0 } if (start + search.length > this.length) { return false } else { return this.indexOf(search, start) !== -1 } } }) }";
-    // Copied from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes#Polyfill
     public static final String NASHORN_POLYFILL_ARRAY_PROTOTYPE_INCLUDES  = "if (!Array.prototype.includes) { Object.defineProperty(Array.prototype, 'includes', { value: function(valueToFind, fromIndex) { if (this == null) { throw new TypeError('\"this\" is null or not defined'); } var o = Object(this); var len = o.length >>> 0; if (len === 0) { return false; } var n = fromIndex | 0; var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0); function sameValueZero(x, y) { return x === y || (typeof x === 'number' && typeof y === 'number' && isNaN(x) && isNaN(y)); } while (k < len) { if (sameValueZero(o[k], valueToFind)) { return true; } k++; } return false; } }); }";
 
     private static String serverRunner = "load(System.getProperty('user.dir') + '/libs/server.bundle.js')";
+    private static String routeLoaderRunner = "load(System.getProperty('user.dir') + '/libs/route_loader.bundle.js')";
     private static String restRunner = "load(System.getProperty('user.dir') + '/libs/rest.bundle.js')";
     private static String registryRunner = "load(System.getProperty('user.dir') + '/libs/registry.bundle.js')";
     private static String baseScript = String.join(
@@ -51,6 +51,7 @@ public class Launcher {
         ScriptEngine mainCtx = createJSContext(engine);
         ScriptEngine registryCtx = createJSContext(engine);
         ScriptEngine restCtx = createJSContext(engine);
+        ScriptEngine routeLoaderCtx = createJSContext(engine);
 
         GRPCServer server = new GRPCServer(mainCtx);
 
@@ -58,6 +59,11 @@ public class Launcher {
         mainCtx.eval(this.baseScript);
         mainCtx.put("server", null);
         mainCtx.eval(serverRunner);
+
+        // Runs the route loader
+        routeLoaderCtx.eval(this.baseScript);
+        routeLoaderCtx.put("loader", null);
+        routeLoaderCtx.eval(routeLoaderRunner);
 
         // Runs the restful api threadPool
         restCtx.eval(this.baseScript);
@@ -80,17 +86,14 @@ public class Launcher {
         }, 10 * 1000, 60 * 1000);
 
         // TODO: This should be configurable
-        // XXX: This is causing the exception:
-        // Multi threaded access requested by thread Thread[Timer-0,5,main] but
-        // is not allowed for language(s) js.
         timer.schedule(new TimerTask() {
             @Override
             public void run () {
                 try {
-                    mainCtx.eval("server.locator.loadStaticRoutes()");
+                    routeLoaderCtx.eval("loader.loadStaticRoutes()");
                 } catch(ScriptException e) {}
             }
-        }, 60 * 1000, 120 * 1000);
+        }, 0, 120 * 1000);
 
         server.start();
         server.blockUntilShutdown();

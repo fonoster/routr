@@ -68,15 +68,6 @@ class LocatorUtils {
         throw `Invalid AOR: ${addressOfRecord}`
     }
 
-    static buildForwardRoute(addressOfRecord, contactURI) {
-        return [{
-            addressOfRecord: addressOfRecord,
-            isLinkAOR: false,
-            thruGw: false,
-            contactURI: contactURI
-        }]
-    }
-
     static buildEgressRoute(addressOfRecord, gateway, number, domain) {
         const username = gateway.spec.credentials ? gateway.spec.credentials.username :
             null
