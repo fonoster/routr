@@ -7,6 +7,7 @@
 const assert = require('assert')
 const LocatorUtils = require('@routr/location/utils')
 const Locator = require('@routr/location/locator')
+const RouteLoader = require('@routr/location/route_loader')
 const {
     Status
 } = require('@routr/core/status')
@@ -65,7 +66,8 @@ describe('Location Service Module', () => {
     })
 
     it('This call will be routed thru a gateway', done => {
-        locator.loadStaticRoutes()
+        const loader = new RouteLoader()
+        loader.loadStaticRoutes()
         testFE(locator, 'sip:17853178070@sip.local', true)
         done()
     })

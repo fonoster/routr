@@ -73,4 +73,6 @@ class RouteLoader {
 
 }
 
+module.exports = RouteLoader
+
 loader = new RouteLoader()
