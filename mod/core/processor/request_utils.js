@@ -25,6 +25,7 @@ const addressFactory = SipFactory.getInstance().createAddressFactory()
 
 const isExternalDevice = r =>
     r && (!r.sentByAddress || r.sentByAddress.endsWith('.invalid'))
+const isWebRTCClient = isExternalDevice
 const isPublicAddress = h => !isLocalnet(config.spec.localnets, h)
 const needsExternAddress = (route, host) => isExternalDevice(route)
     || isPublicAddress(host)
@@ -43,7 +44,6 @@ const getAdvertizedAddr = (request, route, localAddr) => {
         .aorAsObj(route.contactURI).getHost()
             : request.getRequestURI().getHost()
     const externAddr = config.spec.externAddr
-    return localAddr
     return config.spec.externAddr && needsExternAddress(route, targetAddr)
         ? { host: addrHost(externAddr), port: addrPort(externAddr, localAddr) }
             : localAddr
@@ -134,6 +134,11 @@ const configureRequestURI = (request, routeInfo, route) => {
         const toUser = toHeader.getAddress().getURI().getUser()
         requestOut.setRequestURI(
           LocatorUtils.aorAsObj(`sip:${toUser}@${route.gwHost}`))
+    } else if(isWebRTCClient(route)) {
+        const toHeader = requestOut.getHeader(ToHeader.NAME)
+        const toUser = toHeader.getAddress().getURI().getUser()
+        requestOut.setRequestURI(
+          LocatorUtils.aorAsObj(`sip:${toUser}@${route.received}:${route.rport}`))
     } else {
         requestOut.setRequestURI(LocatorUtils.aorAsObj(route.contactURI))
     }
