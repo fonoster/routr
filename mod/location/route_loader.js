@@ -75,5 +75,5 @@ class RouteLoader {
 
 module.exports = RouteLoader
 
-// Added this if for test only
+// Added this for test only
 try { loader = new RouteLoader() } catch(e) {}
