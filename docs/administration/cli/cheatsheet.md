@@ -1,4 +1,4 @@
-`rctl` is a command line interface for running commands against a **Routr** server. This overview covers `rctl` syntax, describes the command operations, and provides common examples. For details about each command, including all the supported flags and subcommands, see the `rctl` reference documentation. This tool ships separately from the Routr server.
+`rctl` is a command line interface for running commands against a Routr server. This overview covers `rctl` syntax, describes the command operations, and provides common examples. For details about each command, including all the supported flags and subcommands, see the `rctl` reference documentation. This tool ships separately from the Routr server.
 
 ## Syntax
 
@@ -57,7 +57,7 @@ Basic Commands:
 More information at https://routr.io
 ```
 
-> **Important**: Some commands (i.e.: create, delete) are not available in the default implementation of the `resources` modules. Only persistent implementations support these commands.
+> Important: Some commands (i.e.: create, delete) are not available in the default implementation of the `resources` modules. Only persistent implementations support these commands.
 
 ### Examples: Common operations
 
@@ -86,7 +86,7 @@ $ rctl get numbers
 // List all numbers that belong to gateway reference gweef506
 $ rctl get numbers --filter "@.metadata.ref=='gweef506'"
 
-// List numberby reference
+// List number by reference
 $ rctl get numbers dd50baa4
 
 // List all agents
