@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.5.0">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.6.0">
     
     
       
@@ -62,7 +62,7 @@
     
       
         <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono&display=fallback">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
         <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
       
     
@@ -115,6 +115,10 @@
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+    
+      <a href="#instant-server-installation-with-snaps" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
     
     
       <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
@@ -423,9 +427,71 @@
     <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
     
     
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Installation
+      </label>
+    
     <a href="./" title="Installation" class="md-nav__link md-nav__link--active">
       Installation
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#instant-server-installation-with-snaps" class="md-nav__link">
+    Instant Server Installation with Snaps
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#digitalocean-droplet" class="md-nav__link">
+    DigitalOcean droplet
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker" class="md-nav__link">
+    Docker
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kubernetes" class="md-nav__link">
+    Kubernetes
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#google-cloud-shell" class="md-nav__link">
+    Google Cloud Shell
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom" class="md-nav__link">
+    Custom
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -1426,6 +1492,70 @@
               </div>
             
             
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#instant-server-installation-with-snaps" class="md-nav__link">
+    Instant Server Installation with Snaps
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#digitalocean-droplet" class="md-nav__link">
+    DigitalOcean droplet
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker" class="md-nav__link">
+    Docker
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kubernetes" class="md-nav__link">
+    Kubernetes
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#google-cloud-shell" class="md-nav__link">
+    Google Cloud Shell
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom" class="md-nav__link">
+    Custom
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content">
             <article class="md-content__inner md-typeset">
@@ -1436,7 +1566,34 @@
                 
                   <h1>Installation</h1>
                 
-                <p>There are no special requirements to install and run the server. Just follow these easy steps:</p>
+                <h2 id="instant-server-installation-with-snaps">Instant Server Installation with Snaps<a class="headerlink" href="#instant-server-installation-with-snaps" title="Permanent link">&para;</a></h2>
+<p>Install Routr in seconds on Linux (Ubuntu and others) with:</p>
+<div class="codehilite"><pre><span></span>sudo snap install routr-server
+</pre></div>
+
+<p><a href="https://snapcraft.io/routr-server"><img alt="Get it from the Snap Store" src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" /></a></p>
+<p>Routr Snap is recommended for Linux deployments</p>
+<p>Installing snaps is very quick. By running that command you have your full Routr server up and running. Snaps are secure. They are isolated with all of their dependencies. Snaps also auto-update when we release new versions.</p>
+<h2 id="digitalocean-droplet">DigitalOcean droplet<a class="headerlink" href="#digitalocean-droplet" title="Permanent link">&para;</a></h2>
+<p>Build and Deploy to a DigitalOcean droplet</p>
+<p><a href="https://github.com/fonoster/routr/tree/master/.digitalocean/README.md"><img alt="do-btn-blue" src="https://user-images.githubusercontent.com/51996/58146107-50512580-7c1a-11e9-8ec9-e032ba387c2a.png" /></a></p>
+<h2 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h2>
+<p><a href="https://routr.io/docs/guides/running-with-docker-or-compose/">Deploy with docker compose</a></p>
+<p><a href="https://hub.docker.com/r/fonoster/routr/"><img alt="Docker logo" src="https://d207aa93qlcgug.cloudfront.net/1.95.5.qa/img/nav/docker-logo-loggedout.png" /></a></p>
+<p>OR Use the automated build image of our <a href="https://hub.docker.com/r/fonoster/routr/">most recent release</a></p>
+<div class="codehilite"><pre><span></span>docker pull fonoster/routr:latest
+</pre></div>
+
+<p>OR select a specific release (<a href="https://github.com/fonoster/routr/releases">details of releases available</a>):
+<div class="codehilite"><pre><span></span>docker pull fonoster/routr:vX.X.X
+</pre></div></p>
+<h2 id="kubernetes">Kubernetes<a class="headerlink" href="#kubernetes" title="Permanent link">&para;</a></h2>
+<p>Deploy to Kubernetes in <a href="https://github.com/fonoster/routr/tree/master/.k8s/README.md">few easy steps</a></p>
+<h2 id="google-cloud-shell">Google Cloud Shell<a class="headerlink" href="#google-cloud-shell" title="Permanent link">&para;</a></h2>
+<p>Routr one-click interactive tutorial will get you familiar with Routr server and the command-line interface.</p>
+<p><a href="https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/fonoster/routr-walkthrough-tutorial&amp;tutorial=tutorial.md"><img alt="Open in Cloud Shell" src="https://gstatic.com/cloudssh/images/open-btn.svg" /></a></p>
+<h2 id="custom">Custom<a class="headerlink" href="#custom" title="Permanent link">&para;</a></h2>
+<p>There are no special requirements to install and run the server. Just follow this easy steps:</p>
 <p>&#10122; Download the server for your platform</p>
 <table>
 <thead>
@@ -1448,15 +1605,15 @@
 <tbody>
 <tr>
 <td>Linux</td>
-<td><a href="https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_linux-x64_bin.tar.gz">tar.gz</a></td>
+<td><a href="https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_linux-x64_bin.tar.gz">tar.gz</a></td>
 </tr>
 <tr>
 <td>macOS</td>
-<td><a href="https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_osx-x64_bin.tar.gz">tar.gz</a></td>
+<td><a href="https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_osx-x64_bin.tar.gz">tar.gz</a></td>
 </tr>
 <tr>
 <td>Windows</td>
-<td><a href="https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_windows-x64_bin.tar.gz">tar.gz</a>, <a href="https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_windows-x64_bin.zip">zip</a></td>
+<td><a href="https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_windows-x64_bin.tar.gz">tar.gz</a>, <a href="https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_windows-x64_bin.zip">zip</a></td>
 </tr>
 </tbody>
 </table>
@@ -1468,14 +1625,9 @@
 <p>&#10124; Run the server using the <code>routr</code> command</p>
 <div class="codehilite"><pre><span></span>./routr
 </pre></div>
-
-<p>Have 10 minutes? Try the interactive tutorial.</p>
-<p><a href="https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/fonoster/routr-walkthrough-tutorial&amp;tutorial=tutorial.md"><img alt="Open in Cloud Shell" src="https://gstatic.com/cloudssh/images/open-btn.svg" /></a></p>
-<blockquote>
-<p>If you are interested in running Routr on Docker, please see the guide <a href="https://routr.io/docs/guides/running-with-docker-or-compose/">Running with Docker or Compose</a></p>
-</blockquote>
                 
                   
+                
                 
               
               
@@ -1586,7 +1738,7 @@
       
     </div>
     
-      <script src="../../assets/javascripts/application.a8b5e56f.js"></script>
+      <script src="../../assets/javascripts/application.808e90bb.js"></script>
       
       <script>app.initialize({version:"1.0.4",url:{base:"../.."}})</script>
       
