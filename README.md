@@ -27,7 +27,7 @@
 
 # About
 
-Routr – a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs. To get involved in the development of this project please contact us at @fonoster.
+Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. It also provides with capabilities that are suitable for the enterprise and personal needs.
 
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Next-generation%20SIP%20Server&url=https://github.com/fonoster/routr&via=fonoster&hashtags=voip,sip,webrtc,telephony)
 
@@ -106,9 +106,9 @@ There are no special requirements to install and run the server. Just follow thi
 
 | Platform | Download |
 | -- | -- |
-| Linux | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_linux-x64_bin.tar.gz) |  
-| macOS | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_osx-x64_bin.tar.gz) |  
-| Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_windows-x64_bin.zip) |  
+| Linux | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_linux-x64_bin.tar.gz) |  
+| macOS | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_osx-x64_bin.tar.gz) |  
+| Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_windows-x64_bin.zip) |  
 
 &#10123; Then extract it:
 
