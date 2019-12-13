@@ -106,9 +106,9 @@ There are no special requirements to install and run the server. Just follow thi
 
 | Platform | Download |
 | -- | -- |
-| Linux | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_linux-x64_bin.tar.gz) |  
-| macOS | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_osx-x64_bin.tar.gz) |  
-| Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.0-rc3/routr-1.0.0-rc3_windows-x64_bin.zip) |  
+| Linux | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_linux-x64_bin.tar.gz) |  
+| macOS | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_osx-x64_bin.tar.gz) |  
+| Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc4_windows-x64_bin.zip) |  
 
 &#10123; Then extract it:
 
