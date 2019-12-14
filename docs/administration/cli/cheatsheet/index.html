@@ -1648,7 +1648,7 @@
                 
                   <h1>Cheatsheet</h1>
                 
-                <p><code>rctl</code> is a command line interface for running commands against a <strong>Routr</strong> server. This overview covers <code>rctl</code> syntax, describes the command operations, and provides common examples. For details about each command, including all the supported flags and subcommands, see the <code>rctl</code> reference documentation. This tool ships separately from the Routr server.</p>
+                <p>The <code>rctl</code> is a command line interface for running commands against a Routr server. This overview covers <code>rctl</code> syntax, describes the command operations, and provides common examples. For details about each command, including all the supported flags and subcommands, see the <code>rctl</code> reference documentation. This tool ships separately from the Routr server.</p>
 <h2 id="syntax">Syntax<a class="headerlink" href="#syntax" title="Permanent link">&para;</a></h2>
 <p>Use the following syntax to run <code>rctl</code> commands from your terminal window:</p>
 <div class="codehilite"><pre><span></span>rctl COMMAND [REF] [flags]
@@ -1679,11 +1679,11 @@
 <p>The --filter flag uses <a href="https://github.com/json-path/JsonPath">JsonPath</a> to perform the filtering. The root is always '$'.
 All you need to add is the path to the property and the filter operators. For example:</p>
 <div class="codehilite"><pre><span></span># This returns all the Numbers in Gateway &#39;gweef506&#39;
-./rctl get numbers --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;    
+rctl get numbers --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;    
 </pre></div>
 
 <p>If you need help, just run <code>rctl --help</code> from the terminal window.</p>
-<div class="codehilite"><pre><span></span>$ ./rctl -h
+<div class="codehilite"><pre><span></span>$ rctl -h
 usage: rctl <span class="o">[</span>-h<span class="o">]</span> COMMAND ...
 
 rctl controls the Routr server
@@ -1706,7 +1706,7 @@ More information at https://routr.io
 </pre></div>
 
 <blockquote>
-<p><strong>Important</strong>: Some commands (i.e.: create, delete) are not available in the default implementation of the <code>resources</code> modules. Only persistent implementations support these commands.</p>
+<p>Important: Some commands (i.e.: create, delete) are not available in the default implementation of the <code>resources</code> modules. Only persistent implementations support these commands.</p>
 </blockquote>
 <h3 id="examples-common-operations">Examples: Common operations<a class="headerlink" href="#examples-common-operations" title="Permanent link">&para;</a></h3>
 <p>Use the following set of examples to help you familiarize yourself with running the commonly used <code>rctl</code> operations:</p>
@@ -1781,8 +1781,8 @@ $ rctl create -f agents-list.yaml                     # Create Agents in file ag
 <div class="codehilite"><pre><span></span># Get Numbers
 $ rctl get numbers                                          # List all available Numbers
 $ rctl get number                                          # List all available Numbers
-$ rctl get number--filter &quot;@.metadata.ref==&#39;dd50baa4&#39;&quot;     # Shows Number with reference &#39;Number0001&#39;
-$ rctl get number--filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;   # Shows Numbers with Gateway reference &#39;GW1232&#39;
+$ rctl get number --filter &quot;@.metadata.ref==&#39;dd50baa4&#39;&quot;     # Shows Number with reference &#39;Number0001&#39;
+$ rctl get number --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;   # Shows Numbers with Gateway reference &#39;GW1232&#39;
 
 # Get agents
 $ rctl get agents                                        # List all Agents
@@ -1795,8 +1795,8 @@ $ rctl del numbers --filter &#39;@.metadata.gwRef=gweef506&#39;     # Delete Num
 </pre></div>
 
 <h3 id="updating-resources">Updating Resources<a class="headerlink" href="#updating-resources" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span>$ rctl -- apply -f asterisk.yaml                         # Create Peer in file asterisk.yaml
-$ rctl -- apply -f agents-list.yaml                      # Create Agents in file agents-list.yaml
+<div class="codehilite"><pre><span></span>$ rctl apply -f asterisk.yaml                         # Create Peer in file asterisk.yaml
+$ rctl apply -f agents-list.yaml                      # Create Agents in file agents-list.yaml
 </pre></div>
                 
                   
