@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
 const FilesUtil = require('@routr/utils/files_util')
 const XXH = require('xxhashjs')
@@ -16,6 +17,7 @@ const JsonPath = Java.type('com.jayway.jsonpath.JsonPath')
 const System = Java.type('java.lang.System')
 const NoSuchFileException = Java.type('java.nio.file.NoSuchFileException')
 const JsonMappingException = Java.type('com.fasterxml.jackson.databind.JsonMappingException')
+const InvalidPathException = Java.type('com.jayway.jsonpath.InvalidPathException')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
 const ReentrantLock = Java.type('java.util.concurrent.locks.ReentrantLock')
@@ -186,10 +188,9 @@ class FilesDataSource {
                 return FilesDataSource.emptyResponse()
             }
 
-            return {
-                status: Status.BAD_REQUEST,
-                message: Status.message[Status.BAD_REQUEST].value
-            }
+            return e instanceof InvalidPathException ?
+                CoreUtils.buildResponse(Status.BAD_REQUEST, "Failed to parse filter") :
+                    CoreUtils.buildErrResponse(e)
         } finally {
             lock.unlock()
         }

@@ -158,7 +158,7 @@ class RedisDataSource {
             return DSUtils.paginate(JSON.parse(list), page, itemsPerPage)
         } catch (e) {
             return e instanceof InvalidPathException ?
-                CoreUtils.buildResponse(Status.BAD_REQUEST, null, e) :
+                CoreUtils.buildResponse(Status.BAD_REQUEST, "Failed to parse filter") :
                     CoreUtils.buildErrResponse(e)
         } finally {
             if (jedis) {
