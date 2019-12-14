@@ -14,7 +14,11 @@ module.exports = function(api, resource) {
     const resBase = `/${resource}s`.toLowerCase()
     const resByRef = `${resBase}/:ref`
 
-    post(resBase, (req, res) => JSON.stringify(RestUtil.createFromFile(req, api)))
+    post(resBase, (req, res) => {
+        const result = RestUtil.createFromFile(req, api)
+        res.status(result.status)
+        return JSON.stringify(result)
+    })
 
     get(resBase, (req, res) => {
         let filter = '@'
@@ -24,7 +28,9 @@ module.exports = function(api, resource) {
         if (!isEmpty(req.queryParams('page'))) page = req.queryParams('page')
         if (!isEmpty(req.queryParams('itemsPerPage'))) itemsPerPage = req.queryParams('itemsPerPage')
 
-        return JSON.stringify(api[`get${resource}s`](filter, page, itemsPerPage))
+        const result = api[`get${resource}s`](filter, page, itemsPerPage)
+        res.status(result.status)
+        return JSON.stringify(result)
     })
 
     get(resByRef, (req, res) => JSON.stringify(api[`get${resource}`](req.params(':ref'))))
@@ -32,8 +38,14 @@ module.exports = function(api, resource) {
     put(resByRef, (req, res) => {
         const jsonObj = JSON.parse(req.body())
         jsonObj.metadata.ref = req.params(':ref')
-        return JSON.stringify(api.updateFromJSON(jsonObj))
+        const result = api.updateFromJSON(jsonObj)
+        res.status(result.status)
+        return JSON.stringify(result)
     })
 
-    del(resByRef, (req, res) => JSON.stringify(api[`delete${resource}`](req.params(':ref'))))
+    del(resByRef, (req, res) => {
+        const result = api[`delete${resource}`](req.params(':ref'))
+        res.status(result.status)
+        return JSON.stringify(result)
+    })
 }
