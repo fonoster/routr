@@ -1,4 +1,4 @@
-`rctl` is a command line interface for running commands against a Routr server. This overview covers `rctl` syntax, describes the command operations, and provides common examples. For details about each command, including all the supported flags and subcommands, see the `rctl` reference documentation. This tool ships separately from the Routr server.
+The `rctl` is a command line interface for running commands against a Routr server. This overview covers `rctl` syntax, describes the command operations, and provides common examples. For details about each command, including all the supported flags and subcommands, see the `rctl` reference documentation. This tool ships separately from the Routr server.
 
 ## Syntax
 
@@ -29,13 +29,13 @@ All you need to add is the path to the property and the filter operators. For ex
 
 ```
 # This returns all the Numbers in Gateway 'gweef506'
-./rctl get numbers --filter "@.metadata.gwRef=='gweef506'"    
+rctl get numbers --filter "@.metadata.gwRef=='gweef506'"    
 ```
 
 If you need help, just run `rctl --help` from the terminal window.
 
 ```bash
-$ ./rctl -h
+$ rctl -h
 usage: rctl [-h] COMMAND ...
 
 rctl controls the Routr server
@@ -86,7 +86,7 @@ $ rctl get numbers
 // List all numbers that belong to gateway reference gweef506
 $ rctl get numbers --filter "@.metadata.ref=='gweef506'"
 
-// List number by reference
+// List numberby reference
 $ rctl get numbers dd50baa4
 
 // List all agents
@@ -156,8 +156,8 @@ $ rctl create -f agents-list.yaml                     # Create Agents in file ag
 # Get Numbers
 $ rctl get numbers                                          # List all available Numbers
 $ rctl get number                                          # List all available Numbers
-$ rctl get number--filter "@.metadata.ref=='dd50baa4'"     # Shows Number with reference 'Number0001'
-$ rctl get number--filter "@.metadata.gwRef=='gweef506'"   # Shows Numbers with Gateway reference 'GW1232'
+$ rctl get number --filter "@.metadata.ref=='dd50baa4'"     # Shows Number with reference 'Number0001'
+$ rctl get number --filter "@.metadata.gwRef=='gweef506'"   # Shows Numbers with Gateway reference 'GW1232'
 
 # Get agents
 $ rctl get agents                                        # List all Agents
@@ -174,6 +174,6 @@ $ rctl del numbers --filter '@.metadata.gwRef=gweef506'     # Delete Numbers usi
 ### Updating Resources
 
 ```
-$ rctl -- apply -f asterisk.yaml                         # Create Peer in file asterisk.yaml
-$ rctl -- apply -f agents-list.yaml                      # Create Agents in file agents-list.yaml
+$ rctl apply -f asterisk.yaml                         # Create Peer in file asterisk.yaml
+$ rctl apply -f agents-list.yaml                      # Create Agents in file agents-list.yaml
 ```
