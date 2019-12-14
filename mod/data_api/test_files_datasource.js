@@ -32,11 +32,19 @@ describe('Files Data Source', () => {
         // Existing Agent
         response = ds.withCollection('agents').find("@.spec.credentials.username=='1001'")
         assert.equal(Status.OK, response.status)
+        // Existing Agent
+        response = ds.withCollection('agents').find("@.metadata.ref=='agc300a1c6'")
+        assert.equal(Status.OK, response.status)
+        // Existing Agent
+        response = ds.withCollection('agents').find("@.metadata.name=='John Doe'")
+        assert.equal(Status.OK, response.status)
         // Non-Existing Agent
         response = ds.withCollection('agents').find("@.spec.credentials.username=='mike'")
         assert.equal(0, response.data.length)
         // Invalid filter
         response = ds.withCollection('agents').find("@.spec.credentials.username==1001'")
+        // Invalid filter
+        response = ds.withCollection('agents').find("@.spec.credentials.username==agc300a1c6")
         assert.equal(Status.BAD_REQUEST, response.status)
         done()
     })
