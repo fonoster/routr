@@ -22,11 +22,22 @@ class RestUtil {
             const fileContent = IOUtils.toString(is, StandardCharsets.UTF_8.name())
             const jsonObjs = DSUtils.convertToJson(fileContent)
             let compoundResponse = ''
-            jsonObjs.forEach(jsonObj => {
-                const response = api.createFromJSON(jsonObj)
-                compoundResponse = `${compoundResponse}\n${response.message}`
-            })
-            return compoundResponse
+            let atLeastOneError = false
+            try {
+                jsonObjs.forEach(jsonObj => {
+                    const response = api.createFromJSON(jsonObj)
+                    compoundResponse = `${compoundResponse}\n${response.message}`
+                    if (response.status !== Status.CREATED) atLeastOneError = true
+                })
+            } catch (e) {
+                if (e instanceof SyntaxError) {
+                    return CoreUtils.buildResponse(Status.BAD_REQUEST, null, 'SyntaxError: Invalid JSON')
+                }
+                return CoreUtils.buildResponse(Status.BAD_REQUEST, null, e)
+            }
+            return atLeastOneError ?
+              CoreUtils.buildResponse(Status.BAD_REQUEST, null, 'Bad configuration in at least one resource'):
+              CoreUtils.buildResponse(Status.OK, null, 'Done')
         } else {
             try {
                 const jsonObj = JSON.parse(req.body())
