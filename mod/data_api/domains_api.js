@@ -44,7 +44,7 @@ class DomainsAPI {
 
     updateFromJSON(jsonObj) {
         if (jsonObj.spec.context.egressPolicy &&
-            !this.doesNumberExist(json.spec.context.egressPolicy.numberRef)) {
+            !this.doesNumberExist(jsonObj.spec.context.egressPolicy.numberRef)) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         }
 
