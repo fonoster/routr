@@ -40,8 +40,6 @@ dependencies {
     compile 'commons-io:commons-io:2.6'
     compile 'com.github.ben-manes.caffeine:caffeine:2.8.0'
     compile 'com.networknt:json-schema-validator:1.0.20'
-    compile 'com.networknt:json-schema-validator:1.0.20'
-    compile 'com.jayway.jsonpath:json-path:2.4.0'
     compile 'com.jayway.jsonpath:json-path:2.4.0'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
