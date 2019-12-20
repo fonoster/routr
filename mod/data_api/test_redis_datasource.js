@@ -103,7 +103,6 @@ describe('Redis Data Source', () => {
         // Test entity missing required fields
         const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '5001')
         const result = DSUtils.removeWO(agent)
-        console.log(JSON.stringify(result))
         assert.equal(void(0), result.spec.credentials.secret)
         done()
     })

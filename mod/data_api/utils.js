@@ -110,12 +110,10 @@ class DSUtils {
     static patchObj(oldObj, newObj) {
         const pathsToFields = DSUtils.getPathsFor(oldObj.kind.toLowerCase(),
           'writeOnly')
-        console.log(JSON.stringify(pathsToFields))
         const flatNewObj = flat(newObj)
         const flatOldObj = flat(oldObj)
         pathsToFields
           .forEach(path => flatNewObj[path] = flatOldObj[path])
-        console.log(JSON.stringify(unflatten(flatNewObj)))
         return unflatten(flatNewObj)
     }
 
