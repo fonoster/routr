@@ -42,10 +42,11 @@ class DSUtils {
         let kind
         try {
             kind = DSUtils.getKind(obj)
-        } catch (e) {
-            CoreUtils.buildResponse(Status.BAD_REQUEST, e)
+        } catch(e) {
+            const errors = []
+            errors.push(e)
+            return errors
         }
-
         const factory = JsonSchemaFactory.getInstance()
         const mapper = new ObjectMapper()
 

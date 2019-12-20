@@ -56,8 +56,14 @@ describe('Agents API(on Redis)', () => {
         response = agentsApi.createFromJSON(agent)
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
-        // Test for good Agent resource
+        // Bad kind
         agent.metadata.name = 'John doe'
+        agent.kind = 'Agentk'
+        response = agentsApi.createFromJSON(agent)
+        assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
+
+        // Test for good Agent resource
+        agent.kind = 'Agent'
         response = agentsApi.createFromJSON(agent)
         assert.equal(response.status, Status.CREATED)
 
@@ -78,6 +84,11 @@ describe('Agents API(on Redis)', () => {
         const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '5001')
         agentsApi.createFromJSON(agent)
         agent.kind = 'Gateway'
+        response = agentsApi.updateFromJSON(agent)
+        assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
+
+        // Bad kind
+        agent.kind = 'Agentk'
         response = agentsApi.updateFromJSON(agent)
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
