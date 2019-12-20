@@ -6,7 +6,8 @@ const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
 const {
     Status,
-    UNFULFILLED_DEPENDENCY_RESPONSE
+    UNFULFILLED_DEPENDENCY_RESPONSE,
+    ENTITY_ALREADY_EXIST_RESPONSE
 } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
@@ -24,8 +25,8 @@ class AgentsAPI {
     save(agent, operation) {
         if (!this.doesDomainExist(agent)) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
-        } else if (this.existInAnotherDomain(agent)) {
-            return CoreUtils.buildResponse(Status.CONFLICT)
+        } else if (operation === 'insert' && this.existInAnotherDomain(agent)) {
+            return ENTITY_ALREADY_EXIST_RESPONSE
         }
         return operation === 'insert' ? this.ds.insert(agent) : this.ds.update(agent)
     }

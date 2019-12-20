@@ -66,13 +66,18 @@ class FilesDataSource {
                 const res = FilesUtil.readFile(`${this.filesPath}/${RESOURCES[cnt]}.yml`)
                 const jsonObjs = DSUtils.convertToJson(res)
                 for (const cntObj in jsonObjs) {
-                    DSUtils.isValidEntity(jsonObjs[cntObj])
+                    const errors = DSUtils.validateEntity(jsonObjs[cntObj])
+                    if (errors.length > 0) {
+                        throw Status.message[Status.UNPROCESSABLE_ENTITY].value
+                    }
                 }
             } catch (e) {
                 if (e instanceof Java.type('com.fasterxml.jackson.dataformat.yaml.snakeyaml.error.MarkedYAMLException')) {
                     LOG.error(`The format of file \`${this.filesPath}/${RESOURCES[CNT]}.yml\` is invalid`)
-                    System.exit(1)
+                } else {
+                    LOG.error(e)
                 }
+                System.exit(1)
             }
         }
     }

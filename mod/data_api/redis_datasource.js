@@ -96,8 +96,9 @@ class RedisDataSource {
         let jedis
 
         try {
-            if (!DSUtils.isValidEntity(obj)) {
-                return badRequest
+            const errors = DSUtils.validateEntity(obj)
+            if (errors.length > 0) {
+                return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
             }
 
             if (!obj.metadata.ref) {
@@ -168,17 +169,20 @@ class RedisDataSource {
     }
 
     update(obj) {
-        if (!DSUtils.isValidEntity(obj)) {
-            return badRequest
+        const oldObj = this.get(obj.metadata.ref).data
+        const newObj = DSUtils.patchObj(oldObj, obj) // Patch with the RO fields
+        const errors = DSUtils.validateEntity(newObj, oldObj, 'write')
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
         }
 
         let jedis
 
         try {
             jedis = this.getJedisConn()
-            jedis.set(obj.metadata.ref, JSON.stringify(obj))
+            jedis.set(newObj.metadata.ref, JSON.stringify(newObj))
 
-            return CoreUtils.buildResponse(Status.OK, obj.metadata.ref)
+            return CoreUtils.buildResponse(Status.OK, newObj.metadata.ref)
         } catch (e) {
             return e instanceof InvalidPathException ?
                 CoreUtils.buildResponse(Status.BAD_REQUEST, null, e) :

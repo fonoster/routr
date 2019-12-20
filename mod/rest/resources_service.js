@@ -3,6 +3,7 @@
  * @since v1
  */
 const RestUtil = require('@routr/rest/utils')
+const DSUtils = require('@routr/data_api/utils')
 const isEmpty = require('@routr/utils/obj_util')
 
 const get = Java.type('spark.Spark').get
@@ -29,11 +30,16 @@ module.exports = function(api, resource) {
         if (!isEmpty(req.queryParams('itemsPerPage'))) itemsPerPage = req.queryParams('itemsPerPage')
 
         const result = api[`get${resource}s`](filter, page, itemsPerPage)
+        result.data = result.data.map(d => DSUtils.removeWO(d))
         res.status(result.status)
         return JSON.stringify(result)
     })
 
-    get(resByRef, (req, res) => JSON.stringify(api[`get${resource}`](req.params(':ref'))))
+    get(resByRef, (req, res) => {
+        const result = api[`get${resource}`](req.params(':ref'))
+        result.data = DSUtils.removeWO(result.data)
+        return JSON.stringify(result)
+    })
 
     put(resByRef, (req, res) => {
         const jsonObj = JSON.parse(req.body())

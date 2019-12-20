@@ -9,6 +9,9 @@ const {
 } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
 const paginateArray = require("paginate-array")
+//const jsonFlat = require('json-flat')
+const flat = require('flat')
+const unflatten = require('flat').unflatten
 
 const System = Java.type('java.lang.System')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -36,46 +39,94 @@ class DSUtils {
         return mapper.writeValueAsString(obj)
     }
 
-    static isValidEntity(obj) {
+    static validateEntity(obj, newObj, mode) {
         let kind
         try {
             kind = DSUtils.getKind(obj)
         } catch (e) {
-            return false
+            CoreUtils.buildResponse(Status.BAD_REQUEST, e)
         }
 
         const factory = JsonSchemaFactory.getInstance()
         const mapper = new ObjectMapper()
 
         // The validator expects an array
-        if (!Array.isArray(obj)) {
-            const o = []
+        let o = obj
+        if (!Array.isArray(o)) {
+            o = []
             o.push(obj)
-            obj = o
         }
 
         const schema = factory.getSchema(FilesUtil.readFile(`${schemaPath}/${kind.toLowerCase()}s_schema.json`))
-        const node = mapper.readTree(JSON.stringify(obj))
+        const node = mapper.readTree(JSON.stringify(o))
         const errors = schema.validate(node)
-
+        const e = []
         if (errors.size() > 0) {
             const i = errors.iterator()
-            LOG.warn(`We found some errors in your resource ${node}`)
             while (i.hasNext()) {
-                LOG.warn(i.next())
+                const error = i.next()
+                e.push(error)
             }
-            return false
         }
-        return true
+
+        if(mode === 'write') {
+            const roErrors = DSUtils.validateRO(obj, newObj)
+            roErrors.forEach(error => e.push(error))
+        }
+
+        if (e.length > 0) LOG.error(e.join())
+
+        return e
     }
 
-    static isValidJson(str) {
-        try {
-            JSON.parse(str)
-        } catch (e) {
-            return false
-        }
-        return true
+    /**
+     * PUT operations must use mode = 'readOnly' to fail when attempting overwrite
+     */
+    static validateRO(oldObj, newObj) {
+        const pathsToFields = DSUtils.getPathsFor(oldObj.kind.toLowerCase(),
+          'readOnly')
+        const roMessage = path =>
+          `$[0].${path}: is a readonly field, it cannot be changed`
+        const eqArray = (a1, a2) =>
+          Array.isArray(a1) && a1.filter(v => a2.includes(v)).length === a1.length
+        const noEq = (a1, a2) => !Array.isArray(a1) && a1 !== a2
+
+        return pathsToFields.map(path => {
+            const oldValue = DSUtils.resolve(path, oldObj)
+            const newValue = DSUtils.resolve(path, newObj)
+            if (!eqArray(oldValue, newValue) && noEq(oldValue, newValue)) {
+                return roMessage(path)
+            }
+        }).filter(path => path ? true : false )
+    }
+
+    static removeWO(obj) {
+        const pathsToFields = DSUtils.getPathsFor(obj.kind.toLowerCase(),
+          'writeOnly')
+        const flatObj = flat(obj)
+        pathsToFields.forEach(path => delete flatObj[path])
+        return unflatten(flatObj)
+    }
+
+    static patchObj(oldObj, newObj) {
+        const pathsToFields = DSUtils.getPathsFor(oldObj.kind.toLowerCase(),
+          'writeOnly')
+        console.log(JSON.stringify(pathsToFields))
+        const flatNewObj = flat(newObj)
+        const flatOldObj = flat(oldObj)
+        pathsToFields
+          .forEach(path => flatNewObj[path] = flatOldObj[path])
+        console.log(JSON.stringify(unflatten(flatNewObj)))
+        return unflatten(flatNewObj)
+    }
+
+    static getPathsFor(kind, mode) {
+        const jStr = FilesUtil.readFile(`${schemaPath}/${kind.toLowerCase()}s_schema.json`)
+        return Object.keys(flat(JSON.parse(jStr)))
+          .filter(path => path.endsWith(mode)
+              && DSUtils.resolve(path, JSON.parse(jStr)) === true)
+          .map(path => path.replace(/.items|properties.|items.properties./g, ''))
+          .map(path => path.replace(`.${mode}`, ''))
     }
 
     static getKind(obj) {

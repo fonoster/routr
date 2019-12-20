@@ -11,14 +11,11 @@ const {
     Status
 } = require('@routr/core/status')
 const TestUtils = require('@routr/data_api/test_utils')
+const DSUtils = require('@routr/data_api/utils')
 const config = require('@routr/core/config_util')()
 const ObjectId = Java.type('org.bson.types.ObjectId')
-const testGroup = {
-    name: "Redis Data Source",
-    enabled: false
-}
 
-// To force RedisDataSource to use its own default parameters...
+// Forces RedisDataSource to use its own default parameters
 delete config.spec.dataSource.parameters
 const ds = new RedisDataSource(config)
 const agentsApi = new AgentsAPI(ds)
@@ -99,6 +96,15 @@ describe('Redis Data Source', () => {
         assert.equal('Agent', response.data.kind)
         // Cleanup
         ds.withCollection('agents').remove(ref)
+        done()
+    })
+
+    it('Test removeWO', done => {
+        // Test entity missing required fields
+        const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '5001')
+        const result = DSUtils.removeWO(agent)
+        console.log(JSON.stringify(result))
+        assert.equal(void(0), result.spec.credentials.secret)
         done()
     })
 })
