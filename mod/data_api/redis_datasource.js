@@ -170,6 +170,10 @@ class RedisDataSource {
 
     update(obj) {
         const oldObj = this.get(obj.metadata.ref).data
+        if (!oldObj) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+              DSUtils.roMessage('metadata.ref'))
+        }
         const newObj = DSUtils.patchObj(oldObj, obj) // Patch with the RO fields
         const errors = DSUtils.validateEntity(newObj, oldObj, 'write')
         if (errors.length > 0) {

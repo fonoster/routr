@@ -38,6 +38,10 @@ class DSUtils {
         return mapper.writeValueAsString(obj)
     }
 
+    static roMessage(path) {
+      return `$[0].${path}: is a readonly field, it cannot be changed`
+    }
+
     static validateEntity(obj, newObj, mode) {
         let kind
         try {
@@ -85,8 +89,7 @@ class DSUtils {
     static validateRO(oldObj, newObj) {
         const pathsToFields = DSUtils.getPathsFor(oldObj.kind.toLowerCase(),
           'readOnly')
-        const roMessage = path =>
-          `$[0].${path}: is a readonly field, it cannot be changed`
+
         const eqArray = (a1, a2) =>
           Array.isArray(a1) && a1.filter(v => a2.includes(v)).length === a1.length
         const noEq = (a1, a2) => !Array.isArray(a1) && a1 !== a2
@@ -95,7 +98,7 @@ class DSUtils {
             const oldValue = DSUtils.resolve(path, oldObj)
             const newValue = DSUtils.resolve(path, newObj)
             if (!eqArray(oldValue, newValue) && noEq(oldValue, newValue)) {
-                return roMessage(path)
+                return DSUtils.roMessage(path)
             }
         }).filter(path => path ? true : false )
     }

@@ -92,14 +92,20 @@ describe('Agents API(on Redis)', () => {
         response = agentsApi.updateFromJSON(agent)
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
-        // Test for good Agent resource
-        agent.metadata.name = 'John doe'
+        // Bad reference
+        const ref = agent.metadata.ref
         agent.kind = 'Agent'
+        agent.metadata.ref = 'abc'
+        response = agentsApi.updateFromJSON(agent)
+        assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
+
+        // Test for good Agent resource
+        agent.metadata.ref = ref
         response = agentsApi.updateFromJSON(agent)
         assert.equal(response.status, Status.OK)
 
         // Cleanup
-        ds.withCollection('agents').remove(agent.metadata.ref)
+        ds.withCollection('agents').remove(ref)
         done()
     })
 })
