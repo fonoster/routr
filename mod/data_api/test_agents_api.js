@@ -35,8 +35,6 @@ const mockDomain = {
     }
 }
 
-const jsonFlat = require('json-flat')
-
 describe('Agents API(on Redis)', () => {
 
     after(() => ds.withCollection('domains').remove(domainRef))
