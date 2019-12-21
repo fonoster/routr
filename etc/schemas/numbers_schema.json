@@ -10,13 +10,14 @@
                 "type": "string"
             },
             "kind": {
-                "type": "string"
+                "type": "string",
+                "readOnly": true
             },
             "metadata": {
                 "type": "object",
                 "properties": {
-                    "ref": {"type": "string"},
-                    "gwRef": {"type": "string"}
+                    "ref": {"type": "string", "readOnly": true},
+                    "gwRef": {"type": "string", "readOnly": true}
                 },
                 "required": ["gwRef"]
             },

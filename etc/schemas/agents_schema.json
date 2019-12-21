@@ -10,7 +10,8 @@
                 "type": "string"
             },
             "kind": {
-                "type": "string"
+                "type": "string",
+                "readOnly": true
             },
             "metadata": {
                 "type": "object",
@@ -28,15 +29,16 @@
                     "credentials": {
                         "type": "object",
                         "properties": {
-                            "username": {"type": "string"},
-                            "secret": {"type": "string"}
+                            "username": {"type": "string", "readOnly": true},
+                            "secret": {"type": "string", "writeOnly": true}
                         },
                         "required": ["username", "secret"]
                     },
                     "domains": {
                         "type": "array",
                         "items": {
-                            "type": "string"
+                            "type": "string",
+                            "readOnly": true
                         },
                         "minItems": 1,
                         "uniqueItems": true

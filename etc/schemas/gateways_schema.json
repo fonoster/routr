@@ -10,13 +10,14 @@
                 "type": "string"
             },
             "kind": {
-                "type": "string"
+                "type": "string",
+                "readOnly": true
             },
             "metadata": {
                 "type": "object",
                 "properties": {
                     "name": {"type": "string"},
-                    "ref": {"type": "string"}
+                    "ref": {"type": "string", "readOnly": true}
                 },
                 "required": ["name"]
             },
@@ -28,8 +29,8 @@
                       "credentials": {
                           "type": "object",
                           "properties": {
-                              "username": {"type": "string"},
-                              "secret": {"type": "string"}
+                              "username": {"type": "string", "readOnly": true},
+                              "secret": {"type": "string", "writeOnly": true}
                           },
                           "required": ["username", "secret"]
                       },
