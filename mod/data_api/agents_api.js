@@ -23,6 +23,24 @@ class AgentsAPI {
     }
 
     save(agent, operation) {
+        let errors = []
+        if(operation === 'update') {
+            const oldObj = this.getAgent(agent.metadata.ref).data
+
+            if (!oldObj) {
+                return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+                  DSUtils.roMessage('metadata.ref'))
+            }
+            agent = DSUtils.patchObj(oldObj, agent) // Patch with the RO fields
+            errors = DSUtils.validateEntity(agent, oldObj, 'write')
+        } else {
+            errors = DSUtils.validateEntity(agent)
+        }
+
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
         if (!this.doesDomainExist(agent)) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
         } else if (operation === 'insert' && this.existInAnotherDomain(agent)) {
@@ -115,6 +133,10 @@ class AgentsAPI {
         const domains = JSON.stringify(agent.spec.domains).replaceAll("\"", "'")
         const response = this.ds.withCollection('domains').find(`@.spec.context.domainUri in ${domains}`)
         return response.data.length === agent.spec.domains.length
+    }
+
+    cleanCache() {
+        this.cache.invalidateAll()
     }
 }
 

@@ -37,11 +37,11 @@ const mockDomain = {
 
 describe('Agents API(on Redis)', () => {
 
-    after(() => ds.withCollection('domains').remove(domainRef))
+    beforeEach(() => ds.flushAll())
 
     it('Create agent', done => {
         // Test missing dependency
-        const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '5001')
+        const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
         let response = agentsApi.createFromJSON(agent)
         assert.equal(response.status, Status.CONFLICT)
         assert.equal(response.message, UNFULFILLED_DEPENDENCY_RESPONSE.message)
@@ -68,9 +68,6 @@ describe('Agents API(on Redis)', () => {
         // Test uniqueness
         response = agentsApi.createFromJSON(agent)
         assert.equal(response.status, Status.CONFLICT)
-
-        // Cleanup
-        ds.withCollection('agents').remove(agent.metadata.ref)
         done()
     })
 
@@ -79,9 +76,9 @@ describe('Agents API(on Redis)', () => {
         ds.withCollection('domains').insert(mockDomain)
 
         // Test entity missing required fields
-        const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '5001')
+        const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
         agentsApi.createFromJSON(agent)
-        agent.kind = 'Gateway'
+        delete agent.kind
         response = agentsApi.updateFromJSON(agent)
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
@@ -97,13 +94,10 @@ describe('Agents API(on Redis)', () => {
         response = agentsApi.updateFromJSON(agent)
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
-        // Test for good Agent resource
+        // Test for good resource
         agent.metadata.ref = ref
         response = agentsApi.updateFromJSON(agent)
         assert.equal(response.status, Status.OK)
-
-        // Cleanup
-        ds.withCollection('agents').remove(ref)
         done()
     })
 })

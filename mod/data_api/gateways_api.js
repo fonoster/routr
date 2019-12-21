@@ -118,6 +118,9 @@ class GatewaysAPI {
         return numbers.length === 0 ? this.ds.withCollection('gateways').remove(ref) : FOUND_DEPENDENT_OBJECTS_RESPONSE
     }
 
+    cleanCache() {
+        this.cache.invalidateAll()
+    }
 }
 
 module.exports = GatewaysAPI

@@ -2,14 +2,17 @@
  * @author Pedro Sanders
  * @since v1
  */
+const ObjectId = Java.type('org.bson.types.ObjectId')
+
 class TestUtils {
 
-    static buildEndpoint(kind, name, username, secret = '1234') {
+    static buildEndpoint(kind, name, username, secret = '1234',
+        ref = new ObjectId().toString()) {
         const endpoint = {
             apiVersion: 'v1.0',
             metadata: {
-                userId: 'john@doe.com',
-                name: name
+                name: name,
+                ref: ref
             },
             spec: {
                 credentials: {
@@ -22,18 +25,18 @@ class TestUtils {
         return endpoint
     }
 
-    static buildAgent(name, domains, username, secret = '1234') {
-        const agent = TestUtils.buildEndpoint('Agent', name, username, secret)
+    static buildAgent(name, domains, username, secret = '1234', ref = new ObjectId().toString()) {
+        const agent = TestUtils.buildEndpoint('Agent', name, username, secret, ref)
         agent.spec.domains = domains
         return agent
     }
 
-    static buildGateway(name, username, ref = '1234', secret = '1234') {
+    static buildGateway(name, username, ref = new ObjectId().toString(),
+        secret = '1234') {
         const gateway = {
             apiVersion: 'v1.0',
             kind: 'Gateway',
             metadata: {
-                userId: 'john@doe.com',
                 name: name,
                 ref: ref
             },
@@ -49,20 +52,20 @@ class TestUtils {
         return gateway
     }
 
-    static buildDomain(name, domainUri) {
+    static buildDomain(name, domainUri, numberRef, ref = new ObjectId().toString()) {
         const domain = {
             apiVersion: 'v1.0',
             kind: 'Domain',
             metadata: {
-                userId: 'john@doe.com',
-                name: name
+                name: name,
+                ref: ref
             },
             spec: {
                 context: {
                     domainUri: domainUri,
                     egressPolicy: {
                         rule: '.*',
-                        numberRef: 'DID0001'
+                        numberRef: numberRef
                     }
                 }
             }
@@ -70,13 +73,13 @@ class TestUtils {
         return domain
     }
 
-    static buildNumber() {
+    static buildNumber(gwRef, ref = new ObjectId().toString()) {
         const number = {
             apiVersion: 'v1.0',
             kind: 'Number',
             metadata: {
-                userId: 'john@doe.com',
-                gwRef: '595bc68492bccf1454883d0b',
+                ref: ref,
+                gwRef: gwRef,
                 geoInfo: {
                     city: 'Sanford, GA',
                     country: 'United States',

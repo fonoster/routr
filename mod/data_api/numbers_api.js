@@ -88,6 +88,9 @@ class NumbersAPI {
         return this.ds.withCollection('numbers').remove(ref)
     }
 
+    cleanCache() {
+        this.cache.invalidateAll()
+    }
 }
 
 module.exports = NumbersAPI
