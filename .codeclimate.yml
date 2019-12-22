@@ -1,2 +1,4 @@
 exclude_patterns:
 - "docs/"
+- "libs/"
+- "**/*test_*.js"
