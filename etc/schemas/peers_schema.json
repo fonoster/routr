@@ -29,7 +29,7 @@
                     "credentials": {
                         "type": "object",
                         "properties": {
-                            "username": {"type": "string", "readOnly": true},
+                            "username": {"type": "string"},
                             "secret": {"type": "string", "writeOnly": true}
                         },
                         "required": ["username", "secret"]
