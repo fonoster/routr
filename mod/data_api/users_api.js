@@ -15,11 +15,39 @@ class UsersAPI {
     }
 
     createFromJSON(jsonObj) {
-        return this.userExist(jsonObj.spec.credentials.username) ? CoreUtils.buildResponse(Status.CONFLICT) : this.ds.insert(jsonObj)
+        const errors = DSUtils.validateEntity(jsonObj)
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
+        return this.userExist(jsonObj.spec.credentials.username)
+          ? CoreUtils.buildResponse(Status.CONFLICT)
+          : this.ds.insert(jsonObj)
     }
 
     updateFromJSON(jsonObj) {
-        return !this.userExist(jsonObj.spec.credentials.username) ? CoreUtils.buildResponse(Status.NOT_FOUND) : this.ds.update(jsonObj)
+        let errors = DSUtils.validateEntity(jsonObj)
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
+        const oldObj = this.getUser(jsonObj.metadata.ref).data
+
+        if (!oldObj || !oldObj.kind) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+              DSUtils.roMessage('metadata.ref'))
+        }
+
+        const patchObj = DSUtils.patchObj(oldObj, jsonObj) // Patch with the RO fields
+        errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
+
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
+        return !this.userExist(patchObj.spec.credentials.username)
+          ? CoreUtils.buildResponse(Status.NOT_FOUND)
+          : this.ds.update(patchObj)
     }
 
     getUsers(filter) {
@@ -35,13 +63,12 @@ class UsersAPI {
     }
 
     userExist(username) {
-        return DSUtils.objExist(this.getUser(username))
+        return DSUtils.objExist(this.getUserByUsername(username))
     }
 
     deleteUser(ref) {
         return this.ds.withCollection('users').remove(ref)
     }
-
 }
 
 module.exports = UsersAPI

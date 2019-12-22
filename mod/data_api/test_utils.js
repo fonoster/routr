@@ -96,6 +96,24 @@ class TestUtils {
         return number
     }
 
+    static buildUser(name, username, secret = '1234',
+        ref = new ObjectId().toString()) {
+        return {
+            apiVersion: 'v1.0',
+            kind: 'User',
+            metadata: {
+                name: name,
+                ref: ref
+            },
+            spec: {
+                credentials: {
+                    username: username,
+                    secret: secret
+                }
+            }
+        }
+    }
+
 }
 
 module.exports = TestUtils
