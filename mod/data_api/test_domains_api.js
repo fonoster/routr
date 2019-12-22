@@ -25,7 +25,10 @@ const numberRef = 'dd101'
 
 describe('Domains API(on Redis)', () => {
 
-    beforeEach(() => ds.flushAll())
+    beforeEach(() => {
+        ds.flushAll()
+        domainsApi.cleanCache()
+    })
 
     it('Create domain', done => {
         // Test missing dependency
@@ -74,18 +77,20 @@ describe('Domains API(on Redis)', () => {
 
         // Test entity missing required fields
         const domain = TestUtils.buildDomain('SIP Local', 'sip.local', numberRef)
+        const ref = domain.metadata.ref
         let response = domainsApi.createFromJSON(domain)
         delete domain.kind
+        delete domain.metadata
         response = domainsApi.updateFromJSON(domain)
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
         // Bad kind
         domain.kind = 'Domainx'
+        domain.metadata = { ref: ref, name: 'SIP Local' }
         response = domainsApi.updateFromJSON(domain)
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
         // Bad reference
-        const ref = domain.metadata.ref
         domain.kind = 'Domain'
         domain.metadata.ref = 'abc'
         response = domainsApi.updateFromJSON(domain)

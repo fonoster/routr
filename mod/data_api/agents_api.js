@@ -23,22 +23,24 @@ class AgentsAPI {
     }
 
     save(agent, operation) {
-        let errors = []
+        let errors = DSUtils.validateEntity(agent)
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
         if(operation === 'update') {
             const oldObj = this.getAgent(agent.metadata.ref).data
 
-            if (!oldObj) {
+            if (!oldObj || !oldObj.kind) {
                 return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
                   DSUtils.roMessage('metadata.ref'))
             }
             agent = DSUtils.patchObj(oldObj, agent) // Patch with the RO fields
             errors = DSUtils.validateEntity(agent, oldObj, 'write')
-        } else {
-            errors = DSUtils.validateEntity(agent)
-        }
 
-        if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            if (errors.length > 0) {
+                return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            }
         }
 
         if (!this.doesDomainExist(agent)) {

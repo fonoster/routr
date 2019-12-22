@@ -49,15 +49,20 @@ class DomainsAPI {
     }
 
     updateFromJSON(jsonObj) {
+        let errors = DSUtils.validateEntity(jsonObj)
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
         const oldObj = this.getDomain(jsonObj.metadata.ref).data
 
-        if (!oldObj) {
+        if (!oldObj || !oldObj.kind) {
             return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
               DSUtils.roMessage('metadata.ref'))
         }
 
         const patchObj = DSUtils.patchObj(oldObj, jsonObj) // Patch with the RO fields
-        const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
+        errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
         if (errors.length > 0) {
             return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
         }

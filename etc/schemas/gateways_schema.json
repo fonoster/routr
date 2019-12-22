@@ -51,6 +51,6 @@
                 "required": ["host"]
             }
         },
-        "required": ["apiVersion", "kind", "metadata", "spec"]
+        "required": ["apiVersion", "kind", "metadata", "spec", "metadata"]
     }
 }

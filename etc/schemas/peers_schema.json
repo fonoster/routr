@@ -37,6 +37,6 @@
                 "required": ["credentials"]
             }
         },
-        "required": ["apiVersion", "kind", "spec"]
+        "required": ["apiVersion", "kind", "spec", "metadata"]
     }
 }
