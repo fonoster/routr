@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  *
- * Unit Test for the "Redis Data Source"
+ * Unit Test for the "Agents API on Redis Data Source"
  */
 const RedisDataSource = require('@routr/data_api/redis_datasource')
 const assert = require('assert')

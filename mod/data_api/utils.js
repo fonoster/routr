@@ -133,7 +133,7 @@ class DSUtils {
     }
 
     static getKind(obj) {
-        if (['user', 'agent', 'peer', 'domain', 'gateway', 'number']
+        if (!obj.kind || ['user', 'agent', 'peer', 'domain', 'gateway', 'number']
             .indexOf(obj.kind.toLowerCase()) === -1) {
             throw 'Not a valid entity. \`kind\` must be: User, Agent, Peer, Domain, Gateway, Number'
         }
