@@ -84,13 +84,11 @@ describe('Domains API(on Redis)', () => {
         const ref = domain.metadata.ref
         let response = domainsApi.createFromJSON(domain)
         delete domain.kind
-        delete domain.metadata
         response = domainsApi.updateFromJSON(domain)
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
         // Bad kind
         domain.kind = 'Domainx'
-        domain.metadata = { ref: ref, name: 'SIP Local' }
         response = domainsApi.updateFromJSON(domain)
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 

@@ -16,6 +16,8 @@
             "metadata": {
                 "type": "object",
                 "properties": {
+                    "createdOn": {"type": "string", "readOnly": true},
+                    "modifiedOn": {"type": "string", "readOnly": true},
                     "ref": {"type": "string", "readOnly": true},
                     "gwRef": {"type": "string", "readOnly": true}
                 },

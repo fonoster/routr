@@ -16,7 +16,10 @@
             "metadata": {
                 "type": "object",
                 "properties": {
-                    "name": {"type": "string"}
+                    "name": {"type": "string"},
+                    "createdOn": {"type": "string", "readOnly": true},
+                    "modifiedOn": {"type": "string", "readOnly": true},
+                    "ref": {"type": "string", "readOnly": true}
                 },
                 "required": ["name"]
             },
