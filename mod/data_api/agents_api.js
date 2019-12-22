@@ -22,41 +22,41 @@ class AgentsAPI {
             .build()
     }
 
-    save(agent, operation) {
-        let errors = DSUtils.validateEntity(agent)
+    createFromJSON(jsonObj) {
+        const errors = DSUtils.validateEntity(jsonObj)
         if (errors.length > 0) {
             return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
         }
 
-        if(operation === 'update') {
-            const oldObj = this.getAgent(agent.metadata.ref).data
-
-            if (!oldObj || !oldObj.kind) {
-                return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
-                  DSUtils.roMessage('metadata.ref'))
-            }
-            agent = DSUtils.patchObj(oldObj, agent) // Patch with the RO fields
-            errors = DSUtils.validateEntity(agent, oldObj, 'write')
-
-            if (errors.length > 0) {
-                return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
-            }
-        }
-
-        if (!this.doesDomainExist(agent)) {
+        if (!this.doesDomainExist(jsonObj)) {
             return UNFULFILLED_DEPENDENCY_RESPONSE
-        } else if (operation === 'insert' && this.existInAnotherDomain(agent)) {
+        } else if (this.existInAnotherDomain(jsonObj)) {
             return ENTITY_ALREADY_EXIST_RESPONSE
         }
-        return operation === 'insert' ? this.ds.insert(agent) : this.ds.update(agent)
+        return this.ds.insert(jsonObj)
     }
 
-    createFromJSON(agent) {
-        return this.save(agent, 'insert')
-    }
+    updateFromJSON(jsonObj) {
+        if (!jsonObj.metadata || !jsonObj.metadata.ref) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+                DSUtils.roMessage('metadata.ref'))
+        }
 
-    updateFromJSON(agent) {
-        return this.save(agent, 'update')
+        const oldObj = this.getAgent(jsonObj.metadata.ref).data
+
+        if (!oldObj || !oldObj.kind) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY)
+        }
+
+        // Patch writeOnly fields
+        const patchObj = DSUtils.patchObj(oldObj, jsonObj)
+        const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
+
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
+        return this.ds.update(patchObj)
     }
 
     getAgents(filter, page, itemsPerPage) {

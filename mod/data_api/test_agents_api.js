@@ -27,7 +27,10 @@ const domainRef = 'dm001'
 
 describe('Agents API(on Redis)', () => {
 
-    beforeEach(() => ds.flushAll())
+    beforeEach(() => {
+        ds.flushAll()
+        agentsApi.cleanCache()
+    })
 
     it('Create agent', done => {
         // Test missing dependency
@@ -48,7 +51,7 @@ describe('Agents API(on Redis)', () => {
 
         // Bad kind
         agent.metadata.name = 'John doe'
-        agent.kind = 'Agentk'
+        agent.kind = 'Agentx'
         response = agentsApi.createFromJSON(agent)
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
@@ -77,7 +80,7 @@ describe('Agents API(on Redis)', () => {
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
         // Bad kind
-        agent.kind = 'Agentk'
+        agent.kind = 'Agentx'
         response = agentsApi.updateFromJSON(agent)
         assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
@@ -90,6 +93,7 @@ describe('Agents API(on Redis)', () => {
 
         // Test for good resource
         agent.metadata.ref = ref
+        delete agent.spec.credentials.secret
         response = agentsApi.updateFromJSON(agent)
         assert.equal(response.status, Status.OK)
         done()

@@ -74,6 +74,7 @@ describe('Peers API(on Redis)', () => {
 
         // Test for good resource
         peer.metadata.ref = ref
+        delete peer.spec.credentials.secret
         response = peersApi.updateFromJSON(peer)
         assert.equal(response.status, Status.OK)
         done()

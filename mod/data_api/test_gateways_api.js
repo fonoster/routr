@@ -74,6 +74,7 @@ describe('Gateways API(on Redis)', () => {
 
         // Test for good resource
         gateway.metadata.ref = ref
+        delete gateway.spec.credentials.secret
         response = gatewaysApi.updateFromJSON(gateway)
         assert.equal(response.status, Status.OK)
         done()

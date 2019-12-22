@@ -35,20 +35,20 @@ class PeersAPI {
     }
 
     updateFromJSON(jsonObj) {
-        let errors = DSUtils.validateEntity(jsonObj)
-        if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        if (!jsonObj.metadata || !jsonObj.metadata.ref) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+                DSUtils.roMessage('metadata.ref'))
         }
 
         const oldObj = this.getPeer(jsonObj.metadata.ref).data
 
         if (!oldObj || !oldObj.kind) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
-              DSUtils.roMessage('metadata.ref'))
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY)
         }
 
-        const patchObj = DSUtils.patchObj(oldObj, jsonObj) // Patch with the RO fields
-        errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
+        // Patch writeOnly fields
+        const patchObj = DSUtils.patchObj(oldObj, jsonObj)
+        const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
 
         if (errors.length > 0) {
             return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
