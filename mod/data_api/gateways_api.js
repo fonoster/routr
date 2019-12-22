@@ -11,7 +11,8 @@ const {
     Status
 } = require('@routr/core/status')
 const {
-    FOUND_DEPENDENT_OBJECTS_RESPONSE
+    FOUND_DEPENDENT_OBJECTS_RESPONSE,
+    ENTITY_ALREADY_EXIST_RESPONSE
 } = require('@routr/core/status')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
@@ -26,6 +27,11 @@ class GatewaysAPI {
     }
 
     createFromJSON(jsonObj) {
+        const errors = DSUtils.validateEntity(jsonObj)
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
         if (!this.gatewayExist(jsonObj.spec.host, jsonObj.spec.port)) {
             const response = this.ds.insert(jsonObj)
             const host = buildAddr(jsonObj.spec.host, jsonObj.spec.port)
@@ -33,14 +39,33 @@ class GatewaysAPI {
             return response
         }
 
-        return CoreUtils.buildResponse(Status.CONFLICT)
+        return ENTITY_ALREADY_EXIST_RESPONSE
     }
 
     updateFromJSON(jsonObj) {
-        if (this.gatewayExist(jsonObj.spec.host, jsonObj.spec.port)) {
-            const response = this.ds.update(jsonObj)
-            const host = buildAddr(jsonObj.spec.host, jsonObj.spec.port)
-            this.cache(host, response)
+        let errors = DSUtils.validateEntity(jsonObj)
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
+        const oldObj = this.getGateway(jsonObj.metadata.ref).data
+
+        if (!oldObj || !oldObj.kind) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+              DSUtils.roMessage('metadata.ref'))
+        }
+
+        const patchObj = DSUtils.patchObj(oldObj, jsonObj) // Patch with the RO fields
+        errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
+
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
+        if (this.gatewayExist(patchObj.spec.host, patchObj.spec.port)) {
+            const response = this.ds.update(patchObj)
+            const host = buildAddr(patchObj.spec.host, patchObj.spec.port)
+            this.cache.put(host, response)
             return response
         }
 

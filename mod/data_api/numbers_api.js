@@ -23,6 +23,11 @@ class NumbersAPI {
     }
 
     createFromJSON(jsonObj) {
+        const errors = DSUtils.validateEntity(jsonObj)
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
         const response = this.ds.withCollection('gateways').get(jsonObj.metadata.gwRef)
 
         if (response.status !== Status.OK) {
@@ -39,15 +44,28 @@ class NumbersAPI {
     }
 
     updateFromJSON(jsonObj) {
-        const response = this.ds.withCollection('gateways').get(jsonObj.metadata.gwRef)
-
-        if (response.status !== Status.OK) {
-            return UNFULFILLED_DEPENDENCY_RESPONSE
+        let errors = DSUtils.validateEntity(jsonObj)
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
         }
 
-        if (this.numberExist(jsonObj.spec.location.telUrl)) {
-            const response = this.ds.update(jsonObj)
-            this.cache.put(jsonObj.spec.location.telUrl, response)
+        const oldObj = this.getNumber(jsonObj.metadata.ref).data
+
+        if (!oldObj || !oldObj.kind) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+              DSUtils.roMessage('metadata.ref'))
+        }
+
+        const patchObj = DSUtils.patchObj(oldObj, jsonObj) // Patch with the RO fields
+        errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
+
+        if (errors.length > 0) {
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+        }
+
+        if (this.numberExist(patchObj.spec.location.telUrl)) {
+            const response = this.ds.update(patchObj)
+            this.cache.put(patchObj.spec.location.telUrl, response)
             return response
         }
 
