@@ -64,11 +64,13 @@ class TestUtils {
                 context: {
                     domainUri: domainUri,
                     egressPolicy: {
-                        rule: '.*',
-                        numberRef: numberRef
+                        rule: '.*'
                     }
                 }
             }
+        }
+        if (numberRef) {
+            domain.spec.context.egressPolicy.numberRef = numberRef
         }
         return domain
     }

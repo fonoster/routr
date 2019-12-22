@@ -8,7 +8,8 @@ const {
     Status
 } = require('@routr/core/status')
 const {
-    UNFULFILLED_DEPENDENCY_RESPONSE
+    UNFULFILLED_DEPENDENCY_RESPONSE,
+    FOUND_DEPENDENT_OBJECTS_RESPONSE
 } = require('@routr/core/status')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
@@ -103,7 +104,14 @@ class NumbersAPI {
         if (this.cache.getIfPresent(ref)) {
             this.cache.invalidate(ref)
         }
-        return this.ds.withCollection('numbers').remove(ref)
+
+        const response = this.ds.withCollection('domains')
+          .find(`@.spec.context.egressPolicy.numberRef=='${ref}'`)
+        const domains = response.data
+
+        return domains.length === 0
+          ? this.ds.withCollection('numbers').remove(ref)
+          : FOUND_DEPENDENT_OBJECTS_RESPONSE
     }
 
     cleanCache() {

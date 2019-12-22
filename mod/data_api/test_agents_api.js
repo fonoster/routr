@@ -6,9 +6,11 @@
  */
 const RedisDataSource = require('@routr/data_api/redis_datasource')
 const assert = require('assert')
+const DomainsAPI = require('@routr/data_api/domains_api')
 const AgentsAPI = require('@routr/data_api/agents_api')
 const {
     UNFULFILLED_DEPENDENCY_RESPONSE,
+    FOUND_DEPENDENT_OBJECTS_RESPONSE,
     Status
 } = require('@routr/core/status')
 const TestUtils = require('@routr/data_api/test_utils')
@@ -20,20 +22,8 @@ const ObjectId = Java.type('org.bson.types.ObjectId')
 delete config.spec.dataSource.parameters
 const ds = new RedisDataSource(config)
 const agentsApi = new AgentsAPI(ds)
+const domainsApi = new DomainsAPI(ds)
 const domainRef = 'dm001'
-const mockDomain = {
-    apiVersion: 'v1beta1',
-    kind: 'Domain',
-    metadata: {
-      name: 'Local Domain',
-      ref: domainRef
-    },
-    spec: {
-      context: {
-        domainUri: 'sip.local'
-      }
-    }
-}
 
 describe('Agents API(on Redis)', () => {
 
@@ -47,7 +37,9 @@ describe('Agents API(on Redis)', () => {
         assert.equal(response.message, UNFULFILLED_DEPENDENCY_RESPONSE.message)
 
         // Add dependecy resource
-        ds.withCollection('domains').insert(mockDomain)
+        const domain = TestUtils.buildDomain('Local Domain',
+          'sip.local', void(0), domainRef)
+        ds.withCollection('domains').insert(domain)
 
         // Test entity missing required fields
         delete agent.metadata.name
@@ -73,7 +65,9 @@ describe('Agents API(on Redis)', () => {
 
     it('Update agent', done => {
         // Add dependecy resource
-        ds.withCollection('domains').insert(mockDomain)
+        const domain = TestUtils.buildDomain('Local Domain',
+          'sip.local', void(0), domainRef)
+        ds.withCollection('domains').insert(domain)
 
         // Test entity missing required fields
         const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
@@ -98,6 +92,26 @@ describe('Agents API(on Redis)', () => {
         agent.metadata.ref = ref
         response = agentsApi.updateFromJSON(agent)
         assert.equal(response.status, Status.OK)
+        done()
+    })
+
+    it('Delete domains and agents', done => {
+        // Add dependecy resource
+        const domain = TestUtils.buildDomain('Local Domain',
+          'sip.local', void(0), domainRef)
+        ds.withCollection('domains').insert(domain)
+
+        // Test entity missing required fields
+        const agent = TestUtils.buildAgent('John Doe', ['sip.local'], '1001')
+        agentsApi.createFromJSON(agent)
+        let response = domainsApi.deleteDomain(domainRef)
+        assert.equal(response.status, FOUND_DEPENDENT_OBJECTS_RESPONSE.status)
+
+        // Good run
+        agentsApi.deleteAgent(agent.metadata.ref)
+        response = domainsApi.deleteDomain(domainRef)
+        assert.equal(response.status, Status.OK)
+
         done()
     })
 })
