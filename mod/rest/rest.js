@@ -120,6 +120,14 @@ class Rest {
                         }
                         return '{\"status\": \"200\", \"message\":\"Stop request sent to server.\"}'
                         break;
+                    case 'restarting':
+                        if(req.queryParams('now') === 'true') {
+                            this.grpc.run('restart-server-now')
+                        } else {
+                            this.grpc.run('restart-server')
+                        }
+                        return '{\"status\": \"200\", \"message\":\"Restart request sent to server.\"}'
+                        break;
                     default:
                         res.status(400)
                         return '{\"status\": \"400\", \"message\":\"Bad Request\"}'

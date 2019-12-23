@@ -3,6 +3,7 @@
 set -e
 
 BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
+RESTART_CODE=123
 
 [ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
 [ -z "$ROUTR_LOG4J2" ] && ROUTR_LOG4J2=config/log4j2.yml
@@ -13,7 +14,7 @@ BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
 # compilation issues
 # ROUTR_JAVA_OPTS=$ROUTR_JAVA_OPTS -Dgraal.TruffleLanguageAgnosticInlining=true \
 run() {
-  cd $BASE_DIR
+    cd $BASE_DIR
     $JAVA_HOME/bin/java \
     -DROUTR_DATA=$ROUTR_DATA \
     -Dlog4j.configurationFile=$ROUTR_LOG4J2 \
@@ -26,6 +27,7 @@ run() {
     $ROUTR_JAVA_OPTS \
     -classpath "$BASE_DIR/libs/*" \
     io.routr.core.Launcher
+    return $?
 }
 
 if [ -f /.dockerenv ]; then
@@ -35,4 +37,14 @@ fi
 
 [ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment. Please setup environment variable JAVA_HOME"; exit 1; }
 
-run
+{
+  until false; do
+    run
+    exit_code=$?
+    if [ $exit_code -ne $RESTART_CODE ] ; then
+      break
+    fi
+  done
+} || { # your 'catch' block
+    echo 'Done.'
+}

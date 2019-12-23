@@ -99,17 +99,17 @@ class Server {
         this.setup()
     }
 
-    stop() {
+    stop(code = 0) {
         LOG.info('Stopping server')
         try {
             this.sipStack.stop()
         } catch(e) {}
-        System.exit(0)
+        System.exit(code)
     }
 
-    stopIfReady() {
+    stopIfReady(code = 0) {
         if (this.ctxStorage.getStorage().size() === 0) {
-            this.stop()
+            this.stop(code)
         }
         LOG.info(`Waiting for ${this.ctxStorage.getStorage().size()} transactions before shutdown`)
     }

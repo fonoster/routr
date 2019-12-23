@@ -77,8 +77,21 @@ public class GRPCServer {
                             } catch(ScriptException e) {}
                         }
                     }, 1000, 10 * 1000);
+                } else if(req.getName().equals("restart-server")) {
+                    Timer timer = new Timer();
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run () {
+                            try {
+                              // Sends restart code
+                              context.eval("server.stopIfReady(123)");
+                            } catch(ScriptException e) {}
+                        }
+                    }, 1000, 10 * 1000);
                 } else if(req.getName().equals("stop-server-now")) {
                     context.eval("server.stop()");
+                } else if(req.getName().equals("restart-server-now")) {
+                    context.eval("server.stop(123)");
                 } else if(req.getName().equals("evict-all")) {
                     context.eval("server.locator.evictAll()");
                 }
