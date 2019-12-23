@@ -118,7 +118,9 @@ class DSUtils {
         const flatOldObj = flat(oldObj)
         pathsToFields
           .forEach(path => {
-              if(!flatNewObj[path]) flatNewObj[path] = flatOldObj[path]
+              if(!flatNewObj[path] && flatOldObj[path]) {
+                  flatNewObj[path] = flatOldObj[path]
+              }
           })
         return unflatten(flatNewObj)
     }
