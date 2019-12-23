@@ -8,7 +8,6 @@ const {
     Status
 } = require('@routr/core/status')
 const getConfig = require('@routr/core/config_util')
-
 const JedisPoolConfig = Java.type('redis.clients.jedis.JedisPoolConfig')
 const JedisPool = Java.type('redis.clients.jedis.JedisPool')
 const ObjectId = Java.type('org.bson.types.ObjectId')
@@ -19,10 +18,6 @@ const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const Long = Java.type('java.lang.Long')
 
 const LOG = LogManager.getLogger()
-const badRequest = {
-    status: Status.BAD_REQUEST,
-    message: Status.message[Status.BAD_REQUEST].value
-}
 const defaultRedisParameters = {
     host: 'localhost',
     port: 6379
@@ -52,6 +47,11 @@ class RedisDataSource {
         if (this.withCollection('users').find().data.length === 0) {
             LOG.info("No user found. Creating default 'admin' user.")
             this.createDefaultUser(config.system.apiVersion)
+        }
+
+        if (!this.get('config').data) {
+            LOG.info("No configuration found. Creating default configuration.")
+            this.createDefaultConfig(config)
         }
     }
 
@@ -87,6 +87,10 @@ class RedisDataSource {
         this.insert(defUser)
     }
 
+    createDefaultConfig(config) {
+        this.set('config', config)
+    }
+
     withCollection(collection) {
         this.collection = collection
         return this
@@ -109,6 +113,22 @@ class RedisDataSource {
             jedis.sadd(`${kind.toLowerCase()}s`, obj.metadata.ref)
 
             return CoreUtils.buildResponse(Status.CREATED, obj.metadata.ref)
+        } catch (e) {
+            return CoreUtils.buildErrResponse(e)
+        } finally {
+            if (jedis) {
+                jedis.close()
+            }
+        }
+    }
+
+    set(key, value) {
+        let jedis
+
+        try {
+            jedis = this.getJedisConn()
+            jedis.set(key, JSON.stringify(value))
+            return CoreUtils.buildResponse(Status.OK)
         } catch (e) {
             return CoreUtils.buildErrResponse(e)
         } finally {

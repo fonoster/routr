@@ -163,6 +163,13 @@ class FilesDataSource {
         return DSUtils.deepSearch(this.find(void(0), 1, Long.MAX_VALUE), "metadata.ref", ref)
     }
 
+    set(key, value) {
+        return {
+            status: Status.NOT_SUPPORTED,
+            message: Status.message[Status.NOT_SUPPORTED].value
+        }
+    }
+
     find(filter = '*', page = 1, itemsPerPage = Long.MAX_VALUE) {
         if (!isEmpty(filter) && filter !== '*') {
             filter = `*.[?(${filter})]`

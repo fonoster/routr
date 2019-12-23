@@ -3,6 +3,8 @@
  * @since v1
  */
 const DSUtils = require('@routr/data_api/utils')
+const ConfigAPI = require('@routr/data_api/config_api')
+const RedisDataSource = require('@routr/data_api/redis_datasource')
 const FilesUtil = require('@routr/utils/files_util')
 const File = Java.type('java.io.File')
 const System = Java.type('java.lang.System')
@@ -15,7 +17,7 @@ module.exports = () => loadConfig(upSince)
 module.exports.reloadConfig = () => loadConfig(upSince)
 
 function loadConfig(upSince) {
-    const config = getConfigFromFile()
+    let config = getConfigFromFile()
     config.salt = getSalt()
 
     if (config.spec === undefined) config.spec = {}
@@ -33,15 +35,19 @@ function loadConfig(upSince) {
     // Trying to use 0.0.0.0 or :: causes routing issues
     if (config.spec.bindAddr === undefined) config.spec.bindAddr = InetAddress
         .getLocalHost().getHostAddress()
-    //if (config.spec.logging === undefined) config.spec.logging = {
-    //    traceLevel: '0'
-    //}
     if (config.spec.dataSource === undefined) config.spec.dataSource = {
         provider: 'files_data_provider'
     }
     if (config.metadata === undefined) config.metadata = {}
     if (config.metadata.userAgent === undefined) config.metadata.userAgent = `Routr ${config.system.version}`
     if (config.spec.transport === undefined) config.spec.transport = [{ protocol: 'tcp', port: 5060 }]
+
+    if (config.spec.dataSource
+        && config.spec.dataSource.provider === 'redis_data_provider') {
+        // WARNING: This will have to be change once we add new data provider
+        // to avoid a circular dependency with the DSSelector
+        config = new ConfigAPI(new RedisDataSource(config)).getConfig().data
+    }
 
     return config
 }
