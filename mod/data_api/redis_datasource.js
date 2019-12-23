@@ -101,8 +101,8 @@ class RedisDataSource {
             }
 
             jedis = this.getJedisConn()
-            obj.metadata.createdOn = `${new Date()}`
-            obj.metadata.modifiedOn = `${new Date()}`
+            obj.metadata.createdOn = new Date().toISOString()
+            obj.metadata.modifiedOn = new Date().toISOString()
             jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
             const kind = DSUtils.getKind(obj)
@@ -170,7 +170,7 @@ class RedisDataSource {
 
         try {
             jedis = this.getJedisConn()
-            obj.metadata.modifiedOn = `${new Date()}`
+            obj.metadata.modifiedOn = new Date().toISOString()
             jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
             return CoreUtils.buildResponse(Status.OK, obj.metadata.ref)
