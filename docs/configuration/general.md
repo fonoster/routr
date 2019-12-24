@@ -8,7 +8,7 @@ can be provided using the file `config/config.yml` located at the root of your R
 | apiVersion | Indicates the version of the resource (Not yet implemented) | Yes |
 | metadata.userAgent| Sets sip header `User-Agent` to the desired value | No |
 | spec.dataSource.provider | Defines data provider. Defaults to `files_data_provider` | No |
-| spec.dataSource.parameters | Provider specific parameters | No |
+| spec.dataSource.parameters | Data Source Parameters. Ex.: 'host=localhost,port=6379' | No |
 | spec.bindAddr | Default stack IP address  | No |
 | spec.externAddr | IP address to advertise | No |
 | spec.localnets | Local networks. Use in combination with spec.externAddr | No |
