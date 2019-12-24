@@ -1629,6 +1629,16 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 <td>No</td>
 </tr>
 <tr>
+<td>spec.dataSource.provider</td>
+<td>Defines data provider. Defaults to <code>files_data_provider</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>spec.dataSource.parameters</td>
+<td>Provider specific parameters</td>
+<td>No</td>
+</tr>
+<tr>
 <td>spec.bindAddr</td>
 <td>Default stack IP address</td>
 <td>No</td>
@@ -1647,6 +1657,21 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 <td>spec.recordRoute</td>
 <td>Stay within the signaling path</td>
 <td>No</td>
+</tr>
+<tr>
+<td>spec.transport.[*].bindAddr</td>
+<td>Overwrites <code>spec.bindAddr</code> for transport entry</td>
+<td>No</td>
+</tr>
+<tr>
+<td>spec.transport.[*].port</td>
+<td>Transport port</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>spec.transport.[*].protocol</td>
+<td>Valid values are: <code>tcp</code>, <code>udp</code>, <code>tls</code>, <code>sctp</code>, <code>ws</code>, <code>wss</code></td>
+<td>Yes</td>
 </tr>
 <tr>
 <td>spec.registrarIntf</td>
@@ -1714,21 +1739,6 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 <td>No</td>
 </tr>
 <tr>
-<td>spec.transport.[*].bindAddr</td>
-<td>Overwrites <code>spec.bindAddr</code> for transport entry</td>
-<td>No</td>
-</tr>
-<tr>
-<td>spec.transport.[*].port</td>
-<td>Transport port</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td>spec.transport.[*].protocol</td>
-<td>Valid values are: <code>tcp</code>, <code>udp</code>, <code>tls</code>, <code>sctp</code>, <code>ws</code>, <code>wss</code></td>
-<td>Yes</td>
-</tr>
-<tr>
 <td>spec.securityContext.keyStore</td>
 <td>Path to keyStore</td>
 <td>Yes</td>
@@ -1761,16 +1771,6 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 <tr>
 <td>spec.securityContext.debugging</td>
 <td>Turns ON or OFF ssl debugging. Defaults to <code>false</code></td>
-<td>No</td>
-</tr>
-<tr>
-<td>spec.dataSource.provider</td>
-<td>Defines data provider. Defaults to <code>files_data_provider</code></td>
-<td>No</td>
-</tr>
-<tr>
-<td>spec.dataSource.parameters</td>
-<td>Provider specific parameters</td>
 <td>No</td>
 </tr>
 </tbody>
