@@ -12,6 +12,7 @@ const NumbersAPI = require('@routr/data_api/numbers_api')
 const DSSelector = require('@routr/data_api/ds_selector')
 const SDSelector = require('@routr/data_api/store_driver_selector')
 const StoreAPI = require('@routr/data_api/store_api')
+const ConfigAPI = require('@routr/data_api/config_api')
 const DSUtils = require('@routr/data_api/utils')
 const isEmpty = require('@routr/utils/obj_util')
 const config = require('@routr/core/config_util')()
@@ -33,6 +34,7 @@ const Spark = Java.type('spark.Spark')
 const options = Java.type('spark.Spark').options
 const get = Java.type('spark.Spark').get
 const post = Java.type('spark.Spark').post
+const put = Java.type('spark.Spark').put
 const before = Java.type('spark.Spark').before
 const path = Java.type('spark.Spark').path
 
@@ -78,6 +80,7 @@ class Rest {
 
     start() {
         const ds = DSSelector.getDS()
+        const configApi = new ConfigAPI(ds)
 
         options('/*', (req, res) => {
             const accessControlRequestHeaders =
@@ -135,6 +138,13 @@ class Rest {
             })
 
             get('/system/info', (req, res) => JSON.stringify(config.system))
+
+            get('/system/config', (req, res) => JSON.stringify(configApi.getConfig()))
+
+            put('/system/config', (req, res) => {
+                const c = JSON.parse(req.body())
+                return JSON.stringify(configApi.setConfig(c))
+            })
 
             // Deprecated
             get('/credentials', (req, res) => getJWTToken(req, res,

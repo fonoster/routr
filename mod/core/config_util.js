@@ -41,6 +41,9 @@ function loadConfig(upSince) {
     if (config.metadata === undefined) config.metadata = {}
     if (config.metadata.userAgent === undefined) config.metadata.userAgent = `Routr ${config.system.version}`
     if (config.spec.transport === undefined) config.spec.transport = [{ protocol: 'tcp', port: 5060 }]
+    if (config.spec.accessControlList === undefined) config.spec.accessControlList = { allow: [], deny: []}
+    if (config.spec.accessControlList.allow === undefined) config.spec.accessControlList.allow = []
+    if (config.spec.accessControlList.allow === undefined) config.spec.accessControlList.deny = []
 
     if (config.spec.dataSource
         && config.spec.dataSource.provider === 'redis_data_provider') {

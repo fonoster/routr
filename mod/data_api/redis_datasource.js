@@ -18,10 +18,7 @@ const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const Long = Java.type('java.lang.Long')
 
 const LOG = LogManager.getLogger()
-const defaultRedisParameters = {
-    host: 'localhost',
-    port: 6379
-}
+const defaultRedisParameters = 'host=localhost,port=6379'
 const defUser = {
     kind: 'User',
     metadata: {

@@ -170,25 +170,33 @@ class DSUtils {
     }
 
     static getParameters(config, defaultParameters, allowedKeys) {
-        let parameters = isEmpty(config.spec.dataSource.parameters) === false ?
-            config.spec.dataSource.parameters : defaultParameters
+        let parameters = isEmpty(config.spec.dataSource.parameters) === false
+            ? DSUtils.getParametersFromString(config.spec.dataSource.parameters, allowedKeys)
+            : DSUtils.getParametersFromString(defaultParameters, allowedKeys)
 
         if (System.getenv("ROUTR_DS_PARAMETERS") !== null) {
-            parameters = DSUtils.getFromEnv(
+            parameters = DSUtils.getParametersFromString(
                 System.getenv("ROUTR_DS_PARAMETERS"), allowedKeys)
         }
 
         return parameters
     }
 
-    static getFromEnv(params, allowedKeys) {
+    // Please rename this!
+    static getParametersFromString(params, allowedKeys) {
         const parameters = {}
         params.split(',').forEach(par => {
-            const key = par.split('=')[0]
-            const value = par.split('=')[1]
-            allowedKeys.indexOf(key) === -1 ?
-                LOG.warn(`Invalid parameter: ${key}`) :
-                parameters[key] = value
+            try {
+                const key = par.split('=')[0]
+                const value = par.split('=')[1]
+                if(allowedKeys.indexOf(key) === -1) {
+                    throw `Invalid parameter: ${key}`
+                } else {
+                    parameters[key] = value
+                }
+            } catch(e) {
+                throw `Invalid parameters string: ${params}. Should be something like 'host=localhost,port=6379'`
+            }
         })
         return parameters
     }

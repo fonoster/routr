@@ -4,10 +4,7 @@
  */
 const DSUtils = require('@routr/data_api/utils')
 const getConfig = require('@routr/core/config_util')
-const defaultRedisParameters = {
-    host: 'localhost',
-    port: 6379
-}
+const defaultRedisParameters = 'host=localhost,port=6379'
 
 const JedisPoolConfig = Java.type('redis.clients.jedis.JedisPoolConfig')
 const JedisPool = Java.type('redis.clients.jedis.JedisPool')

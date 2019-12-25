@@ -46,11 +46,11 @@ class FilesDataSource {
         }
 
         if (!config.spec.dataSource.parameters) {
-            config.spec.dataSource.parameters = {}
-            config.spec.dataSource.parameters.path = 'config'
+            this.filesPath = 'config'
+        } else {
+            const parameters = DSUtils.getParametersFromString(config.spec.dataSource.parameters, ['path'])
+            if (parameters.path) this.filesPath = parameters.path
         }
-
-        this.filesPath = config.spec.dataSource.parameters.path
 
         // Static validation
         this.staticConfigValidation()

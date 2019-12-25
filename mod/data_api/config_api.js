@@ -15,7 +15,11 @@ class ConfigAPI {
     }
 
     setConfig(config) {
-        return this.ds.set('config', config)
+        try {
+          return this.ds.set('config', config)
+        } catch(e) {
+            console.log(e)
+        }
     }
 
     getConfig() {
