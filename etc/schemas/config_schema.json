@@ -82,7 +82,8 @@
                                         "enum": [
                                             "TLSv1.2",
                                             "TLSv1.1",
-                                            "TLSv1"
+                                            "TLSv1",
+                                            "SSLv3"
                                         ]
                                     }
                                 },
