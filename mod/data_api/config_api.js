@@ -7,6 +7,7 @@ const DSUtils = require('@routr/data_api/utils')
 const {
     Status
 } = require('@routr/core/status')
+const configSchemPath = 'etc/schemas/config_schema.json'
 
 class ConfigAPI {
 
@@ -16,9 +17,13 @@ class ConfigAPI {
 
     setConfig(config) {
         try {
-          return this.ds.set('config', config)
+            const errors = DSUtils.validateObj(configSchemPath, config)
+            if (errors.length > 0) {
+                return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join())
+            }
+            return this.ds.set('config', config)
         } catch(e) {
-            console.log(e)
+            return CoreUtils.buildResponse(Status.BAD_REQUEST, Status.message[Status.BAD_REQUEST])
         }
     }
 

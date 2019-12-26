@@ -72,7 +72,12 @@
                         "keyStore": { "type": "string" },
                         "trustStore": { "type": "string" },
                         "keyStorePassword": { "type": "string" },
-                        "keyStoreType": { "type": "string" },
+                        "keyStoreType": {
+                            "enum": [
+                                "jks",
+                                "pkcs12"
+                            ]
+                        },
                         "client": {
                             "type": "object",
                             "properties": {

@@ -42,27 +42,11 @@ class DSUtils {
       return `$[0].${path}: is a readonly field, it cannot be changed`
     }
 
-    static validateEntity(obj, newObj, mode) {
-        let kind
-        try {
-            kind = DSUtils.getKind(obj)
-        } catch(e) {
-            const errors = []
-            errors.push(e)
-            return errors
-        }
+    static validateObj(schemaPath, jsonObj) {
         const factory = JsonSchemaFactory.getInstance()
         const mapper = new ObjectMapper()
-
-        // The validator expects an array
-        let o = obj
-        if (!Array.isArray(o)) {
-            o = []
-            o.push(obj)
-        }
-
-        const schema = factory.getSchema(FilesUtil.readFile(`${schemaPath}/${kind.toLowerCase()}s_schema.json`))
-        const node = mapper.readTree(JSON.stringify(o))
+        const schema = factory.getSchema(FilesUtil.readFile(schemaPath))
+        const node = mapper.readTree(JSON.stringify(jsonObj))
         const errors = schema.validate(node)
         const e = []
         if (errors.size() > 0) {
@@ -72,6 +56,27 @@ class DSUtils {
                 e.push(error)
             }
         }
+        return e
+    }
+
+    static validateEntity(obj, newObj, mode) {
+        let kind
+        try {
+            kind = DSUtils.getKind(obj)
+        } catch(e) {
+            const errors = []
+            errors.push(e)
+            return errors
+        }
+
+        // The validator expects an array
+        let o = obj
+        if (!Array.isArray(o)) {
+            o = []
+            o.push(obj)
+        }
+
+        const e = DSUtils.validateObj(`${schemaPath}/${kind.toLowerCase()}s_schema.json`, o)
 
         if(mode === 'write') {
             const roErrors = DSUtils.validateRO(obj, newObj)

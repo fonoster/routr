@@ -10,6 +10,9 @@ const File = Java.type('java.io.File')
 const System = Java.type('java.lang.System')
 const InetAddress = Java.type('java.net.InetAddress')
 const UUID = Java.type('java.util.UUID')
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const LOG = LogManager.getLogger()
+const { Status } = require('@routr/core/status')
 
 const upSince = new Date().getTime()
 
@@ -49,7 +52,13 @@ function loadConfig(upSince) {
         && config.spec.dataSource.provider === 'redis_data_provider') {
         // WARNING: This will have to be change once we add new data provider
         // to avoid a circular dependency with the DSSelector
-        config = new ConfigAPI(new RedisDataSource(config)).getConfig().data
+        const response = new ConfigAPI(new RedisDataSource(config)).getConfig()
+        if(response.status === Status.OK) {
+            config = response.data
+        } else {
+            LOG.error('Unable to run server: Ensure your Redis server is running')
+            System.exit(1)
+        }
     }
 
     return config
@@ -143,7 +152,7 @@ function getDefaultSecContext(sc) {
     }
 
     if (securityContext.keyStoreType === undefined) {
-        securityContext.keyStoreType = 'jks'
+        securityContext.keyStoreType = 'JKS'
     }
 
     return securityContext
