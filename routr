@@ -8,11 +8,6 @@ RESTART_CODE=123
 [ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
 [ -z "$ROUTR_LOG4J2" ] && ROUTR_LOG4J2=config/log4j2.yml
 
-# Enable for performance testing
-# ROUTR_JAVA_OPTS=-Dgraal.TrufflePerformanceWarningsAreFatal=true
-# When we bring support for GraalVM 19.3 we can try this option to avoid
-# compilation issues
-# ROUTR_JAVA_OPTS=$ROUTR_JAVA_OPTS -Dgraal.TruffleLanguageAgnosticInlining=true \
 run() {
     cd $BASE_DIR
     $JAVA_HOME/bin/java \
@@ -31,20 +26,20 @@ run() {
 }
 
 if [ -f /.dockerenv ]; then
-  [ -z "$ROUTR_EXTERN_ADDR" ] && { echo "Must define environment variable ROUTR_EXTERN_ADDR when running inside a container"; exit 1; }
-  [ -z "$ROUTR_LOCALNETS" ] && export ROUTR_LOCALNETS=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}')
+    [ -z "$ROUTR_EXTERN_ADDR" ] && { echo "Must define environment variable ROUTR_EXTERN_ADDR when running inside a container"; exit 1; }
+    [ -z "$ROUTR_LOCALNETS" ] && export ROUTR_LOCALNETS=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}')
 fi
 
-[ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment. Please setup environment variable JAVA_HOME"; exit 1; }
+[ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment. Please setup the JAVA_HOME environment variable"; exit 1; }
 
 {
-  until false; do
-    run
-    exit_code=$?
-    if [ $exit_code -ne $RESTART_CODE ] ; then
-      break
-    fi
-  done
+    until false; do
+      run
+      exit_code=$?
+      if [ $exit_code -ne $RESTART_CODE ] ; then
+          break
+      fi
+    done
 } || { # your 'catch' block
     echo 'Done.'
 }
