@@ -25,7 +25,7 @@ class AgentsAPI {
     createFromJSON(jsonObj) {
         const errors = DSUtils.validateEntity(jsonObj)
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         if (!this.doesDomainExist(jsonObj)) {
@@ -45,7 +45,8 @@ class AgentsAPI {
         const oldObj = this.getAgent(jsonObj.metadata.ref).data
 
         if (!oldObj || !oldObj.kind) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+                DSUtils.roMessage('metadata.ref'))
         }
 
         // Patch writeOnly fields
@@ -53,7 +54,7 @@ class AgentsAPI {
         const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
 
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         return this.ds.update(patchObj)

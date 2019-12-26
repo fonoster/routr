@@ -29,7 +29,7 @@ class GatewaysAPI {
     createFromJSON(jsonObj) {
         const errors = DSUtils.validateEntity(jsonObj)
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         if (!this.gatewayExist(jsonObj.spec.host, jsonObj.spec.port)) {
@@ -51,7 +51,8 @@ class GatewaysAPI {
         const oldObj = this.getGateway(jsonObj.metadata.ref).data
 
         if (!oldObj || !oldObj.kind) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+                DSUtils.roMessage('metadata.ref'))
         }
 
         // Patch writeOnly fields
@@ -59,7 +60,7 @@ class GatewaysAPI {
         const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
 
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         if (this.gatewayExist(patchObj.spec.host, patchObj.spec.port)) {

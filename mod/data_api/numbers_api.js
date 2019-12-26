@@ -26,7 +26,7 @@ class NumbersAPI {
     createFromJSON(jsonObj) {
         const errors = DSUtils.validateEntity(jsonObj)
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         const response = this.ds.withCollection('gateways').get(jsonObj.metadata.gwRef)
@@ -53,7 +53,8 @@ class NumbersAPI {
         const oldObj = this.getNumber(jsonObj.metadata.ref).data
 
         if (!oldObj || !oldObj.kind) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+                DSUtils.roMessage('metadata.ref'))
         }
 
         // Patch with the WO fields
@@ -61,7 +62,7 @@ class NumbersAPI {
         const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
 
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         if (this.numberExist(patchObj.spec.location.telUrl)) {

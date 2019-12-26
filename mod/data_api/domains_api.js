@@ -31,7 +31,7 @@ class DomainsAPI {
     createFromJSON(jsonObj) {
         const errors = DSUtils.validateEntity(jsonObj)
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         if (jsonObj.spec.context.egressPolicy &&
@@ -50,21 +50,23 @@ class DomainsAPI {
 
     updateFromJSON(jsonObj) {
         if (!jsonObj.metadata || !jsonObj.metadata.ref) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
-              DSUtils.roMessage('metadata.ref'))
+              return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+                DSUtils.roMessage('metadata.ref'))
         }
 
         const oldObj = this.getDomain(jsonObj.metadata.ref).data
 
         if (!oldObj || !oldObj.kind) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+                DSUtils.roMessage('metadata.ref'))
         }
 
         // Patch WO fields
         const patchObj = DSUtils.patchObj(oldObj, jsonObj)
         const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
+
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         if (patchObj.spec.context.egressPolicy &&

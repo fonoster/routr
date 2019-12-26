@@ -17,7 +17,7 @@ class UsersAPI {
     createFromJSON(jsonObj) {
         const errors = DSUtils.validateEntity(jsonObj)
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         return this.userExist(jsonObj.spec.credentials.username)
@@ -34,7 +34,8 @@ class UsersAPI {
         const oldObj = this.getUser(jsonObj.metadata.ref).data
 
         if (!oldObj || !oldObj.kind) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+                DSUtils.roMessage('metadata.ref'))
         }
 
         // Patch with the wO fields
@@ -42,7 +43,7 @@ class UsersAPI {
         const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
 
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         return !this.userExist(patchObj.spec.credentials.username)

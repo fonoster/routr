@@ -43,7 +43,6 @@ module.exports = function(api, resource) {
 
     put(resByRef, (req, res) => {
         const jsonObj = JSON.parse(req.body())
-        jsonObj.metadata.ref = req.params(':ref')
         const result = api.updateFromJSON(jsonObj)
         res.status(result.status)
         return JSON.stringify(result)

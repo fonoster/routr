@@ -22,7 +22,7 @@ class PeersAPI {
     createFromJSON(jsonObj) {
         const errors = DSUtils.validateEntity(jsonObj)
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         if (!this.peerExist(jsonObj.spec.credentials.username)) {
@@ -43,7 +43,8 @@ class PeersAPI {
         const oldObj = this.getPeer(jsonObj.metadata.ref).data
 
         if (!oldObj || !oldObj.kind) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
+                DSUtils.roMessage('metadata.ref'))
         }
 
         // Patch writeOnly fields
@@ -51,7 +52,7 @@ class PeersAPI {
         const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
 
         if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors)
+            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
         }
 
         if (this.peerExist(patchObj.spec.credentials.username)) {
