@@ -11,7 +11,7 @@ const {
 const {
     Status
 } = require('@routr/core/status')
-const getConfig = require('@routr/core/config_util')
+const config = require('@routr/core/config_util')()
 
 const ToHeader = Java.type('javax.sip.header.ToHeader')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
@@ -32,8 +32,8 @@ class RouteInfo {
         this._calleeHost = toHeader.getAddress().getURI().getHost()
 
         // Overwrites callee info if addressInfo is present
-        if (!!getConfig().spec.addressInfo) {
-            const callee = RouteInfo.getCalleeFromAddressInfo(request, getConfig().spec.addressInfo)
+        if (config.spec.addressInfo) {
+            const callee = RouteInfo.getCalleeFromAddressInfo(request, config.spec.addressInfo)
             this._calleeUser = callee.user
             this._calleeHost = callee.host
         }

@@ -12,8 +12,7 @@ const DSUtils = require('@routr/data_api/utils')
 const {
     Status
 } = require('@routr/core/status')
-const getConfig = require('@routr/core/config_util')
-const config = getConfig()
+const config = require('@routr/core/config_util')()
 // Forces data source to use its own default parameters...
 delete config.spec.dataSource.parameters
 const ds = new FilesDataSource(config)
