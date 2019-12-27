@@ -210,7 +210,7 @@ class FilesDataSource {
             lock.unlock()
         }
 
-        return DSUtils.paginate(this.getWithReferences(list), page, itemsPerPage)
+        return DSUtils.paginate(this.getWithMetadata(list), page, itemsPerPage)
     }
 
     update() {
@@ -227,8 +227,11 @@ class FilesDataSource {
         }
     }
 
-    getWithReferences(list) {
+    getWithMetadata(list) {
+        const date = new Date(config.system.upSince).toISOString()
         list.forEach(obj => {
+            obj.metadata.createdOn = date
+            obj.metadata.modifiedOn = date
             if (!obj.metadata.ref) {
                 switch (obj.kind.toLowerCase()) {
                     case 'agent':
