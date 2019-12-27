@@ -152,7 +152,7 @@ function getDefaultSecContext(sc) {
     }
 
     if (securityContext.keyStoreType === undefined) {
-        securityContext.keyStoreType = 'JKS'
+        securityContext.keyStoreType = 'jks'
     }
 
     return securityContext
