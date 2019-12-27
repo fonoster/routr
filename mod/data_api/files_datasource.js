@@ -9,7 +9,7 @@ const XXH = require('xxhashjs')
 const {
     Status
 } = require('@routr/core/status')
-const getConfig = require('@routr/core/config_util')
+const config = require('@routr/core/config_util')()
 const isEmpty = require('@routr/utils/obj_util')
 
 const Long = Java.type('java.lang.Long')
@@ -29,7 +29,7 @@ const RESOURCES = ['agents', 'domains', 'gateways', 'numbers', 'peers', 'users']
 
 class FilesDataSource {
 
-    constructor(config = getConfig()) {
+    constructor(config = config) {
         this.cache = Caffeine.newBuilder()
             .expireAfterWrite(60, TimeUnit.MINUTES)
             .build()
@@ -160,6 +160,9 @@ class FilesDataSource {
     // Warn: Not very efficient. This will list all existing resources before
     // finding the one it needs
     get(ref) {
+        if (ref === 'config') {
+            return CoreUtils.buildResponse(Status.OK, config)
+        }
         return DSUtils.deepSearch(this.find(void(0), 1, Long.MAX_VALUE), "metadata.ref", ref)
     }
 
