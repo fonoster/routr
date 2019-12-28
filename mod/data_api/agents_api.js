@@ -4,64 +4,32 @@
  */
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
+const APIBase = require('@routr/data_api/api_base')
 const {
-    Status,
-    UNFULFILLED_DEPENDENCY_RESPONSE,
-    ENTITY_ALREADY_EXIST_RESPONSE
+    Status
 } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
-const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
-const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
+const getCacheKey = j => j.metadata.ref
 
-class AgentsAPI {
+class AgentsAPI extends APIBase {
 
     constructor(dataSource) {
-        this.ds = dataSource
-        this.cache = Caffeine.newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .build()
+        super(dataSource, 'agents')
     }
 
     createFromJSON(jsonObj) {
-        const errors = DSUtils.validateEntity(jsonObj)
-        if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
-        }
-
-        if (!this.doesDomainExist(jsonObj)) {
-            return UNFULFILLED_DEPENDENCY_RESPONSE
-        } else if (this.existInAnotherDomain(jsonObj)) {
-            return ENTITY_ALREADY_EXIST_RESPONSE
-        }
-        return this.ds.insert(jsonObj)
+        const hasUnfulfilledDependency = j => !this.doesDomainExist(j)
+        const alreadyExist = j => this.existInAnotherDomain(j)
+        return super.createFromJSON(jsonObj, alreadyExist,
+          hasUnfulfilledDependency, getCacheKey)
     }
 
     updateFromJSON(jsonObj) {
-        if (!jsonObj.metadata || !jsonObj.metadata.ref) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
-                DSUtils.roMessage('metadata.ref'))
-        }
-
-        const oldObj = this.getAgent(jsonObj.metadata.ref).data
-
-        if (!oldObj || !oldObj.kind) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
-                DSUtils.roMessage('metadata.ref'))
-        }
-
-        // Patch writeOnly fields
-        const patchObj = DSUtils.patchObj(oldObj, jsonObj)
-        const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
-
-        if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
-        }
-
-        return this.ds.update(patchObj)
+        return super.updateFromJSON(jsonObj, getCacheKey)
     }
 
     getAgents(filter, page, itemsPerPage) {
-        return this.ds.withCollection('agents').find(filter, page, itemsPerPage)
+        return super.getResources(filter, page, itemsPerPage)
     }
 
     getAgentByDomain(domainUri, username) {
@@ -87,7 +55,7 @@ class AgentsAPI {
     }
 
     getAgentByRef(ref) {
-        return this.ds.withCollection('agents').get(ref)
+        return super.getResource(ref)
     }
 
     /**
@@ -136,10 +104,6 @@ class AgentsAPI {
         const domains = JSON.stringify(agent.spec.domains).replaceAll("\"", "'")
         const response = this.ds.withCollection('domains').find(`@.spec.context.domainUri in ${domains}`)
         return response.data.length === agent.spec.domains.length
-    }
-
-    cleanCache() {
-        this.cache.invalidateAll()
     }
 }
 

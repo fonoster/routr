@@ -2,74 +2,36 @@
  * @author Pedro Sanders
  * @since v1
  */
-const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
+const APIBase = require('@routr/data_api/api_base')
 const {
     Status
 } = require('@routr/core/status')
-const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
-const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
+const getCacheKey = j => j.spec.credentials.username
 
-class PeersAPI {
+class PeersAPI extends APIBase {
 
     constructor(dataSource) {
-        this.ds = dataSource
-        this.cache = Caffeine.newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .build()
+        super(dataSource, 'peers')
     }
 
     createFromJSON(jsonObj) {
-        const errors = DSUtils.validateEntity(jsonObj)
-        if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
-        }
-
-        if (!this.peerExist(jsonObj.spec.credentials.username)) {
-            const response = this.ds.insert(jsonObj)
-            this.cache.put(jsonObj.spec.credentials.username, response)
-            return response
-        }
-
-        return CoreUtils.buildResponse(Status.CONFLICT)
+        const hasUnfulfilledDependency = () => false
+        const alreadyExist = j => this.peerExist(j.spec.credentials.username)
+        return super.createFromJSON(jsonObj, alreadyExist,
+          hasUnfulfilledDependency, getCacheKey)
     }
 
     updateFromJSON(jsonObj) {
-        if (!jsonObj.metadata || !jsonObj.metadata.ref) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
-                DSUtils.roMessage('metadata.ref'))
-        }
-
-        const oldObj = this.getPeer(jsonObj.metadata.ref).data
-
-        if (!oldObj || !oldObj.kind) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
-                DSUtils.roMessage('metadata.ref'))
-        }
-
-        // Patch writeOnly fields
-        const patchObj = DSUtils.patchObj(oldObj, jsonObj)
-        const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
-
-        if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
-        }
-
-        if (this.peerExist(patchObj.spec.credentials.username)) {
-            const response = this.ds.update(patchObj)
-            this.cache.put(patchObj.spec.credentials.username, response)
-            return response
-        }
-
-        return CoreUtils.buildResponse(Status.NOT_FOUND)
+        return super.updateFromJSON(jsonObj, getCacheKey)
     }
 
     getPeers(filter, page, itemsPerPage) {
-        return this.ds.withCollection('peers').find(filter, page, itemsPerPage)
+        return super.getResources(filter, page, itemsPerPage)
     }
 
     getPeer(ref) {
-        return this.ds.withCollection('peers').get(ref)
+        return super.getResource(ref)
     }
 
     peerExist(username) {
@@ -95,9 +57,6 @@ class PeersAPI {
         return this.ds.withCollection('peers').remove(ref)
     }
 
-    cleanCache() {
-        this.cache.invalidateAll()
-    }
 }
 
 module.exports = PeersAPI

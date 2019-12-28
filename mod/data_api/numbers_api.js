@@ -2,84 +2,42 @@
  * @author Pedro Sanders
  * @since v1
  */
-const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
+const APIBase = require('@routr/data_api/api_base')
 const {
     Status
 } = require('@routr/core/status')
 const {
-    UNFULFILLED_DEPENDENCY_RESPONSE,
     FOUND_DEPENDENT_OBJECTS_RESPONSE
 } = require('@routr/core/status')
-const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
-const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
+const getCacheKey = j => j.spec.location.telUrl
 
-class NumbersAPI {
+class NumbersAPI extends APIBase {
 
     constructor(dataSource) {
-        this.ds = dataSource
-        this.cache = Caffeine.newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .build()
+        super(dataSource, 'numbers')
     }
 
     createFromJSON(jsonObj) {
-        const errors = DSUtils.validateEntity(jsonObj)
-        if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
+        const hasUnfulfilledDependency = j => {
+            const r = this.ds.withCollection('gateways').get(j.metadata.gwRef)
+            return r.status !== Status.OK
         }
-
-        const response = this.ds.withCollection('gateways').get(jsonObj.metadata.gwRef)
-
-        if (response.status !== Status.OK) {
-            return UNFULFILLED_DEPENDENCY_RESPONSE
-        }
-
-        if (!this.numberExist(jsonObj.spec.location.telUrl)) {
-            const response = this.ds.insert(jsonObj)
-            this.cache.put(jsonObj.spec.location.telUrl, response)
-            return response
-        }
-
-        return CoreUtils.buildResponse(Status.CONFLICT)
+        const alreadyExist = j => this.numberExist(j.spec.location.telUrl)
+        return super.createFromJSON(jsonObj, alreadyExist,
+          hasUnfulfilledDependency, getCacheKey)
     }
 
     updateFromJSON(jsonObj) {
-        if (!jsonObj.metadata || !jsonObj.metadata.ref) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
-                DSUtils.roMessage('metadata.ref'))
-        }
-
-        const oldObj = this.getNumber(jsonObj.metadata.ref).data
-
-        if (!oldObj || !oldObj.kind) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
-                DSUtils.roMessage('metadata.ref'))
-        }
-
-        // Patch with the WO fields
-        const patchObj = DSUtils.patchObj(oldObj, jsonObj)
-        const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
-
-        if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
-        }
-
-        if (this.numberExist(patchObj.spec.location.telUrl)) {
-            const response = this.ds.update(patchObj)
-            this.cache.put(patchObj.spec.location.telUrl, response)
-            return response
-        }
-
-        return CoreUtils.buildResponse(Status.NOT_FOUND)
+        return super.updateFromJSON(jsonObj, getCacheKey)
     }
 
     getNumbers(filter, page, itemsPerPage) {
-        return this.ds.withCollection('numbers').find(filter, page, itemsPerPage)
+        return super.getResources(filter, page, itemsPerPage)
     }
 
     getNumber(ref) {
-        return this.ds.withCollection('numbers').get(ref)
+        return super.getResource(ref)
     }
 
     /**
@@ -113,10 +71,6 @@ class NumbersAPI {
         return domains.length === 0
           ? this.ds.withCollection('numbers').remove(ref)
           : FOUND_DEPENDENT_OBJECTS_RESPONSE
-    }
-
-    cleanCache() {
-        this.cache.invalidateAll()
     }
 }
 

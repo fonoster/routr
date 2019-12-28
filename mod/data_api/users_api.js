@@ -2,61 +2,36 @@
  * @author Pedro Sanders
  * @since v1
  */
-const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
+const APIBase = require('@routr/data_api/api_base')
 const {
     Status
 } = require('@routr/core/status')
+const getCacheKey = j => j.spec.credentials.username
 
-class UsersAPI {
+class UsersAPI extends APIBase {
 
     constructor(dataSource) {
-        this.ds = dataSource
+        super(dataSource, 'users')
     }
 
     createFromJSON(jsonObj) {
-        const errors = DSUtils.validateEntity(jsonObj)
-        if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
-        }
-
-        return this.userExist(jsonObj.spec.credentials.username)
-          ? CoreUtils.buildResponse(Status.CONFLICT)
-          : this.ds.insert(jsonObj)
+        const hasUnfulfilledDependency = () => false
+        const alreadyExist = j => this.userExist(j.spec.credentials.username)
+        return super.createFromJSON(jsonObj, alreadyExist,
+          hasUnfulfilledDependency, getCacheKey)
     }
 
     updateFromJSON(jsonObj) {
-        if (!jsonObj.metadata || !jsonObj.metadata.ref) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
-                DSUtils.roMessage('metadata.ref'))
-        }
-
-        const oldObj = this.getUser(jsonObj.metadata.ref).data
-
-        if (!oldObj || !oldObj.kind) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY,
-                DSUtils.roMessage('metadata.ref'))
-        }
-
-        // Patch with the wO fields
-        const patchObj = DSUtils.patchObj(oldObj, jsonObj)
-        const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
-
-        if (errors.length > 0) {
-            return CoreUtils.buildResponse(Status.UNPROCESSABLE_ENTITY, errors.join(', '))
-        }
-
-        return !this.userExist(patchObj.spec.credentials.username)
-          ? CoreUtils.buildResponse(Status.NOT_FOUND)
-          : this.ds.update(patchObj)
+        return super.updateFromJSON(jsonObj, getCacheKey)
     }
 
     getUsers(filter) {
-        return this.ds.withCollection('users').find(filter)
+        return super.getResources(filter)
     }
 
     getUser(ref) {
-        return this.ds.withCollection('users').get(ref)
+        return super.getResource(ref)
     }
 
     getUserByUsername(username) {
