@@ -61,6 +61,9 @@ Use the following flag when running performance tests:
 
 ROUTR_JAVA_OPTS=-Dgraal.TrufflePerformanceWarningsAreFatal=true
 
+Additionally we could try using -Dpolyglot.engine.Mode=throughput but this is
+causing issues with Java 9.
+
 ## Migrating to GraalVM 19.3
 
 Once we upgrade to GraalVM 19.3 we can try the following option to avoid compilation issues:
