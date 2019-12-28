@@ -13,4 +13,4 @@ The areas of focus for RC4 are:
     - [x] Google Cloud Shell
     - [x] Custom
 - [x] Add experimental support for IPv6
-- [ ] Bring the [`routr-ui`](https://github.com/fonoster/routr-ui) to a beta version
+- [x] Bring the [`routr-ui`](https://github.com/fonoster/routr-ui) to a beta version
