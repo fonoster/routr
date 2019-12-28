@@ -22,7 +22,7 @@ describe('Access Control List Submodule', () => {
         done()
     })
 
-    it('Is network allowed', function(done) {
+    it('Check network allowed', function(done) {
         const accessControlList = {
             allow: ['192.168.0.1/28'],
             deny: ['192.168.0.4']
@@ -33,7 +33,19 @@ describe('Access Control List Submodule', () => {
         assert.ok(aclUtil.isIpAllowed('192.168.0.1'))
         assert.ok(aclUtil.isIpAllowed('192.168.0.14'))
         assert.ok(!aclUtil.isIpAllowed('192.168.0.4'))
-        assert.ok(!aclUtil.isIpAllowed('192.168.0.16'))
+        assert.ok(aclUtil.isIpAllowed('192.168.0.16'))
+        done()
+    })
+
+    it('Check network allowed with empty deny', function(done) {
+        const accessControlList = {
+            allow: [],
+            deny: []
+        }
+
+        const aclUtil = new ACLUtil(accessControlList)
+
+        assert.ok(aclUtil.isIpAllowed('172.21.0.5'))
         done()
     })
 })

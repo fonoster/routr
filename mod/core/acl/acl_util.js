@@ -18,7 +18,7 @@ class AclUtil {
     }
 
     addRules(nets, action) {
-        if (nets) {
+        if (nets.length > 0) {
             nets.forEach(net => this.rules.add(new Rule(net, action)))
         }
     }
