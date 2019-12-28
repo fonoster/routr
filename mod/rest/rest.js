@@ -78,6 +78,20 @@ class Rest {
         })
     }
 
+    sendCmd (req, res, grpc) {
+        const status = req.params(':status')
+        if (status !== 'down' && status !== 'restarting') {
+            res.status(400)
+            return '{\"status\": \"400\", \"message\":\"Bad Request\"}'
+        }
+
+        const c = status === 'down' ? 'stop-server' : 'restart-server'
+        const cmd = req.queryParams('now') === 'true'? `${c}-now` : c
+        grpc.run(cmd)
+        res.status(200)
+        return '{\"status\": \"200\", \"message\":\"Request sent to server.\"}'
+    }
+
     start() {
         const ds = DSSelector.getDS()
         const configApi = new ConfigAPI(ds)
@@ -113,29 +127,7 @@ class Rest {
             // Its always running! Use to ping Routr server
             get('/system/status', (req, res) => '{\"status\": \"Up\"}')
 
-            post('/system/status/:status', (req, res) => {
-                switch (req.params(':status')) {
-                    case 'down':
-                        if(req.queryParams('now') === 'true') {
-                            this.grpc.run('stop-server-now')
-                        } else {
-                            this.grpc.run('stop-server')
-                        }
-                        return '{\"status\": \"200\", \"message\":\"Stop request sent to server.\"}'
-                        break;
-                    case 'restarting':
-                        if(req.queryParams('now') === 'true') {
-                            this.grpc.run('restart-server-now')
-                        } else {
-                            this.grpc.run('restart-server')
-                        }
-                        return '{\"status\": \"200\", \"message\":\"Restart request sent to server.\"}'
-                        break;
-                    default:
-                        res.status(400)
-                        return '{\"status\": \"400\", \"message\":\"Bad Request\"}'
-                }
-            })
+            post('/system/status/:status', (req, res) => this.sendCmd(req, res, this.grpc))
 
             get('/system/info', (req, res) => JSON.stringify(config.system))
 
