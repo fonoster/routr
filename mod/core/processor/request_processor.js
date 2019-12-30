@@ -15,6 +15,9 @@ const {
     RoutingType
 } = require('@routr/core/routing_type')
 const {
+    RouteEntityType
+} = require('@routr/core/route_entity_type')
+const {
     Status
 } = require('@routr/core/status')
 const config = require('@routr/core/config_util')()
@@ -69,7 +72,7 @@ class RequestProcessor {
                 sendResponse(transaction, Response.METHOD_NOT_ALLOWED)
                 break
             case Request.REGISTER:
-                if (routeInfo.getRoutingType() === RoutingType.UNKNOWN) {
+                if (routeInfo.getCallerType() === RouteEntityType.THRU_GW) {
                     new RegistryHandler(this.sipProvider).doProcess(transaction)
                     break
                 }
