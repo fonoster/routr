@@ -28,7 +28,7 @@ If successful this method causes the server to change its status.
 **Sample Call**
 
 ```json
-GET /api/v1beta1/system/status/reload
+POST /api/v1beta1/system/status/reload
 {
 
 }
