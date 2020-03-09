@@ -29,6 +29,8 @@ jobs:
           export JAVA_HOME=$GRAALVM_HOME
           npm i
           npm test
+          GIT_BRANCH=$GITHUB_HEAD_REF 
+          GIT_COMMIT_SHA=$(git rev-parse origin/$GITHUB_HEAD_REF)
           ./cc-test-reporter after-build --exit-code $?
       - name: Create dist files
         env:
