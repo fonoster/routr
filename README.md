@@ -1,13 +1,10 @@
-<h1 align="center"> Routr </h1> <br>
+
 <p align="center">
   <a href="https://routr.cio/">
-    <img src="https://raw.githubusercontent.com/fonoster/routr/master/docs/assets/brand.png" alt="Routr Logo" height="100">
+    <img src="https://raw.githubusercontent.com/fonoster/routr/master/docs/assets/brand.png" alt="Routr Logo" height="200">
   </a>
 </p>
 
-<p align="center">
-  Easy. Fast. Modern.
-</p>
 
 <p align="center">
     <img src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" alt="Routr Logo" height="50">
