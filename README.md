@@ -5,13 +5,7 @@
   </a>
 </p>
 
-<br />
-
-<p align="left">
-    <img src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" alt="Routr Logo" height="40">
-</p>
-
-<br />
+[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Next-generation%20SIP%20Server&url=https://github.com/fonoster/routr&via=fonoster&hashtags=voip,sip,webrtc,telephony)
 
 # Table of Contents
 
@@ -39,8 +33,6 @@
 [![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://join.slack.com/t/fonoster/shared_invite/enQtODc2NDY5ODA3NzYzLTNjOTRmZDQ5NzgzZjQ1MTQ3ZDQzNTgwOGVjMzIzYTkwNjZlMWU0ZmZjODMxYjIzODJjZGIwY2FiODA3YjU4ZTk)
 
 Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators. Also, it provides capabilities that are suitable for the enterprise and personal needs.
-
-[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Next-generation%20SIP%20Server&url=https://github.com/fonoster/routr&via=fonoster&hashtags=voip,sip,webrtc,telephony)
 
 # Community
 
