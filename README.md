@@ -1,17 +1,17 @@
 
-<p align="center">
+<p align="left">
   <a href="https://routr.cio/">
-    <img src="https://raw.githubusercontent.com/fonoster/routr/master/docs/assets/brand.png" alt="Routr Logo" height="150">
+    <img src="https://raw.githubusercontent.com/fonoster/routr/master/docs/assets/brand.png" alt="Routr Logo" height="80">
   </a>
 </p>
 
 <br />
-<br />
 
-<p align="center">
-    <img src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" alt="Routr Logo" height="50">
+<p align="left">
+    <img src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg" alt="Routr Logo" height="40">
 </p>
 
+<br />
 
 # Table of Contents
 
