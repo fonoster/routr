@@ -14,13 +14,25 @@ jobs:
           curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
           chmod +x ./cc-test-reporter
           ./cc-test-reporter before-build
+      - name: Set ENV for codeclimate (pull_request)
+        run: |
+          git fetch --no-tags --prune --depth=1 origin +refs/heads/$GITHUB_HEAD_REF:refs/remotes/origin/$GITHUB_HEAD_REF
+          echo "::set-env name=GIT_BRANCH::$GITHUB_HEAD_REF"
+          echo "::set-env name=GIT_COMMIT_SHA::$(git rev-parse origin/$GITHUB_HEAD_REF)"
+        if: github.event_name == 'pull_request'
+
+      - name: Set ENV for codeclimate (push)
+        run: |
+          echo "::set-env name=GIT_BRANCH::$GITHUB_REF"
+          echo "::set-env name=GIT_COMMIT_SHA::$GITHUB_SHA"
+        if: github.event_name == 'push'          
       - name: Setup Redis DB
         uses: zhulik/redis-action@v1.0.0
         with:
           redis version: '5'
       - name: Get version
         id: get_version
-        run: echo ::set-output name=ROUTR_VERSION::$(node -e "console.log(require('./package.json').version)")
+        run: echo ::set-output name=ROUTR_VERSION::$(node -e "console.log(require('./package.json').version)") 
       - name: Unit tests
         env:
           CC_TEST_REPORTER_ID: 19325f806984a923fa5ca65ee90ca519fc2bf3debc03634943aa36c5e57f6207
@@ -29,8 +41,6 @@ jobs:
           export JAVA_HOME=$GRAALVM_HOME
           npm i
           npm test
-          GIT_BRANCH=$GITHUB_HEAD_REF 
-          GIT_COMMIT_SHA=$(git rev-parse origin/$GITHUB_HEAD_REF)
           ./cc-test-reporter after-build --exit-code $?
       - name: Create dist files
         env:
