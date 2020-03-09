@@ -7,7 +7,7 @@
 
 [![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://join.slack.com/t/fonoster/shared_invite/enQtODc2NDY5ODA3NzYzLTNjOTRmZDQ5NzgzZjQ1MTQ3ZDQzNTgwOGVjMzIzYTkwNjZlMWU0ZmZjODMxYjIzODJjZGIwY2FiODA3YjU4ZTk)
 
-# Table of Contents
+## Table of Contents
 
 * [About](#about)
 * [Community](#community)
@@ -25,14 +25,14 @@
 * [Contributing](#contributing)
 * [License](#license)
 
-# About
+## About
 
 [![Build Status](https://github.com/fonoster/routr/workflows/build/badge.svg)](https://github.com/fonoster/routr/actions?workflow=build) [![Maintainability](https://api.codeclimate.com/v1/badges/49ea061777d76c003b71/maintainability)](https://codeclimate.com/github/fonoster/routr/maintainability)
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license: MIT"></a>
 
 Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators.
 
-# Community
+## Community
 
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Next-generation%20SIP%20Server&url=https://github.com/fonoster/routr&via=fonoster&hashtags=voip,sip,webrtc,telephony)
 
@@ -53,9 +53,9 @@ Routr is developed in the open. Here are some of the channels we use to communic
 
 >Please do not ask individual project members for support. Use the channels above instead, where the whole community can help you and benefit from the solutions provided. If community support is insufficient for your situation, please contact us for Commercial Support.
 
-# Deployment
+## Deployment
 
-## Instant Server Installation with Snaps
+### Instant Server Installation with Snaps
 
 Install Routr in seconds on Linux (Ubuntu and others) with:
 
@@ -69,13 +69,14 @@ Routr Snap is recommended for Linux deployments
 
 Installing snaps is very quick. By running that command you have your full Routr server up and running. Snaps are secure. They are isolated with all of their dependencies. Snaps also auto-update when we release new versions.
 
-## DigitalOcean droplet
+### DigitalOcean droplet
 
 Build and Deploy to a DigitalOcean droplet
 
 [![do-btn-blue](https://user-images.githubusercontent.com/51996/58146107-50512580-7c1a-11e9-8ec9-e032ba387c2a.png)](https://github.com/fonoster/routr/tree/master/.digitalocean/README.md)
 
-## Docker
+### Docker
+
 [Deploy with docker compose](https://routr.io/docs/guides/running-with-docker-or-compose/)
 
 [![Docker logo](https://d207aa93qlcgug.cloudfront.net/1.95.5.qa/img/nav/docker-logo-loggedout.png)](https://hub.docker.com/r/fonoster/routr/)
@@ -91,17 +92,17 @@ OR select a specific release ([details of releases available](https://github.com
 docker pull fonoster/routr:vX.X.X
 ```
 
-## Kubernetes
+### Kubernetes
 
 Deploy to Kubernetes in [few easy steps](https://github.com/fonoster/routr/tree/master/.k8s/README.md)
 
-## Google Cloud Shell
+### Google Cloud Shell
 
 Routr one-click interactive tutorial will get you familiar with Routr server and the command-line interface.
 
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/open?git_repo=https://github.com/fonoster/routr-walkthrough-tutorial&tutorial=tutorial.md)
 
-## Custom
+### Custom
 
 There are no special requirements to install and run the server. Just follow this easy steps:
 
@@ -126,7 +127,7 @@ cd routr-*
 ./routr
 ```
 
-# Features
+## Features
 
 Routr's main features are:
 
@@ -140,19 +141,19 @@ Routr's main features are:
 To learn more, read the [documentation](https://routr.io/docs/introduction/overview/). :books:
 
 
-# Bugs and Feedback
+## Bugs and Feedback
 
 For bugs, questions, and discussions please use the [Github Issues](https://github.com/fonoster/routr/issues)
 
-# Contributing
+## Contributing
 
 For contributing, please see the following links:
 
  - [Contribution Documents](https://github.com/fonoster/routr/blob/master/CONTRIBUTING.md)
  - [Contributors](https://github.com/fonoster/routr/contributors)
 
-# Authors
+## Authors
  - [Pedro Sanders](https://github.com/psanders)
 
-# License
+## License
 Copyright (C) 2020 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/routr/blob/master/LICENSE) for details).
