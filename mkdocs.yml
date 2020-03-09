@@ -88,7 +88,7 @@ nav:
     - Benchmarking: guides/benchmarking.md
 
 # Copyright
-copyright: 'Copyright &copy; 2019 Fonoster Inc'
+copyright: 'Copyright &copy; 2020 Fonoster Inc'
 theme:
   name: material
   custom_dir: docs/theme
