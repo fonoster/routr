@@ -25,21 +25,17 @@ If successful this method updates a Domain resource.
 ```json
 PUT /api/v1beta1/domains/dm6c87r2
 {
-  "status": "200",
-  "message": "Successful request",
-  "data" : {
-  	"apiVersion": "v1beta1",
-  	"kind": "Domain",
-  	"metadata": {
-  		"name": "Another Office",
-      "ref": "dm6c87r2"
-  	},
-  	"spec": {
-  		"context": {
-  			"domainUri": "sip2.local"
-  		}
-  	}
-  }
+	"apiVersion": "v1beta1",
+	"kind": "Domain",
+	"metadata": {
+		"name": "Another Office",
+    "ref": "dm6c87r2"
+	},
+	"spec": {
+		"context": {
+			"domainUri": "sip2.local"
+		}
+	}
 }
 
 HTTP/1.1 200 OK
