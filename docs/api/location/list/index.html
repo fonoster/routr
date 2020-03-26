@@ -1458,14 +1458,18 @@ the response body.</p>
 
 <span class="err">HTTP/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="err">OK</span>
 <span class="p">{</span>  
-   <span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="mi">200</span><span class="p">,</span>
-   <span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="s2">&quot;Successful request&quot;</span><span class="p">,</span>
-   <span class="nt">&quot;data&quot;</span><span class="p">:[</span>  
-      <span class="p">{</span>  
-         <span class="nt">&quot;addressOfRecord&quot;</span><span class="p">:</span><span class="s2">&quot;sip:1001@sip.local&quot;</span><span class="p">,</span>
-         <span class="nt">&quot;contactInfo&quot;</span><span class="p">:</span><span class="s2">&quot;sip:45962087@192.168.1.127:59985;transport=tcp;nat=false;expires=600&quot;</span>
-      <span class="p">}</span>
-   <span class="p">]</span>
+   <span class="nt">&quot;status&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+   <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Successful request&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;meta&quot;</span><span class="p">:</span> <span class="p">{</span>
+     <span class="nt">&quot;currentPage&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+     <span class="nt">&quot;totalPages&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+     <span class="nt">&quot;itemsPerPage&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+     <span class="nt">&quot;totalItems&quot;</span><span class="p">:</span> <span class="mi">1</span>
+   <span class="p">},</span>   
+   <span class="nt">&quot;data&quot;</span><span class="p">:[{</span>  
+     <span class="nt">&quot;addressOfRecord&quot;</span><span class="p">:</span> <span class="s2">&quot;sip:1001@sip.local&quot;</span><span class="p">,</span>
+     <span class="nt">&quot;contactInfo&quot;</span><span class="p">:</span> <span class="s2">&quot;sip:45962087@192.168.1.127:59985;transport=tcp;nat=false;expires=600&quot;</span>
+   <span class="p">}]</span>
 <span class="p">}</span>
 </code></pre></div>
                 
