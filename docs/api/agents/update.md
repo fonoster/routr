@@ -25,23 +25,23 @@ If successful this method updates an Agent resource.
 ```json
 PUT /api/v1beta1/agents/ag3f77f6
 {
-    "apiVersion": "v1beta1",
-    "kind": "Agent",
-    "metadata": {
-      "name": "John Doe",
-      "ref": "ag3f77f6"
-    },
-    "spec": {
-    	"credentials": {
-    		"username": "1001",
-    		"secret": "1234"
-    	},
-    	"domains": [
-    		"sip.local"
-    	]
-    }
+  "apiVersion": "v1beta1",
+  "kind": "Agent",
+  "metadata": {
+    "name": "John Doe",
+    "ref": "ag3f77f6"
+  },
+  "spec": {
+  	"credentials": {
+  		"username": "1001",
+  		"secret": "1234"
+  	},
+  	"domains": [
+  		"sip.local"
+  	]
+  }
 }
 
 HTTP/1.1 200 OK
-{"status": "200", "Successful request"}
+{ "status": "200", "Successful request" }
 ```

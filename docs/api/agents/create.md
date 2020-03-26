@@ -26,22 +26,22 @@ If successful this method creates an Agent resource.
 ```json
 POST /api/v1beta1/agents
 {
-    "apiVersion": "v1beta1",
-    "kind": "Agent",
-    "metadata": {
-    	"name": "John Doe"
-    },
-    "spec": {
-    	"credentials": {
-    		"username": "1001",
-    		"secret": "1234"
-    	},
-    	"domains": [
-    		"sip.local"
-    	]
-    }
+  "apiVersion": "v1beta1",
+  "kind": "Agent",
+  "metadata": {
+  	"name": "John Doe"
+  },
+  "spec": {
+  	"credentials": {
+  		"username": "1001",
+  		"secret": "1234"
+  	},
+  	"domains": [
+  		"sip.local"
+  	]
+  }
 }
 
 HTTP/1.1 201 Created
-{"status": "201", "message": "Created", "data": "ag3f77f6"}
+{ "status": "201", "message": "Created", "data": "ag3f77f6" }
 ```

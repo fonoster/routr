@@ -34,5 +34,5 @@ POST /api/v1beta1/system/status/reload
 }
 
 HTTP/1.1 200 OK
-{"status": "200", "message": "Reloaded configuration from file."}
+{ "status": "200", "message": "Reloaded configuration from file." }
 ```

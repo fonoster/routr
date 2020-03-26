@@ -31,5 +31,5 @@ DELETE /api/v1beta1/numbers/dd50baa4
 }
 
 HTTP/1.1 200 OK
-{"status": "200", "Successful request"}
+{ "status": "200", "Successful request" }
 ```

@@ -35,7 +35,7 @@ POST /api/{apiversion}/location/sip:guest@guest
 
 HTTP/1.1 200 OK
 {  
-   "status": 200,
-   "message": "Added location entry."
+  "status": 200,
+  "message": "Added location entry."
 }
 ```

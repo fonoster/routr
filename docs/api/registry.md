@@ -30,8 +30,8 @@ GET /api/{apiversion}/registry
 
 HTTP/1.1 200 OK
 {  
-   "status":200,
-   "message":"Successful request",
-   "data":[]
+  "status":200,
+  "message":"Successful request",
+  "data":[]
 }
 ```
