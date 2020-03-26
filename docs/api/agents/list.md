@@ -36,7 +36,13 @@ HTTP/1.1 200 OK
 {
   "status": "200",
   "message": "Successful request",
-  "data" : [{
+  "meta": {
+    "currentPage": 1,
+    "totalPages": 1,
+    "itemsPerPage": 30,
+    "totalItems": 1
+  },
+  "data": [{
       "apiVersion": "v1beta1",
       "kind": "Agent",
       "metadata": {
