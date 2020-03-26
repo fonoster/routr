@@ -9,11 +9,22 @@
     "bundle": "webpack --config webpack.config.js --mode none",
     "pretest": "npm run bundle",
     "prepack": "npm test",
-    "beautify": "find mod -type f -name \"*.js\" -exec js-beautify -r {} +"
+    "format": "prettier-standard 'mod/**/*.js'"
+  },
+  "lint-staged": {
+    "mod/**/*.js": [
+      "prettier-standard"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged --allow-empty"
+    }
   },
   "dependencies": {
     "flat": "^5.0.0",
     "ip-utils": "^2.4.0",
+    "lint-staged": "^10.0.9",
     "moment": "^2.22.2",
     "npm": "^6.1.0",
     "paginate-array": "^2.1.0",
@@ -25,9 +36,11 @@
     "babel-cli": "^6.24.1",
     "babel-preset-env": "^1.7.0",
     "cross-env": "^5.2.0",
+    "husky": "^4.2.3",
     "jvm-npm": "^0.1.1",
     "mocha": "^6.2.0",
     "nyc": "^14.1.1",
+    "prettier-standard": "^9.1.1",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.11.1",
     "webpack-command": "^0.2.0"
