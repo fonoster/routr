@@ -12,7 +12,7 @@ Evicts an entry from the location table
 
 | Parameter Name | Type   | Value | Description
 | ---  | :--------- |  :--------- |  :--------- |
-| addressOfRecord |  path | string | Address of record for the entry|
+| addressOfRecord |  path | string | Address of record for the entry |
 
 **Request body**
 

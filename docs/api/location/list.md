@@ -10,7 +10,10 @@ Gets a list of registered devices.
 
 **Parameters**
 
-This method does not receive any parameters.
+| Parameter Name | Type   | Value | Description
+| ---  | :--------- |  :--------- |  :--------- |
+| page   |  query | number | Pagination index |
+| itemsPerPage |  query | number | Number of elements per request |
 
 **Request body**
 

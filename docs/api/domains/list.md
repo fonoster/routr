@@ -12,7 +12,9 @@ This method returns a list of Domain resources.
 
 | Parameter Name | Type   | Value | Description
 | ---  | :--------- |  :--------- |  :--------- |
-| filter |  query | string | Use filter to narrow the elements shown. |
+| filter |  query | string | Use filter to narrow the elements shown |
+| page   |  query | number | Pagination index |
+| itemsPerPage |  query | number | Number of elements per request |
 
 Note: The filter parameter uses [JsonPath](https://github.com/json-path/JsonPath) format
 

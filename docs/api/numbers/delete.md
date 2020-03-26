@@ -12,7 +12,7 @@ Removes a Number from a persistent database.
 
 | Parameter Name | Type   | Value | Description
 | ---  | :--------- |  :--------- |  :--------- |
-| ref |  path | string | Resource reference|
+| ref |  path | string | Resource reference |
 
 **Request body**
 

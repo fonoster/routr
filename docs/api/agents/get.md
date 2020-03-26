@@ -12,7 +12,7 @@ This method returns an Agent resource.
 
 | Parameter Name | Type   | Value | Description
 | ---  | :--------- |  :--------- |  :--------- |
-| ref |  path | string | Resource reference|
+| ref |  path | string | Resource reference |
 
 **Request body**
 

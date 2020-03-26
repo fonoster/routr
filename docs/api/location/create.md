@@ -12,7 +12,7 @@ Adds an entry into the location table
 
 | Parameter Name | Type   | Value | Description
 | ---  | :--------- |  :--------- |  :--------- |
-| addressOfRecord |  path | string | Address of record for the new entry|
+| addressOfRecord |  path | string | Address of record for the new entry |
 
 **Request body**
 
