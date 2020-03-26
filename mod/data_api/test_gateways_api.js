@@ -10,8 +10,8 @@ const TestUtils = require('@routr/data_api/test_utils')
 const DSUtils = require('@routr/data_api/utils')
 const ObjectId = Java.type('org.bson.types.ObjectId')
 const {
-    UNFULFILLED_DEPENDENCY_RESPONSE,
-    Status
+  UNFULFILLED_DEPENDENCY_RESPONSE,
+  Status
 } = require('@routr/core/status')
 const assert = require('assert')
 const config = require('@routr/core/config_util')()
@@ -22,61 +22,60 @@ const ds = new RedisDataSource(config)
 const gatewaysApi = new GatewaysAPI(ds)
 
 describe('Gateways API(on Redis)', () => {
+  beforeEach(() => {
+    ds.flushAll()
+    gatewaysApi.cleanCache()
+  })
 
-    beforeEach(() => {
-        ds.flushAll()
-        gatewaysApi.cleanCache()
-    })
+  it('Create gateway', done => {
+    // Test entity missing required fields
+    const gateway = TestUtils.buildGateway('Service Provider', 'sp')
+    delete gateway.metadata.name
+    let response = gatewaysApi.createFromJSON(gateway)
+    assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
-    it('Create gateway', done => {
-        // Test entity missing required fields
-        const gateway = TestUtils.buildGateway('Service Provider', 'sp')
-        delete gateway.metadata.name
-        let response = gatewaysApi.createFromJSON(gateway)
-        assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
+    // Bad kind
+    gateway.metadata.name = 'Gateway'
+    gateway.kind = 'Gatewayx'
+    response = gatewaysApi.createFromJSON(gateway)
+    assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
-        // Bad kind
-        gateway.metadata.name = 'Gateway'
-        gateway.kind = 'Gatewayx'
-        response = gatewaysApi.createFromJSON(gateway)
-        assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
+    // Test for good resource
+    gateway.kind = 'Gateway'
+    response = gatewaysApi.createFromJSON(gateway)
+    assert.equal(response.status, Status.CREATED)
 
-        // Test for good resource
-        gateway.kind = 'Gateway'
-        response = gatewaysApi.createFromJSON(gateway)
-        assert.equal(response.status, Status.CREATED)
+    // Test uniqueness
+    response = gatewaysApi.createFromJSON(gateway)
+    assert.equal(response.status, Status.CONFLICT)
+    done()
+  })
 
-        // Test uniqueness
-        response = gatewaysApi.createFromJSON(gateway)
-        assert.equal(response.status, Status.CONFLICT)
-        done()
-    })
+  it('Update gateway', done => {
+    // Test entity missing required fields
+    const gateway = TestUtils.buildGateway('Service Provider', 'sp')
+    gatewaysApi.createFromJSON(gateway)
+    delete gateway.kind
+    response = gatewaysApi.updateFromJSON(gateway)
+    assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
-    it('Update gateway', done => {
-        // Test entity missing required fields
-        const gateway = TestUtils.buildGateway('Service Provider', 'sp')
-        gatewaysApi.createFromJSON(gateway)
-        delete gateway.kind
-        response = gatewaysApi.updateFromJSON(gateway)
-        assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
+    // Bad kind
+    gateway.kind = 'Gatewayx'
+    response = gatewaysApi.updateFromJSON(gateway)
+    assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
-        // Bad kind
-        gateway.kind = 'Gatewayx'
-        response = gatewaysApi.updateFromJSON(gateway)
-        assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
+    // Bad reference
+    const ref = gateway.metadata.ref
+    gateway.kind = 'Gateway'
+    gateway.metadata.ref = 'abc'
+    response = gatewaysApi.updateFromJSON(gateway)
+    assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
 
-        // Bad reference
-        const ref = gateway.metadata.ref
-        gateway.kind = 'Gateway'
-        gateway.metadata.ref = 'abc'
-        response = gatewaysApi.updateFromJSON(gateway)
-        assert.equal(response.status, Status.UNPROCESSABLE_ENTITY)
-
-        // Test for good resource
-        gateway.metadata.ref = ref
-        delete gateway.spec.credentials.secret
-        response = gatewaysApi.updateFromJSON(gateway)
-        assert.equal(response.status, Status.OK)
-        done()
-    })
+    // Test for good resource
+    gateway.metadata.ref = ref
+    delete gateway.spec.credentials.secret
+    response = gatewaysApi.updateFromJSON(gateway)
+    assert.equal(response.status, Status.OK)
+    done()
+  })
 })

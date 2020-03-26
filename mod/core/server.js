@@ -23,96 +23,113 @@ const SipFactory = Java.type('javax.sip.SipFactory')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 
 const LOG = LogManager.getLogger()
-const ANSI_GREEN = "\u001B[32m"
-const ANSI_YELLOW = "\u001B[33m"
-const ANSI_RESET = "\u001B[0m"
+const ANSI_GREEN = '\u001B[32m'
+const ANSI_YELLOW = '\u001B[33m'
+const ANSI_RESET = '\u001B[0m'
 
 class Server {
+  constructor () {
+    // Mutes legacy loggers
+    BasicConfigurator.configure(new NullAppender())
 
-    constructor() {
-        // Mutes legacy loggers
-        BasicConfigurator.configure(new NullAppender())
-
-        const ds = DSSelector.getDS()
-        const dataAPIs = {
-            UsersAPI: new UsersAPI(ds),
-            AgentsAPI: new AgentsAPI(ds),
-            DomainsAPI: new DomainsAPI(ds),
-            NumbersAPI: new NumbersAPI(ds),
-            GatewaysAPI: new GatewaysAPI(ds),
-            PeersAPI: new PeersAPI(ds)
-        }
-
-        this.dataAPIs = dataAPIs
-        this.locator = new Locator()
+    const ds = DSSelector.getDS()
+    const dataAPIs = {
+      UsersAPI: new UsersAPI(ds),
+      AgentsAPI: new AgentsAPI(ds),
+      DomainsAPI: new DomainsAPI(ds),
+      NumbersAPI: new NumbersAPI(ds),
+      GatewaysAPI: new GatewaysAPI(ds),
+      PeersAPI: new PeersAPI(ds)
     }
 
-    buildSipProvider(sipStack, transport) {
-        let sipProvider
+    this.dataAPIs = dataAPIs
+    this.locator = new Locator()
+  }
 
-        for (const key in transport) {
-            const curTransport = transport[key]
-            const proto = curTransport.protocol.toLowerCase()
+  buildSipProvider (sipStack, transport) {
+    let sipProvider
 
-            if ((proto === 'wss' || proto === 'tls') && !config.spec.securityContext) {
-                LOG.warn(`${ANSI_YELLOW }Unable to find security context. Ignoring protocol: ${proto}${ANSI_RESET}`)
-                continue
-            }
+    for (const key in transport) {
+      const curTransport = transport[key]
+      const proto = curTransport.protocol.toLowerCase()
 
-            if (curTransport.bindAddr === undefined) {
-                curTransport.bindAddr = config.spec.bindAddr
-            }
+      if (
+        (proto === 'wss' || proto === 'tls') &&
+        !config.spec.securityContext
+      ) {
+        LOG.warn(
+          `${ANSI_YELLOW}Unable to find security context. Ignoring protocol: ${proto}${ANSI_RESET}`
+        )
+        continue
+      }
 
-            const lp = sipStack.createListeningPoint(curTransport.bindAddr, curTransport.port, proto)
+      if (curTransport.bindAddr === undefined) {
+        curTransport.bindAddr = config.spec.bindAddr
+      }
 
-            if(sipProvider) {
-                sipProvider.addListeningPoint(lp)
-            } else {
-                sipProvider = sipStack.createSipProvider(lp)
-            }
+      const lp = sipStack.createListeningPoint(
+        curTransport.bindAddr,
+        curTransport.port,
+        proto
+      )
 
-            LOG.info(`Listening on ${ANSI_GREEN}${curTransport.bindAddr}:${curTransport.port} [${proto}]${ANSI_RESET}`)
-        }
+      if (sipProvider) {
+        sipProvider.addListeningPoint(lp)
+      } else {
+        sipProvider = sipStack.createSipProvider(lp)
+      }
 
-        return sipProvider
+      LOG.info(
+        `Listening on ${ANSI_GREEN}${curTransport.bindAddr}:${
+          curTransport.port
+        } [${proto}]${ANSI_RESET}`
+      )
     }
 
-    setup() {
-        showExternInfo(config)
-        if (config.spec.securityContext.debugging) {
-            Java.type('java.lang.System')
-                .setProperty('javax.net.debug', 'ssl')
-        }
-        const sipFactory = SipFactory.getInstance()
-        sipFactory.setPathName('gov.nist')
-        this.sipStack = sipFactory.createSipStack(properties)
-        const sipProvider = this.buildSipProvider(this.sipStack,
-            config.spec.transport)
-        const ctxStorage = new ContextStorage(sipProvider)
-        const processor = new Processor(sipProvider, this.dataAPIs, ctxStorage)
-        sipProvider.addSipListener(processor.listener)
-        this.ctxStorage = ctxStorage
-    }
+    return sipProvider
+  }
 
-    start() {
-        LOG.info('Starting Routr')
-        this.setup()
+  setup () {
+    showExternInfo(config)
+    if (config.spec.securityContext.debugging) {
+      Java.type('java.lang.System').setProperty('javax.net.debug', 'ssl')
     }
+    const sipFactory = SipFactory.getInstance()
+    sipFactory.setPathName('gov.nist')
+    this.sipStack = sipFactory.createSipStack(properties)
+    const sipProvider = this.buildSipProvider(
+      this.sipStack,
+      config.spec.transport
+    )
+    const ctxStorage = new ContextStorage(sipProvider)
+    const processor = new Processor(sipProvider, this.dataAPIs, ctxStorage)
+    sipProvider.addSipListener(processor.listener)
+    this.ctxStorage = ctxStorage
+  }
 
-    stop(code = 0) {
-        LOG.info('Stopping server')
-        try {
-            this.sipStack.stop()
-        } catch(e) {}
-        System.exit(code)
-    }
+  start () {
+    LOG.info('Starting Routr')
+    this.setup()
+  }
 
-    stopIfReady(code = 0) {
-        if (this.ctxStorage.getStorage().size() === 0) {
-            this.stop(code)
-        }
-        LOG.info(`Waiting for ${this.ctxStorage.getStorage().size()} transactions before shutdown`)
+  stop (code = 0) {
+    LOG.info('Stopping server')
+    try {
+      this.sipStack.stop()
+    } catch (e) {}
+    System.exit(code)
+  }
+
+  stopIfReady (code = 0) {
+    if (this.ctxStorage.getStorage().size() === 0) {
+      this.stop(code)
     }
+    LOG.info(
+      `Waiting for ${this.ctxStorage
+        .getStorage()
+        .size()} transactions before shutdown`
+    )
+  }
 }
 
 server = new Server()

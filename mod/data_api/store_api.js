@@ -4,36 +4,35 @@
  */
 
 class StoreAPI {
+  constructor (store) {
+    this.store = store
+    this.c = 'default'
+  }
 
-    constructor(store) {
-        this.store = store
-        this.c = 'default'
-    }
+  withCollection (c) {
+    this.c = c
+    return this
+  }
 
-    withCollection(c) {
-        this.c = c
-        return this
-    }
+  put (k, v) {
+    this.store.put(this.c, k, v)
+  }
 
-    put(k, v) {
-        this.store.put(this.c, k, v)
-    }
+  get (k) {
+    return this.store.get(this.c, k)
+  }
 
-    get(k) {
-        return this.store.get(this.c, k)
-    }
+  remove (k) {
+    return this.store.remove(this.c, k)
+  }
 
-    remove(k) {
-        return this.store.remove(this.c, k)
-    }
+  values () {
+    return this.store.values(this.c)
+  }
 
-    values() {
-        return this.store.values(this.c)
-    }
-
-    keySet() {
-        return this.store.keySet(this.c)
-    }
+  keySet () {
+    return this.store.keySet(this.c)
+  }
 }
 
 module.exports = StoreAPI

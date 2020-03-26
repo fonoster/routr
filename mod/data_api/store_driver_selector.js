@@ -3,19 +3,17 @@ const FilesStore = require('@routr/data_api/files_store')
 const config = require('@routr/core/config_util')()
 
 class StoreDriverSelector {
-
-    constructor() {
-        if (config.spec.dataSource.provider === 'redis_data_provider') {
-            this.storeDriver = new RedisStore()
-        } else {
-            this.storeDriver = new FilesStore()
-        }
+  constructor () {
+    if (config.spec.dataSource.provider === 'redis_data_provider') {
+      this.storeDriver = new RedisStore()
+    } else {
+      this.storeDriver = new FilesStore()
     }
+  }
 
-    getDriver() {
-        return this.storeDriver
-    }
-
+  getDriver () {
+    return this.storeDriver
+  }
 }
 
 const instace = new StoreDriverSelector()

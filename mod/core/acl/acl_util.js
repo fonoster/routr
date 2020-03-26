@@ -7,25 +7,24 @@ const Rule = require('@routr/core/acl/acl_rule')
 const ArrayList = Java.type('java.util.ArrayList')
 
 class AclUtil {
+  constructor (accessControlList) {
+    this.rules = new ArrayList()
 
-    constructor(accessControlList) {
-        this.rules = new ArrayList()
-
-        if (accessControlList) {
-            this.addRules(accessControlList.allow, 'allow')
-            this.addRules(accessControlList.deny, 'deny')
-        }
+    if (accessControlList) {
+      this.addRules(accessControlList.allow, 'allow')
+      this.addRules(accessControlList.deny, 'deny')
     }
+  }
 
-    addRules(nets, action) {
-        if (nets.length > 0) {
-            nets.forEach(net => this.rules.add(new Rule(net, action)))
-        }
+  addRules (nets, action) {
+    if (nets.length > 0) {
+      nets.forEach(net => this.rules.add(new Rule(net, action)))
     }
+  }
 
-    isIpAllowed(ip) {
-        return ACLHelper.mostSpecific(ip, this.rules).action === 'allow'
-    }
+  isIpAllowed (ip) {
+    return ACLHelper.mostSpecific(ip, this.rules).action === 'allow'
+  }
 }
 
 module.exports = AclUtil
