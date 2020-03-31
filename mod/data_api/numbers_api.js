@@ -18,7 +18,7 @@ class NumbersAPI extends APIBase {
       const r = this.ds.withCollection('gateways').get(j.metadata.gwRef)
       return r.status !== Status.OK
     }
-    const alreadyExist = j => this.numberExist(j.spec.location.telUrl)
+    const alreadyExist = j => this.numberExist(getCacheKey(j))
     return super.createFromJSON(
       jsonObj,
       alreadyExist,
@@ -63,9 +63,7 @@ class NumbersAPI extends APIBase {
   }
 
   deleteNumber (ref) {
-    if (this.cache.getIfPresent(ref)) {
-      this.cache.invalidate(ref)
-    }
+    this.invalidate(ref, getCacheKey)
 
     const response = this.ds
       .withCollection('domains')

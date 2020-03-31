@@ -58,7 +58,7 @@ class DSUtils {
       const i = errors.iterator()
       while (i.hasNext()) {
         const error = i.next()
-        e.push(error)
+        e.push(error.getMessage())
       }
     }
     return e
@@ -91,7 +91,7 @@ class DSUtils {
       roErrors.forEach(error => e.push(error))
     }
 
-    if (e.length > 0) LOG.error(e.join())
+    //if (e.length > 0) LOG.error(e.join())
 
     return e
   }

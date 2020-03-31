@@ -41,8 +41,7 @@ class APIBase {
 
     if (!alreadyExist(jsonObj)) {
       const response = this.ds.insert(jsonObj)
-      const cacheKey = getCacheKey(jsonObj)
-      this.cache.put(cacheKey, response)
+      this.cache.put(getCacheKey(jsonObj), response)
       return response
     }
 
@@ -92,6 +91,14 @@ class APIBase {
 
   getResource (ref) {
     return this.ds.withCollection(this.resourceType).get(ref)
+  }
+
+  invalidate (ref, getCacheKey) {
+    const response = this.getResource(ref)
+
+    if (response.status !== Status.OK) return response
+
+    this.cache.invalidate(getCacheKey(response.data))
   }
 
   cleanCache () {

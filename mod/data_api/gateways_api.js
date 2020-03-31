@@ -81,9 +81,7 @@ class GatewaysAPI extends APIBase {
   }
 
   deleteGateway (ref) {
-    if (this.cache.getIfPresent(ref)) {
-      this.cache.invalidate(ref)
-    }
+    this.invalidate(ref, getCacheKey)
 
     let response = this.getGateway(ref)
 

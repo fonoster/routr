@@ -63,6 +63,8 @@ class DomainsAPI extends APIBase {
   }
 
   deleteDomain (ref) {
+    this.invalidate(ref, getCacheKey)
+
     let response = this.getDomain(ref)
 
     if (response.status !== Status.OK) {
@@ -70,10 +72,6 @@ class DomainsAPI extends APIBase {
     }
 
     const domain = response.data
-
-    if (this.cache.getIfPresent(domain.spec.context.domainUri)) {
-      this.cache.invalidate(domain.spec.context.domainUri)
-    }
 
     response = this.ds
       .withCollection('agents')

@@ -14,7 +14,7 @@ class PeersAPI extends APIBase {
 
   createFromJSON (jsonObj) {
     const hasUnfulfilledDependency = () => false
-    const alreadyExist = j => this.peerExist(j.spec.credentials.username)
+    const alreadyExist = j => this.peerExist(getCacheKey(j))
     return super.createFromJSON(
       jsonObj,
       alreadyExist,
