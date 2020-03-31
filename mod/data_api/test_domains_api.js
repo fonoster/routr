@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  *
- * Unit Test for the "Domains API on Redis Data Source"
+ * Integration Test for the "Domains API on Redis Data Source"
  */
 const RedisDataSource = require('@routr/data_api/redis_datasource')
 const NumbersAPI = require('@routr/data_api/numbers_api')
