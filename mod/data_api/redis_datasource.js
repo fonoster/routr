@@ -22,7 +22,7 @@ const defaultRedisParameters = 'host=localhost,port=6379'
 const defUser = {
   kind: 'User',
   metadata: {
-    name: 'Ctl'
+    name: 'Default'
   },
   spec: {
     credentials: {

@@ -9,7 +9,7 @@ class DSSelector {
     } else if (config.spec.dataSource.provider === 'redis_data_provider') {
       this.dataSource = new RedisDataSource(config)
     } else {
-      throw 'Invalid data source'
+      throw 'Invalid datasource provider'
     }
   }
 
