@@ -5,7 +5,6 @@
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
-const getConfig = require('@routr/core/config_util')
 const JedisPoolConfig = Java.type('redis.clients.jedis.JedisPoolConfig')
 const JedisPool = Java.type('redis.clients.jedis.JedisPool')
 const ObjectId = Java.type('org.bson.types.ObjectId')
@@ -16,9 +15,9 @@ const InvalidPathException = Java.type(
 )
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const Long = Java.type('java.lang.Long')
-
 const LOG = LogManager.getLogger()
-const defaultRedisParameters = 'host=localhost,port=6379'
+const defaultRedisParameters =
+  'host=localhost,port=6379,max_retry=-1,retry_interval=2'
 const defUser = {
   kind: 'User',
   metadata: {
@@ -33,11 +32,13 @@ const defUser = {
 }
 
 class RedisDataSource {
-  constructor (config = getConfig()) {
+  constructor (config) {
     this.parameters = DSUtils.getParameters(config, defaultRedisParameters, [
       'host',
       'port',
-      'secret'
+      'secret',
+      'max_retry',
+      'retry_interval'
     ])
 
     this.jedisPool = new JedisPool(
@@ -48,22 +49,18 @@ class RedisDataSource {
 
     if (this.withCollection('users').find().data.length === 0) {
       LOG.info("No user found. Creating default 'admin' user.")
-      this.createDefaultUser(config.system.apiVersion)
+      this.createDefaultUser()
     }
 
-    if (!this.get('config').data) {
+    /*if (!this.get('config').data) {
       LOG.info('No configuration found. Creating default configuration.')
       this.createDefaultConfig(config)
-    }
+    }*/
   }
 
   getJedisConn () {
     const jedisConn = this.jedisPool.getResource()
-
-    if (this.parameters.secret) {
-      jedisConn.auth(this.parameters.secret)
-    }
-
+    if (this.parameters.secret) jedisConn.auth(this.parameters.secret)
     return jedisConn
   }
 
@@ -85,13 +82,12 @@ class RedisDataSource {
   }
 
   createDefaultUser (apiVersion) {
-    defUser.apiVersion = apiVersion
     this.insert(defUser)
   }
 
-  createDefaultConfig (config) {
+  /*createDefaultConfig (config) {
     this.set('config', config)
-  }
+  }*/
 
   withCollection (collection) {
     this.collection = collection

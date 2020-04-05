@@ -25,6 +25,7 @@ const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 const ANSI_GREEN = '\u001B[32m'
 const ANSI_YELLOW = '\u001B[33m'
+const ANSI_LIGHT_RED = '\u001B[31m'
 const ANSI_RESET = '\u001B[0m'
 
 class Server {
@@ -67,23 +68,31 @@ class Server {
         curTransport.bindAddr = config.spec.bindAddr
       }
 
-      const lp = sipStack.createListeningPoint(
-        curTransport.bindAddr,
-        curTransport.port,
-        proto
-      )
+      try {
+        const lp = sipStack.createListeningPoint(
+          curTransport.bindAddr,
+          curTransport.port,
+          proto
+        )
 
-      if (sipProvider) {
-        sipProvider.addListeningPoint(lp)
-      } else {
-        sipProvider = sipStack.createSipProvider(lp)
+        if (sipProvider) {
+          sipProvider.addListeningPoint(lp)
+        } else {
+          sipProvider = sipStack.createSipProvider(lp)
+        }
+
+        LOG.info(
+          `Listening on ${ANSI_GREEN}${curTransport.bindAddr}:${
+            curTransport.port
+          } [${proto}]${ANSI_RESET}`
+        )
+      } catch (e) {
+        LOG.error(
+          `${ANSI_LIGHT_RED}Failed to bind to ${proto}/${
+            curTransport.bindAddr
+          }:${curTransport.port}${ANSI_RESET}`
+        )
       }
-
-      LOG.info(
-        `Listening on ${ANSI_GREEN}${curTransport.bindAddr}:${
-          curTransport.port
-        } [${proto}]${ANSI_RESET}`
-      )
     }
 
     return sipProvider
@@ -97,14 +106,16 @@ class Server {
     const sipFactory = SipFactory.getInstance()
     sipFactory.setPathName('gov.nist')
     this.sipStack = sipFactory.createSipStack(properties)
-    const sipProvider = this.buildSipProvider(
-      this.sipStack,
-      config.spec.transport
-    )
-    const ctxStorage = new ContextStorage(sipProvider)
-    const processor = new Processor(sipProvider, this.dataAPIs, ctxStorage)
-    sipProvider.addSipListener(processor.listener)
-    this.ctxStorage = ctxStorage
+    try {
+      const sipProvider = this.buildSipProvider(
+        this.sipStack,
+        config.spec.transport
+      )
+      const ctxStorage = new ContextStorage(sipProvider)
+      const processor = new Processor(sipProvider, this.dataAPIs, ctxStorage)
+      sipProvider.addSipListener(processor.listener)
+      this.ctxStorage = ctxStorage
+    } catch (e) {}
   }
 
   start () {
