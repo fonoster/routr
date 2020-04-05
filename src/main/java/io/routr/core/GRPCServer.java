@@ -23,24 +23,30 @@ public class GRPCServer {
         this.context = context;
     }
 
-    public void start() throws IOException {
+    public void start() {
         // TODO: Get this from config file :(
         int port = 50099;
-        server = ServerBuilder
-          .forPort(port)
-            .addService(new ControllerImpl(this.context))
-              .build()
-                .start();
+        try {
 
-        LOG.debug("Starting gRPC service, listening on " + port);
+          server = ServerBuilder
+            .forPort(port)
+              .addService(new ControllerImpl(this.context))
+                .build()
+                  .start();
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-              LOG.debug("Shutting down gRPC service");
-              GRPCServer.this.stop();
-            }
-        });
+          LOG.debug("Starting gRPC service, listening on " + port);
+
+          Runtime.getRuntime().addShutdownHook(new Thread() {
+              @Override
+              public void run() {
+                LOG.debug("Shutting down gRPC service");
+                GRPCServer.this.stop();
+              }
+          });
+        } catch(IOException ex) {
+          LOG.fatal("Unable to start grpcService: " + ex.getMessage());
+          System.exit(1);
+        }
     }
 
     public void stop() {

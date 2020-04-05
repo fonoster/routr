@@ -92,4 +92,35 @@ describe('@routr/data_api/utils', () => {
       )
     })
   })
+
+  context('getParameters', () => {
+    it('merge default parameter with new parameters', () => {
+      const config = {
+        spec: {
+          dataSource: {
+            parameters: 'host=localhost,port=6378,max_retry=20'
+          }
+        }
+      }
+      const defParams = 'host=localhost,port=6379,max_retry=30,retry_interval=2'
+      const allowedKeys = [
+        'host',
+        'port',
+        'secret',
+        'max_retry',
+        'retry_interval'
+      ]
+      const parameters = DSUtils.getParameters(config, defParams, allowedKeys)
+
+      expect(parameters)
+        .to.be.a('object')
+        .to.have.property('max_retry')
+        .to.be.equal('20')
+
+      expect(parameters)
+        .to.be.a('object')
+        .to.have.property('port')
+        .to.be.equal('6378')
+    })
+  })
 })

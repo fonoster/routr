@@ -9,6 +9,7 @@ const isEmpty = require('@routr/utils/obj_util')
 const paginateArray = require('paginate-array')
 const flat = require('flat')
 const unflatten = require('flat').unflatten
+const merge = require('deepmerge')
 
 const System = Java.type('java.lang.System')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -199,26 +200,17 @@ class DSUtils {
   }
 
   static getParameters (config, defaultParameters, allowedKeys) {
-    let parameters =
-      isEmpty(config.spec.dataSource.parameters) === false
-        ? DSUtils.getParametersFromString(
-            config.spec.dataSource.parameters,
-            allowedKeys
-          )
-        : DSUtils.getParametersFromString(defaultParameters, allowedKeys)
-
-    if (System.getenv('ROUTR_DS_PARAMETERS') !== null) {
-      parameters = DSUtils.getParametersFromString(
-        System.getenv('ROUTR_DS_PARAMETERS'),
-        allowedKeys
-      )
-    }
-
-    return parameters
+    const params = config.spec.dataSource.parameters || ''
+    const envParams = System.getenv('ROUTR_DS_PARAMETERS') || ''
+    const p1 = DSUtils.getParametersFromString(envParams, allowedKeys)
+    const p2 = DSUtils.getParametersFromString(params, allowedKeys)
+    const p3 = DSUtils.getParametersFromString(defaultParameters, allowedKeys)
+    return merge.all([p3, p2, p1])
   }
 
-  // Please rename this!
+  // TODO: Please rename this!
   static getParametersFromString (params, allowedKeys) {
+    if (params.length === 0) return {}
     const parameters = {}
     params.split(',').forEach(par => {
       try {

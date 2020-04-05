@@ -14,6 +14,7 @@ const SDSelector = require('@routr/data_api/store_driver_selector')
 const StoreAPI = require('@routr/data_api/store_api')
 const ConfigAPI = require('@routr/data_api/config_api')
 const DSUtils = require('@routr/data_api/utils')
+const System = Java.type('java.lang.System')
 const isEmpty = require('@routr/utils/obj_util')
 const config = require('@routr/core/config_util')()
 const { reloadConfig } = require('@routr/core/config_util')
@@ -65,6 +66,12 @@ class Rest {
     }
 
     Spark.port(config.spec.restService.port)
+
+    Spark.initExceptionHandler(e => {
+      LOG.fatal('Unable to start restService: ' + e.message)
+      System.exit(1)
+    })
+
     Spark.exception(Java.type('java.lang.Exception'), (e, req, res) => {
       res.type('application/json')
       if (e.getMessage().equals('UNAUTHORIZED REQUEST')) {
