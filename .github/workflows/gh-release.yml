@@ -25,14 +25,14 @@ jobs:
         run: |
           echo "::set-env name=GIT_BRANCH::$GITHUB_REF"
           echo "::set-env name=GIT_COMMIT_SHA::$GITHUB_SHA"
-        if: github.event_name == 'push'          
+        if: github.event_name == 'push'
       - name: Setup Redis DB
         uses: zhulik/redis-action@v1.0.0
         with:
           redis version: '5'
       - name: Get version
         id: get_version
-        run: echo ::set-output name=ROUTR_VERSION::$(node -e "console.log(require('./package.json').version)") 
+        run: echo ::set-output name=ROUTR_VERSION::$(node -e "console.log(require('./package.json').version)")
       - name: Unit tests
         env:
           CC_TEST_REPORTER_ID: 19325f806984a923fa5ca65ee90ca519fc2bf3debc03634943aa36c5e57f6207
@@ -41,7 +41,7 @@ jobs:
           export JAVA_HOME=$GRAALVM_HOME
           npm i
           npm test
-          ./cc-test-reporter after-build --exit-code $?
+          #./cc-test-reporter after-build --exit-code $?
       - name: Create dist files
         env:
           ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
