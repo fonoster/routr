@@ -2,7 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
-const defaults = require('@routr/core/config_defaults')()
+const defaults = require('@routr/core/config/config_defaults')()
 const merge = require('deepmerge')
 const { getSalt } = require('@routr/core/config/salt')
 const getConfigFromRedis = require('@routr/core/config/config_from_redis')

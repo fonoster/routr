@@ -10,7 +10,7 @@ const sinonChai = require('sinon-chai')
 chai.use(sinonChai)
 const expect = chai.expect
 var sandbox = sinon.createSandbox()
-const defaults = require('@routr/core/config_defaults')(new Date())
+const defaults = require('@routr/core/config/config_defaults')(new Date())
 
 describe('@routr/core/config', () => {
   context('config util', () => {
