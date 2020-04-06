@@ -7,10 +7,10 @@
         "type": "object",
         "properties": {
             "apiVersion": {
-                "type": "string"
+              "enum": ["v1beta1", "v1.0", "v1"]
             },
             "kind": {
-                "type": "string",
+                "enum": ["Number", "Number"],
                 "readOnly": true
             },
             "metadata": {
@@ -18,8 +18,8 @@
                 "properties": {
                     "createdOn": {"type": "string", "readOnly": true},
                     "modifiedOn": {"type": "string", "readOnly": true},
-                    "ref": {"type": "string", "readOnly": true},
-                    "gwRef": {"type": "string", "readOnly": true}
+                    "ref": {"type": "string", "readOnly": true, "minLength": 3, "maxLength": 24},
+                    "gwRef": {"type": "string", "readOnly": true, "minLength": 3, "maxLength": 24}
                 },
                 "required": ["gwRef"]
             },
@@ -29,8 +29,8 @@
                     "location": {
                         "type": "object",
                         "properties": {
-                            "telUrl": {"type": "string"},
-                            "aorLink": {"type": "string"}
+                            "telUrl": {"type": "string", "minLength": 4},
+                            "aorLink": {"type": "string", "minLength": 4}
                         },
                         "required": ["telUrl", "aorLink"]
                     }

@@ -7,19 +7,19 @@
         "type": "object",
         "properties": {
             "apiVersion": {
-                "type": "string"
+              "enum": ["v1beta1", "v1.0", "v1"]
             },
             "kind": {
-                "type": "string",
+                "enum": ["Peer", "peer"],
                 "readOnly": true
             },
             "metadata": {
                 "type": "object",
                 "properties": {
-                    "name": {"type": "string"},
+                    "name": {"type": "string", "minLength": 3, "maxLength": 30},
                     "createdOn": {"type": "string", "readOnly": true},
                     "modifiedOn": {"type": "string", "readOnly": true},
-                    "ref": {"type": "string", "readOnly": true}
+                    "ref": {"type": "string", "readOnly": true, "minLength": 3, "maxLength": 24}
                 },
                 "required": ["name"]
             },
@@ -29,13 +29,13 @@
                     "credentials": {
                         "type": "object",
                         "properties": {
-                            "username": {"type": "string"},
+                            "username": {"type": "string", "minLength": 3, "maxLength": 30},
                             "secret": {"type": "string", "writeOnly": true}
                         },
                         "required": ["username", "secret"]
                     },
-                    "device": {"type": "string"},
-                    "contactAddr": {"type": "string"}
+                    "device": {"type": "string", "minLength": 1},
+                    "contactAddr": {"type": "string", "minLength": 1}
                 },
                 "required": ["credentials"]
             }

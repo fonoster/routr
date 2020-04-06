@@ -7,19 +7,19 @@
         "type": "object",
         "properties": {
             "apiVersion": {
-                "type": "string"
+              "enum": ["v1beta1", "v1.0", "v1"]
             },
             "kind": {
-                "type": "string",
+                "enum": ["User", "user"],
                 "readOnly": true
             },
             "metadata": {
                 "type": "object",
                 "properties": {
-                    "name": {"type": "string"},
+                    "name": {"type": "string", "minLength": 3, "maxLength": 30},
                     "createdOn": {"type": "string", "readOnly": true},
                     "modifiedOn": {"type": "string", "readOnly": true},
-                    "ref": {"type": "string", "readOnly": true}
+                    "ref": {"type": "string", "readOnly": true, "minLength": 3, "maxLength": 24}
                 },
                 "required": ["name"]
             },
@@ -29,7 +29,7 @@
                     "credentials": {
                         "type": "object",
                         "properties": {
-                            "username": {"type": "string", "readOnly": true},
+                            "username": {"type": "string", "readOnly": true, "minLength": 3, "maxLength": 30},
                             "secret": {"type": "string", "writeOnly": true}
                         },
                         "required": ["username", "secret"]

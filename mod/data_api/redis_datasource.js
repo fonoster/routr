@@ -52,10 +52,10 @@ class RedisDataSource {
       this.createDefaultUser()
     }
 
-    /*if (!this.get('config').data) {
+    if (!this.get('config').data) {
       LOG.info('No configuration found. Creating default configuration.')
       this.createDefaultConfig(config)
-    }*/
+    }
   }
 
   getJedisConn () {
@@ -85,9 +85,9 @@ class RedisDataSource {
     this.insert(defUser)
   }
 
-  /*createDefaultConfig (config) {
+  createDefaultConfig (config) {
     this.set('config', config)
-  }*/
+  }
 
   withCollection (collection) {
     this.collection = collection

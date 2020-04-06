@@ -3,12 +3,13 @@
   "version": "1.0.0-rc5",
   "description": "Next-generation SIP Server",
   "scripts": {
-    "transpile": "babel mod --out-dir node_modules/@routr",
-    "test": "cross-env ./etc/tests/tester mod/core/test mod/core/acl/test mod/core/processor/test mod/registry/test mod/location/test mod/registrar/test mod/rest/test mod/utils/test mod/data_api/test_apis mod/data_api/test_files_datasource mod/data_api/test_redis_datasource mod/data_api/test_agents_api mod/data_api/test_domains_api mod/data_api/test_peers_api mod/data_api/test_users_api mod/data_api/test_gateways_api mod/data_api/test_numbers_api mod/data_api/test_store_api",
-    "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
-    "bundle": "webpack --config webpack.config.js --mode none",
-    "pretest": "npm run bundle",
+    "pack": "./distro.sh",
     "prepack": "npm test",
+    "test": "cross-env ./etc/tests/tester2 mod/**/*.unit.test.js",
+    "pretest": "npm run bundle",
+    "bundle": "webpack --config webpack.config.js --mode none",
+    "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
+    "transpile": "babel mod --out-dir node_modules/@routr",
     "format": "prettier-standard 'mod/**/*.js'"
   },
   "lint-staged": {
@@ -22,6 +23,8 @@
     }
   },
   "dependencies": {
+    "chai": "^4.2.0",
+    "deepmerge": "^4.2.2",
     "flat": "^5.0.0",
     "ip-utils": "^2.4.0",
     "lint-staged": "^10.0.9",
@@ -41,6 +44,9 @@
     "mocha": "^6.2.0",
     "nyc": "^14.1.1",
     "prettier-standard": "^9.1.1",
+    "rewire": "^5.0.0",
+    "sinon": "^9.0.1",
+    "sinon-chai": "^3.5.0",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.11.1",
     "webpack-command": "^0.2.0"

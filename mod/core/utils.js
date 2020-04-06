@@ -13,7 +13,7 @@ const LOG = LogManager.getLogger()
 class CoreUtils {
   static buildErrResponse (e) {
     if (e instanceof JedisConnectionException) {
-      LOG.error('Unable to connect with Redis')
+      //LOG.error('Unable to connect with Redis')
     } else {
       LOG.error(e)
     }
