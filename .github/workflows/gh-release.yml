@@ -2,7 +2,7 @@ name: build
 on: push
 jobs:
   build:
-    timeout-minutes: 20
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -46,10 +46,10 @@ jobs:
         env:
           ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
         run: ./distro.sh
-      #- name: Compliance tests
-      #  env:
-      #    ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
-      #  run: docker-compose -f compliance.yml up --abort-on-container-exit --exit-code-from routr-eet
+      - name: Compliance tests
+        env:
+          ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
+        run: docker-compose -f compliance.yml up --abort-on-container-exit --exit-code-from routr-eet
       - name: Publish draft release
         uses: ncipollo/release-action@v1
         with:

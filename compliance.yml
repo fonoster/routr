@@ -29,7 +29,7 @@ services:
       context: .rctl
     entrypoint: |
       sh -c '
-        while ! nc -z routr 4567; do sleep 0.1; done
+        while ! nc -z routr 4567; do sleep 5; done
         rctl login https://routr:4567/api/v1beta1 -u admin -p changeit
         rctl create -f /opt/routr/config/gateways.yml
         rctl create -f /opt/routr/config/numbers.yml
