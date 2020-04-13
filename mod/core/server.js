@@ -16,6 +16,9 @@ const showExternInfo = require('@routr/core/extern_info')
 const config = require('@routr/core/config_util')()
 const properties = require('@routr/core/server_properties')(config)
 
+const ExceptionUtils = Java.type(
+  'org.apache.commons.lang3.exception.ExceptionUtils'
+)
 const BasicConfigurator = Java.type('org.apache.log4j.BasicConfigurator')
 const NullAppender = Java.type('org.apache.log4j.varia.NullAppender')
 const System = Java.type('java.lang.System')
@@ -100,13 +103,15 @@ class Server {
 
   setup () {
     showExternInfo(config)
-    if (config.spec.securityContext.debugging) {
-      Java.type('java.lang.System').setProperty('javax.net.debug', 'ssl')
-    }
-    const sipFactory = SipFactory.getInstance()
-    sipFactory.setPathName('gov.nist')
-    this.sipStack = sipFactory.createSipStack(properties)
+
     try {
+      if (config.spec.securityContext.debugging) {
+        Java.type('java.lang.System').setProperty('javax.net.debug', 'ssl')
+      }
+      const sipFactory = SipFactory.getInstance()
+      sipFactory.setPathName('gov.nist')
+      this.sipStack = sipFactory.createSipStack(properties)
+
       const sipProvider = this.buildSipProvider(
         this.sipStack,
         config.spec.transport
@@ -115,7 +120,9 @@ class Server {
       const processor = new Processor(sipProvider, this.dataAPIs, ctxStorage)
       sipProvider.addSipListener(processor.listener)
       this.ctxStorage = ctxStorage
-    } catch (e) {}
+    } catch (e) {
+      LOG.error(ExceptionUtils.getRootCause(e))
+    }
   }
 
   start () {
