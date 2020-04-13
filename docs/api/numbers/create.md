@@ -45,5 +45,9 @@ POST /api/v1beta1/numbers
 }
 
 HTTP/1.1 201 Created
-{ "status": "201", "message": "Created", "data": "dd50baa4" }
+{
+	"status": "201",
+	"message": "Created",
+	"data": "dd50baa4"
+}
 ```

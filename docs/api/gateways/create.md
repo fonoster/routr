@@ -42,5 +42,9 @@ POST /api/v1beta1/gateways
 
 
 HTTP/1.1 201 Created
-{ "status": "201", "message": "Created", "data": "gw5c77t2" }
+{
+	"status": "201",
+	"message": "Created",
+	"data": "gw5c77t2"
+}
 ```

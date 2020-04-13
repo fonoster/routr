@@ -43,5 +43,9 @@ POST /api/v1beta1/agents
 }
 
 HTTP/1.1 201 Created
-{ "status": "201", "message": "Created", "data": "ag3f77f6" }
+{
+  "status": "201",
+  "message": "Created",
+  "data": "ag3f77f6"
+}
 ```

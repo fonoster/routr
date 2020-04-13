@@ -42,5 +42,8 @@ PUT /api/v1beta1/gateways/gw5c77t2
 }
 
 HTTP/1.1 200 OK
-{ "status": "200", "Successful request" }
+{
+	"status": "200",
+	"message": "Successful request"
+}
 ```

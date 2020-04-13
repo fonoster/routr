@@ -38,5 +38,9 @@ POST /api/v1beta1/domains
 }
 
 HTTP/1.1 201 Created
-{ "status": "201", "message": "Created", "data": "dm6c87r2" }
+{
+	"status": "201",
+	"message": "Created",
+	"data": "dm6c87r2"
+}
 ```

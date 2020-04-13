@@ -31,8 +31,8 @@ DELETE /api/{apiversion}/location/sip:guest@guest
 }
 
 HTTP/1.1 200 OK
-{  
+{
   "status": 200,
-  "message": "Location entry evicted."
+  "message": "Location entry evicted"
 }
 ```

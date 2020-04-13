@@ -12,10 +12,8 @@ This method returns information about the server.
 
 | Parameter Name | Type   | Value | Description
 | ---  | :--------- |  :--------- |  :--------- |
-| status |  path | string | This accepts either `down` or `reload` parameters |
-
-Note: A `down` value causes the server to shutdown. A `reload` value causes
-the server to reload its configuration from file.
+| status |  path | string | This accepts either `down` or `restarting` parameters |
+| filter |  now  | boolean | If set to `true` it will not wait for current calls to finish |
 
 **Request body**
 
@@ -34,5 +32,8 @@ POST /api/v1beta1/system/status/reload
 }
 
 HTTP/1.1 200 OK
-{ "status": "200", "message": "Reloaded configuration from file." }
+{
+  "status": "200",
+  "message": "Request sent to server"
+}
 ```

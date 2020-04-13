@@ -39,5 +39,9 @@ POST /api/v1beta1/peers
 }
 
 HTTP/1.1 201 Created
-{ "status": "201", "message": "Created", "data": "pr2c77f4" }
+{
+	"status": "201",
+	"message": "Created",
+	"data": "pr2c77f4"
+}
 ```

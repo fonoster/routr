@@ -102,7 +102,7 @@ class Rest {
     const cmd = req.queryParams('now') === 'true' ? `${c}-now` : c
     grpc.run(cmd)
     res.status(200)
-    return '{"status": "200", "message":"Request sent to server."}'
+    return '{"status": "200", "message":"Request sent to server"}'
   }
 
   start () {
