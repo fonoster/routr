@@ -49,7 +49,10 @@ module.exports = upSince => {
     spec: {
       bindAddr: InetAddress.getLocalHost().getHostAddress(),
       localnets: [],
-      transport: [{ protocol: 'tcp', port: 5060 }],
+      transport: [
+        { protocol: 'tcp', port: 5060 },
+        { protocol: 'udp', port: 5060 }
+      ],
       externAddr: System.getenv('ROUTR_EXTERN_ADDR'),
       dataSource: {
         provider: System.getenv('ROUTR_DS_PROVIDER') || 'files_data_provider'
