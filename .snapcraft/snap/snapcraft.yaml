@@ -34,7 +34,6 @@ parts:
     source: resources
     organize:
       config.yml: config/config.yml
-      log4j2.yml: config/log4j2.yml
   routr-server:
     after: [configure]
     plugin: dump
