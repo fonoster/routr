@@ -14,6 +14,7 @@ const SDSelector = require('@routr/data_api/store_driver_selector')
 const StoreAPI = require('@routr/data_api/store_api')
 const ConfigAPI = require('@routr/data_api/config_api')
 const DSUtils = require('@routr/data_api/utils')
+const FilesUtil = require('@routr/utils/files_util')
 const System = Java.type('java.lang.System')
 const isEmpty = require('@routr/utils/obj_util')
 const config = require('@routr/core/config_util')()
@@ -26,6 +27,7 @@ const parameterAuthFilter = require('@routr/rest/parameter_auth_filter')
 const basicAuthFilter = require('@routr/rest/basic_auth_filter')
 const moment = require('moment')
 
+const LogsHandler = Java.type('io.routr.core.LogsHandler')
 const GRPCClient = Java.type('io.routr.core.GRPCClient')
 const Spark = Java.type('spark.Spark')
 const options = Java.type('spark.Spark').options
@@ -34,6 +36,7 @@ const post = Java.type('spark.Spark').post
 const put = Java.type('spark.Spark').put
 const before = Java.type('spark.Spark').before
 const path = Java.type('spark.Spark').path
+const webSocket = Java.type('spark.Spark').webSocket
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
@@ -106,6 +109,9 @@ class Rest {
     const ds = DSSelector.getDS()
     const configApi = new ConfigAPI(ds)
 
+    // Warning: Experimental
+    webSocket(config.system.apiPath + '/system/logs-ws', LogsHandler)
+
     options('/*', (req, res) => {
       const accessControlRequestHeaders = req.headers(
         'Access-Control-Request-Headers'
@@ -137,13 +143,27 @@ class Rest {
       })
 
       // Its always running! Use to ping Routr server
-      get('/system/status', (req, res) => '{"status": "Up"}')
+      get('/system/status', (req, res) =>
+        JSON.stringify(CoreUtils.buildResponse(Status.OK, 'up'))
+      )
 
       post('/system/status/:status', (req, res) =>
         this.sendCmd(req, res, this.grpc)
       )
 
-      get('/system/info', (req, res) => JSON.stringify(config.system))
+      get('/system/logs', (req, res) => {
+        const home = System.getenv('ROUTR_DATA') || '.'
+        return JSON.stringify(
+          CoreUtils.buildResponse(
+            Status.OK,
+            FilesUtil.readFile(`${home}/logs/routr.log`)
+          )
+        )
+      })
+
+      get('/system/info', (req, res) =>
+        JSON.stringify(CoreUtils.buildResponse(Status.OK, config.system))
+      )
 
       get('/system/config', (req, res) => JSON.stringify(configApi.getConfig()))
 
