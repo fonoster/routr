@@ -48,12 +48,12 @@ class RedisDataSource {
     )
 
     if (this.withCollection('users').find().data.length === 0) {
-      LOG.info("No user found. Creating default 'admin' user.")
+      LOG.info('Creating default user')
       this.createDefaultUser()
     }
 
     if (!this.get('config').data) {
-      LOG.info('No configuration found. Creating default configuration.')
+      LOG.info('Creating default configuration')
       this.createDefaultConfig(config)
     }
   }

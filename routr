@@ -41,5 +41,5 @@ fi
       fi
     done
 } || { # your 'catch' block
-    echo 'Done.'
+    echo 'Done'
 }
