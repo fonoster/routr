@@ -78,6 +78,7 @@ nav:
     - System:
       - Status: api/sys/status.md
       - Info: api/sys/info.md
+      - Logs: api/sys/logs.md
   - Guides:
     - Basic Setup: guides/basic-setup.md
     - Routr as Asterisk frontend: guides/routr-as-asterisk-frontend.md
