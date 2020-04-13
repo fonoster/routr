@@ -24,6 +24,9 @@ const NullAppender = Java.type('org.apache.log4j.varia.NullAppender')
 const System = Java.type('java.lang.System')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const LogOutputStream = Java.type('io.routr.core.LogOutputStream')
+const OutputStream = Java.type('java.io.OutputStream')
+const PrintStream = Java.type('java.io.PrintStream')
 
 const LOG = LogManager.getLogger()
 const ANSI_GREEN = '\u001B[32m'
@@ -105,6 +108,10 @@ class Server {
     showExternInfo(config)
 
     try {
+      const os = new LogOutputStream()
+      const ps = new PrintStream(os)
+      System.setOut(ps)
+
       if (config.spec.securityContext.debugging) {
         Java.type('java.lang.System').setProperty('javax.net.debug', 'ssl')
       }
