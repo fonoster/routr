@@ -2,14 +2,15 @@
 
 set -e
 
-BASE_DIR="$(cd "$(dirname "$0")"; pwd)"
+ROUTR_HOME="$(cd "$(dirname "$0")"; pwd)"
 RESTART_CODE=123
 
-[ -d "$BASE_DIR/jre" ] && JAVA_HOME=$BASE_DIR/jre
+[ -d "$ROUTR_HOME/jre" ] && JAVA_HOME=$ROUTR_HOME/jre
 [ -z "$ROUTR_LOG4J2" ] && ROUTR_LOG4J2=config/log4j2.yml
+[ -z "$ROUTR_DATA" ] && ROUTR_DATA=$ROUTR_HOME
 
 run() {
-    cd $BASE_DIR
+    cd $ROUTR_HOME
     $JAVA_HOME/bin/java \
     -DROUTR_DATA=$ROUTR_DATA \
     -Dlog4j.configurationFile=$ROUTR_LOG4J2 \
@@ -19,7 +20,7 @@ run() {
     -Dpolyglot.js.nashorn-compat=true \
     -Dnashorn.args="--no-deprecation-warning" \
     $ROUTR_JAVA_OPTS \
-    -classpath "$BASE_DIR/libs/*" \
+    -classpath "$ROUTR_HOME/libs/*" \
     io.routr.core.Launcher
     return $?
 }
