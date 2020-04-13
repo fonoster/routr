@@ -27,6 +27,7 @@ dependencies {
     compile 'org.slf4j:slf4j-nop:1.7.28'
     compile 'org.apache.logging.log4j:log4j-core:2.11.0'
     compile 'org.apache.logging.log4j:log4j-1.2-api:2.11.0'
+    compile 'org.apache.commons:commons-lang3:3.10'
     compile 'org.mongodb:bson:3.7.1'
     compile 'org.graalvm.js:js:19.3.0'
     compile 'org.graalvm.js:js-scriptengine:19.3.0'
