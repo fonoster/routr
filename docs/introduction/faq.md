@@ -4,7 +4,7 @@ Routr is an open-source SIP Server and tooling to deploy VoIP networks. See the 
 
 ### What dependencies does Routr have?
 
-TRoutr server runs standalone and has no external dependencies.
+Routr server runs standalone and has no external dependencies.
 
 ### How does Routr compare with other SIP servers
 
