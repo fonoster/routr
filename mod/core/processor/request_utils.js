@@ -48,6 +48,14 @@ const getAdvertizedAddr = (request, route, localAddr) => {
     ? { host: addrHost(externAddr), port: addrPort(externAddr, localAddr) }
     : localAddr
 }
+const getToUser = request => {
+  const toHeader = request.getHeader(ToHeader.NAME)
+  return toHeader
+    .getAddress()
+    .getURI()
+    .getUser()
+}
+const getUser = request => request.getRequestURI().getUser()
 const configureMaxForwards = request => {
   const requestOut = request.clone()
   const maxForwardsHeader = requestOut.getHeader(MaxForwardsHeader.NAME)
@@ -150,27 +158,17 @@ const configureRecordRoute = (request, advertisedAddr, localAddr) => {
 }
 const configureRequestURI = (request, routeInfo, route) => {
   const requestOut = request.clone()
+  let uri
+
   if (routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING) {
-    const toHeader = requestOut.getHeader(ToHeader.NAME)
-    const toUser = toHeader
-      .getAddress()
-      .getURI()
-      .getUser()
-    requestOut.setRequestURI(
-      LocatorUtils.aorAsObj(`sip:${toUser}@${route.gwHost}`)
-    )
+    uri = `sip:${getToUser(request)}@${route.gwHost}`
   } else if (isWebRTCClient(route)) {
-    const toHeader = requestOut.getHeader(ToHeader.NAME)
-    const toUser = toHeader
-      .getAddress()
-      .getURI()
-      .getUser()
-    requestOut.setRequestURI(
-      LocatorUtils.aorAsObj(`sip:${toUser}@${route.received}:${route.rport}`)
-    )
+    uri = `sip:${getUser(request)}@${route.received}:${route.rport}`
   } else {
-    requestOut.setRequestURI(LocatorUtils.aorAsObj(route.contactURI))
+    uri = route.contactURI
   }
+
+  requestOut.setRequestURI(LocatorUtils.aorAsObj(uri))
   return requestOut
 }
 const configurePrivacy = (request, routeInfo) => {
