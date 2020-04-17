@@ -4,7 +4,8 @@ Routr is an open-source SIP Server and tooling to deploy VoIP networks. See the 
 
 ### What dependencies does Routr have?
 
-Routr server runs standalone and has no external dependencies.
+Routr server runs standalone and has no external dependencies. However,
+you might need to use Redis depending in the complexity of your requirements.
 
 ### How does Routr compare with other SIP servers
 
@@ -12,11 +13,7 @@ See the [comparison page](/docs/introduction/comparison).
 
 ### What language is used to develop Routr?
 
-Most Routr components are written in Javascript(with Oracle Nashorn).
-
-### What happens once Nashorn is deprecated?
-
-[JEP 335](https://openjdk.java.net/jeps/335) is a concern. The current course of action is to wait and see if GraalJS is a viable replacement for Nashorn or re-write project entirely in Java. In either case, we believe we have time to make the decision later this year.
+Most components in Routr are written in Javascript(with Oracle's GraalJS).
 
 ### What license does Routr uses?
 
