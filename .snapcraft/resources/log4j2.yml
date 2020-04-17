@@ -1,12 +1,5 @@
 Configuration:
   Appenders:
-    Console:
-      PatternLayout:
-        pattern: '[%-5level] %msg%n'
-      name: Console
-      target: SYSTEM_OUT
-    # Do not remove this appender as is needed by the /system/logs endpoint
-    # If you want to save the logs elsewhere just add another appender.
     RollingFile:
       - name: LogToRollingFile
         fileName: "${sys:ROUTR_DATA}/logs/routr.log"
@@ -22,5 +15,4 @@ Configuration:
     Root:
       level: info
       AppenderRef:
-      - ref: Console
       - ref: LogToRollingFile
