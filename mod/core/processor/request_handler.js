@@ -149,9 +149,6 @@ class RequestHandler {
       LOG.debug(
         `core.processor.RequestHandler.sendRequest [serverTransactionId is ${serverTransaction.getBranchId()}]`
       )
-      LOG.debug(
-        `core.processor.RequestHandler.sendRequest [request out is => \n${requestOut}]`
-      )
 
       this.saveContext(
         request,
