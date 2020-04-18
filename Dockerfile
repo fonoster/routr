@@ -1,5 +1,5 @@
 FROM debian:buster-20190812
-MAINTAINER Pedro Sanders <fonosterteam@fonoster.com>
+LABEL maintainer="Pedro Sanders <fonosterteam@fonoster.com>"
 
 ENV LANG C.UTF-8
 ARG ROUTR_VERSION=1.0.0-rc5
