@@ -71,7 +71,7 @@ class Rest {
     Spark.port(config.spec.restService.port)
 
     Spark.initExceptionHandler(e => {
-      LOG.fatal('Unable to start restService: ' + e.message)
+      LOG.fatal(`Unable to start restService: ${e.message}`)
       System.exit(1)
     })
 

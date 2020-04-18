@@ -17,9 +17,8 @@ const getConfigFromFile = require('@routr/core/config/config_from_file')
  */
 const loadConfig = upSince => {
   const overwriteMerge = (destinationArray, sourceArray, options) => sourceArray
-  let config = {}
+  let config = { salt: getSalt() }
   const configFromFile = getConfigFromFile()
-  configFromFile.salt = getSalt()
 
   if (
     configFromFile.spec &&
@@ -40,5 +39,5 @@ const loadConfig = upSince => {
 const upSince = new Date().getTime()
 
 module.exports = () => loadConfig(upSince)
-module.exports.reloadConfig = () => loadConfig(upSince)
 module.exports.loadConfig = loadConfig
+module.exports.reloadConfig = () => loadConfig(upSince)
