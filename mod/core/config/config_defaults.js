@@ -53,7 +53,6 @@ module.exports = upSince => {
         { protocol: 'tcp', port: 5060 },
         { protocol: 'udp', port: 5060 }
       ],
-      externAddr: System.getenv('ROUTR_EXTERN_ADDR'),
       dataSource: {
         provider: System.getenv('ROUTR_DS_PROVIDER') || 'files_data_provider'
       },
@@ -94,8 +93,8 @@ module.exports = upSince => {
 
   if (System.getenv('ROUTR_LOCALNETS'))
     config.spec.localnets = System.getenv('ROUTR_LOCALNETS').split(',')
-
-  if (config.spec.externAddr === null) delete config.spec.externAddr
+  if (System.getenv('ROUTR_EXTERN_ADDR'))
+    config.spec.externAddr = System.getenv('ROUTR_EXTERN_ADDR')
 
   return config
 }
