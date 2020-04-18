@@ -1,4 +1,4 @@
-FROM debian:buster-20190812-slim
+FROM debian:buster-20200414
 LABEL maintainer="Pedro Sanders <fonosterteam@fonoster.com>"
 
 ENV LANG C.UTF-8
