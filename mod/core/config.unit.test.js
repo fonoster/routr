@@ -51,24 +51,24 @@ describe('@routr/core/config', () => {
           ]
         }
       })
-    const configUtil = require('@routr/core/config_util')
+    const config = require('@routr/core/config_util')()
 
     it('check config merging', () => {
-      expect(configUtil.loadConfig())
+      expect(config)
         .to.have.property('spec')
         .to.have.property('recordRoute').to.be.false
 
-      expect(configUtil.loadConfig())
+      expect(config)
         .to.have.property('spec')
         .to.have.property('externAddr').to.be.not.null
 
-      expect(configUtil.loadConfig())
+      expect(config)
         .to.have.property('spec')
         .to.have.property('localnets')
         .to.be.a('array')
         .lengthOf(0)
 
-      expect(configUtil.loadConfig())
+      expect(config)
         .to.have.property('spec')
         .to.have.property('transport')
         .to.be.a('array')
