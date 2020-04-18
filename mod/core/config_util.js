@@ -19,7 +19,7 @@ const getConfigFromFile = require('@routr/core/config/config_from_file')
  */
 const loadConfig = () => {
   const overwriteMerge = (destinationArray, sourceArray, options) => sourceArray
-  let config = { salt: getSalt() }
+  let config = {}
   const configFromFile = getConfigFromFile()
 
   if (
@@ -34,6 +34,8 @@ const loadConfig = () => {
       { arrayMerge: overwriteMerge }
     )
   }
+
+  config.salt = getSalt()
 
   return merge(defaults, config, { arrayMerge: overwriteMerge })
 }
