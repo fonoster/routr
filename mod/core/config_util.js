@@ -2,7 +2,9 @@
  * @author Pedro Sanders
  * @since v1
  */
-const defaults = require('@routr/core/config/config_defaults')()
+const defaults = require('@routr/core/config/config_defaults')(
+  new Date().getTime()
+)
 const merge = require('deepmerge')
 const { getSalt } = require('@routr/core/config/salt')
 const getConfigFromRedis = require('@routr/core/config/config_from_redis')
@@ -15,7 +17,7 @@ const getConfigFromFile = require('@routr/core/config/config_from_file')
  * The remaining parameters will be taken from the “defaults” object. The function
  * will overwrite in full any array parameter using "overwriteMerge".
  */
-const loadConfig = upSince => {
+const loadConfig = () => {
   const overwriteMerge = (destinationArray, sourceArray, options) => sourceArray
   let config = { salt: getSalt() }
   const configFromFile = getConfigFromFile()
@@ -36,8 +38,4 @@ const loadConfig = upSince => {
   return merge(defaults, config, { arrayMerge: overwriteMerge })
 }
 
-const upSince = new Date().getTime()
-
-module.exports = () => loadConfig(upSince)
-module.exports.loadConfig = loadConfig
-module.exports.reloadConfig = () => loadConfig(upSince)
+module.exports = () => loadConfig()
