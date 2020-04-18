@@ -1,8 +1,4 @@
 apiVersion: v1beta1
 spec:
-  recordRoute: true
-  transport:
-    - protocol: udp
-      port: 5060
-    - protocol: tcp
-      port: 5060
+  dataSource:
+    provider: 'redis_data_provider'
