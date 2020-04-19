@@ -16,15 +16,15 @@ apps:
   routr-server:
     environment:
       JAVA_HOME: $SNAP/usr/lib/jvm/java-8-openjdk-amd64
+      ROUTR_DATA: $SNAP_USER_COMMON
       ROUTR_SALT_FILE: $SNAP_DATA/.routr.salt
       ROUTR_CONFIG_FILE: $SNAP_DATA/config/config.yml
       ROUTR_LOG4J2: $SNAP_DATA/config/log4j2.yml
-      ROUTR_DATA: $SNAP_DATA
     command: start.sh
     daemon: simple
-    plugs: [network, network-bind]
+    plugs: [network, network-bind, home]
   routr-redis:
-    command: redis-server
+    command: redis-server $SNAP_DATA/config/redis.conf
     daemon: simple
     plugs: [network, network-bind]
 
@@ -34,6 +34,8 @@ parts:
     source: resources
     organize:
       config.yml: config/config.yml
+      log4j2.yml: config/log4j2.yml
+      redis.conf: config/redis.conf
   routr-server:
     after: [configure]
     plugin: dump
@@ -42,8 +44,9 @@ parts:
       cp -a * $SNAPCRAFT_PART_INSTALL
       cd $SNAPCRAFT_PART_INSTALL
       rm -rf jre config/* routr.bat
-      cp $SNAPCRAFT_PART_INSTALL/../../configure/build/start.sh .
-      cp -a $SNAPCRAFT_PART_INSTALL/../../configure/build/*.yml config
+      cp ../../configure/build/start.sh .
+      cp -a ../../configure/build/*.yml config
+      cp ../../configure/build/redis.conf config/redis.conf
     build-packages:
       - ca-certificates
       - ca-certificates-java
