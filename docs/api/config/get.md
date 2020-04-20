@@ -12,7 +12,7 @@ This method returns the servers' configuration.
 
 | Parameter Name | Type   | Value | Description
 | ---  | :--------- |  :--------- |  :--------- |
-| full |  query  | boolean | If set to `true` it will return a merged configuration between defaults and explicit values|
+| full |  query  | boolean | If set to `true` it will return a merged configuration between defaults and user defined values|
 
 **Request body**
 
