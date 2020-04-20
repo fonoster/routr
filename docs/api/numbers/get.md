@@ -25,7 +25,7 @@ If successful this method returns a Number.
 **Sample Call**
 
 ```json
-GET /api/v1beta1/numbers/dd50baa4
+GET /api/{apiversion}/numbers/dd50baa4
 {
 
 }

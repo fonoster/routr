@@ -23,7 +23,7 @@ If successful this method creates a Peer resource.
 **Sample Call**
 
 ```json
-POST /api/v1beta1/peers
+POST /api/{apiversion}/peers
 {
 	"apiVersion": "v1beta1",
 	"kind": "Peer",

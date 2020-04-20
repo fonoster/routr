@@ -29,7 +29,7 @@ If successful this method returns a list of Peer resources.
 **Sample Call**
 
 ```json
-GET /api/v1beta1/peers
+GET /api/{apiversion}/peers
 {
 
 }

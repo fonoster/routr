@@ -84,7 +84,7 @@ class Rest {
         res.status(401)
         res.body('{"status": "401", "message":"Unauthorized"}')
       } else {
-        LOG.error(e.getMessage())
+        //LOG.error(e.getMessage())
         res.status(500)
         res.body('{"status": "500", "message":"Internal server error"}')
       }

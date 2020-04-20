@@ -23,7 +23,7 @@ If successful this method returns relevant information about the server.
 **Sample Call**
 
 ```json
-GET /api/v1beta1/system/info
+GET /api/{apiversion}/system/info
 {
 
 }

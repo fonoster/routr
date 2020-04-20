@@ -29,7 +29,7 @@ If successful this method returns a list of Agent resources.
 **Sample Call**
 
 ```json
-GET /api/v1beta1/agents
+GET /api/{apiversion}/agents
 {
 
 }

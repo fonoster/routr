@@ -25,7 +25,7 @@ If successful this method returns a Gateway resource.
 **Sample Call**
 
 ```json
-GET /api/v1beta1/gateways/gw5c77t2
+GET /api/{apiversion}/gateways/gw5c77t2
 {
 
 }

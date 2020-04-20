@@ -25,7 +25,7 @@ If successful this method returns a Peer resource.
 **Sample Call**
 
 ```json
-GET /api/v1beta1/peers/pr2c77f4
+GET /api/{apiversion}/peers/pr2c77f4
 {
 
 }

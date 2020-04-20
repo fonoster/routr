@@ -29,7 +29,7 @@ If successful this method returns a list of Gateways resources.
 **Sample Call**
 
 ```json
-GET /api/v1beta1/gateways
+GET /api/{apiversion}/gateways
 {
 
 }

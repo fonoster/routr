@@ -75,8 +75,13 @@ nav:
       - get: api/numbers/get.md
       - list: api/numbers/list.md
       - update: api/numbers/update.md
+    - Configuration:
+      - Get: api/config/get.md
+      - Update: api/config/update.md
     - System:
-      - Status: api/sys/status.md
+      - Status:
+        - Get: api/status/get.md
+        - Update: api/status/update.md
       - Info: api/sys/info.md
       - Logs: api/sys/logs.md
   - Guides:

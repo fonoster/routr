@@ -23,7 +23,7 @@ If successful this method creates a Domain resource.
 **Sample Call**
 
 ```json
-POST /api/v1beta1/domains
+POST /api/{apiversion}/domains
 {
 	"apiVersion": "v1beta1",
 	"kind": "Domain",

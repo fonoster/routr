@@ -23,7 +23,7 @@ If successful this method creates a Gateway resource.
 **Sample Call**
 
 ```json
-POST /api/v1beta1/gateways
+POST /api/{apiversion}/gateways
 {
 	"apiVersion": "v1beta1",
 	"kind": "Gateway",

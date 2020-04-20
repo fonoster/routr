@@ -25,7 +25,7 @@ If successful this method returns a Domain resource.
 **Sample Call**
 
 ```json
-GET /api/v1beta1/domains/dm6c87r2
+GET /api/{apiversion}/domains/dm6c87r2
 {
 
 }

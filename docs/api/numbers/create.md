@@ -24,7 +24,7 @@ If successful this method creates a Number.
 **Sample Call**
 
 ```json
-POST /api/v1beta1/numbers
+POST /api/{apiversion}/numbers
 {
 	"apiVersion": "v1beta1",
 	"kind": "Number",

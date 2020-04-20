@@ -24,7 +24,7 @@ If successful this method creates an Agent resource.
 **Sample Call**
 
 ```json
-POST /api/v1beta1/agents
+POST /api/{apiversion}/agents
 {
   "apiVersion": "v1beta1",
   "kind": "Agent",
