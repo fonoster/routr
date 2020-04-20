@@ -116,7 +116,8 @@ theme:
     text: Roboto
     code: Roboto Mono
   favicon: /assets/images/favicon.ico
-
+  logo:
+    icon: "\uE80C"
 extra:
   social:
     - type: globe

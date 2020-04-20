@@ -18,7 +18,7 @@ Do not supply a request body with this method.
 
 **Response**
 
-If successful this method will return a `status = 200`. A client implementing
+If successful, this method will return a `status = 200`. A client implementing
 this method can assumed that no answer or a bad answer means that the server
 us down or "unhealthy."
 
