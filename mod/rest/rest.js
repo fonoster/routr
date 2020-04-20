@@ -18,6 +18,9 @@ const FilesUtil = require('@routr/utils/files_util')
 const System = Java.type('java.lang.System')
 const isEmpty = require('@routr/utils/obj_util')
 const config = require('@routr/core/config_util')()
+const defaults = require('@routr/core/config/config_defaults')(
+  new Date().getTime()
+)
 const { Status } = require('@routr/core/status')
 const getJWTToken = require('@routr/rest/jwt_token_generator')
 const resourcesService = require('@routr/rest/resources_service')
@@ -25,6 +28,7 @@ const locationService = require('@routr/rest/location_service')
 const parameterAuthFilter = require('@routr/rest/parameter_auth_filter')
 const basicAuthFilter = require('@routr/rest/basic_auth_filter')
 const moment = require('moment')
+const merge = require('deepmerge')
 
 const LogsHandler = Java.type('io.routr.core.LogsHandler')
 const GRPCClient = Java.type('io.routr.core.GRPCClient')
@@ -165,7 +169,17 @@ class Rest {
         JSON.stringify(CoreUtils.buildResponse(Status.OK, config.system))
       )
 
-      get('/system/config', (req, res) => JSON.stringify(configApi.getConfig()))
+      get('/system/config', (req, res) => {
+        if (req.queryParams('full') === 'true') {
+          const merged = merge(defaults, configApi.getConfig().data)
+          const result = configApi.getConfig()
+          result.data = merged
+          delete result.data.system
+          return JSON.stringify(result)
+        } else {
+          return JSON.stringify(configApi.getConfig())
+        }
+      })
 
       put('/system/config', (req, res) => {
         const c = JSON.parse(req.body())
