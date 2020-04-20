@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.1, mkdocs-material-4.6.3">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.0">
     
     
       
@@ -46,9 +46,9 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/application.adb8469c.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/application.0284f74d.css">
       
-        <link rel="stylesheet" href="../../../assets/stylesheets/application-palette.a8b3c06d.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/application-palette.01803549.css">
       
       
         
@@ -57,12 +57,12 @@
       
     
     
-      <script src="../../../assets/javascripts/modernizr.86422ebf.js"></script>
+      <script src="../../../assets/javascripts/modernizr.74668098.js"></script>
     
     
       
         <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono&display=fallback">
         <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
       
     
@@ -284,7 +284,7 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" aria-label="search" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
       <label class="md-icon md-search__icon" for="__search"></label>
       <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
         &#xE5CD;
@@ -339,7 +339,7 @@
         
       
       
-      <main class="md-main" role="main">
+      <main class="md-main">
         <div class="md-main__inner md-grid" data-md-component="container">
           
             
@@ -1282,11 +1282,11 @@
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5-10" type="checkbox" id="nav-5-10">
     
     <label class="md-nav__link" for="nav-5-10">
-      System
+      Configuration
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
       <label class="md-nav__title" for="nav-5-10">
-        System
+        Configuration
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -1297,9 +1297,93 @@
 
 
   <li class="md-nav__item">
-    <a href="../../sys/status/" title="Status" class="md-nav__link">
-      Status
+    <a href="../../config/get/" title="Get" class="md-nav__link">
+      Get
     </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../config/update/" title="Update" class="md-nav__link">
+      Update
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5-11" type="checkbox" id="nav-5-11">
+    
+    <label class="md-nav__link" for="nav-5-11">
+      System
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-5-11">
+        System
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5-11-1" type="checkbox" id="nav-5-11-1">
+    
+    <label class="md-nav__link" for="nav-5-11-1">
+      Status
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="3">
+      <label class="md-nav__title" for="nav-5-11-1">
+        Status
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../status/get/" title="Get" class="md-nav__link">
+      Get
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../status/update/" title="Update" class="md-nav__link">
+      Update
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
   </li>
 
         
@@ -1311,6 +1395,18 @@
   <li class="md-nav__item">
     <a href="../../sys/info/" title="Info" class="md-nav__link">
       Info
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../sys/logs/" title="Logs" class="md-nav__link">
+      Logs
     </a>
   </li>
 
@@ -1450,7 +1546,7 @@
 <p><strong>Response</strong></p>
 <p>If successful this method updates a Peer resource.</p>
 <p><strong>Sample Call</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="err">PUT</span> <span class="err">/api/v</span><span class="mi">1</span><span class="err">beta</span><span class="mi">1</span><span class="err">/peers/pr</span><span class="mi">2</span><span class="err">c</span><span class="mi">77</span><span class="err">f</span><span class="mi">4</span>
+<div class="codehilite"><pre><span></span><span class="err">PUT</span> <span class="err">/api/v</span><span class="mi">1</span><span class="err">beta</span><span class="mi">1</span><span class="err">/peers/pr</span><span class="mi">2</span><span class="err">c</span><span class="mi">77</span><span class="err">f</span><span class="mi">4</span>
 <span class="p">{</span>
     <span class="nt">&quot;apiVersion&quot;</span><span class="p">:</span> <span class="s2">&quot;v1beta1&quot;</span><span class="p">,</span>
     <span class="nt">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;Peer&quot;</span><span class="p">,</span>
@@ -1467,11 +1563,13 @@
 <span class="p">}</span>
 
 <span class="err">HTTP/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="err">OK</span>
-<span class="p">{</span> <span class="nt">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;200&quot;</span><span class="p">,</span> <span class="nt">&quot;Successful request&quot;</span> <span class="p">}</span>
-</code></pre></div>
+<span class="p">{</span>
+    <span class="nt">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;200&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Successful request&quot;</span>
+<span class="p">}</span>
+</pre></div>
                 
                   
-                
                 
               
               
@@ -1565,13 +1663,13 @@
   <div class="md-footer-social">
     <link rel="stylesheet" href="../../../assets/fonts/font-awesome.css">
     
-      <a href="https://fonoster.com" target="_blank" rel="noopener" title="globe" class="md-footer-social__link fa fa-globe"></a>
+      <a href="https://fonoster.com" class="md-footer-social__link fa fa-globe"></a>
     
-      <a href="https://github.com/fonoster" target="_blank" rel="noopener" title="github-alt" class="md-footer-social__link fa fa-github-alt"></a>
+      <a href="https://github.com/fonoster" class="md-footer-social__link fa fa-github-alt"></a>
     
-      <a href="https://twitter.com/fonoster" target="_blank" rel="noopener" title="twitter" class="md-footer-social__link fa fa-twitter"></a>
+      <a href="https://twitter.com/fonoster" class="md-footer-social__link fa fa-twitter"></a>
     
-      <a href="https://www.linkedin.com/company/fonoster/about/" target="_blank" rel="noopener" title="linkedin" class="md-footer-social__link fa fa-linkedin"></a>
+      <a href="https://www.linkedin.com/company/fonoster/about/" class="md-footer-social__link fa fa-linkedin"></a>
     
   </div>
 
@@ -1582,9 +1680,9 @@
       
     </div>
     
-      <script src="../../../assets/javascripts/application.c33a9706.js"></script>
+      <script src="../../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.1",url:{base:"../../.."}})</script>
+      <script>app.initialize({version:"1.0.4",url:{base:"../../.."}})</script>
       
     
   </body>
