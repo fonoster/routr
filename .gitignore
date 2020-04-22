@@ -19,6 +19,7 @@ config/sc/*.yml
 .idea
 *.iml
 *.ipr
+dump.rdb
 mod/vendor
 jre
 package-lock.json
