@@ -9,7 +9,11 @@ Changes in RC5 are:
 - [ ] Re-work the testing strategy
 - [ ] Convert project to monorepo
 - [ ] Implement NAT test scenarios
-- [x] Bugfix: Fixed https://github.com/fonoster/routr/issues/70
-- [x] Bugfix: resource will stay in the cache after removed from db
-- [x] Bugfix: `transport` parameter from accepting arbitrary values
-- [x] Breaking change: If using redis the configuration will be a merge between the config in file and the config in the db where the file is the priority.
+
+Bugfix:
+  - [x] Fixed https://github.com/fonoster/routr/issues/70
+  - [x] Prevent resource from staying in the cache after removed from db
+  - [x] Prevent `transport` parameter from accepting arbitrary values
+
+Breaking changes:
+  - Redis user will have to remove the `config` key from the database for it to be re-built
