@@ -243,7 +243,6 @@ $ rctl restart --now
 ### Check the engine status
 
 ```
-# To stop the engine immediately use the --now flag
 $ rctl ping
 ```
 
