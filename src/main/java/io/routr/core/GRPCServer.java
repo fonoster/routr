@@ -3,6 +3,7 @@ package io.routr.core;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import org.graalvm.polyglot.Context;
 import java.io.IOException;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -17,9 +18,9 @@ import java.util.Timer;
 public class GRPCServer {
     private static final Logger LOG = LogManager.getLogger();
     private Server server;
-    private ScriptEngine context;
+    private Context context;
 
-    public GRPCServer(ScriptEngine context) {
+    public GRPCServer(Context context) {
         this.context = context;
     }
 
@@ -62,46 +63,39 @@ public class GRPCServer {
     }
 
     static class ControllerImpl extends ControllerGrpc.ControllerImplBase {
-        private ScriptEngine context;
+        private Context context;
 
-        public ControllerImpl(ScriptEngine context) {
+        public ControllerImpl(Context context) {
             this.context = context;
         }
 
         @Override
         public void runCommand(CommandRequest req, StreamObserver<CommandReply> responseObserver) {
             CommandReply reply = CommandReply.newBuilder().setMessage(req.getName()).build();
-            ScriptEngine context = this.context;
-            try {
-                if(req.getName().equals("stop-server")) {
-                    Timer timer = new Timer();
-                    timer.schedule(new TimerTask() {
-                        @Override
-                        public void run () {
-                            try {
-                              context.eval("server.stopIfReady()");
-                            } catch(ScriptException e) {}
-                        }
-                    }, 1000, 10 * 1000);
-                } else if(req.getName().equals("restart-server")) {
-                    Timer timer = new Timer();
-                    timer.schedule(new TimerTask() {
-                        @Override
-                        public void run () {
-                            try {
-                              // Sends restart code
-                              context.eval("server.stopIfReady(123)");
-                            } catch(ScriptException e) {}
-                        }
-                    }, 1000, 10 * 1000);
-                } else if(req.getName().equals("stop-server-now")) {
-                    context.eval("server.stop()");
-                } else if(req.getName().equals("restart-server-now")) {
-                    context.eval("server.stop(123)");
-                } else if(req.getName().equals("evict-all")) {
-                    context.eval("server.locator.evictAll()");
-                }
-            } catch(ScriptException e) {}
+            Context context = this.context;
+            if(req.getName().equals("stop-server")) {
+                Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run () {
+                        context.eval("js","server.stopIfReady()");
+                    }
+                }, 1000, 10 * 1000);
+            } else if(req.getName().equals("restart-server")) {
+                Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run () {
+                        context.eval("js","server.stopIfReady(123)");
+                    }
+                }, 1000, 10 * 1000);
+            } else if(req.getName().equals("stop-server-now")) {
+                context.eval("js","server.stop()");
+            } else if(req.getName().equals("restart-server-now")) {
+                context.eval("js","server.stop(123)");
+            } else if(req.getName().equals("evict-all")) {
+                context.eval("js","server.locator.evictAll()");
+            }
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         }

@@ -15,7 +15,6 @@ const ContextStorage = require('@routr/core/context_storage')
 const showExternInfo = require('@routr/core/extern_info')
 const config = require('@routr/core/config_util')()
 const properties = require('@routr/core/server_properties')(config)
-
 const ExceptionUtils = Java.type(
   'org.apache.commons.lang3.exception.ExceptionUtils'
 )
@@ -64,7 +63,7 @@ class Server {
         (proto === 'wss' || proto === 'tls') &&
         !config.spec.securityContext
       ) {
-        LOG.warn(
+        LOG.error(
           `${ANSI_YELLOW}Unable to find security context. Ignoring protocol: ${proto}${ANSI_RESET}`
         )
         continue
@@ -81,10 +80,10 @@ class Server {
           proto
         )
 
-        if (sipProvider) {
-          sipProvider.addListeningPoint(lp)
-        } else {
+        if (!sipProvider) {
           sipProvider = sipStack.createSipProvider(lp)
+        } else {
+          sipProvider.addListeningPoint(lp)
         }
 
         LOG.info(
