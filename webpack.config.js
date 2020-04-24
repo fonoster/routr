@@ -10,5 +10,18 @@ module.exports = {
     output: {
         filename: "[name].bundle.js",
         path: path.resolve(__dirname, 'libs')
-    }
+    },
+    devtool: "source-map",
+    resolve: {
+        extensions: [ '.tsx', '.ts', '.js' ],
+    },
+    module: {
+        rules: [
+            {
+            test: /\.tsx?$/,
+            use: 'ts-loader',
+            exclude: /node_modules/,
+            },
+        ],
+    },
 };

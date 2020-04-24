@@ -13,7 +13,6 @@ Run environment variables are used in the entry point script to render configura
 | ROUTR_DS_PARAMETERS | Provider specific parameters. For examples, see the [general config](https://routr.io/docs/configuration/general/)  | No |
 | ROUTR_CONFIG_FILE | Path to the configuration file. Defaults to `config/config.yml` | No |
 | ROUTR_SALT | Use defined JWT salt. By default Routr will generated its own  | No |
-| ROUTR_JS_ENGINE | Setup the Javascript engine. Available options are `nashorn` and `graal.js`. Defaults to `graal.js` | No |
 | ROUTR_JAVA_OPTS | Use this env variable to pass parameters to the JVM | No |
 
 ## Usage

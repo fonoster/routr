@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "outDir": "./node_modules/@routr",
+    "allowJs": true,
+    "target": "es5"
+  },
+  "include": [
+    "./mod/**/*"
+  ]
+}
