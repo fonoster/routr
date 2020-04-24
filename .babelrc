@@ -1,4 +1,0 @@
-{
-  "presets": ["env"],
-  "plugins": ["transform-es2015-arrow-functions", "transform-es2015-for-of"]
-}
