@@ -60,7 +60,7 @@ class RequestProcessor {
       )}]`
     )
 
-    // Warning: This is a very expensive function. Considere making it optional
+    // Warning: This is a very expensive function. Consider making it optional
     // Or optimize
     if (this.allowedAccess(event, routeInfo) === false) {
       LOG.debug(
