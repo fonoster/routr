@@ -27,7 +27,7 @@ class ResponseProcessor {
     if (isStackJob(event.getResponse())) {
       return
     }
-    // If it is not transactional and athentication is required it means
+    // If it is not transactional and authentication is required it means
     // that the REGISTER request was originated by another sipStack
     if (mustAuthenticate(event.getResponse()) && isTransactional(event)) {
       const gwRef = event
