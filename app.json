@@ -1,0 +1,11 @@
+{
+  "name": "routr-server",
+  "env": {
+    "PORT": {
+      "value": "4567"
+    }
+  },
+  "options": {
+    "allow-unauthenticated": false
+  }
+}
