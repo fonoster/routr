@@ -24,13 +24,13 @@ class LogsHandler {
     }
 
     @OnWebSocketClose
-    fun closed(session: Session) {
+    fun closed(session: Session, statusCode: Int, reason: String) {
         sessions.remove(session)
     }
 
     @OnWebSocketMessage
     @Throws(IOException::class, InterruptedException::class)
-    fun message(session: Session) {
+    fun message(session: Session, message: String) {
         var br: BufferedReader? = null
         try {
             val base = if (System.getenv("ROUTR_DATA") != null) System.getenv("ROUTR_DATA") else "."
