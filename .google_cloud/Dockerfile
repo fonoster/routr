@@ -7,7 +7,8 @@ ARG ROUTR_VERSION=1.0.0-rc5
 RUN mkdir -p /opt/routr
 WORKDIR /opt/routr
 
-COPY routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz .
+# WARNING: Hardcoded value
+ADD https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc5_linux-x64_bin.tar.gz .
 COPY ./run.sh .
 
 RUN apt-get update \
