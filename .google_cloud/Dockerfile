@@ -12,7 +12,7 @@ ADD https://github.com/fonoster/routr/releases/download/1.0.0-rc4/routr-1.0.0-rc
 COPY ./run.sh .
 
 RUN apt-get update \
-    && apt-get install -y redis-server \
+    && apt-get install -y redis-server python \
     && tar xvf routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz \
     && mv routr-${ROUTR_VERSION}_linux-x64_bin/* . \
     && rm -rf routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz \
