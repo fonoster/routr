@@ -13,6 +13,7 @@
 * [Community](#community)
 * [Deployment](#deployment)
     * [Snaps](#instant-server-installation-with-snaps)
+    * [Microsoft Azure](#microsoft-azure)    
     * [DigitalOcean droplet](#digitalocean-droplet)
     * [Docker](#docker)  
     * [Kubernetes](#kubernetes)  
