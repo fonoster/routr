@@ -13,7 +13,6 @@
 * [Community](#community)
 * [Deployment](#deployment)
     * [Snaps](#instant-server-installation-with-snaps)
-    * [Microsoft Azure](#microsoft-azure)    
     * [DigitalOcean droplet](#digitalocean-droplet)
     * [Docker](#docker)  
     * [Kubernetes](#kubernetes)  
@@ -66,15 +65,9 @@ sudo snap install routr-server
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/routr-server)
 
-Routr Snap is recommended for Linux deployments
+For Linux deployments, Routr Snap is the recommended method of installation.
 
-Installing snaps is very quick. By running that command you have your full Routr server up and running. Snaps are secure. They are isolated with all of their dependencies. Snaps also auto-update when we release new versions.
-
-### Microsoft Azure
-
-One-Click deployment to Azure
-
-[![Deploy to Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Ffonoster%2Froutr%2Fmaster%2F.azure%2Fazuredeploy.json)
+Installing snaps is very quick. By running that command, you have your full Routr server up and running. Snaps are secure. They are isolated, with everything they need to run. Snaps also auto-update when we release a new version.
 
 ### DigitalOcean droplet
 
@@ -88,7 +81,7 @@ Build and Deploy to a DigitalOcean droplet
 
 [![Docker logo](https://d207aa93qlcgug.cloudfront.net/1.95.5.qa/img/nav/docker-logo-loggedout.png)](https://hub.docker.com/r/fonoster/routr/)
 
-OR Use the automated build image of our [most recent release](https://hub.docker.com/r/fonoster/routr/)
+Or use the automated build image of our [most recent release](https://hub.docker.com/r/fonoster/routr/)
 
 ```
 docker pull fonoster/routr:latest
@@ -111,7 +104,7 @@ Routr one-click interactive tutorial will get you familiar with Routr server and
 
 ### Custom
 
-There are no special requirements to install and run the server. Just follow this easy steps:
+There are no special requirements to install and run the server. Just follow these easy steps:
 
 &#10122; Download the server for your platform
 
@@ -150,7 +143,7 @@ To learn more, read the [documentation](https://routr.io/docs/introduction/overv
 
 ## Bugs and Feedback
 
-For bugs, questions, and discussions please use the [Github Issues](https://github.com/fonoster/routr/issues)
+For bugs, questions, and discussions, please use the [Github Issues](https://github.com/fonoster/routr/issues)
 
 ## Contributing
 
