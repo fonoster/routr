@@ -13,6 +13,7 @@
 * [Community](#community)
 * [Deployment](#deployment)
     * [Snaps](#instant-server-installation-with-snaps)
+    * [Microsoft Azure](#microsoft-azure)
     * [DigitalOcean droplet](#digitalocean-droplet)
     * [Docker](#docker)  
     * [Kubernetes](#kubernetes)  
@@ -68,6 +69,12 @@ sudo snap install routr-server
 For Linux deployments, Routr Snap is the recommended method of installation.
 
 Installing snaps is very quick. By running that command, you have your full Routr server up and running. Snaps are secure. They are isolated, with everything they need to run. Snaps also auto-update when we release a new version.
+
+### Microsoft Azure
+
+One-Click deployment to Azure
+
+[![Deploy to Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Ffonoster%2Froutr%2Fmaster%2F.azure%2Fazuredeploy.json)
 
 ### DigitalOcean droplet
 
