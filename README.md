@@ -69,6 +69,12 @@ Routr Snap is recommended for Linux deployments
 
 Installing snaps is very quick. By running that command you have your full Routr server up and running. Snaps are secure. They are isolated with all of their dependencies. Snaps also auto-update when we release new versions.
 
+### Microsoft Azure
+
+One-Click deployment to Azure
+
+[![Deploy to Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Ffonoster%2Froutr%2Fmaster%2F.azure%2Fazuredeploy.json)
+
 ### DigitalOcean droplet
 
 Build and Deploy to a DigitalOcean droplet
