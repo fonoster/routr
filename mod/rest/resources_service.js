@@ -4,6 +4,7 @@
  */
 const RestUtil = require('@routr/rest/utils')
 const DSUtils = require('@routr/data_api/utils')
+const { Status } = require('@routr/core/status')
 const isEmpty = require('@routr/utils/obj_util')
 
 const get = Java.type('spark.Spark').get
@@ -38,7 +39,7 @@ module.exports = function (api, resource) {
 
   get(resByRef, (req, res) => {
     const result = api[`get${resource}`](req.params(':ref'))
-    result.data = DSUtils.removeWO(result.data)
+    if (result.status === Status.OK) result.data = DSUtils.removeWO(result.data)
     return JSON.stringify(result)
   })
 
