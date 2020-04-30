@@ -11,7 +11,9 @@
     "bundle": "webpack --config webpack.config.js --mode none",
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
     "transpile": "tsc",
-    "format": "prettier-standard 'mod/**/*.js'"
+    "format": "prettier-standard 'mod/**/*.js'",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "lint-staged": {
     "mod/**/*.js": [
@@ -33,7 +35,8 @@
     "paginate-array": "^2.1.0",
     "postal": "^2.0.5",
     "validator": "^11.0.0",
-    "xxhashjs": "^0.2.2"
+    "xxhashjs": "^0.2.2",
+    "snyk": "^1.316.1"
   },
   "devDependencies": {
     "source-map-loader": "^0.2.4",
@@ -57,5 +60,6 @@
     "url": "git://github.com/fonoster/routr.git"
   },
   "author": "Pedro Sanders",
-  "license": "MIT"
+  "license": "MIT",
+  "snyk": true
 }
