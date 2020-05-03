@@ -54,7 +54,7 @@ rctl get numbers --filter "@.metadata.gwRef=='gweef506'"
 
 If you need help, just run `rctl --help` from the terminal window.
 
-```bash
+```
 $ rctl --help
 usage: rctl [-h] [-v] COMMAND ...
 
