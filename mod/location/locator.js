@@ -70,7 +70,7 @@ class Locator {
     if (jsonRoutes !== null) {
       let routes = JSON.parse(jsonRoutes)
       routes = routes.filter(r => !LocatorUtils.expiredRouteFilter(r))
-      return CoreUtils.buildResponse(Status.OK, routes)
+      return CoreUtils.buildResponse(Status.OK, null, routes)
     }
 
     if (addressOfRecord.startsWith('tel:')) {
@@ -88,7 +88,11 @@ class Locator {
     const parse = (s, k) => JSON.parse(s.get(k[0]))
 
     return defaultRouteKey.length > 0
-      ? CoreUtils.buildResponse(Status.OK, parse(this.store, defaultRouteKey))
+      ? CoreUtils.buildResponse(
+          Status.OK,
+          null,
+          parse(this.store, defaultRouteKey)
+        )
       : CoreUtils.buildResponse(Status.NOT_FOUND)
   }
 
@@ -107,7 +111,7 @@ class Locator {
       routes = routes.filter(r => !LocatorUtils.expiredRouteFilter(r))
 
       return routes !== null
-        ? CoreUtils.buildResponse(Status.OK, routes)
+        ? CoreUtils.buildResponse(Status.OK, null, routes)
         : CoreUtils.buildResponse(
             Status.NOT_FOUND,
             `No route found for aorLink: ${number.spec.location.aorLink}`

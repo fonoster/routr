@@ -160,13 +160,14 @@ class Rest {
         return JSON.stringify(
           CoreUtils.buildResponse(
             Status.OK,
+            null,
             FilesUtil.readFile(`${home}/logs/routr.log`)
           )
         )
       })
 
       get('/system/info', (req, res) =>
-        JSON.stringify(CoreUtils.buildResponse(Status.OK, config.system))
+        JSON.stringify(CoreUtils.buildResponse(Status.OK, null, config.system))
       )
 
       get('/system/config', (req, res) => {
@@ -191,7 +192,11 @@ class Rest {
 
       get('/token', (req, res) =>
         JSON.stringify(
-          CoreUtils.buildResponse(Status.OK, getJWTToken(req, res, config.salt))
+          CoreUtils.buildResponse(
+            Status.OK,
+            null,
+            getJWTToken(req, res, config.salt)
+          )
         )
       )
 

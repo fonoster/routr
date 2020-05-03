@@ -43,7 +43,7 @@ class RestUtil {
             'SyntaxError: Invalid JSON'
           )
         }
-        return CoreUtils.buildResponse(Status.BAD_REQUEST, null, e)
+        return CoreUtils.buildResponse(Status.BAD_REQUEST, e.toString())
       }
       return atLeastOneError
         ? CoreUtils.buildResponse(
@@ -51,7 +51,7 @@ class RestUtil {
             null,
             'Bad configuration in at least one resource'
           )
-        : CoreUtils.buildResponse(Status.OK, null, 'Done')
+        : CoreUtils.buildResponse(Status.OK, 'done')
     } else {
       try {
         const jsonObj = JSON.parse(req.body())
@@ -64,7 +64,7 @@ class RestUtil {
             'SyntaxError: Invalid JSON'
           )
         }
-        return CoreUtils.buildResponse(Status.BAD_REQUEST, null, e)
+        return CoreUtils.buildResponse(Status.BAD_REQUEST, e.toString())
       }
     }
   }

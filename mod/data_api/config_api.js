@@ -23,10 +23,7 @@ class ConfigAPI {
       }
       return this.ds.set('config', config)
     } catch (e) {
-      return CoreUtils.buildResponse(
-        Status.BAD_REQUEST,
-        Status.message[Status.BAD_REQUEST]
-      )
+      return CoreUtils.buildResponse(Status.BAD_REQUEST, e.toString())
     }
   }
 

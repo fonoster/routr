@@ -54,7 +54,7 @@ class AgentsAPI extends APIBase {
 
     return isEmpty(agent)
       ? CoreUtils.buildResponse(Status.NOT_FOUND)
-      : CoreUtils.buildResponse(Status.OK, agent)
+      : CoreUtils.buildResponse(Status.OK, null, agent)
   }
 
   getAgentByRef (ref) {

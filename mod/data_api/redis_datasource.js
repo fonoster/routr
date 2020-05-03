@@ -110,7 +110,7 @@ class RedisDataSource {
       const kind = DSUtils.getKind(obj)
       jedis.sadd(`${kind.toLowerCase()}s`, obj.metadata.ref)
 
-      return CoreUtils.buildResponse(Status.CREATED, obj.metadata.ref)
+      return CoreUtils.buildResponse(Status.CREATED, null, obj.metadata.ref)
     } catch (e) {
       return CoreUtils.buildErrResponse(e)
     } finally {
@@ -144,7 +144,7 @@ class RedisDataSource {
       const data = JSON.parse(jedis.get(ref))
       return data === null
         ? CoreUtils.buildResponse(Status.NOT_FOUND)
-        : CoreUtils.buildResponse(Status.OK, data)
+        : CoreUtils.buildResponse(Status.OK, null, data)
     } catch (e) {
       return CoreUtils.buildErrResponse(e)
     } finally {
@@ -165,7 +165,7 @@ class RedisDataSource {
         .forEach(ref => list.push(JSON.parse(jedis.get(ref))))
 
       if (list.length === 0) {
-        return CoreUtils.buildResponse(Status.OK, [])
+        return CoreUtils.buildResponse(Status.OK, null, [])
       }
       // JsonPath doesn't parse properly when using Json objects from JS
       list = JsonPath.parse(JSON.stringify(list))
@@ -192,10 +192,10 @@ class RedisDataSource {
       obj.metadata.modifiedOn = new Date().toISOString()
       jedis.set(obj.metadata.ref, JSON.stringify(obj))
 
-      return CoreUtils.buildResponse(Status.OK, obj.metadata.ref)
+      return CoreUtils.buildResponse(Status.OK, null, obj.metadata.ref)
     } catch (e) {
       return e instanceof InvalidPathException
-        ? CoreUtils.buildResponse(Status.BAD_REQUEST, null, e)
+        ? CoreUtils.buildResponse(Status.BAD_REQUEST, e.toString())
         : CoreUtils.buildErrResponse(e)
     } finally {
       if (jedis) {

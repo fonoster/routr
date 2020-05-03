@@ -31,10 +31,9 @@ describe('@routr/data_api/domains', () => {
       delete jsonObj.kind
       const result = domains.createFromJSON(jsonObj)
       expect(result).to.be.deep.equal({
-        data:
-          'Not a valid entity. `kind` must be: User, Agent, Peer, Domain, Gateway, Number',
         status: 422,
-        message: 'Unprocesssable entity'
+        message:
+          'Not a valid entity. `kind` must be: User, Agent, Peer, Domain, Gateway, Number'
       })
     })
 

@@ -181,7 +181,7 @@ class DSUtils {
     })
     return isEmpty(data)
       ? CoreUtils.buildResponse(Status.NOT_FOUND)
-      : CoreUtils.buildResponse(Status.OK, data)
+      : CoreUtils.buildResponse(Status.OK, null, data)
   }
 
   static objExist (response) {

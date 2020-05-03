@@ -17,22 +17,20 @@ class CoreUtils {
     } else {
       LOG.error(e)
     }
-    return CoreUtils.buildResponse(Status.INTERNAL_SERVER_ERROR, [], e)
+    return CoreUtils.buildResponse(
+      Status.INTERNAL_SERVER_ERROR,
+      e.toString(),
+      []
+    )
   }
 
-  static buildResponse (status, data, e) {
+  static buildResponse (status, message, data) {
     const response = {
       status: status,
-      message: Status.message[status].value
+      message: message || Status.message[status].value
     }
 
-    if (data) {
-      response.data = data
-    }
-
-    if (e) {
-      response.data = e.toString()
-    }
+    if (data) response.data = data
 
     return response
   }

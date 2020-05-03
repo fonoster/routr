@@ -191,7 +191,7 @@ class FilesDataSource {
   // finding the one it needs
   get (ref) {
     if (ref === 'config') {
-      return CoreUtils.buildResponse(Status.OK, config)
+      return CoreUtils.buildResponse(Status.OK, null, config)
     }
     return DSUtils.deepSearch(
       this.find(void 0, 1, Long.MAX_VALUE),
