@@ -9,7 +9,7 @@ const config = require('@routr/core/config_util')()
 const postal = require('postal')
 
 const {
-  getAdvertizedAddr,
+  getAdvertisedAddr,
   configureRoute,
   configureVia,
   configureProxyAuthorization,
@@ -96,7 +96,7 @@ class RequestHandler {
     const lp = this.sipProvider.getListeningPoint(transport)
     const localAddr = { host: lp.getIPAddress().toString(), port: lp.getPort() }
 
-    const advertisedAddr = getAdvertizedAddr(request, route, localAddr)
+    const advertisedAddr = getAdvertisedAddr(request, route, localAddr)
 
     let requestOut = configureMaxForwards(request)
     requestOut = configureProxyAuthorization(requestOut)

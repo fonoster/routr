@@ -34,7 +34,7 @@ const ownedAddresss = localAddr =>
         }
       ]
     : [localAddr]
-const getAdvertizedAddr = (request, route, localAddr) => {
+const getAdvertisedAddr = (request, route, localAddr) => {
   // After the initial invite the route object will be null
   // and we need to the the target address from the request uri.
   // If the routing is type IDR the initial request uri will be a local
@@ -234,7 +234,7 @@ const isInDialog = request =>
   request.getHeader(ToHeader.NAME).getTag() !== null &&
   request.getHeader(FromHeader.NAME).getTag() !== null
 
-module.exports.getAdvertizedAddr = getAdvertizedAddr
+module.exports.getAdvertisedAddr = getAdvertisedAddr
 module.exports.configureRoute = configureRoute
 module.exports.configureVia = configureVia
 module.exports.configureProxyAuthorization = configureProxyAuthorization
