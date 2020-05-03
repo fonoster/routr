@@ -4,6 +4,7 @@
  *
  * Miscellaneous utilities
  */
+const MissingTransportError = require('@routr/core/missing_transport_error')
 const buildAddr = (h, p) => `${h}${p ? ':' + p : ''}`
 const fixPort = port => (port === -1 ? 5060 : port)
 const equalsIgnoreCase = (a, b) => a.toLowerCase() === b.toLowerCase()
@@ -15,7 +16,7 @@ const protocolTransport = (config, proto) => {
     if (!transport.bindAddr) transport.bindAddr = config.spec.bindAddr
     return transport
   } catch (e) {
-    throw `Transport \'${proto}\' not found in configs => .spec.transport.[*]`
+    throw new MissingTransportError(proto)
   }
 }
 // Returns the address for the neareast interface to a targeted host

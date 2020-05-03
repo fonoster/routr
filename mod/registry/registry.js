@@ -30,20 +30,28 @@ var cseq = 0 // We might need to share this across instances :(
 
 class Registry {
   constructor () {
-    // They must be at least one entry for tcp. Use it...
-    const proxyTransport = protocolTransport(config, 'tcp')
-    const outboundProxy = `${proxyTransport.bindAddr}:${proxyTransport.port}/${
-      proxyTransport.protocol
-    }`
-    const properties = getProperties('routr-registry', outboundProxy)
-    this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS())
-    this.sipProvider = createSipProvider(properties)
-    this.sipProvider.addSipListener(
-      createSipListener(this, this.sipProvider.getSipStack(), this.gatewaysAPI)
-    )
+    try {
+      // They must be at least one entry for tcp. Use it...
+      const proxyTransport = protocolTransport(config, 'tcp')
+      const outboundProxy = `${proxyTransport.bindAddr}:${
+        proxyTransport.port
+      }/${proxyTransport.protocol}`
+      const properties = getProperties('routr-registry', outboundProxy)
+      this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS())
+      this.sipProvider = createSipProvider(properties)
+      this.sipProvider.addSipListener(
+        createSipListener(
+          this,
+          this.sipProvider.getSipStack(),
+          this.gatewaysAPI
+        )
+      )
 
-    this.userAgent = config.metadata.userAgent
-    this.store = new StoreAPI(SDSelector.getDriver())
+      this.userAgent = config.metadata.userAgent
+      this.store = new StoreAPI(SDSelector.getDriver())
+    } catch (e) {
+      throw e.message
+    }
   }
 
   register (gateway, received, rport) {

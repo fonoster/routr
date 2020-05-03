@@ -6,6 +6,7 @@ import org.graalvm.polyglot.Context
 import org.graalvm.polyglot.HostAccess
 import java.io.IOException
 import java.util.*
+import kotlin.system.exitProcess
 
 /**
  * @author Pedro Sanders
@@ -23,7 +24,9 @@ class Launcher {
         val timer = Timer()
         timer.schedule(object : TimerTask() {
             override fun run() {
-                registryCtx.eval("js", "reg.registerAll()")
+                // If it was null the error was reported already, but still need to
+                // consider that the object was never created
+                registryCtx.eval("js", "reg && reg.registerAll()")
             }
         }, 10 * 1000.toLong(), 60 * 1000.toLong())
 
@@ -46,7 +49,13 @@ class Launcher {
             .build()
         ctx.eval("js", baseScript)
         ctx.getBindings("js").putMember(`var`, null)
-        ctx.eval("js", src)
+
+        try {
+            ctx.eval("js", src)
+        } catch(ex: Exception ) {
+            LOG.error(ex.message)
+        }
+
         return ctx
     }
 
@@ -68,7 +77,7 @@ class Launcher {
             val javaVersion = getVersion()
             if (javaVersion > 11 || javaVersion < 8) {
                 LOG.fatal("Routr is only supported in Java versions 8 through 11")
-                System.exit(1)
+                exitProcess(1)
             }
             Launcher().launch()
         }
