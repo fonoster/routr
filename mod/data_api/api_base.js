@@ -6,11 +6,13 @@ const DSUtils = require('@routr/data_api/utils')
 const CoreUtils = require('@routr/core/utils')
 const Caffeine = Java.type('com.github.benmanes.caffeine.cache.Caffeine')
 const TimeUnit = Java.type('java.util.concurrent.TimeUnit')
+const merge = require('deepmerge')
 const {
   Status,
   UNFULFILLED_DEPENDENCY_RESPONSE,
   ENTITY_ALREADY_EXIST_RESPONSE
 } = require('@routr/core/status')
+const overwriteMerge = (destinationArray, sourceArray, options) => sourceArray
 
 class APIBase {
   constructor (dataSource, resourceType) {
@@ -66,7 +68,8 @@ class APIBase {
     }
 
     // Patch writeOnly fields
-    const patchObj = DSUtils.patchObj(oldObj, jsonObj)
+    //const patchObj = DSUtils.patchObj(oldObj, jsonObj)
+    const patchObj = merge(oldObj, jsonObj, { arrayMerge: overwriteMerge })
     const errors = DSUtils.validateEntity(patchObj, oldObj, 'write')
 
     if (errors.length > 0) {
