@@ -72,7 +72,7 @@ class Registry {
       host: lp.getIPAddress(),
       port: lp.getPort()
     }
-    // Use the proxys addrs info
+    // Use the proxy's address info
     const proxyTransport = protocolTransport(config, gateway.spec.transport)
     const contactAddr = nearestInterface(
       proxyTransport.bindAddr,

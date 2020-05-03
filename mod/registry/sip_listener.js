@@ -59,8 +59,13 @@ module.exports = (registry, sipStack, gatewaysAPI) => {
         .getHeader('X-Gateway-Ref').value
       const gateway = gatewaysAPI.getGateway(gwRef).data
 
+      LOG.debug(
+        `registry.listener.createSipListener [gwURI: ${gwURI}, gwRef: ${gwRef}]`
+      )
+
       try {
         if (isRegisterOk(response)) {
+          LOG.debug(`registry.listener.createSipListener [isRegisterOk: yes]`)
           // BEWARE: This is not being cover by the SEET test. It will always
           // be "behind nat" and registry will no be stored.
           const xReceivedHeader = response.getHeader('X-Inf-Received')
@@ -69,12 +74,26 @@ module.exports = (registry, sipStack, gatewaysAPI) => {
           const received = contactHeader.getAddress().getHost()
           const rport = fixPort(contactHeader.getAddress().getPort())
 
+          const registerInfo = {
+            xReceivedHeader: xReceivedHeader.value,
+            xRPortHeader: xRPortHeader.value,
+            contactHeader: contactHeader.value,
+            received,
+            rport
+          }
+
+          LOG.debug(
+            `registry.listener.createSipListener [registerInfo: ${JSON.stringify(
+              registerInfo
+            )}]`
+          )
+
           if (
             !xReceivedHeader.value.equals(received) ||
             !xRPortHeader.value.equals(`${rport}`)
           ) {
             LOG.debug(
-              `Routr is behind a NAT. Re-registering to '${gwRef}' using Received and RPort`
+              `registry.listener.createSipListener [Routr is behind a NAT. Re-registering to '${gwRef}' using Received and RPort]`
             )
             registry.register(
               gateway,
@@ -85,11 +104,14 @@ module.exports = (registry, sipStack, gatewaysAPI) => {
           }
           storeRegistry(store, gwRef, gwURI, getExpires(response))
         } else if (isRegisterNok(response)) {
+          LOG.debug(`registry.listener.createSipListener [isRegisterOk: no]`)
           removeRegistry(store, gwURI)
         }
 
-        // Warning: Is this really needed?
         if (mustAuthenticate(response)) {
+          LOG.debug(
+            `registry.listener.createSipListener [firing 'handleAuthChallenge' method]`
+          )
           handleAuthChallenge(sipStack, event, gateway)
         }
       } catch (e) {
