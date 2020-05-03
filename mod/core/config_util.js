@@ -33,6 +33,8 @@ const loadConfig = () => {
       configFromFile,
       { arrayMerge: overwriteMerge }
     )
+  } else {
+    config = configFromFile
   }
 
   config.salt = getSalt()
