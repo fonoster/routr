@@ -6,6 +6,12 @@ npm install -g routr-ctl
 
 The command-line tool is now globally accessible.
 
+Alternatively, you can install the tool in seconds on Linux (Ubuntu and others) with:
+
+```bash
+sudo snap install rctl
+```
+
 ## Login to a Routr server
 
 To log in to a Routr server and being issuing commands run the following commands.
