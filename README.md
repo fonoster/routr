@@ -61,7 +61,7 @@ Routr is developed in the open. Here are some of the channels we use to communic
 Install Routr in seconds on Linux (Ubuntu and others) with:
 
 ```bash
-sudo snap install routr-server
+sudo snap install routr-server rctl
 ```
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/routr-server)
