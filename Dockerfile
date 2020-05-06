@@ -10,7 +10,6 @@ WORKDIR /opt/routr
 COPY routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz .
 
 RUN apt-get update \
-    && apt-get install -y netcat-openbsd \
     && tar xvf routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz \
     && mv routr-${ROUTR_VERSION}_linux-x64_bin/* . \
     && rm -rf routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz \
