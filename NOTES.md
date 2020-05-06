@@ -39,7 +39,7 @@ The version name is `vX` where `X` is an integer. Stable versions of features wi
 
 ### Resource versioning
 
-Resources (Agents, Gateways, etc) will be tagged and match with an API version with the field `apiVersion`. The version contained in the `apiVersion` must be supported by the server. Also, the Resource could be store using a different schemma than the one you submitted.
+Resources (Agents, Gateways, etc) will be tagged and match with an API version with the field `apiVersion`. The version contained in the `apiVersion` must be supported by the server. Also, the Resource could be store using a different schema than the one you submitted.
 
 ## JVM profiler
 
