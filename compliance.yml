@@ -14,11 +14,6 @@ services:
     build:
       context: .
     image: fonoster/routr:latest
-    entrypoint: |
-      sh -c '
-        while ! nc -z redis 6379; do sleep 0.1; done
-        ./routr
-      '
     environment:
       ROUTR_EXTERN_ADDR: 127.0.0.1
       ROUTR_DS_PROVIDER: redis_data_provider
