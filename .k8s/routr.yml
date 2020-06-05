@@ -5,9 +5,10 @@ metadata:
   labels:
     app: routr
 spec:
-  type: NodePort
-  externalTrafficPolicy: Local # This will cause the load balancer to send the client ip
-  externalIPs: [192.168.1.149]
+  type: LoadBalancer
+  # "Local" preserves the client source IP and avoids a second hop for
+  # LoadBalancer and NodePort
+  externalTrafficPolicy: Local
   ports:
   - name: sip
     port: 5060
@@ -24,6 +25,7 @@ metadata:
   labels:
     app: routr
 spec:
+  replicas: 1
   strategy:
     type: Recreate
   template:
@@ -33,28 +35,27 @@ spec:
         tier: sip
     spec:
       containers:
+      - name: iphelper
+        image: fonoster/iphelper:0.0.2
       - name: routr
-        image: fonoster/routr
-        imagePullPolicy: Always
-        command: ['/bin/sh']
-        args: ['-c', 'sh /opt/routr/entrypoint.sh']
+        image: fonoster/routr:1.0.0-edge-20200504
         env:
         - name: ROUTR_DS_PROVIDER
           value: redis_data_provider
         - name: ROUTR_DS_PARAMETERS
-          value: host=redis,port=6379
+          value: host=redis-routr,port=6379
         - name: ROUTR_EXTERN_ADDR
-          value: 192.168.1.149
+          value: nop
         ports:
          - containerPort: 5060
            name: sip
          - containerPort: 4567
            name: https
         volumeMounts:
-          - name: entrypoint
-            mountPath: /opt/routr/entrypoint.sh
-            subPath: entrypoint.sh
+          - name: log4j2
+            mountPath: /opt/routr/config/log4j2.yml
+            subPath: log4j2.yml
       volumes:
-      - name: entrypoint
+      - name: log4j2
         configMap:
-          name: entrypoint
+          name: log4j2

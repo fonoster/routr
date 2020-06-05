@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis
+  name: redis-routr
   labels:
     app: routr
 spec:
@@ -15,7 +15,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: redis
+  name: redis-routr
   labels:
     app: routr
 spec:
@@ -28,9 +28,8 @@ spec:
         tier: database
     spec:
       containers:
-      - name: redis
-        image: redis:4.0.5-alpine
-        imagePullPolicy: Always
+      - name: redis-routr
+        image: redis:6.0.3-alpine
         ports:
          - containerPort: 6379
-           name: redis
+           name: redis-routr
