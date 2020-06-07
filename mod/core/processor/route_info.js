@@ -178,6 +178,10 @@ class RouteInfo {
     return this.callerDomain === this.calleeDomain
   }
 
+  isLocalDomain () {
+    return this.domainsAPI.domainExist(this.callerDomain)
+  }
+
   get callerUser () {
     return this._callerUser
   }

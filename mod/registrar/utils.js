@@ -16,6 +16,13 @@ const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 
+const getHost = r =>
+  r
+    .getHeader(FromHeader.NAME)
+    .getAddress()
+    .getURI()
+    .getHost()
+
 class RegistrarUtils {
   static generateAors (request, user) {
     const contactHeader = request.getHeader(ContactHeader.NAME)
@@ -23,12 +30,9 @@ class RegistrarUtils {
     const aors = []
 
     if (user.kind.equalsIgnoreCase('peer')) {
-      const host = request
-        .getHeader(FromHeader.NAME)
-        .getAddress()
-        .getURI()
-        .getHost()
-      const peerHost = isEmpty(user.spec.device) ? host : user.spec.device
+      const peerHost = isEmpty(user.spec.device)
+        ? getHost(request)
+        : user.spec.device
       const addressOfRecord = addressFactory.createSipURI(
         user.spec.credentials.username,
         peerHost
@@ -109,7 +113,9 @@ class RegistrarUtils {
       cnonce: authHeader.getCNonce(),
       uri: authHeader.getURI().toString(),
       method: 'REGISTER',
-      qop: authHeader.getQop()
+      qop: authHeader.getQop(),
+      response: authHeader.getResponse(),
+      opaque: authHeader.getOpaque()
     }
   }
 
