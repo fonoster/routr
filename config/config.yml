@@ -1,5 +1,7 @@
 apiVersion: v1beta1
 spec:
+  kafkaPublisher:
+    kafkaHost: localhost:9292
   transport:
     - protocol: tcp
       port: 5060
