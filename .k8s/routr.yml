@@ -35,26 +35,22 @@ spec:
         tier: sip
     spec:
       containers:
-      - name: iphelper
-        image: fonoster/iphelper:0.0.2
       - name: routr
-        image: fonoster/routr:1.0.0-edge-20200504
+        image: fonoster/routr:1.0.0-edge-20200606
         env:
         - name: ROUTR_DS_PROVIDER
           value: redis_data_provider
         - name: ROUTR_DS_PARAMETERS
           value: host=redis-routr,port=6379
-        - name: ROUTR_EXTERN_ADDR
-          value: nop
         ports:
-         - containerPort: 5060
-           name: sip
-         - containerPort: 4567
-           name: https
+        - containerPort: 5060
+          name: sip
+        - containerPort: 4567
+          name: https
         volumeMounts:
-          - name: log4j2
-            mountPath: /opt/routr/config/log4j2.yml
-            subPath: log4j2.yml
+        - name: log4j2
+          mountPath: /opt/routr/config/log4j2.yml
+          subPath: log4j2.yml
       volumes:
       - name: log4j2
         configMap:
