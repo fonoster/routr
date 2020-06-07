@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
       - name: routr
-        image: fonoster/routr:1.0.0-edge-20200606
+        image: fonoster/routr:1.0.0-edge-20200607
         env:
         - name: ROUTR_DS_PROVIDER
           value: redis_data_provider
