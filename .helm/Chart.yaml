@@ -1,0 +1,10 @@
+apiVersion: v2
+name: routr-server
+description: Next-generation SIP Server
+type: application
+version: 0.0.1
+appVersion: 1.0.0-edge-20200607
+dependencies:
+  - name: redis
+    version: 10.6.18
+    repository: https://charts.bitnami.com/bitnami
