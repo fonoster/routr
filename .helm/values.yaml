@@ -1,0 +1,59 @@
+image:
+  repository: fonoster/routr
+  pullPolicy: Always
+  tag: ""
+
+config:
+  datasource:
+    provider: redis_data_provider
+    parameters: host=routr-redis-master,port=6379
+
+log4j2:
+  level: info
+
+service:
+  type: NodePort
+  ports:
+  - port: 4567
+    name: https
+    enabled: true
+  - port: 5060
+    name: siptcp
+    enabled: true
+  - port: 5060
+    name: sipudp
+    protocol: UDP
+    enabled: false
+  - port: 5061
+    name: siptls
+    enabled: false
+  - port: 5062
+    name: sipws
+    enabled: false
+  - port: 5063
+    name: sipwss
+    enabled: false
+  externalTrafficPolicy: Local
+
+replicaCount: 1
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+redis:
+  usePassword: false
+  cluster:
+    enabled: false

@@ -58,6 +58,13 @@
                         "trustStorePassword": { "type": "string" }
                     }
                 },
+                "ex_kafkaPublisher": {
+                    "type": "object",
+                    "properties": {
+                        "host":  {"type": "string", "minLength": 3, "maxLength": 264},
+                        "topic":  {"type": "string", "minLength": 3, "maxLength": 60}
+                    }
+                },
                 "dataSource": {
                     "type": "object",
                     "properties": {

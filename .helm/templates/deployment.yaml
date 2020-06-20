@@ -1,0 +1,64 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ include ".helm2.fullname" . }}
+  labels:
+    {{- include ".helm2.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
+spec:
+{{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include ".helm2.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include ".helm2.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: routr
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: ROUTR_DS_PROVIDER
+          value: {{ .Values.config.datasource.provider | default "redis_data_provider" }}
+        - name: ROUTR_DS_PARAMETERS
+          # TODO: Change attempt to take this value directly from subchart
+          value: {{ .Values.config.datasource.parameters | quote }}
+          # TODO: Fix hardcode
+        - name: ROUTR_EXTERN_ADDR
+          value: {{ .Values.config.externAddr | quote }}
+        ports:
+        {{- range .Values.service.ports }}
+        {{- if .enabled }}
+        - name: {{ .name }}
+          containerPort: {{ .containerPort | default .port }}
+          protocol: {{ .protocol | default `TCP` }}
+        {{- end }}
+        {{- end }}
+        volumeMounts:
+        - name: log4j2
+          mountPath: /opt/routr/config/log4j2.yml
+          subPath: log4j2.yml
+        - name: config
+          mountPath: /opt/routr/config/config.yml
+          subPath: config.yml
+      volumes:
+      - configMap:
+          name: {{ include ".helm2.fullname" . }}-log4j2
+        name: log4j2
+      - configMap:
+          name: {{ include ".helm2.fullname" . }}-config
+        name: config

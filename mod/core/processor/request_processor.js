@@ -82,7 +82,10 @@ class RequestProcessor {
         sendResponse(transaction, Response.METHOD_NOT_ALLOWED)
         break
       case Request.REGISTER:
-        if (routeInfo.getCallerType() === RouteEntityType.THRU_GW) {
+        if (
+          !routeInfo.isLocalDomain() &&
+          routeInfo.getCallerType() === RouteEntityType.THRU_GW
+        ) {
           new RegistryHandler(this.sipProvider).doProcess(transaction)
           break
         }
