@@ -8,7 +8,7 @@ const System = Java.type('java.lang.System')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
-function getConfig () {
+module.exports.getConfig = () => {
   let config
   try {
     if (System.getenv('ROUTR_CONFIG_FILE') !== null) {
@@ -23,8 +23,4 @@ function getConfig () {
     LOG.error('Unable to open configuration file')
     System.exit(1)
   }
-}
-
-module.exports = {
-  getConfig
 }
