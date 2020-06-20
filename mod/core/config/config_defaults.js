@@ -1,4 +1,3 @@
-const System = Java.type('java.lang.System')
 const InetAddress = Java.type('java.net.InetAddress')
 const version = 'v1.0'
 const apiVersion = 'v1beta1'
@@ -9,39 +8,7 @@ module.exports = upSince => {
       upSince,
       version,
       apiVersion,
-      apiPath: `/api/${apiVersion}`,
-      env: [
-        { var: 'ROUTR_JAVA_OPTS', value: System.getenv('ROUTR_JAVA_OPTS') },
-        { var: 'ROUTR_DS_PROVIDER', value: System.getenv('ROUTR_DS_PROVIDER') },
-        {
-          var: 'ROUTR_DS_PARAMETERS',
-          value: System.getenv('ROUTR_DS_PARAMETERS')
-        },
-        {
-          var: 'ROUTR_CONFIG_FILE',
-          value: System.getenv('ROUTR_CONFIG_FILE')
-        },
-        {
-          var: 'ROUTR_SALT',
-          value: System.getenv('ROUTR_SALT')
-        },
-        {
-          var: 'ROUTR_EXTERN_ADDR',
-          value: System.getenv('ROUTR_EXTERN_ADDR')
-        },
-        {
-          var: 'ROUTR_LOCALNETS',
-          value: System.getenv('ROUTR_LOCALNETS')
-        },
-        {
-          var: 'ROUTR_REGISTRAR_INTF',
-          value: System.getenv('ROUTR_REGISTRAR_INTF')
-        },
-        {
-          var: 'ROUTR_JS_ENGINE',
-          value: System.getenv('ROUTR_JS_ENGINE')
-        }
-      ]
+      apiPath: `/api/${apiVersion}`
     },
     metadata: {
       userAgent: `Routr ${version}`
@@ -54,9 +21,9 @@ module.exports = upSince => {
         { protocol: 'udp', port: 5060 }
       ],
       dataSource: {
-        provider: System.getenv('ROUTR_DS_PROVIDER') || 'files_data_provider'
+        provider: 'files_data_provider'
       },
-      registrarIntf: System.getenv('ROUTR_REGISTRAR_INTF') || 'External',
+      registrarIntf: 'External',
       restService: {
         keyStore: 'etc/certs/api-cert.jks',
         keyStorePassword: 'changeit',
@@ -90,11 +57,6 @@ module.exports = upSince => {
       }
     }
   }
-
-  if (System.getenv('ROUTR_LOCALNETS'))
-    config.spec.localnets = System.getenv('ROUTR_LOCALNETS').split(',')
-  if (System.getenv('ROUTR_EXTERN_ADDR'))
-    config.spec.externAddr = System.getenv('ROUTR_EXTERN_ADDR')
 
   return config
 }
