@@ -18,7 +18,6 @@ const FilesUtil = require('@routr/utils/files_util')
 const System = Java.type('java.lang.System')
 const isEmpty = require('@routr/utils/obj_util')
 const config = require('@routr/core/config_util')()
-const envConfig = require('@routr/core/config/config_from_env').getConfig
 const { Status } = require('@routr/core/status')
 const getJWTToken = require('@routr/rest/jwt_token_generator')
 const resourcesService = require('@routr/rest/resources_service')
