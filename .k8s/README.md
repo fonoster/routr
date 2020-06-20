@@ -1,15 +1,13 @@
-This document is a short guide about running the dockerized version of Routr Server on Kubernetes.
+## Running Routr in Kubernetes
 
-## Run in Kubernetes
-
-To run Routr in Kubernetes, you must set your ROUTR_EXTERN_ADDR in `routr.yml`.
-
-> This variable must be set to the public address(if running Routr locally, use your host address)
-
-Additionally, you must create the following Kubernetes resources:
+To quickly deploy a Routr instance in K8s, simply create the following resources:
 
 ```bash
-kubectl create -f configmaps.yml
-kubectl create -f redis.yml
-kubectl create -f routr.yml
+kubectl create -f configmaps.yml \
+kubectl create -f clusterrole.yml \
+kubectl create -f redis.yml \
+kubectl create -f routr.yml \
+kubectl create clusterrolebinding service-reader-pod \
+  --clusterrole=service-reader  \
+  --serviceaccount=default:default
 ```

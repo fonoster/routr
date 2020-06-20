@@ -13,7 +13,7 @@ const { Status } = require('@routr/core/status')
 const defaultRedisParameters =
   'host=localhost,port=6379,max_retry=-1,retry_interval=2'
 
-function getConfig (configFromFile) {
+module.exports.getConfig = configFromFile => {
   const parameters = DSUtils.getParameters(
     configFromFile,
     defaultRedisParameters,
@@ -35,8 +35,4 @@ function getConfig (configFromFile) {
       maxRetry -= 1
     }
   }
-}
-
-module.exports = {
-  getConfig
 }
