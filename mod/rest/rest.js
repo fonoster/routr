@@ -18,9 +18,7 @@ const FilesUtil = require('@routr/utils/files_util')
 const System = Java.type('java.lang.System')
 const isEmpty = require('@routr/utils/obj_util')
 const config = require('@routr/core/config_util')()
-const defaults = require('@routr/core/config/config_defaults')(
-  new Date().getTime()
-)
+const envConfig = require('@routr/core/config/config_from_env').getConfig
 const { Status } = require('@routr/core/status')
 const getJWTToken = require('@routr/rest/jwt_token_generator')
 const resourcesService = require('@routr/rest/resources_service')
@@ -171,15 +169,10 @@ class Rest {
       )
 
       get('/system/config', (req, res) => {
-        if (req.queryParams('full') === 'true') {
-          const merged = merge(defaults, configApi.getConfig().data)
-          const result = configApi.getConfig()
-          result.data = merged
-          delete result.data.system
-          return JSON.stringify(result)
-        } else {
-          return JSON.stringify(configApi.getConfig())
-        }
+        const result = CoreUtils.buildResponse(Status.OK, null, config)
+        delete result.data.system
+        delete result.data.salt
+        return JSON.stringify(result)
       })
 
       put('/system/config', (req, res) => {
