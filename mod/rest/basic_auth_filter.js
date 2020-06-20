@@ -8,7 +8,9 @@ const String = Java.type('java.lang.String')
 
 module.exports = (req, res, usersAPI) => {
   try {
-    return authentic(usersAPI, getUserFromHeader(req))
+    if (!authentic(usersAPI, getUserFromHeader(req))) {
+      throw 'UNAUTHORIZED REQUEST'
+    }
   } catch (e) {
     throw 'UNAUTHORIZED REQUEST'
   }
