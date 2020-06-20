@@ -26,8 +26,10 @@ run() {
 }
 
 if [ -f /.dockerenv ]; then
-    # [ -z "$ROUTR_EXTERN_ADDR" ] && { echo "Must define environment variable ROUTR_EXTERN_ADDR when running inside a container"; exit 1; }
+    DOCKER_HOST=$(ip -4 addr show eth0 | grep -Po 'inet \K[\d.]+')
+    #[ -z "$ROUTR_EXTERN_ADDR" ] && { echo "Must define environment variable ROUTR_EXTERN_ADDR when running inside a container"; exit 1; }
     [ -z "$ROUTR_LOCALNETS" ] && export ROUTR_LOCALNETS=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}')
+    [ -z "$ROUTR_BIND_ADDR" ] && export ROUTR_BIND_ADDR=$DOCKER_HOST
 fi
 
 [ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment. Please setup the JAVA_HOME environment variable"; exit 1; }

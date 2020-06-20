@@ -12,45 +12,52 @@ const expect = chai.expect
 var sandbox = sinon.createSandbox()
 const defaults = require('@routr/core/config/config_defaults')(new Date())
 
+sinon.stub(require('@routr/core/config/salt'), 'getSalt').returns('SALTYSALT')
+
+sinon.stub(require('@routr/core/config/config_from_env'), 'getConfig').returns({
+  spec: {
+    localnets: ['192.168.1.23/24']
+  }
+})
+
+sinon
+  .stub(require('@routr/core/config/config_from_redis'), 'getConfig')
+  .returns({
+    apiVersion: 'v1beta1',
+    spec: {
+      recordRoute: true,
+      dataSource: {
+        provider: 'redis_data_provider',
+        parameters: 'host=localhost,port=6379'
+      },
+      transport: [
+        { protocol: 'udp', port: 5060 },
+        { protocol: 'tcp', port: 5060 }
+      ]
+    }
+  })
+
+sinon
+  .stub(require('@routr/core/config/config_from_file'), 'getConfig')
+  .returns({
+    apiVersion: 'v1beta1',
+    spec: {
+      recordRoute: false,
+      externAddr: '192.168.1.2',
+      dataSource: {
+        provider: 'redis_data_provider',
+        parameters: 'host=localhost,port=6379'
+      },
+      transport: [
+        { protocol: 'udp', port: 5060 },
+        { port: 5062, protocol: 'wss' },
+        { protocol: 'tcp', port: 5060 }
+      ]
+    }
+  })
+
 describe('@routr/core/config', () => {
   context('config util', () => {
-    sinon
-      .stub(require('@routr/core/config/salt'), 'getSalt')
-      .returns('SALTYSALT')
-    sinon
-      .stub(require('@routr/core/config/config_from_redis'), 'getConfig')
-      .returns({
-        apiVersion: 'v1beta1',
-        spec: {
-          recordRoute: true,
-          dataSource: {
-            provider: 'redis_data_provider',
-            parameters: 'host=localhost,port=6379'
-          },
-          transport: [
-            { protocol: 'udp', port: 5060 },
-            { protocol: 'tcp', port: 5060 }
-          ]
-        }
-      })
-    sinon
-      .stub(require('@routr/core/config/config_from_file'), 'getConfig')
-      .returns({
-        apiVersion: 'v1beta1',
-        spec: {
-          recordRoute: false,
-          externAddr: '192.168.1.2',
-          dataSource: {
-            provider: 'redis_data_provider',
-            parameters: 'host=localhost,port=6379'
-          },
-          transport: [
-            { protocol: 'udp', port: 5060 },
-            { protocol: 'tcp', port: 5060 },
-            { protocol: 'wss', port: 5062 }
-          ]
-        }
-      })
     const config = require('@routr/core/config_util')()
 
     it('check config merging', () => {
@@ -66,7 +73,7 @@ describe('@routr/core/config', () => {
         .to.have.property('spec')
         .to.have.property('localnets')
         .to.be.a('array')
-        .lengthOf(0)
+        .lengthOf(1)
 
       expect(config)
         .to.have.property('spec')

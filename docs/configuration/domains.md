@@ -11,7 +11,7 @@ outgoing calling. The domains configuration can be provided using the file `conf
 | kind | Defines the type of resource | Yes |
 | metadata.name | Friendly name for the SIP domain | Yes |
 | spec.context.domainUri | Domain URI. FQDN is recommended | Yes |
-| spec.context.egressPolicy.rule | Regular expression indicating when a call will be routed via $spec.context.egressPolicy.numberRef | No |
+| spec.context.egressPolicy.rule | Regular expression indicating when a call will be routed via `spec.context.egressPolicy.numberRef` | No |
 | spec.context.egressPolicy.numberRef | Reference to the Number that will route the call | No |
 | spec.context.accessControlList.allow[*] | Traffic allow for Network in list | No |
 | spec.context.accessControlList.deny[*] | Traffic disabled for Network in list| No |
