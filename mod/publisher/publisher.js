@@ -14,15 +14,11 @@ class Publisher {
     this.kafkaPublisher = new KafkaPublisher(broker, topic)
   }
 
-  publish (data) {
-    this.kafkaPublisher.publish(JSON.stringify(data))
-  }
-
   init () {
     postal.subscribe({
       channel: 'locator',
       topic: 'endpoint.add',
-      callback: data => this.publish(data)
+      callback: data => this.kafkaPublisher.publish(JSON.stringify(data))
     })
   }
 }
