@@ -4,7 +4,7 @@ image:
   tag: ""
 
 config:
-  datasource:
+  dataSource:
     provider: redis_data_provider
     parameters: host=routr-redis-master,port=6379
 

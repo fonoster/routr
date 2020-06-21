@@ -33,10 +33,10 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
         - name: ROUTR_DS_PROVIDER
-          value: {{ .Values.config.datasource.provider | default "redis_data_provider" }}
+          value: {{ .Values.config.dataSource.provider }}
         - name: ROUTR_DS_PARAMETERS
           # TODO: Change attempt to take this value directly from subchart
-          value: {{ .Values.config.datasource.parameters | quote }}
+          value: {{ .Values.config.dataSource.parameters | quote }}
           # TODO: Fix hardcode
         - name: ROUTR_EXTERN_ADDR
           value: {{ .Values.config.externAddr | quote }}
