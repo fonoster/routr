@@ -4,6 +4,9 @@ image:
   tag: ""
 
 config:
+  ex_kafkaPublisher:
+    topic: sip-registrations
+    host: kafka-routr:9092
   dataSource:
     provider: redis_data_provider
     parameters: host=routr-redis-master,port=6379

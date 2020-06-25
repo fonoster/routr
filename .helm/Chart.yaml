@@ -2,8 +2,8 @@ apiVersion: v2
 name: routr-server
 description: Next-generation SIP Server
 type: application
-version: 0.0.2
-appVersion: 1.0.0-edge-20200620
+version: 0.0.3
+appVersion: 1.0.0-edge-20200624
 dependencies:
   - name: redis
     version: 10.6.18

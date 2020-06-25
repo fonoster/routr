@@ -8,8 +8,8 @@ data:
     apiVersion: v1beta1
     spec:
       ex_kafkaPublisher:
-        topic: sip-registrations
-        host: kafka-routr:9092
+        topic: {{ .Values.config.ex_kafkaPublisher.topic }}
+        host: {{ .Values.config.ex_kafkaPublisher.host }}
 ---
 apiVersion: v1
 kind: ConfigMap

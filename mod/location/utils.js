@@ -59,10 +59,14 @@ class LocatorUtils {
       typeof addressOfRecord === 'string' ||
       addressOfRecord instanceof String
     ) {
-      const rx = /sip?:(.*)@(.*)/
-      if (rx.test(addressOfRecord)) {
-        const addr = rx.exec(addressOfRecord)
+      const rx1 = /sip?:(.*)@(.*)/
+      const rx2 = /sip?:(.*)/
+      if (rx1.test(addressOfRecord)) {
+        const addr = rx1.exec(addressOfRecord)
         return addressFactory.createSipURI(addr[1], addr[2])
+      } else if (rx2.test(addressOfRecord)) {
+        const addr = rx2.exec(addressOfRecord)
+        return addressFactory.createSipURI(null, addr[1])
       } else if (/tel:\d+/.test(addressOfRecord)) {
         return addressFactory.createTelURI(addressOfRecord)
       }
