@@ -29,6 +29,7 @@ const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')
 const RouteHeader = Java.type('javax.sip.header.RouteHeader')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const ToHeader = Java.type('javax.sip.header.ToHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const ConcurrentHashMap = Java.type('java.util.concurrent.ConcurrentHashMap')
 const requestStore = new ConcurrentHashMap()
@@ -68,6 +69,13 @@ class RequestHandler {
   }
 
   doProcess (transaction, request, routeInfo) {
+    const aor = config.spec.useToAsAOR
+      ? request
+          .getHeader(ToHeader.NAME)
+          .getAddress()
+          .getURI()
+      : request.getRequestURI()
+
     if (isInDialog(request)) {
       this.processRoute(transaction, request, null, routeInfo)
     } else {
@@ -81,7 +89,7 @@ class RequestHandler {
         channel: 'locator',
         topic: 'endpoint.find',
         data: {
-          addressOfRecord: request.getRequestURI(),
+          addressOfRecord: aor,
           requestId: requestId
         }
       })
