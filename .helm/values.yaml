@@ -4,6 +4,8 @@ image:
   tag: ""
 
 config:
+  useToAsAOR: false
+  registrarIntf: External
   ex_kafkaPublisher:
     topic: sip-registrations
     host: kafka-routr:9092

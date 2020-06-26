@@ -7,6 +7,8 @@ data:
   config.yml: |-
     apiVersion: v1beta1
     spec:
+      registrarIntf: {{ .Values.config.registrarIntf }}
+      useToAsAOR: {{ .Values.config.useToAsAOR }}
       ex_kafkaPublisher:
         topic: {{ .Values.config.ex_kafkaPublisher.topic }}
         host: {{ .Values.config.ex_kafkaPublisher.host }}
