@@ -6,7 +6,8 @@ Run environment variables are used in the entry point script to render configura
 
 | Variable | Description | Required |
 | --- | --- | --- |
-| ROUTR_EXTERN_ADDR | IP address to advertise  | Yes |
+| ROUTR_EXTERN_ADDR | IP address to advertise  | No |
+| ROUTR_BIND_ADDR | Binds the server to the specified socket address  | No |
 | ROUTR_LOCALNETS | Local networks. Use in combination with ROUTR_EXTERN_ADDR | No |
 | ROUTR_REGISTRAR_INTF | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register. Defaults to `External` | No |
 | ROUTR_DS_PROVIDER | Defines data provider. Defaults to `files_data_provider` | No |
