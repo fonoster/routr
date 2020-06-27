@@ -94,7 +94,7 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.securityContext.keyStorePassword | Password for keyStore  | `changeit` |
 | routr.securityContext.keyStoreType | KeyStore type  | `jks` |
 | routr.securityContext.client.authType | Type of client authentication. See https://goo.gl/1vKbXW for more options | `DisabledAll` |
-| routr.securityContext.client.protocols.[*] | Accepted tls protocols | [`TLSv1.2`, `TLSv1.1`, `TLSv1`] |
+| routr.securityContext.client.protocols.[*] | Accepted TLS protocols | [`TLSv1.2`, `TLSv1.1`, `TLSv1`] |
 | routr.securityContext.debugging | Turns ON or OFF ssl debugging | `false` |
 | routr.ex_kafka.debugging | Turns ON or OFF ssl debugging | `false` |
 
