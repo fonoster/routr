@@ -11,9 +11,9 @@ const LOG = LogManager.getLogger()
 module.exports.getConfig = () => {
   let config
   try {
-    if (System.getenv('ROUTR_CONFIG_FILE') !== null) {
+    if (System.getenv('CONFIG_FILE') !== null) {
       config = DSUtils.convertToJson(
-        FilesUtil.readFile(System.getenv('ROUTR_CONFIG_FILE'))
+        FilesUtil.readFile(System.getenv('CONFIG_FILE'))
       )
     } else {
       config = DSUtils.convertToJson(FilesUtil.readFile('config/config.yml'))

@@ -56,7 +56,7 @@ class Rest {
     Spark.threadPool(
       config.spec.restService.maxThreads,
       config.spec.restService.minThreads,
-      config.spec.restService.timeOutMillis
+      config.spec.restService.timeoutMillis
     )
 
     if (!config.spec.restService.unsecured) {
@@ -153,7 +153,7 @@ class Rest {
       )
 
       get('/system/logs', (req, res) => {
-        const home = System.getenv('ROUTR_DATA') || '.'
+        const home = System.getenv('DATA') || '.'
         return JSON.stringify(
           CoreUtils.buildResponse(
             Status.OK,
@@ -169,9 +169,11 @@ class Rest {
 
       get('/system/config', (req, res) => {
         const result = CoreUtils.buildResponse(Status.OK, null, config)
-        delete result.data.system
-        delete result.data.salt
-        return JSON.stringify(result)
+        // Clonning obj
+        const r = JSON.parse(JSON.stringify(result))
+        delete r.data.system
+        delete r.data.salt
+        return JSON.stringify(r)
       })
 
       put('/system/config', (req, res) => {

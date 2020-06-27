@@ -32,7 +32,7 @@ module.exports = upSince => {
         port: 4567,
         maxThreads: 200,
         minThreads: 8,
-        timeOutMillis: 5000
+        timeoutMillis: 5000
       },
       grpcService: {
         // In v1.0 This is only use for internal apis

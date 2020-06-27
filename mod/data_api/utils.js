@@ -201,7 +201,7 @@ class DSUtils {
 
   static getParameters (config, defaultParameters, allowedKeys) {
     const params = config.spec.dataSource.parameters || ''
-    const envParams = System.getenv('ROUTR_DS_PARAMETERS') || ''
+    const envParams = System.getenv('DATA_SOURCE_PARAMETERS') || ''
     const p1 = DSUtils.getParametersFromString(envParams, allowedKeys)
     const p2 = DSUtils.getParametersFromString(params, allowedKeys)
     const p3 = DSUtils.getParametersFromString(defaultParameters, allowedKeys)

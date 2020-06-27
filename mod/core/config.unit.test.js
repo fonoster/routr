@@ -11,10 +11,11 @@ chai.use(sinonChai)
 const expect = chai.expect
 var sandbox = sinon.createSandbox()
 const defaults = require('@routr/core/config/config_defaults')(new Date())
+const configFromEnv = require('@routr/core/config/config_from_env')
 
 sinon.stub(require('@routr/core/config/salt'), 'getSalt').returns('SALTYSALT')
 
-sinon.stub(require('@routr/core/config/config_from_env'), 'getConfig').returns({
+const configFromEnvStub = sinon.stub(configFromEnv, 'getConfig').returns({
   spec: {
     localnets: ['192.168.1.23/24']
   }
@@ -111,6 +112,25 @@ describe('@routr/core/config', () => {
         .to.have.property('dataSource')
         .to.have.property('provider')
         .to.be.equal('files_data_provider')
+    })
+  })
+
+  context('config from env', () => {
+    configFromEnvStub.restore()
+    it.skip('check from environment', () => {
+      process.env.RECORD_ROUTE = true
+      process.env.USER_AGENT = 'Routr v1.0'
+      const config = configFromEnv.getConfig()
+
+      expect(config)
+        .to.have.property('spec')
+        .to.have.property('recordRoute')
+        .to.be.equal('true')
+
+      expect(config)
+        .to.have.property('metadata')
+        .to.have.property('userAgent')
+        .to.be.equal('Routr v1.0')
     })
   })
 })

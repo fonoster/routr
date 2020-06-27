@@ -38,39 +38,39 @@ HTTP/1.1 200 OK
     "apiPath":"/api/v1beta1",
     "env":[
        {
-         "var":"ROUTR_JAVA_OPTS",
+         "var":"JAVA_OPTS",
          "value":null
        },
        {
-         "var":"ROUTR_DS_PROVIDER",
+         "var":"DATA_SOURCE_PROVIDER",
          "value":null
        },
        {
-         "var":"ROUTR_DS_PARAMETERS",
+         "var":"DATA_SOURCE_PARAMETERS",
          "value":null
        },
        {
-         "var":"ROUTR_CONFIG_FILE",
+         "var":"CONFIG_FILE",
          "value":null
        },
        {
-         "var":"ROUTR_SALT",
+         "var":"SALT",
          "value":null
        },
        {
-         "var":"ROUTR_EXTERN_ADDR",
+         "var":"EXTERN_ADDR",
          "value":null
        },
        {
-         "var":"ROUTR_LOCALNETS",
+         "var":"LOCALNETS",
          "value":null
        },
        {
-         "var":"ROUTR_REGISTRAR_INTF",
+         "var":"REGISTRAR_INTF",
          "value":null
        },
        {
-         "var":"ROUTR_JS_ENGINE",
+         "var":"JS_ENGINE",
          "value":null
        }
     ]

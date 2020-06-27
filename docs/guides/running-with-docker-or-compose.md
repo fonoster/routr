@@ -6,14 +6,14 @@ Run environment variables are used in the entry point script to render configura
 
 | Variable | Description | Required |
 | --- | --- | --- |
-| ROUTR_EXTERN_ADDR | IP address to advertise  | Yes |
-| ROUTR_LOCALNETS | Local networks. Use in combination with ROUTR_EXTERN_ADDR | No |
-| ROUTR_REGISTRAR_INTF | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register. Defaults to `External` | No |
-| ROUTR_DS_PROVIDER | Defines data provider. Defaults to `files_data_provider` | No |
-| ROUTR_DS_PARAMETERS | Provider specific parameters. For examples, see the [general config](https://routr.io/docs/configuration/general/)  | No |
-| ROUTR_CONFIG_FILE | Path to the configuration file. Defaults to `config/config.yml` | No |
-| ROUTR_SALT | Use defined JWT salt. By default Routr will generated its own  | No |
-| ROUTR_JAVA_OPTS | Use this env variable to pass parameters to the JVM | No |
+| EXTERN_ADDR | IP address to advertise  | Yes |
+| LOCALNETS | Local networks. Use in combination with EXTERN_ADDR | No |
+| REGISTRAR_INTF | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register. Defaults to `External` | No |
+| DATA_SOURCE_PROVIDER | Defines data provider. Defaults to `files_data_provider` | No |
+| DATA_SOURCE_PARAMETERS | Provider specific parameters. For examples, see the [general config](https://routr.io/docs/configuration/general/)  | No |
+| CONFIG_FILE | Path to the configuration file. Defaults to `config/config.yml` | No |
+| SALT | Use defined JWT salt. By default Routr will generated its own  | No |
+| JAVA_OPTS | Use this env variable to pass parameters to the JVM | No |
 
 ## Usage
 
@@ -31,7 +31,7 @@ docker run -it \
     -p 5060:5060 \
     -p 5060:5060/udp \
     -p 5061-5063:5061-5063 \
-    -e ROUTR_EXTERN_ADDR=${your host address} \
+    -e EXTERN_ADDR=${your host address} \
     fonoster/routr
 ```
 
