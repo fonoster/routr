@@ -69,15 +69,15 @@ The following tables lists the configurable parameters of the Routr chart and th
 
 | Parameter | Description | Default |
 | --- | --- | --- |
-| routr.image.repository |  | `fonoster/routr`|
-| routr.image.tag |  | "" |
-| routr.image.pullPolicy |  | `Always` |
-| routr.adminService.enabled | | `true` |
-| routr.adminService.type | | `ClusterIP` |
-| routr.adminService.port | | `4567` |
-| routr.signalingService.enabled | | `true` |
-| routr.signalingService.type | | `NodePort` | 
-| routr.signalingService.externalTrafficPolicy | | `Local` |
+| routr.image.repository | Docker image for Routr | `fonoster/routr`|
+| routr.image.tag | Docker image tag | "" |
+| routr.image.pullPolicy | Pull policy for the image | `Always` |
+| routr.adminService.enabled | Enable or disable admin service | `true` |
+| routr.adminService.type | Admin service type | `ClusterIP` |
+| routr.adminService.port | Admin service port | `4567` |
+| routr.signalingService.enabled | Enable disable signaling service | `true` |
+| routr.signalingService.type | Signaling service type | `ClusterIP` | 
+| routr.signalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
 | routr.userAgent| Sets sip header `User-Agent` to the desired value | `Routr v<VERSION>` |
 | routr.dataSource.provider | Defines data provider | `redis_data_provider` |
 | routr.dataSource.parameters | Data Source Parameters | `host=routr-redis-master-0,port=6379` |
@@ -85,6 +85,7 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.externAddr | IP address to advertise. Typically a LoadBalancer's public IP | "" |
 | routr.localnets | Local networks. Use in combination with `routr.externAddr` | "" |
 | routr.recordRoute | Stay within the signaling path | `false` |
+| routr.useToAsAOR | Uses the header `To`, instead of `Request-URI`, to locate endopoints | `false` |
 | routr.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register | `External` |
 | routr.accessControlList.deny.[*] | Deny incoming traffic from network list | `[]` |
 | routr.accessControlList.allow.[*] | Allow incoming traffic from network list | `[]` |
@@ -92,7 +93,7 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.restService.port | Restful service port | `4567` |
 | routr.restService.minThreads | Minimum thread allocation | `8` |
 | routr.restService.maxThreads | Maximum thread allocation | `200` |
-| routr.restService.timeOutMillis | Will reject requests that last more than this value | `5000` (5 seconds) |
+| routr.restService.timeoutMillis | Will reject requests that last more than this value | `5000` (5 seconds) |
 | routr.restService.unsecured | Disabled https for restful calls | `false` |
 | routr.restService.keyStore | Path to keyStore | `/opt/routr/etc/certs/api-cert.jks` |
 | routr.restService.trueStore | Path to trueStore | `/opt/routr/etc/certs/api-cert.jks` |
