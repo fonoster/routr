@@ -69,10 +69,10 @@ The following tables lists the configurable parameters of the Routr chart and th
 
 | Parameter | Description | Default |
 | --- | --- | --- |
-| routr.userAgent| Sets sip header `User-Agent` to the desired value | Routr v1.0 |
+| routr.userAgent| Sets sip header `User-Agent` to the desired value | `Routr v1.0` |
 | routr.dataSource.provider | Defines data provider | `redis_data_provider` |
 | routr.dataSource.parameters | Data Source Parameters | `host=redis-master-0,port=6379` |
-| routr.bindAddr | Default stack IP address  | OS Choice |
+| routr.bindAddr | Default stack IP address  | "" |
 | routr.externAddr | IP address to advertise. Typically a LoadBalancer's public IP | "" |
 | routr.localnets | Local networks. Use in combination with `routr.externAddr` | "" |
 | routr.recordRoute | Stay within the signaling path | `false` |
