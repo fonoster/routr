@@ -69,7 +69,16 @@ The following tables lists the configurable parameters of the Routr chart and th
 
 | Parameter | Description | Default |
 | --- | --- | --- |
-| routr.userAgent| Sets sip header `User-Agent` to the desired value | `Routr v1.0` |
+| routr.image.repository |  | `fonoster/routr`|
+| routr.image.tag |  | "" |
+| routr.image.pullPolicy |  | `Always` |
+| routr.adminService.enabled | | `true` |
+| routr.adminService.type | | `ClusterIP` |
+| routr.adminService.port | | `4567` |
+| routr.signalingService.enabled | | `true` |
+| routr.signalingService.type | | `NodePort` | 
+| routr.signalingService.externalTrafficPolicy | | `Local` |
+| routr.userAgent| Sets sip header `User-Agent` to the desired value | `Routr v<VERSION>` |
 | routr.dataSource.provider | Defines data provider | `redis_data_provider` |
 | routr.dataSource.parameters | Data Source Parameters | `host=routr-redis-master-0,port=6379` |
 | routr.bindAddr | Default stack IP address  | "" |
@@ -96,6 +105,7 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.securityContext.client.authType | Type of client authentication. See https://goo.gl/1vKbXW for more options | `DisabledAll` |
 | routr.securityContext.client.protocols.[*] | Accepted TLS protocols | [`TLSv1.2`, `TLSv1.1`, `TLSv1`] |
 | routr.securityContext.debugging | Turns ON or OFF ssl debugging | `false` |
+| routr.logLevel |  | `warn` |
 
 ## Redis Configuration
 
