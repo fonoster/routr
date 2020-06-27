@@ -43,7 +43,6 @@ envsMap.set(
   'spec.securityContext.client.authType'
 )
 envsMap.set('SECURITY_CONTEXT_DEBUGGING', 'spec.securityContext.debugging')
-envsMap.set('SECURITY_CONTEXT_DEBUGGING', 'spec.securityContext.debugging')
 envsMap.set('LOG4J', '')
 envsMap.set('CONFIG_FILE', '')
 envsMap.set('SALT', '')
