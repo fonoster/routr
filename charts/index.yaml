@@ -1,34 +1,9 @@
 apiVersion: v1
 entries:
-  redis:
-  - apiVersion: v1
-    appVersion: 6.0.4
-    created: "2020-06-27T09:59:19.205719-04:00"
-    description: Open source, advanced key-value store. It is often referred to as
-      a data structure server since keys can contain strings, hashes, lists, sets
-      and sorted sets.
-    digest: 5dac176b52677d86a2ec0dd5b7c6881ff99d63c1dfd45204e1308c4d8e1605a0
-    home: http://redis.io/
-    icon: https://bitnami.com/assets/stacks/redis/img/redis-stack-220x234.png
-    keywords:
-    - redis
-    - keyvalue
-    - database
-    maintainers:
-    - email: containers@bitnami.com
-      name: Bitnami
-    - email: cedric@desaintmartin.fr
-      name: desaintmartin
-    name: redis
-    sources:
-    - https://github.com/bitnami/bitnami-docker-redis
-    urls:
-    - charts/redis-10.6.18.tgz
-    version: 10.6.18
   routr-server:
   - apiVersion: v2
     appVersion: 1.0.0-edge-20200627
-    created: "2020-06-27T09:59:19.209718-04:00"
+    created: "2020-06-27T10:33:07.252272-04:00"
     dependencies:
     - name: redis
       repository: https://charts.bitnami.com/bitnami
@@ -41,6 +16,6 @@ entries:
     - https://github.com/fonoster/routr
     type: application
     urls:
-    - charts/routr-server-0.0.4.tgz
+    - routr-server-0.0.4.tgz
     version: 0.0.4
-generated: "2020-06-27T09:59:19.202207-04:00"
+generated: "2020-06-27T10:33:07.232361-04:00"
