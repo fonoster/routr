@@ -93,7 +93,7 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.restService.port | Restful service port | `4567` |
 | routr.restService.minThreads | Minimum thread allocation | `8` |
 | routr.restService.maxThreads | Maximum thread allocation | `200` |
-| routr.restService.timeOutMillis | Will reject requests that last more than this value | `5000` (5 seconds) |
+| routr.restService.timeoutMillis | Will reject requests that last more than this value | `5000` (5 seconds) |
 | routr.restService.unsecured | Disabled https for restful calls | `false` |
 | routr.restService.keyStore | Path to keyStore | `/opt/routr/etc/certs/api-cert.jks` |
 | routr.restService.trueStore | Path to trueStore | `/opt/routr/etc/certs/api-cert.jks` |
