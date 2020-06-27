@@ -34,7 +34,7 @@ can be provided using the file `config/config.yml` located at the root of your R
 | spec.securityContext.keyStorePassword | Password for keyStore  | Yes |
 | spec.securityContext.keyStoreType | KeyStore type  | Yes |
 | spec.securityContext.client.authType | Type of client authentication. Defaults to `DisabledAll`. See https://goo.gl/1vKbXW for more options | No |
-| spec.securityContext.client.protocols.[*] | Accepted tls protocols. Defaults to [`TLSv1.2`, `TLSv1.1`, `TLSv1`] | No |
+| spec.securityContext.client.protocols.[*] | Accepted TLS protocols. Defaults to [`TLSv1.2`, `TLSv1.1`, `TLSv1`] | No |
 | spec.securityContext.debugging | Turns ON or OFF ssl debugging. Defaults to `false` | No |
 
 ## Transport Configuration
