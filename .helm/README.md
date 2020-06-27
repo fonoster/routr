@@ -77,7 +77,7 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.adminService.port | Admin service port | `4567` |
 | routr.signalingService.enabled | Enable disable signaling service | `true` |
 | routr.signalingService.type | Signaling service type | `ClusterIP` | 
-| routr.signalingService.externalTrafficPolicy | | `Local` |
+| routr.signalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
 | routr.userAgent| Sets sip header `User-Agent` to the desired value | `Routr v<VERSION>` |
 | routr.dataSource.provider | Defines data provider | `redis_data_provider` |
 | routr.dataSource.parameters | Data Source Parameters | `host=routr-redis-master-0,port=6379` |
