@@ -69,14 +69,14 @@ The following tables lists the configurable parameters of the Routr chart and th
 
 | Parameter | Description | Default |
 | --- | --- | --- |
-| routr.image.repository |  | `fonoster/routr`|
-| routr.image.tag |  | "" |
-| routr.image.pullPolicy |  | `Always` |
-| routr.adminService.enabled | | `true` |
-| routr.adminService.type | | `ClusterIP` |
-| routr.adminService.port | | `4567` |
-| routr.signalingService.enabled | | `true` |
-| routr.signalingService.type | | `NodePort` | 
+| routr.image.repository | Docker image for Routr | `fonoster/routr`|
+| routr.image.tag | Docker image tag | "" |
+| routr.image.pullPolicy | Pull policy for the image | `Always` |
+| routr.adminService.enabled | Enable or disable admin service | `true` |
+| routr.adminService.type | Admin service type | `ClusterIP` |
+| routr.adminService.port | Admin service port | `4567` |
+| routr.signalingService.enabled | Enable disable signaling service | `true` |
+| routr.signalingService.type | Signaling service type | `ClusterIP` | 
 | routr.signalingService.externalTrafficPolicy | | `Local` |
 | routr.userAgent| Sets sip header `User-Agent` to the desired value | `Routr v<VERSION>` |
 | routr.dataSource.provider | Defines data provider | `redis_data_provider` |
@@ -85,6 +85,7 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.externAddr | IP address to advertise. Typically a LoadBalancer's public IP | "" |
 | routr.localnets | Local networks. Use in combination with `routr.externAddr` | "" |
 | routr.recordRoute | Stay within the signaling path | `false` |
+| routr.useToAsAOR | Uses the header `To`, instead of `Request-URI`, to locate endopoints | `false` |
 | routr.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register | `External` |
 | routr.accessControlList.deny.[*] | Deny incoming traffic from network list | `[]` |
 | routr.accessControlList.allow.[*] | Allow incoming traffic from network list | `[]` |
