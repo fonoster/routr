@@ -51,7 +51,7 @@ Coming Soon...
 
 ## Uninstalling the Chart
 
-To uninstall/delete the my-release deployment:
+To uninstall/delete the `my-release` deployment:
 
 ```bash
 $ helm uninstall my-release
@@ -73,29 +73,30 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.dataSource.provider | Defines data provider | `redis_data_provider` |
 | routr.dataSource.parameters | Data Source Parameters | `host=redis-master-0,port=6379` |
 | routr.bindAddr | Default stack IP address  | OS Choice |
-| routr.externAddr | IP address to advertise | |
-| routr.localnets | Local networks. Use in combination with `routr.externAddr` | OS Choice |
+| routr.externAddr | IP address to advertise. Typically a LoadBalancer's public IP | "" |
+| routr.localnets | Local networks. Use in combination with `routr.externAddr` | "" |
 | routr.recordRoute | Stay within the signaling path | `false` |
 | routr.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register | `External` |
-| routr.accessControlList.deny.[*] | Deny incoming traffic from network list |  |
-| routr.accessControlList.allow.[*] | Allow incoming traffic from network list |  |
-| routr.restService.bindAddr | Restful service listening address | OS choice |
+| routr.accessControlList.deny.[*] | Deny incoming traffic from network list | `[]` |
+| routr.accessControlList.allow.[*] | Allow incoming traffic from network list | `[]` |
+| routr.restService.bindAddr | Restful service listening address | `0.0.0.0` |
 | routr.restService.port | Restful service port | `4567` |
 | routr.restService.minThreads | Minimum thread allocation | `8` |
 | routr.restService.maxThreads | Maximum thread allocation | `200` |
 | routr.restService.timeOutMillis | Will reject requests that last more than this value | `5000` (5 seconds) |
 | routr.restService.unsecured | Disabled https for restful calls | `false` |
-| routr.restService.keyStore | Path to keyStore |  |
-| routr.restService.trueStore | Path to trueStore |  |
-| routr.restService.keyStorePassword | Password for keyStore | |
-| routr.restService.trueStorePassword | Password for trueStore |  |
-| routr.securityContext.keyStore | Path to keyStore  | |
-| routr.securityContext.trustStore | Path to trueStore  |  |
-| routr.securityContext.keyStorePassword | Password for keyStore  |  |
-| routr.securityContext.keyStoreType | KeyStore type  |  |
-| routr.securityContext.client.authType | Type of client authentication. See https://goo.gl/1vKbXW for more options | `Disabled` |
+| routr.restService.keyStore | Path to keyStore | `/opt/routr/etc/certs/api-cert.jks` |
+| routr.restService.trueStore | Path to trueStore | `/opt/routr/etc/certs/api-cert.jks` |
+| routr.restService.keyStorePassword | Password for keyStore | `changeit` |
+| routr.restService.trueStorePassword | Password for trueStore | `changeit` |
+| routr.securityContext.keyStore | Path to keyStore  | `/opt/routr/etc/certs/domain-cert.jks` |
+| routr.securityContext.trustStore | Path to trueStore  | `/opt/routr/etc/certs/domain-cert.jks` |
+| routr.securityContext.keyStorePassword | Password for keyStore  | `changeit` |
+| routr.securityContext.keyStoreType | KeyStore type  | `jks` |
+| routr.securityContext.client.authType | Type of client authentication. See https://goo.gl/1vKbXW for more options | `DisabledAll` |
 | routr.securityContext.client.protocols.[*] | Accepted tls protocols | [`TLSv1.2`, `TLSv1.1`, `TLSv1`] |
 | routr.securityContext.debugging | Turns ON or OFF ssl debugging | `false` |
+| routr.ex_kafka.debugging | Turns ON or OFF ssl debugging | `false` |
 
 ## Redis Configuration
 
