@@ -3,8 +3,11 @@ name: routr-server
 description: Next-generation SIP Server
 type: application
 version: 0.0.4
-appVersion: 1.0.0-edge-20200625
+appVersion: 1.0.0-edge-20200627
 dependencies:
   - name: redis
     version: 10.6.18
     repository: https://charts.bitnami.com/bitnami
+sources:
+  - https://github.com/fonoster/routr
+icon: https://routr.io/site_assets/images/logo.png
