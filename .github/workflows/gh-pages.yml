@@ -1,4 +1,4 @@
-name: Publish to GH Pages
+name: publish to gh pages
 on:
   push:
     paths:
