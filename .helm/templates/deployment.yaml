@@ -29,24 +29,30 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
       - name: routr
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        image: "{{ .Values.routr.image.repository }}:{{ .Values.routr.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.routr.image.pullPolicy }}
         env:
-        - name: ROUTR_DS_PROVIDER
-          value: {{ .Values.config.dataSource.provider }}
-        - name: ROUTR_DS_PARAMETERS
+        - name: DATA_SOURCE_PROVIDER
+          value: {{ .Values.routr.dataSource.provider }}
+        - name: DATA_SOURCE_PARAMETERS
           # TODO: Change attempt to take this value directly from subchart
-          value: {{ .Values.config.dataSource.parameters | quote }}
+          value: {{ .Values.routr.dataSource.parameters | quote }}
           # TODO: Fix hardcode
-        - name: ROUTR_EXTERN_ADDR
-          value: {{ .Values.config.externAddr | quote }}
+        - name: EXTERN_ADDR
+          value: {{ .Values.routr.externAddr | quote }}
         ports:
-        {{- range .Values.service.ports }}
-        {{- if .enabled }}
+        - name: {{ .Values.routr.adminService.name }}
+          containerPort: {{ .Values.routr.adminService.containerPort | default .Values.routr.adminService.port }}
+          protocol: TCP
+        {{- if eq .Values.routr.udpSignalingService.enabled true }}
+        - name: {{ .Values.routr.udpSignalingService.name }}
+          containerPort: {{ .Values.routr.udpSignalingService.containerPort | default .Values.routr.udpSignalingService.port }}
+          protocol: UDP
+        {{- end }}
+        {{- range .Values.routr.tcpSignalingService.ports }}
         - name: {{ .name }}
           containerPort: {{ .containerPort | default .port }}
-          protocol: {{ .protocol | default `TCP` }}
-        {{- end }}
+          protocol: TCP
         {{- end }}
         volumeMounts:
         - name: log4j2

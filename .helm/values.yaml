@@ -1,44 +1,71 @@
-image:
-  repository: fonoster/routr
-  pullPolicy: Always
-  tag: ""
-
-config:
+routr:
+  image:
+    repository: fonoster/routr
+    pullPolicy: Always
+    tag: ""
+  adminService:
+    enabled: true
+    name: api
+    type: ClusterIP
+    port: 4567
+  udpSignalingService:
+    enabled: false
+    name: udp-signaling
+    type: ClusterIP
+    port: 5060
+    externalTrafficPolicy: Local
+  tcpSignalingService:
+    enabled: true
+    name: tcp-signaling
+    type: ClusterIP
+    ports:
+    - name: siptcp
+      port: 5060
+    externalTrafficPolicy: Local
+  userAgent: Routr v1.0
+  bindAddr: ""
+  externAddr: ""
+  localnets: ""
+  recordRoute: false
   useToAsAOR: false
   registrarIntf: External
-  ex_kafkaPublisher:
-    topic: sip-registrations
-    host: kafka-routr:9092
-  dataSource:
+  accessControlList:
+    deny: []
+    allow: []
+  dataSource:   # Review this
     provider: redis_data_provider
     parameters: host=routr-redis-master,port=6379
+  restService:
+    bindAddr: 0.0.0.0
+    port: 4567
+    minThreads: 8
+    maxThreads: 200
+    timeoutMillis: 5000
+    unsecured: false
+    keyStore: ""
+    trustStore: ""
+    keyStorePassword: ""
+    trustStorePassword: ""
+  securityContext:
+    keyStore: ""
+    trustStore: ""
+    keyStorePassword: ""
+    debugging: false
+    client:
+      keyStoreType: "jks"
+      protocols: [TLSv1.2, TLSv1.1, TLSv1]
+  logLevel: info
+  ex_kafkaPublisher:
+    enabled: false
+    topic: sip-registrations
+    host: kafka-routr:9092
 
-log4j2:
-  level: info
+redis:
+  usePassword: false
+  cluster:
+    enabled: false
 
-service:
-  type: NodePort
-  ports:
-  - port: 4567
-    name: https
-    enabled: true
-  - port: 5060
-    name: siptcp
-    enabled: true
-  - port: 5060
-    name: sipudp
-    protocol: UDP
-    enabled: false
-  - port: 5061
-    name: siptls
-    enabled: false
-  - port: 5062
-    name: sipws
-    enabled: false
-  - port: 5063
-    name: sipwss
-    enabled: false
-  externalTrafficPolicy: Local
+# Omiting this for now
 
 replicaCount: 1
 imagePullSecrets: []
@@ -57,8 +84,3 @@ autoscaling:
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
-
-redis:
-  usePassword: false
-  cluster:
-    enabled: false
