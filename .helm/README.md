@@ -71,7 +71,7 @@ The following tables lists the configurable parameters of the Routr chart and th
 | --- | --- | --- |
 | routr.userAgent| Sets sip header `User-Agent` to the desired value | `Routr v1.0` |
 | routr.dataSource.provider | Defines data provider | `redis_data_provider` |
-| routr.dataSource.parameters | Data Source Parameters | `host=redis-master-0,port=6379` |
+| routr.dataSource.parameters | Data Source Parameters | `host=routr-redis-master-0,port=6379` |
 | routr.bindAddr | Default stack IP address  | "" |
 | routr.externAddr | IP address to advertise. Typically a LoadBalancer's public IP | "" |
 | routr.localnets | Local networks. Use in combination with `routr.externAddr` | "" |
@@ -96,7 +96,6 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.securityContext.client.authType | Type of client authentication. See https://goo.gl/1vKbXW for more options | `DisabledAll` |
 | routr.securityContext.client.protocols.[*] | Accepted TLS protocols | [`TLSv1.2`, `TLSv1.1`, `TLSv1`] |
 | routr.securityContext.debugging | Turns ON or OFF ssl debugging | `false` |
-| routr.ex_kafka.debugging | Turns ON or OFF ssl debugging | `false` |
 
 ## Redis Configuration
 
@@ -118,6 +117,10 @@ redis:
     mountPath: /bitnami/redis
     size: 20Gi
 ```    
+
+## Persistance
+
+Coming Soon...
 
 ## TLS Certificates
 
