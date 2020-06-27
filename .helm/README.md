@@ -1,0 +1,143 @@
+# Routr Server
+
+Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators.
+
+Website: https://routr.io
+
+## TL;DR;
+
+```bash
+$ helm repo add routr https://routr.io/charts
+$ helm repo update
+$ helm install routr routr/routr-server
+```
+
+**Note**: `routr` is your release name.
+
+## Introduction
+
+This chart bootstraps an [Routr Server](https://routr.io) deployment on a [Kubernetes](http://kubernetes.io/) cluster using the [Helm](https://helm.sh/) package manager.
+
+## Prerequisites
+
+- Kubernetes 1.12+
+- Helm 2.11+ or Helm 3.0-beta3+
+- PV provisioner support in the underlying infrastructure
+
+## Add this Helm repository to your Helm client
+
+```bash
+helm repo add routr https://routr.io/charts
+```
+
+## Installing the Chart
+
+To install the chart with the release name my-release:
+
+```bash
+$ kubectl create namespace routr
+$ helm install my-release routr/routr-server -n routr
+```
+
+The command deploys Routr Server in the `default` namespace on the Kubernetes cluster in the default configuration.
+
+It is recommended to use the a namespace for easy upgrades.
+
+The [configuration](https://hub.helm.sh/#configuration) section lists the parameters that can be configured during installation.
+
+## Update Strategies
+
+Coming Soon...
+
+## Uninstalling the Chart
+
+To uninstall/delete the my-release deployment:
+
+```bash
+$ helm uninstall my-release
+```
+
+The command removes all the Kubernetes components associated with the chart and deletes the release.
+
+## Changelog
+
+Notable chart changes are listed in the [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG.md)
+
+## Routr Configuration
+
+The following tables lists the configurable parameters of the Routr chart and their default values.
+
+| Parameter | Description | Default |
+| --- | --- | --- |
+| routr.userAgent| Sets sip header `User-Agent` to the desired value | Routr v1.0 |
+| routr.dataSource.provider | Defines data provider | `redis_data_provider` |
+| routr.dataSource.parameters | Data Source Parameters | `host=redis-master-0,port=6379` |
+| routr.bindAddr | Default stack IP address  | OS Choice |
+| routr.externAddr | IP address to advertise | |
+| routr.localnets | Local networks. Use in combination with `routr.externAddr` | OS Choice |
+| routr.recordRoute | Stay within the signaling path | `false` |
+| routr.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register | `External` |
+| routr.accessControlList.deny.[*] | Deny incoming traffic from network list |  |
+| routr.accessControlList.allow.[*] | Allow incoming traffic from network list |  |
+| routr.restService.bindAddr | Restful service listening address | OS choice |
+| routr.restService.port | Restful service port | `4567` |
+| routr.restService.minThreads | Minimum thread allocation | `8` |
+| routr.restService.maxThreads | Maximum thread allocation | `200` |
+| routr.restService.timeOutMillis | Will reject requests that last more than this value | `5000` (5 seconds) |
+| routr.restService.unsecured | Disabled https for restful calls | `false` |
+| routr.restService.keyStore | Path to keyStore |  |
+| routr.restService.trueStore | Path to trueStore |  |
+| routr.restService.keyStorePassword | Password for keyStore | |
+| routr.restService.trueStorePassword | Password for trueStore |  |
+| routr.securityContext.keyStore | Path to keyStore  | |
+| routr.securityContext.trustStore | Path to trueStore  |  |
+| routr.securityContext.keyStorePassword | Password for keyStore  |  |
+| routr.securityContext.keyStoreType | KeyStore type  |  |
+| routr.securityContext.client.authType | Type of client authentication. See https://goo.gl/1vKbXW for more options | `Disabled` |
+| routr.securityContext.client.protocols.[*] | Accepted tls protocols | [`TLSv1.2`, `TLSv1.1`, `TLSv1`] |
+| routr.securityContext.debugging | Turns ON or OFF ssl debugging | `false` |
+
+## Redis Configuration
+
+This is taken from Bitnami Helm Chart. Please refer to https://bitnami.com/stack/redis/helm
+
+```
+redis:
+  redisPort: 6379
+  image:
+    registry: docker.io
+    repository: bitnami/redis
+    tag: latest
+    pullPolicy: Always
+  usePassword: false
+  cluster:
+    enabled: false  
+  persistence:
+    enabled: true
+    mountPath: /bitnami/redis
+    size: 20Gi
+```    
+
+## TLS Certificates
+
+Coming Soon...
+
+## Security
+
+Coming Soon...
+
+## Specifying Values
+
+Specify each parameter using the --set key=value[,key=value] argument to helm install. For example,
+
+```bash
+$ helm install --wait my-release \
+    --set service.type=LoadBalancer \
+    routr/routr-server
+```
+
+Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart. For example,
+
+```bash
+$ helm install --wait my-release -f values.yaml routr/routr-server
+```
