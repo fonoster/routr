@@ -72,47 +72,45 @@ The following table lists the configurable parameters of the Routr chart and the
 | routr.image.repository | Docker image for Routr | `fonoster/routr`|
 | routr.image.tag | Docker image tag | "" |
 | routr.image.pullPolicy | Pull policy for the image | `Always` |
-| routr.adminService.enabled | Enable or disable admin service | `true` |
-| routr.adminService.type | Admin service type | `ClusterIP` |
-| routr.adminService.port | Admin service port | `4567` |
-| routr.adminService.containerPort | Admin service port | `routr.adminService.port` |
-| routr.udpSignalingService.enabled | Enable disable signaling Service | `true` |
-| routr.udpSignalingService.type | Type for signaling `UDP` signaling Service | `ClusterIP` |
-| routr.udpSignalingService.name | Name for `UDP` signaling service | <DEPLOYMENT>-udp-signaling |
-| routr.udpSignalingService.port | Port for `UDP` signaling service | `5060` |
-| routr.udpSignalingService.containerPort | Port for `UDP` signaling service | "" |
-| routr.tcpSignalingService.enabled | Enable disable signaling Service | `true` |
-| routr.tcpSignalingService.type | Type for signaling `TCP` signaling Service | `ClusterIP` |
-| routr.tcpSignalingService.name | Name for `TCP` signaling service | <DEPLOYMENT>-tcp-signaling |
-| routr.tcpSignalingService.ports | Ports for `TCP` signaling service | `[{name: siptcp, port: 5060}]` |
-| routr.udpSignalingService.ports.[*].containerPort | Port for `TCP` signaling service | "" |
+| routr.adminService.enabled | Enable or disable Service | `true` |
+| routr.adminService.type | Service type | `ClusterIP` |
+| routr.adminService.port | Service port | `4567` |
+| routr.udpSignalingService.enabled | Enable disable or signaling UDP Service | `true` |
+| routr.udpSignalingService.type | Type for UDP signaling Service | `ClusterIP` |
+| routr.udpSignalingService.name | Name for UDP signaling Service | `<DEPLOYMENT>-udp-signaling` |
+| routr.udpSignalingService.port | Port for UDP signaling Service | `5060` |
 | routr.udpSignalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
+| routr.tcpSignalingService.enabled | Enable disable signaling Service | `true` |
+| routr.tcpSignalingService.type | Type for TCP signaling Service | `ClusterIP` |
+| routr.tcpSignalingService.name | Name for TCP signaling service | `<DEPLOYMENT>-tcp-signaling` |
+| routr.tcpSignalingService.ports | Ports for TCP signaling Service | `[{name: siptcp, port: 5060}]` |
+| routr.tcpSignalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
 | routr.userAgent| Sets sip header `User-Agent` to the desired value | `Routr v<VERSION>` |
 | routr.bindAddr | Default stack IP address  | "" |
 | routr.externAddr | IP address to advertise. Typically a LoadBalancer's public IP | "" |
 | routr.localnets | Local networks in CIDR format. Use in combination with `routr.externAddr` | [] |
 | routr.recordRoute | Stay within the signaling path | `false` |
-| routr.useToAsAOR | Uses the header `To`, instead of `Request-URI`, to locate endopoints | `false` |
+| routr.useToAsAOR | Uses the `To` header, instead of `Request-URI`, to locate endpoints | `false` |
 | routr.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register | `External` |
-| routr.accessControlList.deny | Deny incoming traffic from network list. Must have valid CIDR values | [] |
-| routr.accessControlList.allow | Allow incoming traffic from network list. Must have valid CIDR values | [] |
+| routr.accessControlList.deny | Deny incoming traffic from network list. Must be valid CIDR values | [] |
+| routr.accessControlList.allow | Allow incoming traffic from network list. Must be valid CIDR values | [] |
 | routr.restService.bindAddr | Restful service listening address | `0.0.0.0` |
 | routr.restService.port | Restful service port | `4567` |
 | routr.restService.minThreads | Minimum thread allocation | `8` |
 | routr.restService.maxThreads | Maximum thread allocation | `200` |
 | routr.restService.timeoutMillis | Will reject requests that last more than this value | `5000` (5 seconds) |
-| routr.restService.unsecured | Disabled https for restful calls | `false` |
+| routr.restService.unsecured | Disabled https for restful calls. Not recommended in production | `false` |
 | routr.restService.keyStore | Path to keyStore | `/opt/routr/etc/certs/api-cert.jks` |
 | routr.restService.trueStore | Path to trueStore | `/opt/routr/etc/certs/api-cert.jks` |
 | routr.restService.keyStorePassword | Password for keyStore | `changeit` |
 | routr.restService.trueStorePassword | Password for trueStore | `changeit` |
-| routr.securityContext.keyStore | Path to keyStore  | `/opt/routr/etc/certs/domain-cert.jks` |
-| routr.securityContext.trustStore | Path to trueStore  | `/opt/routr/etc/certs/domain-cert.jks` |
-| routr.securityContext.keyStorePassword | Password for keyStore  | `changeit` |
-| routr.securityContext.keyStoreType | KeyStore type  | `jks` |
+| routr.securityContext.keyStore | Path to keyStore | `/opt/routr/etc/certs/domain-cert.jks` |
+| routr.securityContext.trustStore | Path to trueStore | `/opt/routr/etc/certs/domain-cert.jks` |
+| routr.securityContext.keyStorePassword | Password for keyStore | `changeit` |
+| routr.securityContext.keyStoreType | KeyStore type | `jks` |
 | routr.securityContext.client.authType | Type of client authentication. See https://goo.gl/1vKbXW for more options | `DisabledAll` |
-| routr.securityContext.client.protocols.[*] | Accepted TLS protocols | [`TLSv1.2`, `TLSv1.1`, `TLSv1`] |
-| routr.securityContext.debugging | Turns ON or OFF ssl debugging | `false` |
+| routr.securityContext.client.protocols.[*] | Accepted TLS protocols |`[TLSv1.2, TLSv1.1, TLSv1]` |
+| routr.securityContext.debugging | Turns `ON` or `OFF` SSL debugging | `false` |
 | routr.logLevel | Routr's logging level  | `info` |
 
 ## Persistence
