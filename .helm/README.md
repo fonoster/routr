@@ -7,9 +7,9 @@ Website: https://routr.io
 ## TL;DR;
 
 ```bash
-$ helm repo add routr https://routr.io/charts
+$ helm repo add fonoster https://routr.io/charts
 $ helm repo update
-$ helm install routr routr/routr-server
+$ helm install routr fonoster/routr
 ```
 
 **Note**: `routr` is your release name.
@@ -36,7 +36,7 @@ To install the chart with the release name my-release:
 
 ```bash
 $ kubectl create namespace routr
-$ helm install my-release routr/routr-server -n routr
+$ helm install my-release fonoster/routr --namespace routr
 ```
 
 The command deploys Routr Server in the `default` namespace on the Kubernetes cluster in the default configuration.
@@ -63,7 +63,7 @@ The command removes all the Kubernetes components associated with the chart and 
 
 Notable chart changes are listed in the [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG.md)
 
-## Routr Configuration
+## Configuration
 
 The following tables lists the configurable parameters of the Routr chart and their default values.
 
@@ -75,20 +75,27 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.adminService.enabled | Enable or disable admin service | `true` |
 | routr.adminService.type | Admin service type | `ClusterIP` |
 | routr.adminService.port | Admin service port | `4567` |
-| routr.signalingService.enabled | Enable disable signaling service | `true` |
-| routr.signalingService.type | Signaling service type | `ClusterIP` | 
-| routr.signalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
+| routr.adminService.containerPort | Admin service port | `routr.adminService.port` |
+| routr.udpSignalingService.enabled | Enable disable signaling Service | `true` |
+| routr.udpSignalingService.type | Type for signaling `UDP` signaling Service | `ClusterIP` |
+| routr.udpSignalingService.name | Name for `UDP` signaling service | <DEPLOYMENT>-udp-signaling |
+| routr.udpSignalingService.port | Port for `UDP` signaling service | `5060` |
+| routr.udpSignalingService.containerPort | Port for `UDP` signaling service | "" |
+| routr.tcpSignalingService.enabled | Enable disable signaling Service | `true` |
+| routr.tcpSignalingService.type | Type for signaling `TCP` signaling Service | `ClusterIP` |
+| routr.tcpSignalingService.name | Name for `TCP` signaling service | <DEPLOYMENT>-tcp-signaling |
+| routr.tcpSignalingService.ports | Ports for `TCP` signaling service | `[{name: siptcp, port: 5060}]` |
+| routr.udpSignalingService.ports.[*].containerPort | Port for `TCP` signaling service | "" |
+| routr.udpSignalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
 | routr.userAgent| Sets sip header `User-Agent` to the desired value | `Routr v<VERSION>` |
-| routr.dataSource.provider | Defines data provider | `redis_data_provider` |
-| routr.dataSource.parameters | Data Source Parameters | `host=routr-redis-master-0,port=6379` |
 | routr.bindAddr | Default stack IP address  | "" |
 | routr.externAddr | IP address to advertise. Typically a LoadBalancer's public IP | "" |
-| routr.localnets | Local networks. Use in combination with `routr.externAddr` | "" |
+| routr.localnets | Local networks in CIDR format. Use in combination with `routr.externAddr` | [] |
 | routr.recordRoute | Stay within the signaling path | `false` |
 | routr.useToAsAOR | Uses the header `To`, instead of `Request-URI`, to locate endopoints | `false` |
 | routr.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register | `External` |
-| routr.accessControlList.deny.[*] | Deny incoming traffic from network list | `[]` |
-| routr.accessControlList.allow.[*] | Allow incoming traffic from network list | `[]` |
+| routr.accessControlList.deny | Deny incoming traffic from network list. Must have valid CIDR values | [] |
+| routr.accessControlList.allow | Allow incoming traffic from network list. Must have valid CIDR values | [] |
 | routr.restService.bindAddr | Restful service listening address | `0.0.0.0` |
 | routr.restService.port | Restful service port | `4567` |
 | routr.restService.minThreads | Minimum thread allocation | `8` |
@@ -106,28 +113,7 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.securityContext.client.authType | Type of client authentication. See https://goo.gl/1vKbXW for more options | `DisabledAll` |
 | routr.securityContext.client.protocols.[*] | Accepted TLS protocols | [`TLSv1.2`, `TLSv1.1`, `TLSv1`] |
 | routr.securityContext.debugging | Turns ON or OFF ssl debugging | `false` |
-| routr.logLevel |  | `warn` |
-
-## Redis Configuration
-
-This is taken from Bitnami Helm Chart. Please refer to https://bitnami.com/stack/redis/helm
-
-```
-redis:
-  redisPort: 6379
-  image:
-    registry: docker.io
-    repository: bitnami/redis
-    tag: latest
-    pullPolicy: Always
-  usePassword: false
-  cluster:
-    enabled: false  
-  persistence:
-    enabled: true
-    mountPath: /bitnami/redis
-    size: 20Gi
-```    
+| routr.logLevel | Routr's logging level  | `info` |
 
 ## Persistance
 

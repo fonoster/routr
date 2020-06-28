@@ -9,7 +9,7 @@ routr:
     type: ClusterIP
     port: 4567
   udpSignalingService:
-    enabled: false
+    enabled: true
     name: udp-signaling
     type: ClusterIP
     port: 5060
@@ -22,19 +22,16 @@ routr:
     - name: siptcp
       port: 5060
     externalTrafficPolicy: Local
-  userAgent: Routr v1.0
+  userAgent: ""
   bindAddr: ""
   externAddr: ""
-  localnets: ""
+  localnets: []
   recordRoute: false
   useToAsAOR: false
   registrarIntf: External
   accessControlList:
     deny: []
     allow: []
-  dataSource:   # Review this
-    provider: redis_data_provider
-    parameters: host=routr-redis-master,port=6379
   restService:
     bindAddr: 0.0.0.0
     port: 4567
@@ -52,11 +49,10 @@ routr:
     keyStorePassword: ""
     debugging: false
     client:
-      keyStoreType: "jks"
-      protocols: [TLSv1.2, TLSv1.1, TLSv1]
+      keyStoreType: jks
+      protocols: [TLSv1.2,TLSv1.1,TLSv1]
   logLevel: info
   ex_kafkaPublisher:
-    enabled: false
     topic: sip-registrations
     host: kafka-routr:9092
 
