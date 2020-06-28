@@ -10,18 +10,18 @@ routr:
     port: 4567
   udpSignalingService:
     enabled: true
+    externalTrafficPolicy: Local
     name: sipudp
     type: ClusterIP
     port: 5060
-    externalTrafficPolicy: Local
   tcpSignalingService:
     enabled: true
-    name: tcp-signaling
+    externalTrafficPolicy: Local
+    name: siptcp
     type: ClusterIP
     ports:
     - name: siptcp
       port: 5060
-    externalTrafficPolicy: Local
   userAgent: ""
   bindAddr: ""
   externAddr: ""
