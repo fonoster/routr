@@ -133,8 +133,8 @@ Specify each parameter using the --set key=value[,key=value] argument to helm in
 
 ```bash
 $ helm install --wait my-release \
-    --set service.type=LoadBalancer \
-    routr/routr
+  --set routr.logLevel=debug \
+  routr/routr
 ```
 
 Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart. For example,
