@@ -10,7 +10,7 @@ routr:
     port: 4567
   udpSignalingService:
     enabled: true
-    name: udp-signaling
+    name: sipudp
     type: ClusterIP
     port: 5060
     externalTrafficPolicy: Local
