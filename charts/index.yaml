@@ -3,13 +3,13 @@ entries:
   routr:
   - apiVersion: v2
     appVersion: 1.0.0-edge
-    created: "2020-06-27T21:40:16.965246-04:00"
+    created: "2020-06-27T21:53:09.424725-04:00"
     dependencies:
     - name: redis
       repository: https://charts.bitnami.com/bitnami
       version: 10.6.18
     description: Next-generation SIP Server
-    digest: 598a2dbc8ddd823099c5d71357eaad50c95d1cd6c1c9541d3f64caec79428361
+    digest: 572456148b97770511e72455498b23e6c1ae2cebaed843e545639b652b6505f6
     icon: https://routr.io/site_assets/images/avatar.png
     keywords:
     - routr
@@ -35,4 +35,4 @@ entries:
     urls:
     - routr-0.0.5.tgz
     version: 0.0.5
-generated: "2020-06-27T21:40:16.954442-04:00"
+generated: "2020-06-27T21:53:09.415875-04:00"
