@@ -41,13 +41,13 @@ $ helm install my-release routr/routr --namespace routr
 
 The command deploys Routr Server in the `default` namespace on the Kubernetes cluster in the default configuration.
 
-It is recommended to use the a namespace for easy upgrades.
+We recommend using a namespace for easy upgrades.
 
 The [configuration](https://hub.helm.sh/#configuration) section lists the parameters that can be configured during installation.
 
 ## Update Strategies
 
-Coming Soon...
+Coming Soon.
 
 ## Uninstalling the Chart
 
@@ -57,15 +57,15 @@ To uninstall/delete the `my-release` deployment:
 $ helm uninstall my-release
 ```
 
-The command removes all the Kubernetes components associated with the chart and deletes the release.
+The command removes all the Kubernetes components associated with the chart and eliminates the release.
 
 ## Changelog
 
-Notable chart changes are listed in the [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG.md)
+The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG.md) provides notable changes on the chart.
 
 ## Configuration
 
-The following tables lists the configurable parameters of the Routr chart and their default values.
+The following table lists the configurable parameters of the Routr chart and their default values.
 
 | Parameter | Description | Default |
 | --- | --- | --- |
@@ -115,17 +115,17 @@ The following tables lists the configurable parameters of the Routr chart and th
 | routr.securityContext.debugging | Turns ON or OFF ssl debugging | `false` |
 | routr.logLevel | Routr's logging level  | `info` |
 
-## Persistance
+## Persistence
 
-Coming Soon...
+Coming Soon.
 
 ## TLS Certificates
 
-Coming Soon...
+Coming Soon.
 
 ## Security
 
-Coming Soon...
+Coming Soon.
 
 ## Specifying Values
 
@@ -137,7 +137,7 @@ $ helm install --wait my-release \
   routr/routr
 ```
 
-Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart. For example,
+Alternatively, you can provide a YAML file that specifies the above parameters' values while installing the chart. For example:
 
 ```bash
 $ helm install --wait my-release -f values.yaml routr/routr
