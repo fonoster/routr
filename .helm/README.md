@@ -74,16 +74,16 @@ The following table lists the configurable parameters of the Routr chart and the
 | routr.image.pullPolicy | Pull policy for the image | `Always` |
 | routr.adminService.enabled | Enable or disable Service | `true` |
 | routr.adminService.type | Type of Service| `ClusterIP` |
-| routr.adminService.name | Service name | `<DEPLOYMENT NAME>-api` |
+| routr.adminService.name | Service name | `<RELEASE>-api` |
 | routr.adminService.port | Service port | `4567` |
 | routr.udpSignalingService.enabled | Enable disable or signaling UDP Service | `true` |
 | routr.udpSignalingService.type | Type for UDP signaling Service | `ClusterIP` |
-| routr.udpSignalingService.name | Name for UDP signaling Service | `<DEPLOYMENT NAME>-udp-signaling` |
+| routr.udpSignalingService.name | Name for UDP signaling Service | `<RELEASE>-udp-signaling` |
 | routr.udpSignalingService.port | Port for UDP signaling Service | `5060` |
 | routr.udpSignalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
 | routr.tcpSignalingService.enabled | Enable disable signaling Service | `true` |
 | routr.tcpSignalingService.type | Type for TCP signaling Service | `ClusterIP` |
-| routr.tcpSignalingService.name | Name for TCP signaling service | `<DEPLOYMENT NAME>-tcp-signaling` |
+| routr.tcpSignalingService.name | Name for TCP signaling service | `<RELEASE>-tcp-signaling` |
 | routr.tcpSignalingService.ports | Ports for TCP signaling Service | `[{name: siptcp, port: 5060}]` |
 | routr.tcpSignalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
 | routr.userAgent| Sets sip header `User-Agent` to the desired value | `Routr v<VERSION>` |
