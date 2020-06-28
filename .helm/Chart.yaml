@@ -10,7 +10,7 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
 sources:
   - https://github.com/fonoster/routr
-icon: https://routr.io/site_assets/images/logo.png
+icon: https://routr.io/site_assets/images/avatar.png
 keywords: [routr, sip, voip, webrtc, ims, proxy, registrar, asterisk, kamailio, freepbx, yate, freeswitch, fusionpbx, server]
 maintainers:
   - name: psanders
