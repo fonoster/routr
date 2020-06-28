@@ -36,7 +36,7 @@ To install the chart with the release name my-release:
 
 ```bash
 $ kubectl create namespace routr
-$ helm install my-release fonoster/routr --namespace routr
+$ helm install my-release routr/routr --namespace routr
 ```
 
 The command deploys Routr Server in the `default` namespace on the Kubernetes cluster in the default configuration.
