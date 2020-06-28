@@ -20,8 +20,8 @@ This chart bootstraps an [Routr Server](https://routr.io) deployment on a [Kuber
 
 ## Prerequisites
 
-- Kubernetes 1.12+
-- Helm 2.11+ or Helm 3.0-beta3+
+- Kubernetes 1.16+
+- Helm 3.0-beta3+
 - PV provisioner support in the underlying infrastructure
 
 ## Add this Helm repository to your Helm client
