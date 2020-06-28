@@ -1,21 +1,38 @@
 apiVersion: v1
 entries:
-  routr-server:
+  routr:
   - apiVersion: v2
-    appVersion: 1.0.0-edge-20200627
-    created: "2020-06-27T10:33:07.252272-04:00"
+    appVersion: 1.0.0-edge
+    created: "2020-06-27T20:49:50.16108-04:00"
     dependencies:
     - name: redis
       repository: https://charts.bitnami.com/bitnami
       version: 10.6.18
     description: Next-generation SIP Server
-    digest: 910978b7f9e21321f57e9e45dfa8f919b10f85cc521e98ff4dd9d6cf85898185
+    digest: 02cf31689a56b2b342a1f9d017bb19bff575d23148dd4d4f7b8d8a4f26ea968d
     icon: https://routr.io/site_assets/images/logo.png
-    name: routr-server
+    keywords:
+    - routr
+    - sip
+    - voip
+    - webrtc
+    - ims
+    - proxy
+    - registrar
+    - asterisk
+    - kamailio
+    - freepbx
+    - yate
+    - freeswitch
+    - fusionpbx
+    - server
+    maintainers:
+    - name: psanders
+    name: routr
     sources:
     - https://github.com/fonoster/routr
     type: application
     urls:
-    - routr-server-0.0.4.tgz
-    version: 0.0.4
-generated: "2020-06-27T10:33:07.232361-04:00"
+    - routr-0.0.5.tgz
+    version: 0.0.5
+generated: "2020-06-27T20:49:50.149451-04:00"
