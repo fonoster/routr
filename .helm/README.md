@@ -7,9 +7,9 @@ Website: https://routr.io
 ## TL;DR;
 
 ```bash
-$ helm repo add fonoster https://routr.io/charts
+$ helm repo add routr https://routr.io/charts
 $ helm repo update
-$ helm install routr fonoster/routr
+$ helm install routr routr/routr
 ```
 
 **Note**: `routr` is your release name.
