@@ -44,7 +44,10 @@ const LOG = LogManager.getLogger()
 class Rest {
   constructor () {
     this.store = new StoreAPI(SDSelector.getDriver())
-    this.grpc = new GRPCClient('localhost', config.spec.grpcService.port)
+    this.grpc = new GRPCClient(
+      'localhost',
+      parseInt(config.spec.grpcService.port)
+    )
 
     LOG.info(
       `Starting Restful service (port: ${
@@ -54,9 +57,9 @@ class Rest {
 
     Spark.ipAddress(config.spec.restService.bindAddr)
     Spark.threadPool(
-      config.spec.restService.maxThreads,
-      config.spec.restService.minThreads,
-      config.spec.restService.timeoutMillis
+      parseInt(config.spec.restService.maxThreads),
+      parseInt(config.spec.restService.minThreads),
+      parseInt(config.spec.restService.timeoutMillis)
     )
 
     if (!config.spec.restService.unsecured) {
@@ -68,7 +71,7 @@ class Rest {
       )
     }
 
-    Spark.port(config.spec.restService.port)
+    Spark.port(parseInt(config.spec.restService.port))
 
     Spark.initExceptionHandler(e => {
       LOG.fatal(`Unable to start restService: ${e.message}`)

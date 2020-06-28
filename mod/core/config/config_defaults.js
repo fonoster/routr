@@ -27,6 +27,8 @@ module.exports = upSince => {
       restService: {
         keyStore: 'etc/certs/api-cert.jks',
         keyStorePassword: 'changeit',
+        trustStore: 'etc/certs/api-cert.jks',
+        trustStorePassword: 'changeit',
         unsecured: false,
         bindAddr: '0.0.0.0',
         port: 4567,
