@@ -41,4 +41,4 @@ The following is a list of third-party companies and individuals who provide pro
 
 Routr was developed initially by [Pedro Sanders](https://github.com/psanders). [Fonoster](https://fonoster.com) sponsored the majority of its development.
 
-Pedro Sanders contributed the Routr's logo.
+Pedro Sanders contributed Routr's logo.
