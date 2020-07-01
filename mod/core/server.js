@@ -2,7 +2,6 @@
  * @author Pedro Sanders
  * @since v1
  */
-const Publisher = require('@routr/publisher/publisher')
 const UsersAPI = require('@routr/data_api/users_api')
 const AgentsAPI = require('@routr/data_api/agents_api')
 const DomainsAPI = require('@routr/data_api/domains_api')
@@ -51,19 +50,6 @@ class Server {
 
     this.dataAPIs = dataAPIs
     this.locator = new Locator()
-
-    if (config.spec.ex_kafkaPublisher) {
-      LOG.info(
-        `Kafka event publisher initialized [host ${
-          config.spec.ex_kafkaPublisher.host
-        }, topic: ${config.spec.ex_kafkaPublisher.topic}]`
-      )
-
-      new Publisher(
-        config.spec.ex_kafkaPublisher.host,
-        config.spec.ex_kafkaPublisher.topic
-      ).init()
-    }
   }
 
   buildSipProvider (sipStack, transport) {

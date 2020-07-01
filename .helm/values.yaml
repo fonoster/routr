@@ -52,9 +52,6 @@ routr:
       keyStoreType: jks
       protocols: [TLSv1.2,TLSv1.1,TLSv1]
   logLevel: info
-  ex_kafkaPublisher:
-    topic: sip-registrations
-    host: kafka-routr:9092
 
 redis:
   usePassword: false

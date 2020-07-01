@@ -26,13 +26,6 @@
             "spec": {
                 "type": "object",
                 "properties": {
-                    "ex_restRegistration": {
-                        "type": "object",
-                        "properties": {
-                            "endpoint": {"type": "string", "minLength": 1}
-                        },
-                        "required": ["endpoint"]
-                    },
                     "context": {
                         "type": "object",
                         "properties": {
