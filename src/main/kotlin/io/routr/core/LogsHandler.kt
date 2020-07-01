@@ -33,7 +33,7 @@ class LogsHandler {
     fun message(session: Session, message: String) {
         var br: BufferedReader? = null
         try {
-            val base = if (System.getenv("ROUTR_DATA") != null) System.getenv("ROUTR_DATA") else "."
+            val base = if (System.getenv("DATA") != null) System.getenv("DATA") else "."
             val file = File("$base/logs/routr.log")
             br = BufferedReader(FileReader(file))
             while (true) {

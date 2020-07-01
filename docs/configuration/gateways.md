@@ -1,6 +1,6 @@
 Use the Gateway resource to register with a SIP Gateways or SBCs and send or receive calls from the PSTN.
 
-The Gateways configuration can be provided using the file `config/gateways.yml`. The file located at the root of your Routr installation, or as defined in the environmental variable `ROUTR_CONFIG_FILE.`
+The Gateways configuration can be provided using the file `config/gateways.yml`. The file is located at the root of your Routr installation, or as defined in the environment variable `CONFIG_FILE.`
 
 > If using Redis this configuration gets stored in the database.
 

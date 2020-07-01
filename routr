@@ -2,34 +2,34 @@
 
 set -e
 
-ROUTR_HOME="$(cd "$(dirname "$0")"; pwd)"
+HOME="$(cd "$(dirname "$0")"; pwd)"
 RESTART_CODE=123
 
-[ -d "$ROUTR_HOME/jre" ] && JAVA_HOME=$ROUTR_HOME/jre
-[ -z "$ROUTR_LOG4J2" ] && ROUTR_LOG4J2=config/log4j2.yml
-[ -z "$ROUTR_DATA" ] && ROUTR_DATA=$ROUTR_HOME
+[ -d "$HOME/jre" ] && JAVA_HOME=$HOME/jre
+[ -z "$LOG4J2" ] && LOG4J2=config/log4j2.yml
+[ -z "$DATA" ] && DATA=$HOME
 
 run() {
-    cd $ROUTR_HOME
+    cd $HOME
     $JAVA_HOME/bin/java \
-    -DROUTR_DATA=$ROUTR_DATA \
-    -Dlog4j.configurationFile=$ROUTR_LOG4J2 \
+    -DDATA=$DATA \
+    -Dlog4j.configurationFile=$LOG4J2 \
     -Dgraal.TruffleFunctionInlining=false \
     -Dgraal.CompilationFailureAction=Silent \
     -Dpolyglot.js.experimental-foreign-object-prototype=true \
     -Dpolyglot.js.nashorn-compat=true \
     -Dnashorn.args="--no-deprecation-warning" \
-    $ROUTR_JAVA_OPTS \
-    -classpath "$ROUTR_HOME/libs/*" \
+    $JAVA_OPTS \
+    -classpath "$HOME/libs/*" \
     io.routr.core.Launcher
     return $?
 }
 
 if [ -f /.dockerenv ]; then
     DOCKER_HOST=$(ip -4 addr show eth0 | grep -Po 'inet \K[\d.]+')
-    #[ -z "$ROUTR_EXTERN_ADDR" ] && { echo "Must define environment variable ROUTR_EXTERN_ADDR when running inside a container"; exit 1; }
-    [ -z "$ROUTR_LOCALNETS" ] && export ROUTR_LOCALNETS=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}')
-    [ -z "$ROUTR_BIND_ADDR" ] && export ROUTR_BIND_ADDR=$DOCKER_HOST
+    #[ -z "$EXTERN_ADDR" ] && { echo "Must define environment variable EXTERN_ADDR when running inside a container"; exit 1; }
+    [ -z "$LOCALNETS" ] && export LOCALNETS=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}')
+    [ -z "$BIND_ADDR" ] && export BIND_ADDR=$DOCKER_HOST
 fi
 
 [ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment. Please setup the JAVA_HOME environment variable"; exit 1; }

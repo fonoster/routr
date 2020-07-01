@@ -8,8 +8,8 @@ data:
     apiVersion: v1beta1
     spec:
       ex_kafkaPublisher:
-        topic: sip-registrations
-        host: kafka-routr:9092
+        topic: {{ .Values.routr.ex_kafkaPublisher.topic }}
+        host: {{ .Values.routr.ex_kafkaPublisher.host }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -40,7 +40,7 @@ data:
               max: 10
       Loggers:
         Root:
-          level: {{ .Values.log4j2.level }}
+          level: {{ .Values.routr.logLevel }}
           AppenderRef:
           - ref: Console
           - ref: LogToRollingFile

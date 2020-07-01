@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include ".helm2.fullname" . }}
@@ -29,23 +29,77 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
       - name: routr
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        image: "{{ .Values.routr.image.repository }}:{{ .Values.routr.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.routr.image.pullPolicy }}
         env:
-        - name: ROUTR_DS_PROVIDER
-          value: {{ .Values.config.datasource.provider | default "redis_data_provider" }}
-        - name: ROUTR_DS_PARAMETERS
-          # TODO: Change attempt to take this value directly from subchart
-          value: {{ .Values.config.datasource.parameters | quote }}
-          # TODO: Fix hardcode
-        - name: ROUTR_EXTERN_ADDR
-          value: {{ .Values.config.externAddr | quote }}
+        - name: DATA_SOURCE_PROVIDER
+          value: redis_data_provider
+        - name: DATA_SOURCE_PARAMETERS
+          value: host={{ .Release.Name }}-redis-master,port=6379
+        - name: EXTERN_ADDR
+          value: {{ .Values.routr.externAddr | quote }}
+        - name: LOCALNETS
+          value: {{ join ","  .Values.routr.localnets }}
+        - name: USER_AGENT
+          value: {{ .Values.routr.userAgent | quote }}
+        - name: BIND_ADDR
+          value: {{ .Values.routr.bindAddr | quote }}
+        - name: RECORD_ROUTE
+          value: {{ .Values.routr.recordRoute | quote}}
+        - name: USE_TO_AS_AOR
+          value: {{ .Values.routr.useToAsAOR | quote}}
+        - name: REGISTRAR_INTF
+          value: {{ .Values.routr.registrarIntf | quote}}
+        - name: ACCESS_CONTROL_LIST_ALLOW
+          value: {{ join "," .Values.routr.accessControlList.allow }}
+        - name: ACCESS_CONTROL_LIST_DENY
+          value: {{ join "," .Values.routr.accessControlList.deny }}
+        - name: REST_SERVICE_BIND_ADDR
+          value: {{ .Values.routr.restService.bindAddr | quote}}
+        - name: REST_SERVICE_PORT
+          value: {{ .Values.routr.restService.port | quote}}
+        - name: REST_SERVICE_MIN_THREADS
+          value: {{ .Values.routr.restService.minThreads | quote}}
+        - name: REST_SERVICE_MAX_THREADS
+          value: {{ .Values.routr.restService.maxThreads | quote}}
+        - name: REST_SERVICE_TIMEOUT_MILLIS
+          value: {{ .Values.routr.restService.timeoutMillis | quote}}
+        - name: REST_SERVICE_UNSECURED
+          value: {{ .Values.routr.restService.unsecured | quote }}
+        - name: REST_SERVICE_KEY_STORE
+          value: {{ .Values.routr.restService.keyStore | quote}}
+        - name: REST_SERVICE_KEY_STORE_PASSWORD
+          value: {{ .Values.routr.restService.keyStorePassword | quote}}
+        - name: REST_SERVICE_TRUST_STORE
+          value: {{ .Values.routr.restService.trustStore | quote}}
+        - name: REST_SERVICE_TRUST_STORE_PASSWORD
+          value: {{ .Values.routr.restService.trustStorePassword | quote}}
+        - name: SECURITY_CONTEXT_KEY_STORE
+          value: {{ .Values.routr.securityContext.keyStore | quote}}
+        - name: SECURITY_CONTEXT_TRUST_STORE
+          value: {{ .Values.routr.securityContext.trustStore | quote}}
+        - name: SECURITY_CONTEXT_KEY_STORE_PASSWORD
+          value: {{ .Values.routr.securityContext.keyStorePassword | quote}}
+        - name: SECURITY_CONTEXT_DEBUGGING
+          value: {{ .Values.routr.securityContext.debugging | quote}}
+        - name: SECURITY_CONTEXT_CLIENT_KEY_STORE_TYPE
+          value: {{ .Values.routr.securityContext.client.keyStoreType | quote}}
+        - name: SECURITY_CONTEXT_CLIENT_PROTOCOLS
+          value: {{ join "," .Values.routr.securityContext.client.protocols }}
         ports:
-        {{- range .Values.service.ports }}
-        {{- if .enabled }}
+        - name: {{ .Values.routr.adminService.name }}
+          containerPort: {{ .Values.routr.adminService.containerPort | default .Values.routr.adminService.port }}
+          protocol: TCP
+        {{- if eq .Values.routr.udpSignalingService.enabled true }}
+        - name: {{ .Values.routr.udpSignalingService.name }}
+          containerPort: {{ .Values.routr.udpSignalingService.containerPort | default .Values.routr.udpSignalingService.port }}
+          protocol: UDP
+        {{- end }}
+        {{- if eq .Values.routr.tcpSignalingService.enabled true }}
+        {{- range .Values.routr.tcpSignalingService.ports }}
         - name: {{ .name }}
           containerPort: {{ .containerPort | default .port }}
-          protocol: {{ .protocol | default `TCP` }}
+          protocol: TCP
         {{- end }}
         {{- end }}
         volumeMounts:

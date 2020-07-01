@@ -1,23 +1,64 @@
+{{- if eq .Values.routr.adminService.enabled true }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include ".helm2.fullname" . }}
+  name: {{ include ".helm2.fullname" . }}-{{ .Values.routr.adminService.name }}
   labels:
     {{- include ".helm2.labels" . | nindent 4 }}
   namespace: {{ .Release.Namespace }}
 spec:
-  type: {{ .Values.service.type }}
-  {{- if ne .Values.service.type "ClusterIP" }}
-  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
-  {{- end }}
+  type: {{ .Values.routr.adminService.type }}
   ports:
-  {{- range .Values.service.ports }}
-  {{- if eq .enabled true }}
+  - name: {{ .Values.routr.adminService.name }}
+    port: {{ .Values.routr.adminService.port }}
+    targetPort: {{ .Values.routr.adminService.containerPort | default .Values.routr.adminService.port }}
+  selector:
+    {{- include ".helm2.selectorLabels" . | nindent 4 }}
+{{- end }}
+
+{{- if eq .Values.routr.udpSignalingService.enabled true }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include ".helm2.fullname" . }}-{{ .Values.routr.udpSignalingService.name }}
+  labels:
+    {{- include ".helm2.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: {{ .Values.routr.udpSignalingService.type }}
+  {{- if ne .Values.routr.udpSignalingService.type "ClusterIP" }}
+  externalTrafficPolicy: {{ .Values.routr.udpSignalingService.externalTrafficPolicy }}
+  {{- end}}
+  ports:
+  - name: {{ .Values.routr.udpSignalingService.name }}
+    port: {{ .Values.routr.udpSignalingService.port }}
+    protocol: UDP
+    #targetPort: {{ .Values.routr.udpSignalingService.containerPort | default .Values.routr.udpSignalingService.port }}
+  selector:
+    {{- include ".helm2.selectorLabels" . | nindent 4 }}
+{{- end }}
+
+{{- if eq .Values.routr.tcpSignalingService.enabled true }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include ".helm2.fullname" . }}-{{ .Values.routr.tcpSignalingService.name }}
+  labels:
+    {{- include ".helm2.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: {{ .Values.routr.tcpSignalingService.type }}
+  {{- if ne .Values.routr.tcpSignalingService.type "ClusterIP" }}
+  externalTrafficPolicy: {{ .Values.routr.tcpSignalingService.externalTrafficPolicy }}
+  {{- end}}
+  ports:
+  {{- range .Values.routr.tcpSignalingService.ports }}
   - name: {{ .name }}
     port: {{ .port }}
-    protocol: {{ .protocol | default `TCP` }}
-    targetPort: {{ .targetPort | default .port }}
-  {{- end }}
+    #targetPort: {{ .containerPort | default .port }}
   {{- end }}
   selector:
     {{- include ".helm2.selectorLabels" . | nindent 4 }}
+{{- end }}

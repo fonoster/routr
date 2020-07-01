@@ -38,12 +38,12 @@ class FilesDataSource {
       .expireAfterWrite(60, TimeUnit.MINUTES)
       .build()
 
-    if (System.getenv('ROUTR_DS_PARAMETERS') !== null) {
+    if (System.getenv('DATA_SOURCE_PARAMETERS')) {
       config.spec.dataSource.parameters = {}
-      const key = System.getenv('ROUTR_DS_PARAMETERS').split('=')[0]
+      const key = System.getenv('DATA_SOURCE_PARAMETERS').split('=')[0]
       if (key === 'path') {
         config.spec.dataSource.parameters.path = System.getenv(
-          'ROUTR_DS_PARAMETERS'
+          'DATA_SOURCE_PARAMETERS'
         ).split('=')[1]
       }
     }

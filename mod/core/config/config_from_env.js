@@ -1,56 +1,97 @@
 const System = Java.type('java.lang.System')
+const flat = require('flat')
+const unflatten = require('flat').unflatten
+const parseBoolean = v => v != null && v.toLowerCase() === 'true'
+
+const envsMap = new Map()
+envsMap.set('USER_AGENT', 'metadata.userAgent')
+envsMap.set('DATA_SOURCE_PROVIDER', 'spec.dataSource.provider')
+envsMap.set('DATA_SOURCE_PARAMETERS', 'spec.dataSource.parameters')
+envsMap.set('BIND_ADDR', 'spec.bindAddr')
+envsMap.set('EXTERN_ADDR', 'spec.externAddr')
+envsMap.set('RECORD_ROUTE', 'spec.recordRoute')
+envsMap.set('REGISTRAR_INTF', 'spec.registrarIntf')
+envsMap.set('USE_TO_AS_AOR', 'spec.useToAsAOR')
+envsMap.set('ACCESS_CONTROL_LIST_DENY', 'spec.accessControlList.deny')
+envsMap.set('ACCESS_CONTROL_LIST_ALLOW', 'spec.accessControlList.allow')
+envsMap.set('REST_SERVICE_BIND_ADDR', 'spec.restService.bindAddr')
+envsMap.set('REST_SERVICE_PORT', 'spec.restService.port')
+envsMap.set('REST_SERVICE_MIN_THREADS', 'spec.restService.minThreads')
+envsMap.set('REST_SERVICE_MAX_THREADS', 'spec.restService.maxThreads')
+envsMap.set('REST_SERVICE_TIMEOUT_MILLIS', 'spec.restService.timeoutMillis')
+envsMap.set('REST_SERVICE_UNSECURED', 'spec.restService.unsecured')
+envsMap.set('REST_SERVICE_KEY_STORE', 'spec.restService.keyStore')
+envsMap.set(
+  'REST_SERVICE_KEY_STORE_PASSWORD',
+  'spec.restService.keyStorePassword'
+)
+envsMap.set('REST_SERVICE_TRUST_STORE', 'spec.restService.trustStore')
+envsMap.set(
+  'REST_SERVICE_TRUST_STORE_PASSWORD',
+  'spec.restService.trustStorePassword'
+)
+envsMap.set('SECURITY_CONTEXT_KEY_STORE', 'spec.securityContext.keyStore')
+envsMap.set(
+  'SECURITY_CONTEXT_KEY_STORE_PASSWORD',
+  'spec.securityContext.keyStorePassword'
+)
+envsMap.set('SECURITY_CONTEXT_TRUST_STORE', 'spec.securityContext.trustStore')
+envsMap.set(
+  'SECURITY_CONTEXT_KEY_STORE_TYPE',
+  'spec.securityContext.keyStoreType'
+)
+envsMap.set(
+  'SECURITY_CONTEXT_CLIENT_AUTH_TYPE',
+  'spec.securityContext.client.authType'
+)
+envsMap.set('SECURITY_CONTEXT_DEBUGGING', 'spec.securityContext.debugging')
+envsMap.set('LOG4J', '')
+envsMap.set('CONFIG_FILE', '')
+envsMap.set('SALT', '')
+envsMap.set('SALT_FILE', '')
+
+const boolVals = [
+  'SECURITY_CONTEXT_DEBUGGING',
+  'RECORD_ROUTE',
+  'USE_TO_AS_AOR',
+  'REST_SERVICE_UNSECURED'
+]
+
+// spec.transport.[*].bindAddr	Overwrites spec.bindAddr for transport entry	No
+// spec.transport.[*].port	Transport port	Yes
+// spec.transport.[*].protocol	Valid values are: tcp, udp, tls, sctp, ws, wss	Yes
 
 module.exports.getConfig = () => {
-  const config = {
+  let config = {
     system: {
-      env: [
-        { var: 'ROUTR_JAVA_OPTS', value: System.getenv('ROUTR_JAVA_OPTS') },
-        { var: 'ROUTR_DS_PROVIDER', value: System.getenv('ROUTR_DS_PROVIDER') },
-        {
-          var: 'ROUTR_DS_PARAMETERS',
-          value: System.getenv('ROUTR_DS_PARAMETERS')
-        },
-        {
-          var: 'ROUTR_CONFIG_FILE',
-          value: System.getenv('ROUTR_CONFIG_FILE')
-        },
-        {
-          var: 'ROUTR_SALT',
-          value: System.getenv('ROUTR_SALT')
-        },
-        {
-          var: 'ROUTR_EXTERN_ADDR',
-          value: System.getenv('ROUTR_EXTERN_ADDR')
-        },
-        {
-          var: 'ROUTR_LOCALNETS',
-          value: System.getenv('ROUTR_LOCALNETS')
-        },
-        {
-          var: 'ROUTR_REGISTRAR_INTF',
-          value: System.getenv('ROUTR_REGISTRAR_INTF')
-        },
-        {
-          var: 'ROUTR_BIND_ADDR',
-          value: System.getenv('ROUTR_BIND_ADDR')
-        }
-      ]
+      env: Array.from(envsMap, ([key, value]) => {
+        var a = {}
+        a.var = key
+        a.value = System.getenv(key)
+        if (a.value) return a
+      })
     },
     spec: {
       dataSource: {}
     }
   }
 
-  if (System.getenv('ROUTR_DS_PROVIDER'))
-    config.spec.dataSource.provider = System.getenv('ROUTR_DS_PROVIDER')
-  if (System.getenv('ROUTR_REGISTRAR_INTF'))
-    config.spec.registrarIntf = System.getenv('ROUTR_REGISTRAR_INTF')
-  if (System.getenv('ROUTR_LOCALNETS'))
-    config.spec.localnets = System.getenv('ROUTR_LOCALNETS').split(',')
-  if (System.getenv('ROUTR_EXTERN_ADDR'))
-    config.spec.externAddr = System.getenv('ROUTR_EXTERN_ADDR')
-  if (System.getenv('ROUTR_BIND_ADDR'))
-    config.spec.bindAddr = System.getenv('ROUTR_BIND_ADDR')
+  const flatConfig = flat(config)
+  const keys = Array.from(envsMap, ([key]) => key)
 
-  return config
+  keys.forEach(key => {
+    const env = boolVals.includes(key)
+      ? parseBoolean(System.getenv(key))
+      : System.getenv(key)
+    if (env && envsMap.get(key)) flatConfig[envsMap.get(key)] = env
+  })
+
+  if (System.getenv('LOCALNETS'))
+    flatConfig['spec.localnets'] = System.getenv('LOCALNETS').split(',')
+  if (System.getenv('SECURITY_CONTEXT_CLIENT_PROTOCOLS'))
+    flatConfig['spec.securityContext.client.protocols'] = System.getenv(
+      'SECURITY_CONTEXT_CLIENT_PROTOCOLS'
+    ).split(',')
+
+  return unflatten(flatConfig)
 }

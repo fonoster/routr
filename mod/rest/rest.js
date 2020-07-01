@@ -44,7 +44,10 @@ const LOG = LogManager.getLogger()
 class Rest {
   constructor () {
     this.store = new StoreAPI(SDSelector.getDriver())
-    this.grpc = new GRPCClient('localhost', config.spec.grpcService.port)
+    this.grpc = new GRPCClient(
+      'localhost',
+      parseInt(config.spec.grpcService.port)
+    )
 
     LOG.info(
       `Starting Restful service (port: ${
@@ -54,9 +57,9 @@ class Rest {
 
     Spark.ipAddress(config.spec.restService.bindAddr)
     Spark.threadPool(
-      config.spec.restService.maxThreads,
-      config.spec.restService.minThreads,
-      config.spec.restService.timeOutMillis
+      parseInt(config.spec.restService.maxThreads),
+      parseInt(config.spec.restService.minThreads),
+      parseInt(config.spec.restService.timeoutMillis)
     )
 
     if (!config.spec.restService.unsecured) {
@@ -68,7 +71,7 @@ class Rest {
       )
     }
 
-    Spark.port(config.spec.restService.port)
+    Spark.port(parseInt(config.spec.restService.port))
 
     Spark.initExceptionHandler(e => {
       LOG.fatal(`Unable to start restService: ${e.message}`)
@@ -153,7 +156,7 @@ class Rest {
       )
 
       get('/system/logs', (req, res) => {
-        const home = System.getenv('ROUTR_DATA') || '.'
+        const home = System.getenv('DATA') || '.'
         return JSON.stringify(
           CoreUtils.buildResponse(
             Status.OK,
@@ -169,9 +172,11 @@ class Rest {
 
       get('/system/config', (req, res) => {
         const result = CoreUtils.buildResponse(Status.OK, null, config)
-        delete result.data.system
-        delete result.data.salt
-        return JSON.stringify(result)
+        // Clonning obj
+        const r = JSON.parse(JSON.stringify(result))
+        delete r.data.system
+        delete r.data.salt
+        return JSON.stringify(r)
       })
 
       put('/system/config', (req, res) => {
