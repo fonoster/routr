@@ -1,4 +1,4 @@
-name: Publish to Snapcraft marketplace
+name: publish to snapcraft marketplace
 on:
   release:
     types: [published]
