@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-4.4.0">
     
     
       
@@ -1887,22 +1887,22 @@
                 <p>The <code>rctl</code> is a command-line interface for running commands against a Routr server. This overview covers <code>rctl</code> syntax, describes the command operations and provides common examples. For details about each command, including all the supported flags and subcommands, see the reference documentation below. This tool ships separately from the Routr server.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <p>To get the Routr Command-Line Tool run the following command:</p>
-<div class="codehilite"><pre><span></span>npm install -g routr-ctl
-</pre></div>
+<div class="highlight"><pre><span></span><code>npm install -g routr-ctl
+</code></pre></div>
 
 <p>The command-line tool is now globally accessible.</p>
 <h2 id="login-to-a-routr-server">Login to a Routr server<a class="headerlink" href="#login-to-a-routr-server" title="Permanent link">&para;</a></h2>
 <p>To login to a Routr server, use the login command.</p>
-<div class="codehilite"><pre><span></span>rctl login https://127.0.0.1:4567/api/<span class="o">{</span>apiVersion<span class="o">}</span> -u admin -p changeit
-</pre></div>
+<div class="highlight"><pre><span></span><code>rctl login https://127.0.0.1:4567/api/<span class="o">{</span>apiVersion<span class="o">}</span> -u admin -p changeit
+</code></pre></div>
 
 <blockquote>
 <p>The current API version is v1beta1</p>
 </blockquote>
 <h2 id="syntax">Syntax<a class="headerlink" href="#syntax" title="Permanent link">&para;</a></h2>
 <p>Use the following syntax to run <code>rctl</code> commands from your terminal window:</p>
-<div class="codehilite"><pre><span></span>rctl COMMAND [REF] [flags]
-</pre></div>
+<div class="highlight"><pre><span></span><code>rctl COMMAND [REF] [flags]
+</code></pre></div>
 
 <p>where <code>COMMAND</code>, <code>subcommand</code> <code>REF</code>, and <code>flags</code> are:</p>
 <ul>
@@ -1913,10 +1913,10 @@
 <p><code>subcommand</code>: Specifies the resource type. Resource types are case-sensitive, and you can specify the singular, plural, or abbreviated forms. For example, the following commands produce the same output:</p>
 </li>
 </ul>
-<div class="codehilite"><pre><span></span>  $ rctl get gateway gweef506
+<div class="highlight"><pre><span></span><code>  $ rctl get gateway gweef506
   $ rctl get gateways gweef506
   $ rctl get gw gweef506
-</pre></div>
+</code></pre></div>
 
 <ul>
 <li>
@@ -1928,12 +1928,12 @@
 </ul>
 <p>The --filter flag uses <a href="https://github.com/json-path/JsonPath">JsonPath</a> to perform the filtering. The root is always '$'.
 All you need to add is the path to the property and the filter operators. For example:</p>
-<div class="codehilite"><pre><span></span># This returns all the Numbers in Gateway &#39;gweef506&#39;
+<div class="highlight"><pre><span></span><code># This returns all the Numbers in Gateway &#39;gweef506&#39;
 rctl get numbers --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;    
-</pre></div>
+</code></pre></div>
 
 <p>If you need help, just run <code>rctl --help</code> from the terminal window.</p>
-<div class="codehilite"><pre><span></span>$ rctl --help
+<div class="highlight"><pre><span></span><code>$ rctl --help
 usage: rctl [-h] [-v] COMMAND ...
 
 A tool for the management of a Routr instance
@@ -1961,7 +1961,7 @@ Commands:
     config               manage routr configuration
 
 Run &#39;rctl COMMAND --help&#39; for more information on a command
-</pre></div>
+</code></pre></div>
 
 <blockquote>
 <p>Important: Some commands (i.e.: create, delete) are not available in the default implementation of the <code>resources</code> modules. Only persistent implementations support these commands.</p>
@@ -1969,17 +1969,17 @@ Run &#39;rctl COMMAND --help&#39; for more information on a command
 <h3 id="examples-common-operations">Examples: Common operations<a class="headerlink" href="#examples-common-operations" title="Permanent link">&para;</a></h3>
 <p>Use the following set of examples to help you familiarize yourself with running the commonly used <code>rctl</code> operations:</p>
 <p><code>rctl locate</code> or <code>rctl loc</code> - Locate a sip device registered on the Routr server</p>
-<div class="codehilite"><pre><span></span>// Locate all Sip Devices registered against a Routr server
+<div class="highlight"><pre><span></span><code>// Locate all Sip Devices registered against a Routr server
 $ rctl loc
-</pre></div>
+</code></pre></div>
 
 <p><code>rctl registry</code> or <code>rctl reg</code> - Shows Gateways current registration.</p>
-<div class="codehilite"><pre><span></span>// Shows the registry
+<div class="highlight"><pre><span></span><code>// Shows the registry
 $ rctl reg
-</pre></div>
+</code></pre></div>
 
 <p><code>rctl get</code> - List one or more resources.</p>
-<div class="codehilite"><pre><span></span>// List all numbers
+<div class="highlight"><pre><span></span><code>// List all numbers
 $ rctl get numbers
 
 // List all numbers that belong to gateway reference gweef506
@@ -1990,63 +1990,63 @@ $ rctl get numbers dd50baa4
 
 // List all agents
 $ rctl get agents
-</pre></div>
+</code></pre></div>
 
 <p><code>rctl create</code> - create a new resource.</p>
-<div class="codehilite"><pre><span></span>// Create a new gateway(s) using a .yaml or .yml file
+<div class="highlight"><pre><span></span><code>// Create a new gateway(s) using a .yaml or .yml file
 $ rctl create -f new-gateway.yaml
-</pre></div>
+</code></pre></div>
 
 <p><code>rctl apply</code> - update an existing resource(s)</p>
-<div class="codehilite"><pre><span></span>// Update an existing resource(s) .yaml or .yml.
+<div class="highlight"><pre><span></span><code>// Update an existing resource(s) .yaml or .yml.
 $ rctl apply -f new-gateway.yaml
-</pre></div>
+</code></pre></div>
 
 <p><code>rctl delete</code> - delete a resource.</p>
-<div class="codehilite"><pre><span></span>// Delete all numbers for gateway reference gweef506
+<div class="highlight"><pre><span></span><code>// Delete all numbers for gateway reference gweef506
 $ rctl delete numbers --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;
 
 // Delete a single agent (using delete alias)
 $ rctl del agent ag3f77f6
-</pre></div>
+</code></pre></div>
 
 <h2 id="cheat-sheet">Cheat Sheet<a class="headerlink" href="#cheat-sheet" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>Create, delete, and update are only available in some implementations of the <code>resources</code> module.</p>
 </blockquote>
 <h3 id="request-and-store-token">Request and store token<a class="headerlink" href="#request-and-store-token" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># Request authentication for subsequent commands
+<div class="highlight"><pre><span></span><code># Request authentication for subsequent commands
 $ rctl login https://127.0.0.1:4567/api/{apiVersion} -u admin -p changeit
-</pre></div>
+</code></pre></div>
 
 <h3 id="clear-out-the-session-credentials">Clear out the session credentials<a class="headerlink" href="#clear-out-the-session-credentials" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># Clear session credentials
+<div class="highlight"><pre><span></span><code># Clear session credentials
 $ rctl logout
-</pre></div>
+</code></pre></div>
 
 <h3 id="launch-the-web-console">Launch the Web Console<a class="headerlink" href="#launch-the-web-console" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># The Web Console re-uses the credentials of your Command-Line Tool
+<div class="highlight"><pre><span></span><code># The Web Console re-uses the credentials of your Command-Line Tool
 rctl proxy
-</pre></div>
+</code></pre></div>
 
 <h3 id="showing-the-registry">Showing the Registry<a class="headerlink" href="#showing-the-registry" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># Shows all the Gateways that are currently available
+<div class="highlight"><pre><span></span><code># Shows all the Gateways that are currently available
 $ rctl registry                                       # Shows only current registrations. You may use `reg` for short
-</pre></div>
+</code></pre></div>
 
 <h3 id="locating-sip-devices">Locating SIP Devices<a class="headerlink" href="#locating-sip-devices" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># Find all sip devices available at the location service
+<div class="highlight"><pre><span></span><code># Find all sip devices available at the location service
 $ rctl locate                                         # This list does not include number-ingress-routes or domain-egress-routes
-</pre></div>
+</code></pre></div>
 
 <h3 id="creating-resources">Creating Resources<a class="headerlink" href="#creating-resources" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># Create new peers and agents
+<div class="highlight"><pre><span></span><code># Create new peers and agents
 $ rctl create -f asterisk.yaml                        # Create Peer in file asterisk.yaml
 $ rctl create -f agents-list.yaml                     # Create Agents in file agents-list.yaml
-</pre></div>
+</code></pre></div>
 
 <h3 id="finding-resources">Finding Resources<a class="headerlink" href="#finding-resources" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># Get Numbers
+<div class="highlight"><pre><span></span><code># Get Numbers
 $ rctl get numbers                                          # List all available Numbers
 $ rctl get number                                          # List all available Numbers
 $ rctl get number --filter &quot;@.metadata.ref==&#39;dd50baa4&#39;&quot;     # Shows Number with reference &#39;Number0001&#39;
@@ -2054,48 +2054,48 @@ $ rctl get number --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;   # 
 
 # Get agents
 $ rctl get agents                                        # List all Agents
-</pre></div>
+</code></pre></div>
 
 <h3 id="deleting-resources">Deleting Resources<a class="headerlink" href="#deleting-resources" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># Delete command by refernce or filter
+<div class="highlight"><pre><span></span><code># Delete command by refernce or filter
 $ rctl delete agent ag3f77f6                             # Delete Agent by reference
 $ rctl del numbers --filter &#39;@.metadata.gwRef=gweef506&#39;     # Delete Numbers using a filter
-</pre></div>
+</code></pre></div>
 
 <h3 id="updating-resources">Updating Resources<a class="headerlink" href="#updating-resources" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span>$ rctl apply -f asterisk.yaml                         # Create Peer in file asterisk.yaml
+<div class="highlight"><pre><span></span><code>$ rctl apply -f asterisk.yaml                         # Create Peer in file asterisk.yaml
 $ rctl apply -f agents-list.yaml                      # Create Agents in file agents-list.yaml
-</pre></div>
+</code></pre></div>
 
 <h3 id="dump-all-available-logs">Dump all available logs<a class="headerlink" href="#dump-all-available-logs" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span>$ rctl logs
-</pre></div>
+<div class="highlight"><pre><span></span><code>$ rctl logs
+</code></pre></div>
 
 <h3 id="restart-the-engine">Restart the engine<a class="headerlink" href="#restart-the-engine" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># To restart the engine immediately use the --now flag
+<div class="highlight"><pre><span></span><code># To restart the engine immediately use the --now flag
 $ rctl restart --now
-</pre></div>
+</code></pre></div>
 
 <h3 id="stop-the-engine">Stop the engine<a class="headerlink" href="#stop-the-engine" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># To stop the engine immediately use the --now flag
+<div class="highlight"><pre><span></span><code># To stop the engine immediately use the --now flag
 $ rctl restart --now
-</pre></div>
+</code></pre></div>
 
 <h3 id="check-the-engine-status">Check the engine status<a class="headerlink" href="#check-the-engine-status" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span>$ rctl ping
-</pre></div>
+<div class="highlight"><pre><span></span><code>$ rctl ping
+</code></pre></div>
 
 <h3 id="display-version-information">Display version information<a class="headerlink" href="#display-version-information" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span>$ rctl ver
-</pre></div>
+<div class="highlight"><pre><span></span><code>$ rctl ver
+</code></pre></div>
 
 <h3 id="manage-general-configuration">Manage general configuration<a class="headerlink" href="#manage-general-configuration" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span># To update configuration use the apply subommand
+<div class="highlight"><pre><span></span><code># To update configuration use the apply subommand
 $ rctl config apply -f /path/to/config.yml
 
 # To see the configuration use the describe subcommand
 $ rctl config describe --full
-</pre></div>
+</code></pre></div>
                 
                   
                 
@@ -2210,7 +2210,7 @@ $ rctl config describe --full
     
       <script src="../../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.0.4",url:{base:"../../.."}})</script>
+      <script>app.initialize({version:"1.1.2",url:{base:"../../.."}})</script>
       
     
   </body>

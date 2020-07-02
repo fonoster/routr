@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-4.4.0">
     
     
       
@@ -1643,7 +1643,7 @@ outgoing calling. The domains configuration can be provided using the file <code
 </tr>
 <tr>
 <td>spec.context.egressPolicy.rule</td>
-<td>Regular expression indicating when a call will be routed via $spec.context.egressPolicy.numberRef</td>
+<td>Regular expression indicating when a call will be routed via <code>spec.context.egressPolicy.numberRef</code></td>
 <td>No</td>
 </tr>
 <tr>
@@ -1670,7 +1670,7 @@ outgoing calling. The domains configuration can be provided using the file <code
 <li>192.168.0.1/31</li>
 </ul>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
-<div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
   <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Domain</span>
   <span class="nt">metadata</span><span class="p">:</span>
     <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Local Server</span>
@@ -1683,7 +1683,7 @@ outgoing calling. The domains configuration can be provided using the file <code
       <span class="nt">accessControlList</span><span class="p">:</span>
         <span class="nt">deny</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">0.0.0.0/1</span><span class="p p-Indicator">]</span>     <span class="c1"># Deny all</span>
         <span class="nt">allow</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">192.168.0.1/31</span><span class="p p-Indicator">]</span>
-</pre></div>
+</code></pre></div>
                 
                   
                 
@@ -1798,7 +1798,7 @@ outgoing calling. The domains configuration can be provided using the file <code
     
       <script src="../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.0.4",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.1.2",url:{base:"../.."}})</script>
       
     
   </body>

@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-4.4.0">
     
     
       
@@ -1742,7 +1742,7 @@
 <p>A set of sample configuration covering this scenario is available in the Github <a href="https://github.com/fonoster/routr/tree/master/config">repo</a>. You might overwrite the files in the <code>config</code> folder if you wish to skip this section.</p>
 <h3 id="configuring-the-gateway">Configuring the Gateway<a class="headerlink" href="#configuring-the-gateway" title="Permanent link">&para;</a></h3>
 <p>To configure the Gateway, you must consult your SIP provider and obtain the credentials and <code>registration host</code>. The key fields for the configuration are <code>metadata.ref</code>, <code>spec.regService.host</code> and <code>spec.regService.credentials</code>. Here is an example:</p>
-<div class="codehilite"><pre><span></span>- apiVersion: v1beta1
+<div class="highlight"><pre><span></span><code>- apiVersion: v1beta1
   kind: Gateway
   metadata:
     name: Provider Inc
@@ -1752,11 +1752,11 @@
       username: &#39;youruser&#39;
       secret: &#39;yoursecret&#39;
     transport: udp
-</pre></div>
+</code></pre></div>
 
 <h3 id="configuring-the-number">Configuring the Number<a class="headerlink" href="#configuring-the-number" title="Permanent link">&para;</a></h3>
 <p>To configure your Number or virtual number, you must open and edit the file <code>config/numbers.yml</code>. Notice in the example below, how your reference the Gateway by using the field <code>metadata.geRef</code>. The key field while configuring Numbers are <code>spec.location.telUrl</code> and <code>spec.location.aorLink</code>. Keep in mind that the value in <code>spec.location.telUrl</code> must be formatted, precisely, as sent by the provider.</p>
-<div class="codehilite"><pre><span></span>- apiVersion: v1beta1
+<div class="highlight"><pre><span></span><code>- apiVersion: v1beta1
   kind: Number
   metadata:
     gwRef: gweef506
@@ -1768,11 +1768,11 @@
     location:
       telUrl: &#39;tel:17066041487&#39;
       aorLink: &#39;sip:1001@sip.local&#39;
-</pre></div>
+</code></pre></div>
 
 <h3 id="creating-a-new-domain-and-egresspolicy">Creating a new Domain and EgressPolicy<a class="headerlink" href="#creating-a-new-domain-and-egresspolicy" title="Permanent link">&para;</a></h3>
 <p><strong>Routr</strong> is a Domain centric SIP Server. A Domain is used to group several Agents in the same context. The Domain URI can be an arbitrary name, but we recommend using a fully qualified domain name (FQDN). You also need to configure an <em>EgressPolicy</em> to allow calls outside the Domain. Here is how the file <code>config/domains.yml</code> needs to look like:</p>
-<div class="codehilite"><pre><span></span>- apiVersion: v1beta1
+<div class="highlight"><pre><span></span><code>- apiVersion: v1beta1
   kind: Domain
   metadata:
     name: Local Office
@@ -1782,12 +1782,12 @@
       egressPolicy:
         rule: .*
         numberRef: dd50baa4
-</pre></div>
+</code></pre></div>
 
 <h3 id="creating-the-agents">Creating the Agents<a class="headerlink" href="#creating-the-agents" title="Permanent link">&para;</a></h3>
 <p>We now create the Agents <code>1001</code> and <code>1002</code>. Keep in mind that field <code>spec.credentials.username</code> can be alphanumeric, so <code>john</code> or <code>john001</code> is also acceptable.</p>
 <p>Pay close attention to the credentials block since it contains the username and secret for both Agents.</p>
-<div class="codehilite"><pre><span></span>- apiVersion: v1beta1
+<div class="highlight"><pre><span></span><code>- apiVersion: v1beta1
   kind: Agent
   metadata:
     name: John Doe
@@ -1805,7 +1805,7 @@
       username: &#39;1002&#39;
       secret: &#39;1234&#39;
     domains: [sip.local]
-</pre></div>
+</code></pre></div>
 
 <p>To verify your configuration, start the server by issuing the command <code>routr</code>. In a separate window, use the following commands:</p>
 <ul>
@@ -1953,7 +1953,7 @@
     
       <script src="../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.0.4",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.1.2",url:{base:"../.."}})</script>
       
     
   </body>

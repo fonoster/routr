@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-4.4.0">
     
     
       
@@ -1616,7 +1616,7 @@
 </blockquote>
 <p><strong>Sample call</strong></p>
 <p>To obtain the token</p>
-<div class="codehilite"><pre><span></span>curl -k -u <span class="s2">&quot;admin:changeit&quot;</span> https://localhost:4567/api/v1beta1/token
+<div class="highlight"><pre><span></span><code>curl -k -u <span class="s2">&quot;admin:changeit&quot;</span> https://localhost:4567/api/v1beta1/token
 
 <span class="c1"># Resulted in</span>
 <span class="o">{</span>
@@ -1624,10 +1624,10 @@
     <span class="s2">&quot;message&quot;</span>:<span class="s2">&quot;Successful request&quot;</span>,
     <span class="s2">&quot;data&quot;</span>:<span class="s2">&quot;eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiJ9.TZZ4kp5xIdYzs5RRt6_qVxJcOiLdk1IEHFMBSZ7SRENx6kyVhwfAlm-oeM4L2XFIr4evlTCxKEIKc0fZKwPcjw&quot;</span>
 <span class="o">}</span>
-</pre></div>
+</code></pre></div>
 
 <p>To use the token</p>
-<div class="codehilite"><pre><span></span>curl -k -u <span class="s2">&quot;admin:changeit&quot;</span> https://localhost:4567/api/v1beta1/location?token<span class="o">=</span>eyJhbGciOiJIUzUxMiJ9.e...
+<div class="highlight"><pre><span></span><code>curl -k -u <span class="s2">&quot;admin:changeit&quot;</span> https://localhost:4567/api/v1beta1/location?token<span class="o">=</span>eyJhbGciOiJIUzUxMiJ9.e...
 
 <span class="c1"># Resulted in</span>
 <span class="o">{</span>  
@@ -1640,7 +1640,7 @@
       <span class="o">}</span>
    <span class="o">]</span>
 <span class="o">}</span>
-</pre></div>
+</code></pre></div>
 
 <h2 id="error-responses">Error Responses<a class="headerlink" href="#error-responses" title="Permanent link">&para;</a></h2>
 <p>The following are general errors we might have to account for:</p>
@@ -1788,7 +1788,7 @@
     
       <script src="../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.0.4",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.1.2",url:{base:"../.."}})</script>
       
     
   </body>

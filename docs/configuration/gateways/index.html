@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-4.4.0">
     
     
       
@@ -1620,8 +1620,8 @@
                 
                   <h1>Carriers(Gateways) Configuration</h1>
                 
-                <p>Use the Gateway resource to register with a Sip Gateways or SBCs and send or receive calls from the PSTN.</p>
-<p>The Gateways configuration can be provided using the file <code>config/gateways.yml</code>. The file located at the root of your Routr installation, or as defined in the environmental variable <code>ROUTR_CONFIG_FILE.</code></p>
+                <p>Use the Gateway resource to register with a SIP Gateways or SBCs and send or receive calls from the PSTN.</p>
+<p>The Gateways configuration can be provided using the file <code>config/gateways.yml</code>. The file is located at the root of your Routr installation, or as defined in the environment variable <code>CONFIG_FILE.</code></p>
 <blockquote>
 <p>If using Redis this configuration gets stored in the database.</p>
 </blockquote>
@@ -1689,7 +1689,7 @@
 </tbody>
 </table>
 <h2 id="example-of-gateway-in-registration-mode">Example of Gateway in <code>Registration Mode</code><a class="headerlink" href="#example-of-gateway-in-registration-mode" title="Permanent link">&para;</a></h2>
-<div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
   <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Gateway</span>
   <span class="nt">metadata</span><span class="p">:</span>
     <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Provider, Inc</span>
@@ -1700,10 +1700,10 @@
     <span class="nt">credentials</span><span class="p">:</span>
       <span class="nt">username</span><span class="p">:</span> <span class="s">&#39;user&#39;</span>
       <span class="nt">secret</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">changeit</span>
-</pre></div>
+</code></pre></div>
 
 <h2 id="example-if-gateway-using-static-mode">Example if Gateway using <code>Static Mode</code><a class="headerlink" href="#example-if-gateway-using-static-mode" title="Permanent link">&para;</a></h2>
-<div class="codehilite"><pre><span></span><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
   <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Gateway</span>
   <span class="nt">metadata</span><span class="p">:</span>
     <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Provider 2, Inc</span>
@@ -1712,7 +1712,7 @@
     <span class="nt">host</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">sip2.provider.com</span>
     <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5080</span>
     <span class="nt">transport</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">udp</span>
-</pre></div>
+</code></pre></div>
                 
                   
                 
@@ -1827,7 +1827,7 @@
     
       <script src="../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.0.4",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.1.2",url:{base:"../.."}})</script>
       
     
   </body>

@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-4.4.0">
     
     
       
@@ -1687,13 +1687,10 @@
 <p>These tests were intended to show the performances of the User Location implementation in Routr 1.0RC3.
 These can be useful to help you better dimension your Routr installation. For these test the login module
 was deactivated. The network configuration used during the test is depicted in the following image:</p>
-<p>[Talk or show graphical configuration of the network]</p>
 <h3 id="software">Software<a class="headerlink" href="#software" title="Permanent link">&para;</a></h3>
 <p>As load generator (UAC side) it was used <a href="URL">SIPp docker</a> image.</p>
-<p>[Explain the version of additional software. Include profiler and datasource]</p>
 <p>All used SIP-related software was configured to use TCP as the transport protocol for SIP.</p>
 <h3 id="platform">Platform<a class="headerlink" href="#platform" title="Permanent link">&para;</a></h3>
-<p>[Explain the hardware used on the load generator and DUT]</p>
 <p>Description of the elements used:</p>
 <p>Equipment #1 - [Processor], [Memory] with [Operating system] testing.
 Equipment #2 - [Processor], [Memory] with [Operating system] testing.
@@ -1708,15 +1705,14 @@ SIP entities definition:</p>
 UAS - [UAS]:5070
 Proxy - [PROXY_IP]:5060</p>
 <p>SIP messages flow for one complete transaction:</p>
-<div class="codehilite"><pre><span></span>UAC ---&gt; MESSAGE ---&gt; Routr ---&gt; MESSAGE ---&gt; UAS
+<div class="highlight"><pre><span></span><code>UAC ---&gt; MESSAGE ---&gt; Routr ---&gt; MESSAGE ---&gt; UAS
 UAC &lt;--- 200 OK &lt;---  Routr &lt;--- 200 OK &lt;---  UAS
-</pre></div>
+</code></pre></div>
 
-<p>[How many UACs were used to generate the traffic]</p>
 <p>Configuration
 SIPP command:</p>
-<div class="codehilite"><pre><span></span><span class="o">[</span>Used SIPp <span class="nb">command</span> config <span class="o">]</span>
-</pre></div>
+<div class="highlight"><pre><span></span><code><span class="o">[</span>Used SIPp <span class="nb">command</span> config <span class="o">]</span>
+</code></pre></div>
 
 <p><strong>Results</strong></p>
 <p>Results reported by SIPp on the UAC servers:</p>
@@ -1776,8 +1772,8 @@ SIPP command:</p>
 <br/>
 <br/></p>
 <p>Routr config file:</p>
-<div class="codehilite"><pre><span></span><span class="p p-Indicator">[</span><span class="nv">Whatever config applies</span><span class="p p-Indicator">]</span>
-</pre></div>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">[</span><span class="nv">Whatever config applies</span><span class="p p-Indicator">]</span>
+</code></pre></div>
 
 <p>[Graphical results]</p>
 <ol>
@@ -1899,7 +1895,7 @@ SIPP command:</p>
     
       <script src="../../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.0.4",url:{base:"../../.."}})</script>
+      <script>app.initialize({version:"1.1.2",url:{base:"../../.."}})</script>
       
     
   </body>

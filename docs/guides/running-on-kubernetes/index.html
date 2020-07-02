@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-4.4.0">
     
     
       
@@ -1594,15 +1594,15 @@
                 
                 <p>This document is a short guide about running the dockerized version of Routr Server on Kubernetes.</p>
 <h2 id="run-in-kubernetes">Run in Kubernetes<a class="headerlink" href="#run-in-kubernetes" title="Permanent link">&para;</a></h2>
-<p>To run Routr in Kubernetes, you must set your ROUTR_EXTERN_ADDR in <code>.k8s/routr.yml</code>.</p>
+<p>To run Routr in Kubernetes, you must set your EXTERN_ADDR in <code>.k8s/routr.yml</code>.</p>
 <blockquote>
 <p>This variable must be set to the public address(if running Routr locally, use your host address)</p>
 </blockquote>
 <p>Additionally, you must create the following Kubernetes resources:</p>
-<div class="codehilite"><pre><span></span>kubectl create -f k8s/configmaps.yml
+<div class="highlight"><pre><span></span><code>kubectl create -f k8s/configmaps.yml
 kubectl create -f k8s/redis.yml
 kubectl create -f k8s/routr.yml
-</pre></div>
+</code></pre></div>
                 
                   
                 
@@ -1717,7 +1717,7 @@ kubectl create -f k8s/routr.yml
     
       <script src="../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.0.4",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.1.2",url:{base:"../.."}})</script>
       
     
   </body>
