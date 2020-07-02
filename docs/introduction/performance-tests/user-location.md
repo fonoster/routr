@@ -29,13 +29,9 @@ was deactivated. The network configuration used during the test is depicted in t
 
 As load generator (UAC side) it was used [SIPp docker](URL) image.
 
-[Explain the version of additional software. Include profiler and datasource]
-
 All used SIP-related software was configured to use TCP as the transport protocol for SIP.
 
 ### Platform
-
-[Explain the hardware used on the load generator and DUT]
 
 Description of the elements used:
 
@@ -63,8 +59,6 @@ SIP messages flow for one complete transaction:
 UAC ---> MESSAGE ---> Routr ---> MESSAGE ---> UAS
 UAC <--- 200 OK <---  Routr <--- 200 OK <---  UAS
 ```
-
-[How many UACs were used to generate the traffic]
 
 Configuration
 SIPP command:
