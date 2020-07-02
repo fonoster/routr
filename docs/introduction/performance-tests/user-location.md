@@ -23,8 +23,6 @@ These tests were intended to show the performances of the User Location implemen
 These can be useful to help you better dimension your Routr installation. For these test the login module
 was deactivated. The network configuration used during the test is depicted in the following image:
 
-[Talk or show graphical configuration of the network]
-
 ### Software
 
 As load generator (UAC side) it was used [SIPp docker](URL) image.
