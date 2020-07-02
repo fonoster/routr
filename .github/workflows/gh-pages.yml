@@ -13,14 +13,14 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
-        python-version: '2.7'
+        python-version: '3.6'
         architecture: 'x64'
     - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install mkdocs
-        pip install pymdown-extensions
-        pip install mkdocs-material
+        pip install -Iv mkdocs==1.0.4
+        pip install -Iv pymdown-extensions==6.0
+        pip install -Iv mkdocs-material==4.4.0
     - name: Build
       run: |
         mkdocs build
