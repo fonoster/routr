@@ -2,7 +2,7 @@ FROM debian:buster-20200414
 LABEL maintainer="Pedro Sanders <fonosterteam@fonoster.com>"
 
 ENV LANG C.UTF-8
-ARG ROUTR_VERSION=1.0.0-rc5
+ARG ROUTR_VERSION=1.0.0-rc6
 
 RUN mkdir -p /opt/routr
 WORKDIR /opt/routr
