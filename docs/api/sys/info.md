@@ -54,10 +54,6 @@ HTTP/1.1 200 OK
          "value":null
        },
        {
-         "var":"SALT",
-         "value":null
-       },
-       {
          "var":"EXTERN_ADDR",
          "value":null
        },
@@ -68,11 +64,8 @@ HTTP/1.1 200 OK
        {
          "var":"REGISTRAR_INTF",
          "value":null
-       },
-       {
-         "var":"JS_ENGINE",
-         "value":null
        }
     ]
   }
 }
+```
