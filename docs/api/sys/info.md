@@ -38,32 +38,16 @@ HTTP/1.1 200 OK
     "apiPath":"/api/v1beta1",
     "env":[
        {
-         "var":"JAVA_OPTS",
-         "value":null
-       },
-       {
-         "var":"DATA_SOURCE_PROVIDER",
-         "value":null
-       },
-       {
-         "var":"DATA_SOURCE_PARAMETERS",
-         "value":null
-       },
-       {
-         "var":"CONFIG_FILE",
-         "value":null
-       },
-       {
          "var":"EXTERN_ADDR",
-         "value":null
+         "value":"172.220.246.46"
        },
        {
          "var":"LOCALNETS",
-         "value":null
+         "value": "192.168.1.149/31"
        },
        {
          "var":"REGISTRAR_INTF",
-         "value":null
+         "value": "External"
        }
     ]
   }
