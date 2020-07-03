@@ -46,20 +46,20 @@ Resources (Agents, Gateways, etc) will be tagged and match with an API version w
 Use the following Java options to enable the profiler
 
 ```bash
-ROUTR_JAVA_OPTS=-javaagent:$BASE_DIR/libs/jvm-profiler-master-SNAPSHOT.jar=reporter=com.uber.profiling.reporters.FileOutputReporter,outputDir=$BASE_DIR/out,tag=routr,metricInterval=5000
+JAVA_OPTS=-javaagent:$BASE_DIR/libs/jvm-profiler-master-SNAPSHOT.jar=reporter=com.uber.profiling.reporters.FileOutputReporter,outputDir=$BASE_DIR/out,tag=routr,metricInterval=5000
 ```
 
 or in Windows
 
 ```bash
-set ROUTR_JAVA_OPTS=-javaagent:libs/jvm-profiler-master-SNAPSHOT.jar=reporter=com.uber.profiling.reporters.FileOutputReporter,outputDir=out,tag=routr,metricInterval=5000
+set JAVA_OPTS=-javaagent:libs/jvm-profiler-master-SNAPSHOT.jar=reporter=com.uber.profiling.reporters.FileOutputReporter,outputDir=out,tag=routr,metricInterval=5000
 ```
 
 ## Performance testing
 
 Use the following flag when running performance tests:
 
-ROUTR_JAVA_OPTS=-Dgraal.TrufflePerformanceWarningsAreFatal=true
+JAVA_OPTS=-Dgraal.TrufflePerformanceWarningsAreFatal=true
 
 Additionally we could try using -Dpolyglot.engine.Mode=throughput but this is
 causing issues with Java 9.
@@ -68,4 +68,4 @@ causing issues with Java 9.
 
 Once we upgrade to GraalVM 19.3 we can try the following option to avoid compilation issues:
 
-ROUTR_JAVA_OPTS=$ROUTR_JAVA_OPTS -Dgraal.TruffleLanguageAgnosticInlining=true \
+JAVA_OPTS=$JAVA_OPTS -Dgraal.TruffleLanguageAgnosticInlining=true \

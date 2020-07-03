@@ -5,13 +5,11 @@ Changes in RC5 are:
 - [x] Web Console added a new Logs section
 - [x] Web Console assists the user in refreshing for new available versions
 - [x] The Command-Line tool added new commands: logout, version, stop, restart, config, ping, logs
-- [x] Drop support for Nashorn
-- [ ] Re-work the testing strategy
-- [ ] Upgrade to latest GraalVM
-- [ ] Implement NAT test scenarios
-- [ ] Favor advertiseIPs in place of bindAddress 
+- [x] Dropped support for Nashorn
 
 Bugfix:
+  - [x] Fixed https://github.com/fonoster/routr/issues/85
+  - [x] Fixed https://github.com/fonoster/routr/issues/84
   - [x] Fixed https://github.com/fonoster/routr/issues/70
   - [x] Prevent resource from staying in the cache after removed from db
   - [x] Prevent `transport` parameter from accepting arbitrary values
