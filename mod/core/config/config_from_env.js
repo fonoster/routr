@@ -69,7 +69,7 @@ module.exports.getConfig = () => {
         a.var = key
         a.value = System.getenv(key)
         if (a.value) return a
-      })
+      }).filter(c => c != null)
     },
     spec: {
       dataSource: {}
