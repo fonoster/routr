@@ -93,7 +93,7 @@ class AgentsAPI extends APIBase {
 
   existInAnotherDomain (agent) {
     const response = this.getAgents(
-      `@.spec.credentials.username==${agent.spec.credentials.username}`
+      `@.spec.credentials.username=='${agent.spec.credentials.username}'`
     )
     for (const x in response.data) {
       const curAgent = response.data[x]
