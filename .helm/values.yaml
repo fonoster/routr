@@ -1,27 +1,45 @@
-routr:
-  image:
-    repository: fonoster/routr
-    pullPolicy: Always
-    tag: ""
-  adminService:
-    enabled: true
-    name: api
-    type: ClusterIP
-    port: 4567
-  udpSignalingService:
-    enabled: true
-    externalTrafficPolicy: Local
-    name: sipudp
-    type: ClusterIP
+# Routr's image repo and pull policy
+# We recommend using 'Always'
+image:
+  repository: fonoster/routr
+  pullPolicy: Always
+  tag: ""
+
+# Enable to use obtain remote access to the
+# server via `rctl` or the restful api.
+#
+# The service type defaults to ClusterIP allowing you
+# to use Ingress. But you could replace with other service type
+adminService:
+  enabled: true
+  name: api
+  type: ClusterIP
+  port: 4567
+
+# Use this service to enable UDP access to the server's signaling
+# capabilities. Keep in mind that this will create the service for you
+# But the UDP protocol must also be enabled(default) in the server.
+udpSignalingService:
+  enabled: true
+  externalTrafficPolicy: Local
+  name: sipudp
+  type: ClusterIP
+  port: 5060
+
+# Use this service to enable TCP access to the server's signaling
+# capabilities. Keep in mind that this will create the service for you
+# But the TCP protocol must also be enabled(default) in the server.
+tcpSignalingService:
+  enabled: true
+  externalTrafficPolicy: Local
+  name: siptcp
+  type: ClusterIP
+  ports:
+  - name: siptcp
     port: 5060
-  tcpSignalingService:
-    enabled: true
-    externalTrafficPolicy: Local
-    name: siptcp
-    type: ClusterIP
-    ports:
-    - name: siptcp
-      port: 5060
+
+# Routr internal configurations
+routr:
   userAgent: ""
   bindAddr: ""
   externAddr: ""
@@ -57,11 +75,14 @@ redis:
   usePassword: false
   cluster:
     enabled: false
+  persistence:
+    enabled: true
+    mountPath: /bitnami/redis
+    size: 5Gi
 
 # Omiting this for now
 
 replicaCount: 1
-imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 podAnnotations: {}

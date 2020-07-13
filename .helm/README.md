@@ -45,10 +45,6 @@ We recommend using a namespace for easy upgrades.
 
 The [configuration](https://hub.helm.sh/#configuration) section lists the parameters that can be configured during installation.
 
-## Update Strategies
-
-Coming Soon.
-
 ## Uninstalling the Chart
 
 To uninstall/delete the `my-release` deployment:
@@ -63,33 +59,37 @@ The command removes all the Kubernetes components associated with the chart and 
 
 The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG.md) provides notable changes on the chart.
 
-## Configuration
+## Parameters
 
 The following table lists the configurable parameters of the Routr chart and their default values.
 
+### Routr Services
+
 | Parameter | Description | Default |
 | --- | --- | --- |
-| routr.image.repository | Docker image for Routr | `fonoster/routr`|
-| routr.image.tag | Docker image tag | "" |
-| routr.image.pullPolicy | Pull policy for the image | `Always` |
-| routr.adminService.enabled | Enable or disable Service | `true` |
-| routr.adminService.type | Type of Service| `ClusterIP` |
-| routr.adminService.name | Service name | `<RELEASE>-api` |
-| routr.adminService.port | Service port | `4567` |
-| routr.udpSignalingService.enabled | Enable disable or signaling UDP Service | `true` |
-| routr.udpSignalingService.type | Type for UDP signaling Service | `ClusterIP` |
-| routr.udpSignalingService.name | Name for UDP signaling Service | `<RELEASE>siptcp` |
-| routr.udpSignalingService.port | Port for UDP signaling Service | `5060` |
-| routr.udpSignalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
-| routr.tcpSignalingService.enabled | Enable disable signaling Service | `true` |
-| routr.tcpSignalingService.type | Type for TCP signaling Service | `ClusterIP` |
-| routr.tcpSignalingService.name | Name for TCP signaling service | `<RELEASE>-siptcp` |
-| routr.tcpSignalingService.ports | Ports for TCP signaling Service | `[{name: siptcp, port: 5060}]` |
-| routr.tcpSignalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
+| adminService.enabled | Enable or disable Service | `true` |
+| adminService.type | Type of Service| `ClusterIP` |
+| adminService.name | Service name | `<RELEASE>-api` |
+| adminService.port | Service port | `4567` |
+| udpSignalingService.enabled | Enable disable or signaling UDP Service | `true` |
+| udpSignalingService.type | Type for UDP signaling Service | `ClusterIP` |
+| udpSignalingService.name | Name for UDP signaling Service | `<RELEASE>siptcp` |
+| udpSignalingService.port | Port for UDP signaling Service | `5060` |
+| udpSignalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
+| tcpSignalingService.enabled | Enable disable signaling Service | `true` |
+| tcpSignalingService.type | Type for TCP signaling Service | `ClusterIP` |
+| tcpSignalingService.name | Name for TCP signaling service | `<RELEASE>-siptcp` |
+| tcpSignalingService.ports | Ports for TCP signaling Service | `[{name: siptcp, port: 5060}]` |
+| tcpSignalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
+
+### Routr parameters (optional)
+
+| Parameter | Description | Default |
+| --- | --- | --- |
 | routr.userAgent| Sets sip header `User-Agent` to the desired value | `Routr v<VERSION>` |
 | routr.bindAddr | Default stack IP address  | "" |
 | routr.externAddr | IP address to advertise. Typically a LoadBalancer's public IP | "" |
-| routr.localnets | Local networks in CIDR format. Use in combination with `routr.externAddr` | [] |
+| routr.localnets | Local networks in CIDR format. Use in combination with `externAddr` | [] |
 | routr.recordRoute | Stay within the signaling path | `false` |
 | routr.useToAsAOR | Uses the `To` header, instead of `Request-URI`, to locate endpoints | `false` |
 | routr.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register | `External` |
@@ -114,17 +114,40 @@ The following table lists the configurable parameters of the Routr chart and the
 | routr.securityContext.debugging | Turns `ON` or `OFF` SSL debugging | `false` |
 | routr.logLevel | Routr's logging level  | `info` |
 
-## Persistence
+### Routr Images [advanced] (optional)
 
-Coming Soon.
+Routr Images are loaded from DockerHub by default. Images are public and by default latest images are downloaded. We recommend following this tag.
 
-## TLS Certificates
+```
+image:
+  registry: docker.io # Docker Registry where to pull images from.
+  repository: fonoster/routr # Routr docker repository.
+  tag: latest # We recommend `latest` tag.
+  pullPolicy: Always # We recommend Always
+```  
 
-Coming Soon.
+### Redis Values
 
-## Security
+This is taken from Bitnami Helm Chart. Please refer to https://bitnami.com/stack/redis/helm
 
-Coming Soon.
+Here are default values:
+
+```
+redis:
+  redisPort: 6379
+  image:
+    registry: docker.io
+    repository: bitnami/redis
+    tag: latest
+    pullPolicy: Always
+  usePassword: false
+  cluster:
+    enabled: false  
+  persistence:
+    enabled: true
+    mountPath: /bitnami/redis
+    size: 5Gi
+```
 
 ## Specifying Values
 
