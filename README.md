@@ -21,7 +21,6 @@
     * [Custom](#custom)     
 * [Features](#features)
 * [Documentation](https://routr.io/docs/introduction/overview)
-* [Demo](https://demo.routr.io/login)
 * [Bugs and Feedback](#bugs-and-feedback)
 * [Contributing](#contributing)
 * [License](#license)
