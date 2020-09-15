@@ -15,7 +15,6 @@ const {
   configureProxyAuthorization,
   configureRequestURI,
   configureMaxForwards,
-  configureContact,
   configurePrivacy,
   configureRecordRoute,
   configureIdentity,
@@ -27,7 +26,6 @@ const { RoutingType } = require('@routr/core/routing_type')
 const ObjectId = Java.type('org.bson.types.ObjectId')
 const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')
-const RouteHeader = Java.type('javax.sip.header.RouteHeader')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const ToHeader = Java.type('javax.sip.header.ToHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
