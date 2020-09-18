@@ -4,7 +4,6 @@
  *
  * Unit Test for the "Domains API"
  */
-const APIBase = require('@routr/data_api/api_base')
 const DomainsAPI = require('@routr/data_api/domains_api')
 const TestUtils = require('@routr/data_api/test_utils')
 const chai = require('chai')

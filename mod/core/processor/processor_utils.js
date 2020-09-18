@@ -6,10 +6,13 @@ const AuthHelper = require('@routr/utils/auth_helper')
 const { connectionException } = require('@routr/utils/exception_helpers')
 
 const ToHeader = Java.type('javax.sip.header.ToHeader')
+const FromHeader = Java.type('javax.sip.header.FromHeader')
 const ContactHeader = Java.type('javax.sip.header.ContactHeader')
 const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
 const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const ContentType = Java.type('javax.sip.header.ContentTypeHeader')
+const CallIdHeader = Java.type('javax.sip.header.CallIdHeader')
 const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')
 const AccountManager = Java.type(
@@ -22,6 +25,15 @@ const SipFactory = Java.type('javax.sip.SipFactory')
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
 const messageFactory = SipFactory.getInstance().createMessageFactory()
 
+const extractRTPEngineParams = r => {
+  return {
+    sdp: String.fromCharCode.apply(null, r.getContent()),
+    'call-id': r.getHeader(CallIdHeader.NAME).getCallId(),
+    'from-tag': r.getHeader(FromHeader.NAME).getTag(),
+    'to-tag': r.getHeader(ToHeader.NAME).getTag()
+  }
+}
+const hasSDP = r => r.getHeader(ContentType.NAME) != null
 const hasCodes = (r, c) =>
   c.filter(code => r.getStatusCode() === code).length > 0
 const isMethod = (r, m) =>
@@ -142,3 +154,5 @@ module.exports.isRegisterNok = isRegisterNok
 module.exports.isBehindNat = isBehindNat
 module.exports.handleAuthChallenge = handleAuthChallenge
 module.exports.getExpires = getExpires
+module.exports.hasSDP = hasSDP
+module.exports.extractRTPEngineParams = extractRTPEngineParams

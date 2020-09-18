@@ -23,6 +23,10 @@ module.exports = upSince => {
       dataSource: {
         provider: 'files_data_provider'
       },
+      ex_mediaEngine: {
+        provider: 'rtpengine',
+        port: 22222
+      },
       registrarIntf: 'External',
       restService: {
         keyStore: 'etc/certs/api-cert.jks',

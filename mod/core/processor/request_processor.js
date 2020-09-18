@@ -2,7 +2,11 @@
  * @author Pedro Sanders
  * @since v1
  */
-const { sendResponse } = require('@routr/core/processor/processor_utils')
+const {
+  sendResponse,
+  hasSDP,
+  extractRTPEngineParams
+} = require('@routr/core/processor/processor_utils')
 const RegisterHandler = require('@routr/core/processor/register_handler')
 const RegistryHandler = require('@routr/core/processor/registry_handler')
 const CancelHandler = require('@routr/core/processor/cancel_handler')
@@ -13,7 +17,9 @@ const { RoutingType } = require('@routr/core/routing_type')
 const { RouteEntityType } = require('@routr/core/route_entity_type')
 const { Status } = require('@routr/core/status')
 const config = require('@routr/core/config_util')()
+const RTPEngineConnector = require('@routr/rtpengine/connector')
 
+const ContentTypeHeader = Java.type('javax.sip.header.ContentTypeHeader')
 const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -29,7 +35,7 @@ class RequestProcessor {
     this.domainsAPI = dataAPIs.DomainsAPI
   }
 
-  process (event) {
+  async process (event) {
     const request = event.getRequest()
     let transaction = event.getServerTransaction()
 
@@ -95,6 +101,16 @@ class RequestProcessor {
         new CancelHandler().doProcess(transaction)
         break
       default:
+        const isInviteOrAck = r =>
+          r.getMethod() === Request.INVITE || r.getMethod() === Request.ACK
+
+        if (isInviteOrAck(request) && hasSDP(request)) {
+          const obj = await RTPEngineConnector.offer(
+            extractRTPEngineParams(request)
+          )
+          request.setContent(obj.sdp, request.getHeader(ContentTypeHeader.NAME))
+        }
+
         new RequestHandler(this.sipProvider, this.contextStorage).doProcess(
           transaction,
           request,

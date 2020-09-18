@@ -49,6 +49,8 @@ envsMap.set('LOG4J', '')
 envsMap.set('CONFIG_FILE', '')
 envsMap.set('SALT', '')
 envsMap.set('SALT_FILE', '')
+envsMap.set('EX_MEDIA_ENGINE_HOST', '')
+envsMap.set('EX_MEDIA_ENGINE_PORT', 22222)
 
 const boolVals = [
   'SECURITY_CONTEXT_DEBUGGING',

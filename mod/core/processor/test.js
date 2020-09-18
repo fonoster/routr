@@ -81,8 +81,6 @@ describe('Core Processor Module', () => {
   })
 
   it('Response utils', function (done) {
-    const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
-    const ViaHeader = Java.type('javax.sip.header.ViaHeader')
     const Request = Java.type('javax.sip.message.Request')
     const Response = Java.type('javax.sip.message.Response')
 

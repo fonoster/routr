@@ -13,6 +13,7 @@ const Processor = require('@routr/core/processor/processor')
 const Locator = require('@routr/location/locator')
 const ContextStorage = require('@routr/core/context_storage')
 const showExternInfo = require('@routr/core/extern_info')
+const RTPEngineConnector = require('@routr/rtpengine/connector')
 const config = require('@routr/core/config_util')()
 const properties = require('@routr/core/server_properties')(config)
 const ExceptionUtils = Java.type(
@@ -49,6 +50,7 @@ class Server {
 
     this.dataAPIs = dataAPIs
     this.locator = new Locator()
+    new RTPEngineConnector()
   }
 
   buildSipProvider (sipStack, transport) {

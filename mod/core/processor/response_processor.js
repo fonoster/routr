@@ -8,9 +8,14 @@ const {
   isStackJob,
   isTransactional,
   mustAuthenticate,
-  handleAuthChallenge
+  handleAuthChallenge,
+  hasSDP,
+  extractRTPEngineParams,
+  isOk
 } = require('@routr/core/processor/processor_utils')
+const RTPEngineConnector = require('@routr/rtpengine/connector')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const ContentTypeHeader = Java.type('javax.sip.header.ContentTypeHeader')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
@@ -41,7 +46,7 @@ class ResponseProcessor {
     this.sendResponse(event)
   }
 
-  sendResponse (event) {
+  async sendResponse (event) {
     const response = event.getResponse().clone()
     const viaHeader = response.getHeader(ViaHeader.NAME)
     const xReceivedHeader = headerFactory.createHeader(
@@ -55,6 +60,18 @@ class ResponseProcessor {
     response.addHeader(xReceivedHeader)
     response.addHeader(xRPortHeader)
     response.removeFirst(ViaHeader.NAME)
+
+    try {
+      if (isOk(response) && hasSDP(response)) {
+        const obj = await RTPEngineConnector.answer(
+          extractRTPEngineParams(response)
+        )
+        response.setContent(obj.sdp, response.getHeader(ContentTypeHeader.NAME))
+      }
+    } catch (e) {
+      console.log(e)
+    }
+
     if (isTransactional(event)) {
       const context = this.contextStorage.findContext(
         event.getClientTransaction().getBranchId()
