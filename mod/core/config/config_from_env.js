@@ -45,12 +45,12 @@ envsMap.set(
   'spec.securityContext.client.authType'
 )
 envsMap.set('SECURITY_CONTEXT_DEBUGGING', 'spec.securityContext.debugging')
+envsMap.set('EX_MEDIA_ENGINE_HOST', 'spec.ex_mediaEngine.host')
+envsMap.set('EX_MEDIA_ENGINE_PORT', 'spec.ex_mediaEngine.port')
 envsMap.set('LOG4J', '')
 envsMap.set('CONFIG_FILE', '')
 envsMap.set('SALT', '')
 envsMap.set('SALT_FILE', '')
-envsMap.set('EX_MEDIA_ENGINE_HOST', '')
-envsMap.set('EX_MEDIA_ENGINE_PORT', 22222)
 
 const boolVals = [
   'SECURITY_CONTEXT_DEBUGGING',

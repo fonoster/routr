@@ -17,21 +17,21 @@ const rtpeBaseUrl = `http://${config.spec.ex_mediaEngine.host}:${
 class RTPEngineConnector {
   constructor () {
     LOG.debug(`rtpengine.RTPEngineConnector connector is up`)
-    postal.subscribe({
+
+    // This is not a good criteria to delete the binding.
+    // It should happend on a Bye or Cancel or Timeout
+    /*postal.subscribe({
       channel: 'processor',
       topic: 'transaction.terminated',
       callback: data => this.deleteCallBinding(data.callId, data.fromTag)
-    })
+    })*/
   }
 
   deleteCallBinding (callId, fromTag) {
-    return RTPEngineConnector.sendCmd(
-      `delete/${callId}`,
-      JSON.stringify({
-        'call-id': callId,
-        'from-tag': fromTag
-      })
-    )
+    return RTPEngineConnector.sendCmd(`delete/${callId}`, {
+      'call-id': callId,
+      'from-tag': fromTag
+    })
   }
 
   static async offer (params) {
@@ -47,7 +47,6 @@ class RTPEngineConnector {
       LOG.debug(
         `rtpengine.RTPEngineConnector.${cmd} [call-id: ${params['call-id']}]`
       )
-      console.log(`xxxx => ${rtpeBaseUrl}/${cmd}`)
 
       const res = await Unirest.post(`${rtpeBaseUrl}/${cmd}`)
         .header('Content-Type', 'application/json')
