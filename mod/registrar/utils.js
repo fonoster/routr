@@ -66,7 +66,11 @@ class RegistrarUtils {
       contactURI: RegistrarUtils.getUpdatedContactURI(request, user),
       registeredOn: Date.now(),
       expires: getExpires(request),
-      nat: isBehindNat(request)
+      nat: isBehindNat(request),
+      transport: request
+        .getHeader(ViaHeader.NAME)
+        .getTransport()
+        .toLowerCase()
     }
   }
 

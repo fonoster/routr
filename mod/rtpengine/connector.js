@@ -4,8 +4,10 @@
  * @author Pedro Sanders
  * @since v1
  */
+const merge = require('deepmerge')
 const postal = require('postal')
 const config = require('@routr/core/config_util')()
+const RTPBridgingNote = require('@routr/rtpengine/rtp_bridging_note')
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
@@ -13,6 +15,23 @@ const Unirest = Java.type('com.mashape.unirest.http.Unirest')
 const rtpeBaseUrl = `http://${config.spec.ex_mediaEngine.host}:${
   config.spec.ex_mediaEngine.port
 }/api`
+
+const webToSip = {
+  'transport protocol': 'RTP/AVP',
+  'rtcp-mux': 'demux',
+  ICE: 'remove',
+  DTLS: 'off',
+  SDES: 'off'
+}
+
+const sipToWeb = {
+  'transport protocol': 'RTP/SAVPF',
+  'rtcp-mux': 'offer',
+  ICE: 'force',
+  DTLS: 'active',
+  SDES: 'off',
+  flags: 'generate mid'
+}
 
 class RTPEngineConnector {
   constructor () {
@@ -34,11 +53,29 @@ class RTPEngineConnector {
     })
   }
 
-  static async offer (params) {
+  static async offer (bridgingNote, params) {
+    LOG.debug(
+      `rtpengine.RTPEngineConnector.offer [bridging note: ${bridgingNote}]`
+    )
+    if (bridgingNote === RTPBridgingNote.WEB_TO_SIP) {
+      merge(params, webToSip)
+    } else if (bridgingNote === RTPBridgingNote.SIP_TO_WEB) {
+      merge(params, sipToWeb)
+    }
+
     return await RTPEngineConnector.sendCmd('offer', params)
   }
 
-  static async answer (params) {
+  static async answer (bridgingNote, params) {
+    LOG.debug(
+      `rtpengine.RTPEngineConnector.answer [bridging note: ${bridgingNote}]`
+    )
+    if (bridgingNote === RTPBridgingNote.SIP_TO_WEB) {
+      merge(params, webToSip)
+    } else if (bridgingNote === RTPBridgingNote.WEB_TO_SIP) {
+      merge(params, sipToWeb)
+    }
+
     return await RTPEngineConnector.sendCmd('answer', params)
   }
 
@@ -54,7 +91,7 @@ class RTPEngineConnector {
         .asString()
       return JSON.parse(res.getBody())
     } catch (e) {
-      console.log(e)
+      LOG.error(e)
     }
   }
 }

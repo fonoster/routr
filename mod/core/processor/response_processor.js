@@ -61,21 +61,18 @@ class ResponseProcessor {
     response.addHeader(xRPortHeader)
     response.removeFirst(ViaHeader.NAME)
 
-    try {
-      if (isOk(response) && hasSDP(response)) {
-        const obj = await RTPEngineConnector.answer(
-          extractRTPEngineParams(response)
-        )
-        response.setContent(obj.sdp, response.getHeader(ContentTypeHeader.NAME))
-      }
-    } catch (e) {
-      console.log(e)
-    }
-
     if (isTransactional(event)) {
       const context = this.contextStorage.findContext(
         event.getClientTransaction().getBranchId()
       )
+
+      if (isOk(response) && hasSDP(response)) {
+        const obj = await RTPEngineConnector.answer(
+          context.bridgingNote,
+          extractRTPEngineParams(response)
+        )
+        response.setContent(obj.sdp, response.getHeader(ContentTypeHeader.NAME))
+      }
 
       if (context && context.serverTransaction) {
         context.serverTransaction.sendResponse(response)

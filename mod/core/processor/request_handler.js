@@ -3,9 +3,15 @@
  * @since v1
  */
 const { connectionException } = require('@routr/utils/exception_helpers')
-const { sendResponse } = require('@routr/core/processor/processor_utils')
+const {
+  sendResponse,
+  hasSDP,
+  extractRTPEngineParams
+} = require('@routr/core/processor/processor_utils')
 const { Status } = require('@routr/core/status')
 const config = require('@routr/core/config_util')()
+const RTPEngineConnector = require('@routr/rtpengine/connector')
+const ContentTypeHeader = Java.type('javax.sip.header.ContentTypeHeader')
 const postal = require('postal')
 
 const {
@@ -22,6 +28,7 @@ const {
   configureCSeq,
   isInDialog
 } = require('@routr/core/processor/request_utils')
+const { getBridgingNote } = require('@routr/rtpengine/utils')
 const { RoutingType } = require('@routr/core/routing_type')
 const ObjectId = Java.type('org.bson.types.ObjectId')
 const Request = Java.type('javax.sip.message.Request')
@@ -31,6 +38,8 @@ const ToHeader = Java.type('javax.sip.header.ToHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const ConcurrentHashMap = Java.type('java.util.concurrent.ConcurrentHashMap')
 const requestStore = new ConcurrentHashMap()
+const isInviteOrAck = r =>
+  r.getMethod() === Request.INVITE || r.getMethod() === Request.ACK
 
 const LOG = LogManager.getLogger()
 
@@ -94,7 +103,7 @@ class RequestHandler {
     }
   }
 
-  processRoute (transaction, request, route, routeInfo) {
+  async processRoute (transaction, request, route, routeInfo) {
     const transport = request
       .getHeader(ViaHeader.NAME)
       .getTransport()
@@ -134,10 +143,20 @@ class RequestHandler {
       )}]`
     )
 
-    this.sendRequest(transaction, request, requestOut)
+    let bridgingNote
+    if (isInviteOrAck(request) && hasSDP(request)) {
+      bridgingNote = getBridgingNote(request, route)
+      const obj = await RTPEngineConnector.offer(
+        bridgingNote,
+        extractRTPEngineParams(request)
+      )
+      request.setContent(obj.sdp, request.getHeader(ContentTypeHeader.NAME))
+    }
+
+    this.sendRequest(transaction, request, requestOut, bridgingNote)
   }
 
-  sendRequest (serverTransaction, request, requestOut) {
+  sendRequest (serverTransaction, request, requestOut, bridgingNote) {
     // Does not need a transaction
     if (request.getMethod().equals(Request.ACK)) {
       return this.sipProvider.sendRequest(requestOut)
@@ -160,14 +179,21 @@ class RequestHandler {
         request,
         requestOut,
         clientTransaction,
-        serverTransaction
+        serverTransaction,
+        bridgingNote
       )
     } catch (e) {
       connectionException(e, requestOut.getRequestURI().getHost())
     }
   }
 
-  saveContext (request, requestOut, clientTransaction, serverTransaction) {
+  saveContext (
+    request,
+    requestOut,
+    clientTransaction,
+    serverTransaction,
+    bridgingNote
+  ) {
     // Transaction context
     const context = {}
     context.clientTransaction = clientTransaction
@@ -175,6 +201,7 @@ class RequestHandler {
     context.method = request.getMethod()
     context.requestIn = request
     context.requestOut = requestOut
+    context.bridgingNote = bridgingNote
     this.contextStorage.addContext(context)
   }
 }
