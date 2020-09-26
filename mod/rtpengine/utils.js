@@ -7,7 +7,7 @@ const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const isTransportWeb = t => t === 'ws' || t === 'wss'
 
 module.exports.getBridgingNote = (request, route) => {
-  const destTransport = route.transport.toLowerCase()
+  const destTransport = !route.thruGw ? route.transport.toLowerCase() : ''
   const srcTransport = request
     .getHeader(ViaHeader.NAME)
     .getTransport()
