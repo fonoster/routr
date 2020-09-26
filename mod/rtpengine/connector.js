@@ -7,7 +7,7 @@
 const merge = require('deepmerge')
 const postal = require('postal')
 const config = require('@routr/core/config_util')()
-const RTPBridgingNote = require('@routr/rtpengine/rtp_bridging_note')
+const { RTPBridgingNote } = require('@routr/rtpengine/rtp_bridging_note')
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
@@ -16,21 +16,32 @@ const rtpeBaseUrl = `http://${config.spec.ex_mediaEngine.host}:${
   config.spec.ex_mediaEngine.port
 }/api`
 
+const webToWeb = {
+  ICE: 'force',
+  SDES: 'off',
+  flags: 'trust-address replace-origin replace-session-connection'
+}
+
 const webToSip = {
-  'transport protocol': 'RTP/AVP',
+  'transport-protocol': 'RTP/AVP',
   'rtcp-mux': 'demux',
   ICE: 'remove',
-  DTLS: 'off',
-  SDES: 'off'
+  flags: 'trust-address replace-origin replace-session-connection'
 }
 
 const sipToWeb = {
-  'transport protocol': 'RTP/SAVPF',
+  'transport-protocol': 'UDP/TLS/RTP/SAVP',
   'rtcp-mux': 'offer',
   ICE: 'force',
-  DTLS: 'active',
   SDES: 'off',
-  flags: 'generate mid'
+  flags: 'trust-address replace-origin replace-session-connection generate-mid'
+}
+
+const sipToSip = {
+  'transport-protocol': 'RTP/AVP',
+  'rtcp-mux': 'demux',
+  ICE: 'remove',
+  flags: 'trust-address replace-origin replace-session-connection'
 }
 
 class RTPEngineConnector {
@@ -57,10 +68,15 @@ class RTPEngineConnector {
     LOG.debug(
       `rtpengine.RTPEngineConnector.offer [bridging note: ${bridgingNote}]`
     )
-    if (bridgingNote === RTPBridgingNote.WEB_TO_SIP) {
-      merge(params, webToSip)
+
+    if (bridgingNote === RTPBridgingNote.WEB_TO_WEB) {
+      params = merge(params, webToWeb)
+    } else if (bridgingNote === RTPBridgingNote.WEB_TO_SIP) {
+      params = merge(params, webToSip)
     } else if (bridgingNote === RTPBridgingNote.SIP_TO_WEB) {
-      merge(params, sipToWeb)
+      params = merge(params, sipToWeb)
+    } else {
+      params = merge(params, sipToSip)
     }
 
     return await RTPEngineConnector.sendCmd('offer', params)
@@ -70,10 +86,15 @@ class RTPEngineConnector {
     LOG.debug(
       `rtpengine.RTPEngineConnector.answer [bridging note: ${bridgingNote}]`
     )
-    if (bridgingNote === RTPBridgingNote.SIP_TO_WEB) {
-      merge(params, webToSip)
+
+    if (bridgingNote === RTPBridgingNote.WEB_TO_WEB) {
+      params = merge(params, webToWeb)
+    } else if (bridgingNote === RTPBridgingNote.SIP_TO_WEB) {
+      params = merge(params, webToSip)
     } else if (bridgingNote === RTPBridgingNote.WEB_TO_SIP) {
-      merge(params, sipToWeb)
+      params = merge(params, sipToWeb)
+    } else {
+      params = merge(params, sipToSip)
     }
 
     return await RTPEngineConnector.sendCmd('answer', params)

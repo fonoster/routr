@@ -144,13 +144,16 @@ class RequestHandler {
     )
 
     let bridgingNote
-    if (isInviteOrAck(request) && hasSDP(request)) {
-      bridgingNote = getBridgingNote(request, route)
+    if (isInviteOrAck(requestOut) && hasSDP(requestOut)) {
+      bridgingNote = getBridgingNote(requestOut, route)
       const obj = await RTPEngineConnector.offer(
         bridgingNote,
-        extractRTPEngineParams(request)
+        extractRTPEngineParams(requestOut)
       )
-      request.setContent(obj.sdp, request.getHeader(ContentTypeHeader.NAME))
+      requestOut.setContent(
+        obj.sdp,
+        requestOut.getHeader(ContentTypeHeader.NAME)
+      )
     }
 
     this.sendRequest(transaction, request, requestOut, bridgingNote)
