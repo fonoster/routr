@@ -40,7 +40,21 @@ Routr is developed in the open. Here are some of the channels we use to communic
 
 **IRC**: `#routr` on [irc.freenode.net](https://freenode.net/) (for the easiest start, join via [Riot](https://riot.im/app/#/room/#routr:matrix.org))
 
-(The IRC channel connects our [Gitter](https://gitter.im/fonoster/routr) and [Slack](https://fonosterteam.typeform.com/to/Xy8Oc0) communities)
+---
+
+<p align="center">
+		<sup>Special Announcement:</sup>
+		<br>
+		<a href="https://fonosterteam.typeform.com/to/CvQqk9">
+			<img width="70px" src="https://assets.brandfolder.com/pl546j-7le8zk-afym5u/original/Slack_Mark_Web.png">
+		</a>
+		<br>
+		<sub><b>We now have a Slack Channel</b></sub>
+		<br>
+		<sub>There we plan to discuss roadmaps, feature requests and more<br><a href="https://fonosterteam.typeform.com/to/CvQqk9">Join the channel</a></sub>
+</p>
+
+---
 
 **User mailing lists:**
 
