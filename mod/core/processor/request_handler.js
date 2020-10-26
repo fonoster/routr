@@ -51,7 +51,7 @@ class RequestHandler {
     postal.subscribe({
       channel: 'locator',
       topic: 'endpoint.find.reply',
-      callback: (data, envelope) => {
+      callback: data => {
         const requestInfo = requestStore.get(data.requestId)
 
         if (requestInfo === null) return
@@ -104,11 +104,8 @@ class RequestHandler {
   }
 
   async processRoute (transaction, request, route, routeInfo) {
-    const transport = request
-      .getHeader(ViaHeader.NAME)
-      .getTransport()
-      .toLowerCase()
-    const lp = this.sipProvider.getListeningPoint(transport)
+    console.log('route => ', JSON.stringify(route))
+    const lp = this.sipProvider.getListeningPoint(route.transport)
     const localAddr = { host: lp.getIPAddress().toString(), port: lp.getPort() }
 
     const advertisedAddr = getAdvertisedAddr(request, route, localAddr)
@@ -116,7 +113,7 @@ class RequestHandler {
     let requestOut = configureMaxForwards(request)
     requestOut = configureProxyAuthorization(requestOut)
     requestOut = configureRoute(requestOut, localAddr)
-    requestOut = configureVia(requestOut, advertisedAddr)
+    requestOut = configureVia(requestOut, advertisedAddr, route)
     //requestOut = configureContact(requestOut)
 
     if (!isInDialog(request)) {

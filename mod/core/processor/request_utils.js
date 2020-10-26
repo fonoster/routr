@@ -116,19 +116,15 @@ const configureRoute = (request, localAddr) => {
   }
   return requestOut
 }
-const configureVia = (request, advertisedAddr) => {
-  const requestOut = request.clone()
-  const transport = requestOut
-    .getHeader(ViaHeader.NAME)
-    .getTransport()
-    .toLowerCase()
+const configureVia = (request, advertisedAddr, route) => {
   const viaHeader = headerFactory.createViaHeader(
     advertisedAddr.host,
     advertisedAddr.port,
-    transport,
+    route.transport,
     null
   )
   viaHeader.setRPort()
+  const requestOut = request.clone()
   requestOut.addFirst(viaHeader)
   return requestOut
 }

@@ -31,7 +31,6 @@ class Locator {
 
   addEndpoint (addressOfRecord, route) {
     // This must be done here before we convert contactURI into a string
-    const contactURI = LocatorUtils.aorAsString(route.contactURI)
     route.contactURI = route.contactURI.toString()
 
     LOG.debug(
