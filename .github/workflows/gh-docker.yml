@@ -25,8 +25,8 @@ jobs:
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: .
           buildargs: ROUTR_VERSION
           tag_names: true
@@ -36,7 +36,7 @@ jobs:
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: .
           buildargs: ROUTR_VERSION
