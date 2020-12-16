@@ -17,14 +17,14 @@ jobs:
       - name: Set ENV for codeclimate (pull_request)
         run: |
           git fetch --no-tags --prune --depth=1 origin +refs/heads/$GITHUB_HEAD_REF:refs/remotes/origin/$GITHUB_HEAD_REF
-          echo "::set-env name=GIT_BRANCH::$GITHUB_HEAD_REF"
-          echo "::set-env name=GIT_COMMIT_SHA::$(git rev-parse origin/$GITHUB_HEAD_REF)"
+          echo "::set-output name=GIT_BRANCH::$GITHUB_HEAD_REF"
+          echo "::set-output name=GIT_COMMIT_SHA::$(git rev-parse origin/$GITHUB_HEAD_REF)"
         if: github.event_name == 'pull_request'
 
       - name: Set ENV for codeclimate (push)
         run: |
-          echo "::set-env name=GIT_BRANCH::$GITHUB_REF"
-          echo "::set-env name=GIT_COMMIT_SHA::$GITHUB_SHA"
+          echo "::set-output name=GIT_BRANCH::$GITHUB_REF"
+          echo "::set-output name=GIT_COMMIT_SHA::$GITHUB_SHA"
         if: github.event_name == 'push'
       - name: Setup Redis DB
         uses: zhulik/redis-action@v1.0.0
@@ -39,6 +39,8 @@ jobs:
         run: |
           export GRAALVM_HOME=$(pwd)/graalvm-ce-19.2.0
           export JAVA_HOME=$GRAALVM_HOME
+          export GIT_BRANCH=${{ steps.get_version.outputs.GIT_BRANCH }}
+          export GIT_COMMIT_SHA=${{ steps.get_version.outputs.GIT_COMMIT_SHA }}
           npm i
           npm test
           #./cc-test-reporter after-build --exit-code $?
