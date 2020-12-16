@@ -1,6 +1,7 @@
 FROM debian:buster-20200414
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
+ENV TINI_VERSION v0.19.0
 ENV LANG C.UTF-8
 ARG ROUTR_VERSION=1.0.0-rc6
 
@@ -24,4 +25,7 @@ EXPOSE 5061
 EXPOSE 5062
 EXPOSE 5063
 
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+ENTRYPOINT ["/tini", "-v", "-e", "143", "--"]
 CMD ["./routr"]
