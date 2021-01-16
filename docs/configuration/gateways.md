@@ -28,7 +28,7 @@ For static IP authentication be sure to properly configure the `spec.externAddr`
   kind: Gateway
   metadata:
     name: Provider, Inc
-    ref:  GW0001
+    ref: GW0001
   spec:
     host: sip.provider.com
     transport: tcp
@@ -44,7 +44,7 @@ For static IP authentication be sure to properly configure the `spec.externAddr`
   kind: Gateway
   metadata:
     name: Provider 2, Inc
-    ref:  GW0002
+    ref: GW0002
   spec:
     host: sip2.provider.com
     port: 5080
