@@ -5,7 +5,7 @@
 const DSUtils = require('@routr/data_api/utils')
 const getConfig = require('@routr/core/config_util')
 const defaultRedisParameters =
-  'host=localhost,port=6379,max_retry=30,retry_interval=2'
+  'host=localhost,port=6379,max_retry=30,retry_interval=2,timeout=500'
 
 const JedisPoolConfig = Java.type('redis.clients.jedis.JedisPoolConfig')
 const JedisPool = Java.type('redis.clients.jedis.JedisPool')
@@ -17,23 +17,21 @@ class RedisStore {
       'port',
       'secret',
       'max_retry',
-      'retry_interval'
+      'retry_interval',
+      'timeout'
     ])
+
     this.jedisPool = new JedisPool(
       this.buildPoolConfig(),
       this.parameters.host,
-      parseInt(this.parameters.port)
+      parseInt(this.parameters.port),
+      parseInt(this.parameters.timeout),
+      this.parameters.secret
     )
   }
 
   getJedisConn () {
-    const jedisConn = this.jedisPool.getResource()
-
-    if (this.parameters.secret) {
-      jedisConn.auth(this.parameters.secret)
-    }
-
-    return jedisConn
+    return this.jedisPool.getResource()
   }
 
   buildPoolConfig () {
