@@ -13,6 +13,7 @@ const SDSelector = require('@routr/data_api/store_driver_selector')
 const StoreAPI = require('@routr/data_api/store_api')
 const postal = require('postal')
 const { Status } = require('@routr/core/status')
+const phone = require('phone')
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
@@ -77,8 +78,13 @@ class Locator {
       return this.findEndpointByTelUrl(addressOfRecord)
     } else {
       const tel = LocatorUtils.aorAsObj(addressOfRecord).getUser()
-      const response = this.findEndpointByTelUrl(`tel:${tel}`)
-      if (response.status === Status.OK) return response
+      try {
+        const telE164 = phone(tel)[0]
+        const response = this.findEndpointByTelUrl(`tel:${telE164}`)
+        if (response.status === Status.OK) return response
+      } catch (e) {
+        // Ignore
+      }
     }
 
     const defaultRouteKey = this.store
