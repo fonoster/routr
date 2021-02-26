@@ -9,5 +9,7 @@
       countryISOCode: US
   spec:
     location:
-      telUrl: 'tel:0000000000'        # Use your DID number as given by your provider
+      # Use your DID number in E164 format
+      # This is not a real number, just an example :)
+      telUrl: 'tel:+19198972120'        
       aorLink: 'sip:1001@sip.local'

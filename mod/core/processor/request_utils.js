@@ -156,7 +156,10 @@ const configureRequestURI = (request, routeInfo, route) => {
   const requestOut = request.clone()
   let uri
 
-  if (routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING) {
+  if (
+    routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING ||
+    routeInfo.getRoutingType() === RoutingType.PEER_EGRESS_ROUTING
+  ) {
     uri = `sip:${getToUser(request)}@${route.gwHost}`
   } else if (isWebRTCClient(route)) {
     uri = `sip:${getUser(request)}@${route.received}:${route.rport}`

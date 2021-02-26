@@ -21,7 +21,6 @@
     * [Custom](#custom)     
 * [Features](#features)
 * [Documentation](https://routr.io/docs/introduction/overview)
-* [Demo](https://demo.routr.io/login)
 * [Bugs and Feedback](#bugs-and-feedback)
 * [Contributing](#contributing)
 * [License](#license)
@@ -29,7 +28,7 @@
 ## About
 
 [![Build Status](https://github.com/fonoster/routr/workflows/build/badge.svg)](https://github.com/fonoster/routr/actions?workflow=build) [![Maintainability](https://api.codeclimate.com/v1/badges/49ea061777d76c003b71/maintainability)](https://codeclimate.com/github/fonoster/routr/maintainability)
-<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license: MIT"></a> [![xscode](https://img.shields.io/badge/available%20on-xs%3Acode-blue?style=?style=plastic&logo=appveyor&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRF////////VXz1bAAAAAJ0Uk5T/wDltzBKAAAAlUlEQVR42uzXSwqAMAwE0Mn9L+3Ggtgkk35QwcnSJo9S+yGwM9DCooCbgn4YrJ4CIPUcQF7/XSBbx2TEz4sAZ2q1RAECBAiYBlCtvwN+KiYAlG7UDGj59MViT9hOwEqAhYCtAsUZvL6I6W8c2wcbd+LIWSCHSTeSAAECngN4xxIDSK9f4B9t377Wd7H5Nt7/Xz8eAgwAvesLRjYYPuUAAAAASUVORK5CYII=)](https://xscode.com/psanders/routr)
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license: MIT"></a>
 
 Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators.
 
@@ -41,7 +40,21 @@ Routr is developed in the open. Here are some of the channels we use to communic
 
 **IRC**: `#routr` on [irc.freenode.net](https://freenode.net/) (for the easiest start, join via [Riot](https://riot.im/app/#/room/#routr:matrix.org))
 
-(The IRC channel connects our [Gitter](https://gitter.im/fonoster/routr) and [Slack](https://fonosterteam.typeform.com/to/Xy8Oc0) communities)
+---
+
+<p align="center">
+		<sup>Special Announcement:</sup>
+		<br>
+		<a href="https://fonosterteam.typeform.com/to/CvQqk9">
+			<img width="70px" src="https://assets.brandfolder.com/pl546j-7le8zk-afym5u/original/Slack_Mark_Web.png">
+		</a>
+		<br>
+		<sub><b>We now have a Slack Channel</b></sub>
+		<br>
+		<sub>There we plan to discuss roadmaps, feature requests and more<br><a href="https://fonosterteam.typeform.com/to/CvQqk9">Join the channel</a></sub>
+</p>
+
+---
 
 **User mailing lists:**
 
@@ -163,4 +176,4 @@ For contributing, please see the following links:
  - [Pedro Sanders](https://github.com/psanders)
 
 ## License
-Copyright (C) 2020 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/routr/blob/master/LICENSE) for details).
+Copyright (C) 2021 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/routr/blob/master/LICENSE) for details).

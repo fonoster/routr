@@ -17,7 +17,7 @@ const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const Long = Java.type('java.lang.Long')
 const LOG = LogManager.getLogger()
 const defaultRedisParameters =
-  'host=localhost,port=6379,max_retry=-1,retry_interval=2'
+  'host=localhost,port=6379,max_retry=-1,retry_interval=2,timeout=500'
 const defUser = {
   kind: 'User',
   metadata: {
@@ -38,13 +38,16 @@ class RedisDataSource {
       'port',
       'secret',
       'max_retry',
-      'retry_interval'
+      'retry_interval',
+      'timeout'
     ])
 
     this.jedisPool = new JedisPool(
       this.buildPoolConfig(),
       this.parameters.host,
-      parseInt(this.parameters.port)
+      parseInt(this.parameters.port),
+      parseInt(this.parameters.timeout),
+      this.parameters.secret
     )
 
     if (this.withCollection('users').find().data.length === 0) {
@@ -59,9 +62,7 @@ class RedisDataSource {
   }
 
   getJedisConn () {
-    const jedisConn = this.jedisPool.getResource()
-    if (this.parameters.secret) jedisConn.auth(this.parameters.secret)
-    return jedisConn
+    return this.jedisPool.getResource()
   }
 
   buildPoolConfig () {
@@ -81,7 +82,7 @@ class RedisDataSource {
     return poolConfig
   }
 
-  createDefaultUser (apiVersion) {
+  createDefaultUser () {
     this.insert(defUser)
   }
 

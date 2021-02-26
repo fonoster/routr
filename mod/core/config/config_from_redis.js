@@ -29,7 +29,9 @@ module.exports.getConfig = configFromFile => {
       // The preferences found in database takes priority over the file config
       return response.data || {}
     } else {
-      LOG.error('Unable to reach redis server')
+      LOG.error(
+        'Unable to connect to redis. Please verify your network connection and authentication settings'
+      )
       if (maxRetry === 0) System.exit(1)
       Thread.sleep(retryInterval * 1000)
       maxRetry -= 1
