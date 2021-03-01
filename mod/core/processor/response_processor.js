@@ -61,27 +61,35 @@ class ResponseProcessor {
     response.addHeader(xRPortHeader)
     response.removeFirst(ViaHeader.NAME)
 
-    if (isTransactional(event)) {
-      const context = this.contextStorage.findContext(
-        event.getClientTransaction().getBranchId()
-      )
-
-      if (isOk(response) && hasSDP(response)) {
-        const obj = await RTPEngineConnector.answer(
-          context.bridgingNote,
-          extractRTPEngineParams(response)
+    try {
+      if (isTransactional(event)) {
+        const context = this.contextStorage.findContext(
+          event.getClientTransaction().getBranchId()
         )
-        response.setContent(obj.sdp, response.getHeader(ContentTypeHeader.NAME))
-      }
 
-      if (context && context.serverTransaction) {
-        context.serverTransaction.sendResponse(response)
+        // WARNING: Hardcode
+        if (isOk(response) && hasSDP(response)) {
+          const obj = await RTPEngineConnector.answer(
+            'WEB_TO_SIP',
+            extractRTPEngineParams(response)
+          )
+          response.setContent(
+            obj.sdp,
+            response.getHeader(ContentTypeHeader.NAME)
+          )
+        }
+
+        if (context && context.serverTransaction) {
+          context.serverTransaction.sendResponse(response)
+        } else if (response.getHeader(ViaHeader.NAME) !== null) {
+          this.sipProvider.sendResponse(response)
+        }
       } else if (response.getHeader(ViaHeader.NAME) !== null) {
+        // Could be a BYE due to Record-Route
         this.sipProvider.sendResponse(response)
       }
-    } else if (response.getHeader(ViaHeader.NAME) !== null) {
-      // Could be a BYE due to Record-Route
-      this.sipProvider.sendResponse(response)
+    } catch (e) {
+      LOG.error(e)
     }
     LOG.debug(response)
   }

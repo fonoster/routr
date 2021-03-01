@@ -104,56 +104,64 @@ class RequestHandler {
   }
 
   async processRoute (transaction, request, route, routeInfo) {
-    console.log('route => ', JSON.stringify(route))
-    const lp = this.sipProvider.getListeningPoint(route.transport)
-    const localAddr = { host: lp.getIPAddress().toString(), port: lp.getPort() }
+    try {
+      const transport = request
+        .getHeader(ViaHeader.NAME)
+        .getTransport()
+        .toLowerCase()
+      const lp = this.sipProvider.getListeningPoint(transport)
+      const localAddr = {
+        host: lp.getIPAddress().toString(),
+        port: lp.getPort()
+      }
+      const advertisedAddr = getAdvertisedAddr(request, route, localAddr)
 
-    const advertisedAddr = getAdvertisedAddr(request, route, localAddr)
+      let requestOut = configureMaxForwards(request)
+      requestOut = configureProxyAuthorization(requestOut)
+      requestOut = configureRoute(requestOut, localAddr)
+      requestOut = configureVia(requestOut, advertisedAddr, transport)
+      //requestOut = configureContact(requestOut)
+      if (!isInDialog(request)) {
+        requestOut = configureRequestURI(requestOut, routeInfo, route)
+        requestOut = configurePrivacy(requestOut, routeInfo)
+        requestOut = configureIdentity(requestOut, route)
+        requestOut = configureXHeaders(requestOut, route)
+        requestOut = configureRecordRoute(requestOut, advertisedAddr, localAddr)
+      }
 
-    let requestOut = configureMaxForwards(request)
-    requestOut = configureProxyAuthorization(requestOut)
-    requestOut = configureRoute(requestOut, localAddr)
-    requestOut = configureVia(requestOut, advertisedAddr, route)
-    //requestOut = configureContact(requestOut)
+      if (routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING) {
+        // XXX: Please document this situation :(
+        requestOut = configureCSeq(requestOut)
+      }
 
-    if (!isInDialog(request)) {
-      requestOut = configureRequestURI(requestOut, routeInfo, route)
-      requestOut = configurePrivacy(requestOut, routeInfo)
-      requestOut = configureIdentity(requestOut, route)
-      requestOut = configureXHeaders(requestOut, route)
-      requestOut = configureRecordRoute(requestOut, advertisedAddr, localAddr)
-    }
-
-    if (routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING) {
-      // XXX: Please document this situation :(
-      requestOut = configureCSeq(requestOut)
-    }
-
-    LOG.debug(
-      `core.processor.RequestHandler.processRoute [advertised addr ${JSON.stringify(
-        advertisedAddr
-      )}]`
-    )
-    LOG.debug(
-      `core.processor.RequestHandler.processRoute [route ${JSON.stringify(
-        route
-      )}]`
-    )
-
-    let bridgingNote
-    if (isInviteOrAck(requestOut) && hasSDP(requestOut)) {
-      bridgingNote = getBridgingNote(requestOut, route)
-      const obj = await RTPEngineConnector.offer(
-        bridgingNote,
-        extractRTPEngineParams(requestOut)
+      LOG.debug(
+        `core.processor.RequestHandler.processRoute [advertised addr ${JSON.stringify(
+          advertisedAddr
+        )}]`
       )
-      requestOut.setContent(
-        obj.sdp,
-        requestOut.getHeader(ContentTypeHeader.NAME)
+      LOG.debug(
+        `core.processor.RequestHandler.processRoute [route ${JSON.stringify(
+          route
+        )}]`
       )
-    }
 
-    this.sendRequest(transaction, request, requestOut, bridgingNote)
+      let bridgingNote
+      if (isInviteOrAck(requestOut) && hasSDP(requestOut)) {
+        bridgingNote = getBridgingNote(request, route)
+        const obj = await RTPEngineConnector.offer(
+          bridgingNote,
+          extractRTPEngineParams(requestOut)
+        )
+        requestOut.setContent(
+          obj.sdp,
+          requestOut.getHeader(ContentTypeHeader.NAME)
+        )
+      }
+
+      this.sendRequest(transaction, request, requestOut, bridgingNote)
+    } catch (e) {
+      LOG.error(e)
+    }
   }
 
   sendRequest (serverTransaction, request, requestOut, bridgingNote) {

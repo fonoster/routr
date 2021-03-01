@@ -77,7 +77,10 @@ class GatewaysAPI extends APIBase {
   }
 
   gatewayExist (host, port) {
-    return DSUtils.objExist(this.getGatewayByHostAndPort(host, port))
+    // return DSUtils.objExist(this.getGatewayByHostAndPort(host, port))
+    // TODO: Perhaps we should add a parameter to allow a behavior where Gateways
+    // can
+    return false
   }
 
   deleteGateway (ref) {

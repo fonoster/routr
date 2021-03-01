@@ -116,11 +116,11 @@ const configureRoute = (request, localAddr) => {
   }
   return requestOut
 }
-const configureVia = (request, advertisedAddr, route) => {
+const configureVia = (request, advertisedAddr, transport) => {
   const viaHeader = headerFactory.createViaHeader(
     advertisedAddr.host,
     advertisedAddr.port,
-    route.transport,
+    transport,
     null
   )
   viaHeader.setRPort()
@@ -131,13 +131,6 @@ const configureVia = (request, advertisedAddr, route) => {
 const configureRecordRoute = (request, advertisedAddr, localAddr) => {
   const requestOut = request.clone()
   if (config.spec.recordRoute) {
-    const p1 = addressFactory.createSipURI(null, localAddr.host)
-    p1.setLrParam()
-    p1.setPort(localAddr.port)
-    const pa1 = addressFactory.createAddress(p1)
-    const rr1 = headerFactory.createRecordRouteHeader(pa1)
-    requestOut.addHeader(rr1)
-
     if (config.spec.externAddr && isPublicAddress(advertisedAddr.host)) {
       const p2 = addressFactory.createSipURI(
         null,
@@ -147,7 +140,14 @@ const configureRecordRoute = (request, advertisedAddr, localAddr) => {
       p2.setPort(addrPort(config.spec.externAddr, localAddr))
       const pa2 = addressFactory.createAddress(p2)
       const rr2 = headerFactory.createRecordRouteHeader(pa2)
-      requestOut.addFirst(rr2)
+      requestOut.addHeader(rr2)
+    } else {
+      const p1 = addressFactory.createSipURI(null, localAddr.host)
+      p1.setLrParam()
+      p1.setPort(localAddr.port)
+      const pa1 = addressFactory.createAddress(p1)
+      const rr1 = headerFactory.createRecordRouteHeader(pa1)
+      requestOut.addHeader(rr1)
     }
   }
   return requestOut
