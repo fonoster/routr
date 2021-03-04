@@ -73,8 +73,10 @@ class ResponseProcessor {
             'WEB_TO_SIP',
             extractRTPEngineParams(response)
           )
+          // WARNINIG: We are not getting rtcp-mux so we endup adding here
+          // This is probably part of the issue we are having with calls on Zoiper
           response.setContent(
-            obj.sdp,
+            obj.sdp.replace('a=sendrecv', 'a=sendrecv\r\na=rtcp-mux'),
             response.getHeader(ContentTypeHeader.NAME)
           )
         }

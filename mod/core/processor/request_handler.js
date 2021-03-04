@@ -105,10 +105,15 @@ class RequestHandler {
 
   async processRoute (transaction, request, route, routeInfo) {
     try {
-      const transport = request
+      let transport = request
         .getHeader(ViaHeader.NAME)
         .getTransport()
         .toLowerCase()
+
+      // WARNING: No having this breaks calling to the pstn
+      // Must check a better way to obtain the transport
+      //if (route) transport = route.transport
+
       const lp = this.sipProvider.getListeningPoint(transport)
       const localAddr = {
         host: lp.getIPAddress().toString(),
