@@ -1,7 +1,0 @@
-#!/bin/bash
-
-mkdir -p $SNAP_DATA/config
-mkdir -p $SNAP_USER_COMMON
-cp -a $SNAP/config/*.yml $SNAP_DATA/config/
-cp $SNAP/config/redis.conf $SNAP_DATA/config/
-sed -i.bak "s:#{ROUTR_DB_PATH_PLACEHOLDER}:${SNAP_USER_COMMON}:" $SNAP_DATA/config/redis.conf $SNAP_DATA/config/redis.conf

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-snap set routr-server routr-extern-addr="$(curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address)"
-snap set routr-server routr-localnets="$(ip addr show eth0 | grep -m 1 "inet\b" | awk '{print $2}')"
-snap restart routr-server

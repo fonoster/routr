@@ -1,4 +1,0 @@
-apiVersion: v1beta1
-spec:
-  dataSource:
-    provider: 'redis_data_provider'

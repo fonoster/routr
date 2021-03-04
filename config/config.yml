@@ -1,7 +1,0 @@
-apiVersion: v1beta1
-spec:
-  transport:
-    - protocol: tcp
-      port: 5060
-    - protocol: udp
-      port: 5060
