@@ -6,18 +6,48 @@ const { RTPBridgingNote } = require('@routr/rtpengine/rtp_bridging_note')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const isTransportWeb = t => t === 'ws' || t === 'wss'
 
-module.exports.getBridgingNote = (request, route) => {
-  const destTransport = !route.thruGw ? route.transport.toLowerCase() : ''
+module.exports.directionFromRequest = (request, route) => {
+  const destTransport = route.transport.toLowerCase()
   const srcTransport = request
     .getHeader(ViaHeader.NAME)
     .getTransport()
     .toLowerCase()
+
   if (isTransportWeb(srcTransport) && isTransportWeb(destTransport))
     return RTPBridgingNote.WEB_TO_WEB
+
   if (isTransportWeb(srcTransport) && !isTransportWeb(destTransport))
     return RTPBridgingNote.WEB_TO_SIP
+
   if (!isTransportWeb(srcTransport) && !isTransportWeb(destTransport))
     return RTPBridgingNote.SIP_TO_SIP
+
   if (!isTransportWeb(srcTransport) && isTransportWeb(destTransport))
     return RTPBridgingNote.SIP_TO_WEB
+}
+
+module.exports.directionFromResponse = response => {
+  const viaHeaders = response.getHeaders(ViaHeader.NAME)
+  if (viaHeaders.hasNext()) {
+    const viaHeaders = response.getHeaders(ViaHeader.NAME)
+    const srcTransport = viaHeaders
+      .next()
+      .getTransport()
+      .toLowerCase()
+    const destTransport = viaHeaders
+      .next()
+      .getTransport()
+      .toLowerCase()
+
+    if (isTransportWeb(srcTransport) && isTransportWeb(destTransport))
+      return RTPBridgingNote.WEB_TO_WEB
+
+    if (isTransportWeb(srcTransport) && !isTransportWeb(destTransport))
+      return RTPBridgingNote.SIP_TO_WEB
+
+    if (!isTransportWeb(srcTransport) && isTransportWeb(destTransport))
+      return RTPBridgingNote.WEB_TO_SIP
+  }
+
+  return RTPBridgingNote.SIP_TO_SIP
 }
