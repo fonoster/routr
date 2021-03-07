@@ -76,8 +76,8 @@ class Locator {
     if (addressOfRecord.startsWith('tel:')) {
       return this.findEndpointByTelUrl(addressOfRecord)
     } else {
-      const tel = LocatorUtils.aorAsObj(addressOfRecord).getUser()
       try {
+        const tel = LocatorUtils.aorAsObj(addressOfRecord).getUser()
         const telE164 = phone(tel)[0]
         const response = this.findEndpointByTelUrl(`tel:${telE164}`)
         if (response.status === Status.OK) return response
