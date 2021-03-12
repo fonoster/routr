@@ -34,7 +34,7 @@ const ownedAddresss = localAddr =>
         }
       ]
     : [localAddr]
-const getAdvertisedAddr = (request, route, localAddr) => {
+const getAdvertisedAddr = (request, route, localAddr, targetTransport) => {
   // After the initial invite the route object will be null
   // and we need to the the target address from the request uri.
   // If the routing is type IDR the initial request uri will be a local
@@ -44,9 +44,13 @@ const getAdvertisedAddr = (request, route, localAddr) => {
       ? LocatorUtils.aorAsObj(route.contactURI).getHost()
       : request.getRequestURI().getHost()
   const externAddr = config.spec.externAddr
-  return config.spec.externAddr && needsExternAddress(route, targetAddr)
-    ? { host: addrHost(externAddr), port: addrPort(externAddr, localAddr) }
-    : localAddr
+  return externAddr && needsExternAddress(route, targetAddr)
+    ? {
+        host: addrHost(externAddr),
+        port: addrPort(externAddr, localAddr),
+        transport: targetTransport
+      }
+    : { host: localAddr.host, port: localAddr.port, transport: targetTransport }
 }
 const getToUser = request => {
   const toHeader = request.getHeader(ToHeader.NAME)
@@ -128,27 +132,31 @@ const configureVia = (request, advertisedAddr, transport) => {
   requestOut.addFirst(viaHeader)
   return requestOut
 }
-const configureRecordRoute = (request, advertisedAddr, localAddr) => {
+
+// rfc5658
+const configureRecordRoute = (request, localAddr, advertisedAddr) => {
   const requestOut = request.clone()
-  if (config.spec.recordRoute) {
+  const viaHeader = request.getHeaders(ViaHeader.NAME).next()
+  const transport = viaHeader.getTransport().toLowerCase()
+
+  if (config.spec.recordRoute || transport === 'ws' || transport === 'wss') {
+    // First we need the input interface from the top ViaHeader
     const p1 = addressFactory.createSipURI(null, localAddr.host)
-    p1.setLrParam()
     p1.setPort(localAddr.port)
+    p1.setTransportParam(localAddr.transport)
+    p1.setLrParam()
     const pa1 = addressFactory.createAddress(p1)
     const rr1 = headerFactory.createRecordRouteHeader(pa1)
     requestOut.addHeader(rr1)
 
-    if (config.spec.externAddr && isPublicAddress(advertisedAddr.host)) {
-      const p2 = addressFactory.createSipURI(
-        null,
-        addrHost(config.spec.externAddr)
-      )
-      p2.setLrParam()
-      p2.setPort(addrPort(config.spec.externAddr, localAddr))
-      const pa2 = addressFactory.createAddress(p2)
-      const rr2 = headerFactory.createRecordRouteHeader(pa2)
-      requestOut.addFirst(rr2)
-    }
+    // Then we get the advertisedAddr
+    const p2 = addressFactory.createSipURI(null, advertisedAddr.host)
+    p2.setLrParam()
+    p2.setTransportParam(advertisedAddr.transport)
+    p2.setPort(advertisedAddr.port)
+    const pa2 = addressFactory.createAddress(p2)
+    const rr2 = headerFactory.createRecordRouteHeader(pa2)
+    requestOut.addLast(rr2)
   }
   return requestOut
 }

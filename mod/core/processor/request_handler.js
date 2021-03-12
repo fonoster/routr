@@ -105,22 +105,41 @@ class RequestHandler {
 
   async processRoute (transaction, request, route, routeInfo) {
     try {
-      // If the request autof dialog we wont have a route. Therefore, we get
-      // the transport from the request URI.
-      const transport = route
+      const lpTransport = request
+        .getHeader(ViaHeader.NAME)
+        .getTransport()
+        .toLowerCase()
+      const targetTransport = route
         ? route.transport
-        : request.getRequestURI().getParameter('transport')
-      const lp = this.sipProvider.getListeningPoint(transport)
+        : request
+            .getRequestURI()
+            .getParameter('transport')
+            .toLowerCase()
+
+      const lp = this.sipProvider.getListeningPoint(lpTransport)
       const localAddr = {
         host: lp.getIPAddress().toString(),
-        port: lp.getPort()
+        port: lp.getPort(),
+        transport: lpTransport
       }
-      const advertisedAddr = getAdvertisedAddr(request, route, localAddr)
+      const advertisedAddr = getAdvertisedAddr(
+        request,
+        route,
+        localAddr,
+        targetTransport
+      )
+
+      LOG.debug(
+        `core.processor.RequestHandler.processRoute [targetTransport = ${targetTransport}]`
+      )
+      LOG.debug(
+        `core.processor.RequestHandler.processRoute [lpTransport = ${lpTransport}]`
+      )
 
       let requestOut = configureMaxForwards(request)
       requestOut = configureProxyAuthorization(requestOut)
       requestOut = configureRoute(requestOut, localAddr)
-      requestOut = configureVia(requestOut, advertisedAddr, transport)
+      requestOut = configureVia(requestOut, advertisedAddr, targetTransport)
       //requestOut = configureContact(requestOut)
 
       if (!isInDialog(request)) {
@@ -128,7 +147,7 @@ class RequestHandler {
         requestOut = configurePrivacy(requestOut, routeInfo)
         requestOut = configureIdentity(requestOut, route)
         requestOut = configureXHeaders(requestOut, route)
-        requestOut = configureRecordRoute(requestOut, advertisedAddr, localAddr)
+        requestOut = configureRecordRoute(requestOut, localAddr, advertisedAddr)
       }
 
       if (routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING) {
