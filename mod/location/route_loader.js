@@ -22,8 +22,6 @@ class RouteLoader {
   }
 
   getDomainEgressRoutes (domainsAPI, numbersAPI, gatewaysAPI) {
-    const SipFactory = Java.type('javax.sip.SipFactory')
-    const addressFactory = SipFactory.getInstance().createAddressFactory()
     const routes = new HashMap()
     const domains = domainsAPI.getDomains().data
 

@@ -5,21 +5,14 @@
 const postal = require('postal')
 const AuthHelper = require('@routr/utils/auth_helper')
 const { Status } = require('@routr/core/status')
-const isEmpty = require('@routr/utils/obj_util')
-const getConfig = require('@routr/core/config_util')
 const RegistrarUtils = require('@routr/registrar/utils')
 
 const DSSelector = require('@routr/data_api/ds_selector')
 const AgentsAPI = require('@routr/data_api/agents_api')
 const PeersAPI = require('@routr/data_api/peers_api')
-const ViaHeader = Java.type('javax.sip.header.ViaHeader')
-const ContactHeader = Java.type('javax.sip.header.ContactHeader')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
-const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
 const AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
-const SipFactory = Java.type('javax.sip.SipFactory')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const addressFactory = SipFactory.getInstance().createAddressFactory()
 
 const LOG = LogManager.getLogger()
 

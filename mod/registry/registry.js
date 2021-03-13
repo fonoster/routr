@@ -17,12 +17,7 @@ const {
   protocolTransport,
   nearestInterface
 } = require('@routr/utils/misc_utils')
-const {
-  isRegistered,
-  isExpired,
-  isStaticMode,
-  unregistered
-} = require('@routr/registry/utils')
+const { isExpired, unregistered } = require('@routr/registry/utils')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 

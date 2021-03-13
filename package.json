@@ -24,6 +24,7 @@
     }
   },
   "dependencies": {
+    "bencode": "^2.0.1",
     "deepmerge": "^4.2.2",
     "flat": "^5.0.0",
     "ip-utils": "^2.4.0",
@@ -37,20 +38,20 @@
     "xxhashjs": "^0.2.2"
   },
   "devDependencies": {
-    "source-map-loader": "^0.2.4",
-    "awesome-typescript-loader": "^5.2.1",
     "@types/node": "^13.13.2",
+    "awesome-typescript-loader": "^5.2.1",
+    "chai": "^4.2.0",
     "cross-env": "^5.2.0",
     "husky": "^4.2.3",
     "jvm-npm": "^0.1.1",
     "mocha": "^6.2.0",
     "nyc": "^14.1.1",
     "prettier-standard": "^9.1.1",
-    "chai": "^4.2.0",
-    "sinon-chai": "^3.5.0",
     "rewire": "^5.0.0",
     "sinon": "^9.0.1",
-    "webpack": "^4.11.1",
+    "sinon-chai": "^3.5.0",
+    "source-map-loader": "^0.2.4",
+    "webpack": "4.11.1",
     "webpack-command": "^0.2.0"
   },
   "repository": {

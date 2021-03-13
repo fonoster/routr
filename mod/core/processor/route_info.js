@@ -17,7 +17,6 @@ class RouteInfo {
   constructor (request, dataAPIs) {
     const fromHeader = request.getHeader(FromHeader.NAME)
     const toHeader = request.getHeader(ToHeader.NAME)
-    const sipFactory = SipFactory.getInstance()
     this.request = request
     this._callerUser = fromHeader
       .getAddress()

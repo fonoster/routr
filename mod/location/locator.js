@@ -32,7 +32,6 @@ class Locator {
 
   addEndpoint (addressOfRecord, route) {
     // This must be done here before we convert contactURI into a string
-    const contactURI = LocatorUtils.aorAsString(route.contactURI)
     route.contactURI = route.contactURI.toString()
 
     LOG.debug(
@@ -77,8 +76,8 @@ class Locator {
     if (addressOfRecord.startsWith('tel:')) {
       return this.findEndpointByTelUrl(addressOfRecord)
     } else {
-      const tel = LocatorUtils.aorAsObj(addressOfRecord).getUser()
       try {
+        const tel = LocatorUtils.aorAsObj(addressOfRecord).getUser()
         const telE164 = phone(tel)[0]
         const response = this.findEndpointByTelUrl(`tel:${telE164}`)
         if (response.status === Status.OK) return response

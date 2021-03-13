@@ -28,9 +28,9 @@ function storeRegistry (store, gwRef, gwURI, expires) {
     host: gwURI.getHost(),
     ip: InetAddress.getByName(gwURI.getHost()).getHostAddress(),
     //expires: actualExpires,
-    expires: expires,
     registeredOn: Date.now(),
     gwRef: gwRef,
+    expires,
     gwURI: gwURI.toString()
   }
   store.withCollection('registry').put(gwURI.toString(), JSON.stringify(reg))

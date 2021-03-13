@@ -13,7 +13,6 @@ const { RoutingType } = require('@routr/core/routing_type')
 const { RouteEntityType } = require('@routr/core/route_entity_type')
 const { Status } = require('@routr/core/status')
 const config = require('@routr/core/config_util')()
-
 const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -29,7 +28,7 @@ class RequestProcessor {
     this.domainsAPI = dataAPIs.DomainsAPI
   }
 
-  process (event) {
+  async process (event) {
     const request = event.getRequest()
     let transaction = event.getServerTransaction()
 

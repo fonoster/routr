@@ -24,7 +24,6 @@ const System = Java.type('java.lang.System')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LogOutputStream = Java.type('io.routr.core.LogOutputStream')
-const OutputStream = Java.type('java.io.OutputStream')
 const PrintStream = Java.type('java.io.PrintStream')
 
 const LOG = LogManager.getLogger()
@@ -50,6 +49,7 @@ class Server {
 
     this.dataAPIs = dataAPIs
     this.locator = new Locator()
+    //new RTPEngineConnector()
   }
 
   buildSipProvider (sipStack, transport) {

@@ -92,6 +92,7 @@ The following table lists the configurable parameters of the Routr chart and the
 | routr.localnets | Local networks in CIDR format. Use in combination with `externAddr` | [] |
 | routr.recordRoute | Stay within the signaling path | `false` |
 | routr.useToAsAOR | Uses the `To` header, instead of `Request-URI`, to locate endpoints | `false` |
+| routr.patchRequestURI | Uses the user part of the `To` header to ammend the `Request-URI` if it doesn't have user| `false` |
 | routr.registrarIntf | `Internal` causes the server to use the IP and port it "sees"(received & rport) from a device attempting to register | `External` |
 | routr.accessControlList.deny | Deny incoming traffic from network list. Must be valid CIDR values | [] |
 | routr.accessControlList.allow | Allow incoming traffic from network list. Must be valid CIDR values | [] |

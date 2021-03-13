@@ -58,6 +58,15 @@
                         "trustStorePassword": { "type": "string" }
                     }
                 },
+                "ex_rtpEngine": {
+                    "type": "object",
+                    "properties": {
+                        "port": { "type": "integer" },
+                        "host": { "type": "string" },
+                        "proto": { "type": "string" }
+                    },
+                    "required": ["host"]
+                },
                 "dataSource": {
                     "type": "object",
                     "properties": {

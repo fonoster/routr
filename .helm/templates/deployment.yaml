@@ -48,6 +48,8 @@ spec:
           value: {{ .Values.routr.recordRoute | quote }}
         - name: USE_TO_AS_AOR
           value: {{ .Values.routr.useToAsAOR | quote }}
+        - name: PATCH_REQUEST_URI
+          value: {{ .Values.routr.patchRequestURI | quote }}
         - name: REGISTRAR_INTF
           value: {{ .Values.routr.registrarIntf | quote }}
         - name: ACCESS_CONTROL_LIST_ALLOW
