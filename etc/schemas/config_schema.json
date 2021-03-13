@@ -58,13 +58,14 @@
                         "trustStorePassword": { "type": "string" }
                     }
                 },
-                "ex_mediaEngine": {
+                "ex_rtpEngine": {
                     "type": "object",
                     "properties": {
-                        "provider": { "type": "string" },
                         "port": { "type": "integer" },
-                        "host": { "type": "string" }
-                    }
+                        "host": { "type": "string" },
+                        "proto": { "type": "string" }
+                    },
+                    "required": ["host"]
                 },
                 "dataSource": {
                     "type": "object",
