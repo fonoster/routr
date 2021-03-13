@@ -6,6 +6,10 @@ metadata:
   labels:
     {{- include ".helm2.labels" . | nindent 4 }}
   namespace: {{ .Release.Namespace }}
+{{- with .Values.adminService.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
 spec:
   type: {{ .Values.adminService.type }}
   ports:
@@ -25,6 +29,10 @@ metadata:
   labels:
     {{- include ".helm2.labels" . | nindent 4 }}
   namespace: {{ .Release.Namespace }}
+{{- with .Values.udpSignalingService.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
 spec:
   type: {{ .Values.udpSignalingService.type }}
   {{- if ne .Values.udpSignalingService.type "ClusterIP" }}
@@ -48,6 +56,10 @@ metadata:
   labels:
     {{- include ".helm2.labels" . | nindent 4 }}
   namespace: {{ .Release.Namespace }}
+{{- with .Values.tcpSignalingService.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
 spec:
   type: {{ .Values.tcpSignalingService.type }}
   {{- if ne .Values.tcpSignalingService.type "ClusterIP" }}

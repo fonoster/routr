@@ -15,6 +15,7 @@ adminService:
   name: api
   type: ClusterIP
   port: 4567
+  annotations: {}
 
 # Use this service to enable UDP access to the server's signaling
 # capabilities. Keep in mind that this will create the service for you
@@ -25,6 +26,7 @@ udpSignalingService:
   name: sipudp
   type: ClusterIP
   port: 5060
+  annotations: {}
 
 # Use this service to enable TCP access to the server's signaling
 # capabilities. Keep in mind that this will create the service for you
@@ -37,6 +39,7 @@ tcpSignalingService:
   ports:
   - name: siptcp
     port: 5060
+  annotations: {}
 
 # Routr internal configurations
 routr:
@@ -46,6 +49,7 @@ routr:
   localnets: []
   recordRoute: false
   useToAsAOR: false
+  patchRequestURI: false
   registrarIntf: External
   accessControlList:
     deny: []
@@ -79,8 +83,6 @@ redis:
     enabled: true
     mountPath: /bitnami/redis
     size: 5Gi
-
-# Omiting this for now
 
 replicaCount: 1
 nameOverride: ""
