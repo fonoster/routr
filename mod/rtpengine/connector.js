@@ -5,115 +5,66 @@
  * @since v1
  */
 const merge = require('deepmerge')
-const postal = require('postal')
-const config = require('@routr/core/config_util')()
 const { RTPBridgingNote } = require('@routr/rtpengine/rtp_bridging_note')
-
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
-const Unirest = Java.type('com.mashape.unirest.http.Unirest')
-const rtpeBaseUrl = `http://${config.spec.ex_mediaEngine.host}:${
-  config.spec.ex_mediaEngine.port
-}/api`
-
-const webToWeb = {
-  ICE: 'force',
-  SDES: 'off',
-  flags: 'trust-address replace-origin replace-session-connection'
-}
-
-const webToSip = {
-  'transport-protocol': 'RTP/AVP',
-  'rtcp-mux': 'demux',
-  ICE: 'remove',
-  flags: 'trust-address replace-origin replace-session-connection'
-}
-
-const sipToWeb = {
-  'transport-protocol': 'UDP/TLS/RTP/SAVP',
-  'rtcp-mux': 'offer',
-  ICE: 'force',
-  SDES: 'off',
-  flags: 'trust-address replace-origin replace-session-connection generate-mid'
-}
-
-const sipToSip = {
-  'transport-protocol': 'RTP/AVP',
-  'rtcp-mux': 'demux',
-  ICE: 'remove',
-  flags: 'trust-address replace-origin replace-session-connection'
-}
+const NGHttpSender = require('./ng_http_sender')
+const postal = require('postal')
 
 class RTPEngineConnector {
-  constructor () {
+  constructor (config) {
     LOG.debug(`rtpengine.RTPEngineConnector connector is up`)
 
-    // This is not a good criteria to delete the binding.
-    // It should happend on a Bye or Cancel or Timeout
+    // This shouldn't be need because there is no dialog stablish
+    // The call will be removed afeter a timeout
     /*postal.subscribe({
       channel: 'processor',
-      topic: 'transaction.terminated',
-      callback: data => this.deleteCallBinding(data.callId, data.fromTag)
+      topic: 'transaction.cancel',
+      callback: async(data) => {
+        await this.delete(data.callId, data.fromTag)
+      }
     })*/
+    this.sender = new NGHttpSender(
+      `${config.proto}://${config.host}:${config.port}/ng`
+    )
+    this.bridgeParams = config.bridgeParams
   }
 
-  deleteCallBinding (callId, fromTag) {
-    return RTPEngineConnector.sendCmd(`delete/${callId}`, {
+  getBridgingInfo (bridgingNote, offer = true) {
+    const bridgeParams = this.bridgeParams
+    switch (bridgingNote) {
+      case RTPBridgingNote.WEB_TO_WEB:
+        return bridgeParams.webToWeb
+      case RTPBridgingNote.WEB_TO_SIP:
+        return offer ? bridgeParams.webToSip : bridgeParams.sipToWeb
+      case RTPBridgingNote.SIP_TO_WEB:
+        return offer ? bridgeParams.sipToWeb : bridgeParams.webToSip
+      default:
+        return bridgeParams.sipToSip
+    }
+  }
+
+  async delete (callId, fromTag) {
+    return await this.sender.sendCmd('delete', {
       'call-id': callId,
       'from-tag': fromTag
     })
   }
 
-  static async offer (bridgingNote, params) {
+  async offer (bridgingNote, params) {
     LOG.debug(
       `rtpengine.RTPEngineConnector.offer [bridging note: ${bridgingNote}]`
     )
-
-    if (bridgingNote === RTPBridgingNote.WEB_TO_WEB) {
-      params = merge(params, webToWeb)
-    } else if (bridgingNote === RTPBridgingNote.WEB_TO_SIP) {
-      params = merge(params, webToSip)
-    } else if (bridgingNote === RTPBridgingNote.SIP_TO_WEB) {
-      params = merge(params, sipToWeb)
-    } else {
-      params = merge(params, sipToSip)
-    }
-
-    return await RTPEngineConnector.sendCmd('offer', params)
+    const p = merge(params, this.getBridgingInfo(bridgingNote, true))
+    return await this.sender.sendCmd('offer', p)
   }
 
-  static async answer (bridgingNote, params) {
+  async answer (bridgingNote, params) {
     LOG.debug(
       `rtpengine.RTPEngineConnector.answer [bridging note: ${bridgingNote}]`
     )
-
-    if (bridgingNote === RTPBridgingNote.WEB_TO_WEB) {
-      params = merge(params, webToWeb)
-    } else if (bridgingNote === RTPBridgingNote.SIP_TO_WEB) {
-      params = merge(params, webToSip)
-    } else if (bridgingNote === RTPBridgingNote.WEB_TO_SIP) {
-      params = merge(params, sipToWeb)
-    } else {
-      params = merge(params, sipToSip)
-    }
-
-    return await RTPEngineConnector.sendCmd('answer', params)
-  }
-
-  static async sendCmd (cmd, params) {
-    try {
-      LOG.debug(
-        `rtpengine.RTPEngineConnector.${cmd} [call-id: ${params['call-id']}]`
-      )
-
-      const res = await Unirest.post(`${rtpeBaseUrl}/${cmd}`)
-        .header('Content-Type', 'application/json')
-        .body(JSON.stringify(params))
-        .asString()
-      return JSON.parse(res.getBody())
-    } catch (e) {
-      LOG.error(e)
-    }
+    const p = merge(params, this.getBridgingInfo(bridgingNote, false))
+    return await this.sender.sendCmd('answer', p)
   }
 }
 

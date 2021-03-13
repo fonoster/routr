@@ -22,12 +22,15 @@ const LOG = LogManager.getLogger()
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
 const { RTPBridgingNote } = require('@routr/rtpengine/rtp_bridging_note')
 const { directionFromResponse } = require('@routr/rtpengine/utils')
+const config = require('@routr/core/config_util')()
 
 class ResponseProcessor {
   constructor (sipProvider, contextStorage) {
     this.sipProvider = sipProvider
     this.contextStorage = contextStorage
     this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS())
+    if (config.spec.ex_rtpEngine.enabled)
+      this.rtpeConnector = new RTPEngineConnector(config.spec.ex_rtpEngine)
   }
 
   process (event) {
@@ -73,13 +76,18 @@ class ResponseProcessor {
         // WARNINIG: We need to remove the SDP for response to WebRTC endpoints
         // else we will get a Called with SDP without DTLS fingerprint
         if (
+          config.spec.ex_rtpEngine.enabled &&
           response.getStatusCode() === 183 &&
           bridgingNote === RTPBridgingNote.WEB_TO_SIP
         )
           response.removeContent()
 
-        if (isOk(response) && hasSDP(response)) {
-          const obj = await RTPEngineConnector.answer(
+        if (
+          config.spec.ex_rtpEngine.enabled &&
+          isOk(response) &&
+          hasSDP(response)
+        ) {
+          const obj = await this.rtpeConnector.answer(
             bridgingNote,
             extractRTPEngineParams(response)
           )

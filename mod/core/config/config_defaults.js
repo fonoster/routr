@@ -23,9 +23,37 @@ module.exports = upSince => {
       dataSource: {
         provider: 'files_data_provider'
       },
-      ex_mediaEngine: {
-        provider: 'rtpengine',
-        port: 22222
+      ex_rtpEngine: {
+        enabled: false,
+        proto: 'http',
+        port: 8080,
+        bridgeParams: {
+          webToWeb: {
+            ICE: 'force',
+            SDES: 'off',
+            flags: 'trust-address replace-origin replace-session-connection'
+          },
+          webToSip: {
+            'transport-protocol': 'RTP/AVP',
+            'rtcp-mux': 'demux',
+            ICE: 'remove',
+            flags: 'trust-address replace-origin replace-session-connection'
+          },
+          sipToWeb: {
+            'transport-protocol': 'UDP/TLS/RTP/SAVP',
+            'rtcp-mux': 'offer',
+            ICE: 'force',
+            SDES: 'off',
+            flags:
+              'trust-address replace-origin replace-session-connection generate-mid'
+          },
+          sipToSip: {
+            'transport-protocol': 'RTP/AVP',
+            'rtcp-mux': 'demux',
+            ICE: 'remove',
+            flags: 'trust-address replace-origin replace-session-connection'
+          }
+        }
       },
       registrarIntf: 'External',
       restService: {

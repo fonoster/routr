@@ -12,6 +12,9 @@ const { Status } = require('@routr/core/status')
 const config = require('@routr/core/config_util')()
 const RTPEngineConnector = require('@routr/rtpengine/connector')
 const ContentTypeHeader = Java.type('javax.sip.header.ContentTypeHeader')
+const CallIdHeader = Java.type('javax.sip.header.CallIdHeader')
+const FromHeader = Java.type('javax.sip.header.FromHeader')
+const Request = Java.type('javax.sip.message.Request')
 const postal = require('postal')
 
 const {
@@ -47,6 +50,8 @@ class RequestHandler {
   constructor (sipProvider, contextStorage) {
     this.sipProvider = sipProvider
     this.contextStorage = contextStorage
+    if (config.spec.ex_rtpEngine.enabled)
+      this.rtpeConnector = new RTPEngineConnector(config.spec.ex_rtpEngine)
 
     postal.subscribe({
       channel: 'locator',
@@ -167,11 +172,15 @@ class RequestHandler {
       )
 
       let bridgingNote
-      if (isInviteOrAck(request) && hasSDP(request)) {
+      if (
+        config.spec.ex_rtpEngine.enabled &&
+        isInviteOrAck(request) &&
+        hasSDP(request)
+      ) {
         // The note must be taken from the original request else it won't
         // have the correct transport.
         bridgingNote = directionFromRequest(request, route)
-        const obj = await RTPEngineConnector.offer(
+        const obj = await this.rtpeConnector.offer(
           bridgingNote,
           extractRTPEngineParams(request)
         )
@@ -179,6 +188,12 @@ class RequestHandler {
           obj.sdp,
           requestOut.getHeader(ContentTypeHeader.NAME)
         )
+      }
+
+      if (request.getMethod() === Request.BYE) {
+        const callId = request.getHeader(CallIdHeader.NAME).getCallId()
+        const fromTag = request.getHeader(FromHeader.NAME).getTag()
+        await this.rtpeConnector.delete(callId, fromTag)
       }
 
       this.sendRequest(transaction, request, requestOut, bridgingNote)
