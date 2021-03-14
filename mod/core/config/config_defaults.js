@@ -14,6 +14,7 @@ module.exports = upSince => {
       userAgent: `Routr ${version}`
     },
     spec: {
+      ex_uniqueGatewayPerHostPort: false,
       bindAddr: InetAddress.getLocalHost().getHostAddress(),
       localnets: [],
       transport: [

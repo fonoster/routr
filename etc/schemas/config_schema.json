@@ -15,6 +15,9 @@
         "spec": {
             "type": "object",
             "properties": {
+                "ex_uniqueGatewayPerHostPort": {
+                    "type": "boolean"
+                },
                 "registrarIntf": {
                     "enum": ["Internal", "External", "internal", "external"]
                 },

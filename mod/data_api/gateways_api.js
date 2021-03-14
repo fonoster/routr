@@ -4,6 +4,7 @@
  */
 const DSUtils = require('@routr/data_api/utils')
 const APIBase = require('@routr/data_api/api_base')
+const config = require('@routr/core/config_util')()
 const { Status } = require('@routr/core/status')
 const { buildAddr } = require('@routr/utils/misc_utils')
 const { FOUND_DEPENDENT_OBJECTS_RESPONSE } = require('@routr/core/status')
@@ -77,7 +78,9 @@ class GatewaysAPI extends APIBase {
   }
 
   gatewayExist (host, port) {
-    return DSUtils.objExist(this.getGatewayByHostAndPort(host, port))
+    return config.spec.ex_uniqueGatewayPerHostPort
+      ? DSUtils.objExist(this.getGatewayByHostAndPort(host, port))
+      : false
   }
 
   deleteGateway (ref) {
