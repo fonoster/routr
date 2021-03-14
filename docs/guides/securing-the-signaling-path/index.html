@@ -1680,7 +1680,6 @@
  -dname <span class="s2">&quot;CN=sip.ocean.com, OU=OSS, O=Your Company Inc, L=Sanford, ST=NC, C=US&quot;</span> <span class="se">\</span>
  -ext <span class="nv">SAN</span><span class="o">=</span>dns:sip.ocean.com,dns:localhost,ip:127.0.0.1
 </code></pre></div>
-
 <p>Remember to adjust the values to match your project's information.</p>
 <blockquote>
 <p><code>WSS</code> does not work with a self-signed certificate. However, you can add a security exception by using <code>https</code> instead of <code>wss</code> in your browser's search bar and then accepting the security certificate.</p>
@@ -1690,17 +1689,14 @@
 <p>&#10122; Create keys</p>
 <div class="highlight"><pre><span></span><code>certbot certonly --standalone -d sip.ocean.com --email admin@sip.ocean.com
 </code></pre></div>
-
 <p>Change to the directory where we created the certificates(generally at /etc/letsencrypt/live/sip.ocean.com).</p>
 <p>&#10123; Create a PKCS12 file containing full chain and private key</p>
 <div class="highlight"><pre><span></span><code>openssl pkcs12 -export -in fullchain.pem -inkey privkey.pem -out pkcs.p12 -name domains-cert.jks
 </code></pre></div>
-
 <p>Please make a note of the password since you need it in the next step.</p>
 <p>&#10124; Convert PKCS12 to Keystore</p>
 <div class="highlight"><pre><span></span><code>keytool -importkeystore -srckeystore keystore.pkcs12 -srcstoretype PKCS12 -destkeystore domains-cert.jks
 </code></pre></div>
-
 <h2 id="installing-the-certificate-in-routr">Installing the Certificate in Routr<a class="headerlink" href="#installing-the-certificate-in-routr" title="Permanent link">&para;</a></h2>
 <p>To enable secure signaling in Routr, copy your certificate in <code>etc/certs</code> and edit the file <code>config/config.yml</code> to look like this:</p>
 <div class="highlight"><pre><span></span><code>apiVersion: v1beta1
@@ -1719,11 +1715,9 @@ spec:
       port: 5061
 ...
 </code></pre></div>
-
 <p>If you set the property <code>spec.securityContext.debugging</code>  to <code>true</code>, you can get some valuable information about the status of the configuration. You can also test your configuration using the following command:</p>
 <div class="highlight"><pre><span></span><code>openssl s_client -host 192.168.1.2 -port 5061    # Remember to use Routr&#39;s IP
 </code></pre></div>
-
 <h2 id="setting-up-the-sip-phones">Setting up the Sip Phones<a class="headerlink" href="#setting-up-the-sip-phones" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>For this guide, we are using <code>Blink Pro</code>.</p>

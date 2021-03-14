@@ -1753,7 +1753,6 @@
       secret: &#39;yoursecret&#39;
     transport: udp
 </code></pre></div>
-
 <h3 id="configuring-the-number">Configuring the Number<a class="headerlink" href="#configuring-the-number" title="Permanent link">&para;</a></h3>
 <p>To configure your Number or virtual number, you must open and edit the file <code>config/numbers.yml</code>. Notice in the example below, how your reference the Gateway by using the field <code>metadata.geRef</code>. The key field while configuring Numbers are <code>spec.location.telUrl</code> and <code>spec.location.aorLink</code>. Keep in mind that the value in <code>spec.location.telUrl</code> must be formatted, precisely, as sent by the provider.</p>
 <div class="highlight"><pre><span></span><code>- apiVersion: v1beta1
@@ -1769,7 +1768,6 @@
       telUrl: &#39;tel:17066041487&#39;
       aorLink: &#39;sip:1001@sip.local&#39;
 </code></pre></div>
-
 <h3 id="creating-a-new-domain-and-egresspolicy">Creating a new Domain and EgressPolicy<a class="headerlink" href="#creating-a-new-domain-and-egresspolicy" title="Permanent link">&para;</a></h3>
 <p><strong>Routr</strong> is a Domain centric SIP Server. A Domain is used to group several Agents in the same context. The Domain URI can be an arbitrary name, but we recommend using a fully qualified domain name (FQDN). You also need to configure an <em>EgressPolicy</em> to allow calls outside the Domain. Here is how the file <code>config/domains.yml</code> needs to look like:</p>
 <div class="highlight"><pre><span></span><code>- apiVersion: v1beta1
@@ -1783,7 +1781,6 @@
         rule: .*
         numberRef: dd50baa4
 </code></pre></div>
-
 <h3 id="creating-the-agents">Creating the Agents<a class="headerlink" href="#creating-the-agents" title="Permanent link">&para;</a></h3>
 <p>We now create the Agents <code>1001</code> and <code>1002</code>. Keep in mind that field <code>spec.credentials.username</code> can be alphanumeric, so <code>john</code> or <code>john001</code> is also acceptable.</p>
 <p>Pay close attention to the credentials block since it contains the username and secret for both Agents.</p>
@@ -1806,7 +1803,6 @@
       secret: &#39;1234&#39;
     domains: [sip.local]
 </code></pre></div>
-
 <p>To verify your configuration, start the server by issuing the command <code>routr</code>. In a separate window, use the following commands:</p>
 <ul>
 <li><code>rctl get gateway</code></li>

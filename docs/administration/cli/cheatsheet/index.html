@@ -1889,13 +1889,11 @@
 <p>To get the Routr Command-Line Tool run the following command:</p>
 <div class="highlight"><pre><span></span><code>npm install -g routr-ctl
 </code></pre></div>
-
 <p>The command-line tool is now globally accessible.</p>
 <h2 id="login-to-a-routr-server">Login to a Routr server<a class="headerlink" href="#login-to-a-routr-server" title="Permanent link">&para;</a></h2>
 <p>To login to a Routr server, use the login command.</p>
 <div class="highlight"><pre><span></span><code>rctl login https://127.0.0.1:4567/api/<span class="o">{</span>apiVersion<span class="o">}</span> -u admin -p changeit
 </code></pre></div>
-
 <blockquote>
 <p>The current API version is v1beta1</p>
 </blockquote>
@@ -1903,7 +1901,6 @@
 <p>Use the following syntax to run <code>rctl</code> commands from your terminal window:</p>
 <div class="highlight"><pre><span></span><code>rctl COMMAND [REF] [flags]
 </code></pre></div>
-
 <p>where <code>COMMAND</code>, <code>subcommand</code> <code>REF</code>, and <code>flags</code> are:</p>
 <ul>
 <li>
@@ -1917,7 +1914,6 @@
   $ rctl get gateways gweef506
   $ rctl get gw gweef506
 </code></pre></div>
-
 <ul>
 <li>
 <p><code>REF</code>: Specifies the reference to the resource. References are case-sensitive. For a full list, omit the reference. For example, <code>$ rctl get agents</code>.</p>
@@ -1931,7 +1927,6 @@ All you need to add is the path to the property and the filter operators. For ex
 <div class="highlight"><pre><span></span><code># This returns all the Numbers in Gateway &#39;gweef506&#39;
 rctl get numbers --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;    
 </code></pre></div>
-
 <p>If you need help, just run <code>rctl --help</code> from the terminal window.</p>
 <div class="highlight"><pre><span></span><code>$ rctl --help
 usage: rctl [-h] [-v] COMMAND ...
@@ -1962,7 +1957,6 @@ Commands:
 
 Run &#39;rctl COMMAND --help&#39; for more information on a command
 </code></pre></div>
-
 <blockquote>
 <p>Important: Some commands (i.e.: create, delete) are not available in the default implementation of the <code>resources</code> modules. Only persistent implementations support these commands.</p>
 </blockquote>
@@ -1972,12 +1966,10 @@ Run &#39;rctl COMMAND --help&#39; for more information on a command
 <div class="highlight"><pre><span></span><code>// Locate all Sip Devices registered against a Routr server
 $ rctl loc
 </code></pre></div>
-
 <p><code>rctl registry</code> or <code>rctl reg</code> - Shows Gateways current registration.</p>
 <div class="highlight"><pre><span></span><code>// Shows the registry
 $ rctl reg
 </code></pre></div>
-
 <p><code>rctl get</code> - List one or more resources.</p>
 <div class="highlight"><pre><span></span><code>// List all numbers
 $ rctl get numbers
@@ -1991,17 +1983,14 @@ $ rctl get numbers dd50baa4
 // List all agents
 $ rctl get agents
 </code></pre></div>
-
 <p><code>rctl create</code> - create a new resource.</p>
 <div class="highlight"><pre><span></span><code>// Create a new gateway(s) using a .yaml or .yml file
 $ rctl create -f new-gateway.yaml
 </code></pre></div>
-
 <p><code>rctl apply</code> - update an existing resource(s)</p>
 <div class="highlight"><pre><span></span><code>// Update an existing resource(s) .yaml or .yml.
 $ rctl apply -f new-gateway.yaml
 </code></pre></div>
-
 <p><code>rctl delete</code> - delete a resource.</p>
 <div class="highlight"><pre><span></span><code>// Delete all numbers for gateway reference gweef506
 $ rctl delete numbers --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;
@@ -2009,7 +1998,6 @@ $ rctl delete numbers --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;
 // Delete a single agent (using delete alias)
 $ rctl del agent ag3f77f6
 </code></pre></div>
-
 <h2 id="cheat-sheet">Cheat Sheet<a class="headerlink" href="#cheat-sheet" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>Create, delete, and update are only available in some implementations of the <code>resources</code> module.</p>
@@ -2018,33 +2006,27 @@ $ rctl del agent ag3f77f6
 <div class="highlight"><pre><span></span><code># Request authentication for subsequent commands
 $ rctl login https://127.0.0.1:4567/api/{apiVersion} -u admin -p changeit
 </code></pre></div>
-
 <h3 id="clear-out-the-session-credentials">Clear out the session credentials<a class="headerlink" href="#clear-out-the-session-credentials" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code># Clear session credentials
 $ rctl logout
 </code></pre></div>
-
 <h3 id="launch-the-web-console">Launch the Web Console<a class="headerlink" href="#launch-the-web-console" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code># The Web Console re-uses the credentials of your Command-Line Tool
 rctl proxy
 </code></pre></div>
-
 <h3 id="showing-the-registry">Showing the Registry<a class="headerlink" href="#showing-the-registry" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code># Shows all the Gateways that are currently available
 $ rctl registry                                       # Shows only current registrations. You may use `reg` for short
 </code></pre></div>
-
 <h3 id="locating-sip-devices">Locating SIP Devices<a class="headerlink" href="#locating-sip-devices" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code># Find all sip devices available at the location service
 $ rctl locate                                         # This list does not include number-ingress-routes or domain-egress-routes
 </code></pre></div>
-
 <h3 id="creating-resources">Creating Resources<a class="headerlink" href="#creating-resources" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code># Create new peers and agents
 $ rctl create -f asterisk.yaml                        # Create Peer in file asterisk.yaml
 $ rctl create -f agents-list.yaml                     # Create Agents in file agents-list.yaml
 </code></pre></div>
-
 <h3 id="finding-resources">Finding Resources<a class="headerlink" href="#finding-resources" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code># Get Numbers
 $ rctl get numbers                                          # List all available Numbers
@@ -2055,40 +2037,32 @@ $ rctl get number --filter &quot;@.metadata.gwRef==&#39;gweef506&#39;&quot;   # 
 # Get agents
 $ rctl get agents                                        # List all Agents
 </code></pre></div>
-
 <h3 id="deleting-resources">Deleting Resources<a class="headerlink" href="#deleting-resources" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code># Delete command by refernce or filter
 $ rctl delete agent ag3f77f6                             # Delete Agent by reference
 $ rctl del numbers --filter &#39;@.metadata.gwRef=gweef506&#39;     # Delete Numbers using a filter
 </code></pre></div>
-
 <h3 id="updating-resources">Updating Resources<a class="headerlink" href="#updating-resources" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>$ rctl apply -f asterisk.yaml                         # Create Peer in file asterisk.yaml
 $ rctl apply -f agents-list.yaml                      # Create Agents in file agents-list.yaml
 </code></pre></div>
-
 <h3 id="dump-all-available-logs">Dump all available logs<a class="headerlink" href="#dump-all-available-logs" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>$ rctl logs
 </code></pre></div>
-
 <h3 id="restart-the-engine">Restart the engine<a class="headerlink" href="#restart-the-engine" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code># To restart the engine immediately use the --now flag
 $ rctl restart --now
 </code></pre></div>
-
 <h3 id="stop-the-engine">Stop the engine<a class="headerlink" href="#stop-the-engine" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code># To stop the engine immediately use the --now flag
 $ rctl restart --now
 </code></pre></div>
-
 <h3 id="check-the-engine-status">Check the engine status<a class="headerlink" href="#check-the-engine-status" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>$ rctl ping
 </code></pre></div>
-
 <h3 id="display-version-information">Display version information<a class="headerlink" href="#display-version-information" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>$ rctl ver
 </code></pre></div>
-
 <h3 id="manage-general-configuration">Manage general configuration<a class="headerlink" href="#manage-general-configuration" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code># To update configuration use the apply subommand
 $ rctl config apply -f /path/to/config.yml

@@ -1672,7 +1672,6 @@ The Users configuration can be provided using the file <code>config/users.yml</c
       <span class="nt">username</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">admin</span>
       <span class="nt">secret</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">changeit</span>
 </code></pre></div>
-
 <h2 id="changing-the-password-redis">Changing the password? (Redis)<a class="headerlink" href="#changing-the-password-redis" title="Permanent link">&para;</a></h2>
 <p>First, run the command <code>redis-cli smembers users</code> to obtain the reference to the user. Here is an example:</p>
 <p><div class="highlight"><pre><span></span><code>$ redis-cli smembers users
@@ -1682,12 +1681,10 @@ Then, retrieve the document for reference running <code>redis-cli get {REF}</cod
 <div class="highlight"><pre><span></span><code>$ redis-cli get 5aa69ead8fd6861d92385bac
 &quot;{\&quot;apiVersion\&quot;:\&quot;v1beta1\&quot;,\&quot;kind\&quot;:\&quot;User\&quot;,\&quot;metadata\&quot;:{\&quot;name\&quot;:\&quot;Ctl\&quot;,\&quot;ref\&quot;:\&quot;5aa69ead8fd6861d92385bac\&quot;},\&quot;spec\&quot;:{\&quot;credentials\&quot;:{\&quot;username\&quot;:\&quot;admin\&quot;,\&quot;secret\&quot;:\&quot;oldpass\&quot;}}}&quot;
 </code></pre></div>
-
 <p>Finally, search and change the old password and update your document using <code>redis-cli set {REF} {DOCUMENT}</code>. Like this:</p>
 <div class="highlight"><pre><span></span><code>$ redis-cli set 5aa69ead8fd6861d92385bac
 &quot;{\&quot;apiVersion\&quot;:\&quot;v1beta1\&quot;,\&quot;kind\&quot;:\&quot;User\&quot;,\&quot;metadata\&quot;:{\&quot;name\&quot;:\&quot;Ctl\&quot;,\&quot;ref\&quot;:\&quot;5aa69ead8fd6861d92385bac\&quot;},\&quot;spec\&quot;:{\&quot;credentials\&quot;:{\&quot;username\&quot;:\&quot;admin\&quot;,\&quot;secret\&quot;:\&quot;newpass\&quot;}}}&quot;
 </code></pre></div>
-
 <blockquote>
 <p>A new token is issued after your next login with <code>rctl</code></p>
 </blockquote>
