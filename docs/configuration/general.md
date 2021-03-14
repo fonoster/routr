@@ -36,6 +36,14 @@ can be provided using the file `config/config.yml` located at the root of your R
 | spec.securityContext.client.authType | Type of client authentication. Defaults to `DisabledAll`. See https://goo.gl/1vKbXW for more options | No |
 | spec.securityContext.client.protocols.[*] | Accepted TLS protocols. Defaults to [`TLSv1.2`, `TLSv1.1`, `TLSv1`] | No |
 | spec.securityContext.debugging | Turns ON or OFF ssl debugging. Defaults to `false` | No |
+| spec.ex_rtpEngine.enabled | If enabled, it will send all media thru the RTPEngine. Defaults to `false` | No |
+| spec.ex_rtpEngine.proto | Reserved to allow for NG commands via `http`, `https`, and `udp`. Currently only `http` is supported | No |
+| spec.ex_rtpEngine.host | Address for RTPEngine | No |
+| spec.ex_rtpEngine.port | Port for RTPEngine | No |
+| spec.ex_convertTelToE164 | If enabled, it will convert the number on ingress calls to `E164` format before routing the call. Defaults to `false` | No |
+| spec.ex_uniqueGatewayPerHostPort | If enabled, it will yield an error if a Gateway with the same host and port combination already exists. Defaults to `false` | No |
+
+> Variables prefixed with `ex_` are experimental features and may be removed or renamed in the future.
 
 ## Transport Configuration
 

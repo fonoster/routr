@@ -114,6 +114,14 @@ The following table lists the configurable parameters of the Routr chart and the
 | routr.securityContext.client.protocols.[*] | Accepted TLS protocols |`[TLSv1.2, TLSv1.1, TLSv1]` |
 | routr.securityContext.debugging | Turns `ON` or `OFF` SSL debugging | `false` |
 | routr.logLevel | Routr's logging level  | `info` |
+| routr.ex_rtpEngine.enabled | If enabled, it will send all media thru the RTPEngine. | `false` |
+| routr.ex_rtpEngine.proto | Reserved to allow for NG commands via `http`, `https`, and `udp`. Currently only `http` is supported | `http` |
+| routr.ex_rtpEngine.host | Address for RTPEngine | "" |
+| routr.ex_rtpEngine.port | Port for RTPEngine | `8080` |
+| routr.ex_convertTelToE164 | If enabled, it will convert the number on ingress calls to `E164` format before routing the call | `false` |
+| routr.ex_uniqueGatewayPerHostPort | If enabled, it will yield an error if a Gateway with the same host and port combination already exists | `false` |
+
+> Variables prefixed with `ex_` are experimental features and may be removed or renamed in the future.
 
 ### Routr Images [advanced] (optional)
 
