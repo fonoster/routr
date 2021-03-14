@@ -34,7 +34,7 @@ services:
         rctl create -f /config/numbers.yml
         rctl create -f /config/domains.yml
         rctl create -f /config/agents.yml
-        exit 0;
+        while sleep 3600; do :; done
       "
     volumes:
       - ./config:/config:ro
