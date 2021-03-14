@@ -1869,8 +1869,41 @@ can be provided using the file <code>config/config.yml</code> located at the roo
 <td>Turns ON or OFF ssl debugging. Defaults to <code>false</code></td>
 <td>No</td>
 </tr>
+<tr>
+<td>spec.ex_rtpEngine.enabled</td>
+<td>If enabled, it will send all media thru the RTPEngine. Defaults to <code>false</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>spec.ex_rtpEngine.proto</td>
+<td>Reserved to allow for NG commands via <code>http</code>, <code>https</code>, and <code>udp</code>. Currently only <code>http</code> is supported</td>
+<td>No</td>
+</tr>
+<tr>
+<td>spec.ex_rtpEngine.host</td>
+<td>Address for RTPEngine</td>
+<td>No</td>
+</tr>
+<tr>
+<td>spec.ex_rtpEngine.port</td>
+<td>Port for RTPEngine</td>
+<td>No</td>
+</tr>
+<tr>
+<td>spec.ex_convertTelToE164</td>
+<td>If enabled, it will convert the number on ingress calls to <code>E164</code> format before routing the call. Defaults to <code>false</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>spec.ex_uniqueGatewayPerHostPort</td>
+<td>If enabled, it will yield an error if a Gateway with the same host and port combination already exists. Defaults to <code>false</code></td>
+<td>No</td>
+</tr>
 </tbody>
 </table>
+<blockquote>
+<p>Variables prefixed with <code>ex_</code> are experimental features and may be removed or renamed in the future.</p>
+</blockquote>
 <h2 id="transport-configuration">Transport Configuration<a class="headerlink" href="#transport-configuration" title="Permanent link">&para;</a></h2>
 <p>Routr supports <code>tcp</code>, <code>udp</code>, <code>tls</code>, <code>sctp</code>, <code>ws</code>, and <code>wss</code> as transport protocols.</p>
 <p>The server requires at least one transport protocol.
