@@ -190,7 +190,10 @@ class RequestHandler {
         )
       }
 
-      if (request.getMethod() === Request.BYE) {
+      if (
+        request.getMethod() === Request.BYE &&
+        config.spec.ex_rtpEngine.enabled
+      ) {
         const callId = request.getHeader(CallIdHeader.NAME).getCallId()
         const fromTag = request.getHeader(FromHeader.NAME).getTag()
         await this.rtpeConnector.delete(callId, fromTag)

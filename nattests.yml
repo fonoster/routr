@@ -9,6 +9,7 @@ services:
         ipv4_address: $REDIS_PUBLIC_IP
       private_net:
         ipv4_address: $REDIS_PRIVATE_IP
+
   proxy_a:
     links:
       - "phone_s1:sip.provider.net"
@@ -27,6 +28,7 @@ services:
         ipv4_address: $PROXY_A_PUBLIC_IP
       private_net:
         ipv4_address: $PROXY_A_PRIVATE_IP
+
   proxy_b:
     links:
       - "phone_s1:sip.provider.net"
@@ -43,8 +45,9 @@ services:
     networks:
       public_net:
         ipv4_address: $PROXY_B_PUBLIC_IP
+
   phone_e1:
-    env_file: .env
+    env_file: env_test
     image: fonoster/routr-eet:latest
     expose: [5060, 9330]
     networks:
@@ -55,8 +58,9 @@ services:
         while ! nc -z $PROXY_A_PRIVATE_IP 4567; do sleep 0.1; done
         node eet/ua_srv.js
       '
+
   phone_e2:
-    env_file: .env
+    env_file: env_test
     image: fonoster/routr-eet:latest
     expose: [5060, 9330]
     networks:
@@ -67,34 +71,39 @@ services:
         while ! nc -z $PROXY_A_PRIVATE_IP 4567; do sleep 0.1; done
         node eet/ua_srv.js
       '
+
   phone_e3:
-    env_file: .env
+    env_file: env_test
     image: fonoster/routr-eet:latest
     expose: [5060]
     networks:
       public_net:
         ipv4_address: $PHONE_E3_IP
+
   phone_e4:
-    env_file: .env
+    env_file: env_test
     image: fonoster/routr-eet:latest
     expose: [5060, 9330]
     networks:
       public_net:
         ipv4_address: $PHONE_E4_IP
+
   phone_s1:
-    env_file: .env
+    env_file: env_test
     image: fonoster/routr-eet:latest
     expose: [5060, 9330]
     networks:
       public_net:
         ipv4_address: $PHONE_S1_IP
+
   phone_s2:
-    env_file: .env
+    env_file: env_test
     image: fonoster/routr-eet:latest
     expose: [5060, 9330]
     networks:
       public_net:
         ipv4_address: $PHONE_S2_IP
+
   provisioner:
     build:
       context: .rctl
@@ -115,8 +124,9 @@ services:
       '
     volumes:
       - ./config:/opt/routr/config:ro
+
   controller:
-    env_file: .env
+    env_file: env_test
     image: fonoster/routr-eet:latest
     networks:
       public_net:
@@ -129,6 +139,7 @@ services:
         while ! nc -z $PHONE_E2_IP $UA_SRV_DEFAULT_PORT; do sleep 0.1; done
         node eet/ua_ctl.js
       '
+
 networks:
   public_net:
     driver: "bridge"
