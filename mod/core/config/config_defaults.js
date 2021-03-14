@@ -15,6 +15,7 @@ module.exports = upSince => {
     },
     spec: {
       ex_uniqueGatewayPerHostPort: false,
+      ex_convertTelToE164: false,
       bindAddr: InetAddress.getLocalHost().getHostAddress(),
       localnets: [],
       transport: [

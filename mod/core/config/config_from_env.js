@@ -49,10 +49,12 @@ envsMap.set('EX_RTP_ENGINE_ENABLED', 'spec.ex_rtpEngine.enabled')
 envsMap.set('EX_RTP_ENGINE_PROTO', 'spec.ex_rtpEngine.proto')
 envsMap.set('EX_RTP_ENGINE_HOST', 'spec.ex_rtpEngine.host')
 envsMap.set('EX_RTP_ENGINE_PORT', 'spec.ex_rtpEngine.port')
+envsMap.set('EX_CONVERT_TEL_TO_E164', 'spec.ex_convertTelToE164')
 envsMap.set(
   'EX_UNIQUE_GATEWAY_PER_HOST_PORT',
   'spec.ex_uniqueGatewayPerHostPort'
 )
+
 envsMap.set('LOG4J', '')
 envsMap.set('CONFIG_FILE', '')
 envsMap.set('SALT', '')

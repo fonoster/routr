@@ -14,6 +14,7 @@ const StoreAPI = require('@routr/data_api/store_api')
 const postal = require('postal')
 const { Status } = require('@routr/core/status')
 const phone = require('phone')
+const config = require('@routr/core/config_util')()
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
@@ -78,11 +79,13 @@ class Locator {
     } else {
       try {
         const tel = LocatorUtils.aorAsObj(addressOfRecord).getUser()
-        const telE164 = phone(tel)[0]
+        const telE164 = config.spec.ex_convertTelToE164
+          ? phone('+' + tel, '', true)[0]
+          : tel
         const response = this.findEndpointByTelUrl(`tel:${telE164}`)
         if (response.status === Status.OK) return response
       } catch (e) {
-        // Ignore
+        LOG.warning(`Tel '${tel}' not a valid e164`)
       }
     }
 

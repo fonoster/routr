@@ -32,6 +32,8 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
+        - name: EX_CONVERT_TEL_TO_E164
+          value: {{ .Values.routr.ex_convertTelToE164 | quote }}
         - name: EX_UNIQUE_GATEWAY_PER_HOST_PORT
           value: {{ .Values.routr.ex_uniqueGatewayPerHostPort | quote }}
         - name: EX_RTP_ENGINE_ENABLED

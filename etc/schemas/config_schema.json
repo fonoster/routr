@@ -18,6 +18,9 @@
                 "ex_uniqueGatewayPerHostPort": {
                     "type": "boolean"
                 },
+                "ex_convertTelToE164": {
+                    "type": "boolean"
+                },
                 "registrarIntf": {
                     "enum": ["Internal", "External", "internal", "external"]
                 },

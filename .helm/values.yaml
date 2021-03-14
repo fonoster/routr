@@ -52,6 +52,9 @@ routr:
   patchRequestURI: false
   registrarIntf: External
   ex_uniqueGatewayPerHostPort: false
+  ex_convertTelToE164: false
+  ex_rtpEngine:
+    enabled: false  
   accessControlList:
     deny: []
     allow: []
@@ -66,8 +69,6 @@ routr:
     trustStore: ""
     keyStorePassword: ""
     trustStorePassword: ""
-  ex_rtpEngine:
-    enabled: false
   securityContext:
     keyStore: ""
     trustStore: ""
