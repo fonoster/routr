@@ -51,6 +51,7 @@ routr:
   useToAsAOR: false
   patchRequestURI: false
   registrarIntf: External
+  ex_uniqueGatewayPerHostPort: false
   accessControlList:
     deny: []
     allow: []
