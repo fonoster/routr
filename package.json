@@ -11,7 +11,8 @@
     "bundle": "webpack --config webpack.config.js --mode none",
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
     "transpile": "tsc",
-    "format": "prettier-standard 'mod/**/*.js'"
+    "format": "prettier-standard 'mod/**/*.js'",
+    "helm-package": "helm package .helm/ -d .charts && helm repo index .charts"
   },
   "lint-staged": {
     "mod/**/*.js": [
