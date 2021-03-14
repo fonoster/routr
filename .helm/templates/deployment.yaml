@@ -32,6 +32,12 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
+        - name: EX_RTP_ENGINE_ENABLED
+          value: {{ .Values.routr.ex_rtpEngine.enabled | quote }}
+        - name: EX_RTP_ENGINE_HOST
+          value: {{ .Values.routr.ex_rtpEngine.host | quote }}
+        - name: EX_RTP_ENGINE_PORT
+          value: {{ .Values.routr.ex_rtpEngine.port | quote }}                
         - name: DATA_SOURCE_PROVIDER
           value: redis_data_provider
         - name: DATA_SOURCE_PARAMETERS

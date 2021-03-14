@@ -65,6 +65,8 @@ routr:
     trustStore: ""
     keyStorePassword: ""
     trustStorePassword: ""
+  ex_rtpEngine:
+    enabled: false
   securityContext:
     keyStore: ""
     trustStore: ""
