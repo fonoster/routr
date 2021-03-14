@@ -3,6 +3,7 @@ on:
   push:
     paths:
     - 'docs/**'
+    - '.charts/**'
     branches:
     - master
 jobs:
