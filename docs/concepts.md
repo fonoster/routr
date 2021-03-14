@@ -13,7 +13,7 @@ A multinational company like _Walmart_ have thousands of stores that operate ind
 <img src="https://raw.githubusercontent.com/wiki/fonoster/routr/images/double_agent.png" width=400 style="margin-bottom: 50px">
 <br>
 
-Yes, you can have double Agents, or Agents that exist in a multi-domain setup. All you need to do is include the Domain in the Agent's `spec.domain[*]` list. In the example before, John can send or receive calls from both domains, while the rest of the Agents are only allowed to call within the Domain.
+Yes, you can have double Agents, or Agents that exist in a multi-domain setup. For this to work, you need to do is include the Domain in the Agent's `spec.domain[*]` list. In the example before, John can send or receive calls from both domains, while the rest of the Agents are only allowed to call within the Domain.
 
 ### Single Domain Example
 
