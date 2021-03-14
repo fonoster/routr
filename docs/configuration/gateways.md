@@ -48,5 +48,5 @@ For static IP authentication be sure to properly configure the `spec.externAddr`
   spec:
     host: sip2.provider.com
     port: 5080
-    transport: udp
+    transport: tcp
 ```
