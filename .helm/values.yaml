@@ -54,7 +54,7 @@ routr:
   ex_uniqueGatewayPerHostPort: false
   ex_convertTelToE164: false
   ex_rtpEngine:
-    enabled: false  
+    enabled: false
   accessControlList:
     deny: []
     allow: []
