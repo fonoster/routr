@@ -41,6 +41,11 @@ tcpSignalingService:
     port: 5060
   annotations: {}
 
+# Certificates Management
+certs:
+  provided: false
+  name: routr-cert
+
 # Routr internal configurations
 routr:
   userAgent: ""
