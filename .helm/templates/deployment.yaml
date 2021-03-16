@@ -121,6 +121,7 @@ spec:
         {{- if eq .Values.certs.provided true }}  
         - name: certs
           mountPath: /opt/routr/etc/certs/domains-cert.jks
+          subPath: domains-cert.jks
           readOnly: true
         {{- end }}
       volumes:
