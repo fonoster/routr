@@ -31,7 +31,7 @@
     "ip-utils": "^2.4.0",
     "lint-staged": "^10.0.9",
     "moment": "^2.22.2",
-    "npm": "^6.1.0",
+    "npm": "^7.0.0",
     "paginate-array": "^2.1.0",
     "phone": "^2.4.20",
     "postal": "^2.0.5",
