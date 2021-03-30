@@ -64,7 +64,10 @@ const boolVals = [
   'SECURITY_CONTEXT_DEBUGGING',
   'RECORD_ROUTE',
   'USE_TO_AS_AOR',
-  'REST_SERVICE_UNSECURED'
+  'REST_SERVICE_UNSECURED',
+  'EX_RTP_ENGINE_ENABLED',
+  'EX_CONVERT_TEL_TO_E164',
+  'EX_UNIQUE_GATEWAY_PER_HOST_PORT'
 ]
 
 // spec.transport.[*].bindAddr	Overwrites spec.bindAddr for transport entry	No
