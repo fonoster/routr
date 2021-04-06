@@ -8,13 +8,14 @@ const Request = Java.type('javax.sip.message.Request')
 const ContactHeader = Java.type('javax.sip.header.ContactHeader')
 const RouteHeader = Java.type('javax.sip.header.RouteHeader')
 const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
-const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const ToHeader = Java.type('javax.sip.header.ToHeader')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
 const MaxForwardsHeader = Java.type('javax.sip.header.MaxForwardsHeader')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
 const addressFactory = SipFactory.getInstance().createAddressFactory()
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const LOG = LogManager.getLogger()
 
 const isExternalDevice = r =>
   r && (!r.sentByAddress || r.sentByAddress.endsWith('.invalid'))
@@ -22,35 +23,27 @@ const isWebRTCClient = isExternalDevice
 const isPublicAddress = h => !isLocalnet(config.spec.localnets, h)
 const needsExternAddress = (route, host) =>
   isExternalDevice(route) || isPublicAddress(host)
+
+// Deprecated
 const addrHost = a => (a.contains(':') ? a.split(':')[0] : a)
-const addrPort = (a, p) => (a.contains(':') ? a.split(':')[1] : p.port)
-const ownedAddresss = localAddr =>
+// Deprecated
+const addrPort = a => (a.contains(':') ? parseInt(a.split(':')[1]) : 5060)
+// Deprecated
+const ownedAddresss = originInterfaceAddr =>
   config.spec.externAddr
     ? [
-        localAddr,
+        originInterfaceAddr,
         {
           host: addrHost(config.spec.externAddr),
-          port: addrPort(config.spec.externAddr, localAddr)
+          port: addrPort(config.spec.externAddr)
         }
       ]
-    : [localAddr]
-const getAdvertisedAddr = (request, route, localAddr, targetTransport) => {
-  // After the initial invite the route object will be null
-  // and we need to the the target address from the request uri.
-  // If the routing is type IDR the initial request uri will be a local
-  // domain and the isLocalnet function will return a wrong result.
-  const targetAddr =
-    route && route.contactURI
-      ? LocatorUtils.aorAsObj(route.contactURI).getHost()
-      : request.getRequestURI().getHost()
+    : [originInterfaceAddr]
+const getEdgeAddr = (endpointHost, interfaceHost, route) => {
   const externAddr = config.spec.externAddr
-  return externAddr && needsExternAddress(route, targetAddr)
-    ? {
-        host: addrHost(externAddr),
-        port: addrPort(externAddr, localAddr),
-        transport: targetTransport
-      }
-    : { host: localAddr.host, port: localAddr.port, transport: targetTransport }
+  return externAddr && needsExternAddress(route, endpointHost)
+    ? externAddr
+    : interfaceHost
 }
 const getToUser = request => {
   const toHeader = request.getHeader(ToHeader.NAME)
@@ -96,23 +89,35 @@ const configureProxyAuthorization = request => {
   requestOut.removeHeader('Proxy-Authorization')
   return requestOut
 }
-const configureRoute = (request, localAddr) => {
+const configureRoute = (request, originInterfaceAddr, targetInterfaceAddr) => {
   const requestOut = request.clone()
   const routeHeader = request.getHeader(RouteHeader.NAME)
   if (routeHeader) {
+    // 52.174.241.181
     const host = routeHeader
       .getAddress()
       .getURI()
       .getHost()
+    // 5060
     const port = fixPort(
       routeHeader
         .getAddress()
         .getURI()
         .getPort()
     )
-    const c = ownedAddresss(localAddr, config.spec.externAddr).filter(
+
+    LOG.debug(
+      `core.processor.RequestUtils.configureRoute [host = ${host}, port=${port}]`
+    )
+
+    const c = [originInterfaceAddr, targetInterfaceAddr].filter(
       a => a.host === host && a.port === port
     ).length
+
+    LOG.debug(
+      `core.processor.RequestUtils.configureRoute [owns address? = ${c > 0}]`
+    )
+
     if (c > 0) {
       requestOut.removeFirst(RouteHeader.NAME)
       requestOut.removeFirst(RouteHeader.NAME)
@@ -120,10 +125,10 @@ const configureRoute = (request, localAddr) => {
   }
   return requestOut
 }
-const configureVia = (request, advertisedAddr, transport) => {
+const configureVia = (request, interfaceAddr, transport) => {
   const viaHeader = headerFactory.createViaHeader(
-    advertisedAddr.host,
-    advertisedAddr.port,
+    interfaceAddr.host,
+    interfaceAddr.port,
     transport,
     null
   )
@@ -132,33 +137,34 @@ const configureVia = (request, advertisedAddr, transport) => {
   requestOut.addFirst(viaHeader)
   return requestOut
 }
-
+const buildRecordRoute = addr => {
+  const sipURI = addressFactory.createSipURI(null, addr.host)
+  sipURI.setPort(addr.port)
+  sipURI.setTransportParam(addr.transport)
+  sipURI.setLrParam()
+  const address = addressFactory.createAddress(sipURI)
+  return headerFactory.createRecordRouteHeader(address)
+}
 // rfc5658
-const configureRecordRoute = (request, localAddr, advertisedAddr) => {
-  const requestOut = request.clone()
-  const viaHeader = request.getHeaders(ViaHeader.NAME).next()
-  const transport = viaHeader.getTransport().toLowerCase()
-
-  if (config.spec.recordRoute || transport === 'ws' || transport === 'wss') {
-    // First we need the input interface from the top ViaHeader
-    const p1 = addressFactory.createSipURI(null, localAddr.host)
-    p1.setPort(localAddr.port)
-    p1.setTransportParam(localAddr.transport)
-    p1.setLrParam()
-    const pa1 = addressFactory.createAddress(p1)
-    const rr1 = headerFactory.createRecordRouteHeader(pa1)
-    requestOut.addHeader(rr1)
-
+const configureRecordRoute = (
+  request,
+  inputInterfaceAddr,
+  outputInterfaceAddr
+) => {
+  if (config.spec.recordRoute) {
+    const requestOut = request.clone()
+    requestOut.addHeader(buildRecordRoute(inputInterfaceAddr))
     // Then we get the advertisedAddr
-    const p2 = addressFactory.createSipURI(null, advertisedAddr.host)
-    p2.setLrParam()
-    p2.setTransportParam(advertisedAddr.transport)
-    p2.setPort(advertisedAddr.port)
-    const pa2 = addressFactory.createAddress(p2)
-    const rr2 = headerFactory.createRecordRouteHeader(pa2)
-    requestOut.addLast(rr2)
+    if (
+      inputInterfaceAddr.host !== outputInterfaceAddr.host &&
+      inputInterfaceAddr.port !== outputInterfaceAddr.port &&
+      inputInterfaceAddr.transport !== outputInterfaceAddr.transport
+    ) {
+      requestOut.addHeader(buildRecordRoute(outputInterfaceAddr))
+    }
+    return requestOut
   }
-  return requestOut
+  return request
 }
 const configureRequestURI = (request, routeInfo, route) => {
   const requestOut = request.clone()
@@ -241,7 +247,7 @@ const isInDialog = request =>
   request.getHeader(ToHeader.NAME).getTag() !== null &&
   request.getHeader(FromHeader.NAME).getTag() !== null
 
-module.exports.getAdvertisedAddr = getAdvertisedAddr
+module.exports.getEdgeAddr = getEdgeAddr
 module.exports.configureRoute = configureRoute
 module.exports.configureVia = configureVia
 module.exports.configureProxyAuthorization = configureProxyAuthorization

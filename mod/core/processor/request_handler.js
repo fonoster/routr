@@ -15,10 +15,11 @@ const ContentTypeHeader = Java.type('javax.sip.header.ContentTypeHeader')
 const CallIdHeader = Java.type('javax.sip.header.CallIdHeader')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
 const Request = Java.type('javax.sip.message.Request')
+const LocatorUtils = require('@routr/location/utils')
 const postal = require('postal')
 
 const {
-  getAdvertisedAddr,
+  getEdgeAddr,
   configureRoute,
   configureVia,
   configureProxyAuthorization,
@@ -110,10 +111,44 @@ class RequestHandler {
 
   async processRoute (transaction, request, route, routeInfo) {
     try {
-      const lpTransport = request
+      // Request origin transport
+      const originTransport = request
         .getHeader(ViaHeader.NAME)
         .getTransport()
         .toLowerCase()
+
+      LOG.debug(
+        `core.processor.RequestHandler.processRoute [originTransport = ${originTransport}]`
+      )
+
+      // Determining origin address
+      const originAddr = request.getHeader(ViaHeader.NAME).getHost()
+
+      LOG.debug(
+        `core.processor.RequestHandler.processRoute [originAddr = ${originAddr}]`
+      )
+
+      // Determining Listening point for the originating SIP endpoint
+      const originListeningPoint = this.sipProvider.getListeningPoint(
+        originTransport
+      )
+      const originInterfaceAddr = {
+        host: getEdgeAddr(
+          originAddr,
+          originListeningPoint.getIPAddress().toString(),
+          null
+        ),
+        port: originListeningPoint.getPort(),
+        transport: originTransport
+      }
+
+      LOG.debug(
+        `core.processor.RequestHandler.processRoute [originInterfaceAddr = ${JSON.stringify(
+          originInterfaceAddr
+        )}]`
+      )
+
+      // Next hop transport protocol
       const targetTransport = route
         ? route.transport
         : request
@@ -121,30 +156,52 @@ class RequestHandler {
             .getParameter('transport')
             .toLowerCase()
 
-      const lp = this.sipProvider.getListeningPoint(lpTransport)
-      const localAddr = {
-        host: lp.getIPAddress().toString(),
-        port: lp.getPort(),
-        transport: lpTransport
-      }
-      const advertisedAddr = getAdvertisedAddr(
-        request,
-        route,
-        localAddr,
-        targetTransport
-      )
-
       LOG.debug(
         `core.processor.RequestHandler.processRoute [targetTransport = ${targetTransport}]`
       )
+
+      // Determining target address
+      const targetAddr =
+        route && route.contactURI
+          ? LocatorUtils.aorAsObj(route.contactURI).getHost()
+          : request.getRequestURI().getHost()
+
       LOG.debug(
-        `core.processor.RequestHandler.processRoute [lpTransport = ${lpTransport}]`
+        `core.processor.RequestHandler.processRoute [targetAddr = ${targetAddr}]`
+      )
+
+      // Listening point for the destination SIP endpoint
+      const targetListeningPoint = this.sipProvider.getListeningPoint(
+        targetTransport
+      )
+      const targetInterfaceAddr = {
+        host: getEdgeAddr(
+          targetAddr,
+          targetListeningPoint.getIPAddress().toString(),
+          route
+        ),
+        port: targetListeningPoint.getPort(),
+        transport: targetTransport
+      }
+
+      LOG.debug(
+        `core.processor.RequestHandler.processRoute [targetInterfaceAddr = ${JSON.stringify(
+          targetInterfaceAddr
+        )}]`
       )
 
       let requestOut = configureMaxForwards(request)
       requestOut = configureProxyAuthorization(requestOut)
-      requestOut = configureRoute(requestOut, localAddr)
-      requestOut = configureVia(requestOut, advertisedAddr, targetTransport)
+      requestOut = configureRoute(
+        requestOut,
+        originInterfaceAddr,
+        targetInterfaceAddr
+      )
+      requestOut = configureVia(
+        requestOut,
+        targetInterfaceAddr,
+        targetTransport
+      )
       //requestOut = configureContact(requestOut)
 
       if (!isInDialog(request)) {
@@ -152,7 +209,11 @@ class RequestHandler {
         requestOut = configurePrivacy(requestOut, routeInfo)
         requestOut = configureIdentity(requestOut, route)
         requestOut = configureXHeaders(requestOut, route)
-        requestOut = configureRecordRoute(requestOut, localAddr, advertisedAddr)
+        requestOut = configureRecordRoute(
+          requestOut,
+          originInterfaceAddr,
+          targetInterfaceAddr
+        )
       }
 
       if (routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING) {
@@ -162,7 +223,7 @@ class RequestHandler {
 
       LOG.debug(
         `core.processor.RequestHandler.processRoute [advertised addr ${JSON.stringify(
-          advertisedAddr
+          targetInterfaceAddr
         )}]`
       )
       LOG.debug(
