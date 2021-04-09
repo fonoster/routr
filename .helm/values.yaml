@@ -55,7 +55,7 @@ routr:
   recordRoute: false
   useToAsAOR: false
   patchRequestURI: false
-  registrarIntf: External
+  registrarIntf: Internal
   ex_uniqueGatewayPerHostPort: false
   ex_convertTelToE164: false
   ex_rtpEngine:
