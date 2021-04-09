@@ -119,11 +119,11 @@ spec:
           mountPath: /opt/routr/config/log4j2.yml
           subPath: log4j2.yml
         {{- if eq .Values.certs.provided true }}  
-        - name: certs
+        - name: domains-cert
           mountPath: /opt/routr/etc/certs/domains-cert.jks
           subPath: domains-cert.jks
           readOnly: true
-        - name: certs
+        - name: api-cert
           mountPath: /opt/routr/etc/certs/api-cert.jks
           subPath: api-cert.jks
           readOnly: true
@@ -133,7 +133,10 @@ spec:
         configMap:
           name: {{ include ".helm2.fullname" . }}-log4j2
       {{- if eq .Values.certs.provided true }}          
-      - name: certs
+      - name: domains-cert
+        secret:
+          secretName: {{ .Values.certs.name }}
+      - name: api-cert
         secret:
           secretName: {{ .Values.certs.name }}
       {{- end }}
