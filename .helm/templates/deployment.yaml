@@ -123,6 +123,10 @@ spec:
           mountPath: /opt/routr/etc/certs/domains-cert.jks
           subPath: domains-cert.jks
           readOnly: true
+        - name: certs
+          mountPath: /opt/routr/etc/certs/api-cert.jks
+          subPath: api-cert.jks
+          readOnly: true
         {{- end }}
       volumes:
       - name: log4j2
