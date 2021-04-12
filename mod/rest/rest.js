@@ -25,7 +25,6 @@ const locationService = require('@routr/rest/location_service')
 const parameterAuthFilter = require('@routr/rest/parameter_auth_filter')
 const basicAuthFilter = require('@routr/rest/basic_auth_filter')
 const moment = require('moment')
-const merge = require('deepmerge')
 
 const LogsHandler = Java.type('io.routr.core.LogsHandler')
 const GRPCClient = Java.type('io.routr.core.GRPCClient')
