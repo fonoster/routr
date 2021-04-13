@@ -222,11 +222,6 @@ class RequestHandler {
       }
 
       LOG.debug(
-        `core.processor.RequestHandler.processRoute [advertised addr ${JSON.stringify(
-          targetInterfaceAddr
-        )}]`
-      )
-      LOG.debug(
         `core.processor.RequestHandler.processRoute [route ${JSON.stringify(
           route
         )}]`
