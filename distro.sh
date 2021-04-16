@@ -10,12 +10,14 @@ build_for_platform() {
 
     # ROUTR_VERSION is set at the CI/CD process
     BUILD_NAME="routr-$ROUTR_VERSION""_$PLATFORM-x64_bin"
-    # Cleanup
+
+    # Remove old build
     rm -rf $BUILD_NAME
     mkdir -p $BUILD_NAME/libs
     mkdir $BUILD_NAME/config
     mkdir $BUILD_NAME/etc
 
+    # Build and pack
     cp -a config/*.yml $BUILD_NAME/config
     cp -a config/stack.properties $BUILD_NAME/config/stack.properties
     cp -a etc/certs $BUILD_NAME/etc
@@ -33,6 +35,6 @@ build_for_platform() {
     rm -rf $BUILD_NAME
 }
 
-build_for_platform 'windows' 'jre-9.0.4_windows-x64_bin.tar.gz'
-build_for_platform 'linux' 'jre-9.0.4_linux-x64_bin.tar.gz'
-build_for_platform 'osx' 'jre-9.0.1_osx-x64_bin.tar.gz'
+build_for_platform 'windows' 'jre-11.0.10_windows-x64_bin.tar.gz'
+build_for_platform 'linux' 'jre-11.0.10_linux-x64_bin.tar.gz'
+build_for_platform 'osx' 'jre-11.0.9.1_osx-x64_bin.tar.gz'
