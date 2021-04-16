@@ -89,7 +89,10 @@ class RequestHandler {
           .getURI()
       : request.getRequestURI()
 
-    if (isInDialog(request)) {
+    // Hack :(
+    // This forces the processor to look for an existing binding for endpoints
+    // using ".invalid" in the host part of the contact(i.e: SIP.js)
+    if (isInDialog(request) && !aor.toString().includes('.invalid')) {
       this.processRoute(transaction, request, null, routeInfo)
     } else {
       const requestId = new ObjectId().toString()
@@ -202,7 +205,6 @@ class RequestHandler {
         targetInterfaceAddr,
         targetTransport
       )
-      //requestOut = configureContact(requestOut)
 
       if (!isInDialog(request)) {
         requestOut = configureRequestURI(requestOut, routeInfo, route)
@@ -214,18 +216,17 @@ class RequestHandler {
           originInterfaceAddr,
           targetInterfaceAddr
         )
+      } else {
+        requestOut = configureRequestURI(requestOut, null, route)
       }
 
-      if (routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING) {
+      if (
+        routeInfo &&
+        routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING
+      ) {
         // XXX: Please document this situation :(
         requestOut = configureCSeq(requestOut)
       }
-
-      LOG.debug(
-        `core.processor.RequestHandler.processRoute [route ${JSON.stringify(
-          route
-        )}]`
-      )
 
       let bridgingNote
       if (

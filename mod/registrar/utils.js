@@ -12,9 +12,10 @@ const config = require('@routr/core/config_util')()
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const ContactHeader = Java.type('javax.sip.header.ContactHeader')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
-const ExpiresHeader = Java.type('javax.sip.header.ExpiresHeader')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const addressFactory = SipFactory.getInstance().createAddressFactory()
+const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const LOG = LogManager.getLogger()
 
 const getHost = r =>
   r
@@ -49,6 +50,24 @@ class RegistrarUtils {
         aors.push(addressOfRecord.toString())
       })
     }
+
+    // Hack :(
+    // This additional binding helps in-dialog messages to reach endpoints
+    // using ".invalid" in the host part of the contact(i.e: SIP.js)
+    if (contactURI.toString().includes('.invalid')) {
+      const contactAsAOR = addressFactory.createSipURI(
+        contactURI.getUser(),
+        contactURI.getHost()
+      )
+      contactAsAOR.setSecure(contactURI.isSecure())
+
+      LOG.debug(
+        `registrar.Registrar.utils.generateAors [adding binding for contact ${contactAsAOR}]`
+      )
+
+      aors.push(contactAsAOR.toString())
+    }
+
     return aors
   }
 
@@ -102,7 +121,8 @@ class RegistrarUtils {
     const viaHeader = request.getHeader(ViaHeader.NAME)
     return (
       config.spec.registrarIntf.equalsIgnoreCase('Internal') ||
-      viaHeader.getTransport().equalsIgnoreCase('udp')
+      viaHeader.getTransport().equalsIgnoreCase('udp') ||
+      viaHeader.getHost().includes('.invalid')
     )
   }
 
