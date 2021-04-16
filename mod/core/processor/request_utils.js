@@ -19,6 +19,7 @@ const LOG = LogManager.getLogger()
 
 const isExternalDevice = r =>
   r && (!r.sentByAddress || r.sentByAddress.endsWith('.invalid'))
+// Deprecated
 const isWebRTCClient = isExternalDevice
 const isPublicAddress = h => !isLocalnet(config.spec.localnets, h)
 const needsExternAddress = (route, host) =>
@@ -148,19 +149,32 @@ const buildRecordRoute = addr => {
 // rfc5658
 const configureRecordRoute = (
   request,
-  inputInterfaceAddr,
-  outputInterfaceAddr
+  originInterfaceAddr,
+  targetInterfaceAddr
 ) => {
   if (config.spec.recordRoute) {
     const requestOut = request.clone()
-    requestOut.addHeader(buildRecordRoute(inputInterfaceAddr))
-    // Then we get the advertisedAddr
+    requestOut.addHeader(buildRecordRoute(originInterfaceAddr))
+
+    LOG.debug(
+      `core.processor.RequestUtils.configureRecordRoute [Adding originInterfaceAddr -> ${JSON.stringify(
+        originInterfaceAddr
+      )}]`
+    )
+
+    // Add the targetInterfaceAddr only if it is different to the
+    // originInterfaceAddr
     if (
-      inputInterfaceAddr.host !== outputInterfaceAddr.host &&
-      inputInterfaceAddr.port !== outputInterfaceAddr.port &&
-      inputInterfaceAddr.transport !== outputInterfaceAddr.transport
+      originInterfaceAddr.host !== targetInterfaceAddr.host ||
+      originInterfaceAddr.port !== targetInterfaceAddr.port ||
+      originInterfaceAddr.transport !== targetInterfaceAddr.transport
     ) {
-      requestOut.addHeader(buildRecordRoute(outputInterfaceAddr))
+      LOG.debug(
+        `core.processor.RequestUtils.configureRecordRoute [Adding targetInterfaceAddr -> ${JSON.stringify(
+          targetInterfaceAddr
+        )}]`
+      )
+      requestOut.addHeader(buildRecordRoute(targetInterfaceAddr))
     }
     return requestOut
   }
@@ -171,12 +185,15 @@ const configureRequestURI = (request, routeInfo, route) => {
   let uri
 
   if (
-    routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING ||
-    routeInfo.getRoutingType() === RoutingType.PEER_EGRESS_ROUTING
+    routeInfo &&
+    (routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING ||
+      routeInfo.getRoutingType() === RoutingType.PEER_EGRESS_ROUTING)
   ) {
     uri = `sip:${getToUser(request)}@${route.gwHost}`
-  } else if (isWebRTCClient(route)) {
-    uri = `sip:${getUser(request)}@${route.received}:${route.rport}`
+    //} else if (isWebRTCClient(route)) {
+    //  uri = `sip:${getUser(request)}@${route.received}:${route.rport}`
+    //  LOG.debug('XXXXX uri=' + uri)
+    //
   } else {
     uri = route.contactURI
   }
