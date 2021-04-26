@@ -35,7 +35,7 @@
     "paginate-array": "^2.1.0",
     "phone": "^2.4.20",
     "postal": "^2.0.5",
-    "validator": "^11.0.0",
+    "validator": "^13.6.0",
     "xxhashjs": "^0.2.2"
   },
   "devDependencies": {
