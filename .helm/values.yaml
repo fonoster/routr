@@ -99,7 +99,9 @@ fullnameOverride: ""
 podAnnotations: {}
 podSecurityContext: {}
 securityContext: {}
-resources: {}
+resources:
+  limits: {}
+  requests: {}
 nodeSelector: {}
 tolerations: []
 affinity: {}

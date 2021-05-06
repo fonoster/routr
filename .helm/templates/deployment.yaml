@@ -128,6 +128,15 @@ spec:
           subPath: api-cert.jks
           readOnly: true
         {{- end }}
+        resources:
+          {{- if .Values.resources.limits }}
+          limits:
+          {{- .Values.resources.limits | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.resources.requests }}
+          requests:
+          {{- .Values.resources.requests | toYaml | nindent 12 }}
+          {{- end }}
       volumes:
       - name: log4j2
         configMap:
