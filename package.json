@@ -12,7 +12,8 @@
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
     "transpile": "tsc",
     "format": "prettier-standard 'mod/**/*.js'",
-    "helm-package": "helm package .helm/ -d .charts && helm repo index .charts"
+    "helm-package": "helm package .helm/ -d .charts && helm repo index .charts",
+    "clean": "rimraf node_modules build libs .gradle .routr.salt *.dat"
   },
   "lint-staged": {
     "mod/**/*.js": [
@@ -26,12 +27,11 @@
   },
   "dependencies": {
     "bencode": "^2.0.1",
+    "buffer": "^6.0.3",
     "deepmerge": "^4.2.2",
     "flat": "^5.0.0",
     "ip-utils": "^2.4.0",
-    "lint-staged": "^10.0.9",
     "moment": "^2.22.2",
-    "npm": "^6.1.0",
     "paginate-array": "^2.1.0",
     "phone": "^2.4.20",
     "postal": "^2.0.5",
@@ -45,15 +45,18 @@
     "cross-env": "^5.2.0",
     "husky": "^4.2.3",
     "jvm-npm": "^0.1.1",
+    "lint-staged": "^10.0.9",
     "mocha": "^6.2.0",
+    "npm": "^6.1.0",
     "nyc": "^14.1.1",
     "prettier-standard": "^9.1.1",
     "rewire": "^5.0.0",
+    "rimraf": "^2.7.1",
     "sinon": "^9.0.1",
     "sinon-chai": "^3.5.0",
     "source-map-loader": "^0.2.4",
-    "webpack": "4.11.1",
-    "webpack-command": "^0.2.0"
+    "webpack": "^5.36.2",
+    "webpack-cli": "^4.7.0"
   },
   "repository": {
     "type": "git",
