@@ -4,6 +4,7 @@
  */
 const { RTPBridgingNote } = require('@routr/rtpengine/rtp_bridging_note')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
+const Buffer = require('buffer/').Buffer
 const bencode = require('bencode')
 const isTransportWeb = t => t === 'ws' || t === 'wss'
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')

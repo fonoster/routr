@@ -26,13 +26,13 @@ class NGHttpSender {
         .body(benEncode(params['call-id'] + cnt, params))
         .asString()
 
+      const data = benDecode(res.getBody()).data
+
       LOG.debug(
-        `NGHttpSender.sendCmd cmd-${cmd} [results ${JSON.stringify(
-          benDecode(res.getBody())
-        )}]`
+        `NGHttpSender.sendCmd cmd-${cmd} [results ${JSON.stringify(data)}]`
       )
 
-      return benDecode(res.getBody()).data
+      return data
     } catch (e) {
       LOG.error(e)
     }
