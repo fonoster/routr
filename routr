@@ -14,11 +14,8 @@ run() {
     $JAVA_HOME/bin/java \
     -DDATA=$DATA \
     -Dlog4j.configurationFile=$LOG4J2 \
-    -Dgraal.TruffleFunctionInlining=false \
-    -Dgraal.CompilationFailureAction=Silent \
     -Dpolyglot.js.experimental-foreign-object-prototype=true \
     -Dpolyglot.js.nashorn-compat=true \
-    -Dnashorn.args="--no-deprecation-warning" \
     $JAVA_OPTS \
     -classpath "$HOME/libs/*" \
     io.routr.core.Launcher

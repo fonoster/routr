@@ -22,7 +22,6 @@ config/sc/*.yml
 dump.rdb
 mod/vendor
 jre
-package-lock.json
 logs
 
 # User-specific stuff:

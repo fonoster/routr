@@ -35,7 +35,6 @@ const {
 const { directionFromRequest } = require('@routr/rtpengine/utils')
 const { RoutingType } = require('@routr/core/routing_type')
 const ObjectId = Java.type('org.bson.types.ObjectId')
-const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const ToHeader = Java.type('javax.sip.header.ToHeader')
