@@ -16,7 +16,7 @@
             "metadata": {
                 "type": "object",
                 "properties": {
-                    "name": {"type": "string", "minLength": 3, "maxLength": 30},
+                    "name": {"type": "string", "minLength": 3, "maxLength": 100},
                     "createdOn": {"type": "string", "readOnly": true},
                     "modifiedOn": {"type": "string", "readOnly": true},
                     "ref": {"type": "string", "readOnly": true, "minLength": 3, "maxLength": 24}
@@ -32,7 +32,7 @@
                     "credentials": {
                         "type": "object",
                         "properties": {
-                            "username": {"type": "string", "readOnly": true, "minLength": 3, "maxLength": 30},
+                            "username": {"type": "string", "readOnly": true, "minLength": 3, "maxLength": 100},
                             "secret": {"type": "string", "writeOnly": true}
                         },
                         "required": ["username", "secret"]

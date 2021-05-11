@@ -68,42 +68,30 @@ class ResponseProcessor {
       response.addHeader(xRPortHeader)
       response.removeFirst(ViaHeader.NAME)
 
+      if (
+        config.spec.ex_rtpEngine.enabled &&
+        isOk(response) &&
+        hasSDP(response)
+      ) {
+        const obj = await this.rtpeConnector.answer(
+          bridgingNote,
+          extractRTPEngineParams(response)
+        )
+        response.setContent(obj.sdp, response.getHeader(ContentTypeHeader.NAME))
+      }
+
       if (isTransactional(event)) {
         const context = this.contextStorage.findContext(
           event.getClientTransaction().getBranchId()
         )
-
         // WARNINIG: We need to remove the SDP for response to WebRTC endpoints
-        // else we will get a Called with SDP without DTLS fingerprint
+        // else we will get the error "Called with SDP without DTLS fingerprint"
         if (
           config.spec.ex_rtpEngine.enabled &&
           response.getStatusCode() === 183 &&
           bridgingNote === RTPBridgingNote.WEB_TO_SIP
         )
           response.removeContent()
-
-        if (
-          config.spec.ex_rtpEngine.enabled &&
-          isOk(response) &&
-          hasSDP(response)
-        ) {
-          const obj = await this.rtpeConnector.answer(
-            bridgingNote,
-            extractRTPEngineParams(response)
-          )
-
-          // WARNINIG: This patches an issue with RTPEngine where its not setting rtpmux
-          if (bridgingNote === RTPBridgingNote.WEB_TO_SIP)
-            obj.sdp = obj.sdp.replace(
-              'a=setup:active',
-              'a=setup:active\na=rtcp-mux'
-            )
-
-          response.setContent(
-            obj.sdp,
-            response.getHeader(ContentTypeHeader.NAME)
-          )
-        }
 
         if (context && context.serverTransaction) {
           context.serverTransaction.sendResponse(response)

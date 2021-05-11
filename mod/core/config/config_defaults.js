@@ -42,8 +42,8 @@ module.exports = upSince => {
             flags: 'trust-address replace-origin replace-session-connection'
           },
           sipToWeb: {
-            'transport-protocol': 'UDP/TLS/RTP/SAVP',
-            'rtcp-mux': 'offer',
+            'transport-protocol': 'UDP/TLS/RTP/SAVPF',
+            'rtcp-mux': 'required',
             ICE: 'force',
             SDES: 'off',
             flags:
