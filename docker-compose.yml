@@ -4,25 +4,56 @@ services:
 
   # SIP Server
   routr:
-    build:
-      context: .
-    image: fonoster/routr:latest
+    image: ${IMAGE_VERSION}
     environment:
-      DATA_SOURCE_PROVIDER: redis_data_provider
-      DATA_SOURCE_PARAMETERS: host=redis,port=6379
+      - USER_AGENT
+      - DATA_SOURCE_PROVIDER
+      - DATA_SOURCE_PARAMETERS
+      - EXTERN_ADDR
+      - LOCALNETS
+      - BIND_ADDR
+      - RECORD_ROUTE
+      - REGISTRAR_INTF
+      - REST_SERVICE_BIND_ADDR
+      - REST_SERVICE_MIN_THREADS
+      - REST_SERVICE_MAX_THREADS
+      - REST_SERVICE_TIMEOUT_MILLIS
+      - REST_SERVICE_UNSECURED
+      - REST_SERVICE_KEY_STORE
+      - REST_SERVICE_KEY_STORE_PASSWORD
+      - REST_SERVICE_TRUST_STORE
+      - REST_SERVICE_TRUST_STORE_PASSWORD
+      - ACCESS_CONTROL_LIST_DENY
+      - ACCESS_CONTROL_LIST_ALLOW
+      - SECURITY_CONTEXT_KEY_STORE
+      - SECURITY_CONTEXT_KEY_STORE_PASSWORD
+      - SECURITY_CONTEXT_TRUST_STORE
+      - SECURITY_CONTEXT_KEY_STORE_TYPE
+      - SECURITY_CONTEXT_CLIENT_AUTH_TYPE
+      - SECURITY_CONTEXT_CLIENT_PROTOCOLS
+      - SECURITY_CONTEXT_DEBUGGING
+      - CONFIG_FILE
+      - SALT
+      - SALT_FILE
+      - EX_RTP_ENGINE_ENABLED
+      - EX_RTP_ENGINE_PROTO
+      - EX_RTP_ENGINE_HOST
+      - EX_RTP_ENGINE_PORT
+      - EX_UNIQUE_GATEWAY_PER_HOST_PORT
+      - EX_CONVERT_TEL_TO_E164
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 4567 || exit 1"]
       interval: 30s
       timeout: 30s
       retries: 3
     ports:
+      - '${REST_SERVICE_PORT}:4567'
       - '5060:5060'
       - '5060:5060/udp'
       - '5061:5061'
       - '5062:5062'
       - '5063:5063'
-      - '4567:4567'
-  
+
   # Datasource
   redis:
     image: redis:6.0.3-alpine
