@@ -20,6 +20,7 @@ const postal = require('postal')
 
 const {
   getEdgeAddr,
+  configureContact,
   configureRoute,
   configureVia,
   configureProxyAuthorization,
@@ -92,8 +93,14 @@ class RequestHandler {
     // This forces the processor to look for an existing binding for endpoints
     // using ".invalid" in the host part of the contact(i.e: SIP.js)
     if (isInDialog(request) && !aor.toString().includes('.invalid')) {
+      LOG.debug(
+        `core.processor.RequestHandler.doProcess [Processing in-dialog message]`
+      )
       this.processRoute(transaction, request, null, routeInfo)
     } else {
+      LOG.debug(
+        `core.processor.RequestHandler.doProcess [Processing dialog-creating message]`
+      )
       const requestId = new ObjectId().toString()
       requestStore.put(requestId, {
         serverTransaction: transaction,
@@ -112,6 +119,7 @@ class RequestHandler {
   }
 
   async processRoute (transaction, request, route, routeInfo) {
+    LOG.debug('Incoming request <== \n' + request)
     try {
       // Request origin transport
       const originTransport = request
@@ -193,6 +201,7 @@ class RequestHandler {
       )
 
       let requestOut = configureMaxForwards(request)
+      requestOut = configureContact(requestOut)
       requestOut = configureProxyAuthorization(requestOut)
       requestOut = configureRoute(
         requestOut,
@@ -215,7 +224,7 @@ class RequestHandler {
           originInterfaceAddr,
           targetInterfaceAddr
         )
-      } else {
+      } else if (route) {
         requestOut = configureRequestURI(requestOut, null, route)
       }
 
@@ -255,6 +264,7 @@ class RequestHandler {
         await this.rtpeConnector.delete(callId, fromTag)
       }
 
+      LOG.debug('Outgoing request ==> \n' + requestOut)
       this.sendRequest(transaction, request, requestOut, bridgingNote)
     } catch (e) {
       LOG.error(e)

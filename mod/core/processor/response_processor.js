@@ -52,9 +52,12 @@ class ResponseProcessor {
   }
 
   async sendResponse (event) {
-    LOG.debug('Incoming response <== \n' + response)
+    LOG.debug(
+      `core.processor.ResponseProcessor.sendResponse [Inconming response <=]`
+    )
+    LOG.debug(event.getResponse())
     try {
-      const response = event.getResponse().clone()
+      let response = event.getResponse().clone()
       const bridgingNote = directionFromResponse(response)
       const viaHeader = response.getHeader(ViaHeader.NAME)
       const xReceivedHeader = headerFactory.createHeader(
@@ -81,19 +84,23 @@ class ResponseProcessor {
         response.setContent(obj.sdp, response.getHeader(ContentTypeHeader.NAME))
       }
 
+      // WARNINIG: We need to remove the SDP for response to WebRTC endpoints
+      // else we will get the error "Called with SDP without DTLS fingerprint"
+      if (
+        config.spec.ex_rtpEngine.enabled &&
+        response.getStatusCode() === 183 &&
+        bridgingNote === RTPBridgingNote.WEB_TO_SIP
+      ) {
+        LOG.debug(
+          `core.processor.ResponseProcessor.sendResponse [Removing SDP from 183 response]`
+        )
+        response.removeContent()
+      }
+
       if (isTransactional(event)) {
         const context = this.contextStorage.findContext(
           event.getClientTransaction().getBranchId()
         )
-        // WARNINIG: We need to remove the SDP for response to WebRTC endpoints
-        // else we will get the error "Called with SDP without DTLS fingerprint"
-        if (
-          config.spec.ex_rtpEngine.enabled &&
-          response.getStatusCode() === 183 &&
-          bridgingNote === RTPBridgingNote.WEB_TO_SIP
-        )
-          response.removeContent()
-
         if (context && context.serverTransaction) {
           context.serverTransaction.sendResponse(response)
         } else if (response.getHeader(ViaHeader.NAME) !== null) {
@@ -103,7 +110,10 @@ class ResponseProcessor {
         // Could be a BYE due to Record-Route
         this.sipProvider.sendResponse(response)
       }
-      LOG.debug('Outgoing response => \n' + response)
+      LOG.debug(
+        `core.processor.ResponseProcessor.sendResponse [Outgoing response => ]`
+      )
+      LOG.debug(response)
     } catch (e) {
       LOG.error(e)
     }

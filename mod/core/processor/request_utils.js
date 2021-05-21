@@ -7,6 +7,7 @@ const { RoutingType } = require('@routr/core/routing_type')
 const Request = Java.type('javax.sip.message.Request')
 const ContactHeader = Java.type('javax.sip.header.ContactHeader')
 const RouteHeader = Java.type('javax.sip.header.RouteHeader')
+const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
 const ToHeader = Java.type('javax.sip.header.ToHeader')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
@@ -60,20 +61,31 @@ const configureMaxForwards = request => {
   maxForwardsHeader.decrementMaxForwards()
   return requestOut
 }
+
+// This needs to be called with the original request or you will get the wrong via
 const configureContact = request => {
   const requestOut = request.clone()
+
   const contactHeader = requestOut.getHeader(ContactHeader.NAME)
-  if (
-    contactHeader &&
-    config.spec.externAddr &&
-    isPublicAddress(requestOut.getRequestURI().getHost())
-  ) {
-    contactHeader
-      .getAddress()
-      .getURI()
-      .setHost(config.spec.externAddr)
-    requestOut.setHeader(contactHeader)
-  }
+
+  // Some request don't have contact...
+  if (!contactHeader) return requestOut
+
+  const viaHeader = requestOut.getHeader(ViaHeader.NAME)
+
+  // WARNING: If record-route is not set this will cause nat issues
+  // because individual devices will try to reach address that might
+  // reachable to them(only to Routr.)
+  contactHeader
+    .getAddress()
+    .getURI()
+    .setHost(viaHeader.getReceived())
+  contactHeader
+    .getAddress()
+    .getURI()
+    .setPort(viaHeader.getRPort())
+  requestOut.setHeader(contactHeader)
+
   return requestOut
 }
 const configureCSeq = request => {

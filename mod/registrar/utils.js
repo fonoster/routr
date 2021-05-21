@@ -54,7 +54,11 @@ class RegistrarUtils {
     // Hack :(
     // This additional binding helps in-dialog messages to reach endpoints
     // using ".invalid" in the host part of the contact(i.e: SIP.js)
-    if (contactURI.toString().includes('.invalid')) {
+    //if (contactURI.toString().includes('.invalid')) {
+    LOG.debug(
+      `registrar.Registrar.utils.generateAors [additional binding helps in-dialog messages to reach endpoints]`
+    )
+    try {
       const contactAsAOR = addressFactory.createSipURI(
         contactURI.getUser(),
         contactURI.getHost()
@@ -62,11 +66,14 @@ class RegistrarUtils {
       contactAsAOR.setSecure(contactURI.isSecure())
 
       LOG.debug(
-        `registrar.Registrar.utils.generateAors [adding binding for contact ${contactAsAOR}]`
+        `registrar.Registrar.utils.generateAors [created binding for contact ${contactAsAOR}]`
       )
 
       aors.push(contactAsAOR.toString())
+    } catch (e) {
+      LOG.error(`registrar.Registrar.utils.generateAors [e: ${e}]`)
     }
+    //}
 
     return aors
   }
