@@ -23,6 +23,7 @@ dump.rdb
 mod/vendor
 jre
 logs
+.env
 
 # User-specific stuff:
 .idea/workspace.xml

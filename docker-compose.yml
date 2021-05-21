@@ -53,6 +53,23 @@ services:
       - '5061:5061'
       - '5062:5062'
       - '5063:5063'
+    volumes:
+      - ./etc/log4j2.yml:/opt/routr/config/log4j2.yml
+
+  # Media relay engine
+  rtpengine:
+    image: psanders/rtpengine:latest
+    restart: always
+    environment:
+      PUBLIC_IP: ${EXTERN_ADDR}
+      PORT_MIN: ${RTPE_PORT_MIN}
+      PORT_MAX: ${RTPE_PORT_MAX}
+      BIND_HTTP_PORT: ${RTPE_HTTP_PORT}
+      LOG_LEVEL: '6'
+    ports: 
+      - ${RTPE_HTTP_PORT}:${RTPE_HTTP_PORT} 
+      - ${RTPE_NG_PORT}:${RTPE_NG_PORT}/udp 
+      - ${RTPE_PORT_MIN}-${RTPE_PORT_MAX}:${RTPE_PORT_MIN}-${RTPE_PORT_MAX}/udp
 
   # Datasource
   redis:
