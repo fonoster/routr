@@ -52,6 +52,7 @@ class ResponseProcessor {
   }
 
   async sendResponse (event) {
+    LOG.debug('Incoming response <== \n' + response)
     try {
       const response = event.getResponse().clone()
       const bridgingNote = directionFromResponse(response)
@@ -102,7 +103,7 @@ class ResponseProcessor {
         // Could be a BYE due to Record-Route
         this.sipProvider.sendResponse(response)
       }
-      LOG.debug(response)
+      LOG.debug('Outgoing response => \n' + response)
     } catch (e) {
       LOG.error(e)
     }

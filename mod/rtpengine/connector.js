@@ -9,21 +9,10 @@ const { RTPBridgingNote } = require('@routr/rtpengine/rtp_bridging_note')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 const NGHttpSender = require('./ng_http_sender')
-const postal = require('postal')
 
 class RTPEngineConnector {
   constructor (config) {
     LOG.debug(`rtpengine.RTPEngineConnector connector is up`)
-
-    // This shouldn't be need because there is no dialog stablish
-    // The call will be removed afeter a timeout
-    /*postal.subscribe({
-      channel: 'processor',
-      topic: 'transaction.cancel',
-      callback: async(data) => {
-        await this.delete(data.callId, data.fromTag)
-      }
-    })*/
     this.sender = new NGHttpSender(
       `${config.proto}://${config.host}:${config.port}/ng`
     )
@@ -56,7 +45,23 @@ class RTPEngineConnector {
       `rtpengine.RTPEngineConnector.offer [bridging note: ${bridgingNote}]`
     )
     const p = merge(params, this.getBridgingInfo(bridgingNote, true))
-    return await this.sender.sendCmd('offer', p)
+    const obj = await this.sender.sendCmd('offer', p)
+
+    // WARNING: This patches an issue with RTPEngine where its not setting rtpmux
+    if (
+      bridgingNote === RTPBridgingNote.WEB_TO_WEB ||
+      bridgingNote === RTPBridgingNote.SIP_TO_WEB
+    ) {
+      obj.sdp = obj.sdp
+        .replaceAll('a=crypto:', 'a=ignore:')
+        .replaceAll('a=sendrecv', 'a=sendrecv\na=rtcp-mux')
+    }
+
+    LOG.debug(
+      `rtpengine.RTPEngineConnector.offer [obj => ${JSON.stringify(obj)}]`
+    )
+
+    return obj
   }
 
   async answer (bridgingNote, params) {
@@ -64,7 +69,18 @@ class RTPEngineConnector {
       `rtpengine.RTPEngineConnector.answer [bridging note: ${bridgingNote}]`
     )
     const p = merge(params, this.getBridgingInfo(bridgingNote, false))
-    return await this.sender.sendCmd('answer', p)
+    const obj = await this.sender.sendCmd('answer', p)
+
+    LOG.debug(
+      `rtpengine.RTPEngineConnector.answer [obj => ${JSON.stringify(obj)}]`
+    )
+
+    // WARNING: This patches an issue with RTPEngine where its not setting rtpmux
+    if (bridgingNote === RTPBridgingNote.WEB_TO_SIP) {
+      obj.sdp = obj.sdp.replace('a=setup:active', 'a=setup:active\na=rtcp-mux')
+    }
+
+    return obj
   }
 }
 

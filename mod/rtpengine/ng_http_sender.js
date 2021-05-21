@@ -23,7 +23,7 @@ class NGHttpSender {
 
       const res = await Unirest.post(`${this.baseUrl}`)
         .header('Content-Type', 'application/x-rtpengine-ng')
-        .body(benEncode(params['call-id'] + cnt, params))
+        .body(benEncode(params['call-id'] + cnt, params).toString())
         .asString()
 
       const data = benDecode(res.getBody()).data
