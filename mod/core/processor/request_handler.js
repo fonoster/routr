@@ -267,6 +267,7 @@ class RequestHandler {
       LOG.debug('Outgoing request ==> \n' + requestOut)
       this.sendRequest(transaction, request, requestOut, bridgingNote)
     } catch (e) {
+      sendResponse(transaction, Response.SERVER_INTERNAL_ERROR)
       LOG.error(e)
     }
   }
@@ -298,7 +299,11 @@ class RequestHandler {
         bridgingNote
       )
     } catch (e) {
-      connectionException(e, requestOut.getRequestURI().getHost())
+      connectionException(
+        e,
+        requestOut.getRequestURI().getHost(),
+        serverTransaction
+      )
     }
   }
 

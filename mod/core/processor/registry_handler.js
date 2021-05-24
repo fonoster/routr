@@ -38,7 +38,7 @@ class RegistryHandler {
     try {
       this.sipProvider.sendRequest(request)
     } catch (e) {
-      connectionException(e, request.getRequestURI().getHost())
+      connectionException(e, request.getRequestURI().getHost(), transaction)
     }
   }
 
