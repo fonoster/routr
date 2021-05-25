@@ -268,6 +268,7 @@ class RequestHandler {
       this.sendRequest(transaction, request, requestOut, bridgingNote)
     } catch (e) {
       sendResponse(transaction, Response.SERVER_INTERNAL_ERROR)
+      LOG.error(e.message || e)
     }
   }
 
