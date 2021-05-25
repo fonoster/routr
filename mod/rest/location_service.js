@@ -32,11 +32,12 @@ function routeFromString (routes) {
 }
 
 module.exports = function (store, grpc) {
-  get('/location', (req, res) => {
+  get('/location', req => {
     const items = store
       .withCollection('location')
       .values()
       .map(e => JSON.parse(e))
+      .filter(e => !e[0].isSynth)
       .filter(e => !e[0].thruGw)
       .filter(
         e => e.filter(r => !LocatorUtils.expiredRouteFilter(r)).length > 0

@@ -41,11 +41,13 @@ class Registrar {
 
   addEndpoints (aors, request, user) {
     aors.forEach(addressOfRecord => {
+      const aorObj = addressOfRecord.clone()
+      aorObj.removeParameter('synth')
       postal.publish({
         channel: 'locator',
         topic: 'endpoint.add',
         data: {
-          addressOfRecord: addressOfRecord,
+          addressOfRecord: aorObj.toString(),
           route: RegistrarUtils.buildRoute(addressOfRecord, request, user)
         }
       })

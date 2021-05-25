@@ -39,7 +39,7 @@ class RegistrarUtils {
         peerHost
       )
       addressOfRecord.setSecure(contactURI.isSecure())
-      aors.push(addressOfRecord.toString())
+      aors.push(addressOfRecord)
     } else {
       user.spec.domains.forEach(domain => {
         const addressOfRecord = addressFactory.createSipURI(
@@ -47,14 +47,13 @@ class RegistrarUtils {
           domain
         )
         addressOfRecord.setSecure(contactURI.isSecure())
-        aors.push(addressOfRecord.toString())
+        aors.push(addressOfRecord)
       })
     }
 
     // Hack :(
     // This additional binding helps in-dialog messages to reach endpoints
-    // using ".invalid" in the host part of the contact(i.e: SIP.js)
-    //if (contactURI.toString().includes('.invalid')) {
+    // that use ".invalid" in the host part of the contact(i.e: SIP.js)
     LOG.debug(
       `registrar.Registrar.utils.generateAors [additional binding helps in-dialog messages to reach endpoints]`
     )
@@ -64,16 +63,15 @@ class RegistrarUtils {
         contactURI.getHost()
       )
       contactAsAOR.setSecure(contactURI.isSecure())
+      contactAsAOR.setParameter('synth', 'true')
+      aors.push(contactAsAOR)
 
       LOG.debug(
         `registrar.Registrar.utils.generateAors [created binding for contact ${contactAsAOR}]`
       )
-
-      aors.push(contactAsAOR.toString())
     } catch (e) {
       LOG.error(`registrar.Registrar.utils.generateAors [e: ${e}]`)
     }
-    //}
 
     return aors
   }
@@ -81,22 +79,27 @@ class RegistrarUtils {
   // TODO: Please consolidate all the route builders :(
   static buildRoute (addressOfRecord, request, user) {
     const viaHeader = request.getHeader(ViaHeader.NAME)
-    return {
-      addressOfRecord: addressOfRecord,
-      isLinkAOR: false,
-      thruGw: false,
-      sentByAddress: viaHeader.getHost(),
-      sentByPort: viaHeader.getPort() === -1 ? 5060 : viaHeader.getPort(),
-      received: viaHeader.getReceived(),
-      rport: viaHeader.getRPort(),
-      contactURI: RegistrarUtils.getUpdatedContactURI(request, user),
-      registeredOn: Date.now(),
-      expires: getExpires(request),
-      nat: isBehindNat(request),
-      transport: request
-        .getHeader(ViaHeader.NAME)
-        .getTransport()
-        .toLowerCase()
+    try {
+      return {
+        addressOfRecord: addressOfRecord.toString(),
+        isLinkAOR: false,
+        thruGw: false,
+        sentByAddress: viaHeader.getHost(),
+        sentByPort: viaHeader.getPort() === -1 ? 5060 : viaHeader.getPort(),
+        received: viaHeader.getReceived(),
+        rport: viaHeader.getRPort(),
+        contactURI: RegistrarUtils.getUpdatedContactURI(request, user),
+        registeredOn: Date.now(),
+        expires: getExpires(request),
+        nat: isBehindNat(request),
+        isSynth: addressOfRecord.getParameter('synth') === 'true',
+        transport: request
+          .getHeader(ViaHeader.NAME)
+          .getTransport()
+          .toLowerCase()
+      }
+    } catch (e) {
+      LOG.error(e.message || e)
     }
   }
 
