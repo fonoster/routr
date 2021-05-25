@@ -10,7 +10,7 @@ class CancelHandler {
       channel: 'processor',
       topic: 'transaction.cancel',
       data: {
-        transactionId: transaction.getBranchId()
+        transaction
       }
     })
   }

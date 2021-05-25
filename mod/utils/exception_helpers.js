@@ -3,11 +3,14 @@
  * @since v1
  */
 const Response = Java.type('javax.sip.message.Response')
-const { sendResponse } = require('@routr/core/processor/processor_utils')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 
 module.exports.connectionException = (e, host, transaction) => {
+  // Warninig: Placing this require outside the method causes error:
+  // e: sendResponse is not a function
+  const { sendResponse } = require('@routr/core/processor/processor_utils')
+
   if (
     e instanceof Java.type('javax.sip.TransactionUnavailableException') ||
     e instanceof Java.type('java.net.ConnectException') ||

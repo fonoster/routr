@@ -27,7 +27,7 @@ class ContextStorage {
     postal.subscribe({
       channel: 'processor',
       topic: 'transaction.cancel',
-      callback: data => this.cancelTransaction(data.transactionId)
+      callback: data => this.cancelTransaction(data.transaction)
     })
   }
 
@@ -81,7 +81,7 @@ class ContextStorage {
     this.printContextStorageSize()
   }
 
-  cancelTransaction (transactionId) {
+  cancelTransaction (transaction) {
     const storage = this.getStorage()
     const iterator = storage.iterator()
 
@@ -89,43 +89,48 @@ class ContextStorage {
       const context = iterator.next()
       if (
         context.serverTransaction &&
-        context.serverTransaction.getBranchId().equals(transactionId)
+        context.serverTransaction
+          .getBranchId()
+          .equals(transaction.getBranchId())
       ) {
-        const originRequest = context.requestIn
-        const originResponse = messageFactory.createResponse(
-          Response.REQUEST_TERMINATED,
-          originRequest
-        )
-        const cancelResponse = messageFactory.createResponse(
-          Response.OK,
-          originRequest
-        )
-        // Not sure about originRequest :(
-        const cancelRequest = context.clientTransaction.createCancel()
-        const serverTransaction = context.serverTransaction
-
         try {
+          // Let client know we are processing the request
+          const cancelResponse = messageFactory.createResponse(
+            Response.OK,
+            transaction.getRequest()
+          )
+          transaction.sendResponse(cancelResponse)
+
+          // Send cancel request to destination
+          const cancelRequest = context.clientTransaction.createCancel()
           const clientTransaction = this.sipProvider.getNewClientTransaction(
             cancelRequest
           )
-
-          context.serverTransaction.sendResponse(originResponse)
-          serverTransaction.sendResponse(cancelResponse)
           clientTransaction.sendRequest()
+
+          // Sends 487 (Request terminated) back to client
+          const terminatedResponse = messageFactory.createResponse(
+            Response.REQUEST_TERMINATED,
+            context.requestIn
+          )
+          context.serverTransaction.sendResponse(terminatedResponse)
+
+          LOG.debug(
+            `core.ContextStorage.cancelTransaction [cancel response is \n ${cancelResponse}]`
+          )
+          LOG.debug(
+            `core.ContextStorage.cancelTransaction [cancel request is \n ${cancelRequest}]`
+          )
+          LOG.debug(
+            `core.ContextStorage.cancelTransaction [terminatedResponse response is \n ${terminatedResponse}]`
+          )
         } catch (e) {
-          connectionException(e, cancelRequest.getRequestURI().getHost())
+          connectionException(
+            e,
+            cancelRequest.getRequestURI().getHost(),
+            transaction
+          )
         }
-
-        LOG.debug(
-          `core.ContextStorage.cancelTransaction [original response is \n ${originResponse}]`
-        )
-        LOG.debug(
-          `core.ContextStorage.cancelTransaction [cancel request is \n ${cancelRequest}]`
-        )
-        LOG.debug(
-          `core.ContextStorage.cancelTransaction [cancel response is \n ${cancelResponse}]`
-        )
-
         iterator.remove()
       }
     }
