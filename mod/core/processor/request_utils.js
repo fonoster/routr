@@ -75,7 +75,7 @@ const configureContact = request => {
 
   // WARNING: If record-route is not set this will cause nat issues
   // because individual devices will try to reach address that might
-  // reachable to them(only to Routr.)
+  // not be reachable to them(only to Routr.)
   contactHeader
     .getAddress()
     .getURI()
@@ -84,6 +84,13 @@ const configureContact = request => {
     .getAddress()
     .getURI()
     .setPort(viaHeader.getRPort())
+
+  // Setting to via headers transport which might be different than the
+  // contact transport. Thanks SIP! :(
+  contactHeader
+    .getAddress()
+    .getURI()
+    .setTransportParam(viaHeader.getTransport().toLowerCase())
   requestOut.setHeader(contactHeader)
 
   return requestOut

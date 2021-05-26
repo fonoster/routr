@@ -93,10 +93,7 @@ class RegistrarUtils {
         expires: getExpires(request),
         nat: isBehindNat(request),
         isSynth: addressOfRecord.getParameter('synth') === 'true',
-        transport: request
-          .getHeader(ViaHeader.NAME)
-          .getTransport()
-          .toLowerCase()
+        transport: viaHeader.getTransport().toLowerCase()
       }
     } catch (e) {
       LOG.error(e.message || e)
@@ -124,6 +121,9 @@ class RegistrarUtils {
         contactURI.setPort(viaHeader.getRPort())
       }
     }
+
+    contactURI.setTransportParam(viaHeader.getTransport().toLowerCase())
+
     return contactURI
   }
 
