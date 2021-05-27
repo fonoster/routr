@@ -6,12 +6,15 @@
  */
 const postal = require('postal')
 const { connectionException } = require('@routr/utils/exception_helpers')
+const Request = Java.type('javax.sip.message.Request')
+const CSeqHeader = Java.type('javax.sip.header.CSeqHeader')
 const Response = Java.type('javax.sip.message.Response')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const ArrayList = Java.type('java.util.ArrayList')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger()
 const messageFactory = SipFactory.getInstance().createMessageFactory()
+const headerFactory = SipFactory.getInstance().createHeaderFactory()
 
 class ContextStorage {
   constructor (sipProvider) {
@@ -102,10 +105,22 @@ class ContextStorage {
           transaction.sendResponse(cancelResponse)
 
           // Send cancel request to destination
+          const cseq = context.requestIn
+            .getHeader(CSeqHeader.NAME)
+            .getSeqNumber()
           const cancelRequest = context.clientTransaction.createCancel()
+          cancelRequest.setRequestURI(context.requestOut.getRequestURI())
+          const cseqHeader = headerFactory.createCSeqHeader(
+            cseq,
+            Request.CANCEL
+          )
+          cancelRequest.setHeader(cseqHeader)
           const clientTransaction = this.sipProvider.getNewClientTransaction(
             cancelRequest
           )
+
+          LOG.debug('Outgoing request ==> \n' + cancelRequest)
+
           clientTransaction.sendRequest()
 
           // Sends 487 (Request terminated) back to client

@@ -2,13 +2,12 @@
  * @author Pedro Sanders
  * @since v1
  */
-const Response = Java.type('javax.sip.message.Response')
-const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
-
 module.exports.connectionException = (e, host, transaction) => {
-  // Warninig: Placing this require outside the method causes error:
+  // WARNING: Placing this require outside the method causes error:
   // e: sendResponse is not a function
+  const Response = Java.type('javax.sip.message.Response')
+  const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+  const LOG = LogManager.getLogger()
   const { sendResponse } = require('@routr/core/processor/processor_utils')
 
   if (
