@@ -92,6 +92,7 @@ class RegistrarUtils {
         registeredOn: Date.now(),
         expires: getExpires(request),
         nat: isBehindNat(request),
+        maxContact: user.ex_maxContact,
         isSynth: addressOfRecord.getParameter('synth') === 'true',
         transport: viaHeader.getTransport().toLowerCase()
       }

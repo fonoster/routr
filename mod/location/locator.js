@@ -49,6 +49,19 @@ class Locator {
     let jsonRoutes = this.store.get(addressOfRecord)
     let routes = jsonRoutes ? JSON.parse(jsonRoutes) : []
 
+    LOG.debug(
+      `location.Locator.addEndpoint [route.maxContact = ${
+        route.maxContact
+      }, current route length = ${routes.length}]`
+    )
+    if (route.maxContact && routes.length >= route.maxContact) {
+      const message = `location.Locator.addEndpoint [aor ${addressOfRecord} reached the max allowed registration of ${
+        route.maxContact
+      } contacts]`
+      LOG.warning(message)
+      throw new Error(message)
+    }
+
     routes = routes
       .filter(r => !LocatorUtils.expiredRouteFilter(r))
       .filter(r => !LocatorUtils.sameSourceFilter(r, route))

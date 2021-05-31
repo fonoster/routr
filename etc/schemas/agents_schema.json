@@ -29,6 +29,7 @@
                     "privacy": {
                         "enum": ["Private", "private", "None", "none"]
                     },
+                    "ex_maxContact": {"type": "integer", "minimum": 0},
                     "credentials": {
                         "type": "object",
                         "properties": {

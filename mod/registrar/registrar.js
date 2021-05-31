@@ -13,7 +13,6 @@ const PeersAPI = require('@routr/data_api/peers_api')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
 const AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-
 const LOG = LogManager.getLogger()
 
 class Registrar {
@@ -35,8 +34,13 @@ class Registrar {
     }
 
     const aors = RegistrarUtils.generateAors(request, user)
-    this.addEndpoints(aors, request, user)
-    return true
+    try {
+      this.addEndpoints(aors, request, user)
+      return true
+    } catch (e) {
+      // TODO: It might be usefull to send a response to inform client of error
+    }
+    return false
   }
 
   addEndpoints (aors, request, user) {

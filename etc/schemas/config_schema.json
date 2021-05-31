@@ -21,6 +21,9 @@
                 "ex_convertTelToE164": {
                     "type": "boolean"
                 },
+                "ex_aorMaxContact": {
+                    "type": "integer"
+                },
                 "registrarIntf": {
                     "enum": ["Internal", "External", "internal", "external"]
                 },

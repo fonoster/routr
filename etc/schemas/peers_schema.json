@@ -26,6 +26,7 @@
             "spec": {
                 "type": "object",
                 "properties": {
+                    "ex_maxContact": {"type": "integer", "minimum": 0},
                     "credentials": {
                         "type": "object",
                         "properties": {
