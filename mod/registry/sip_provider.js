@@ -19,8 +19,10 @@ module.exports = (properties, bindAddr = defBindAddr(), port = defPort()) => {
 
   const sipStack = sipFactory.createSipStack(properties)
   const lpTCP = sipStack.createListeningPoint(bindAddr, port, 'tcp')
+  const lpTLS = sipStack.createListeningPoint(bindAddr, port + 1, 'tls')
   const lpUDP = sipStack.createListeningPoint(bindAddr, port, 'udp')
   const sipProvider = sipStack.createSipProvider(lpTCP)
+  sipProvider.addListeningPoint(lpTLS)
   sipProvider.addListeningPoint(lpUDP)
 
   return sipProvider
