@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const System = Java.type('java.lang.System')
 const CoreUtils = require('@routr/core/utils')
 const DSUtils = require('@routr/data_api/utils')
 const { Status } = require('@routr/core/status')
@@ -26,7 +27,8 @@ const defUser = {
   spec: {
     credentials: {
       username: 'admin',
-      secret: 'changeit'
+      // This will only affect the server initialization
+      secret: System.getenv('INITIAL_API_SECRET') || 'changeit'
     }
   }
 }
