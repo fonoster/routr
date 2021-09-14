@@ -1,0 +1,9 @@
+apiVersion: v2beta1
+handlers: {
+  function(r) {
+    pipe([
+      acl(r),
+      
+    ])
+  }
+}
