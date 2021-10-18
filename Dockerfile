@@ -1,4 +1,4 @@
-FROM debian:buster-20200414
+FROM debian:buster
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 ENV TINI_VERSION v0.19.0

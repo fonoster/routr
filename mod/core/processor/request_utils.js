@@ -113,7 +113,6 @@ const configureRoute = (request, originInterfaceAddr, targetInterfaceAddr) => {
   const requestOut = request.clone()
   const routeHeader = request.getHeader(RouteHeader.NAME)
   if (routeHeader) {
-    // 52.174.241.181
     const host = routeHeader
       .getAddress()
       .getURI()
@@ -127,7 +126,7 @@ const configureRoute = (request, originInterfaceAddr, targetInterfaceAddr) => {
     )
 
     LOG.debug(
-      `core.processor.RequestUtils.configureRoute [host = ${host}, port=${port}]`
+      `core.processor.RequestUtils.configureRoute [host = ${host}, port = ${port}]`
     )
 
     const c = [originInterfaceAddr, targetInterfaceAddr].filter(
@@ -283,6 +282,22 @@ const isInDialog = request =>
   request.getHeader(ToHeader.NAME).getTag() !== null &&
   request.getHeader(FromHeader.NAME).getTag() !== null
 
+const getTargetTransport = (route, request) => {
+  const routeHeader = request.getHeader(RouteHeader.NAME)
+
+  if (routeHeader) {
+    const transport = routeHeader.getParameter('transport') || 'tcp'
+    return transport.toLowerCase()
+  } else if (route) {
+    return route.transport
+  }
+
+  return request
+    .getRequestURI()
+    .getParameter('transport')
+    .toLowerCase()
+}
+
 module.exports.getEdgeAddr = getEdgeAddr
 module.exports.configureRoute = configureRoute
 module.exports.configureVia = configureVia
@@ -296,3 +311,4 @@ module.exports.configureIdentity = configureIdentity
 module.exports.configureXHeaders = configureXHeaders
 module.exports.configureCSeq = configureCSeq
 module.exports.isInDialog = isInDialog
+module.exports.getTargetTransport = getTargetTransport

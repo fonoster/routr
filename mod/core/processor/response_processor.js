@@ -74,7 +74,7 @@ class ResponseProcessor {
 
       if (
         config.spec.ex_rtpEngine.enabled &&
-        isOk(response) &&
+        (isOk(response) || response.getStatusCode() === 183) &&
         hasSDP(response)
       ) {
         const obj = await this.rtpeConnector.answer(

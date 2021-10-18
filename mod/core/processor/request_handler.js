@@ -31,7 +31,8 @@ const {
   configureIdentity,
   configureXHeaders,
   configureCSeq,
-  isInDialog
+  isInDialog,
+  getTargetTransport
 } = require('@routr/core/processor/request_utils')
 const { directionFromRequest } = require('@routr/rtpengine/utils')
 const { RoutingType } = require('@routr/core/routing_type')
@@ -159,12 +160,7 @@ class RequestHandler {
       )
 
       // Next hop transport protocol
-      const targetTransport = route
-        ? route.transport
-        : request
-            .getRequestURI()
-            .getParameter('transport')
-            .toLowerCase()
+      const targetTransport = getTargetTransport(route, request)
 
       LOG.debug(
         `core.processor.RequestHandler.processRoute [targetTransport = ${targetTransport}]`

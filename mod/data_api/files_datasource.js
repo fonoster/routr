@@ -91,10 +91,11 @@ class FilesDataSource {
               RESOURCES[CNT]
             }.yml\` is invalid`
           )
-        } else {
+          System.exit(1)
+        } /*else {
           LOG.error(e)
         }
-        System.exit(1)
+        System.exit(1)*/
       }
     }
   }
