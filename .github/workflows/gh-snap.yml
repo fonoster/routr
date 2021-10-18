@@ -1,7 +1,7 @@
 name: publish to snapcraft marketplace
 on:
   release:
-    types: [published]
+    types: [published,workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
