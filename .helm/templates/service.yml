@@ -11,6 +11,12 @@ metadata:
     {{- toYaml . | nindent 4 }}
 {{- end }}
 spec:
+  {{- if .Values.adminService.externalIPs }}
+  externalIPs: 
+  {{- range .Values.adminService.externalIPs }}
+    - {{.}}
+  {{- end }}
+  {{- end }}
   type: {{ .Values.adminService.type }}
   ports:
   - name: {{ .Values.adminService.name }}
@@ -34,6 +40,12 @@ metadata:
     {{- toYaml . | nindent 4 }}
 {{- end }}
 spec:
+  {{- if .Values.udpSignalingService.externalIPs }}
+  externalIPs: 
+  {{- range .Values.udpSignalingService.externalIPs }}
+    - {{.}}
+  {{- end }}
+  {{- end }}
   type: {{ .Values.udpSignalingService.type }}
   {{- if ne .Values.udpSignalingService.type "ClusterIP" }}
   externalTrafficPolicy: {{ .Values.udpSignalingService.externalTrafficPolicy }}
@@ -61,6 +73,12 @@ metadata:
     {{- toYaml . | nindent 4 }}
 {{- end }}
 spec:
+  {{- if .Values.tcpSignalingService.externalIPs }}
+  externalIPs: 
+  {{- range .Values.tcpSignalingService.externalIPs }}
+    - {{.}}
+  {{- end }}
+  {{- end }}
   type: {{ .Values.tcpSignalingService.type }}
   {{- if ne .Values.tcpSignalingService.type "ClusterIP" }}
   externalTrafficPolicy: {{ .Values.tcpSignalingService.externalTrafficPolicy }}

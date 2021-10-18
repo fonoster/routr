@@ -71,16 +71,19 @@ The following table lists the configurable parameters of the Routr chart and the
 | adminService.type | Type of Service| `ClusterIP` |
 | adminService.name | Service name | `<RELEASE>-api` |
 | adminService.port | Service port | `4567` |
+| adminService.externalIPs | Admin Service external IPs | `[]` |
 | udpSignalingService.enabled | Enable disable or signaling UDP Service | `true` |
 | udpSignalingService.type | Type for UDP signaling Service | `ClusterIP` |
 | udpSignalingService.name | Name for UDP signaling Service | `<RELEASE>siptcp` |
 | udpSignalingService.port | Port for UDP signaling Service | `5060` |
 | udpSignalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
+| udpSignalingService.externalIPs | UDP Signaling Service external IPs | `[]` |
 | tcpSignalingService.enabled | Enable disable signaling Service | `true` |
 | tcpSignalingService.type | Type for TCP signaling Service | `ClusterIP` |
 | tcpSignalingService.name | Name for TCP signaling service | `<RELEASE>-siptcp` |
 | tcpSignalingService.ports | Ports for TCP signaling Service | `[{name: siptcp, port: 5060}]` |
 | tcpSignalingService.externalTrafficPolicy | Route external traffic to node-local or cluster-wide endpoints | `Local` |
+| tcpSignalingService.externalIPs | TCP Signaling Service external IPs | `[]` |
 
 ### Routr parameters (optional)
 

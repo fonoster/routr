@@ -16,6 +16,7 @@ adminService:
   type: ClusterIP
   port: 4567
   annotations: {}
+  externalIPs: []
 
 # Use this service to enable UDP access to the server's signaling
 # capabilities. Keep in mind that this will create the service for you
@@ -27,6 +28,7 @@ udpSignalingService:
   type: ClusterIP
   port: 5060
   annotations: {}
+  externalIPs: []
 
 # Use this service to enable TCP access to the server's signaling
 # capabilities. Keep in mind that this will create the service for you
@@ -40,6 +42,7 @@ tcpSignalingService:
   - name: siptcp
     port: 5060
   annotations: {}
+  externalIPs: []
 
 # Certificates Management
 certs:
