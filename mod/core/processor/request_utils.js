@@ -73,24 +73,34 @@ const configureContact = request => {
 
   const viaHeader = requestOut.getHeader(ViaHeader.NAME)
 
+  console.log('viaHeader.getReceived() = ' + viaHeader.getReceived())
+  console.log('viaHeader.getRPort() = ' + viaHeader.getRPort())
+
   // WARNING: If record-route is not set this will cause nat issues
   // because individual devices will try to reach address that might
   // not be reachable to them(only to Routr.)
-  contactHeader
-    .getAddress()
-    .getURI()
-    .setHost(viaHeader.getReceived())
-  contactHeader
-    .getAddress()
-    .getURI()
-    .setPort(viaHeader.getRPort())
+  if (viaHeader.getReceived()) {
+    contactHeader
+      .getAddress()
+      .getURI()
+      .setHost(viaHeader.getReceived())
+  }
+
+  if (viaHeader.getRPort()) {
+    contactHeader
+      .getAddress()
+      .getURI()
+      .setPort(viaHeader.getRPort())
+  }
 
   // Setting to via headers transport which might be different than the
   // contact transport. Thanks SIP! :(
-  contactHeader
-    .getAddress()
-    .getURI()
-    .setTransportParam(viaHeader.getTransport().toLowerCase())
+  if (viaHeader.getTransport()) {
+    contactHeader
+      .getAddress()
+      .getURI()
+      .setTransportParam(viaHeader.getTransport().toLowerCase())
+  }
   requestOut.setHeader(contactHeader)
 
   return requestOut
