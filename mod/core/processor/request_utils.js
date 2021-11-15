@@ -73,9 +73,6 @@ const configureContact = request => {
 
   const viaHeader = requestOut.getHeader(ViaHeader.NAME)
 
-  console.log('viaHeader.getReceived() = ' + viaHeader.getReceived())
-  console.log('viaHeader.getRPort() = ' + viaHeader.getRPort())
-
   // WARNING: If record-route is not set this will cause nat issues
   // because individual devices will try to reach address that might
   // not be reachable to them(only to Routr.)
