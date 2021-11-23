@@ -1,6 +1,6 @@
 
 <p align="left">
-  <a href="https://routr.cio/">
+  <a href="https://routr.io/">
     <img src="https://raw.githubusercontent.com/fonoster/routr/master/docs/assets/brand.png" alt="Routr Logo" height="80">
   </a>
 </p>
