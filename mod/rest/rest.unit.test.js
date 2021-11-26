@@ -4,6 +4,6 @@
  *
  * Unit Test for the "Rest Service Module"
  */
-describe('Rest Service Module', () => {
+describe('@routr/rest', () => {
   it.skip('Noop', void 0)
 })
