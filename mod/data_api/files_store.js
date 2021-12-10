@@ -2,9 +2,6 @@
  * @author Pedro Sanders
  * @since v1
  */
-const DSUtils = require('@routr/data_api/utils')
-const getConfig = require('@routr/core/config_util')
-
 const HashMap = Java.type('java.util.HashMap')
 const ChronicleMap = Java.type('net.openhft.chronicle.map.ChronicleMap')
 const String = Java.type('java.lang.String')
@@ -14,7 +11,7 @@ const System = Java.type('java.lang.System')
 const ONE_MILLION = new Long(1000000)
 
 class FilesStore {
-  constructor (config = getConfig()) {
+  constructor () {
     this.collections = new HashMap()
   }
 

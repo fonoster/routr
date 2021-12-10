@@ -29,7 +29,7 @@ describe('Location Service Module', () => {
     locator.evictAll()
   })
 
-  it('AOR as string', function (done) {
+  it('test transforms an AOR to a string', () => {
     const sipURI = addressFactory.createSipURI('john', 'sip.ocean.com')
     let aorString = LocatorUtils.aorAsString(sipURI)
     assert.equal('sip:john@sip.ocean.com', aorString)
@@ -40,56 +40,49 @@ describe('Location Service Module', () => {
     // Test text format
     aorString = LocatorUtils.aorAsString('sip:john@sip.ocean.com')
     assert.equal('sip:john@sip.ocean.com', aorString)
-    done()
   })
 
-  it('Add/remove local endpoint', function (done) {
+  it('adds an removes a local endpoint', () => {
     locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
     let response = locator.findEndpoint(agentEndpoint.aor)
     assert.ok(response.data.length > 0)
     locator.removeEndpoint(agentEndpoint.aor, agentEndpoint.route.contactURI)
     response = locator.findEndpoint(agentEndpoint.aor)
     assert.notEqual(response.status, Status.OK)
-    done()
   })
 
-  it('This call wont be routed', done => {
+  it('will not be routed', () => {
     const response = locator.findEndpoint('sip:4002@sip.local')
     assert.equal(response.status, Status.NOT_FOUND)
-    done()
   })
 
-  it('This call will be routed to within the domain', done => {
+  it('it keeps request inside the domain', () => {
     locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
     locator.addEndpoint(peerEndpoint.aor, peerEndpoint.route)
     testFE(locator, agentEndpoint.aor)
     testFE(locator, peerEndpoint.aor)
-    done()
   })
 
-  it('This call will be routed thru a gateway', done => {
+  it('routes thru a gateway', () => {
     const loader = new RouteLoader()
     loader.loadStaticRoutes()
     testFE(locator, 'sip:17853178070@sip.local', true)
-    done()
   })
 
-  it('This call will ingress thru a aorLink', done => {
+  it('ingress thru a aorLink', () => {
     locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
     const response = locator.findEndpoint('tel:0000000000')
     assert.equal(response.status, Status.OK)
-    done()
   })
 
-  it('This call will ingress thru a aorLink', done => {
+  it('ingress thru a aorLink', () => {
     locator.addEndpoint(agentEndpoint.aor, agentEndpoint.route)
     const response = locator.findEndpoint('sip:0000000000@192.168.1.2')
     assert.equal(response.status, Status.OK)
-    done()
   })
 
   // Test having more than one route per address of record
-  it('Add multiple endpoints per aor', function (done) {
+  it('adds multiple endpoints per aor', () => {
     const ep1 = buildEndpoint('1001', 'sip.local', '192.168.1.2:5061')
     const ep2 = buildEndpoint('1001', 'sip.local', '192.168.1.3:5061', 32)
     locator.addEndpoint(ep1.aor, ep1.route)
@@ -101,7 +94,6 @@ describe('Location Service Module', () => {
     // Ensure only one entry for contactURI...
     const response = locator.findEndpoint(ep1.aor)
     assert.equal(response.data.length, 2)
-    done()
   })
 })
 
