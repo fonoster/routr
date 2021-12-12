@@ -31,7 +31,7 @@ module.exports = (
 
   const fromAddress = addressFactory.createAddress(`sip:${username}@${gwHost}`)
   const contactAddress = addressFactory.createAddress(
-    `sip:${contactAddr.host}:${contactAddr.port};bnc`
+    `sip:${contactAddr.host}:${contactAddr.port};transport=${transport};bnc`
   )
   const viaHeader = headerFactory.createViaHeader(
     viaAddr.host,
@@ -65,7 +65,7 @@ module.exports = (
   headers.push(headerFactory.createHeader('X-Gateway-Ref', gwRef))
 
   const request = messageFactory.createRequest(
-    `REGISTER sip:${gwHost} SIP/2.0\r\n\r\n`
+    `REGISTER sip:${gwHost};transport=${transport} SIP/2.0\r\n\r\n`
   )
   headers.forEach(header => request.addHeader(header))
 

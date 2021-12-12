@@ -1,8 +1,8 @@
 const LocatorUtils = require('@routr/location/utils')
 const { isLocalnet } = require('@routr/core/ip_util')
 const { equalsIgnoreCase, fixPort } = require('@routr/utils/misc_utils')
-const config = require('@routr/core/config_util')()
 const { RoutingType } = require('@routr/core/routing_type')
+const config = require('@routr/core/config_util')()
 
 const Request = Java.type('javax.sip.message.Request')
 const ContactHeader = Java.type('javax.sip.header.ContactHeader')
@@ -20,27 +20,9 @@ const LOG = LogManager.getLogger()
 
 const isExternalDevice = r =>
   r && (!r.sentByAddress || r.sentByAddress.endsWith('.invalid'))
-// Deprecated
-const isWebRTCClient = isExternalDevice
 const isPublicAddress = h => !isLocalnet(config.spec.localnets, h)
 const needsExternAddress = (route, host) =>
   isExternalDevice(route) || isPublicAddress(host)
-
-// Deprecated
-const addrHost = a => (a.contains(':') ? a.split(':')[0] : a)
-// Deprecated
-const addrPort = a => (a.contains(':') ? parseInt(a.split(':')[1]) : 5060)
-// Deprecated
-const ownedAddresss = originInterfaceAddr =>
-  config.spec.externAddr
-    ? [
-        originInterfaceAddr,
-        {
-          host: addrHost(config.spec.externAddr),
-          port: addrPort(config.spec.externAddr)
-        }
-      ]
-    : [originInterfaceAddr]
 const getEdgeAddr = (endpointHost, interfaceHost, route) => {
   const externAddr = config.spec.externAddr
   return externAddr && needsExternAddress(route, endpointHost)
@@ -54,13 +36,16 @@ const getToUser = request => {
     .getURI()
     .getUser()
 }
-const getUser = request => request.getRequestURI().getUser()
 const configureMaxForwards = request => {
   const requestOut = request.clone()
   const maxForwardsHeader = requestOut.getHeader(MaxForwardsHeader.NAME)
   maxForwardsHeader.decrementMaxForwards()
   return requestOut
 }
+const originSameAsTarget = (originInterfaceAddr, targetInterfaceAddr) =>
+  originInterfaceAddr.host === targetInterfaceAddr.host &&
+  originInterfaceAddr.port === targetInterfaceAddr.port &&
+  originInterfaceAddr.transport === targetInterfaceAddr.transport
 
 // This needs to be called with the original request or you will get the wrong via
 const configureContact = request => {
@@ -68,8 +53,17 @@ const configureContact = request => {
 
   const contactHeader = requestOut.getHeader(ContactHeader.NAME)
 
+  // We only need to configure the contact to support SIP.js
   // Some request don't have contact...
-  if (!contactHeader) return requestOut
+  if (
+    !contactHeader ||
+    !contactHeader
+      .getAddress()
+      .getURI()
+      .getHost()
+      .endsWith('.invalid')
+  )
+    return requestOut
 
   const viaHeader = requestOut.getHeader(ViaHeader.NAME)
 
@@ -144,7 +138,19 @@ const configureRoute = (request, originInterfaceAddr, targetInterfaceAddr) => {
       `core.processor.RequestUtils.configureRoute [owns address? = ${c > 0}]`
     )
 
-    if (c > 0) {
+    const sameInterface = originSameAsTarget(
+      originInterfaceAddr,
+      targetInterfaceAddr
+    )
+
+    LOG.debug(
+      `core.processor.RequestUtils.configureRoute [origin and target interfaces are the same? = ${sameInterface}]`
+    )
+
+    if (c > 0 && sameInterface) {
+      // If is the same interface we only need to remove one Route
+      requestOut.removeFirst(RouteHeader.NAME)
+    } else if (c > 0) {
       requestOut.removeFirst(RouteHeader.NAME)
       requestOut.removeFirst(RouteHeader.NAME)
     }

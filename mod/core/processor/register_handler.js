@@ -4,7 +4,6 @@
  */
 const postal = require('postal')
 const Registrar = require('@routr/registrar/registrar')
-const RegistrarUtils = require('@routr/registrar/utils')
 const {
   sendOk,
   sendUnauthorized,
