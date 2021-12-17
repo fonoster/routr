@@ -43,14 +43,16 @@ Furthermore, the system MUST include a mechanism to replace the SIP Message proc
 
 ### Glossary
 
-- *Backend Service* - A service that provides a use-case or capability for the overall system (i.e Asterisk or FreeSWITCH)
-- *SIP Client* - A SIP Client is any SIP capable device or software that communicates thru *Routr*
-- *Role Based Access Control (RBAC)* - Mechanism that restricts access to parts of Routr based on a user's role and resource ownership
-- *SIP Server* - also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients in order to place and terminate calls and process other type of requests
-- *gRPC* - Is a modern open source high performance Remote Procedure Call (RPC) framework
-- *Stakeholder* - Any person with an interest in the project who is not a developer.
-- *Nexthop* - The next network element within the signaling path for given request
- 
+| Word | Description |
+| ----------- | ----------- |
+| *Backend Service* | A service that provides a use-case or capability for the overall system (i.e Asterisk or FreeSWITCH) |
+|  *SIP Client* | A SIP Client is any SIP capable device or software that communicates thru *Routr* |
+| *Role Based Access Control (RBAC)* |  Mechanism that restricts access to parts of Routr based on a user's role and resource ownership |
+| *SIP Server* | Also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients in order to place and terminate calls and process other type of requests|
+| *gRPC* | Is a modern open source high performance Remote Procedure Call (RPC) framework |
+| *Stakeholder* |Any person with an interest in the project who is not a developer |
+| *Nexthop* | The next network element within the signaling path for given request |
+
 ### References
 
 IEEE/ISO/IEC 29148-2018 - ISO/IEC/IEEE International Standard - Systems and software engineering -- Life cycle processes -- Requirements engineering
