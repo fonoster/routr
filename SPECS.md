@@ -284,7 +284,7 @@ The configuration for the *EdgePort* could be represented as a *json* or *yaml* 
 
 **Communication with Adjacent Services**
 
-Adjecent to the EdgePort is the Message Router. The communication between this two services is done using gRPC and protobuf.
+Adjecent to the *EdgePort* is the *Message Router*. The communication between this two services is done using gRPC and protobuf.
 
 <details>
 <summary>Message Proto</summary>
@@ -297,21 +297,22 @@ Adjecent to the EdgePort is the Message Router. The communication between this t
 
 **Test Criteria**
 
-> TODO: Cover tools and require integration tests
+The *EdgePoint* MUST pass all the tests prescribed in chapter *1.x* of the `SIP Connect v1.1`. Additionally, the **EdgePort** MUST pass the following tests:
+
+1. Routing *INVITE* messages for SIP Clients in different *EdgePort(s)*
+2. Signaling for popular WebRTC clients
 
 **Security Considerations**
 
-> TODO: Explore security considerations
+Since the *EdgePort* sits at the edge of the network, it's crucial that is capable of withstanding typical SIP attacks. On SIP over TCP or TLS, the server should avoid descriptors resource exhaustion, especially during a SIP INVITE flood attack. Consider also, monitoring and alerting for CPU and/or memory usage needed to handle SIP sessions and dialog, to no exceed the resources available. Finally, the server should drop any malformed SIP messages and avoid filling up the log files or logging servers. 
 
 **Special Considerations**
 
-Running the EdgePort in Kubernetes can be challenging. Keep following in mind when deploying to Kubernetes:
+Running the *EdgePort* in Kubernetes can be challenging. Keep following in mind when deploying to Kubernetes:
 
-1. Kubernetes' loadbalancers aren't design to work with SIP 
+1. Kubernetes' loadbalancers are not designed to work with SIP 
 2. The EdgePort uses the SIP procol which requires of L7 loadbalancers
 3. A complex network topology could disrupt the service and create latency
-
-> TODO: Show potential solutions
 
 ### Message Router
 
