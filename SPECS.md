@@ -52,6 +52,7 @@ Furthermore, the system MUST include a mechanism to replace the SIP Message proc
 | *gRPC* | Is a modern open source high performance Remote Procedure Call (RPC) framework |
 | *Stakeholder* |Any person with an interest in the project who is not a developer |
 | *Nexthop* | The next network element within the signaling path for given request |
+| M.E.L.T| M.E.L.T stands for Metrics, Events, Logs, Tracing |
 
 ### References
 
@@ -129,22 +130,24 @@ The EdgePort component is a service that sits at the edge of the network. The jo
 
 **Functional Requirements**
 
-The following functionality are Must have for an implementation of an *EdgePort*:
+The following functions are Must have for an implementation of a *EdgePort*:
 
-- *Accept SIP Msg* - Accept Messages using as transport *UDP*, *TCP*, *TLS*, *WS*, and *WSS*
+- *Accept SIP Msg* - Accept Messages using as transport UDP, TCP, TLS, WS, and WSS
 - *Accept SIP Msg (Part2)* - Accept Messages on all interfaces
 - *Parse SIP Msg* - Parse Messages into a protobuf
 - *Keep Msg's state* - MUST keep the state until the Message is processed or a timeout occurrs
 - *Reject Msgs from banned IPs* - MUST have a mechanism to indentify and discard unwanted Messages
-- *Health Check* - MUST have a mechanism to indentify health of the service 
+- *Health Check* - MUST have a mechanism to indentify health of the service
+- *M.E.L.T* - Must be capable of collecting and sending M.E.L.T to external systems
 
 **Non-functional Requirements**
 
-The following requirements are Nice to have for an implementation of an *EdgePort*:
+The following requirements are important to have for an implementation of an *EdgePort*:
 
 - *Parsing Time* -  Msg parse time effeciency should < *TBT*
 - *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
 - *Recoverability* - Recover from an unhealthy state
+
 
 **Service Configuration**
 
@@ -271,13 +274,14 @@ The configuration for the *EdgePort* could be represented as a *json* or *yaml* 
              "port": {
                "type": "integer"
              }
-           }
+           },
+           "required": [ "port", "protocol"]
          }
        },
-      "required": [ "ref" ]
+      "required": [ "ref", "acceptableSIPMessages", "transport"]
     }    
   },
-  "required": [ "kind" ]
+  "required": [ "kind", "metadata", "spec", "apiVersion" ]
 }
 ```
 </details>
@@ -297,9 +301,9 @@ Adjecent to the *EdgePort* is the *Message Router*. The communication between th
 
 **Test Criteria**
 
-The *EdgePoint* MUST pass all the tests prescribed in chapter *1.x* of the `SIP Connect v1.1`. Additionally, the **EdgePort** MUST pass the following tests:
+The *EdgePoint* MUST pass all the tests prescribed in chapter *1.x* of the `SIP Connect v1.1`. Additionally, the *EdgePort* MUST pass the following tests:
 
-1. Routing *INVITE* messages for SIP Clients in different *EdgePort(s)*
+1. Routing INVITE messages for SIP Clients in different *EdgePort(s)*
 2. Signaling for popular WebRTC clients
 
 **Security Considerations**
@@ -339,30 +343,33 @@ Running the *EdgePort* in Kubernetes can be challenging. Keep following in mind 
 
 **Brief Description**
 
-The Message Router component takes a SIP message and forwards them to the corresponding Message Processor. The matching process is done using the request coming from the EdgePort. 
+The *Message Router* component takes a SIP message and forwards them to the corresponding Message Processor. The matching process is done using the request coming from the *EdgePort*.
 
-The Message Router will always use the first processor that matches a request, and use a **fallback** processor only as of the last option. If not matche is found for given request, the server MUST respond with a `SIP 405: Method Not Allowed.`
-
-> The Router component does not manipulate the SIP Messages in anyway.
+The *Message Router* will always use the first processor that matches a request, and use a *fallback* processor only as of the last option. If not match is found for given request, the server MUST respond with a `SIP 405: Method Not Allowed.` The *Message Router* component does not manipulate the SIP Messages in anyway.
 
 **Functional Requirements**
 
+The following functions are Must have for an implementation of an *Message Router*:
+
+- *Stateless Service* - The service must be build in such a way to allow for scalabilty
+- *Accept gRPC Requests* - Accept gRPC Requests
+- *Find Processor* - Find a processor that matches a given request
+- *Forward Requests using gRPC* - Send the requests to the corresponding *Message Processor*
+- *Return processed Message* - Route the processoed message back to the *EdgePort*
+- *Health Check* - MUST have a mechanism to indentify health of the service
+- *M.E.L.T* - Must be capable of collecting and sending M.E.L.T to external systems
+- *System Unavailable* It must return a `SIP 503 Service Unavailable` if the matched *Message Processor* is unreachable
+
 **Non-functional Requirements**
+
+The following requirements are important to have for an implementation of an *Message Router*:
+
+- *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
+- *Recoverability* - Recover from an unhealthy state
 
 **Service Configuration**
 
-<details>
-<summary>Schema</summary>
- 
-```json
-// TODO
-```
- 
-</details>
-
-<details>
-<summary>Example</summary>
-
+Example: 
 ```json
 {
   "kind": "Router",
@@ -374,7 +381,7 @@ The Message Router will always use the first processor that matches a request, a
     "bindAddr": "0.0.0.0",
     "processors": [
       {
-        "id": "fallback-processor",
+        "ref": "fallback-processor",
         "isFallback": true,
         "addr": "192.168.1.121:56001",
         "methods": [
@@ -387,7 +394,7 @@ The Message Router will always use the first processor that matches a request, a
         "matchFunc": "(req, res) => true\n"
       },
       {
-        "id": "scaip-essense",
+        "ref": "scaip-essense",
         "addr": "192.168.1.122:56001",
         "methods": [
           "MESSAGE"
@@ -399,11 +406,102 @@ The Message Router will always use the first processor that matches a request, a
 }
 ```
 
+<details>
+<summary>Schema</summary>
+ 
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/fonoster/routr/schemas/messagerouter.schema.json",
+  "title": "Message Router configuration",
+  "description": "Configuration for a Message Router instance",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "description": "Resouce type",
+      "type": "string"
+    },
+    "apiVersion": {
+      "description": "Resource version",
+      "type": "string"
+    },
+    "metadata": {
+      "description": "Resource metadata",
+      "type": "object"
+      "properties": {
+         "ref": {
+           "description": "EdgePort reference",
+           "type": "string"
+         }
+       },
+      "required": [ "ref" ]
+    },
+    "spec": {
+      "description": "Operation spec for the EdgePort",
+      "type": "object"
+      "properties": {
+         "bindAddr": {
+           "description": "Ipv4 interface to accept request on",
+           "type": "string"
+         },
+         "processors": {
+           "description": "Message Processors",
+           "type": "array",
+           "items": {
+             "type": "object"
+           }
+           "properties": {
+             "ref": {
+               "type": "string"
+             },
+             "isFallback": {
+               "type": "boolean"
+             },
+             "addr": {
+               "type": "string"
+             },
+             "matchFunc": {
+               "type": "string"
+             },
+             "methods": {
+               "type": "array",
+               "items": {
+                 "type": "string"
+               }
+             }
+           },
+           "required": [ "ref", "addr", "methods", "matchFunc" ]
+         }
+       },
+      "required": [ "ref" ]
+    }    
+  },
+  "required": [ "kind", "metadata", "spec", "apiVersion" ]
+}
+``` 
+</details>
+
+<details>
+<summary>Schema:</summary>
+
 </details>
 
 **Communication with Adjacent Services**
 
+Adjecent to the *Message Router* is the *EdgePort*. The communication between this two services is done using gRPC and protobuf.
+
+<details>
+<summary>Message Proto</summary>
+
+```none
+ // TODO
+```
+
+</details>
+
 **Test Criteria**
+
+MUST have unit testing to validate its basic functions. MUST have Integration Test with Adjacent Services. 
 
 **Special Considerantions**
 
