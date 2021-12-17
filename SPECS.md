@@ -55,7 +55,7 @@ Furthermore, the system MUST include a mechanism to replace the SIP Message proc
 
 ### References
 
-IEEE. IEEE Std 830-1998 IEEE Recommended Practice for Software Requirements Specifications. IEEE Computer Society, 1998.
+IEEE/ISO/IEC 29148-2018 - ISO/IEC/IEEE International Standard - Systems and software engineering -- Life cycle processes -- Requirements engineering
 
 ## Requirements Specification
 
