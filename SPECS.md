@@ -13,7 +13,6 @@
   * [Scope of Project](#scope-of-project)
   * [Glossary](#glossary)
   * [References](#references)
-  * [Overview of Document](#overview-of-document)
 - [Requirements Specification](#requirements-specification)
   * [EdgePort](#edgeport)
   * [Message Router](#message-router)
@@ -32,27 +31,26 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ### Purpose
 
-The purpose of this document is to present a detailed description of the SIP Server `Routr`. It will explain the purpose and features of the system, the interfaces of the system, what the system will do, the constraints under which it must operate and how the system will react to external stimuli. This document is intended for both the stakeholders and the developers of the system.
+The purpose of this document is to present a detailed description of the SIP Server *Routr*. It will explain the purpose and features of the system, the interfaces of the system, what the system will do, the constraints under which it must operate and how the system will react to external stimuli. This document is intended for both the stakeholders and the developers of the system.
 
 ### Scope of Project
 
-This software system will be a SIP Server acts as the signaling as part of Fonoster Ecosystem. This system will be designed to maximize scalability and extensibility by making use of a microservice architecture which a challegning factor on `v1`. By using a microservice architecture we will ensure that portions of the system be able to be deployed independly, and each treated according with its problem domain.
+This software system will be a SIP Server acts as the signaling as part of Fonoster Ecosystem. This system will be designed to maximize scalability and extensibility by making use of a microservice architecture which a challegning factor on **v1**. By using a microservice architecture we will ensure that portions of the system be able to be deployed independly, and each treated according with its problem domain.
 
-More specifically, this system will be designed to allow for separation of concerns for the SIP Server. The software MUST be able to accept SIP Messages via `UDP`, `TCP`, `TLS`, `WS`, and `WSS`. It should then, parse the messages effiently and facilitate the communication between the various components.
+More specifically, this system will be designed to allow for separation of concerns for the SIP Server. The software MUST be able to accept SIP Messages via *UDP*, *TCP*, *TLS*, *WS*, and *WSS*. It should then, parse the messages effiently and facilitate the communication between the various components.
 
 Furthermore, the system MUST include a mechanism to replace the SIP Message processing without updating the entire system. It should also facilitate communication with external system for Authentication, Authorization, and Accounting (AAA) and allow to host multiple-tenants thru the use of a Role-based Access Control (RBAC) system.
 
 ### Glossary
 
-- `Backend Service` - A service that provides a use-case or capability for the overall system (i.e Asterisk or FreeSWITCH)
-- `SIP Client` - TODO
-- `RBAC` - TODO
-- `SIP Server` - TODO
-- `gRPC` - TODO
-- `SIP Client` - TODO
-- `Stakeholder` - Any person with an interest in the project who is not a developer.
-- `Nexthop` - TODO
-
+- *Backend Service* - A service that provides a use-case or capability for the overall system (i.e Asterisk or FreeSWITCH)
+- *SIP Client* - A SIP Client is any SIP capable device or software that communicates thru *Routr*
+- *Role Based Access Control (RBAC)* - Mechanism that restricts access to parts of Routr based on a user's role and resource ownership
+- *SIP Server* - also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients in order to place and terminate calls and process other type of requests
+- *gRPC* - Is a modern open source high performance Remote Procedure Call (RPC) framework
+- *Stakeholder* - Any person with an interest in the project who is not a developer.
+- *Nexthop* - The next network element within the signaling path for given request
+ 
 ### References
 
 IEEE/ISO/IEC 29148-2018 - ISO/IEC/IEEE International Standard - Systems and software engineering -- Life cycle processes -- Requirements engineering
@@ -125,33 +123,70 @@ Raw Diagram:
 
 **Brief Description**
 
-The EdgePort component is a service that sits at the edge of the network. The job of the EdgePort is to receive SIP Messages parse them into protobuf and forward downstream for procesing. A Routr network might have multiple EdgePorts.
+The EdgePort component is a service that sits at the edge of the network. The job of the EdgePort is to receive SIP Messages parse them into protobuf and forward downstream for procesing. A *Routr* network might have multiple EdgePorts.
 
 **Functional Requirements**
 
-The following functionality are Must have for an implementation of an Edge
+The following functionality are Must have for an implementation of an *EdgePort*:
 
-- `Accept SIP Msg` - Accept Messages using as transport `UDP`, `TCP`, `TLS`, `WS`, and `WSS` 
-- `Accept SIP Msg (Part2)` - Accept Messages on all interfaces
-- `Parse SIP Msg` - Parse Messages into a protobuf
-- `Keep Msg's state` - MUST keep the state until the Message is processed or a timeout occurrs
-- `Reject Msgs from banned IPs` - MUST have a mechanism to indentify and discard unwanted Messages
-- `Health Check` - MUST have a mechanism to indentify health of the service 
+- *Accept SIP Msg* - Accept Messages using as transport *UDP*, *TCP*, *TLS*, *WS*, and *WSS*
+- *Accept SIP Msg (Part2)* - Accept Messages on all interfaces
+- *Parse SIP Msg* - Parse Messages into a protobuf
+- *Keep Msg's state* - MUST keep the state until the Message is processed or a timeout occurrs
+- *Reject Msgs from banned IPs* - MUST have a mechanism to indentify and discard unwanted Messages
+- *Health Check* - MUST have a mechanism to indentify health of the service 
 
 **Non-functional Requirements**
 
-The following requirements are Nice to have for an implementation of an Edge
+The following requirements are Nice to have for an implementation of an *EdgePort*:
 
-- `Parsing Time` -  Msg parse time effeciency should < `TBT` 
-- `Msg Processed/second` - Should be able to process `TBT` number of Msg per second
-- `Recoverability` - Recover from an unhealthy state
+- *Parsing Time* -  Msg parse time effeciency should < *TBT*
+- *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
+- *Recoverability* - Recover from an unhealthy state
 
 **Service Configuration**
 
-The following JsonSchema describe the configuration parameters for an EdgePort. The schema is defined in accordance with [https://json-schema.org](https://json-schema.org/learn/getting-started-step-by-step).
+The configuration for the *EdgePort* could be represented as a *json* or *yaml* formats, however validation will done as per [https://json-schema.org](https://json-schema.org/learn/getting-started-step-by-step). The following example, sumarizes de configuration REQUIRED by the *EdgePort*:
+
+```json
+{
+  "kind": "EdgePort",
+  "apiVersionv": "v2beta1",
+  "metadata": {
+    "ref": "ep001",
+    "region": "us-east1"
+  },
+  "spec": {
+    "bindAddr": "0.0.0.0",
+    "advertisedAddrs": [
+      "165.227.217.102",
+      "sip01.fonoster.io"
+    ],
+    "localnets": [
+      "192.168.1.9"
+    ],
+    "allowedRequets": [
+      "INVITE",
+      "MESSAGE",
+      "REGISTER"
+    ],
+    "transport": [
+      {
+        "protocol": "tcp",
+        "bindAddr": "192.168.1.148",
+        "port": 5060
+      },
+      {
+        "port": 5060,
+        "protocol": "udp"
+      }
+    ]
+  }
+}
+```
 
 <details>
-<summary>Schema</summary>
+<summary>Schema:</summary>
 
  ```json
 {
@@ -243,49 +278,6 @@ The following JsonSchema describe the configuration parameters for an EdgePort. 
   "required": [ "kind" ]
 }
 ```
- 
-</details>
-
-<details>
-<summary>Example</summary>
-
-```json
-{
-  "kind": "EdgePort",
-  "apiVersionv": "v2beta1",
-  "metadata": {
-    "ref": "ep001",
-    "region": "us-east1"
-  },
-  "spec": {
-    "bindAddr": "0.0.0.0",
-    "advertisedAddrs": [
-      "165.227.217.102",
-      "sip01.fonoster.io"
-    ],
-    "localnets": [
-      "192.168.1.9"
-    ],
-    "allowedRequets": [
-      "INVITE",
-      "MESSAGE",
-      "REGISTER"
-    ],
-    "transport": [
-      {
-        "protocol": "tcp",
-        "bindAddr": "192.168.1.148",
-        "port": 5060
-      },
-      {
-        "port": 5060,
-        "protocol": "udp"
-      }
-    ]
-  }
-}
-```
-
 </details>
 
 **Communication with Adjacent Services**
