@@ -309,7 +309,7 @@ Adjecent to the EdgePort is the Message Router. The communication between this t
 
 > TODO: Explore security considerations
 
-**Special Considerantions**
+**Special Considerations**
 
 Running the EdgePort in Kubernetes can be challenging. Keep following in mind when deploying to Kubernetes:
 
