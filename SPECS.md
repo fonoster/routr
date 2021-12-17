@@ -372,7 +372,7 @@ The following requirements are important to have for an implementation of an *Me
 Example: 
 ```json
 {
-  "kind": "Router",
+  "kind": "MessageRouter",
   "apiVersion": "v2beta1",
   "metadata": {
     "ref": "rt001"
@@ -488,20 +488,26 @@ Example:
 
 **Communication with Adjacent Services**
 
-Adjecent to the *Message Router* is the *EdgePort*. The communication between this two services is done using gRPC and protobuf.
+The adjecent services of the *Message Router* are the *EdgePort* and the *Message Processor*. The communication with all adjacent service is done with gRPC and protobuf. The `messagerouter.proto` contains the follow code:
 
-<details>
-<summary>Message Proto</summary>
+```
+syntax = "proto3";
 
-```none
- // TODO
+package fonoster.routr.messagerouter.v2beta1;
+
+import "fonoster/routr/sipmessage.proto";
+
+service MessageRouter {
+  // Takes a SIP Message and routes the request to the appropiate Messsage Processor
+  rpc processMessage (SIPMessage) returns (SIPMessage) {};
+}
 ```
 
-</details>
+> The *Message Router* expects that *Message Procesor(s)* have the same interface.
 
 **Test Criteria**
 
-MUST have unit testing to validate its basic functions. MUST have Integration Test with Adjacent Services. 
+MUST have Unit Tests to validate its basic functionalities. MUST have Integration Tests with all Adjacent Services. 
 
 **Special Considerantions**
 
