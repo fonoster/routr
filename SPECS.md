@@ -43,7 +43,7 @@ Furthermore, the system MUST include a mechanism to replace the SIP Message proc
 
 ### Glossary
 
-| Word | Description |
+|  | Description |
 | ----------- | ----------- |
 | *Backend Service* | A service that provides a use-case or capability for the overall system (i.e Asterisk or FreeSWITCH) |
 |  *SIP Client* | A SIP Client is any SIP capable device or software that communicates thru *Routr* |
