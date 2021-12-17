@@ -170,7 +170,7 @@ The configuration for the *EdgePort* could be represented as a *json* or *yaml* 
     "localnets": [
       "192.168.1.9"
     ],
-    "allowedRequets": [
+    "methods": [
       "INVITE",
       "MESSAGE",
       "REGISTER"
@@ -185,7 +185,10 @@ The configuration for the *EdgePort* could be represented as a *json* or *yaml* 
         "port": 5060,
         "protocol": "udp"
       }
-    ]
+    ],
+    "messageRouter": {
+      "addr": "messagerouter:51901"
+    }
   }
 }
 ```
@@ -250,8 +253,8 @@ The configuration for the *EdgePort* could be represented as a *json* or *yaml* 
            "uniqueItems": true
            "minItems": 1,
          },
-         "acceptableSIPMessages": {
-           "description": "Acceptable SIP Messages",
+         "methods": {
+           "description": "Acceptable SIP Methods",
            "type": "array",
            "items": {
              "type": "string"
@@ -259,7 +262,7 @@ The configuration for the *EdgePort* could be represented as a *json* or *yaml* 
            "uniqueItems": true
          },
          "transport": {
-           "description": "Acceptable Transport",
+           "description": "Acceptable Transport Protocols",
            "type": "array",
            "items": {
              "type": "object"
@@ -275,10 +278,19 @@ The configuration for the *EdgePort* could be represented as a *json* or *yaml* 
                "type": "integer"
              }
            },
-           "required": [ "port", "protocol"]
+           "required": [ "port", "protocol" ]
+         }
+         "messageRouter": {
+           "description": "Adjacent service for message routing",
+           "type": "object",
+           "properties": {
+              "addr": {
+                "type": "string"
+              }
+           }
          }
        },
-      "required": [ "ref", "acceptableSIPMessages", "transport"]
+      "required": [ "ref", "methods", "transport", "messageRouter" ]
     }    
   },
   "required": [ "kind", "metadata", "spec", "apiVersion" ]
@@ -303,7 +315,7 @@ Adjecent to the *EdgePort* is the *Message Router*. The communication between th
 
 The *EdgePoint* MUST pass all the tests prescribed in chapter *1.x* of the `SIP Connect v1.1`. Additionally, the *EdgePort* MUST pass the following tests:
 
-1. Routing INVITE messages for SIP Clients in different *EdgePort(s)*
+1. Routing INVITE messages for SIP Clients located at separate *EdgePorts*
 2. Signaling for popular WebRTC clients
 
 **Security Considerations**
@@ -375,7 +387,7 @@ Example:
   "kind": "MessageRouter",
   "apiVersion": "v2beta1",
   "metadata": {
-    "ref": "rt001"
+    "ref": "mr001"
   },
   "spec": {
     "bindAddr": "0.0.0.0",
@@ -383,7 +395,7 @@ Example:
       {
         "ref": "fallback-processor",
         "isFallback": true,
-        "addr": "192.168.1.121:56001",
+        "addr": "fallbackprocessor:51902",
         "methods": [
           "REGISTER",
           "MESSAGE",
@@ -395,7 +407,7 @@ Example:
       },
       {
         "ref": "scaip-essense",
-        "addr": "192.168.1.122:56001",
+        "addr": "scaipessense:51902",
         "methods": [
           "MESSAGE"
         ],
@@ -481,11 +493,6 @@ Example:
 ``` 
 </details>
 
-<details>
-<summary>Schema:</summary>
-
-</details>
-
 **Communication with Adjacent Services**
 
 The adjecent services of the *Message Router* are the *EdgePort* and the *Message Processor*. The communication with all adjacent service is done with gRPC and protobuf. The `messagerouter.proto` contains the follow code:
@@ -503,7 +510,7 @@ service MessageRouter {
 }
 ```
 
-> The *Message Router* expects that *Message Procesor(s)* have the same interface.
+The *Message Router* expects that *Message Procesor(s)* have the same interface.
 
 **Test Criteria**
 
@@ -515,29 +522,67 @@ None
 
 ### Message Processor
 
-Message Processors are small services that carry the logic for the manipulation of SIP messages. A processor will be responsible for one or more of the following tasks:
+**Brief Description**
 
-1. Authenticate Request
-2. Authorize Request
-3. Valid Request
-4. Process Request
+Message Processors are small services that carries the logic to manipulate SIP Messages
 
-The normal processing flow of a request is:
+**Functional Requirements**
+
+A processor will be responsible for one or more of the following tasks:
+
+1. Authenticate Message
+2. Authorize Message
+3. Validate Message
+4. Process Message
 
 Interface Pseudocode:
 
 ```text
 => Message Processor Matched (by Message Router)
-  => isValid (request) or return Bad Request (400) 
-  => isAuthenticated(request) or send Authentication Challenge
-  => isAuthorized(request) or send is Unauthorized
-  => doProcess(request) and return upadted request
+  => isValid (message) or return Bad Request (400) 
+  => isAuthenticated(message) or send Authentication Challenge
+  => isAuthorized(message) or send is Unauthorized
+  => doProcess(message) and return updated request/response
 ```
 
-Any action no covered by *isValid*, *isAuthenticated*, *isAuthorized* will go into *doProcess**. For example, allocation the correct RTPEngine or feeding external logging system.
+**Non-functional Requirements**
 
-**Passing multiple EdgePort(s)**
+The following requirements are important to have for an implementation of an *Message Processor*:
 
+- *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
+- *Recoverability* - Recover from an unhealthy state
+
+**Service Configuration**
+
+Each Message Processor can have its own configuration based on the use case.
+
+**Communication with Adjacent Services**
+
+Adjacent to the *Message Processor* is the *Message Router*. The communication flows from the *Message Router* to the *Message Processor*, where the *Message Processor* is the server and *Message Router* the client. A *Message Processor* MUST have the follow protobuf interface:
+
+```
+syntax = "proto3";
+
+package fonoster.routr.messageprocessor.v2beta1;
+
+import "fonoster/routr/sipmessage.proto";
+
+service MessageProcessor {
+  // Takes a SIP Message and returns the processed SIP Message
+  rpc processMessage (SIPMessage) returns (SIPMessage) {};
+}
+```
+
+**Test Criteria**
+
+Message Processor SHOULD have Unit Testing for all its core functionalities.
+
+**Special Considerations**
+
+Any action no covered by *isValid*, *isAuthenticated*, *isAuthorized* will go into *doProcess**. For example, allocation the correct RTPEngine or collecting and sending M.E.L.T to external systems.
+
+<details>
+<summary>Passing multiple EdgePort(s)</summary>
 A Message Processor must coordinate with the *LocationAPI* and other APIs to determine the nexthop. Sometimes the signaling path would include multiple EdgePort(s).
 
 Consider the following scenario:
@@ -548,12 +593,13 @@ Consider the following scenario:
 To correctly forward and INVITE from `A` to `B`, a Message Processor must obtain enough information from the *LocationAPI* to know how to properly route the call.
 
 For this scenario the flow would look like this: `A -> EP1 -> EP2 -> B`
-
-**Balancing Backends**
-
+</details>
+ 
+<details>
+<summary>Balancing Backends</summary>
 Some scenarios require sending requests to a specific backend. To balance the load between those backends we will implement a load balancing logic in the *LocationService*. Consider the following scenario:
 
-`Scenario 1:`
+Scenario #1:
 
 You want to balance the load for a Voice Application service. Voice Applications live in one or more Media Servers (Asterisk for example). 
 
@@ -561,17 +607,18 @@ To balance the load between the Media Servers, we need to create a binding betwe
 
 We MUST have a mechanism to identify the load balancing group during the Registration process of each backend. For example, we could use the custom header `X-Fonoster-Backend: VOICEAPP` to mark all of the backends responsible for Voice Applications.
 
-`Scenario 2:`
+Scenario #2:
 
 The second scenario is for *Conference* services. As before, we need to identify the correct backend. We might use a similar approach by adding a custom header `X-Fonoster-Backend: CONFERENCE` which will later be used by the *LocationAPI* to obtain an instance of the backend.
-
-**Directing Request to a Backend**
-
+</details>
+ 
+<details>
+<summary>Directing Request to a Backend</summary>
 To make the later scenario possible, both Numbers and Agents will require additional metadata. For example, to indicate that a Number must be directed to a Voice application, we could use the following:
 
 ```json
 {
-  "apiVersion": "v1beta1",
+  "apiVersion": "v2beta1",
   "kind": "Number",
   "metadata": {
     "ref": "Number0001",
@@ -595,3 +642,5 @@ To make the later scenario possible, both Numbers and Agents will require additi
 ```
 
 > Next COULD have the `aorLink` if the desired behavior is to point to an specific instance
+
+</details>
