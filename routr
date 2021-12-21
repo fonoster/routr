@@ -13,6 +13,7 @@ run() {
     cd $HOME
     $JAVA_HOME/bin/java \
     -DDATA=$DATA \
+    -Djava.net.preferIPv4Stack=true \
     -Dlog4j.configurationFile=$LOG4J2 \
     -Dpolyglot.js.experimental-foreign-object-prototype=true \
     -Dpolyglot.js.nashorn-compat=true \
