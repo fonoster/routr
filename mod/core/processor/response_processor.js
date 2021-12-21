@@ -58,7 +58,7 @@ class ResponseProcessor {
     LOG.debug(event.getResponse())
     try {
       let response = event.getResponse().clone()
-      const bridgingNote = directionFromResponse(response)
+
       const viaHeader = response.getHeader(ViaHeader.NAME)
       const xReceivedHeader = headerFactory.createHeader(
         'X-Inf-Received',
@@ -72,11 +72,13 @@ class ResponseProcessor {
       response.addHeader(xRPortHeader)
       response.removeFirst(ViaHeader.NAME)
 
+      let bridgingNote
       if (
         config.spec.ex_rtpEngine.enabled &&
         (isOk(response) || response.getStatusCode() === 183) &&
         hasSDP(response)
       ) {
+        bridgingNote = directionFromResponse(response)
         const obj = await this.rtpeConnector.answer(
           bridgingNote,
           extractRTPEngineParams(response)
