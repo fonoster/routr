@@ -16,23 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import createSipStack from "./create_sip_stack"
-import getServerProperties from "./server_properties"
-import { EdgePortConfig } from "./types"
+import EdgePort from './edgeport'
+import readConfig from "./config"
 
-export default function EdgePort(config: EdgePortConfig) {
-  this.config = config
-  this.start = function() {
-    const properties = getServerProperties(config)
-    const sipStack = createSipStack(properties)
-    //const listeningPoints = createListeningPoints(sipStack, config)
-    //const provider = createSIPProvider(sipStack, listeningPoints)
-    //provider.addSipListener(listener(config))
-  }
-}
+const configFile = process.env.CONFIG_FILE || ''
+const config = readConfig(configFile)
 
-
-//create_sip_stack.ts
-//create_listening_points.ts
-//create_sip_providers.ts
-//sip_listener.ts
+//new EdgePort(config).start()

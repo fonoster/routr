@@ -16,23 +16,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import createSipStack from "./create_sip_stack"
-import getServerProperties from "./server_properties"
-import { EdgePortConfig } from "./types"
+declare const Java: any;
+declare const SipStack: any;
+const SipFactory = Java.type('javax.sip.SipFactory')
+const Properties = Java.type('java.util.Properties')
 
-export default function EdgePort(config: EdgePortConfig) {
-  this.config = config
-  this.start = function() {
-    const properties = getServerProperties(config)
-    const sipStack = createSipStack(properties)
-    //const listeningPoints = createListeningPoints(sipStack, config)
-    //const provider = createSIPProvider(sipStack, listeningPoints)
-    //provider.addSipListener(listener(config))
+/**
+ * Takes a properties map and returns an instance of the
+ * Java object SipStack
+ */
+export default function createSipStack(props: Map<string, string>) {
+  const properties = new Properties()
+  for (const entry of props) {
+    properties.setProperty(entry[0], entry[1])
   }
+  const sipFactory = SipFactory.getInstance()
+  sipFactory.setPathName('gov.nist')
+  return sipFactory.createSipStack(properties)
 }
-
-
-//create_sip_stack.ts
-//create_listening_points.ts
-//create_sip_providers.ts
-//sip_listener.ts

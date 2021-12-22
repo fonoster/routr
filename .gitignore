@@ -21,6 +21,7 @@ mod/vendor
 jre
 site
 .env
+logs
 
 # User-specific stuff:
 .idea/workspace.xml

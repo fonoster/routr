@@ -11,10 +11,11 @@
   },
   "scripts": {
     "bootstrap": "lerna bootstrap --no-ci",
-    "test": "cross-env NODE_ENV=dev nyc --reporter=lcov mocha -r ts-node/register mods/**/*.unit.test.ts --exit",
+    "setup": "./gradlew build copyRuntimeLibs",
+    "test": "cross-env NODE_ENV=dev nyc --reporter=lcov .scripts/mocha_wrapper.sh -r ts-node/register mods/**/*.unit.test.ts --exit",
     "build": "lerna run build",
     "clean": "rimraf **/*/tsconfig.tsbuildinfo && rimraf **/*/dist && rimraf **/*/dist && rimraf **/*/node_modules && rimraf node_modules",
-    "run-edgeport": "cross-env NODE_ENV=dev nodemon mods/edgeport/src/edgeport"
+    "start:edgeport": "cross-env NODE_ENV=dev nodemon mods/edgeport/src/runner"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",

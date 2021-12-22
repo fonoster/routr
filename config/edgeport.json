@@ -1,0 +1,37 @@
+{
+  "kind": "EdgePort",
+  "apiVersionv": "v2beta1",
+  "metadata": {
+    "ref": "ep001",
+    "region": "us-east1"
+  },
+  "spec": {
+    "bindAddr": "0.0.0.0",
+    "advertisedAddrs": [
+      "165.227.217.102",
+      "sip01.fonoster.io"
+    ],
+    "localnets": [
+      "192.168.1.9"
+    ],
+    "methods": [
+      "INVITE",
+      "MESSAGE",
+      "REGISTER"
+    ],
+    "transport": [
+      {
+        "protocol": "tcp",
+        "bindAddr": "192.168.1.148",
+        "port": 5060
+      },
+      {
+        "port": 5060,
+        "protocol": "udp"
+      }
+    ],
+    "messageRouter": {
+      "addr": "messagerouter:51901"
+    }
+  }
+}

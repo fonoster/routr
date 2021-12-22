@@ -16,23 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import createSipStack from "./create_sip_stack"
-import getServerProperties from "./server_properties"
-import { EdgePortConfig } from "./types"
 
-export default function EdgePort(config: EdgePortConfig) {
-  this.config = config
-  this.start = function() {
-    const properties = getServerProperties(config)
-    const sipStack = createSipStack(properties)
-    //const listeningPoints = createListeningPoints(sipStack, config)
-    //const provider = createSIPProvider(sipStack, listeningPoints)
-    //provider.addSipListener(listener(config))
+export default function listener(processMessage: Function) {
+  return new SipListener({
+    processRequest: event => {
+
+    // start sip listener based on configuration
+    // point sip listener to processMessage
+    //    1. Check if message is acceptable based on spec.methods
+    //    2. ID message type (Request/Response)
+    //    3. Convert Java Object into Protobuf
+    //    4. Send over the wire
+
+      processMessage(event)
+    }
   }
 }
-
-
-//create_sip_stack.ts
-//create_listening_points.ts
-//create_sip_providers.ts
-//sip_listener.ts
