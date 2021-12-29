@@ -33,7 +33,6 @@ module.exports.directionFromRequest = (request, route) => {
 module.exports.directionFromResponse = response => {
   const viaHeaders = response.getHeaders(ViaHeader.NAME)
   if (viaHeaders.hasNext()) {
-    const viaHeaders = response.getHeaders(ViaHeader.NAME)
     const srcTransport = viaHeaders
       .next()
       .getTransport()

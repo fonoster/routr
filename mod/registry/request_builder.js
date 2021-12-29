@@ -31,7 +31,9 @@ module.exports = (
 
   const fromAddress = addressFactory.createAddress(`sip:${username}@${gwHost}`)
   const contactAddress = addressFactory.createAddress(
-    `sip:${contactAddr.host}:${contactAddr.port};transport=${transport};bnc`
+    `sip:${username}@${contactAddr.host}:${
+      contactAddr.port
+    };transport=${transport};bnc`
   )
   const viaHeader = headerFactory.createViaHeader(
     viaAddr.host,
