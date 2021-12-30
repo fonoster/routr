@@ -20,32 +20,33 @@ import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import createSipStack from '../src/create_sip_stack'
+import createListeningPoints from '../src/create_listening_points'
 import getServerProperties from '../src/server_properties';
-import { EdgePortConfig } from '../src/types';
-
+import { 
+  duplicatedPortEdgePortConfig, 
+  duplicatedProtoEdgePortConfig, 
+  edgePortConfig, 
+  noSecurityContextEdgePortConfig
+} from './config'
+import { 
+  assertHasSecurityContext, 
+  assertNoDuplicatedProto, 
+  assertNoDuplicatedPort 
+} from '../src/assertions'
 const expect = chai.expect
 chai.use(sinonChai)
+const sandbox = sinon.createSandbox();
 
-const edgePortConfig: EdgePortConfig = {
-  spec: {
-    bindAddr: '127.0.0.1',
-    // TODO: Add this to the Spec documentation
-    securityContext: {
-      debugging: false,
-      trustStore: 'etc/certs/domains-cert.jks',
-      trustStorePassword: 'changeit',
-      keyStore: 'etc/certs/domains-cert.jks',
-      keyStorePassword: 'changeit',
-      keyStoreType: 'jks',
-      client: {
-        authType: 'DisabledAll',
-        protocols: ['SSLv3', 'TLSv1.2', 'TLSv1.1', 'TLSv1']
-      }
-    },
-  }
+const sipStack = {
+  createListeningPoint:
+    (bindAddr: string, port: number, proto: string) => `${bindAddr}:${port}:${proto}`
 }
 
 describe('@routr/edgeport', () => {
+  afterEach(() => sandbox.restore());
+
+  // TODO: Need to test edgeport `start`
+
   it('gets a Map with the properties of the sip stack', () => {
     const properties = getServerProperties(edgePortConfig)
     expect(properties.get('javax.sip.STACK_NAME')).to.be.equal('routr')
@@ -80,5 +81,32 @@ describe('@routr/edgeport', () => {
     const properties = getServerProperties(edgePortConfig)
     const sipStack = createSipStack(properties)
     expect(sipStack.getClass().getName()).to.be.equal('gov.nist.javax.sip.SipStackImpl')
+  })
+
+  describe('assertions', () => {
+    it.only('fails because of missing .spec.securityContext', () => {
+      expect(() => assertHasSecurityContext(noSecurityContextEdgePortConfig)).to.throw('found at least one secure protocol which requires setting the .spec.securityContext')
+    })
+
+    it.only('fails because found duplicated protocol', () => {
+      expect(() => assertNoDuplicatedProto(duplicatedProtoEdgePortConfig.spec.transport)).to.throw('found duplicated entries at .spec.transport')
+    })
+
+    it.only('fails because found duplicated port', () => {
+      expect(() => assertNoDuplicatedPort(duplicatedPortEdgePortConfig.spec.transport)).to.throw('found the same port on more that one entry at .spec.transport')
+    })
+  })
+
+  describe('createListeningPoint', () => {
+    it('creates listening points for the given transports', () => {
+      const createListeningPointSpy = sandbox.spy(sipStack, 'createListeningPoint')
+      const lps = createListeningPoints(sipStack, edgePortConfig)
+
+      expect(lps.length).to.be.equal(3)
+      expect(createListeningPointSpy).to.have.been.callCount(3)
+    })
+
+    it('fails because of upstream function failed', () => {
+    })
   })
 })

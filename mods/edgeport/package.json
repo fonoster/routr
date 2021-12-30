@@ -23,8 +23,5 @@
 	},
 	"bugs": {
 		"url": "https://github.com/fonoster/routr/issues"
-	},
-	"devDependencies": {
-		"rimraf": "^3.0.2"
 	}
 }

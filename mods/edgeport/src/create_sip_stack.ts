@@ -25,7 +25,7 @@ const Properties = Java.type('java.util.Properties')
  * Takes a properties map and returns an instance of the
  * Java object SipStack
  */
-export default function createSipStack(props: Map<string, string>) {
+export default function createSipStack(props: Map<string, string>): typeof SipStack {
   const properties = new Properties()
   for (const entry of props) {
     properties.setProperty(entry[0], entry[1])

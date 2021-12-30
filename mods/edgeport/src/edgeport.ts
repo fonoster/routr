@@ -16,23 +16,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { 
+  assertHasSecurityContext, 
+  assertNoDuplicatedPort, 
+  assertNoDuplicatedProto 
+} from "./assertions"
+import createListeningPoints from "./create_listening_points"
 import createSipStack from "./create_sip_stack"
 import getServerProperties from "./server_properties"
 import { EdgePortConfig } from "./types"
 
 export default function EdgePort(config: EdgePortConfig) {
   this.config = config
-  this.start = function() {
+  this.start = () => {
+    assertNoDuplicatedProto(config.spec.transport)
+    assertNoDuplicatedPort(config.spec.transport)
+    assertHasSecurityContext(config)
     const properties = getServerProperties(config)
     const sipStack = createSipStack(properties)
-    //const listeningPoints = createListeningPoints(sipStack, config)
+    const listeningPoints = createListeningPoints(sipStack, config)
     //const provider = createSIPProvider(sipStack, listeningPoints)
     //provider.addSipListener(listener(config))
   }
 }
 
-
-//create_sip_stack.ts
-//create_listening_points.ts
 //create_sip_providers.ts
 //sip_listener.ts

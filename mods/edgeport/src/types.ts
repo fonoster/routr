@@ -16,10 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export interface Transport {
+  protocol: string
+  bindAddr?: string
+  port: number
+}
 
 export interface EdgePortConfig {
   spec: {
     bindAddr: string
+    transport: Array<Transport>
     securityContext?: {
       debugging: boolean
       keyStore: string
