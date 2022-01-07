@@ -16,10 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+declare const System: any
+
 import EdgePort from './edgeport'
-import readConfig from "./config"
+import { getConfig } from "./config/get_config"
 
-const configFile = process.env.CONFIG_FILE || ''
-const config = readConfig(configFile)
+const config = getConfig(System.getenv('CONFIG_DIR'))
 
-//new EdgePort(config).start()
+if (config._tag === 'Right') {
+  EdgePort(config.right)()
+} else {
+  console.log(config.left)
+}

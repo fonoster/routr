@@ -40,3 +40,15 @@ export interface EdgePortConfig {
     }
   }
 }
+
+export declare interface SipStack {
+  createListeningPoint: (bindAddr: string, port: number, proto: string) => unknown
+  createSipProvider: (lp: ListeningPoint) => SipProvider
+  getClass: () => any
+}
+export declare interface ListeningPoint {}
+export declare interface SipProvider {
+  addListeningPoint: (lp: ListeningPoint) => void
+  addSipListener: (lp: unknown) => void
+}
+export declare interface Java {}

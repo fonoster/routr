@@ -21,7 +21,9 @@ import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import createSipStack from '../src/create_sip_stack'
 import createListeningPoints from '../src/create_listening_points'
-import getServerProperties from '../src/server_properties';
+import createSipProvider from '../src/create_sip_provider'
+import getServerProperties from '../src/server_properties'
+import { getConfig } from '../src/config/get_config' 
 import { 
   duplicatedPortEdgePortConfig, 
   duplicatedProtoEdgePortConfig, 
@@ -33,13 +35,22 @@ import {
   assertNoDuplicatedProto, 
   assertNoDuplicatedPort 
 } from '../src/assertions'
+import { ListeningPoint, SipProvider, SipStack } from '../src/types'
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
 
+const sipProvider: SipProvider = {
+  addListeningPoint: (lp: ListeningPoint) => { },
+  addSipListener: function (lp: unknown): void {
+    throw new Error('Function not implemented.')
+  }
+}
 const sipStack = {
   createListeningPoint:
-    (bindAddr: string, port: number, proto: string) => `${bindAddr}:${port}:${proto}`
+    (bindAddr: string, port: number, proto: string) => {},
+  createSipProvider: (lp: ListeningPoint) => sipProvider,
+  getClass: () => {}
 }
 
 describe('@routr/edgeport', () => {
@@ -83,30 +94,51 @@ describe('@routr/edgeport', () => {
     expect(sipStack.getClass().getName()).to.be.equal('gov.nist.javax.sip.SipStackImpl')
   })
 
+  it('creates a sipProvider object', () => {
+    const lps: Array<ListeningPoint> = [{},{}, {}]
+    const createSipProviderSpy = sandbox.spy(sipStack, 'createSipProvider')
+    const addListeningPointSpy = sandbox.spy(sipProvider, 'addListeningPoint')
+  
+    createSipProvider(sipStack, lps)
+    expect(createSipProviderSpy).to.have.been.calledOnce
+    expect(addListeningPointSpy).to.have.been.calledTwice
+  })
+
+  it('creates a sipProvider object', () => {
+    const lps: Array<ListeningPoint> = [{},{}, {}]
+    const createSipProviderSpy = sandbox.spy(sipStack, 'createSipProvider')
+    const addListeningPointSpy = sandbox.spy(sipProvider, 'addListeningPoint')
+  
+    createSipProvider(sipStack, lps)
+    expect(createSipProviderSpy).to.have.been.calledOnce
+    expect(addListeningPointSpy).to.have.been.calledTwice
+  })
+
   describe('assertions', () => {
-    it.only('fails because of missing .spec.securityContext', () => {
+    it('fails because of missing .spec.securityContext', () => {
       expect(() => assertHasSecurityContext(noSecurityContextEdgePortConfig)).to.throw('found at least one secure protocol which requires setting the .spec.securityContext')
     })
 
-    it.only('fails because found duplicated protocol', () => {
+    it('fails because found duplicated protocol', () => {
       expect(() => assertNoDuplicatedProto(duplicatedProtoEdgePortConfig.spec.transport)).to.throw('found duplicated entries at .spec.transport')
     })
 
-    it.only('fails because found duplicated port', () => {
+    it('fails because found duplicated port', () => {
       expect(() => assertNoDuplicatedPort(duplicatedPortEdgePortConfig.spec.transport)).to.throw('found the same port on more that one entry at .spec.transport')
     })
   })
 
   describe('createListeningPoint', () => {
     it('creates listening points for the given transports', () => {
-      const createListeningPointSpy = sandbox.spy(sipStack, 'createListeningPoint')
+      const createListeningPointSpy = sandbox.stub(sipStack, 'createListeningPoint').returns(null)
       const lps = createListeningPoints(sipStack, edgePortConfig)
 
       expect(lps.length).to.be.equal(3)
       expect(createListeningPointSpy).to.have.been.callCount(3)
     })
 
-    it('fails because of upstream function failed', () => {
-    })
+    // WARNING: Needs testing
+    //it.skip('fails because of upstream function failed', () => {
+    //})
   })
 })

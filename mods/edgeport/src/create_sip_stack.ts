@@ -16,8 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare const Java: any;
-declare const SipStack: any;
+declare const Java: any
+
+import { SipStack } from "./types"
 const SipFactory = Java.type('javax.sip.SipFactory')
 const Properties = Java.type('java.util.Properties')
 
@@ -25,7 +26,7 @@ const Properties = Java.type('java.util.Properties')
  * Takes a properties map and returns an instance of the
  * Java object SipStack
  */
-export default function createSipStack(props: Map<string, string>): typeof SipStack {
+export default function createSipStack(props: Map<string, string>): SipStack {
   const properties = new Properties()
   for (const entry of props) {
     properties.setProperty(entry[0], entry[1])

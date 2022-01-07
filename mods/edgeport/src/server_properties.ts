@@ -42,7 +42,7 @@ export default function getServerProperties(config: EdgePortConfig): Map<string,
 
   // Guard against denial of service attack.
   properties.set('gov.nist.javax.sip.MAX_MESSAGE_SIZE', '1048576')
-  properties.set('gov.nist.javax.sip.LOG_MESSAGE_CONTENT', 'false')
+  properties.set('gov.nist.javax.sip.LOG_MESSAGE_CONTENT', 'true')
 
   // Default host
   properties.set('javax.sip.IP_ADDRESS', config.spec.bindAddr)

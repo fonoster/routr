@@ -16,8 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare const SipStack: any;
-declare const ListeningPoint: any;
 import { EdgePortConfig, Transport } from "./types";
 
 // We need to have the spec.securityContext for all secure protocol

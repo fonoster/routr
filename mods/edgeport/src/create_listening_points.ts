@@ -16,14 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare const SipStack: any;
-declare const ListeningPoint: any;
-import { EdgePortConfig } from "./types";
+import { EdgePortConfig, ListeningPoint, SipStack } from "./types";
 
 // Creates LPs for all of the given transport and throws if upstream function fails
-export default function createListeningPoints(sipStack: typeof SipStack,
-  config: EdgePortConfig): Array<typeof ListeningPoint> {
-  const listeningPoints: Array<typeof ListeningPoint> = []
+export default function createListeningPoints(sipStack: SipStack,
+  config: EdgePortConfig): Array<ListeningPoint> {
+  const listeningPoints: Array<ListeningPoint> = []
   for (const trans of config.spec.transport) {
     const proto = trans.protocol.toLowerCase()
 
@@ -41,4 +39,3 @@ export default function createListeningPoints(sipStack: typeof SipStack,
   }
   return listeningPoints
 }
-

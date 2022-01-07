@@ -20,7 +20,7 @@ Configuration:
           max: 10
   Loggers:
     Root:
-      level: info
+      level: debug
       AppenderRef:
       - ref: Console
       - ref: LogToRollingFile

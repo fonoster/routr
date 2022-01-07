@@ -16,19 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { SipStack, ListeningPoint, SipProvider } from "./types";
 
-export default function listener(processMessage: Function) {
-  return new SipListener({
-    processRequest: event => {
-
-    // start sip listener based on configuration
-    // point sip listener to processMessage
-    //    1. Check if message is acceptable based on spec.methods
-    //    2. ID message type (Request/Response)
-    //    3. Convert Java Object into Protobuf
-    //    4. Send over the wire
-
-      processMessage(event)
-    }
-  }
+export default function createSipProvider(sipStack: SipStack, 
+  listeningPoints: Array<ListeningPoint>): SipProvider {
+  const sipProvider = sipStack.createSipProvider(listeningPoints[0])
+  listeningPoints?.filter(((lp: ListeningPoint, index: number) => index > 0))
+    ?.forEach((lp:ListeningPoint)=> sipProvider.addListeningPoint(lp))
+  return sipProvider
 }

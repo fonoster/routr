@@ -12,30 +12,46 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --no-ci",
     "setup": "./gradlew build copyRuntimeLibs",
-    "test": "cross-env NODE_ENV=dev nyc --reporter=lcov .scripts/mocha_wrapper.sh -r ts-node/register mods/**/*.unit.test.ts --exit",
+    "test:fast": "cross-env NODE_ENV=dev nyc --reporter=lcov mocha mods/**/config.unit.test.ts --exit",
+    "test": "cross-env NODE_ENV=dev nyc --reporter=lcov .scripts/mocha_wrapper.sh mods/**/*.unit.test.ts --exit",
     "build": "lerna run build",
-    "clean": "rimraf **/*/tsconfig.tsbuildinfo && rimraf **/*/dist && rimraf **/*/dist && rimraf **/*/node_modules && rimraf node_modules",
-    "start:edgeport": "cross-env NODE_ENV=dev nodemon mods/edgeport/src/runner"
+    "clean": "rimraf **/*/tsconfig.tsbuildinfo && rimraf **/*/dist && rimraf **/*/dist && rimraf **/*/node_modules && rimraf node_modules build libs .gradle ",
+    "start:edgeport": "cross-env NODE_ENV=dev .scripts/node_wrapper.sh mods/edgeport/src/runner",
+    "transpile": "tsc",
+    "bundle": "webpack --config webpack.config.js --mode none",
+    "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",
     "@types/chai-as-promised": "^7.1.2",
     "@types/mocha": "^8.2.3",
+    "@types/node": "^17.0.7",
     "@types/sinon": "^10.0.6",
     "@types/sinon-chai": "^3.2.4",
-    "chai": "^4.0.0-canary.2",
+    "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "cross-env": "^7.0.2",
+    "esm": "^3.2.25",
     "husky": "^5.0.9",
-    "lerna": "^3.22.1",
+    "lerna": "^4.0.0",
     "mocha": "^8.3.0",
     "nodemon": "^2.0.6",
     "nyc": "^15.1.0",
-    "prettier-standard": "^16.3.0",
+    "prettier-standard": "^13.0.6",
     "rimraf": "^3.0.2",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.5.0",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.5"
+  },
+  "dependencies": {
+    "ajv": "^6.12.6",
+    "buffer": "^6.0.3",
+    "express": "^4.17.2",
+    "fp-ts": "^2.11.5",
+    "funfix": "^7.0.1",
+    "jvm-npm": "^0.1.1",
+    "webpack": "^5.36.2",
+    "webpack-cli": "^4.7.0"
   }
 }

@@ -16,29 +16,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { 
-  assertHasSecurityContext, 
-  assertNoDuplicatedPort, 
-  assertNoDuplicatedProto 
+declare const Java: any
+
+import {
+  assertHasSecurityContext,
+  assertNoDuplicatedPort,
+  assertNoDuplicatedProto
 } from "./assertions"
 import createListeningPoints from "./create_listening_points"
+import createSipProvider from "./create_sip_provider"
 import createSipStack from "./create_sip_stack"
 import getServerProperties from "./server_properties"
 import { EdgePortConfig } from "./types"
 
+const SipListener = Java.extend(Java.type("javax.sip.SipListener"))
+
+// TODO: Needs testing
 export default function EdgePort(config: EdgePortConfig) {
-  this.config = config
-  this.start = () => {
+  return function () {
     assertNoDuplicatedProto(config.spec.transport)
     assertNoDuplicatedPort(config.spec.transport)
     assertHasSecurityContext(config)
+
+    // TODO: Use pipe to stack all the methods
     const properties = getServerProperties(config)
     const sipStack = createSipStack(properties)
-    const listeningPoints = createListeningPoints(sipStack, config)
-    //const provider = createSIPProvider(sipStack, listeningPoints)
-    //provider.addSipListener(listener(config))
+    const lps = createListeningPoints(sipStack, config)
+    const sipProvider = createSipProvider(sipStack, lps)
+
+    sipProvider.addSipListener(new SipListener({
+      processRequest: function (event: any) {
+        console.log('Request[in] = ' + event.getRequest())
+      },
+      processResponse: (event: any) => {
+        console.log('Response[in] = ' + event.getResponse())
+      }
+    }))
   }
 }
-
-//create_sip_providers.ts
-//sip_listener.ts
