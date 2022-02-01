@@ -2,18 +2,11 @@
  * @author Pedro Sanders
  * @since v1
  */
-const CoreUtils = require('@routr/core/utils')
 const LocatorUtils = require('@routr/location/utils')
 const DSUtils = require('@routr/data_api/utils')
 const isEmpty = require('@routr/utils/obj_util')
-const postal = require('postal')
-const validator = require('validator')
-const { Status } = require('@routr/core/status')
 
-const SipFactory = Java.type('javax.sip.SipFactory')
-const addressFactory = SipFactory.getInstance().createAddressFactory()
 const get = Java.type('spark.Spark').get
-const post = Java.type('spark.Spark').post
 const del = Java.type('spark.Spark').delete
 
 function routeFromString (routes) {

@@ -4,7 +4,6 @@
  */
 const DSUtils = require('@routr/data_api/utils')
 const APIBase = require('@routr/data_api/api_base')
-const { Status } = require('@routr/core/status')
 const getCacheKey = j => j.spec.credentials.username
 
 class UsersAPI extends APIBase {
