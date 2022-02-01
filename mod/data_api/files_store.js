@@ -8,7 +8,7 @@ const String = Java.type('java.lang.String')
 const Long = Java.type('java.lang.Long')
 const File = Java.type('java.io.File')
 const System = Java.type('java.lang.System')
-const ONE_MILLION = new Long(1000000)
+const TEN_THOUSAND = new Long(10000)
 
 class FilesStore {
   constructor () {
@@ -45,7 +45,7 @@ class FilesStore {
       h = ChronicleMap.of(String, String)
         .averageKey('sip:john@bingenterprise.local')
         .averageValueSize(300)
-        .entries(ONE_MILLION)
+        .entries(TEN_THOUSAND)
         .name(name)
         .createPersistedTo(
           new File(`${System.getProperty('user.dir')}/${name}.dat`)
