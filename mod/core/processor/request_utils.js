@@ -110,6 +110,41 @@ const configureProxyAuthorization = request => {
   requestOut.removeHeader('Proxy-Authorization')
   return requestOut
 }
+const configureRouteV2 = (
+  request,
+  originInterfaceAddr,
+  targetInterfaceAddr
+) => {
+  const same = (intf, host, port) => intf.host === host && intf.port === port
+  const requestOut = request.clone()
+  const routeHeaders = request.getHeaders(RouteHeader.NAME)
+
+  if (routeHeaders.hasNext()) requestOut.removeHeader(RouteHeader.NAME)
+
+  while (routeHeaders.hasNext()) {
+    const routeHeader = routeHeaders.next()
+    const host = routeHeader
+      .getAddress()
+      .getURI()
+      .getHost()
+    // 5060
+    const port = fixPort(
+      routeHeader
+        .getAddress()
+        .getURI()
+        .getPort()
+    )
+
+    if (
+      !same(originInterfaceAddr, host, port) &&
+      !same(targetInterfaceAddr, host, port)
+    ) {
+      requestOut.addHeader(routeHeader)
+    }
+  }
+
+  return requestOut
+}
 const configureRoute = (request, originInterfaceAddr, targetInterfaceAddr) => {
   const requestOut = request.clone()
   const routeHeader = request.getHeader(RouteHeader.NAME)
@@ -313,6 +348,7 @@ const getTargetTransport = (route, request) => {
 
 module.exports.getEdgeAddr = getEdgeAddr
 module.exports.configureRoute = configureRoute
+module.exports.configureRouteV2 = configureRouteV2
 module.exports.configureVia = configureVia
 module.exports.configureProxyAuthorization = configureProxyAuthorization
 module.exports.configureRequestURI = configureRequestURI
