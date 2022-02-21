@@ -23,6 +23,7 @@ import { EdgePortConfig } from '../types'
 import { pipe } from 'fp-ts/function'
 import { schema } from './schema'
 import Ajv from "ajv"
+
 const ajv = new Ajv()
 const validate = ajv.compile(schema)
 
@@ -33,7 +34,8 @@ export const readFile = (path: string): E.Either<Error, string> =>
     E.toError
   )
 
-export const validateConfig = (j: J.Json): E.Either<Error, J.Json> => 
+// Validate Json with Ajv
+export const validateConfig = (j: J.Json): E.Either<Error, J.Json> =>
   E.tryCatch(
     () => {
       if (validate(j)) return j

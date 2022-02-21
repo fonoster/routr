@@ -16,15 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare const System: any
+import MessageRouter from "./router"
+import { MessageRequest, ProcessorConfig } from "./types"
 
-import EdgePort from './edgeport'
-import { getConfig } from "./config/get_config"
-
-const config = getConfig(System.getenv('CONFIG_DIR'))
-
-if (config._tag === 'Right') {
-  EdgePort(config.right)()
-} else {
-  console.log(config.left)
+const registerProcessor: ProcessorConfig = {
+  ref: "register-processor",
+  addr: "192.168.1.3:51902",
+  methods: ['REGISTER'],
+  matchFunc: (request: MessageRequest) => request.method === 'REGISTER'
 }
+
+MessageRouter({
+  bindAddr: "0.0.0.0:51901",
+  processors: [registerProcessor]
+})

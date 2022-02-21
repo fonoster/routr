@@ -12,11 +12,13 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --no-ci",
     "setup": "./gradlew build copyRuntimeLibs",
-    "test:fast": "cross-env NODE_ENV=dev nyc --reporter=lcov mocha mods/**/config.unit.test.ts --exit",
-    "test": "cross-env NODE_ENV=dev nyc --reporter=lcov .scripts/mocha_wrapper.sh mods/**/*.unit.test.ts --exit",
+    "test": "cross-env NODE_ENV=dev nyc --reporter=lcov mocha mods/*/test/*.unit.test.ts --exit",
+    "test:graaljs": "cross-env NODE_ENV=dev nyc --reporter=lcov .scripts/mocha_wrapper.sh mods/edgeport/*.unit.test.ts --exit",
     "build": "lerna run build",
     "clean": "rimraf **/*/tsconfig.tsbuildinfo && rimraf **/*/dist && rimraf **/*/dist && rimraf **/*/node_modules && rimraf node_modules build libs .gradle ",
-    "start:edgeport": "cross-env NODE_ENV=dev .scripts/node_wrapper.sh mods/edgeport/src/runner",
+    "start:echo": "cross-env NODE_ENV=dev nodemon mods/echo/src/runner",
+    "start:router": "cross-env NODE_ENV=dev nodemon mods/router/src/runner",
+    "start:edgeport": "cross-env NODE_ENV=dev ./edgeport.sh",
     "transpile": "tsc",
     "bundle": "webpack --config webpack.config.js --mode none",
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs"
@@ -45,6 +47,8 @@
     "typescript": "^4.1.5"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.5.0",
+    "@grpc/proto-loader": "^0.6.9",
     "ajv": "^6.12.6",
     "buffer": "^6.0.3",
     "express": "^4.17.2",

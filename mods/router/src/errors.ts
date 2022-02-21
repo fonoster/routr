@@ -4,7 +4,7 @@
  *
  * This file is part of Routr
  *
- * Licensed under the MIT License (the "License");
+ * Licensed under the MIT License (the "License")
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
@@ -16,15 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare const System: any
-
-import EdgePort from './edgeport'
-import { getConfig } from "./config/get_config"
-
-const config = getConfig(System.getenv('CONFIG_DIR'))
-
-if (config._tag === 'Right') {
-  EdgePort(config.right)()
-} else {
-  console.log(config.left)
+export class NotMatchingProcessorFound extends Error {
+  constructor(m?: string) {
+    super(m || "Not matching process found");
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NotMatchingProcessorFound.prototype);
+  }
 }

@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.routr";
+option java_outer_classname = "ProcessorProto";
+option objc_class_prefix = "PR";
+
+package fonoster.routr.processor.v2beta1;
+
+// Processor service
+service Processor {
+  // Process Message Request
+  rpc ProcessMessage (MessageRequest) returns (MessageRequest) {}
+}
+
+// Message process IN or OUT
+enum Direction {
+  IN = 0;
+  OUT = 1;
+}
+
+// Message process IN or OUT
+enum Type {
+  REQUEST = 0;
+  RESPONSE = 1;
+}
+
+enum Method {
+  UNKNOWN = 0;
+  REGISTER = 1;
+  INVITE = 2;
+  MESSAGE = 3;
+  PUBLISH = 4;
+  NOTIFY = 5;
+  SUBSCRIBE = 6;
+}
+
+enum Transport {
+  TCP = 0;
+  UDP = 1;
+  TLS = 2;
+  SCTP = 3;
+  WS = 4;
+  WSS = 5;
+}
+
+message NetInterface {
+  string host = 1;
+  int32 port = 2;
+  Transport transport = 3;
+}
+
+message SIPMessage {
+  string call_id = 1;
+}
+
+message MessageRequest {
+  string ref = 1;
+  Type type = 2;
+  Method method = 3;
+  Direction direction = 4;
+  // .google.protobuf.Struct metadata = 5
+  NetInterface origin_interface = 6;
+  NetInterface target_interface = 7;
+  SIPMessage sip_message = 8;
+}

@@ -23,13 +23,13 @@ import {
   assertNoDuplicatedPort,
   assertNoDuplicatedProto
 } from "./assertions"
+import { EdgePortConfig } from "./types"
 import createListeningPoints from "./create_listening_points"
 import createSipProvider from "./create_sip_provider"
 import createSipStack from "./create_sip_stack"
 import getServerProperties from "./server_properties"
-import { EdgePortConfig } from "./types"
 
-const SipListener = Java.extend(Java.type("javax.sip.SipListener"))
+const GRPCSipListener = Java.type("io.routr.GRPCSipListener")
 
 // TODO: Needs testing
 export default function EdgePort(config: EdgePortConfig) {
@@ -38,19 +38,10 @@ export default function EdgePort(config: EdgePortConfig) {
     assertNoDuplicatedPort(config.spec.transport)
     assertHasSecurityContext(config)
 
-    // TODO: Use pipe to stack all the methods
-    const properties = getServerProperties(config)
-    const sipStack = createSipStack(properties)
-    const lps = createListeningPoints(sipStack, config)
-    const sipProvider = createSipProvider(sipStack, lps)
+    const sipStack = createSipStack(getServerProperties(config))
+    const sipProvider = createSipProvider(sipStack, 
+      createListeningPoints(sipStack, config))
 
-    sipProvider.addSipListener(new SipListener({
-      processRequest: function (event: any) {
-        console.log('Request[in] = ' + event.getRequest())
-      },
-      processResponse: (event: any) => {
-        console.log('Response[in] = ' + event.getResponse())
-      }
-    }))
+    sipProvider.addSipListener(new GRPCSipListener())
   }
 }

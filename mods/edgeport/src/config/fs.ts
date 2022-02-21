@@ -19,9 +19,9 @@
 declare const Java: any
 
 const BufferedWriter = Java.type('java.io.BufferedWriter')
+const FileWriter = Java.type('java.io.FileWriter')
 const JFile = Java.type('java.io.File')
 const Files = Java.type('java.nio.file.Files')
-const FileWriter = Java.type('java.io.FileWriter')
 const Paths = Java.type('java.nio.file.Paths')
 
 export const readFile = (path: string) => {

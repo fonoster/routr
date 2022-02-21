@@ -25,6 +25,9 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import org.graalvm.polyglot.HostAccess;
 
+/**
+ * Wrapper class for Routr.
+ */
 public class Launcher {
   private static String launchScript = 
     "console = { log: print, warn: print, error: print };" +
@@ -48,7 +51,7 @@ public class Launcher {
     } else if (engine != null && engine.equals("nashorn")) {
       launchWithNashorn();
     } else {
-      launchWithNashorn();
+      launchWithGraalJS();
     }
 
     while (true) {

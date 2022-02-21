@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2021 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -16,15 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare const System: any
+import EchoProcessor from './processor'
 
-import EdgePort from './edgeport'
-import { getConfig } from "./config/get_config"
-
-const config = getConfig(System.getenv('CONFIG_DIR'))
-
-if (config._tag === 'Right') {
-  EdgePort(config.right)()
-} else {
-  console.log(config.left)
-}
+EchoProcessor()

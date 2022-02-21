@@ -1,0 +1,27 @@
+{
+  "name": "@routr/echo",
+  "version": "2.0.0",
+  "description": "Dummy implementation of a Processor service",
+  "author": "Pedro Sanders <psanders@fonoster.com>",
+  "homepage": "https://github.com/fonoster/routr#readme",
+  "license": "MIT",
+  "main": "dist/echo",
+  "types": "dist/echo",
+  "directories": {
+    "src": "src",
+    "test": "test"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fonoster/routr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fonoster/routr/issues"
+  }
+}

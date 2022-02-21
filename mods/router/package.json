@@ -1,0 +1,27 @@
+{
+  "name": "@routr/router",
+  "version": "2.0.0",
+  "description": "Receives SIP messages and forwards them to the corresponding Message Processor",
+  "author": "Pedro Sanders <psanders@fonoster.com>",
+  "homepage": "https://github.com/fonoster/routr#readme",
+  "license": "MIT",
+  "main": "dist/router",
+  "types": "dist/router",
+  "directories": {
+    "src": "src",
+    "test": "test"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fonoster/routr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fonoster/routr/issues"
+  }
+}

@@ -22,6 +22,8 @@ jre
 site
 .env
 logs
+bin
+.DS_Store
 
 # User-specific stuff:
 .idea/workspace.xml
