@@ -18,7 +18,6 @@
  */
 import {
   PROCESSOR_OBJECT_PROTO,
-  getObjectProto,
   createService,
 } from "@routr/common"
 import { EchoProcessorConfig } from "./types"
@@ -37,7 +36,7 @@ export default function EchoProcessor(config: EchoProcessorConfig) {
   const serviceInfo = {
     name: "echo",
     bindAddr: config.bindAddr,
-    service: getObjectProto(PROCESSOR_OBJECT_PROTO).Processor.service,
+    service: PROCESSOR_OBJECT_PROTO.Processor.service,
     handlers: { processMessage }
   }
   createService(serviceInfo)

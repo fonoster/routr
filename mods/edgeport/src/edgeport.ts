@@ -31,17 +31,14 @@ import getServerProperties from "./server_properties"
 
 const GRPCSipListener = Java.type("io.routr.GRPCSipListener")
 
-// TODO: Needs testing
 export default function EdgePort(config: EdgePortConfig) {
-  return function () {
-    assertNoDuplicatedProto(config.spec.transport)
-    assertNoDuplicatedPort(config.spec.transport)
-    assertHasSecurityContext(config)
+  assertNoDuplicatedProto(config.spec.transport)
+  assertNoDuplicatedPort(config.spec.transport)
+  assertHasSecurityContext(config)
 
-    const sipStack = createSipStack(getServerProperties(config))
-    const sipProvider = createSipProvider(sipStack, 
-      createListeningPoints(sipStack, config))
+  const sipStack = createSipStack(getServerProperties(config))
+  const sipProvider = createSipProvider(sipStack,
+    createListeningPoints(sipStack, config))
 
-    sipProvider.addSipListener(new GRPCSipListener())
-  }
+  sipProvider.addSipListener(new GRPCSipListener())
 }

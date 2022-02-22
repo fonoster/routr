@@ -59,8 +59,8 @@ export interface ProcessorConfig {
 export interface ServiceInfo {
   name: string
   bindAddr: string
-  service: any
-  handlers: Record<string, Function>
+  service: unknown
+  handlers: Record<string, (call: unknown, callback: Function) => unknown>
 }
 
 export interface ObjectProto {

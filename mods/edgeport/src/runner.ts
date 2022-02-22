@@ -24,7 +24,7 @@ import { getConfig } from "./config/get_config"
 const config = getConfig(System.getenv('CONFIG_DIR'))
 
 if (config._tag === 'Right') {
-  EdgePort(config.right)()
+  EdgePort(config.right)
 } else {
   console.log(config.left)
 }

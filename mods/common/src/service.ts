@@ -18,10 +18,10 @@
  */
 import { ObjectProto, ServiceInfo } from "./types"
 import logger from "@fonoster/logger"
+import { ServiceDefinitionNotFound } from "./errors"
 
 const protoLoader = require('@grpc/proto-loader')
 const grpc = require('@grpc/grpc-js')
-
 const loadOptions = {
   keepCase: true,
   longs: String,
@@ -30,16 +30,20 @@ const loadOptions = {
   oneofs: true
 }
 
-export const PROCESSOR_OBJECT_PROTO = {
+// We currenly don't have a way to obtain the proto type
+export const PROCESSOR_OBJECT_PROTO = getObjectProto<any>({
   name: "processor",
   version: "v2beta1",
   path: __dirname + '../../../../protos/processor.proto'
-}
+})
 
-export function getObjectProto(objectProto: ObjectProto) {
+export function getObjectProto<A>(objectProto: ObjectProto): A | ServiceDefinitionNotFound {
   const definitions = protoLoader.loadSync(objectProto.path, loadOptions)
-  return grpc.loadPackageDefinition(definitions)
-    .fonoster.routr[objectProto.name][objectProto.version]
+  const objProto = grpc.loadPackageDefinition(definitions)
+    ?.fonoster?.routr[objectProto.name]
+  return objProto && objProto[objectProto.version]
+    ? objProto[objectProto.version]
+    : new ServiceDefinitionNotFound(objectProto.name, objectProto.version)
 }
 
 export default function createService(serviceInfo: ServiceInfo) {

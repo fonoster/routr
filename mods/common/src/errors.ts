@@ -1,3 +1,5 @@
+import { string } from "fp-ts";
+
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -16,23 +18,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import processor from "./processor"
-import createProcessorConnections from "./connections"
-import { MessageRouterConfig } from "./types"
-import { 
-  PROCESSOR_OBJECT_PROTO,
-  createService
-} from "@routr/common"
-
-export default function MessageRouter(config: MessageRouterConfig) {
-  const connections = createProcessorConnections(config.processors)
-  const serviceInfo = {
-    name: "router",
-    bindAddr: config.bindAddr,
-    service: PROCESSOR_OBJECT_PROTO.Processor.service,
-    handlers: {
-      processMessage: processor(config.processors, connections)
-    }
+export class ServiceDefinitionNotFound extends Error {
+  constructor(name: string, version: string) {
+    super(`Service definition for ${name}/${version} not found`);
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, ServiceDefinitionNotFound.prototype);
   }
-  createService(serviceInfo)
 }

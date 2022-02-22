@@ -23,7 +23,6 @@ import createSipStack from '../src/create_sip_stack'
 import createListeningPoints from '../src/create_listening_points'
 import createSipProvider from '../src/create_sip_provider'
 import getServerProperties from '../src/server_properties'
-import { getConfig } from '../src/config/get_config' 
 import { 
   duplicatedPortEdgePortConfig, 
   duplicatedProtoEdgePortConfig, 
@@ -35,7 +34,7 @@ import {
   assertNoDuplicatedProto, 
   assertNoDuplicatedPort 
 } from '../src/assertions'
-import { ListeningPoint, SipProvider, SipStack } from '../src/types'
+import { ListeningPoint, SipProvider } from '../src/types'
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
@@ -55,8 +54,6 @@ const sipStack = {
 
 describe('@routr/edgeport', () => {
   afterEach(() => sandbox.restore());
-
-  // TODO: Need to test edgeport `start`
 
   it('gets a Map with the properties of the sip stack', () => {
     const properties = getServerProperties(edgePortConfig)
@@ -104,16 +101,6 @@ describe('@routr/edgeport', () => {
     expect(addListeningPointSpy).to.have.been.calledTwice
   })
 
-  it('creates a sipProvider object', () => {
-    const lps: Array<ListeningPoint> = [{},{}, {}]
-    const createSipProviderSpy = sandbox.spy(sipStack, 'createSipProvider')
-    const addListeningPointSpy = sandbox.spy(sipProvider, 'addListeningPoint')
-  
-    createSipProvider(sipStack, lps)
-    expect(createSipProviderSpy).to.have.been.calledOnce
-    expect(addListeningPointSpy).to.have.been.calledTwice
-  })
-
   describe('assertions', () => {
     it('fails because of missing .spec.securityContext', () => {
       expect(() => assertHasSecurityContext(noSecurityContextEdgePortConfig)).to.throw('found at least one secure protocol which requires setting the .spec.securityContext')
@@ -130,11 +117,11 @@ describe('@routr/edgeport', () => {
 
   describe('createListeningPoint', () => {
     it('creates listening points for the given transports', () => {
-      const createListeningPointSpy = sandbox.stub(sipStack, 'createListeningPoint').returns(null)
+      const createListeningPointStub = sandbox.stub(sipStack, 'createListeningPoint').returns(null)
       const lps = createListeningPoints(sipStack, edgePortConfig)
 
       expect(lps.length).to.be.equal(3)
-      expect(createListeningPointSpy).to.have.been.callCount(3)
+      expect(createListeningPointStub).to.have.been.callCount(3)
     })
 
     // WARNING: Needs testing

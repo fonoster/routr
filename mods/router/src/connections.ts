@@ -19,10 +19,8 @@
 import { ProcessorGPRCConnection } from "./processor";
 import {
   PROCESSOR_OBJECT_PROTO,
-  getObjectProto,
   ProcessorConfig
 } from "@routr/common"
-const processorProto = getObjectProto(PROCESSOR_OBJECT_PROTO)
 const grpc = require('@grpc/grpc-js')
 
 export default function createProcessorConnections(processors: ProcessorConfig[])
@@ -31,7 +29,7 @@ export default function createProcessorConnections(processors: ProcessorConfig[]
   const connections = new Map<string, ProcessorGPRCConnection>()
   for (const processor of procs) {
     connections.set(processor.ref, 
-      new processorProto.Processor(processor.addr, 
+      new PROCESSOR_OBJECT_PROTO.Processor(processor.addr, 
         grpc.credentials.createInsecure()))
   }
   return connections

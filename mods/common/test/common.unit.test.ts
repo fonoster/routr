@@ -19,12 +19,31 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
+import { getObjectProto } from '../src/service'
+
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
+
+const objectProto = {
+  name: "processor",
+  version: "v2beta1",
+  path: __dirname + '../../../../protos/processor.proto'
+}
+
 describe('@routr/common', () => {
   afterEach(() => sandbox.restore());
 
-  it('needs testing', () => {
+  it('gets Processor object proto', () => {
+    expect(getObjectProto(objectProto))
+      .to.have.property("Processor").to.have.property("service")
+  })
+
+  it('fails to gets object proto due to a typo', () => {
+    const objectProto2 = {...objectProto}
+    // Introduce a typo
+    objectProto2.name = "processo"
+    expect(getObjectProto(objectProto2).toString())
+      .to.include("Service definition for processo/v2beta1 not found")
   })
 })
