@@ -16,9 +16,9 @@
     "test:graaljs": "cross-env NODE_ENV=dev nyc --reporter=lcov .scripts/mocha_wrapper.sh mods/edgeport/*.unit.test.ts --exit",
     "build": "lerna run build",
     "clean": "rimraf **/*/tsconfig.tsbuildinfo && rimraf **/*/dist && rimraf **/*/dist && rimraf **/*/node_modules && rimraf node_modules build libs .gradle ",
-    "start:echo": "cross-env NODE_ENV=dev nodemon mods/echo/src/runner",
-    "start:router": "cross-env NODE_ENV=dev nodemon mods/router/src/runner",
-    "start:edgeport": "cross-env NODE_ENV=dev ./edgeport.sh",
+    "start:echo": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/echo/src/runner",
+    "start:router": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/router/src/runner",
+    "start:edgeport": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./edgeport.sh",
     "transpile": "tsc",
     "bundle": "webpack --config webpack.config.js --mode none",
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs"
@@ -47,6 +47,7 @@
     "typescript": "^4.1.5"
   },
   "dependencies": {
+    "@fonoster/logger": "^0.2.44",
     "@grpc/grpc-js": "^1.5.5",
     "@grpc/proto-loader": "^0.6.9",
     "ajv": "^6.12.6",

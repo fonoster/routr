@@ -22,10 +22,11 @@ import {
   createService,
 } from "@routr/common"
 import { EchoProcessorConfig } from "./types"
+import logger from "@fonoster/logger"
 
 function processMessage(call: any, callback: Function) {
-  console.log("---")
-  console.log("Got new request: " + JSON.stringify(call.request, null, ' '))
+  logger.verbose("Got new request: ")
+  logger.verbose(JSON.stringify(call.request, null, ' '))
   const request = { ...call.request }
   // Going back / OUT
   request.direction = 1

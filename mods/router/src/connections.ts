@@ -16,24 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const grpc = require('@grpc/grpc-js')
 import { ProcessorGPRCConnection } from "./processor";
-import { getObjectProto, ProcessorConfig } from "@routr/common"
+import {
+  PROCESSOR_OBJECT_PROTO,
+  getObjectProto,
+  ProcessorConfig
+} from "@routr/common"
+const processorProto = getObjectProto(PROCESSOR_OBJECT_PROTO)
+const grpc = require('@grpc/grpc-js')
 
-const objectProto = {
-  name: "processor",
-  version: "v2beta1",
-  path: __dirname + '../../../../protos/processor.proto'
-}
-
-export default function createProcessorConnections(processors: Array<ProcessorConfig>)
+export default function createProcessorConnections(processors: ProcessorConfig[])
   : Map<string, ProcessorGPRCConnection> {
+  const procs = [...processors ]
   const connections = new Map<string, ProcessorGPRCConnection>()
-  const processorProto = getObjectProto(objectProto)
-  processors.forEach(processor => {
-    const conn = new processorProto.Processor(processor.addr,
-      grpc.credentials.createInsecure());
-    connections.set(processor.ref, conn)
-  })
+  for (const processor of procs) {
+    connections.set(processor.ref, 
+      new processorProto.Processor(processor.addr, 
+        grpc.credentials.createInsecure()))
+  }
   return connections
 }

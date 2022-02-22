@@ -16,12 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRouterConfig } from "./types"
 import processor from "./processor"
 import createProcessorConnections from "./connections"
+import { MessageRouterConfig } from "./types"
 import { 
   PROCESSOR_OBJECT_PROTO,
-  getObjectProto, 
+  getObjectProto,
   createService
 } from "@routr/common"
 
@@ -29,7 +29,7 @@ export default function MessageRouter(config: MessageRouterConfig) {
   const connections = createProcessorConnections(config.processors)
   const serviceInfo = {
     name: "router",
-    bindAddr:config.bindAddr,
+    bindAddr: config.bindAddr,
     service: getObjectProto(PROCESSOR_OBJECT_PROTO).Processor.service,
     handlers: {
       processMessage: processor(config.processors, connections)

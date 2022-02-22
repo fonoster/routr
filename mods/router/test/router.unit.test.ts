@@ -16,10 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { MessageRequest, ProcessorConfig } from '@routr/common'
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { MessageRequest, ProcessorConfig } from "../src/types" 
 import { findMatch, hasMethod } from "../src/find_match" 
 
 const expect = chai.expect

@@ -16,7 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import MessageRouter from "./router"
-import { getConfig } from "./config/get_config"
+import { MessageRequest } from "@routr/common"
+import { MessageRouterConfig } from "../types"
 
-MessageRouter(getConfig())
+export const getConfig = (): MessageRouterConfig => {
+  return {
+    bindAddr: "0.0.0.0:51901",
+    processors: [
+      {
+        ref: "register-processor",
+        addr: "192.168.1.3:51902",
+        methods: ['REGISTER'],
+        matchFunc: (request: MessageRequest) => request.method === 'REGISTER'
+      }
+    ]
+  }
+}

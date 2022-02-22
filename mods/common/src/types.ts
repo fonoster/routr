@@ -55,3 +55,16 @@ export interface ProcessorConfig {
   isFallback?: boolean
   matchFunc?: (request: MessageRequest) => boolean
 }
+
+export interface ServiceInfo {
+  name: string
+  bindAddr: string
+  service: any
+  handlers: Record<string, Function>
+}
+
+export interface ObjectProto {
+  name: string
+  path: string
+  version: string
+}

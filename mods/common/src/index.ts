@@ -19,8 +19,6 @@
 import createService, { 
   PROCESSOR_OBJECT_PROTO,
   getObjectProto, 
-  ObjectProto, 
-  ServiceInfo 
 } from "./service";
 import { 
   Transport, 
@@ -28,7 +26,9 @@ import {
   MessageRequest, 
   NetInterface, 
   Method, 
-  Direction 
+  Direction,
+  ObjectProto, 
+  ServiceInfo
 } from "./types";
 
 export {

@@ -22,12 +22,13 @@ import { NotMatchingProcessorFound } from "./errors"
 export const hasMethod = (config: ProcessorConfig, request: MessageRequest) =>
   config.methods.includes(request.method)
 
+export const filter = (request: MessageRequest, config: ProcessorConfig) =>
+  hasMethod(config, request)
+  && (config.isFallback || config.matchFunc(request))
+
 export const findMatch = (configList: Array<ProcessorConfig>) => {
-  // Return processor reference or ProcessorMatchNotFound
   return (request: MessageRequest): NotMatchingProcessorFound | ProcessorConfig => {
-    const config = configList.find((c: ProcessorConfig) => {
-      return hasMethod(c, request) && (c.isFallback || c.matchFunc(request))
-    })
+    const config = configList.find((c: ProcessorConfig) => filter(request, c))
     return config ? config : new NotMatchingProcessorFound()
   }
 }

@@ -1,5 +1,3 @@
-import { string } from "fp-ts"
-
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -18,8 +16,19 @@ import { string } from "fp-ts"
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const grpc = require('@grpc/grpc-js')
+import { ObjectProto, ServiceInfo } from "./types"
+import logger from "@fonoster/logger"
+
 const protoLoader = require('@grpc/proto-loader')
+const grpc = require('@grpc/grpc-js')
+
+const loadOptions = {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true
+}
 
 export const PROCESSOR_OBJECT_PROTO = {
   name: "processor",
@@ -27,40 +36,19 @@ export const PROCESSOR_OBJECT_PROTO = {
   path: __dirname + '../../../../protos/processor.proto'
 }
 
-export interface ServiceInfo {
-  name: string
-  bindAddr: string
-  service: any
-  handlers: Record<string, Function>
-}
-
-export interface ObjectProto {
-  name: string
-  path: string
-  version: string
-}
-
-// TODO: Throw if object proto or version doesn't exist
 export function getObjectProto(objectProto: ObjectProto) {
-  const packageDefinition = protoLoader.loadSync(
-    objectProto.path, {
-    keepCase: true,
-    longs: String,
-    enums: String,
-    defaults: true,
-    oneofs: true
-  })
-  return grpc
-    .loadPackageDefinition(packageDefinition)
-      .fonoster.routr[objectProto.name][objectProto.version]
+  const definitions = protoLoader.loadSync(objectProto.path, loadOptions)
+  return grpc.loadPackageDefinition(definitions)
+    .fonoster.routr[objectProto.name][objectProto.version]
 }
 
 export default function createService(serviceInfo: ServiceInfo) {
+  const cb = () => {
+    logger.info(`starting ${serviceInfo.name} service at ${serviceInfo.bindAddr}`)
+    server.start()
+  }
+  const credentials = grpc.ServerCredentials.createInsecure()
   const server = new grpc.Server()
   server.addService(serviceInfo.service, serviceInfo.handlers)
-  server.bindAsync(serviceInfo.bindAddr,
-    grpc.ServerCredentials.createInsecure(), () => {
-      console.log(`starting ${serviceInfo.name} service at ${serviceInfo.bindAddr}`)
-      server.start()
-    })
+  server.bindAsync(serviceInfo.bindAddr, credentials, cb)
 }
