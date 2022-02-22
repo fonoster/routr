@@ -16,22 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { 
+import {
   PROCESSOR_OBJECT_PROTO,
-  getObjectProto, 
-  createService, 
+  getObjectProto,
+  createService,
 } from "@routr/common"
 import { EchoProcessorConfig } from "./types"
 
-const handlers = {
-  processMessage: (call: any, callback: Function) => {
-    console.log("---")
-    console.log("Got new request: " + JSON.stringify(call.request, null, ' '))
-    const request = {...call.request}
-    // Going back / OUT
-    request.direction = 1
-    callback(null, request)
-  }
+function processMessage(call: any, callback: Function) {
+  console.log("---")
+  console.log("Got new request: " + JSON.stringify(call.request, null, ' '))
+  const request = { ...call.request }
+  // Going back / OUT
+  request.direction = 1
+  callback(null, request)
 }
 
 export default function EchoProcessor(config: EchoProcessorConfig) {
@@ -39,7 +37,7 @@ export default function EchoProcessor(config: EchoProcessorConfig) {
     name: "echo",
     bindAddr: config.bindAddr,
     service: getObjectProto(PROCESSOR_OBJECT_PROTO).Processor.service,
-    handlers
+    handlers: { processMessage }
   }
   createService(serviceInfo)
 }
