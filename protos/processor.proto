@@ -5,7 +5,7 @@ option java_package = "io.routr";
 option java_outer_classname = "ProcessorProto";
 option objc_class_prefix = "PR";
 
-package fonoster.routr.processor.v2beta1;
+package fonoster.routr.processor.v2draft1;
 
 // Processor service
 service Processor {

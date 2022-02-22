@@ -33,7 +33,7 @@ const loadOptions = {
 // We currenly don't have a way to obtain the proto type
 export const PROCESSOR_OBJECT_PROTO = getObjectProto<any>({
   name: "processor",
-  version: "v2beta1",
+  version: "v2draft1",
   path: __dirname + '../../../../protos/processor.proto'
 })
 

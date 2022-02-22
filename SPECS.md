@@ -1,6 +1,6 @@
 # Routr Specification
 
-### Version 0.1.0 (Draft)
+### Version 0.1.1 (Draft)
 
 <details>
 <summary>Table of Contents</summary>
@@ -37,7 +37,7 @@ The purpose of this document is to present a detailed description of the SIP Ser
 
 This software system will be a SIP Server that acts as the signaling as part of Fonoster's Ecosystem. This system will be designed to maximize scalability and extensibility by making use of a microservice architecture which was a challenging factor on **v1**. By using a microservice architecture we will ensure that portions of the system be able to be deployed independently, and each treated according to its problem domain.
 
-More specifically, this system will be designed to allow for the separation of concerns within the logical components of the SIP Server. The software MUST be able to accept SIP Messages via *UDP*, *TCP*, *TLS*, *WS*, and *WSS*. It should then, parse the messages efficiently and facilitate the communication between the various components.
+More specifically, this system will be designed to allow for the separation of concerns within the logical components of the SIP Server. The software MUST be able to accept SIP Messages via *UDP*, *TCP*, *TLS*, *WS*, and *WSS*. It should then, transform the messages efficiently and facilitate the communication between the various components.
 
 Furthermore, the system MUST include a mechanism to replace the SIP Message processing without updating the entire system. It should also facilitate communication with external systems for Authentication, Authorization, and Accounting (AAA) and allow to host multiple tenants thru the use of a Role-based Access Control (RBAC) system.
 
@@ -126,15 +126,15 @@ Raw Diagram:
 
 **Brief Description**
 
-The EdgePort component is a service that sits at the edge of the network. The job of the EdgePort is to receive SIP Messages parse them into protobuf and forward them downstream for processing. A *Routr* network might have multiple EdgePorts.
+The EdgePort component is a service that sits at the edge of the network. The job of the EdgePort is to receive SIP Messages, convert them to protobuf and forward them downstream for processing. A *Routr* network might have multiple EdgePorts.
 
 **Functional Requirements**
 
 The following functions are Must have for an implementation of an *EdgePort*:
 
 - *Accept SIP Msg* - Accept Messages using as transport UDP, TCP, TLS, WS, and WSS
-- *Accept SIP Msg (Part2)* - Accept Messages on all interfaces
-- *Parse SIP Msg* - Parse Messages into a protobuf
+- *Accept SIP Msg (Part2)* - Accept Messages on some or all network interfaces
+- *Transform SIP Msg* - Transform Messages to protobuf
 - *Keep Msg's state* - MUST keep the state until the Message is processed or a timeout occurs
 - *Reject Msgs from banned IPs* - MUST have a mechanism to identify and discard unwanted Messages
 - *Health Check* - MUST have a mechanism to identify the health of the service
@@ -144,7 +144,7 @@ The following functions are Must have for an implementation of an *EdgePort*:
 
 The following requirements are important to have for an implementation of an *EdgePort*:
 
-- *Parsing Time* -  Msg parse time efficiency should < *TBT*
+- *Transformation Time* -  Msg transformation time efficiency should be < *TBT*
 - *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
 - *Recoverability* - Recover from an unhealthy state
 
@@ -156,7 +156,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
 ```json
 {
   "kind": "EdgePort",
-  "apiVersionv": "v2beta1",
+  "apiVersionv": "v2draft1",
   "metadata": {
     "ref": "ep001",
     "region": "us-east1"
@@ -208,7 +208,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
       "type": "string"
     },
     "apiVersion": {
-      "enum": ["v2beta1", "v2.0", "v2"]
+      "enum": ["v2draft1", "v2.0", "v2"]
     },
     "metadata": {
       "description": "Resource metadata",
@@ -311,7 +311,7 @@ Adjacent to the *EdgePort* is the *Message Router*. The communication between th
 
 **Test Criteria**
 
-The *EdgePoint* MUST pass all the tests prescribed in chapter *1.x* of the `SIP Connect v1.1`. Additionally, the *EdgePort* MUST pass the following tests:
+The *EdgePort* MUST pass all the tests prescribed in chapter *1.x* of the `SIP Connect v1.1`. Additionally, the *EdgePort* MUST pass the following tests:
 
 1. Routing INVITE messages for SIP Clients located at separate *EdgePorts*
 2. Signaling for popular WebRTC clients
@@ -383,12 +383,22 @@ Example:
 ```json
 {
   "kind": "MessageRouter",
-  "apiVersion": "v2beta1",
+  "apiVersion": "v2draft1",
   "metadata": {
     "ref": "mr001"
   },
   "spec": {
     "bindAddr": "0.0.0.0",
+    "middlewares": [
+      {
+        "ref": "mid01",
+        "addr": "middleware01:51902"
+      },
+      {
+        "ref": "mid02",
+        "addr": "middleware02:51902"
+      }
+    ],
     "processors": [
       {
         "ref": "fallback-processor",
@@ -437,7 +447,7 @@ Example:
     },
     "metadata": {
       "description": "Resource metadata",
-      "type": "object"
+      "type": "object",
       "properties": {
          "ref": {
            "description": "EdgePort reference",
@@ -447,19 +457,35 @@ Example:
       "required": [ "ref" ]
     },
     "spec": {
-      "description": "Operation spec for the EdgePort",
-      "type": "object"
+      "description": "Operations spec for EdgePort",
+      "type": "object",
       "properties": {
          "bindAddr": {
            "description": "Ipv4 interface to accept request on",
            "type": "string"
+         },
+         "middlewares": {
+           "description": "Middleware Processors",
+           "type": "array",
+           "items": {
+             "type": "object"
+           },
+           "properties": {
+             "ref": {
+               "type": "string"
+             },
+             "addr": {
+               "type": "string"
+             }
+           },
+           "required": [ "ref", "addr" ]
          },
          "processors": {
            "description": "Message Processors",
            "type": "array",
            "items": {
              "type": "object"
-           }
+           },
            "properties": {
              "ref": {
                "type": "string"
@@ -498,7 +524,7 @@ The adjacent services of the *Message Router* are the *EdgePort* and the *Messag
 ```
 syntax = "proto3";
 
-package fonoster.routr.processor.v2beta1;
+package fonoster.routr.processor.v2draft1;
 
 // Processor service
 service Processor {
@@ -560,7 +586,7 @@ Adjacent to the *Message Processor* is the *Message Router*. The communication f
 ```
 syntax = "proto3";
 
-package fonoster.routr.processor.v2beta1;
+package fonoster.routr.processor.v2draft1;
 
 // Processor service
 service Processor {
@@ -618,7 +644,7 @@ To make the later scenario possible, both Numbers and Agents will require additi
 
 ```json
 {
-  "apiVersion": "v2beta1",
+  "apiVersion": "v2draft1",
   "kind": "Number",
   "metadata": {
     "ref": "Number0001",

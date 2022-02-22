@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { findMatch } from "./find_match"
+import { findProcessor } from "./find_processor"
 import connectToBackendProcessors from "./connections"
 import { MessageRequest, ProcessorConfig } from "@routr/common"
 import { NotMatchingProcessorFound, ProcessorUnavailableError } from "./errors"
@@ -31,7 +31,7 @@ export default function processor(configList: Array<ProcessorConfig>) {
 
   // Upstream request and callback
   return (request: MessageRequest, callback: ProcessorCallback): void => {
-    const matchResult = findMatch(configList)(request)
+    const matchResult = findProcessor(configList)(request)
     if ('ref' in matchResult) {
       const conn = connections.get(matchResult.ref)
       // Connects to downstream processor

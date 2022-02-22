@@ -26,7 +26,7 @@ export const filter = (request: MessageRequest, config: ProcessorConfig) =>
   hasMethod(config, request)
   && (config.isFallback || config.matchFunc(request))
 
-export const findMatch = (list: Array<ProcessorConfig>) =>  
+export const findProcessor = (list: Array<ProcessorConfig>) =>  
   (request: MessageRequest): NotMatchingProcessorFound | ProcessorConfig =>  
     list.find((c: ProcessorConfig) => filter(request, c)) 
       || new NotMatchingProcessorFound(request.ref)

@@ -1,6 +1,6 @@
 {
   "kind": "EdgePort",
-  "apiVersion": "v2beta1",
+  "apiVersion": "v2draft1",
   "metadata": {
     "ref": "ep001",
     "region": "us-east1"

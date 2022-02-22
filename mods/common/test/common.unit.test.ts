@@ -27,7 +27,7 @@ const sandbox = sinon.createSandbox();
 
 const objectProto = {
   name: "processor",
-  version: "v2beta1",
+  version: "v2draft1",
   path: __dirname + '../../../../protos/processor.proto'
 }
 
@@ -44,6 +44,6 @@ describe('@routr/common', () => {
     // Introduce a typo
     objectProto2.name = "processo"
     expect(getObjectProto(objectProto2).toString())
-      .to.include("Service definition for processo/v2beta1 not found")
+      .to.include("Service definition for processo/v2draft1 not found")
   })
 })

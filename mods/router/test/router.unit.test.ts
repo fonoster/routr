@@ -24,10 +24,9 @@ import {
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { findMatch, hasMethod } from "../src/find_match"
+import { findProcessor, hasMethod } from "../src/find_processor"
 import connectToBackendProcessors from "../src/connections"
 import processor from '../src/processor'
-import { ProcessorUnavailableError } from '../src/errors'
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -76,7 +75,7 @@ const messageRequest: MessageRequest = {
 describe('@routr/router', () => {
   afterEach(() => sandbox.restore());
 
-  describe('@routr/router/find_match', () => {
+  describe('@routr/router/find_processor', () => {
     it('checks if method of the request is enabled', () => {
       const messageRequest2 = { ...messageRequest }
       messageRequest2.method = 'MESSAGE'
@@ -85,7 +84,7 @@ describe('@routr/router', () => {
     })
 
     it('matches incomming request as a REGISTER', () => {
-      expect(findMatch([config1, config2])(messageRequest))
+      expect(findProcessor([config1, config2])(messageRequest))
         .to.be.have.property("ref")
         .to.be.equal("processor-ref1")
     })
@@ -93,7 +92,7 @@ describe('@routr/router', () => {
     it('matches incomming request as an INVITE', () => {
       const messageRequest2 = { ...messageRequest }
       messageRequest2.method = "INVITE"
-      expect(findMatch([config1, config2])(messageRequest2))
+      expect(findProcessor([config1, config2])(messageRequest2))
         .to.be.have.property("ref")
         .to.be.equal("processor-ref2")
     })
@@ -101,7 +100,7 @@ describe('@routr/router', () => {
     it('matches incomming request as an MESSAGE', () => {
       const messageRequest2 = { ...messageRequest }
       messageRequest2.method = "MESSAGE"
-      expect(findMatch([config1, config2, config3])(messageRequest2))
+      expect(findProcessor([config1, config2, config3])(messageRequest2))
         .to.be.have.property("ref")
         .to.be.equal("processor-ref3")
     })
@@ -109,7 +108,7 @@ describe('@routr/router', () => {
     it('fails because there is not matching processor', () => {
       const messageRequest2 = { ...messageRequest }
       messageRequest2.method = "PUBLISH"
-      const error = findMatch([config1, config2, config3])(messageRequest2)
+      const error = findProcessor([config1, config2, config3])(messageRequest2)
       expect(error.toString()).to.include("Not matching process found")
     })
   })
