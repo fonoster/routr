@@ -186,8 +186,8 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
         "protocol": "udp"
       }
     ],
-    "messageRouter": {
-      "addr": "messagerouter:51901"
+    "processor": {
+      "addr": "router:51901"
     }
   }
 }
@@ -401,7 +401,7 @@ Example:
           "CANCEL",
           "..."
         ],
-        "matchFunc": "(req, res) => true\n"
+        "matchFunc": "(req) => true"
       },
       {
         "ref": "scaip-essense",
@@ -409,7 +409,7 @@ Example:
         "methods": [
           "MESSAGE"
         ],
-        "matchFunc": "(req, res) => { return req.method === 'MESSAGE' && req.agent.search(/pattern/) !== -1}"
+        "matchFunc": "(req) => { return req.method === 'MESSAGE' && req.agent.search(/pattern/) !== -1}"
       }
     ]
   }
@@ -498,13 +498,12 @@ The adjacent services of the *Message Router* are the *EdgePort* and the *Messag
 ```
 syntax = "proto3";
 
-package fonoster.routr.messagerouter.v2beta1;
+package fonoster.routr.processor.v2beta1;
 
-import "fonoster/routr/sipmessage.proto";
-
-service MessageRouter {
-  // Takes a SIP Message and routes the request to the appropiate Messsage Processor
-  rpc processMessage (SIPMessage) returns (SIPMessage) {};
+// Processor service
+service Processor {
+  // Process Message Request
+  rpc ProcessMessage (MessageRequest) returns (MessageRequest) {}
 }
 ```
 
@@ -561,13 +560,12 @@ Adjacent to the *Message Processor* is the *Message Router*. The communication f
 ```
 syntax = "proto3";
 
-package fonoster.routr.messageprocessor.v2beta1;
+package fonoster.routr.processor.v2beta1;
 
-import "fonoster/routr/sipmessage.proto";
-
-service MessageProcessor {
-  // Takes a SIP Message and returns the processed SIP Message
-  rpc processMessage (SIPMessage) returns (SIPMessage) {};
+// Processor service
+service Processor {
+  // Process Message Request
+  rpc ProcessMessage (MessageRequest) returns (MessageRequest) {}
 }
 ```
 
