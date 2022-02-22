@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import EchoProcessor from './processor'
+import EchoProcessor from './service'
 
+// TODO: Get config from file
 EchoProcessor({ bindAddr: "0.0.0.0:51902"})

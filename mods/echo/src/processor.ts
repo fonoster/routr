@@ -18,12 +18,11 @@
  */
 import {
   PROCESSOR_OBJECT_PROTO,
-  createService,
 } from "@routr/common"
-import { EchoProcessorConfig } from "./types"
 import logger from "@fonoster/logger"
 
-function processMessage(call: any, callback: Function) {
+// This processor simply echoes back the request send by the client
+export function processMessage(call: any, callback: Function) {
   logger.verbose("Got new request: ")
   logger.verbose(JSON.stringify(call.request, null, ' '))
   const request = { ...call.request }
@@ -32,12 +31,9 @@ function processMessage(call: any, callback: Function) {
   callback(null, request)
 }
 
-export default function EchoProcessor(config: EchoProcessorConfig) {
-  const serviceInfo = {
-    name: "echo",
-    bindAddr: config.bindAddr,
-    service: PROCESSOR_OBJECT_PROTO.Processor.service,
-    handlers: { processMessage }
-  }
-  createService(serviceInfo)
+export const serviceInfo = {
+  name: "echo",
+  bindAddr: 'placeholder',
+  service: PROCESSOR_OBJECT_PROTO.Processor.service,
+  handlers: { processMessage }
 }

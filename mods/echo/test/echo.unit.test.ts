@@ -25,6 +25,6 @@ const sandbox = sinon.createSandbox();
 describe('@routr/echo', () => {
   afterEach(() => sandbox.restore());
 
-  it('needs testing', () => {
+  it.skip('needs testing', () => {
   })
 })
