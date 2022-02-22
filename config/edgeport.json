@@ -7,6 +7,9 @@
   },
   "spec": {
     "bindAddr": "0.0.0.0",
+    "processor": {
+      "addr": "router:51901"
+    },
     "advertisedAddrs": [
       "165.227.217.102",
       "sip01.fonoster.io"
@@ -28,9 +31,6 @@
         "port": 5060,
         "protocol": "udp"
       }
-    ],
-    "messageRouter": {
-      "addr": "messagerouter:51901"
-    }
+    ]
   }
 }

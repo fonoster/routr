@@ -278,7 +278,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
           },
           "required": ["port", "protocol"]
         },
-        "messageRouter": {
+        "processor": {
           "description": "Adjacent service for message routing",
           "type": "object",
           "properties": {
@@ -288,7 +288,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
           }
         }
       },
-      "required": ["methods", "transport", "messageRouter"]
+      "required": ["methods", "transport", "processor"]
     },
   },
   "required": ["kind", "metadata", "spec", "apiVersion"]
