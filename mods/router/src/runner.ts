@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import MessageRouter from "./router"
-import { MessageRequest, ProcessorConfig } from "./types"
+import { MessageRequest, ProcessorConfig } from "@routr/common"
 
 const registerProcessor: ProcessorConfig = {
   ref: "register-processor",

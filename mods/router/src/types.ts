@@ -16,45 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type Direction = 'IN' | 'OUT'
-
-export type Method = 'UNKNOWN' 
-  | 'REGISTER'
-  | 'INVITE'
-  | 'MESSAGE'
-  | 'PUBLISH'
-  | 'NOTIFY'
-  | 'SUBSCRIBE'
-
-export type Transport = 'TCP' 
-  | 'UDP' 
-  | 'TLS'
-  | 'SCTP'
-  | 'WS'
-  | 'WSS' 
-
-export interface NetInterface {
-  host: string
-  port: number
-  transport: Transport
-}
-
-export interface MessageRequest {
-  ref: string
-  direction: Direction
-  method: Method
-  originInterface: NetInterface
-  targetInterface: NetInterface
-  sipMessage: Record<string, unknown>
-}
-
-export interface ProcessorConfig {
-  ref: string
-  addr: string
-  methods: Array<Method>
-  isFallback?: boolean
-  matchFunc?: (request: MessageRequest) => boolean
-}
+import { ProcessorConfig } from "@routr/common"
 
 export interface MessageRouterConfig {
   bindAddr: string

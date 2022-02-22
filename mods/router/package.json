@@ -7,6 +7,10 @@
   "license": "MIT",
   "main": "dist/router",
   "types": "dist/router",
+  "scripts": {
+    "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
+    "build": "tsc -b tsconfig.json"
+  },
   "directories": {
     "src": "src",
     "test": "test"
@@ -16,6 +20,9 @@
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@routr/common": "^2.0.0"
   },
   "repository": {
     "type": "git",

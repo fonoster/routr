@@ -22,7 +22,7 @@ import sinonChai from 'sinon-chai'
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
-describe('@routr/messagerouter', () => {
+describe('@routr/common', () => {
   afterEach(() => sandbox.restore());
 
   it('needs testing', () => {

@@ -19,10 +19,21 @@
 import { MessageRouterConfig } from "./types"
 import processor from "./processor"
 import createProcessorConnections from "./connections"
-import createService from "./service"
+import { 
+  PROCESSOR_OBJECT_PROTO,
+  getObjectProto, 
+  createService
+} from "@routr/common"
 
 export default function MessageRouter(config: MessageRouterConfig) {
   const connections = createProcessorConnections(config.processors)
-  createService(config.bindAddr, 
-    processor(config.processors, connections))
+  const serviceInfo = {
+    name: "router",
+    bindAddr:config.bindAddr,
+    service: getObjectProto(PROCESSOR_OBJECT_PROTO).Processor.service,
+    handlers: {
+      processMessage: processor(config.processors, connections)
+    }
+  }
+  createService(serviceInfo)
 }

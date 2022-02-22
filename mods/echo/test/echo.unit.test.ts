@@ -16,6 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import EchoProcessor from './processor'
+import chai from 'chai'
+import sinon from 'sinon'
+import sinonChai from 'sinon-chai'
+const expect = chai.expect
+chai.use(sinonChai)
+const sandbox = sinon.createSandbox();
+describe('@routr/common', () => {
+  afterEach(() => sandbox.restore());
 
-EchoProcessor({ bindAddr: "0.0.0.0:51902"})
+  it('needs testing', () => {
+  })
+})

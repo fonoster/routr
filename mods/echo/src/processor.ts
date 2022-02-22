@@ -16,41 +16,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const PROTO_PATH = __dirname + '../../../../protos/processor.proto'
-const grpc = require('@grpc/grpc-js')
-const protoLoader = require('@grpc/proto-loader')
-const packageDefinition = protoLoader.loadSync(
-  PROTO_PATH, {
-  keepCase: true,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true
-})
-const processorProto = grpc
-  .loadPackageDefinition(packageDefinition)
-    .fonoster.routr.processor.v2beta1
+import { 
+  PROCESSOR_OBJECT_PROTO,
+  getObjectProto, 
+  createService, 
+} from "@routr/common"
+import { EchoProcessorConfig } from "./types"
 
-function processMessage(call: any, callback: Function) {
-  console.log("---")
-  console.log("Got new request: " + JSON.stringify(call.request, null, ' '))
-  const request = {...call.request}
-  // Going back
-  request.direction = 1
-  callback(null, request)
+const handlers = {
+  processMessage: (call: any, callback: Function) => {
+    console.log("---")
+    console.log("Got new request: " + JSON.stringify(call.request, null, ' '))
+    const request = {...call.request}
+    // Going back / OUT
+    request.direction = 1
+    callback(null, request)
+  }
 }
 
-// TODO: Add configuration
-export default function EchoProcessor() {
-  const server = new grpc.Server()
-  server.addService(processorProto.Processor.service, {
-    processMessage
-  })
-  const addr = '0.0.0.0:51902'
-  server.bindAsync(addr,
-    grpc.ServerCredentials.createInsecure(),
-    () => {
-      console.log(`started echo service at ${addr}`)
-      server.start()
-    })
+export default function EchoProcessor(config: EchoProcessorConfig) {
+  const serviceInfo = {
+    name: "echo",
+    bindAddr: config.bindAddr,
+    service: getObjectProto(PROCESSOR_OBJECT_PROTO).Processor.service,
+    handlers
+  }
+  createService(serviceInfo)
 }

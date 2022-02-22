@@ -1,22 +1,19 @@
 {
-  "name": "@routr/echo",
+  "name": "@routr/common",
   "version": "2.0.0",
   "description": "Dummy implementation of a Processor service",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
   "license": "MIT",
-  "main": "dist/echo",
-  "types": "dist/echo",
-  "directories": {
-    "src": "src",
-    "test": "test"
-  },
+  "main": "dist/index",
+  "types": "dist/index",
   "scripts": {
     "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
     "build": "tsc -b tsconfig.json"
   },
-  "dependencies": {
-    "@routr/common": "^2.0.0"
+  "directories": {
+    "src": "src",
+    "test": "test"
   },
   "files": [
     "dist"

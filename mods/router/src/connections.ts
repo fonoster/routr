@@ -16,27 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ProcessorGPRCConnection } from "./processor";
-import { ProcessorConfig } from "./types";
-
-const PROTO_PATH = __dirname + '../../../../protos/processor.proto'
 const grpc = require('@grpc/grpc-js')
-const protoLoader = require('@grpc/proto-loader')
-const packageDefinition = protoLoader.loadSync(
-  PROTO_PATH, {
-  keepCase: true,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true
-})
-const processorProto = grpc
-  .loadPackageDefinition(packageDefinition)
-  .fonoster.routr.processor.v2beta1
+import { ProcessorGPRCConnection } from "./processor";
+import { getObjectProto, ProcessorConfig } from "@routr/common"
+
+const objectProto = {
+  name: "processor",
+  version: "v2beta1",
+  path: __dirname + '../../../../protos/processor.proto'
+}
 
 export default function createProcessorConnections(processors: Array<ProcessorConfig>)
   : Map<string, ProcessorGPRCConnection> {
   const connections = new Map<string, ProcessorGPRCConnection>()
+  const processorProto = getObjectProto(objectProto)
   processors.forEach(processor => {
     const conn = new processorProto.Processor(processor.addr,
       grpc.credentials.createInsecure());

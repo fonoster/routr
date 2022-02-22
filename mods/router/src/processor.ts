@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { findMatch } from "./find_match"
-import { ProcessorConfig } from "./types"
+import { ProcessorConfig } from "@routr/common"
 
 export interface ProcessorGPRCConnection {
   processMessage: (request: unknown, callback: Function) => void

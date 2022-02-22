@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, ProcessorConfig } from "./types"
+import { MessageRequest, ProcessorConfig } from "@routr/common"
 import { NotMatchingProcessorFound } from "./errors"
 
 export const hasMethod = (config: ProcessorConfig, request: MessageRequest) =>
