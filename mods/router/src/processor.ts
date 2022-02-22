@@ -17,19 +17,30 @@
  * limitations under the License.
  */
 import { findMatch } from "./find_match"
-import { ProcessorConfig } from "@routr/common"
+import connectToBackendProcessors from "./connections"
+import { MessageRequest, ProcessorConfig } from "@routr/common"
+import { NotMatchingProcessorFound, ProcessorUnavailableError } from "./errors"
+import grpc from "@grpc/grpc-js"
 
-export interface ProcessorGPRCConnection {
-  processMessage: (request: unknown, callback: Function) => void
-}
+type CallbackErrors = NotMatchingProcessorFound | ProcessorUnavailableError | Error
+type ProcessorCallback = (err: CallbackErrors, reponse?: MessageRequest) => void
 
-export default function processor(configList: Array<ProcessorConfig>, 
-  connections: Map<string, ProcessorGPRCConnection>) {
-  return async(call: any, callback: Function): Promise<void> => {
-    const matchResult = findMatch(configList)(call.request)
+export default function processor(configList: Array<ProcessorConfig>) {
+
+  const connections = connectToBackendProcessors(configList)
+
+  // Upstream request and callback
+  return (request: MessageRequest, callback: ProcessorCallback): void => {
+    const matchResult = findMatch(configList)(request)
     if ('ref' in matchResult) {
       const conn = connections.get(matchResult.ref)
-      conn.processMessage(call.request, (err: Error, response: any) => {
+      // Connects to downstream processor
+      conn.processMessage(request, (err: any, response: any) => {
+        if (err?.code === grpc.status.UNAVAILABLE) {
+          // We aument the error to indicate which processor failed
+          callback(new ProcessorUnavailableError(matchResult.ref))
+          return
+        }
         callback(err, response)
       })
     } else {

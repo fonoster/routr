@@ -22,3 +22,7 @@ export interface MessageRouterConfig {
   bindAddr: string
   processors: Array<ProcessorConfig>
 }
+
+export interface ProcessorGPRCConnection {
+  processMessage: (request: unknown, callback: Function) => void
+}

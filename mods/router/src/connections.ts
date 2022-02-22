@@ -16,14 +16,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ProcessorGPRCConnection } from "./processor";
+import { ProcessorGPRCConnection } from "./types"
 import {
   PROCESSOR_OBJECT_PROTO,
   ProcessorConfig
 } from "@routr/common"
 const grpc = require('@grpc/grpc-js')
 
-export default function createProcessorConnections(processors: ProcessorConfig[])
+/**
+ * Creates a connection to all the backend processors. The function will
+ * fail if any of the backends is unavailable during initialization.
+ * 
+ * @param processors list of backend processors
+ * @returns list of connections
+ */
+export default function connectToBackendProcessors(processors: ProcessorConfig[])
   : Map<string, ProcessorGPRCConnection> {
   const procs = [...processors ]
   const connections = new Map<string, ProcessorGPRCConnection>()

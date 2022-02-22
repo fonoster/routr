@@ -16,9 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import grpc from "@grpc/grpc-js"
+
 export class NotMatchingProcessorFound extends Error {
-  constructor(m?: string) {
-    super(m || "Not matching process found");
+  code: grpc.status;
+  constructor(ref: string) {
+    super(`Not matching process found for request: ${ref}`);
+    this.code = grpc.status.NOT_FOUND
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, NotMatchingProcessorFound.prototype);
+  }
+}
+
+export class ProcessorUnavailableError extends Error {
+  code: number;
+  constructor(ref: string) {
+    super(`Processor ref = ${ref} is unavailable`);
+    this.code = grpc.status.UNAVAILABLE
     // Set the prototype explicitly.
     Object.setPrototypeOf(this, NotMatchingProcessorFound.prototype);
   }
