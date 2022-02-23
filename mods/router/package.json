@@ -1,6 +1,6 @@
 {
   "name": "@routr/router",
-  "version": "2.0.5-alpha.0",
+  "version": "2.0.5-alpha.1",
   "description": "Receives SIP messages and forwards them to the corresponding Message Processor",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -25,7 +25,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@routr/common": "^2.0.5-alpha.0"
+    "@routr/common": "^2.0.5-alpha.1"
   },
   "repository": {
     "type": "git",
