@@ -1,6 +1,6 @@
 {
   "name": "@routr/edgeport",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "SIP endpoint at the edge of the network",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",

@@ -1,6 +1,6 @@
 {
   "name": "@routr/echo",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Dummy implementation of a Processor service",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -16,8 +16,8 @@
     "build": "tsc -b tsconfig.json"
   },
   "dependencies": {
-    "@routr/common": "^2.0.0",
-    "@fonoster/logger": "0.3.3"
+    "@fonoster/logger": "0.3.3",
+    "@routr/common": "^2.0.1"
   },
   "files": [
     "dist"
