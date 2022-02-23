@@ -8,7 +8,7 @@ RUN apk add --no-cache --update curl tini nodejs npm python3 make cmake g++; \
   npm pack ; \
   npm install -g routr-*.tgz; \
   link /usr/local/bin/run_router /usr/local/bin/run; \
-  rm -rf /var/cache/apk/* /tmp/* /var/tmp/*; \
+  rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/*; \
   apk del curl python3 make cmake g++
 
 # Re-mapping the signal from 143 to 0

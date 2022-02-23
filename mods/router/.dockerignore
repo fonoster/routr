@@ -1,0 +1,7 @@
+node_modules
+.nyc_output
+coverage
+dist
+test
+*.log
+Dockerfile

@@ -9,7 +9,8 @@
   "types": "dist/index",
   "scripts": {
     "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
-    "build": "tsc -b tsconfig.json"
+    "build": "tsc -b tsconfig.json",
+    "postbuild": "mkdir -p dist/protos && cp src/protos/* dist/protos"
   },
   "dependencies": {
     "@fonoster/logger": "^0.3.3",

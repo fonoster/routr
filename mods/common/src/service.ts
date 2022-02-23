@@ -34,7 +34,7 @@ const loadOptions = {
 export const PROCESSOR_OBJECT_PROTO = getObjectProto<any>({
   name: "processor",
   version: "v2draft1",
-  path: __dirname + '../../../../protos/processor.proto'
+  path: __dirname + '/protos/processor.proto'
 })
 
 export function getObjectProto<A>(objectProto: ObjectProto): A | ServiceDefinitionNotFound {

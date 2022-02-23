@@ -4,3 +4,7 @@ coverage
 src
 test
 *.log
+Dockerfile
+tsconfig.json
+tsconfig.tsbuidinfo
+.lerna-changed-buster-*
