@@ -20,7 +20,7 @@
 import MessageRouter from "./service"
 import { getConfig } from "./config/get_config"
 
-const result = getConfig(process.env.CONFIG_DIR)
+const result = getConfig(process.env.CONFIG_PATH)
 
 if (result._tag === 'Right') {
   MessageRouter(result.right) 

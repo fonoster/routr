@@ -97,7 +97,7 @@ export const schema = {
           },
           "required": ["port", "protocol"]
         },
-        "messageRouter": {
+        "processor": {
           "description": "Adjacent service for message routing",
           "type": "object",
           "properties": {
@@ -107,7 +107,7 @@ export const schema = {
           }
         }
       },
-      "required": ["methods", "transport", "messageRouter"]
+      "required": ["methods", "transport", "processor"]
     },
   },
   "required": ["kind", "metadata", "spec", "apiVersion"]

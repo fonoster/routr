@@ -15,7 +15,7 @@
     "processors": [
       {
         "ref": "scaip-essense",
-        "addr": "localhost:51902",
+        "addr": "echo:51902",
         "methods": [
           "MESSAGE"
         ],
@@ -24,7 +24,7 @@
       {
         "ref": "fallback-processor",
         "isFallback": true,
-        "addr": "localhost:51902",
+        "addr": "echo:51902",
         "methods": [
           "REGISTER",
           "MESSAGE",

@@ -40,5 +40,5 @@ export default function EdgePort(config: EdgePortConfig) {
   const sipProvider = createSipProvider(sipStack,
     createListeningPoints(sipStack, config))
 
-  sipProvider.addSipListener(new GRPCSipListener())
+  sipProvider.addSipListener(new GRPCSipListener(config.spec.processor.addr))
 }

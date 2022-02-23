@@ -27,9 +27,9 @@ const validate = ajv.compile(schema)
 
 export const getConfig = (path: string)
   : E.Either<Error, MessageRouterConfig> => {
-  const c = JSON.parse(fs.readFileSync(path, "utf8"))
+  const c = JSON.parse(fs.readFileSync(path, "utf8")) 
 
-  if (!validate(c)) {
+  if (!validate({...c})) {
     return E.left(new Error(JSON.stringify(validate.errors[0].message)))
   }
 

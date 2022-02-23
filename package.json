@@ -11,18 +11,18 @@
   },
   "scripts": {
     "bootstrap": "lerna bootstrap --no-ci --hoist",
-    "setup": "./gradlew build copyRuntimeLibs",
+    "setup": "./.scripts/setup.sh",
     "test": "cross-env NODE_ENV=dev nyc --reporter=lcov mocha mods/*/test/*.unit.test.ts --exit",
     "test:graaljs": "cross-env NODE_ENV=dev nyc --reporter=lcov .scripts/mocha_wrapper.sh mods/**/graaljstest/*.unit.test.ts --exit",
-    "build": "lerna run build",
+    "build": "lerna run build && npm run bundle",
     "clean": "rimraf **/*/tsconfig.tsbuildinfo && rimraf **/*/dist && rimraf **/*/dist && rimraf **/*/node_modules && rimraf node_modules build libs .gradle ",
     "start:echo": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/echo/src/runner",
-    "start:router": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_DIR=$(pwd)/config/router.json nodemon mods/router/src/runner",
+    "start:router": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/router.json nodemon mods/router/src/runner",
     "start:edgeport": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./edgeport.sh",
     "transpile": "tsc",
     "bundle": "webpack --config webpack.config.js --mode none",
-    "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
-    "version:force": "rimraf mods/**/.lerna-changed-buster-* && lerna exec -- touch .lerna-changed-buster-$RANDOM"
+    "prebundle": "cross-env npm run setup && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
+    "bump:version": "rimraf mods/**/.lerna-changed-buster-* && lerna exec -- touch .lerna-changed-buster-$RANDOM"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",

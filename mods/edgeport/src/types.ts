@@ -26,6 +26,9 @@ export interface EdgePortConfig {
   spec: {
     bindAddr: string
     transport: Array<Transport>
+    processor: {
+      addr: string
+    }
     securityContext?: {
       debugging: boolean
       keyStore: string

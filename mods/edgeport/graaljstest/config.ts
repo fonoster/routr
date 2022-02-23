@@ -21,6 +21,9 @@ import { EdgePortConfig } from "../src/types";
 const edgePortConfig: EdgePortConfig = {
   spec: {
     bindAddr: '127.0.0.1',
+    processor: {
+      addr: 'localhost:51902'
+    },
     transport: [
       {
         protocol: 'udp',

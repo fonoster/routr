@@ -19,5 +19,7 @@
  */
 import EchoProcessor from './service'
 
+const bindAddr = process.env.BIND_ADDR || "0.0.0.0:51902"
+
 // TODO: Get config from file
-EchoProcessor({ bindAddr: "0.0.0.0:51902"})
+EchoProcessor({ bindAddr })

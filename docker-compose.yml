@@ -2,16 +2,37 @@ version: '3.7'
 
 services:
 
-  # Router
-  router:
-    image: routr/router
+  edgeport:
+    build: .
+    image: routr/edgeport
     environment:
-      CONFIG_DIR: '/etc/routr/router.json'
+      CONFIG_PATH: '/etc/routr/edgeport.json'
+      LOGS_LEVEL: verbose
     ports:
       - 5060:5060
       - 5060:5060/udp
       - 5061:5061
-      - 5062:5062
-      - 5063:5063
+      - 5062:5061
+      - 5063:5061
+    volumes:
+      - ./config/edgeport.json:/etc/routr/edgeport.json
+
+  router:
+    build: ./mods/router
+    image: routr/router
+    environment:
+      CONFIG_PATH: '/etc/routr/router.json'
+      LOGS_LEVEL: verbose
+    expose:
+      - 51901
     volumes:
       - ./config/router.json:/etc/routr/router.json
+
+  # Echo Processor
+  echo:
+    build: ./mods/echo
+    image: routr/echo
+    environment:
+      LOGS_LEVEL: verbose
+    expose:
+      - 51902

@@ -18,13 +18,9 @@
  */
 package io.routr;
 
-import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.sip.SipListener;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
@@ -35,14 +31,13 @@ import javax.sip.TransactionTerminatedEvent;
 import javax.sip.header.CallIdHeader;
 
 public class GRPCSipListener implements SipListener {
-  private final MessageRouterGrpc.MessageRouterBlockingStub blockingStub;
+  private final ProcessorGrpc.ProcessorBlockingStub blockingStub;
 
-  public GRPCSipListener() {
-    String target = "localhost:50052";
-    ManagedChannel channel = ManagedChannelBuilder.forTarget(target)
+  public GRPCSipListener(String addr) {
+    ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
       .usePlaintext()
       .build();
-    blockingStub = MessageRouterGrpc.newBlockingStub(channel);
+    blockingStub = ProcessorGrpc.newBlockingStub(channel);
   }
 
   public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {

@@ -18,7 +18,6 @@
  */
 package io.routr;
 
-import java.util.Calendar;
 import org.graalvm.polyglot.Context;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -53,15 +52,6 @@ public class Launcher {
     } else {
       launchWithGraalJS();
     }
-
-    while (true) {
-			System.out.println("always running program ==> " + Calendar.getInstance().getTime());
-			try {
-				Thread.sleep(4000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
   }
 
   public void launchWithNashorn() throws ScriptException {

@@ -40,7 +40,7 @@ sourceSets {
   main {
     proto {
       // In addition to the default 'src/main/proto'
-      srcDir 'protos'
+      srcDir 'mods/common/src/protos'
     }
     java {
       srcDirs 'build/generated/source/proto/main/grpc'

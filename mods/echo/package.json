@@ -15,6 +15,9 @@
     "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
     "build": "tsc -b tsconfig.json"
   },
+  "bin": {
+    "run_echo": "dist/runner.js"
+  },
   "dependencies": {
     "@fonoster/logger": "^0.3.3",
     "@routr/common": "^2.0.5-alpha.1"
