@@ -15,6 +15,9 @@
     "src": "src",
     "test": "test"
   },
+  "dependencies": {
+    "@fonoster/logger": "0.3.3"
+  },
   "files": [
     "dist"
   ],

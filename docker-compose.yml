@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+
+  # SIP Server
+  router:
+    image: routr/router
+    environment:
+      CONFIG_DIR: '/etc/routr/router.json'
+    ports:
+      - '5060:5060'
+      - '5060:5060/udp'
+      - '5061:5061'
+      - '5062:5062'
+      - '5063:5063'
+    volumes:
+      - ./config/router.json:/etc/routr/router.json
