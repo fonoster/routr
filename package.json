@@ -21,7 +21,8 @@
     "start:edgeport": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./edgeport.sh",
     "transpile": "tsc",
     "bundle": "webpack --config webpack.config.js --mode none",
-    "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs"
+    "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
+    "version:force": "rimraf mods/**/.lerna-changed-buster-* && lerna exec -- touch .lerna-changed-buster-$RANDOM"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",
