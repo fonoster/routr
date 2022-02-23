@@ -10,7 +10,7 @@
     "ignore": "**/*.d.ts"
   },
   "scripts": {
-    "bootstrap": "lerna bootstrap --no-ci",
+    "bootstrap": "lerna bootstrap --no-ci --hoist",
     "setup": "./gradlew build copyRuntimeLibs",
     "test": "cross-env NODE_ENV=dev nyc --reporter=lcov mocha mods/*/test/*.unit.test.ts --exit",
     "test:graaljs": "cross-env NODE_ENV=dev nyc --reporter=lcov .scripts/mocha_wrapper.sh mods/**/graaljstest/*.unit.test.ts --exit",
@@ -48,7 +48,7 @@
     "typescript": "^4.1.5"
   },
   "dependencies": {
-    "@fonoster/logger": "^0.2.44",
+    "@fonoster/logger": "^0.3.3",
     "@grpc/grpc-js": "^1.5.5",
     "@grpc/proto-loader": "^0.6.9",
     "ajv": "^6.12.6",

@@ -16,7 +16,7 @@
     "build": "tsc -b tsconfig.json"
   },
   "dependencies": {
-    "@fonoster/logger": "0.3.3",
+    "@fonoster/logger": "^0.3.3",
     "@routr/common": "^2.0.4-alpha.0"
   },
   "files": [

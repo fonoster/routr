@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 import { ObjectProto, ServiceInfo } from "./types"
-import logger from "@fonoster/logger"
 import { ServiceDefinitionNotFound } from "./errors"
+import logger from "@fonoster/logger"
 
 const protoLoader = require('@grpc/proto-loader')
 const grpc = require('@grpc/grpc-js')
