@@ -1,9 +1,0 @@
-apiVersion: v2draft1
-handlers: {
-  function(r) {
-    pipe([
-      acl(r),
-      
-    ])
-  }
-}

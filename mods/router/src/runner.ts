@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -19,4 +20,10 @@
 import MessageRouter from "./service"
 import { getConfig } from "./config/get_config"
 
-MessageRouter(getConfig())
+const result = getConfig(process.env.CONFIG_DIR)
+
+if (result._tag === 'Right') {
+  MessageRouter(result.right) 
+} else {
+  console.log(result.left)
+}

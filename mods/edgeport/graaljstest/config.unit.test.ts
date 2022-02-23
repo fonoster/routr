@@ -28,8 +28,7 @@ describe('@routr/edgeport/config', () => {
   afterEach(() => sandbox.restore());
 
   it('fails because file does not meet schema criteria', () => {
-    // FIXME: Hardcoded path
-    const result = readFile("/Users/pedrosanders/Projects/routr/config/edgeport.json")
+    const result = readFile(__dirname + ".././../config/edgeport.json")
     expect(result).to.have.property('_tag').to.be.equal('Right')
 
     if (result._tag === 'Right') {

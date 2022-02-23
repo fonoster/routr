@@ -25,6 +25,7 @@ import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import { findProcessor, hasMethod } from "../src/find_processor"
+import  {getConfig } from '../src/config/get_config'
 import connectToBackendProcessors from "../src/connections"
 import processor from '../src/processor'
 
@@ -109,12 +110,12 @@ describe('@routr/router', () => {
       const messageRequest2 = { ...messageRequest }
       messageRequest2.method = "PUBLISH"
       const error = findProcessor([config1, config2, config3])(messageRequest2)
-      expect(error.toString()).to.include("Not matching process found")
+      expect(error.toString()).to.include("not matching processor found for request")
     })
   })
 
   describe('@routr/router/processor', () => {
-    it.only('callback gets invoke with an error', (done) => {
+    it('callback gets invoke with an error', (done) => {
       sandbox.stub(PROCESSOR_OBJECT_PROTO, 'Processor').returns(
         {
           processMessage: (request: any, callback: Function) => {
@@ -123,7 +124,7 @@ describe('@routr/router', () => {
         }
       )
 
-      processor([config1])(messageRequest, (err: Error, response: any)=> {
+      processor([config1])({ request: messageRequest }, (err: Error, response: any)=> {
         if (err) {
           done()
         } else {
@@ -132,7 +133,7 @@ describe('@routr/router', () => {
       })
     })
 
-    it.only('it invokes callback with correct response', (done) => {
+    it('it invokes callback with correct response', (done) => {
       sandbox.stub(PROCESSOR_OBJECT_PROTO, 'Processor').returns(
         {
           processMessage: (request: any, callback: Function) => {
@@ -141,7 +142,7 @@ describe('@routr/router', () => {
         }
       )
 
-      processor([config1])(messageRequest, (err: Error, response: any)=> {
+      processor([config1])({ request: messageRequest }, (err: Error, response: any)=> {
         if (err) {
           done(err)
         } else {
@@ -151,7 +152,7 @@ describe('@routr/router', () => {
       })
     })
 
-    it.only('callback gets invoke with error 14(service unavailable)', (done) => {
+    it('callback gets invoke with error 14(service unavailable)', (done) => {
       sandbox.stub(PROCESSOR_OBJECT_PROTO, 'Processor').returns(
         {
           processMessage: (request: any, callback: Function) => {
@@ -162,8 +163,8 @@ describe('@routr/router', () => {
         }
       )
 
-      processor([config1])(messageRequest, (err, response: any)=> {
-        expect(err.toString()).to.be.include("Processor ref = processor-ref1 is unavailable")
+      processor([config1])({ request: messageRequest }, (err, response: any)=> {
+        expect(err.toString()).to.be.include("processor ref = processor-ref1 is unavailable")
         done()
       })
     })
@@ -173,6 +174,19 @@ describe('@routr/router', () => {
     const processorObjectProtoStub = sandbox.stub(PROCESSOR_OBJECT_PROTO, 'Processor')
     connectToBackendProcessors([config1, config2])
     expect(processorObjectProtoStub).to.have.been.calledTwice
+  })
+
+  it('gets configuration from file', (done) => {
+    const result = getConfig(__dirname + "/../../../config/router.json")
+    if (result._tag === 'Right') {
+      const config = result.right
+      expect(config).to.have.property("bindAddr")
+      expect(config.processors[0])
+        .to.have.property("ref").to.be.equal("scaip-essense")
+      done()
+    } else {
+      done(result.left)
+    }
   })
 })
 

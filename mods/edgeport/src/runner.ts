@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -20,8 +21,9 @@ declare const System: any
 
 import EdgePort from './edgeport'
 import { getConfig } from "./config/get_config"
+import { EdgePortConfig } from './types'
 
-const config = getConfig(System.getenv('CONFIG_DIR'))
+const config = getConfig<EdgePortConfig>(System.getenv('CONFIG_DIR'))
 
 if (config._tag === 'Right') {
   EdgePort(config.right)

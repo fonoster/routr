@@ -11,6 +11,9 @@
     "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
     "build": "tsc -b tsconfig.json"
   },
+  "bin": {
+    "run_router": "dist/runner.js"
+  },
   "directories": {
     "src": "src",
     "test": "test"

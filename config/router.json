@@ -1,0 +1,38 @@
+{
+  "kind": "MessageRouter",
+  "apiVersion": "v2draft1",
+  "metadata": {
+    "ref": "mr001"
+  },
+  "spec": {
+    "bindAddr": "0.0.0.0:51901",
+    "middlewares": [
+      {
+        "ref": "ipban",
+        "addr": "ipban:51903"
+      }
+    ],
+    "processors": [
+      {
+        "ref": "scaip-essense",
+        "addr": "localhost:51902",
+        "methods": [
+          "MESSAGE"
+        ],
+        "matchFunc": "(req) => { return req.method === 'MESSAGE' }"
+      },
+      {
+        "ref": "fallback-processor",
+        "isFallback": true,
+        "addr": "localhost:51902",
+        "methods": [
+          "REGISTER",
+          "MESSAGE",
+          "INVITE",
+          "CANCEL"
+        ],
+        "matchFunc": "(req) => true"
+      }
+    ]
+  }
+}

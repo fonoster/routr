@@ -19,7 +19,6 @@
 import * as J from 'fp-ts/Json'
 import * as E from 'fp-ts/Either'
 import * as F from './fs'
-import { EdgePortConfig } from '../types'
 import { pipe } from 'fp-ts/function'
 import { schema } from './schema'
 import Ajv from "ajv"
@@ -45,7 +44,7 @@ export const validateConfig = (j: J.Json): E.Either<Error, J.Json> =>
   )
 
 // Read a file and validate its content with Ajv
-export const getConfig = (path: string): E.Either<Error, EdgePortConfig> =>
+export const getConfig = <C>(path: string): E.Either<Error, C> =>
   pipe(
     path,
     readFile,
@@ -58,5 +57,5 @@ export const getConfig = (path: string): E.Either<Error, EdgePortConfig> =>
         E.chain(validateConfig),
       )
     ),
-    E.map((v) => v as unknown as EdgePortConfig)
+    E.map((v) => v as unknown as C)
   )

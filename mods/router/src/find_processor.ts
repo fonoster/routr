@@ -22,11 +22,12 @@ import { NotMatchingProcessorFound } from "./errors"
 export const hasMethod = (config: ProcessorConfig, request: MessageRequest) =>
   config.methods.includes(request.method)
 
+// TODO: We need a way to test the matching function
 export const filter = (request: MessageRequest, config: ProcessorConfig) =>
   hasMethod(config, request)
   && (config.isFallback || config.matchFunc(request))
 
 export const findProcessor = (list: Array<ProcessorConfig>) =>  
   (request: MessageRequest): NotMatchingProcessorFound | ProcessorConfig =>  
-    list.find((c: ProcessorConfig) => filter(request, c)) 
+    list.find((config: ProcessorConfig) => filter(request, config)) 
       || new NotMatchingProcessorFound(request.ref)

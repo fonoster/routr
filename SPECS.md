@@ -163,6 +163,9 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
   },
   "spec": {
     "bindAddr": "0.0.0.0",
+    "processor": {
+      "addr": "router:51901"
+    },
     "advertisedAddrs": [
       "165.227.217.102",
       "sip01.fonoster.io"
@@ -185,10 +188,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
         "port": 5060,
         "protocol": "udp"
       }
-    ],
-    "processor": {
-      "addr": "router:51901"
-    }
+    ]
   }
 }
 ```
@@ -401,6 +401,14 @@ Example:
     ],
     "processors": [
       {
+        "ref": "scaip-essense",
+        "addr": "scaipessense:51902",
+        "methods": [
+          "MESSAGE"
+        ],
+        "matchFunc": "(req) => { return req.method === 'MESSAGE' && req.agent.search(/pattern/) !== -1}"
+      },
+      {
         "ref": "fallback-processor",
         "isFallback": true,
         "addr": "fallbackprocessor:51902",
@@ -412,14 +420,6 @@ Example:
           "..."
         ],
         "matchFunc": "(req) => true"
-      },
-      {
-        "ref": "scaip-essense",
-        "addr": "scaipessense:51902",
-        "methods": [
-          "MESSAGE"
-        ],
-        "matchFunc": "(req) => { return req.method === 'MESSAGE' && req.agent.search(/pattern/) !== -1}"
       }
     ]
   }
@@ -431,8 +431,7 @@ Example:
  
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/fonoster/routr/schemas/messagerouter.schema.json",
+  "$id": "https://json-schema.org/draft/2020-12/schema",
   "title": "Message Router configuration",
   "description": "Configuration for a Message Router instance",
   "type": "object",

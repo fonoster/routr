@@ -20,7 +20,7 @@ import { findProcessor } from "./find_processor"
 import connectToBackendProcessors from "./connections"
 import { MessageRequest, ProcessorConfig } from "@routr/common"
 import { NotMatchingProcessorFound, ProcessorUnavailableError } from "./errors"
-import grpc from "@grpc/grpc-js"
+import grpc = require("@grpc/grpc-js")
 
 type CallbackErrors = NotMatchingProcessorFound | ProcessorUnavailableError | Error
 type ProcessorCallback = (err: CallbackErrors, reponse?: MessageRequest) => void
@@ -30,7 +30,8 @@ export default function processor(configList: Array<ProcessorConfig>) {
   const connections = connectToBackendProcessors(configList)
 
   // Upstream request and callback
-  return (request: MessageRequest, callback: ProcessorCallback): void => {
+  return (call: any, callback: ProcessorCallback): void => {
+    const { request } = call
     const matchResult = findProcessor(configList)(request)
     if ('ref' in matchResult) {
       const conn = connections.get(matchResult.ref)
