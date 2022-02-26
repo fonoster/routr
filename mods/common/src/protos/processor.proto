@@ -1,11 +1,13 @@
 syntax = "proto3";
 
+package fonoster.routr.processor.v2draft1;
+
 option java_multiple_files = true;
 option java_package = "io.routr";
 option java_outer_classname = "ProcessorProto";
 option objc_class_prefix = "PR";
 
-package fonoster.routr.processor.v2draft1;
+import "sipmessage.proto";
 
 // Processor service
 service Processor {
@@ -50,17 +52,13 @@ message NetInterface {
   Transport transport = 3;
 }
 
-message SIPMessage {
-  string call_id = 1;
-}
-
 message MessageRequest {
   string ref = 1;
   Type type = 2;
   Method method = 3;
   Direction direction = 4;
   // .google.protobuf.Struct metadata = 5
-  NetInterface origin_interface = 6;
-  NetInterface target_interface = 7;
-  SIPMessage sip_message = 8;
+  NetInterface ingress = 6;
+  NetInterface egress = 7;
+  fonoster.routr.sipmessage.v2draft1.SIPMessage sip_message = 8;
 }

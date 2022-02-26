@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package fonoster.routr.sipmessage.v2draft1;
+
+option java_multiple_files = true;
+option java_package = "io.routr";
+option java_outer_classname = "SIPMessageProto";
+option objc_class_prefix = "SM";
+
+message CallId {
+  string call_id = 1;
+}
+
+message SipURI {
+  string user = 1;
+  string user_password = 2;
+  string host = 3;
+  string transport_param = 4;
+  string m_addr_param = 5;
+  string method_param = 6;
+  string user_param = 7;
+  int32 t_t_l_param = 8;
+  int32 port = 9;
+  bool lr_param = 10;
+  bool secure = 11;
+}
+
+message Address {
+  SipURI uri = 1;
+  string display_name = 2;
+  bool wildcard = 3;
+}
+
+message From {
+  Address address = 1;
+  string tag = 2;
+}
+
+message To {
+  Address address = 1;
+  string tag = 2;
+}
+
+message SIPMessage {
+  From from = 1;
+  To to = 2;
+  CallId call_id = 3;
+}
