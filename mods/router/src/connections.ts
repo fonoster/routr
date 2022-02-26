@@ -21,7 +21,7 @@ import {
   PROCESSOR_OBJECT_PROTO,
   ProcessorConfig
 } from "@routr/common"
-const grpc = require('@grpc/grpc-js')
+import grpc = require('@grpc/grpc-js')
 
 /**
  * Creates a connection to all the backend processors. The function will

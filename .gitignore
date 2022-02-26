@@ -24,6 +24,7 @@ site
 logs
 bin
 .DS_Store
+.vscode
 
 # User-specific stuff:
 .idea/workspace.xml
