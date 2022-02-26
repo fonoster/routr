@@ -15,7 +15,8 @@
   "dependencies": {
     "@fonoster/logger": "^0.3.3",
     "@grpc/grpc-js": "^1.5.5",
-    "@grpc/proto-loader": "^0.6.9"
+    "@grpc/proto-loader": "^0.6.9",
+    "fp-ts": "^2.11.8"
   },
   "directories": {
     "src": "src",

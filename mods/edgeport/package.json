@@ -27,5 +27,8 @@
   },
   "bugs": {
     "url": "https://github.com/fonoster/routr/issues"
+  },
+  "dependencies": {
+    "fp-ts": "^2.11.8"
   }
 }
