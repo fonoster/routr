@@ -1,7 +1,6 @@
 buildscript {
   repositories {
     mavenCentral()
-    jcenter()
     maven { url "https://jitpack.io" }
   }
 }
@@ -42,7 +41,7 @@ sourceSets {
   main {
     proto {
       // In addition to the default 'src/main/proto'
-      srcDir 'mods/common/src/protos'
+      srcDir '../common/src/protos'
     }
     java {
       srcDirs 'build/generated/source/proto/main/grpc'
@@ -76,8 +75,8 @@ tasks.withType(Jar) {
 }
 
 task copyRuntimeLibs(type: Copy) {
-  into "libs"
-  from configurations.testRuntimeOnly
+  from configurations.compile
+  into 'libs'
 }
 
 test {

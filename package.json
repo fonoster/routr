@@ -18,10 +18,10 @@
     "clean": "rimraf **/*/tsconfig.tsbuildinfo && rimraf **/*/dist && rimraf **/*/dist && rimraf **/*/node_modules && rimraf node_modules build libs .gradle ",
     "start:echo": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/echo/src/runner",
     "start:router": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/router.json nodemon mods/router/src/runner",
-    "start:edgeport": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./edgeport.sh",
+    "start:edgeport": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./mods/edgeport/edgeport.sh",
     "transpile": "tsc",
     "bundle": "webpack --config webpack.config.js --mode none",
-    "prebundle": "cross-env npm run setup && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
+    "prebundle": "cross-env npm run setup && npm run transpile && cp mods/edgeport/build/libs/* mods/edgeport/libs/ && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js mods/edgeport/libs/",
     "bump:version": "rimraf mods/**/.lerna-changed-buster-* && lerna exec -- touch .lerna-changed-buster-$RANDOM"
   },
   "devDependencies": {
