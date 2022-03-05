@@ -33,20 +33,20 @@ import javax.sip.header.CallIdHeader;
 public class GRPCSipListener implements SipListener {
   private final ProcessorGrpc.ProcessorBlockingStub blockingStub;
 
-  public GRPCSipListener(String addr) {
+  public GRPCSipListener(final String addr) {
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
       .usePlaintext()
       .build();
     blockingStub = ProcessorGrpc.newBlockingStub(channel);
   }
 
-  public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {
+  public void processDialogTerminated(final DialogTerminatedEvent dialogTerminatedEvent) {
   }
 
-  public void processIOException(IOExceptionEvent exceptionEvent) {
+  public void processIOException(final IOExceptionEvent exceptionEvent) {
   }
 
-  static MessageRequest createMessageRequest(RequestEvent requestEvent) {
+  static MessageRequest createMessageRequest(final RequestEvent requestEvent) {
     String callId = requestEvent.getRequest().getHeader(CallIdHeader.NAME).toString().trim();
     Method method = Method.valueOf(requestEvent.getRequest().getMethod().toUpperCase());
     MessageRequest request = MessageRequest
@@ -59,7 +59,7 @@ public class GRPCSipListener implements SipListener {
     return request;
   }
 
-  public void processRequest(RequestEvent requestEvent) {
+  public void processRequest(final RequestEvent requestEvent) {
     // - Build message request from request Event
     // - Store the original request in memory until Dialog is complete or 
     //    received a timeout
@@ -83,13 +83,13 @@ public class GRPCSipListener implements SipListener {
     System.out.println("Method: " + response.getMethod());
   }
 
-  public void processResponse(ResponseEvent responseEvent) {
+  public void processResponse(final ResponseEvent responseEvent) {
     System.out.println(responseEvent);
   }
 
-  public void processTimeout(TimeoutEvent timeoutEvent) {
+  public void processTimeout(final TimeoutEvent timeoutEvent) {
   }
 
-  public void processTransactionTerminated(TransactionTerminatedEvent transactionTerminatedEvent) {
+  public void processTransactionTerminated(final TransactionTerminatedEvent transactionTerminatedEvent) {
   }
 }

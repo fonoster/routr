@@ -7,25 +7,37 @@ option java_package = "io.routr";
 option java_outer_classname = "SIPMessageProto";
 option objc_class_prefix = "SM";
 
-message CallId {
+message CallID {
   string call_id = 1;
 }
 
-message SipURI {
-  string user = 1;
-  string user_password = 2;
-  string host = 3;
-  string transport_param = 4;
-  string m_addr_param = 5;
-  string method_param = 6;
-  string user_param = 7;
-  int32 t_t_l_param = 8;
-  int32 port = 9;
-  bool lr_param = 10;
-  bool secure = 11;
+message ContentLength {
+  int32 content_length = 1;
+}
+
+message Extension {
+  string name = 1;
+  string value = 2;
+}
+
+message Via {
+  string host = 1;
 }
 
 message Address {
+  message SipURI {
+    string user = 1;
+    string user_password = 2;
+    string host = 3;
+    string transport_param = 4;
+    string m_addr_param = 5;
+    string method_param = 6;
+    string user_param = 7;
+    int32 t_t_l_param = 8;
+    int32 port = 9;
+    bool lr_param = 10;
+    bool secure = 11;
+  }
   SipURI uri = 1;
   string display_name = 2;
   bool wildcard = 3;
@@ -42,7 +54,10 @@ message To {
 }
 
 message SIPMessage {
-  From from = 1;
-  To to = 2;
-  CallId call_id = 3;
+  repeated Via via = 1;
+  From from = 2;
+  To to = 3;
+  CallID call_id = 4;
+  ContentLength content_length = 5;
+  repeated Extension extensions = 6;
 }
