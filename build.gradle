@@ -19,9 +19,9 @@ allprojects {
 }
 
 dependencies {
+  implementation 'javax.annotation:javax.annotation-api:1.2'
   compile 'io.grpc:grpc-all:1.19.0'
-  compile 'com.google.protobuf:protobuf-java:3.6.1'
-  compileOnly 'javax.annotation:javax.annotation-api:1.2'
+  compile 'com.google.protobuf:protobuf-java:3.19.4'
   compile 'javax.sip:jain-sip-ri:1.3.0-91'
   compile 'log4j:log4j:1.2.17'
   compile 'org.apache.logging.log4j:log4j-1.2-api:2.11.0'
@@ -34,6 +34,8 @@ dependencies {
   compile 'org.graalvm.js:js:19.0.0'
   compile 'org.graalvm.regex:regex:19.0.0'
   compile 'com.github.uber-common:jvm-profiler:master-SNAPSHOT'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
 
 sourceSets {
@@ -75,5 +77,12 @@ tasks.withType(Jar) {
 
 task copyRuntimeLibs(type: Copy) {
   into "libs"
-  from configurations.testRuntime
+  from configurations.testRuntimeOnly
+}
+
+test {
+  useJUnitPlatform()
+  testLogging {
+      showStandardStreams = true
+  }
 }
