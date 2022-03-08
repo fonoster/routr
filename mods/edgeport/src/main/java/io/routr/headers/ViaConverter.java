@@ -1,15 +1,13 @@
 package io.routr.headers;
 
 import java.text.ParseException;
-import java.util.List;
-import java.util.ListIterator;
 import javax.sip.header.HeaderFactory;
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
 import gov.nist.javax.sip.header.Via;
 
-@ProtoMapping(header = Via.class, field ="via", repeatable = true, extension = false)
+@ProtoMapping(header = Via.class, field = "via", repeatable = true, extension = false)
 public class ViaConverter implements Converter<Via, io.routr.Via> {
 
   @Override

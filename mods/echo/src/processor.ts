@@ -21,14 +21,15 @@ import {
 } from "@routr/common"
 import logger from "@fonoster/logger"
 
-// This processor simply echoes back the request send by the client
+// This processor returns upstream the message received
 export function processMessage(call: any, callback: Function) {
-  logger.verbose("Got new request: ")
+  logger.verbose("got new request: ")
   logger.verbose(JSON.stringify(call.request, null, ' '))
-  const request = { ...call.request }
-  // Going back / OUT
-  request.direction = 1
-  callback(null, request)
+  const response = {
+    request_type: call.request.request_type,
+    message: { ...call.request.message }
+  }
+  callback(null, response)
 }
 
 export const serviceInfo = {

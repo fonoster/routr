@@ -1,9 +1,6 @@
 package io.routr.headers;
 
 import java.text.ParseException;
-import java.util.List;
-import java.util.ListIterator;
-
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.header.Header;

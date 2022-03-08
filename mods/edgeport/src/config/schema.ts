@@ -52,7 +52,7 @@ export const schema = {
           "description": "Ipv4 interface to accept request on",
           "type": "string"
         },
-        "advertisedAddrs": {
+        "externalAddrs": {
           "description": "EdgePort external addresses. Might be Ipv4, Hostname",
           "type": "array",
           "items": {

@@ -10,8 +10,6 @@ import javax.sip.header.HeaderFactory;
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
-import gov.nist.javax.sip.header.ContentLength;
-import io.routr.Extension;
 
 @ProtoMapping(header = ExtensionHeader.class, field = "extensions", repeatable = false, extension = true)
 public class ExtensionConverter implements Converter<Header, io.routr.Extension> {
@@ -25,15 +23,15 @@ public class ExtensionConverter implements Converter<Header, io.routr.Extension>
     } else {
       return io.routr.Extension.newBuilder()
           .setName(header.getName())
-          .setValue(header.toString().split(":")[1].trim())
+          .setValue(header.toString().split(header.getName() + ":")[1].trim())
           .build();
     }
   }
 
   @Override
-  public ExtensionHeader fromDTO(io.routr.Extension dto)
+  public Header fromDTO(io.routr.Extension dto)
       throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
-    return (ExtensionHeader) factory.createHeader(dto.getName(), dto.getValue());
+    return (Header) factory.createHeader(dto.getName(), dto.getValue());
   }
 }
