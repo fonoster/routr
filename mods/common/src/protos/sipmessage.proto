@@ -7,6 +7,67 @@ option java_package = "io.routr";
 option java_outer_classname = "SIPMessageProto";
 option objc_class_prefix = "SM";
 
+enum ResponseType {
+  NA = 0;
+  TRYING = 1;
+  RINGING = 2;
+  CALL_IS_BEING_FORWARDED = 3;
+  QUEUED = 4;
+  SESSION_PROGRESS = 5;
+  SUCCESS = 6;
+  OK = 7;
+  ACCEPTED = 8;
+  REDIRECTION = 9;
+  MULTIPLE_CHOICES = 10;
+  MOVED_PERMANENTLY = 11;
+  MOVED_TEMPORARILY = 12;
+  USE_PROXY = 13;
+  ALTERNATIVE_SERVICE = 14;
+  CLIENT_ERROR = 15;
+  BAD_REQUEST = 16;
+  UNAUTHORIZED = 17;
+  PAYMENT_REQUIRED = 18;
+  FORBIDDEN = 19;
+  NOT_FOUND = 20;
+  METHOD_NOT_ALLOWED = 21;
+  NOT_ACCEPTABLE = 22;
+  PROXY_AUTHENTICATION_REQUIRED = 23;
+  REQUEST_TIMEOUT = 24;
+  GONE = 25;
+  REQUEST_ENTITY_TOO_LARGE = 26;
+  REQUEST_URI_TOO_LONG = 27;
+  UNSUPPORTED_MEDIA_TYPE = 28;
+  UNSUPPORTED_URI_SCHEME = 29;
+  BAD_EXTENSION = 30;
+  EXTENSION_REQUIRED = 31;
+  INTERVAL_TOO_BRIEF = 32;
+  TEMPORARILY_UNAVAILABLE = 33;
+  CALL_OR_TRANSACTION_DOES_NOT_EXIST = 34;
+  LOOP_DETECTED = 35;
+  TOO_MANY_HOPS = 36;
+  ADDRESS_INCOMPLETE = 37;
+  AMBIGUOUS = 38;
+  BUSY_HERE = 39;
+  REQUEST_TERMINATED = 40;
+  NOT_ACCEPTABLE_HERE = 41;
+  BAD_EVENT = 42;
+  REQUEST_PENDING = 43;
+  UNDECIPHERABLE = 44;
+  SERVER_ERROR =45;
+  SERVER_INTERNAL_ERROR = 46;
+  NOT_IMPLEMENTED = 47;
+  BAD_GATEWAY = 48;
+  SERVICE_UNAVAILABLE = 49;
+  SERVER_TIMEOUT = 50;
+  VERSION_NOT_SUPPORTED = 51;
+  MESSAGE_TOO_LARGE = 52;
+  GLOBAL_ERROR = 53;
+  BUSY_EVERYWHERE = 54;
+  DECLINE = 55;
+  DOES_NOT_EXIST_ANYWHERE = 56;
+  SESSION_NOT_ACCEPTABLE = 57;
+}
+
 message CallID {
   string call_id = 1;
 }
@@ -53,11 +114,18 @@ message To {
   string tag = 2;
 }
 
+message Expires {
+  int32 expires = 1;
+}
+
 message SIPMessage {
-  repeated Via via = 1;
-  From from = 2;
-  To to = 3;
-  CallID call_id = 4;
-  ContentLength content_length = 5;
-  repeated Extension extensions = 6;
+  From from = 1;
+  To to = 2;
+  CallID call_id = 3;
+  ContentLength content_length = 4;
+  // It will be set to NA if the message is a SIP request
+  ResponseType response_type = 5;
+  Expires expires = 6;
+  repeated Via via = 7;
+  repeated Extension extensions = 8;
 }

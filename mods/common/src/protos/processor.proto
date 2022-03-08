@@ -12,17 +12,10 @@ import "sipmessage.proto";
 // Processor service
 service Processor {
   // Process Message Request
-  rpc ProcessMessage (MessageRequest) returns (MessageRequest) {}
+  rpc ProcessMessage (MessageRequest) returns (MessageResponse) {}
 }
 
-// Message process IN or OUT
-enum Direction {
-  IN = 0;
-  OUT = 1;
-}
-
-// Message process IN or OUT
-enum Type {
+enum RequestType {
   REQUEST = 0;
   RESPONSE = 1;
 }
@@ -54,11 +47,23 @@ message NetInterface {
 
 message MessageRequest {
   string ref = 1;
-  Type type = 2;
+  RequestType request_type = 2;
   Method method = 3;
-  Direction direction = 4;
-  // .google.protobuf.Struct metadata = 5
-  NetInterface ingress = 6;
-  NetInterface egress = 7;
-  fonoster.routr.sipmessage.v2draft1.SIPMessage sip_message = 8;
+  // .google.protobuf.Struct metadata = 4
+  NetInterface sender = 5;
+  repeated NetInterface external_addrs = 6;
+  repeated string localnets = 7;
+  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 8;
+}
+
+message MessageResponse {
+  // Note1: 
+  //  If the type in MessageRequest was REQUEST and here we get type RESPONSE
+  //  then the proxy must respond to the UAC with 'message'.
+  // 
+  // Note 2:
+  //  If the type in MessageRequest was RESPONSE then the proxy must forward 
+  //  to the UAS.
+  RequestType request_type = 1;
+  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 2;
 }

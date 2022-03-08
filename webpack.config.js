@@ -6,7 +6,7 @@ module.exports = {
   },
   output: {
     filename: "[name].bundle.js",
-    path: path.resolve(__dirname, 'libs')
+    path: path.resolve(__dirname, 'mods/edgeport/libs')
   },
   devtool: "source-map",
   resolve: {
