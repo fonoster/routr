@@ -31,8 +31,8 @@ public class Launcher {
   private static String launchScript = 
     "console = { log: print, warn: print, error: print };" +
     "var System = Java.type('java.lang.System');" +
-    "load(System.getProperty('user.dir') + '/libs/jvm-npm.js');" +
-    "load(System.getProperty('user.dir') + '/libs/edgeport.bundle.js')";
+    "load(System.getProperty('user.dir') + '/mods/edgeport/libs/jvm-npm.js');" +
+    "load(System.getProperty('user.dir') + '/mods/edgeport/libs/edgeport.bundle.js')";
 
   static public void main(String... args) {
     try {

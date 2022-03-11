@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -18,78 +18,173 @@
  */
 package io.routr;
 
+import java.util.*;
+import javax.sip.*;
+import javax.sip.address.AddressFactory;
+import javax.sip.message.*;
+
+import gov.nist.javax.sip.header.Via;
+
+import javax.sip.header.*;
+import java.text.ParseException;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import javax.sip.SipListener;
-import javax.sip.DialogTerminatedEvent;
-import javax.sip.IOExceptionEvent;
-import javax.sip.RequestEvent;
-import javax.sip.ResponseEvent;
-import javax.sip.TimeoutEvent;
-import javax.sip.TransactionTerminatedEvent;
-import javax.sip.header.CallIdHeader;
+import io.routr.headers.MessageConverter;
+import io.routr.headers.ResponseCode;
+import io.routr.message.ResponseType;
+import io.routr.processor.*;
 
 public class GRPCSipListener implements SipListener {
   private final ProcessorGrpc.ProcessorBlockingStub blockingStub;
+  private final MessageConverter messageConverter;
+  private final SipProvider sipProvider;
 
-  public GRPCSipListener(final String addr) {
+  public GRPCSipListener(final SipProvider sipProvider, final Map config) {
+    MapProxyObject values = new MapProxyObject(config);
+    MapProxyObject spec = (MapProxyObject) values.getMember("spec");
+    MapProxyObject processor = (MapProxyObject) spec.getMember("processor");
+    String addr = (String) processor.getMember("addr");
+
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
-      .usePlaintext()
-      .build();
+        .usePlaintext()
+        .build();
+
     blockingStub = ProcessorGrpc.newBlockingStub(channel);
+
+    // FIXME
+    List<String> externalAddrs = new ArrayList<String>();
+    List<String> localnets = new ArrayList<String>();
+    externalAddrs.add("192.168.1.3");
+    localnets.add("10.100.42.127/31");
+
+    messageConverter = new MessageConverter(externalAddrs, localnets);
+    this.sipProvider = sipProvider;
+  }
+
+  public void processRequest(final RequestEvent requestEvent) {
+    Request req = requestEvent.getRequest();
+    ServerTransaction serverTransaction = requestEvent.getServerTransaction();
+
+    if (serverTransaction == null && req.getMethod().equals(Request.ACK) == false) {
+      try {
+        serverTransaction = this.sipProvider.getNewServerTransaction(req);
+      } catch (TransactionAlreadyExistsException | TransactionUnavailableException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+
+    try {
+      MessageRequest request = this.messageConverter.createMessageRequest(requestEvent.getRequest());
+      MessageResponse response = blockingStub.processMessage(request);
+
+      List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
+
+      if (!response.getMessage().hasRequestUri()) {
+        sendResponse(serverTransaction, response.getMessage().getResponseType(), headers);
+        return;
+      }
+
+      AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
+
+      var requestUriDTO = response.getMessage().getRequestUri();
+      var sipURI = addressFactory.createSipURI(requestUriDTO.getUser(), requestUriDTO.getHost());
+      sipURI.setPort(requestUriDTO.getPort());
+
+      req.setRequestURI(sipURI);
+
+      this.sendRequest(serverTransaction, req, headers);
+    } catch (StatusRuntimeException | SipException | ParseException | InvalidArgumentException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void processResponse(final ResponseEvent responseEvent) {
+    try {
+      Response res = responseEvent.getResponse();
+      MessageRequest request = this.messageConverter.createMessageRequest(res);
+      MessageResponse response = blockingStub.processMessage(request);
+  
+      List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
+
+      // Removing all the headers of type Via to avoid duplicates
+      res.removeHeader(Via.NAME);
+
+      Iterator<Header> h = headers.iterator();
+      while (h.hasNext()) {
+        Header header = h.next();
+        //if (header.getClass() == Via.class) {
+        //  res.addFirst(header);
+        //} else {
+        //  res.setHeader(header);
+        //}
+        res.addHeader(header);
+      }
+
+      this.sipProvider.sendResponse(res);
+    } catch (SipException | InvalidArgumentException | ParseException ex) {
+      ex.printStackTrace();
+    }
+  }
+
+  public void processTimeout(final TimeoutEvent timeoutEvent) {
+    // TODO: Remove timeout transactions
+  }
+
+  public void processTransactionTerminated(final TransactionTerminatedEvent transactionTerminatedEvent) {
+    // TODO: Remove terminated transactions
   }
 
   public void processDialogTerminated(final DialogTerminatedEvent dialogTerminatedEvent) {
   }
 
   public void processIOException(final IOExceptionEvent exceptionEvent) {
+    // TODO: Remove failed transactions
   }
 
-  static MessageRequest createMessageRequest(final RequestEvent requestEvent) {
-    String callId = requestEvent.getRequest().getHeader(CallIdHeader.NAME).toString().trim();
-    Method method = Method.valueOf(requestEvent.getRequest().getMethod().toUpperCase());
-    MessageRequest request = MessageRequest
-      .newBuilder()
-        .setRef(callId)
-        .setDirection(Direction.IN)
-        .setMethod(method)
-        .build();
-
-    return request;
-  }
-
-  public void processRequest(final RequestEvent requestEvent) {
-    // - Build message request from request Event
-    // - Store the original request in memory until Dialog is complete or 
-    //    received a timeout
-    // - Send message for processing [x]
-    // - Check for errors [x]
-    // - Get original request
-    // - Merge result into original request
-    // - Send forward
-
-    MessageRequest request = GRPCSipListener.createMessageRequest(requestEvent);
-    MessageRequest response;
-
+  private void sendRequest(final ServerTransaction serverTransaction, final Request request,
+      final List<Header> headers) {
     try {
-      response = blockingStub.processMessage(request);
-    } catch (StatusRuntimeException e) {
-      System.out.println(e.getStatus());
-      return;
+      // Does not need a transaction
+      if (request.getMethod().equals(Request.ACK)) {
+        this.sipProvider.sendRequest(request);
+        return;
+      }
+
+      // The request must be cloned or the stack will not fork the callId
+      var requestOut = (Request) request.clone();
+      var headersIterator = headers.iterator();
+      
+      requestOut.removeHeader(Via.NAME);
+
+      while (headersIterator.hasNext()) {
+        ///var header = headersIterator.next();
+        //if (header.getClass() == Via.class) {
+        // requestOut.addFirst(header);
+        //} else {
+        //  requestOut.setHeader(header);
+        //}
+        requestOut.addHeader(headersIterator.next());
+      }
+
+      var clientTransaction = this.sipProvider.getNewClientTransaction(requestOut);
+      clientTransaction.sendRequest();
+    } catch (SipException e) {
+      e.printStackTrace();
     }
-    System.out.println("Ref: " + response.getRef());
-    System.out.println("Direction: " + response.getDirection());
-    System.out.println("Method: " + response.getMethod());
   }
 
-  public void processResponse(final ResponseEvent responseEvent) {
-    System.out.println(responseEvent);
+  private static void sendResponse(final ServerTransaction transaction, final ResponseType type,
+      final List<Header> headers)
+      throws ParseException, InvalidArgumentException, SipException {
+    System.out.println("Sending response " + type);
+    Request request = transaction.getRequest();
+    MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
+    Response response = messageFactory.createResponse(ResponseCode.valueOf(type.toString()).getCode(), request);
+    Iterator<Header> h = headers.iterator();
+    while (h.hasNext()) response.addHeader(h.next());
+    transaction.sendResponse(response);
   }
 
-  public void processTimeout(final TimeoutEvent timeoutEvent) {
-  }
-
-  public void processTransactionTerminated(final TransactionTerminatedEvent transactionTerminatedEvent) {
-  }
 }

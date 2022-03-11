@@ -1,0 +1,22 @@
+[
+  {
+    "kind": "Backend",
+    "apiVersion": "v2draft1",
+    "metadata": {
+      "ref": "voice"
+    }
+  },
+  {
+    "kind": "Backend",
+    "apiVersion": "v2draft1",
+    "metadata": {
+      "ref": "conference"
+    },
+    "spec": {
+      "sessionAffinity": {
+        "enabled": true,
+        "label": "conference_id"
+      }
+    }
+  }
+]

@@ -3,7 +3,6 @@ package io.routr.headers;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.oracle.truffle.js.builtins.JSBuiltinsContainer.Switch;
 import com.google.protobuf.GeneratedMessageV3;
-
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -21,18 +20,18 @@ import javax.sip.header.HeaderFactory;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Message;
 import javax.sip.message.Request;
+import javax.sip.message.Response;
+
+import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.ExtensionHeaderImpl;
 import io.routr.utils.ClassFinder;
 import gov.nist.javax.sip.header.Via;
-import io.routr.MessageRequest;
-import io.routr.Method;
-import io.routr.NetInterface;
-import io.routr.SIPMessage;
-import io.routr.SIPMessage.Builder;
-import io.routr.Transport;
-import io.routr.RequestType;
+import io.routr.message.SIPMessage.Builder;
+import io.routr.message.*;
+import io.routr.common.*;
+import io.routr.processor.*;
 
 public class MessageConverter {
   private final List<NetInterface> externalAddrs;
@@ -43,25 +42,56 @@ public class MessageConverter {
     this.localnets = localnets;
   }
 
-  public MessageRequest createMessageRequest(final RequestEvent requestEvent) {
-    Request request = requestEvent.getRequest();
-    String callId = ((CallIdHeader) request.getHeader(CallIdHeader.NAME)).getCallId();
-    Method method = Method.valueOf(requestEvent.getRequest().getMethod().toUpperCase());
+  public MessageRequest createMessageRequest(final Message message) {
+    String methodStr = null;
+    if (message instanceof Request) {
+      methodStr =  ((Request)message).getMethod();
+    } else if (message instanceof Response){
+      methodStr = ((CSeq) ((Response)message).getHeader(CSeq.NAME)).getMethod();
+    }
+
+    String callId = ((CallIdHeader) message.getHeader(CallIdHeader.NAME)).getCallId();
+    Method method = Method.valueOf(methodStr.toUpperCase());
 
     return MessageRequest
         .newBuilder()
         .setRef(callId)
-        .setRequestType(RequestType.REQUEST)
         .setMethod(method)
-        .setSender(getSender(request))
+        .setSender(getSender(message))
         .addAllExternalAddrs(this.externalAddrs)
         .addAllLocalnets(this.localnets)
-        .setMessage(convertToMessageDTO(request))
+        .setMessage(convertToMessageDTO(message))
         .build();
   }
 
   static public SIPMessage convertToMessageDTO(final Message message) {
     Builder sipMessageBuilder = SIPMessage.newBuilder();
+
+    if (message instanceof Request) {
+      var sipUri = (javax.sip.address.SipURI) ((Request) message).getRequestURI();
+      var requestURI = SipURI.newBuilder();
+      requestURI.setSecure(false);
+
+      if (sipUri.getUser() != null) {
+        requestURI.setUser(sipUri.getUser());
+      }
+
+      if (sipUri.getHost() != null) {
+        requestURI.setHost(sipUri.getHost());
+      }
+      
+      if (sipUri.getTransportParam() != null) {
+        requestURI.setTransportParam(sipUri.getTransportParam());
+      } else {
+        requestURI.setTransportParam("udp");
+      }
+
+      sipMessageBuilder.setRequestUri(requestURI.build());
+    } else if (message instanceof Response){
+      Response response = (Response) message;
+      sipMessageBuilder.setResponseType(
+        ResponseType.valueOf(ResponseCode.fromCode(response.getStatusCode())));
+    }
 
     // Getting a list of names of all headers present on SIP Message
     ListIterator<String> namesIterator = message.getHeaderNames();
@@ -90,7 +120,6 @@ public class MessageConverter {
         sipMessageBuilder.setField(descriptor, converter.fromHeader(header));
       }
     }
-
     return sipMessageBuilder.build();
   }
 
@@ -98,6 +127,14 @@ public class MessageConverter {
       throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory headerFactory = SipFactory.getInstance().createHeaderFactory();
     List<Header> headers = new ArrayList<>();
+
+    var vias = message.getViaList().iterator();
+
+    while (vias.hasNext()) {
+      io.routr.message.Via via = vias.next();
+      var converter = getConverterByHeader(Via.class);
+      headers.add(converter.fromDTO(via));
+    }
 
     if (message.getCallId() != null) {
       var converter = getConverterByHeader(CallID.class);
@@ -109,10 +146,10 @@ public class MessageConverter {
       var converter = new ExtensionConverter();
 
       while (extensions.hasNext()) {
-        io.routr.Extension extension = extensions.next();
+        io.routr.message.Extension extension = extensions.next();
         try {
           headers.add(converter.fromDTO(extension));
-        } catch(Exception e) {
+        } catch (Exception e) {
           // This will stop happening once we implement all of the headers
           // e.printStackTrace();
         }
@@ -140,10 +177,10 @@ public class MessageConverter {
     return addrsResult;
   }
 
-  static public NetInterface getSender(final Request request) {
+  static public NetInterface getSender(final Message message) {
     // The top header belongs to the sender. This method must be called before
     // any updates is made to the request.
-    ViaHeader via = (ViaHeader) request.getHeader(ViaHeader.NAME);
+    ViaHeader via = (ViaHeader) message.getHeader(ViaHeader.NAME);
     return NetInterface.newBuilder()
         .setHost(via.getHost())
         .setPort(via.getPort())

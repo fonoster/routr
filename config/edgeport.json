@@ -8,10 +8,10 @@
   "spec": {
     "bindAddr": "0.0.0.0",
     "processor": {
-      "addr": "router:51901"
+      "addr": "localhost:51902"
     },
-    "advertisedAddrs": [
-      "165.227.217.102",
+    "externalAddrs": [
+      "165.227.217.102:6090",
       "sip01.fonoster.io"
     ],
     "localnets": [

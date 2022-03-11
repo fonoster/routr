@@ -18,7 +18,7 @@ public class UtilsTests {
 
   @Test
   public void testFindClassWithReflection() {
-    Set<?> set = ClassFinder.findAllClassesUsingReflectionsLibrary("io.routr.headers");
+    Set<?> set = ClassFinder.findAllClassesUsingReflections("io.routr.headers");
     assertEquals(7, set.size());
   }
 

@@ -3,12 +3,12 @@ syntax = "proto3";
 package fonoster.routr.sipmessage.v2draft1;
 
 option java_multiple_files = true;
-option java_package = "io.routr";
+option java_package = "io.routr.message";
 option java_outer_classname = "SIPMessageProto";
 option objc_class_prefix = "SM";
 
 enum ResponseType {
-  NA = 0;
+  UNKNOWN = 0;
   TRYING = 1;
   RINGING = 2;
   CALL_IS_BEING_FORWARDED = 3;
@@ -83,22 +83,26 @@ message Extension {
 
 message Via {
   string host = 1;
+  int32 port = 2;
+  string branch = 3;
+  string transport = 4;
+}
+
+message SipURI {
+  string user = 1;
+  string user_password = 2;
+  string host = 3;
+  string transport_param = 4;
+  string m_addr_param = 5;
+  string method_param = 6;
+  string user_param = 7;
+  int32 t_t_l_param = 8;
+  int32 port = 9;
+  bool lr_param = 10;
+  bool secure = 11;
 }
 
 message Address {
-  message SipURI {
-    string user = 1;
-    string user_password = 2;
-    string host = 3;
-    string transport_param = 4;
-    string m_addr_param = 5;
-    string method_param = 6;
-    string user_param = 7;
-    int32 t_t_l_param = 8;
-    int32 port = 9;
-    bool lr_param = 10;
-    bool secure = 11;
-  }
   SipURI uri = 1;
   string display_name = 2;
   bool wildcard = 3;
@@ -119,13 +123,15 @@ message Expires {
 }
 
 message SIPMessage {
-  From from = 1;
-  To to = 2;
-  CallID call_id = 3;
-  ContentLength content_length = 4;
-  // It will be set to NA if the message is a SIP request
-  ResponseType response_type = 5;
-  Expires expires = 6;
-  repeated Via via = 7;
-  repeated Extension extensions = 8;
+  oneof message_type {
+    ResponseType response_type = 1;
+    SipURI request_uri = 2;
+  }
+  From from = 3;
+  To to = 4;
+  CallID call_id = 5;
+  ContentLength content_length = 6;
+  Expires expires = 7;
+  repeated Via via = 8;
+  repeated Extension extensions = 9;
 }

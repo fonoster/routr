@@ -11,22 +11,25 @@ import javax.sip.SipFactory;
 import javax.sip.header.HeaderFactory;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
-import org.junit.jupiter.api.Test;
+import javax.sip.message.Response;
 import javax.sip.header.ExtensionHeader;
 import javax.sip.header.Header;
-
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.ContentLength;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyObject;
+import org.junit.jupiter.api.Test;
 import io.routr.headers.CallIDConverter;
 import io.routr.headers.ContentLengthConverter;
 import io.routr.headers.ExtensionConverter;
 import io.routr.headers.MessageConverter;
 import io.routr.headers.ViaConverter;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
-import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyObject;
+import io.routr.message.*;
+import io.routr.common.*;
+import io.routr.processor.*;
 
 public class ConveterTests {
 
@@ -68,7 +71,7 @@ public class ConveterTests {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     CallID header = (CallID) factory.createCallIdHeader("call001");
     CallIDConverter converter = new CallIDConverter();
-    io.routr.CallID callIdDTO = converter.fromHeader(header);
+    io.routr.message.CallID callIdDTO = converter.fromHeader(header);
     CallID headerFromDto = converter.fromDTO(callIdDTO);
 
     assertEquals("call001", header.getCallId());
@@ -82,7 +85,7 @@ public class ConveterTests {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     ContentLength header = (ContentLength) factory.createContentLengthHeader(200);
     ContentLengthConverter converter = new ContentLengthConverter();
-    io.routr.ContentLength contentLengthDTO = converter.fromHeader(header);
+    io.routr.message.ContentLength contentLengthDTO = converter.fromHeader(header);
     ContentLength headerFromDto = converter.fromDTO(contentLengthDTO);
 
     assertEquals(200, header.getContentLength());
@@ -96,7 +99,7 @@ public class ConveterTests {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     ViaConverter converter = new ViaConverter();
     Via header = (Via) factory.createViaHeader("sip.local", 5060, "tcp", null);
-    io.routr.Via viaDTO = converter.fromHeader(header);
+    io.routr.message.Via viaDTO = converter.fromHeader(header);
     Via headerFromDto = converter.fromDTO(viaDTO);
 
     assertEquals("sip.local", header.getHost());
@@ -110,7 +113,7 @@ public class ConveterTests {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     ExtensionConverter converter = new ExtensionConverter();
     ExtensionHeader header = (ExtensionHeader) factory.createHeader("X-Custom-Header", "my custom header");
-    io.routr.Extension dto = converter.fromHeader(header);
+    io.routr.message.Extension dto = converter.fromHeader(header);
     ExtensionHeader headerFromDto = (ExtensionHeader) converter.fromDTO(dto);
 
     assertEquals("X-Custom-Header", header.getName());
@@ -121,17 +124,21 @@ public class ConveterTests {
   }
 
   @Test
-  public void testRequestConveter() throws Exception {
+  public void testRequestConvertion() throws Exception {
     HeaderFactory headerFactory = SipFactory.getInstance().createHeaderFactory();
     MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
+
+    var via1 = headerFactory.createViaHeader("sip.local.hop1", 5060, "tcp", null);
+    via1.setBranch("1234");
+
     Request request = messageFactory.createRequest(
         "REGISTER sip:sip.local;transport=tcp SIP/2.0\r\n\r\n");
     request.addHeader(headerFactory.createCallIdHeader("call001"));
     request.addHeader(headerFactory.createContentLengthHeader(200));
     request.addHeader(headerFactory.createHeader("X-Custom-Header-01", "my custom header 01"));
     request.addHeader(headerFactory.createHeader("X-Custom-Header-02", "my custom header 02"));
+    request.addHeader(via1);
     request.addHeader(headerFactory.createViaHeader("sip.local.hop1", 5060, "tcp", null));
-    request.addHeader(headerFactory.createViaHeader("sip.local.hop2", 5060, "tcp", null));
     request.addHeader(headerFactory.createAllowHeader("INVITE"));
     request.addHeader(headerFactory.createAllowHeader("BYE"));
 
@@ -146,11 +153,47 @@ public class ConveterTests {
     assertEquals(message.getExtensions(1).getValue(), "my custom header 02");
     assertEquals(message.getExtensions(2).getName(), "Allow");
 
+    // ? Why 1 and not 0?
+    assertEquals(message.getViaList().get(1).getBranch(), via1.getBranch());
+    assertEquals(message.getViaList().get(1).getTransport(), via1.getTransport());
+
     // WARNINIG: Extensions are not considered repeteable, which causes us only
     // getting
     // the first occurrence of the header (e.g INVITE was added but BYE wasnt)
     // That means that we have to implement a converter for ALL repeateable headers.
     assertEquals(message.getExtensions(2).getValue(), "INVITE");
+
+    // assertEquals(message.getRequestUri().getUser(), null);
+    assertEquals(message.getRequestUri().getHost(), "sip.local");
+    assertEquals(message.getRequestUri().getTransportParam(), "tcp");
+  }
+
+  @Test
+  public void testResponseConvertion() throws Exception {
+    HeaderFactory headerFactory = SipFactory.getInstance().createHeaderFactory();
+    MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
+
+    var via1 = headerFactory.createViaHeader("sip.local.hop1", 5060, "tcp", null);
+    via1.setBranch("1234");
+
+    Response response = messageFactory.createResponse(
+        "SIP/2.0 401 Unauthorized\r\n\r\n");
+    response.addHeader(headerFactory.createCallIdHeader("call001"));
+    response.addHeader(headerFactory.createHeader("X-Custom-Header", "my custom header"));
+    response.addHeader(via1);
+    response.addHeader(headerFactory.createViaHeader("sip.local.hop2", 5060, "tcp", null));
+
+    SIPMessage message = MessageConverter.convertToMessageDTO(response);
+
+    assertEquals(message.getResponseType(), ResponseType.UNAUTHORIZED);
+    assertEquals(message.getCallId().getCallId(), "call001");
+    assertEquals(message.getExtensionsCount(), 1);
+    assertEquals(message.getExtensions(0).getName(), "X-Custom-Header");
+    assertEquals(message.getExtensions(0).getValue(), "my custom header");
+
+    // ? Why 1 and not 0?
+    assertEquals(message.getViaList().get(1).getBranch(), via1.getBranch());
+    assertEquals(message.getViaList().get(1).getTransport(), via1.getTransport());
   }
 
   @Test
@@ -170,7 +213,7 @@ public class ConveterTests {
 
     SIPMessage message = MessageConverter.convertToMessageDTO(request);
     List<Header> headers = MessageConverter.createHeadersFromMessage(message);
-    assertEquals(4, headers.size());  
+    assertEquals(6, headers.size());
   }
 
 }

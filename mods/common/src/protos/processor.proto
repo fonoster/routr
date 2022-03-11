@@ -3,21 +3,17 @@ syntax = "proto3";
 package fonoster.routr.processor.v2draft1;
 
 option java_multiple_files = true;
-option java_package = "io.routr";
+option java_package = "io.routr.processor";
 option java_outer_classname = "ProcessorProto";
 option objc_class_prefix = "PR";
 
+import "common.proto";
 import "sipmessage.proto";
 
 // Processor service
 service Processor {
   // Process Message Request
   rpc ProcessMessage (MessageRequest) returns (MessageResponse) {}
-}
-
-enum RequestType {
-  REQUEST = 0;
-  RESPONSE = 1;
 }
 
 enum Method {
@@ -30,40 +26,22 @@ enum Method {
   SUBSCRIBE = 6;
 }
 
-enum Transport {
-  TCP = 0;
-  UDP = 1;
-  TLS = 2;
-  SCTP = 3;
-  WS = 4;
-  WSS = 5;
-}
-
 message NetInterface {
   string host = 1;
   int32 port = 2;
-  Transport transport = 3;
+  fonoster.routr.common.v2draft1.Transport transport = 3;
 }
 
 message MessageRequest {
   string ref = 1;
-  RequestType request_type = 2;
-  Method method = 3;
-  // .google.protobuf.Struct metadata = 4
-  NetInterface sender = 5;
-  repeated NetInterface external_addrs = 6;
-  repeated string localnets = 7;
-  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 8;
+  Method method = 2;
+  NetInterface sender = 3;
+  repeated NetInterface external_addrs = 4;
+  repeated string localnets = 5;
+  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 6;
+  // .google.protobuf.Struct metadata = 7;
 }
 
 message MessageResponse {
-  // Note1: 
-  //  If the type in MessageRequest was REQUEST and here we get type RESPONSE
-  //  then the proxy must respond to the UAC with 'message'.
-  // 
-  // Note 2:
-  //  If the type in MessageRequest was RESPONSE then the proxy must forward 
-  //  to the UAS.
-  RequestType request_type = 1;
-  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 2;
+  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 1;
 }

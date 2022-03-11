@@ -1,13 +1,11 @@
 package io.routr;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 import io.routr.headers.ResponseCode;
-import io.routr.ResponseType;
+import io.routr.message.ResponseType;
 
 public class ResponseCodeTests {
-
   @Test
   public void checkCodes() {
     assertEquals(100, ResponseCode.valueOf(ResponseType.TRYING.toString()).getCode());
