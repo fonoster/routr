@@ -17,13 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import MessageRouter from "./service"
+import MessageDispatcher from "./service"
 import { getConfig } from "./config/get_config"
 
 const result = getConfig(process.env.CONFIG_PATH)
 
 if (result._tag === 'Right') {
-  MessageRouter(result.right) 
+  MessageDispatcher(result.right) 
 } else {
   console.log(result.left)
 }

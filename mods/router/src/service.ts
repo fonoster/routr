@@ -16,13 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRouterConfig } from "./types"
+import { MessageDispatcherConfig } from "./types"
 import { 
   createService,
 } from "@routr/common"
 import { getServiceInfo } from "./util"
 
-export default function MessageRouter(config: MessageRouterConfig) {
+export default function MessageDispatcher(config: MessageDispatcherConfig) {
   const {bindAddr, processors} = config
   createService(getServiceInfo(bindAddr, processors))
 }

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRouterConfig } from "../types"
+import { MessageDispatcherConfig } from "../types"
 import fs from "fs"
 import { schema } from './schema'
 import Ajv from "ajv"
@@ -26,7 +26,7 @@ const ajv = new Ajv()
 const validate = ajv.compile(schema)
 
 export const getConfig = (path: string)
-  : E.Either<Error, MessageRouterConfig> => {
+  : E.Either<Error, MessageDispatcherConfig> => {
   const c = JSON.parse(fs.readFileSync(path, "utf8")) 
 
   if (!validate({...c})) {

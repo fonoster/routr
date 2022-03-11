@@ -6,8 +6,8 @@ WORKDIR /scripts
 
 RUN apk add --no-cache --update curl tini nodejs npm python3 make cmake g++ \
   && npm pack \
-  && npm install -g routr-*.tgz \
-  && link /usr/local/bin/run_router /usr/local/bin/run \
+  && npm install -g dispatcher-*.tgz \
+  && link /usr/local/bin/run_dispatcher /usr/local/bin/run \
   && rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/* \
   && apk del curl python3 make cmake g++
 

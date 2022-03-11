@@ -73,10 +73,10 @@ const messageRequest: MessageRequest = {
   sipMessage: {}
 }
 
-describe('@routr/router', () => {
+describe('@routr/dispatcher', () => {
   afterEach(() => sandbox.restore());
 
-  describe('@routr/router/find_processor', () => {
+  describe('@routr/dispatcher/find_processor', () => {
     it('checks if method of the request is enabled', () => {
       const messageRequest2 = { ...messageRequest }
       messageRequest2.method = 'MESSAGE'
@@ -114,7 +114,7 @@ describe('@routr/router', () => {
     })
   })
 
-  describe('@routr/router/processor', () => {
+  describe('@routr/dispatcher/processor', () => {
     it('callback gets invoke with an error', (done) => {
       sandbox.stub(PROCESSOR_OBJECT_PROTO, 'Processor').returns(
         {
@@ -177,7 +177,7 @@ describe('@routr/router', () => {
   })
 
   it('gets configuration from file', (done) => {
-    const result = getConfig(__dirname + "/../../../config/router.json")
+    const result = getConfig(__dirname + "/../../../config/dispatcher.json")
     if (result._tag === 'Right') {
       const config = result.right
       expect(config).to.have.property("bindAddr")

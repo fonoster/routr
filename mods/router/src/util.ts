@@ -27,7 +27,7 @@ export function getServiceInfo(bindAddr: string, processors: ProcessorConfig[])
   : ServiceInfo {
   const { service } = PROCESSOR_OBJECT_PROTO.Processor
   return {
-    name: "router",
+    name: "dispatcher",
     bindAddr,
     service,
     handlers: {

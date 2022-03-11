@@ -1,5 +1,5 @@
 {
-  "kind": "MessageRouter",
+  "kind": "MessageDispatcher",
   "apiVersion": "v2draft1",
   "metadata": {
     "ref": "mr001"

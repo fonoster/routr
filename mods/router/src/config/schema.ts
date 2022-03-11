@@ -18,8 +18,8 @@
  */
 export const schema = {
   "$id": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Message Router configuration",
-  "description": "Configuration for a Message Router instance",
+  "title": "Message Dispatcher configuration",
+  "description": "Configuration for a Message Dispatcher instance",
   "type": "object",
   "properties": {
     "kind": {

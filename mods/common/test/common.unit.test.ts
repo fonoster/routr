@@ -28,7 +28,7 @@ const sandbox = sinon.createSandbox();
 const objectProto = {
   name: "processor",
   version: "v2draft1",
-  path: __dirname + '../../../../protos/processor.proto'
+  path: __dirname + '/../src/protos/processor.proto'
 }
 
 describe('@routr/common', () => {

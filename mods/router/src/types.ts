@@ -18,7 +18,7 @@
  */
 import { ProcessorConfig } from "@routr/common"
 
-export interface MessageRouterConfig {
+export interface MessageDispatcherConfig {
   bindAddr: string
   processors: Array<ProcessorConfig>
 }
