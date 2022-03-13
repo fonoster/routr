@@ -18,22 +18,24 @@
  */
 import grpc = require("@grpc/grpc-js")
 
-export class NotMatchingProcessorFound extends Error {
+export type LocationError = UnsupportedSchema | RouteNotFound
+
+export class UnsupportedSchema extends Error {
   code: grpc.status;
-  constructor(ref: string) {
-    super(`not matching processor found for request ref: ${ref}`);
-    this.code = grpc.status.NOT_FOUND
+  constructor(aor: string) {
+    super(`aor ${aor} has an invalid schema, only "sip:" or "backend:" are allowed`);
+    this.code = grpc.status.INVALID_ARGUMENT
     // Set the prototype explicitly.
-    Object.setPrototypeOf(this, NotMatchingProcessorFound.prototype);
+    Object.setPrototypeOf(this, UnsupportedSchema.prototype);
   }
 }
 
-export class ProcessorUnavailableError extends Error {
+export class RouteNotFound extends Error {
   code: number;
-  constructor(ref: string) {
-    super(`processor ref = ${ref} is unavailable`);
-    this.code = grpc.status.UNAVAILABLE
+  constructor(aor: string) {
+    super(`route for aor ${aor} not found`);
+    this.code = grpc.status.NOT_FOUND
     // Set the prototype explicitly.
-    Object.setPrototypeOf(this, NotMatchingProcessorFound.prototype);
+    Object.setPrototypeOf(this, RouteNotFound.prototype);
   }
 }

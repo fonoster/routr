@@ -1,18 +1,18 @@
 {
-  "name": "@routr/dispatcher",
+  "name": "@routr/location",
   "version": "2.0.5-alpha.1",
-  "description": "Receives SIP messages and forwards them to the corresponding Message Processor",
+  "description": "Creates and maintains a list of routes to all registered endpoints",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
   "license": "MIT",
-  "main": "dist/dispatcher",
-  "types": "dist/dispatcher",
+  "main": "dist/location",
+  "types": "dist/location",
   "scripts": {
     "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
     "build": "tsc -b tsconfig.json"
   },
   "bin": {
-    "run_dispatcher": "dist/runner.js"
+    "run_location": "dist/runner.js"
   },
   "directories": {
     "src": "src",
