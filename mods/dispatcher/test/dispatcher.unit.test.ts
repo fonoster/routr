@@ -36,7 +36,7 @@ const sandbox = sinon.createSandbox();
 const config1: ProcessorConfig = {
   ref: "processor-ref1",
   isFallback: false,
-  addr: "localhost:51902",
+  addr: "localhost:51903",
   methods: ['REGISTER'],
   matchFunc: (request: MessageRequest) => request.method === 'REGISTER'
 }

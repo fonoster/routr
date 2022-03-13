@@ -21,7 +21,9 @@ import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import Locator from '../src/locator'
 import MemoryStore from '../src/memory_store'
+import { getConfig } from '../src/config/get_config'
 import * as Routes from './route_examples'
+import { LB_ALGORITHM } from '../src/types'
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -111,5 +113,29 @@ describe('@routr/location', () => {
       .to.have.property("user").to.be.equal("conference01")      
   })
 
-})
+  it('gets configuration from file', (done) => {
+    const result = getConfig(__dirname + "/../../../config/location.json")
+    if (result._tag === 'Right') {
+      const config = result.right
 
+      expect(config).to.have.property("bindAddr")
+      expect(config.backends[0])
+        .to.have.property("ref").to.be.equal("voice")
+      expect(config.backends[0])
+        .to.have.property("balancingAlgorithm").to.be.equal("round-robin")
+      expect(config.backends[1])
+        .to.have.property("ref").to.be.equal("conference")
+      expect(config.backends[1])
+        .to.have.property("balancingAlgorithm").to.be.equal("least-sessions") 
+      expect(config.backends[1])
+        .to.have.property("sessionAffinity")
+        .to.have.property("enabled").to.be.equal(true)
+      expect(config.backends[1])
+        .to.have.property("sessionAffinity")
+        .to.have.property("ref").to.be.equal("room_id")
+      done()
+    } else {
+      done(result.left)
+    }
+  })
+})

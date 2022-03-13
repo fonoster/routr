@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -16,16 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare const System: any
-
-import EdgePort from './edgeport'
+import logger from '@fonoster/logger'
+import LocationService from "./service"
 import { getConfig } from "./config/get_config"
-import { EdgePortConfig } from './types'
 
-const config = getConfig<EdgePortConfig>(System.getenv('CONFIG_PATH'))
+const result = getConfig(process.env.CONFIG_PATH)
 
-if (config._tag === 'Right') {
-  EdgePort(config.right)
+if (result._tag === 'Right') {
+  LocationService(result.right) 
 } else {
-  console.error(config.left)
+  logger.error(result.left)
 }

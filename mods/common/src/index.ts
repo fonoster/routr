@@ -18,8 +18,8 @@
  */
 import createService, { 
   PROCESSOR_OBJECT_PROTO,
-  LOCATION_OBJECT_PROTO
-  getObjectProto, 
+  LOCATION_OBJECT_PROTO,
+  getObjectProto
 } from "./service";
 import { 
   Transport, 

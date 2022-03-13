@@ -8,7 +8,7 @@
   "spec": {
     "bindAddr": "0.0.0.0",
     "processor": {
-      "addr": "localhost:51902"
+      "addr": "localhost:51903"
     },
     "externalAddrs": [
       "165.227.217.102:6090",

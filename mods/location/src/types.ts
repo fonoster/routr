@@ -19,8 +19,8 @@ import { string } from "fp-ts"
  * limitations under the License.
  */
 export enum LB_ALGORITHM {
-  ROUND_ROBIN,
-  LEAST_SESSIONS
+  ROUND_ROBIN= "round-robin",
+  LEAST_SESSIONS = "least-sessions"
 }
 
 export interface ILocationService {
@@ -73,4 +73,9 @@ export interface Backend {
     enabled: boolean
     ref: string
   }
+}
+
+export interface LocationConfig {
+  bindAddr: string,
+  backends?: Backend[]
 }

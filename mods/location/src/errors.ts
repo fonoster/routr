@@ -19,6 +19,7 @@
 import grpc = require("@grpc/grpc-js")
 
 export type LocationError = UnsupportedSchema | NotRoutesFoundForAOR
+export type InvalidConfiguration = BadAlgorithmAndAffinityCombination | InvalidSchemaConfiguration
 
 export class UnsupportedSchema extends Error {
   code: grpc.status;
@@ -35,7 +36,31 @@ export class NotRoutesFoundForAOR extends Error {
   constructor(aor: string) {
     super(`no routes found for aor ${aor}`);
     this.code = grpc.status.NOT_FOUND
-    // Set the prototype explicitly.
     Object.setPrototypeOf(this, NotRoutesFoundForAOR.prototype);
+  }
+}
+
+export class InvalidSchemaConfiguration extends Error {
+  code: grpc.status;
+  constructor(msg: string) {
+    super(msg);
+    this.code = grpc.status.INVALID_ARGUMENT
+    Object.setPrototypeOf(this, InvalidSchemaConfiguration.prototype);
+  }
+}
+
+export class BadAlgorithmAndAffinityCombination extends Error {
+  code: grpc.status;
+  constructor() {
+    super("session affinity can not be combined with round-robin load balancing");
+    Object.setPrototypeOf(this, BadAlgorithmAndAffinityCombination.prototype);
+  }
+}
+
+export class InvalidLoadBalancerAlgorithm extends Error {
+  code: grpc.status;
+  constructor() {
+    super("found invalid load balancing algorithm. must be round-robin or least-sessions");
+    Object.setPrototypeOf(this, BadAlgorithmAndAffinityCombination.prototype);
   }
 }

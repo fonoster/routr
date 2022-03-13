@@ -44,9 +44,7 @@ export default class Locator implements ILocationService {
     this.backends = backends
     this.rrCount = new Map<string, number>()
     this.affinityStore = new Map<string, Route>()
-    this.backends.forEach((value, key) => {
-      this.rrCount.set(key, 0)
-    })
+    this.backends.forEach((value, key) => this.rrCount.set(key, 0))
   }
 
   public addRoute(request: AddRouteRequest): Promise<void> {

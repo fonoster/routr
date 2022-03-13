@@ -392,17 +392,17 @@ Example:
     "middlewares": [
       {
         "ref": "mid01",
-        "addr": "middleware01:51902"
+        "addr": "middleware01:51903"
       },
       {
         "ref": "mid02",
-        "addr": "middleware02:51902"
+        "addr": "middleware02:51903"
       }
     ],
     "processors": [
       {
         "ref": "scaip-essense",
-        "addr": "scaipessense:51902",
+        "addr": "scaipessense:51903",
         "methods": [
           "MESSAGE"
         ],
@@ -411,7 +411,7 @@ Example:
       {
         "ref": "fallback-processor",
         "isFallback": true,
-        "addr": "fallbackprocessor:51902",
+        "addr": "fallbackprocessor:51903",
         "methods": [
           "REGISTER",
           "MESSAGE",

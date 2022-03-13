@@ -22,7 +22,7 @@ const edgePortConfig: EdgePortConfig = {
   spec: {
     bindAddr: '127.0.0.1',
     processor: {
-      addr: 'localhost:51902'
+      addr: 'localhost:51903'
     },
     transport: [
       {
