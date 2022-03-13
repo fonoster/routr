@@ -50,12 +50,12 @@ export default function getServerProperties(config: EdgePortConfig): Map<string,
   if (config.spec.securityContext) {
     properties.set(
       'gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS',
-      config.spec.securityContext.client.protocols.join()
+      config.spec.securityContext.client?.protocols.join()
     )
     // This must be set to 'Disabled' when using WSS
     properties.set(
       'gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE',
-      config.spec.securityContext.client.authType
+      config.spec.securityContext.client?.authType
     )
     properties.set(
       'javax.net.ssl.keyStore',
@@ -65,6 +65,7 @@ export default function getServerProperties(config: EdgePortConfig): Map<string,
       'javax.net.ssl.trustStore',
       config.spec.securityContext.trustStore
     )
+    
     properties.set(
       'javax.net.ssl.keyStorePassword',
       config.spec.securityContext.keyStorePassword

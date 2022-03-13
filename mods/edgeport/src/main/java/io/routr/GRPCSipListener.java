@@ -22,9 +22,7 @@ import java.util.*;
 import javax.sip.*;
 import javax.sip.address.AddressFactory;
 import javax.sip.message.*;
-
 import gov.nist.javax.sip.header.Via;
-
 import javax.sip.header.*;
 import java.text.ParseException;
 import io.grpc.ManagedChannel;
@@ -34,6 +32,7 @@ import io.routr.headers.MessageConverter;
 import io.routr.headers.ResponseCode;
 import io.routr.message.ResponseType;
 import io.routr.processor.*;
+import org.apache.logging.log4j.LogManager;
 
 public class GRPCSipListener implements SipListener {
   private final ProcessorGrpc.ProcessorBlockingStub blockingStub;
@@ -45,6 +44,8 @@ public class GRPCSipListener implements SipListener {
     MapProxyObject spec = (MapProxyObject) values.getMember("spec");
     MapProxyObject processor = (MapProxyObject) spec.getMember("processor");
     String addr = (String) processor.getMember("addr");
+    var LOG = LogManager.getLogger();
+    LOG.info("starting edgeport service at " + addr);
 
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
         .usePlaintext()

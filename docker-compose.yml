@@ -7,6 +7,7 @@ services:
     image: routr/edgeport
     environment:
       CONFIG_PATH: '/etc/routr/edgeport.json'
+      LOG4J2: /etc/routr/log4j2.yml
       LOGS_LEVEL: verbose
     ports:
       - 5060:5060
@@ -15,6 +16,7 @@ services:
       - 5062:5061
       - 5063:5061
     volumes:
+      - ./config/log4j2.xml:/etc/routr/log4j2.yml
       - ./config/edgeport.json:/etc/routr/edgeport.json
 
   dispatcher:

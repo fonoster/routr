@@ -7,6 +7,17 @@
   },
   "spec": {
     "bindAddr": "0.0.0.0",
+    "securityContext": {
+      "client": {
+        "protocols": ["TLSv1.2"],
+        "authType": "Want"
+      },
+      "keyStorePassword": "changeit",
+      "trustStorePassword": "changeit",
+      "keyStore": "etc/certs/domains-cert.jks",
+      "trustStore": "etc/certs/domains-cert.jks",
+      "keyStoreType": "pkcs12"
+    },
     "processor": {
       "addr": "localhost:51903"
     },

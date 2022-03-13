@@ -2,7 +2,7 @@ Configuration:
   Appenders:
     Console:
       PatternLayout:
-        pattern: '[%-5level] %msg%n'
+        pattern: '%highlight{%-4level{lowerCase=true}}: %msg%n'
       name: Console
       target: SYSTEM_OUT
     # Do not remove this appender as is needed by the /system/logs endpoint
@@ -20,7 +20,7 @@ Configuration:
           max: 10
   Loggers:
     Root:
-      level: debug
+      level: info
       AppenderRef:
       - ref: Console
       - ref: LogToRollingFile
