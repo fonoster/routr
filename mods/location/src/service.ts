@@ -16,33 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import createService, { 
-  PROCESSOR_OBJECT_PROTO,
-  LOCATION_OBJECT_PROTO
-  getObjectProto, 
-} from "./service";
+import { LocationConfig } from "./types"
 import { 
-  Transport, 
-  ProcessorConfig, 
-  MessageRequest, 
-  NetInterface, 
-  Method, 
-  Direction,
-  ObjectProto, 
-  ServiceInfo
-} from "./types";
-
-export {
   createService,
-  getObjectProto,
-  Transport,
-  ProcessorConfig,
-  MessageRequest,
-  NetInterface,
-  Method,
-  Direction,
-  ObjectProto,
-  ServiceInfo,
-  PROCESSOR_OBJECT_PROTO,
-  LOCATION_OBJECT_PROTO
-};
+} from "@routr/common"
+import { getServiceInfo } from "./utils"
+import Locator from "./locator"
+import MemoryStore from "./memory_store"
+
+export default function LocationService(config: LocationConfig) {
+  const { bindAddr } = config
+  createService(getServiceInfo(bindAddr, new Locator(new MemoryStore())))
+}

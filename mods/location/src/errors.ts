@@ -18,7 +18,7 @@
  */
 import grpc = require("@grpc/grpc-js")
 
-export type LocationError = UnsupportedSchema | RouteNotFound
+export type LocationError = UnsupportedSchema | NotRoutesFoundForAOR
 
 export class UnsupportedSchema extends Error {
   code: grpc.status;
@@ -30,12 +30,12 @@ export class UnsupportedSchema extends Error {
   }
 }
 
-export class RouteNotFound extends Error {
+export class NotRoutesFoundForAOR extends Error {
   code: number;
   constructor(aor: string) {
-    super(`route for aor ${aor} not found`);
+    super(`no routes found for aor ${aor}`);
     this.code = grpc.status.NOT_FOUND
     // Set the prototype explicitly.
-    Object.setPrototypeOf(this, RouteNotFound.prototype);
+    Object.setPrototypeOf(this, NotRoutesFoundForAOR.prototype);
   }
 }

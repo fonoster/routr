@@ -16,7 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Backend, Route } from "./types"
+import { Backend, ILocationService, Route } from "./types"
+import { 
+  LOCATION_OBJECT_PROTO,
+  ServiceInfo
+} from "@routr/common"
+import { NotRoutesFoundForAOR } from "./errors"
 
 export const expiredFilter = (r: Route) => 
   (r.expires - (Date.now() - r.registeredOn) / 1000) > 0
@@ -35,3 +40,42 @@ export const filterOnlyMatchingLabels = (requestLabels: Map<string, string>) =>
     : false
 
 export const hasAffinitySession = (backend: Backend) => backend?.sessionAffinity?.enabled
+
+export function getServiceInfo(bindAddr: string, locator: ILocationService)
+  : ServiceInfo {
+  return {
+    name: "location",
+    bindAddr,
+    service: LOCATION_OBJECT_PROTO.Location.service,
+    handlers: {
+      addRoute: (call, callback) => {
+        try {
+          locator.addRoute((call as any).request)
+          callback(null, {})
+        } catch(e) {
+          callback(e, null)
+        }
+      } ,
+      findRoutes: async (call, callback) => {
+        try {
+          const routes = await locator.findRoutes((call as any).request)
+          if (routes.length == 0) throw new NotRoutesFoundForAOR((call as any).request.aor)
+          callback(null, {
+            routes: routes
+          })
+        } catch(e) {
+          callback(e, null)
+        }
+      },
+      removeRoutes: async (call, callback) => {
+        try {
+          callback(null, {
+            routes: await locator.findRoutes((call as any).request)
+          })
+        } catch(e) {
+          callback(e, null)
+        }
+      }
+    }
+  }
+}

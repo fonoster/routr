@@ -25,11 +25,10 @@ import {
 
 export function getServiceInfo(bindAddr: string, processors: ProcessorConfig[])
   : ServiceInfo {
-  const { service } = PROCESSOR_OBJECT_PROTO.Processor
   return {
     name: "dispatcher",
     bindAddr,
-    service,
+    service: PROCESSOR_OBJECT_PROTO.Processor.service,
     handlers: {
       processMessage: processor(processors)
     }

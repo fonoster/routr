@@ -16,7 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { RouteNotFound, UnsupportedSchema } from "./errors";
+import { 
+  NotRoutesFoundForAOR, 
+  UnsupportedSchema 
+} from "./errors";
 import {
   AddRouteRequest,
   Backend,
@@ -36,12 +39,12 @@ export default class Locator implements ILocationService {
   private affinityStore: Map<string, Route>
 
   // Should fail if any backend has sessionAffinity and round-robin
-  constructor(store: ILocatorStore, backends: Map<string, Backend>) {
+  constructor(store: ILocatorStore, backends: Map<string, Backend> = new Map()) {
     this.store = store
     this.backends = backends
     this.rrCount = new Map<string, number>()
     this.affinityStore = new Map<string, Route>()
-    backends.forEach((value, key) => {
+    this.backends.forEach((value, key) => {
       this.rrCount.set(key, 0)
     })
   }
@@ -66,7 +69,7 @@ export default class Locator implements ILocationService {
       const backend = this.backends.get(request.aor)
 
       if (!backend) {
-        throw new RouteNotFound(request.aor)
+        throw new NotRoutesFoundForAOR(request.aor)
       }
 
       // If it has not affinity sesssion then get next

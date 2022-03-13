@@ -37,6 +37,12 @@ export const PROCESSOR_OBJECT_PROTO = getObjectProto<any>({
   path: __dirname + '/protos/processor.proto'
 })
 
+export const LOCATION_OBJECT_PROTO = getObjectProto<any>({
+  name: "location",
+  version: "v2draft1",
+  path: __dirname + '/protos/location.proto'
+})
+
 export function getObjectProto<A>(objectProto: ObjectProto): A | ServiceDefinitionNotFound {
   const definitions = protoLoader.loadSync(objectProto.path, loadOptions)
   const objProto = grpc.loadPackageDefinition(definitions)
