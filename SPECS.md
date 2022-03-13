@@ -15,7 +15,7 @@
   * [References](#references)
 - [Requirements Specification](#requirements-specification)
   * [EdgePort](#edgeport)
-  * [Message Router](#message-router)
+  * [Message Dispatcher](#message-dispatcher)
   * [Message Processor](#message-processor)
   * [Data APIs](#data-apis)
 
@@ -63,11 +63,11 @@ IEEE/ISO/IEC 29148-2018 - ISO/IEC/IEEE International Standard - Systems and soft
 <!--
 Diagram generated with: https://arthursonzogni.com/Diagon/#GraphDAG
 Raw Diagram:
- EdgePort 001 -> Message Router
- EdgePort 002 -> Message Router
- Message Router -> SCAIP Processor
- Message Router -> Fallback Processor
- Message Router -> Twilio Processor
+ EdgePort 001 -> Message Dispatcher
+ EdgePort 002 -> Message Dispatcher
+ Message Dispatcher -> SCAIP Processor
+ Message Dispatcher -> Fallback Processor
+ Message Dispatcher -> Twilio Processor
  SCAIP Processor -> Data APIs & External Services
 -->
 
@@ -76,7 +76,7 @@ Raw Diagram:
 │EdgePort 001││EdgePort 002│                           
 └┬───────────┘└┬───────────┘                           
 ┌▽─────────────▽───────────────────────┐               
-│Message Router                        │               
+│Message Dispatcher                        │               
 └┬────────────────┬───────────────────┬┘               
 ┌▽──────────────┐┌▽─────────────────┐┌▽───────────────┐
 │SCAIP Processor││Fallback Processor││Twilio Processor│
@@ -86,9 +86,9 @@ Raw Diagram:
 └─────────────────────────────┘                        
 ```
 
-The SIP Server "Routr" has three main components and one cooperating service. The first component, the EdgePort, is responsible for accepting SIP Messages parsing them into protobuf, and sending them to the Message Router. After a SIP Message is processed, the EdgePort will forward the SIP Message to the next-hop.
+The SIP Server "Routr" has three main components and one cooperating service. The first component, the EdgePort, is responsible for accepting SIP Messages parsing them into protobuf, and sending them to the Message Dispatcher. After a SIP Message is processed, the EdgePort will forward the SIP Message to the next-hop.
 
-The job of *Message Router* is to accept SIP Messages encapsulated as protobuf from the EdgePort, and routing the SIP Message to and from the Message Processor.
+The job of *Message Dispatcher* is to accept SIP Messages encapsulated as protobuf from the EdgePort, and routing the SIP Message to and from the Message Processor.
 
 *Message Processor(s)* is responsible for the authentication, validation, and processing of SIP Messages, as well as updating the SIP Messages so that they can reach their destination.
 
@@ -98,14 +98,14 @@ The job of *Message Router* is to accept SIP Messages encapsulated as protobuf f
 Diagram generated with: https://arthursonzogni.com/Diagon/#Sequence
 Raw Diagram:
   SIP Client -> EdgePort: SIP Request
-  EdgePort -> Message Router: gRPC Request
-  EdgePort <- Message Router: gRPC Response
+  EdgePort -> Message Dispatcher: gRPC Request
+  EdgePort <- Message Dispatcher: gRPC Response
   SIP Client <- EdgePort: SIP Response
 -->
 
 ```none
  ┌──────────┐  ┌────────┐ ┌──────────────┐
- │SIP Client│  │EdgePort│ │Message Router│
+ │SIP Client│  │EdgePort│ │Message Dispatcher│
  └────┬─────┘  └───┬────┘ └──────┬───────┘
       │            │             │        
       │SIP Request │             │        
@@ -120,7 +120,7 @@ Raw Diagram:
       │SIP Response│             │        
       │<───────────│             │        
  ┌────┴─────┐  ┌───┴────┐ ┌──────┴───────┐
- │SIP Client│  │EdgePort│ │Message Router│
+ │SIP Client│  │EdgePort│ │Message Dispatcher│
  └──────────┘  └────────┘ └──────────────┘
 ```
 
@@ -164,7 +164,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
   "spec": {
     "bindAddr": "0.0.0.0",
     "processor": {
-      "addr": "router:51901"
+      "addr": "dispatcher:51901"
     },
     "advertisedAddrs": [
       "165.227.217.102",
@@ -298,7 +298,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
 
 **Communication with Adjacent Services**
 
-Adjacent to the *EdgePort* is the *Message Router*. The communication between these two services is done using gRPC and protobuf.
+Adjacent to the *EdgePort* is the *Message Dispatcher*. The communication between these two services is done using gRPC and protobuf.
 
 <details>
 <summary>Message Proto</summary>
@@ -328,11 +328,11 @@ Running the *EdgePort* in Kubernetes can be challenging. Keep following in mind 
 2. The EdgePort uses the SIP protocol which requires L7 load balancers
 3. A complex network topology could disrupt the service and create latency
 
-### Message Router
+### Message Dispatcher
 
 ```none
  ┌────────┐ ┌──────────────┐                 ┌─────────────────┐
- │EdgePort│ │Message Router│                 │Message Processor│
+ │EdgePort│ │Message Dispatcher│                 │Message Processor│
  └───┬────┘ └──────┬───────┘                 └────────┬────────┘
      │             │                                  │         
      │gRPC Request │                                  │         
@@ -347,19 +347,19 @@ Running the *EdgePort* in Kubernetes can be challenging. Keep following in mind 
      │gRPC Response│                                  │         
      │<────────────│                                  │         
  ┌───┴────┐ ┌──────┴───────┐                 ┌────────┴────────┐
- │EdgePort│ │Message Router│                 │Message Processor│
+ │EdgePort│ │Message Dispatcher│                 │Message Processor│
  └────────┘ └──────────────┘                 └─────────────────┘
 ```
 
 **Brief Description**
 
-The *Message Router* component takes a SIP message and forwards them to the corresponding Message Processor. The matching process is done using the request coming from the *EdgePort*.
+The *Message Dispatcher* component takes a SIP message and forwards them to the corresponding Message Processor. The matching process is done using the request coming from the *EdgePort*.
 
-The *Message Router* will always use the first processor that matches a request, and use a *fallback* processor only as of the last option. If no match is found for the given request, the server MUST respond with a `SIP 405: Method Not Allowed.` The *Message Router* component does not manipulate the SIP Messages in any way.
+The *Message Dispatcher* will always use the first processor that matches a request, and use a *fallback* processor only as of the last option. If no match is found for the given request, the server MUST respond with a `SIP 405: Method Not Allowed.` The *Message Dispatcher* component does not manipulate the SIP Messages in any way.
 
 **Functional Requirements**
 
-The following functions are Must have for an implementation of a *Message Router*:
+The following functions are Must have for an implementation of a *Message Dispatcher*:
 
 - *Stateless Service* - The service must be built in such a way to allow for scalability
 - *Accept gRPC Requests* - Accept gRPC Requests
@@ -372,7 +372,7 @@ The following functions are Must have for an implementation of a *Message Router
 
 **Non-functional Requirements**
 
-The following requirements are important to have for an implementation of a *Message Router*:
+The following requirements are important to have for an implementation of a *Message Dispatcher*:
 
 - *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
 - *Recoverability* - Recover from an unhealthy state
@@ -382,7 +382,7 @@ The following requirements are important to have for an implementation of a *Mes
 Example: 
 ```json
 {
-  "kind": "MessageRouter",
+  "kind": "MessageDispatcher",
   "apiVersion": "v2draft1",
   "metadata": {
     "ref": "mr001"
@@ -432,8 +432,8 @@ Example:
 ```json
 {
   "$id": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Message Router configuration",
-  "description": "Configuration for a Message Router instance",
+  "title": "Message Dispatcher configuration",
+  "description": "Configuration for a Message Dispatcher instance",
   "type": "object",
   "properties": {
     "kind": {
@@ -518,7 +518,7 @@ Example:
 
 **Communication with Adjacent Services**
 
-The adjacent services of the *Message Router* are the *EdgePort* and the *Message Processor*. The communication with all adjacent services is done with gRPC and protobuf. The `messagerouter.proto` contains the following code:
+The adjacent services of the *Message Dispatcher* are the *EdgePort* and the *Message Processor*. The communication with all adjacent services is done with gRPC and protobuf. The `processor.proto` contains the following code:
 
 ```
 syntax = "proto3";
@@ -528,11 +528,11 @@ package fonoster.routr.processor.v2draft1;
 // Processor service
 service Processor {
   // Process Message Request
-  rpc ProcessMessage (MessageRequest) returns (MessageRequest) {}
+  rpc ProcessMessage (MessageRequest) returns (MessageResponse) {}
 }
 ```
 
-The *Message Router* expects that *Message Procesor(s)* have the same interface.
+The *Message Dispatcher* expects that *Message Procesor(s)* have the same interface.
 
 **Test Criteria**
 
@@ -560,7 +560,7 @@ A processor will be responsible for one or more of the following tasks:
 Interface Pseudocode:
 
 ```text
-=> Message Processor Matched (by Message Router)
+=> Message Processor Matched (by Message Dispatcher)
   => isValid (message) or return Bad Request (400) 
   => isAuthenticated(message) or send Authentication Challenge
   => isAuthorized(message) or send is Unauthorized
@@ -580,7 +580,7 @@ Each Message Processor can have its own configuration based on the use case.
 
 **Communication with Adjacent Services**
 
-Adjacent to the *Message Processor* is the *Message Router*. The communication flows from the *Message Router* to the *Message Processor*, where the *Message Processor* is the server and *Message Router* is the client. A *Message Processor* MUST have the following protobuf interface:
+Adjacent to the *Message Processor* is the *Message Dispatcher*. The communication flows from the *Message Dispatcher* to the *Message Processor*, where the *Message Processor* is the server and *Message Dispatcher* is the client. A *Message Processor* MUST have the following protobuf interface:
 
 ```
 syntax = "proto3";

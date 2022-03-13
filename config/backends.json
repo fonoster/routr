@@ -4,6 +4,9 @@
     "apiVersion": "v2draft1",
     "metadata": {
       "ref": "voice"
+    },
+    "spec": {
+      "balancingAlgorithm": "least-sessions"
     }
   },
   {
@@ -13,9 +16,10 @@
       "ref": "conference"
     },
     "spec": {
+      "balancingAlgorithm": "least-sessions",
       "sessionAffinity": {
         "enabled": true,
-        "label": "conference_id"
+        "ref": "room_id"
       }
     }
   }
