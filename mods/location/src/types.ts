@@ -1,5 +1,3 @@
-import { string } from "fp-ts"
-
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr

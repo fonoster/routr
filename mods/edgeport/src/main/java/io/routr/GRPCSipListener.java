@@ -33,19 +33,22 @@ import io.routr.headers.ResponseCode;
 import io.routr.message.ResponseType;
 import io.routr.processor.*;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class GRPCSipListener implements SipListener {
   private final ProcessorGrpc.ProcessorBlockingStub blockingStub;
   private final MessageConverter messageConverter;
   private final SipProvider sipProvider;
+  private final Logger LOG = LogManager.getLogger();
 
   public GRPCSipListener(final SipProvider sipProvider, final Map config) {
     MapProxyObject values = new MapProxyObject(config);
     MapProxyObject spec = (MapProxyObject) values.getMember("spec");
     MapProxyObject processor = (MapProxyObject) spec.getMember("processor");
     String addr = (String) processor.getMember("addr");
-    var LOG = LogManager.getLogger();
-    LOG.info("starting edgeport service at " + addr);
+    String bindAddr = (String) spec.getMember("bindAddr");
+
+    LOG.info("starting edgeport service at " + bindAddr);
 
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
         .usePlaintext()
@@ -71,8 +74,7 @@ public class GRPCSipListener implements SipListener {
       try {
         serverTransaction = this.sipProvider.getNewServerTransaction(req);
       } catch (TransactionAlreadyExistsException | TransactionUnavailableException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        LOG.error(e.getMessage());
       }
     }
 
@@ -97,7 +99,7 @@ public class GRPCSipListener implements SipListener {
 
       this.sendRequest(serverTransaction, req, headers);
     } catch (StatusRuntimeException | SipException | ParseException | InvalidArgumentException e) {
-      e.printStackTrace();
+      LOG.error(e.getMessage());
     }
   }
 
@@ -125,7 +127,7 @@ public class GRPCSipListener implements SipListener {
 
       this.sipProvider.sendResponse(res);
     } catch (SipException | InvalidArgumentException | ParseException ex) {
-      ex.printStackTrace();
+      LOG.error(ex.getMessage());
     }
   }
 
@@ -172,14 +174,13 @@ public class GRPCSipListener implements SipListener {
       var clientTransaction = this.sipProvider.getNewClientTransaction(requestOut);
       clientTransaction.sendRequest();
     } catch (SipException e) {
-      e.printStackTrace();
+      LOG.error(e.getMessage());
     }
   }
 
   private static void sendResponse(final ServerTransaction transaction, final ResponseType type,
       final List<Header> headers)
       throws ParseException, InvalidArgumentException, SipException {
-    System.out.println("Sending response " + type);
     Request request = transaction.getRequest();
     MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
     Response response = messageFactory.createResponse(ResponseCode.valueOf(type.toString()).getCode(), request);

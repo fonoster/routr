@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.RequestEvent;
@@ -21,7 +20,6 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Message;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
-
 import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.ContentLength;
@@ -32,10 +30,14 @@ import io.routr.message.SIPMessage.Builder;
 import io.routr.message.*;
 import io.routr.common.*;
 import io.routr.processor.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-public class MessageConverter {
+public 
+class MessageConverter {
   private final List<NetInterface> externalAddrs;
   private final List<String> localnets;
+  private final static Logger LOG = LogManager.getLogger();
 
   public MessageConverter(List<String> addrs, List<String> localnets) {
     this.externalAddrs = getExternalAddresses(addrs);
@@ -150,6 +152,7 @@ public class MessageConverter {
         try {
           headers.add(converter.fromDTO(extension));
         } catch (Exception e) {
+          LOG.warn(e.getMessage());
           // This will stop happening once we implement all of the headers
           // e.printStackTrace();
         }
@@ -194,8 +197,7 @@ public class MessageConverter {
       try {
         return converter.getDeclaredConstructor().newInstance();
       } catch (Exception e) {
-        // Trow a FATAL and exist
-        e.printStackTrace();
+        LOG.warn(e.getMessage());
       }
     }
     return new ExtensionConverter();
