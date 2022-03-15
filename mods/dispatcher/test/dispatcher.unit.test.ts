@@ -70,7 +70,7 @@ const messageRequest: MessageRequest = {
     host: "localhost",
     transport: 'TCP'
   },
-  sipMessage: {}
+  message: {}
 }
 
 describe('@routr/dispatcher', () => {

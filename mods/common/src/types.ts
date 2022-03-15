@@ -45,11 +45,11 @@ export interface MessageRequest {
   method: Method
   originInterface: NetInterface
   targetInterface: NetInterface
-  sipMessage: Record<string, unknown>
+  message: Record<string, unknown>
 }
 
 export interface MessageResponse {
-  sipMessage: Record<string, unknown>
+  message: Record<string, unknown>
 }
 
 export interface ProcessorConfig {

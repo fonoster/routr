@@ -26,7 +26,6 @@ export function processMessage(call: any, callback: Function) {
   logger.verbose("got new request: ")
   logger.verbose(JSON.stringify(call.request, null, ' '))
   const response = {
-    request_type: call.request.request_type,
     message: { ...call.request.message }
   }
   callback(null, response)

@@ -22,6 +22,7 @@ import { ProcessorCallback } from "./types"
 import { runProcessor } from "./run_processor"
 import { MessageRequest, MiddlewareConfig } from "@routr/common/src/types"
 import { runMiddlewares } from "./run_middlewares"
+import logger from "@fonoster/logger"
 
 export default function processor(params: {
   processors: ProcessorConfig[]
@@ -34,9 +35,21 @@ export default function processor(params: {
   // Upstream request and callback
   return (call: any, callback: ProcessorCallback): void => {
     const { request } = call
+
+    // Messages type reponse will not be sent to middleware chain
+    if (request.message.message_type === 'response_type') {
+      return runProcessor({ callback, request, processors, connections: procConns })
+    }
+
     runMiddlewares({ callback, request, middlewares, connections: middConns })
-      .then((req: MessageRequest) => 
-        runProcessor({ callback, request: req, processors, connections: procConns }))
+      .then((req: MessageRequest) => {
+        // Since the chain was broken we need to skip the processor and return the updated request
+        if (req.message.message_type === "response_type") {
+          logger.verbose("skipped processsing request ref " + req.ref)
+          return callback(null, req)
+        }
+        runProcessor({ callback, request: req, processors, connections: procConns })
+      })
       .catch(callback)
   }
 }

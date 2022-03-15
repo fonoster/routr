@@ -20,23 +20,26 @@ import { ProcessorUnavailableError } from "./errors"
 import { findProcessor } from "./find_processor"
 import { RunProcessorParams } from "./types"
 import grpc = require("@grpc/grpc-js")
+import logger from "@fonoster/logger"
 
 export function runProcessor(params: RunProcessorParams) {
   const { callback, connections, processors, request } = params
   const matchResult = findProcessor(processors)(request)
 
-  if ('ref' in matchResult) {
-    const conn = connections.get(matchResult.ref)
-    // Connects to downstream processor
-    conn.processMessage(request, (err: any, response: any) => {
-      if (err?.code === grpc.status.UNAVAILABLE) {
-        // We aument the error to indicate which processor failed
-        callback(new ProcessorUnavailableError(matchResult.ref))
-        return
-      }
-      callback(err, response)
-    })
-  } else {
-    callback(matchResult)
-  }
+  if ('code' in matchResult) {
+    return callback(matchResult)
+  } 
+
+  logger.verbose("forwarding request to processor with ref => " + matchResult.ref)
+
+  const conn = connections.get(matchResult.ref)
+  // Connects to downstream processor
+  conn.processMessage(request, (err: any, response: any) => {
+    if (err?.code === grpc.status.UNAVAILABLE) {
+      // We aument the error to indicate which processor failed
+      callback(new ProcessorUnavailableError(matchResult.ref))
+      return
+    }
+    callback(err, response)
+  })
 }

@@ -20,6 +20,7 @@ import { MiddlewareUnavailableError } from "./errors"
 import { ProcessorGPRCConnection, RunMiddlewaresParams } from "./types"
 import { MessageRequest, MessageResponse } from "@routr/common"
 import grpc = require("@grpc/grpc-js")
+import logger from "@fonoster/logger"
 
 async function processMessage(middlewareRef: string,
   conn: ProcessorGPRCConnection, request: MessageRequest): Promise<MessageResponse> {
@@ -37,11 +38,16 @@ export async function runMiddlewares(params: RunMiddlewaresParams): Promise<Mess
   const req = { ...request }
   return new Promise(async (resolve, rejects) => {
     for (const midd of middlewares) {
+      logger.verbose("forwarding request to middleware with ref => " + midd.ref)
       // Get the next middleware
       const conn = connections.get(midd.ref)
       // Send message and re-insert response for next middleware
       try {
-        req.sipMessage = (await processMessage(midd.ref, conn, req)).sipMessage
+        req.message = (await processMessage(midd.ref, conn, req)).message
+        if (req.message.message_type === "response_type") {
+          logger.verbose("found message_type to be response_type and broke the chain")
+          break
+        }
       } catch(e) {
         rejects(e)
       }
