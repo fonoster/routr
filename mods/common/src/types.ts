@@ -48,12 +48,21 @@ export interface MessageRequest {
   sipMessage: Record<string, unknown>
 }
 
+export interface MessageResponse {
+  sipMessage: Record<string, unknown>
+}
+
 export interface ProcessorConfig {
   ref: string
   addr: string
   methods: Array<Method>
   isFallback?: boolean
   matchFunc?: (request: MessageRequest) => boolean
+}
+
+export interface MiddlewareConfig {
+  ref: string
+  addr: string
 }
 
 export interface ServiceInfo {

@@ -17,20 +17,22 @@
  * limitations under the License.
  */
 import processor from "./processor"
-import { 
+import {
   PROCESSOR_OBJECT_PROTO,
   ProcessorConfig,
   ServiceInfo
 } from "@routr/common"
+import { MiddlewareConfig } from "@routr/common/src/types"
 
-export function getServiceInfo(bindAddr: string, processors: ProcessorConfig[])
-  : ServiceInfo {
+export function getServiceInfo(bindAddr: string, 
+  backends: { middlewares: MiddlewareConfig[], processors: ProcessorConfig[] }): ServiceInfo {
+
   return {
     name: "dispatcher",
     bindAddr,
     service: PROCESSOR_OBJECT_PROTO.Processor.service,
     handlers: {
-      processMessage: processor(processors)
+      processMessage: processor(backends)
     }
   }
 }

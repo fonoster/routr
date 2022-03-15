@@ -16,36 +16,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { findProcessor } from "./find_processor"
-import connectToBackendProcessors from "./connections"
-import { MessageRequest, ProcessorConfig } from "@routr/common"
-import { NotMatchingProcessorFound, ProcessorUnavailableError } from "./errors"
-import grpc = require("@grpc/grpc-js")
+import connectToBackend from "./connections"
+import { ProcessorConfig } from "@routr/common"
+import { ProcessorCallback } from "./types"
+import { runProcessor } from "./run_processor"
+import { MessageRequest, MiddlewareConfig } from "@routr/common/src/types"
+import { runMiddlewares } from "./run_middlewares"
 
-type CallbackErrors = NotMatchingProcessorFound | ProcessorUnavailableError | Error
-type ProcessorCallback = (err: CallbackErrors, reponse?: MessageRequest) => void
-
-export default function processor(configList: Array<ProcessorConfig>) {
-
-  const connections = connectToBackendProcessors(configList)
+export default function processor(params: {
+  processors: ProcessorConfig[]
+  middlewares?: MiddlewareConfig[]
+}) {
+  const { processors, middlewares } = params
+  const procConns = connectToBackend(processors)
+  const middConns = connectToBackend(middlewares)
 
   // Upstream request and callback
   return (call: any, callback: ProcessorCallback): void => {
     const { request } = call
-    const matchResult = findProcessor(configList)(request)
-    if ('ref' in matchResult) {
-      const conn = connections.get(matchResult.ref)
-      // Connects to downstream processor
-      conn.processMessage(request, (err: any, response: any) => {
-        if (err?.code === grpc.status.UNAVAILABLE) {
-          // We aument the error to indicate which processor failed
-          callback(new ProcessorUnavailableError(matchResult.ref))
-          return
-        }
-        callback(err, response)
-      })
-    } else {
-      callback(matchResult)
-    }
+    runMiddlewares({ callback, request, middlewares, connections: middConns })
+      .then((req: MessageRequest) => 
+        runProcessor({ callback, request: req, processors, connections: procConns }))
+      .catch(callback)
   }
 }

@@ -26,7 +26,7 @@ import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import { findProcessor, hasMethod } from "../src/find_processor"
 import  {getConfig } from '../src/config/get_config'
-import connectToBackendProcessors from "../src/connections"
+import connectToBackend from "../src/connections"
 import processor from '../src/processor'
 
 const expect = chai.expect
@@ -124,7 +124,7 @@ describe('@routr/dispatcher', () => {
         }
       )
 
-      processor([config1])({ request: messageRequest }, (err: Error, response: any)=> {
+      processor({processors: [config1]})({ request: messageRequest }, (err: Error, response: any)=> {
         if (err) {
           done()
         } else {
@@ -142,7 +142,7 @@ describe('@routr/dispatcher', () => {
         }
       )
 
-      processor([config1])({ request: messageRequest }, (err: Error, response: any)=> {
+      processor({processors: [config1]})({ request: messageRequest }, (err: Error, response: any)=> {
         if (err) {
           done(err)
         } else {
@@ -163,7 +163,7 @@ describe('@routr/dispatcher', () => {
         }
       )
 
-      processor([config1])({ request: messageRequest }, (err, response: any)=> {
+      processor({processors: [config1]})({ request: messageRequest }, (err, response: any)=> {
         expect(err.toString()).to.be.include("processor ref = processor-ref1 is unavailable")
         done()
       })
@@ -172,7 +172,7 @@ describe('@routr/dispatcher', () => {
 
   it('creates a connection for every processor config', () => {
     const processorObjectProtoStub = sandbox.stub(PROCESSOR_OBJECT_PROTO, 'Processor')
-    connectToBackendProcessors([config1, config2])
+    connectToBackend([config1, config2])
     expect(processorObjectProtoStub).to.have.been.calledTwice
   })
 

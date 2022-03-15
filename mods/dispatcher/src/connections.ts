@@ -18,8 +18,7 @@
  */
 import { ProcessorGPRCConnection } from "./types"
 import {
-  PROCESSOR_OBJECT_PROTO,
-  ProcessorConfig
+  PROCESSOR_OBJECT_PROTO
 } from "@routr/common"
 import grpc = require('@grpc/grpc-js')
 
@@ -30,9 +29,9 @@ import grpc = require('@grpc/grpc-js')
  * @param processors list of backend processors
  * @returns list of connections
  */
-export default function connectToBackendProcessors(processors: ProcessorConfig[])
+export default function connectToBackend(processors: {ref: string, addr: string}[])
   : Map<string, ProcessorGPRCConnection> {
-  const procs = [...processors ]
+  const procs = processors ? [...processors ] : []
   const connections = new Map<string, ProcessorGPRCConnection>()
   for (const processor of procs) {
     connections.set(processor.ref, 

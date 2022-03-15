@@ -34,6 +34,16 @@ export class ProcessorUnavailableError extends Error {
     super(`processor ref = ${ref} is unavailable`);
     this.code = grpc.status.UNAVAILABLE
     // Set the prototype explicitly.
-    Object.setPrototypeOf(this, NotMatchingProcessorFound.prototype);
+    Object.setPrototypeOf(this, ProcessorUnavailableError.prototype);
+  }
+}
+
+export class MiddlewareUnavailableError extends Error {
+  code: number;
+  constructor(ref: string) {
+    super(`middleware ref = ${ref} is unavailable`);
+    this.code = grpc.status.UNAVAILABLE
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, MiddlewareUnavailableError.prototype);
   }
 }

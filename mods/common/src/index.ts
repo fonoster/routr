@@ -24,7 +24,8 @@ import createService, {
 import { 
   Transport, 
   ProcessorConfig, 
-  MessageRequest, 
+  MessageRequest,
+  MessageResponse,
   NetInterface, 
   Method, 
   Direction,
@@ -38,6 +39,7 @@ export {
   Transport,
   ProcessorConfig,
   MessageRequest,
+  MessageResponse,
   NetInterface,
   Method,
   Direction,

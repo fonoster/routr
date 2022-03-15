@@ -17,12 +17,12 @@
  * limitations under the License.
  */
 import { MessageDispatcherConfig } from "./types"
-import { 
+import {
   createService,
 } from "@routr/common"
 import { getServiceInfo } from "./util"
 
 export default function MessageDispatcher(config: MessageDispatcherConfig) {
-  const {bindAddr, processors} = config
-  createService(getServiceInfo(bindAddr, processors))
+  const { bindAddr, processors, middlewares } = config
+  createService(getServiceInfo(bindAddr, { processors, middlewares }))
 }
