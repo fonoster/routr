@@ -7,8 +7,8 @@
     "noImplicitAny": true,
     "esModuleInterop": true,
     "module": "commonjs",
-    "target": "es5",
-    "lib": ["es2015", "dom", "es5", "scripthost" ],
+    "target": "es6",
+    "lib": ["es2017", "dom", "es6", "scripthost" ],
     "moduleResolution": "node",
     "downlevelIteration": true
   },

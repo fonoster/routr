@@ -6,6 +6,9 @@
   },
   "spec": {
     "bindAddr": "0.0.0.0:51903",
+    "cache" :{
+      "provider": "memory"
+    },
     "backends": [
       {
         "ref": "voice"

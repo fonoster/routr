@@ -40,6 +40,18 @@ export const schema = {
           "description": "Ipv4 interface to accept request on",
           "type": "string"
         },
+        "cache": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "enum": ["memory", "redis"]
+            },
+            "parameters": {
+              "type": "string"
+            },
+          },
+          "required": ["provider"]
+        },
         "backends": {
           "description": "Optional SIP backends",
           "type": "array",
@@ -51,7 +63,7 @@ export const schema = {
               "type": "string"
             },
             "balancingAlgorithm": {
-              "enum": ["ROUND_ROBIN", "LEAST_SESSIONS"]
+              "enum": ["round-robin", "least-sessions"]
             },
             "sessionAffinity": {
               "description": "Optional session affinity",

@@ -1,3 +1,5 @@
+import { boolean } from "fp-ts"
+
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -19,6 +21,11 @@
 export enum LB_ALGORITHM {
   ROUND_ROBIN= "round-robin",
   LEAST_SESSIONS = "least-sessions"
+}
+
+export enum CACHE_PROVIDER {
+  MEMORY= "memory",
+  REDIS = "redis"
 }
 
 export interface ILocationService {
@@ -76,4 +83,17 @@ export interface Backend {
 export interface LocationConfig {
   bindAddr: string,
   backends?: Backend[]
+  cache?: {
+    provider: CACHE_PROVIDER,
+    parameters: string
+  }
+}
+
+export interface RedisStoreConfig {
+  username?: string
+  password?: string
+  host: string
+  port: number
+  // dbNumber?: number
+  secure?: boolean
 }

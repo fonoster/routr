@@ -16,15 +16,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Backend, LB_ALGORITHM, LocationConfig } from "../types"
+import { Backend, CACHE_PROVIDER, LB_ALGORITHM, LocationConfig } from "../types"
 import fs from "fs"
 import { schema } from './schema'
 import Ajv from "ajv"
 import * as E from 'fp-ts/Either'
-import { BadAlgorithmAndAffinityCombination, InvalidConfiguration, InvalidLoadBalancerAlgorithm, InvalidSchemaConfiguration } from "../errors"
+import { 
+  BadAlgorithmAndAffinityCombination, 
+  InvalidConfiguration, 
+  InvalidLoadBalancerAlgorithm, 
+  InvalidSchemaConfiguration } from "../errors"
 
 const ajv = new Ajv()
 const validate = ajv.compile(schema)
+
+const hasBadCombiniation = (backends: Backend[]) => backends.some((b: Backend) =>
+  b.balancingAlgorithm === LB_ALGORITHM.ROUND_ROBIN && b.sessionAffinity)
+
+const hasBadAlgorithm = (backends: Backend[]) => backends.some((b: Backend) =>
+  b.balancingAlgorithm !== LB_ALGORITHM.ROUND_ROBIN 
+  && b.balancingAlgorithm !== LB_ALGORITHM.LEAST_SESSIONS)
 
 export const getConfig = (path: string)
   : E.Either<InvalidConfiguration, LocationConfig> => {
@@ -41,23 +52,29 @@ export const getConfig = (path: string)
       // Setting round-robin by default
       b.balancingAlgorithm = b.balancingAlgorithm
         ? b.balancingAlgorithm : LB_ALGORITHM.ROUND_ROBIN
-
       return b
     })
 
-    const hasBadCombiniation = config.backends.some((b: any) =>
-      b.balancingAlgorithm === LB_ALGORITHM.ROUND_ROBIN && b.sessionAffinity)
-
-    const hasBadAlgorithm = config.backends.some((b: any) =>
-      b.balancingAlgorithm !== LB_ALGORITHM.ROUND_ROBIN 
-      && b.balancingAlgorithm !== LB_ALGORITHM.LEAST_SESSIONS)
-
-    if (hasBadCombiniation) {
+    if (hasBadCombiniation(config.backends)) {
       return E.left(new BadAlgorithmAndAffinityCombination())
     }
 
-    if (hasBadAlgorithm) {
+    if (hasBadAlgorithm(config.backends)) {
       return E.left(new InvalidLoadBalancerAlgorithm())
+    }
+  }
+
+  if (!config?.cache?.provider) {
+    config.cache = {
+      provider: CACHE_PROVIDER.MEMORY
+    }
+  } 
+  
+  if (config?.cache?.provider === CACHE_PROVIDER.REDIS &&
+    !config?.cache?.parameters) {
+    config.cache = {
+      provider: CACHE_PROVIDER.REDIS,
+      parameters: "host=localhost,port=6379"
     }
   }
 

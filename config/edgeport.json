@@ -9,8 +9,8 @@
     "bindAddr": "0.0.0.0",
     "securityContext": {
       "client": {
-        "protocols": ["TLSv1.2"],
-        "authType": "Want"
+        "protocols" : ["SSLv3", "TLSv1.2", "TLSv1.1", "TLSv1"],
+        "authType": "DisabledAll"
       },
       "keyStorePassword": "changeit",
       "trustStorePassword": "changeit",

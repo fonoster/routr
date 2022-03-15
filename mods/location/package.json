@@ -27,7 +27,8 @@
   "dependencies": {
     "@routr/common": "^2.0.5-alpha.2",
     "ajv": "^6.12.6",
-    "fp-ts": "^2.11.8"
+    "fp-ts": "^2.11.8",
+    "redis": "^4.0.4"
   },
   "repository": {
     "type": "git",

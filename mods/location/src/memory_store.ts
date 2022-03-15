@@ -18,8 +18,8 @@
  */
 import { 
   ILocatorStore, Route
-} from "./types";
-import { duplicateFilter, expiredFilter } from "./utils";
+} from "./types"
+import { duplicateFilter, expiredFilter } from "./utils"
 
 const MAX_CYCLES_BEFORE_CLEANUP = 10000
 

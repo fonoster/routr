@@ -16,7 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Backend, ILocationService, Route } from "./types"
+import { 
+  Backend, 
+  ILocationService,
+  RedisStoreConfig, 
+  Route 
+} from "./types"
 import { 
   LOCATION_OBJECT_PROTO,
   ServiceInfo
@@ -78,4 +83,31 @@ export function getServiceInfo(bindAddr: string, locator: ILocationService)
       }
     }
   }
+}
+
+export const configFromString = (params: string, allowedKeys: string[]):
+  Record<string, string | boolean> => {
+  if (params.length === 0) return {}
+  const parameters: Record<string, string | boolean> = {}
+  params.split(',').forEach(par => {
+    try {
+      const key = par.split('=')[0]
+      const value = par.split('=')[1]
+      if (allowedKeys.indexOf(key) === -1) {
+        throw `invalid parameter: ${key}`
+      } else {
+        parameters[key] = value === "true" ? true : value
+      }
+    } catch (e) {
+      throw new Error(`invalid parameters string: ${params}; should be something like 'host=localhost,port=6379'`)
+    }
+  })
+  return parameters
+}
+
+export const getUrlString = (config: RedisStoreConfig): string => {
+  return `redis${config.secure ? 's' : ''}`
+    + `://${config.username ? config.username : '' }`
+    + `${config.password ? ':' + config.password + '@' : '' }`
+    + `${config.host}:${config.port}`
 }
