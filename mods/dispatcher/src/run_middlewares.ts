@@ -35,12 +35,16 @@ async function processMessage(middlewareRef: string,
 export async function runMiddlewares(params: RunMiddlewaresParams): Promise<MessageRequest> {
   const { connections, request, middlewares = [] } = params
   const req = { ...request }
-  return new Promise(async (resolve) => {
+  return new Promise(async (resolve, rejects) => {
     for (const midd of middlewares) {
       // Get the next middleware
       const conn = connections.get(midd.ref)
       // Send message and re-insert response for next middleware
-      req.sipMessage = (await processMessage(midd.ref, conn, req)).sipMessage
+      try {
+        req.sipMessage = (await processMessage(midd.ref, conn, req)).sipMessage
+      } catch(e) {
+        rejects(e)
+      }
     }
     resolve(req)
   })
