@@ -58,13 +58,14 @@ const config3: ProcessorConfig = {
 
 const messageRequest: MessageRequest = {
   ref: "call-id",
-  direction: "IN",
   method: "REGISTER",
-  originInterface: {
+  sender: {
     port: 5060,
     host: "localhost",
     transport: 'TCP'
   },
+  externalAddrs: [],
+  localnets: [],
   targetInterface: {
     port: 5061,
     host: "localhost",

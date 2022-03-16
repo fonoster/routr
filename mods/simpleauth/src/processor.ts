@@ -16,54 +16,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  PROCESSOR_OBJECT_PROTO,
-} from "@routr/common"
+import { calculateAuthResponse } from "@routr/common"
+import { createUnauthorizedResponse, getCredentials } from "./utils"
 import logger from "@fonoster/logger"
-
-const hasAutorization = (request: any) =>
-  request.message.extensions.some((ext: any) => ext.name === 'Authorization')
+import { User } from "./types"
 
 // This processor returns upstream the message received
-function getProcessor(pathToAuth: string) {
+export default function getProcessor(users: User[]) {
   return (call: any, callback: Function) => {
-    if (!hasAutorization(call.request)) {
-      callback(null, {
-        message: {
-          // UNAUTHORIZED
-          response_type: 17,
-          extensions: [
-            {
-              "name": "WWW-Authenticate",
-              "value": "Digest realm=\"sip.local\",qop=\"auth\",opaque=\"\",stale=false,nonce=\"cd33803521f548a81f32942b3b9cf0\",algorithm=MD5"
-            },
-            {
-              "name": "Expires",
-              "value": "60"
-            }
-          ]
-        }
-      })
+    logger.verbose(JSON.stringify(call.request, null, ' '))
+    const auth = {...call.request.message.authorization}
+
+    // Calculate and return challenge
+    if (call.request.message.authorization) {
+      
+      auth.method = call.request.method
+
+      // Calculate response and compare with the one send by the endpoint
+      const res = calculateAuthResponse(auth, getCredentials(auth.username, users))
+
+      if (res !== auth.response) {
+        callback(null, createUnauthorizedResponse(auth.realm))
+      }
+    } else {
+      callback(null, createUnauthorizedResponse(auth.realm))
       return
     }
 
-    logger.verbose("sending back response type OK")
-
-    callback(null, {
-      message: {
-        response_type: 7
-      }
-    })
+    // Forward request to next middleware
+    callback(null, call.request)
   }
 }
-
-export function getServiceInfo(params: { bindAddr: string, pathToAuth: string }) {
-  const { bindAddr, pathToAuth } = params
-  return {
-    name: "simpleauth",
-    bindAddr,
-    service: PROCESSOR_OBJECT_PROTO.Processor.service,
-    handlers: { processMessage: getProcessor(pathToAuth) }
-  }
-}
-

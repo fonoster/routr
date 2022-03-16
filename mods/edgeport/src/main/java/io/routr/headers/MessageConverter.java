@@ -20,12 +20,14 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Message;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+import gov.nist.javax.sip.header.Authorization;
 import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.ExtensionHeaderImpl;
 import io.routr.utils.ClassFinder;
 import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.header.WWWAuthenticate;
 import io.routr.message.SIPMessage.Builder;
 import io.routr.message.*;
 import io.routr.common.*;
@@ -141,6 +143,16 @@ class MessageConverter {
     if (message.getCallId() != null) {
       var converter = getConverterByHeader(CallID.class);
       headers.add(converter.fromDTO(message.getCallId()));
+    }
+
+    if (message.getWwwAuthenticate() != null) {
+      var converter = getConverterByHeader(WWWAuthenticate.class);
+      headers.add(converter.fromDTO(message.getWwwAuthenticate()));
+    }
+
+    if (message.getAuthorization() != null) {
+      var converter = getConverterByHeader(Authorization.class);
+      headers.add(converter.fromDTO(message.getAuthorization()));
     }
 
     if (!message.getExtensionsList().isEmpty()) {

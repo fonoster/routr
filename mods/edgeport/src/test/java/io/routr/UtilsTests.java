@@ -1,7 +1,6 @@
 package io.routr;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.Set;
@@ -19,7 +18,7 @@ public class UtilsTests {
   @Test
   public void testFindClassWithReflection() {
     Set<?> set = ClassFinder.findAllClassesUsingReflections("io.routr.headers");
-    assertEquals(7, set.size());
+    assertEquals(9, set.size());
   }
 
   @Test

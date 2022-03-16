@@ -18,5 +18,10 @@
  */
 export interface SimpleAuthProcessorConfig {
   bindAddr: string
-  pathToAuth: string
+  users: User[]
+}
+
+export interface User {
+  username: string
+  secret: string
 }

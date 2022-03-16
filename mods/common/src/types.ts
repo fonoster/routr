@@ -16,8 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type Direction = 'IN' | 'OUT'
-
 export type Method = 'UNKNOWN' 
   | 'REGISTER'
   | 'INVITE'
@@ -41,9 +39,10 @@ export interface NetInterface {
 
 export interface MessageRequest {
   ref: string
-  direction: Direction
   method: Method
-  originInterface: NetInterface
+  sender: NetInterface
+  externalAddrs: NetInterface[]
+  localnets: string[]
   targetInterface: NetInterface
   message: Record<string, unknown>
 }
@@ -76,4 +75,32 @@ export interface ObjectProto {
   name: string
   path: string
   version: string
+}
+
+export interface AuthChallengeRequest {
+  realm: string
+  domain: string
+  scheme: string
+  nonce: string
+  algorithm: string
+  qop: string
+  opaque: string
+  stale: boolean
+}
+
+export interface AuthChallengeResponse {
+  realm: string
+  domain: string
+  scheme: string
+  c_nonce: string
+  nonce_count: number
+  response: string
+  username: string
+  nonce: string
+  algorithm: string
+  qop: string
+  opaque: string
+  stale: boolean
+  uri: string
+  method: string
 }

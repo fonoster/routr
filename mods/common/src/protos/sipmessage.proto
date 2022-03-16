@@ -68,6 +68,31 @@ enum ResponseType {
   SESSION_NOT_ACCEPTABLE = 57;
 }
 
+message WWWAuthenticate {
+  string realm = 1;
+  string domain = 2;
+  string scheme = 3;
+  string nonce = 4;
+  string algorithm = 5;
+  string qop = 6;
+  string opaque = 7;
+  bool stale = 8;
+}
+
+message Authorization {
+  string realm = 1;
+  string scheme = 2;
+  string c_nonce = 3;
+  string nonce = 4;
+  string algorithm = 5;
+  string qop = 6;
+  string opaque = 7;
+  string response = 8;
+  string username = 9;
+  string uri = 10;
+  int32 nonce_count = 11;
+}
+
 message CallID {
   string call_id = 1;
 }
@@ -134,4 +159,6 @@ message SIPMessage {
   Expires expires = 7;
   repeated Via via = 8;
   repeated Extension extensions = 9;
+  WWWAuthenticate www_authenticate = 10;
+  Authorization authorization = 11;
 }

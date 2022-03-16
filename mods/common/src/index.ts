@@ -22,13 +22,16 @@ import createService, {
   getObjectProto
 } from "./service";
 import { 
+  calculateAuthResponse,
+  generateNonce
+} from "./auth";
+import { 
   Transport, 
   ProcessorConfig, 
   MessageRequest,
   MessageResponse,
   NetInterface, 
   Method, 
-  Direction,
   ObjectProto, 
   ServiceInfo
 } from "./types";
@@ -36,13 +39,14 @@ import {
 export {
   createService,
   getObjectProto,
+  generateNonce,
+  calculateAuthResponse,
   Transport,
   ProcessorConfig,
   MessageRequest,
   MessageResponse,
   NetInterface,
   Method,
-  Direction,
   ObjectProto,
   ServiceInfo,
   PROCESSOR_OBJECT_PROTO,

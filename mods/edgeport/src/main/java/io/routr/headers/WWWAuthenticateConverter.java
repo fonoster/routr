@@ -1,0 +1,41 @@
+package io.routr.headers;
+
+import java.text.ParseException;
+import javax.sip.header.HeaderFactory;
+import javax.sip.InvalidArgumentException;
+import javax.sip.PeerUnavailableException;
+import javax.sip.SipFactory;
+import gov.nist.javax.sip.header.WWWAuthenticate;
+
+@ProtoMapping(header = WWWAuthenticate.class, field = "www_authenticate", repeatable = false, extension = false)
+public class WWWAuthenticateConverter implements Converter<WWWAuthenticate, io.routr.message.WWWAuthenticate> {
+
+  @Override
+  public io.routr.message.WWWAuthenticate fromHeader(WWWAuthenticate header) {
+    var builder = io.routr.message.WWWAuthenticate.newBuilder();
+
+    if (header.getScheme() != null) builder.setScheme(header.getScheme());
+    if (header.getRealm() != null) builder.setRealm(header.getRealm());
+    if (header.getDomain() != null) builder.setDomain(header.getDomain());
+    if (header.getNonce() != null) builder.setNonce(header.getNonce());
+    if (header.getAlgorithm() != null) builder.setAlgorithm(header.getAlgorithm());
+    if (header.getQop() != null) builder.setQop(header.getQop());
+    if (header.getOpaque() != null) builder.setOpaque(header.getOpaque());
+
+    return builder.build();
+  }
+
+  @Override
+  public WWWAuthenticate fromDTO(io.routr.message.WWWAuthenticate dto)
+      throws InvalidArgumentException, PeerUnavailableException, ParseException {
+    HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
+    WWWAuthenticate header = (WWWAuthenticate) factory.createWWWAuthenticateHeader(dto.getScheme());
+    header.setRealm(dto.getRealm());
+    header.setDomain(dto.getDomain());
+    header.setNonce(dto.getNonce());
+    header.setAlgorithm(dto.getAlgorithm());
+    header.setQop(dto.getQop());
+    header.setOpaque(dto.getOpaque());
+    return header;
+  }
+}

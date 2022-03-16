@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 import { createService } from "@routr/common"
-import { getServiceInfo } from "./processor"
 import { SimpleAuthProcessorConfig } from "./types"
+import { getServiceInfo } from "./utils"
 
 export default function SimpleAuthProcessor(config: SimpleAuthProcessorConfig) {
   createService(getServiceInfo(config))
