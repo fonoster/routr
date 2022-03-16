@@ -19,7 +19,7 @@
       "keyStoreType": "pkcs12"
     },
     "processor": {
-      "addr": "localhost:51903"
+      "addr": "localhost:51901"
     },
     "externalAddrs": [
       "165.227.217.102:6090",
