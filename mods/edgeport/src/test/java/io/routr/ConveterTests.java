@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
+import javax.sip.address.AddressFactory;
 import javax.sip.header.HeaderFactory;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
@@ -15,18 +16,23 @@ import javax.sip.message.Response;
 import javax.sip.header.ExtensionHeader;
 import javax.sip.header.Header;
 import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.header.WWWAuthenticate;
+import gov.nist.javax.sip.header.Authorization;
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.ContentLength;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
+import io.routr.headers.AuthorizationConverter;
 import io.routr.headers.CallIDConverter;
 import io.routr.headers.ContentLengthConverter;
 import io.routr.headers.ExtensionConverter;
 import io.routr.headers.MessageConverter;
 import io.routr.headers.ViaConverter;
+import io.routr.headers.WWWAuthenticateConverter;
 import io.routr.message.*;
 import io.routr.common.*;
 import io.routr.processor.*;
@@ -105,6 +111,68 @@ public class ConveterTests {
     assertEquals("sip.local", header.getHost());
     assertEquals(viaDTO.getHost(), header.getHost());
     assertEquals(headerFromDto.getHost(), header.getHost());
+  }
+
+  @Test
+  public void testWWWAuthenticationConveter() throws PeerUnavailableException,
+      ParseException, InvalidArgumentException, InvalidArgumentException {
+    HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
+    WWWAuthenticateConverter converter = new WWWAuthenticateConverter();
+    WWWAuthenticate header = (WWWAuthenticate) factory.createWWWAuthenticateHeader("Digest");
+    header.setRealm("sip.local");
+    header.setDomain("sip.local");
+    header.setNonce("1234");
+    header.setAlgorithm("md5");
+    header.setQop("auth");
+    header.setOpaque("");
+
+    io.routr.message.WWWAuthenticate authenticateDTO = converter.fromHeader(header);
+    WWWAuthenticate headerFromDto = converter.fromDTO(authenticateDTO);
+
+    assertEquals(header.getScheme(), headerFromDto.getScheme());
+    assertEquals(header.getDomain(), headerFromDto.getDomain());
+    assertEquals(header.getRealm(), headerFromDto.getRealm());
+    assertEquals(header.getAlgorithm(), headerFromDto.getAlgorithm());
+    assertEquals(header.getQop(), headerFromDto.getQop());
+    assertEquals(header.getNonce(), headerFromDto.getNonce());
+    assertEquals(header.getOpaque(), headerFromDto.getOpaque());
+  }
+
+  @Test
+  public void testAuthorizationConveter() throws PeerUnavailableException,
+      ParseException, InvalidArgumentException, InvalidArgumentException {
+    HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
+    AuthorizationConverter converter = new AuthorizationConverter();
+    Authorization header = (Authorization) factory.createAuthorizationHeader("Digest");
+    AddressFactory addrFactory = SipFactory.getInstance().createAddressFactory();
+
+    header.setRealm("sip.local");
+    // header.setDomain("sip.remote");
+    header.setNonce("1111");
+    header.setCNonce("4321");
+    header.setNonceCount(1);
+    header.setAlgorithm("md5");
+    header.setQop("auth");
+    header.setOpaque("");
+    header.setResponse("1234");
+    header.setUsername("1001");
+    header.setURI(addrFactory.createURI("sip:17778901246@callcentric.co;transport=UDP"));
+
+    io.routr.message.Authorization authorizationDTO = converter.fromHeader(header);
+    Authorization headerFromDto = converter.fromDTO(authorizationDTO);
+
+    assertEquals(header.getScheme(), headerFromDto.getScheme());
+    // assertEquals("sip.remote", headerFromDto.getDomain());
+    assertEquals(header.getRealm(), headerFromDto.getRealm());
+    assertEquals(header.getAlgorithm(), headerFromDto.getAlgorithm());
+    assertEquals(header.getQop(), headerFromDto.getQop());
+    assertEquals(header.getOpaque(), headerFromDto.getOpaque());
+    assertEquals(header.getResponse(), headerFromDto.getResponse());
+    assertEquals(header.getCNonce(), headerFromDto.getCNonce());
+    assertEquals(header.getNonce(), headerFromDto.getNonce());
+    assertEquals(header.getUsername(), headerFromDto.getUsername());
+    assertEquals(header.getURI(), headerFromDto.getURI());
+    assertEquals(1, headerFromDto.getNonceCount());
   }
 
   @Test
@@ -213,7 +281,7 @@ public class ConveterTests {
 
     SIPMessage message = MessageConverter.convertToMessageDTO(request);
     List<Header> headers = MessageConverter.createHeadersFromMessage(message);
-    assertEquals(6, headers.size());
+    assertEquals(8, headers.size());
   }
 
 }
