@@ -36,11 +36,10 @@ export default function getProcessor(users: User[]) {
       const res = calculateAuthResponse(auth, getCredentials(auth.username, users))
 
       if (res !== auth.response) {
-        callback(null, createUnauthorizedResponse(auth.realm))
+        return callback(null, createUnauthorizedResponse(auth.realm))
       }
     } else {
-      callback(null, createUnauthorizedResponse(auth.realm))
-      return
+      return callback(null, createUnauthorizedResponse(call.request.message.request_uri.host))
     }
 
     // Forward request to next middleware

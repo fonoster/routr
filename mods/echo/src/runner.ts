@@ -19,4 +19,4 @@
  */
 import EchoProcessor from './service'
 
-EchoProcessor({ bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903" })
+EchoProcessor({ bindAddr: process.env.BIND_ADDR || "0.0.0.0:51904" })

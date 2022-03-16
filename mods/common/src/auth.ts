@@ -34,7 +34,9 @@ export const buildAuthChallenge = (request: AuthChallengeRequest) => {
   return { realm, scheme, algorithm, qop, opaque, stale, nonce: generateNonce(algorithm) }
 }
 
-export const calculateAuthResponse = (res: AuthChallengeResponse, credentials: { username: string, secret: string}) => {
+export const calculateAuthResponse = (res: AuthChallengeResponse, credentials?: { username: string, secret: string}) => {
+  if (!credentials) return null
+
   const a1 = `${credentials.username}:${res.realm}:${credentials.secret}`
   const a2 = `${res.method.toUpperCase()}:${res.uri}`
   const ha1 = md5hex(a1)
