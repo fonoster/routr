@@ -9,7 +9,7 @@
     "middlewares": [
       {
         "ref": "simpleauth",
-        "addr": "localhost:51903"
+        "addr": "simpleauth:51903"
       }
     ],
     "processors": [
