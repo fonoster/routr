@@ -26,6 +26,7 @@ bin
 .DS_Store
 .vscode
 .project
+${sys:DATA}
 
 # User-specific stuff:
 .idea/workspace.xml

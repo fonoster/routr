@@ -8,23 +8,23 @@
     "bindAddr": "0.0.0.0:51901",
     "middlewares": [
       {
-        "ref": "ipban",
-        "addr": "ipban:51903"
+        "ref": "simpleauth",
+        "addr": "localhost:51903"
       }
     ],
     "processors": [
       {
-        "ref": "scaip-essense",
-        "addr": "echo:51903",
+        "ref": "echo-processor",
+        "addr": "echo:51904",
         "methods": [
           "MESSAGE"
         ],
         "matchFunc": "(req) => { return req.method === 'MESSAGE' }"
       },
       {
-        "ref": "fallback-processor",
+        "ref": "connect-processor",
         "isFallback": true,
-        "addr": "echo:51903",
+        "addr": "connect:51904",
         "methods": [
           "REGISTER",
           "MESSAGE",
