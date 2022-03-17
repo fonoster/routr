@@ -18,8 +18,8 @@
  */
 import { LOCATION_OBJECT_PROTO } from "@routr/common"
 import { 
-  buildMethodNotAllowedResponse, 
-  buildMethodNotImplementedResponse, 
+  methodNotAllowed, 
+  notImplemented, 
   createRegisterHandler
 } from "./utils"
 import logger from "@fonoster/logger"
@@ -35,7 +35,7 @@ export default function getProcessor(locationAddr: string) {
       case 'PUBLISH':
       case 'NOTIFY':
       case 'SUBSCRIBE':
-        callback(null, buildMethodNotAllowedResponse(call.request.message))
+        callback(null, methodNotAllowed())
         break
       case 'REGISTER':
         createRegisterHandler({connection: locator, addr: locationAddr})(callback, call.request)
@@ -43,7 +43,7 @@ export default function getProcessor(locationAddr: string) {
       case 'CANCEL':
         break
       default:
-        callback(null, buildMethodNotImplementedResponse(call.request.message))
+        callback(null, notImplemented())
     }
   }
 }

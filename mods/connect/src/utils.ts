@@ -34,15 +34,15 @@ export function getServiceInfo(params: { bindAddr: string, locationAddr: string}
   }
 }
 
-export const buildResponse = (message: Record<string, unknown>, code: number) => {
-  return { message: { ...message, response_type: code } }
+export const buildResponse = (code: number) => {
+  return { message: { response_type: code }}
 }
 
-export const buildOkResponse = (message: Record<string, unknown>) => buildResponse(message, 7)
+export const ok = () => buildResponse(7)
 
-export const buildMethodNotAllowedResponse = (message: Record<string, unknown>) => buildResponse(message, 21)
+export const methodNotAllowed = () => buildResponse(21)
 
-export const buildMethodNotImplementedResponse = (message: Record<string, unknown>) => buildResponse(message, 47)
+export const notImplemented = () => buildResponse(47)
 
 export const createRoute = (request: MessageRequest) => {
   // TODO: Fix harcoded values
@@ -63,17 +63,17 @@ export const createRoute = (request: MessageRequest) => {
 export const createRegisterHandler = (locator: {addr: string, connection: any}) => {
   return (callback: Function, request: MessageRequest) => {
     const { user, host} = request.message.to as any
-    const locRequest = {
+    const addRouteRequest = {
       aor: `sip:${user}@${host}`,
       route: createRoute(request)
     }
 
-    locator.connection.processMessage(locRequest, (err: any, response: any) => {
+    locator.connection.addRoute(addRouteRequest, (err: any, response: any) => {
       if (err?.code === grpc.status.UNAVAILABLE) {
         callback(new ServiceUnavailableError(locator.addr))
         return
       }
-      callback(null, buildOkResponse(request.message))
+      callback(null, ok())
     })
   }
 } 
