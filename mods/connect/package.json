@@ -1,0 +1,38 @@
+{
+  "name": "@routr/connect",
+  "version": "2.0.5-alpha.2",
+  "description": "Default processor",
+  "author": "Pedro Sanders <psanders@fonoster.com>",
+  "homepage": "https://github.com/fonoster/routr#readme",
+  "license": "MIT",
+  "main": "dist/connect",
+  "types": "dist/connect",
+  "directories": {
+    "src": "src",
+    "test": "test"
+  },
+  "scripts": {
+    "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
+    "build": "tsc -b tsconfig.json"
+  },
+  "bin": {
+    "run_connect": "dist/runner.js"
+  },
+  "dependencies": {
+    "@fonoster/logger": "^0.3.3",
+    "@routr/common": "^2.0.5-alpha.2"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fonoster/routr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fonoster/routr/issues"
+  }
+}
