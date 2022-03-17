@@ -76,7 +76,7 @@ Raw Diagram:
 │EdgePort 001││EdgePort 002│                           
 └┬───────────┘└┬───────────┘                           
 ┌▽─────────────▽───────────────────────┐               
-│Message Dispatcher                        │               
+│Message Dispatcher                    │               
 └┬────────────────┬───────────────────┬┘               
 ┌▽──────────────┐┌▽─────────────────┐┌▽───────────────┐
 │SCAIP Processor││Fallback Processor││Twilio Processor│
@@ -104,9 +104,9 @@ Raw Diagram:
 -->
 
 ```none
- ┌──────────┐  ┌────────┐ ┌──────────────┐
+ ┌──────────┐  ┌────────┐ ┌──────────────────┐
  │SIP Client│  │EdgePort│ │Message Dispatcher│
- └────┬─────┘  └───┬────┘ └──────┬───────┘
+ └────┬─────┘  └───┬────┘ └──────┬───────────┘
       │            │             │        
       │SIP Request │             │        
       │───────────>│             │        
@@ -119,9 +119,9 @@ Raw Diagram:
       │            │             │        
       │SIP Response│             │        
       │<───────────│             │        
- ┌────┴─────┐  ┌───┴────┐ ┌──────┴───────┐
+ ┌────┴─────┐  ┌───┴────┐ ┌──────┴───────────┐
  │SIP Client│  │EdgePort│ │Message Dispatcher│
- └──────────┘  └────────┘ └──────────────┘
+ └──────────┘  └────────┘ └──────────────────┘
 ```
 
 **Brief Description**
@@ -331,9 +331,9 @@ Running the *EdgePort* in Kubernetes can be challenging. Keep following in mind 
 ### Message Dispatcher
 
 ```none
- ┌────────┐ ┌──────────────┐                 ┌─────────────────┐
- │EdgePort│ │Message Dispatcher│                 │Message Processor│
- └───┬────┘ └──────┬───────┘                 └────────┬────────┘
+ ┌────────┐ ┌──────────────────┐             ┌─────────────────┐
+ │EdgePort│ │Message Dispatcher│             │Message Processor│
+ └───┬────┘ └──────┬───────────┘             └────────┬────────┘
      │             │                                  │         
      │gRPC Request │                                  │         
      │────────────>│                                  │         
@@ -346,9 +346,9 @@ Running the *EdgePort* in Kubernetes can be challenging. Keep following in mind 
      │             │                                  │         
      │gRPC Response│                                  │         
      │<────────────│                                  │         
- ┌───┴────┐ ┌──────┴───────┐                 ┌────────┴────────┐
- │EdgePort│ │Message Dispatcher│                 │Message Processor│
- └────────┘ └──────────────┘                 └─────────────────┘
+ ┌───┴────┐ ┌──────┴───────────┐             ┌────────┴────────┐
+ │EdgePort│ │Message Dispatcher│             │Message Processor│
+ └────────┘ └──────────────────┘             └─────────────────┘
 ```
 
 **Brief Description**
@@ -608,14 +608,14 @@ Any action no covered by *isValid*, *isAuthenticated*, *isAuthorized* will go in
 
 <details>
 <summary>Passing multiple EdgePort(s)</summary>
-A Message Processor must coordinate with the *LocationAPI* and other APIs to determine the next-hop. Sometimes the signaling path would include multiple EdgePort(s).
+A Message Processor must coordinate with the LocationAPI and other APIs to determine the next-hop. Sometimes the signaling path would include multiple EdgePort(s).
 
 Consider the following scenario:
 
 1. SIP Client A Registered to Routr via the EdgePort 001 (EP1)
 2. SIP Client B Registered to Routr via the EdgePort 002 (EP2)
 
-To correctly forward and INVITE from `A` to `B`, a Message Processor must obtain enough information from the *LocationAPI* to know how to properly route the call.
+To correctly forward and INVITE from `A` to `B`, a Message Processor must obtain enough information from the LocationAPI to know how to properly route the call.
 
 For this scenario the flow would look like this: `A -> EP1 -> EP2 -> B`
 </details>
@@ -634,7 +634,7 @@ We MUST have a mechanism to identify the load balancing group during the Registr
 
 Scenario #2:
 
-The second scenario is for *Conference* services. As before, we need to identify the correct backend. We might use a similar approach by adding a custom header `X-Fonoster-Backend: CONFERENCE` which will later be used by the *LocationAPI* to obtain an instance of the backend.
+The second scenario is for *Conference* services. As before, we need to identify the correct backend. We might use a similar approach by adding a custom header `X-Fonoster-Backend: CONFERENCE` which will later be used by the LocationAPI to obtain an instance of the backend.
 </details>
  
 <details>

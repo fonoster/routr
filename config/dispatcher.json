@@ -9,13 +9,13 @@
     "middlewares": [
       {
         "ref": "simpleauth",
-        "addr": "simpleauth:51903"
+        "addr": "localhost:51903"
       }
     ],
     "processors": [
       {
         "ref": "echo-processor",
-        "addr": "echo:51904",
+        "addr": "localhost:51904",
         "methods": [
           "MESSAGE"
         ],
@@ -24,7 +24,7 @@
       {
         "ref": "connect-processor",
         "isFallback": true,
-        "addr": "connect:51904",
+        "addr": "localhost:51904",
         "methods": [
           "REGISTER",
           "MESSAGE",

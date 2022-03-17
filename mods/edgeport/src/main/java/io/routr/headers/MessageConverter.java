@@ -121,29 +121,34 @@ class MessageConverter {
       headers.add(converter.fromDTO(via));
     }
 
-    if (message.getCallId() != null) {
+    if (message.hasCallId()) {
       var converter = getConverterByHeader(CallID.class);
       headers.add(converter.fromDTO(message.getCallId()));
     }
 
-    if (message.getWwwAuthenticate() != null) {
+    if (message.hasWwwAuthenticate()) {
       var converter = getConverterByHeader(WWWAuthenticate.class);
       headers.add(converter.fromDTO(message.getWwwAuthenticate()));
     }
 
-    if (message.getAuthorization() != null) {
+    if (message.hasAuthorization()) {
       var converter = getConverterByHeader(Authorization.class);
       headers.add(converter.fromDTO(message.getAuthorization()));
     }
 
-    if (message.getFrom() != null) {
+    if (message.hasFrom()) {
       var converter = getConverterByHeader(From.class);
       headers.add(converter.fromDTO(message.getFrom()));
     }
 
-    if (message.getTo() != null) {
+    if (message.hasTo()) {
       var converter = getConverterByHeader(To.class);
       headers.add(converter.fromDTO(message.getTo()));
+    }
+
+    if (message.hasContact()) {
+      var converter = getConverterByHeader(Contact.class);
+      headers.add(converter.fromDTO(message.getContact()));
     }
 
     if (!message.getExtensionsList().isEmpty()) {

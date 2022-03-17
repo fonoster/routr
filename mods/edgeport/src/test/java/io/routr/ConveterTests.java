@@ -409,7 +409,7 @@ public class ConveterTests {
 
     SIPMessage message = MessageConverter.convertToMessageDTO(request);
     List<Header> headers = MessageConverter.createHeadersFromMessage(message);
-    assertEquals(10, headers.size());
-  }
 
+    assertEquals(8, headers.size());
+  }
 }
