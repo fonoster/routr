@@ -24,7 +24,7 @@ import { User } from "./types"
 // This processor returns upstream the message received
 export default function getProcessor(users: User[]) {
   return (call: any, callback: Function) => {
-    logger.verbose(JSON.stringify(call.request, null, ' '))
+    logger.silly(JSON.stringify(call.request, null, ' '))
     const auth = {...call.request.message.authorization}
 
     // Calculate and return challenge

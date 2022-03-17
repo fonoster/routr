@@ -79,9 +79,8 @@ export const createRegisterHandler = (locator: {addr: string, connection: any}) 
 } 
 
 // Work on create Route
-//  The from/to needs fixing
 //  Fix the contact address
-//  Fix not sending edgePortRef
+
 // Manual testing
 // Unit testing
 

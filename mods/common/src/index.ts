@@ -26,6 +26,9 @@ import {
   generateNonce
 } from "./auth";
 import { 
+  ServiceUnavailableError
+} from "./errors"
+import { 
   Transport, 
   ProcessorConfig, 
   MessageRequest,
@@ -41,6 +44,7 @@ export {
   getObjectProto,
   generateNonce,
   calculateAuthResponse,
+  ServiceUnavailableError,
   Transport,
   ProcessorConfig,
   MessageRequest,

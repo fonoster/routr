@@ -1,7 +1,6 @@
 package io.routr.headers;
 
 import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.oracle.truffle.js.builtins.JSBuiltinsContainer.Switch;
 import com.google.protobuf.GeneratedMessageV3;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -10,12 +9,8 @@ import java.util.List;
 import java.util.ListIterator;
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
-import javax.sip.RequestEvent;
-import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
-import javax.sip.header.ExtensionHeader;
 import javax.sip.header.Header;
-import javax.sip.header.HeaderFactory;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Message;
 import javax.sip.message.Request;
@@ -23,10 +18,10 @@ import javax.sip.message.Response;
 import gov.nist.javax.sip.header.Authorization;
 import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.CallID;
-import gov.nist.javax.sip.header.ContentLength;
-import gov.nist.javax.sip.header.ExtensionHeaderImpl;
 import io.routr.utils.ClassFinder;
 import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.header.To;
+import gov.nist.javax.sip.header.From;
 import gov.nist.javax.sip.header.WWWAuthenticate;
 import io.routr.message.SIPMessage.Builder;
 import io.routr.message.*;
@@ -40,10 +35,12 @@ class MessageConverter {
   private final List<NetInterface> externalAddrs;
   private final List<String> localnets;
   private final static Logger LOG = LogManager.getLogger();
+  private final String edgePortRef; 
 
-  public MessageConverter(List<String> addrs, List<String> localnets) {
+  public MessageConverter(List<String> addrs, List<String> localnets, String edgePortRef) {
     this.externalAddrs = getExternalAddresses(addrs);
     this.localnets = localnets;
+    this.edgePortRef = edgePortRef;
   }
 
   public MessageRequest createMessageRequest(final Message message) {
@@ -60,6 +57,7 @@ class MessageConverter {
     return MessageRequest
         .newBuilder()
         .setRef(callId)
+        .setEdgePortRef(this.edgePortRef)
         .setMethod(method)
         .setSender(getSender(message))
         .addAllExternalAddrs(this.externalAddrs)
@@ -72,25 +70,9 @@ class MessageConverter {
     Builder sipMessageBuilder = SIPMessage.newBuilder();
 
     if (message instanceof Request) {
-      var sipUri = (javax.sip.address.SipURI) ((Request) message).getRequestURI();
-      var requestURI = SipURI.newBuilder();
-      requestURI.setSecure(false);
-
-      if (sipUri.getUser() != null) {
-        requestURI.setUser(sipUri.getUser());
-      }
-
-      if (sipUri.getHost() != null) {
-        requestURI.setHost(sipUri.getHost());
-      }
-      
-      if (sipUri.getTransportParam() != null) {
-        requestURI.setTransportParam(sipUri.getTransportParam());
-      } else {
-        requestURI.setTransportParam("udp");
-      }
-
-      sipMessageBuilder.setRequestUri(requestURI.build());
+      var sipURI = (javax.sip.address.SipURI) ((Request) message).getRequestURI();
+      var converter = new SipURIConverter();
+      sipMessageBuilder.setRequestUri(converter.fromObject(sipURI));
     } else if (message instanceof Response){
       Response response = (Response) message;
       sipMessageBuilder.setResponseType(
@@ -129,7 +111,6 @@ class MessageConverter {
 
   static public List<Header> createHeadersFromMessage(final SIPMessage message)
       throws InvalidArgumentException, PeerUnavailableException, ParseException {
-    HeaderFactory headerFactory = SipFactory.getInstance().createHeaderFactory();
     List<Header> headers = new ArrayList<>();
 
     var vias = message.getViaList().iterator();
@@ -153,6 +134,16 @@ class MessageConverter {
     if (message.getAuthorization() != null) {
       var converter = getConverterByHeader(Authorization.class);
       headers.add(converter.fromDTO(message.getAuthorization()));
+    }
+
+    if (message.getFrom() != null) {
+      var converter = getConverterByHeader(From.class);
+      headers.add(converter.fromDTO(message.getFrom()));
+    }
+
+    if (message.getTo() != null) {
+      var converter = getConverterByHeader(To.class);
+      headers.add(converter.fromDTO(message.getTo()));
     }
 
     if (!message.getExtensionsList().isEmpty()) {

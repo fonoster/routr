@@ -18,7 +18,7 @@ public class UtilsTests {
   @Test
   public void testFindClassWithReflection() {
     Set<?> set = ClassFinder.findAllClassesUsingReflections("io.routr.headers");
-    assertEquals(9, set.size());
+    assertEquals(14, set.size());
   }
 
   @Test
@@ -26,10 +26,8 @@ public class UtilsTests {
       InvocationTargetException, NoSuchMethodException, SecurityException, ParseException, PeerUnavailableException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     CallID header = (CallID) factory.createCallIdHeader("call001");
-
     Class<Converter> converterClass = ClassFinder.findConverterByHeaderClass(CallID.class);
     CallIDConverter converter = (CallIDConverter) converterClass.getDeclaredConstructor().newInstance();
-
     assertEquals("call001", converter.fromHeader(header).getCallId());
   }
 }

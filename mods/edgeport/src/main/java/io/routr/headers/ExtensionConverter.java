@@ -1,8 +1,6 @@
 package io.routr.headers;
 
 import java.text.ParseException;
-import java.util.List;
-import java.util.ListIterator;
 import javax.sip.header.ExtensionHeader;
 import javax.sip.header.Header;
 import javax.sip.header.HeaderFactory;

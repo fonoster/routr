@@ -43,10 +43,12 @@ public class GRPCSipListener implements SipListener {
 
   public GRPCSipListener(final SipProvider sipProvider, final Map config) {
     MapProxyObject values = new MapProxyObject(config);
+    MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
     MapProxyObject spec = (MapProxyObject) values.getMember("spec");
     MapProxyObject processor = (MapProxyObject) spec.getMember("processor");
     String addr = (String) processor.getMember("addr");
     String bindAddr = (String) spec.getMember("bindAddr");
+    String edgePortRef = (String) metadata.getMember("ref");
 
     LOG.info("starting edgeport service at " + bindAddr);
 
@@ -62,7 +64,7 @@ public class GRPCSipListener implements SipListener {
     externalAddrs.add("192.168.1.3");
     localnets.add("10.100.42.127/31");
 
-    messageConverter = new MessageConverter(externalAddrs, localnets);
+    messageConverter = new MessageConverter(externalAddrs, localnets, edgePortRef);
     this.sipProvider = sipProvider;
   }
 

@@ -18,10 +18,21 @@ import { string } from "fp-ts";
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import grpc = require("@grpc/grpc-js")
+
 export class ServiceDefinitionNotFound extends Error {
   constructor(name: string, version: string) {
     super(`Service definition for ${name}/${version} not found`);
     // Set the prototype explicitly.
     Object.setPrototypeOf(this, ServiceDefinitionNotFound.prototype);
+  }
+}
+
+export class ServiceUnavailableError extends Error {
+  code: number;
+  constructor(addr: string) {
+    super(`service unavailable [addr = ${addr}]`);
+    this.code = grpc.status.UNAVAILABLE
+    Object.setPrototypeOf(this, ServiceUnavailableError.prototype);
   }
 }

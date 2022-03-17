@@ -41,12 +41,32 @@ services:
     volumes:
       - ./config/location.json:/etc/routr/location.json
 
-  # Echo Processor
+  # Connect processor
+  connect:
+    build: ./mods/connect
+    image: routr/connect
+    environment:
+      LOGS_LEVEL: verbose
+    expose:
+      - 51904
+
+  # Use the auth.json file to add or remove agents
+  simpleauth:
+    build: ./mods/simpleauth
+    image: routr/simpleauth
+    environment:
+      CONFIG_PATH: '/etc/routr/auth.json'
+      LOGS_LEVEL: verbose
+    expose:
+      - 51903
+    volumes:
+      - ./config/auth.json:/etc/routr/auth.json
+
+  # Echo processor
   echo:
     build: ./mods/echo
     image: routr/echo
     environment:
       LOGS_LEVEL: verbose
     expose:
-      - 51903
-
+      - 51904

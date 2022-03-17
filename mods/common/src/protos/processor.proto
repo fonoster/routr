@@ -33,13 +33,15 @@ message NetInterface {
 }
 
 message MessageRequest {
+  // Same as the Call-Id header 
   string ref = 1;
-  Method method = 2;
-  NetInterface sender = 3;
-  repeated NetInterface external_addrs = 4;
-  repeated string localnets = 5;
-  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 6;
-  // .google.protobuf.Struct metadata = 7;
+  string edgePortRef = 2;
+  Method method = 3;
+  NetInterface sender = 4;
+  repeated NetInterface external_addrs = 5;
+  repeated string localnets = 6;
+  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 7;
+  // .google.protobuf.Struct metadata = 8;
 }
 
 message MessageResponse {

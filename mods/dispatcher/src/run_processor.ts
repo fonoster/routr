@@ -36,7 +36,7 @@ export function runProcessor(params: RunProcessorParams) {
   // Connects to downstream processor
   conn.processMessage(request, (err: any, response: any) => {
     if (err?.code === grpc.status.UNAVAILABLE) {
-      // We aument the error to indicate which processor failed
+      // We augment the error to indicate which processor failed
       callback(new ProcessorUnavailableError(matchResult.ref))
       return
     }

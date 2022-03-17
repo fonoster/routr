@@ -1,11 +1,9 @@
 package io.routr.utils;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.sip.header.Header;
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import io.routr.headers.Converter;
