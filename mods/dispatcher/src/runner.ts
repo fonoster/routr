@@ -19,11 +19,12 @@
  */
 import MessageDispatcher from "./service"
 import { getConfig } from "./config/get_config"
+import logger from "@fonoster/logger"
 
 const result = getConfig(process.env.CONFIG_PATH)
 
 if (result._tag === 'Right') {
   MessageDispatcher(result.right) 
 } else {
-  console.log(result.left)
+  logger.error(result.left)
 }

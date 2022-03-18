@@ -54,7 +54,7 @@ export function getObjectProto<A>(objectProto: ObjectProto): A | ServiceDefiniti
 
 export default function createService(serviceInfo: ServiceInfo) {
   const cb = () => {
-    logger.info(`starting ${serviceInfo.name} service at ${serviceInfo.bindAddr}`)
+    logger.info(`starting ${serviceInfo.name} service @ ${serviceInfo.bindAddr}`)
     server.start()
   }
   const credentials = grpc.ServerCredentials.createInsecure()

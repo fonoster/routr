@@ -5,7 +5,7 @@
     "region": "us-east1"
   },
   "spec": {
-    "bindAddr": "0.0.0.0:51905",
+    "bindAddr": "0.0.0.0:51902",
     "cache" :{
       "provider": "memory"
     },
