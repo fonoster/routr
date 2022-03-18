@@ -16,19 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest } from "@routr/common";
-import Processor from "./processor"
-import Response from "./response";
-import { ProcessorConfig  } from "./types";
-
-export * as Target from "./target"
-export * as Extensions from "./extensions"
-export * as Alterations from "./alterations"
-export * as Helper from "./helper"
-
-export {
-  Processor as default,
-  MessageRequest,
-  Response,
-  ProcessorConfig
+export const deepCopy = <T>(source: T): T => {
+  return Array.isArray(source)
+    ? source.map(item => deepCopy(item))
+    : source instanceof Date
+      ? new Date(source.getTime())
+      : source && typeof source === 'object'
+        ? Object.getOwnPropertyNames(source).reduce((o, prop) => {
+          Object.defineProperty(o, prop, Object.getOwnPropertyDescriptor(source, prop)!);
+          o[prop] = deepCopy((source as { [key: string]: any })[prop]);
+          return o;
+        }, Object.create(Object.getPrototypeOf(source)))
+        : source as T;
 }

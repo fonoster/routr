@@ -16,19 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest } from "@routr/common";
-import Processor from "./processor"
-import Response from "./response";
-import { ProcessorConfig  } from "./types";
+import { MessageRequest } from "@routr/common"
 
-export * as Target from "./target"
-export * as Extensions from "./extensions"
-export * as Alterations from "./alterations"
-export * as Helper from "./helper"
+export const getAOR = (uri: any) => `${uri.secure ? 'sips' : 'sip'}:${uri.user ? uri.user + '@' : ''}${uri.host}`
 
-export {
-  Processor as default,
-  MessageRequest,
-  Response,
-  ProcessorConfig
+export const getTargetAOR = (request: MessageRequest) => getAOR((request.message.to as any).address.uri)
+
+export const getTargetExpires = (request: MessageRequest) => {
+  // The expires value in the Contact header takes presendence over the value
+  // on the Expires header
+  const expires: number = (request.message.contact as any).expires
+  return expires > -1 ? expires : (request.message.expires as { expires: number }).expires
 }

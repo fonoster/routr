@@ -40,17 +40,18 @@ public class AuthorizationConverter implements Converter<Authorization, io.routr
     AddressFactory addrFactory = SipFactory.getInstance().createAddressFactory();
     Authorization header = (Authorization) factory.createAuthorizationHeader(dto.getScheme());
 
-    header.setRealm(dto.getRealm());
     // header.setDomain(dto.getDomain());
-    header.setNonce(dto.getNonce());
-    header.setCNonce(dto.getCNonce());
-    header.setNonceCount(dto.getNonceCount());
-    header.setAlgorithm(dto.getAlgorithm());
-    header.setQop(dto.getQop());
-    header.setOpaque(dto.getOpaque());
-    header.setResponse(dto.getResponse());
-    header.setUsername(dto.getUsername());
 
+    header.setNonceCount(dto.getNonceCount());
+    header.setRealm(dto.getRealm());
+    header.setOpaque(dto.getOpaque());
+    
+    if (!dto.getNonce().isEmpty()) header.setNonce(dto.getNonce());
+    if (!dto.getCNonce().isEmpty()) header.setCNonce(dto.getCNonce());
+    if (!dto.getAlgorithm().isEmpty()) header.setAlgorithm(dto.getAlgorithm());
+    if (!dto.getQop().isEmpty()) header.setQop(dto.getQop());
+    if (!dto.getResponse().isEmpty()) header.setResponse(dto.getResponse());
+    if (!dto.getUsername().isEmpty()) header.setUsername(dto.getUsername());
     if (dto.getUri() != null && !dto.getUri().isEmpty()) {
       header.setURI(addrFactory.createURI(dto.getUri()));
     }

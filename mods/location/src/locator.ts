@@ -28,8 +28,8 @@ import {
   ILocatorStore,
   LB_ALGORITHM,
   RemoveRouteRequest,
-  Route
 } from "./types";
+import { Route } from "@routr/common"
 import { filterOnlyMatchingLabels, hasAffinitySession } from "./utils";
 
 export default class Locator implements ILocationService {

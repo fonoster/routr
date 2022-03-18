@@ -16,17 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Route } from "@routr/common"
+import {  LOCATION_OBJECT_PROTO, ServiceInfo } from "@routr/common"
+import { NotRoutesFoundForAOR } from "./errors"
 import { 
   Backend, 
   ILocationService,
-  RedisStoreConfig, 
-  Route 
+  RedisStoreConfig,  
 } from "./types"
-import { 
-  LOCATION_OBJECT_PROTO,
-  ServiceInfo
-} from "@routr/common"
-import { NotRoutesFoundForAOR } from "./errors"
 
 export const expiredFilter = (r: Route) => 
   (r.expires - (Date.now() - r.registeredOn) / 1000) > 0

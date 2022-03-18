@@ -104,3 +104,15 @@ export interface AuthChallengeResponse {
   uri: string
   method: string
 }
+
+export interface Route {
+  user: string
+  host: string
+  port: number
+  transport: string
+  registeredOn: number
+  sessionCount?: number
+  expires: number
+  edgePortRef: string
+  labels?: Map<string, string>
+}

@@ -5,8 +5,8 @@
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
   "license": "MIT",
-  "main": "dist/location",
-  "types": "dist/location",
+  "main": "dist/index",
+  "types": "dist/index",
   "scripts": {
     "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
     "build": "tsc -b tsconfig.json"
@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@routr/common": "^2.0.5-alpha.3",
+    "@routr/processor": "^2.0.5-alpha.3",
     "ajv": "^6.12.6",
     "fp-ts": "^2.11.8",
     "redis": "^4.0.4"

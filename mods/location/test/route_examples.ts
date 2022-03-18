@@ -1,4 +1,5 @@
-import { Backend, LB_ALGORITHM, Route } from "../src/types"
+import { Route } from "@routr/common"
+import { Backend, LB_ALGORITHM } from "../src/types"
 
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)

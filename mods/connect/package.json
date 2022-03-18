@@ -21,7 +21,8 @@
   "dependencies": {
     "@fonoster/logger": "^0.3.3",
     "@routr/common": "^2.0.5-alpha.3",
-    "@routr/processor": "^2.0.5-alpha.3"
+    "@routr/processor": "^2.0.5-alpha.3",
+    "@routr/location": "^2.0.5-alpha.3"
   },
   "files": [
     "dist"

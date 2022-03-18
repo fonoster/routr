@@ -16,19 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest } from "@routr/common";
-import Processor from "./processor"
-import Response from "./response";
-import { ProcessorConfig  } from "./types";
+import { MessageRequest, Helper as H } from "@routr/common";
 
-export * as Target from "./target"
-export * as Extensions from "./extensions"
-export * as Alterations from "./alterations"
-export * as Helper from "./helper"
+export const getHeaderValue = (request: MessageRequest, name: string) =>
+  (request.message.extensions as any).find((ext: any) => ext.name.toLowerCase() === name.toLowerCase())?.value
 
-export {
-  Processor as default,
-  MessageRequest,
-  Response,
-  ProcessorConfig
+export const updateHeader = (request: MessageRequest, header: { name: string, value: string }): MessageRequest => {
+  const r = H.deepCopy(request)
+  r.message.extensions = (request.message.extensions as any).map((ext: any) => {
+    return ext.name == header.name ? header : ext
+  })
+  return r
 }

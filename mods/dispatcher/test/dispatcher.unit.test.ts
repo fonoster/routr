@@ -179,7 +179,7 @@ describe('@routr/dispatcher', () => {
       const config = result.right
       expect(config).to.have.property("bindAddr")
       expect(config.processors[0])
-        .to.have.property("ref").to.be.equal("scaip-essense")
+        .to.have.property("ref").to.be.equal("echo-processor")
       done()
     } else {
       done(result.left)

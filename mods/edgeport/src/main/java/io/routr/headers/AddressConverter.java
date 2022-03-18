@@ -23,7 +23,7 @@ public class AddressConverter {
     var sipUriConverter = new SipURIConverter();
     AddressFactory factory = SipFactory.getInstance().createAddressFactory();
     Address address = factory.createAddress((URI) sipUriConverter.fromDTO(dto.getUri()));
-    address.setDisplayName(dto.getDisplayName());
+    if (!dto.getDisplayName().isEmpty()) address.setDisplayName(dto.getDisplayName());
     return address;
   }
 }

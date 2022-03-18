@@ -1,5 +1,3 @@
-import { boolean } from "fp-ts"
-
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -18,6 +16,8 @@ import { boolean } from "fp-ts"
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Route } from "@routr/common"
+
 export enum LB_ALGORITHM {
   ROUND_ROBIN= "round-robin",
   LEAST_SESSIONS = "least-sessions"
@@ -38,18 +38,6 @@ export interface ILocatorStore {
   put(key: string, route: Route): Promise<void>
   get(key: string): Promise<Route[]>
   delete(key: string): Promise<void>
-}
-
-export interface Route {
-  user: string
-  host: string
-  port: number
-  transport: string
-  registeredOn: number
-  sessionCount?: number
-  expires: number
-  edgePortRef: string
-  labels?: Map<string, string>
 }
 
 export interface AddRouteRequest {

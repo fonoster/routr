@@ -6,7 +6,8 @@
   },
   "references": [
     {"path": "../common"},
-    {"path": "../processor"}
+    {"path": "../processor"},
+    {"path": "../location"}
   ],
   "exclude": [
     "node_modules",

@@ -16,19 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest } from "@routr/common";
-import Processor from "./processor"
-import Response from "./response";
-import { ProcessorConfig  } from "./types";
+import { MessageRequest } from "@routr/common"
 
-export * as Target from "./target"
-export * as Extensions from "./extensions"
-export * as Alterations from "./alterations"
-export * as Helper from "./helper"
-
-export {
-  Processor as default,
-  MessageRequest,
-  Response,
-  ProcessorConfig
-}
+export const isTypeResponse = (request: MessageRequest): boolean => request.message.message_type === "response_type"
+export const isTypeRequest = (request: MessageRequest): boolean => !isTypeResponse(request)

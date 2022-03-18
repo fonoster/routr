@@ -16,9 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { 
-  ILocatorStore, Route
-} from "./types"
+import { Route } from "@routr/common"
+import { ILocatorStore } from "./types"
 import { duplicateFilter, expiredFilter } from "./utils"
 
 const MAX_CYCLES_BEFORE_CLEANUP = 10000

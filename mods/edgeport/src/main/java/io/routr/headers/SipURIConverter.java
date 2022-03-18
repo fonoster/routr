@@ -38,14 +38,12 @@ public class SipURIConverter {
     SipURI uri = (SipURI) factory.createAddress("sip:" + dto.getHost()).getURI();
 
     if (dto.getLrParam()) uri.setLrParam();
-
-    uri.setUser(dto.getUser());
-    uri.setHost(dto.getHost());
-    uri.setUserPassword(dto.getUserPassword());
-    uri.setTransportParam(dto.getTransportParam());
-    uri.setMethodParam(dto.getMethodParam());
-    uri.setUserParam(dto.getUserParam());
-
+    if(!dto.getUser().isEmpty()) uri.setUser(dto.getUser());
+    if(!dto.getHost().isEmpty()) uri.setHost(dto.getHost());
+    if(!dto.getUserPassword().isEmpty()) uri.setUserPassword(dto.getUserPassword());
+    if(!dto.getTransportParam().isEmpty()) uri.setTransportParam(dto.getTransportParam());
+    if(!dto.getMethodParam().isEmpty()) uri.setMethodParam(dto.getMethodParam());
+    if(!dto.getUserParam().isEmpty()) uri.setUserParam(dto.getUserParam());
     if(dto.getTTLParam() != -1) uri.setTTLParam(dto.getTTLParam());
     
     uri.setPort(dto.getPort());

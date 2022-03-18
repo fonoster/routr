@@ -142,6 +142,17 @@ public class ConveterTests {
   }
 
   @Test
+  public void testSipURIConveterWithNull() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+    AddressFactory factory = SipFactory.getInstance().createAddressFactory();
+
+    SipURI uri = (SipURI) factory.createAddress("sip:sip.local").getURI();
+    SipURIConverter converter = new SipURIConverter();
+    io.routr.message.SipURI dto = converter.fromObject(uri);
+    SipURI objectFromDto = converter.fromDTO(dto);
+    assertEquals(objectFromDto.getUser(), null);
+  }
+
+  @Test
   public void testAddressConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     AddressFactory factory = SipFactory.getInstance().createAddressFactory();
     AddressConverter converter = new AddressConverter();
@@ -291,7 +302,7 @@ public class ConveterTests {
     header.setOpaque("");
     header.setResponse("1234");
     header.setUsername("1001");
-    header.setURI(addrFactory.createURI("sip:17778901246@callcentric.co;transport=UDP"));
+    header.setURI(addrFactory.createURI("sip:100@sip.local;transport=UDP"));
 
     io.routr.message.Authorization authorizationDTO = converter.fromHeader(header);
     Authorization headerFromDto = converter.fromDTO(authorizationDTO);

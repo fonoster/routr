@@ -36,7 +36,8 @@ import {
   NetInterface, 
   Method, 
   ObjectProto, 
-  ServiceInfo
+  ServiceInfo,
+  Route
 } from "./types";
 
 export {
@@ -44,6 +45,7 @@ export {
   getObjectProto,
   generateNonce,
   calculateAuthResponse,
+  Route,
   ServiceUnavailableError,
   Transport,
   ProcessorConfig,
@@ -56,3 +58,5 @@ export {
   PROCESSOR_OBJECT_PROTO,
   LOCATION_OBJECT_PROTO
 };
+
+export * as Helper from "./helper"

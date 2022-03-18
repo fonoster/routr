@@ -16,9 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  ILocatorStore, RedisStoreConfig, Route
-} from "./types"
+import { Route } from "@routr/common"
+import { ILocatorStore, RedisStoreConfig } from "./types"
 import { createClient } from 'redis'
 import { getUrlString } from "./utils";
 import logger from "@fonoster/logger";
