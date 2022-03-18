@@ -20,6 +20,7 @@ import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.WWWAuthenticate;
 import gov.nist.javax.sip.header.Authorization;
 import gov.nist.javax.sip.header.CallID;
+import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.From;
@@ -31,10 +32,10 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
-
 import io.routr.headers.AddressConverter;
 import io.routr.headers.AuthorizationConverter;
 import io.routr.headers.CallIDConverter;
+import io.routr.headers.ExpiresConverter;
 import io.routr.headers.ContactConverter;
 import io.routr.headers.ContentLengthConverter;
 import io.routr.headers.ExtensionConverter;
@@ -94,6 +95,19 @@ public class ConveterTests {
     assertEquals("call001", header.getCallId());
     assertEquals(callIdDTO.getCallId(), header.getCallId());
     assertEquals(headerFromDto.getCallId(), header.getCallId());
+  }
+
+  @Test
+  public void testExpiresConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+    HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
+    Expires header = (Expires) factory.createExpiresHeader(600);
+    ExpiresConverter converter = new ExpiresConverter();
+    io.routr.message.Expires expiresDTO = converter.fromHeader(header);
+    Expires headerFromDto = converter.fromDTO(expiresDTO);
+
+    assertEquals(600, header.getExpires());
+    assertEquals(expiresDTO.getExpires(), header.getExpires());
+    assertEquals(headerFromDto.getExpires(), header.getExpires());
   }
 
   @Test

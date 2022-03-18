@@ -18,6 +18,7 @@ import javax.sip.message.Response;
 import gov.nist.javax.sip.header.Authorization;
 import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.CallID;
+import gov.nist.javax.sip.header.Expires;
 import io.routr.utils.ClassFinder;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.To;
@@ -149,6 +150,11 @@ class MessageConverter {
     if (message.hasContact()) {
       var converter = getConverterByHeader(Contact.class);
       headers.add(converter.fromDTO(message.getContact()));
+    }
+
+    if (message.hasExpires()) {
+      var converter = getConverterByHeader(Expires.class);
+      headers.add(converter.fromDTO(message.getExpires()));
     }
 
     if (!message.getExtensionsList().isEmpty()) {

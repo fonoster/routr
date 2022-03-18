@@ -58,19 +58,15 @@ const config3: ProcessorConfig = {
 
 const messageRequest: MessageRequest = {
   ref: "call-id",
+  edge_port_ref: "d001",
   method: "REGISTER",
   sender: {
     port: 5060,
     host: "localhost",
     transport: 'TCP'
   },
-  externalAddrs: [],
+  external_addrs: [],
   localnets: [],
-  targetInterface: {
-    port: 5061,
-    host: "localhost",
-    transport: 'TCP'
-  },
   message: {}
 }
 

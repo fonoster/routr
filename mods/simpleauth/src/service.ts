@@ -28,7 +28,7 @@ export default function SimpleAuthProcessor(config: { bindAddr: string, users: U
 
   new Processor({ bindAddr, name: "simpleauth" })
     .listen((req: Record<string, any>, res: Response) => {
-      logger.silly(JSON.stringify(req, null, ' '))
+      logger.verbose(JSON.stringify(req, null, ' '))
 
       // Calculate and return challenge
       if (req.message.authorization) {

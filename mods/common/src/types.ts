@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type Method = 'UNKNOWN' 
+export type Method = 'UNKNOWN'
   | 'REGISTER'
   | 'INVITE'
   | 'MESSAGE'
@@ -24,12 +24,12 @@ export type Method = 'UNKNOWN'
   | 'NOTIFY'
   | 'SUBSCRIBE'
 
-export type Transport = 'TCP' 
-  | 'UDP' 
+export type Transport = 'TCP'
+  | 'UDP'
   | 'TLS'
   | 'SCTP'
   | 'WS'
-  | 'WSS' 
+  | 'WSS'
 
 export interface NetInterface {
   host: string
@@ -39,11 +39,11 @@ export interface NetInterface {
 
 export interface MessageRequest {
   ref: string
+  edge_port_ref: string
   method: Method
   sender: NetInterface
-  externalAddrs: NetInterface[]
+  external_addrs: NetInterface[]
   localnets: string[]
-  targetInterface: NetInterface
   message: Record<string, unknown>
 }
 
