@@ -16,11 +16,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createService } from "@routr/common"
-import { serviceInfo } from "./processor"
-import { EchoProcessorConfig } from "./types"
+import { MessageRequest } from "@routr/common"
 
-export default function EchoProcessor(config: EchoProcessorConfig) {
-  serviceInfo.bindAddr = config.bindAddr
-  createService(serviceInfo)
+const buildResponse = (code: number) => {
+  return { message: { response_type: code }}
+}
+
+export default class Response {
+  callback: any;
+  constructor(callback: Function) {
+    this.callback = callback
+  }
+
+  sendOk() {
+    this.callback(null, buildResponse(7))
+  }
+
+  sendMethodNotAllowed() {
+    this.callback(null, buildResponse(21))
+  }
+
+  sendNotImplemented() {
+    this.callback(null, buildResponse(47))
+  }
+
+  send(message: MessageRequest | Record<string, unknown>) {
+    this.callback(null, message)
+  }
+
+  sendError(error: any) {
+    this.callback(error, null)
+  }
 }

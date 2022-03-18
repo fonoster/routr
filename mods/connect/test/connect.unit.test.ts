@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -19,7 +19,6 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { createUnauthorizedResponse, getCredentials } from '../src/utils'
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
@@ -27,46 +26,6 @@ const sandbox = sinon.createSandbox();
 describe('@routr/simpleauth', () => {
   afterEach(() => sandbox.restore());
 
-  it('gets credentials by username', () => {
-    const users = [{
-      username: 'john',
-      secret: 'changeit'
-    },
-    {
-      username: '1001',
-      secret: 'changeit'
-    }]
-
-    expect(getCredentials('1001', users)).to.have.property("secret").to.be.equal("changeit")
-  })
-
-  it('creates an unauthorized response', () => {
-    const response = createUnauthorizedResponse("localhost")
-    expect(response)
-      .to.have.property("message")
-      .to.have.property("response_type").to.be.equal(17)
-    expect(response)
-      .to.have.property("message")
-      .to.have.property("www_authenticate")
-      .to.have.property("scheme").to.be.equal("Digest")
-    expect(response)
-      .to.have.property("message")
-      .to.have.property("www_authenticate")
-      .to.have.property("realm").to.be.equal("localhost")
-    expect(response)
-      .to.have.property("message")
-      .to.have.property("www_authenticate")
-      .to.have.property("algorithm").to.be.equal("MD5")
-    expect(response)
-      .to.have.property("message")
-      .to.have.property("www_authenticate")
-      .to.have.property("qop").to.be.equal("auth")
-    expect(response)
-      .to.have.property("message")
-      .to.have.property("www_authenticate")
-      .to.have.property("nonce").to.be.length(32)
-    expect(response)
-      .to.have.property("message")
-      .to.have.property("extensions").to.be.not.null    
+  it('needs testing', () => {
   })
 })

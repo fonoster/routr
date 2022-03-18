@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Copyright (C) 2021 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -17,6 +17,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import EchoProcessor from './service'
+import logger from "@fonoster/logger"
+import Processor, { 
+  Response,
+  MessageRequest
+} from "@routr/processor"
 
-EchoProcessor({ bindAddr: process.env.BIND_ADDR || "0.0.0.0:51904" })
+new Processor({ bindAddr: "0.0.0.0:51904", name: "echo" })
+  .listen((request: MessageRequest, response: Response) => {
+    logger.verbose("got new request: ")
+    logger.verbose(JSON.stringify(request, null, ' '))
+    response.send(request)
+  })

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -17,22 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import logger from '@fonoster/logger'
-import SimpleAuthProcessor from './service'
-import { User } from './types'
+import chai from 'chai'
+import sinon from 'sinon'
+import sinonChai from 'sinon-chai'
 
-if (!process.env.PATH_TO_AUTH) {
-  logger.error("environment variable PATH_TO_AUTH is required but was not found")
-  process.exit(1)
-}
+const expect = chai.expect
+chai.use(sinonChai)
+const sandbox = sinon.createSandbox();
 
-try {
-  const users: User[] = require(process.env.PATH_TO_AUTH)
-  SimpleAuthProcessor({bindAddr: "", users })
-} catch (e) {
-  if (e.code === "MODULE_NOT_FOUND") {
-    logger.error(`auth file not found [path = ${process.env.PATH_TO_AUTH}]`)
-  } else {
-    logger.error(e)
-  }
-}
+describe('@routr/common', () => {
+  afterEach(() => sandbox.restore());
+
+  it('need testing', () => {
+  })
+})

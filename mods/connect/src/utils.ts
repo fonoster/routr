@@ -17,36 +17,14 @@
  * limitations under the License.
  */
 import { 
-  PROCESSOR_OBJECT_PROTO, 
   MessageRequest, 
   ServiceUnavailableError 
 } from "@routr/common"
-import getProcessor from "./processor"
 import grpc = require("@grpc/grpc-js")
-
-export function getServiceInfo(params: { bindAddr: string, locationAddr: string}) {
-  const { bindAddr, locationAddr } = params
-  return {
-    name: "connect",
-    bindAddr,
-    service: PROCESSOR_OBJECT_PROTO.Processor.service,
-    handlers: { processMessage: getProcessor(locationAddr) }
-  }
-}
-
-export const buildResponse = (code: number) => {
-  return { message: { response_type: code }}
-}
-
-export const ok = () => buildResponse(7)
-
-export const methodNotAllowed = () => buildResponse(21)
-
-export const notImplemented = () => buildResponse(47)
+import { Response } from "@routr/processor"
 
 export const createRoute = (request: MessageRequest) => {
   // TODO: Fix harcoded values
-
   return {
     user: 'string',
     host: 'localhost',
@@ -61,7 +39,7 @@ export const createRoute = (request: MessageRequest) => {
 }
 
 export const createRegisterHandler = (locator: {addr: string, connection: any}) => {
-  return (callback: Function, request: MessageRequest) => {
+  return (request: MessageRequest, res: Response) => {
     const { user, host} = request.message.to as any
     const addRouteRequest = {
       aor: `sip:${user}@${host}`,
@@ -70,10 +48,10 @@ export const createRegisterHandler = (locator: {addr: string, connection: any}) 
 
     locator.connection.addRoute(addRouteRequest, (err: any, response: any) => {
       if (err?.code === grpc.status.UNAVAILABLE) {
-        callback(new ServiceUnavailableError(locator.addr))
+        res.sendError(new ServiceUnavailableError(locator.addr))
         return
       }
-      callback(null, ok())
+      res.sendOk()
     })
   }
 } 

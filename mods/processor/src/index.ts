@@ -16,24 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  PROCESSOR_OBJECT_PROTO,
-} from "@routr/common"
-import logger from "@fonoster/logger"
+import { MessageRequest } from "@routr/common";
+import Processor from "./processor"
+import Response from "./response";
+import { ProcessorConfig  } from "./types";
 
-// This processor returns upstream the message received
-export function processMessage(call: any, callback: Function) {
-  logger.verbose("got new request: ")
-  logger.verbose(JSON.stringify(call.request, null, ' '))
-  const response = {
-    message: { ...call.request.message }
-  }
-  callback(null, response)
-}
-
-export const serviceInfo = {
-  name: "echo",
-  bindAddr: 'placeholder',
-  service: PROCESSOR_OBJECT_PROTO.Processor.service,
-  handlers: { processMessage }
+export {
+  Processor as default,
+  MessageRequest,
+  Response,
+  ProcessorConfig
 }

@@ -5,7 +5,8 @@
     "rootDir": "./src"
   },
   "references": [
-    {"path": "../common"}
+    {"path": "../common"},
+    {"path": "../processor"}
   ],
   "exclude": [
     "node_modules",

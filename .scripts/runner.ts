@@ -9,9 +9,9 @@ import { getConfig as getLocationConfig } from "../mods/location/src/config/get_
 import { spawn } from "child_process"
 
 const edgeport = spawn("./mods/edgeport/edgeport.sh")
+const users = require(__dirname + "/../config/auth.json")
 const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.json")
 const locationConfig = getLocationConfig(__dirname + "/../config/location.json")
-const users = require(__dirname + "/../config/auth.json")
 
 logger.info("routr v2 // connect distribution")
 
@@ -28,7 +28,7 @@ if (locationConfig._tag === 'Right') {
 }
 
 SimpleAuthProcessor({ bindAddr: "0.0.0.0:51903", users })
-ConnectProcessor({ bindAddr: "0.0.0.0:51904", locationAddr: "localhost:51905" })
+ConnectProcessor({ bindAddr: "0.0.0.0:51904", locationAddr: "localhost:51902" })
 
 edgeport.stdout.on("data", (data: any) => {
   process.stdout.write(`${data}`)

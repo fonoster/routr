@@ -18,7 +18,7 @@
     "test:graaljs": "cross-env NODE_ENV=dev nyc --reporter=lcov .scripts/mocha_wrapper.sh mods/**/graaljstest/*.unit.test.ts --exit",
     "build": "lerna run build && npm run bundle",
     "clean": "rimraf **/*/tsconfig.tsbuildinfo && rimraf **/*/dist && rimraf **/*/dist && rimraf **/*/node_modules && rimraf dist node_modules build libs .gradle ",
-    "start":  "cross-env NODE_ENV=dev LOGS_LEVEL=verbose nodemon ./.scripts/run",
+    "start":  "cross-env NODE_ENV=dev LOGS_LEVEL=verbose nodemon ./.scripts/runner",
     "start:connect": "cross-env PATH_TO_AUTH=$(pwd)/config/auth.json NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/connect/src/runner",
     "start:simpleauth": "cross-env PATH_TO_AUTH=$(pwd)/config/auth.json NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/simpleauth/src/runner",
     "start:echo": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/echo/src/runner",

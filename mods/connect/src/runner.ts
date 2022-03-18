@@ -20,12 +20,12 @@
 import logger from '@fonoster/logger'
 import ConnectProcessor from './service'
 
-const bindAddr = process.env.BIND_ADDR || "0.0.0.0:51904"
-const locationAddr = process.env.LOCATION_ADDR
-
-if (!locationAddr) {
+if (process.env.LOCATION_ADDR) {
+  ConnectProcessor({
+    bindAddr: process.env.BIND_ADDR || "0.0.0.0:51904",
+    locationAddr: process.env.LOCATION_ADDR
+  })
+} else {
   logger.error("environment variable LOCATION_ADDR is required but was not found")
   process.exit(1)
 }
-
-ConnectProcessor({ bindAddr, locationAddr })

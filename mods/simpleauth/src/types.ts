@@ -16,11 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface SimpleAuthProcessorConfig {
-  bindAddr: string
-  users: User[]
-}
-
 export interface User {
   username: string
   secret: string

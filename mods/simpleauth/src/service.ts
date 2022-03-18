@@ -1,10 +1,11 @@
+#!/usr/bin/env node
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
  *
- * Licensed under the MIT License (the "License")
+ * Licensed under the MIT License (the "License");
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
@@ -16,10 +17,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createService } from "@routr/common"
-import { SimpleAuthProcessorConfig } from "./types"
-import { getServiceInfo } from "./utils"
+import logger from '@fonoster/logger'
+import { calculateAuthResponse } from '@routr/common'
+import { getCredentials, createUnauthorizedResponse } from './utils'
+import Processor, { Response } from "@routr/processor"
+import { User } from './types'
 
-export default function SimpleAuthProcessor(config: SimpleAuthProcessorConfig) {
-  createService(getServiceInfo(config))
+export default function SimpleAuthProcessor(config: { bindAddr: string, users: User[] }) {
+  const { bindAddr, users } = config
+
+  new Processor({ bindAddr, name: "simpleauth" })
+    .listen((req: Record<string, any>, res: Response) => {
+      logger.silly(JSON.stringify(req, null, ' '))
+
+      // Calculate and return challenge
+      if (req.message.authorization) {
+        const auth = { ...req.message.authorization }
+        auth.method = req.method
+        // Calculate response and compare with the one send by the endpoint
+        const calcRes = calculateAuthResponse(auth, getCredentials(auth.username, users))
+
+        if (calcRes !== auth.response) {
+          return res.send(createUnauthorizedResponse(auth.realm))
+        }
+      } else {
+        return res.send(createUnauthorizedResponse(req.message.request_uri.host))
+      }
+      // Forward request to next middleware
+      res.send(req)
+    })
 }

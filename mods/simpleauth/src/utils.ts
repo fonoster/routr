@@ -16,8 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PROCESSOR_OBJECT_PROTO, generateNonce } from "@routr/common"
-import getProcessor from "./processor"
+import { generateNonce } from "@routr/common"
 import { User } from "./types"
 
 export const getCredentials = (username: string, users: User[]) => users.find(user => user.username === username)
@@ -42,19 +41,9 @@ export const createUnauthorizedResponse = (realm: string, params: {
       extensions: [
         {
           "name": "Expires",
-          "value": "0"
+          "value": 0
         }
       ]
     }
-  }
-}
-
-export function getServiceInfo(params: { bindAddr: string, users: User[] }) {
-  const { bindAddr, users } = params
-  return {
-    name: "simpleauth",
-    bindAddr,
-    service: PROCESSOR_OBJECT_PROTO.Processor.service,
-    handlers: { processMessage: getProcessor(users) }
   }
 }

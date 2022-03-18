@@ -1,27 +1,26 @@
 {
-  "name": "@routr/echo",
+  "name": "@routr/processor",
   "version": "2.0.5-alpha.2",
-  "description": "Dummy implementation of a Processor service",
+  "description": "Processor server and API",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
   "license": "MIT",
-  "main": "dist/echo",
-  "types": "dist/echo",
-  "directories": {
-    "src": "src",
-    "test": "test"
-  },
+  "main": "dist/index",
+  "types": "dist/index",
   "scripts": {
     "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
     "build": "tsc -b tsconfig.json"
   },
-  "bin": {
-    "run_echo": "dist/runner.js"
-  },
   "dependencies": {
     "@fonoster/logger": "^0.3.3",
-    "@routr/processor": "^2.0.5-alpha.2",
-    "@routr/common": "^2.0.5-alpha.2"
+    "@routr/common": "^2.0.5-alpha.2",
+    "@grpc/grpc-js": "^1.5.5",
+    "@grpc/proto-loader": "^0.6.9",
+    "fp-ts": "^2.11.8"
+  },
+  "directories": {
+    "src": "src",
+    "test": "test"
   },
   "files": [
     "dist"
