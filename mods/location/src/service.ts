@@ -24,7 +24,7 @@ import {
 } from "./types"
 import { createService } from "@routr/common"
 import { configFromString, getServiceInfo } from "./utils"
-import Locator from "./locator"
+import Location from "./location"
 import MemoryStore from "./memory_store"
 import RedisStore from "./redis_store"
 import logger from "@fonoster/logger"
@@ -43,7 +43,7 @@ export default function LocationService(config: LocationConfig) {
 
   const backends = new Map<string, Backend>() 
   config.backends.forEach(b => backends.set(`backend:${b.ref}`, b))
-  createService(getServiceInfo(bindAddr, new Locator(store, backends)))
+  createService(getServiceInfo(bindAddr, new Location(store, backends)))
 
   logger.info(`using ${cache.provider} as cache provider`)
 }

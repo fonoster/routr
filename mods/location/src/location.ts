@@ -27,12 +27,12 @@ import {
   ILocationService,
   ILocatorStore,
   LB_ALGORITHM,
-  RemoveRouteRequest,
+  RemoveRoutesRequest,
 } from "./types";
 import { Route } from "@routr/common"
 import { filterOnlyMatchingLabels, hasAffinitySession } from "./utils";
 
-export default class Locator implements ILocationService {
+export default class Location implements ILocationService {
   private store: ILocatorStore
   private backends: Map<string, Backend>
   private rrCount: Map<string, number>
@@ -78,7 +78,7 @@ export default class Locator implements ILocationService {
     throw new UnsupportedSchema(request.aor)
   }
 
-  public removeRoutes(request: RemoveRouteRequest): Promise<void> {
+  public removeRoutes(request: RemoveRoutesRequest): Promise<void> {
     return this.store.delete(request.aor)
   }
 

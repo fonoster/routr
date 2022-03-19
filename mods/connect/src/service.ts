@@ -17,18 +17,18 @@
  * limitations under the License.
  */
 import { ConnectProcessorConfig } from "./types"
-import grpc = require("@grpc/grpc-js")
-import { LOCATION_OBJECT_PROTO, MessageRequest } from "@routr/common"
+import { MessageRequest } from "@routr/common"
+import { LocationClient as Location } from "@routr/location"
+import { createRegisterHandler } from "./utils"
 import Processor, { Response } from "@routr/processor"
 import logger from "@fonoster/logger"
-import { createRegisterHandler } from "./utils"
 
 export default function ConnectProcessor(config: ConnectProcessorConfig) {
   const { bindAddr, locationAddr } = config
-  const locator = new LOCATION_OBJECT_PROTO.Location(locationAddr, grpc.credentials.createInsecure())
+  const location = new Location({ addr: locationAddr})
 
   new Processor({ bindAddr, name: "connect" })
-    .listen((req: MessageRequest, res: Response) => {
+    .listen(async(req: MessageRequest, res: Response) => {
       
       logger.silly(JSON.stringify(req, null, ' '))
 
@@ -39,7 +39,7 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           res.sendMethodNotAllowed()
           break
         case 'REGISTER':
-          createRegisterHandler({ connection: locator, addr: locationAddr })(req, res)
+          await createRegisterHandler(location)(req, res)
           break
         case 'CANCEL':
           break

@@ -16,5 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import LocationClient from "./client"
+
 export * as Helper from "./helper"
 export * as Utils from "./utils"
+export {
+  LocationClient
+}

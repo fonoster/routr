@@ -25,6 +25,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.5.9",
     "@routr/common": "^2.0.5-alpha.3",
     "ajv": "^6.12.6",
     "fp-ts": "^2.11.8"

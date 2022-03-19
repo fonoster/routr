@@ -19,7 +19,7 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import Locator from '../src/locator'
+import Locator from '../src/location'
 import MemoryStore from '../src/memory_store'
 import { getConfig } from '../src/config/get_config'
 import * as Routes from './route_examples'

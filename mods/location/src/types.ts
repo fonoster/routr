@@ -31,7 +31,7 @@ export enum CACHE_PROVIDER {
 export interface ILocationService {
   addRoute(request: AddRouteRequest): Promise<void>
   findRoutes(request: FindRoutesRequest): Promise<Route[]>
-  removeRoutes(request: RemoveRouteRequest): Promise<void>
+  removeRoutes(request: RemoveRoutesRequest): Promise<void>
 }
 
 export interface ILocatorStore {
@@ -55,7 +55,7 @@ export interface FindRoutesResponse {
   routes: Array<Route>
 }
 
-export interface RemoveRouteRequest {
+export interface RemoveRoutesRequest {
   aor: string
 }
 

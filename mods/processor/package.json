@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@fonoster/logger": "^0.3.3",
-    "@grpc/grpc-js": "^1.5.5",
+    "@grpc/grpc-js": "^1.5.9",
     "@grpc/proto-loader": "^0.6.9",
     "@routr/common": "^2.0.5-alpha.3",
     "fp-ts": "^2.11.8"

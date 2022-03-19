@@ -27,6 +27,7 @@ bin
 .vscode
 .project
 ${sys:DATA}
+*.log
 
 # User-specific stuff:
 .idea/workspace.xml

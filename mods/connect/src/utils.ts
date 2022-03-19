@@ -16,30 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  MessageRequest,
-  ServiceUnavailableError
-} from "@routr/common"
-import grpc = require("@grpc/grpc-js/")
-import { Location as L } from "@routr/location"
+import { MessageRequest } from "@routr/common"
+import { Helper as H } from "@routr/location"
 import { Target as T, Response }from "@routr/processor"
-import logger from "@fonoster/logger"
 
-export const createRegisterHandler = (locator: { addr: string, connection: any }) => {
-  return (request: MessageRequest, res: Response) => {
-    const addRouteRequest = {
+export const createRegisterHandler = (location: any) => {
+  return async(request: MessageRequest, res: Response) => {
+    await location.addRoute({
       aor: T.getTargetAOR(request),
-      route: L.createRoute(request)
-    }
-
-    logger.verbose("adding route request => " +JSON.stringify(addRouteRequest))
-
-    locator.connection.addRoute(addRouteRequest, (err: any, response: any) => {
-      if (err?.code === grpc.status.UNAVAILABLE) {
-        res.sendError(new ServiceUnavailableError(locator.addr))
-        return
-      }
-      res.sendOk()
+      route: H.createRoute(request)
     })
+    res.sendOk()
   }
 } 
