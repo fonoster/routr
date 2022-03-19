@@ -23,6 +23,7 @@ import { request, route } from "./examples"
 import { Alterations as A } from '../src'
 import { Extensions as E } from '../src'
 import { MessageRequest } from '@routr/common/src'
+import { pipe } from 'fp-ts/function'
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -70,5 +71,15 @@ describe('@routr/processor/alterations', () => {
     expect((A.removeTopVia(request).message.via as [{ host: string }])[0])
       .to.have.property("host")
       .to.be.equal("127.0.0.1")
+  })
+
+  it('pipes alterations and checks the result', () => {
+    const result = pipe(
+      request,
+      A.updateRequestURI(route),
+      A.addSelfVia,
+      A.decreaseMaxForwards,
+    )
+    expect(result).to.have.property("message")
   })
 })

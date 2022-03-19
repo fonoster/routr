@@ -40,7 +40,7 @@ export const addSelfVia = (request: MessageRequest): MessageRequest => {
     port: 5060,
     transport: 'udp'
   }]*/
-  return null
+  return request
 }
 
 export const removeTopVia = (request: MessageRequest): MessageRequest => {
