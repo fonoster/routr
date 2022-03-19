@@ -29,6 +29,8 @@ export interface EdgePortConfig {
     processor: {
       addr: string
     }
+    externalAddrs: string[]
+    localnets: string[]
     securityContext?: {
       debugging: boolean
       keyStore: string

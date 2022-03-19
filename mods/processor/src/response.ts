@@ -32,6 +32,10 @@ export default class Response {
     this.callback(null, buildResponse(7))
   }
 
+  sendMethodNotAllowed() {
+    this.callback(null, buildResponse(21))
+  }
+
   sendNotFound() {
     this.callback(null, buildResponse(20))
   }

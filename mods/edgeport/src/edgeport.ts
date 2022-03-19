@@ -30,6 +30,7 @@ import createSipStack from "./create_sip_stack"
 import getServerProperties from "./server_properties"
 
 const GRPCSipListener = Java.type("io.routr.GRPCSipListener")
+const ArrayList = Java.type("java.util.ArrayList")
 
 export default function EdgePort(config: EdgePortConfig) {
   assertNoDuplicatedProto(config.spec.transport)
@@ -40,5 +41,12 @@ export default function EdgePort(config: EdgePortConfig) {
   const sipProvider = createSipProvider(sipStack,
     createListeningPoints(sipStack, config))
 
-  sipProvider.addSipListener(new GRPCSipListener(sipProvider, config))
+  const externalAddrs = new ArrayList()
+  const localnets = new ArrayList()
+
+  config.spec.externalAddrs?.forEach((addr: string) => externalAddrs.add(addr))
+  config.spec.localnets?.forEach((net: string) => localnets.add(net))
+
+  sipProvider.addSipListener(
+    new GRPCSipListener(sipProvider, config, externalAddrs, localnets))
 }

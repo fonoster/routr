@@ -41,7 +41,8 @@ public class GRPCSipListener implements SipListener {
   private final SipProvider sipProvider;
   private final Logger LOG = LogManager.getLogger();
 
-  public GRPCSipListener(final SipProvider sipProvider, final Map config) {
+  public GRPCSipListener(final SipProvider sipProvider, final Map config,
+    final List<String> externalAddrs, final List<String> localnets) {
     MapProxyObject values = new MapProxyObject(config);
     MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
     MapProxyObject spec = (MapProxyObject) values.getMember("spec");
@@ -58,11 +59,8 @@ public class GRPCSipListener implements SipListener {
 
     blockingStub = ProcessorGrpc.newBlockingStub(channel);
 
-    // FIXME
-    List<String> externalAddrs = new ArrayList<String>();
-    List<String> localnets = new ArrayList<String>();
-    externalAddrs.add("192.168.1.3");
-    localnets.add("10.100.42.127/31");
+    LOG.info("localnets list [" + String.join(",", localnets) + "]");
+    LOG.info("externalAddrs list [" + String.join(",", externalAddrs) + "]");
 
     messageConverter = new MessageConverter(externalAddrs, localnets, edgePortRef);
     this.sipProvider = sipProvider;
