@@ -1,6 +1,6 @@
 {
   "name": "@routr/location",
-  "version": "2.0.5-alpha.4",
+  "version": "2.0.5-alpha.5",
   "description": "Creates and maintains a list of routes to all registered endpoints",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.5.9",
-    "@routr/processor": "^2.0.5-alpha.4",
+    "@routr/processor": "^2.0.5-alpha.5",
     "ajv": "^6.12.6",
     "fp-ts": "^2.11.8",
     "redis": "^4.0.4"
