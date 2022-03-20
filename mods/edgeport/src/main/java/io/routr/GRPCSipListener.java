@@ -28,6 +28,7 @@ import java.text.ParseException;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import io.routr.common.Transport;
 import io.routr.headers.MessageConverter;
 import io.routr.headers.ResponseCode;
 import io.routr.message.ResponseType;
@@ -42,7 +43,7 @@ public class GRPCSipListener implements SipListener {
   private final Logger LOG = LogManager.getLogger();
 
   public GRPCSipListener(final SipProvider sipProvider, final Map config,
-    final List<String> externalAddrs, final List<String> localnets) {
+      final List<String> externalIps, final List<String> localnets) {
     MapProxyObject values = new MapProxyObject(config);
     MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
     MapProxyObject spec = (MapProxyObject) values.getMember("spec");
@@ -51,19 +52,38 @@ public class GRPCSipListener implements SipListener {
     String bindAddr = (String) spec.getMember("bindAddr");
     String edgePortRef = (String) metadata.getMember("ref");
 
+    if (System.getenv("EDGE_PORT_REF") != null) {
+      edgePortRef = System.getenv("EDGE_PORT_REF");
+    }
+
     LOG.info("starting edgeport service at " + bindAddr);
+    LOG.info("localnets list [" + String.join(",", localnets) + "]");
+    LOG.info("external ips list [" + String.join(",", externalIps) + "]");
 
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
         .usePlaintext()
         .build();
 
     blockingStub = ProcessorGrpc.newBlockingStub(channel);
-
-    LOG.info("localnets list [" + String.join(",", localnets) + "]");
-    LOG.info("externalAddrs list [" + String.join(",", externalAddrs) + "]");
-
-    messageConverter = new MessageConverter(externalAddrs, localnets, edgePortRef);
     this.sipProvider = sipProvider;
+
+    Map<String, NetInterface> listeningPoints = new HashMap<String, NetInterface>();
+    Iterator<ListeningPoint> lps = Arrays.stream(sipProvider.getListeningPoints()).iterator();
+
+    while (lps.hasNext()) {
+      var currentLp = lps.next();
+      var ni = NetInterface.newBuilder()
+          .setPort(currentLp.getPort())
+          .setHost(currentLp.getIPAddress())
+          .setTransport(Transport.valueOf(currentLp.getTransport().toUpperCase()))
+          .build();
+      listeningPoints.put(currentLp.getTransport().toUpperCase(), ni);
+    }
+
+    messageConverter = new MessageConverter(edgePortRef);
+    messageConverter.setExternalIps(externalIps);
+    messageConverter.setLocalnets(localnets);
+    messageConverter.setListeningPoints(listeningPoints);
   }
 
   public void processRequest(final RequestEvent requestEvent) {
@@ -112,7 +132,7 @@ public class GRPCSipListener implements SipListener {
       Response res = responseEvent.getResponse();
       MessageRequest request = this.messageConverter.createMessageRequest(res);
       MessageResponse response = blockingStub.processMessage(request);
-  
+
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
 
       // Removing all the headers of type Via to avoid duplicates
@@ -121,11 +141,6 @@ public class GRPCSipListener implements SipListener {
       Iterator<Header> h = headers.iterator();
       while (h.hasNext()) {
         Header header = h.next();
-        //if (header.getClass() == Via.class) {
-        //  res.addFirst(header);
-        //} else {
-        //  res.setHeader(header);
-        //}
         res.addHeader(header);
       }
 
@@ -162,16 +177,10 @@ public class GRPCSipListener implements SipListener {
       // The request must be cloned or the stack will not fork the callId
       var requestOut = (Request) request.clone();
       var headersIterator = headers.iterator();
-      
+
       requestOut.removeHeader(Via.NAME);
 
       while (headersIterator.hasNext()) {
-        ///var header = headersIterator.next();
-        //if (header.getClass() == Via.class) {
-        // requestOut.addFirst(header);
-        //} else {
-        //  requestOut.setHeader(header);
-        //}
         requestOut.addHeader(headersIterator.next());
       }
 
@@ -189,7 +198,8 @@ public class GRPCSipListener implements SipListener {
     MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
     Response response = messageFactory.createResponse(ResponseCode.valueOf(type.toString()).getCode(), request);
     Iterator<Header> h = headers.iterator();
-    while (h.hasNext()) response.addHeader(h.next());
+    while (h.hasNext())
+      response.addHeader(h.next());
     transaction.sendResponse(response);
   }
 

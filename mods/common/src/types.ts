@@ -16,20 +16,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type Method = 'UNKNOWN'
-  | 'REGISTER'
-  | 'INVITE'
-  | 'MESSAGE'
-  | 'PUBLISH'
-  | 'NOTIFY'
-  | 'SUBSCRIBE'
+export enum Method {
+  UNKNOWN='UNKNOWN',
+  REGISTER='REGISTER',
+  INVITE='INVITE',
+  MESSAGE='MESSAGE',
+  PUBLISH='PUBLISH',
+  NOTIFY='NOTIFY',
+  SUBSCRIBE='SUBSCRIBE'
+}
 
-export type Transport = 'TCP'
-  | 'UDP'
-  | 'TLS'
-  | 'SCTP'
-  | 'WS'
-  | 'WSS'
+export enum Transport {
+  TCP='TCP',
+  UDP='UDP',
+  TLS='TLS',
+  SCTP='SCTP',
+  WS='WS',
+  WSS='WSS',
+}
 
 export interface NetInterface {
   host: string
@@ -42,7 +46,8 @@ export interface MessageRequest {
   edge_port_ref: string
   method: Method
   sender: NetInterface
-  external_addrs: NetInterface[]
+  listening_point: NetInterface
+  external_ips: string[]
   localnets: string[]
   message: Record<string, unknown>
 }
@@ -109,10 +114,15 @@ export interface Route {
   user: string
   host: string
   port: number
-  transport: string
+  transport: Transport
   registeredOn: number
   sessionCount?: number
   expires: number
   edgePortRef: string
+  listeningPoint: {
+    host: string
+    port: number
+    transport: Transport
+  }
   labels?: Map<string, string>
 }

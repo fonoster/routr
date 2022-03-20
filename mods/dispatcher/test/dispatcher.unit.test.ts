@@ -19,7 +19,8 @@
 import { 
   PROCESSOR_OBJECT_PROTO,
   MessageRequest, 
-  ProcessorConfig 
+  ProcessorConfig, 
+  Method
 } from '@routr/common'
 import chai from 'chai'
 import sinon from 'sinon'
@@ -28,6 +29,7 @@ import { findProcessor, hasMethod } from "../src/find_processor"
 import  {getConfig } from '../src/config/get_config'
 import connectToBackend from "../src/connections"
 import processor from '../src/processor'
+import { Transport } from '@routr/common/src/types'
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -37,7 +39,7 @@ const config1: ProcessorConfig = {
   ref: "processor-ref1",
   isFallback: false,
   addr: "localhost:51903",
-  methods: ['REGISTER'],
+  methods: [Method.REGISTER],
   matchFunc: (request: MessageRequest) => request.method === 'REGISTER'
 }
 
@@ -45,7 +47,7 @@ const config2: ProcessorConfig = {
   ref: "processor-ref2",
   isFallback: false,
   addr: "remotehost:50055",
-  methods: ['REGISTER', 'INVITE'],
+  methods: [Method.REGISTER, Method.INVITE],
   matchFunc: (request: MessageRequest) => request.method === 'REGISTER' || request.method === 'INVITE'
 }
 
@@ -53,19 +55,24 @@ const config3: ProcessorConfig = {
   ref: "processor-ref3",
   isFallback: true,
   addr: "remotehost:50055",
-  methods: ['REGISTER', 'INVITE', 'MESSAGE']
+  methods: [Method.REGISTER, Method.INVITE, Method.MESSAGE]
 }
 
 const messageRequest: MessageRequest = {
   ref: "call-id",
   edge_port_ref: "d001",
-  method: "REGISTER",
+  method: Method.REGISTER,
+  listening_point: {
+    host: "localhost",
+    port: 5060,
+    transport: Transport.TCP
+  },
   sender: {
     port: 5060,
     host: "localhost",
-    transport: 'TCP'
+    transport: Transport.TCP
   },
-  external_addrs: [],
+  external_ips: [],
   localnets: [],
   message: {}
 }
@@ -76,7 +83,7 @@ describe('@routr/dispatcher', () => {
   describe('@routr/dispatcher/find_processor', () => {
     it('checks if method of the request is enabled', () => {
       const messageRequest2 = { ...messageRequest }
-      messageRequest2.method = 'MESSAGE'
+      messageRequest2.method = Method.MESSAGE
       expect(hasMethod(config1, messageRequest)).to.be.equal(true)
       expect(hasMethod(config1, messageRequest2)).to.be.equal(false)
     })
@@ -89,7 +96,7 @@ describe('@routr/dispatcher', () => {
 
     it('matches incomming request as an INVITE', () => {
       const messageRequest2 = { ...messageRequest }
-      messageRequest2.method = "INVITE"
+      messageRequest2.method =  Method.INVITE
       expect(findProcessor([config1, config2])(messageRequest2))
         .to.be.have.property("ref")
         .to.be.equal("processor-ref2")
@@ -97,7 +104,7 @@ describe('@routr/dispatcher', () => {
 
     it('matches incomming request as an MESSAGE', () => {
       const messageRequest2 = { ...messageRequest }
-      messageRequest2.method = "MESSAGE"
+      messageRequest2.method = Method.MESSAGE
       expect(findProcessor([config1, config2, config3])(messageRequest2))
         .to.be.have.property("ref")
         .to.be.equal("processor-ref3")
@@ -105,7 +112,7 @@ describe('@routr/dispatcher', () => {
 
     it('fails because there is not matching processor', () => {
       const messageRequest2 = { ...messageRequest }
-      messageRequest2.method = "PUBLISH"
+      messageRequest2.method = Method.PUBLISH
       const error = findProcessor([config1, config2, config3])(messageRequest2)
       expect(error.toString()).to.include("not matching processor found for request")
     })

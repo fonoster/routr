@@ -16,37 +16,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, Route } from "@routr/common"
+import { MessageRequest, Method, Route, Transport } from "@routr/common"
 
-export const route: Route = {  
+export const route: Route = {
   user: '1001',
   host: 'sip.local',
   port: 5060,
-  transport: 'TCP',
+  transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: 'd001'
+  edgePortRef: 'd001',
+  listeningPoint: {
+    host: "proxy",
+    port: 5060,
+    transport: Transport.TCP
+  }
 }
 
 export const request: MessageRequest = {
-  "external_addrs": [
-    {
-      "host": "192.168.1.3",
-      "port": 5060,
-      "transport": "TCP"
-    }
-  ],
-  "localnets": [
-    "10.100.42.127/31"
-  ],
   "ref": "AynhXaFtbdXwHrUEzt_rUQ..",
-  "edge_port_ref": "ep001",
-  "method": "REGISTER",
+  "edge_port_ref": "001",
+  "method": Method.REGISTER,
+  "external_ips": ["200.22.21.42"],
+  "localnets": ["10.100.42.127/31"],
+  "listening_point": {
+    "host": "192.168.1.3",
+    "port": 5060,
+    "transport": Transport.TCP
+  },
   "sender": {
     "host": "127.0.0.1",
     "port": 36214,
-    "transport": "UDP"
+    "transport": Transport.TCP
   },
   "message": {
     "via": [

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.header.CallIdHeader;
@@ -33,14 +34,13 @@ import org.apache.logging.log4j.Logger;
 
 public 
 class MessageConverter {
-  private final List<NetInterface> externalAddrs;
-  private final List<String> localnets;
+  private Map<String, NetInterface> listeningPoints;
+  private List<String> externalIps;
+  private List<String> localnets;
   private final static Logger LOG = LogManager.getLogger();
   private final String edgePortRef; 
 
-  public MessageConverter(List<String> addrs, List<String> localnets, String edgePortRef) {
-    this.externalAddrs = getExternalAddresses(addrs);
-    this.localnets = localnets;
+  public MessageConverter(String edgePortRef) {
     this.edgePortRef = edgePortRef;
   }
 
@@ -52,16 +52,19 @@ class MessageConverter {
       methodStr = ((CSeq) ((Response)message).getHeader(CSeq.NAME)).getMethod();
     }
 
+    NetInterface sender = getSender(message);
     String callId = ((CallIdHeader) message.getHeader(CallIdHeader.NAME)).getCallId();
     Method method = Method.valueOf(methodStr.toUpperCase());
+    NetInterface listeningPoint = this.listeningPoints.get(sender.getTransport().toString());
 
     return MessageRequest
         .newBuilder()
         .setRef(callId)
         .setEdgePortRef(this.edgePortRef)
         .setMethod(method)
-        .setSender(getSender(message))
-        .addAllExternalAddrs(this.externalAddrs)
+        .setSender(sender)
+        .setListeningPoint(listeningPoint)
+        .addAllExternalIps(this.externalIps)
         .addAllLocalnets(this.localnets)
         .setMessage(convertToMessageDTO(message))
         .build();
@@ -215,5 +218,17 @@ class MessageConverter {
       }
     }
     return new ExtensionConverter();
+  }
+
+  public void setListeningPoints(final Map<String, NetInterface> listeningPoints) {
+    this.listeningPoints = listeningPoints;
+  }
+
+  public void setExternalIps(final List<String> externalIps) {
+    this.externalIps = externalIps;
+  }
+
+  public void setLocalnets(final List<String> localnets) {
+    this.localnets = localnets;
   }
 }

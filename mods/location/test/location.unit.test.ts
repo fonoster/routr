@@ -23,7 +23,6 @@ import Locator from '../src/location'
 import MemoryStore from '../src/memory_store'
 import { getConfig } from '../src/config/get_config'
 import * as Routes from './route_examples'
-import { LB_ALGORITHM } from '../src/types'
 
 const expect = chai.expect
 chai.use(sinonChai)

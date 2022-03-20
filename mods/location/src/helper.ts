@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Route } from "@routr/common"
+import { Route, Transport } from "@routr/common"
 import { MessageRequest,} from "@routr/common"
 import { Extensions as E } from "@routr/processor"
 import { Target as T } from "@routr/processor"
@@ -29,6 +29,8 @@ import { Target as T } from "@routr/processor"
 // and https://github.com/fonoster/routr/blob/ee5d339888344013939d06c734385f17f0cd75c2/mod/registrar/utils.js#L131
 export const createRoute = (request: MessageRequest): Route => {
   const uri = (request.message.contact as any).address.uri
+  const listeningPoint = 
+    request.message.listening_point as { host: string, port: number, transport: Transport}
   return {
     edgePortRef: request.edge_port_ref,
     user: uri.user,
@@ -37,6 +39,7 @@ export const createRoute = (request: MessageRequest): Route => {
     transport: uri.transport,
     registeredOn: Date.now(),
     sessionCount: E.getHeaderValue(request, "x-session-count") || -1,
-    expires: T.getTargetExpires(request)
+    expires: T.getTargetExpires(request),
+    listeningPoint
   }
 }

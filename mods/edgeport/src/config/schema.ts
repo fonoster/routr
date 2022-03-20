@@ -52,8 +52,8 @@ export const schema = {
           "description": "Ipv4 interface to accept request on",
           "type": "string"
         },
-        "externalAddrs": {
-          "description": "EdgePort external addresses. Might be Ipv4, Hostname",
+        "externalIps": {
+          "description": "EdgePort external ip addresses.",
           "type": "array",
           "items": {
             "type": "string"

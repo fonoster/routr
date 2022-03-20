@@ -1,6 +1,3 @@
-import { Route } from "@routr/common"
-import { Backend, LB_ALGORITHM } from "../src/types"
-
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -19,15 +16,23 @@ import { Backend, LB_ALGORITHM } from "../src/types"
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Route, Transport } from "@routr/common"
+import { Backend, LB_ALGORITHM } from "../src/types"
+
 export const simpleRoute01: Route = {
   user: '1001',
   host: 'sip.local',
   port: 6060,
-  transport: 'tcp',
+  transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
   edgePortRef: "ep001",
+  listeningPoint: {
+    host: "proxy",
+    port: 5060,
+    transport: Transport.TCP,
+  },
   labels: new Map<string, string>([
     ["priority", "1"]
   ])
@@ -37,11 +42,16 @@ export const simpleRoute02: Route = {
   user: '1001',
   host: 'sip.local',
   port: 6061,
-  transport: 'udp',
+  transport: Transport.UDP,
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
   edgePortRef: "ep002",
+  listeningPoint: {
+    host: "proxy",
+    port: 5060,
+    transport: Transport.UDP,
+  },
   labels: new Map<string, string>([
     ["priority", "2"]
   ])
@@ -51,11 +61,16 @@ export const voiceBackendRoute01: Route = {
   user: 'voice01',
   host: '192.168.1.2',
   port: 5060,
-  transport: 'tcp',
+  transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: 50,
   expires: 600,
   edgePortRef: "ep001",
+  listeningPoint: {
+    host: "proxy",
+    port: 5060,
+    transport: Transport.TCP,
+  },
   labels: new Map<string, string>([
     ["region", "us-east01"]
   ])
@@ -65,77 +80,112 @@ export const voiceBackendRoute02: Route = {
   user: 'voice02',
   host: '192.168.1.3',
   port: 5060,
-  transport: 'udp',
+  transport: Transport.UDP,
   registeredOn: Date.now(),
   sessionCount: 200,
   expires: 600,
-  edgePortRef: "ep001"
+  edgePortRef: "ep001",
+  listeningPoint: {
+    host: "proxy",
+    port: 5060,
+    transport: Transport.UDP,
+  }
 }
 
 export const voiceBackendRoute03: Route = {
   user: 'voice03',
   host: '192.168.1.4',
   port: 5060,
-  transport: 'udp',
+  transport: Transport.UDP,
   registeredOn: Date.now(),
   sessionCount: 150,
   expires: 600,
-  edgePortRef: "ep001"
+  edgePortRef: "ep001",
+  listeningPoint: {
+    host: "proxy",
+    port: 5060,
+    transport: Transport.UDP,
+  }
 }
 
 export const voiceBackendRoute04: Route = {
   user: 'voice04',
   host: '192.168.1.5',
   port: 5060,
-  transport: 'udp',
+  transport: Transport.UDP,
   registeredOn: Date.now(),
   sessionCount: 201,
   expires: 600,
-  edgePortRef: "ep001"
+  edgePortRef: "ep001",
+  listeningPoint: {
+    host: "proxy",
+    port: 5060,
+    transport: Transport.UDP,
+  }
 }
 
 export const voiceBackendRoute05: Route = {
   user: 'voice05',
   host: '192.168.1.6',
   port: 5060,
-  transport: 'udp',
+  transport: Transport.UDP,
   registeredOn: Date.now(),
   sessionCount: 5,
   expires: 600,
-  edgePortRef: "ep001"
+  edgePortRef: "ep001",
+  listeningPoint: {
+    host: "proxy",
+    port: 5060,
+    transport: Transport.UDP,
+  }
 }
 
 export const conferenceBackendRoute01: Route = {
   user: 'conference01',
   host: 'conference.local',
   port: 5060,
-  transport: 'tcp',
+  transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: 20,
   expires: 600,
-  edgePortRef: "ep001"
+  edgePortRef: "ep001",
+  listeningPoint: {
+    host: "proxy",
+    port: 5060,
+    transport: Transport.TCP,
+  }
 }
 
 export const conferenceBackendRoute02: Route = {
   user: 'conference02',
   host: 'conference.local',
   port: 5061,
-  transport: 'tcp',
+  transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: 50,
   expires: 600,
-  edgePortRef: "ep001"
+  edgePortRef: "ep001",
+  listeningPoint: {
+    host: "proxy",
+    port: 5060,
+    transport: Transport.TCP,
+  }
 }
 
 export const conferenceWithExpiredRoute: Route = {
   user: 'conference03',
   host: 'conference.remote',
   port: 5060,
-  transport: 'tcp',
+  transport: Transport.TCP,
   registeredOn: 1647054012869,
   sessionCount: 10,
   expires: 10,
-  edgePortRef: "ep001"
+  edgePortRef: "ep001",
+  listeningPoint: {
+    host: "proxy",
+    port: 5060,
+    transport: Transport.TCP,
+  }
 }
 
 export const backends = new Map<string, Backend>() 

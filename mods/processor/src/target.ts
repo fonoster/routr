@@ -26,5 +26,5 @@ export const getTargetExpires = (request: MessageRequest) => {
   // The expires value in the Contact header takes presendence over the value
   // on the Expires header
   const expires: number = (request.message?.contact as any)?.expires || -1
-  return expires > -1 ? expires : (request.message.expires as { expires: number }).expires
+  return expires > -1 ? expires : (request.message.expires as { expires: number })?.expires || -1
 }
