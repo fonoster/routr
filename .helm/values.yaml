@@ -1,0 +1,65 @@
+# Default values for Routr.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  repository: fonoster/edgeport
+  pullPolicy: Always
+  tag: latest
+
+dispatcher:
+  image:
+    repository: fonoster/dispatcher
+    pullPolicy: Always
+    tag: latest
+
+echo:
+  image:
+    repository: fonoster/echo
+    pullPolicy: Always
+    tag: latest
+
+# Use this service to enable UDP access to the server's signaling
+# capabilities. Keep in mind that this will create the service for you
+# But the UDP protocol must also be enabled(default) in the server.
+udpSignalingService:
+  enabled: true
+  externalTrafficPolicy: Local
+  name: sipudp
+  type: ClusterIP
+  port: 5060
+  annotations: {}
+  externalIPs: []
+
+# Use this service to enable TCP access to the server's signaling
+# capabilities. Keep in mind that this will create the service for you
+# But the TCP protocol must also be enabled(default) in the server.
+tcpSignalingService:
+  enabled: true
+  externalTrafficPolicy: Local
+  name: siptcp
+  type: ClusterIP
+  ports:
+  - name: siptcp
+    port: 5060
+  annotations: {}
+  externalIPs: []
+
+replicaCount: 1
+nameOverride: ""
+fullnameOverride: ""
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+resources:
+  limits: {}
+  requests: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80

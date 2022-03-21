@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, Route, Helper as H } from "@routr/common";
+import { MessageRequest, Route, Helper as H, IpUtils as I } from "@routr/common";
 import { getHeaderValue, updateHeader } from "./extensions";
 
 export const updateRequestURI = (route: Route) => {
-  return (request: MessageRequest) => {
+  return (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request) as any
     if (route.user) {
       req.message.request_uri.user = route.user
@@ -34,13 +34,29 @@ export const updateRequestURI = (route: Route) => {
   }
 }
 
-export const addSelfVia = (request: MessageRequest): MessageRequest => {
-  /*message.via = [...message.via, {
-    host: "192.168.1.3",
-    port: 5060,
-    transport: 'udp'
-  }]*/
-  return request
+export const addSelfVia = (route: Route) => {
+  return (request: MessageRequest): MessageRequest => {
+    const req = H.deepCopy(request) as any
+    // If is comming from a different edgeport we the listening point instead
+    // of the endpoint to ensure connectivity is possible.
+    const nextHopHost = request.edge_port_ref === route.edgePortRef
+      ? route.host : route.listeningPoint.host
+
+    // If the nextHopHost host is local, then use use lp to construct via
+    // otherwise, we use the first external ip available.
+    const via = I.isLocalnet(request.localnets, nextHopHost)
+      ? route.listeningPoint
+      : {
+        // fallback to lp host if there is no external ips
+        host: request?.external_ips[0] || route.listeningPoint.host,
+        port: route.listeningPoint.port,
+        transport: route.listeningPoint.transport
+      }
+
+    req.message.via = [...req.message.via, via]
+
+    return req
+  }
 }
 
 export const removeTopVia = (request: MessageRequest): MessageRequest => {

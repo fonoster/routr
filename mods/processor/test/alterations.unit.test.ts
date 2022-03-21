@@ -77,7 +77,7 @@ describe('@routr/processor/alterations', () => {
     const result = pipe(
       request,
       A.updateRequestURI(route),
-      A.addSelfVia,
+      A.addSelfVia(route),
       A.decreaseMaxForwards,
     )
     expect(result).to.have.property("message")
