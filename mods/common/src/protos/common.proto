@@ -8,8 +8,8 @@ option java_outer_classname = "CommonProto";
 option objc_class_prefix = "CM";
 
 enum Transport {
-  TCP = 0;
-  UDP = 1;
+  UDP = 0;
+  TCP = 1;
   TLS = 2;
   SCTP = 3;
   WS = 4;
