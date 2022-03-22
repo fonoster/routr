@@ -66,6 +66,7 @@ services:
     build: ./mods/connect
     image: fonoster/connect
     environment:
+      LOCATION_ADDR: location:51902
       LOGS_LEVEL: verbose
     expose:
       - 51904
@@ -75,7 +76,7 @@ services:
     build: ./mods/simpleauth
     image: fonoster/simpleauth
     environment:
-      CONFIG_PATH: '/etc/routr/auth.json'
+      PATH_TO_AUTH: '/etc/routr/auth.json'
       LOGS_LEVEL: verbose
     expose:
       - 51903

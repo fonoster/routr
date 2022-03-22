@@ -23,7 +23,7 @@ import Processor, {
   MessageRequest
 } from "@routr/processor"
 
-new Processor({ bindAddr: "0.0.0.0:51904", name: "echo" })
+new Processor({ bindAddr:process.env.BIND_ADDR || "0.0.0.0:51904", name: "echo" })
   .listen((request: MessageRequest, response: Response) => {
     logger.verbose("got new request: ")
     logger.verbose(JSON.stringify(request, null, ' '))

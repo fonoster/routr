@@ -28,7 +28,7 @@ if (!process.env.PATH_TO_AUTH) {
 
 try {
   const users: User[] = require(process.env.PATH_TO_AUTH)
-  SimpleAuthProcessor({bindAddr: "", users })
+  SimpleAuthProcessor({ bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903", users })
 } catch (e) {
   if (e.code === "MODULE_NOT_FOUND") {
     logger.error(`auth file not found [path = ${process.env.PATH_TO_AUTH}]`)
