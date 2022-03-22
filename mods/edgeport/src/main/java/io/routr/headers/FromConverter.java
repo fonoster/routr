@@ -21,6 +21,9 @@ public class FromConverter implements Converter<From, io.routr.message.From> {
   public From fromDTO(io.routr.message.From dto) throws InvalidArgumentException, PeerUnavailableException, ParseException {
     var addressConverter = new AddressConverter();
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
+    if(dto.getTag().isEmpty()) {
+      throw new InvalidArgumentException("the From header must contain the tag parameter");
+    }
     return (From) factory.createFromHeader(addressConverter.fromDTO(dto.getAddress()), dto.getTag());
   }
 }
