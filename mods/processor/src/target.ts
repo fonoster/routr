@@ -20,10 +20,7 @@ import { MessageRequest } from "@routr/common"
 
 export const getAOR = (uri: any) => `${uri.secure ? 'sips' : 'sip'}:${uri.user ? uri.user + '@' : ''}${uri.host}`
 
-export const getTargetAOR = (request: MessageRequest) => {
-  console.log("xxx => " + JSON.stringify(request, null, ' '))
-  return getAOR((request.message.to as any).address.uri)
-}
+export const getTargetAOR = (request: MessageRequest) => getAOR((request.message.to as any).address.uri)
 
 export const getTargetExpires = (request: MessageRequest) => {
   // The expires value in the Contact header takes presendence over the value

@@ -28,26 +28,21 @@ export default function SimpleAuthProcessor(config: { bindAddr: string, users: U
 
   new Processor({ bindAddr, name: "simpleauth" })
     .listen((req: Record<string, any>, res: Response) => {
-      //logger.verbose(JSON.stringify(req, null, ' '))
-      logger.verbose("dbg000")
+      logger.verbose(JSON.stringify(req, null, ' '))
+
       // Calculate and return challenge
       if (req.message.authorization) {
         const auth = { ...req.message.authorization }
         auth.method = req.method
         // Calculate response and compare with the one send by the endpoint
         const calcRes = calculateAuthResponse(auth, getCredentials(auth.username, users))
-        logger.verbose("dbg001")
         if (calcRes !== auth.response) {
-          logger.verbose("dbg002")
           return res.send(createUnauthorizedResponse(auth.realm))
         }
       } else {
-        logger.verbose("dbg003")
         return res.send(createUnauthorizedResponse(req.message.requestUri.host))
       }
       // Forward request to next middleware
-
-      logger.verbose("yyy" + JSON.stringify(req, null, ' '))
       res.send(req)
     })
 }

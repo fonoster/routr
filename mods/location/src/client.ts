@@ -46,7 +46,7 @@ export default class Location implements ILocationService {
   }
 
   public async findRoutes(request: FindRoutesRequest): Promise<Route[]> {
-    return container(this, request, this.findRoutes.name) as unknown as Route[]
+    return (await container(this, request, this.findRoutes.name) as any)?.routes || [] as Route[]
   }
 
   public removeRoutes(request: RemoveRoutesRequest): Promise<void> {
