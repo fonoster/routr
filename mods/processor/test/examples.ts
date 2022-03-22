@@ -36,11 +36,11 @@ export const route: Route = {
 
 export const request: MessageRequest = {
   "ref": "AynhXaFtbdXwHrUEzt_rUQ..",
-  "edge_port_ref": "001",
+  "edgePortRef": "001",
   "method": Method.REGISTER,
-  "external_ips": ["200.22.21.42"],
+  "externalIps": ["200.22.21.42"],
   "localnets": ["10.100.42.127/31"],
-  "listening_point": {
+  "listeningPoint": {
     "host": "192.168.1.3",
     "port": 5060,
     "transport": Transport.TCP
@@ -91,18 +91,18 @@ export const request: MessageRequest = {
       "address": {
         "uri": {
           "user": "1001",
-          "user_password": "",
+          "userPassword": "",
           "host": "voip.ms",
-          "transport_param": "UDP",
-          "m_addr_param": "",
-          "method_param": "",
-          "user_param": "",
-          "t_t_l_param": -1,
+          "transportParam": "UDP",
+          "mAddrParam": "",
+          "methodParam": "",
+          "userParam": "",
+          "ttlParam": -1,
           "port": 5060,
-          "lr_param": false,
+          "lrParam": false,
           "secure": false
         },
-        "display_name": "",
+        "displayName": "",
         "wildcard": false
       },
       "tag": "9041462a"
@@ -111,18 +111,18 @@ export const request: MessageRequest = {
       "address": {
         "uri": {
           "user": "1001",
-          "user_password": "",
+          "userPassword": "",
           "host": "sip.local",
-          "transport_param": "UDP",
-          "m_addr_param": "",
-          "method_param": "",
-          "user_param": "",
-          "t_t_l_param": -1,
+          "transportParam": "UDP",
+          "mAddrParam": "",
+          "methodParam": "",
+          "userParam": "",
+          "tTLParam": -1,
           "port": 5060,
-          "lr_param": false,
+          "lrParam": false,
           "secure": false
         },
-        "display_name": "",
+        "displayName": "",
         "wildcard": false
       },
       "tag": ""
@@ -131,18 +131,18 @@ export const request: MessageRequest = {
       "address": {
         "uri": {
           "user": "1001",
-          "user_password": "",
+          "userPassword": "",
           "host": "127.0.0.1",
-          "transport_param": "UDP",
-          "m_addr_param": "",
-          "method_param": "",
-          "user_param": "",
-          "t_t_l_param": -1,
+          "transportParam": "UDP",
+          "mAddrParam": "",
+          "methodParam": "",
+          "userParam": "",
+          "ttlParam": -1,
           "port": 36214,
-          "lr_param": false,
+          "lrParam": false,
           "secure": false
         },
-        "display_name": "",
+        "displayName": "",
         "wildcard": false
       },
       "expires": -1,
@@ -160,7 +160,7 @@ export const request: MessageRequest = {
     "authorization": {
       "realm": "sip.local",
       "scheme": "Digest",
-      "c_nonce": "acbcc60094edde23f49b01e18bafd34e",
+      "cNonce": "acbcc60094edde23f49b01e18bafd34e",
       "nonce": "b8fe2321cf489ac475c80c6e5cfa1c22",
       "algorithm": "MD5",
       "qop": "auth",
@@ -168,21 +168,21 @@ export const request: MessageRequest = {
       "response": "301f56515b1fdc751c54af6d85398067",
       "username": "1001",
       "uri": "sip:voip.ms;transport=UDP",
-      "nonce_count": 13
+      "nonceCount": 13
     },
-    "request_uri": {
+    "requestUri": {
       "user": "",
-      "user_password": "",
+      "userPassword": "",
       "host": "sip.local",
-      "transport_param": "UDP",
-      "m_addr_param": "",
-      "method_param": "",
-      "user_param": "",
-      "t_t_l_param": -1,
+      "transportParam": "UDP",
+      "mAddrParam": "",
+      "methodParam": "",
+      "userParam": "",
+      "ttlParam": -1,
       "port": 5060,
-      "lr_param": false,
+      "lrParam": false,
       "secure": false
     },
-    "message_type": "request_uri"
+    "messageType": "requestUri"
   }
 }

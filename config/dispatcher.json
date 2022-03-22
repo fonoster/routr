@@ -15,7 +15,7 @@
     "processors": [
       {
         "ref": "echo-processor",
-        "addr": "localhost:51904",
+        "addr": "192.168.1.3:51905",
         "methods": [
           "MESSAGE"
         ],

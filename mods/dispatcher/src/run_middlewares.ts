@@ -44,8 +44,8 @@ export async function runMiddlewares(params: RunMiddlewaresParams): Promise<Mess
       // Send message and re-insert response for next middleware
       try {
         req.message = (await processMessage(midd.ref, conn, req)).message
-        if (req.message.message_type === "response_type") {
-          logger.verbose("found message_type to be response_type and broke the chain")
+        if (req.message.messageType === "responseType") {
+          logger.verbose("found messageType to be responseType and broke the chain")
           break
         }
       } catch(e) {

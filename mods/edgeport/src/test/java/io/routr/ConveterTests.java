@@ -131,7 +131,7 @@ public class ConveterTests {
     assertEquals(objectFromDto.getTransportParam(), dto.getTransportParam());
     assertEquals(objectFromDto.getMethodParam(), dto.getMethodParam());
     assertEquals(objectFromDto.getUserParam(), dto.getUserParam());
-    assertEquals(objectFromDto.getTTLParam(), dto.getTTLParam());
+    assertEquals(objectFromDto.getTTLParam(), dto.getTtlParam());
     assertEquals(objectFromDto.getPort(), dto.getPort());
     assertEquals(objectFromDto.hasLrParam(), dto.getLrParam());
     assertEquals(objectFromDto.isSecure(), dto.getSecure());

@@ -52,8 +52,8 @@ public class GRPCSipListener implements SipListener {
     String bindAddr = (String) spec.getMember("bindAddr");
     String edgePortRef = (String) metadata.getMember("ref");
 
-    if (System.getenv("EDGE_PORT_REF") != null) {
-      edgePortRef = System.getenv("EDGE_PORT_REF");
+    if (System.getenv("edgePortRef") != null) {
+      edgePortRef = System.getenv("edgePortRef");
     }
 
     LOG.info("starting edgeport service at " + bindAddr);

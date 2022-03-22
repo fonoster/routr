@@ -17,22 +17,22 @@
  * limitations under the License.
  */
 export enum Method {
-  UNKNOWN='UNKNOWN',
-  REGISTER='REGISTER',
-  INVITE='INVITE',
-  MESSAGE='MESSAGE',
-  PUBLISH='PUBLISH',
-  NOTIFY='NOTIFY',
-  SUBSCRIBE='SUBSCRIBE'
+  UNKNOWN = 'UNKNOWN',
+  REGISTER = 'REGISTER',
+  INVITE = 'INVITE',
+  MESSAGE = 'MESSAGE',
+  PUBLISH = 'PUBLISH',
+  NOTIFY = 'NOTIFY',
+  SUBSCRIBE = 'SUBSCRIBE'
 }
 
 export enum Transport {
-  TCP='TCP',
-  UDP='UDP',
-  TLS='TLS',
-  SCTP='SCTP',
-  WS='WS',
-  WSS='WSS',
+  TCP = 'TCP',
+  UDP = 'UDP',
+  TLS = 'TLS',
+  SCTP = 'SCTP',
+  WS = 'WS',
+  WSS = 'WSS',
 }
 
 export interface NetInterface {
@@ -43,11 +43,11 @@ export interface NetInterface {
 
 export interface MessageRequest {
   ref: string
-  edge_port_ref: string
+  edgePortRef: string
   method: Method
   sender: NetInterface
-  listening_point: NetInterface
-  external_ips: string[]
+  listeningPoint: NetInterface
+  externalIps: string[]
   localnets: string[]
   message: Record<string, unknown>
 }
@@ -97,8 +97,8 @@ export interface AuthChallengeResponse {
   realm: string
   domain: string
   scheme: string
-  c_nonce: string
-  nonce_count: number
+  cNonce: string
+  nonceCount: number
   response: string
   username: string
   nonce: string
@@ -119,10 +119,6 @@ export interface Route {
   sessionCount?: number
   expires: number
   edgePortRef: string
-  listeningPoint: {
-    host: string
-    port: number
-    transport: Transport
-  }
+  listeningPoint: NetInterface
   labels?: Map<string, string>
 }

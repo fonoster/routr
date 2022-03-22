@@ -18,5 +18,5 @@
  */
 import { MessageRequest } from "@routr/common"
 
-export const isTypeResponse = (request: MessageRequest): boolean => request.message.message_type === "response_type"
+export const isTypeResponse = (request: MessageRequest): boolean => request.message.messageType === "responseType"
 export const isTypeRequest = (request: MessageRequest): boolean => !isTypeResponse(request)

@@ -30,7 +30,7 @@ describe('@routr/processor/target', () => {
   afterEach(() => sandbox.restore());
 
   it('gets the address of record(aor)', () => {
-    expect(T.getAOR(request.message.request_uri)).to.be.equal("sip:sip.local")
+    expect(T.getAOR(request.message.requestUri)).to.be.equal("sip:sip.local")
     expect(T.getTargetAOR(request)).to.be.equal("sip:1001@sip.local")
   })
 

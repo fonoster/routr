@@ -23,7 +23,7 @@ import logger from "@fonoster/logger"
 const protoLoader = require('@grpc/proto-loader')
 const grpc = require('@grpc/grpc-js')
 const loadOptions = {
-  keepCase: true,
+  keepCase: false,
   longs: String,
   enums: String,
   defaults: true,

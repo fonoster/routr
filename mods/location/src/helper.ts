@@ -30,9 +30,9 @@ import { Target as T } from "@routr/processor"
 export const createRoute = (request: MessageRequest): Route => {
   const uri = (request.message.contact as any).address.uri
   const listeningPoint = 
-    request.message.listening_point as { host: string, port: number, transport: Transport}
+    request.message.listeningPoint as { host: string, port: number, transport: Transport}
   return {
-    edgePortRef: request.edge_port_ref,
+    edgePortRef: request.edgePortRef,
     user: uri.user,
     host: uri.host,
     port: uri.port,
@@ -40,6 +40,6 @@ export const createRoute = (request: MessageRequest): Route => {
     registeredOn: Date.now(),
     sessionCount: E.getHeaderValue(request, "x-session-count") || -1,
     expires: T.getTargetExpires(request),
-    listeningPoint
+    listeningPoint: listeningPoint
   }
 }

@@ -121,7 +121,7 @@ message SipURI {
   string m_addr_param = 5;
   string method_param = 6;
   string user_param = 7;
-  int32 t_t_l_param = 8;
+  int32 ttl_param = 8;
   int32 port = 9;
   bool lr_param = 10;
   bool secure = 11;
@@ -129,7 +129,7 @@ message SipURI {
 
 message Address {
   SipURI uri = 1;
-  string display_name = 2;
+  string displayName = 2;
   bool wildcard = 3;
 }
 

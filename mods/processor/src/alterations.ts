@@ -23,13 +23,13 @@ export const updateRequestURI = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request) as any
     if (route.user) {
-      req.message.request_uri.user = route.user
+      req.message.requestUri.user = route.user
     } else {
-      req.message.request_uri.user = null
+      req.message.requestUri.user = null
     }
-    req.message.request_uri.host = route.host
-    req.message.request_uri.port = route.port
-    req.message.request_uri.transport = route.transport
+    req.message.requestUri.host = route.host
+    req.message.requestUri.port = route.port
+    req.message.requestUri.transport = route.transport
     return req
   }
 }
@@ -39,7 +39,7 @@ export const addSelfVia = (route: Route) => {
     const req = H.deepCopy(request) as any
     // If is comming from a different edgeport we the listening point instead
     // of the endpoint to ensure connectivity is possible.
-    const nextHopHost = request.edge_port_ref === route.edgePortRef
+    const nextHopHost = request.edgePortRef === route.edgePortRef
       ? route.host : route.listeningPoint.host
 
     // If the nextHopHost host is local, then use use lp to construct via
@@ -48,7 +48,7 @@ export const addSelfVia = (route: Route) => {
       ? route.listeningPoint
       : {
         // fallback to lp host if there is no external ips
-        host: request?.external_ips[0] || route.listeningPoint.host,
+        host: request?.externalIps[0] || route.listeningPoint.host,
         port: route.listeningPoint.port,
         transport: route.listeningPoint.transport
       }

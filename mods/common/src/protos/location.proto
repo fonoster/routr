@@ -8,6 +8,7 @@ option java_outer_classname = "LocationProto";
 option objc_class_prefix = "LC";
 
 import "common.proto";
+import "processor.proto";
 
 service Location {
   rpc AddRoute (AddRouteRequest) returns (fonoster.routr.common.v2draft1.Empty) {}
@@ -25,6 +26,7 @@ message Route {
   int32 expires = 6;
   int32 session_count = 7;
   string edge_port_ref = 8;
+  fonoster.routr.processor.v2draft1.NetInterface listening_point = 9;
   // During route creation, an endpoint can requet to add labels than can later be
   // used as selector. For example, a Softphone can add a label `priority=1` to indicate
   // that it is the prefer endpoint for the given AOR. 
@@ -33,7 +35,7 @@ message Route {
   // feature. For example, we could use the label `backend=voice` to indicate that this
   // route can serve voice applications. If the FindRoutes method includes the label the 
   // Location Service will only return routes that includes such label.
-  map<string, string> labels = 9;
+  map<string, string> labels = 10;
 }
 
 message AddRouteRequest {

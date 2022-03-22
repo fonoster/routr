@@ -16,7 +16,7 @@ public class SipURIConverter {
   public io.routr.message.SipURI fromObject(SipURI uri) {
     var builder = io.routr.message.SipURI.newBuilder();
     builder.setLrParam(uri.hasLrParam());
-    builder.setTTLParam(uri.getTTLParam());
+    builder.setTtlParam(uri.getTTLParam());
     builder.setPort(5060);
     builder.setSecure(uri.isSecure());
 
@@ -27,7 +27,8 @@ public class SipURIConverter {
     if(uri.getMethodParam() != null) builder.setMethodParam(uri.getMethodParam());
     if(uri.getUserParam() != null) builder.setUserParam(uri.getUserParam());
     if(uri.getPort() != -1) builder.setPort(uri.getPort());
-    if(uri.getTTLParam() != -1) builder.setTTLParam(uri.getTTLParam());
+
+    if(uri.getTTLParam() != -1) builder.setTtlParam(uri.getTTLParam());
     if(uri.getMethodParam()!= null) builder.setMethodParam(uri.getMethodParam());
  
     return builder.build();
@@ -44,7 +45,7 @@ public class SipURIConverter {
     if(!dto.getTransportParam().isEmpty()) uri.setTransportParam(dto.getTransportParam());
     if(!dto.getMethodParam().isEmpty()) uri.setMethodParam(dto.getMethodParam());
     if(!dto.getUserParam().isEmpty()) uri.setUserParam(dto.getUserParam());
-    if(dto.getTTLParam() != -1) uri.setTTLParam(dto.getTTLParam());
+    if(dto.getTtlParam() != -1) uri.setTTLParam(dto.getTtlParam());
     
     uri.setPort(dto.getPort());
     uri.setSecure(dto.getSecure());

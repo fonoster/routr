@@ -60,9 +60,9 @@ const config3: ProcessorConfig = {
 
 const messageRequest: MessageRequest = {
   ref: "call-id",
-  edge_port_ref: "d001",
+  edgePortRef: "d001",
   method: Method.REGISTER,
-  listening_point: {
+  listeningPoint: {
     host: "localhost",
     port: 5060,
     transport: Transport.TCP
@@ -72,7 +72,7 @@ const messageRequest: MessageRequest = {
     host: "localhost",
     transport: Transport.TCP
   },
-  external_ips: [],
+  externalIps: [],
   localnets: [],
   message: {}
 }

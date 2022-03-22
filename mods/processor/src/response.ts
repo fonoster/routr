@@ -19,7 +19,7 @@
 import { MessageRequest } from "@routr/common"
 
 const buildResponse = (code: number) => {
-  return { message: { response_type: code }}
+  return { message: { responseType: code }}
 }
 
 export default class Response {

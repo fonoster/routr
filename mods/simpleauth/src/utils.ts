@@ -28,8 +28,8 @@ export const createUnauthorizedResponse = (realm: string, params: {
   return {
     message: {
       // UNAUTHORIZED CODE
-      response_type: 17,
-      www_authenticate: {
+      responseType: 17,
+      wwwAuthenticate: {
         scheme: 'Digest',
         realm: realm,
         qop: params.qop,

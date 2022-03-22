@@ -43,6 +43,6 @@ export const calculateAuthResponse = (res: AuthChallengeResponse, credentials?: 
   const ha2 = md5hex(a2)
 
   return res.qop === 'auth' 
-    ? md5hex(`${ha1}:${res.nonce}:${decToHex(res.nonce_count)}:${res.c_nonce}:${res.qop}:${ha2}`) 
+    ? md5hex(`${ha1}:${res.nonce}:${decToHex(res.nonceCount)}:${res.cNonce}:${res.qop}:${ha2}`) 
     : md5hex(`${ha1}:${res.nonce}:${ha2}`)
 }

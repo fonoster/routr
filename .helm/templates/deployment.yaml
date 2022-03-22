@@ -32,7 +32,7 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
-        - name: EDGE_PORT_REF
+        - name: edgePortRef
           value: random-value
         - name: CONFIG_PATH
           value: /etc/routr/edgeport.json
