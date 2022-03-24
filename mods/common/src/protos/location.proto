@@ -22,7 +22,7 @@ message Route {
   string host = 2;
   string port = 3;
   fonoster.routr.common.v2draft1.Transport transport = 4;
-  int32 registered_on = 5;
+  int64 registered_on = 5;
   int32 expires = 6;
   int32 session_count = 7;
   string edge_port_ref = 8;
