@@ -22,7 +22,6 @@ import java.util.*;
 import javax.sip.*;
 import javax.sip.address.AddressFactory;
 import javax.sip.message.*;
-
 import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.header.Via;
 import javax.sip.header.*;
