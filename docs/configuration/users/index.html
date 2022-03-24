@@ -1663,14 +1663,14 @@ The Users configuration can be provided using the file <code>config/users.yml</c
 </tbody>
 </table>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span> <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
-  <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">User</span>
-  <span class="nt">metadata</span><span class="p">:</span>
-    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Administrator</span>
-  <span class="nt">spec</span><span class="p">:</span>
-    <span class="nt">credentials</span><span class="p">:</span>
-      <span class="nt">username</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">admin</span>
-      <span class="nt">secret</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">changeit</span>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1beta1</span><span class="w"></span>
+<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">User</span><span class="w"></span>
+<span class="w">  </span><span class="nt">metadata</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Administrator</span><span class="w"></span>
+<span class="w">  </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">credentials</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">admin</span><span class="w"></span>
+<span class="w">      </span><span class="nt">secret</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">changeit</span><span class="w"></span>
 </code></pre></div>
 <h2 id="changing-the-password-redis">Changing the password? (Redis)<a class="headerlink" href="#changing-the-password-redis" title="Permanent link">&para;</a></h2>
 <p>First, run the command <code>redis-cli smembers users</code> to obtain the reference to the user. Here is an example:</p>

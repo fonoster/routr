@@ -1547,32 +1547,32 @@ Otherwise, this method responds with a <code>UNFULFILLED_DEPENDENCY_RESPONSE</co
 <p><strong>Response</strong></p>
 <p>If successful this method creates a Number.</p>
 <p><strong>Sample Call</strong></p>
-<div class="highlight"><pre><span></span><code><span class="err">POST</span> <span class="err">/api/</span><span class="p">{</span><span class="err">apiversio</span><span class="kc">n</span><span class="p">}</span><span class="err">/</span><span class="kc">nu</span><span class="err">mbers</span>
-<span class="p">{</span>
-    <span class="nt">&quot;apiVersion&quot;</span><span class="p">:</span> <span class="s2">&quot;v1beta1&quot;</span><span class="p">,</span>
-    <span class="nt">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;Number&quot;</span><span class="p">,</span>
-    <span class="nt">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="nt">&quot;gwRef&quot;</span><span class="p">:</span> <span class="s2">&quot;gweef506&quot;</span><span class="p">,</span>
-        <span class="nt">&quot;geoInfo&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="nt">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;City, State&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;country&quot;</span><span class="p">:</span> <span class="s2">&quot;Country&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;countryISOCode&quot;</span><span class="p">:</span> <span class="s2">&quot;US&quot;</span>
-        <span class="p">}</span>
-    <span class="p">},</span>
-    <span class="nt">&quot;spec&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="nt">&quot;location&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="nt">&quot;telUrl&quot;</span><span class="p">:</span> <span class="s2">&quot;tel:0000000000&quot;</span><span class="p">,</span>
-            <span class="nt">&quot;aorLink&quot;</span><span class="p">:</span> <span class="s2">&quot;sip:1001@sip.local&quot;</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="err">POST</span><span class="w"> </span><span class="err">/api/</span><span class="p">{</span><span class="err">apiversio</span><span class="kc">n</span><span class="p">}</span><span class="err">/</span><span class="kc">nu</span><span class="err">mbers</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;apiVersion&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;v1beta1&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Number&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;gwRef&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gweef506&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;geoInfo&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;city&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;City, State&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;country&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Country&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;countryISOCode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;US&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;spec&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;telUrl&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tel:0000000000&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;aorLink&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sip:1001@sip.local&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="err">HTTP/</span><span class="mf">1.1</span> <span class="mi">201</span> <span class="err">Crea</span><span class="kc">te</span><span class="err">d</span>
-<span class="p">{</span>
-    <span class="nt">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;201&quot;</span><span class="p">,</span>
-    <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Created&quot;</span><span class="p">,</span>
-    <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="s2">&quot;dd50baa4&quot;</span>
-<span class="p">}</span>
+<span class="err">HTTP/</span><span class="mf">1.1</span><span class="w"> </span><span class="mi">201</span><span class="w"> </span><span class="err">Crea</span><span class="kc">te</span><span class="err">d</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;201&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Created&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dd50baa4&quot;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </code></pre></div>
                 
                   
