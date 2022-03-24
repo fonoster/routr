@@ -24,19 +24,19 @@ services:
     build: ./mods/edgeport
     image: fonoster/edgeport
     environment:
-      edgePortRef: ep002
+      EDGEPORT_REF: ep002
       CONFIG_PATH: /etc/routr/edgeport.json
       LOG4J2: /etc/routr/log4j2.yml
       LOGS_LEVEL: verbose
     ports:
-      - 6060:5060
-      - 6060:5060/udp
-      - 6061:5061
-      - 6062:5061
-      - 6063:5061
+      - 6060:6060
+      - 6060:6060/udp
+      - 6061:6061
+      - 6062:6061
+      - 6063:6061
     volumes:
       - ./config/log4j2.yml:/etc/routr/log4j2.yml
-      - ./config/edgeport.json:/etc/routr/edgeport.json
+      - ./config/edgeport.alt.json:/etc/routr/edgeport.json
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
 
   dispatcher:

@@ -53,11 +53,11 @@ public class GRPCSipListener implements SipListener {
     String bindAddr = (String) spec.getMember("bindAddr");
     String edgePortRef = (String) metadata.getMember("ref");
 
-    if (System.getenv("edgePortRef") != null) {
-      edgePortRef = System.getenv("edgePortRef");
+    if (System.getenv("EDGEPORT_REF") != null) {
+      edgePortRef = System.getenv("EDGEPORT_REF");
     }
 
-    LOG.info("starting edgeport service at " + bindAddr);
+    LOG.info("starting edgeport (ref = " + edgePortRef + ") service at " + bindAddr);
     LOG.info("localnets list [" + String.join(",", localnets) + "]");
     LOG.info("external ips list [" + String.join(",", externalIps) + "]");
 

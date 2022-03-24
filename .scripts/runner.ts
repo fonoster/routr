@@ -7,8 +7,13 @@ import LocationService from "../mods/location/src/service"
 import { getConfig as getDispatcherConfig } from "../mods/dispatcher/src/config/get_config"
 import { getConfig as getLocationConfig } from "../mods/location/src/config/get_config"
 import { spawn } from "child_process"
+import { Helper as H } from "../mods/common"
+
+const envcopy = H.deepCopy(process.env);
+envcopy.CONFIG_PATH = __dirname + "/../config/edgeport.alt.json";
 
 const edgeport = spawn("./mods/edgeport/edgeport.sh")
+const edgeportAlt = spawn("./mods/edgeport/edgeport.sh", { env: envcopy })
 const users = require(__dirname + "/../config/auth.json")
 const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.json")
 const locationConfig = getLocationConfig(__dirname + "/../config/location.json")
@@ -31,5 +36,9 @@ SimpleAuthProcessor({ bindAddr: "0.0.0.0:51903", users })
 ConnectProcessor({ bindAddr: "0.0.0.0:51904", locationAddr: "localhost:51902" })
 
 edgeport.stdout.on("data", (data: any) => {
+  process.stdout.write(`${data}`)
+});
+
+edgeportAlt.stdout.on("data", (data: any) => {
   process.stdout.write(`${data}`)
 });
