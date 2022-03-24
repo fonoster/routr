@@ -42,7 +42,7 @@ const createRequest = (from, to, withExpiresInContact = false) => {
 
   if (withExpiresInContact) {
     // Added +1 to make sure is diferrent to expires header...
-    contactHeader.setParameter('expires', '3601')
+    contactHeader.setParameter('expires', '601')
   }
 
   const userAgentHeader = headerFactory.createUserAgentHeader(userAgent)
