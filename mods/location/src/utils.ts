@@ -61,7 +61,7 @@ export function getServiceInfo(bindAddr: string, locator: ILocationService)
       findRoutes: async (call, callback) => {
         try {
           const routes = await locator.findRoutes((call as any).request)
-          if (routes.length == 0) throw new NotRoutesFoundForAOR((call as any).request.aor)
+          if (routes.length === 0) throw new NotRoutesFoundForAOR((call as any).request.aor)
           callback(null, {
             routes: routes
           })

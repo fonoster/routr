@@ -56,7 +56,8 @@ export default class MemoryStore implements ILocatorStore {
       this.cleanupCount = 0
       this.cleanup()
     }
-    return Promise.resolve(this.collections.get(key) || [])
+    return Promise.resolve(
+      (this.collections.get(key) || []).filter(expiredFilter))
   }
 
   public delete(key: string): Promise<void> {

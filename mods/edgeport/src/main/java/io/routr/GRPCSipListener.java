@@ -22,6 +22,8 @@ import java.util.*;
 import javax.sip.*;
 import javax.sip.address.AddressFactory;
 import javax.sip.message.*;
+
+import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.header.Via;
 import javax.sip.header.*;
 import java.text.ParseException;
@@ -179,6 +181,7 @@ public class GRPCSipListener implements SipListener {
       var headersIterator = headers.iterator();
 
       requestOut.removeHeader(Via.NAME);
+      requestOut.removeHeader(Route.NAME);
 
       while (headersIterator.hasNext()) {
         requestOut.addHeader(headersIterator.next());
