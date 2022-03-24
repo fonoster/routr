@@ -46,7 +46,7 @@ HTTP/1.1 200 OK
          "username": "215706",
          "host": "atlanta2.voip.ms",
          "ip":"209.217.224.50",
-         "expires": 3600,
+         "expires": 600,
          "registeredOn": 1588525156280,
          "gwRef": "gw50a1a4ca",
          "gwURI": "sip:215706@atlanta2.voip.ms:5060",

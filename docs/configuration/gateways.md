@@ -18,7 +18,7 @@ For static IP authentication be sure to properly configure the `spec.externAddr`
 | spec.credentials.secret |  Gateway secret. No required for static IP authentication | No |
 | spec.host | Gateway host | Yes |
 | spec.transport | Transport protocol | Yes |
-| spec.expires | Requested lifespan of the registration in seconds. Defaults to `3600` | No |
+| spec.expires | Requested lifespan of the registration in seconds. Defaults to `600` | No |
 | spec.registries.[*] | Additional registries for ingress calls | No |
 
 ## Example of Gateway in `Registration Mode`
