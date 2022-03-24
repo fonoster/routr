@@ -59,6 +59,63 @@ export const addSelfVia = (route: Route) => {
   }
 }
 
+export const addSelfRecordRoute = (route: Route) => {
+  return (request: MessageRequest): MessageRequest => {
+    const req = H.deepCopy(request)
+    const lp = req.listeningPoint
+    const r = {
+      name: "Record-Route",
+      value: `<sip:${lp.host}:${lp.port};lr;transport=${lp.transport}>`
+    }
+    req.message.extensions = [...req.message.extensions as any, r]
+    return req
+  }
+}
+
+export const addRoute = (route: Route) => {
+  return (request: MessageRequest): MessageRequest => {
+    // TODO: Deep copy the original request
+    const req = request
+    const lp = route.listeningPoint
+    const r = {
+      name: "Route",
+      value: `<sip:${lp.host}:${lp.port};lr;transport=${lp.transport}>`
+    }
+    req.message.extensions = [...req.message.extensions as any, r]
+    return req
+  }
+}
+
+export const addXEdgePortRef = (request: MessageRequest): MessageRequest => {
+  const req = H.deepCopy(request)
+  const r = {
+    name: "X-EdgePort-Ref",
+    value: request.edgePortRef
+  }
+  req.message.extensions = [...req.message.extensions as any, r]
+  return req
+}
+
+export const removeXEdgePortRef = (request: MessageRequest): MessageRequest => {
+  const req = H.deepCopy(request)
+  req.message.extensions = (req.message.extensions as any).filter((ext: any) =>
+    ext.name.toLowerCase() !== "x-edgeport-ref")
+  return req
+}
+
+export const removeAuthorization = (request: MessageRequest): MessageRequest => {
+  const req = H.deepCopy(request)
+  delete req.message.authorization 
+  return req
+}
+
+export const removeRoute = (request: MessageRequest): MessageRequest => {
+  const req = H.deepCopy(request)
+  req.message.extensions = (req.message.extensions as any).filter((ext: any) =>
+    ext.name.toLowerCase() !== "route")
+  return req
+}
+
 export const removeTopVia = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request) as any
   req.message.via.shift()

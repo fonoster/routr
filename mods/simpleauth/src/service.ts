@@ -30,6 +30,10 @@ export default function SimpleAuthProcessor(config: { bindAddr: string, users: U
     .listen((req: Record<string, any>, res: Response) => {
       logger.verbose(JSON.stringify(req, null, ' '))
 
+      // if (req.method === "MESSAGE" && req.message.from.address.uri.user === "arc") {
+      //  return res.send(req)
+      //}
+
       // Calculate and return challenge
       if (req.message.authorization) {
         const auth = { ...req.message.authorization }
