@@ -74,8 +74,7 @@ export const addSelfRecordRoute = (route: Route) => {
 
 export const addRoute = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
-    // TODO: Deep copy the original request
-    const req = request
+    const req = H.deepCopy(request)
     const lp = route.listeningPoint
     const r = {
       name: "Route",

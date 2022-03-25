@@ -26,9 +26,11 @@ if (!process.env.PATH_TO_AUTH) {
   process.exit(1)
 }
 
+const whiteList = process.env.WHITE_LIST ? process.env.WHITE_LIST.split(',') : []
+
 try {
   const users: User[] = require(process.env.PATH_TO_AUTH)
-  SimpleAuthProcessor({ bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903", users })
+  SimpleAuthProcessor({ bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903", users, whiteList })
 } catch (e) {
   if (e.code === "MODULE_NOT_FOUND") {
     logger.error(`auth file not found [path = ${process.env.PATH_TO_AUTH}]`)
