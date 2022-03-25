@@ -29,9 +29,6 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
 
   new Processor({ bindAddr, name: "connect" })
     .listen(async(req: MessageRequest, res: Response) => {
-      
-      logger.silly(JSON.stringify(req, null, ' '))
-
       switch (req.method.toString()) {
         case 'PUBLISH':
         case 'NOTIFY':
