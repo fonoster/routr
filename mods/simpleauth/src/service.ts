@@ -23,17 +23,17 @@ import { getCredentials, createUnauthorizedResponse } from './utils'
 import Processor, { Response } from "@routr/processor"
 import { User } from './types'
 
-export default function SimpleAuthProcessor(config: { bindAddr: string, users: User[] }) {
-  const { bindAddr, users } = config
+export default function SimpleAuthProcessor(config: { bindAddr: string, users: User[], whiteList: string[] }) {
+  const { bindAddr, users, whiteList } = config
 
   new Processor({ bindAddr, name: "simpleauth" })
     .listen((req: Record<string, any>, res: Response) => {
-      logger.verbose(`authenticating endpoint with simpleauth: ${req.message.from.address.uri.user}`)
+      logger.verbose(`authenticating ${req.message.from.address.uri.user} endpoint with simpleauth`)
       logger.silly(JSON.stringify(req, null, ' '))
 
-      // if (req.method === "MESSAGE" && req.message.from.address.uri.user === "arc") {
-      //  return res.send(req)
-      //}
+      if (whiteList.includes(req.message.from.address.uri.user)) {
+        return res.send(req)
+      }
 
       // Calculate and return challenge
       if (req.message.authorization) {
