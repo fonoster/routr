@@ -32,7 +32,6 @@ export default class RedisStore implements ILocatorStore {
 
   public async put(key: string, route: Route): Promise<void> {
     // Formatted the key to ensure it is unique
-    logger.verbose(`${key}:${route.user}${route.host}${route.port}`)
     await this.client.set(`${key}:${route.user}${route.host}${route.port}`,
       JSON.stringify(route), {
       EX: route.expires

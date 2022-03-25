@@ -28,7 +28,8 @@ export default function SimpleAuthProcessor(config: { bindAddr: string, users: U
 
   new Processor({ bindAddr, name: "simpleauth" })
     .listen((req: Record<string, any>, res: Response) => {
-      logger.verbose(JSON.stringify(req, null, ' '))
+      logger.verbose(`authenticating endpoint with simpleauth: ${req.message.from.address.uri.user}`)
+      logger.silly(JSON.stringify(req, null, ' '))
 
       // if (req.method === "MESSAGE" && req.message.from.address.uri.user === "arc") {
       //  return res.send(req)
