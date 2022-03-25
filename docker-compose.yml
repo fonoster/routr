@@ -78,6 +78,8 @@ services:
     build: ./mods/simpleauth
     image: fonoster/simpleauth
     environment:
+      # Comma separated list of agents that are allowed to skip authentication
+      WHITE_LIST: someuser01,someuser02
       PATH_TO_AUTH: '/etc/routr/auth.json'
       LOGS_LEVEL: verbose
     expose:
