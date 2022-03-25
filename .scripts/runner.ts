@@ -17,6 +17,7 @@ const edgeportAlt = spawn("./mods/edgeport/edgeport.sh", { env: envcopy })
 const users = require(__dirname + "/../config/auth.json")
 const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.json")
 const locationConfig = getLocationConfig(__dirname + "/../config/location.json")
+const whiteList = process.env.WHITE_LIST ? process.env.WHITE_LIST.split(',') : []
 
 logger.info("routr v2 // connect distribution")
 
@@ -32,7 +33,7 @@ if (locationConfig._tag === 'Right') {
   logger.error(locationConfig.left)
 }
 
-SimpleAuthProcessor({ bindAddr: "0.0.0.0:51903", users })
+SimpleAuthProcessor({ bindAddr: "0.0.0.0:51903", users, whiteList })
 ConnectProcessor({ bindAddr: "0.0.0.0:51904", locationAddr: "localhost:51902" })
 
 edgeport.stdout.on("data", (data: any) => {
