@@ -17,13 +17,13 @@
         "ref": "echo-processor",
         "addr": "192.168.1.3:51905",
         "methods": [
-          "MESSAGE"
+          "MESSAGE",
+          "REGISTER"
         ],
-        "matchFunc": "(req) => { return req.method === 'MESSAGE' }"
+        "matchFunc": "(req) => req.method === 'MESSAGE' || req.method === 'REGISTER'"
       },
       {
         "ref": "connect-processor",
-        "isFallback": true,
         "addr": "localhost:51904",
         "methods": [
           "REGISTER",
