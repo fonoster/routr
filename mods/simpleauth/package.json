@@ -1,6 +1,6 @@
 {
   "name": "@routr/simpleauth",
-  "version": "2.0.5-alpha.11",
+  "version": "2.0.5-alpha.12",
   "description": "This middleware delegates authentication to an external service",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@fonoster/logger": "^0.3.3",
-    "@routr/common": "^2.0.5-alpha.11",
-    "@routr/processor": "^2.0.5-alpha.11"
+    "@routr/common": "^2.0.5-alpha.12",
+    "@routr/processor": "^2.0.5-alpha.12"
   },
   "files": [
     "dist"
