@@ -2,48 +2,56 @@ package io.routr;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
 import javax.sip.address.AddressFactory;
+import javax.sip.address.SipURI;
+import javax.sip.header.ExtensionHeader;
+import javax.sip.header.Header;
 import javax.sip.header.HeaderFactory;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
-import javax.sip.header.ExtensionHeader;
-import javax.sip.header.Header;
-import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.header.WWWAuthenticate;
-import gov.nist.javax.sip.header.Authorization;
-import gov.nist.javax.sip.header.CallID;
-import gov.nist.javax.sip.header.Expires;
-import gov.nist.javax.sip.header.Contact;
-import gov.nist.javax.sip.header.ContentLength;
-import gov.nist.javax.sip.header.From;
-import gov.nist.javax.sip.header.To;
-import javax.sip.address.SipURI;
+
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.junit.jupiter.api.Test;
+
+import gov.nist.javax.sip.header.Allow;
+import gov.nist.javax.sip.header.Authorization;
+import gov.nist.javax.sip.header.CallID;
+import gov.nist.javax.sip.header.Contact;
+import gov.nist.javax.sip.header.ContentLength;
+import gov.nist.javax.sip.header.Expires;
+import gov.nist.javax.sip.header.From;
+import gov.nist.javax.sip.header.To;
+import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.header.WWWAuthenticate;
+import io.routr.common.Transport;
 import io.routr.headers.AddressConverter;
 import io.routr.headers.AuthorizationConverter;
 import io.routr.headers.CallIDConverter;
-import io.routr.headers.ExpiresConverter;
 import io.routr.headers.ContactConverter;
 import io.routr.headers.ContentLengthConverter;
+import io.routr.headers.ExpiresConverter;
 import io.routr.headers.ExtensionConverter;
 import io.routr.headers.FromConverter;
 import io.routr.headers.MessageConverter;
-import io.routr.headers.ViaConverter;
-import io.routr.headers.WWWAuthenticateConverter;
-import io.routr.message.*;
-import io.routr.common.*;
-import io.routr.processor.*;
 import io.routr.headers.SipURIConverter;
 import io.routr.headers.ToConverter;
+import io.routr.headers.ViaConverter;
+import io.routr.headers.WWWAuthenticateConverter;
+import io.routr.message.ResponseType;
+import io.routr.message.SIPMessage;
+import io.routr.processor.NetInterface;
 
 public class ConveterTests {
 
@@ -162,21 +170,27 @@ public class ConveterTests {
     assertNotNull(objectFromDto.getURI());
   }
 
-/**
- *   public io.routr.message.From fromHeader(From header) {
-    var builder = io.routr.message.From.newBuilder();
-    var addressConverter = new AddressConverter();
-    if (header.getTag() != null) builder.setTag(header.getTag());
-    return builder.setAddress(addressConverter.fromObject(header.getAddress())).build();
-  }
-
-  @Override
-  public From fromDTO(io.routr.message.From dto) throws InvalidArgumentException, PeerUnavailableException, ParseException {
-    var addressConverter = new AddressConverter();
-    HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
-    return (From) factory.createFromHeader(addressConverter.fromDTO(dto.getAddress()), dto.getTag());
-  }
- */
+  /**
+   * public io.routr.message.From fromHeader(From header) {
+   * var builder = io.routr.message.From.newBuilder();
+   * var addressConverter = new AddressConverter();
+   * if (header.getTag() != null) builder.setTag(header.getTag());
+   * return
+   * builder.setAddress(addressConverter.fromObject(header.getAddress())).build();
+   * }
+   * 
+   * @Override
+   *           public From fromDTO(io.routr.message.From dto) throws
+   *           InvalidArgumentException, PeerUnavailableException, ParseException
+   *           {
+   *           var addressConverter = new AddressConverter();
+   *           HeaderFactory factory =
+   *           SipFactory.getInstance().createHeaderFactory();
+   *           return (From)
+   *           factory.createFromHeader(addressConverter.fromDTO(dto.getAddress()),
+   *           dto.getTag());
+   *           }
+   */
 
   @Test
   public void testFromConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
@@ -186,7 +200,7 @@ public class ConveterTests {
 
     var address = addressFactory.createAddress("sip:1001@sip.local");
     From from = (From) factory.createFromHeader(address, "1001");
-  
+
     io.routr.message.From dto = converter.fromHeader(from);
     From objectFromDto = converter.fromDTO(dto);
 
@@ -202,7 +216,7 @@ public class ConveterTests {
 
     var address = addressFactory.createAddress("sip:1001@sip.local");
     To to = (To) factory.createToHeader(address, "1001");
-  
+
     io.routr.message.To dto = converter.fromHeader(to);
     To objectToDto = converter.fromDTO(dto);
 
@@ -218,7 +232,7 @@ public class ConveterTests {
 
     var address = addressFactory.createAddress("sip:1001@sip.local");
     Contact contact = (Contact) factory.createContactHeader(address);
-  
+
     io.routr.message.Contact dto = converter.fromHeader(contact);
     Contact objectContactDto = converter.fromDTO(dto);
 
@@ -425,12 +439,44 @@ public class ConveterTests {
     request.addHeader(headerFactory.createHeader("X-Custom-Header-02", "my custom header 02"));
     request.addHeader(headerFactory.createViaHeader("sip.local.hop1", 5060, "tcp", null));
     request.addHeader(headerFactory.createViaHeader("sip.local.hop2", 5060, "tcp", null));
+    request.addHeader(headerFactory.createViaHeader("sip.local.hop3", 5060, "tcp", null));
     request.addHeader(headerFactory.createAllowHeader("INVITE"));
     request.addHeader(headerFactory.createAllowHeader("BYE"));
 
     SIPMessage message = MessageConverter.convertToMessageDTO(request);
     List<Header> headers = MessageConverter.createHeadersFromMessage(message);
 
-    assertEquals(8, headers.size());
+    var requestOut = GRPCSipListener.updateRequest(request, headers);
+
+    Iterator<Via> viaIterator = request.getHeaders(Via.NAME);
+    ArrayList<Via> viaList = new ArrayList<Via>();
+
+    while (viaIterator.hasNext()) {
+      // Print headers to log
+      viaList.add(viaIterator.next());
+    }
+
+    Iterator<Via> viaIteratorOut = requestOut.getHeaders(Via.NAME);
+    ArrayList<Via> viaListOut = new ArrayList<Via>();
+
+    while (viaIteratorOut.hasNext()) {
+      // Print headers to log
+      viaListOut.add(viaIteratorOut.next());
+    }
+
+    assertEquals(9, headers.size());
+    
+    Iterator names = request.getHeaderNames();
+    while (names.hasNext()) {
+      String n = (String) names.next();
+      
+      // TODO: We need to create a converter for this header
+      if (!n.equals(Allow.NAME)) {
+        assertEquals(request.getHeader(n).toString(), request.getHeader(n).toString());
+      }
+    }
+    assertEquals(viaList.get(0).getHost(), viaListOut.get(0).getHost());
+    assertEquals(viaList.get(1).getHost(), viaListOut.get(1).getHost());
+    assertEquals(viaList.get(2).getHost(), viaListOut.get(2).getHost());
   }
 }

@@ -117,10 +117,10 @@ class MessageConverter {
       throws InvalidArgumentException, PeerUnavailableException, ParseException {
     List<Header> headers = new ArrayList<>();
 
-    var vias = message.getViaList().iterator();
+    var vias = message.getViaList().listIterator(message.getViaList().size());
 
-    while (vias.hasNext()) {
-      io.routr.message.Via via = vias.next();
+    while (vias.hasPrevious()) {
+      io.routr.message.Via via = vias.previous();
       var converter = getConverterByHeader(Via.class);
       headers.add(converter.fromDTO(via));
     }

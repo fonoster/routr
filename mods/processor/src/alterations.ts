@@ -53,7 +53,7 @@ export const addSelfVia = (route: Route) => {
         transport: req.listeningPoint.transport
       }
 
-    req.message.via = [...req.message.via, via]
+    req.message.via = [via, ...req.message.via]
 
     return req
   }
@@ -67,7 +67,7 @@ export const addSelfRecordRoute = (route: Route) => {
       name: "Record-Route",
       value: `<sip:${lp.host}:${lp.port};lr;transport=${lp.transport}>`
     }
-    req.message.extensions = [...req.message.extensions as any, r]
+    req.message.extensions = [r, ...req.message.extensions as any]
     return req
   }
 }
@@ -80,7 +80,7 @@ export const addRoute = (route: Route) => {
       name: "Route",
       value: `<sip:${lp.host}:${lp.port};lr;transport=${lp.transport}>`
     }
-    req.message.extensions = [...req.message.extensions as any, r]
+    req.message.extensions = [r, ...req.message.extensions as any]
     return req
   }
 }
@@ -91,7 +91,7 @@ export const addXEdgePortRef = (request: MessageRequest): MessageRequest => {
     name: "X-EdgePort-Ref",
     value: request.edgePortRef
   }
-  req.message.extensions = [...req.message.extensions as any, r]
+  req.message.extensions = [r, ...req.message.extensions as any]
   return req
 }
 

@@ -22,7 +22,8 @@ import java.util.*;
 import javax.sip.*;
 import javax.sip.address.AddressFactory;
 import javax.sip.message.*;
-import gov.nist.javax.sip.header.Route;
+
+import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.Via;
 import javax.sip.header.*;
 import java.text.ParseException;
@@ -175,17 +176,7 @@ public class GRPCSipListener implements SipListener {
         return;
       }
 
-      // The request must be cloned or the stack will not fork the callId
-      var requestOut = (Request) request.clone();
-      var headersIterator = headers.iterator();
-
-      requestOut.removeHeader(Via.NAME);
-      requestOut.removeHeader(Route.NAME);
-
-      while (headersIterator.hasNext()) {
-        requestOut.addHeader(headersIterator.next());
-      }
-
+      Request requestOut = updateRequest(request, headers);
       var clientTransaction = this.sipProvider.getNewClientTransaction(requestOut);
       clientTransaction.sendRequest();
     } catch (SipException e) {
@@ -203,6 +194,34 @@ public class GRPCSipListener implements SipListener {
     while (h.hasNext())
       response.addHeader(h.next());
     transaction.sendResponse(response);
+  }
+
+  public static Request updateRequest(final Request request, final List<Header> headers) {
+    Request requestOut = (Request) request.clone();
+
+    Iterator names = requestOut.getHeaderNames();
+    while (names.hasNext()) {
+      String n = (String) names.next();
+      // WARN: Perhaps we should compute this value
+      if (!n.equals(ContentLength.NAME)) {
+        requestOut.removeHeader(n);
+      }
+    }
+
+    var headersIterator = headers.iterator();
+
+    while (headersIterator.hasNext()) {
+      Header header = headersIterator.next();
+      String s = header.getName();
+      if (s.equals("From") || s.equals("To") && s.equals("Call-ID")
+          && s.equals("CSeq")) {
+        requestOut.setHeader(header);
+      } else {
+        requestOut.addHeader(header);
+      }
+    }
+
+    return requestOut;
   }
 
 }
