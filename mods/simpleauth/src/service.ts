@@ -22,6 +22,9 @@ import { calculateAuthResponse } from '@routr/common'
 import { getCredentials, createUnauthorizedResponse } from './utils'
 import Processor, { Response } from "@routr/processor"
 import { User } from './types'
+import api from '@opentelemetry/api'
+import { Tracer as T } from '@routr/common'
+const tracer = T.init('simpleauth');
 
 export default function SimpleAuthProcessor(config: { bindAddr: string, users: User[], whiteList: string[] }) {
   const { bindAddr, users, whiteList } = config
@@ -30,6 +33,15 @@ export default function SimpleAuthProcessor(config: { bindAddr: string, users: U
     .listen((req: Record<string, any>, res: Response) => {
       logger.verbose(`authenticating ${req.message.from.address.uri.user} endpoint with simpleauth`)
       logger.silly(JSON.stringify(req, null, ' '))
+
+      const currentSpan = api.trace.getSpan(api.context.active());
+      // display traceid in the terminal
+      logger.verbose(`traceid: ${currentSpan.spanContext().traceId}`);
+      const span = tracer.startSpan('server.js:sayHello()', {
+        kind: 1, // server
+        attributes: { key: 'value' },
+      });
+      span.addEvent(`invoking sayHello() to...`);
 
       if (whiteList.includes(req.message.from.address.uri.user)) {
         return res.send(req)

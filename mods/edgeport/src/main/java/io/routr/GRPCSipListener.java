@@ -96,6 +96,7 @@ public class GRPCSipListener implements SipListener {
       try {
         serverTransaction = this.sipProvider.getNewServerTransaction(req);
       } catch (TransactionAlreadyExistsException | TransactionUnavailableException e) {
+        e.printStackTrace();
         LOG.warn(e.getMessage());
       }
     }
@@ -121,6 +122,7 @@ public class GRPCSipListener implements SipListener {
 
       this.sendRequest(serverTransaction, req, headers);
     } catch (StatusRuntimeException | SipException | ParseException | InvalidArgumentException e) {
+      e.printStackTrace();
       if (e instanceof StatusRuntimeException) {
         LOG.warn(((StatusRuntimeException) e).getStatus().getDescription());
       } else {
@@ -148,6 +150,7 @@ public class GRPCSipListener implements SipListener {
 
       this.sipProvider.sendResponse(res);
     } catch (SipException | InvalidArgumentException | ParseException e) {
+      e.printStackTrace();
       LOG.warn(e.getMessage());
     }
   }
@@ -180,6 +183,7 @@ public class GRPCSipListener implements SipListener {
       var clientTransaction = this.sipProvider.getNewClientTransaction(requestOut);
       clientTransaction.sendRequest();
     } catch (SipException e) {
+      e.printStackTrace();
       LOG.warn(e.getMessage());
     }
   }

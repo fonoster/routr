@@ -7,7 +7,7 @@
       "region": "us-east1"
     },
     "spec": {
-      "bindAddr": "192.168.1.3",
+    "bindAddr": "0.0.0.0",
       "securityContext": {
         "client": {
           "protocols" : ["SSLv3", "TLSv1.2", "TLSv1.1", "TLSv1"],
@@ -15,8 +15,8 @@
         },
         "keyStorePassword": "changeit",
         "trustStorePassword": "changeit",
-        "keyStore": "etc/certs/domains-cert.jks",
-        "trustStore": "etc/certs/domains-cert.jks",
+        "keyStore": "/etc/routr/domains-cert.jks",
+        "trustStore": "/etc/routr/domains-cert.jks",
         "keyStoreType": "pkcs12"
       },
       "processor": {

@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@fonoster/logger": "^0.3.3",
+    "@opentelemetry/api": "^1.1.0",
     "@routr/common": "^2.0.5-alpha.12",
     "@routr/processor": "^2.0.5-alpha.12"
   },

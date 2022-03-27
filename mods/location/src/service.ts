@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { 
-  Backend, 
-  LocationConfig, 
+import {
+  Backend,
+  LocationConfig,
   RedisStoreConfig,
   CACHE_PROVIDER
 } from "./types"
@@ -35,13 +35,13 @@ export default function LocationService(config: LocationConfig) {
   let store
 
   if (cache.provider === CACHE_PROVIDER.REDIS) {
-    store = new RedisStore(configFromString(cache.parameters, 
+    store = new RedisStore(configFromString(cache.parameters,
       allowedParameters) as any as RedisStoreConfig)
   } else {
     store = new MemoryStore()
   }
 
-  const backends = new Map<string, Backend>() 
+  const backends = new Map<string, Backend>()
   config.backends.forEach(b => backends.set(`backend:${b.ref}`, b))
   createService(getServiceInfo(bindAddr, new Location(store, backends)))
 

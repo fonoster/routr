@@ -16,18 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {  calculateAuthResponse, generateNonce } from "./auth";
+import { ServiceUnavailableError } from "./errors"
 import createService, { 
   PROCESSOR_OBJECT_PROTO,
   LOCATION_OBJECT_PROTO,
   getObjectProto
 } from "./service";
-import { 
-  calculateAuthResponse,
-  generateNonce
-} from "./auth";
-import { 
-  ServiceUnavailableError
-} from "./errors"
 import { 
   Transport, 
   ProcessorConfig, 
@@ -61,3 +56,4 @@ export {
 
 export * as Helper from "./helper"
 export * as IpUtils from "./ip_utils"
+export * as Tracer from "./tracer"

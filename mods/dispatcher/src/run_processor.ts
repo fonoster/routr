@@ -21,8 +21,20 @@ import { findProcessor } from "./find_processor"
 import { RunProcessorParams } from "./types"
 import grpc = require("@grpc/grpc-js")
 import logger from "@fonoster/logger"
+import api from '@opentelemetry/api'
+import { Tracer as T } from '@routr/common'
+const tracer = T.init('example-grpc-js-server');
 
 export function runProcessor(params: RunProcessorParams) {
+  const currentSpan = api.trace.getSpan(api.context.active());
+  // display traceid in the terminal
+  logger.verbose(`traceid: ${currentSpan.spanContext().traceId}`);
+  const span = tracer.startSpan('server.js:sayHello()', {
+    kind: 1, // server
+    attributes: { key: 'value' },
+  });
+  span.addEvent(`invoking sayHello() to...`);
+
   const { callback, connections, processors, request } = params
   const matchResult = findProcessor(processors)(request)
 

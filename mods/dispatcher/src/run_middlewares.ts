@@ -38,7 +38,7 @@ export async function runMiddlewares(params: RunMiddlewaresParams): Promise<Mess
   const req = { ...request }
   return new Promise(async (resolve, rejects) => {
     for (const midd of middlewares) {
-      logger.verbose("forwarding request to middleware with ref => " + midd.ref)
+      logger.verbose("forwarding request to middleware",  { ref: midd.ref, addr: midd.addr })
       // Get the next middleware
       const conn = connections.get(midd.ref)
       // Send message and re-insert response for next middleware

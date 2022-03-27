@@ -56,8 +56,6 @@ services:
     environment:
       CONFIG_PATH: '/etc/routr/location.json'
       LOGS_LEVEL: verbose
-    ports:
-      - 51902:51902
     expose:
       - 51902
     volumes:
@@ -95,3 +93,11 @@ services:
       LOGS_LEVEL: verbose
     expose:
       - 51904
+
+  # Jaeger
+  jaeger:
+    image: jaegertracing/all-in-one:1.30.0
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "14250"
