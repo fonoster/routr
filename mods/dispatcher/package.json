@@ -1,6 +1,6 @@
 {
   "name": "@routr/dispatcher",
-  "version": "2.0.5-alpha.12",
+  "version": "2.0.5-alpha.13",
   "description": "Receives SIP messages and forwards them to the corresponding Message Processor",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -27,7 +27,7 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.5.9",
     "@opentelemetry/api": "^1.1.0",
-    "@routr/common": "^2.0.5-alpha.12",
+    "@routr/common": "^2.0.5-alpha.13",
     "ajv": "^6.12.6",
     "fp-ts": "^2.11.8"
   },
