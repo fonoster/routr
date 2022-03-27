@@ -26,7 +26,7 @@ if (!process.env.PATH_TO_AUTH) {
   process.exit(1)
 }
 
-const whiteList = process.env.WHITE_LIST ? process.env.WHITE_LIST.split(',') : []
+const whiteList = process.env.WHITELIST ? process.env.WHITELIST.split(',') : []
 
 try {
   const users: User[] = require(process.env.PATH_TO_AUTH)

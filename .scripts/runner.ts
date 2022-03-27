@@ -17,7 +17,7 @@ const edgeportAlt = spawn("./mods/edgeport/edgeport.sh", { env: envcopy })
 const users = require(__dirname + "/../config/auth.json")
 const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.json")
 const locationConfig = getLocationConfig(__dirname + "/../config/location.json")
-const whiteList = process.env.WHITE_LIST ? process.env.WHITE_LIST.split(',') : []
+const whiteList = process.env.WHITELIST ? process.env.WHITELIST.split(',') : []
 
 logger.info("routr v2 // connect distribution")
 
