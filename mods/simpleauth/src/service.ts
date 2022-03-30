@@ -17,24 +17,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Tracer as T } from "@routr/common"
+const tracer = T.init("simpleauth")
+import ot from "@opentelemetry/api"
 import logger from '@fonoster/logger'
 import { calculateAuthResponse } from '@routr/common'
 import { getCredentials, createUnauthorizedResponse } from './utils'
 import Processor, { Response } from "@routr/processor"
 import { User } from './types'
-import api from '@opentelemetry/api'
-import { Tracer as T } from '@routr/common'
-const tracer = T.init('simpleauth');
 
 export default function SimpleAuthProcessor(config: { bindAddr: string, users: User[], whiteList: string[] }) {
   const { bindAddr, users, whiteList } = config
 
   new Processor({ bindAddr, name: "simpleauth" })
     .listen((req: Record<string, any>, res: Response) => {
+     
       logger.verbose(`authenticating ${req.message.from.address.uri.user} endpoint with simpleauth`)
       logger.silly(JSON.stringify(req, null, ' '))
 
-      const currentSpan = api.trace.getSpan(api.context.active());
+      const currentSpan = ot.trace.getSpan(ot.context.active());
       // display traceid in the terminal
       logger.verbose(`traceid: ${currentSpan.spanContext().traceId}`);
       const span = tracer.startSpan('server.js:sayHello()', {

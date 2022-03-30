@@ -80,6 +80,8 @@ services:
       WHITELIST: someuser01,someuser02
       PATH_TO_AUTH: '/etc/routr/auth.json'
       LOGS_LEVEL: verbose
+    ports:
+      - 51903:51903
     expose:
       - 51903
     volumes:
