@@ -17,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+require("./tracer").init("simpleauth")
 import logger from '@fonoster/logger'
 import SimpleAuthProcessor from './service'
 import { User } from './types'

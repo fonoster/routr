@@ -17,6 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+require("./tracer").init("dispatcher")
 import logger from '@fonoster/logger'
 import LocationService from "./service"
 import { getConfig } from "./config/get_config"

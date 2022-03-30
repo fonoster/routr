@@ -1,44 +1,46 @@
-const opentelemetry = require('@opentelemetry/api');
-const { registerInstrumentations } = require('@opentelemetry/instrumentation');
-const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
-const { Resource } = require('@opentelemetry/resources');
-const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
-const { SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-base');
-const { JaegerExporter } = require('@opentelemetry/exporter-jaeger');
-const { ZipkinExporter } = require('@opentelemetry/exporter-zipkin');
-const { GrpcInstrumentation } = require('@opentelemetry/instrumentation-grpc');
+/*
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr
+ *
+ * Licensed under the MIT License (the "License")
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import ot from '@opentelemetry/api'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node'
+import { Resource } from '@opentelemetry/resources'
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base'
+import { JaegerExporter } from '@opentelemetry/exporter-jaeger'
+import { GrpcInstrumentation } from '@opentelemetry/instrumentation-grpc'
 
-const EXPORTER = process.env.EXPORTER || '';
-
-export const init = (serviceName: string) => {
+export function init (serviceName: string) {
   const provider = new NodeTracerProvider({
     resource: new Resource({
       [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
     }),
-  });
+  })
 
-  let exporter;
-  if (EXPORTER.toLowerCase().startsWith('z')) {
-    exporter = new ZipkinExporter();
-  } else {
-    exporter = new JaegerExporter({
-      endpoint: "http://jaeger:14268/api/traces",
-    });
-  }
-
-  console.log("XXXXXXXXX STARTING PROVIDER")
-  provider.addSpanProcessor(new SimpleSpanProcessor(exporter));
-
-  // Initialize the OpenTelemetry APIs to use the NodeTracerProvider bindings
-  provider.register();
+  const exporter = new JaegerExporter()
+  provider.addSpanProcessor(new SimpleSpanProcessor(exporter))
+  provider.register()
 
   registerInstrumentations({
     instrumentations: [
       new GrpcInstrumentation(),
     ],
-  });
+  })
 
-  console.log("XXXXXXXXX COMPLETE PROVIDER")
-
-  return opentelemetry.trace.getTracer('grpc-js-example');
-};
+  return ot.trace.getTracer('routr-tracer')
+}

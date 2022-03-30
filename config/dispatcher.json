@@ -19,7 +19,7 @@
         "methods": [
           "MESSAGE"
         ],
-        "matchFunc": "(req) => req.method === 'MESSAGE'"
+        "matchFunc": "req => req.method === 'MESSAGE'"
       },
       {
         "ref": "connect-processor",
@@ -30,7 +30,7 @@
           "INVITE",
           "CANCEL"
         ],
-        "matchFunc": "(req) => true"
+        "matchFunc": "req => true"
       }
     ]
   }

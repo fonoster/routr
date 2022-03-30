@@ -5,7 +5,7 @@
  *
  * This file is part of Routr
  *
- * Licensed under the MIT License (the "License");
+ * Licensed under the MIT License (the "License")
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
@@ -17,8 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Tracer as T } from "@routr/common"
-const tracer = T.init("simpleauth")
 import ot from "@opentelemetry/api"
 import logger from '@fonoster/logger'
 import { calculateAuthResponse } from '@routr/common'
@@ -35,16 +33,15 @@ export default function SimpleAuthProcessor(config: { bindAddr: string, users: U
       logger.verbose(`authenticating ${req.message.from.address.uri.user} endpoint with simpleauth`)
       logger.silly(JSON.stringify(req, null, ' '))
 
-      const currentSpan = ot.trace.getSpan(ot.context.active());
+      const tracer = ot.trace.getTracer("routr-tracer")
+      const currentSpan = ot.trace.getSpan(ot.context.active())
       // display traceid in the terminal
-      logger.verbose(`traceid: ${currentSpan.spanContext().traceId}`);
-      const span = tracer.startSpan('server.js:sayHello()', {
-        kind: 1, // server
-        attributes: { key: 'value' },
-      });
-      span.addEvent(`invoking sayHello() to...`);
+      logger.verbose(`traceid: ${currentSpan.spanContext().traceId}`)
+      const span = tracer.startSpan('server.js:sayHello()', { kind: 1})
 
       if (whiteList.includes(req.message.from.address.uri.user)) {
+        span.addEvent(`authenticated ${req.message.from.address.uri.user} from whitelist`)
+        span.end()
         return res.send(req)
       }
 
@@ -55,12 +52,18 @@ export default function SimpleAuthProcessor(config: { bindAddr: string, users: U
         // Calculate response and compare with the one send by the endpoint
         const calcRes = calculateAuthResponse(auth, getCredentials(auth.username, users))
         if (calcRes !== auth.response) {
+          span.addEvent(`user ${req.message.from.address.uri.user} unauthorized to complete request`)
+          span.end()
           return res.send(createUnauthorizedResponse(auth.realm))
         }
       } else {
+        span.addEvent(`authorization header not found for user ${req.message.from.address.uri.user}`)
+        span.end()
         return res.send(createUnauthorizedResponse(req.message.requestUri.host))
       }
       // Forward request to next middleware
+      span.addEvent(`user ${req.message.from.address.uri.user} authorized`)
+      span.end()
       res.send(req)
     })
 }

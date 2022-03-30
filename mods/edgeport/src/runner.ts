@@ -18,6 +18,7 @@
  */
 declare const System: any
 
+// require("./tracer").init("dispatcher")
 import EdgePort from './edgeport'
 import { getConfig } from "./config/get_config"
 import { EdgePortConfig } from './types'
