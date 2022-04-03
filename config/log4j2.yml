@@ -19,8 +19,14 @@ Configuration:
         DefaultRollOverStrategy:
           max: 10
   Loggers:
+    Logger:
+      - name: io.routr
+        level: info
+        AppenderRef:
+        - ref: Console
+        - ref: LogToRollingFile
+
     Root:
-      level: info
+      level: error
       AppenderRef:
-      - ref: Console
       - ref: LogToRollingFile

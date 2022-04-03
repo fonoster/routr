@@ -37,7 +37,7 @@ class MessageConverter {
   private Map<String, NetInterface> listeningPoints;
   private List<String> externalIps;
   private List<String> localnets;
-  private final static Logger LOG = LogManager.getLogger();
+  private final static Logger LOG = LogManager.getLogger(MessageConverter.class);
   private final String edgePortRef; 
 
   public MessageConverter(String edgePortRef) {
