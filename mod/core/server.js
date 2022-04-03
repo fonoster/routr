@@ -18,8 +18,6 @@ const properties = require('@routr/core/server_properties')(config)
 const ExceptionUtils = Java.type(
   'org.apache.commons.lang3.exception.ExceptionUtils'
 )
-const BasicConfigurator = Java.type('org.apache.log4j.BasicConfigurator')
-const NullAppender = Java.type('org.apache.log4j.varia.NullAppender')
 const System = Java.type('java.lang.System')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -34,10 +32,7 @@ const ANSI_RESET = '\u001B[0m'
 
 class Server {
   constructor () {
-    // Mutes legacy loggers
-    BasicConfigurator.configure(new NullAppender())
-
-    const ds = DSSelector.getDS()
+    const ds = DSSelector.getDS(config)
     const dataAPIs = {
       UsersAPI: new UsersAPI(ds),
       AgentsAPI: new AgentsAPI(ds),

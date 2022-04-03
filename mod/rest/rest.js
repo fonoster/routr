@@ -15,42 +15,35 @@ const StoreAPI = require('@routr/data_api/store_api')
 const ConfigAPI = require('@routr/data_api/config_api')
 const DSUtils = require('@routr/data_api/utils')
 const FilesUtil = require('@routr/utils/files_util')
-const System = Java.type('java.lang.System')
 const isEmpty = require('@routr/utils/obj_util')
-const config = require('@routr/core/config_util')()
 const RestUtil = require('@routr/rest/utils')
 const getJWTToken = require('@routr/rest/jwt_token_generator')
 const Location = require('@routr/rest/location_service')
 const parameterAuthFilter = require('@routr/rest/parameter_auth_filter')
 const basicAuthFilter = require('@routr/rest/basic_auth_filter')
-const GRPCClient = Java.type('io.routr.core.GRPCClient')
-const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
+const System = Java.type('java.lang.System')
+const GRPCClient = Java.type('io.routr.core.GRPCClient')
 const { Status } = require('@routr/core/status')
 const moment = require('moment')
 
-getToken = (req, res) =>
+getToken = config => (req, res) =>
   JSON.stringify(
     CoreUtils.buildResponse(Status.OK, null, getJWTToken(req, res, config.salt))
   )
 
-getCredentials = (req, res) => getJWTToken(req, res, config.salt)
+getCredentials = config => (req, res) => getJWTToken(req, res, config.salt)
 
-checkAuth = (req, res) =>
-  basicAuthFilter(req, res, new UsersAPI(DSSelector.getDS()))
+checkAuth = config => (req, res) =>
+  basicAuthFilter(req, res, new UsersAPI(DSSelector.getDS(config)))
 
-checkToken = (req, res) => parameterAuthFilter(req, res, config.salt)
+checkToken = config => (req, res) => parameterAuthFilter(req, res, config.salt)
 
 // Its always running! Use to ping Routr server
 getSystemStatus = () => JSON.stringify(CoreUtils.buildResponse(Status.OK, 'up'))
 
-postSystemStatus = (req, res) => {
+postSystemStatus = config => (req, res) => {
   const status = req.params(':status')
-
-  LOG.debug(JSON.stringify(config))
-  LOG.debug('XXXXXX status: ' + status)
-
   const grpcClient = new GRPCClient(
     'localhost',
     parseInt(config.spec.grpcService.port)
@@ -81,10 +74,10 @@ getSystemLogs = () => {
   )
 }
 
-getSystemInfo = () =>
+getSystemInfo = config => () =>
   JSON.stringify(CoreUtils.buildResponse(Status.OK, null, config.system))
 
-getSystemConfig = () => {
+getSystemConfig = config => () => {
   const result = CoreUtils.buildResponse(Status.OK, null, config)
   // Clonning obj
   const r = JSON.parse(JSON.stringify(result))
@@ -93,14 +86,14 @@ getSystemConfig = () => {
   return JSON.stringify(r)
 }
 
-putSystemConfig = req => {
-  const configApi = new ConfigAPI(DSSelector.getDS())
+putSystemConfig = config => req => {
+  const configApi = new ConfigAPI(DSSelector.getDS(config))
   const c = JSON.parse(req.body())
   return JSON.stringify(configApi.setConfig(c))
 }
 
-getRegistry = req => {
-  const store = new StoreAPI(SDSelector.getDriver())
+getRegistry = config => req => {
+  const store = new StoreAPI(SDSelector.getDriver(config))
   const items = store
     .withCollection('registry')
     .values()
@@ -119,8 +112,8 @@ getRegistry = req => {
   return JSON.stringify(DSUtils.paginate(items, page, itemsPerPage))
 }
 
-getLocation = req => {
-  const store = new StoreAPI(SDSelector.getDriver())
+getLocation = config => req => {
+  const store = new StoreAPI(SDSelector.getDriver(config))
   const grpcClient = new GRPCClient(
     'localhost',
     parseInt(config.spec.grpcService.port)
@@ -128,8 +121,8 @@ getLocation = req => {
   return Location(store, grpcClient).getLocation(req)
 }
 
-deleteLocation = (_, res) => {
-  const store = new StoreAPI(SDSelector.getDriver())
+deleteLocation = config => (_, res) => {
+  const store = new StoreAPI(SDSelector.getDriver(config))
   const grpcClient = new GRPCClient(
     'localhost',
     parseInt(config.spec.grpcService.port)
@@ -145,22 +138,22 @@ const APIS = {
   PeersAPI: PeersAPI
 }
 
-postResource = (req, res, resource) => {
-  const api = new APIS[`${resource}sAPI`](DSSelector.getDS())
+postResource = config => (req, res, resource) => {
+  const api = new APIS[`${resource}sAPI`](DSSelector.getDS(config))
   const result = RestUtil.createFromFile(req, api)
   res.status(result.status)
   return JSON.stringify(result)
 }
 
-getResource = (req, res, resource) => {
-  const api = new APIS[`${resource}sAPI`](DSSelector.getDS())
+getResource = config => (req, res, resource) => {
+  const api = new APIS[`${resource}sAPI`](DSSelector.getDS(config))
   const result = api[`get${resource}`](req.params(':ref'))
   if (result.status === 'OK') result.data = DSUtils.removeWO(result.data)
   return JSON.stringify(result)
 }
 
-getResources = (req, res, resource) => {
-  const api = new APIS[`${resource}sAPI`](DSSelector.getDS())
+getResources = config => (req, res, resource) => {
+  const api = new APIS[`${resource}sAPI`](DSSelector.getDS(config))
   let filter = '@'
   let page = 1
   let itemsPerPage = 30
@@ -175,22 +168,27 @@ getResources = (req, res, resource) => {
   return JSON.stringify(result)
 }
 
-delResource = (req, res, resource) => {
-  const api = new APIS[`${resource}sAPI`](DSSelector.getDS())
+delResource = config => (req, res, resource) => {
+  const api = new APIS[`${resource}sAPI`](DSSelector.getDS(config))
   const result = api[`delete${resource}`](req.params(':ref'))
   res.status(result.status)
   return JSON.stringify(result)
 }
 
-putResource = (req, res, resource) => {
-  const api = new APIS[`${resource}sAPI`](DSSelector.getDS())
+putResource = config => (req, res, resource) => {
+  const api = new APIS[`${resource}sAPI`](DSSelector.getDS(config))
   const jsonObj = JSON.parse(req.body())
   const result = api.updateFromJSON(jsonObj)
   res.status(result.status)
   return JSON.stringify(result)
 }
 
-restConfigJson = JSON.stringify({
-  ...config.spec.restService,
-  apiPath: config.system.apiPath
-})
+getConfig = () => require('@routr/core/config_util')()
+
+getRestConfigJson = () => {
+  const config = require('@routr/core/config_util')()
+  return JSON.stringify({
+    ...config.spec.restService,
+    apiPath: config.system.apiPath
+  })
+}

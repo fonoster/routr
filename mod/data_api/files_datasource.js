@@ -7,7 +7,7 @@ const DSUtils = require('@routr/data_api/utils')
 const FilesUtil = require('@routr/utils/files_util')
 const XXH = require('xxhashjs')
 const { Status } = require('@routr/core/status')
-const config = require('@routr/core/config_util')()
+const getConfig = require('@routr/core/config_util')
 const isEmpty = require('@routr/utils/obj_util')
 
 const Long = Java.type('java.lang.Long')
@@ -30,7 +30,8 @@ const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const RESOURCES = ['agents', 'domains', 'gateways', 'numbers', 'peers', 'users']
 
 class FilesDataSource {
-  constructor (config = config) {
+  constructor (config = getConfig()) {
+    this.config = config
     this.cache = Caffeine.newBuilder()
       .expireAfterWrite(60, TimeUnit.MINUTES)
       .build()
@@ -192,7 +193,7 @@ class FilesDataSource {
   // finding the one it needs
   get (ref) {
     if (ref === 'config') {
-      return CoreUtils.buildResponse(Status.OK, null, config)
+      return CoreUtils.buildResponse(Status.OK, null, this.config)
     }
     return DSUtils.deepSearch(
       this.find(void 0, 1, Long.MAX_VALUE),
@@ -265,7 +266,7 @@ class FilesDataSource {
   }
 
   getWithMetadata (list) {
-    const date = new Date(config.system.upSince).toISOString()
+    const date = new Date(this.config.system.upSince).toISOString()
     list.forEach(obj => {
       obj.metadata.createdOn = date
       obj.metadata.modifiedOn = date

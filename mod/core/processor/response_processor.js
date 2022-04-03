@@ -58,7 +58,7 @@ class ResponseProcessor {
   constructor (sipProvider, contextStorage) {
     this.sipProvider = sipProvider
     this.contextStorage = contextStorage
-    this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS())
+    this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS(config))
     if (config.spec.ex_rtpEngine.enabled)
       this.rtpeConnector = new RTPEngineConnector(config.spec.ex_rtpEngine)
   }

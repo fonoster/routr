@@ -12,4 +12,5 @@ module.exports = function (req, res, salt) {
   } catch (e) {
     throw 'UNAUTHORIZED REQUEST'
   }
+  return 'OK'
 }

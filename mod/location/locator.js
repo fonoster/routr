@@ -14,7 +14,7 @@ const StoreAPI = require('@routr/data_api/store_api')
 const postal = require('postal')
 const { Status } = require('@routr/core/status')
 const phone = require('phone')
-const config = require('@routr/core/config_util')()
+const getConfig = require('@routr/core/config_util')
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
@@ -26,7 +26,9 @@ const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
  */
 class Locator {
   constructor () {
-    this.numbersAPI = new NumbersAPI(DSSelector.getDS())
+    this.config = getConfig()
+    this.ex_convertTelToE164 = this.config.spec.ex_convertTelToE164
+    this.numbersAPI = new NumbersAPI(DSSelector.getDS(this.config))
     this.store = new StoreAPI(SDSelector.getDriver()).withCollection('location')
     this.subscribeToPostal()
   }
@@ -92,7 +94,7 @@ class Locator {
     } else {
       try {
         const tel = LocatorUtils.aorAsObj(addressOfRecord).getUser()
-        const telE164 = config.spec.ex_convertTelToE164
+        const telE164 = this.ex_convertTelToE164
           ? phone('+' + tel, '', true)[0]
           : tel
         const response = this.findEndpointByTelUrl(`tel:${telE164}`)

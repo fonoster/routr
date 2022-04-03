@@ -12,7 +12,6 @@ const getProperties = require('@routr/registry/reg_properties')
 const createSipListener = require('@routr/registry/sip_listener')
 const createSipProvider = require('@routr/registry/sip_provider')
 const buildRegRequest = require('@routr/registry/request_builder')
-const { connectionException } = require('@routr/utils/exception_helpers')
 const {
   buildAddr,
   protocolTransport,
@@ -45,7 +44,7 @@ class Registry {
       proxyTransport.protocol
     }`
     const properties = getProperties('routr-registry', outboundProxy)
-    this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS())
+    this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS(config))
     this.sipProvider = createSipProvider(properties)
     this.sipProvider.addSipListener(
       createSipListener(this, this.sipProvider.getSipStack(), this.gatewaysAPI)

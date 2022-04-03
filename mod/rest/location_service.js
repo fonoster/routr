@@ -5,8 +5,6 @@
 const LocatorUtils = require('@routr/location/utils')
 const DSUtils = require('@routr/data_api/utils')
 const isEmpty = require('@routr/utils/obj_util')
-const get = Java.type('spark.Spark').get
-const del = Java.type('spark.Spark').delete
 
 function routeFromString (routes) {
   let contactInfo = ''

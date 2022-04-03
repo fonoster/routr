@@ -34,6 +34,6 @@ class Config {
   }
 }
 
-fun getConfig(jsonString: String): Config {
+fun jsonStringToConfig(jsonString: String): Config {
   return Gson().fromJson(jsonString, Config::class.java)
 }

@@ -1,21 +1,21 @@
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
 const RedisStore = require('@routr/data_api/redis_store')
 const FilesStore = require('@routr/data_api/files_store')
-const config = require('@routr/core/config_util')()
+const getConfig = require('@routr/core/config_util')
 
 class StoreDriverSelector {
-  constructor () {
+  static getDriver (c) {
+    const config = c ? c : getConfig()
     if (config.spec.dataSource.provider === 'redis_data_provider') {
       this.storeDriver = new RedisStore()
     } else {
       this.storeDriver = new FilesStore()
     }
-  }
-
-  getDriver () {
     return this.storeDriver
   }
 }
 
-const instace = new StoreDriverSelector()
-Object.freeze(instace)
-module.exports = instace
+module.exports = StoreDriverSelector

@@ -6,7 +6,7 @@ const postal = require('postal')
 const AuthHelper = require('@routr/utils/auth_helper')
 const { Status } = require('@routr/core/status')
 const RegistrarUtils = require('@routr/registrar/utils')
-
+const getConfig = require('@routr/core/config_util')
 const DSSelector = require('@routr/data_api/ds_selector')
 const AgentsAPI = require('@routr/data_api/agents_api')
 const PeersAPI = require('@routr/data_api/peers_api')
@@ -17,8 +17,9 @@ const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 class Registrar {
   constructor () {
-    this.peersAPI = new PeersAPI(DSSelector.getDS())
-    this.agentsAPI = new AgentsAPI(DSSelector.getDS())
+    const config = getConfig()
+    this.peersAPI = new PeersAPI(DSSelector.getDS(config))
+    this.agentsAPI = new AgentsAPI(DSSelector.getDS(config))
   }
 
   register (r) {
