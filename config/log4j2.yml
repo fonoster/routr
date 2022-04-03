@@ -9,7 +9,7 @@ Configuration:
     # If you want to save the logs elsewhere just add another appender.
     RollingFile:
       - name: LogToRollingFile
-        fileName: "${sys:DATA}/logs/routr.log"
+        fileName: logs/routr.log
         filePattern: "${sys:DATA}/logs/$${date:yyyy-MM}/routr-%d{MM-dd-yyyy}-%i.log.gz"
         PatternLayout:
           pattern: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"
