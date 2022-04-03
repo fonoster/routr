@@ -17,7 +17,7 @@ const phone = require('phone')
 const config = require('@routr/core/config_util')()
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 /**
  * NOTE #1: Notice that addressOfRecord.toString !eq to

@@ -16,7 +16,7 @@ const InvalidPathException = Java.type(
 )
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const Long = Java.type('java.lang.Long')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const defaultRedisParameters =
   'host=localhost,port=6379,max_retry=-1,retry_interval=2,timeout=500'
 const defUser = {

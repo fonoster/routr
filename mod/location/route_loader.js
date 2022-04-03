@@ -14,7 +14,7 @@ const { Status } = require('@routr/core/status')
 
 const HashMap = Java.type('java.util.HashMap')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 class RouteLoader {
   constructor () {

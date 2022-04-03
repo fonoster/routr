@@ -20,7 +20,7 @@ const {
 } = require('@routr/utils/misc_utils')
 const { isExpired, unregistered } = require('@routr/registry/utils')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const BAD_HOST_QUARENTINE_TIME = 3 * 60
 
 var cseq = 0 // We might need to share this across instances :(

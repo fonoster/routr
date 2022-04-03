@@ -72,7 +72,7 @@ class Launcher {
   }
 
   companion object {
-    private val LOG = LogManager.getLogger()
+    private val LOG = LogManager.getLogger(Launcher::class.java)
     private const val serverRunner =
         "load(System.getProperty('user.dir') + '/libs/server.bundle.js')"
     private const val routeLoaderRunner =

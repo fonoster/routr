@@ -1,6 +1,6 @@
 const Unirest = Java.type('com.mashape.unirest.http.Unirest')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const { benEncode, benDecode } = require('./utils')
 
 let cnt = 0

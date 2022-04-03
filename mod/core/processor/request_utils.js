@@ -16,7 +16,7 @@ const SipFactory = Java.type('javax.sip.SipFactory')
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
 const addressFactory = SipFactory.getInstance().createAddressFactory()
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 const isExternalDevice = r =>
   r && (!r.sentByAddress || r.sentByAddress.endsWith('.invalid'))

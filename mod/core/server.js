@@ -26,7 +26,7 @@ const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LogOutputStream = Java.type('io.routr.core.LogOutputStream')
 const PrintStream = Java.type('java.io.PrintStream')
 
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const ANSI_GREEN = '\u001B[32m'
 const ANSI_YELLOW = '\u001B[33m'
 const ANSI_LIGHT_RED = '\u001B[31m'

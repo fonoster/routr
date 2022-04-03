@@ -25,7 +25,7 @@ const parameterAuthFilter = require('@routr/rest/parameter_auth_filter')
 const basicAuthFilter = require('@routr/rest/basic_auth_filter')
 const GRPCClient = Java.type('io.routr.core.GRPCClient')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 const { Status } = require('@routr/core/status')
 const moment = require('moment')

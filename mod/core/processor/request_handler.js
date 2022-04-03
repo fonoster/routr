@@ -46,7 +46,7 @@ const requestStore = new ConcurrentHashMap()
 const isInviteOrAck = r =>
   r.getMethod() === Request.INVITE || r.getMethod() === Request.ACK
 
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 class RequestHandler {
   constructor (sipProvider, contextStorage) {

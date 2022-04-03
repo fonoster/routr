@@ -35,6 +35,6 @@ class GRPCClient internal constructor(private val channel: ManagedChannel) {
   }
 
   companion object {
-    private val LOG = LogManager.getLogger()
+    private val LOG = LogManager.getLogger(GRPCClient::class.java)
   }
 }

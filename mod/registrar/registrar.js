@@ -13,7 +13,7 @@ const PeersAPI = require('@routr/data_api/peers_api')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
 const AuthorizationHeader = Java.type('javax.sip.header.AuthorizationHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 class Registrar {
   constructor () {

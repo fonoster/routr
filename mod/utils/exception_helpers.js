@@ -7,7 +7,7 @@ const FluentLogger = Java.type('org.fluentd.logger.FluentLogger')
 const HashMap = Java.type('java.util.HashMap')
 const Response = Java.type('javax.sip.message.Response')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const uLOG = FluentLogger.getLogger(
   'user',
   System.getenv('LOGS_DRIVER_HOST') || 'localhost',

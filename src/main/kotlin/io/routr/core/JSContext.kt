@@ -8,7 +8,7 @@ import org.graalvm.polyglot.Context
 import org.graalvm.polyglot.HostAccess
 
 fun createJSContext(src: String?, `var`: String = ""): Context {
-  val LOG = LogManager.getLogger()
+  val LOG = LogManager.getLogger(Launcher::class.java)
   val baseScript =
       java.lang.String.join(
           System.getProperty("line.separator"),

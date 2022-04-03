@@ -26,7 +26,7 @@ const ReentrantLock = Java.type('java.util.concurrent.locks.ReentrantLock')
 const lock = new ReentrantLock()
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const RESOURCES = ['agents', 'domains', 'gateways', 'numbers', 'peers', 'users']
 
 class FilesDataSource {

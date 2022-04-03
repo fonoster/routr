@@ -8,7 +8,7 @@ const Buffer = require('buffer/').Buffer
 const bencode = require('bencode')
 const isTransportWeb = t => t === 'ws' || t === 'wss'
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 module.exports.directionFromRequest = (request, route) => {
   const destTransport = route.transport.toLowerCase()

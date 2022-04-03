@@ -17,7 +17,7 @@ const InetAddress = Java.type('java.net.InetAddress')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
 const ContactHeader = Java.type('javax.sip.header.ContactHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 function storeRegistry (store, gwRef, gwURI, expires) {
   LOG.debug(

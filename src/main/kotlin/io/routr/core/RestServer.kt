@@ -128,7 +128,7 @@ class RestServer {
         }
       }
 
-      post("/system/status:status") { req, res ->
+      post("/system/status/:status") { req, res ->
         run {
           val ctx = createJSContext(REST_RUNNER)
           ctx.getBindings("js").putMember("req", req)
@@ -218,6 +218,6 @@ class RestServer {
 
   companion object {
     private val REST_RUNNER = "load(System.getProperty('user.dir') + '/libs/rest.bundle.js')"
-    private val LOG = LogManager.getLogger()
+    private val LOG = LogManager.getLogger(RestServer::class.java)
   }
 }

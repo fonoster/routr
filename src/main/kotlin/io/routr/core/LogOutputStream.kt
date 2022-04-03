@@ -22,6 +22,6 @@ class LogOutputStream : OutputStream() {
   }
 
   companion object {
-    private val LOG = LogManager.getLogger()
+    private val LOG = LogManager.getLogger(LogOutputStream::class.java)
   }
 }

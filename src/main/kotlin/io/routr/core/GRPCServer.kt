@@ -95,6 +95,6 @@ class GRPCServer(private val context: Context) {
   }
 
   companion object {
-    private val LOG = LogManager.getLogger()
+    private val LOG = LogManager.getLogger(GRPCServer::class.java)
   }
 }
