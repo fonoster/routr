@@ -22,6 +22,8 @@ allprojects {
 }
 
 dependencies {
+    compile 'com.google.code.gson:gson:2.9.0'
+    compile 'org.fluentd:fluent-logger:0.3.4'
     compile 'io.grpc:grpc-all:1.19.0'
     compile 'com.google.protobuf:protobuf-java:3.6.1'
     compileOnly 'javax.annotation:javax.annotation-api:1.2'

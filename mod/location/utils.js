@@ -94,7 +94,8 @@ class LocatorUtils {
       numberRef: number.metadata.ref,
       number: number.spec.location.telUrl.split(':')[1],
       expires: -1,
-      transport: gateway.spec.transport
+      transport: gateway.spec.transport,
+      accessKeyId: gateway.metadata.accessKeyId
     }
     if (domain) {
       route.rule = domain.spec.context.egressPolicy.rule

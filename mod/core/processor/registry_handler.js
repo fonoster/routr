@@ -35,11 +35,15 @@ class RegistryHandler {
       )}]`
     )
 
-    try {
-      this.sipProvider.sendRequest(request)
-    } catch (e) {
-      connectionException(e, request.getRequestURI().getHost(), transaction)
-    }
+    new Promise((resolve, reject) => {
+      try {
+        this.sipProvider.sendRequest(request)
+        resolve()
+      } catch (e) {
+        reject(e)
+        connectionException(e, request.getRequestURI().getHost(), transaction)
+      }
+    })
   }
 
   configureGeneral (request, viaAddr) {

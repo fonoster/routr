@@ -3,7 +3,6 @@
  * @since v1
  */
 const Jwts = Java.type('io.jsonwebtoken.Jwts')
-const halt = Java.type('spark.Spark').halt
 
 module.exports = function (req, res, salt) {
   try {

@@ -79,6 +79,7 @@ class RegistrarUtils {
   // TODO: Please consolidate all the route builders :(
   static buildRoute (addressOfRecord, request, user) {
     const viaHeader = request.getHeader(ViaHeader.NAME)
+
     try {
       return {
         addressOfRecord: addressOfRecord.toString(),
@@ -92,9 +93,10 @@ class RegistrarUtils {
         registeredOn: Date.now(),
         expires: getExpires(request),
         nat: isBehindNat(request),
-        maxContact: user.ex_maxContact,
+        maxContact: user.spec.ex_maxContact,
         isSynth: addressOfRecord.getParameter('synth') === 'true',
-        transport: viaHeader.getTransport().toLowerCase()
+        transport: viaHeader.getTransport().toLowerCase(),
+        accessKeyId: user.metadata.accessKeyId
       }
     } catch (e) {
       LOG.error(e.message || e)

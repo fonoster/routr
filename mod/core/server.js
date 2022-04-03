@@ -49,7 +49,6 @@ class Server {
 
     this.dataAPIs = dataAPIs
     this.locator = new Locator()
-    //new RTPEngineConnector()
   }
 
   buildSipProvider (sipStack, transport) {
