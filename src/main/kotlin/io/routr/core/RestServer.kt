@@ -122,13 +122,21 @@ class RestServer {
     val resBase = "/${resource}s".toLowerCase()
     val resByRef = "${resBase}/:ref"
     post(resBase) { req, res -> evalResourceOperation("postResource", config, resource, req, res) }
-    delete(resByRef) { req, res -> evalResourceOperation("delResource", config, resource, req, res) }
+    delete(resByRef) { req, res ->
+      evalResourceOperation("delResource", config, resource, req, res)
+    }
     put(resByRef) { req, res -> evalResourceOperation("putResource", config, resource, req, res) }
     get(resBase) { req, res -> evalResourceOperation("getResources", config, resource, req, res) }
     get(resByRef) { req, res -> evalResourceOperation("getResource", config, resource, req, res) }
   }
 
-  fun evalResourceOperation(operation: String, config: String, resource: String, req: Any, res: Any): String {
+  fun evalResourceOperation(
+      operation: String,
+      config: String,
+      resource: String,
+      req: Any,
+      res: Any
+  ): String {
     val ctx = createJSContext(REST_RUNNER)
     ctx.getBindings("js").putMember("req", req)
     ctx.getBindings("js").putMember("res", res)
@@ -144,8 +152,7 @@ class RestServer {
     return result
   }
 
-  fun evalOperation(operation: String, req: Any, res: Any, config: String ?= null): String {
-
+  fun evalOperation(operation: String, req: Any, res: Any, config: String? = null): String {
     val ctx = createJSContext(REST_RUNNER)
     var op = "$operation(req, res)"
     ctx.getBindings("js").putMember("req", req)
