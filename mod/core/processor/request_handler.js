@@ -22,6 +22,7 @@ const {
   getEdgeAddr,
   configureContact,
   configureRoute,
+  configureRouteV2,
   configureVia,
   configureProxyAuthorization,
   configureRequestURI,
@@ -199,7 +200,7 @@ class RequestHandler {
       let requestOut = configureMaxForwards(request)
       requestOut = configureContact(requestOut)
       requestOut = configureProxyAuthorization(requestOut)
-      requestOut = configureRoute(
+      requestOut = configureRouteV2(
         requestOut,
         originInterfaceAddr,
         targetInterfaceAddr

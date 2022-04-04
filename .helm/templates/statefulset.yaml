@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include ".helm2.fullname" . }}
   labels:
@@ -12,6 +12,7 @@ spec:
   selector:
     matchLabels:
       {{- include ".helm2.selectorLabels" . | nindent 6 }}
+  serviceName: "routr"
   template:
     metadata:
     {{- with .Values.podAnnotations }}

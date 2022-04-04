@@ -1,9 +1,9 @@
 {
   "name": "routr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Next-generation SIP Server",
   "scripts": {
-    "pack": "./distro.sh",
+    "distro": "./distro.sh",
     "prepack": "npm test",
     "test": "cross-env ./etc/tests/tester2 mod/**/*.unit.test.js",
     "test-kt": "gradle test --tests *Test",
