@@ -6,7 +6,7 @@ const DSUtils = require('@routr/data_api/utils')
 const FilesUtil = require('@routr/utils/files_util')
 const System = Java.type('java.lang.System')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 module.exports.getConfig = () => {
   let config

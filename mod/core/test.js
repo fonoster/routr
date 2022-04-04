@@ -6,7 +6,6 @@
  */
 const assert = require('assert')
 const { isValidIp, isLocalnet, addressCount } = require('@routr/core/ip_util')
-const { cidrInfo } = require('ip-utils')
 
 describe('Core tests', () => {
   it('Checks configuration', function (done) {

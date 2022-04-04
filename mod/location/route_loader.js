@@ -10,15 +10,17 @@ const DSSelector = require('@routr/data_api/ds_selector')
 const SDSelector = require('@routr/data_api/store_driver_selector')
 const StoreAPI = require('@routr/data_api/store_api')
 const isEmpty = require('@routr/utils/obj_util')
+const getConfig = require('@routr/core/config_util')
 const { Status } = require('@routr/core/status')
 
 const HashMap = Java.type('java.util.HashMap')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 class RouteLoader {
   constructor () {
     this.store = new StoreAPI(SDSelector.getDriver()).withCollection('location')
+    this.config = getConfig()
   }
 
   getDomainEgressRoutes (domainsAPI, numbersAPI, gatewaysAPI) {
@@ -59,7 +61,7 @@ class RouteLoader {
   // What if the number of numbers is massive?
   loadStaticRoutes () {
     LOG.debug(`location.RouteLoader.loadStaticRoutes [loading static routes]`)
-    const ds = DSSelector.getDS()
+    const ds = DSSelector.getDS(this.config)
     const numbersAPI = new NumbersAPI(ds)
     const domainsAPI = new DomainsAPI(ds)
     const gatewaysAPI = new GatewaysAPI(ds)

@@ -7,7 +7,7 @@ const SipFactory = Java.type('javax.sip.SipFactory')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
 const MaxForwardsHeader = Java.type('javax.sip.header.MaxForwardsHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
 
 class RegistryHandler {
@@ -35,11 +35,15 @@ class RegistryHandler {
       )}]`
     )
 
-    try {
-      this.sipProvider.sendRequest(request)
-    } catch (e) {
-      connectionException(e, request.getRequestURI().getHost(), transaction)
-    }
+    new Promise((resolve, reject) => {
+      try {
+        this.sipProvider.sendRequest(request)
+        resolve()
+      } catch (e) {
+        reject(e)
+        connectionException(e, request.getRequestURI().getHost(), transaction)
+      }
+    })
   }
 
   configureGeneral (request, viaAddr) {

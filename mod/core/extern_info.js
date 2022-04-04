@@ -3,7 +3,7 @@
  * @since v1
  */
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const ANSI_GREEN = '\u001B[32m'
 const ANSI_RESET = '\u001B[0m'
 

@@ -8,7 +8,7 @@ const RedisDataSource = require('@routr/data_api/redis_datasource')
 const DSUtils = require('@routr/data_api/utils')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const Thread = Java.type('java.lang.Thread')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const { Status } = require('@routr/core/status')
 const defaultRedisParameters =
   'host=localhost,port=6379,max_retry=-1,retry_interval=2'

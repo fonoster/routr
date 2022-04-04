@@ -7,7 +7,7 @@
 const merge = require('deepmerge')
 const { RTPBridgingNote } = require('@routr/rtpengine/rtp_bridging_note')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const NGHttpSender = require('./ng_http_sender')
 
 class RTPEngineConnector {

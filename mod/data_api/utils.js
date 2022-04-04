@@ -19,7 +19,7 @@ const YAMLFactory = Java.type(
 const JsonSchemaFactory = Java.type('com.networknt.schema.JsonSchemaFactory')
 const ObjectMapper = Java.type('com.fasterxml.jackson.databind.ObjectMapper')
 
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const schemaPath = 'etc/schemas'
 
 class DSUtils {

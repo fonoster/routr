@@ -27,7 +27,7 @@ module.exports = (
   const gwRef = gateway.metadata.ref
   const transport = gateway.spec.transport
   let expires = exp ? exp : gateway.spec.expires
-  expires = expires ? expires : 3600
+  expires = expires ? expires : 600
 
   const fromAddress = addressFactory.createAddress(`sip:${username}@${gwHost}`)
   const contactAddress = addressFactory.createAddress(

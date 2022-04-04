@@ -9,7 +9,7 @@ const CallIdHeader = Java.type('javax.sip.header.CallIdHeader')
 const FromHeader = Java.type('javax.sip.header.FromHeader')
 const SipListener = Java.type('javax.sip.SipListener')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 class Processor {
   constructor (sipProvider, dataAPIs, contextStorage) {

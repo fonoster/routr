@@ -2,6 +2,7 @@
  * @author Pedro Sanders
  * @since v1
  */
+const InetAddress = Java.type('java.net.InetAddress')
 const DSSelector = require('@routr/data_api/ds_selector')
 const SDSelector = require('@routr/data_api/store_driver_selector')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
@@ -11,7 +12,6 @@ const getProperties = require('@routr/registry/reg_properties')
 const createSipListener = require('@routr/registry/sip_listener')
 const createSipProvider = require('@routr/registry/sip_provider')
 const buildRegRequest = require('@routr/registry/request_builder')
-const { connectionException } = require('@routr/utils/exception_helpers')
 const {
   buildAddr,
   protocolTransport,
@@ -19,9 +19,22 @@ const {
 } = require('@routr/utils/misc_utils')
 const { isExpired, unregistered } = require('@routr/registry/utils')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
+const BAD_HOST_QUARENTINE_TIME = 3 * 60
 
 var cseq = 0 // We might need to share this across instances :(
+
+function checkAvailable (gateway) {
+  try {
+    InetAddress.getByName(gateway.spec.host)
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
+export const quarentine = r =>
+  BAD_HOST_QUARENTINE_TIME - (Date.now() - r.entryTime) / 1000 > 0
 
 class Registry {
   constructor () {
@@ -31,7 +44,7 @@ class Registry {
       proxyTransport.protocol
     }`
     const properties = getProperties('routr-registry', outboundProxy)
-    this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS())
+    this.gatewaysAPI = new GatewaysAPI(DSSelector.getDS(config))
     this.sipProvider = createSipProvider(properties)
     this.sipProvider.addSipListener(
       createSipListener(this, this.sipProvider.getSipStack(), this.gatewaysAPI)
@@ -39,9 +52,14 @@ class Registry {
 
     this.userAgent = config.metadata.userAgent
     this.store = new StoreAPI(SDSelector.getDriver())
+    this.quanrentineHosts = []
+    this.quanrentineHosts.push({
+      host: 'sip.testtest.com',
+      entryTime: Date.now()
+    })
   }
 
-  register (gateway, received, rport) {
+  async register (gateway, received, rport) {
     const gatewayCopy = gateway
     if (
       gatewayCopy &&
@@ -54,6 +72,12 @@ class Registry {
     LOG.debug(
       `registry.Registry.register [gateway ${JSON.stringify(gatewayCopy)}]`
     )
+
+    if (!checkAvailable(gateway)) {
+      LOG.warn(`registry.Registry.register [unknown host ${gateway.spec.host}]`)
+      return
+    }
+
     const lp = this.sipProvider.getListeningPoint(gateway.spec.transport)
     const viaAddr = {
       host: lp.getIPAddress(),
@@ -78,11 +102,21 @@ class Registry {
       this.userAgent,
       buildAddr
     )
-    Registry.sendRequest(this.sipProvider, request)
+
+    const clientTransaction = this.sipProvider.getNewClientTransaction(request)
+    clientTransaction.sendRequest()
   }
 
   registerAll () {
     LOG.debug(`registry.Registry.registerAll [sending gateways registration]`)
+    // this.quanrentineHosts = this.quanrentineHosts.filter(quarentine)
+
+    LOG.debug(
+      `registry.Registry.registerAll [quarentine hosts ${JSON.stringify(
+        this.quanrentineHosts
+      )}]`
+    )
+
     this.store
       .withCollection('registry')
       .values()
@@ -100,18 +134,10 @@ class Registry {
     const gateways = this.gatewaysAPI.getGateways().data
     const unreg = unregistered(
       this.store.withCollection('registry').values(),
-      gateways
+      gateways,
+      this.quanrentineHosts.map(q => q.host)
     )
     unreg.forEach(gw => this.register(gw))
-  }
-
-  static sendRequest (sipProvider, request) {
-    try {
-      const clientTransaction = sipProvider.getNewClientTransaction(request)
-      clientTransaction.sendRequest()
-    } catch (e) {
-      connectionException(e, request.getRequestURI().toString())
-    }
   }
 }
 

@@ -16,7 +16,7 @@ const config = require('@routr/core/config_util')()
 const Request = Java.type('javax.sip.message.Request')
 const Response = Java.type('javax.sip.message.Response')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 const globalACL = config.spec.accessControlList
 

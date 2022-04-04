@@ -30,7 +30,7 @@ POST /api/{apiversion}/location/sip:guest@guest
   "user": "guest",
   "address": "192.168.1.149",
   "port": 5080,
-  "expires": 3600
+  "expires": 600
 }
 
 HTTP/1.1 200 OK

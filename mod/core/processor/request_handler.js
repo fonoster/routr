@@ -47,7 +47,7 @@ const requestStore = new ConcurrentHashMap()
 const isInviteOrAck = r =>
   r.getMethod() === Request.INVITE || r.getMethod() === Request.ACK
 
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 class RequestHandler {
   constructor (sipProvider, contextStorage) {
@@ -262,14 +262,14 @@ class RequestHandler {
       }
 
       LOG.debug('Outgoing request ==> \n' + requestOut)
-      this.sendRequest(transaction, request, requestOut, bridgingNote)
+      this.sendRequest(transaction, request, requestOut, bridgingNote, route)
     } catch (e) {
       sendResponse(transaction, Response.SERVER_INTERNAL_ERROR)
       LOG.error(e.message || e)
     }
   }
 
-  sendRequest (serverTransaction, request, requestOut, bridgingNote) {
+  sendRequest (serverTransaction, request, requestOut, bridgingNote, route) {
     // Does not need a transaction
     if (request.getMethod().equals(Request.ACK)) {
       return this.sipProvider.sendRequest(requestOut)
@@ -279,6 +279,7 @@ class RequestHandler {
       const clientTransaction = this.sipProvider.getNewClientTransaction(
         requestOut.clone()
       )
+      clientTransaction.setApplicationData(route)
       clientTransaction.sendRequest()
 
       LOG.debug(
@@ -299,7 +300,8 @@ class RequestHandler {
       connectionException(
         e,
         requestOut.getRequestURI().getHost(),
-        serverTransaction
+        serverTransaction,
+        route
       )
     }
   }

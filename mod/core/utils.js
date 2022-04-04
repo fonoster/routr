@@ -8,7 +8,7 @@ const JedisConnectionException = Java.type(
   'redis.clients.jedis.exceptions.JedisConnectionException'
 )
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 
 class CoreUtils {
   static buildErrResponse (e) {

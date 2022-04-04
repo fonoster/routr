@@ -14,6 +14,7 @@ module.exports = (req, res, usersAPI) => {
   } catch (e) {
     throw 'UNAUTHORIZED REQUEST'
   }
+  return 'OK'
 }
 
 function getUserFromHeader (req) {

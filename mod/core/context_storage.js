@@ -12,7 +12,7 @@ const Response = Java.type('javax.sip.message.Response')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const ArrayList = Java.type('java.util.ArrayList')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
-const LOG = LogManager.getLogger()
+const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const messageFactory = SipFactory.getInstance().createMessageFactory()
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
 
