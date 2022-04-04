@@ -26,6 +26,7 @@ class RequestProcessor {
     this.contextStorage = contextStorage
     this.dataAPIs = dataAPIs
     this.domainsAPI = dataAPIs.DomainsAPI
+    this.registryHandler = new RegistryHandler(sipProvider)
   }
 
   async process (event) {
@@ -85,7 +86,7 @@ class RequestProcessor {
           !routeInfo.isLocalDomain() &&
           routeInfo.getCallerType() === RouteEntityType.THRU_GW
         ) {
-          new RegistryHandler(this.sipProvider).doProcess(transaction)
+          this.registryHandler.doProcess(transaction)
           break
         }
         new RegisterHandler().doProcess(transaction)

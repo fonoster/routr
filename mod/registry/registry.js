@@ -20,11 +20,10 @@ const {
 const { isExpired, unregistered } = require('@routr/registry/utils')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
-const BAD_HOST_QUARENTINE_TIME = 3 * 60
 
 var cseq = 0 // We might need to share this across instances :(
 
-function checkAvailable (gateway) {
+function isKnownHost (gateway) {
   try {
     InetAddress.getByName(gateway.spec.host)
     return true
@@ -32,9 +31,6 @@ function checkAvailable (gateway) {
     return false
   }
 }
-
-export const quarentine = r =>
-  BAD_HOST_QUARENTINE_TIME - (Date.now() - r.entryTime) / 1000 > 0
 
 class Registry {
   constructor () {
@@ -52,11 +48,6 @@ class Registry {
 
     this.userAgent = config.metadata.userAgent
     this.store = new StoreAPI(SDSelector.getDriver())
-    this.quanrentineHosts = []
-    this.quanrentineHosts.push({
-      host: 'sip.testtest.com',
-      entryTime: Date.now()
-    })
   }
 
   async register (gateway, received, rport) {
@@ -73,7 +64,7 @@ class Registry {
       `registry.Registry.register [gateway ${JSON.stringify(gatewayCopy)}]`
     )
 
-    if (!checkAvailable(gateway)) {
+    if (!isKnownHost(gateway)) {
       LOG.warn(`registry.Registry.register [unknown host ${gateway.spec.host}]`)
       return
     }
@@ -109,13 +100,6 @@ class Registry {
 
   registerAll () {
     LOG.debug(`registry.Registry.registerAll [sending gateways registration]`)
-    // this.quanrentineHosts = this.quanrentineHosts.filter(quarentine)
-
-    LOG.debug(
-      `registry.Registry.registerAll [quarentine hosts ${JSON.stringify(
-        this.quanrentineHosts
-      )}]`
-    )
 
     this.store
       .withCollection('registry')
@@ -134,8 +118,7 @@ class Registry {
     const gateways = this.gatewaysAPI.getGateways().data
     const unreg = unregistered(
       this.store.withCollection('registry').values(),
-      gateways,
-      this.quanrentineHosts.map(q => q.host)
+      gateways
     )
     unreg.forEach(gw => this.register(gw))
   }

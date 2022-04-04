@@ -9,13 +9,50 @@ const MaxForwardsHeader = Java.type('javax.sip.header.MaxForwardsHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
+const BAD_HOST_QUARENTINE_TIME = 15 * 60
+
+export const quarentine = r =>
+  BAD_HOST_QUARENTINE_TIME - (Date.now() - r.entryTime) / 1000 > 0
 
 class RegistryHandler {
   constructor (sipProvider) {
     this.sipProvider = sipProvider
+    this.quanrentineHosts = []
   }
 
   doProcess (transaction) {
+    this.quanrentineHosts = this.quanrentineHosts.filter(quarentine)
+
+    LOG.debug(
+      'List of gateways under quarentine: ' +
+        JSON.stringify(this.quanrentineHosts)
+    )
+    const isInQuarentine = host =>
+      this.quanrentineHosts.filter(q => q.host === host).length > 0
+
+    // if current host is quarentine ignore request
+    if (
+      isInQuarentine(
+        transaction
+          .getRequest()
+          .getRequestURI()
+          .getHost()
+      )
+    ) {
+      const checkAgain = new Date(Date.now() + BAD_HOST_QUARENTINE_TIME * 1000)
+      LOG.debug(
+        'Host ' +
+          transaction
+            .getRequest()
+            .getRequestURI()
+            .getHost() +
+          ' is quarentine [will try again after ' +
+          checkAgain +
+          ']'
+      )
+      return
+    }
+
     const request = transaction.getRequest().clone()
     const transport = request
       .getHeader(ViaHeader.NAME)
@@ -35,15 +72,24 @@ class RegistryHandler {
       )}]`
     )
 
-    new Promise((resolve, reject) => {
-      try {
-        this.sipProvider.sendRequest(request)
-        resolve()
-      } catch (e) {
-        reject(e)
-        connectionException(e, request.getRequestURI().getHost(), transaction)
+    try {
+      this.sipProvider.sendRequest(request)
+    } catch (e) {
+      if (
+        !isInQuarentine(
+          transaction
+            .getRequest()
+            .getRequestURI()
+            .getHost()
+        )
+      ) {
+        this.quanrentineHosts.push({
+          host: request.getRequestURI().getHost(),
+          entryTime: Date.now()
+        })
       }
-    })
+      connectionException(e, request.getRequestURI().getHost(), transaction)
+    }
   }
 
   configureGeneral (request, viaAddr) {

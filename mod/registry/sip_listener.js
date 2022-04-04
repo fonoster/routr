@@ -10,7 +10,6 @@ const {
   getExpires
 } = require('@routr/core/processor/processor_utils')
 const { fixPort } = require('@routr/utils/misc_utils')
-
 const SDSelector = require('@routr/data_api/store_driver_selector')
 const StoreAPI = require('@routr/data_api/store_api')
 const InetAddress = Java.type('java.net.InetAddress')
@@ -58,10 +57,6 @@ module.exports = (registry, sipStack, gatewaysAPI) => {
         .getRequest()
         .getHeader('X-Gateway-Ref').value
       const gateway = gatewaysAPI.getGateway(gwRef).data
-
-      LOG.debug(
-        `registry.listener.createSipListener [gwURI: ${gwURI}, gwRef: ${gwRef}]`
-      )
 
       try {
         if (isRegisterOk(response)) {
