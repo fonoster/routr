@@ -54,7 +54,7 @@ services:
       - '5062:5062'
       - '5063:5063'
     volumes:
-      - ./etc/log4j2.yml:/opt/routr/config/log4j2.yml
+      - ./config/log4j2.yml:/opt/routr/config/log4j2.yml
 
   # Media relay engine
   rtpengine:

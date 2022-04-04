@@ -3,7 +3,7 @@ LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 ENV TINI_VERSION v0.19.0
 ENV LANG C.UTF-8
-ARG ROUTR_VERSION=1.0.0
+ARG ROUTR_VERSION=1.0.1
 
 RUN mkdir -p /opt/routr
 WORKDIR /opt/routr
