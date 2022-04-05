@@ -38,7 +38,7 @@ dependencies {
     compile 'org.graalvm.js:js-scriptengine:19.3.0'
     compile 'javax.sip:jain-sip-ri:1.2.324' // Newer versions of JAIN-SIP are causing critical regression with Routr
     compile 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
-    compile 'redis.clients:jedis:2.9.0'
+    compile 'redis.clients:jedis:4.2.1'
     compile 'io.jsonwebtoken:jjwt:0.9.1'
     compile 'it.unimi.dsi:dsiutils:2.6.0'
     compile 'commons-codec:commons-codec:1.13'
