@@ -390,7 +390,8 @@ The following functions are MUST have for an implementation of a *Message Dispat
 - *Return processed Message* - Routes the processed message back to the *EdgePort*
 - *Health Check* - MUST have a mechanism to identify the health of the service
 - *M.E.L.T* - Must be capable of collecting and sending M.E.L.T to external systems
-- *System Unavailable* It must return a `SIP 503 Service Unavailable` if the matched *Message Processor* is unreachable
+- *System Unavailable* - It must return a `SIP 503 Service Unavailable` if the matched *Message Processor* is unreachable
+- *Service Port* - The default gRPC port at the Message Dispatcher SHOULD be `51901`
 
 **Non-functional Requirements**
 
@@ -584,6 +585,8 @@ Interface Pseudocode:
   => doProcess(message) and return updated request/response
 ```
 
+> The default gRPC port at the Message Processor is SHOULD be `51901`.
+
 **Non-functional Requirements**
 
 The following requirements are important to have for an implementation of a *Message Processor*:
@@ -597,7 +600,7 @@ Each Message Processor can have its own configuration based on the use case.
 
 However, the following "base" configuration, is recommend as the starting point for your processor's configuration.
 
-```
+```json
 {
   "kind": "Processor",
   "apiVersion": "v2draft1",
@@ -635,9 +638,18 @@ Message Processor SHOULD have Unit Testing for all its core functionalities.
 
 None.
 
-**Special Considerations**
+### Location Service and API (TODO)
 
-None.
+**Brief Description**
+**Functional Requirements**
+
+*Service Port* - The default gRPC port at the Location Service SHOULD be `51902`
+
+**Non-functional Requirements**
+**Service Configuration**
+**Communication with Adjacent Services**
+**Test Criteria**
+**Security Consideration**
 
 <details>
 <summary>Passing multiple EdgePort(s)</summary>
