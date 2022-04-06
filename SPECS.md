@@ -306,7 +306,7 @@ Adjacent to the *EdgePort* is the *Message Dispatcher*. The communication betwee
 <details>
 <summary>Message Proto</summary>
 
-```none 
+```proto 
 ... 
  
 message SIPMessage {
@@ -538,7 +538,7 @@ Example:
 
 The adjacent services of the *Message Dispatcher* are the *EdgePort* and the *Message Processor*. The communication with all adjacent services is done with gRPC and protobuf. The `processor.proto` contains the following code:
 
-```
+```proto
 syntax = "proto3";
 
 package fonoster.routr.processor.v2draft1;
@@ -618,7 +618,7 @@ However, the following "base" configuration, is recommend as the starting point 
 
 Adjacent to the *Message Processor* is the *Message Dispatcher*. The communication flows from the *Message Dispatcher* to the *Message Processor*, where the *Message Processor* is the server and *Message Dispatcher* is the client. A *Message Processor* MUST have the following protobuf interface:
 
-```
+```proto
 syntax = "proto3";
 
 package fonoster.routr.processor.v2draft1;
