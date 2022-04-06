@@ -141,6 +141,7 @@ The following functions are Must have for an implementation of an *EdgePort*:
 - *Reject Msgs from banned IPs* - MUST have a mechanism to identify and discard unwanted Messages
 - *Health Check* - MUST have a mechanism to identify the health of the service
 - *M.E.L.T* - Must be capable of collecting and sending M.E.L.T to external systems
+- *Service Port* - The ports use for SIP signaling will default to traditional values (eg. 5060, 5061, etc)
 
 **Non-functional Requirements**
 
@@ -168,18 +169,14 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
     "processor": {
       "addr": "dispatcher:51901"
     },
-    "advertisedAddrs": [
-      "165.227.217.102",
-      "sip01.fonoster.io"
-    ],
-    "localnets": [
-      "192.168.1.9"
-    ],
+    "externalIps": ["165.227.217.102"],
+    "localnets": ["172.17.0.2/16"],
     "methods": [
       "INVITE",
       "MESSAGE",
       "REGISTER"
     ],
+    "unknownMethodAction": "Discard"
     "transport": [
       {
         "protocol": "tcp",
@@ -235,8 +232,8 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
           "description": "Ipv4 interface to accept request on",
           "type": "string"
         },
-        "advertisedAddrs": {
-          "description": "EdgePort external addresses. Might be Ipv4, Hostname",
+        "externalIps": {
+          "description": "EdgePort external ip addresses.",
           "type": "array",
           "items": {
             "type": "string"
@@ -245,7 +242,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
           "minItems": 1,
         },
         "localnets": {
-          "description": "Networks considered to be in the same local network",
+          "description": "Networks considered to be local",
           "type": "array",
           "items": {
             "type": "string"
@@ -260,6 +257,10 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
             "type": "string"
           },
           "uniqueItems": true
+        },
+        "unknownMethodAction": {
+          "description": "What to do if an incomming request type is not allowed",
+          "enum": ["Discard", "Respond"]
         },
         "transport": {
           "description": "Acceptable Transport Protocols",
@@ -305,8 +306,27 @@ Adjacent to the *EdgePort* is the *Message Dispatcher*. The communication betwee
 <details>
 <summary>Message Proto</summary>
 
-```none
- // TODO
+```none 
+... 
+ 
+message SIPMessage {
+  oneof message_type {
+    ResponseType response_type = 1;
+    SipURI request_uri = 2;
+  }
+  From from = 3;
+  To to = 4;
+  Contact contact = 5;
+  CallID call_id = 6;
+  ContentLength content_length = 7;
+  Expires expires = 8;
+  repeated Via via = 9;
+  repeated Extension extensions = 10;
+  WWWAuthenticate www_authenticate = 11;
+  Authorization authorization = 12;
+}
+ 
+...
 ```
 
 </details>
@@ -408,20 +428,18 @@ Example:
         "methods": [
           "MESSAGE"
         ],
-        "matchFunc": "(req) => { return req.method === 'MESSAGE' && req.agent.search(/pattern/) !== -1}"
+        "matchFunc": "req => req.method === 'MESSAGE'"
       },
       {
-        "ref": "fallback-processor",
-        "isFallback": true,
-        "addr": "fallbackprocessor:51903",
+        "ref": "connect-processor",
+        "addr": "connect:51903",
         "methods": [
           "REGISTER",
           "MESSAGE",
           "INVITE",
-          "CANCEL",
-          "..."
+          "CANCEL"
         ],
-        "matchFunc": "(req) => true"
+        "matchFunc": "req => true"
       }
     ]
   }
@@ -490,9 +508,6 @@ Example:
            "properties": {
              "ref": {
                "type": "string"
-             },
-             "isFallback": {
-               "type": "boolean"
              },
              "addr": {
                "type": "string"
@@ -580,7 +595,21 @@ The following requirements are important to have for an implementation of a *Mes
 
 Each Message Processor can have its own configuration based on the use case.
 
-However, the following "base" structure may be use as the starting point of your processors configuration.
+However, the following "base" configuration, is recommend as the starting point for your processor's configuration.
+
+```
+{
+  "kind": "Processor",
+  "apiVersion": "v2draft1",
+  "metadata": {
+    "ref": "logging-processor"
+    "region": "us-east1"
+  },
+  "spec": {
+    "bindAddr": "0.0.0.0"
+  }
+}
+```
 
 **Communication with Adjacent Services**
 
@@ -594,7 +623,7 @@ package fonoster.routr.processor.v2draft1;
 // Processor service
 service Processor {
   // Process Message Request
-  rpc ProcessMessage (MessageRequest) returns (MessageRequest) {}
+  rpc ProcessMessage (MessageRequest) returns (MessageResponse) {}
 }
 ```
 
