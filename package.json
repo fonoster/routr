@@ -31,7 +31,7 @@
     "deepmerge": "^4.2.2",
     "flat": "^5.0.0",
     "ip-utils": "^2.4.0",
-    "moment": "^2.22.2",
+    "moment": "^2.29.2",
     "paginate-array": "^2.1.0",
     "phone": "^2.4.20",
     "postal": "^2.0.5",
