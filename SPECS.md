@@ -31,26 +31,28 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ### Purpose
 
-The purpose of this document is to present a detailed description of the SIP Server *Routr*. It will explain the purpose and features of the system, the interfaces of the system, what the system will do, the constraints under which it must operate, and how the system will react to external stimuli. This document is intended for both the stakeholders and the developers of the system.
+This document aims to present a detailed description of the SIP Server *Routr*. It will explain the purpose and features of the system, the interfaces of the system, what the system will do, the constraints under which it must operate, and how the system will react to external stimuli. This document is intended for both the stakeholders and the developers of the system.
 
 ### Scope of Project
 
-This software system will be a SIP Server that cares for the signaling as a standalone system or as part of a broader one. The specification aims for a design that maximizes scalability and extensibility by making use of a microservice architecture which was a challenging factor on **v1**. By using a microservice architecture we will ensure that portions of the system be able to be deployed independently, and each treated according to its problem domain.
+This software system will be a SIP Server that cares for the signaling as a standalone system or as part of a broader one. The specification aims for a design that maximizes scalability and extensibility by using a microservice architecture which was a challenging factor on **v1**. 
 
-More specifically, this system will be designed to allow for the separation of concerns within the logical components of a SIP Server. The software MUST be able to accept SIP Messages via *UDP*, *TCP*, *TLS*, *WS*, and *WSS*. It should then, transform the messages efficiently and facilitate the communication between the various components.
+By using a microservice architecture, we will ensure that portions of the system can be deployed independently and each treated according to its problem domain.
 
-Furthermore, the system MUST include a mechanism to replace the SIP Message processing without updating the entire system. It should also facilitate communication with external systems for Authentication, Authorization, and Accounting (AAA) and allow to host multiple tenants thru the use of a Role-based Access Control (RBAC) system.
+More specifically, this system will be designed to allow for the separation of concerns within the logical components of a SIP Server. The software MUST be able to accept SIP Messages via *UDP*, *TCP*, *TLS*, *WS*, and *WSS*. It should then transform the messages efficiently and facilitate communication between the various components.
+
+Furthermore, the system MUST include a mechanism to replace the SIP Message processing without updating the entire system. It should also facilitate communication with external systems for Authentication, Authorization, and Accounting (AAA) and allow to host multiple tenants by using a Role-based Access Control (RBAC) system.
 
 ### Glossary
 
 |  | Description |
 | ----------- | ----------- |
-| *Backend Service* | A service that provides a use-case or capability for the overall system (i.e Asterisk or FreeSWITCH) |
+| *Backend Service* | A service that provides a use-case or capability for the overall system (e.g., Asterisk or FreeSWITCH) |
 | *SIP Client* | A SIP Client is any SIP capable device or software that communicates thru *Routr* |
 | *Role-Based Access Control (RBAC)* |  Mechanism that restricts access to parts of Routr based on a user's role and resource ownership |
 | *SIP Server* | Also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients to place and terminate calls and process other types of requests |
-| *gRPC* | Is a modern open-source high performance Remote Procedure Call (RPC) framework |
-| *Stakeholder* |Any person with an interest in the project who is not a developer |
+| *gRPC* | Is a modern open-source, high-performance Remote Procedure Call (RPC) framework |
+| *Stakeholder* |Any person with interest in the project who is not a developer |
 | *Nexthop* | The next network element within the signaling path of a given request |
 | *M.E.L.T* | M.E.L.T stands for Metrics, Events, Logs, Tracing |
 
@@ -86,13 +88,13 @@ Raw Diagram:
 └─────────────────────────────┘                        
 ```
 
-The SIP Server "Routr" has three main components and one cooperating service. The first component, the EdgePort, is responsible for accepting SIP Messages parsing them into protobuf, and sending them to the Message Dispatcher. After a SIP Message is processed, the EdgePort will forward the SIP Message to the nexthop.
+The SIP Server "Routr" has three main components and one cooperating service. The first component, the EdgePort, is responsible for accepting SIP Messages, parsing them into protobuf, and sending them to the Message Dispatcher. After a SIP Message is processed, the EdgePort will forward the SIP Message to the next hop.
 
 The job of *Message Dispatcher* is to accept SIP Messages encapsulated as protobuf from the EdgePort, and routing the SIP Message to and from the Message Processor.
 
-*Message Processor(s)* is responsible for the authentication, validation, and processing of SIP Messages, as well as updating the SIP Messages so that they can reach their destination.
+*Message Processor(s)* is responsible for the authentication, validation, and processing of SIP Messages. They are also in charge of updating the SIP Messages to reach their destination.
 
-*Middleware(s)* are optional components that cooperate to bring plugable behaviors to the service. A middleware maybe configured to modify request (e.g RTPEngine Middleware) or read a request for observability reasons.  
+*Middleware(s)* are optional components that cooperate to bring pluggable behaviors to the service. Middlewares may be configured to modify requests (e.g., RTPEngine Middleware) or read them for observability.  
 
 ### EdgePort
 
@@ -128,33 +130,32 @@ Raw Diagram:
 
 **Brief Description**
 
-The EdgePort component is a service that sits at the edge of the network. The job of the EdgePort is to receive SIP Messages, convert them to protobuf and forward them downstream for processing. A *Routr* network might have multiple EdgePorts.
+The EdgePort component is a service that sits at the network's edge. The job of the EdgePort is to receive SIP Messages, convert them to protobuf and forward them downstream for processing. A *Routr* network might have multiple EdgePorts.
 
 **Functional Requirements**
 
-The following functions are Must have for an implementation of an *EdgePort*:
+The following functions are essential for an implementation of an *EdgePort*:
 
 - *Accept SIP Msg* - Accept Messages using as transport UDP, TCP, TLS, WS, and WSS
 - *Accept SIP Msg (Part2)* - Accept Messages on some or all network interfaces
 - *Transform SIP Msg* - Transform Messages to protobuf
-- *Keep Msg's state* - MUST keep the state until the Message is processed or a timeout occurs
+- *Keep Msg's state* - MUST keep the state until the message is processed or a timeout occurs
 - *Reject Msgs from banned IPs* - MUST have a mechanism to identify and discard unwanted Messages
 - *Health Check* - MUST have a mechanism to identify the health of the service
 - *M.E.L.T* - Must be capable of collecting and sending M.E.L.T to external systems
-- *Service Port* - The ports use for SIP signaling will default to traditional values (eg. 5060, 5061, etc)
+- *Service Port* - The ports for SIP signaling will default to traditional values (e.g., 5060, 5061, etc.)
 
 **Non-functional Requirements**
 
-The following requirements are important to have for an implementation of an *EdgePort*:
+The following requirements are essential to have for an implementation of an *EdgePort*:
 
 - *Transformation Time* -  Msg transformation time efficiency should be < *TBT*
 - *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
 - *Recoverability* - Recover from an unhealthy state
 
-
 **Service Configuration**
 
-The configuration for the *EdgePort* could be represented as JSON or YAML formats, however, internal use and validation will be done as per [https://json-schema.org](https://json-schema.org/learn/getting-started-step-by-step). The following example, summarizes de configuration REQUIRED by the *EdgePort*:
+The configuration for the *EdgePort* could be represented as JSON or YAML formats. However, internal use and validation will be done as per [https://json-schema.org](https://json-schema.org/learn/getting-started-step-by-step). The following example summarizes de configuration REQUIRED by the *EdgePort*:
 
 ```json
 {
@@ -340,14 +341,14 @@ The *EdgePort* MUST pass all the tests prescribed in chapter *1.x* of the `SIP C
 
 **Security Considerations**
 
-Since the *EdgePort* sits at the edge of the network, it's crucial that is capable of withstanding typical SIP attacks. On SIP over TCP or TLS, the server should avoid descriptors resource exhaustion, especially during a SIP INVITE flood attack. Consider also, monitoring and alerting for CPU and/or memory usage needed to handle SIP sessions and dialog, to not exceed the resources available. Finally, the server should drop any malformed SIP messages and avoid filling up the log files or logging servers. 
+Since the *EdgePort* sits at the edge of the network, it must be capable of withstanding typical SIP attacks. On SIP over TCP or TLS, the server should avoid descriptors resource exhaustion, especially during a SIP INVITE flood attack. Consider monitoring and alerting for CPU and/or memory usage needed to handle SIP sessions and dialog, not exceeding the resources available. Finally, the server should drop any malformed SIP messages and avoid filling up the log files or logging servers. 
 
 **Special Considerations**
 
-Running the *EdgePort* in cloud environment, such as Kubernetes, can be challenging. Keep the following in mind when deploying to Kubernetes:
+Running the *EdgePort* in a cloud environment like Kubernetes can be challenging. Keep the following in mind when deploying to Kubernetes:
 
 1. Kubernetes' load balancers are not designed to work with SIP 
-2. The EdgePort uses the SIP protocol which requires L7 load balancers
+2. The EdgePort uses the SIP protocol, which requires L7 load balancers
 3. A complex network topology could disrupt the service and create latency
 
 ### Message Dispatcher
@@ -375,9 +376,9 @@ Running the *EdgePort* in cloud environment, such as Kubernetes, can be challeng
 
 **Brief Description**
 
-The *Message Dispatcher* component takes a SIP message and forwards them to the corresponding Message Processor. The matching process is done using the request coming from the *EdgePort*.
+The *Message Dispatcher* component takes a SIP message and forwards them to the corresponding Message Processor. The matching process is done using the request from the *EdgePort*.
 
-The *Message Dispatcher* will always use the first processor that matches a request. If no match is found for the given request, the server MUST respond with a `SIP 405: Method Not Allowed.` The *Message Dispatcher* component does not manipulate the SIP Messages in any way.
+The *Message Dispatcher* will always use the first Processor that matches a request. If no match is found for the given request, the server MUST respond with a `SIP 405: Method Not Allowed.` The *Message Dispatcher* component does not manipulate the SIP Messages.
 
 **Functional Requirements**
 
@@ -395,7 +396,7 @@ The following functions are MUST have for an implementation of a *Message Dispat
 
 **Non-functional Requirements**
 
-The following requirements are important to have for an implementation of a *Message Dispatcher*:
+The following requirements are essential to have for an implementation of a *Message Dispatcher*:
 
 - *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
 - *Recoverability* - Recover from an unhealthy state
@@ -449,7 +450,7 @@ Example:
 
 <details>
 <summary>Schema</summary>
- 
+
 ```json
 {
   "$id": "https://json-schema.org/draft/2020-12/schema",
@@ -589,7 +590,7 @@ Interface Pseudocode:
 
 **Non-functional Requirements**
 
-The following requirements are important to have for an implementation of a *Message Processor*:
+The following requirements are essential to have for an implementation of a *Message Processor*:
 
 - *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
 - *Recoverability* - Recover from an unhealthy state
@@ -598,7 +599,7 @@ The following requirements are important to have for an implementation of a *Mes
 
 Each Message Processor can have its own configuration based on the use case.
 
-However, the following "base" configuration, is recommend as the starting point for your processor's configuration.
+However, the following "base" configuration is recommended as the starting point for your Processor's design.
 
 ```json
 {
@@ -638,79 +639,193 @@ Message Processor SHOULD have Unit Testing for all its core functionalities.
 
 None.
 
-### Location Service and API (TODO)
+### Location Service and API
 
 **Brief Description**
+
+The Location Service(LS) is responsible for storing routing information for all participating endpoints. A Processor can later retrieve the route and learn how to reach the endpoint.
+
+The proto definition for the LS route includes all necessary information to reach a target endpoint, including the `host`, `port`, `transport`, and ingress `listening_point.`
+
+Suppose an endpoint participating as "backend" wishes to use the `least-sessions` balancing algorithm. In that case, it must report the number of active sessions using the `session_count` field. The session count could come in the form of a header (e.g.: `X-Session-Count`).
+
+> For a complete picture of the routing, the `listening_point` of the originating endpoint must be taken into account. This information is present on all requests arriving at a Processor.
+
+Route DTO:
+
+```proto
+// A binding create by an actual endpoint (Softphone, PBX, Conference System, etc.)
+message Route {
+  string user = 1;
+  string host = 2;
+  string port = 3;
+  fonoster.routr.common.v2draft1.Transport transport = 4;
+  int64 registered_on = 5;
+  int32 expires = 6;
+  int32 session_count = 7;
+  string edge_port_ref = 8;
+  fonoster.routr.processor.v2draft1.NetInterface listening_point = 9;
+  // During route creation, an endpoint can request to add labels than can later be
+  // used as selectors. For example, a Softphone can add a label `priority=1` to indicate
+  // that it is the prefered endpoint for the given AOR.
+  map<string, string> labels = 10;
+}
+```
+
 **Functional Requirements**
 
-*Service Port* - The default gRPC port at the Location Service SHOULD be `51902`
+The following functions are MUST have for an implementation of a *Location Service*:
+
+- *Stateless Service* - The service must be built in such a way to allow for scalability
+- *Accept gRPC Requests* - Accept gRPC Requests
+- *Find Routes* - Find all the routes to an endpoint
+- *Filtering Labels* - MUST be able to store endpoints using labels (for filtering) 
+- *Backend or Endpoint* - MUST allow AOR the "sip:" and "backend:" schemes
+- *Balancing Algorithm* - Implements `round-robin` and `least-sessions`
+- *Session Affinity* - Implements session base affinity
+- *Cache* - Caching must be done via "providers" that are easily replaceable (e.g.: `Memory`, `Redis`, etc.)
+- *Health Check* - MUST have a mechanism to identify the health of the service
+- *M.E.L.T* - Must be capable of collecting and sending M.E.L.T to external systems
+- *Service Port* - The default gRPC port at the Location Service SHOULD be `51902`
 
 **Non-functional Requirements**
+
+The following requirements are essential to have for an implementation of a *Location Service*:
+
+- *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
+- *Recoverability* - Recover from an unhealthy state
+
 **Service Configuration**
-**Communication with Adjacent Services**
-**Test Criteria**
-**Security Consideration**
 
-<details>
-<summary>Passing multiple EdgePort(s)</summary>
-A Message Processor must coordinate with the LocationAPI and other APIs to determine the nexthop. Sometimes the signaling path would include multiple EdgePort(s).
-
-Consider the following scenario:
-
-1. SIP Client A Registered to Routr via the EdgePort 001 (EP1)
-2. SIP Client B Registered to Routr via the EdgePort 002 (EP2)
-
-To correctly forward and INVITE from `A` to `B`, a Message Processor must obtain enough information from the LocationAPI to know how to properly route the call.
-
-For this scenario the flow would look like this: `A -> EP1 -> EP2 -> B`
-</details>
- 
-<details>
-<summary>Balancing Backends</summary>
-Some scenarios require sending requests to a specific backend. To balance the load between those backends we will implement a load balancing logic in the *LocationService*. Consider the following scenario:
-
-Scenario #1:
-
-You want to balance the load for a Voice Application service. Voice Applications live in one or more Media Servers (Asterisk for example). 
-
-To balance the load between the Media Servers, a binding between the `call-id` and a backend must be created for the first Request on a Dialog. All subsequent requests will be sent to the same backend.
-
-Routr MUST have a mechanism to identify the load balancing group during the Registration process of each backend. For example, it could use a custom header such as `X-Fonoster-Backend: VOICEAPP` to mark all of the backends responsible for Voice Applications.
-
-Scenario #2:
-
-The second scenario is for *Conference* services. As before, Routr must identify the correct backend. For that, it might use a similar approach by adding a custom header `X-Fonoster-Backend: CONFERENCE` which will later be used by the LocationAPI to obtain an instance of the backend. However, since all parties in conference must connect with the same backed an additional feature will be needed to mark the backend for session affinity.
- 
-</details>
- 
-<details>
-<summary>Directing Request to a Backend</summary>
-To make the later scenario possible, both Numbers and Agents will require additional metadata. For example, to indicate that a Number must be directed to a Voice application, an implementation could use the following:
+Example:
 
 ```json
 {
+  "kind": "Location",
   "apiVersion": "v2draft1",
-  "kind": "Number",
   "metadata": {
-    "ref": "Number0001",
-    "gwRef": "GW0001",
-    "geoInfo": {
-      "city": "Columbus, GA",
-      "country": "USA",
-      "countryISOCode": "US"
-    }
+    "region": "us-east1"
   },
   "spec": {
-    "location": {
-      "telUrl": "tel:17066041487"
+    "bindAddr": "0.0.0.0:51902",
+    "cache": {
+      "provider": "memory"
     },
-    "next": {
-      "backend": "CONFERENCE",
-      "ref": "work-conference"
-    }
+    "backends": [
+      {
+        "ref": "voice"
+      },
+      {
+        "ref": "conference",
+        "balancingAlgorithm": "least-sessions",
+        "sessionAffinity": {
+          "enabled": true,
+          "ref": "room_id"
+        }
+      }
+    ]    
   }
 }
 ```
 
-> The "next" section COULD have the `aorLink` if the desired behavior is to point to a specific instance
+> Notice that using the `memory` provider will only work for simple cases where you run a single instance of the Location Service. Suppose you need the `least-session` algorithm and run multiple instances of the Location Service. In that case, you will need a distributed provider such as `Redis.`
+
+<details>
+<summary>Schema</summary>
+
+```json
+{
+  "$id": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Location Service configuration",
+  "description": "Configuration for an instance of the Location Service",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "enum": ["Location", "location"]
+    },
+    "apiVersion": {
+      "enum": ["v2draft1"]
+    },
+    "metadata": {
+      "description": "Resource metadata",
+      "type": "object"
+    },
+    "spec": {
+      "description": "Operations spec for Location",
+      "type": "object",
+      "properties": {
+        "bindAddr": {
+          "description": "Ipv4 interface to accept request on",
+          "type": "string"
+        },
+        "cache": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "enum": ["memory", "redis"]
+            },
+            "parameters": {
+              "type": "string"
+            },
+          },
+          "required": ["provider"]
+        },
+        "backends": {
+          "description": "Optional SIP backends",
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "properties": {
+            "ref": {
+              "type": "string"
+            },
+            "balancingAlgorithm": {
+              "enum": ["round-robin", "least-sessions"]
+            },
+            "sessionAffinity": {
+              "description": "Optional session affinity",
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "ref": {
+                  "type": "string"
+                }
+              },
+              "required": ["ref"]
+            },
+          },
+          "required": ["ref"]
+        },
+      }
+    }
+  },
+  "required": ["kind", "metadata", "spec", "apiVersion"]
+}
+```
+
 </details>
+
+**Communication with Adjacent Services**
+
+```proto
+syntax = "proto3";
+
+package fonoster.routr.location.v2draft1;
+
+service Location {
+  rpc AddRoute (AddRouteRequest) returns (Empty) {}
+  rpc FindRoutes (FindRoutesRequest) returns (FindRoutesResponse) {}
+  rpc RemoveRoutes (RemoveRoutesRequest) returns (Empty) {}
+}
+```
+
+**Test Criteria**
+
+A Location Service SHOULD have Unit Testing for all its core functionalities.
+
+**Security Consideration**
+
+None

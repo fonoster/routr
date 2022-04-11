@@ -27,14 +27,9 @@ message Route {
   int32 session_count = 7;
   string edge_port_ref = 8;
   fonoster.routr.processor.v2draft1.NetInterface listening_point = 9;
-  // During route creation, an endpoint can requet to add labels than can later be
-  // used as selector. For example, a Softphone can add a label `priority=1` to indicate
-  // that it is the prefer endpoint for the given AOR. 
-  //
-  // Another use case is to use the label to determine which endpoint will back certain 
-  // feature. For example, we could use the label `backend=voice` to indicate that this
-  // route can serve voice applications. If the FindRoutes method includes the label the 
-  // Location Service will only return routes that includes such label.
+  // During route creation, an endpoint can request to add labels than can later be
+  // used as selectors. For example, a Softphone can add a label `priority=1` to indicate
+  // that it is the prefered endpoint for the given AOR.
   map<string, string> labels = 10;
 }
 
