@@ -28,6 +28,7 @@
       "MESSAGE",
       "REGISTER"
     ],
+    "unknownMethodAction": "Discard",
     "transport": [
       {
         "protocol": "tcp",

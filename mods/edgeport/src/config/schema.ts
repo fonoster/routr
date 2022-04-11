@@ -78,6 +78,10 @@ export const schema = {
           },
           "uniqueItems": true
         },
+        "unknownMethodAction": {
+          "description": "What to do if an incomming request type is not allowed",
+          "enum": ["Discard", "Respond"]
+        },
         "transport": {
           "description": "Acceptable Transport Protocols",
           "type": "array",
