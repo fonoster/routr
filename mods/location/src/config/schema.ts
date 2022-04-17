@@ -65,18 +65,9 @@ export const schema = {
             "balancingAlgorithm": {
               "enum": ["round-robin", "least-sessions"]
             },
-            "sessionAffinity": {
+            "withSessionAffinity": {
               "description": "Optional session affinity",
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean"
-                },
-                "ref": {
-                  "type": "string"
-                }
-              },
-              "required": ["ref"]
+              "type": "boolean"
             },
           },
           "required": ["ref"]

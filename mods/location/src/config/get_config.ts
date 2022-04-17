@@ -31,7 +31,7 @@ const ajv = new Ajv()
 const validate = ajv.compile(schema)
 
 const hasBadCombiniation = (backends: Backend[]) => backends.some((b: Backend) =>
-  b.balancingAlgorithm === LB_ALGORITHM.ROUND_ROBIN && b.sessionAffinity)
+  b.balancingAlgorithm === LB_ALGORITHM.ROUND_ROBIN && b.withSessionAffinity)
 
 const hasBadAlgorithm = (backends: Backend[]) => backends.some((b: Backend) =>
   b.balancingAlgorithm !== LB_ALGORITHM.ROUND_ROBIN 

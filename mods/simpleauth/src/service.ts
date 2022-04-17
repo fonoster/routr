@@ -36,7 +36,7 @@ export default function SimpleAuthProcessor(config: { bindAddr: string, users: U
       const tracer = ot.trace.getTracer("routr-tracer")
       const currentSpan = ot.trace.getSpan(ot.context.active())
       // display traceid in the terminal
-      logger.verbose(`traceid: ${currentSpan.spanContext().traceId}`)
+      logger.verbose(`traceid: ${currentSpan?.spanContext().traceId}`)
       const span = tracer.startSpan('server.js:sayHello()', { kind: 1})
 
       if (whiteList.includes(req.message.from.address.uri.user)) {

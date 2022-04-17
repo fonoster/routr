@@ -21,7 +21,6 @@ import { MessageRequest } from "@routr/common"
 import { LocationClient as Location } from "@routr/location"
 import { createRegisterHandler } from "./utils"
 import Processor, { Response } from "@routr/processor"
-import logger from "@fonoster/logger"
 
 export default function ConnectProcessor(config: ConnectProcessorConfig) {
   const { bindAddr, locationAddr } = config
@@ -39,6 +38,7 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           await createRegisterHandler(location)(req, res)
           break
         case 'CANCEL':
+          res.sendNotImplemented()
           break
         default:
           res.sendNotImplemented()

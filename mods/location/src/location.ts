@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { 
-  NotRoutesFoundForAOR, 
-  UnsupportedSchema 
+import {
+  NotRoutesFoundForAOR,
+  UnsupportedSchema
 } from "./errors";
 import {
   AddRouteRequest,
@@ -30,7 +30,12 @@ import {
   RemoveRoutesRequest,
 } from "./types";
 import { Route } from "@routr/common"
-import { filterOnlyMatchingLabels, hasAffinitySession } from "./utils";
+import { filterOnlyMatchingLabels } from "./utils";
+
+enum AOR_SCHEME {
+  SIP = "sip:",
+  BACKEND = "backend:"
+}
 
 export default class Location implements ILocationService {
   private store: ILocatorStore
@@ -48,22 +53,22 @@ export default class Location implements ILocationService {
   }
 
   public addRoute(request: AddRouteRequest): Promise<void> {
-    if (!request.aor.startsWith('sip:') &&
-      !request.aor.startsWith('backend:')) {
+    if (!request.aor.startsWith(AOR_SCHEME.SIP) &&
+      !request.aor.startsWith(AOR_SCHEME.BACKEND)) {
       throw new UnsupportedSchema(request.aor)
     }
     return this.store.put(request.aor, request.route);
   }
 
-  public async findRoutes(request: FindRoutesRequest): Promise<Route[]>{
+  public async findRoutes(request: FindRoutesRequest): Promise<Route[]> {
     const routes = request.labels
       ? (await this.store.get(request.aor))
         .filter(filterOnlyMatchingLabels(request.labels))
       : await this.store.get(request.aor) || []
 
-    if (request.aor.startsWith('sip:')) {
+    if (request.aor.startsWith(AOR_SCHEME.SIP)) {
       return routes
-    } else if (request.aor.startsWith('backend:')) {
+    } else if (request.aor.startsWith(AOR_SCHEME.BACKEND)) {
       const backend = this.backends.get(request.aor)
 
       if (!backend) {
@@ -71,9 +76,9 @@ export default class Location implements ILocationService {
       }
 
       // If it has not affinity sesssion then get next
-      return !hasAffinitySession(backend)
-          ? [this.next(routes, backend)]
-          : [this.nextWithAffinity(await routes, backend.sessionAffinity.ref)]
+      return backend.withSessionAffinity
+        ? [this.nextWithAffinity(routes, request.sessionAffinityRef)]
+        : [this.next(routes, backend)]
     }
     throw new UnsupportedSchema(request.aor)
   }
@@ -88,14 +93,14 @@ export default class Location implements ILocationService {
     }
 
     // Continues using round-robin
-    const nextPosition = this.rrCount.get(`backend:${backend.ref}`)
+    const nextPosition = this.rrCount.get(`${AOR_SCHEME.BACKEND}${backend.ref}`)
     const result = routes[nextPosition];
 
     if (nextPosition >= (routes.length - 1)) {
       // Restarting round-robin counter
-      this.rrCount.set(`backend:${backend.ref}`, 0)
+      this.rrCount.set(`${AOR_SCHEME.BACKEND}${backend.ref}`, 0)
     } else {
-      this.rrCount.set(`backend:${backend.ref}`, nextPosition + 1)
+      this.rrCount.set(`${AOR_SCHEME.BACKEND}${backend.ref}`, nextPosition + 1)
     }
 
     return result

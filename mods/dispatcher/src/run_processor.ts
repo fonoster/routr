@@ -26,7 +26,7 @@ import ot from '@opentelemetry/api'
 export function runProcessor(params: RunProcessorParams) {
   const currentSpan = ot.trace.getSpan(ot.context.active());
   // display traceid in the terminal
-  logger.verbose(`traceid: ${currentSpan.spanContext().traceId}`);
+  logger.verbose(`traceid: ${currentSpan?.spanContext().traceId}`);
   const tracer = ot.trace.getTracer("routr-tracer");
   const span = tracer.startSpan('server.js:sayHello()', { kind: 1 });
   span.addEvent(`invoking sayHello() to...`);

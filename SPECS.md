@@ -17,7 +17,7 @@
   * [EdgePort](#edgeport)
   * [Message Dispatcher](#message-dispatcher)
   * [Message Processor](#message-processor)
-  * [Data APIs](#data-apis)
+  * [Location Service](#location-service)
 
 <!-- tocstop -->
 
@@ -639,7 +639,7 @@ Message Processor SHOULD have Unit Testing for all its core functionalities.
 
 None.
 
-### Location Service and API
+### Location Service
 
 **Brief Description**
 
@@ -718,10 +718,7 @@ Example:
       {
         "ref": "conference",
         "balancingAlgorithm": "least-sessions",
-        "sessionAffinity": {
-          "enabled": true,
-          "ref": "room_id"
-        }
+        "withSessionAffinity": true
       }
     ]    
   }

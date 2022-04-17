@@ -203,8 +203,5 @@ backends.set("backend:voice_ls", {
 backends.set("backend:conference", {
   ref: "conference-with-session-affinity",
   balancingAlgorithm: LB_ALGORITHM.LEAST_SESSIONS,
-  sessionAffinity: {
-    enabled: true,
-    ref: "room_id"
-  }
+  withSessionAffinity: true
 })

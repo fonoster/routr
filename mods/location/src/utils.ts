@@ -41,8 +41,6 @@ export const filterOnlyMatchingLabels = (requestLabels: Map<string, string>) =>
     ? compareArrays(mergeKeyValue(requestLabels), mergeKeyValue(route.labels))
     : false
 
-export const hasAffinitySession = (backend: Backend) => backend?.sessionAffinity?.enabled
-
 export function getServiceInfo(bindAddr: string, locator: ILocationService)
   : ServiceInfo {
   return {

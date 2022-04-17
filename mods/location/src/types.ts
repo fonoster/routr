@@ -62,10 +62,7 @@ export interface RemoveRoutesRequest {
 export interface Backend {
   ref: string
   balancingAlgorithm?: LB_ALGORITHM
-  sessionAffinity?: {
-    enabled: boolean
-    ref: string
-  }
+  withSessionAffinity?: boolean
 }
 
 export interface LocationConfig {
