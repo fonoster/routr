@@ -28,18 +28,18 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ### Purpose
 
-This document aims to present a detailed description of Routr Connect. It will explain the purpose and features of the system, the interfaces of the system, what the system will do, the contraints under which it must operate, and how the system will react to external stimuli. The document is intended for both stakeholders and the developers of the system.
+This document aims to present a detailed description of Routr Connect. It will explain the purpose and features of the system, the interfaces of the system, what the system will do, the constraints under which it must operate, and how the system will react to external stimuli. The document is intended for both stakeholders and the developers of the system.
 
 ### Scope of Project
 
-The software system will be a Processor that implements the logic to support a subset of the SIP Connect Specification. Hence the name Routr Connect. The processor takes as input a MESSAGE from Routr Core, determines the type communication type, manipulates the MESSAGE based on its type, and forwards back to the Core.
+The software system will be a Processor that implements the logic to support a subset of the SIP Connect Specification. Hence the name Routr Connect. The Processor takes as input a MESSAGE from Routr Core, determines the type of communication type, manipulates the MESSAGE based on its kind, and forwards it back to the Core.
 
 ### Glossary
 
 |  | Description |
 | ----------- | ----------- |
-| *Routr Core* | The central components that are require to implement Routr regardles of the Processor |
-| *Processor* | Feature server the carries the logic for a particular use-case |
+| *Routr Core* | The central components that are required to implement Routr regardless of the Processor |
+| *Processor* | Feature server that carries the logic for a particular use case |
 | *Connect Object* | A JSON Object describing a call session, including authorized actions |
 | *SIP Client* | A SIP Client is any SIP capable device or software that communicates thru *Routr* |
 | *SIP Server* | Also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients to place and terminate calls and process other types of requests |
@@ -58,7 +58,7 @@ IEEE/ISO/IEC 29148-2018 - ISO/IEC/IEEE International Standard - Systems and soft
 
 **Brief Description**
 
-The `Connect Processor` is a Routr Processor carries the neccesary logic to implement the SIP Connect v1.2 implementation. For the purpose of this implementation we are going to have named routing types. For example Ingress Routing(IR) for calls comming from the PSTN, Egress Routing (ER) for calls going out to the PSTN, and Intra-Domain Routing (IDR) for internal calling. 
+The `Connect Processor` is a Routr Processor that carries the necessary logic to implement the SIP Connect v1.2 implementation. For this implementation, we are going to have named routing types. For example, Ingress Routing(IR) for calls coming from the PSTN, Egress Routing (ER) for calls going out to the PSTN, and Intra-Domain Routing (IDR) for internal calling. 
 
 **Functional Requirements**
 
@@ -72,9 +72,9 @@ Processing a MESSAGE consist in this basic steps:
   => doProcess(message) and return updated request/response
 ```
 
-The Processor will use a `Username/Pass` scheme to authenticate Agents and Peers. In the other hand, a `Username/Pass` and/or `IP Access List` for inbound calls (Ingress Routing) comming from a Trunk.
+The Processor will use a `Username/Pass` scheme to authenticate Agents and Peers. On the other hand, a `Username/Pass` and/or `IP Access List` for inbound calls (Ingress Routing) coming from a Trunk.
 
-Its also a requiement for the Processor to authorized requests. The autorization may be done by a traditional AAA service such as a Diameter or Radius server or by a custom authorization service.
+It's also a requirement for the Processor to authorize requests. The authorization may be done by a traditional AAA service such as a Diameter or Radius server or by a custom authorization service.
 
 Authorized actions include:
 
@@ -91,7 +91,7 @@ Authorized actions include:
 <td>
 
 - Call any AOR w/ the same Domain
-- Assert identity over a Number for calls to the PSTN
+- Assert identity over a number for calls to the PSTN
 - Connect to a backend service
 
 </td>
@@ -163,7 +163,7 @@ Other `Connect Object` types include "ingress-routing", "egress-routing", and "i
 
 **Non-functional Requirements**
 
-The following requirements are essential to have for an implementation of a *Connnect Processor*:
+The following requirements are essential to have for an implementation of a *Connect Processor*:
 
 - *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
 - *Recoverability* - Recover from an unhealthy state
@@ -219,7 +219,7 @@ Example:
 }
 ```
 
-Use a Trunk resource to communicate with a SIP Gateways, SIP Providers, SBCs and send or receive calls from the PSTN.
+Use a Trunk resource to communicate with SIP Gateways, SIP Providers, and SBCs and send or receive calls from the PSTN.
 
 Example:
 
