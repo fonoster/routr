@@ -9,10 +9,10 @@ const MaxForwardsHeader = Java.type('javax.sip.header.MaxForwardsHeader')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
 const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
-const BAD_HOST_QUARENTINE_TIME = 15 * 60
+const BAD_HOST_QUARANTINE_TIME = 15 * 60
 
 export const quarentine = r =>
-  BAD_HOST_QUARENTINE_TIME - (Date.now() - r.entryTime) / 1000 > 0
+  BAD_HOST_QUARANTINE_TIME - (Date.now() - r.entryTime) / 1000 > 0
 
 class RegistryHandler {
   constructor (sipProvider) {
@@ -24,7 +24,7 @@ class RegistryHandler {
     this.quanrentineHosts = this.quanrentineHosts.filter(quarentine)
 
     LOG.debug(
-      'List of gateways under quarentine: ' +
+      'List of gateways in quarantine: ' +
         JSON.stringify(this.quanrentineHosts)
     )
     const isInQuarentine = host =>

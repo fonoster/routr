@@ -1,4 +1,4 @@
-Numbers represent virtual numbers use to route calls from/to the PSTN through Gateways.
+Numbers represent virtual numbers used to route calls from/to the PSTN through Gateways.
 
 The Numbers configuration can be provided using the file `config/numbers.yml` located at the root of your Routr installation.
 
