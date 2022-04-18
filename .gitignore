@@ -25,6 +25,7 @@ jre
 logs
 .env
 .project
+${sys:DATA}
 
 # User-specific stuff:
 .idea/workspace.xml
