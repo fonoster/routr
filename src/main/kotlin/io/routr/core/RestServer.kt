@@ -157,11 +157,6 @@ class RestServer {
       ctx.getBindings("js").putMember("config", config)
     }
     val result = ctx.eval("js", op).asString()
-
-    LOG.debug("Evaluating operation $operation")
-    LOG.debug("op is $op")
-    LOG.debug("result is $result")
-
     ctx.close()
     return result
   }

@@ -17,7 +17,6 @@ class Launcher {
   fun launch() {
     val mainCtx = createJSContext(serverRunner, "server")
     val registryCtx = createJSContext(registryRunner, "reg")
-    val routeLoaderCtx = createJSContext(routeLoaderRunner, "loader")
     // createJSContext(restRunner, "nop")
     val server = GRPCServer(mainCtx)
 
@@ -37,7 +36,9 @@ class Launcher {
     timer.schedule(
         object : TimerTask() {
           override fun run() {
+            val routeLoaderCtx = createJSContext(routeLoaderRunner, "loader")
             routeLoaderCtx.eval("js", "loader.loadStaticRoutes()")
+            routeLoaderCtx.close()
           }
         },
         0,

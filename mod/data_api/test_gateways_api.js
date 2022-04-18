@@ -7,12 +7,7 @@
 const RedisDataSource = require('@routr/data_api/redis_datasource')
 const GatewaysAPI = require('@routr/data_api/gateways_api')
 const TestUtils = require('@routr/data_api/test_utils')
-const DSUtils = require('@routr/data_api/utils')
-const ObjectId = Java.type('org.bson.types.ObjectId')
-const {
-  UNFULFILLED_DEPENDENCY_RESPONSE,
-  Status
-} = require('@routr/core/status')
+const { Status } = require('@routr/core/status')
 const assert = require('assert')
 const config = require('@routr/core/config_util')()
 
