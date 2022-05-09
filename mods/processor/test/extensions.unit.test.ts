@@ -30,8 +30,8 @@ describe('@routr/processor/alterations', () => {
   afterEach(() => sandbox.restore());
 
   it('gets value from extension header', () => {
-    expect(E.getHeaderValue(request, 'Max-Forwards')).to.be.equal('70')
-    expect(E.getHeaderValue(request, 'Max-Forwardsx')).to.be.undefined
+    expect(E.getHeaderValue(request, 'Allow')).to.be.equal('INVITE')
+    expect(E.getHeaderValue(request, 'Allowx')).to.be.undefined
   })
 
   it('updates extension header', () => {

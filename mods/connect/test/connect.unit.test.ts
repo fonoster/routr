@@ -17,13 +17,10 @@
  * limitations under the License.
  */
 import { MessageRequest, Route } from '@routr/common'
-import {
-  Extensions as E
-} from "@routr/processor"
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { request, route } from "./examples"
+import { request, route } from "../../processor/test/examples"
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
@@ -37,6 +34,6 @@ describe('@routr/connect', () => {
     const tailoredRequest = tailorInterDomainRoute(route as Route, request as MessageRequest)
     expect(tailoredRequest.message.requestUri.user).to.equal(route.user)
     expect(tailoredRequest.message.via).to.be.lengthOf(3)
-    expect(E.getHeaderValue(tailoredRequest, 'Max-Forwards')).to.be.equal('69')
+    expect(tailoredRequest.message.maxForwards.maxForwards).to.be.equal(69)
   })
 })

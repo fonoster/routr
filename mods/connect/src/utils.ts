@@ -57,17 +57,6 @@ export function createRouteFromLastMessage(request: MessageRequest): Route {
   }
 }
 
-// TODO:
-// 5. Write tests for Alterations based on new changes
-// 5.1 Write handler for CANCEL
-// 5.2 Test full call
-// 5.3 Implement converterts Route and Record-Route?
-// 6. Write remaining tailor functions
-// 7. Implement getRouteType  
-// 8. Implement getConnectObject (Use mock apiService)
-// 9. Start working connect api
-// 9.1 Create connect.json config pointing to Location and ApiService
-
 // TODO: If request has X-Connect-Object then validate the JWT value and continue
 export const handleInvite = (location: any, apiService: any) =>
   async (req: MessageRequest, res: Response) => {

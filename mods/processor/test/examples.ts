@@ -67,10 +67,6 @@ export const request: MessageRequest = {
     ],
     "extensions": [
       {
-        "name": "Max-Forwards",
-        "value": "70"
-      },
-      {
         "name": "CSeq",
         "value": "14 REGISTER"
       },
@@ -146,13 +142,16 @@ export const request: MessageRequest = {
         "wildcard": false
       },
       "expires": -1,
-      "q_value": -1
+      "qValue": -1
     },
-    "call_id": {
-      "call_id": "AynhXaFtbdXwHrUEzt_rUQ.."
+    "callId": {
+      "callId": "AynhXaFtbdXwHrUEzt_rUQ.."
     },
-    "content_length": {
-      "content_length": 0
+    "contentLength": {
+      "contentLength": 0
+    },
+    "maxForwards": {
+      "maxForwards": 70
     },
     "expires": {
       "expires": 60

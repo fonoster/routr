@@ -21,7 +21,6 @@ import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import { request, route } from "./examples"
 import { Alterations as A } from '../src'
-import { Extensions as E } from '../src'
 import { MessageRequest } from '@routr/common/src'
 import { pipe } from 'fp-ts/function'
 
@@ -64,7 +63,18 @@ describe('@routr/processor/alterations', () => {
   })
 
   it('updates the value of the max forwards header', () => {
-    expect(E.getHeaderValue(A.decreaseMaxForwards(request), 'Max-Forwards')).to.be.equal('69')
+    const r = A.decreaseMaxForwards(request as any as MessageRequest)
+    expect(r)
+      .to.have.property('message')
+      .to.have.property('maxForwards')
+      .to.have.property('maxForwards')
+      .to.be.equal(69)
+  })
+
+  it('adds via header', () => {
+    expect((A.removeTopVia(request).message.via as [{ host: string }])[0])
+      .to.have.property("host")
+      .to.be.equal("127.0.0.1")
   })
 
   it('removes the top via header', () => {

@@ -38,7 +38,7 @@ export const addSelfVia = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request) as any
     // If is comming from a different edgeport we use the listening point instead
-    // of the endpoint to ensure connectivity is possible.
+    // of the endpoint to ensure connectivity.
     const nextHopHost = request.edgePortRef === route.edgePortRef
       ? route.host : route.listeningPoint.host
 
@@ -122,7 +122,10 @@ export const removeTopVia = (request: MessageRequest): MessageRequest => {
   return req
 }
 
-export const decreaseMaxForwards = (request: MessageRequest) => updateHeader(request, {
-  name: 'Max-Forwards',
-  value: (parseInt(getHeaderValue(request, 'Max-Forwards')) - 1) + ''
-})
+export const decreaseMaxForwards = (request: MessageRequest) => {
+  const req = H.deepCopy(request) as any
+  if (req.message.maxForwards) {
+    req.message.maxForwards.maxForwards = (req.message.maxForwards.maxForwards - 1)
+  }
+  return req
+}
