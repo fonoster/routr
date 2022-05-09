@@ -19,15 +19,16 @@
 import { ConnectProcessorConfig } from "./types"
 import { MessageRequest } from "@routr/common"
 import { LocationClient as Location } from "@routr/location"
-import { createRegisterHandler } from "./utils"
+import { handleRegister, handleInvite } from "./utils"
 import Processor, { Response } from "@routr/processor"
 
 export default function ConnectProcessor(config: ConnectProcessorConfig) {
   const { bindAddr, locationAddr } = config
-  const location = new Location({ addr: locationAddr})
+  const location = new Location({ addr: locationAddr })
+  const apiService: any = null
 
   new Processor({ bindAddr, name: "connect" })
-    .listen(async(req: MessageRequest, res: Response) => {
+    .listen(async (req: MessageRequest, res: Response) => {
       switch (req.method.toString()) {
         case 'PUBLISH':
         case 'NOTIFY':
@@ -35,7 +36,10 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           res.sendMethodNotAllowed()
           break
         case 'REGISTER':
-          await createRegisterHandler(location)(req, res)
+          await handleRegister(location)(req, res)
+          break
+        case 'INVITE':
+          await handleInvite(location, apiService)(req, res)
           break
         case 'CANCEL':
           res.sendNotImplemented()

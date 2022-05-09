@@ -16,22 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface ConnectProcessorConfig {
-  bindAddr: string
-  locationAddr: string
-}
+import {
+  MessageRequest,
+  Alterations as A
+} from "@routr/processor"
+import { Route } from "@routr/common"
+import { pipe } from "fp-ts/function"
 
-export enum RoutingType {
-  EGRESS_ROUTING = 'egress-routing',
-  INGRESS_ROUTING = 'ingress-routing',
-  INTRA_DOMAIN_ROUTING = 'intra-domain-routing',
-}
-
-export interface Authentication {}
-
-export interface ConnectObject {
-  type: RoutingType
-  maxSessionDuration?: number
-  authentication?: Authentication
-  headers?: Map<string, string>
-}
+export const tailorInterDomainRoute = (route: Route, req: MessageRequest): MessageRequest =>
+  pipe(
+    req,
+    A.updateRequestURI(route),
+    A.addSelfVia(route),
+    A.addSelfRecordRoute(route),
+    A.decreaseMaxForwards,
+    A.removeAuthorization,
+    A.removeRoutes,
+    A.removeXEdgePortRef
+    // Add updateContact for SIP.js support
+  )

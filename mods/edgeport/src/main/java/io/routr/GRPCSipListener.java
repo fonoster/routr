@@ -42,7 +42,7 @@ public class GRPCSipListener implements SipListener {
   private final ProcessorGrpc.ProcessorBlockingStub blockingStub;
   private final MessageConverter messageConverter;
   private final SipProvider sipProvider;
-  private final Logger LOG = LogManager.getLogger(GRPCSipListener.class);
+  private final static Logger LOG = LogManager.getLogger(GRPCSipListener.class);
 
   public GRPCSipListener(final SipProvider sipProvider, final Map config,
       final List<String> externalIps, final List<String> localnets) {

@@ -37,7 +37,7 @@ export const updateRequestURI = (route: Route) => {
 export const addSelfVia = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request) as any
-    // If is comming from a different edgeport we the listening point instead
+    // If is comming from a different edgeport we use the listening point instead
     // of the endpoint to ensure connectivity is possible.
     const nextHopHost = request.edgePortRef === route.edgePortRef
       ? route.host : route.listeningPoint.host
@@ -108,7 +108,8 @@ export const removeAuthorization = (request: MessageRequest): MessageRequest => 
   return req
 }
 
-export const removeRoute = (request: MessageRequest): MessageRequest => {
+// TODO: Remove only route headers that are not controlled by this edgeport
+export const removeRoutes = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
   req.message.extensions = (req.message.extensions as any).filter((ext: any) =>
     ext.name.toLowerCase() !== "route")

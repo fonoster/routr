@@ -133,14 +133,30 @@ message Address {
   bool wildcard = 3;
 }
 
+message MaxForwards {
+  int32 max_forwards = 1;
+}
+
+message Route {
+  Address address = 1;
+  map<string, string> parameters = 2;
+}
+
+message RecordRoute {
+  Address address = 1;
+  map<string, string> parameters = 2;
+}
+
 message From {
   Address address = 1;
   string tag = 2;
+  map<string, string> parameters = 3;
 }
 
 message To {
   Address address = 1;
   string tag = 2;
+  map<string, string> parameters = 3;
 }
 
 message Contact {
@@ -164,8 +180,11 @@ message SIPMessage {
   CallID call_id = 6;
   ContentLength content_length = 7;
   Expires expires = 8;
-  repeated Via via = 9;
-  repeated Extension extensions = 10;
-  WWWAuthenticate www_authenticate = 11;
-  Authorization authorization = 12;
+  WWWAuthenticate www_authenticate = 9;
+  MaxForwards max_forwards = 10;
+  Authorization authorization = 11;
+  repeated Extension extensions = 12;
+  repeated Via via = 13;
+  repeated Route route = 14;
+  repeated RecordRoute record_route = 15;
 }

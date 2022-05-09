@@ -32,6 +32,9 @@ import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.From;
+import gov.nist.javax.sip.header.MaxForwards;
+import gov.nist.javax.sip.header.RecordRoute;
+import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.header.To;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.WWWAuthenticate;
@@ -44,7 +47,10 @@ import io.routr.headers.ContentLengthConverter;
 import io.routr.headers.ExpiresConverter;
 import io.routr.headers.ExtensionConverter;
 import io.routr.headers.FromConverter;
+import io.routr.headers.MaxForwardsConverter;
 import io.routr.headers.MessageConverter;
+import io.routr.headers.RecordRouteConverter;
+import io.routr.headers.RouteConverter;
 import io.routr.headers.SipURIConverter;
 import io.routr.headers.ToConverter;
 import io.routr.headers.ViaConverter;
@@ -170,28 +176,6 @@ public class ConveterTests {
     assertNotNull(objectFromDto.getURI());
   }
 
-  /**
-   * public io.routr.message.From fromHeader(From header) {
-   * var builder = io.routr.message.From.newBuilder();
-   * var addressConverter = new AddressConverter();
-   * if (header.getTag() != null) builder.setTag(header.getTag());
-   * return
-   * builder.setAddress(addressConverter.fromObject(header.getAddress())).build();
-   * }
-   * 
-   * @Override
-   *           public From fromDTO(io.routr.message.From dto) throws
-   *           InvalidArgumentException, PeerUnavailableException, ParseException
-   *           {
-   *           var addressConverter = new AddressConverter();
-   *           HeaderFactory factory =
-   *           SipFactory.getInstance().createHeaderFactory();
-   *           return (From)
-   *           factory.createFromHeader(addressConverter.fromDTO(dto.getAddress()),
-   *           dto.getTag());
-   *           }
-   */
-
   @Test
   public void testFromConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
@@ -199,13 +183,26 @@ public class ConveterTests {
     FromConverter converter = new FromConverter();
 
     var address = addressFactory.createAddress("sip:1001@sip.local");
+    address.setDisplayName("John Doe");
     From from = (From) factory.createFromHeader(address, "1001");
+    from.setParameter("a", "1");
+    from.setParameter("b", "2");
 
     io.routr.message.From dto = converter.fromHeader(from);
     From objectFromDto = converter.fromDTO(dto);
 
     assertEquals(objectFromDto.getTag(), dto.getTag());
     assertNotNull(objectFromDto.getAddress());
+    assertEquals(objectFromDto.getAddress().getDisplayName(), 
+      dto.getAddress().getDisplayName());
+    assertEquals(((SipURI)objectFromDto.getAddress().getURI()).getUser(),
+      dto.getAddress().getUri().getUser());
+    assertEquals(((SipURI)objectFromDto.getAddress().getURI()).getHost(),
+      dto.getAddress().getUri().getHost());
+    assertEquals(false, dto.getAddress().getUri().getSecure());
+    assertEquals(false, dto.getAddress().getWildcard());
+    assertEquals(objectFromDto.getParameter("a"), from.getParameter("a"));
+    assertEquals(objectFromDto.getParameter("b"), from.getParameter("b"));
   }
 
   @Test
@@ -215,13 +212,68 @@ public class ConveterTests {
     ToConverter converter = new ToConverter();
 
     var address = addressFactory.createAddress("sip:1001@sip.local");
+    address.setDisplayName("John Doe");
     To to = (To) factory.createToHeader(address, "1001");
+    to.setParameter("a", "1");
+    to.setParameter("b", "2");
 
     io.routr.message.To dto = converter.fromHeader(to);
     To objectToDto = converter.fromDTO(dto);
 
     assertEquals(objectToDto.getTag(), dto.getTag());
     assertNotNull(objectToDto.getAddress());
+    assertEquals(objectToDto.getAddress().getDisplayName(), 
+      dto.getAddress().getDisplayName());
+    assertEquals(((SipURI)objectToDto.getAddress().getURI()).getUser(),
+      dto.getAddress().getUri().getUser());
+    assertEquals(((SipURI)objectToDto.getAddress().getURI()).getHost(),
+      dto.getAddress().getUri().getHost());
+    assertEquals(false, dto.getAddress().getUri().getSecure());
+    assertEquals(false, dto.getAddress().getWildcard());
+    assertEquals(objectToDto.getParameter("a"), to.getParameter("a"));
+    assertEquals(objectToDto.getParameter("b"), to.getParameter("b"));
+  }
+
+  @Test
+  public void testRouteConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+    HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
+    AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
+    RouteConverter converter = new RouteConverter();
+
+    var address = addressFactory.createAddress("sip:sip.local");
+    Route route = (Route) factory.createRouteHeader(address);
+    route.setParameter("a", "1");
+    route.setParameter("b", "2");
+
+    io.routr.message.Route dto = converter.fromHeader(route);
+    Route objectRouteDto = converter.fromDTO(dto);
+
+    assertNotNull(objectRouteDto.getAddress());
+    assertEquals(objectRouteDto.getParameter("a"), route.getParameter("a"));
+    assertEquals(objectRouteDto.getParameter("b"), route.getParameter("b"));
+    assertEquals(((SipURI)objectRouteDto.getAddress().getURI()).getHost(),
+      dto.getAddress().getUri().getHost());
+  }
+
+  @Test
+  public void testRecordRouteConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+    HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
+    AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
+    RecordRouteConverter converter = new RecordRouteConverter();
+
+    var address = addressFactory.createAddress("sip:sip.local");
+    RecordRoute recordRoute = (RecordRoute) factory.createRecordRouteHeader(address);
+    recordRoute.setParameter("a", "1");
+    recordRoute.setParameter("b", "2");
+
+    io.routr.message.RecordRoute dto = converter.fromHeader(recordRoute);
+    RecordRoute objectRecordRouteDto = converter.fromDTO(dto);
+
+    assertNotNull(objectRecordRouteDto.getAddress());
+    assertEquals(objectRecordRouteDto.getParameter("a"), recordRoute.getParameter("a"));
+    assertEquals(objectRecordRouteDto.getParameter("b"), recordRoute.getParameter("b"));
+    assertEquals(((SipURI)objectRecordRouteDto.getAddress().getURI()).getHost(),
+      dto.getAddress().getUri().getHost());
   }
 
   @Test
@@ -239,6 +291,20 @@ public class ConveterTests {
     assertEquals(objectContactDto.getExpires(), dto.getExpires());
     assertEquals(objectContactDto.getQValue(), dto.getQValue());
     assertNotNull(objectContactDto.getAddress());
+  }
+
+  @Test
+  public void testMaxForwardsConveter() throws PeerUnavailableException,
+      ParseException, InvalidArgumentException {
+    HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
+    MaxForwards header = (MaxForwards) factory.createMaxForwardsHeader(70);
+    MaxForwardsConverter converter = new MaxForwardsConverter();
+    io.routr.message.MaxForwards maxForwardsDTO = converter.fromHeader(header);
+    MaxForwards headerFromDto = converter.fromDTO(maxForwardsDTO);
+
+    assertEquals(70, header.getMaxForwards());
+    assertEquals(maxForwardsDTO.getMaxForwards(), header.getMaxForwards());
+    assertEquals(headerFromDto.getMaxForwards(), header.getMaxForwards());
   }
 
   @Test

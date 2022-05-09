@@ -20,12 +20,16 @@ import gov.nist.javax.sip.header.Authorization;
 import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.CallID;
 import gov.nist.javax.sip.header.Expires;
-import io.routr.utils.ClassFinder;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.To;
 import gov.nist.javax.sip.header.From;
+import gov.nist.javax.sip.header.Contact;
+import gov.nist.javax.sip.header.Route;
+import gov.nist.javax.sip.header.RecordRoute;
+import gov.nist.javax.sip.header.MaxForwards;
 import gov.nist.javax.sip.header.WWWAuthenticate;
 import io.routr.message.SIPMessage.Builder;
+import io.routr.utils.ClassFinder;
 import io.routr.message.*;
 import io.routr.common.*;
 import io.routr.processor.*;
@@ -118,11 +122,30 @@ class MessageConverter {
     List<Header> headers = new ArrayList<>();
 
     var vias = message.getViaList().listIterator(message.getViaList().size());
+    var routes = message.getRouteList().listIterator(message.getRouteList().size());
+    var recordRoutes = message.getRecordRouteList().listIterator(message.getRecordRouteList().size());
 
     while (vias.hasPrevious()) {
       io.routr.message.Via via = vias.previous();
       var converter = getConverterByHeader(Via.class);
       headers.add(converter.fromDTO(via));
+    }
+
+    while (routes.hasPrevious()) {
+      io.routr.message.Route route = routes.previous();
+      var converter = getConverterByHeader(Route.class);
+      headers.add(converter.fromDTO(route));
+    }
+
+    while (recordRoutes.hasPrevious()) {
+      io.routr.message.RecordRoute recordRoute = recordRoutes.previous();
+      var converter = getConverterByHeader(RecordRoute.class);
+      headers.add(converter.fromDTO(recordRoute));
+    }
+
+    if (message.hasMaxForwards()) {
+      var converter = getConverterByHeader(MaxForwards.class);
+      headers.add(converter.fromDTO(message.getMaxForwards()));
     }
 
     if (message.hasCallId()) {
