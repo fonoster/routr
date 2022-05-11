@@ -25,10 +25,12 @@ services:
 
   provisioner:
     image: fonoster/routr-ctl
+    depends_on: 
+      - routr-eet
     entrypoint: >
       /bin/sh -c "
         set -e;
-        while ! nc -z routr 4567;do sleep 5; done
+        while ! nc -z routr 4567;do sleep 0.1; done
         rctl login https://routr:4567/api/v1beta1 -u admin -p changeit;
         rctl create -f /config/gateways.yml
         rctl create -f /config/numbers.yml
