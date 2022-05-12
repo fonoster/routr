@@ -28,3 +28,9 @@ export const updateHeader = (request: MessageRequest, header: { name: string, va
   })
   return r
 }
+
+export const addHeader = (request: MessageRequest, header: { name: string, value: string }): MessageRequest => {
+  const r = H.deepCopy(request)
+  r.message.extensions = [...(request.message.extensions as any), header]
+  return r
+}

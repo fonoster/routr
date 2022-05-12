@@ -26,7 +26,7 @@ const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
 
-describe('@routr/processor/alterations', () => {
+describe('@routr/processor/extensions', () => {
   afterEach(() => sandbox.restore());
 
   it('gets value from extension header', () => {

@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import { MessageRequest, Route, Helper as H, IpUtils as I } from "@routr/common";
-import { getHeaderValue, updateHeader } from "./extensions";
 
 export const updateRequestURI = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
@@ -59,17 +58,21 @@ export const addSelfVia = (route: Route) => {
   }
 }
 
-export const addSelfRecordRoute = (route: Route) => {
-  return (request: MessageRequest): MessageRequest => {
-    const req = H.deepCopy(request)
-    const lp = req.listeningPoint
-    const r = {
-      name: "Record-Route",
-      value: `<sip:${lp.host}:${lp.port};lr;transport=${lp.transport}>`
+export const addSelfRecordRoute = (request: MessageRequest): MessageRequest => {
+  const req = H.deepCopy(request)
+  const lp = req.listeningPoint
+  const r = {
+    address: {
+      uri: {
+        host: lp.host,
+        port: lp.port,
+        transport: lp.transport,
+        lrParam: true
+      }
     }
-    req.message.extensions = [r, ...req.message.extensions as any]
-    return req
   }
+  req.message.recordRoute = [r, ...req.message.recordRoute as any]
+  return req
 }
 
 export const addRoute = (route: Route) => {
@@ -77,10 +80,16 @@ export const addRoute = (route: Route) => {
     const req = H.deepCopy(request)
     const lp = route.listeningPoint
     const r = {
-      name: "Route",
-      value: `<sip:${lp.host}:${lp.port};lr;transport=${lp.transport}>`
+      address: {
+        uri: {
+          host: lp.host,
+          port: lp.port,
+          transport: lp.transport,
+          lrParam: true
+        }
+      }
     }
-    req.message.extensions = [r, ...req.message.extensions as any]
+    req.message.route = [r, ...req.message.recordRoute as any]
     return req
   }
 }
@@ -104,15 +113,18 @@ export const removeXEdgePortRef = (request: MessageRequest): MessageRequest => {
 
 export const removeAuthorization = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
-  delete req.message.authorization 
+  delete req.message.authorization
   return req
 }
 
-// TODO: Remove only route headers that are not controlled by this edgeport
 export const removeRoutes = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
-  req.message.extensions = (req.message.extensions as any).filter((ext: any) =>
-    ext.name.toLowerCase() !== "route")
+  req.message.route = (req.message.route as any).filter((r: any) => {
+    const lp = request.listeningPoint
+    const route = r.address.uri
+    return !((route.host === lp.host || request.externalIps.includes(route.host))
+      && route.port === lp.port)
+  })
   return req
 }
 

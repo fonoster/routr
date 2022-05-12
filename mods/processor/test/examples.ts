@@ -26,7 +26,7 @@ export const route: Route = {
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: 'd001',
+  edgePortRef: 'ep001',
   listeningPoint: {
     host: "proxy",
     port: 5060,
@@ -34,14 +34,30 @@ export const route: Route = {
   }
 }
 
+export const routeOnAnotherEdgePort: Route = {
+  user: '1001',
+  host: 'sip.local',
+  port: 5060,
+  transport: Transport.TCP,
+  registeredOn: Date.now(),
+  sessionCount: -1,
+  expires: 600,
+  edgePortRef: 'ep002',
+  listeningPoint: {
+    host: "10.100.42.128",
+    port: 5060,
+    transport: Transport.TCP
+  }
+}
+
 export const request: MessageRequest = {
   "ref": "AynhXaFtbdXwHrUEzt_rUQ..",
-  "edgePortRef": "001",
+  "edgePortRef": "ep001",
   "method": Method.REGISTER,
   "externalIps": ["200.22.21.42"],
   "localnets": ["10.100.42.127/31"],
   "listeningPoint": {
-    "host": "192.168.1.3",
+    "host": "10.100.42.127",
     "port": 5060,
     "transport": Transport.TCP
   },
@@ -56,13 +72,13 @@ export const request: MessageRequest = {
         "host": "proxy",
         "port": 5060,
         "branch": "z9hG4bK-524287-1---7315a24d84546819",
-        "transport": "UDP"
+        "transport": Transport.TCP
       },
       {
         "host": "127.0.0.1",
         "port": 36214,
         "branch": "z9hG4bK-524287-1---7315a24d84546819",
-        "transport": "UDP"
+        "transport": Transport.TCP
       }
     ],
     "extensions": [
@@ -156,6 +172,73 @@ export const request: MessageRequest = {
     "expires": {
       "expires": 60
     },
+    "recordRoute": [
+      {
+        "parameters": {
+          "a": "1",
+          "b": "2"
+        },
+        "address": {
+          "uri": {
+            "user": "",
+            "userPassword": "",
+            "host": "sip.local",
+            "transportParam": "",
+            "mAddrParam": "",
+            "methodParam": "",
+            "userParam": "",
+            "ttlParam": -1,
+            "port": 5060,
+            "lrParam": false,
+            "secure": false
+          },
+          "displayName": "",
+          "wildcard": false
+        }
+      }
+    ],
+    "route": [
+      {
+        "parameters": null,
+        "address": {
+          "uri": {
+            "user": "",
+            "userPassword": "",
+            "host": "10.100.42.127",
+            "transportParam": "",
+            "mAddrParam": "",
+            "methodParam": "",
+            "userParam": "",
+            "ttlParam": -1,
+            "port": 5060,
+            "lrParam": false,
+            "secure": false
+          },
+          "displayName": "",
+          "wildcard": false
+        }
+      },
+      {
+        "parameters": null,
+        "address": {
+          "uri": {
+            "user": "",
+            "userPassword": "",
+            "host": "10.100.42.128",
+            "transportParam": "",
+            "mAddrParam": "",
+            "methodParam": "",
+            "userParam": "",
+            "ttlParam": -1,
+            "port": 5060,
+            "lrParam": false,
+            "secure": false
+          },
+          "displayName": "",
+          "wildcard": false
+        }
+      }
+    ],
     "authorization": {
       "realm": "sip.local",
       "scheme": "Digest",

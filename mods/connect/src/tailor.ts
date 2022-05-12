@@ -28,7 +28,7 @@ export const tailorInterDomainRoute = (route: Route, req: MessageRequest): Messa
     req,
     A.updateRequestURI(route),
     A.addSelfVia(route),
-    A.addSelfRecordRoute(route),
+    A.addSelfRecordRoute,
     A.decreaseMaxForwards,
     A.removeAuthorization,
     A.removeRoutes,
