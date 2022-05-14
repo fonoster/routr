@@ -22,7 +22,8 @@ const isExpired = reg => {
     return true
   }
   const elapsed = (Date.now() - reg.registeredOn) / 1000
-  return reg.expires - elapsed <= 0
+  // The registry process happens every 30 seconds, so we substract 45 to be sure it is expired
+  return reg.expires - elapsed - 45 <= 0
 }
 
 module.exports.isRegistered = isRegistered

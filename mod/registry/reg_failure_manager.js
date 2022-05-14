@@ -3,11 +3,11 @@
  * @since v1
  */
 class RegFailureManager {
-  constructor(store) {
+  constructor (store) {
     this.store = store.withCollection('regFailure')
   }
 
-  reportFailure(ref) {
+  reportFailure (ref) {
     const item = this.store.get(ref)
       ? JSON.parse(this.store.get(ref))
       : { ref, failures: 0 }
@@ -20,7 +20,7 @@ class RegFailureManager {
     this.store.put(ref, JSON.stringify(item))
   }
 
-  clearCount(ref) {
+  clearCount (ref) {
     const refs = this.getRefs()
     refs.forEach(currentRef => {
       if (ref === currentRef) {
@@ -35,21 +35,20 @@ class RegFailureManager {
     })
   }
 
-  clearAll() {
+  clearAll () {
     const refs = this.getRefs()
     refs.forEach(ref => {
       this.store.remove(ref)
     })
   }
 
-
-  getRefs() {
+  getRefs () {
     return this.getAsArray().map(item => item.ref)
   }
 
-  getAsArray() {
+  getAsArray () {
     if (!this.store.values()) return []
-    return  this.store.values().map(e => JSON.parse(e))
+    return this.store.values().map(e => JSON.parse(e))
   }
 }
 
