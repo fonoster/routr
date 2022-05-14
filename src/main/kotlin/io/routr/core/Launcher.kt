@@ -30,7 +30,7 @@ class Launcher {
           }
         },
         10 * 1000.toLong(),
-        60 * 1000.toLong()
+        30 * 1000.toLong()
     )
 
     timer.schedule(
