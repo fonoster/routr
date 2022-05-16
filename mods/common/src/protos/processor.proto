@@ -18,12 +18,34 @@ service Processor {
 
 enum Method {
   UNKNOWN = 0;
+  // Communicates user location (host name, IP)
   REGISTER = 1;
+  // Establishes a session
   INVITE = 2;
+  // Transports Instant Messages
   MESSAGE = 3;
+  // Publishes an event to the Server
   PUBLISH = 4;
+  // Notifies the subscriber of a new event
   NOTIFY = 5;
+  // Subscribes for Notification from the notifier
   SUBSCRIBE = 6;
+  // Confirms an INVITE request
+  ACK = 7;
+  // Terminates a session
+  BYE = 8;
+  // Cancels establishing of a session
+  CANCEL = 9;
+  // Communicates information about the capabilities of the calling and receiving SIP phones
+  OPTIONS = 10;
+  // Provisional Acknowledgement
+  PRACK = 11;
+  // Sends mid session information
+  INFO = 12; 
+  // Asks the recipient to issue call transfer
+  REFER = 13;
+  // Modifies the state of a session
+  UPDATE = 14;
 }
 
 message NetInterface {
