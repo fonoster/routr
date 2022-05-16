@@ -44,7 +44,7 @@ export const addSelfVia = (route: Route) => {
     // If the nextHopHost host is local, then use use lp to construct via
     // otherwise, we use the first external ip available.
     const via = I.isLocalnet(req.localnets, nextHopHost)
-      ? req.listeningPoint
+      ? route.listeningPoint
       : {
         // fallback to lp host if there is no external ips
         host: req.externalIps[0] || req.listeningPoint.host,
@@ -66,7 +66,7 @@ export const addSelfRecordRoute = (request: MessageRequest): MessageRequest => {
       uri: {
         host: lp.host,
         port: lp.port,
-        transport: lp.transport,
+        transportParam: lp.transport,
         lrParam: true
       }
     }
@@ -84,7 +84,7 @@ export const addRoute = (route: Route) => {
         uri: {
           host: lp.host,
           port: lp.port,
-          transport: lp.transport,
+          transportParam: lp.transport,
           lrParam: true
         }
       }

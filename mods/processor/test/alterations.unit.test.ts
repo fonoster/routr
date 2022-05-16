@@ -110,7 +110,7 @@ describe('@routr/processor/alterations', () => {
       .to.have.property("port")
       .to.be.equal(r.listeningPoint.port)
     expect(uri)
-      .to.have.property("transport")
+      .to.have.property("transportParam")
       .to.be.equal(r.listeningPoint.transport)
   })
 
@@ -125,7 +125,7 @@ describe('@routr/processor/alterations', () => {
       .to.have.property("port")
       .to.be.equal(route.listeningPoint.port)
     expect(uri)
-      .to.have.property("transport")
+      .to.have.property("transportParam")
       .to.be.equal(route.listeningPoint.transport)
   })
 

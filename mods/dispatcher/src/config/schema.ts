@@ -75,9 +75,6 @@ export const schema = {
             "ref": {
               "type": "string"
             },
-            "isFallback": {
-              "type": "boolean"
-            },
             "addr": {
               "type": "string"
             },

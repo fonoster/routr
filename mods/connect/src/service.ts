@@ -20,7 +20,12 @@ import { ConnectProcessorConfig } from "./types"
 import { MessageRequest } from "@routr/common"
 import { LocationClient as Location } from "@routr/location"
 import { handleRegister, handleInvite } from "./utils"
-import Processor, { Response } from "@routr/processor"
+import Processor, {
+  Alterations as A,
+  Helper as H,
+  Response
+} from "@routr/processor"
+import logger from "@fonoster/logger"
 
 export default function ConnectProcessor(config: ConnectProcessorConfig) {
   const { bindAddr, locationAddr } = config
@@ -29,23 +34,26 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
 
   new Processor({ bindAddr, name: "connect" })
     .listen(async (req: MessageRequest, res: Response) => {
+      // Check if is response and simply forwards to endpoint
+      if (H.isTypeResponse(req)) {
+        // Remove the proxy via before forwarding response
+        return res.send(A.removeTopVia(req))
+      }
+
       switch (req.method.toString()) {
         case 'PUBLISH':
         case 'NOTIFY':
         case 'SUBSCRIBE':
           res.sendMethodNotAllowed()
           break
+        case 'CANCEL':
+            res.sendNotImplemented()
+            break          
         case 'REGISTER':
           await handleRegister(location)(req, res)
           break
-        case 'INVITE':
-          await handleInvite(location, apiService)(req, res)
-          break
-        case 'CANCEL':
-          res.sendNotImplemented()
-          break
         default:
-          res.sendNotImplemented()
+          await handleInvite(location, apiService)(req, res)
       }
     })
 }

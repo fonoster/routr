@@ -55,7 +55,7 @@ export const request: MessageRequest = {
   "edgePortRef": "ep001",
   "method": Method.REGISTER,
   "externalIps": ["200.22.21.42"],
-  "localnets": ["10.100.42.127/31"],
+  "localnets": ["10.100.42.127/31", "10.100.42.128/31"],
   "listeningPoint": {
     "host": "10.100.42.127",
     "port": 5060,

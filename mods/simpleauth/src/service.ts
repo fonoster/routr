@@ -29,15 +29,18 @@ export default function SimpleAuthProcessor(config: { bindAddr: string, users: U
 
   new Processor({ bindAddr, name: "simpleauth" })
     .listen((req: Record<string, any>, res: Response) => {
-     
-      logger.verbose(`authenticating ${req.message.from.address.uri.user} endpoint with simpleauth`)
-      logger.silly(JSON.stringify(req, null, ' '))
-
       const tracer = ot.trace.getTracer("routr-tracer")
       const currentSpan = ot.trace.getSpan(ot.context.active())
       // display traceid in the terminal
-      logger.verbose(`traceid: ${currentSpan?.spanContext().traceId}`)
+      logger.silly(`authenticating ${req.message.from.address.uri.user} endpoint with simpleauth`, { traceId: currentSpan?.spanContext().traceId})
+      logger.silly(JSON.stringify(req, null, ' '))
+
       const span = tracer.startSpan('server.js:sayHello()', { kind: 1})
+
+      // Consider extending the list to other message types
+      if (req.method !== "INVITE" && req.method !== "MESSAGE" ) {
+        return res.send(req)
+      }
 
       if (whiteList.includes(req.message.from.address.uri.user)) {
         span.addEvent(`authenticated ${req.message.from.address.uri.user} from whitelist`)

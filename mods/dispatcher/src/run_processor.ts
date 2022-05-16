@@ -26,7 +26,7 @@ import ot from '@opentelemetry/api'
 export function runProcessor(params: RunProcessorParams) {
   const currentSpan = ot.trace.getSpan(ot.context.active());
   // display traceid in the terminal
-  logger.verbose(`traceid: ${currentSpan?.spanContext().traceId}`);
+  logger.silly(`traceid: ${currentSpan?.spanContext().traceId}`);
   const tracer = ot.trace.getTracer("routr-tracer");
   const span = tracer.startSpan('server.js:sayHello()', { kind: 1 });
   span.addEvent(`invoking sayHello() to...`);
@@ -38,7 +38,7 @@ export function runProcessor(params: RunProcessorParams) {
     return callback(matchResult)
   }
 
-  logger.verbose("forwarding request to processor with ref => " + matchResult.ref)
+  logger.silly("forwarding request to processor", { processorRef: matchResult.ref })
 
   const conn = connections.get(matchResult.ref)
   // Connects to downstream processor

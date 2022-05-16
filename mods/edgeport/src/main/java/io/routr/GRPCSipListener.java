@@ -134,9 +134,13 @@ public class GRPCSipListener implements SipListener {
   public void processResponse(final ResponseEvent responseEvent) {
     try {
       Response res = responseEvent.getResponse();
+
+      if (isStackJob(res)) {
+        return;
+      }
+
       MessageRequest request = this.messageConverter.createMessageRequest(res);
       MessageResponse response = blockingStub.processMessage(request);
-
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
 
       // Removing all the headers of type Via to avoid duplicates
@@ -148,10 +152,18 @@ public class GRPCSipListener implements SipListener {
         res.addHeader(header);
       }
 
-      this.sipProvider.sendResponse(res);
+      if (isTransactional(responseEvent)) {
+        var serverTransaction = responseEvent.getClientTransaction().getApplicationData();
+        if (serverTransaction != null) {
+          ((ServerTransaction) serverTransaction).sendResponse(res);
+        } else if (res.getHeader(ViaHeader.NAME) != null) {
+          this.sipProvider.sendResponse(res);
+        }
+      } else if (res.getHeader(ViaHeader.NAME) != null) {
+        this.sipProvider.sendResponse(res);
+      }
     } catch (SipException | InvalidArgumentException | ParseException e) {
-      e.printStackTrace();
-      LOG.warn(e.getMessage());
+      LOG.error(e.getMessage());
     }
   }
 
@@ -173,14 +185,15 @@ public class GRPCSipListener implements SipListener {
   private void sendRequest(final ServerTransaction serverTransaction, final Request request,
       final List<Header> headers) {
     try {
+      Request requestOut = updateRequest(request, headers);
       // Does not need a transaction
-      if (request.getMethod().equals(Request.ACK)) {
-        this.sipProvider.sendRequest(request);
+      if (requestOut.getMethod().equals(Request.ACK)) {
+        this.sipProvider.sendRequest(requestOut);
         return;
       }
 
-      Request requestOut = updateRequest(request, headers);
       var clientTransaction = this.sipProvider.getNewClientTransaction(requestOut);
+      clientTransaction.setApplicationData(serverTransaction);
       clientTransaction.sendRequest();
     } catch (SipException e) {
       e.printStackTrace();
@@ -228,4 +241,24 @@ public class GRPCSipListener implements SipListener {
     return requestOut;
   }
 
+  public static boolean isTransactional(final ResponseEvent event) {
+    return (event.getClientTransaction() != null &&
+        hasMethod(event.getResponse(), new String[] { Request.INVITE, Request.MESSAGE }));
+  }
+
+  public static boolean isStackJob(final Response response) {
+    return hasCodes(response, new int[] { Response.TRYING, Response.REQUEST_TERMINATED })
+        || hasMethod(response, new String[] { Request.CANCEL });
+  }
+
+  public static boolean hasMethod(final Response response, final String... methods) {
+    // Get method from cseq header
+    CSeqHeader cseqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
+    var method = cseqHeader.getMethod();
+    return Arrays.stream(methods).filter(m -> m == method).toArray().length > 0;
+  }
+
+  public static boolean hasCodes(final Response response, final int... codes) {
+    return Arrays.stream(codes).filter(c -> c == response.getStatusCode()).toArray().length > 0;
+  }
 }

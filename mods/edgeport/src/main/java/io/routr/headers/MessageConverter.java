@@ -36,13 +36,12 @@ import io.routr.processor.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public 
-class MessageConverter {
+public class MessageConverter {
   private Map<String, NetInterface> listeningPoints;
   private List<String> externalIps;
   private List<String> localnets;
   private final static Logger LOG = LogManager.getLogger(MessageConverter.class);
-  private final String edgePortRef; 
+  private final String edgePortRef;
 
   public MessageConverter(String edgePortRef) {
     this.edgePortRef = edgePortRef;
@@ -51,9 +50,9 @@ class MessageConverter {
   public MessageRequest createMessageRequest(final Message message) {
     String methodStr = null;
     if (message instanceof Request) {
-      methodStr =  ((Request)message).getMethod();
-    } else if (message instanceof Response){
-      methodStr = ((CSeq) ((Response)message).getHeader(CSeq.NAME)).getMethod();
+      methodStr = ((Request) message).getMethod();
+    } else if (message instanceof Response) {
+      methodStr = ((CSeq) ((Response) message).getHeader(CSeq.NAME)).getMethod();
     }
 
     NetInterface sender = getSender(message);
@@ -81,10 +80,10 @@ class MessageConverter {
       var sipURI = (javax.sip.address.SipURI) ((Request) message).getRequestURI();
       var converter = new SipURIConverter();
       sipMessageBuilder.setRequestUri(converter.fromObject(sipURI));
-    } else if (message instanceof Response){
+    } else if (message instanceof Response) {
       Response response = (Response) message;
       sipMessageBuilder.setResponseType(
-        ResponseType.valueOf(ResponseCode.fromCode(response.getStatusCode())));
+          ResponseType.valueOf(ResponseCode.fromCode(response.getStatusCode())));
     }
 
     // Getting a list of names of all headers present on SIP Message
@@ -121,84 +120,87 @@ class MessageConverter {
       throws InvalidArgumentException, PeerUnavailableException, ParseException {
     List<Header> headers = new ArrayList<>();
 
-    var vias = message.getViaList().listIterator(message.getViaList().size());
-    var routes = message.getRouteList().listIterator(message.getRouteList().size());
-    var recordRoutes = message.getRecordRouteList().listIterator(message.getRecordRouteList().size());
+    try {
+      var vias = message.getViaList().listIterator(message.getViaList().size());
+      var routes = message.getRouteList().listIterator(message.getRouteList().size());
+      var recordRoutes = message.getRecordRouteList().listIterator(message.getRecordRouteList().size());
 
-    while (vias.hasPrevious()) {
-      io.routr.message.Via via = vias.previous();
-      var converter = getConverterByHeader(Via.class);
-      headers.add(converter.fromDTO(via));
-    }
+      while (vias.hasPrevious()) {
+        io.routr.message.Via via = vias.previous();
+        var converter = getConverterByHeader(Via.class);
+        headers.add(converter.fromDTO(via));
+      }
 
-    while (routes.hasPrevious()) {
-      io.routr.message.Route route = routes.previous();
-      var converter = getConverterByHeader(Route.class);
-      headers.add(converter.fromDTO(route));
-    }
+      while (routes.hasPrevious()) {
+        io.routr.message.Route route = routes.previous();
+        var converter = getConverterByHeader(Route.class);
+        headers.add(converter.fromDTO(route));
+      }
 
-    while (recordRoutes.hasPrevious()) {
-      io.routr.message.RecordRoute recordRoute = recordRoutes.previous();
-      var converter = getConverterByHeader(RecordRoute.class);
-      headers.add(converter.fromDTO(recordRoute));
-    }
+      while (recordRoutes.hasPrevious()) {
+        io.routr.message.RecordRoute recordRoute = recordRoutes.previous();
+        var converter = getConverterByHeader(RecordRoute.class);
+        headers.add(converter.fromDTO(recordRoute));
+      }
 
-    if (message.hasMaxForwards()) {
-      var converter = getConverterByHeader(MaxForwards.class);
-      headers.add(converter.fromDTO(message.getMaxForwards()));
-    }
+      if (message.hasMaxForwards()) {
+        var converter = getConverterByHeader(MaxForwards.class);
+        headers.add(converter.fromDTO(message.getMaxForwards()));
+      }
 
-    if (message.hasCallId()) {
-      var converter = getConverterByHeader(CallID.class);
-      headers.add(converter.fromDTO(message.getCallId()));
-    }
+      if (message.hasCallId()) {
+        var converter = getConverterByHeader(CallID.class);
+        headers.add(converter.fromDTO(message.getCallId()));
+      }
 
-    if (message.hasWwwAuthenticate()) {
-      var converter = getConverterByHeader(WWWAuthenticate.class);
-      headers.add(converter.fromDTO(message.getWwwAuthenticate()));
-    }
+      if (message.hasWwwAuthenticate()) {
+        var converter = getConverterByHeader(WWWAuthenticate.class);
+        headers.add(converter.fromDTO(message.getWwwAuthenticate()));
+      }
 
-    if (message.hasAuthorization()) {
-      var converter = getConverterByHeader(Authorization.class);
-      headers.add(converter.fromDTO(message.getAuthorization()));
-    }
+      if (message.hasAuthorization()) {
+        var converter = getConverterByHeader(Authorization.class);
+        headers.add(converter.fromDTO(message.getAuthorization()));
+      }
 
-    if (message.hasFrom()) {
-      var converter = getConverterByHeader(From.class);
-      headers.add(converter.fromDTO(message.getFrom()));
-    }
+      if (message.hasFrom()) {
+        var converter = getConverterByHeader(From.class);
+        headers.add(converter.fromDTO(message.getFrom()));
+      }
 
-    if (message.hasTo()) {
-      var converter = getConverterByHeader(To.class);
-      headers.add(converter.fromDTO(message.getTo()));
-    }
+      if (message.hasTo()) {
+        var converter = getConverterByHeader(To.class);
+        headers.add(converter.fromDTO(message.getTo()));
+      }
 
-    if (message.hasContact()) {
-      var converter = getConverterByHeader(Contact.class);
-      headers.add(converter.fromDTO(message.getContact()));
-    }
+      if (message.hasContact()) {
+        var converter = getConverterByHeader(Contact.class);
+        headers.add(converter.fromDTO(message.getContact()));
+      }
 
-    if (message.hasExpires()) {
-      var converter = getConverterByHeader(Expires.class);
-      headers.add(converter.fromDTO(message.getExpires()));
-    }
+      if (message.hasExpires()) {
+        var converter = getConverterByHeader(Expires.class);
+        headers.add(converter.fromDTO(message.getExpires()));
+      }
 
-    if (!message.getExtensionsList().isEmpty()) {
-      var extensions = message.getExtensionsList().iterator();
-      var converter = new ExtensionConverter();
+      if (!message.getExtensionsList().isEmpty()) {
+        var extensions = message.getExtensionsList().iterator();
+        var converter = new ExtensionConverter();
 
-      while (extensions.hasNext()) {
-        io.routr.message.Extension extension = extensions.next();
-        try {
-          headers.add(converter.fromDTO(extension));
-        } catch (Exception e) {
-          LOG.warn(e.getMessage());
-          // This will stop happening once we implement all of the headers
-          // e.printStackTrace();
+        while (extensions.hasNext()) {
+          io.routr.message.Extension extension = extensions.next();
+          try {
+            headers.add(converter.fromDTO(extension));
+          } catch (Exception e) {
+            LOG.warn(e.getMessage());
+            // This will stop happening once we implement all of the headers
+            // e.printStackTrace();
+          }
         }
       }
+    } catch (Exception e) {
+      LOG.warn(e.getMessage());
     }
-
     return headers;
   }
 

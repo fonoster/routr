@@ -60,7 +60,6 @@ export interface ProcessorConfig {
   ref: string
   addr: string
   methods: Array<Method>
-  isFallback?: boolean
   matchFunc?: (request: MessageRequest) => boolean
 }
 

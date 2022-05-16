@@ -38,14 +38,14 @@ export async function runMiddlewares(params: RunMiddlewaresParams): Promise<Mess
   const req = { ...request }
   return new Promise(async (resolve, rejects) => {
     for (const midd of middlewares) {
-      logger.verbose("sending request to middleware",  { ref: midd.ref, addr: midd.addr })
+      logger.silly("sending request to middleware",  { ref: request.ref, middlewareRef: midd.ref, addr: midd.addr })
       // Get the next middleware
       const conn = connections.get(midd.ref)
       // Send message and re-insert response for next middleware
       try {
         req.message = (await processMessage(midd.ref, conn, req)).message
         if (req.message.messageType === "responseType") {
-          logger.verbose("found messageType to be responseType and broke the chain")
+          logger.silly("found messageType to be responseType and broke the chain",  { ref: request.ref, middlewareRef: midd.ref, addr: midd.addr })
           break
         }
       } catch(e) {

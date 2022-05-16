@@ -37,7 +37,6 @@ const sandbox = sinon.createSandbox();
 
 const config1: ProcessorConfig = {
   ref: "processor-ref1",
-  isFallback: false,
   addr: "localhost:51903",
   methods: [Method.REGISTER],
   matchFunc: (request: MessageRequest) => request.method === 'REGISTER'
@@ -45,7 +44,6 @@ const config1: ProcessorConfig = {
 
 const config2: ProcessorConfig = {
   ref: "processor-ref2",
-  isFallback: false,
   addr: "remotehost:50055",
   methods: [Method.REGISTER, Method.INVITE],
   matchFunc: (request: MessageRequest) => request.method === 'REGISTER' || request.method === 'INVITE'
@@ -53,9 +51,9 @@ const config2: ProcessorConfig = {
 
 const config3: ProcessorConfig = {
   ref: "processor-ref3",
-  isFallback: true,
   addr: "remotehost:50055",
-  methods: [Method.REGISTER, Method.INVITE, Method.MESSAGE]
+  methods: [Method.REGISTER, Method.INVITE, Method.MESSAGE],
+  matchFunc: () => true
 }
 
 const messageRequest: MessageRequest = {

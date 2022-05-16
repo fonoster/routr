@@ -43,7 +43,7 @@ export const handleInvite = (location: any, apiService: any) =>
   async (req: MessageRequest, res: Response) => {
     //const routeType = getRouteType(location, apiService)(req)
     //const connectObject = getConnectObject(location, apiService)(req)
-    const route = E.getHeaderValue(req, "x-edgeport-ref") !== undefined
+    const route = E.getHeaderValue(req, "x-edgeport-ref") !== undefined || req.method.toString() === "ACK" 
       ? HE.createRouteFromLastMessage(req)
       : (await location.findRoutes({ aor: T.getTargetAOR(req) }))[0]
     

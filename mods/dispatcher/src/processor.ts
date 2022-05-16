@@ -45,7 +45,7 @@ export default function processor(params: {
       .then((req: MessageRequest) => {
         // Since the chain was broken we need to skip the processor and return the updated request
         if (req.message.messageType === "responseType") {
-          logger.verbose("skipped processsing request ref " + req.ref)
+          logger.silly("skipped processsing request", { ref: req.ref })
           return callback(null, req)
         }
         runProcessor({ callback, request: req, processors, connections: procConns })

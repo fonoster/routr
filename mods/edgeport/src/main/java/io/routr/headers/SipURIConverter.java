@@ -24,7 +24,7 @@ public class SipURIConverter {
     if(uri.getUserParam() != null) builder.setUserParam(uri.getUserParam());
     if(uri.getPort() != -1) builder.setPort(uri.getPort());
 
-    if(uri.getTTLParam() != -1) builder.setTtlParam(uri.getTTLParam());
+    if(uri.getTTLParam() > 0) builder.setTtlParam(uri.getTTLParam());
     if(uri.getMethodParam()!= null) builder.setMethodParam(uri.getMethodParam());
  
     return builder.build();
@@ -41,7 +41,7 @@ public class SipURIConverter {
     if(!dto.getTransportParam().isEmpty()) uri.setTransportParam(dto.getTransportParam());
     if(!dto.getMethodParam().isEmpty()) uri.setMethodParam(dto.getMethodParam());
     if(!dto.getUserParam().isEmpty()) uri.setUserParam(dto.getUserParam());
-    if(dto.getTtlParam() != -1) uri.setTTLParam(dto.getTtlParam());
+    if(dto.getTtlParam() > 0) uri.setTTLParam(dto.getTtlParam());
     
     uri.setPort(dto.getPort());
     uri.setSecure(dto.getSecure());

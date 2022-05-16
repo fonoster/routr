@@ -27,16 +27,16 @@ const validate = ajv.compile(schema)
 
 export const getConfig = (path: string)
   : E.Either<Error, MessageDispatcherConfig> => {
-  const c = JSON.parse(fs.readFileSync(path, "utf8")) 
+  const c = JSON.parse(fs.readFileSync(path, "utf8"))
 
-  if (!validate({...c})) {
+  if (!validate({ ...c })) {
     return E.left(new Error(JSON.stringify(validate.errors[0].message)))
   }
 
   // convert funcMatch to actual functions
   const processors = c.spec.processors.map((p: any) => {
     const { ref, isFallback, addr, methods, matchFunc } = p
-    return { ref, isFallback, addr, methods, matchFunc: eval(`(${p.matchFunc})`)}
+    return { ref, isFallback, addr, methods, matchFunc: eval(`(${matchFunc})`)}
   })
 
   // Re-insert processors with matchFunc now as a function
