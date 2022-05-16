@@ -18,8 +18,8 @@
  */
 import { MessageRequest } from "@routr/common"
 
-const buildResponse = (code: number) => {
-  return { message: { responseType: code }}
+const buildResponse = (code: number, extraHeaders?: Array<{ name: string, value: string }>) => {
+  return { message: { responseType: code, extensions: extraHeaders } }
 }
 
 export default class Response {
@@ -28,8 +28,8 @@ export default class Response {
     this.callback = callback
   }
 
-  sendOk() {
-    this.callback(null, buildResponse(7))
+  sendOk(extraHeaders?: Array<{ name: string, value: string }>) {
+    this.callback(null, buildResponse(7, extraHeaders))
   }
 
   sendMethodNotAllowed() {

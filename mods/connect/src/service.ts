@@ -22,6 +22,7 @@ import { LocationClient as Location } from "@routr/location"
 import { handleRegister, handleInvite } from "./utils"
 import Processor, {
   Alterations as A,
+  Target as T,
   Helper as H,
   Response
 } from "@routr/processor"
@@ -34,6 +35,13 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
 
   new Processor({ bindAddr, name: "connect" })
     .listen(async (req: MessageRequest, res: Response) => {
+      logger.verbose("connect processor received new request", { 
+        ref: req.ref, 
+        method: req.method, 
+        type: req.message.messageType === "responseType" ? '(response)' : '(request)', 
+        edgePort: req.edgePortRef })
+      logger.silly(JSON.stringify(req, null, ' '))
+
       // Check if is response and simply forwards to endpoint
       if (H.isTypeResponse(req)) {
         // Remove the proxy via before forwarding response
@@ -47,8 +55,12 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           res.sendMethodNotAllowed()
           break
         case 'CANCEL':
-            res.sendNotImplemented()
-            break          
+          const route = (await location.findRoutes({ aor: T.getTargetAOR(req) }))[0]          
+          res.sendOk([{ 
+            name: 'x-request-uri', 
+            value: `${route.user},${route.host},${route.port},${route.transport}`
+          }])
+          break
         case 'REGISTER':
           await handleRegister(location)(req, res)
           break
