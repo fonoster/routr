@@ -20,11 +20,13 @@ package io.routr;
 
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.sip.address.SipURI;
 import javax.sip.ClientTransaction;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
@@ -57,6 +59,8 @@ import javax.sip.message.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.nist.javax.sip.SipStackExt;
+import gov.nist.javax.sip.clientauthutils.AccountManager;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.Via;
 import io.grpc.ManagedChannel;
@@ -70,14 +74,15 @@ import io.routr.processor.MessageRequest;
 import io.routr.processor.MessageResponse;
 import io.routr.processor.NetInterface;
 import io.routr.processor.ProcessorGrpc;
+import io.routr.utils.AccountManagerImpl;
 
 public class GRPCSipListener implements SipListener {
   private final ProcessorGrpc.ProcessorBlockingStub blockingStub;
   private final MessageConverter messageConverter;
   private final SipProvider sipProvider;
-  private final HeaderFactory headerFactory;
   private final MessageFactory messageFactory;
   private final AddressFactory addressFactory;
+  private final HeaderFactory headerFactory;
   private final static Logger LOG = LogManager.getLogger(GRPCSipListener.class);
   private final Map<String, Transaction> activeTransactions = new HashMap<>();
 
@@ -124,14 +129,14 @@ public class GRPCSipListener implements SipListener {
     messageConverter.setLocalnets(localnets);
     messageConverter.setListeningPoints(listeningPoints);
 
-    this.headerFactory = SipFactory.getInstance().createHeaderFactory();
     this.messageFactory = SipFactory.getInstance().createMessageFactory();
     this.addressFactory = SipFactory.getInstance().createAddressFactory();
+    this.headerFactory = SipFactory.getInstance().createHeaderFactory();
   }
 
-  public void processRequest(final RequestEvent requestEvent) {
-    Request req = requestEvent.getRequest();
-    ServerTransaction serverTransaction = requestEvent.getServerTransaction();
+  public void processRequest(final RequestEvent event) {
+    Request req = event.getRequest();
+    ServerTransaction serverTransaction = event.getServerTransaction();
 
     if (serverTransaction == null && req.getMethod().equals(Request.ACK) == false) {
       try {
@@ -142,7 +147,7 @@ public class GRPCSipListener implements SipListener {
     }
 
     try {
-      MessageRequest request = this.messageConverter.createMessageRequest(requestEvent.getRequest());
+      MessageRequest request = this.messageConverter.createMessageRequest(req);
       MessageResponse response = blockingStub.processMessage(request);
 
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
@@ -168,11 +173,28 @@ public class GRPCSipListener implements SipListener {
     }
   }
 
-  public void processResponse(final ResponseEvent responseEvent) {
+  public void processResponse(final ResponseEvent event) {
     try {
-      Response res = responseEvent.getResponse();
+      Response res = event.getResponse();
 
       if (isStackJob(res)) {
+        return;
+      }
+
+      var isTransactional = isTransactional(event);
+
+      if (isTransactional && authenticationRequired(res)) {
+        // Q. What if it has no application data?
+        var accountManager = (AccountManager) event.getClientTransaction().getApplicationData();
+
+        if (accountManager == null) {
+          // TODO: Should provide additional information about the request
+          LOG.warn("no account manager found for transaction");
+          return;
+        }
+
+        var sipStack = (SipStackExt) this.sipProvider.getSipStack();
+        handleAuthChallenge(sipStack, event, accountManager);
         return;
       }
 
@@ -189,10 +211,12 @@ public class GRPCSipListener implements SipListener {
         res.addHeader(header);
       }
 
-      if (isTransactional(responseEvent)) {
-        var serverTransaction = (ServerTransaction) responseEvent.getClientTransaction().getApplicationData();
-        if (serverTransaction != null) {
-          serverTransaction.sendResponse(res);
+      if (isTransactional) {
+        var req = event.getClientTransaction().getRequest();
+        var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
+        var originalServerTransaction = (ServerTransaction) this.activeTransactions.get(callId.getCallId() + "_server");
+        if (originalServerTransaction != null) {
+          originalServerTransaction.sendResponse(res);
         } else if (res.getHeader(ViaHeader.NAME) != null) {
           this.sipProvider.sendResponse(res);
         }
@@ -247,7 +271,10 @@ public class GRPCSipListener implements SipListener {
       }
 
       var clientTransaction = this.sipProvider.getNewClientTransaction(requestOut);
-      clientTransaction.setApplicationData(serverTransaction);
+
+      // Setting authentication artifat
+      var host = ((SipURI) requestOut.getRequestURI()).getHost();
+      clientTransaction.setApplicationData(createAccountManager(headers, host));
       clientTransaction.sendRequest();
 
       var callId = (CallIdHeader) requestOut.getHeader(CallIdHeader.NAME);
@@ -289,7 +316,20 @@ public class GRPCSipListener implements SipListener {
     }
   }
 
-  public static Request updateRequest(final Request request, final List<Header> headers) {
+  private void handleAuthChallenge(final SipStackExt sipStack, final ResponseEvent event,
+      final AccountManager accountManager) {
+    var authHelper = sipStack.getAuthenticationHelper(accountManager, this.headerFactory);
+    // Setting looseRouting to false will cause
+    // https://github.com/fonoster/routr/issues/18
+    try {
+      authHelper.handleChallenge(event.getResponse(), event.getClientTransaction(),
+          (SipProvider) event.getSource(), 5, true).sendRequest();
+    } catch (NullPointerException | SipException e) {
+      LOG.warn(e.getMessage());
+    }
+  }
+
+  static Request updateRequest(final Request request, final List<Header> headers) {
     Request requestOut = (Request) request.clone();
 
     Iterator names = requestOut.getHeaderNames();
@@ -305,6 +345,12 @@ public class GRPCSipListener implements SipListener {
 
     while (headersIterator.hasNext()) {
       Header header = headersIterator.next();
+
+      // Ignore special header
+      if (header.getName().equalsIgnoreCase("x-gateway-auth")) {
+        continue;
+      }
+
       String s = header.getName();
       if (s.equals("From") || s.equals("To") && s.equals("Call-ID")
           && s.equals("CSeq")) {
@@ -317,24 +363,49 @@ public class GRPCSipListener implements SipListener {
     return requestOut;
   }
 
-  public static boolean isTransactional(final ResponseEvent event) {
+  private static boolean isTransactional(final ResponseEvent event) {
     return (event.getClientTransaction() != null &&
         hasMethod(event.getResponse(), new String[] { Request.INVITE, Request.MESSAGE }));
   }
 
-  public static boolean isStackJob(final Response response) {
+  private static boolean isStackJob(final Response response) {
     return hasCodes(response, new int[] { Response.TRYING, Response.REQUEST_TERMINATED })
         || hasMethod(response, new String[] { Request.CANCEL });
   }
 
-  public static boolean hasMethod(final Response response, final String... methods) {
+  private static boolean authenticationRequired(final Response response) {
+    return hasCodes(response, new int[] { Response.PROXY_AUTHENTICATION_REQUIRED, Response.UNAUTHORIZED });
+  }
+
+  private static boolean hasMethod(final Response response, final String... methods) {
     // Get method from cseq header
     CSeqHeader cseqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
     var method = cseqHeader.getMethod();
     return Arrays.stream(methods).filter(m -> m == method).toArray().length > 0;
   }
 
-  public static boolean hasCodes(final Response response, final int... codes) {
+  private static boolean hasCodes(final Response response, final int... codes) {
     return Arrays.stream(codes).filter(c -> c == response.getStatusCode()).toArray().length > 0;
+  }
+
+  private static AccountManager createAccountManager(final List<Header> headers, final String host) {
+    var headersIterator = headers.iterator();
+    while (headersIterator.hasNext()) {
+      Header header = headersIterator.next();
+
+      if (header.getName().equalsIgnoreCase("x-gateway-auth")) {
+        var authStr = ((ExtensionHeader) header).getValue();
+        var auth = new String(Base64.getDecoder().decode(authStr));
+
+        if (auth.split(":").length != 2) {
+          throw new IllegalArgumentException("invalid 'x-gateway-auth' header value; should be base64('username:password')");
+        }
+
+        var username = auth.split(":")[0];
+        var password = auth.split(":")[1];
+        return new AccountManagerImpl(username, password , host);
+      }
+    }
+    return null;
   }
 }

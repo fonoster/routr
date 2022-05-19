@@ -503,6 +503,7 @@ public class ConveterTests {
     request.addHeader(headerFactory.createContentLengthHeader(200));
     request.addHeader(headerFactory.createHeader("X-Custom-Header-01", "my custom header 01"));
     request.addHeader(headerFactory.createHeader("X-Custom-Header-02", "my custom header 02"));
+    request.addHeader(headerFactory.createHeader("X-Gateway-Auth", "dXNlcjpwYXNzd29yZA=="));
     request.addHeader(headerFactory.createViaHeader("sip.local.hop1", 5060, "tcp", null));
     request.addHeader(headerFactory.createViaHeader("sip.local.hop2", 5060, "tcp", null));
     request.addHeader(headerFactory.createViaHeader("sip.local.hop3", 5060, "tcp", null));
@@ -530,7 +531,7 @@ public class ConveterTests {
       viaListOut.add(viaIteratorOut.next());
     }
 
-    assertEquals(9, headers.size());
+    assertEquals(10, headers.size());
     
     Iterator names = request.getHeaderNames();
     while (names.hasNext()) {
@@ -544,5 +545,6 @@ public class ConveterTests {
     assertEquals(viaList.get(0).getHost(), viaListOut.get(0).getHost());
     assertEquals(viaList.get(1).getHost(), viaListOut.get(1).getHost());
     assertEquals(viaList.get(2).getHost(), viaListOut.get(2).getHost());
+    assertEquals(requestOut.getHeader("X-Gateway-Auth"), null);
   }
 }
