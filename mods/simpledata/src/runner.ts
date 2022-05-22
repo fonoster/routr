@@ -33,7 +33,8 @@ if (!process.env.PATH_TO_RESOURCES) {
   process.exit(1)
 }
 
-const resources: Resource[] = loadResources(process.env.PATH_TO_RESOURCES)
+const resources: Resource[] = loadResources(
+  process.env.PATH_TO_RESOURCES, process.env.PATH_TO_SCHEMAS)
 
 try {
   SimpleDataService({ bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903", resources })
