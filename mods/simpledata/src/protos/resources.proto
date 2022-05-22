@@ -24,9 +24,9 @@ message Resource {
     // Link to dependencies of this resource
     repeated string link_to = 3;
     // Created at
-    string create_time = 4;
+    int32 create_time = 4;
     // Updated at
-    string update_time = 5;
+    int32 update_time = 5;
   } 
   // The resource's metadata
   Metadata metadata = 1;
