@@ -1,0 +1,31 @@
+[
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Number",
+    "metadata": {
+      "ref": "nbxt67rx",
+      "name": "(706)604-1487",
+      "dependsOn": [
+        "/trunk/tk6t67r1"
+      ],
+      "geoInfo": {
+        "city": "Columbus, GA",
+        "country": "USA",
+        "countryISOCode": "US"
+      }
+    },
+    "spec": {
+      "trunkRef": "tk6t67r1",
+      "location": {
+        "telUrl": "tel:17066041487",
+        "aorLink": "backend:conference",
+        "sessionAffinityProp": "x-room-id",
+        "props": [
+          {
+            "x-room-id": "jsa-shqm-iyo"
+          }
+        ]
+      }
+    }
+  }
+]

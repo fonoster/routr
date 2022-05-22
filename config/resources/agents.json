@@ -1,0 +1,20 @@
+[
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Agent",
+    "metadata": {
+      "ref": "ag2c77f4",
+      "name": "John Doe",
+      "dependsOn": [
+        "/domain/dm2c76ft",
+        "/credential/crd2c76ft"
+      ]
+    },
+    "spec": {
+      "username": "johndoe",
+      "domainRef": "dm2c76ft",
+      "credentialRef": "crd2c76ft",
+      "enabled": true
+    }
+  }
+]

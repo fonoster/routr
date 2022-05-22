@@ -1,0 +1,33 @@
+[
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Trunk",
+    "metadata": {
+      "ref": "tk6t67r1",
+      "name": "VoIP.ms Trunk",
+      "dependsOn": [
+        "/acl/acl04b5y",
+        "/credential/crd02s23"
+      ]
+    },
+    "spec": {
+      "inbound": {
+        "uri": "fn01.sip.fonoster.com",
+        "accessControlListRef": "acl04b5y",
+        "credentialsRef": "crd02s23"
+      },
+      "outbound": {
+        "sendRegister": false,
+        "credentialsRef": "crd02s23",
+        "uris": [
+          {
+            "uri": "sip:sip.acme.com;transport=tcp",
+            "priority": 10,
+            "weight": 10,
+            "enabled": true
+          }
+        ]
+      }
+    }
+  }
+]

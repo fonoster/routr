@@ -1,0 +1,16 @@
+[
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Peer",
+    "metadata": {
+      "ref": "prxt67rx",
+      "name": "Asterisk (Media Server)",
+      "dependsOn": ["/credentials/crd6t67r1"]
+    },
+    "spec": {
+      "aor": "backend:conference",
+      "credentialsRef": "crd6t67r1",
+      "contactAddr": "192.168.1.2:6060"
+    }
+  }
+]
