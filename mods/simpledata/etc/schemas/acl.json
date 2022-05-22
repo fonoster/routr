@@ -1,0 +1,58 @@
+{
+  "$id": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Location Service configuration",
+  "description": "Access Control List for Domains and Trunks",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "enum": [
+        "AccessControlList"
+      ]
+    },
+    "apiVersion": {
+      "enum": [
+        "v2draft1"
+      ]
+    },
+    "metadata": {
+      "description": "Resource metadata",
+      "type": "object"
+    },
+    "spec": {
+      "description": "Operations spec for ACL",
+      "type": "object",
+      "properties": {
+        "accessControlList": {
+          "description": "An object with deny and allow list of access control rules",
+          "type": "object",
+          "properties": {
+            "allow": {
+              "description": "Allowed list of access control rules",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "deny": {
+              "description": "Denied list of access control rules",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "metadata",
+    "spec",
+    "apiVersion"
+  ]
+}

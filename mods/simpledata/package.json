@@ -1,0 +1,54 @@
+{
+  "name": "@routr/simpledata",
+  "version": "2.0.5-alpha.15",
+  "description": "Files-based API Server for Routr Connect",
+  "author": "Pedro Sanders <psanders@fonoster.com>",
+  "homepage": "https://github.com/fonoster/routr#readme",
+  "license": "MIT",
+  "main": "dist/simpledata",
+  "types": "dist/simpledata",
+  "directories": {
+    "src": "src",
+    "test": "test"
+  },
+  "scripts": {
+    "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
+    "build": "tsc -b tsconfig.json"
+  },
+  "bin": {
+    "run_simpledata": "dist/runner.js"
+  },
+  "dependencies": {
+    "@fonoster/logger": "^0.3.3",
+    "@grpc/grpc-js": "^1.5.9",
+    "@opentelemetry/api": "^1.0.4",
+    "@opentelemetry/exporter-jaeger": "^1.0.4",
+    "@opentelemetry/instrumentation": "^0.27.0",
+    "@opentelemetry/instrumentation-grpc": "^0.27.0",
+    "@opentelemetry/resources": "^1.0.4",
+    "@opentelemetry/sdk-trace-base": "^1.0.4",
+    "@opentelemetry/sdk-trace-node": "^1.0.4",
+    "@opentelemetry/semantic-conventions": "^1.0.4",
+    "@routr/common": "^2.0.5-alpha.15",
+    "@routr/processor": "^2.0.5-alpha.15",
+    "google-protobuf": "^3.9.2",
+    "jsonpath": "^1.1.1"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fonoster/routr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fonoster/routr/issues"
+  },
+  "devDependencies": {
+    "@types/google-protobuf": "^3.15.6",
+    "@types/jsonpath": "^0.2.0"
+  }
+}

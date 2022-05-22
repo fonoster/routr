@@ -1,0 +1,72 @@
+{
+  "$id": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Number Schema",
+  "description": "A JSON Schema for validating numbers.",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "enum": [
+        "Number",
+        "number"
+      ]
+    },
+    "apiVersion": {
+      "enum": [
+        "v2draft1"
+      ]
+    },
+    "metadata": {
+      "description": "Resource metadata",
+      "type": "object"
+    },
+    "spec": {
+      "description": "Operations spec for Numbers",
+      "type": "object",
+      "properties": {
+        "trunkRef": {
+          "description": "Reference to the trunk",
+          "type": "string"
+        },
+        "location": {
+          "description": "Location of the number",
+          "type": "object",
+          "properties": {
+            "telUrl": {
+              "description": "Tel URL",
+              "type": "string"
+            },
+            "aorLink": {
+              "description": "AOR link",
+              "type": "string"
+            },
+            "sessionAffinityProp": {
+              "description": "Session affinity",
+              "type": "string"
+            },
+            "props": {
+              "description": "Properties",
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          },
+          "required": [
+            "telUrl",
+            "aorLink"
+          ]
+        }
+      },
+      "required": [
+        "trunkRef",
+        "location"
+      ]
+    }
+  },
+  "required": [
+    "kind",
+    "metadata",
+    "spec",
+    "apiVersion"
+  ]
+}

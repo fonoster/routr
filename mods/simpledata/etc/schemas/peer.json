@@ -1,0 +1,61 @@
+{
+  "$id": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent validation schema",
+  "description": "The spec defined for Peer validation",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "enum": [
+        "Peer",
+        "peer"
+      ]
+    },
+    "apiVersion": {
+      "enum": [
+        "v2draft1"
+      ]
+    },
+    "metadata": {
+      "description": "Resource metadata",
+      "type": "object"
+    },
+    "spec": {
+      "description": "Operations spec for an Peer",
+      "type": "object",
+      "properties": {
+        "aor": {
+          "description": "Address of the Peer",
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 255,
+          "readOnly": true
+        },
+        "contactAddr": {
+          "description": "Contact address of the Peer",
+          "type": "string"
+        },
+        "credentialRef": {
+          "description": "The credential the Agent uses to authenticate",
+          "type": "string"
+        },
+        "accessControlListRef": {
+          "description": "The ACL the Agent uses to control access to the Peer",
+          "type": "string"
+        },
+        "enabled": {
+          "description": "Whether the Peer is enabled",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "aor"
+      ]
+    }
+  },
+  "required": [
+    "kind",
+    "metadata",
+    "spec",
+    "apiVersion"
+  ]
+}

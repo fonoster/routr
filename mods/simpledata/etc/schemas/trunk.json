@@ -1,0 +1,88 @@
+{
+  "$id": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent validation schema",
+  "description": "The spec defined for Peer validation",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "enum": [
+        "Trunk",
+        "trunk"
+      ]
+    },
+    "apiVersion": {
+      "enum": [
+        "v2draft1"
+      ]
+    },
+    "metadata": {
+      "description": "Resource metadata",
+      "type": "object"
+    },
+    "spec": {
+      "description": "Operations spec for an Trunk",
+      "type": "object",
+      "properties": {
+        "inbound": {
+          "description": "Inbound configuration",
+          "type": "object",
+          "uri": {
+            "description": "URI of the inbound endpoint",
+            "type": "string"
+          },
+          "accessControlListRef": {
+            "description": "Reference to the ACL to be used for inbound traffic",
+            "type": "string"
+          },
+          "credentialsRef": {
+            "description": "Reference to the credentials to be used for inbound traffic",
+            "type": "string"
+          }
+        },
+        "outbound": {
+          "description": "Outbound configuration",
+          "type": "object",
+          "sendRegister": {
+            "description": "Whether to send register messages",
+            "type": "boolean"
+          },
+          "credentialsRef": {
+            "description": "Reference to the credentials to be used for outbound traffic",
+            "type": "string"
+          },
+          "uris": {
+            "description": "List of URIs to be used for outbound traffic",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "uri": {
+                  "description": "URI to be used for outbound traffic",
+                  "type": "string"
+                },
+                "weight": {
+                  "description": "Weight of the URI",
+                  "type": "integer"
+                },
+                "priority": {
+                  "description": "Priority of the URI",
+                  "type": "integer"
+                },
+                "enabled": {
+                  "description": "Whether the URI is enabled",
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "metadata",
+    "spec",
+    "apiVersion"
+  ]
+}
