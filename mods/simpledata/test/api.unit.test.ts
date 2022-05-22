@@ -53,7 +53,7 @@ describe('@routr/simpledata/api', () => {
       expect(callbackSpy).to.have.been.calledOnce
     })
 
-    it.only('gets resource by reference', done => {
+    it('gets resource by reference', done => {
       const call = { request: { ref: "crd2c76ftxxxx"} }
       const callback = (err: any, res: any) => {
         expect(err).to.be.not.null
