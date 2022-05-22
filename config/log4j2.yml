@@ -19,7 +19,7 @@ Configuration:
   Loggers:
     Logger:
       - name: io.routr
-        level: info
+        level: debug
         AppenderRef:
         - ref: Console
         - ref: LogToRollingFile
