@@ -39,7 +39,7 @@ export const handleRegister = (location: any) => {
 }
 
 // TODO: If request has X-Connect-Object then validate the JWT value and continue
-export const handleInvite = (location: any, apiService: any) =>
+export const handleRequest = (location: any, apiService: any) =>
   async (req: MessageRequest, res: Response) => {
     //const routeType = getRouteType(location, apiService)(req)
     //const connectObject = getConnectObject(location, apiService)(req)

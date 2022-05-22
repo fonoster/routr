@@ -21,7 +21,7 @@ import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import { request, route } from "../../processor/test/examples"
-import { handleRegister, handleInvite } from "../src/utils"
+import { handleRegister, handleRequest } from "../src/utils"
 import {
   Extensions as E,
   Helper as HE
@@ -65,7 +65,7 @@ describe('@routr/connect', () => {
         expect(findRoutes).to.have.been.calledOnce
       }
     } as any
-    await handleInvite(location, null)(request, response)
+    await handleRequest(location, null)(request, response)
   })
 
   it('handles an invite request from another edgeport', async () => {
@@ -78,7 +78,7 @@ describe('@routr/connect', () => {
     const location = { findRoutes: (aor: string) => [route] }
     const findRoutes = sandbox.spy(location, "findRoutes")
     const response = { send: () => { } } as any
-    await handleInvite(location, null)(req, response)
+    await handleRequest(location, null)(req, response)
     expect(getHeaderValue).to.have.been.calledTwice
     expect(createRouteFromLastMessage).to.have.been.calledOnce
     expect(findRoutes).to.not.have.been.called
@@ -92,7 +92,7 @@ describe('@routr/connect', () => {
     const response = {
       sendNotFound: () => { }
     } as any
-    await handleInvite(location, null)(request, response)
+    await handleRequest(location, null)(request, response)
     expect(getHeaderValue).to.have.been.calledOnce
     expect(createRouteFromLastMessage).to.not.have.been.called
     expect(findRoutes).to.have.been.calledOnce

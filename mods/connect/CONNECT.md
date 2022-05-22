@@ -97,7 +97,7 @@ Authorized actions include:
 </td>
 <td>
 
-`requestURI`, `maxSessionDuration`, `p-asserted-identity`, `remote-party-id`
+`requestURI`, `p-asserted-identity`, `remote-party-id`
 
 </td>
 </tr>
@@ -113,7 +113,7 @@ Assert identity over a Number for calls to the PSTN
 </td>
 <td>
 
-`requestURI`, `maxSessionDuration`, `p-asserted-identity`, `remote-party-id`
+`requestURI`, `p-asserted-identity`, `remote-party-id`
 
 </td>
 </tr>
@@ -129,7 +129,7 @@ Forward inbound traffic if its a Number it controls
 </td>
 <td>
 
-`requestURI`, `maxSessionDuration`, `webhook`
+`requestURI`, `webhook`
 
 </td>
 </tr>
@@ -140,26 +140,37 @@ The following JSON is an example of a `Connect Object` that results from process
 
 ```json
 {
-  "type": "ingress-routing",
-  "maxSessionDuration": -1,
-  "authentication": null,
+  // Q. Should make the ":" and invalid character or make the password a base64?
+  // Base 64 string with(e.g: user:password)
+  "authentication": "dXNlcjpwYXNzd29yZA==",
   "headers": [
-    { "Request-URI": "sip:+19524563516@47.132.130.31:5060" },
-    // Need only for ER
-    { "X-Backend-Name": "voice"},
-    { "X-Backend-Ref": "id:a4Fgsfg3"},
-    { "X-Webhook-Get": "https://868a-47-132-130-31.ngrok.io"},
-    { "X-Webhook-Post": "https://868a-47-132-130-31.ngrok.io"},  
-    { "X-GRPC-Endpoint": "api.remoteservice.io:50051"},
-    { "P-Asserted-Identity": "tel:+19524563516"},
-    { "Remote-Party-ID": "eric <sip:2001@123.123.123.123>;privacy=off;screen=no"}
+    { "name:": "X-Backend-Name", "value": "voice", "action": "add"},
+    { "name:": "X-Backend-Ref", "value": "voice", "action": "add"},
+    { "name:": "X-Webhook-Get", "value": "voice", "action": "add"},
+    { "name:": "X-Webhook-Post", "value": "voice", "action": "add"},
+    { "name:": "X-GRPC-Endpoint", "value": "voice", "action": "add"},
+    { "name:": "P-Asserted-Identity", "action": "delete"},
+    { "name:": "Remote-Party-ID", "action": "delete"},
   ]
 }
 ```
 
-Other `Connect Object` types include "ingress-routing", "egress-routing", and "intra-domain-routing".
-
 > A signed request we the custom header `X-Fonoster-Rtr` could bypass the authentication and the need to construct a `Connect Object`.
+
+For error response the `Connect Object` will look like this:
+
+```json
+{
+  "type": "error",
+  "code": 401,
+  "reason": "Unauthorized",
+  "headers": [
+    { "name:": "X-Additional-Header", "value": "With custom message"}
+  ]
+}
+```
+
+> Header should not allow for "add" action since it will be sent back as a response.
 
 **Non-functional Requirements**
 
@@ -179,11 +190,19 @@ Example:
   "apiVersion": "v2draft1",
   "kind": "Agent",
   "metadata": {
-    "name": "John Doe"
+    "ref": "ag2c77f4",
+    "name": "John Doe",
+    "dependsOn": [
+      "/domain/dm2c76ft"
+      "/domain/dm5774ux",
+      "/credentials/crd2c76ft"
+    ]
   },
   "spec": {
-    "domains": ["sip.local"],
-    "credentialRef": "..."
+    "username": "johndoe",
+    "domains": ["dm2c76ft", "dm5774ux"],
+    "credentialRef": "crd2c76ft",
+    "enabled": true
   }
 }
 ```
@@ -197,23 +216,18 @@ Example:
   "apiVersion": "v2draft1",
   "kind": "Domain",
   "metadata": {
-    "name": "Local Domain"
+    "ref": "dm2c76ft",
+    "name": "Local Domain",
+    "dependsOn": ["/number/nb6c87r2"]
   },
   "spec": {
     "context": {
       "domainUri": "sip.local",
       "egressPolicy": {
         "rule": ".*",
-        "numberRef": "NR0001"
+        "numberRef": "nb6c87r2"
       },
-      "accessControlList": {
-        "deny": [
-          "0.0.0.0/1"
-        ],
-        "allow": [
-          "192.168.0.1/31"
-        ]
-      }
+      "accessControlListRef": "acl04b5y"
     }
   }
 }
@@ -228,20 +242,29 @@ Example:
   "apiVersion": "v2draft1",
   "kind": "Trunk",
   "metadata": {
+    "ref": "tk6t67r1",
     "name": "VoIP.ms Trunk",
-    "ref": "TK0001"
+    "dependsOn": [
+      "/acl/acl04b5y",
+      "/credential/crd02s23"
+    ]
   },
   "spec": {
     "inbound": {
       "uri": "fn01.sip.fonoster.com",
       "accessControlListRef": "acl04b5y",
-      "credentialsRef": "cred02s23"
+      "credentialsRef": "crd02s23"
     },
     "outbound": {
       "sendRegister": false,
-      "credentialsRef": "cred02s23",
+      "credentialsRef": "crd02s23",
       "uris": [
-        { "uri": "sip:sip.acme.com;transport=tcp", "priority": 10, "weight": 10, "enabled": true }
+        {
+          "uri": "sip:sip.acme.com;transport=tcp",
+          "priority": 10,
+          "weight": 10,
+          "enabled": true
+        }
       ]
     }
   }
@@ -255,8 +278,11 @@ Numbers represent virtual numbers used to route calls from/to the PSTN via a Tru
   "apiVersion": "v2draft1",
   "kind": "Number",
   "metadata": {
-    "ref": "NR0001",
-    "tkRef": "TK0001",
+    "ref": "nbxt67rx",
+    "name": "(706)604-1487",
+    "dependsOn": [
+      "/trunk/tk6t67r1"
+    ],
     "geoInfo": {
       "city": "Columbus, GA",
       "country": "USA",
@@ -264,12 +290,15 @@ Numbers represent virtual numbers used to route calls from/to the PSTN via a Tru
     }
   },
   "spec": {
+    "trunkRef": "tk6t67r1",
     "location": {
       "telUrl": "tel:17066041487",
       "aorLink": "backend:conference",
       "sessionAffinityProp": "x-room-id",
       "props": [
-        { "x-room-id": "jsa-shqm-iyo" }
+        {
+          "x-room-id": "jsa-shqm-iyo"
+        }
       ]
     }
   }
@@ -283,10 +312,12 @@ Like Agents, Peers represent SIP endpoints such as Media Servers. Unlike Agents,
   "apiVersion": "v2draft1",
   "kind": "Peer",
   "metadata": {
-    "name": "Asterisk (Media Server)"
+    "ref": "prxt67rx",
+    "name": "Asterisk (Media Server)",
+    "dependsOn": ["/credentials/crd6t67r1"],
   },
   "spec": {
-    "credentialsRef": "my-ip-credentials",
+    "credentialsRef": "crd6t67r1",
     "aor": "backend:conference",
     "contactAddr": "192.168.1.2:6060"
   }

@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 import logger from '@fonoster/logger'
 import ConnectProcessor from "../mods/connect/src/service"
-import SimpleAuthProcessor from "../mods/simpleauth/src/service"
+import SimpleAuthMiddleware from "../mods/simpleauth/src/service"
+import SimpleDataService from "../mods/simpledata/src/service"
 import MessageDispatcher from "../mods/dispatcher/src/service"
 import LocationService from "../mods/location/src/service"
 import { getConfig as getDispatcherConfig } from "../mods/dispatcher/src/config/get_config"
 import { getConfig as getLocationConfig } from "../mods/location/src/config/get_config"
 import { spawn } from "child_process"
 import { Helper as H } from "../mods/common"
+import { Resource } from '../mods/simpledata/src/types'
+import loadResources from '../mods/simpledata/src/utils'
 
 const envcopy = H.deepCopy(process.env);
 envcopy.CONFIG_PATH = __dirname + "/../config/edgeport.alt.json";
@@ -33,7 +36,11 @@ if (locationConfig._tag === 'Right') {
   logger.error(locationConfig.left)
 }
 
-SimpleAuthProcessor({ bindAddr: "0.0.0.0:51903", users, whiteList })
+const resources: Resource[] = loadResources(__dirname + "/../mods/simpledata/etc/schemas",
+  __dirname + "/../config/resources")
+
+SimpleDataService({ bindAddr: "0.0.0.0:52901", resources })
+SimpleAuthMiddleware({ bindAddr: "0.0.0.0:51903", users, whiteList })
 ConnectProcessor({ bindAddr: "0.0.0.0:51904", locationAddr: "localhost:51902" })
 
 edgeport.stdout.on("data", (data: any) => {

@@ -19,7 +19,7 @@
 import { ConnectProcessorConfig } from "./types"
 import { MessageRequest } from "@routr/common"
 import { LocationClient as Location } from "@routr/location"
-import { handleRegister, handleInvite } from "./utils"
+import { handleRegister, handleRequest } from "./utils"
 import Processor, {
   Alterations as A,
   Target as T,
@@ -65,7 +65,7 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           await handleRegister(location)(req, res)
           break
         default:
-          await handleInvite(location, apiService)(req, res)
+          await handleRequest(location, apiService)(req, res)
       }
     })
 }

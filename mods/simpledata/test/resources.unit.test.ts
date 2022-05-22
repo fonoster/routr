@@ -4,7 +4,7 @@
  *
  * This file is part of Routr
  *
- * Licensed under the MIT License (the "License")
+ * Licensed under the MIT License (the "License");
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
@@ -16,22 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface ConnectProcessorConfig {
-  bindAddr: string
-  locationAddr: string
-}
+import chai from 'chai'
+import sinon from 'sinon'
+import sinonChai from 'sinon-chai'
+import loadResources from '../src/utils'
+const expect = chai.expect
+chai.use(sinonChai)
+const sandbox = sinon.createSandbox();
 
-export enum RoutingType {
-  EGRESS_ROUTING = 'egress-routing',
-  INGRESS_ROUTING = 'ingress-routing',
-  INTRA_DOMAIN_ROUTING = 'intra-domain-routing',
-}
+describe('@routr/simpledata/resources', () => {
+  afterEach(() => sandbox.restore());
 
-export interface Authentication {}
-
-export interface ConnectObject {
-  type: RoutingType | "error"
-  // Base64 encoded string with username:password
-  authentication: string
-  headers?: Map<string, string>
-}
+  it('loads and validate resources from a path', () => {
+    loadResources(__dirname + "/../etc/schemas", __dirname + "/../../../config/resources")
+  })
+})

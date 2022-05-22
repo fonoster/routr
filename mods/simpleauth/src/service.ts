@@ -24,7 +24,7 @@ import { getCredentials, createUnauthorizedResponse } from './utils'
 import Processor, { Response } from "@routr/processor"
 import { User } from './types'
 
-export default function SimpleAuthProcessor(config: { bindAddr: string, users: User[], whiteList: string[] }) {
+export default function SimpleAuthMiddleware(config: { bindAddr: string, users: User[], whiteList: string[] }) {
   const { bindAddr, users, whiteList } = config
 
   new Processor({ bindAddr, name: "simpleauth" })
