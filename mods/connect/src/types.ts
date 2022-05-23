@@ -1,3 +1,5 @@
+import { HeaderModifier } from "@routr/common"
+
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -16,22 +18,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export enum ROUTING_DIRECTION {
+  FROM_PSTN = 'from-pstn',
+  AGENT_TO_AGENT = 'agent-to-agent',
+  AGENT_TO_PSTN = 'agent-to-pstn',
+  PEER_TO_AGENT = 'peer-to-agent',
+  PEER_TO_PSTN = 'peer-to-pstn',
+  UNKNOWN = 'unknown'
+}
+
 export interface ConnectProcessorConfig {
   bindAddr: string
   locationAddr: string
 }
 
-export enum RoutingType {
-  EGRESS_ROUTING = 'egress-routing',
-  INGRESS_ROUTING = 'ingress-routing',
-  INTRA_DOMAIN_ROUTING = 'intra-domain-routing',
+export interface ConnectObject {
+  headers?: HeaderModifier[]
 }
 
-export interface Authentication {}
-
-export interface ConnectObject {
-  type: RoutingType | "error"
-  // Base64 encoded string with username:password
-  authentication: string
-  headers?: Map<string, string>
+export interface Resource {
+  apiVersion: string
+  kind: string
+  metadata: {
+    ref: string
+    name: string
+    linkTo?: Array<string>
+  }
+  spec: any
 }

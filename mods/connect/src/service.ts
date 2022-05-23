@@ -19,7 +19,7 @@
 import { ConnectProcessorConfig } from "./types"
 import { MessageRequest } from "@routr/common"
 import { LocationClient as Location } from "@routr/location"
-import { handleRegister, handleRequest } from "./utils"
+import { handleRegister, handleRequest } from "./handlers"
 import Processor, {
   Alterations as A,
   Target as T,
@@ -35,11 +35,12 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
 
   new Processor({ bindAddr, name: "connect" })
     .listen(async (req: MessageRequest, res: Response) => {
-      logger.verbose("connect processor received new request", { 
-        ref: req.ref, 
-        method: req.method, 
-        type: req.message.messageType === "responseType" ? '(response)' : '(request)', 
-        edgePort: req.edgePortRef })
+      logger.verbose("connect processor received new request", {
+        ref: req.ref,
+        method: req.method,
+        type: req.message.messageType === "responseType" ? '(response)' : '(request)',
+        edgePort: req.edgePortRef
+      })
       logger.silly(JSON.stringify(req, null, ' '))
 
       // Check if is response and simply forwards to endpoint
@@ -55,9 +56,9 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           res.sendMethodNotAllowed()
           break
         case 'CANCEL':
-          const route = (await location.findRoutes({ aor: T.getTargetAOR(req) }))[0]          
-          res.sendOk([{ 
-            name: 'x-request-uri', 
+          const route = (await location.findRoutes({ aor: T.getTargetAOR(req) }))[0]
+          res.sendOk([{
+            name: 'x-request-uri',
             value: `${route.user},${route.host},${route.port},${route.transport}`
           }])
           break

@@ -140,9 +140,6 @@ The following JSON is an example of a `Connect Object` that results from process
 
 ```json
 {
-  // Q. Should make the ":" and invalid character or make the password a base64?
-  // Base 64 string with(e.g: user:password)
-  "authentication": "dXNlcjpwYXNzd29yZA==",
   "headers": [
     { "name:": "X-Backend-Name", "value": "voice", "action": "add"},
     { "name:": "X-Backend-Ref", "value": "voice", "action": "add"},
@@ -165,7 +162,7 @@ For error response the `Connect Object` will look like this:
   "code": 401,
   "reason": "Unauthorized",
   "headers": [
-    { "name:": "X-Additional-Header", "value": "With custom message"}
+    { "name:": "X-Additional-Header", "value": "With custom message", "action": "add" }
   ]
 }
 ```

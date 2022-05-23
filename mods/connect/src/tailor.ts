@@ -23,11 +23,12 @@ import {
 import { Route } from "@routr/common"
 import { pipe } from "fp-ts/function"
 
-export const tailorInterDomainRoute = (route: Route, req: MessageRequest): MessageRequest =>
+export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
   pipe(
     req,
     A.updateRequestURI(route),
     A.addSelfVia(route),
+    A.applyXHeaders(route),
     A.addSelfRecordRoute,
     A.decreaseMaxForwards,
     A.removeAuthorization,
