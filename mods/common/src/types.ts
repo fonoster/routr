@@ -109,6 +109,12 @@ export interface AuthChallengeResponse {
   method: string
 }
 
+export interface HeaderModifier {
+  name: string
+  value?: string
+  action: "add" | "remove"
+}
+
 export interface Route {
   user: string
   host: string
@@ -120,4 +126,5 @@ export interface Route {
   edgePortRef: string
   listeningPoint: NetInterface
   labels?: Map<string, string>
+  headers?: HeaderModifier[]
 }

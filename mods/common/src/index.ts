@@ -32,7 +32,8 @@ import {
   Method, 
   ObjectProto, 
   ServiceInfo,
-  Route
+  Route,
+  HeaderModifier
 } from "./types";
 
 export {
@@ -40,6 +41,7 @@ export {
   getObjectProto,
   generateNonce,
   calculateAuthResponse,
+  HeaderModifier,
   Route,
   ServiceUnavailableError,
   Transport,
