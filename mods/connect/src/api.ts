@@ -22,8 +22,8 @@ import { ServiceUnavailableError } from "./errors"
 import grpc = require('@grpc/grpc-js')
 
 export function API(apiAddr: string) {
-  const client = new resources.v2draft1
-    .Resources(apiAddr, grpc.credentials.createInsecure())
+  const client = new resources.v2draft1.Resources(apiAddr, grpc.credentials.createInsecure())
+  
   return {
     get: (ref: string) => new Promise<Resource>((resolve, reject) => {
       client.get({ ref }, (err: any, response: any) => {
@@ -36,7 +36,7 @@ export function API(apiAddr: string) {
       })
     }),
     find: (query: string) => new Promise<Resource[]>((resolve, reject) => {
-      client.get({ query }, (err: any, response: any) => {
+      client.find({ query }, (err: any, response: any) => {
         if (err) {
           return err?.code === grpc.status.UNAVAILABLE
             ? reject(new ServiceUnavailableError(`api server at ${apiAddr} is unavailable`))
