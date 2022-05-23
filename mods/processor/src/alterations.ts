@@ -16,7 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, Route, Helper as H, IpUtils as I } from "@routr/common";
+import {
+  MessageRequest,
+  Route,
+  HeaderModifier,
+  Helper as H,
+  IpUtils as I
+} from "@routr/common";
 
 export const updateRequestURI = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
@@ -58,23 +64,6 @@ export const addSelfVia = (route: Route) => {
   }
 }
 
-export const addSelfRecordRoute = (request: MessageRequest): MessageRequest => {
-  const req = H.deepCopy(request)
-  const lp = req.listeningPoint
-  const r = {
-    address: {
-      uri: {
-        host: lp.host,
-        port: lp.port,
-        transportParam: lp.transport,
-        lrParam: true
-      }
-    }
-  }
-  req.message.recordRoute = [r, ...req.message.recordRoute as any]
-  return req
-}
-
 export const addRoute = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
@@ -92,6 +81,41 @@ export const addRoute = (route: Route) => {
     req.message.route = [r, ...req.message.recordRoute as any]
     return req
   }
+}
+
+export const applyXHeaders = (route: Route) => {
+  return (request: MessageRequest): MessageRequest => {
+    const req = H.deepCopy(request)
+    if (route.headers && route.headers.length > 0) {
+      const headersToRemove = route.headers.filter((h: HeaderModifier) => h.action === "remove").map(h => h.name)
+      const headersToAdd = route.headers.filter((h: HeaderModifier) => h.action !== "remove")
+
+      req.message.extensions = (req.message.extensions as any)
+        .filter((h: any) => !headersToRemove.includes(h.name.toLowerCase()))
+
+      headersToAdd.forEach((h: any) => {
+        (req.message.extensions as any).push({ name: h.name, value: h.value })
+      })
+    }
+    return req
+  }
+}
+
+export const addSelfRecordRoute = (request: MessageRequest): MessageRequest => {
+  const req = H.deepCopy(request)
+  const lp = req.listeningPoint
+  const r = {
+    address: {
+      uri: {
+        host: lp.host,
+        port: lp.port,
+        transportParam: lp.transport,
+        lrParam: true
+      }
+    }
+  }
+  req.message.recordRoute = [r, ...req.message.recordRoute as any]
+  return req
 }
 
 export const addXEdgePortRef = (request: MessageRequest): MessageRequest => {

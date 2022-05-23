@@ -20,7 +20,7 @@ import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import { request, route, routeOnAnotherEdgePort } from "./examples"
-import { Alterations as A } from '../src'
+import { Alterations as A, Extensions as E } from '../src'
 import { MessageRequest } from '@routr/common/src'
 import { pipe } from 'fp-ts/function'
 
@@ -139,6 +139,12 @@ describe('@routr/processor/alterations', () => {
     expect(uri)
       .to.be.have.property("port")
       .to.be.equal(routeOnAnotherEdgePort.listeningPoint.port)
+  })
+
+  it.only('applies the extension headers from Route', () => {
+    const r = A.applyXHeaders(route) (request as any as MessageRequest) as any
+    expect(E.getHeaderValue(r, 'x-gateway-auth')).to.not.be.null
+    expect(E.getHeaderValue(r, 'user-agent')).to.be.undefined
   })
 
   it('pipes alterations and checks the result', () => {
