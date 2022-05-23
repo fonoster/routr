@@ -18,7 +18,7 @@
  */
 import { AddRouteRequest, FindRoutesRequest, ILocationService, RemoveRoutesRequest } from "./types";
 import { LOCATION_OBJECT_PROTO, Route, ServiceUnavailableError } from "@routr/common"
-const grpc = require("@grpc/grpc-js")
+import grpc = require("@grpc/grpc-js")
 
 function container(self: any, request: any, name: string) {
   return new Promise((resolve, reject) => {
