@@ -58,10 +58,12 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           break
         case 'CANCEL':
           const route = (await location.findRoutes({ aor: T.getTargetAOR(req) }))[0]
-          res.sendOk([{
-            name: 'x-request-uri',
-            value: `${route.user},${route.host},${route.port},${route.transport}`
-          }])
+          if (route) {
+            res.sendOk([{
+              name: 'x-request-uri',
+              value: `${route?.user},${route.host},${route.port},${route.transport}`
+            }])
+          }
           break
         case 'REGISTER':
           await handleRegister(location)(req, res)
