@@ -51,7 +51,7 @@ export function find(resources: Resource[]) {
     }
 
     try {
-      callback(null, jp.query(resources, call.request.query))
+      callback(null, { resources: jp.query(resources, call.request.query)})
     } catch (e) {
       return callback(new BadRequest(`invalid JSONPath expression: ${call.request.query}`), null)
     }
