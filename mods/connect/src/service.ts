@@ -24,10 +24,12 @@ import Processor, {
   Alterations as A,
   Target as T,
   Helper as H,
+  Helper as HE,
   Response
 } from "@routr/processor"
 import logger from "@fonoster/logger"
 import { API } from "./api"
+import { tailor } from "./tailor"
 
 export default function ConnectProcessor(config: ConnectProcessorConfig) {
   const { bindAddr, locationAddr } = config
@@ -67,6 +69,9 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           break
         case 'REGISTER':
           await handleRegister(location)(req, res)
+          break
+        case 'BYE': 
+          res.send(tailor(HE.createRouteFromLastMessage(req), req))
           break
         default:
           await handleRequest(location, dataAPI)(req, res)
