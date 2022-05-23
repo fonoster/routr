@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectProcessorConfig } from "./types"
+import { ConnectProcessorConfig, DataAPI } from "./types"
 import { MessageRequest } from "@routr/common"
 import { LocationClient as Location } from "@routr/location"
 import { handleRegister, handleRequest } from "./handlers"
@@ -27,11 +27,12 @@ import Processor, {
   Response
 } from "@routr/processor"
 import logger from "@fonoster/logger"
+import { API } from "./api"
 
 export default function ConnectProcessor(config: ConnectProcessorConfig) {
   const { bindAddr, locationAddr } = config
   const location = new Location({ addr: locationAddr })
-  const apiService: any = null
+  const dataAPI: DataAPI = API(config.apiAddr)
 
   new Processor({ bindAddr, name: "connect" })
     .listen(async (req: MessageRequest, res: Response) => {
@@ -66,7 +67,7 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           await handleRegister(location)(req, res)
           break
         default:
-          await handleRequest(location, apiService)(req, res)
+          await handleRequest(location, dataAPI)(req, res)
       }
     })
 }

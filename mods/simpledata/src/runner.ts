@@ -22,16 +22,9 @@ import logger from '@fonoster/logger'
 import SimpleDataService from './service'
 import { Resource } from './types'
 import loadResources from './utils'
+import { Assertions as A} from "@routr/common"
 
-if (!process.env.PATH_TO_SCHEMAS) {
-  logger.error("environment variable PATH_TO_SCHEMAS is required but was not found")
-  process.exit(1)
-}
-
-if (!process.env.PATH_TO_RESOURCES) {
-  logger.error("environment variable PATH_TO_RESOURCES is required but was not found")
-  process.exit(1)
-}
+A.assertEnvsAreSet(['PATH_TO_SCHEMAS', 'PATH_TO_RESOURCES'])
 
 const resources: Resource[] = loadResources(
   process.env.PATH_TO_RESOURCES, process.env.PATH_TO_SCHEMAS)

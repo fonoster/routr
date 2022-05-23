@@ -1,5 +1,3 @@
-import { HeaderModifier } from "@routr/common"
-
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -18,6 +16,8 @@ import { HeaderModifier } from "@routr/common"
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HeaderModifier } from "@routr/common"
+
 export enum ROUTING_DIRECTION {
   FROM_PSTN = 'from-pstn',
   AGENT_TO_AGENT = 'agent-to-agent',
@@ -30,6 +30,7 @@ export enum ROUTING_DIRECTION {
 export interface ConnectProcessorConfig {
   bindAddr: string
   locationAddr: string
+  apiAddr: string
 }
 
 export interface ConnectObject {
@@ -45,4 +46,9 @@ export interface Resource {
     linkTo?: Array<string>
   }
   spec: any
+}
+
+export interface DataAPI {
+  get: (ref: string) => Promise<Resource>
+  find: (query: string) => Promise<Resource[]>
 }

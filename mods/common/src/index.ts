@@ -59,3 +59,4 @@ export {
 export * as Helper from "./helper"
 export * as IpUtils from "./ip_utils"
 export * as Tracer from "./tracer"
+export * as Assertions from "./assertions"

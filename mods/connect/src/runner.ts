@@ -20,13 +20,12 @@
 require("./tracer").init("dispatcher")
 import logger from '@fonoster/logger'
 import ConnectProcessor from './service'
+import { Assertions as A } from "@routr/common"
 
-if (process.env.LOCATION_ADDR) {
-  ConnectProcessor({
-    bindAddr: process.env.BIND_ADDR || "0.0.0.0:51904",
-    locationAddr: process.env.LOCATION_ADDR
-  })
-} else {
-  logger.error("environment variable LOCATION_ADDR is required but was not found")
-  process.exit(1)
-}
+A.assertEnvsAreSet(['LOCATION_ADDR', 'API_ADDR'])
+
+ConnectProcessor({
+  bindAddr: process.env.BIND_ADDR || "0.0.0.0:51904",
+  locationAddr: process.env.LOCATION_ADDR,
+  apiAddr: process.env.API_ADDR
+})

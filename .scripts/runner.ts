@@ -41,7 +41,11 @@ const resources: Resource[] = loadResources(__dirname + "/../mods/simpledata/etc
 
 SimpleDataService({ bindAddr: "0.0.0.0:52901", resources })
 SimpleAuthMiddleware({ bindAddr: "0.0.0.0:51903", users, whiteList })
-ConnectProcessor({ bindAddr: "0.0.0.0:51904", locationAddr: "localhost:51902" })
+ConnectProcessor({ 
+  bindAddr: "0.0.0.0:51904", 
+  locationAddr: "localhost:51902",
+  apiAddr: "localhost:52901"
+})
 
 edgeport.stdout.on("data", (data: any) => {
   process.stdout.write(`${data}`)

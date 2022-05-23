@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -17,23 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-require("./tracer").init("simpleauth")
-import logger from '@fonoster/logger'
-import SimpleAuthProcessor from './service'
-import { User } from './types'
-import { Assertions as A } from "@routr/common"
+import logger from "@fonoster/logger";
 
-A.assertEnvsAreSet(['PATH_TO_AUTH'])
-
-const whiteList = process.env.WHITELIST ? process.env.WHITELIST.split(',') : []
-
-try {
-  const users: User[] = require(process.env.PATH_TO_AUTH)
-  SimpleAuthProcessor({ bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903", users, whiteList })
-} catch (e) {
-  if (e.code === "MODULE_NOT_FOUND") {
-    logger.error(`auth file not found [path = ${process.env.PATH_TO_AUTH}]`)
-  } else {
-    logger.error(e)
-  }
+export function assertEnvsAreSet(envs: string[]) {
+  envs.forEach((env: string) => {
+    if (!(env in process.env)) {
+      logger.error(
+        `The environment variable ${env} is required but was not found`
+      );
+      process.exit(1);
+    }
+  });
 }
