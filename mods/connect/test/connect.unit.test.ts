@@ -21,7 +21,7 @@ import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import { request, route } from "../../processor/test/examples"
-import { handleRegister, handleRequest } from "../src/utils"
+import { handleRegister, handleRequest } from "../src/handlers"
 import {
   Extensions as E,
   Helper as HE

@@ -31,7 +31,15 @@ export const route: Route = {
     host: "proxy",
     port: 5060,
     transport: Transport.TCP
-  }
+  },
+  headers: [{
+    name: "x-gateway-auth",
+    value: "dXNlcm5hbWU6cGFzc3dvcmQ=",
+    action: "add"
+  }, {
+    name: "user-agent",
+    action: "remove"
+  }]
 }
 
 export const routeOnAnotherEdgePort: Route = {
