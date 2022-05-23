@@ -1,0 +1,38 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.234.0/containers/javascript-node
+{
+  "name": "Routr SIP Server",
+  "build": {
+    "dockerfile": "Dockerfile",
+    // Update 'VARIANT' to pick a Node version: 18, 16, 14.
+    // Append -bullseye or -buster to pin to an OS version.
+    // Use -bullseye variants on local arm64/Apple Silicon.
+    "args": {
+      "VARIANT": "16-bullseye"
+    }
+  },
+  // Set *default* container specific settings.json values on container create.
+  "settings": {},
+  // Add the IDs of extensions you want installed when the container is created.
+  "extensions": [
+    "dbaeumer.vscode-eslint"
+  ],
+  "forwardPorts": [
+    52901,
+    51901,
+    51902,
+    51903,
+    51904,
+    5060,
+    5061,
+    5062,
+    5063
+  ],
+  "remoteUser": "node",
+  "features": {
+    "java": "12",
+    "gradle": "5"
+  },
+  // Run extra environment setup required to build & test Routr 
+  "postCreateCommand": "gradle build copyRuntimeLibs && npm run bootstrap"
+}
