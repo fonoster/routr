@@ -35,9 +35,9 @@ describe('@routr/connect', () => {
   afterEach(() => sandbox.restore());
 
   it('updates a request for inter-domain routing', () => {
-    // Test tailorInterDomainRoute
-    const tailorInterDomainRoute = require('../src/tailor').tailorInterDomainRoute
-    const tailoredRequest = tailorInterDomainRoute(route as Route, request as MessageRequest)
+    // Test tailor method
+    const tailor = require('../src/tailor').tailor
+    const tailoredRequest = tailor(route as Route, request as MessageRequest)
     expect(tailoredRequest.message.requestUri.user).to.equal(route.user)
     expect(tailoredRequest.message.via).to.be.lengthOf(3)
     expect(tailoredRequest.message.maxForwards.maxForwards).to.be.equal(69)

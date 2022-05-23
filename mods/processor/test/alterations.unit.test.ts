@@ -141,7 +141,7 @@ describe('@routr/processor/alterations', () => {
       .to.be.equal(routeOnAnotherEdgePort.listeningPoint.port)
   })
 
-  it.only('applies the extension headers from Route', () => {
+  it('applies the extension headers from Route', () => {
     const r = A.applyXHeaders(route) (request as any as MessageRequest) as any
     expect(E.getHeaderValue(r, 'x-gateway-auth')).to.not.be.null
     expect(E.getHeaderValue(r, 'user-agent')).to.be.undefined
