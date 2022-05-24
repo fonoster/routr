@@ -119,7 +119,7 @@ describe('@routr/simpledata/api', () => {
       const call = { request: { query: "$..[?(@.spec.credentials.username=='username')]"} }
       const callback = (err: any, res: any) => {
         expect(err).to.be.null
-        expect(res).to.be.an('array').to.be.lengthOf(1)
+        expect(res.resources).to.be.an('array').to.be.lengthOf(1)
         done()
       }
       const callbackSpy = sandbox.spy(callback)
