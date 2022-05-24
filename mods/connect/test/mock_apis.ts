@@ -16,39 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Resource } from "../src/types"
+import { DataAPI, Resource } from "../src/types"
+import { r1 } from './examples'
+import loadResources from "../../simpledata/src/utils"
+import jp from "jsonpath"
 
-export const resources: Resource[] = [
-  {
-    "apiVersion": "v2draft1",
-    "kind": "Credential",
-    "metadata": {
-      "ref": "crd2c76ft",
-      "name": "my-secret-credential"
-    },
-    "spec": {
-      "credentials": {
-        "username": "username",
-        "password": "password"
-      }
-    }
+const resources: Resource[] = loadResources(__dirname + "/../../simpledata/etc/schemas",
+  __dirname + "/../../../config/resources")
+
+export const dataAPI: DataAPI = {
+  find: (query: string) => {
+    return Promise
+      .resolve(jp.query(resources, query)) as unknown as Promise<Resource[]>
   },
-  {
-    "apiVersion": "v2draft1",
-    "kind": "AccessControlList",
-    "metadata": {
-      "ref": "acl2c77f4",
-      "name": "Europe ACL"
-    },
-    "spec": {
-      "accessControlList": {
-        "deny": [
-          "0.0.0.0/1"
-        ],
-        "allow": [
-          "192.168.0.1/31"
-        ]
-      }
-    }
+  get: (ref: string): Promise<Resource> => {
+    // Nothing to do here
+    return null
   }
-]
+}
+
+export const locationAPI = { findRoutes: (aor: string) => [r1] }

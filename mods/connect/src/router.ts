@@ -16,22 +16,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DataAPI, Resource } from "./types"
 import { Route } from "@routr/common"
 import {
   MessageRequest,
   Target as T
 } from "@routr/processor"
-import { DataAPI, Resource } from "./types"
-const isLocal = (req: Resource) => req != null
 
 // TODO: Fix types for location and apiService
 export function router(location: any, dataAPI: DataAPI) {
+  const isLocal = (req: Resource) => req != null
+
   return async (req: MessageRequest): Promise<Route> => {
-    const fromDomain = (req.message as any).from.address.uri.host 
+    const fromDomain = (req.message as any).from.address.uri.host
     const requestURIDomain = (req.message as any).requestUri.host
- 
+
     const calleeDomain = (await dataAPI.find(`$..[?(@.spec.context.domainUri=='${fromDomain}')]`))[0]
-    const callerDomain = (await dataAPI.find(`$..[?(@.spec.context.domainUri=='${requestURIDomain}')]`))[0]
+
+    // If possible avoid a second trip to the API
+    const callerDomain = fromDomain === requestURIDomain ? calleeDomain
+      : (await dataAPI.find(`$..[?(@.spec.context.domainUri=='${requestURIDomain}')]`))[0]
 
     if (isLocal(calleeDomain) && isLocal(callerDomain)) {
       return (await location.findRoutes({ aor: T.getTargetAOR(req) }))[0]

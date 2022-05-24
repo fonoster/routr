@@ -120,9 +120,9 @@ export interface Route {
   host: string
   port: number
   transport: Transport
-  registeredOn: number
+  registeredOn?: number
   sessionCount?: number
-  expires: number
+  expires?: number
   edgePortRef: string
   listeningPoint: NetInterface
   labels?: Map<string, string>

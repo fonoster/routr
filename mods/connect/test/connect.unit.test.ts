@@ -16,17 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, Route } from '@routr/common'
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import { request, route } from "../../processor/test/examples"
+import { MessageRequest, Route } from '@routr/common'
 import { handleRegister, handleRequest } from "../src/handlers"
-import {
-  Extensions as E,
-  Helper as HE
-} from "@routr/processor"
-
+import { Extensions as E, Helper as HE } from "@routr/processor"
+import { createRequest, r1 } from './examples'
+import { router } from '../src/router'
+import { dataAPI, locationAPI } from './mock_apis'
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
@@ -55,20 +54,7 @@ describe('@routr/connect', () => {
     handleRegister(location)(request, response)
   })
 
-  it('handles an invite request', async () => {
-    const getHeaderValue = sandbox.spy(E, "getHeaderValue")
-    const location = { findRoutes: (aor: string) => [route] }
-    const findRoutes = sandbox.spy(location, "findRoutes")
-    const response = {
-      send: () => {
-        expect(getHeaderValue).to.have.been.calledOnce
-        expect(findRoutes).to.have.been.calledOnce
-      }
-    } as any
-    await handleRequest(location, null)(request, response)
-  })
-
-  it('handles an invite request from another edgeport', async () => {
+  it('handles a request from another edgeport', async () => {
     const req = E.addHeader({ ...request }, {
       name: 'x-edgeport-ref',
       value: 'xyz'
@@ -84,17 +70,39 @@ describe('@routr/connect', () => {
     expect(findRoutes).to.not.have.been.called
   })
 
-  it('handles an invite request with no routes', async () => {
-    const getHeaderValue = sandbox.spy(E, "getHeaderValue")
-    const createRouteFromLastMessage = sandbox.spy(HE, "createRouteFromLastMessage")
-    const location = { findRoutes: (aor: string) => [] as any }
-    const findRoutes = sandbox.spy(location, "findRoutes")
-    const response = {
-      sendNotFound: () => { }
-    } as any
-    await handleRequest(location, null)(request, response)
-    expect(getHeaderValue).to.have.been.calledOnce
-    expect(createRouteFromLastMessage).to.not.have.been.called
-    expect(findRoutes).to.have.been.calledOnce
+  it('handles a request from agent to agent in the same domain', async () => {
+    const req = createRequest({ fromDomain: 'sip.local', fromUser: '1001',
+      toUser: '1002', toDomain: 'sip.local' })
+    const route = await router(locationAPI, dataAPI)(req)
+    expect(route).to.be.not.null
+    expect(route).to.have.property("user", r1.user)
+    expect(route).to.have.property("host", r1.host)
+    expect(route).to.not.have.property("headers")
+  })
+
+  it('handles a request from agent to pstn', async () => {
+    const req = createRequest({ fromUser: '1001', fromDomain: 'sip.local',
+    toUser: '17853178070', toDomain: 'sip.local' })
+    const route = await router(locationAPI, dataAPI)(req)
+    expect(route).to.be.not.null
+    // Expects the user and host to correspond with the Gateway
+    // Expects to have the asserted identity headers
+  })
+
+  it('handles a request from pstn to agent or peer', async () => {
+    const req = createRequest({ fromUser: '9195551212', fromDomain: 'newyork1.voip.ms', 
+    toUser: '17853178070', toDomain: 'newyork1.voip.ms' })
+    const route = await router(locationAPI, dataAPI)(req)
+    expect(route).to.be.not.null
+    // Expects the user and host to correspond with the Agent or Peer in the linkAOR of the Number
+  })
+
+  it('handles a request from peer to pstn', async () => {
+    const req = createRequest({ fromUser: 'asterisk', fromDomain: 'sip.local', 
+    toUser: '17853178070', toDomain: 'sip.local' })
+    const route = await router(locationAPI, dataAPI)(req)
+    expect(route).to.be.not.null
+    // Expects the user and host to correspond with the Gateway
+    // Expects to have the asserted identity headers
   })
 })
