@@ -1,47 +1,54 @@
-
 {
-    "kind": "EdgePort",
-    "apiVersion": "v2draft1",
-    "metadata": {
-      "ref": "ep002",
-      "region": "us-east1"
+  "kind": "EdgePort",
+  "apiVersion": "v2draft1",
+  "metadata": {
+    "ref": "ep002",
+    "region": "us-east1"
+  },
+  "spec": {
+    "bindAddr": "192.168.1.3",
+    "securityContext": {
+      "client": {
+        "protocols": [
+          "SSLv3",
+          "TLSv1.2",
+          "TLSv1.1",
+          "TLSv1"
+        ],
+        "authType": "DisabledAll"
+      },
+      "keyStorePassword": "changeit",
+      "trustStorePassword": "changeit",
+      "keyStore": "/etc/routr/domains-cert.jks",
+      "trustStore": "/etc/routr/domains-cert.jks",
+      "keyStoreType": "pkcs12"
     },
-    "spec": {
-      "bindAddr": "192.168.1.3",
-      "securityContext": {
-        "client": {
-          "protocols" : ["SSLv3", "TLSv1.2", "TLSv1.1", "TLSv1"],
-          "authType": "DisabledAll"
-        },
-        "keyStorePassword": "changeit",
-        "trustStorePassword": "changeit",
-        "keyStore": "/etc/routr/domains-cert.jks",
-        "trustStore": "/etc/routr/domains-cert.jks",
-        "keyStoreType": "pkcs12"
+    "processor": {
+      "addr": "localhost:51901"
+    },
+    "externalIps": [
+      "192.168.1.3"
+    ],
+    "localnets": [
+      "192.168.1.3"
+    ],
+    "methods": [
+      "REGISTER",
+      "MESSAGE",
+      "INVITE",
+      "ACK",
+      "BYE",
+      "CANCEL"
+    ],
+    "transport": [
+      {
+        "protocol": "tcp",
+        "port": 6060
       },
-      "processor": {
-        "addr": "localhost:51901"
-      },
-      "externalIps": ["192.168.1.3"],
-      "localnets": ["192.168.1.3"],
-      "methods": [
-        "REGISTER",
-        "MESSAGE",
-        "INVITE",
-        "ACK",
-        "BYE",
-        "CANCEL"
-      ],
-      "transport": [
-        {
-          "protocol": "tcp",
-          "port": 6060
-        },
-        {
-          "port": 6060,
-          "protocol": "udp"
-        }
-      ]
-    }
+      {
+        "port": 6060,
+        "protocol": "udp"
+      }
+    ]
   }
-  
+}

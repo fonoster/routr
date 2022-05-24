@@ -6,7 +6,7 @@
   },
   "spec": {
     "bindAddr": "0.0.0.0:51902",
-    "cache" :{
+    "cache": {
       "provider": "memory"
     },
     "backends": [
@@ -24,6 +24,6 @@
       {
         "ref": "arc"
       }
-    ]    
+    ]
   }
 }
