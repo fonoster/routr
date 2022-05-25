@@ -19,13 +19,15 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { request, route } from "../../processor/test/examples"
-import { MessageRequest, Route } from '@routr/common'
+import { request, route } from "@routr/processor/test/examples"
+import { MessageRequest, Route, Transport } from '@routr/common'
 import { handleRegister, handleRequest } from "../src/handlers"
 import { Extensions as E, Helper as HE } from "@routr/processor"
 import { createRequest, r1 } from './examples'
 import { router } from '../src/router'
 import { dataAPI, locationAPI } from './mock_apis'
+import { findResource } from '../src/utils'
+
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
@@ -71,8 +73,10 @@ describe('@routr/connect', () => {
   })
 
   it('handles a request from agent to agent in the same domain', async () => {
-    const req = createRequest({ fromDomain: 'sip.local', fromUser: '1001',
-      toUser: '1002', toDomain: 'sip.local' })
+    const req = createRequest({
+      fromDomain: 'sip.local', fromUser: '1001',
+      toDomain: 'sip.local', toUser: '1002'
+    })
     const route = await router(locationAPI, dataAPI)(req)
     expect(route).to.be.not.null
     expect(route).to.have.property("user", r1.user)
@@ -81,28 +85,52 @@ describe('@routr/connect', () => {
   })
 
   it('handles a request from agent to pstn', async () => {
-    const req = createRequest({ fromUser: '1001', fromDomain: 'sip.local',
-    toUser: '17853178070', toDomain: 'sip.local' })
+    const req = createRequest({
+      fromUser: '1001', fromDomain: 'sip.local',
+      toUser: '17853178070', toDomain: 'sip.local'
+    })
     const route = await router(locationAPI, dataAPI)(req)
     expect(route).to.be.not.null
-    // Expects the user and host to correspond with the Gateway
-    // Expects to have the asserted identity headers
+    expect(route).to.have.property("user", "username")
+    expect(route).to.have.property("host", "sip.provider.net")
+    expect(route).to.have.property("port", 5060)
+    expect(route).to.have.property("transport", Transport.UDP.toUpperCase())
+    expect(route).to.have.property("headers").to.be.an('array').lengthOf(3)
   })
 
   it('handles a request from pstn to agent or peer', async () => {
-    const req = createRequest({ fromUser: '9195551212', fromDomain: 'newyork1.voip.ms', 
-    toUser: '17853178070', toDomain: 'newyork1.voip.ms' })
+    const req = createRequest({
+      fromUser: '9195551212', fromDomain: 'newyork1.voip.ms',
+      toUser: '17066041487', toDomain: 'newyork1.voip.ms'
+    })
     const route = await router(locationAPI, dataAPI)(req)
     expect(route).to.be.not.null
-    // Expects the user and host to correspond with the Agent or Peer in the linkAOR of the Number
+    expect(route).to.have.property("user", r1.user)
+    expect(route).to.have.property("host", r1.host)
+    expect(route).to.have.property("port", r1.port)
+    expect(route).to.have.property("transport", r1.transport)
+    expect(route).to.have.property("headers").to.be.an('array').lengthOf(1)
   })
 
-  it('handles a request from peer to pstn', async () => {
-    const req = createRequest({ fromUser: 'asterisk', fromDomain: 'sip.local', 
-    toUser: '17853178070', toDomain: 'sip.local' })
+  // TODO: Peer to PSTN must be done using the Connect Object
+  it.skip('handles a request from peer to pstn', async () => {
+    const req = createRequest({
+      fromUser: 'asterisk', fromDomain: 'sip.local',
+      toUser: '17853178070', toDomain: 'sip.local'
+    })
     const route = await router(locationAPI, dataAPI)(req)
     expect(route).to.be.not.null
     // Expects the user and host to correspond with the Gateway
     // Expects to have the asserted identity headers
+  })
+
+  it('gets resource by domainUri and userpart', async () => {
+    const r1 = await findResource(dataAPI, 'sip.local', '1001')
+    // Domain with xxx reference does not exist
+    const r2 = await findResource(dataAPI, 'sip.local2', '17066041487')
+    const r3 = await findResource(dataAPI, 'sip.localx', '1001')
+    expect(r1).to.have.property("kind", "Agent")
+    expect(r2).to.have.property("kind", "Number")
+    expect(r3).to.not.exist
   })
 })

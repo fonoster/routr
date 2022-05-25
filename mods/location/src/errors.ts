@@ -34,7 +34,7 @@ export class UnsupportedSchema extends Error {
 export class NotRoutesFoundForAOR extends Error {
   code: number;
   constructor(aor: string) {
-    super(`no routes found for aor ${aor}`);
+    super(`no routes found for aor: ${aor}`);
     this.code = grpc.status.NOT_FOUND
     Object.setPrototypeOf(this, NotRoutesFoundForAOR.prototype);
   }

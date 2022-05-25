@@ -21,7 +21,12 @@
         "credentialsRef": "crd02s23",
         "uris": [
           {
-            "uri": "sip:sip.acme.com;transport=tcp",
+            "uri": {
+              "user": "username",
+              "host": "sip.provider.net",
+              "port": 5060,
+              "transport": "udp"
+            },
             "priority": 10,
             "weight": 10,
             "enabled": true

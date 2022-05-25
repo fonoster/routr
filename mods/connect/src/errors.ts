@@ -17,12 +17,23 @@
  * limitations under the License.
  */
 import grpc = require('@grpc/grpc-js');
+import { ROUTING_DIRECTION } from './types';
 
 export class ServiceUnavailableError extends Error {
   code: number;
   constructor(message: string) {
     super(message);
     this.code = grpc.status.UNAVAILABLE
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, ServiceUnavailableError.prototype);
+  }
+}
+
+export class UnsuportedRoutingError extends Error {
+  code: number;
+  constructor(routingDir: ROUTING_DIRECTION) {
+    super("unsopported routing direction: " + routingDir);
+    this.code = grpc.status.UNKNOWN
     // Set the prototype explicitly.
     Object.setPrototypeOf(this, ServiceUnavailableError.prototype);
   }

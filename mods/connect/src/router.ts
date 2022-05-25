@@ -16,29 +16,103 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DataAPI, Resource } from "./types"
-import { Route } from "@routr/common"
+import { DataAPI, Resource, ROUTING_DIRECTION } from "./types"
+import { HeaderModifier, Route } from "@routr/common"
+import {
+  createPAssertedIdentity,
+  createRemotePartyId,
+  createTrunkAuthentication,
+  findResource,
+  getRoutingDirection,
+  getTrunkURI 
+} from "./utils"
 import {
   MessageRequest,
   Target as T
 } from "@routr/processor"
+import { UnsuportedRoutingError } from "./errors"
+import logger from "@fonoster/logger"
+import { NotRoutesFoundForAOR } from "@routr/location/src/errors"
+
+const getSIPURI = (uri: { user: string, host: string }) => `sip:${uri.user}@${uri.host}`
 
 // TODO: Fix types for location and apiService
 export function router(location: any, dataAPI: DataAPI) {
-  const isLocal = (req: Resource) => req != null
-
   return async (req: MessageRequest): Promise<Route> => {
-    const fromDomain = (req.message as any).from.address.uri.host
-    const requestURIDomain = (req.message as any).requestUri.host
+    const fromURI = (req.message as any).from.address.uri
+    const requestURI = (req.message as any).requestUri
 
-    const calleeDomain = (await dataAPI.find(`$..[?(@.spec.context.domainUri=='${fromDomain}')]`))[0]
+    logger.verbose("routing request from: " + getSIPURI(fromURI) + ", to: " + getSIPURI(requestURI),
+      { fromURI: getSIPURI(fromURI), requestURI: getSIPURI(requestURI) })
 
-    // If possible avoid a second trip to the API
-    const callerDomain = fromDomain === requestURIDomain ? calleeDomain
-      : (await dataAPI.find(`$..[?(@.spec.context.domainUri=='${requestURIDomain}')]`))[0]
+    const caller = await findResource(dataAPI, fromURI.host, fromURI.user)
+    const callee = await findResource(dataAPI, requestURI.host, requestURI.user)
+    const routingDir = getRoutingDirection(caller, callee)
 
-    if (isLocal(calleeDomain) && isLocal(callerDomain)) {
-      return (await location.findRoutes({ aor: T.getTargetAOR(req) }))[0]
+    switch (routingDir) {
+      case ROUTING_DIRECTION.AGENT_TO_PSTN:
+        return await toPSTN(dataAPI, req, caller)
+      case ROUTING_DIRECTION.AGENT_TO_AGENT:
+        return agentToAgent(location, req)
+      case ROUTING_DIRECTION.FROM_PSTN:
+        return await fromPSTN(location, dataAPI, callee)
+      default:
+        throw new UnsuportedRoutingError(routingDir)
     }
+  }
+}
+
+async function agentToAgent(location: any, req: MessageRequest): Promise<Route> {
+  return (await location.findRoutes({ aor: T.getTargetAOR(req) }))[0]
+}
+
+// TODO: Verify ACL rules
+async function fromPSTN(location: any, dataAPI: DataAPI, callee: Resource): Promise<Route> {
+  const route = await location.findRoutes({ aor: callee.spec.location.aorLink })[0]
+  if (!route) {
+    throw new NotRoutesFoundForAOR(callee.spec.location.aorLink)
+  }
+
+  if (!route.headers) route.headers = []
+
+  callee.spec.location.props?.forEach((prop: { name: string, value: string}) => {
+    const p:HeaderModifier = { name: prop.name, value: prop.value, action: "add" }
+    route.headers.push(p)    
+  })
+
+  return route
+}
+
+// TODO: Check if caller is athenticated
+async function toPSTN(dataAPI: DataAPI, req: MessageRequest, 
+  caller: Resource): Promise<Route> {
+  const domain = await dataAPI.get(caller.spec.domainRef)
+  const number = await dataAPI.get(domain.spec.context.egressPolicy?.numberRef)
+  const trunk = await dataAPI.get(number?.spec.trunkRef)
+
+  if (!domain.spec.context.egressPolicy) {
+    // TODO: Create custom error
+    throw new Error("no egress policy found for Domain ref" + domain.metadata.ref)
+  }
+
+  if (!trunk) {
+    // TODO: Create custom error
+    throw new Error("no trunk associated with Number ref: " + number.metadata.ref)
+  }
+
+  const uri = getTrunkURI(trunk)
+
+  return {
+    user: uri.user,
+    host: uri.host,
+    port: uri.port,
+    transport: uri.transport,
+    edgePortRef: req.edgePortRef,
+    listeningPoint: req.listeningPoint,
+    headers: [
+      createRemotePartyId(trunk, number),
+      createPAssertedIdentity(req, trunk, number),
+      await createTrunkAuthentication(dataAPI, trunk)
+    ]
   }
 }

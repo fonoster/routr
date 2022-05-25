@@ -47,7 +47,17 @@
               "description": "Properties",
               "type": "array",
               "items": {
-                "type": "object"
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "Name of the property",
+                    "type": "string"
+                  },
+                  "value": {
+                    "description": "Value of the property",
+                    "type": "string"
+                  }
+                }
               }
             }
           },

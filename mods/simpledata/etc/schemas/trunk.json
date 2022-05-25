@@ -58,7 +58,32 @@
               "properties": {
                 "uri": {
                   "description": "URI to be used for outbound traffic",
-                  "type": "string"
+                  "type": "object",
+                  "properties": {
+                    "host": {
+                      "description": "Hostname of the URI",
+                      "type": "string"
+                    },
+                    "port": {
+                      "description": "Port of the URI",
+                      "type": "integer"
+                    },
+                    "transport": {
+                      "description": "Transport of the URI",
+                      "enum": [
+                        "tcp",
+                        "sctp",
+                        "udp",
+                        "tls",
+                        "ws",
+                        "wss"
+                      ]
+                    },
+                    "user": {
+                      "description": "Username of the URI",
+                      "type": "string"
+                    }
+                  }
                 },
                 "weight": {
                   "description": "Weight of the URI",

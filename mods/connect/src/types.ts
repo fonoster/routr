@@ -18,6 +18,15 @@
  */
 import { HeaderModifier } from "@routr/common"
 
+export enum KIND {
+  AGENT = "agent",
+  PEER = "peer",
+  NUMBER = "number",
+  TRUNK = "trunk",
+  DOMAIN = "domain",
+  UNKNOWN = 'unknown'
+}
+
 export enum ROUTING_DIRECTION {
   FROM_PSTN = 'from-pstn',
   AGENT_TO_AGENT = 'agent-to-agent',

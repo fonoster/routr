@@ -11,7 +11,25 @@
       ]
     },
     "spec": {
-      "username": "johndoe",
+      "username": "1001",
+      "domainRef": "dm2c76ft",
+      "credentialRef": "crd2c76ft",
+      "enabled": true
+    }
+  },
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Agent",
+    "metadata": {
+      "ref": "ag2c77fx",
+      "name": "Jane Doe",
+      "dependsOn": [
+        "/domain/dm2c76ft",
+        "/credential/crd2c76ft"
+      ]
+    },
+    "spec": {
+      "username": "1002",
       "domainRef": "dm2c76ft",
       "credentialRef": "crd2c76ft",
       "enabled": true
