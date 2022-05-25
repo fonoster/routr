@@ -257,7 +257,12 @@ Example:
       "credentialsRef": "crd02s23",
       "uris": [
         {
-          "uri": "sip:sip.acme.com;transport=tcp",
+          "uri": {
+            "user": "username",
+            "host": "sip.provider.net",
+            "port": 5060,
+            "transport": "udp"
+          },
           "priority": 10,
           "weight": 10,
           "enabled": true
@@ -292,11 +297,10 @@ Numbers represent virtual numbers used to route calls from/to the PSTN via a Tru
       "telUrl": "tel:17066041487",
       "aorLink": "backend:conference",
       "sessionAffinityProp": "x-room-id",
-      "props": [
-        {
-          "x-room-id": "jsa-shqm-iyo"
-        }
-      ]
+      "props": [{
+        "name": "x-room-id",
+        "value": "jsa-shqm-iyo"
+      }]
     }
   }
 }
