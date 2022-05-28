@@ -38,7 +38,7 @@ export default function SimpleAuthMiddleware(config: { bindAddr: string, users: 
       const span = tracer.startSpan('server.js:sayHello()', { kind: 1})
 
       // Consider extending the list to other message types
-      if (req.method !== "INVITE" && req.method !== "MESSAGE" ) {
+      if (!['INVITE', 'MESSAGE', 'REGISTER'].includes(req.method)) {
         return res.send(req)
       }
 
