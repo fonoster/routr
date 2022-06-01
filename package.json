@@ -25,9 +25,10 @@
     "start:dispatcher": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/dispatcher.json nodemon mods/dispatcher/src/runner",
     "start:location": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/location.json nodemon mods/location/src/runner",
     "start:edgeport": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./mods/edgeport/edgeport.sh",
+    "start:requester": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./mods/requester/requester.sh",
     "transpile": "tsc",
     "bundle": "webpack --config webpack.config.js --mode none",
-    "prebundle": "cross-env npm run setup && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js mods/edgeport/libs/",
+    "prebundle": "cross-env npm run setup && npm run transpile && ./.scripts/prebundle.sh",
     "bump:version": "rimraf mods/**/.lerna-changed-buster-* && lerna exec -- touch .lerna-changed-buster-$RANDOM"
   },
   "devDependencies": {
