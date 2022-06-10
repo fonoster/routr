@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<scenario name="UAS IMS">
+  <recv request="MESSAGE" crlf="true" />
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <ResponseTimeRepartition value="10, 20, 30, 40, 50, 100, 150, 200" />
+  <CallLengthRepartition value="10, 50, 100, 500, 1000, 5000, 10000" />
+</scenario>

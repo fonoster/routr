@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package fonoster.routr.requester.v2draft1;
+
+option java_multiple_files = true;
+option java_package = "io.routr.requester";
+option java_outer_classname = "RequesterProto";
+option objc_class_prefix = "RP";
+
+import "common.proto";
+import "sipmessage.proto";
+
+// Requester service
+service Requester {
+  // Send Message Request
+  rpc SendMessage (SendMessageRequest) returns (SendMessageResponse) {}
+}
+
+message SendMessageRequest {
+  string target = 1;
+  // fonoster.routr.sipmessage.v2draft1.method method = 2;
+  // fonoster.routr.sipmessage.v2draft1.Transport transport = 3;
+  // fonoster.routr.sipmessage.v2draft1.SIPMessage message = 4;
+}
+
+message SendMessageResponse {
+  fonoster.routr.sipmessage.v2draft1.ResponseType response_type = 1;
+  // Optional message
+  string message = 2;
+}

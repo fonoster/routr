@@ -1,0 +1,34 @@
+{
+  "name": "@routr/requester",
+  "version": "2.0.5-alpha.15",
+  "description": "SIP requests as an API",
+  "author": "Pedro Sanders <psanders@fonoster.com>",
+  "homepage": "https://github.com/fonoster/routr#readme",
+  "license": "MIT",
+  "main": "dist/requester",
+  "types": "dist/requester",
+  "directories": {
+    "src": "src",
+    "test": "test"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
+    "build": "tsc -b tsconfig.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fonoster/routr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fonoster/routr/issues"
+  },
+  "dependencies": {
+    "fp-ts": "^2.11.8"
+  }
+}

@@ -1,0 +1,39 @@
+[
+  {
+    "name": "Test Group 1.1: Registration Mode -> SC-IT.Conf.1.1.1: Registration Setup",
+    "description": "",
+    "externalHost": "192.168.1.3",
+    "externalPort": 7070,
+    "target": "192.168.1.3",
+    "transportMode": "u1",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/registration_mode/registration_setup.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "sendRegister": true,
+        "expires": 30,
+        "timeout": 10
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/common/uac_register.xml",
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        },
+        "variables": [
+          { "name": "requestURI", "value": "sip.local"},
+          { "name": "from", "value":  "1002@sip.local"},
+          { "name": "to", "value": "1001@sip.local"}
+        ],
+        "timeout": 10
+      }
+    ],
+    "enabled": true
+  }
+]
