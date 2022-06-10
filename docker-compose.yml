@@ -41,6 +41,7 @@ services:
       - EX_RTP_ENGINE_PORT
       - EX_UNIQUE_GATEWAY_PER_HOST_PORT
       - EX_CONVERT_TEL_TO_E164
+      - JAVA_OPTS
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 4567 || exit 1"]
       interval: 30s
@@ -53,6 +54,8 @@ services:
       - '5061:5061'
       - '5062:5062'
       - '5063:5063'
+      # Uncomment to enable JMX monitoring (also see JAVA_OPTS at .env file)
+      # - '45856:45856'
     volumes:
       - ./config/log4j2.yml:/opt/routr/config/log4j2.yml
 
