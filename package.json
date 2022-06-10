@@ -1,6 +1,6 @@
 {
   "name": "routr",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Next-generation SIP Server",
   "scripts": {
     "distro": "./distro.sh",
@@ -12,8 +12,9 @@
     "prebundle": "cross-env ./gradlew build copyRuntimeLibs && npm run transpile && cp node_modules/jvm-npm/src/main/javascript/jvm-npm.js libs",
     "transpile": "tsc",
     "format": "prettier-standard 'mod/**/*.js'",
-    "helm-package": "helm package .helm/ -d .charts && helm repo index .charts",
-    "clean": "rimraf node_modules build libs .gradle .routr.salt *.dat"
+    "clean": "rimraf node_modules build libs .gradle .routr.salt *.dat",
+    "create:helm-chart": "helm package .helm/ -d .charts && helm repo index .charts",
+    "create:jre": "./etc/create-jre.sh"
   },
   "lint-staged": {
     "mod/**/*.js": [
