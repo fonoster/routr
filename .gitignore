@@ -23,6 +23,7 @@ site
 .env
 logs
 bin
+.project
 .DS_Store
 .vscode
 .project
