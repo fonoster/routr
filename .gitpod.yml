@@ -1,0 +1,63 @@
+## Learn more about this file at 'https://www.gitpod.io/docs/references/gitpod-yml'
+##
+## This '.gitpod.yml' file when placed at the root of a project instructs
+## Gitpod how to prepare & build the project, start development environments
+## and configure continuous prebuilds. Prebuilds when enabled builds a project
+## like a CI server so you can start coding right away - no more waiting for
+## dependencies to download and builds to finish when reviewing pull-requests
+## or hacking on something new.
+##
+
+# Currently it is set to work from v2 branch.
+tasks:
+  - init: |
+      git checkout --track origin/v2
+      npm install
+      npm run bootstrap 
+
+  - command: |
+      git checkout v2
+      npm run build
+      npm run setup && npm start 
+
+#ports:
+#  - port: 8080 # alternatively configure entire ranges via '8080-8090'
+#    visibility: private # either 'public' or 'private' (default)
+#    onOpen: open-browser # either 'open-browser', 'open-preview' or 'ignore'
+
+ports:
+  - port: 51901
+    onOpen: ignore
+  - port: 51902
+    onOpen: ignore
+  - port: 51903
+    onOpen: ignore
+  - port: 51904
+    onOpen: ignore
+  - port: 52901
+    onOpen: ignore
+  - port: 5060
+    onOpen: ignore
+  - port: 5061
+    onOpen: ignore
+  - port: 5062
+    onOpen: ignore
+  - port: 5063
+    onOpen: ignore
+
+## The 'github' section defines configuration of continuous prebuilds
+## for GitHub repositories when the GitHub application
+## 'https://github.com/apps/gitpod-io' is installed in GitHub and granted
+## permissions to access the repository.
+##
+## Learn more at 'https://www.gitpod.io/docs/prebuilds'
+
+github:
+  prebuilds:
+    master: true
+    branches: true
+    pullRequests: true
+    pullRequestsFromForks: true
+    addCheck: true
+    addComment: false
+    addBadge: true
