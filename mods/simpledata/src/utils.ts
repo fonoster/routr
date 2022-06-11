@@ -55,7 +55,7 @@ export default function loadResources(validatorsPath: string, resourcesPath: str
       }
     })
   })
-  logger.verbose(`loaded data resources`, { total: all.length })
+  logger.info(`loaded data resources`, { total: all.length })
   return all
 }
 
