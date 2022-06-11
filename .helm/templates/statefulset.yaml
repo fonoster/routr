@@ -51,6 +51,8 @@ spec:
           value: {{ .Values.routr.externAddr | quote }}
         - name: LOCALNETS
           value: {{ join "," .Values.routr.localnets }}
+        - name: JAVA_OPTS
+          value: {{ .Values.routr.javaOpts | quote }}
         - name: USER_AGENT
           value: {{ .Values.routr.userAgent | quote }}
         - name: BIND_ADDR

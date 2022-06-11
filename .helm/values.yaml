@@ -61,6 +61,7 @@ routr:
   registrarIntf: Internal
   ex_uniqueGatewayPerHostPort: false
   ex_convertTelToE164: false
+  javaOpts: ""
   ex_rtpEngine:
     enabled: false
   accessControlList:

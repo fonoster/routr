@@ -54,3 +54,6 @@ SIP_WSS_PORT=5063
 
 RTPE_PORT_MIN=30000
 RTPE_PORT_MAX=30100
+
+# Uncomment to enable remote JMX and remember to set the JMX port and external host
+# JAVA_OPTS="-XX:NewRatio=2 -Xmx250M -Dcom.sun.management.jmxremote -Djava.rmi.server.hostname=192.168.1.3 -Dcom.sun.management.jmxremote.rmi.port=45856 -Dcom.sun.management.jmxremote.port=45856 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
