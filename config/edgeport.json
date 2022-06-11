@@ -19,8 +19,8 @@
       },
       "keyStorePassword": "changeit",
       "trustStorePassword": "changeit",
-      "keyStore": "/etc/routr/domains-cert.jks",
-      "trustStore": "/etc/routr/domains-cert.jks",
+      "keyStore": "./etc/certs/domains-cert.jks",
+      "trustStore": "./etc/certs/domains-cert.jks",
       "keyStoreType": "pkcs12"
     },
     "processor": {
