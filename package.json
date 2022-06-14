@@ -1,6 +1,6 @@
 {
   "name": "routr",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Next-generation SIP Server",
   "scripts": {
     "distro": "./distro.sh",

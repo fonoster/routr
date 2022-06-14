@@ -3,7 +3,7 @@ LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 ENV TINI_VERSION v0.19.0
 ENV LANG C.UTF-8
-ARG ROUTR_VERSION=1.0.3
+ARG ROUTR_VERSION=1.0.5
 
 RUN mkdir -p /opt/routr
 WORKDIR /opt/routr
@@ -20,7 +20,6 @@ RUN apt-get update \
   && apt-get install netcat -y \
   && curl -qL -o /usr/bin/netdiscover https://github.com/CyCoreSystems/netdiscover/releases/download/v1.2.5/netdiscover.linux.amd64 \
   && chmod +x /usr/bin/netdiscover \
-  && apt-get remove curl -y \
   && apt-get autoremove -y \
   && touch /.dockerenv
 
@@ -35,3 +34,6 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 ENTRYPOINT ["/tini", "-v", "-e", "143", "--"]
 CMD ["./routr"]
+
+HEALTHCHECK --interval=5s --timeout=5s --retries=3 \
+  CMD ["curl", "-k", "--fail", "--silent", "--show-error", "--connect-timeout", "2", "-L", "https://localhost:4567/api/v1beta1/system/status"]

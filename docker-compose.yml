@@ -42,11 +42,6 @@ services:
       - EX_UNIQUE_GATEWAY_PER_HOST_PORT
       - EX_CONVERT_TEL_TO_E164
       - JAVA_OPTS
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 4567 || exit 1"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
     ports:
       - '${REST_SERVICE_PORT}:4567'
       - '5060:5060'

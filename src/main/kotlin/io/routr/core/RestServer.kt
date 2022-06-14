@@ -89,7 +89,9 @@ class RestServer {
           { req, res ->
             run {
               res.header("Access-Control-Allow-Origin", "*")
-              if (req.pathInfo().endsWith("/credentials") || req.pathInfo().endsWith("/token")) {
+              if (req.pathInfo().endsWith("/system/status") && req.requestMethod() == "GET") {
+                // Continue
+              } else if (req.pathInfo().endsWith("/credentials") || req.pathInfo().endsWith("/token")) {
                 evalOperation("checkAuth", req, res, rawConfig)
               } else {
                 evalOperation("checkToken", req, res, rawConfig)
