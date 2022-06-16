@@ -32,6 +32,22 @@ spec:
       - name: routr
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        livenessProbe:
+          exec:
+            command:
+            - curl
+            - -k
+            - --fail
+            - --silent
+            - --show-error
+            - --connect-timeout
+            - 2
+            - -L
+            - https://localhost:4567/api/v1beta1/system/status
+          initialDelaySeconds: {{ .Values.routr.livenessProbe.initialDelaySeconds | quote }}
+          periodSeconds: {{ .Values.routr.livenessProbe.periodSeconds | quote }}
+          successThreshold: {{ .Values.routr.livenessProbe.successThreshold | quote }}
+          failureThreshold: {{ .Values.routr.livenessProbe.failureThreshold | quote }}
         env:
         - name: EX_CONVERT_TEL_TO_E164
           value: {{ .Values.routr.ex_convertTelToE164 | quote }}
