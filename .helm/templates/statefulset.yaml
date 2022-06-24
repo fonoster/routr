@@ -44,10 +44,10 @@ spec:
             - 2
             - -L
             - https://localhost:4567/api/v1beta1/system/status
-          initialDelaySeconds: {{ .Values.routr.livenessProbe.initialDelaySeconds | quote }}
-          periodSeconds: {{ .Values.routr.livenessProbe.periodSeconds | quote }}
-          successThreshold: {{ .Values.routr.livenessProbe.successThreshold | quote }}
-          failureThreshold: {{ .Values.routr.livenessProbe.failureThreshold | quote }}
+          initialDelaySeconds: {{ .Values.routr.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.routr.livenessProbe.periodSeconds }}
+          successThreshold: {{ .Values.routr.livenessProbe.successThreshold }}
+          failureThreshold: {{ .Values.routr.livenessProbe.failureThreshold }}   
         env:
         - name: EX_CONVERT_TEL_TO_E164
           value: {{ .Values.routr.ex_convertTelToE164 | quote }}
