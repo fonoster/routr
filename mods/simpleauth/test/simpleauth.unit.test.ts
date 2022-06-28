@@ -16,58 +16,67 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import chai from 'chai'
-import sinon from 'sinon'
-import sinonChai from 'sinon-chai'
-import {createUnauthorizedResponse, getCredentials} from '../src/utils'
+import chai from "chai"
+import sinon from "sinon"
+import sinonChai from "sinon-chai"
+import {createUnauthorizedResponse, getCredentials} from "../src/utils"
 
 const expect = chai.expect
 chai.use(sinonChai)
-const sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox()
 
-describe('@routr/simpleauth', () => {
-  afterEach(() => sandbox.restore());
+describe("@routr/simpleauth", () => {
+  afterEach(() => sandbox.restore())
 
-  it('gets credentials by username', () => {
-    const users = [{
-      username: 'john',
-      secret: 'changeit'
-    },
+  it("gets credentials by username", () => {
+    const users = [
       {
-        username: '1001',
-        secret: 'changeit'
-      }]
+        username: "john",
+        secret: "changeit"
+      },
+      {
+        username: "1001",
+        secret: "changeit"
+      }
+    ]
 
-    expect(getCredentials('1001', users)).to.have.property("secret").to.be.equal("changeit")
+    expect(getCredentials("1001", users))
+      .to.have.property("secret")
+      .to.be.equal("changeit")
   })
 
-  it('creates an unauthorized response', () => {
+  it("creates an unauthorized response", () => {
     const response = createUnauthorizedResponse("localhost")
     expect(response)
       .to.have.property("message")
-      .to.have.property("responseType").to.be.equal(17)
+      .to.have.property("responseType")
+      .to.be.equal(17)
     expect(response)
       .to.have.property("message")
       .to.have.property("wwwAuthenticate")
-      .to.have.property("scheme").to.be.equal("Digest")
+      .to.have.property("scheme")
+      .to.be.equal("Digest")
     expect(response)
       .to.have.property("message")
       .to.have.property("wwwAuthenticate")
-      .to.have.property("realm").to.be.equal("localhost")
+      .to.have.property("realm")
+      .to.be.equal("localhost")
     expect(response)
       .to.have.property("message")
       .to.have.property("wwwAuthenticate")
-      .to.have.property("algorithm").to.be.equal("MD5")
+      .to.have.property("algorithm")
+      .to.be.equal("MD5")
     expect(response)
       .to.have.property("message")
       .to.have.property("wwwAuthenticate")
-      .to.have.property("qop").to.be.equal("auth")
+      .to.have.property("qop")
+      .to.be.equal("auth")
     expect(response)
       .to.have.property("message")
       .to.have.property("wwwAuthenticate")
-      .to.have.property("nonce").to.be.length(32)
-    expect(response)
-      .to.have.property("message")
-      .to.have.property("extensions").to.be.not.null
+      .to.have.property("nonce")
+      .to.be.length(32)
+    expect(response).to.have.property("message").to.have.property("extensions")
+      .to.be.not.null
   })
 })

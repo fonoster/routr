@@ -16,6 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {ServiceDefinition} from "@grpc/proto-loader"
+
 export enum Method {
   UNKNOWN = "UNKNOWN",
   REGISTER = "REGISTER",
@@ -71,8 +73,14 @@ export interface MiddlewareConfig {
 export interface ServiceInfo {
   name: string
   bindAddr: string
-  service: unknown
-  handlers: Record<string, (call: unknown, callback: Function) => unknown>
+  service: ServiceDefinition
+  handlers: Record<
+    string,
+    (
+      call: unknown,
+      callback: (error: Error, result: unknown) => void
+    ) => unknown
+  >
 }
 
 export interface ObjectProto {

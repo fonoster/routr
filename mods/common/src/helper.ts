@@ -16,6 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/**
+ * Makes a deep copy of an object.
+ *
+ * @param {object} source - The source object.
+ * @return {object} The deep copy of the source object.
+ */
 export const deepCopy = <T>(source: T): T => {
   return Array.isArray(source)
     ? source.map((item) => deepCopy(item))
@@ -26,8 +33,9 @@ export const deepCopy = <T>(source: T): T => {
         Object.defineProperty(
           o,
           prop,
-          Object.getOwnPropertyDescriptor(source, prop)!
+          Object.getOwnPropertyDescriptor(source, prop)
         )
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         o[prop] = deepCopy((source as {[key: string]: any})[prop])
         return o
       }, Object.create(Object.getPrototypeOf(source)))

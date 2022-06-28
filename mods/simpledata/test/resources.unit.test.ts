@@ -16,19 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import chai from 'chai'
-import sinon from 'sinon'
-import sinonChai from 'sinon-chai'
-import loadResources from '../src/utils'
+import chai from "chai"
+import sinon from "sinon"
+import sinonChai from "sinon-chai"
+import loadResources from "../src/utils"
 
 const expect = chai.expect
 chai.use(sinonChai)
-const sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox()
 
-describe('@routr/simpledata/resources', () => {
-  afterEach(() => sandbox.restore());
+describe("@routr/simpledata/resources", () => {
+  afterEach(() => sandbox.restore())
 
-  it('loads and validate resources from a path', () => {
-    loadResources(__dirname + "/../etc/schemas", __dirname + "/../../../config/resources")
+  it("loads and validate resources from a path", () => {
+    loadResources(
+      __dirname + "/../etc/schemas",
+      __dirname + "/../../../config/resources"
+    )
   })
 })

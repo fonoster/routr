@@ -16,21 +16,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import chai from 'chai'
-import sinon from 'sinon'
-import sinonChai from 'sinon-chai'
-import {find, get} from '../src/api'
-import {resources} from './examples'
+import chai from "chai"
+import sinon from "sinon"
+import sinonChai from "sinon-chai"
+import {find, get} from "../src/api"
+import {resources} from "./examples"
 
 const expect = chai.expect
 chai.use(sinonChai)
-const sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox()
 
-describe('@routr/simpledata/api', () => {
-  afterEach(() => sandbox.restore());
+describe("@routr/simpledata/api", () => {
+  afterEach(() => sandbox.restore())
 
-  describe('@routr/simpledata/api/get', () => {
-    it('gets a not found', done => {
+  describe("@routr/simpledata/api/get", () => {
+    it("gets a not found", (done) => {
       const call = {request: {ref: "crd2c76ft"}}
       const callback = (err: any, res: any) => {
         expect(err).to.be.not.null
@@ -42,7 +42,7 @@ describe('@routr/simpledata/api', () => {
       expect(callbackSpy).to.have.been.calledOnce
     })
 
-    it('gets a not found', done => {
+    it("gets a not found", (done) => {
       const call = {request: {ref: "crd2c76ft"}}
       const callback = (err: any, res: any) => {
         expect(err).to.be.not.null
@@ -54,7 +54,7 @@ describe('@routr/simpledata/api', () => {
       expect(callbackSpy).to.have.been.calledOnce
     })
 
-    it('gets resource by reference', done => {
+    it("gets resource by reference", (done) => {
       const call = {request: {ref: "crd2c76ftxxxx"}}
       const callback = (err: any, res: any) => {
         expect(err).to.be.not.null
@@ -65,7 +65,7 @@ describe('@routr/simpledata/api', () => {
       expect(callbackSpy).to.have.been.calledOnce
     })
 
-    it('gets bad request', done => {
+    it("gets bad request", (done) => {
       const call = {request: {}}
       const callback = (err: any, res: any) => {
         expect(err).to.be.not.null
@@ -77,11 +77,11 @@ describe('@routr/simpledata/api', () => {
       expect(callbackSpy).to.have.been.calledOnce
     })
 
-    it('gets resource by reference', done => {
+    it("gets resource by reference", (done) => {
       const call = {request: {ref: "crd2c76ft"}}
       const callback = (err: any, res: any) => {
         expect(err).to.be.null
-        expect(res).to.have.property('metadata')
+        expect(res).to.have.property("metadata")
         done()
       }
       const callbackSpy = sandbox.spy(callback)
@@ -90,8 +90,8 @@ describe('@routr/simpledata/api', () => {
     })
   })
 
-  describe('@routr/simpledata/api/find', () => {
-    it('gets a not found', done => {
+  describe("@routr/simpledata/api/find", () => {
+    it("gets a not found", (done) => {
       const call = {request: {}}
       const callback = (err: any, res: any) => {
         expect(err).to.be.not.null
@@ -103,7 +103,7 @@ describe('@routr/simpledata/api', () => {
       expect(callbackSpy).to.have.been.calledOnce
     })
 
-    it('gets bad request', done => {
+    it("gets bad request", (done) => {
       const call = {request: {}}
       const callback = (err: any, res: any) => {
         expect(err).to.be.not.null
@@ -116,11 +116,13 @@ describe('@routr/simpledata/api', () => {
     })
 
     // As per https://www.npmjs.com/package/jsonpath
-    it('finds a resource using json-path', done => {
-      const call = {request: {query: "$..[?(@.spec.credentials.username=='username')]"}}
+    it("finds a resource using json-path", (done) => {
+      const call = {
+        request: {query: "$..[?(@.spec.credentials.username=='username')]"}
+      }
       const callback = (err: any, res: any) => {
         expect(err).to.be.null
-        expect(res.resources).to.be.an('array').to.be.lengthOf(1)
+        expect(res.resources).to.be.an("array").to.be.lengthOf(1)
         done()
       }
       const callbackSpy = sandbox.spy(callback)
@@ -128,7 +130,7 @@ describe('@routr/simpledata/api', () => {
       expect(callbackSpy).to.have.been.calledOnce
     })
 
-    it('is bad json-path', done => {
+    it("is bad json-path", (done) => {
       const call = {request: {query: "*.%@3sdsd"}}
       const callback = (err: any, res: any) => {
         expect(err).to.be.not.null

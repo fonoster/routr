@@ -19,9 +19,9 @@
 import {ObjectProto, ServiceInfo} from "./types"
 import {ServiceDefinitionNotFound} from "./errors"
 import logger from "@fonoster/logger"
+import * as grpc from "@grpc/grpc-js"
+import * as protoLoader from "@grpc/proto-loader"
 
-const protoLoader = require("@grpc/proto-loader")
-const grpc = require("@grpc/grpc-js")
 const loadOptions = {
   keepCase: false,
   longs: String,
@@ -29,31 +29,45 @@ const loadOptions = {
   defaults: true,
   oneofs: true
 }
+// TODO: Get version from the proto or package
+const API_VERSION = "v2draft1"
 
 // We currenly don't have a way to obtain the proto type
-export const PROCESSOR_OBJECT_PROTO = getObjectProto<any>({
+export const PROCESSOR_OBJECT_PROTO = getObjectProto({
   name: "processor",
-  version: "v2draft1",
+  version: API_VERSION,
   path: __dirname + "/protos/processor.proto"
 })
 
-export const LOCATION_OBJECT_PROTO = getObjectProto<any>({
+export const LOCATION_OBJECT_PROTO = getObjectProto({
   name: "location",
-  version: "v2draft1",
+  version: API_VERSION,
   path: __dirname + "/protos/location.proto"
 })
 
+/**
+ * Gets the proto definition for the given object.
+ *
+ * @param {ObjectProt} objectProto - The object proto to load.
+ * @return {A} The proto definition.
+ */
 export function getObjectProto<A>(
   objectProto: ObjectProto
 ): A | ServiceDefinitionNotFound {
   const definitions = protoLoader.loadSync(objectProto.path, loadOptions)
-  const objProto =
-    grpc.loadPackageDefinition(definitions)?.fonoster?.routr[objectProto.name]
-  return objProto && objProto[objectProto.version]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const objProto = (grpc.loadPackageDefinition(definitions) as any)?.fonoster
+    ?.routr[objectProto.name]
+  return objProto?.[objectProto.version]
     ? objProto[objectProto.version]
     : new ServiceDefinitionNotFound(objectProto.name, objectProto.version)
 }
 
+/**
+ * Creates a new service using the given service definition.
+ *
+ * @param {ServiceInfo} serviceInfo - The service info to create the service from.
+ */
 export default function createService(serviceInfo: ServiceInfo) {
   const cb = () => {
     logger.info("starting routr service", {

@@ -30,8 +30,9 @@
     "bundle": "webpack --config webpack.config.js --mode none",
     "prebundle": "cross-env npm run setup && npm run transpile && ./.scripts/prebundle.sh",
     "bump:version": "rimraf mods/**/.lerna-changed-buster-* && lerna exec -- touch .lerna-changed-buster-$RANDOM",
-    "lint": "eslint mods/**/src --ext .ts --fix",
-    "format": "prettier --write mods/**/src"
+    "lint": "eslint mods --ext .ts --fix",
+    "format": "prettier --write mods/**/src",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@types/chai": "^4.2.11",
@@ -51,7 +52,7 @@
     "eslint-plugin-notice": "^0.9.10",
     "eslint-plugin-prettier": "^3.3.1",
     "esm": "^3.2.25",
-    "husky": "^5.0.9",
+    "husky": "^5.2.0",
     "jvm-npm": "^0.1.1",
     "lerna": "^4.0.0",
     "mocha": "^9.2.2",

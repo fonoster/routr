@@ -22,7 +22,7 @@ export const formatNet = (net: string) => {
   if (net.split("/").length === 1) {
     if (isValidIpv4(net)) return `${net}/32`
     if (isValidIpv6(net)) return `${net}/128`
-    throw "Invalid address! Must be a valid Ipv4 or Ipv6"
+    throw new Error("Invalid address! Must be a valid Ipv4 or Ipv6")
   }
   const p1 = net.split("/")[0]
   const p2 = net.split("/")[1]

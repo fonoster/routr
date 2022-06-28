@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ot from "@opentelemetry/api"
+import opentelemetry from "@opentelemetry/api"
 import {registerInstrumentations} from "@opentelemetry/instrumentation"
 import {NodeTracerProvider} from "@opentelemetry/sdk-trace-node"
 import {Resource} from "@opentelemetry/resources"
@@ -25,6 +25,12 @@ import {SimpleSpanProcessor} from "@opentelemetry/sdk-trace-base"
 import {JaegerExporter} from "@opentelemetry/exporter-jaeger"
 import {GrpcInstrumentation} from "@opentelemetry/instrumentation-grpc"
 
+/**
+ * This function registers the instrumentations for the service.
+ *
+ * @param {string} serviceName - The name of the service.
+ * @return {Tracer} The tracer object.
+ */
 export function init(serviceName: string) {
   const provider = new NodeTracerProvider({
     resource: new Resource({
@@ -40,5 +46,5 @@ export function init(serviceName: string) {
     instrumentations: [new GrpcInstrumentation()]
   })
 
-  return ot.trace.getTracer("routr-tracer")
+  return opentelemetry.trace.getTracer("routr-tracer")
 }

@@ -1,0 +1,11 @@
+dist
+node_modules/*
+mods/connect
+mods/dispatcher
+mods/echo
+mods/edgeport
+mods/location
+mods/processor
+mods/requester
+mods/simpledata
+mods/simpleauth

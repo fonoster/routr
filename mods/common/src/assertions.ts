@@ -18,11 +18,16 @@
  */
 import logger from "@fonoster/logger"
 
-export function assertEnvsAreSet(envs: string[]) {
-  envs.forEach((env: string) => {
-    if (!(env in process.env)) {
+/**
+ * Function that asserts that the given environment variable is set.
+ *
+ * @param {string[]} variables environment variables to check
+ */
+export function assertEnvsAreSet(variables: string[]) {
+  variables.forEach((variable: string) => {
+    if (!(variable in process.env)) {
       logger.error(
-        `The environment variable ${env} is required but was not found`
+        `The environment variable ${variable} is required but was not found`
       )
       process.exit(1)
     }
