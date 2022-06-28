@@ -20,11 +20,18 @@ package io.routr.headers;
 
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.GeneratedMessageV3;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import gov.nist.javax.sip.header.*;
+import io.routr.common.Transport;
+import io.routr.message.ResponseType;
+import io.routr.message.SIPMessage;
+import io.routr.message.SIPMessage.Builder;
+import io.routr.processor.MessageRequest;
+import io.routr.processor.Method;
+import io.routr.processor.NetInterface;
+import io.routr.utils.ClassFinder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.header.CallIdHeader;
@@ -33,62 +40,21 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Message;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
-import gov.nist.javax.sip.header.Authorization;
-import gov.nist.javax.sip.header.CSeq;
-import gov.nist.javax.sip.header.CallID;
-import gov.nist.javax.sip.header.Expires;
-import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.header.To;
-import gov.nist.javax.sip.header.From;
-import gov.nist.javax.sip.header.Contact;
-import gov.nist.javax.sip.header.Route;
-import gov.nist.javax.sip.header.RecordRoute;
-import gov.nist.javax.sip.header.MaxForwards;
-import gov.nist.javax.sip.header.WWWAuthenticate;
-import io.routr.message.SIPMessage.Builder;
-import io.routr.utils.ClassFinder;
-import io.routr.message.*;
-import io.routr.common.*;
-import io.routr.processor.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 
 public class MessageConverter {
+  private final static Logger LOG = LogManager.getLogger(MessageConverter.class);
+  private final String edgePortRef;
   private Map<String, NetInterface> listeningPoints;
   private List<String> externalIps;
   private List<String> localnets;
-  private final static Logger LOG = LogManager.getLogger(MessageConverter.class);
-  private final String edgePortRef;
 
   public MessageConverter(String edgePortRef) {
     this.edgePortRef = edgePortRef;
-  }
-
-  public MessageRequest createMessageRequest(final Message message) {
-    String methodStr = null;
-    if (message instanceof Request) {
-      methodStr = ((Request) message).getMethod();
-    } else if (message instanceof Response) {
-      methodStr = ((CSeq) (message).getHeader(CSeq.NAME)).getMethod();
-    }
-
-    NetInterface sender = getSender(message);
-    String callId = ((CallIdHeader) message.getHeader(CallIdHeader.NAME)).getCallId();
-    assert methodStr != null;
-    Method method = Method.valueOf(methodStr.toUpperCase());
-    NetInterface listeningPoint = this.listeningPoints.get(sender.getTransport().toString());
-
-    return MessageRequest
-        .newBuilder()
-        .setRef(callId)
-        .setEdgePortRef(this.edgePortRef)
-        .setMethod(method)
-        .setSender(sender)
-        .setListeningPoint(listeningPoint)
-        .addAllExternalIps(this.externalIps)
-        .addAllLocalnets(this.localnets)
-        .setMessage(convertToMessageDTO(message))
-        .build();
   }
 
   static public SIPMessage convertToMessageDTO(final Message message) {
@@ -101,7 +67,7 @@ public class MessageConverter {
     } else if (message instanceof Response) {
       Response response = (Response) message;
       sipMessageBuilder.setResponseType(
-          ResponseType.valueOf(ResponseCode.fromCode(response.getStatusCode())));
+        ResponseType.valueOf(ResponseCode.fromCode(response.getStatusCode())));
     }
 
     // Getting a list of names of all headers present on SIP Message
@@ -135,7 +101,7 @@ public class MessageConverter {
   }
 
   static public List<Header> createHeadersFromMessage(final SIPMessage message)
-      throws InvalidArgumentException, PeerUnavailableException, ParseException {
+    throws InvalidArgumentException, PeerUnavailableException, ParseException {
     List<Header> headers = new ArrayList<>();
 
     try {
@@ -227,10 +193,10 @@ public class MessageConverter {
     // any updates is made to the request.
     ViaHeader via = (ViaHeader) message.getHeader(ViaHeader.NAME);
     return NetInterface.newBuilder()
-        .setHost(via.getHost())
-        .setPort(via.getPort())
-        .setTransport(Transport.valueOf(via.getTransport().toUpperCase()))
-        .build();
+      .setHost(via.getHost())
+      .setPort(via.getPort())
+      .setTransport(Transport.valueOf(via.getTransport().toUpperCase()))
+      .build();
   }
 
   static private Converter getConverterByHeader(Class<?> clasz) {
@@ -243,6 +209,33 @@ public class MessageConverter {
       }
     }
     return new ExtensionConverter();
+  }
+
+  public MessageRequest createMessageRequest(final Message message) {
+    String methodStr = null;
+    if (message instanceof Request) {
+      methodStr = ((Request) message).getMethod();
+    } else if (message instanceof Response) {
+      methodStr = ((CSeq) (message).getHeader(CSeq.NAME)).getMethod();
+    }
+
+    NetInterface sender = getSender(message);
+    String callId = ((CallIdHeader) message.getHeader(CallIdHeader.NAME)).getCallId();
+    assert methodStr != null;
+    Method method = Method.valueOf(methodStr.toUpperCase());
+    NetInterface listeningPoint = this.listeningPoints.get(sender.getTransport().toString());
+
+    return MessageRequest
+      .newBuilder()
+      .setRef(callId)
+      .setEdgePortRef(this.edgePortRef)
+      .setMethod(method)
+      .setSender(sender)
+      .setListeningPoint(listeningPoint)
+      .addAllExternalIps(this.externalIps)
+      .addAllLocalnets(this.localnets)
+      .setMessage(convertToMessageDTO(message))
+      .build();
   }
 
   public void setListeningPoints(final Map<String, NetInterface> listeningPoints) {

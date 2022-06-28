@@ -17,63 +17,63 @@
  * limitations under the License.
  */
 export const schema = {
-  "$id": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Location Service configuration",
-  "description": "Configuration for an instance of the Location Service",
-  "type": "object",
-  "properties": {
-    "kind": {
-      "enum": ["Location", "location"]
+  $id: "https://json-schema.org/draft/2020-12/schema",
+  title: "Location Service configuration",
+  description: "Configuration for an instance of the Location Service",
+  type: "object",
+  properties: {
+    kind: {
+      enum: ["Location", "location"]
     },
-    "apiVersion": {
-      "enum": ["v2draft1"]
+    apiVersion: {
+      enum: ["v2draft1"]
     },
-    "metadata": {
-      "description": "Resource metadata",
-      "type": "object"
+    metadata: {
+      description: "Resource metadata",
+      type: "object"
     },
-    "spec": {
-      "description": "Operations spec for Location",
-      "type": "object",
-      "properties": {
-        "bindAddr": {
-          "description": "Ipv4 interface to accept request on",
-          "type": "string"
+    spec: {
+      description: "Operations spec for Location",
+      type: "object",
+      properties: {
+        bindAddr: {
+          description: "Ipv4 interface to accept request on",
+          type: "string"
         },
-        "cache": {
-          "type": "object",
-          "properties": {
-            "provider": {
-              "enum": ["memory", "redis"]
+        cache: {
+          type: "object",
+          properties: {
+            provider: {
+              enum: ["memory", "redis"]
             },
-            "parameters": {
-              "type": "string"
-            },
+            parameters: {
+              type: "string"
+            }
           },
-          "required": ["provider"]
+          required: ["provider"]
         },
-        "backends": {
-          "description": "Optional SIP backends",
-          "type": "array",
-          "items": {
-            "type": "object"
+        backends: {
+          description: "Optional SIP backends",
+          type: "array",
+          items: {
+            type: "object"
           },
-          "properties": {
-            "ref": {
-              "type": "string"
+          properties: {
+            ref: {
+              type: "string"
             },
-            "balancingAlgorithm": {
-              "enum": ["round-robin", "least-sessions"]
+            balancingAlgorithm: {
+              enum: ["round-robin", "least-sessions"]
             },
-            "withSessionAffinity": {
-              "description": "Optional session affinity",
-              "type": "boolean"
-            },
+            withSessionAffinity: {
+              description: "Optional session affinity",
+              type: "boolean"
+            }
           },
-          "required": ["ref"]
-        },
+          required: ["ref"]
+        }
       }
     }
   },
-  "required": ["kind", "metadata", "spec", "apiVersion"]
+  required: ["kind", "metadata", "spec", "apiVersion"]
 }

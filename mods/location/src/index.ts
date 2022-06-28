@@ -20,6 +20,4 @@ import LocationClient from "./client"
 
 export * as Helper from "./helper"
 export * as Utils from "./utils"
-export {
-  LocationClient
-}
+export {LocationClient}

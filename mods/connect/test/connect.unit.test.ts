@@ -19,14 +19,14 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { request, route } from "@routr/processor/test/examples"
-import { MessageRequest, Route, Transport } from '@routr/common'
-import { handleRegister, handleRequest } from "../src/handlers"
-import { Extensions as E, Helper as HE } from "@routr/processor"
-import { createRequest, r1 } from './examples'
-import { router } from '../src/router'
-import { dataAPI, locationAPI } from './mock_apis'
-import { findResource } from '../src/utils'
+import {request, route} from "@routr/processor/test/examples"
+import {MessageRequest, Route, Transport} from '@routr/common'
+import {handleRegister, handleRequest} from "../src/handlers"
+import {Extensions as E, Helper as HE} from "@routr/processor"
+import {createRequest, r1} from './examples'
+import {router} from '../src/router'
+import {dataAPI, locationAPI} from './mock_apis'
+import {findResource} from '../src/utils'
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -45,7 +45,10 @@ describe('@routr/connect', () => {
   })
 
   it('handles a register request', (done) => {
-    const location = { addRoute: (aor: string, route: Route) => { } }
+    const location = {
+      addRoute: (aor: string, route: Route) => {
+      }
+    }
     const addRoute = sandbox.spy(location, "addRoute");
     const response = {
       sendOk: () => {
@@ -57,15 +60,18 @@ describe('@routr/connect', () => {
   })
 
   it('handles a request from another edgeport', async () => {
-    const req = E.addHeader({ ...request }, {
+    const req = E.addHeader({...request}, {
       name: 'x-edgeport-ref',
       value: 'xyz'
     })
     const getHeaderValue = sandbox.spy(E, "getHeaderValue")
     const createRouteFromLastMessage = sandbox.spy(HE, "createRouteFromLastMessage")
-    const location = { findRoutes: (aor: string) => [route] }
+    const location = {findRoutes: (aor: string) => [route]}
     const findRoutes = sandbox.spy(location, "findRoutes")
-    const response = { send: () => { } } as any
+    const response = {
+      send: () => {
+      }
+    } as any
     await handleRequest(location, null)(req, response)
     expect(getHeaderValue).to.have.been.calledTwice
     expect(createRouteFromLastMessage).to.have.been.calledOnce

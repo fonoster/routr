@@ -1,5 +1,4 @@
-import { Method, Route, Transport } from "@routr/common";
-import { create } from "domain";
+import {Method, Route, Transport} from "@routr/common";
 
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)

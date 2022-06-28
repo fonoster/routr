@@ -18,11 +18,10 @@
  * limitations under the License.
  */
 require("./tracer").init("dispatcher")
-import logger from '@fonoster/logger'
-import ConnectProcessor from './service'
-import { Assertions as A } from "@routr/common"
+import ConnectProcessor from "./service"
+import {Assertions as A} from "@routr/common"
 
-A.assertEnvsAreSet(['LOCATION_ADDR', 'API_ADDR'])
+A.assertEnvsAreSet(["LOCATION_ADDR", "API_ADDR"])
 
 ConnectProcessor({
   bindAddr: process.env.BIND_ADDR || "0.0.0.0:51904",

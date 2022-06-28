@@ -16,27 +16,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageDispatcherConfig } from "../types"
+import {MessageDispatcherConfig} from "../types"
 import fs from "fs"
-import { schema } from './schema'
+import {schema} from "./schema"
 import Ajv from "ajv"
-import * as E from 'fp-ts/Either'
+import * as E from "fp-ts/Either"
 
 const ajv = new Ajv()
 const validate = ajv.compile(schema)
 
-export const getConfig = (path: string)
-  : E.Either<Error, MessageDispatcherConfig> => {
+export const getConfig = (
+  path: string
+): E.Either<Error, MessageDispatcherConfig> => {
   const c = JSON.parse(fs.readFileSync(path, "utf8"))
 
-  if (!validate({ ...c })) {
+  if (!validate({...c})) {
     return E.left(new Error(JSON.stringify(validate.errors[0].message)))
   }
 
   // convert funcMatch to actual functions
   const processors = c.spec.processors.map((p: any) => {
-    const { ref, isFallback, addr, methods, matchFunc } = p
-    return { ref, isFallback, addr, methods, matchFunc: eval(`(${matchFunc})`)}
+    const {ref, isFallback, addr, methods, matchFunc} = p
+    return {ref, isFallback, addr, methods, matchFunc: eval(`(${matchFunc})`)}
   })
 
   // Re-insert processors with matchFunc now as a function

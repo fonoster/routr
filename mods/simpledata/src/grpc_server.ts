@@ -16,19 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import grpc = require('@grpc/grpc-js');
-import protoLoader = require('@grpc/proto-loader');
+import grpc = require("@grpc/grpc-js")
+import protoLoader = require("@grpc/proto-loader")
 
 const packageDefinition = protoLoader.loadSync(
-  __dirname + '/protos/resources.proto',
+  __dirname + "/protos/resources.proto",
   {
     keepCase: false,
     longs: String,
     enums: String,
     defaults: true,
     oneofs: true
-  });
+  }
+)
 
-const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;
+const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
 
-export const resources = protoDescriptor.fonoster.routr.resources;
+export const resources = protoDescriptor.fonoster.routr.resources

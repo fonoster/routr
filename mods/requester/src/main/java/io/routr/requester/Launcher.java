@@ -18,19 +18,10 @@
  */
 package io.routr.requester;
 
-import java.io.IOException;
-import java.text.ParseException;
-
-import javax.sip.InvalidArgumentException;
-import javax.sip.PeerUnavailableException;
-import javax.sip.SipException;
-import javax.sip.SipFactory;
-import javax.sip.message.Request;
-
-import io.routr.headers.MessageConverter;
-import io.routr.message.SIPMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
 
 public class Launcher {
 

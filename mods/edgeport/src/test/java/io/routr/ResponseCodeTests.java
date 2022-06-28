@@ -18,10 +18,11 @@
  */
 package io.routr;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import org.junit.jupiter.api.Test;
 import io.routr.headers.ResponseCode;
 import io.routr.message.ResponseType;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ResponseCodeTests {
   @Test

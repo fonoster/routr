@@ -20,17 +20,18 @@ import grpc = require("@grpc/grpc-js")
 
 export class ServiceDefinitionNotFound extends Error {
   constructor(name: string, version: string) {
-    super(`Service definition for ${name}/${version} not found`);
+    super(`Service definition for ${name}/${version} not found`)
     // Set the prototype explicitly.
-    Object.setPrototypeOf(this, ServiceDefinitionNotFound.prototype);
+    Object.setPrototypeOf(this, ServiceDefinitionNotFound.prototype)
   }
 }
 
 export class ServiceUnavailableError extends Error {
-  code: number;
+  code: number
+
   constructor(addr: string) {
-    super(`service unavailable [addr = ${addr}]`);
+    super(`service unavailable [addr = ${addr}]`)
     this.code = grpc.status.UNAVAILABLE
-    Object.setPrototypeOf(this, ServiceUnavailableError.prototype);
+    Object.setPrototypeOf(this, ServiceUnavailableError.prototype)
   }
 }

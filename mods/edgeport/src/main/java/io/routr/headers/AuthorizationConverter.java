@@ -18,14 +18,14 @@
  */
 package io.routr.headers;
 
-import java.text.ParseException;
-import javax.sip.header.HeaderFactory;
+import gov.nist.javax.sip.header.Authorization;
+
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
 import javax.sip.address.AddressFactory;
-
-import gov.nist.javax.sip.header.Authorization;
+import javax.sip.header.HeaderFactory;
+import java.text.ParseException;
 
 @ProtoMapping(header = Authorization.class, field = "authorization", repeatable = false, extension = false)
 public class AuthorizationConverter implements Converter<Authorization, io.routr.message.Authorization> {
@@ -44,7 +44,7 @@ public class AuthorizationConverter implements Converter<Authorization, io.routr
     if (header.getResponse() != null) builder.setResponse(header.getResponse());
     if (header.getUsername() != null) builder.setUsername(header.getUsername());
     if (header.getURI() != null) builder.setUri(header.getURI().toString());
-    
+
     builder.setNonceCount(header.getNonceCount());
 
     return builder.build();
@@ -52,14 +52,14 @@ public class AuthorizationConverter implements Converter<Authorization, io.routr
 
   @Override
   public Authorization fromDTO(io.routr.message.Authorization dto)
-      throws InvalidArgumentException, PeerUnavailableException, ParseException {
+    throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     AddressFactory addrFactory = SipFactory.getInstance().createAddressFactory();
     Authorization header = (Authorization) factory.createAuthorizationHeader(dto.getScheme());
     header.setNonceCount(dto.getNonceCount());
     header.setRealm(dto.getRealm());
     header.setOpaque(dto.getOpaque());
-    
+
     if (!dto.getNonce().isEmpty()) header.setNonce(dto.getNonce());
     if (!dto.getCNonce().isEmpty()) header.setCNonce(dto.getCNonce());
     if (!dto.getAlgorithm().isEmpty()) header.setAlgorithm(dto.getAlgorithm());
@@ -69,7 +69,7 @@ public class AuthorizationConverter implements Converter<Authorization, io.routr
     if (!dto.getUri().isEmpty()) {
       header.setURI(addrFactory.createURI(dto.getUri()));
     }
- 
+
     return header;
   }
 }

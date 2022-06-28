@@ -19,14 +19,9 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { request, route } from "@routr/processor/test/examples"
-import { MessageRequest, Route } from '@routr/common'
-import { handleRegister, handleRequest } from "../src/handlers"
-import { Extensions as E, Helper as HE } from "@routr/processor"
-import { createRequest, r1 } from './examples'
-import { router } from '../src/router'
-import { dataAPI, locationAPI } from './mock_apis'
-import { createPAssertedIdentity, createRemotePartyId, createTrunkAuthentication, findResource } from '../src/utils'
+import {request} from "@routr/processor/test/examples"
+import {dataAPI} from './mock_apis'
+import {createPAssertedIdentity, createRemotePartyId, createTrunkAuthentication} from '../src/utils'
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -34,7 +29,7 @@ const sandbox = sinon.createSandbox();
 
 describe('@routr/connect/utils', () => {
   afterEach(() => sandbox.restore());
-  
+
   it('creates a new p-asserted-identity header', async () => {
     const number = (await dataAPI.find(`$..[?(@.spec.location.telUrl=="tel:17066041487")]`))[0]
     const trunk = await dataAPI.get(number.spec.trunkRef)

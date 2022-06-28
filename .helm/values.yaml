@@ -28,8 +28,8 @@ udpSignalingService:
   name: sipudp
   type: ClusterIP
   port: 5060
-  annotations: {}
-  externalIPs: []
+  annotations: { }
+  externalIPs: [ ]
 
 # Use this service to enable TCP access to the server's signaling
 # capabilities. Keep in mind that this will create the service for you
@@ -40,23 +40,23 @@ tcpSignalingService:
   name: siptcp
   type: ClusterIP
   ports:
-  - name: siptcp
-    port: 5060
-  annotations: {}
-  externalIPs: []
+    - name: siptcp
+      port: 5060
+  annotations: { }
+  externalIPs: [ ]
 
 replicaCount: 2
 nameOverride: ""
 fullnameOverride: ""
-podAnnotations: {}
-podSecurityContext: {}
-securityContext: {}
+podAnnotations: { }
+podSecurityContext: { }
+securityContext: { }
 resources:
-  limits: {}
-  requests: {}
-nodeSelector: {}
-tolerations: []
-affinity: {}
+  limits: { }
+  requests: { }
+nodeSelector: { }
+tolerations: [ ]
+affinity: { }
 autoscaling:
   enabled: true
   minReplicas: 2

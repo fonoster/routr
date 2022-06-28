@@ -19,8 +19,8 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { getObjectProto } from '../src/service'
-import { addressCount, isLocalnet} from "../src/ip_utils"
+import {getObjectProto} from '../src/service'
+import {addressCount, isLocalnet} from "../src/ip_utils"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -41,7 +41,7 @@ describe('@routr/common', () => {
   })
 
   it('fails to gets object proto due to a typo', () => {
-    const objectProto2 = { ...objectProto }
+    const objectProto2 = {...objectProto}
     // Introduce a typo
     objectProto2.name = "processo"
     expect(getObjectProto(objectProto2).toString())

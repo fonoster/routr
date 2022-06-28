@@ -16,34 +16,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { resources } from "./grpc_client"
-import { Resource } from "./types"
-import { ServiceUnavailableError } from "./errors"
-import grpc = require('@grpc/grpc-js')
+import {resources} from "./grpc_client"
+import {Resource} from "./types"
+import {ServiceUnavailableError} from "./errors"
+import grpc = require("@grpc/grpc-js")
 
 export function API(apiAddr: string) {
-  const client = new resources.v2draft1.Resources(apiAddr, grpc.credentials.createInsecure())
-  
+  const client = new resources.v2draft1.Resources(
+    apiAddr,
+    grpc.credentials.createInsecure()
+  )
+
   return {
-    get: (ref: string) => new Promise<Resource>((resolve, reject) => {
-      client.get({ ref }, (err: any, response: any) => {
-        if (err) {
-          return err?.code === grpc.status.UNAVAILABLE
-            ? reject(new ServiceUnavailableError(`api server at ${apiAddr} is unavailable`))
-            : reject(err)
-        }
-        resolve(response)
+    get: (ref: string) =>
+      new Promise<Resource>((resolve, reject) => {
+        client.get({ref}, (err: any, response: any) => {
+          if (err) {
+            return err?.code === grpc.status.UNAVAILABLE
+              ? reject(
+                  new ServiceUnavailableError(
+                    `api server at ${apiAddr} is unavailable`
+                  )
+                )
+              : reject(err)
+          }
+          resolve(response)
+        })
+      }),
+    find: (query: string) =>
+      new Promise<Resource[]>((resolve, reject) => {
+        client.find({query}, (err: any, response: any) => {
+          if (err) {
+            return err?.code === grpc.status.UNAVAILABLE
+              ? reject(
+                  new ServiceUnavailableError(
+                    `api server at ${apiAddr} is unavailable`
+                  )
+                )
+              : reject(err)
+          }
+          resolve(response.resources)
+        })
       })
-    }),
-    find: (query: string) => new Promise<Resource[]>((resolve, reject) => {
-      client.find({ query }, (err: any, response: any) => {
-        if (err) {
-          return err?.code === grpc.status.UNAVAILABLE
-            ? reject(new ServiceUnavailableError(`api server at ${apiAddr} is unavailable`))
-            : reject(err)
-        }
-        resolve(response.resources)
-      })
-    })
   }
 }

@@ -19,12 +19,7 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { 
-  duplicateFilter, 
-  expiredFilter, 
-  configFromString, 
-  getUrlString
-} from '../src/utils'
+import {configFromString, duplicateFilter, expiredFilter, getUrlString} from '../src/utils'
 import * as Routes from './route_examples'
 
 const expect = chai.expect
@@ -34,7 +29,7 @@ const sandbox = sinon.createSandbox();
 describe('@routr/location', () => {
   afterEach(() => sandbox.restore());
 
-  it ('verifies that a route is not expired', () => {
+  it('verifies that a route is not expired', () => {
     const route1 = {...Routes.simpleRoute01}
     route1.registeredOn = 1647038272294
 
@@ -67,14 +62,14 @@ describe('@routr/location', () => {
     expect(config).to.have.property("host").to.be.equal("sip.local")
     expect(config).to.have.property("port").to.be.equal("5060")
     expect(() => configFromString("host2=sip.local,port=5060", ["host", "port"]))
-    .to.throw()
+      .to.throw()
   })
 
   it('converts parameter string to redis url', () => {
-    const c1 = { host: "test.local", port: 6380 }
-    const c2 = { password: "1234", host: "test.local", port: 6380 }
-    const c3 = { username: "admin", password: '1234', host: "test.local", port: 6380 }
-    const c4 = { secure: true, username: "admin", password: '1234', host: "test.local", port: 6380 }
+    const c1 = {host: "test.local", port: 6380}
+    const c2 = {password: "1234", host: "test.local", port: 6380}
+    const c3 = {username: "admin", password: '1234', host: "test.local", port: 6380}
+    const c4 = {secure: true, username: "admin", password: '1234', host: "test.local", port: 6380}
     expect(getUrlString(c1)).to.be.equal("redis://test.local:6380")
     expect(getUrlString(c2)).to.be.equal("redis://:1234@test.local:6380")
     expect(getUrlString(c3)).to.be.equal("redis://admin:1234@test.local:6380")

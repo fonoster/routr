@@ -22,11 +22,12 @@ import {
   ProcessorConfig,
   ServiceInfo
 } from "@routr/common"
-import { MiddlewareConfig } from "@routr/common/src/types"
+import {MiddlewareConfig} from "@routr/common/src/types"
 
-export function getServiceInfo(bindAddr: string, 
-  backends: { middlewares: MiddlewareConfig[], processors: ProcessorConfig[] }): ServiceInfo {
-
+export function getServiceInfo(
+  bindAddr: string,
+  backends: {middlewares: MiddlewareConfig[]; processors: ProcessorConfig[]}
+): ServiceInfo {
   return {
     name: "dispatcher",
     bindAddr,

@@ -17,17 +17,18 @@
  * limitations under the License.
  */
 import Response from "./response"
-import { ProcessorConfig } from "./types"
+import {ProcessorConfig} from "./types"
 import {
-  PROCESSOR_OBJECT_PROTO,
+  createService,
   MessageRequest,
-  createService
+  PROCESSOR_OBJECT_PROTO
 } from "@routr/common"
 
 export default class Processor {
   config: ProcessorConfig
   serviceInfo: any
-  constructor(config: ProcessorConfig = { bindAddr: "0.0.0.0:51904", name: "" }) {
+
+  constructor(config: ProcessorConfig = {bindAddr: "0.0.0.0:51904", name: ""}) {
     this.config = config
   }
 

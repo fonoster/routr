@@ -29,7 +29,7 @@ const sandbox = sinon.createSandbox();
 describe('@routr/location/redis_store', () => {
   afterEach(() => sandbox.restore());
 
-  it('puts value in a collection', async() => {
+  it('puts value in a collection', async () => {
     const store = new RedisStore()
     store.put("backend:voice", Routes.voiceBackendRoute01)
     store.put("backend:voice", Routes.voiceBackendRoute02)
@@ -43,7 +43,7 @@ describe('@routr/location/redis_store', () => {
       .to.be.equal("voice02")
   })
 
-  it('test removing all routes for an aor', async() => {
+  it('test removing all routes for an aor', async () => {
     const store = new RedisStore()
     await store.delete("backend:voice")
     store.put("backend:voice", Routes.voiceBackendRoute01)
@@ -53,7 +53,7 @@ describe('@routr/location/redis_store', () => {
     expect(await store.get("backend:voice")).to.be.empty
   })
 
-  it('sets an expire route and clean the collection', async() => {
+  it('sets an expire route and clean the collection', async () => {
     const store = new RedisStore()
     await store.delete("backend:voice")
     await store.delete("backend:conference")

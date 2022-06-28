@@ -17,13 +17,13 @@
  * limitations under the License.
  */
 import logger from "@fonoster/logger"
-import { UnimplementedError } from "./errors"
-import { Resource } from "./types"
+import {UnimplementedError} from "./errors"
+import {Resource} from "./types"
 import Ajv from "ajv"
 
 export function createValidators(path: string) {
   const validators: Map<string, any> = new Map()
-  const files = require('fs').readdirSync(path)
+  const files = require("fs").readdirSync(path)
   files.forEach((file: File) => {
     const schema = require(`${path}/${file}`)
     const ajv = new Ajv()
@@ -33,10 +33,13 @@ export function createValidators(path: string) {
   return validators
 }
 
-export default function loadResources(validatorsPath: string, resourcesPath: string): Resource[] {
+export default function loadResources(
+  validatorsPath: string,
+  resourcesPath: string
+): Resource[] {
   const validators = createValidators(validatorsPath)
   const all: Resource[] = []
-  const files = require('fs').readdirSync(resourcesPath)
+  const files = require("fs").readdirSync(resourcesPath)
   files.forEach((file: File) => {
     const resources = require(`${resourcesPath}/${file}`)
     resources.forEach((resource: Resource) => {
@@ -50,12 +53,14 @@ export default function loadResources(validatorsPath: string, resourcesPath: str
       if (validate(resource)) {
         all.push(resource)
       } else {
-        logger.error("found a bad resource: " + JSON.stringify(validate.errors[0].message))
+        logger.error(
+          "found a bad resource: " + JSON.stringify(validate.errors[0].message)
+        )
         process.exit(1)
       }
     })
   })
-  logger.info(`loaded data resources`, { total: all.length })
+  logger.info("loaded data resources", {total: all.length})
   return all
 }
 

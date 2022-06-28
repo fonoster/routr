@@ -5,7 +5,9 @@
     "metadata": {
       "ref": "prxt67rx",
       "name": "Asterisk (Media Server)",
-      "dependsOn": ["/credentials/crd6t67r1"]
+      "dependsOn": [
+        "/credentials/crd6t67r1"
+      ]
     },
     "spec": {
       "username": "asterisk",

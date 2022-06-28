@@ -19,13 +19,13 @@
 declare const System: any
 
 // require("./tracer").init("dispatcher")
-import EdgePort from './edgeport'
-import { getConfig } from "./config/get_config"
-import { EdgePortConfig } from './types'
+import EdgePort from "./edgeport"
+import {getConfig} from "./config/get_config"
+import {EdgePortConfig} from "./types"
 
-const config = getConfig<EdgePortConfig>(System.getenv('CONFIG_PATH'))
+const config = getConfig<EdgePortConfig>(System.getenv("CONFIG_PATH"))
 
-if (config._tag === 'Right') {
+if (config._tag === "Right") {
   EdgePort(config.right)
 } else {
   console.error(config.left)

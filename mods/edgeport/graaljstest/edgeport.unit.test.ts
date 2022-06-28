@@ -26,33 +26,33 @@ import createSipStack from '../src/create_sip_stack'
 import createListeningPoints from '../src/create_listening_points'
 import createSipProvider from '../src/create_sip_provider'
 import getServerProperties from '../src/server_properties'
-import { 
-  duplicatedPortEdgePortConfig, 
-  duplicatedProtoEdgePortConfig, 
-  edgePortConfig, 
+import {
+  duplicatedPortEdgePortConfig,
+  duplicatedProtoEdgePortConfig,
+  edgePortConfig,
   noSecurityContextEdgePortConfig
 } from './config'
-import { 
-  assertHasSecurityContext, 
-  assertNoDuplicatedProto, 
-  assertNoDuplicatedPort 
-} from '../src/assertions'
-import { ListeningPoint, SipProvider } from '../src/types'
+import {assertHasSecurityContext, assertNoDuplicatedPort, assertNoDuplicatedProto} from '../src/assertions'
+import {ListeningPoint, SipProvider} from '../src/types'
+
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
 
 const sipProvider: SipProvider = {
-  addListeningPoint: () => { },
+  addListeningPoint: () => {
+  },
   addSipListener: function (lp: unknown): void {
     throw new Error('Function not implemented.')
   }
 }
 const sipStack = {
   createListeningPoint:
-    (bindAddr: string, port: number, proto: string) => {},
+    (bindAddr: string, port: number, proto: string) => {
+    },
   createSipProvider: (lp: ListeningPoint) => sipProvider,
-  getClass: () => {}
+  getClass: () => {
+  }
 }
 
 describe('@routr/edgeport', () => {
@@ -95,10 +95,10 @@ describe('@routr/edgeport', () => {
   })
 
   it('creates a sipProvider object', () => {
-    const lps: Array<ListeningPoint> = [{},{}, {}]
+    const lps: Array<ListeningPoint> = [{}, {}, {}]
     const createSipProviderSpy = sandbox.spy(sipStack, 'createSipProvider')
     const addListeningPointSpy = sandbox.spy(sipProvider, 'addListeningPoint')
-  
+
     createSipProvider(sipStack, lps)
     expect(createSipProviderSpy).to.have.been.calledOnce
     expect(addListeningPointSpy).to.have.been.calledTwice

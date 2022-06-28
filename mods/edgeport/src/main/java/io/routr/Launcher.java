@@ -18,11 +18,12 @@
  */
 package io.routr;
 
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
+
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
 
 /**
  * Wrapper class for Routr.
@@ -30,15 +31,15 @@ import org.graalvm.polyglot.HostAccess;
 public class Launcher {
   private static final String launchScript =
     "console = { log: print, warn: print, error: print };" +
-    "var System = Java.type('java.lang.System');" +
-    "load(System.getenv('HOME') + '/libs/jvm-npm.js');" +
-    "load(System.getenv('HOME') + '/libs/edgeport.bundle.js')";
+      "var System = Java.type('java.lang.System');" +
+      "load(System.getenv('HOME') + '/libs/jvm-npm.js');" +
+      "load(System.getenv('HOME') + '/libs/edgeport.bundle.js')";
 
   static public void main(String... args) {
     try {
       new Launcher().launch();
-    } catch(ScriptException ex) {
-        System.out.println("Unable to run routr: " + ex.getMessage());
+    } catch (ScriptException ex) {
+      System.out.println("Unable to run routr: " + ex.getMessage());
     }
   }
 

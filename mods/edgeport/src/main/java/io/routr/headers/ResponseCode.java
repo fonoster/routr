@@ -78,15 +78,15 @@ public enum ResponseCode {
     this.code = code;
   }
 
-  public int getCode() {
-    return this.code;
-  }
-
   public static String fromCode(int code) {
     for (ResponseCode e : ResponseCode.values()) {
       if (e.code == code)
         return e.name();
     }
     return null;
+  }
+
+  public int getCode() {
+    return this.code;
   }
 }

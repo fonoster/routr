@@ -16,10 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  NotRoutesFoundForAOR,
-  UnsupportedSchema
-} from "./errors";
+import {NotRoutesFoundForAOR, UnsupportedSchema} from "./errors"
 import {
   AddRouteRequest,
   Backend,
@@ -27,10 +24,10 @@ import {
   ILocationService,
   ILocatorStore,
   LB_ALGORITHM,
-  RemoveRoutesRequest,
-} from "./types";
-import { Route } from "@routr/common"
-import { filterOnlyMatchingLabels } from "./utils";
+  RemoveRoutesRequest
+} from "./types"
+import {Route} from "@routr/common"
+import {filterOnlyMatchingLabels} from "./utils"
 
 enum AOR_SCHEME {
   SIP = "sip:",
@@ -44,7 +41,10 @@ export default class Location implements ILocationService {
   private affinityStore: Map<string, Route>
 
   // Should fail if any backend has sessionAffinity and round-robin
-  constructor(store: ILocatorStore, backends: Map<string, Backend> = new Map()) {
+  constructor(
+    store: ILocatorStore,
+    backends: Map<string, Backend> = new Map()
+  ) {
     this.store = store
     this.backends = backends
     this.rrCount = new Map<string, number>()
@@ -53,18 +53,21 @@ export default class Location implements ILocationService {
   }
 
   public addRoute(request: AddRouteRequest): Promise<void> {
-    if (!request.aor.startsWith(AOR_SCHEME.SIP) &&
-      !request.aor.startsWith(AOR_SCHEME.BACKEND)) {
+    if (
+      !request.aor.startsWith(AOR_SCHEME.SIP) &&
+      !request.aor.startsWith(AOR_SCHEME.BACKEND)
+    ) {
       throw new UnsupportedSchema(request.aor)
     }
-    return this.store.put(request.aor, request.route);
+    return this.store.put(request.aor, request.route)
   }
 
   public async findRoutes(request: FindRoutesRequest): Promise<Route[]> {
     const routes = request.labels
-      ? (await this.store.get(request.aor))
-        .filter(filterOnlyMatchingLabels(request.labels))
-      : await this.store.get(request.aor) || []
+      ? (await this.store.get(request.aor)).filter(
+          filterOnlyMatchingLabels(request.labels)
+        )
+      : (await this.store.get(request.aor)) || []
 
     if (request.aor.startsWith(AOR_SCHEME.SIP)) {
       return routes
@@ -94,9 +97,9 @@ export default class Location implements ILocationService {
 
     // Continues using round-robin
     const nextPosition = this.rrCount.get(`${AOR_SCHEME.BACKEND}${backend.ref}`)
-    const result = routes[nextPosition];
+    const result = routes[nextPosition]
 
-    if (nextPosition >= (routes.length - 1)) {
+    if (nextPosition >= routes.length - 1) {
       // Restarting round-robin counter
       this.rrCount.set(`${AOR_SCHEME.BACKEND}${backend.ref}`, 0)
     } else {
@@ -107,7 +110,10 @@ export default class Location implements ILocationService {
   }
 
   // Backend with session affinity does not support round-robin
-  private nextWithAffinity(routes: Array<Route>, sessionAffinityRef: string): Route {
+  private nextWithAffinity(
+    routes: Array<Route>,
+    sessionAffinityRef: string
+  ): Route {
     let route = this.affinityStore.get(sessionAffinityRef)
     if (route) {
       return route

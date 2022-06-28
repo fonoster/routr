@@ -27,7 +27,7 @@ message Resource {
     int32 create_time = 4;
     // Updated at
     int32 update_time = 5;
-  } 
+  }
   // The resource's metadata
   Metadata metadata = 1;
   // The resource's data

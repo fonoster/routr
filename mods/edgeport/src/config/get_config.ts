@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as J from 'fp-ts/Json'
-import * as E from 'fp-ts/Either'
-import * as F from './fs'
-import { pipe } from 'fp-ts/function'
-import { schema } from './schema'
+import * as J from "fp-ts/Json"
+import * as E from "fp-ts/Either"
+import * as F from "./fs"
+import {pipe} from "fp-ts/function"
+import {schema} from "./schema"
 import Ajv from "ajv"
 
 const ajv = new Ajv()
@@ -28,33 +28,24 @@ const validate = ajv.compile(schema)
 
 // Reads a file a returns as a string
 export const readFile = (path: string): E.Either<Error, string> =>
-  E.tryCatch(
-    () => F.readFile(path),
-    E.toError
-  )
+  E.tryCatch(() => F.readFile(path), E.toError)
 
 // Validate Json with Ajv
 export const validateConfig = (j: J.Json): E.Either<Error, J.Json> =>
-  E.tryCatch(
-    () => {
-      if (validate(j)) return j
-      throw new Error(validate.errors[0].message)
-    },
-    E.toError
-  )
+  E.tryCatch(() => {
+    if (validate(j)) return j
+    throw new Error(validate.errors[0].message)
+  }, E.toError)
 
 // Read a file and validate its content with Ajv
 export const getConfig = <C>(path: string): E.Either<Error, C> =>
   pipe(
     path,
     readFile,
-    E.chain(value =>
+    E.chain((value) =>
       pipe(
-        E.tryCatch(
-          () => JSON.parse(value) as J.Json,
-          E.toError
-        ),
-        E.chain(validateConfig),
+        E.tryCatch(() => JSON.parse(value) as J.Json, E.toError),
+        E.chain(validateConfig)
       )
     ),
     E.map((v) => v as unknown as C)

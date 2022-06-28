@@ -16,20 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ot from '@opentelemetry/api'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
-import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node'
-import { Resource } from '@opentelemetry/resources'
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
-import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base'
-import { JaegerExporter } from '@opentelemetry/exporter-jaeger'
-import { GrpcInstrumentation } from '@opentelemetry/instrumentation-grpc'
+import ot from "@opentelemetry/api"
+import {registerInstrumentations} from "@opentelemetry/instrumentation"
+import {NodeTracerProvider} from "@opentelemetry/sdk-trace-node"
+import {Resource} from "@opentelemetry/resources"
+import {SemanticResourceAttributes} from "@opentelemetry/semantic-conventions"
+import {SimpleSpanProcessor} from "@opentelemetry/sdk-trace-base"
+import {JaegerExporter} from "@opentelemetry/exporter-jaeger"
+import {GrpcInstrumentation} from "@opentelemetry/instrumentation-grpc"
 
-export function init (serviceName: string) {
+export function init(serviceName: string) {
   const provider = new NodeTracerProvider({
     resource: new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
-    }),
+      [SemanticResourceAttributes.SERVICE_NAME]: serviceName
+    })
   })
 
   const exporter = new JaegerExporter()
@@ -37,10 +37,8 @@ export function init (serviceName: string) {
   provider.register()
 
   registerInstrumentations({
-    instrumentations: [
-      new GrpcInstrumentation(),
-    ],
+    instrumentations: [new GrpcInstrumentation()]
   })
 
-  return ot.trace.getTracer('routr-tracer')
+  return ot.trace.getTracer("routr-tracer")
 }

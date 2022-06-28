@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, ProcessorConfig } from "@routr/common"
-import { MiddlewareConfig } from "@routr/common/src/types"
-import { NotMatchingProcessorFound, ProcessorUnavailableError } from "./errors"
+import {MessageRequest, ProcessorConfig} from "@routr/common"
+import {MiddlewareConfig} from "@routr/common/src/types"
+import {NotMatchingProcessorFound, ProcessorUnavailableError} from "./errors"
 
 export interface MessageDispatcherConfig {
   bindAddr: string
@@ -30,9 +30,15 @@ export interface ProcessorGPRCConnection {
   processMessage: (request: unknown, callback: Function) => void
 }
 
-export type CallbackErrors = NotMatchingProcessorFound | ProcessorUnavailableError | Error
+export type CallbackErrors =
+  | NotMatchingProcessorFound
+  | ProcessorUnavailableError
+  | Error
 
-export type ProcessorCallback = (err: CallbackErrors, reponse?: MessageRequest) => void
+export type ProcessorCallback = (
+  err: CallbackErrors,
+  reponse?: MessageRequest
+) => void
 
 export interface RunProcessorParams {
   callback: Function

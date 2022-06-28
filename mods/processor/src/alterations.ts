@@ -17,12 +17,12 @@
  * limitations under the License.
  */
 import {
-  MessageRequest,
-  Route,
   HeaderModifier,
   Helper as H,
-  IpUtils as I
-} from "@routr/common";
+  IpUtils as I,
+  MessageRequest,
+  Route
+} from "@routr/common"
 
 export const updateRequestURI = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
@@ -44,19 +44,21 @@ export const addSelfVia = (route: Route) => {
     const req = H.deepCopy(request) as any
     // If is comming from a different edgeport we use the listening point instead
     // of the endpoint to ensure connectivity.
-    const nextHopHost = request.edgePortRef === route.edgePortRef
-      ? route.host : route.listeningPoint.host
+    const nextHopHost =
+      request.edgePortRef === route.edgePortRef
+        ? route.host
+        : route.listeningPoint.host
 
     // If the nextHopHost host is local, then use use lp to construct via
     // otherwise, we use the first external ip available.
     const via = I.isLocalnet(req.localnets, nextHopHost)
       ? route.listeningPoint
       : {
-        // fallback to lp host if there is no external ips
-        host: req.externalIps[0] || req.listeningPoint.host,
-        port: req.listeningPoint.port,
-        transport: req.listeningPoint.transport
-      }
+          // fallback to lp host if there is no external ips
+          host: req.externalIps[0] || req.listeningPoint.host,
+          port: req.listeningPoint.port,
+          transport: req.listeningPoint.transport
+        }
 
     req.message.via = [via, ...req.message.via]
 
@@ -78,7 +80,7 @@ export const addRoute = (route: Route) => {
         }
       }
     }
-    req.message.route = [r, ...req.message.recordRoute as any]
+    req.message.route = [r, ...(req.message.recordRoute as any)]
     return req
   }
 }
@@ -87,14 +89,19 @@ export const applyXHeaders = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
     if (route.headers && route.headers.length > 0) {
-      const headersToRemove = route.headers.filter((h: HeaderModifier) => h.action === "remove").map(h => h.name)
-      const headersToAdd = route.headers.filter((h: HeaderModifier) => h.action !== "remove")
+      const headersToRemove = route.headers
+        .filter((h: HeaderModifier) => h.action === "remove")
+        .map((h) => h.name)
+      const headersToAdd = route.headers.filter(
+        (h: HeaderModifier) => h.action !== "remove"
+      )
 
-      req.message.extensions = (req.message.extensions as any)
-        .filter((h: any) => !headersToRemove.includes(h.name.toLowerCase()))
+      req.message.extensions = (req.message.extensions as any).filter(
+        (h: any) => !headersToRemove.includes(h.name.toLowerCase())
+      )
 
       headersToAdd.forEach((h: any) => {
-        (req.message.extensions as any).push({ name: h.name, value: h.value })
+        ;(req.message.extensions as any).push({name: h.name, value: h.value})
       })
     }
     return req
@@ -114,7 +121,7 @@ export const addSelfRecordRoute = (request: MessageRequest): MessageRequest => {
       }
     }
   }
-  req.message.recordRoute = [r, ...req.message.recordRoute as any]
+  req.message.recordRoute = [r, ...(req.message.recordRoute as any)]
   return req
 }
 
@@ -124,18 +131,21 @@ export const addXEdgePortRef = (request: MessageRequest): MessageRequest => {
     name: "X-EdgePort-Ref",
     value: request.edgePortRef
   }
-  req.message.extensions = [r, ...req.message.extensions as any]
+  req.message.extensions = [r, ...(req.message.extensions as any)]
   return req
 }
 
 export const removeXEdgePortRef = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
-  req.message.extensions = (req.message.extensions as any).filter((ext: any) =>
-    ext.name.toLowerCase() !== "x-edgeport-ref")
+  req.message.extensions = (req.message.extensions as any).filter(
+    (ext: any) => ext.name.toLowerCase() !== "x-edgeport-ref"
+  )
   return req
 }
 
-export const removeAuthorization = (request: MessageRequest): MessageRequest => {
+export const removeAuthorization = (
+  request: MessageRequest
+): MessageRequest => {
   const req = H.deepCopy(request)
   delete req.message.authorization
   return req
@@ -146,8 +156,10 @@ export const removeRoutes = (request: MessageRequest): MessageRequest => {
   req.message.route = (req.message.route as any).filter((r: any) => {
     const lp = request.listeningPoint
     const route = r.address.uri
-    return !((route.host === lp.host || request.externalIps.includes(route.host))
-      && route.port === lp.port)
+    return !(
+      (route.host === lp.host || request.externalIps.includes(route.host)) &&
+      route.port === lp.port
+    )
   })
   return req
 }
@@ -161,7 +173,8 @@ export const removeTopVia = (request: MessageRequest): MessageRequest => {
 export const decreaseMaxForwards = (request: MessageRequest) => {
   const req = H.deepCopy(request) as any
   if (req.message.maxForwards) {
-    req.message.maxForwards.maxForwards = (req.message.maxForwards.maxForwards - 1)
+    req.message.maxForwards.maxForwards =
+      req.message.maxForwards.maxForwards - 1
   }
   return req
 }

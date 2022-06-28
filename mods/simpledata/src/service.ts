@@ -16,16 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SimpleDataConfig } from './types'
-import { resources } from './grpc_server'
-import { nyi } from './utils';
-import { find, get } from './api';
-import grpc = require('@grpc/grpc-js');
-import logger from '@fonoster/logger'
+import {SimpleDataConfig} from "./types"
+import {resources} from "./grpc_server"
+import {nyi} from "./utils"
+import {find, get} from "./api"
+import logger from "@fonoster/logger"
+import grpc = require("@grpc/grpc-js")
 
 export default function SimpleDataService(config: SimpleDataConfig): void {
-  const { bindAddr } = config
-  logger.info("starting routr service", { bindAddr, name: "simpledata" })
+  const {bindAddr} = config
+  logger.info("starting routr service", {bindAddr, name: "simpledata"})
   const server = new grpc.Server()
 
   server.addService(resources.v2draft1.Resources.service, {
@@ -34,10 +34,14 @@ export default function SimpleDataService(config: SimpleDataConfig): void {
     delete: nyi,
     update: nyi,
     create: nyi,
-    list: nyi,
+    list: nyi
   })
 
-  server.bindAsync(config.bindAddr, grpc.ServerCredentials.createInsecure(), () => {
-    server.start();
-  });
+  server.bindAsync(
+    config.bindAddr,
+    grpc.ServerCredentials.createInsecure(),
+    () => {
+      server.start()
+    }
+  )
 }

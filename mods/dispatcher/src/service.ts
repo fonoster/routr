@@ -17,13 +17,11 @@
  * limitations under the License.
  */
 require("./tracer").init("dispatcher")
-import { MessageDispatcherConfig } from "./types"
-import {
-  createService,
-} from "@routr/common"
-import { getServiceInfo } from "./util"
+import {MessageDispatcherConfig} from "./types"
+import {createService} from "@routr/common"
+import {getServiceInfo} from "./util"
 
 export default function MessageDispatcher(config: MessageDispatcherConfig) {
-  const { bindAddr, processors, middlewares } = config
-  createService(getServiceInfo(bindAddr, { processors, middlewares }))
+  const {bindAddr, processors, middlewares} = config
+  createService(getServiceInfo(bindAddr, {processors, middlewares}))
 }

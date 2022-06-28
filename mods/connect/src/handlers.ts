@@ -16,19 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Helper as H } from "@routr/location"
-import { tailor } from "./tailor"
+import {Helper as H} from "@routr/location"
+import {tailor} from "./tailor"
 import {
+  Alterations as A,
+  Extensions as E,
+  Helper as HE,
   MessageRequest,
   Response,
-  Target as T,
-  Extensions as E,
-  Alterations as A,
-  Helper as HE
+  Target as T
 } from "@routr/processor"
-import { pipe } from "fp-ts/function"
-import { router } from "./router"
-import { DataAPI } from "./types"
+import {pipe} from "fp-ts/function"
+import {router} from "./router"
+import {DataAPI} from "./types"
 
 export const handleRegister = (location: any) => {
   return async (request: MessageRequest, res: Response) => {
@@ -41,13 +41,16 @@ export const handleRegister = (location: any) => {
 }
 
 // TODO: If request has X-Connect-Object then validate the JWT value and continue
-export const handleRequest = (location: any, dataAPI: DataAPI) =>
+export const handleRequest =
+  (location: any, dataAPI: DataAPI) =>
   async (req: MessageRequest, res: Response) => {
-    //const route = getRoute(location, apiService)(req)
+    // const route = getRoute(location, apiService)(req)
     try {
-      const route = E.getHeaderValue(req, "x-edgeport-ref") !== undefined || req.method.toString() === "ACK"
-        ? HE.createRouteFromLastMessage(req)
-        : await router(location, dataAPI)(req)
+      const route =
+        E.getHeaderValue(req, "x-edgeport-ref") !== undefined ||
+        req.method.toString() === "ACK"
+          ? HE.createRouteFromLastMessage(req)
+          : await router(location, dataAPI)(req)
 
       if (!route) return res.sendNotFound()
 

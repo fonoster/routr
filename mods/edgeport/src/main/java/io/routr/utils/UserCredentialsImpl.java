@@ -26,7 +26,7 @@ class UserCredentialsImpl implements UserCredentials {
   private final String host;
 
   public UserCredentialsImpl(final String username, final String password,
-      final String host) {
+                             final String host) {
     this.username = username;
     this.password = password;
     this.host = host;

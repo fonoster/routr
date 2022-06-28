@@ -18,9 +18,10 @@
  */
 package io.routr;
 
-import java.util.Map;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
+
+import java.util.Map;
 
 class MapProxyObject implements ProxyObject {
   private final Map<String, Object> map;

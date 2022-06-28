@@ -16,12 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, Helper as H } from "@routr/common";
+import {Helper as H, MessageRequest} from "@routr/common"
 
 export const getHeaderValue = (request: MessageRequest, name: string) =>
-  (request.message.extensions as any).find((ext: any) => ext.name.toLowerCase() === name.toLowerCase())?.value
+  (request.message.extensions as any).find(
+    (ext: any) => ext.name.toLowerCase() === name.toLowerCase()
+  )?.value
 
-export const updateHeader = (request: MessageRequest, header: { name: string, value: string }): MessageRequest => {
+export const updateHeader = (
+  request: MessageRequest,
+  header: {name: string; value: string}
+): MessageRequest => {
   const r = H.deepCopy(request)
   r.message.extensions = (request.message.extensions as any).map((ext: any) => {
     return ext.name == header.name ? header : ext
@@ -29,7 +34,10 @@ export const updateHeader = (request: MessageRequest, header: { name: string, va
   return r
 }
 
-export const addHeader = (request: MessageRequest, header: { name: string, value: string }): MessageRequest => {
+export const addHeader = (
+  request: MessageRequest,
+  header: {name: string; value: string}
+): MessageRequest => {
   const r = H.deepCopy(request)
   r.message.extensions = [...(request.message.extensions as any), header]
   return r

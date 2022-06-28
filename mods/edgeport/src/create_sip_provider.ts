@@ -16,13 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SipStack, ListeningPoint, SipProvider } from "./types";
+import {ListeningPoint, SipProvider, SipStack} from "./types"
 
-export default function createSipProvider(sipStack: SipStack, 
-  listeningPoints: Array<ListeningPoint>): SipProvider {
+export default function createSipProvider(
+  sipStack: SipStack,
+  listeningPoints: Array<ListeningPoint>
+): SipProvider {
   const sipProvider = sipStack.createSipProvider(listeningPoints[0])
-  for (const lp1 of listeningPoints?.filter(((lp: ListeningPoint, index: number) => index > 0))) {
-    sipProvider.addListeningPoint(lp1);
+  for (const lp1 of listeningPoints?.filter(
+    (lp: ListeningPoint, index: number) => index > 0
+  )) {
+    sipProvider.addListeningPoint(lp1)
   }
   return sipProvider
 }

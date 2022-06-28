@@ -17,81 +17,81 @@
  * limitations under the License.
  */
 export const schema = {
-  "$id": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Message Dispatcher configuration",
-  "description": "Configuration for a Message Dispatcher instance",
-  "type": "object",
-  "properties": {
-    "kind": {
-      "description": "Resouce type",
-      "type": "string"
+  $id: "https://json-schema.org/draft/2020-12/schema",
+  title: "Message Dispatcher configuration",
+  description: "Configuration for a Message Dispatcher instance",
+  type: "object",
+  properties: {
+    kind: {
+      description: "Resouce type",
+      type: "string"
     },
-    "apiVersion": {
-      "description": "Resource version",
-      "type": "string"
+    apiVersion: {
+      description: "Resource version",
+      type: "string"
     },
-    "metadata": {
-      "description": "Resource metadata",
-      "type": "object",
-      "properties": {
-        "ref": {
-          "description": "EdgePort reference",
-          "type": "string"
+    metadata: {
+      description: "Resource metadata",
+      type: "object",
+      properties: {
+        ref: {
+          description: "EdgePort reference",
+          type: "string"
         }
       },
-      "required": ["ref"]
+      required: ["ref"]
     },
-    "spec": {
-      "description": "Operations spec for EdgePort",
-      "type": "object",
-      "properties": {
-        "bindAddr": {
-          "description": "Ipv4 interface to accept request on",
-          "type": "string"
+    spec: {
+      description: "Operations spec for EdgePort",
+      type: "object",
+      properties: {
+        bindAddr: {
+          description: "Ipv4 interface to accept request on",
+          type: "string"
         },
-        "middlewares": {
-          "description": "Middleware Processors",
-          "type": "array",
-          "items": {
-            "type": "object"
+        middlewares: {
+          description: "Middleware Processors",
+          type: "array",
+          items: {
+            type: "object"
           },
-          "properties": {
-            "ref": {
-              "type": "string"
+          properties: {
+            ref: {
+              type: "string"
             },
-            "addr": {
-              "type": "string"
+            addr: {
+              type: "string"
             }
           },
-          "required": ["ref", "addr"]
+          required: ["ref", "addr"]
         },
-        "processors": {
-          "description": "Message Processors",
-          "type": "array",
-          "items": {
-            "type": "object"
+        processors: {
+          description: "Message Processors",
+          type: "array",
+          items: {
+            type: "object"
           },
-          "properties": {
-            "ref": {
-              "type": "string"
+          properties: {
+            ref: {
+              type: "string"
             },
-            "addr": {
-              "type": "string"
+            addr: {
+              type: "string"
             },
-            "matchFunc": {
-              "type": "string"
+            matchFunc: {
+              type: "string"
             },
-            "methods": {
-              "type": "array",
-              "items": {
-                "type": "string"
+            methods: {
+              type: "array",
+              items: {
+                type: "string"
               }
             }
           },
-          "required": ["ref", "addr", "methods", "matchFunc"]
+          required: ["ref", "addr", "methods", "matchFunc"]
         }
       }
     }
   },
-  "required": ["kind", "metadata", "spec", "apiVersion"]
+  required: ["kind", "metadata", "spec", "apiVersion"]
 }

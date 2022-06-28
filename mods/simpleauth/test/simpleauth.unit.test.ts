@@ -19,7 +19,8 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { createUnauthorizedResponse, getCredentials } from '../src/utils'
+import {createUnauthorizedResponse, getCredentials} from '../src/utils'
+
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
@@ -32,10 +33,10 @@ describe('@routr/simpleauth', () => {
       username: 'john',
       secret: 'changeit'
     },
-    {
-      username: '1001',
-      secret: 'changeit'
-    }]
+      {
+        username: '1001',
+        secret: 'changeit'
+      }]
 
     expect(getCredentials('1001', users)).to.have.property("secret").to.be.equal("changeit")
   })
@@ -67,6 +68,6 @@ describe('@routr/simpleauth', () => {
       .to.have.property("nonce").to.be.length(32)
     expect(response)
       .to.have.property("message")
-      .to.have.property("extensions").to.be.not.null    
+      .to.have.property("extensions").to.be.not.null
   })
 })

@@ -18,14 +18,14 @@
  */
 package io.routr.headers;
 
-import java.text.ParseException;
-import java.util.Iterator;
+import gov.nist.javax.sip.header.To;
 
-import javax.sip.header.HeaderFactory;
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
-import gov.nist.javax.sip.header.To;
+import javax.sip.header.HeaderFactory;
+import java.text.ParseException;
+import java.util.Iterator;
 
 @ProtoMapping(header = To.class, field = "to", repeatable = false, extension = false)
 public class ToConverter implements Converter<To, io.routr.message.To> {

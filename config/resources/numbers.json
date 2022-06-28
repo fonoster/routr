@@ -21,7 +21,10 @@
         "aorLink": "backend:conference",
         "sessionAffinityProp": "x-room-id",
         "props": [
-          { "name": "x-room-id", "value": "jsa-shqm-iyo" }
+          {
+            "name": "x-room-id",
+            "value": "jsa-shqm-iyo"
+          }
         ]
       }
     }

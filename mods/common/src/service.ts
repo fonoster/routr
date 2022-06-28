@@ -16,12 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ObjectProto, ServiceInfo } from "./types"
-import { ServiceDefinitionNotFound } from "./errors"
+import {ObjectProto, ServiceInfo} from "./types"
+import {ServiceDefinitionNotFound} from "./errors"
 import logger from "@fonoster/logger"
 
-const protoLoader = require('@grpc/proto-loader')
-const grpc = require('@grpc/grpc-js')
+const protoLoader = require("@grpc/proto-loader")
+const grpc = require("@grpc/grpc-js")
 const loadOptions = {
   keepCase: false,
   longs: String,
@@ -34,19 +34,21 @@ const loadOptions = {
 export const PROCESSOR_OBJECT_PROTO = getObjectProto<any>({
   name: "processor",
   version: "v2draft1",
-  path: __dirname + '/protos/processor.proto'
+  path: __dirname + "/protos/processor.proto"
 })
 
 export const LOCATION_OBJECT_PROTO = getObjectProto<any>({
   name: "location",
   version: "v2draft1",
-  path: __dirname + '/protos/location.proto'
+  path: __dirname + "/protos/location.proto"
 })
 
-export function getObjectProto<A>(objectProto: ObjectProto): A | ServiceDefinitionNotFound {
+export function getObjectProto<A>(
+  objectProto: ObjectProto
+): A | ServiceDefinitionNotFound {
   const definitions = protoLoader.loadSync(objectProto.path, loadOptions)
-  const objProto = grpc.loadPackageDefinition(definitions)
-    ?.fonoster?.routr[objectProto.name]
+  const objProto =
+    grpc.loadPackageDefinition(definitions)?.fonoster?.routr[objectProto.name]
   return objProto && objProto[objectProto.version]
     ? objProto[objectProto.version]
     : new ServiceDefinitionNotFound(objectProto.name, objectProto.version)
@@ -54,7 +56,7 @@ export function getObjectProto<A>(objectProto: ObjectProto): A | ServiceDefiniti
 
 export default function createService(serviceInfo: ServiceInfo) {
   const cb = () => {
-    logger.info(`starting routr service`, {
+    logger.info("starting routr service", {
       name: serviceInfo.name,
       bindAddr: serviceInfo.bindAddr
     })

@@ -18,12 +18,13 @@
  */
 package io.routr.headers;
 
-import java.text.ParseException;
-import javax.sip.header.HeaderFactory;
+import gov.nist.javax.sip.header.Via;
+
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
-import gov.nist.javax.sip.header.Via;
+import javax.sip.header.HeaderFactory;
+import java.text.ParseException;
 
 @ProtoMapping(header = Via.class, field = "via", repeatable = true, extension = false)
 public class ViaConverter implements Converter<Via, io.routr.message.Via> {
@@ -36,10 +37,10 @@ public class ViaConverter implements Converter<Via, io.routr.message.Via> {
       .setTransport(header.getTransport())
       .setHost(header.getHost()).build();
 
-    if(header.getBranch() != null) {
+    if (header.getBranch() != null) {
       builder.setBranch(header.getBranch());
     }
-  
+
     return builder.build();
   }
 
@@ -52,5 +53,5 @@ public class ViaConverter implements Converter<Via, io.routr.message.Via> {
       header.setBranch(dto.getBranch());
     }
     return header;
-  } 
+  }
 }

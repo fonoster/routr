@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Resource } from "../src/types"
+import {Resource} from "../src/types"
 
 export const resources: Resource[] = [
   {

@@ -16,29 +16,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ProcessorUnavailableError } from "./errors"
-import { findProcessor } from "./find_processor"
-import { RunProcessorParams } from "./types"
+import {ProcessorUnavailableError} from "./errors"
+import {findProcessor} from "./find_processor"
+import {RunProcessorParams} from "./types"
 import logger from "@fonoster/logger"
+import ot from "@opentelemetry/api"
 import grpc = require("@grpc/grpc-js")
-import ot from '@opentelemetry/api'
 
 export function runProcessor(params: RunProcessorParams) {
-  const currentSpan = ot.trace.getSpan(ot.context.active());
+  const currentSpan = ot.trace.getSpan(ot.context.active())
   // display traceid in the terminal
-  logger.silly(`traceid: ${currentSpan?.spanContext().traceId}`);
-  const tracer = ot.trace.getTracer("routr-tracer");
-  const span = tracer.startSpan('server.js:sayHello()', { kind: 1 });
-  span.addEvent(`invoking sayHello() to...`);
+  logger.silly(`traceid: ${currentSpan?.spanContext().traceId}`)
+  const tracer = ot.trace.getTracer("routr-tracer")
+  const span = tracer.startSpan("server.js:sayHello()", {kind: 1})
+  span.addEvent("invoking sayHello() to...")
 
-  const { callback, connections, processors, request } = params
+  const {callback, connections, processors, request} = params
   const matchResult = findProcessor(processors)(request)
 
-  if ('code' in matchResult) {
+  if ("code" in matchResult) {
     return callback(matchResult)
   }
 
-  logger.silly("forwarding request to processor", { processorRef: matchResult.ref })
+  logger.silly("forwarding request to processor", {
+    processorRef: matchResult.ref
+  })
 
   const conn = connections.get(matchResult.ref)
   // Connects to downstream processor

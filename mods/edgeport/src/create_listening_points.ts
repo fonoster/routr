@@ -16,11 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { EdgePortConfig, ListeningPoint, SipStack } from "./types";
+import {EdgePortConfig, ListeningPoint, SipStack} from "./types"
 
-// Creates LPs for all of the given transport and throws if upstream function fails
-export default function createListeningPoints(sipStack: SipStack,
-  config: EdgePortConfig): Array<ListeningPoint> {
+// Creates LPs for all the given transport and throws if upstream function fails
+export default function createListeningPoints(
+  sipStack: SipStack,
+  config: EdgePortConfig
+): Array<ListeningPoint> {
   const listeningPoints: Array<ListeningPoint> = []
   for (const trans of config.spec.transport) {
     const proto = trans.protocol.toLowerCase()
@@ -31,10 +33,16 @@ export default function createListeningPoints(sipStack: SipStack,
     }
 
     try {
-      const lp = sipStack.createListeningPoint(trans.bindAddr, trans.port, proto)
+      const lp = sipStack.createListeningPoint(
+        trans.bindAddr,
+        trans.port,
+        proto
+      )
       listeningPoints.push(lp)
     } catch (e) {
-      throw new Error(`unable to bind ${proto}://${trans.bindAddr}:${trans.port}`)
+      throw new Error(
+        `unable to bind ${proto}://${trans.bindAddr}:${trans.port}`
+      )
     }
   }
   return listeningPoints

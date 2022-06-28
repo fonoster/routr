@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Route } from "@routr/common"
-import { ILocatorStore } from "./types"
-import { duplicateFilter, expiredFilter } from "./utils"
+import {Route} from "@routr/common"
+import {ILocatorStore} from "./types"
+import {duplicateFilter, expiredFilter} from "./utils"
 
 const MAX_CYCLES_BEFORE_CLEANUP = 10000
 
@@ -27,18 +27,18 @@ export default class MemoryStore implements ILocatorStore {
   private cleanupCount: number
   private maxCyclesBeforeCleanup: number
 
-  constructor(maxCyclesBeforeCleanup: number = MAX_CYCLES_BEFORE_CLEANUP ) {
+  constructor(maxCyclesBeforeCleanup: number = MAX_CYCLES_BEFORE_CLEANUP) {
     this.collections = new Map<string, Route[]>()
     this.maxCyclesBeforeCleanup = maxCyclesBeforeCleanup
   }
 
   public put(key: string, route: Route): Promise<void> {
-    const routes = [...this.collections.get(key) || []] 
- 
+    const routes = [...(this.collections.get(key) || [])]
+
     // Avoids duplicate or expired routes
     const filteredRoutes = routes
       .filter(expiredFilter)
-      .filter(r => duplicateFilter(r, route))
+      .filter((r) => duplicateFilter(r, route))
 
     if (filteredRoutes.length > 0) {
       this.collections.set(key, [route, ...filteredRoutes])
@@ -57,7 +57,8 @@ export default class MemoryStore implements ILocatorStore {
       this.cleanup()
     }
     return Promise.resolve(
-      (this.collections.get(key) || []).filter(expiredFilter))
+      (this.collections.get(key) || []).filter(expiredFilter)
+    )
   }
 
   public delete(key: string): Promise<void> {
@@ -69,7 +70,7 @@ export default class MemoryStore implements ILocatorStore {
     return this.collections.size
   }
 
-  public cleanup () {
+  public cleanup() {
     // Remove any expired route from collection
     this.collections.forEach((routes, key) => {
       const filteredRoutes = routes.filter(expiredFilter)

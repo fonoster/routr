@@ -18,12 +18,13 @@
  */
 package io.routr.headers;
 
-import java.text.ParseException;
-import javax.sip.header.HeaderFactory;
+import gov.nist.javax.sip.header.Expires;
+
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
-import gov.nist.javax.sip.header.Expires;
+import javax.sip.header.HeaderFactory;
+import java.text.ParseException;
 
 @ProtoMapping(header = Expires.class, field = "expires", repeatable = false, extension = false)
 public class ExpiresConverter implements Converter<Expires, io.routr.message.Expires> {

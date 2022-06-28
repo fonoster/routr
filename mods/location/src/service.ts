@@ -18,31 +18,36 @@
  */
 import {
   Backend,
+  CACHE_PROVIDER,
   LocationConfig,
-  RedisStoreConfig,
-  CACHE_PROVIDER
+  RedisStoreConfig
 } from "./types"
-import { createService } from "@routr/common"
-import { configFromString, getServiceInfo } from "./utils"
+import {createService} from "@routr/common"
+import {configFromString, getServiceInfo} from "./utils"
 import Location from "./location"
 import MemoryStore from "./memory_store"
 import RedisStore from "./redis_store"
 import logger from "@fonoster/logger"
+
 const allowedParameters = ["host", "port", "username", "password", "secure"]
 
 export default function LocationService(config: LocationConfig) {
-  const { bindAddr, cache } = config
+  const {bindAddr, cache} = config
   let store
 
   if (cache.provider === CACHE_PROVIDER.REDIS) {
-    store = new RedisStore(configFromString(cache.parameters,
-      allowedParameters) as any as RedisStoreConfig)
+    store = new RedisStore(
+      configFromString(
+        cache.parameters,
+        allowedParameters
+      ) as any as RedisStoreConfig
+    )
   } else {
     store = new MemoryStore()
   }
 
   const backends = new Map<string, Backend>()
-  config.backends.forEach(b => backends.set(`backend:${b.ref}`, b))
+  config.backends.forEach((b) => backends.set(`backend:${b.ref}`, b))
   createService(getServiceInfo(bindAddr, new Location(store, backends)))
 
   logger.info(`using ${cache.provider} as cache provider`)

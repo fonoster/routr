@@ -18,37 +18,6 @@
  */
 package io.routr;
 
-import java.text.ParseException;
-import java.util.*;
-
-import javax.sip.address.SipURI;
-import javax.sip.ClientTransaction;
-import javax.sip.DialogTerminatedEvent;
-import javax.sip.IOExceptionEvent;
-import javax.sip.InvalidArgumentException;
-import javax.sip.ListeningPoint;
-import javax.sip.PeerUnavailableException;
-import javax.sip.RequestEvent;
-import javax.sip.ResponseEvent;
-import javax.sip.ServerTransaction;
-import javax.sip.SipException;
-import javax.sip.SipFactory;
-import javax.sip.SipListener;
-import javax.sip.SipProvider;
-import javax.sip.TimeoutEvent;
-import javax.sip.Transaction;
-import javax.sip.TransactionAlreadyExistsException;
-import javax.sip.TransactionTerminatedEvent;
-import javax.sip.TransactionUnavailableException;
-import javax.sip.address.AddressFactory;
-import javax.sip.header.*;
-import javax.sip.message.MessageFactory;
-import javax.sip.message.Request;
-import javax.sip.message.Response;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.clientauthutils.AccountManager;
 import gov.nist.javax.sip.header.ContentLength;
@@ -65,19 +34,31 @@ import io.routr.processor.MessageResponse;
 import io.routr.processor.NetInterface;
 import io.routr.processor.ProcessorGrpc;
 import io.routr.utils.AccountManagerImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.sip.*;
+import javax.sip.address.AddressFactory;
+import javax.sip.address.SipURI;
+import javax.sip.header.*;
+import javax.sip.message.MessageFactory;
+import javax.sip.message.Request;
+import javax.sip.message.Response;
+import java.text.ParseException;
+import java.util.*;
 
 public class GRPCSipListener implements SipListener {
+  private final static Logger LOG = LogManager.getLogger(GRPCSipListener.class);
   private final ProcessorGrpc.ProcessorBlockingStub blockingStub;
   private final MessageConverter messageConverter;
   private final SipProvider sipProvider;
   private final MessageFactory messageFactory;
   private final AddressFactory addressFactory;
   private final HeaderFactory headerFactory;
-  private final static Logger LOG = LogManager.getLogger(GRPCSipListener.class);
   private final Map<String, Transaction> activeTransactions = new HashMap<>();
 
   public GRPCSipListener(final SipProvider sipProvider, final Map<String, Object> config,
-      final List<String> externalIps, final List<String> localnets) throws PeerUnavailableException {
+                         final List<String> externalIps, final List<String> localnets) throws PeerUnavailableException {
     MapProxyObject values = new MapProxyObject(config);
     MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
     MapProxyObject spec = (MapProxyObject) values.getMember("spec");
@@ -95,8 +76,8 @@ public class GRPCSipListener implements SipListener {
     LOG.info("external ips list [" + String.join(",", externalIps) + "]");
 
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
-        .usePlaintext()
-        .build();
+      .usePlaintext()
+      .build();
 
     blockingStub = ProcessorGrpc.newBlockingStub(channel);
     this.sipProvider = sipProvider;
@@ -107,10 +88,10 @@ public class GRPCSipListener implements SipListener {
     while (lps.hasNext()) {
       var currentLp = lps.next();
       var ni = NetInterface.newBuilder()
-          .setPort(currentLp.getPort())
-          .setHost(currentLp.getIPAddress())
-          .setTransport(Transport.valueOf(currentLp.getTransport().toUpperCase()))
-          .build();
+        .setPort(currentLp.getPort())
+        .setHost(currentLp.getIPAddress())
+        .setTransport(Transport.valueOf(currentLp.getTransport().toUpperCase()))
+        .build();
       listeningPoints.put(currentLp.getTransport().toUpperCase(), ni);
     }
 
@@ -122,6 +103,79 @@ public class GRPCSipListener implements SipListener {
     this.messageFactory = SipFactory.getInstance().createMessageFactory();
     this.addressFactory = SipFactory.getInstance().createAddressFactory();
     this.headerFactory = SipFactory.getInstance().createHeaderFactory();
+  }
+
+  static Request updateRequest(final Request request, final List<Header> headers) {
+    Request requestOut = (Request) request.clone();
+
+    Iterator<String> names = requestOut.getHeaderNames();
+    while (names.hasNext()) {
+      String n = names.next();
+      // WARN: Perhaps we should compute this value
+      if (!n.equals(ContentLength.NAME)) {
+        requestOut.removeHeader(n);
+      }
+    }
+
+    for (Header header : headers) {
+      // Ignore special header
+      if (header.getName().equalsIgnoreCase("x-gateway-auth")) {
+        continue;
+      }
+
+      String s = header.getName();
+      if (s.equals(FromHeader.NAME) || s.equals(ToHeader.NAME) && s.equals(CallIdHeader.NAME)
+        && s.equals(CSeqHeader.NAME)) {
+        requestOut.setHeader(header);
+      } else {
+        requestOut.addHeader(header);
+      }
+    }
+
+    return requestOut;
+  }
+
+  private static boolean isTransactional(final ResponseEvent event) {
+    return (event.getClientTransaction() != null &&
+      hasMethod(event.getResponse(), Request.INVITE, Request.MESSAGE));
+  }
+
+  private static boolean isStackJob(final Response response) {
+    return hasCodes(response, Response.TRYING, Response.REQUEST_TERMINATED)
+      || hasMethod(response, Request.CANCEL);
+  }
+
+  private static boolean authenticationRequired(final Response response) {
+    return hasCodes(response, Response.PROXY_AUTHENTICATION_REQUIRED, Response.UNAUTHORIZED);
+  }
+
+  private static boolean hasMethod(final Response response, final String... methods) {
+    // Get method from CSeq header
+    CSeqHeader cseqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
+    var method = cseqHeader.getMethod();
+    return Arrays.stream(methods).filter(m -> Objects.equals(m, method)).toArray().length > 0;
+  }
+
+  private static boolean hasCodes(final Response response, final int... codes) {
+    return Arrays.stream(codes).filter(c -> c == response.getStatusCode()).toArray().length > 0;
+  }
+
+  private static AccountManager createAccountManager(final List<Header> headers, final String host) {
+    for (Header header : headers) {
+      if (header.getName().equalsIgnoreCase("x-gateway-auth")) {
+        var authStr = ((ExtensionHeader) header).getValue();
+        var auth = new String(Base64.getDecoder().decode(authStr));
+
+        if (auth.split(":").length != 2) {
+          throw new IllegalArgumentException("invalid 'x-gateway-auth' header value; should be base64('username:password')");
+        }
+
+        var username = auth.split(":")[0];
+        var password = auth.split(":")[1];
+        return new AccountManagerImpl(username, password, host);
+      }
+    }
+    return null;
   }
 
   public void processRequest(final RequestEvent event) {
@@ -219,8 +273,8 @@ public class GRPCSipListener implements SipListener {
 
   public void processTimeout(final TimeoutEvent event) {
     var transaction = event.getClientTransaction() != null
-        ? (Transaction) event.getClientTransaction()
-        : (Transaction) event.getServerTransaction();
+      ? (Transaction) event.getClientTransaction()
+      : (Transaction) event.getServerTransaction();
     if (transaction != null) {
       var request = transaction.getRequest();
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
@@ -231,8 +285,8 @@ public class GRPCSipListener implements SipListener {
 
   public void processTransactionTerminated(final TransactionTerminatedEvent event) {
     var transaction = event.getClientTransaction() != null
-        ? (Transaction) event.getClientTransaction()
-        : (Transaction) event.getServerTransaction();
+      ? (Transaction) event.getClientTransaction()
+      : (Transaction) event.getServerTransaction();
     if (transaction != null) {
       var request = transaction.getRequest();
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
@@ -250,7 +304,7 @@ public class GRPCSipListener implements SipListener {
   }
 
   private void sendRequest(final ServerTransaction serverTransaction, final Request request,
-      final List<Header> headers) {
+                           final List<Header> headers) {
     try {
       Request requestOut = updateRequest(request, headers);
       // Does not need a transaction
@@ -275,7 +329,7 @@ public class GRPCSipListener implements SipListener {
   }
 
   private void sendResponse(final ServerTransaction transaction, final ResponseType type,
-      final List<Header> headers) throws ParseException, InvalidArgumentException, SipException {
+                            final List<Header> headers) throws ParseException, InvalidArgumentException, SipException {
     Request request = transaction.getRequest();
     Response response = this.messageFactory.createResponse(ResponseCode.valueOf(type.toString()).getCode(), request);
     for (Header header : headers) response.addHeader(header);
@@ -298,94 +352,21 @@ public class GRPCSipListener implements SipListener {
       // Sends 487 (Request terminated) back to client
       var requestIn = originalServerTransaction.getRequest();
       var terminatedResponse = messageFactory
-          .createResponse(Response.REQUEST_TERMINATED, requestIn);
+        .createResponse(Response.REQUEST_TERMINATED, requestIn);
       originalServerTransaction.sendResponse(terminatedResponse);
     }
   }
 
   private void handleAuthChallenge(final SipStackExt sipStack, final ResponseEvent event,
-      final AccountManager accountManager) {
+                                   final AccountManager accountManager) {
     var authHelper = sipStack.getAuthenticationHelper(accountManager, this.headerFactory);
     // Setting looseRouting to false will cause
     // https://github.com/fonoster/routr/issues/18
     try {
       authHelper.handleChallenge(event.getResponse(), event.getClientTransaction(),
-          (SipProvider) event.getSource(), 5, true).sendRequest();
+        (SipProvider) event.getSource(), 5, true).sendRequest();
     } catch (NullPointerException | SipException e) {
       LOG.warn(e.getMessage());
     }
-  }
-
-  static Request updateRequest(final Request request, final List<Header> headers) {
-    Request requestOut = (Request) request.clone();
-
-    Iterator<String> names = requestOut.getHeaderNames();
-    while (names.hasNext()) {
-      String n = names.next();
-      // WARN: Perhaps we should compute this value
-      if (!n.equals(ContentLength.NAME)) {
-        requestOut.removeHeader(n);
-      }
-    }
-
-    for (Header header : headers) {
-      // Ignore special header
-      if (header.getName().equalsIgnoreCase("x-gateway-auth")) {
-        continue;
-      }
-
-      String s = header.getName();
-      if (s.equals(FromHeader.NAME) || s.equals(ToHeader.NAME) && s.equals(CallIdHeader.NAME)
-              && s.equals(CSeqHeader.NAME)) {
-        requestOut.setHeader(header);
-      } else {
-        requestOut.addHeader(header);
-      }
-    }
-
-    return requestOut;
-  }
-
-  private static boolean isTransactional(final ResponseEvent event) {
-    return (event.getClientTransaction() != null &&
-        hasMethod(event.getResponse(), Request.INVITE, Request.MESSAGE));
-  }
-
-  private static boolean isStackJob(final Response response) {
-    return hasCodes(response, Response.TRYING, Response.REQUEST_TERMINATED)
-        || hasMethod(response, Request.CANCEL);
-  }
-
-  private static boolean authenticationRequired(final Response response) {
-    return hasCodes(response, Response.PROXY_AUTHENTICATION_REQUIRED, Response.UNAUTHORIZED);
-  }
-
-  private static boolean hasMethod(final Response response, final String... methods) {
-    // Get method from CSeq header
-    CSeqHeader cseqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
-    var method = cseqHeader.getMethod();
-    return Arrays.stream(methods).filter(m -> Objects.equals(m, method)).toArray().length > 0;
-  }
-
-  private static boolean hasCodes(final Response response, final int... codes) {
-    return Arrays.stream(codes).filter(c -> c == response.getStatusCode()).toArray().length > 0;
-  }
-
-  private static AccountManager createAccountManager(final List<Header> headers, final String host) {
-    for (Header header : headers) {
-      if (header.getName().equalsIgnoreCase("x-gateway-auth")) {
-        var authStr = ((ExtensionHeader) header).getValue();
-        var auth = new String(Base64.getDecoder().decode(authStr));
-
-        if (auth.split(":").length != 2) {
-          throw new IllegalArgumentException("invalid 'x-gateway-auth' header value; should be base64('username:password')");
-        }
-
-        var username = auth.split(":")[0];
-        var password = auth.split(":")[1];
-        return new AccountManagerImpl(username, password, host);
-      }
-    }
-    return null;
   }
 }

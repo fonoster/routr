@@ -16,15 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import logger from "@fonoster/logger";
+import logger from "@fonoster/logger"
 
 export function assertEnvsAreSet(envs: string[]) {
   envs.forEach((env: string) => {
     if (!(env in process.env)) {
       logger.error(
         `The environment variable ${env} is required but was not found`
-      );
-      process.exit(1);
+      )
+      process.exit(1)
     }
-  });
+  })
 }

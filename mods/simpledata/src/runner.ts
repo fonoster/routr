@@ -18,19 +18,24 @@
  * limitations under the License.
  */
 require("./tracer").init("simpleauth")
-import logger from '@fonoster/logger'
-import SimpleDataService from './service'
-import { Resource } from './types'
-import loadResources from './utils'
-import { Assertions as A} from "@routr/common"
+import logger from "@fonoster/logger"
+import SimpleDataService from "./service"
+import {Resource} from "./types"
+import loadResources from "./utils"
+import {Assertions as A} from "@routr/common"
 
-A.assertEnvsAreSet(['PATH_TO_SCHEMAS', 'PATH_TO_RESOURCES'])
+A.assertEnvsAreSet(["PATH_TO_SCHEMAS", "PATH_TO_RESOURCES"])
 
 const resources: Resource[] = loadResources(
-  process.env.PATH_TO_RESOURCES, process.env.PATH_TO_SCHEMAS)
+  process.env.PATH_TO_RESOURCES,
+  process.env.PATH_TO_SCHEMAS
+)
 
 try {
-  SimpleDataService({ bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903", resources })
+  SimpleDataService({
+    bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903",
+    resources
+  })
 } catch (e) {
   logger.error(e)
   process.exit(1)

@@ -16,35 +16,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectProcessorConfig, DataAPI } from "./types"
-import { MessageRequest } from "@routr/common"
-import { LocationClient as Location } from "@routr/location"
-import { handleRegister, handleRequest } from "./handlers"
+import {ConnectProcessorConfig, DataAPI} from "./types"
+import {MessageRequest} from "@routr/common"
+import {LocationClient as Location} from "@routr/location"
+import {handleRegister, handleRequest} from "./handlers"
 import Processor, {
   Alterations as A,
-  Target as T,
   Helper as H,
   Helper as HE,
-  Response
+  Response,
+  Target as T
 } from "@routr/processor"
 import logger from "@fonoster/logger"
-import { API } from "./api"
-import { tailor } from "./tailor"
+import {API} from "./api"
+import {tailor} from "./tailor"
 
 export default function ConnectProcessor(config: ConnectProcessorConfig) {
-  const { bindAddr, locationAddr } = config
-  const location = new Location({ addr: locationAddr })
+  const {bindAddr, locationAddr} = config
+  const location = new Location({addr: locationAddr})
   const dataAPI: DataAPI = API(config.apiAddr)
 
-  new Processor({ bindAddr, name: "connect" })
-    .listen(async (req: MessageRequest, res: Response) => {
+  new Processor({bindAddr, name: "connect"}).listen(
+    async (req: MessageRequest, res: Response) => {
       logger.verbose("connect processor received new request", {
         ref: req.ref,
         method: req.method,
-        type: req.message.messageType === "responseType" ? '(response)' : '(request)',
+        type:
+          req.message.messageType === "responseType"
+            ? "(response)"
+            : "(request)",
         edgePort: req.edgePortRef
       })
-      logger.silly(JSON.stringify(req, null, ' '))
+      logger.silly(JSON.stringify(req, null, " "))
 
       // Check if is response and simply forwards to endpoint
       if (H.isTypeResponse(req)) {
@@ -53,28 +56,33 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
       }
 
       switch (req.method.toString()) {
-        case 'PUBLISH':
-        case 'NOTIFY':
-        case 'SUBSCRIBE':
+        case "PUBLISH":
+        case "NOTIFY":
+        case "SUBSCRIBE":
           res.sendMethodNotAllowed()
           break
-        case 'CANCEL':
-          const route = (await location.findRoutes({ aor: T.getTargetAOR(req) }))[0]
+        case "CANCEL":
+          const route = (
+            await location.findRoutes({aor: T.getTargetAOR(req)})
+          )[0]
           if (route) {
-            res.sendOk([{
-              name: 'x-request-uri',
-              value: `${route?.user},${route.host},${route.port},${route.transport}`
-            }])
+            res.sendOk([
+              {
+                name: "x-request-uri",
+                value: `${route?.user},${route.host},${route.port},${route.transport}`
+              }
+            ])
           }
           break
-        case 'REGISTER':
+        case "REGISTER":
           await handleRegister(location)(req, res)
           break
-        case 'BYE': 
+        case "BYE":
           res.send(tailor(HE.createRouteFromLastMessage(req), req))
           break
         default:
           await handleRequest(location, dataAPI)(req, res)
       }
-    })
+    }
+  )
 }

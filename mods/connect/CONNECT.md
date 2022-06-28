@@ -8,13 +8,13 @@
 <!-- toc -->
 
 - [Introduction](#introduction)
-  * [Document Convention](#document-conventions)
-  * [Purpose](#purpose)
-  * [Scope of Project](#scope-of-project)
-  * [Glossary](#glossary)
-  * [References](#references)
+    * [Document Convention](#document-conventions)
+    * [Purpose](#purpose)
+    * [Scope of Project](#scope-of-project)
+    * [Glossary](#glossary)
+    * [References](#references)
 - [Requirements Specification](#requirements-specification)
-  * [Connect Processor](#connect-processor)
+    * [Connect Processor](#connect-processor)
 
 <!-- tocstop -->
 
@@ -22,17 +22,24 @@
 
 ## Introduction
 
-### Document Conventions 
+### Document Conventions
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in the [specification](./CONNECT.md) are to be interpreted as described in [BCP 14](https://tools.ietf.org/html/bcp14) [[RFC2119](https://tools.ietf.org/html/rfc2119)] [[RFC8174](https://tools.ietf.org/html/rfc8174)] when, and only when, they appear in all capitals, as shown here.
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT
+RECOMMENDED", "MAY", and "OPTIONAL" in the [specification](./CONNECT.md) are to be interpreted as described
+in [BCP 14](https://tools.ietf.org/html/bcp14) [[RFC2119](https://tools.ietf.org/html/rfc2119)] [[RFC8174](https://tools.ietf.org/html/rfc8174)]
+when, and only when, they appear in all capitals, as shown here.
 
 ### Purpose
 
-This document aims to present a detailed description of Routr Connect. It will explain the purpose and features of the system, the interfaces of the system, what the system will do, the constraints under which it must operate, and how the system will react to external stimuli. The document is intended for both stakeholders and the developers of the system.
+This document aims to present a detailed description of Routr Connect. It will explain the purpose and features of the
+system, the interfaces of the system, what the system will do, the constraints under which it must operate, and how the
+system will react to external stimuli. The document is intended for both stakeholders and the developers of the system.
 
 ### Scope of Project
 
-The software system will be a Processor that implements the logic to support a subset of the SIP Connect Specification. Hence the name Routr Connect. The Processor takes as input a MESSAGE from Routr Core, determines the type of communication type, manipulates the MESSAGE based on its kind, and forwards it back to the Core.
+The software system will be a Processor that implements the logic to support a subset of the SIP Connect Specification.
+Hence the name Routr Connect. The Processor takes as input a MESSAGE from Routr Core, determines the type of
+communication type, manipulates the MESSAGE based on its kind, and forwards it back to the Core.
 
 ### Glossary
 
@@ -42,7 +49,8 @@ The software system will be a Processor that implements the logic to support a s
 | *Processor* | Feature server that carries the logic for a particular use case |
 | *Connect Object* | A JSON Object describing a call session, including authorized actions |
 | *SIP Client* | A SIP Client is any SIP capable device or software that communicates thru *Routr* |
-| *SIP Server* | Also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients to place and terminate calls and process other types of requests |
+| *SIP
+Server* | Also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients to place and terminate calls and process other types of requests |
 | *gRPC* | Is a modern open-source, high-performance Remote Procedure Call (RPC) framework |
 | *Stakeholder* |Any person with interest in the project who is not a developer |
 | *Nexthop* | The next network element within the signaling path of a given request |
@@ -50,7 +58,8 @@ The software system will be a Processor that implements the logic to support a s
 
 ### References
 
-IEEE/ISO/IEC 29148-2018 - ISO/IEC/IEEE International Standard - Systems and software engineering -- Life cycle processes -- Requirements engineering
+IEEE/ISO/IEC 29148-2018 - ISO/IEC/IEEE International Standard - Systems and software engineering -- Life cycle processes
+-- Requirements engineering
 
 ## Requirements Specification
 
@@ -58,7 +67,10 @@ IEEE/ISO/IEC 29148-2018 - ISO/IEC/IEEE International Standard - Systems and soft
 
 **Brief Description**
 
-The `Connect Processor` is a Routr Processor that carries the necessary logic to implement the SIP Connect v1.2 implementation. For this implementation, we are going to have named routing types. For example, Ingress Routing(IR) for calls coming from the PSTN, Egress Routing (ER) for calls going out to the PSTN, and Intra-Domain Routing (IDR) for internal calling. 
+The `Connect Processor` is a Routr Processor that carries the necessary logic to implement the SIP Connect v1.2
+implementation. For this implementation, we are going to have named routing types. For example, Ingress Routing(IR) for
+calls coming from the PSTN, Egress Routing (ER) for calls going out to the PSTN, and Intra-Domain Routing (IDR) for
+internal calling.
 
 **Functional Requirements**
 
@@ -72,9 +84,11 @@ Processing a MESSAGE consist in this basic steps:
   => doProcess(message) and return updated request/response
 ```
 
-The Processor will use a `Username/Pass` scheme to authenticate Agents and Peers. On the other hand, a `Username/Pass` and/or `IP Access List` for inbound calls (Ingress Routing) coming from a Trunk.
+The Processor will use a `Username/Pass` scheme to authenticate Agents and Peers. On the other hand, a `Username/Pass`
+and/or `IP Access List` for inbound calls (Ingress Routing) coming from a Trunk.
 
-It's also a requirement for the Processor to authorize requests. The authorization may be done by a traditional AAA service such as a Diameter or Radius server or by a custom authorization service.
+It's also a requirement for the Processor to authorize requests. The authorization may be done by a traditional AAA
+service such as a Diameter or Radius server or by a custom authorization service.
 
 Authorized actions include:
 
@@ -85,7 +99,7 @@ Authorized actions include:
 <tr>
 <td> 
 
-`Agent` 
+`Agent`
 
 </td>
 <td>
@@ -105,7 +119,7 @@ Authorized actions include:
 <tr>
 <td> 
 
-`Peer` 
+`Peer`
 
 </td>
 <td>
@@ -121,7 +135,7 @@ Assert identity over a Number for calls to the PSTN
 <tr>
 <td> 
 
-`Trunk` 
+`Trunk`
 
 </td>
 <td>
@@ -152,7 +166,8 @@ The following JSON is an example of a `Connect Object` that results from process
 }
 ```
 
-> A signed request we the custom header `X-Fonoster-Rtr` could bypass the authentication and the need to construct a `Connect Object`.
+> A signed request we the custom header `X-Fonoster-Rtr` could bypass the authentication and the need to construct
+> a `Connect Object`.
 
 For error response the `Connect Object` will look like this:
 
@@ -178,7 +193,7 @@ The following requirements are essential to have for an implementation of a *Con
 
 **Service Configuration**
 
-Agents represent SIP endpoints such as softphones, IP phones, or paging speakers. 
+Agents represent SIP endpoints such as softphones, IP phones, or paging speakers.
 
 Example:
 
@@ -327,7 +342,9 @@ Like Agents, Peers represent SIP endpoints such as Media Servers. Unlike Agents,
 
 **Communication with Adjacent Services**
 
-Adjacent to the *Connect Processor* is the *Message Dispatcher*. The communication flows from the *Message Dispatcher* to the *Connect Processor*, where the *Connect Processor* is the server and *Message Dispatcher* is the client. The *Connect Processor* MUST communicate using the following protobuf interface:
+Adjacent to the *Connect Processor* is the *Message Dispatcher*. The communication flows from the *Message Dispatcher*
+to the *Connect Processor*, where the *Connect Processor* is the server and *Message Dispatcher* is the client. The *
+Connect Processor* MUST communicate using the following protobuf interface:
 
 ```proto
 syntax = "proto3";

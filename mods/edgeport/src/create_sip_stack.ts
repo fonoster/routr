@@ -18,9 +18,10 @@
  */
 declare const Java: any
 
-import { SipStack } from "./types"
-const SipFactory = Java.type('javax.sip.SipFactory')
-const Properties = Java.type('java.util.Properties')
+import {SipStack} from "./types"
+
+const SipFactory = Java.type("javax.sip.SipFactory")
+const Properties = Java.type("java.util.Properties")
 
 /**
  * Takes a properties map and returns an instance of the
@@ -32,6 +33,6 @@ export default function createSipStack(props: Map<string, string>): SipStack {
     properties.setProperty(entry[0], entry[1])
   }
   const sipFactory = SipFactory.getInstance()
-  sipFactory.setPathName('gov.nist')
+  sipFactory.setPathName("gov.nist")
   return sipFactory.createSipStack(properties)
 }

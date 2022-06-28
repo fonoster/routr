@@ -27,9 +27,18 @@
           "secret": "1234"
         },
         "variables": [
-          { "name": "requestURI", "value": "sip.local"},
-          { "name": "from", "value":  "1002@sip.local"},
-          { "name": "to", "value": "1001@sip.local"}
+          {
+            "name": "requestURI",
+            "value": "sip.local"
+          },
+          {
+            "name": "from",
+            "value": "1002@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "1001@sip.local"
+          }
         ],
         "timeout": 10
       }

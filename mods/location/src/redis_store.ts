@@ -16,26 +16,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Route } from "@routr/common"
-import { ILocatorStore, RedisStoreConfig } from "./types"
-import { createClient } from 'redis'
-import { getUrlString } from "./utils";
-import logger from "@fonoster/logger";
+import {Route} from "@routr/common"
+import {ILocatorStore, RedisStoreConfig} from "./types"
+import {createClient} from "redis"
+import {getUrlString} from "./utils"
+import logger from "@fonoster/logger"
 
 export default class RedisStore implements ILocatorStore {
-  client: any;
+  client: any
+
   constructor(config?: RedisStoreConfig) {
-    this.client = config ? createClient({ url: getUrlString(config)}) : createClient()
-    this.client.connect();
-    this.client.on('error', (err: any) => logger.error('redis client error: ', err));
+    this.client = config
+      ? createClient({url: getUrlString(config)})
+      : createClient()
+    this.client.connect()
+    this.client.on("error", (err: any) =>
+      logger.error("redis client error: ", err)
+    )
   }
 
   public async put(key: string, route: Route): Promise<void> {
     // Formatted the key to ensure it is unique
-    await this.client.set(`${key}:${route.user}${route.host}${route.port}`,
-      JSON.stringify(route), {
-      EX: route.expires
-    });
+    await this.client.set(
+      `${key}:${route.user}${route.host}${route.port}`,
+      JSON.stringify(route),
+      {
+        EX: route.expires
+      }
+    )
     return
   }
 

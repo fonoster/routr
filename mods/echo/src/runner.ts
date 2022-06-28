@@ -19,14 +19,13 @@
  */
 require("./tracer").init("dispatcher")
 import logger from "@fonoster/logger"
-import Processor, { 
-  Response,
-  MessageRequest
-} from "@routr/processor"
+import Processor, {MessageRequest, Response} from "@routr/processor"
 
-new Processor({ bindAddr:process.env.BIND_ADDR || "0.0.0.0:51904", name: "echo" })
-  .listen((req: MessageRequest, res: Response) => {
-    logger.verbose("got new request: ")
-    logger.verbose(JSON.stringify(req, null, ' '))
-    res.sendOk()
-  })
+new Processor({
+  bindAddr: process.env.BIND_ADDR || "0.0.0.0:51904",
+  name: "echo"
+}).listen((req: MessageRequest, res: Response) => {
+  logger.verbose("got new request: ")
+  logger.verbose(JSON.stringify(req, null, " "))
+  res.sendOk()
+})

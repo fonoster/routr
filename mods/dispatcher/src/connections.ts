@@ -16,27 +16,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ProcessorGPRCConnection } from "./types"
-import {
-  PROCESSOR_OBJECT_PROTO
-} from "@routr/common"
-import grpc = require('@grpc/grpc-js')
+import {ProcessorGPRCConnection} from "./types"
+import {PROCESSOR_OBJECT_PROTO} from "@routr/common"
+import grpc = require("@grpc/grpc-js")
 
 /**
  * Creates a connection to all the backend processors. The function will
  * fail if any of the backends is unavailable during initialization.
- * 
+ *
  * @param processors list of backend processors
- * @returns list of connections
+ * @return list of connections
  */
-export default function connectToBackend(processors: {ref: string, addr: string}[])
-  : Map<string, ProcessorGPRCConnection> {
-  const procs = processors ? [...processors ] : []
+export default function connectToBackend(
+  processors: {ref: string; addr: string}[]
+): Map<string, ProcessorGPRCConnection> {
+  const procs = processors ? [...processors] : []
   const connections = new Map<string, ProcessorGPRCConnection>()
   for (const processor of procs) {
-    connections.set(processor.ref, 
-      new PROCESSOR_OBJECT_PROTO.Processor(processor.addr, 
-        grpc.credentials.createInsecure()))
+    connections.set(
+      processor.ref,
+      new PROCESSOR_OBJECT_PROTO.Processor(
+        processor.addr,
+        grpc.credentials.createInsecure()
+      )
+    )
   }
   return connections
 }

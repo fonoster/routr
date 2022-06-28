@@ -22,7 +22,8 @@ import chai from 'chai'
 import sinon from 'sinon'
 // @ts-ignore
 import sinonChai from 'sinon-chai'
-import { getConfig, readFile, validateConfig } from '../src/config/get_config' 
+import {getConfig, readFile, validateConfig} from '../src/config/get_config'
+
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox();
@@ -36,7 +37,7 @@ describe('@routr/edgeport/config', () => {
 
     if (result._tag === 'Right') {
       const json = JSON.parse(result.right)
-      json.metadata = { region: "us-east1" }
+      json.metadata = {region: "us-east1"}
       const res = validateConfig(json)
       expect(res).to.have.property('_tag').to.be.equal('Left')
     }

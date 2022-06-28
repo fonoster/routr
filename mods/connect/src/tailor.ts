@@ -16,12 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  MessageRequest,
-  Alterations as A
-} from "@routr/processor"
-import { Route } from "@routr/common"
-import { pipe } from "fp-ts/function"
+import {Alterations as A, MessageRequest} from "@routr/processor"
+import {Route} from "@routr/common"
+import {pipe} from "fp-ts/function"
 
 export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
   pipe(

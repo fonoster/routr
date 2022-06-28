@@ -16,25 +16,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AuthChallengeRequest, AuthChallengeResponse } from "./types"
+import {AuthChallengeRequest, AuthChallengeResponse} from "./types"
 import crypto from "crypto"
 
-const DEFAULT_ALGORITHM = 'MD5'
+const DEFAULT_ALGORITHM = "MD5"
 
-const md5hex = (str: string, algorithm = DEFAULT_ALGORITHM) => 
-  crypto.createHash(algorithm).update(str).digest('hex')
+const md5hex = (str: string, algorithm = DEFAULT_ALGORITHM) =>
+  crypto.createHash(algorithm).update(str).digest("hex")
 
-const decToHex = (dec: number) => (dec + Math.pow(16, 8)).toString(16).substr(-8)
+const decToHex = (dec: number) =>
+  (dec + Math.pow(16, 8)).toString(16).substr(-8)
 
-export const generateNonce = (algorithm: string = DEFAULT_ALGORITHM) => 
+export const generateNonce = (algorithm: string = DEFAULT_ALGORITHM) =>
   md5hex(`${new Date().getTime()}${Math.random()}`, algorithm)
 
 export const buildAuthChallenge = (request: AuthChallengeRequest) => {
-  const { realm, scheme, algorithm, qop, opaque, stale } = request
-  return { realm, scheme, algorithm, qop, opaque, stale, nonce: generateNonce(algorithm) }
+  const {realm, scheme, algorithm, qop, opaque, stale} = request
+  return {
+    realm,
+    scheme,
+    algorithm,
+    qop,
+    opaque,
+    stale,
+    nonce: generateNonce(algorithm)
+  }
 }
 
-export const calculateAuthResponse = (res: AuthChallengeResponse, credentials?: { username: string, secret: string}) => {
+export const calculateAuthResponse = (
+  res: AuthChallengeResponse,
+  credentials?: {username: string; secret: string}
+) => {
   if (!credentials) return null
 
   const a1 = `${credentials.username}:${res.realm}:${credentials.secret}`
@@ -42,7 +54,11 @@ export const calculateAuthResponse = (res: AuthChallengeResponse, credentials?: 
   const ha1 = md5hex(a1)
   const ha2 = md5hex(a2)
 
-  return res.qop === 'auth' 
-    ? md5hex(`${ha1}:${res.nonce}:${decToHex(res.nonceCount)}:${res.cNonce}:${res.qop}:${ha2}`) 
+  return res.qop === "auth"
+    ? md5hex(
+        `${ha1}:${res.nonce}:${decToHex(res.nonceCount)}:${res.cNonce}:${
+          res.qop
+        }:${ha2}`
+      )
     : md5hex(`${ha1}:${res.nonce}:${ha2}`)
 }

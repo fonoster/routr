@@ -18,14 +18,14 @@
  */
 package io.routr.headers;
 
-import java.text.ParseException;
-import java.util.Iterator;
+import gov.nist.javax.sip.header.RecordRoute;
 
-import javax.sip.header.HeaderFactory;
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
-import gov.nist.javax.sip.header.RecordRoute;
+import javax.sip.header.HeaderFactory;
+import java.text.ParseException;
+import java.util.Iterator;
 
 @ProtoMapping(header = RecordRoute.class, field = "record_route", repeatable = true, extension = false)
 public class RecordRouteConverter implements Converter<RecordRoute, io.routr.message.RecordRoute> {

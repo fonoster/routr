@@ -18,16 +18,16 @@
  * limitations under the License.
  */
 import MessageDispatcher from "./service"
-import { getConfig } from "./config/get_config"
+import {getConfig} from "./config/get_config"
 import logger from "@fonoster/logger"
-import { Assertions as A } from "@routr/common"
+import {Assertions as A} from "@routr/common"
 
-A.assertEnvsAreSet(['CONFIG_PATH'])
+A.assertEnvsAreSet(["CONFIG_PATH"])
 
 const result = getConfig(process.env.CONFIG_PATH)
 
-if (result._tag === 'Right') {
-  MessageDispatcher(result.right) 
+if (result._tag === "Right") {
+  MessageDispatcher(result.right)
 } else {
   logger.error(result.left)
 }

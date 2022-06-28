@@ -19,48 +19,61 @@
 import grpc = require("@grpc/grpc-js")
 
 export type LocationError = UnsupportedSchema | NotRoutesFoundForAOR
-export type InvalidConfiguration = BadAlgorithmAndAffinityCombination | InvalidSchemaConfiguration
+export type InvalidConfiguration =
+  | BadAlgorithmAndAffinityCombination
+  | InvalidSchemaConfiguration
 
 export class UnsupportedSchema extends Error {
-  code: grpc.status;
+  code: grpc.status
+
   constructor(aor: string) {
-    super(`aor ${aor} has an invalid schema, only "sip:" or "backend:" are allowed`);
+    super(
+      `aor ${aor} has an invalid schema, only "sip:" or "backend:" are allowed`
+    )
     this.code = grpc.status.INVALID_ARGUMENT
     // Set the prototype explicitly.
-    Object.setPrototypeOf(this, UnsupportedSchema.prototype);
+    Object.setPrototypeOf(this, UnsupportedSchema.prototype)
   }
 }
 
 export class NotRoutesFoundForAOR extends Error {
-  code: number;
+  code: number
+
   constructor(aor: string) {
-    super(`no routes found for aor: ${aor}`);
+    super(`no routes found for aor: ${aor}`)
     this.code = grpc.status.NOT_FOUND
-    Object.setPrototypeOf(this, NotRoutesFoundForAOR.prototype);
+    Object.setPrototypeOf(this, NotRoutesFoundForAOR.prototype)
   }
 }
 
 export class InvalidSchemaConfiguration extends Error {
-  code: grpc.status;
+  code: grpc.status
+
   constructor(msg: string) {
-    super(msg);
+    super(msg)
     this.code = grpc.status.INVALID_ARGUMENT
-    Object.setPrototypeOf(this, InvalidSchemaConfiguration.prototype);
+    Object.setPrototypeOf(this, InvalidSchemaConfiguration.prototype)
   }
 }
 
 export class BadAlgorithmAndAffinityCombination extends Error {
-  code: grpc.status;
+  code: grpc.status
+
   constructor() {
-    super("session affinity can not be combined with round-robin load balancing");
-    Object.setPrototypeOf(this, BadAlgorithmAndAffinityCombination.prototype);
+    super(
+      "session affinity can not be combined with round-robin load balancing"
+    )
+    Object.setPrototypeOf(this, BadAlgorithmAndAffinityCombination.prototype)
   }
 }
 
 export class InvalidLoadBalancerAlgorithm extends Error {
-  code: grpc.status;
+  code: grpc.status
+
   constructor() {
-    super("found invalid load balancing algorithm. must be round-robin or least-sessions");
-    Object.setPrototypeOf(this, BadAlgorithmAndAffinityCombination.prototype);
+    super(
+      "found invalid load balancing algorithm. must be round-robin or least-sessions"
+    )
+    Object.setPrototypeOf(this, BadAlgorithmAndAffinityCombination.prototype)
   }
 }

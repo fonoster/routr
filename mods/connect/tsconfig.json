@@ -5,9 +5,15 @@
     "rootDir": "./src"
   },
   "references": [
-    {"path": "../common"},
-    {"path": "../processor"},
-    {"path": "../location"}
+    {
+      "path": "../common"
+    },
+    {
+      "path": "../processor"
+    },
+    {
+      "path": "../location"
+    }
   ],
   "exclude": [
     "node_modules",

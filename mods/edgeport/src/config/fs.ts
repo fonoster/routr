@@ -18,22 +18,22 @@
  */
 declare const Java: any
 
-const BufferedWriter = Java.type('java.io.BufferedWriter')
-const FileWriter = Java.type('java.io.FileWriter')
-const JFile = Java.type('java.io.File')
-const Files = Java.type('java.nio.file.Files')
-const Paths = Java.type('java.nio.file.Paths')
+const BufferedWriter = Java.type("java.io.BufferedWriter")
+const FileWriter = Java.type("java.io.FileWriter")
+const JFile = Java.type("java.io.File")
+const Files = Java.type("java.nio.file.Files")
+const Paths = Java.type("java.nio.file.Paths")
 
 export const readFile = (path: string) => {
   const lines = Files.readAllLines(
     Paths.get(path),
-    Java.type('java.nio.charset.StandardCharsets').UTF_8
+    Java.type("java.nio.charset.StandardCharsets").UTF_8
   )
   const data: any = []
   lines.forEach((line: string) => {
     data.push(line)
   })
-  return data.join('\n').trim()
+  return data.join("\n").trim()
 }
 
 export const writeFile = (path: string, text: string) => {

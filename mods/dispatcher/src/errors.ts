@@ -19,31 +19,34 @@
 import grpc = require("@grpc/grpc-js")
 
 export class NotMatchingProcessorFound extends Error {
-  code: grpc.status;
+  code: grpc.status
+
   constructor(ref: string) {
-    super(`not matching processor found for request ref: ${ref}`);
+    super(`not matching processor found for request ref: ${ref}`)
     this.code = grpc.status.NOT_FOUND
     // Set the prototype explicitly.
-    Object.setPrototypeOf(this, NotMatchingProcessorFound.prototype);
+    Object.setPrototypeOf(this, NotMatchingProcessorFound.prototype)
   }
 }
 
 export class ProcessorUnavailableError extends Error {
-  code: number;
+  code: number
+
   constructor(ref: string) {
-    super(`processor ref = ${ref} is unavailable`);
+    super(`processor ref = ${ref} is unavailable`)
     this.code = grpc.status.UNAVAILABLE
     // Set the prototype explicitly.
-    Object.setPrototypeOf(this, ProcessorUnavailableError.prototype);
+    Object.setPrototypeOf(this, ProcessorUnavailableError.prototype)
   }
 }
 
 export class MiddlewareUnavailableError extends Error {
-  code: number;
+  code: number
+
   constructor(ref: string) {
-    super(`middleware ref = ${ref} is unavailable`);
+    super(`middleware ref = ${ref} is unavailable`)
     this.code = grpc.status.UNAVAILABLE
     // Set the prototype explicitly.
-    Object.setPrototypeOf(this, MiddlewareUnavailableError.prototype);
+    Object.setPrototypeOf(this, MiddlewareUnavailableError.prototype)
   }
 }

@@ -16,30 +16,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { 
-  subnet, 
-  cidrInfo, 
-  isValidIpv4, 
-  isValidIpv6, 
-  subnetInfo 
-} from 'ip-utils'
+import {cidrInfo, isValidIpv4, isValidIpv6, subnet, subnetInfo} from "ip-utils"
 
 export const formatNet = (net: string) => {
-  if (net.split('/').length === 1) {
+  if (net.split("/").length === 1) {
     if (isValidIpv4(net)) return `${net}/32`
     if (isValidIpv6(net)) return `${net}/128`
-    throw 'Invalid address! Must be a valid Ipv4 or Ipv6'
+    throw "Invalid address! Must be a valid Ipv4 or Ipv6"
   }
-  const p1 = net.split('/')[0]
-  const p2 = net.split('/')[1]
+  const p1 = net.split("/")[0]
+  const p2 = net.split("/")[1]
   return isValidIpv4(p2)
     ? `${p1}/${subnetInfo(p1, p2).cidrMask}`
     : `${p1}/${p2}`
 }
 
-export const hasIp = (net: string, addr: string) => subnet(formatNet(net)).contains(addr)
+export const hasIp = (net: string, addr: string) =>
+  subnet(formatNet(net)).contains(addr)
 
-export const addressCount = (net: string) => cidrInfo(formatNet(net)).inclusiveNumberHosts
+export const addressCount = (net: string) =>
+  cidrInfo(formatNet(net)).inclusiveNumberHosts
 
 export const isLocalnet = (nets: string[], addr: string) =>
-  nets && nets.length > 0 && nets.filter(net => hasIp(net, addr)).length > 0
+  nets && nets.length > 0 && nets.filter((net) => hasIp(net, addr)).length > 0

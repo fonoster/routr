@@ -18,9 +18,9 @@
  */
 package io.routr.headers;
 
+import javax.sip.header.Header;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import javax.sip.header.Header;
 
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ProtoMapping {

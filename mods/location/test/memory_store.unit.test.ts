@@ -29,7 +29,7 @@ const sandbox = sinon.createSandbox();
 describe('@routr/location/memory_store', () => {
   afterEach(() => sandbox.restore());
 
-  it('puts value in a collection', async() => {
+  it('puts value in a collection', async () => {
     const store = new MemoryStore()
     store.put("backend:voice", Routes.voiceBackendRoute01)
     store.put("backend:voice", Routes.voiceBackendRoute02)
@@ -41,7 +41,7 @@ describe('@routr/location/memory_store', () => {
     expect((await store.get("backend:conference")).length).to.be.equal(1)
   })
 
-  it('test removing all routes for an aor', async() => {
+  it('test removing all routes for an aor', async () => {
     const store = new MemoryStore()
     store.put("backend:voice", Routes.voiceBackendRoute01)
     store.put("backend:voice", Routes.voiceBackendRoute02)
@@ -50,7 +50,7 @@ describe('@routr/location/memory_store', () => {
     expect((await store.get("backend:voice"))).to.be.empty
   })
 
-  it('sets an expire route and clean the collection', async() => {
+  it('sets an expire route and clean the collection', async () => {
     const store = new MemoryStore()
     store.put("backend:voice", Routes.voiceBackendRoute01)
     store.put("backend:voice", Routes.voiceBackendRoute02)

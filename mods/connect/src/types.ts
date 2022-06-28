@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HeaderModifier } from "@routr/common"
+import {HeaderModifier} from "@routr/common"
 
 export enum KIND {
   AGENT = "agent",
@@ -24,16 +24,16 @@ export enum KIND {
   NUMBER = "number",
   TRUNK = "trunk",
   DOMAIN = "domain",
-  UNKNOWN = 'unknown'
+  UNKNOWN = "unknown"
 }
 
 export enum ROUTING_DIRECTION {
-  FROM_PSTN = 'from-pstn',
-  AGENT_TO_AGENT = 'agent-to-agent',
-  AGENT_TO_PSTN = 'agent-to-pstn',
-  PEER_TO_AGENT = 'peer-to-agent',
-  PEER_TO_PSTN = 'peer-to-pstn',
-  UNKNOWN = 'unknown'
+  FROM_PSTN = "from-pstn",
+  AGENT_TO_AGENT = "agent-to-agent",
+  AGENT_TO_PSTN = "agent-to-pstn",
+  PEER_TO_AGENT = "peer-to-agent",
+  PEER_TO_PSTN = "peer-to-pstn",
+  UNKNOWN = "unknown"
 }
 
 export interface ConnectProcessorConfig {

@@ -16,10 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NetInterface, Route } from "@routr/common"
-import { MessageRequest,} from "@routr/common"
-import { Extensions as E } from "@routr/processor"
-import { Target as T } from "@routr/processor"
+import {MessageRequest, NetInterface, Route} from "@routr/common"
+import {Extensions as E, Target as T} from "@routr/processor"
 
 // TODO: Before finalizing this, consider using the old approach of saving the rport
 // and received values (like here:

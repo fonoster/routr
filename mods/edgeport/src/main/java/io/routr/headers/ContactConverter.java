@@ -18,12 +18,13 @@
  */
 package io.routr.headers;
 
-import java.text.ParseException;
-import javax.sip.header.HeaderFactory;
+import gov.nist.javax.sip.header.Contact;
+
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
-import gov.nist.javax.sip.header.Contact;
+import javax.sip.header.HeaderFactory;
+import java.text.ParseException;
 
 @ProtoMapping(header = Contact.class, field = "contact", repeatable = false, extension = false)
 public class ContactConverter implements Converter<Contact, io.routr.message.Contact> {

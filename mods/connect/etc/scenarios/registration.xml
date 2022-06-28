@@ -2,9 +2,9 @@
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
 <scenario name="registration">
-  <Global variables="domain,username,expires" />
-  <send retrans="500">
-    <![CDATA[
+    <Global variables="domain,username,expires"/>
+    <send retrans="500">
+        <![CDATA[
       REGISTER sip:[$domain] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
       Max-Forwards: 70
@@ -17,13 +17,13 @@
       Content-Length: 0
       User-Agent: SIPp
   ]]>
-  </send>
+    </send>
 
-  <recv response="100" optional="true" />
-  <recv response="401" auth="true" rtd="true" />
+    <recv response="100" optional="true"/>
+    <recv response="401" auth="true" rtd="true"/>
 
-  <send retrans="500" rtd="true">
-    <![CDATA[
+    <send retrans="500" rtd="true">
+        <![CDATA[
       REGISTER sip:[$domain] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
       Max-Forwards: 70
@@ -37,11 +37,11 @@
       User-Agent: SIPp
       [authentication]
     ]]>
-  </send>
+    </send>
 
-  <recv response="100" optional="true" />
-  <recv response="200" rtd="true" />
-  <CallLengthRepartition value="10, 50, 100, 150, 200, 500, 1000" />
-  <ResponseTimeRepartition value="10, 50, 100, 150, 200, 500, 1000" />
+    <recv response="100" optional="true"/>
+    <recv response="200" rtd="true"/>
+    <CallLengthRepartition value="10, 50, 100, 150, 200, 500, 1000"/>
+    <ResponseTimeRepartition value="10, 50, 100, 150, 200, 500, 1000"/>
 
 </scenario>

@@ -17,22 +17,22 @@
  * limitations under the License.
  */
 export enum Method {
-  UNKNOWN = 'UNKNOWN',
-  REGISTER = 'REGISTER',
-  INVITE = 'INVITE',
-  MESSAGE = 'MESSAGE',
-  PUBLISH = 'PUBLISH',
-  NOTIFY = 'NOTIFY',
-  SUBSCRIBE = 'SUBSCRIBE'
+  UNKNOWN = "UNKNOWN",
+  REGISTER = "REGISTER",
+  INVITE = "INVITE",
+  MESSAGE = "MESSAGE",
+  PUBLISH = "PUBLISH",
+  NOTIFY = "NOTIFY",
+  SUBSCRIBE = "SUBSCRIBE"
 }
 
 export enum Transport {
-  TCP = 'tcp',
-  UDP = 'udp',
-  TLS = 'tls',
-  SCTP = 'sctp',
-  WS = 'ws',
-  WSS = 'wss',
+  TCP = "tcp",
+  UDP = "udp",
+  TLS = "tls",
+  SCTP = "sctp",
+  WS = "ws",
+  WSS = "wss"
 }
 
 export interface NetInterface {

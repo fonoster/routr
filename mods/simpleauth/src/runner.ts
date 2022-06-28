@@ -18,18 +18,22 @@
  * limitations under the License.
  */
 require("./tracer").init("simpleauth")
-import logger from '@fonoster/logger'
-import SimpleAuthProcessor from './service'
-import { User } from './types'
-import { Assertions as A } from "@routr/common"
+import logger from "@fonoster/logger"
+import SimpleAuthProcessor from "./service"
+import {User} from "./types"
+import {Assertions as A} from "@routr/common"
 
-A.assertEnvsAreSet(['PATH_TO_AUTH'])
+A.assertEnvsAreSet(["PATH_TO_AUTH"])
 
-const whiteList = process.env.WHITELIST ? process.env.WHITELIST.split(',') : []
+const whiteList = process.env.WHITELIST ? process.env.WHITELIST.split(",") : []
 
 try {
   const users: User[] = require(process.env.PATH_TO_AUTH)
-  SimpleAuthProcessor({ bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903", users, whiteList })
+  SimpleAuthProcessor({
+    bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903",
+    users,
+    whiteList
+  })
 } catch (e) {
   if (e.code === "MODULE_NOT_FOUND") {
     logger.error(`auth file not found [path = ${process.env.PATH_TO_AUTH}]`)

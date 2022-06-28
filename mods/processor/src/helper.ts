@@ -16,30 +16,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, NetInterface, Route } from "@routr/common"
-import {
-    Target as T,
-    Extensions as E
-  } from "./index"
+import {MessageRequest, NetInterface, Route} from "@routr/common"
+import {Extensions as E, Target as T} from "./index"
 
-export const isTypeResponse = (request: MessageRequest): boolean => request.message.messageType === "responseType"
-export const isTypeRequest = (request: MessageRequest): boolean => !isTypeResponse(request)
+export const isTypeResponse = (request: MessageRequest): boolean =>
+  request.message.messageType === "responseType"
+export const isTypeRequest = (request: MessageRequest): boolean =>
+  !isTypeResponse(request)
 
 // A request traversing a second EdgePort would have an updated the requestUri.
 // Therefore, we are able to re-construct the Route from the request
 export function createRouteFromLastMessage(request: MessageRequest): Route {
-    // The requestUri from the last message 
-    const uri = (request.message.requestUri as any)
-    return {
-      edgePortRef: request.edgePortRef,
-      user: uri.user,
-      host: uri.host,
-      port: uri.port,
-      transport: uri.transport,
-      registeredOn: Date.now(),
-      sessionCount: E.getHeaderValue(request, "x-session-count") || -1,
-      expires: T.getTargetExpires(request),
-      listeningPoint: request.listeningPoint as NetInterface
-    }
+  // The requestUri from the last message
+  const uri = request.message.requestUri as any
+  return {
+    edgePortRef: request.edgePortRef,
+    user: uri.user,
+    host: uri.host,
+    port: uri.port,
+    transport: uri.transport,
+    registeredOn: Date.now(),
+    sessionCount: E.getHeaderValue(request, "x-session-count") || -1,
+    expires: T.getTargetExpires(request),
+    listeningPoint: request.listeningPoint as NetInterface
   }
-  
+}

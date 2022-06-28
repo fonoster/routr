@@ -18,17 +18,17 @@
  * limitations under the License.
  */
 require("./tracer").init("dispatcher")
-import logger from '@fonoster/logger'
+import logger from "@fonoster/logger"
 import LocationService from "./service"
-import { getConfig } from "./config/get_config"
-import { Assertions as A } from "@routr/common"
+import {getConfig} from "./config/get_config"
+import {Assertions as A} from "@routr/common"
 
-A.assertEnvsAreSet(['CONFIG_PATH'])
+A.assertEnvsAreSet(["CONFIG_PATH"])
 
 const result = getConfig(process.env.CONFIG_PATH)
 
-if (result._tag === 'Right') {
-  LocationService(result.right) 
+if (result._tag === "Right") {
+  LocationService(result.right)
 } else {
   logger.error(result.left)
 }

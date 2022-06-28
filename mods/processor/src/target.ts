@@ -16,15 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest } from "@routr/common"
+import {MessageRequest} from "@routr/common"
 
-export const getAOR = (uri: any) => `${uri.secure ? 'sips' : 'sip'}:${uri.user ? uri.user + '@' : ''}${uri.host}`
+export const getAOR = (uri: any) =>
+  `${uri.secure ? "sips" : "sip"}:${uri.user ? uri.user + "@" : ""}${uri.host}`
 
-export const getTargetAOR = (request: MessageRequest) => getAOR((request.message.to as any).address.uri)
+export const getTargetAOR = (request: MessageRequest) =>
+  getAOR((request.message.to as any).address.uri)
 
 export const getTargetExpires = (request: MessageRequest) => {
   // The expires value in the Contact header takes presendence over the value
   // on the Expires header
   const expires: number = (request.message?.contact as any)?.expires || -1
-  return expires > -1 ? expires : (request.message.expires as { expires: number })?.expires || -1
+  return expires > -1
+    ? expires
+    : (request.message.expires as {expires: number})?.expires || -1
 }

@@ -18,12 +18,13 @@
  */
 package io.routr.headers;
 
-import java.text.ParseException;
-import javax.sip.header.HeaderFactory;
+import gov.nist.javax.sip.header.WWWAuthenticate;
+
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
-import gov.nist.javax.sip.header.WWWAuthenticate;
+import javax.sip.header.HeaderFactory;
+import java.text.ParseException;
 
 @ProtoMapping(header = WWWAuthenticate.class, field = "www_authenticate", repeatable = false, extension = false)
 public class WWWAuthenticateConverter implements Converter<WWWAuthenticate, io.routr.message.WWWAuthenticate> {
@@ -45,7 +46,7 @@ public class WWWAuthenticateConverter implements Converter<WWWAuthenticate, io.r
 
   @Override
   public WWWAuthenticate fromDTO(io.routr.message.WWWAuthenticate dto)
-      throws InvalidArgumentException, PeerUnavailableException, ParseException {
+    throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     WWWAuthenticate header = (WWWAuthenticate) factory.createWWWAuthenticateHeader(dto.getScheme());
     header.setRealm(dto.getRealm());

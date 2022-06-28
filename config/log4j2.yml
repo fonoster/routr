@@ -21,10 +21,10 @@ Configuration:
       - name: io.routr
         level: debug
         AppenderRef:
-        - ref: Console
-        - ref: LogToRollingFile
+          - ref: Console
+          - ref: LogToRollingFile
 
     Root:
       level: error
       AppenderRef:
-      - ref: LogToRollingFile
+        - ref: LogToRollingFile

@@ -17,38 +17,48 @@
  * limitations under the License.
  */
 import connectToBackend from "./connections"
-import { ProcessorConfig } from "@routr/common"
-import { ProcessorCallback } from "./types"
-import { runProcessor } from "./run_processor"
-import { MessageRequest, MiddlewareConfig } from "@routr/common/src/types"
-import { runMiddlewares } from "./run_middlewares"
+import {ProcessorConfig} from "@routr/common"
+import {ProcessorCallback} from "./types"
+import {runProcessor} from "./run_processor"
+import {MessageRequest, MiddlewareConfig} from "@routr/common/src/types"
+import {runMiddlewares} from "./run_middlewares"
 import logger from "@fonoster/logger"
 
 export default function processor(params: {
   processors: ProcessorConfig[]
   middlewares?: MiddlewareConfig[]
 }) {
-  const { processors, middlewares } = params
+  const {processors, middlewares} = params
   const procConns = connectToBackend(processors)
   const middConns = connectToBackend(middlewares)
 
   // Upstream request and callback
   return (call: any, callback: ProcessorCallback): void => {
-    const { request } = call
+    const {request} = call
 
     // Messages type reponse will not be sent to middleware chain
-    if (request.message.messageType === 'responseType') {
-      return runProcessor({ callback, request, processors, connections: procConns })
+    if (request.message.messageType === "responseType") {
+      return runProcessor({
+        callback,
+        request,
+        processors,
+        connections: procConns
+      })
     }
 
-    runMiddlewares({ callback, request, middlewares, connections: middConns })
+    runMiddlewares({callback, request, middlewares, connections: middConns})
       .then((req: MessageRequest) => {
         // Since the chain was broken we need to skip the processor and return the updated request
         if (req.message.messageType === "responseType") {
-          logger.silly("skipped processsing request", { ref: req.ref })
+          logger.silly("skipped processsing request", {ref: req.ref})
           return callback(null, req)
         }
-        runProcessor({ callback, request: req, processors, connections: procConns })
+        runProcessor({
+          callback,
+          request: req,
+          processors,
+          connections: procConns
+        })
       })
       .catch(callback)
   }

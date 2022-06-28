@@ -16,27 +16,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Route } from "@routr/common"
+import {Route} from "@routr/common"
 
 export enum LB_ALGORITHM {
-  ROUND_ROBIN= "round-robin",
+  ROUND_ROBIN = "round-robin",
   LEAST_SESSIONS = "least-sessions"
 }
 
 export enum CACHE_PROVIDER {
-  MEMORY= "memory",
+  MEMORY = "memory",
   REDIS = "redis"
 }
 
 export interface ILocationService {
   addRoute(request: AddRouteRequest): Promise<void>
+
   findRoutes(request: FindRoutesRequest): Promise<Route[]>
+
   removeRoutes(request: RemoveRoutesRequest): Promise<void>
 }
 
 export interface ILocatorStore {
   put(key: string, route: Route): Promise<void>
+
   get(key: string): Promise<Route[]>
+
   delete(key: string): Promise<void>
 }
 
@@ -66,10 +70,10 @@ export interface Backend {
 }
 
 export interface LocationConfig {
-  bindAddr: string,
+  bindAddr: string
   backends?: Backend[]
   cache?: {
-    provider: CACHE_PROVIDER,
+    provider: CACHE_PROVIDER
     parameters: string
   }
 }

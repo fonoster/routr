@@ -59,7 +59,7 @@ enum Method {
   // Provisional Acknowledgement
   PRACK = 11;
   // Sends mid session information
-  INFO = 12; 
+  INFO = 12;
   // Asks the recipient to issue call transfer
   REFER = 13;
   // Modifies the state of a session

@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, ProcessorConfig } from "@routr/common"
-import { NotMatchingProcessorFound } from "./errors"
+import {MessageRequest, ProcessorConfig} from "@routr/common"
+import {NotMatchingProcessorFound} from "./errors"
 
 export const hasMethod = (config: ProcessorConfig, request: MessageRequest) =>
   config.methods.includes(request.method)
@@ -26,7 +26,8 @@ export const hasMethod = (config: ProcessorConfig, request: MessageRequest) =>
 export const filter = (request: MessageRequest, config: ProcessorConfig) =>
   hasMethod(config, request) && config?.matchFunc(request)
 
-export const findProcessor = (list: Array<ProcessorConfig>) =>  
-  (request: MessageRequest): NotMatchingProcessorFound | ProcessorConfig =>  
-    list.find((config: ProcessorConfig) => filter(request, config)) 
-      || new NotMatchingProcessorFound(request.ref)
+export const findProcessor =
+  (list: Array<ProcessorConfig>) =>
+  (request: MessageRequest): NotMatchingProcessorFound | ProcessorConfig =>
+    list.find((config: ProcessorConfig) => filter(request, config)) ||
+    new NotMatchingProcessorFound(request.ref)

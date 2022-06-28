@@ -16,20 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { 
-  PROCESSOR_OBJECT_PROTO,
-  MessageRequest, 
-  ProcessorConfig, 
-  Method
-} from '@routr/common'
+import {MessageRequest, Method, PROCESSOR_OBJECT_PROTO, ProcessorConfig} from '@routr/common'
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { findProcessor, hasMethod } from "../src/find_processor"
-import  {getConfig } from '../src/config/get_config'
+import {findProcessor, hasMethod} from "../src/find_processor"
+import {getConfig} from '../src/config/get_config'
 import connectToBackend from "../src/connections"
 import processor from '../src/processor'
-import { Transport } from '@routr/common/src/types'
+import {Transport} from '@routr/common/src/types'
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -80,7 +75,7 @@ describe('@routr/dispatcher', () => {
 
   describe('@routr/dispatcher/find_processor', () => {
     it('checks if method of the request is enabled', () => {
-      const messageRequest2 = { ...messageRequest }
+      const messageRequest2 = {...messageRequest}
       messageRequest2.method = Method.MESSAGE
       expect(hasMethod(config1, messageRequest)).to.be.equal(true)
       expect(hasMethod(config1, messageRequest2)).to.be.equal(false)
@@ -93,15 +88,15 @@ describe('@routr/dispatcher', () => {
     })
 
     it('matches incomming request as an INVITE', () => {
-      const messageRequest2 = { ...messageRequest }
-      messageRequest2.method =  Method.INVITE
+      const messageRequest2 = {...messageRequest}
+      messageRequest2.method = Method.INVITE
       expect(findProcessor([config1, config2])(messageRequest2))
         .to.be.have.property("ref")
         .to.be.equal("processor-ref2")
     })
 
     it('matches incomming request as an MESSAGE', () => {
-      const messageRequest2 = { ...messageRequest }
+      const messageRequest2 = {...messageRequest}
       messageRequest2.method = Method.MESSAGE
       expect(findProcessor([config1, config2, config3])(messageRequest2))
         .to.be.have.property("ref")
@@ -109,7 +104,7 @@ describe('@routr/dispatcher', () => {
     })
 
     it('fails because there is not matching processor', () => {
-      const messageRequest2 = { ...messageRequest }
+      const messageRequest2 = {...messageRequest}
       messageRequest2.method = Method.PUBLISH
       const error = findProcessor([config1, config2, config3])(messageRequest2)
       expect(error.toString()).to.include("not matching processor found for request")
@@ -126,7 +121,7 @@ describe('@routr/dispatcher', () => {
         }
       )
 
-      processor({processors: [config1]})({ request: messageRequest }, (err: Error, response: any)=> {
+      processor({processors: [config1]})({request: messageRequest}, (err: Error, response: any) => {
         if (err) {
           done()
         } else {
@@ -144,7 +139,7 @@ describe('@routr/dispatcher', () => {
         }
       )
 
-      processor({processors: [config1]})({ request: messageRequest }, (err: Error, response: any)=> {
+      processor({processors: [config1]})({request: messageRequest}, (err: Error, response: any) => {
         if (err) {
           done(err)
         } else {
@@ -165,12 +160,12 @@ describe('@routr/dispatcher', () => {
         }
       )
 
-      processor({processors: [config1]})({ request: messageRequest }, (err, response: any)=> {
+      processor({processors: [config1]})({request: messageRequest}, (err, response: any) => {
         expect(err.toString()).to.be.include("processor ref = processor-ref1 is unavailable")
         done()
       })
     })
-  }) 
+  })
 
   it('creates a connection for every processor config', () => {
     const processorObjectProtoStub = sandbox.stub(PROCESSOR_OBJECT_PROTO, 'Processor')

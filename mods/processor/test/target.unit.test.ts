@@ -19,8 +19,8 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { request, route } from "./examples"
-import { Target as T } from '../src'
+import {request} from "./examples"
+import {Target as T} from '../src'
 
 const expect = chai.expect
 chai.use(sinonChai)

@@ -16,9 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import logger from "@fonoster/logger"
-import { HeaderModifier, MessageRequest, Transport } from "@routr/common"
-import { DataAPI, KIND, Resource, ROUTING_DIRECTION } from "./types"
+import {HeaderModifier, MessageRequest, Transport} from "@routr/common"
+import {DataAPI, KIND, Resource, ROUTING_DIRECTION} from "./types"
 
 export const isKind = (req: Resource, kind: KIND) => {
   if (req == null && kind === KIND.UNKNOWN) {
@@ -28,15 +27,26 @@ export const isKind = (req: Resource, kind: KIND) => {
 }
 
 export async function findDomain(dataAPI: DataAPI, domainUri: string) {
-  return (await dataAPI.find(`$..[?(@.spec.context.domainUri=='${domainUri}')]`))[0]
+  return (
+    await dataAPI.find(`$..[?(@.spec.context.domainUri=='${domainUri}')]`)
+  )[0]
 }
 
-export async function findResource(dataAPI: DataAPI, domainUri: string, userpart: string): Promise<Resource> {
+export async function findResource(
+  dataAPI: DataAPI,
+  domainUri: string,
+  userpart: string
+): Promise<Resource> {
   const domain = await findDomain(dataAPI, domainUri)
 
   // TODO: Fix jsonpath not working for logical AND and OR
-  let res = (await dataAPI.find(`$..[?(@.spec.location.telUrl=="tel:${userpart}")]`))[0]
-  res = res == null ? (await dataAPI.find(`$..[?(@.spec.username=="${userpart}")]`))[0] : res
+  let res = (
+    await dataAPI.find(`$..[?(@.spec.location.telUrl=="tel:${userpart}")]`)
+  )[0]
+  res =
+    res == null
+      ? (await dataAPI.find(`$..[?(@.spec.username=="${userpart}")]`))[0]
+      : res
 
   if (isKind(res, KIND.AGENT) && res.spec.domainRef != domain?.metadata.ref) {
     // Not in the same domain
@@ -70,7 +80,11 @@ export function getRoutingDirection(caller: Resource, callee: Resource) {
   return ROUTING_DIRECTION.UNKNOWN
 }
 
-export function createPAssertedIdentity(req: MessageRequest, trunk: Resource, number: Resource): HeaderModifier {
+export function createPAssertedIdentity(
+  req: MessageRequest,
+  trunk: Resource,
+  number: Resource
+): HeaderModifier {
   const displayName = (req.message.from as any).address.displayName
   const remoteNumber = number.spec.location.telUrl.split(":")[1]
   const trunkHost = getTrunkURI(trunk).host
@@ -81,7 +95,10 @@ export function createPAssertedIdentity(req: MessageRequest, trunk: Resource, nu
   }
 }
 
-export function createRemotePartyId(trunk: Resource, number: Resource): HeaderModifier {
+export function createRemotePartyId(
+  trunk: Resource,
+  number: Resource
+): HeaderModifier {
   const remoteNumber = number.spec.location.telUrl.split(":")[1]
   const trunkHost = getTrunkURI(trunk).host
   return {
@@ -91,11 +108,16 @@ export function createRemotePartyId(trunk: Resource, number: Resource): HeaderMo
   }
 }
 
-export async function createTrunkAuthentication(dataAPI: DataAPI, trunk: Resource): Promise<HeaderModifier> {
+export async function createTrunkAuthentication(
+  dataAPI: DataAPI,
+  trunk: Resource
+): Promise<HeaderModifier> {
   const credentials = await dataAPI.get(trunk.spec.outbound.credentialsRef)
   return {
     name: "X-Gateway-Auth",
-    value: Buffer.from(`${credentials.spec.credentials.username}:${credentials.spec.credentials.password}`).toString("base64"),
+    value: Buffer.from(
+      `${credentials.spec.credentials.username}:${credentials.spec.credentials.password}`
+    ).toString("base64"),
     action: "add"
   }
 }
@@ -106,12 +128,12 @@ export function getTrunkURI(trunk: Resource): {
   user: string
   transport: Transport
 } {
-  const { user, host, port, transport } = trunk.spec.outbound?.uris[0].uri
-  const t = !transport ?
-    Transport.UDP as Transport: 
-    Object.keys(Transport)[
-      Object.values(Transport).indexOf(transport.toLowerCase())
-    ] as unknown as Transport
+  const {user, host, port, transport} = trunk.spec.outbound?.uris[0].uri
+  const t = !transport
+    ? (Transport.UDP as Transport)
+    : (Object.keys(Transport)[
+        Object.values(Transport).indexOf(transport.toLowerCase())
+      ] as unknown as Transport)
   return {
     user,
     host,

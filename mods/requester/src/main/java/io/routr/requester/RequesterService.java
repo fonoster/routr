@@ -21,17 +21,19 @@ package io.routr.requester;
 import io.grpc.stub.StreamObserver;
 import io.routr.headers.MessageConverter;
 import io.routr.message.SIPMessage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.sip.*;
+import javax.sip.header.CallIdHeader;
+import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
-
-import javax.sip.header.CallIdHeader;
-import javax.sip.message.Response;
-import javax.sip.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class RequesterService extends RequesterGrpc.RequesterImplBase implements javax.sip.SipListener {
   private final static Logger LOG = LogManager.getLogger(RequesterService.class);
@@ -87,8 +89,8 @@ public class RequesterService extends RequesterGrpc.RequesterImplBase implements
   @Override
   public void processTimeout(TimeoutEvent event) {
     var transaction = event.isServerTransaction()
-        ? event.getServerTransaction()
-        : event.getClientTransaction();
+      ? event.getServerTransaction()
+      : event.getClientTransaction();
     var callId = (CallIdHeader) transaction.getRequest().getHeader(CallIdHeader.NAME);
     var callableResponse = this.responseMap.get(callId.getCallId());
     if (callableResponse != null) {

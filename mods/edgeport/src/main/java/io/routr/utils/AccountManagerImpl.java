@@ -18,10 +18,10 @@
  */
 package io.routr.utils;
 
-import javax.sip.ClientTransaction;
-
 import gov.nist.javax.sip.clientauthutils.AccountManager;
 import gov.nist.javax.sip.clientauthutils.UserCredentials;
+
+import javax.sip.ClientTransaction;
 
 public class AccountManagerImpl implements AccountManager {
   private final String username;
@@ -29,7 +29,7 @@ public class AccountManagerImpl implements AccountManager {
   private final String host;
 
   public AccountManagerImpl(final String username, final String password,
-      final String host) {
+                            final String host) {
     this.username = username;
     this.password = password;
     this.host = host;

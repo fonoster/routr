@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DataAPI, Resource } from "../src/types"
-import { r1 } from './examples'
+import {DataAPI, Resource} from "../src/types"
+import {r1} from './examples'
 import loadResources from "../../simpledata/src/utils"
 import jp from "jsonpath"
-import { FindRoutesRequest } from "@routr/location/dist/types"
+import {FindRoutesRequest} from "@routr/location/dist/types"
 
 const resources: Resource[] = loadResources(__dirname + "/../../simpledata/etc/schemas",
   __dirname + "/../../../config/resources")

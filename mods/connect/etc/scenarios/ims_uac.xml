@@ -2,9 +2,9 @@
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
 <scenario name="UAC IMS">
-  <Global variables="requestURI,from,to" />
-  <send retrans="500">
-    <![CDATA[MESSAGE sip:[$requestURI];transport=[transport] SIP/2.0
+    <Global variables="requestURI,from,to"/>
+    <send retrans="500">
+        <![CDATA[MESSAGE sip:[$requestURI];transport=[transport] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=a[branch]
       Max-Forwards: 70
       From: <sip:[$from]>;tag=[pid]SIPpTag00[call_number]
@@ -15,13 +15,13 @@
       Content-Type: text/plain
       Content-Length: [len]
       Hello!]]>
-  </send>
- 
-  <recv response="100" optional="true" />
-  <recv response="401" auth="true" rtd="true" />
+    </send>
 
-  <send>
-    <![CDATA[MESSAGE sip:[$requestURI];transport=[transport] SIP/2.0
+    <recv response="100" optional="true"/>
+    <recv response="401" auth="true" rtd="true"/>
+
+    <send>
+        <![CDATA[MESSAGE sip:[$requestURI];transport=[transport] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=a[branch]
       Max-Forwards: 70
       From: <sip:[$from]>;tag=[pid]SIPpTag00[call_number]
@@ -33,10 +33,10 @@
       [authentication]
       Content-Length: [len]
       Hello!]]>
-  </send>
+    </send>
 
-  <recv response="200" crlf="true" rtd="true"></recv>
+    <recv response="200" crlf="true" rtd="true"></recv>
 
-  <CallLengthRepartition value="10, 50, 100, 150, 200, 500, 1000"/>
-  <ResponseTimeRepartition value="10, 50, 100, 150, 200, 500, 1000"/>
+    <CallLengthRepartition value="10, 50, 100, 150, 200, 500, 1000"/>
+    <ResponseTimeRepartition value="10, 50, 100, 150, 200, 500, 1000"/>
 </scenario>

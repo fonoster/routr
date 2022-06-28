@@ -16,9 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import logger from "@fonoster/logger"
-import { BadRequest, ResourceNotFound } from "./errors"
-import { Resource } from "./types"
+import {BadRequest, ResourceNotFound} from "./errors"
+import {Resource} from "./types"
 import jp from "jsonpath"
 
 // Will find the first resource that matches the reference
@@ -32,10 +31,10 @@ export function get(resources: Resource[]) {
       return callback(new BadRequest("parameter ref is required"), null)
     }
 
-    const resource = resources.find(r => r.metadata.ref === call.request.ref)
+    const resource = resources.find((r) => r.metadata.ref === call.request.ref)
 
-    resource 
-      ? callback(null, resource )
+    resource
+      ? callback(null, resource)
       : callback(new ResourceNotFound(call.request.ref), null)
   }
 }
@@ -51,9 +50,12 @@ export function find(resources: Resource[]) {
     }
 
     try {
-      callback(null, { resources: jp.query(resources, call.request.query)})
+      callback(null, {resources: jp.query(resources, call.request.query)})
     } catch (e) {
-      return callback(new BadRequest(`invalid JSONPath expression: ${call.request.query}`), null)
+      return callback(
+        new BadRequest(`invalid JSONPath expression: ${call.request.query}`),
+        null
+      )
     }
   }
 }

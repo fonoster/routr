@@ -16,32 +16,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { generateNonce } from "@routr/common"
-import { User } from "./types"
+import {generateNonce} from "@routr/common"
+import {User} from "./types"
 
-export const getCredentials = (username: string, users: User[]) => users.find(user => user.username === username)
+export const getCredentials = (username: string, users: User[]) =>
+  users.find((user) => user.username === username)
 
-export const createUnauthorizedResponse = (realm: string, params: {
-  qop: string,
-  algorithm: string
-} = { qop: "auth", algorithm: "MD5" }) => {
+export const createUnauthorizedResponse = (
+  realm: string,
+  params: {
+    qop: string
+    algorithm: string
+  } = {qop: "auth", algorithm: "MD5"}
+) => {
   return {
     message: {
       // UNAUTHORIZED CODE
       responseType: 17,
       wwwAuthenticate: {
-        scheme: 'Digest',
+        scheme: "Digest",
         realm: realm,
         qop: params.qop,
-        opaque: '',
+        opaque: "",
         stale: false,
         nonce: generateNonce(),
         algorithm: params.algorithm
       },
       extensions: [
         {
-          "name": "Expires",
-          "value": 0
+          name: "Expires",
+          value: 0
         }
       ]
     }

@@ -18,13 +18,15 @@
  */
 package io.routr;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import gov.nist.javax.sip.header.*;
+import io.routr.common.Transport;
+import io.routr.headers.*;
+import io.routr.message.ResponseType;
+import io.routr.message.SIPMessage;
+import io.routr.processor.NetInterface;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
+import org.junit.jupiter.api.Test;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
@@ -37,58 +39,27 @@ import javax.sip.header.HeaderFactory;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.HostAccess;
-import org.junit.jupiter.api.Test;
-
-import gov.nist.javax.sip.header.Allow;
-import gov.nist.javax.sip.header.Authorization;
-import gov.nist.javax.sip.header.CallID;
-import gov.nist.javax.sip.header.Contact;
-import gov.nist.javax.sip.header.ContentLength;
-import gov.nist.javax.sip.header.Expires;
-import gov.nist.javax.sip.header.From;
-import gov.nist.javax.sip.header.MaxForwards;
-import gov.nist.javax.sip.header.RecordRoute;
-import gov.nist.javax.sip.header.Route;
-import gov.nist.javax.sip.header.To;
-import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.header.WWWAuthenticate;
-import io.routr.common.Transport;
-import io.routr.headers.AddressConverter;
-import io.routr.headers.AuthorizationConverter;
-import io.routr.headers.CallIDConverter;
-import io.routr.headers.ContactConverter;
-import io.routr.headers.ContentLengthConverter;
-import io.routr.headers.ExpiresConverter;
-import io.routr.headers.ExtensionConverter;
-import io.routr.headers.FromConverter;
-import io.routr.headers.MaxForwardsConverter;
-import io.routr.headers.MessageConverter;
-import io.routr.headers.RecordRouteConverter;
-import io.routr.headers.RouteConverter;
-import io.routr.headers.SipURIConverter;
-import io.routr.headers.ToConverter;
-import io.routr.headers.ViaConverter;
-import io.routr.headers.WWWAuthenticateConverter;
-import io.routr.message.ResponseType;
-import io.routr.message.SIPMessage;
-import io.routr.processor.NetInterface;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConverterTests {
 
   @Test
   public void testPassingConfig() {
     Context polyglot = Context
-        .newBuilder()
-        .allowExperimentalOptions(true)
-        .allowHostAccess(HostAccess.ALL)
-        .allowCreateThread(true)
-        .option("js.nashorn-compat", "true")
-        .allowExperimentalOptions(true)
-        .allowIO(true)
-        .allowAllAccess(true).build();
+      .newBuilder()
+      .allowExperimentalOptions(true)
+      .allowHostAccess(HostAccess.ALL)
+      .allowCreateThread(true)
+      .option("js.nashorn-compat", "true")
+      .allowExperimentalOptions(true)
+      .allowIO(true)
+      .allowAllAccess(true).build();
 
     Map v = (Map<String, Object>) polyglot.eval("js", "({person: { name: \"John Doe\"} })").as(Map.class);
     MapProxyObject values = new MapProxyObject(v);
@@ -101,7 +72,7 @@ public class ConverterTests {
     HeaderFactory headerFactory = SipFactory.getInstance().createHeaderFactory();
     MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
     Request request = messageFactory.createRequest(
-        "INVITE sip:sip.target;transport=tcp SIP/2.0\r\n\r\n");
+      "INVITE sip:sip.target;transport=tcp SIP/2.0\r\n\r\n");
     request.addHeader(headerFactory.createViaHeader("sip.local", 5060, "tcp", null));
 
     NetInterface sender = MessageConverter.getSender(request);
@@ -210,11 +181,11 @@ public class ConverterTests {
 
     assertEquals(objectFromDto.getTag(), dto.getTag());
     assertNotNull(objectFromDto.getAddress());
-    assertEquals(objectFromDto.getAddress().getDisplayName(), 
+    assertEquals(objectFromDto.getAddress().getDisplayName(),
       dto.getAddress().getDisplayName());
-    assertEquals(((SipURI)objectFromDto.getAddress().getURI()).getUser(),
+    assertEquals(((SipURI) objectFromDto.getAddress().getURI()).getUser(),
       dto.getAddress().getUri().getUser());
-    assertEquals(((SipURI)objectFromDto.getAddress().getURI()).getHost(),
+    assertEquals(((SipURI) objectFromDto.getAddress().getURI()).getHost(),
       dto.getAddress().getUri().getHost());
     assertFalse(dto.getAddress().getUri().getSecure());
     assertFalse(dto.getAddress().getWildcard());
@@ -239,11 +210,11 @@ public class ConverterTests {
 
     assertEquals(objectToDto.getTag(), dto.getTag());
     assertNotNull(objectToDto.getAddress());
-    assertEquals(objectToDto.getAddress().getDisplayName(), 
+    assertEquals(objectToDto.getAddress().getDisplayName(),
       dto.getAddress().getDisplayName());
-    assertEquals(((SipURI)objectToDto.getAddress().getURI()).getUser(),
+    assertEquals(((SipURI) objectToDto.getAddress().getURI()).getUser(),
       dto.getAddress().getUri().getUser());
-    assertEquals(((SipURI)objectToDto.getAddress().getURI()).getHost(),
+    assertEquals(((SipURI) objectToDto.getAddress().getURI()).getHost(),
       dto.getAddress().getUri().getHost());
     assertFalse(dto.getAddress().getUri().getSecure());
     assertFalse(dto.getAddress().getWildcard());
@@ -268,7 +239,7 @@ public class ConverterTests {
     assertNotNull(objectRouteDto.getAddress());
     assertEquals(objectRouteDto.getParameter("a"), route.getParameter("a"));
     assertEquals(objectRouteDto.getParameter("b"), route.getParameter("b"));
-    assertEquals(((SipURI)objectRouteDto.getAddress().getURI()).getHost(),
+    assertEquals(((SipURI) objectRouteDto.getAddress().getURI()).getHost(),
       dto.getAddress().getUri().getHost());
   }
 
@@ -289,7 +260,7 @@ public class ConverterTests {
     assertNotNull(objectRecordRouteDto.getAddress());
     assertEquals(objectRecordRouteDto.getParameter("a"), recordRoute.getParameter("a"));
     assertEquals(objectRecordRouteDto.getParameter("b"), recordRoute.getParameter("b"));
-    assertEquals(((SipURI)objectRecordRouteDto.getAddress().getURI()).getHost(),
+    assertEquals(((SipURI) objectRecordRouteDto.getAddress().getURI()).getHost(),
       dto.getAddress().getUri().getHost());
   }
 
@@ -312,7 +283,7 @@ public class ConverterTests {
 
   @Test
   public void testMaxForwardsConverter() throws PeerUnavailableException,
-      ParseException, InvalidArgumentException {
+    ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     MaxForwards header = (MaxForwards) factory.createMaxForwardsHeader(70);
     MaxForwardsConverter converter = new MaxForwardsConverter();
@@ -326,7 +297,7 @@ public class ConverterTests {
 
   @Test
   public void testContentLengthConverter() throws PeerUnavailableException,
-      ParseException, InvalidArgumentException {
+    ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     ContentLength header = (ContentLength) factory.createContentLengthHeader(200);
     ContentLengthConverter converter = new ContentLengthConverter();
@@ -340,7 +311,7 @@ public class ConverterTests {
 
   @Test
   public void testViaConverter() throws PeerUnavailableException,
-      ParseException, InvalidArgumentException {
+    ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     ViaConverter converter = new ViaConverter();
     Via header = (Via) factory.createViaHeader("sip.local", 5060, "tcp", null);
@@ -354,7 +325,7 @@ public class ConverterTests {
 
   @Test
   public void testWWWAuthenticationConverter() throws PeerUnavailableException,
-      ParseException, InvalidArgumentException {
+    ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     WWWAuthenticateConverter converter = new WWWAuthenticateConverter();
     WWWAuthenticate header = (WWWAuthenticate) factory.createWWWAuthenticateHeader("Digest");
@@ -379,7 +350,7 @@ public class ConverterTests {
 
   @Test
   public void testAuthorizationConverter() throws PeerUnavailableException,
-      ParseException, InvalidArgumentException {
+    ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     AuthorizationConverter converter = new AuthorizationConverter();
     Authorization header = (Authorization) factory.createAuthorizationHeader("Digest");
@@ -415,7 +386,7 @@ public class ConverterTests {
 
   @Test
   public void testExtensionConverter() throws PeerUnavailableException,
-      ParseException, InvalidArgumentException {
+    ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     ExtensionConverter converter = new ExtensionConverter();
     ExtensionHeader header = (ExtensionHeader) factory.createHeader("X-Custom-Header", "my custom header");
@@ -438,7 +409,7 @@ public class ConverterTests {
     via1.setBranch("1234");
 
     Request request = messageFactory.createRequest(
-        "REGISTER sip:sip.local;transport=tcp SIP/2.0\r\n\r\n");
+      "REGISTER sip:sip.local;transport=tcp SIP/2.0\r\n\r\n");
     request.addHeader(headerFactory.createCallIdHeader("call001"));
     request.addHeader(headerFactory.createContentLengthHeader(200));
     request.addHeader(headerFactory.createHeader("X-Custom-Header-01", "my custom header 01"));
@@ -483,7 +454,7 @@ public class ConverterTests {
     via1.setBranch("1234");
 
     Response response = messageFactory.createResponse(
-        "SIP/2.0 401 Unauthorized\r\n\r\n");
+      "SIP/2.0 401 Unauthorized\r\n\r\n");
     response.addHeader(headerFactory.createCallIdHeader("call001"));
     response.addHeader(headerFactory.createHeader("X-Custom-Header", "my custom header"));
     response.addHeader(via1);
@@ -508,7 +479,7 @@ public class ConverterTests {
     AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
     MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
     Request request = messageFactory.createRequest(
-        "REGISTER sip:sip.local;transport=tcp SIP/2.0\r\n\r\n");
+      "REGISTER sip:sip.local;transport=tcp SIP/2.0\r\n\r\n");
 
     var fromAddress = addressFactory.createAddress("sip:1001@sip.local");
     var toAddress = addressFactory.createAddress("sip:1001@sip.local");
@@ -548,11 +519,11 @@ public class ConverterTests {
     }
 
     assertEquals(10, headers.size());
-    
+
     Iterator<String> names = (Iterator<String>) request.getHeaderNames();
     while (names.hasNext()) {
       String n = names.next();
-      
+
       // TODO: We need to create a converter for this header
       if (!n.equals(Allow.NAME)) {
         assertEquals(request.getHeader(n).toString(), request.getHeader(n).toString());

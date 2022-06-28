@@ -16,19 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest } from "@routr/common"
+import {MessageRequest} from "@routr/common"
 
-const buildResponse = (code: number, extraHeaders?: Array<{ name: string, value: string }>) => {
-  return { message: { responseType: code, extensions: extraHeaders } }
+const buildResponse = (
+  code: number,
+  extraHeaders?: Array<{name: string; value: string}>
+) => {
+  return {message: {responseType: code, extensions: extraHeaders}}
 }
 
 export default class Response {
-  callback: any;
+  callback: any
+
   constructor(callback: Function) {
     this.callback = callback
   }
 
-  sendOk(extraHeaders?: Array<{ name: string, value: string }>) {
+  sendOk(extraHeaders?: Array<{name: string; value: string}>) {
     this.callback(null, buildResponse(7, extraHeaders))
   }
 

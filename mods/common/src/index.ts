@@ -16,25 +16,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {  calculateAuthResponse, generateNonce } from "./auth";
-import { ServiceUnavailableError } from "./errors"
-import createService, { 
-  PROCESSOR_OBJECT_PROTO,
+import {calculateAuthResponse, generateNonce} from "./auth"
+import {ServiceUnavailableError} from "./errors"
+import createService, {
+  getObjectProto,
   LOCATION_OBJECT_PROTO,
-  getObjectProto
-} from "./service";
-import { 
-  Transport, 
-  ProcessorConfig, 
+  PROCESSOR_OBJECT_PROTO
+} from "./service"
+import {
+  HeaderModifier,
   MessageRequest,
   MessageResponse,
-  NetInterface, 
-  Method, 
-  ObjectProto, 
-  ServiceInfo,
+  Method,
+  NetInterface,
+  ObjectProto,
+  ProcessorConfig,
   Route,
-  HeaderModifier
-} from "./types";
+  ServiceInfo,
+  Transport
+} from "./types"
 
 export {
   createService,
@@ -54,7 +54,7 @@ export {
   ServiceInfo,
   PROCESSOR_OBJECT_PROTO,
   LOCATION_OBJECT_PROTO
-};
+}
 
 export * as Helper from "./helper"
 export * as IpUtils from "./ip_utils"
