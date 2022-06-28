@@ -24,11 +24,18 @@ export const isTypeResponse = (request: MessageRequest): boolean =>
 export const isTypeRequest = (request: MessageRequest): boolean =>
   !isTypeResponse(request)
 
-// A request traversing a second EdgePort would have an updated the requestUri.
-// Therefore, we are able to re-construct the Route from the request
+/**
+ * A request traversing a second EdgePort would have an updated the requestUri.
+ * Therefore, we are able to re-construct the Route from the request.
+ *
+ * @param {MessageRequest} request - the request
+ * @return {Route} the route
+ */
 export function createRouteFromLastMessage(request: MessageRequest): Route {
-  // The requestUri from the last message
   const uri = request.message.requestUri
+  const sessionCount = E.getHeaderValue(request, "x-session-count")
+    ? parseInt(E.getHeaderValue(request, "x-session-count"))
+    : -1
 
   return {
     edgePortRef: request.edgePortRef,
@@ -37,7 +44,7 @@ export function createRouteFromLastMessage(request: MessageRequest): Route {
     port: uri.port,
     transport: uri.transportParam as unknown as Transport,
     registeredOn: Date.now(),
-    sessionCount: E.getHeaderValue(request, "x-session-count") || -1,
+    sessionCount,
     expires: T.getTargetExpires(request),
     listeningPoint: request.listeningPoint as NetInterface
   }

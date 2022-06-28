@@ -21,12 +21,13 @@ import {
   Helper as H,
   IpUtils as I,
   MessageRequest,
-  Route
+  Route,
+  CommonTypes
 } from "@routr/common"
 
 export const updateRequestURI = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
-    const req = H.deepCopy(request) as any
+    const req = H.deepCopy(request)
     if (route.user) {
       req.message.requestUri.user = route.user
     } else {
@@ -34,14 +35,14 @@ export const updateRequestURI = (route: Route) => {
     }
     req.message.requestUri.host = route.host
     req.message.requestUri.port = route.port
-    req.message.requestUri.transport = route.transport
+    req.message.requestUri.transportParam = route.transport
     return req
   }
 }
 
 export const addSelfVia = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
-    const req = H.deepCopy(request) as any
+    const req = H.deepCopy(request)
     // If is comming from a different edgeport we use the listening point instead
     // of the endpoint to ensure connectivity.
     const nextHopHost =
@@ -79,8 +80,8 @@ export const addRoute = (route: Route) => {
           lrParam: true
         }
       }
-    }
-    req.message.route = [r, ...(req.message.recordRoute as any)]
+    } as CommonTypes.RecordRoute
+    req.message.route = [r, ...req.message.recordRoute]
     return req
   }
 }
@@ -96,12 +97,13 @@ export const applyXHeaders = (route: Route) => {
         (h: HeaderModifier) => h.action !== "remove"
       )
 
-      req.message.extensions = (req.message.extensions as any).filter(
-        (h: any) => !headersToRemove.includes(h.name.toLowerCase())
+      req.message.extensions = req.message.extensions.filter(
+        (h: CommonTypes.Extension) =>
+          !headersToRemove.includes(h.name.toLowerCase())
       )
 
-      headersToAdd.forEach((h: any) => {
-        ;(req.message.extensions as any).push({name: h.name, value: h.value})
+      headersToAdd.forEach((h: HeaderModifier) => {
+        req.message.extensions.push({name: h.name, value: h.value})
       })
     }
     return req
@@ -120,8 +122,8 @@ export const addSelfRecordRoute = (request: MessageRequest): MessageRequest => {
         lrParam: true
       }
     }
-  }
-  req.message.recordRoute = [r, ...(req.message.recordRoute as any)]
+  } as CommonTypes.RouteHeader
+  req.message.recordRoute = [r, ...req.message.recordRoute]
   return req
 }
 
@@ -131,14 +133,14 @@ export const addXEdgePortRef = (request: MessageRequest): MessageRequest => {
     name: "X-EdgePort-Ref",
     value: request.edgePortRef
   }
-  req.message.extensions = [r, ...(req.message.extensions as any)]
+  req.message.extensions = [r, ...req.message.extensions]
   return req
 }
 
 export const removeXEdgePortRef = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
-  req.message.extensions = (req.message.extensions as any).filter(
-    (ext: any) => ext.name.toLowerCase() !== "x-edgeport-ref"
+  req.message.extensions = req.message.extensions.filter(
+    (ext: CommonTypes.Extension) => ext.name.toLowerCase() !== "x-edgeport-ref"
   )
   return req
 }
@@ -153,7 +155,7 @@ export const removeAuthorization = (
 
 export const removeRoutes = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
-  req.message.route = (req.message.route as any).filter((r: any) => {
+  req.message.route = req.message.route.filter((r: CommonTypes.RouteHeader) => {
     const lp = request.listeningPoint
     const route = r.address.uri
     return !(
@@ -165,13 +167,13 @@ export const removeRoutes = (request: MessageRequest): MessageRequest => {
 }
 
 export const removeTopVia = (request: MessageRequest): MessageRequest => {
-  const req = H.deepCopy(request) as any
+  const req = H.deepCopy(request)
   req.message.via.shift()
   return req
 }
 
 export const decreaseMaxForwards = (request: MessageRequest) => {
-  const req = H.deepCopy(request) as any
+  const req = H.deepCopy(request)
   if (req.message.maxForwards) {
     req.message.maxForwards.maxForwards =
       req.message.maxForwards.maxForwards - 1

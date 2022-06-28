@@ -18,10 +18,9 @@
  */
 import {MiddlewareUnavailableError} from "./errors"
 import {ProcessorGPRCConnection, RunMiddlewaresParams} from "./types"
-import {MessageRequest, MessageResponse} from "@routr/common"
+import {MessageRequest, MessageResponse, CommonTypes as CT} from "@routr/common"
 import logger from "@fonoster/logger"
 import * as grpc from "@grpc/grpc-js"
-import {SIPMessage} from "@routr/common/src/types"
 
 async function processMessage(
   middlewareRef: string,
@@ -54,7 +53,7 @@ export async function runMiddlewares(
       // Send message and re-insert response for next middleware
       try {
         req.message = (await processMessage(midd.ref, conn, req))
-          .message as unknown as SIPMessage
+          .message as unknown as CT.SIPMessage
         if (req.message.messageType === "responseType") {
           logger.silly(
             "found messageType to be responseType and broke the chain",

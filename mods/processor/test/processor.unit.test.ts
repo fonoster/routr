@@ -20,12 +20,13 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 
-const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox()
 
 describe("@routr/common", () => {
   afterEach(() => sandbox.restore())
 
-  it("need testing", () => {})
+  it("need testing", () => {
+    // noop
+  })
 })

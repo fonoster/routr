@@ -19,12 +19,14 @@
  */
 import opentelemetry from "@opentelemetry/api"
 import logger from "@fonoster/logger"
-import {calculateAuthResponse, MessageRequest} from "@routr/common"
+import {
+  calculateAuthResponse,
+  MessageRequest,
+  CommonTypes as CT
+} from "@routr/common"
 import {createUnauthorizedResponse, getCredentials} from "./utils"
 import Processor, {Response} from "@routr/processor"
 import {User} from "./types"
-import {AuthChallengeResponse, Method} from "@routr/common/src/types"
-
 /**
  * A simple authentication middleware that authenticates users based on a list of users
  * or whitelisted endpoints paths.
@@ -58,7 +60,9 @@ export default function simpleAuthMiddleware(config: {
 
       // Consider extending the list to other message types
       if (
-        ![Method.INVITE, Method.MESSAGE, Method.REGISTER].includes(req.method)
+        ![CT.Method.INVITE, CT.Method.MESSAGE, CT.Method.REGISTER].includes(
+          req.method
+        )
       ) {
         return res.send(req)
       }
@@ -77,7 +81,7 @@ export default function simpleAuthMiddleware(config: {
         auth.method = req.method
         // Calculate response and compare with the one send by the endpoint
         const calcRes = calculateAuthResponse(
-          auth as unknown as AuthChallengeResponse,
+          auth as unknown as CT.AuthChallengeResponse,
           getCredentials(auth.username, users)
         )
         if (calcRes !== auth.response) {

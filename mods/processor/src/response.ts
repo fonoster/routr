@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {MessageRequest} from "@routr/common"
+import {MessageRequest, CommonTypes as CT} from "@routr/common"
 
 const buildResponse = (
   code: number,
@@ -25,34 +25,66 @@ const buildResponse = (
   return {message: {responseType: code, extensions: extraHeaders}}
 }
 
+/**
+ * Response object.
+ */
 export default class Response {
-  callback: any
+  callback: CT.GrpcCallback
 
-  constructor(callback: Function) {
+  /**
+   * Creates a new Response object.
+   *
+   * @param {GrpcCallback} callback - The callback to be called when the response is ready.
+   */
+  constructor(callback: CT.GrpcCallback) {
     this.callback = callback
   }
 
+  /**
+   * Sends an OK response.
+   *
+   * @param {object[]} extraHeaders - Optional extra headers to be sent.
+   */
   sendOk(extraHeaders?: Array<{name: string; value: string}>) {
     this.callback(null, buildResponse(7, extraHeaders))
   }
 
+  /**
+   * Sends a method not allowed response.
+   */
   sendMethodNotAllowed() {
     this.callback(null, buildResponse(21))
   }
 
+  /**
+   * Sends a not found response.
+   */
   sendNotFound() {
     this.callback(null, buildResponse(20))
   }
 
+  /**
+   * Sends a not implemented response.
+   */
   sendNotImplemented() {
     this.callback(null, buildResponse(47))
   }
 
+  /**
+   * Sends a response with a SIP Message.
+   *
+   * @param {MessageRequest} message - The request message. Accepts MessageRequest or a Record.
+   */
   send(message: MessageRequest | Record<string, unknown>) {
     this.callback(null, message)
   }
 
-  sendError(error: any) {
+  /**
+   * Sends an error response.
+   *
+   * @param {Error} error - The error to be sent.
+   */
+  sendError(error: Error) {
     this.callback(error, null)
   }
 }

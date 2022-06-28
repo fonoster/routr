@@ -240,7 +240,7 @@ export interface Extension {
 export interface Via {
   host: string
   port: number
-  branch: string
+  branch?: string
   transport: Transport
 }
 

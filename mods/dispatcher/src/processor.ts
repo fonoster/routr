@@ -20,13 +20,13 @@ import connectToBackend from "./connections"
 import {ProcessorConfig} from "@routr/common"
 import {ProcessorCallback} from "./types"
 import {runProcessor} from "./run_processor"
-import {MessageRequest, MiddlewareConfig} from "@routr/common/src/types"
+import {CommonTypes as CT} from "@routr/common"
 import {runMiddlewares} from "./run_middlewares"
 import logger from "@fonoster/logger"
 
 export default function processor(params: {
   processors: ProcessorConfig[]
-  middlewares?: MiddlewareConfig[]
+  middlewares?: CT.MiddlewareConfig[]
 }) {
   const {processors, middlewares} = params
   const procConns = connectToBackend(processors)
@@ -47,7 +47,7 @@ export default function processor(params: {
     }
 
     runMiddlewares({callback, request, middlewares, connections: middConns})
-      .then((req: MessageRequest) => {
+      .then((req: CT.MessageRequest) => {
         // Since the chain was broken we need to skip the processor and return the updated request
         if (req.message.messageType === "responseType") {
           logger.silly("skipped processsing request", {ref: req.ref})

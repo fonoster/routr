@@ -18,8 +18,8 @@
  */
 import {BadRequest, ResourceNotFound} from "./errors"
 import {Resource} from "./types"
+import {CommonTypes as CT} from "@routr/common"
 import jp from "jsonpath"
-import {GrpcCall, GrpcCallback} from "@routr/common/src/types"
 
 /**
  * Enclosure with method to obtain a resource by reference.
@@ -28,7 +28,7 @@ import {GrpcCall, GrpcCallback} from "@routr/common/src/types"
  * @return {Function } enclosed method with actual "get" logic
  */
 export function get(resources: Resource[]) {
-  return (call: GrpcCall, callback: GrpcCallback) => {
+  return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (resources == null || resources.length === 0) {
       return callback(new ResourceNotFound(call.request.ref), null)
     }
@@ -52,7 +52,7 @@ export function get(resources: Resource[]) {
  * @return {Function } enclosed method with actual "find" logic
  */
 export function find(resources: Resource[]) {
-  return (call: GrpcCall, callback: GrpcCallback) => {
+  return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (resources == null || resources.length === 0) {
       return callback(new ResourceNotFound(call.request.query), null)
     }

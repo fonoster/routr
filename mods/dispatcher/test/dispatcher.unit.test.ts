@@ -20,7 +20,8 @@ import {
   MessageRequest,
   Method,
   PROCESSOR_OBJECT_PROTO,
-  ProcessorConfig
+  ProcessorConfig,
+  CommonTypes as CT
 } from "@routr/common"
 import chai from "chai"
 import sinon from "sinon"
@@ -29,8 +30,6 @@ import {findProcessor, hasMethod} from "../src/find_processor"
 import {getConfig} from "../src/config/get_config"
 import connectToBackend from "../src/connections"
 import processor from "../src/processor"
-import {Transport} from "@routr/common/src/types"
-import {SIPMessage} from "@routr/common/dist/types"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -65,16 +64,16 @@ const messageRequest: MessageRequest = {
   listeningPoint: {
     host: "localhost",
     port: 5060,
-    transport: Transport.TCP
+    transport: CT.Transport.TCP
   },
   sender: {
     port: 5060,
     host: "localhost",
-    transport: Transport.TCP
+    transport: CT.Transport.TCP
   },
   externalIps: [],
   localnets: [],
-  message: {} as unknown as SIPMessage
+  message: {} as unknown as CT.SIPMessage
 }
 
 describe("@routr/dispatcher", () => {

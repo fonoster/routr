@@ -39,7 +39,7 @@ describe("@routr/processor/target", () => {
     expect(T.getTargetExpires(request)).to.be.equal(60)
 
     // Taking expires from contact header if is different than -1
-    const req = {...request} as any
+    const req = {...request}
     req.message.contact.expires = 600
     expect(T.getTargetExpires(request)).to.be.equal(600)
   })

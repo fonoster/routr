@@ -16,14 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {MessageRequest, ProcessorConfig} from "@routr/common"
-import {MiddlewareConfig} from "@routr/common/src/types"
+import {MessageRequest, ProcessorConfig, CommonTypes as CT} from "@routr/common"
 import {NotMatchingProcessorFound, ProcessorUnavailableError} from "./errors"
 
 export interface MessageDispatcherConfig {
   bindAddr: string
   processors: ProcessorConfig[]
-  middlewares: MiddlewareConfig[]
+  middlewares: CT.MiddlewareConfig[]
 }
 
 export interface ProcessorGPRCConnection {
@@ -50,6 +49,6 @@ export interface RunProcessorParams {
 export interface RunMiddlewaresParams {
   callback: Function
   connections: Map<string, ProcessorGPRCConnection>
-  middlewares: MiddlewareConfig[]
+  middlewares: CT.MiddlewareConfig[]
   request: MessageRequest
 }

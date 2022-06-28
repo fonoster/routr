@@ -20,13 +20,13 @@ import processor from "./processor"
 import {
   PROCESSOR_OBJECT_PROTO,
   ProcessorConfig,
-  ServiceInfo
+  ServiceInfo,
+  CommonTypes as CT
 } from "@routr/common"
-import {MiddlewareConfig} from "@routr/common/src/types"
 
 export function getServiceInfo(
   bindAddr: string,
-  backends: {middlewares: MiddlewareConfig[]; processors: ProcessorConfig[]}
+  backends: {middlewares: CT.MiddlewareConfig[]; processors: ProcessorConfig[]}
 ): ServiceInfo {
   return {
     name: "dispatcher",

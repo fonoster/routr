@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {MessageRequest, NetInterface, Route} from "@routr/common"
+import {MessageRequest, NetInterface, Route, Transport} from "@routr/common"
 import {Extensions as E, Target as T} from "@routr/processor"
 
 // TODO: Before finalizing this, consider using the old approach of saving the rport
@@ -26,15 +26,19 @@ import {Extensions as E, Target as T} from "@routr/processor"
 // Also consider: https://github.com/fonoster/routr/blob/ee5d339888344013939d06c734385f17f0cd75c2/mod/registrar/utils.js#L116
 // and https://github.com/fonoster/routr/blob/ee5d339888344013939d06c734385f17f0cd75c2/mod/registrar/utils.js#L131
 export const createRoute = (request: MessageRequest): Route => {
-  const uri = (request.message.contact as any).address.uri
+  const uri = request.message.contact.address.uri
+  const sessionCount = E.getHeaderValue(request, "x-session-count")
+  ? parseInt(E.getHeaderValue(request, "x-session-count"))
+  : -1
+
   return {
     edgePortRef: request.edgePortRef,
     user: uri.user,
     host: uri.host,
     port: uri.port,
-    transport: uri.transport,
+    transport: uri.transportParam as unknown as Transport,
     registeredOn: Date.now(),
-    sessionCount: E.getHeaderValue(request, "x-session-count") || -1,
+    sessionCount,
     expires: T.getTargetExpires(request),
     listeningPoint: request.listeningPoint as NetInterface
   }

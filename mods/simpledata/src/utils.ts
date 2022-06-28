@@ -20,7 +20,7 @@ import logger from "@fonoster/logger"
 import {UnimplementedError} from "./errors"
 import {Resource} from "./types"
 import Ajv from "ajv"
-import {GrpcCall, GrpcCallback} from "@routr/common/src/types"
+import {CommonTypes as CT} from "@routr/common"
 
 /**
  * Creates a list of validators from the given schemas.
@@ -90,6 +90,6 @@ export default function loadResources(
  * @param {GrpcCall} call - the grpc request
  * @param {GrpcCallback} callback - the grpc callback
  */
-export function nyi(call: GrpcCall, callback: GrpcCallback) {
+export function nyi(call: CT.GrpcCall, callback: CT.GrpcCallback) {
   callback(new UnimplementedError())
 }

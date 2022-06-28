@@ -21,25 +21,44 @@ import {ProcessorConfig} from "./types"
 import {
   createService,
   MessageRequest,
-  PROCESSOR_OBJECT_PROTO
+  PROCESSOR_OBJECT_PROTO,
+  ServiceInfo,
+  CommonTypes as CT
 } from "@routr/common"
 
+/**
+ * Processor is a class that handles the processing of a request.
+ */
 export default class Processor {
   config: ProcessorConfig
-  serviceInfo: any
+  serviceInfo: ServiceInfo
 
+  /**
+   * Construct a new Processor.
+   *
+   * @param {ProcessorConfig} config The processor configuration
+   */
   constructor(config: ProcessorConfig = {bindAddr: "0.0.0.0:51904", name: ""}) {
     this.config = config
   }
 
+  /**
+   * Start the processor.
+   *
+   * @param {Function} func - starts listening for incoming messages
+   */
   listen(func: (request: MessageRequest, response: Response) => unknown) {
     createService({
       name: this.config.name,
       bindAddr: this.config.bindAddr,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       service: (PROCESSOR_OBJECT_PROTO as any).Processor.service,
       handlers: {
-        processMessage: (call: any, callback: Function) => {
-          func(call.request, new Response(callback))
+        processMessage: (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
+          func(
+            call.request as unknown as MessageRequest,
+            new Response(callback)
+          )
         }
       }
     })
