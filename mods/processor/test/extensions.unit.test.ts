@@ -16,29 +16,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import chai from 'chai'
-import sinon from 'sinon'
-import sinonChai from 'sinon-chai'
+import chai from "chai"
+import sinon from "sinon"
+import sinonChai from "sinon-chai"
 import {request} from "./examples"
-import {Extensions as E} from '../src'
+import {Extensions as E} from "../src"
 
 const expect = chai.expect
 chai.use(sinonChai)
-const sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox()
 
-describe('@routr/processor/extensions', () => {
-  afterEach(() => sandbox.restore());
+describe("@routr/processor/extensions", () => {
+  afterEach(() => sandbox.restore())
 
-  it('gets value from extension header', () => {
-    expect(E.getHeaderValue(request, 'Allow')).to.be.equal('INVITE')
-    expect(E.getHeaderValue(request, 'Allowx')).to.be.undefined
+  it("gets value from extension header", () => {
+    expect(E.getHeaderValue(request, "Allow")).to.be.equal("INVITE")
+    expect(E.getHeaderValue(request, "Allowx")).to.be.undefined
   })
 
-  it('updates extension header', () => {
-    const req = E.updateHeader({...request}, {
-      name: 'Allow',
-      value: 'REGISTER'
-    })
-    expect(E.getHeaderValue(req, 'Allow')).to.be.equal('REGISTER')
+  it("updates extension header", () => {
+    const req = E.updateHeader(
+      {...request},
+      {
+        name: "Allow",
+        value: "REGISTER"
+      }
+    )
+    expect(E.getHeaderValue(req, "Allow")).to.be.equal("REGISTER")
   })
 })

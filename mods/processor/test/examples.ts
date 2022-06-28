@@ -19,38 +19,41 @@
 import {MessageRequest, Method, Route, Transport} from "@routr/common"
 
 export const route: Route = {
-  user: '1001',
-  host: 'sip.local',
+  user: "1001",
+  host: "sip.local",
   port: 5060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: 'ep001',
+  edgePortRef: "ep001",
   listeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.TCP
   },
-  headers: [{
-    name: "x-gateway-auth",
-    value: "dXNlcm5hbWU6cGFzc3dvcmQ=",
-    action: "add"
-  }, {
-    name: "user-agent",
-    action: "remove"
-  }]
+  headers: [
+    {
+      name: "x-gateway-auth",
+      value: "dXNlcm5hbWU6cGFzc3dvcmQ=",
+      action: "add"
+    },
+    {
+      name: "user-agent",
+      action: "remove"
+    }
+  ]
 }
 
 export const routeOnAnotherEdgePort: Route = {
-  user: '1001',
-  host: 'sip.local',
+  user: "1001",
+  host: "sip.local",
   port: 5060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: 'ep002',
+  edgePortRef: "ep002",
   listeningPoint: {
     host: "10.100.42.128",
     port: 5060,
@@ -59,220 +62,220 @@ export const routeOnAnotherEdgePort: Route = {
 }
 
 export const request: MessageRequest = {
-  "ref": "AynhXaFtbdXwHrUEzt_rUQ..",
-  "edgePortRef": "ep001",
-  "method": Method.REGISTER,
-  "externalIps": ["200.22.21.42"],
-  "localnets": ["10.100.42.127/31", "10.100.42.128/31"],
-  "listeningPoint": {
-    "host": "10.100.42.127",
-    "port": 5060,
-    "transport": Transport.TCP
+  ref: "AynhXaFtbdXwHrUEzt_rUQ..",
+  edgePortRef: "ep001",
+  method: Method.REGISTER,
+  externalIps: ["200.22.21.42"],
+  localnets: ["10.100.42.127/31", "10.100.42.128/31"],
+  listeningPoint: {
+    host: "10.100.42.127",
+    port: 5060,
+    transport: Transport.TCP
   },
-  "sender": {
-    "host": "127.0.0.1",
-    "port": 36214,
-    "transport": Transport.TCP
+  sender: {
+    host: "127.0.0.1",
+    port: 36214,
+    transport: Transport.TCP
   },
-  "message": {
-    "via": [
+  message: {
+    via: [
       {
-        "host": "proxy",
-        "port": 5060,
-        "branch": "z9hG4bK-524287-1---7315a24d84546819",
-        "transport": Transport.TCP
+        host: "proxy",
+        port: 5060,
+        branch: "z9hG4bK-524287-1---7315a24d84546819",
+        transport: Transport.TCP
       },
       {
-        "host": "127.0.0.1",
-        "port": 36214,
-        "branch": "z9hG4bK-524287-1---7315a24d84546819",
-        "transport": Transport.TCP
+        host: "127.0.0.1",
+        port: 36214,
+        branch: "z9hG4bK-524287-1---7315a24d84546819",
+        transport: Transport.TCP
       }
     ],
-    "extensions": [
+    extensions: [
       {
-        "name": "CSeq",
-        "value": "14 REGISTER"
+        name: "CSeq",
+        value: "14 REGISTER"
       },
       {
-        "name": "Allow",
-        "value": "INVITE"
+        name: "Allow",
+        value: "INVITE"
       },
       {
-        "name": "User-Agent",
-        "value": "Z 5.4.12 v2.10.13.2"
+        name: "User-Agent",
+        value: "Z 5.4.12 v2.10.13.2"
       },
       {
-        "name": "Allow-Events",
-        "value": "presence"
+        name: "Allow-Events",
+        value: "presence"
       }
     ],
-    "from": {
-      "address": {
-        "uri": {
-          "user": "1001",
-          "userPassword": "",
-          "host": "voip.ms",
-          "transportParam": "UDP",
-          "mAddrParam": "",
-          "methodParam": "",
-          "userParam": "",
-          "ttlParam": -1,
-          "port": 5060,
-          "lrParam": false,
-          "secure": false
+    from: {
+      address: {
+        uri: {
+          user: "1001",
+          userPassword: "",
+          host: "voip.ms",
+          transportParam: "UDP",
+          mAddrParam: "",
+          methodParam: "",
+          userParam: "",
+          ttlParam: -1,
+          port: 5060,
+          lrParam: false,
+          secure: false
         },
-        "displayName": "",
-        "wildcard": false
+        displayName: "",
+        wildcard: false
       },
-      "tag": "9041462a"
+      tag: "9041462a"
     },
-    "to": {
-      "address": {
-        "uri": {
-          "user": "1001",
-          "userPassword": "",
-          "host": "sip.local",
-          "transportParam": "UDP",
-          "mAddrParam": "",
-          "methodParam": "",
-          "userParam": "",
-          "ttlParam": -1,
-          "port": 5060,
-          "lrParam": false,
-          "secure": false
+    to: {
+      address: {
+        uri: {
+          user: "1001",
+          userPassword: "",
+          host: "sip.local",
+          transportParam: "UDP",
+          mAddrParam: "",
+          methodParam: "",
+          userParam: "",
+          ttlParam: -1,
+          port: 5060,
+          lrParam: false,
+          secure: false
         },
-        "displayName": "",
-        "wildcard": false
+        displayName: "",
+        wildcard: false
       },
-      "tag": ""
+      tag: ""
     },
-    "contact": {
-      "address": {
-        "uri": {
-          "user": "1001",
-          "userPassword": "",
-          "host": "127.0.0.1",
-          "transportParam": "UDP",
-          "mAddrParam": "",
-          "methodParam": "",
-          "userParam": "",
-          "ttlParam": -1,
-          "port": 36214,
-          "lrParam": false,
-          "secure": false
+    contact: {
+      address: {
+        uri: {
+          user: "1001",
+          userPassword: "",
+          host: "127.0.0.1",
+          transportParam: "UDP",
+          mAddrParam: "",
+          methodParam: "",
+          userParam: "",
+          ttlParam: -1,
+          port: 36214,
+          lrParam: false,
+          secure: false
         },
-        "displayName": "",
-        "wildcard": false
+        displayName: "",
+        wildcard: false
       },
-      "expires": -1,
-      "qValue": -1
+      expires: -1,
+      qValue: -1
     },
-    "callId": {
-      "callId": "AynhXaFtbdXwHrUEzt_rUQ.."
+    callId: {
+      callId: "AynhXaFtbdXwHrUEzt_rUQ.."
     },
-    "contentLength": {
-      "contentLength": 0
+    contentLength: {
+      contentLength: 0
     },
-    "maxForwards": {
-      "maxForwards": 70
+    maxForwards: {
+      maxForwards: 70
     },
-    "expires": {
-      "expires": 60
+    expires: {
+      expires: 60
     },
-    "recordRoute": [
+    recordRoute: [
       {
-        "parameters": {
-          "a": "1",
-          "b": "2"
+        parameters: {
+          a: "1",
+          b: "2"
         },
-        "address": {
-          "uri": {
-            "user": "",
-            "userPassword": "",
-            "host": "sip.local",
-            "transportParam": "",
-            "mAddrParam": "",
-            "methodParam": "",
-            "userParam": "",
-            "ttlParam": -1,
-            "port": 5060,
-            "lrParam": false,
-            "secure": false
+        address: {
+          uri: {
+            user: "",
+            userPassword: "",
+            host: "sip.local",
+            transportParam: "",
+            mAddrParam: "",
+            methodParam: "",
+            userParam: "",
+            ttlParam: -1,
+            port: 5060,
+            lrParam: false,
+            secure: false
           },
-          "displayName": "",
-          "wildcard": false
+          displayName: "",
+          wildcard: false
         }
       }
     ],
-    "route": [
+    route: [
       {
-        "parameters": null,
-        "address": {
-          "uri": {
-            "user": "",
-            "userPassword": "",
-            "host": "10.100.42.127",
-            "transportParam": "",
-            "mAddrParam": "",
-            "methodParam": "",
-            "userParam": "",
-            "ttlParam": -1,
-            "port": 5060,
-            "lrParam": false,
-            "secure": false
+        parameters: null,
+        address: {
+          uri: {
+            user: "",
+            userPassword: "",
+            host: "10.100.42.127",
+            transportParam: "",
+            mAddrParam: "",
+            methodParam: "",
+            userParam: "",
+            ttlParam: -1,
+            port: 5060,
+            lrParam: false,
+            secure: false
           },
-          "displayName": "",
-          "wildcard": false
+          displayName: "",
+          wildcard: false
         }
       },
       {
-        "parameters": null,
-        "address": {
-          "uri": {
-            "user": "",
-            "userPassword": "",
-            "host": "10.100.42.128",
-            "transportParam": "",
-            "mAddrParam": "",
-            "methodParam": "",
-            "userParam": "",
-            "ttlParam": -1,
-            "port": 5060,
-            "lrParam": false,
-            "secure": false
+        parameters: null,
+        address: {
+          uri: {
+            user: "",
+            userPassword: "",
+            host: "10.100.42.128",
+            transportParam: "",
+            mAddrParam: "",
+            methodParam: "",
+            userParam: "",
+            ttlParam: -1,
+            port: 5060,
+            lrParam: false,
+            secure: false
           },
-          "displayName": "",
-          "wildcard": false
+          displayName: "",
+          wildcard: false
         }
       }
     ],
-    "authorization": {
-      "realm": "sip.local",
-      "scheme": "Digest",
-      "cNonce": "acbcc60094edde23f49b01e18bafd34e",
-      "nonce": "b8fe2321cf489ac475c80c6e5cfa1c22",
-      "algorithm": "MD5",
-      "qop": "auth",
-      "opaque": "",
-      "response": "301f56515b1fdc751c54af6d85398067",
-      "username": "1001",
-      "uri": "sip:voip.ms;transport=UDP",
-      "nonceCount": 13
+    authorization: {
+      realm: "sip.local",
+      scheme: "Digest",
+      cNonce: "acbcc60094edde23f49b01e18bafd34e",
+      nonce: "b8fe2321cf489ac475c80c6e5cfa1c22",
+      algorithm: "MD5",
+      qop: "auth",
+      opaque: "",
+      response: "301f56515b1fdc751c54af6d85398067",
+      username: "1001",
+      uri: "sip:voip.ms;transport=UDP",
+      nonceCount: 13
     },
-    "requestUri": {
-      "user": "",
-      "userPassword": "",
-      "host": "sip.local",
-      "transportParam": "UDP",
-      "mAddrParam": "",
-      "methodParam": "",
-      "userParam": "",
-      "ttlParam": -1,
-      "port": 5060,
-      "lrParam": false,
-      "secure": false
+    requestUri: {
+      user: "",
+      userPassword: "",
+      host: "sip.local",
+      transportParam: "UDP",
+      mAddrParam: "",
+      methodParam: "",
+      userParam: "",
+      ttlParam: -1,
+      port: 5060,
+      lrParam: false,
+      secure: false
     },
-    "messageType": "requestUri"
+    messageType: "requestUri"
   }
 }

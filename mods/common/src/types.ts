@@ -319,3 +319,12 @@ export interface SIPMessage {
   route?: RouteHeader[]
   recordRoute?: RecordRoute[]
 }
+
+export interface GrpcCallback {
+  (error: Error | null, response?: unknown): void
+}
+
+export interface GrpcCall {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  request: Record<string, any>
+}

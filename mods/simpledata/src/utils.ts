@@ -20,11 +20,20 @@ import logger from "@fonoster/logger"
 import {UnimplementedError} from "./errors"
 import {Resource} from "./types"
 import Ajv from "ajv"
+import {GrpcCall, GrpcCallback} from "@routr/common/src/types"
 
+/**
+ * Creates a list of validators from the given schemas.
+ *
+ * @param {string} path - the path to the resource
+ * @return {Validator} - a list of validators from the path
+ */
 export function createValidators(path: string) {
-  const validators: Map<string, any> = new Map()
+  const validators: Map<string, (resource: Resource) => unknown> = new Map()
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const files = require("fs").readdirSync(path)
   files.forEach((file: File) => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const schema = require(`${path}/${file}`)
     const ajv = new Ajv()
     const validator = ajv.compile(schema)
@@ -33,14 +42,23 @@ export function createValidators(path: string) {
   return validators
 }
 
+/**
+ * Loads a list of resources from a file.
+ *
+ * @param {string} validatorsPath - the path to the validators
+ * @param {string} resourcesPath - the path to the resources
+ * @return {Resource[]} the loaded resources
+ */
 export default function loadResources(
   validatorsPath: string,
   resourcesPath: string
 ): Resource[] {
   const validators = createValidators(validatorsPath)
   const all: Resource[] = []
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const files = require("fs").readdirSync(resourcesPath)
   files.forEach((file: File) => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const resources = require(`${resourcesPath}/${file}`)
     resources.forEach((resource: Resource) => {
       // Check if is valid using jsonschema
@@ -54,7 +72,9 @@ export default function loadResources(
         all.push(resource)
       } else {
         logger.error(
-          "found a bad resource: " + JSON.stringify(validate.errors[0].message)
+          "found a bad resource: " +
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            JSON.stringify((validate as any).errors[0].message)
         )
         process.exit(1)
       }
@@ -64,6 +84,12 @@ export default function loadResources(
   return all
 }
 
-export function nyi(call: any, callback: any) {
+/**
+ * Returns UnimplementedError via callback.
+ *
+ * @param {GrpcCall} call - the grpc request
+ * @param {GrpcCallback} callback - the grpc callback
+ */
+export function nyi(call: GrpcCall, callback: GrpcCallback) {
   callback(new UnimplementedError())
 }

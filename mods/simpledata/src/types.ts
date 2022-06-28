@@ -29,5 +29,5 @@ export interface Resource {
     name: string
     linkTo?: Array<string>
   }
-  spec: any
+  spec: Record<string, unknown>
 }

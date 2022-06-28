@@ -17,22 +17,26 @@
  * limitations under the License.
  */
 import {DataAPI, Resource} from "../src/types"
-import {r1} from './examples'
+import {r1} from "./examples"
 import loadResources from "../../simpledata/src/utils"
 import jp from "jsonpath"
 import {FindRoutesRequest} from "@routr/location/dist/types"
 
-const resources: Resource[] = loadResources(__dirname + "/../../simpledata/etc/schemas",
-  __dirname + "/../../../config/resources")
+const resources: Resource[] = loadResources(
+  __dirname + "/../../simpledata/etc/schemas",
+  __dirname + "/../../../config/resources"
+)
 
 export const dataAPI: DataAPI = {
   find: (query: string) => {
-    return Promise
-      .resolve(jp.query(resources, query)) as unknown as Promise<Resource[]>
+    return Promise.resolve(jp.query(resources, query)) as unknown as Promise<
+      Resource[]
+    >
   },
   get: (ref: string): Promise<Resource> => {
-    return Promise
-      .resolve(jp.query(resources, `$..[?(@.metadata.ref=="${ref}")]`)[0]) as unknown as Promise<Resource>
+    return Promise.resolve(
+      jp.query(resources, `$..[?(@.metadata.ref=="${ref}")]`)[0]
+    ) as unknown as Promise<Resource>
   }
 }
 

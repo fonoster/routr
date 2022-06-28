@@ -16,25 +16,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import chai from 'chai'
-import sinon from 'sinon'
-import sinonChai from 'sinon-chai'
+import chai from "chai"
+import sinon from "sinon"
+import sinonChai from "sinon-chai"
 import {request} from "./examples"
-import {Target as T} from '../src'
+import {Target as T} from "../src"
 
 const expect = chai.expect
 chai.use(sinonChai)
-const sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox()
 
-describe('@routr/processor/target', () => {
-  afterEach(() => sandbox.restore());
+describe("@routr/processor/target", () => {
+  afterEach(() => sandbox.restore())
 
-  it('gets the address of record(aor)', () => {
+  it("gets the address of record(aor)", () => {
     expect(T.getAOR(request.message.requestUri)).to.be.equal("sip:sip.local")
     expect(T.getTargetAOR(request)).to.be.equal("sip:1001@sip.local")
   })
 
-  it('gets expires from expires header or contact header', () => {
+  it("gets expires from expires header or contact header", () => {
     // Taking expires from expires header
     expect(T.getTargetExpires(request)).to.be.equal(60)
 
@@ -43,5 +43,4 @@ describe('@routr/processor/target', () => {
     req.message.contact.expires = 600
     expect(T.getTargetExpires(request)).to.be.equal(600)
   })
-
 })

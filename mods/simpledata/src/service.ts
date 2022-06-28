@@ -23,7 +23,12 @@ import {find, get} from "./api"
 import logger from "@fonoster/logger"
 import grpc = require("@grpc/grpc-js")
 
-export default function SimpleDataService(config: SimpleDataConfig): void {
+/**
+ * Starts a new simple data service.
+ *
+ * @param {SimpleDataConfig} config - the configuration of the service
+ */
+export default function simpleDataService(config: SimpleDataConfig): void {
   const {bindAddr} = config
   logger.info("starting routr service", {bindAddr, name: "simpledata"})
   const server = new grpc.Server()

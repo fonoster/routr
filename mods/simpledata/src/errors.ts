@@ -17,9 +17,15 @@
  * limitations under the License.
  */ import grpc = require("@grpc/grpc-js")
 
+/**
+ * Thrown for unimplemented handlers.
+ */
 export class UnimplementedError extends Error {
   code: number
 
+  /**
+   * Creates an instance of UnimplementedError.
+   */
   constructor() {
     super(
       "this operation is not supported/enabled in this data api implementation."
@@ -29,9 +35,17 @@ export class UnimplementedError extends Error {
   }
 }
 
+/**
+ * Thrown if the resource is not found.
+ */
 export class ResourceNotFound extends Error {
   code: number
 
+  /**
+   * Creates an instance of UnimplementedError.
+   *
+   * @param {string} ref - the reference of the resource
+   */
   constructor(ref: string) {
     super(`resource not found: ${ref}`)
     this.code = grpc.status.NOT_FOUND
@@ -39,9 +53,17 @@ export class ResourceNotFound extends Error {
   }
 }
 
+/**
+ * Thrown if the request is invalid.
+ */
 export class BadRequest extends Error {
   code: number
 
+  /**
+   * Creates an instance of UnimplementedError.
+   *
+   * @param {string} message - optional message with the error. Defaults to "bad request."
+   */
   constructor(message?: string) {
     super(message || "bad request")
     this.code = grpc.status.INVALID_ARGUMENT

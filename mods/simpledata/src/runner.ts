@@ -17,9 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("simpleauth")
 import logger from "@fonoster/logger"
-import SimpleDataService from "./service"
+import simpleDataService from "./service"
 import {Resource} from "./types"
 import loadResources from "./utils"
 import {Assertions as A} from "@routr/common"
@@ -32,7 +33,7 @@ const resources: Resource[] = loadResources(
 )
 
 try {
-  SimpleDataService({
+  simpleDataService({
     bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903",
     resources
   })

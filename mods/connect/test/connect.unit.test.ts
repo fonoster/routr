@@ -16,61 +16,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import chai from 'chai'
-import sinon from 'sinon'
-import sinonChai from 'sinon-chai'
+import chai from "chai"
+import sinon from "sinon"
+import sinonChai from "sinon-chai"
 import {request, route} from "@routr/processor/test/examples"
-import {MessageRequest, Route, Transport} from '@routr/common'
+import {MessageRequest, Route, Transport} from "@routr/common"
 import {handleRegister, handleRequest} from "../src/handlers"
 import {Extensions as E, Helper as HE} from "@routr/processor"
-import {createRequest, r1} from './examples'
-import {router} from '../src/router'
-import {dataAPI, locationAPI} from './mock_apis'
-import {findResource} from '../src/utils'
+import {createRequest, r1} from "./examples"
+import {router} from "../src/router"
+import {dataAPI, locationAPI} from "./mock_apis"
+import {findResource} from "../src/utils"
 
 const expect = chai.expect
 chai.use(sinonChai)
-const sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox()
 
-describe('@routr/connect', () => {
-  afterEach(() => sandbox.restore());
+describe("@routr/connect", () => {
+  afterEach(() => sandbox.restore())
 
-  it('updates a request for inter-domain routing', () => {
+  it("updates a request for inter-domain routing", () => {
     // Test tailor method
-    const tailor = require('../src/tailor').tailor
+    const tailor = require("../src/tailor").tailor
     const tailoredRequest = tailor(route as Route, request as MessageRequest)
     expect(tailoredRequest.message.requestUri.user).to.equal(route.user)
     expect(tailoredRequest.message.via).to.be.lengthOf(3)
     expect(tailoredRequest.message.maxForwards.maxForwards).to.be.equal(69)
   })
 
-  it('handles a register request', (done) => {
+  it("handles a register request", (done) => {
     const location = {
-      addRoute: (aor: string, route: Route) => {
-      }
+      addRoute: (aor: string, route: Route) => {}
     }
-    const addRoute = sandbox.spy(location, "addRoute");
+    const addRoute = sandbox.spy(location, "addRoute")
     const response = {
       sendOk: () => {
-        expect(addRoute).to.have.been.calledOnce;
+        expect(addRoute).to.have.been.calledOnce
         done()
       }
     } as any
     handleRegister(location)(request, response)
   })
 
-  it('handles a request from another edgeport', async () => {
-    const req = E.addHeader({...request}, {
-      name: 'x-edgeport-ref',
-      value: 'xyz'
-    })
+  it("handles a request from another edgeport", async () => {
+    const req = E.addHeader(
+      {...request},
+      {
+        name: "x-edgeport-ref",
+        value: "xyz"
+      }
+    )
     const getHeaderValue = sandbox.spy(E, "getHeaderValue")
-    const createRouteFromLastMessage = sandbox.spy(HE, "createRouteFromLastMessage")
+    const createRouteFromLastMessage = sandbox.spy(
+      HE,
+      "createRouteFromLastMessage"
+    )
     const location = {findRoutes: (aor: string) => [route]}
     const findRoutes = sandbox.spy(location, "findRoutes")
     const response = {
-      send: () => {
-      }
+      send: () => {}
     } as any
     await handleRequest(location, null)(req, response)
     expect(getHeaderValue).to.have.been.calledTwice
@@ -78,10 +82,12 @@ describe('@routr/connect', () => {
     expect(findRoutes).to.not.have.been.called
   })
 
-  it('handles a request from agent to agent in the same domain', async () => {
+  it("handles a request from agent to agent in the same domain", async () => {
     const req = createRequest({
-      fromDomain: 'sip.local', fromUser: '1001',
-      toDomain: 'sip.local', toUser: '1002'
+      fromDomain: "sip.local",
+      fromUser: "1001",
+      toDomain: "sip.local",
+      toUser: "1002"
     })
     const route = await router(locationAPI, dataAPI)(req)
     expect(route).to.be.not.null
@@ -90,10 +96,12 @@ describe('@routr/connect', () => {
     expect(route).to.not.have.property("headers")
   })
 
-  it('handles a request from agent to pstn', async () => {
+  it("handles a request from agent to pstn", async () => {
     const req = createRequest({
-      fromUser: '1001', fromDomain: 'sip.local',
-      toUser: '17853178070', toDomain: 'sip.local'
+      fromUser: "1001",
+      fromDomain: "sip.local",
+      toUser: "17853178070",
+      toDomain: "sip.local"
     })
     const route = await router(locationAPI, dataAPI)(req)
     expect(route).to.be.not.null
@@ -101,13 +109,15 @@ describe('@routr/connect', () => {
     expect(route).to.have.property("host", "sip.provider.net")
     expect(route).to.have.property("port", 5060)
     expect(route).to.have.property("transport", Transport.UDP.toUpperCase())
-    expect(route).to.have.property("headers").to.be.an('array').lengthOf(3)
+    expect(route).to.have.property("headers").to.be.an("array").lengthOf(3)
   })
 
-  it('handles a request from pstn to agent or peer', async () => {
+  it("handles a request from pstn to agent or peer", async () => {
     const req = createRequest({
-      fromUser: '9195551212', fromDomain: 'newyork1.voip.ms',
-      toUser: '17066041487', toDomain: 'newyork1.voip.ms'
+      fromUser: "9195551212",
+      fromDomain: "newyork1.voip.ms",
+      toUser: "17066041487",
+      toDomain: "newyork1.voip.ms"
     })
     const route = await router(locationAPI, dataAPI)(req)
     expect(route).to.be.not.null
@@ -115,14 +125,16 @@ describe('@routr/connect', () => {
     expect(route).to.have.property("host", r1.host)
     expect(route).to.have.property("port", r1.port)
     expect(route).to.have.property("transport", r1.transport)
-    expect(route).to.have.property("headers").to.be.an('array').lengthOf(1)
+    expect(route).to.have.property("headers").to.be.an("array").lengthOf(1)
   })
 
   // TODO: Peer to PSTN must be done using the Connect Object
-  it.skip('handles a request from peer to pstn', async () => {
+  it.skip("handles a request from peer to pstn", async () => {
     const req = createRequest({
-      fromUser: 'asterisk', fromDomain: 'sip.local',
-      toUser: '17853178070', toDomain: 'sip.local'
+      fromUser: "asterisk",
+      fromDomain: "sip.local",
+      toUser: "17853178070",
+      toDomain: "sip.local"
     })
     const route = await router(locationAPI, dataAPI)(req)
     expect(route).to.be.not.null
@@ -130,11 +142,11 @@ describe('@routr/connect', () => {
     // Expects to have the asserted identity headers
   })
 
-  it('gets resource by domainUri and userpart', async () => {
-    const r1 = await findResource(dataAPI, 'sip.local', '1001')
+  it("gets resource by domainUri and userpart", async () => {
+    const r1 = await findResource(dataAPI, "sip.local", "1001")
     // Domain with xxx reference does not exist
-    const r2 = await findResource(dataAPI, 'sip.local2', '17066041487')
-    const r3 = await findResource(dataAPI, 'sip.localx', '1001')
+    const r2 = await findResource(dataAPI, "sip.local2", "17066041487")
+    const r3 = await findResource(dataAPI, "sip.localx", "1001")
     expect(r1).to.have.property("kind", "Agent")
     expect(r2).to.have.property("kind", "Number")
     expect(r3).to.not.exist

@@ -16,20 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import chai from 'chai'
-import sinon from 'sinon'
-import sinonChai from 'sinon-chai'
+import chai from "chai"
+import sinon from "sinon"
+import sinonChai from "sinon-chai"
 import {request} from "./examples"
-import {Helper as E} from '../src'
+import {Helper as E} from "../src"
 
 const expect = chai.expect
 chai.use(sinonChai)
-const sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox()
 
-describe('@routr/processor/helper', () => {
-  afterEach(() => sandbox.restore());
+describe("@routr/processor/helper", () => {
+  afterEach(() => sandbox.restore())
 
-  it('obtains route from request', () => {
+  it("obtains route from request", () => {
     const route = E.createRouteFromLastMessage(request)
     const uri = request.message.requestUri
     expect(route.host).to.equal(uri?.host)

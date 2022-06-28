@@ -20,8 +20,8 @@ import {Route, Transport} from "@routr/common"
 import {Backend, LB_ALGORITHM} from "../src/types"
 
 export const simpleRoute01: Route = {
-  user: '1001',
-  host: 'sip.local',
+  user: "1001",
+  host: "sip.local",
   port: 6060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
@@ -31,16 +31,14 @@ export const simpleRoute01: Route = {
   listeningPoint: {
     host: "proxy",
     port: 5060,
-    transport: Transport.TCP,
+    transport: Transport.TCP
   },
-  labels: new Map<string, string>([
-    ["priority", "1"]
-  ])
+  labels: new Map<string, string>([["priority", "1"]])
 }
 
 export const simpleRoute02: Route = {
-  user: '1001',
-  host: 'sip.local',
+  user: "1001",
+  host: "sip.local",
   port: 6061,
   transport: Transport.UDP,
   registeredOn: Date.now(),
@@ -50,16 +48,14 @@ export const simpleRoute02: Route = {
   listeningPoint: {
     host: "proxy",
     port: 5060,
-    transport: Transport.UDP,
+    transport: Transport.UDP
   },
-  labels: new Map<string, string>([
-    ["priority", "2"]
-  ])
+  labels: new Map<string, string>([["priority", "2"]])
 }
 
 export const voiceBackendRoute01: Route = {
-  user: 'voice01',
-  host: '192.168.1.2',
+  user: "voice01",
+  host: "192.168.1.2",
   port: 5060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
@@ -69,16 +65,14 @@ export const voiceBackendRoute01: Route = {
   listeningPoint: {
     host: "proxy",
     port: 5060,
-    transport: Transport.TCP,
+    transport: Transport.TCP
   },
-  labels: new Map<string, string>([
-    ["region", "us-east01"]
-  ])
+  labels: new Map<string, string>([["region", "us-east01"]])
 }
 
 export const voiceBackendRoute02: Route = {
-  user: 'voice02',
-  host: '192.168.1.3',
+  user: "voice02",
+  host: "192.168.1.3",
   port: 5060,
   transport: Transport.UDP,
   registeredOn: Date.now(),
@@ -88,13 +82,13 @@ export const voiceBackendRoute02: Route = {
   listeningPoint: {
     host: "proxy",
     port: 5060,
-    transport: Transport.UDP,
+    transport: Transport.UDP
   }
 }
 
 export const voiceBackendRoute03: Route = {
-  user: 'voice03',
-  host: '192.168.1.4',
+  user: "voice03",
+  host: "192.168.1.4",
   port: 5060,
   transport: Transport.UDP,
   registeredOn: Date.now(),
@@ -104,13 +98,13 @@ export const voiceBackendRoute03: Route = {
   listeningPoint: {
     host: "proxy",
     port: 5060,
-    transport: Transport.UDP,
+    transport: Transport.UDP
   }
 }
 
 export const voiceBackendRoute04: Route = {
-  user: 'voice04',
-  host: '192.168.1.5',
+  user: "voice04",
+  host: "192.168.1.5",
   port: 5060,
   transport: Transport.UDP,
   registeredOn: Date.now(),
@@ -120,13 +114,13 @@ export const voiceBackendRoute04: Route = {
   listeningPoint: {
     host: "proxy",
     port: 5060,
-    transport: Transport.UDP,
+    transport: Transport.UDP
   }
 }
 
 export const voiceBackendRoute05: Route = {
-  user: 'voice05',
-  host: '192.168.1.6',
+  user: "voice05",
+  host: "192.168.1.6",
   port: 5060,
   transport: Transport.UDP,
   registeredOn: Date.now(),
@@ -136,13 +130,13 @@ export const voiceBackendRoute05: Route = {
   listeningPoint: {
     host: "proxy",
     port: 5060,
-    transport: Transport.UDP,
+    transport: Transport.UDP
   }
 }
 
 export const conferenceBackendRoute01: Route = {
-  user: 'conference01',
-  host: 'conference.local',
+  user: "conference01",
+  host: "conference.local",
   port: 5060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
@@ -152,13 +146,13 @@ export const conferenceBackendRoute01: Route = {
   listeningPoint: {
     host: "proxy",
     port: 5060,
-    transport: Transport.TCP,
+    transport: Transport.TCP
   }
 }
 
 export const conferenceBackendRoute02: Route = {
-  user: 'conference02',
-  host: 'conference.local',
+  user: "conference02",
+  host: "conference.local",
   port: 5061,
   transport: Transport.TCP,
   registeredOn: Date.now(),
@@ -168,13 +162,13 @@ export const conferenceBackendRoute02: Route = {
   listeningPoint: {
     host: "proxy",
     port: 5060,
-    transport: Transport.TCP,
+    transport: Transport.TCP
   }
 }
 
 export const conferenceWithExpiredRoute: Route = {
-  user: 'conference03',
-  host: 'conference.remote',
+  user: "conference03",
+  host: "conference.remote",
   port: 5060,
   transport: Transport.TCP,
   registeredOn: 1647054012869,
@@ -184,7 +178,7 @@ export const conferenceWithExpiredRoute: Route = {
   listeningPoint: {
     host: "proxy",
     port: 5060,
-    transport: Transport.TCP,
+    transport: Transport.TCP
   }
 }
 

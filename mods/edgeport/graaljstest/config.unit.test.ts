@@ -17,34 +17,36 @@
  * limitations under the License.
  */
 // @ts-ignore
-import chai from 'chai'
+import chai from "chai"
 // @ts-ignore
-import sinon from 'sinon'
+import sinon from "sinon"
 // @ts-ignore
-import sinonChai from 'sinon-chai'
-import {getConfig, readFile, validateConfig} from '../src/config/get_config'
+import sinonChai from "sinon-chai"
+import {getConfig, readFile, validateConfig} from "../src/config/get_config"
 
 const expect = chai.expect
 chai.use(sinonChai)
-const sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox()
 
-describe('@routr/edgeport/config', () => {
-  afterEach(() => sandbox.restore());
+describe("@routr/edgeport/config", () => {
+  afterEach(() => sandbox.restore())
 
-  it('fails because file does not meet schema criteria', () => {
+  it("fails because file does not meet schema criteria", () => {
     const result = readFile(__dirname + ".././../config/edgeport.json")
-    expect(result).to.have.property('_tag').to.be.equal('Right')
+    expect(result).to.have.property("_tag").to.be.equal("Right")
 
-    if (result._tag === 'Right') {
+    if (result._tag === "Right") {
       const json = JSON.parse(result.right)
       json.metadata = {region: "us-east1"}
       const res = validateConfig(json)
-      expect(res).to.have.property('_tag').to.be.equal('Left')
+      expect(res).to.have.property("_tag").to.be.equal("Left")
     }
   })
 
-  it('reads a file a returns a string', () => {
-    const result = getConfig("/Users/pedrosanders/Projects/routr/config/edgeport.json")
-    expect(result).to.have.property('right').to.have.property('kind')
+  it("reads a file a returns a string", () => {
+    const result = getConfig(
+      "/Users/pedrosanders/Projects/routr/config/edgeport.json"
+    )
+    expect(result).to.have.property("right").to.have.property("kind")
   })
 })

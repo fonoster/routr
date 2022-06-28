@@ -16,20 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import chai from 'chai'
-import sinon from 'sinon'
-import sinonChai from 'sinon-chai'
-import RedisStore from '../src/redis_store'
-import * as Routes from './route_examples'
+import chai from "chai"
+import sinon from "sinon"
+import sinonChai from "sinon-chai"
+import RedisStore from "../src/redis_store"
+import * as Routes from "./route_examples"
 
 const expect = chai.expect
 chai.use(sinonChai)
-const sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox()
 
-describe('@routr/location/redis_store', () => {
-  afterEach(() => sandbox.restore());
+describe("@routr/location/redis_store", () => {
+  afterEach(() => sandbox.restore())
 
-  it('puts value in a collection', async () => {
+  it("puts value in a collection", async () => {
     const store = new RedisStore()
     store.put("backend:voice", Routes.voiceBackendRoute01)
     store.put("backend:voice", Routes.voiceBackendRoute02)
@@ -43,7 +43,7 @@ describe('@routr/location/redis_store', () => {
       .to.be.equal("voice02")
   })
 
-  it('test removing all routes for an aor', async () => {
+  it("test removing all routes for an aor", async () => {
     const store = new RedisStore()
     await store.delete("backend:voice")
     store.put("backend:voice", Routes.voiceBackendRoute01)
@@ -53,7 +53,7 @@ describe('@routr/location/redis_store', () => {
     expect(await store.get("backend:voice")).to.be.empty
   })
 
-  it('sets an expire route and clean the collection', async () => {
+  it("sets an expire route and clean the collection", async () => {
     const store = new RedisStore()
     await store.delete("backend:voice")
     await store.delete("backend:conference")
@@ -63,5 +63,4 @@ describe('@routr/location/redis_store', () => {
     store.put("backend:conference", Routes.conferenceBackendRoute01)
     expect((await store.get("backend:conference")).length).to.be.equal(1)
   })
-
 })

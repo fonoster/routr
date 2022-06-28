@@ -19,10 +19,16 @@
 import {BadRequest, ResourceNotFound} from "./errors"
 import {Resource} from "./types"
 import jp from "jsonpath"
+import {GrpcCall, GrpcCallback} from "@routr/common/src/types"
 
-// Will find the first resource that matches the reference
+/**
+ * Enclosure with method to obtain a resource by reference.
+ *
+ * @param {Resource[]} resources - the resources to search from
+ * @return {Function } enclosed method with actual "get" logic
+ */
 export function get(resources: Resource[]) {
-  return (call: any, callback: any) => {
+  return (call: GrpcCall, callback: GrpcCallback) => {
     if (resources == null || resources.length === 0) {
       return callback(new ResourceNotFound(call.request.ref), null)
     }
@@ -39,8 +45,14 @@ export function get(resources: Resource[]) {
   }
 }
 
+/**
+ * Enclosure with method to obtain a resource with a query.
+ *
+ * @param {Resource[]} resources - the resources to search from
+ * @return {Function } enclosed method with actual "find" logic
+ */
 export function find(resources: Resource[]) {
-  return (call: any, callback: any) => {
+  return (call: GrpcCall, callback: GrpcCallback) => {
     if (resources == null || resources.length === 0) {
       return callback(new ResourceNotFound(call.request.query), null)
     }

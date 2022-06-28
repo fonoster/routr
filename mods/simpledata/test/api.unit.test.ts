@@ -32,7 +32,7 @@ describe("@routr/simpledata/api", () => {
   describe("@routr/simpledata/api/get", () => {
     it("gets a not found", (done) => {
       const call = {request: {ref: "crd2c76ft"}}
-      const callback = (err: any, res: any) => {
+      const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null
         done()
@@ -44,7 +44,7 @@ describe("@routr/simpledata/api", () => {
 
     it("gets a not found", (done) => {
       const call = {request: {ref: "crd2c76ft"}}
-      const callback = (err: any, res: any) => {
+      const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null
         done()
@@ -56,7 +56,7 @@ describe("@routr/simpledata/api", () => {
 
     it("gets resource by reference", (done) => {
       const call = {request: {ref: "crd2c76ftxxxx"}}
-      const callback = (err: any, res: any) => {
+      const callback = (err: Error) => {
         expect(err).to.be.not.null
         done()
       }
@@ -67,7 +67,7 @@ describe("@routr/simpledata/api", () => {
 
     it("gets bad request", (done) => {
       const call = {request: {}}
-      const callback = (err: any, res: any) => {
+      const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null
         done()
@@ -79,7 +79,7 @@ describe("@routr/simpledata/api", () => {
 
     it("gets resource by reference", (done) => {
       const call = {request: {ref: "crd2c76ft"}}
-      const callback = (err: any, res: any) => {
+      const callback = (err: Error, res: unknown) => {
         expect(err).to.be.null
         expect(res).to.have.property("metadata")
         done()
@@ -93,7 +93,7 @@ describe("@routr/simpledata/api", () => {
   describe("@routr/simpledata/api/find", () => {
     it("gets a not found", (done) => {
       const call = {request: {}}
-      const callback = (err: any, res: any) => {
+      const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null
         done()
@@ -105,7 +105,7 @@ describe("@routr/simpledata/api", () => {
 
     it("gets bad request", (done) => {
       const call = {request: {}}
-      const callback = (err: any, res: any) => {
+      const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null
         done()
@@ -120,9 +120,12 @@ describe("@routr/simpledata/api", () => {
       const call = {
         request: {query: "$..[?(@.spec.credentials.username=='username')]"}
       }
-      const callback = (err: any, res: any) => {
+      const callback = (err: Error, res: unknown) => {
         expect(err).to.be.null
-        expect(res.resources).to.be.an("array").to.be.lengthOf(1)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        expect((res as any).resources)
+          .to.be.an("array")
+          .to.be.lengthOf(1)
         done()
       }
       const callbackSpy = sandbox.spy(callback)
@@ -132,7 +135,7 @@ describe("@routr/simpledata/api", () => {
 
     it("is bad json-path", (done) => {
       const call = {request: {query: "*.%@3sdsd"}}
-      const callback = (err: any, res: any) => {
+      const callback = (err: Error) => {
         expect(err).to.be.not.null
         done()
       }
