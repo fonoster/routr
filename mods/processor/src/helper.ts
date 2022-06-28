@@ -28,7 +28,7 @@ export const isTypeRequest = (request: MessageRequest): boolean =>
 // Therefore, we are able to re-construct the Route from the request
 export function createRouteFromLastMessage(request: MessageRequest): Route {
   // The requestUri from the last message
-  const uri = request.message.requestUri 
+  const uri = request.message.requestUri
 
   return {
     edgePortRef: request.edgePortRef,
