@@ -1,10 +1,27 @@
+/*
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr
+ *
+ * Licensed under the MIT License (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.routr.headers;
 
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.GeneratedMessageV3;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -52,11 +69,12 @@ public class MessageConverter {
     if (message instanceof Request) {
       methodStr = ((Request) message).getMethod();
     } else if (message instanceof Response) {
-      methodStr = ((CSeq) ((Response) message).getHeader(CSeq.NAME)).getMethod();
+      methodStr = ((CSeq) (message).getHeader(CSeq.NAME)).getMethod();
     }
 
     NetInterface sender = getSender(message);
     String callId = ((CallIdHeader) message.getHeader(CallIdHeader.NAME)).getCallId();
+    assert methodStr != null;
     Method method = Method.valueOf(methodStr.toUpperCase());
     NetInterface listeningPoint = this.listeningPoints.get(sender.getTransport().toString());
 
@@ -87,19 +105,19 @@ public class MessageConverter {
     }
 
     // Getting a list of names of all headers present on SIP Message
-    ListIterator<String> namesIterator = message.getHeaderNames();
+    ListIterator<String> namesIterator = (ListIterator<String>) message.getHeaderNames();
 
     // Traversing elements
     while (namesIterator.hasNext()) {
       Header header = message.getHeader(namesIterator.next());
       String fieldName = header.getName().toLowerCase().replace("-", "_");
-      Converter<Header, GeneratedMessageV3> converter = getConverterByHeader(header.getClass());
+      Converter<Header, GeneratedMessageV3> converter = (Converter<Header, GeneratedMessageV3>) getConverterByHeader(header.getClass());
       ProtoMapping mapping = converter.getClass().getAnnotation(ProtoMapping.class);
       FieldDescriptor descriptor = SIPMessage.getDescriptor().findFieldByName(fieldName);
 
       // Takes care of headers that might appear more than once
       if (mapping.repeatable()) {
-        ListIterator<Header> headers = message.getHeaders(header.getName());
+        ListIterator<Header> headers = (ListIterator<Header>) message.getHeaders(header.getName());
         while (headers.hasNext()) {
           Header currentHeader = headers.next();
           sipMessageBuilder.addRepeatedField(descriptor, converter.fromHeader(currentHeader));
@@ -193,7 +211,7 @@ public class MessageConverter {
             headers.add(converter.fromDTO(extension));
           } catch (Exception e) {
             LOG.warn(e.getMessage());
-            // This will stop happening once we implement all of the headers
+            // This will stop happening once we implement all the headers
             // e.printStackTrace();
           }
         }
@@ -202,24 +220,6 @@ public class MessageConverter {
       LOG.warn(e.getMessage());
     }
     return headers;
-  }
-
-  static public List<NetInterface> getExternalAddresses(List<String> addrs) {
-    List<NetInterface> addrsResult = new ArrayList<NetInterface>();
-    Iterator<String> a = addrs.iterator();
-    while (a.hasNext()) {
-      String addr = a.next();
-      String host = addr.split(":")[0];
-      int port = addr.split(":").length == 2
-          ? Integer.parseInt(addr.split(":")[1])
-          : 5060;
-      addrsResult.add(NetInterface
-          .newBuilder()
-          .setHost(host)
-          .setPort(port)
-          .build());
-    }
-    return addrsResult;
   }
 
   static public NetInterface getSender(final Message message) {

@@ -21,7 +21,8 @@ import { SipStack, ListeningPoint, SipProvider } from "./types";
 export default function createSipProvider(sipStack: SipStack, 
   listeningPoints: Array<ListeningPoint>): SipProvider {
   const sipProvider = sipStack.createSipProvider(listeningPoints[0])
-  listeningPoints?.filter(((lp: ListeningPoint, index: number) => index > 0))
-    ?.forEach((lp:ListeningPoint)=> sipProvider.addListeningPoint(lp))
+  for (const lp1 of listeningPoints?.filter(((lp: ListeningPoint, index: number) => index > 0))) {
+    sipProvider.addListeningPoint(lp1);
+  }
   return sipProvider
 }

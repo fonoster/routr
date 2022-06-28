@@ -16,8 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// @ts-ignore
 import chai from 'chai'
+// @ts-ignore
 import sinon from 'sinon'
+// @ts-ignore
 import sinonChai from 'sinon-chai'
 import { getConfig, readFile, validateConfig } from '../src/config/get_config' 
 const expect = chai.expect

@@ -38,8 +38,8 @@ public class Launcher {
 
   static public void main(String... args) {
     try {
-      var proxyAddr = "";
-      var bindAddr = "";
+      var proxyAddr = "192.168.1.3:5060";
+      var bindAddr = "192.168.1.3";
       var requester = new Requester(proxyAddr, bindAddr);
       requester.start();
     } catch (IOException e) {

@@ -28,7 +28,7 @@ import org.graalvm.polyglot.HostAccess;
  * Wrapper class for Routr.
  */
 public class Launcher {
-  private static String launchScript = 
+  private static final String launchScript =
     "console = { log: print, warn: print, error: print };" +
     "var System = Java.type('java.lang.System');" +
     "load(System.getenv('HOME') + '/libs/jvm-npm.js');" +

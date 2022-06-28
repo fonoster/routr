@@ -1,7 +1,24 @@
+/*
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr
+ *
+ * Licensed under the MIT License (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.routr;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -59,7 +76,7 @@ import io.routr.message.ResponseType;
 import io.routr.message.SIPMessage;
 import io.routr.processor.NetInterface;
 
-public class ConveterTests {
+public class ConverterTests {
 
   @Test
   public void testPassingConfig() {
@@ -73,7 +90,7 @@ public class ConveterTests {
         .allowIO(true)
         .allowAllAccess(true).build();
 
-    Map<String, Object> v = polyglot.eval("js", "({person: { name: \"John Doe\"} })").as(Map.class);
+    Map v = (Map<String, Object>) polyglot.eval("js", "({person: { name: \"John Doe\"} })").as(Map.class);
     MapProxyObject values = new MapProxyObject(v);
 
     assertEquals("John Doe", (((MapProxyObject) values.getMember("person")).getMember("name")));
@@ -95,7 +112,7 @@ public class ConveterTests {
   }
 
   @Test
-  public void testCallIdConveter() throws PeerUnavailableException, ParseException {
+  public void testCallIdConverter() throws PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     CallID header = (CallID) factory.createCallIdHeader("call001");
     CallIDConverter converter = new CallIDConverter();
@@ -108,7 +125,7 @@ public class ConveterTests {
   }
 
   @Test
-  public void testExpiresConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+  public void testExpiresConverter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     Expires header = (Expires) factory.createExpiresHeader(600);
     ExpiresConverter converter = new ExpiresConverter();
@@ -121,13 +138,13 @@ public class ConveterTests {
   }
 
   @Test
-  public void testSipURIConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+  public void testSipURIConverter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     AddressFactory factory = SipFactory.getInstance().createAddressFactory();
 
     SipURI uri = (SipURI) factory.createAddress("sip:1001@sip.local").getURI();
     uri.setUserPassword("1234");
     uri.setTransportParam("wss");
-    uri.setMAddrParam("test.acmepacket.com");
+    uri.setMAddrParam("test.acme.com");
     uri.setMethodParam("ack");
     uri.setUserParam("john");
     uri.setTTLParam(1000);
@@ -152,18 +169,18 @@ public class ConveterTests {
   }
 
   @Test
-  public void testSipURIConveterWithNull() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+  public void testSipURIConverterWithNull() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     AddressFactory factory = SipFactory.getInstance().createAddressFactory();
 
     SipURI uri = (SipURI) factory.createAddress("sip:sip.local").getURI();
     SipURIConverter converter = new SipURIConverter();
     io.routr.message.SipURI dto = converter.fromObject(uri);
     SipURI objectFromDto = converter.fromDTO(dto);
-    assertEquals(objectFromDto.getUser(), null);
+    assertNull(objectFromDto.getUser());
   }
 
   @Test
-  public void testAddressConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+  public void testAddressConverter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     AddressFactory factory = SipFactory.getInstance().createAddressFactory();
     AddressConverter converter = new AddressConverter();
     javax.sip.address.Address address = factory.createAddress("sip:1001@sip.local");
@@ -177,7 +194,7 @@ public class ConveterTests {
   }
 
   @Test
-  public void testFromConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+  public void testFromConverter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
     FromConverter converter = new FromConverter();
@@ -199,14 +216,14 @@ public class ConveterTests {
       dto.getAddress().getUri().getUser());
     assertEquals(((SipURI)objectFromDto.getAddress().getURI()).getHost(),
       dto.getAddress().getUri().getHost());
-    assertEquals(false, dto.getAddress().getUri().getSecure());
-    assertEquals(false, dto.getAddress().getWildcard());
+    assertFalse(dto.getAddress().getUri().getSecure());
+    assertFalse(dto.getAddress().getWildcard());
     assertEquals(objectFromDto.getParameter("a"), from.getParameter("a"));
     assertEquals(objectFromDto.getParameter("b"), from.getParameter("b"));
   }
 
   @Test
-  public void testToConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+  public void testToConverter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
     ToConverter converter = new ToConverter();
@@ -228,14 +245,14 @@ public class ConveterTests {
       dto.getAddress().getUri().getUser());
     assertEquals(((SipURI)objectToDto.getAddress().getURI()).getHost(),
       dto.getAddress().getUri().getHost());
-    assertEquals(false, dto.getAddress().getUri().getSecure());
-    assertEquals(false, dto.getAddress().getWildcard());
+    assertFalse(dto.getAddress().getUri().getSecure());
+    assertFalse(dto.getAddress().getWildcard());
     assertEquals(objectToDto.getParameter("a"), to.getParameter("a"));
     assertEquals(objectToDto.getParameter("b"), to.getParameter("b"));
   }
 
   @Test
-  public void testRouteConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+  public void testRouteConverter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
     RouteConverter converter = new RouteConverter();
@@ -256,7 +273,7 @@ public class ConveterTests {
   }
 
   @Test
-  public void testRecordRouteConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+  public void testRecordRouteConverter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
     RecordRouteConverter converter = new RecordRouteConverter();
@@ -277,7 +294,7 @@ public class ConveterTests {
   }
 
   @Test
-  public void testContactConveter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
+  public void testContactConverter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
     ContactConverter converter = new ContactConverter();
@@ -294,7 +311,7 @@ public class ConveterTests {
   }
 
   @Test
-  public void testMaxForwardsConveter() throws PeerUnavailableException,
+  public void testMaxForwardsConverter() throws PeerUnavailableException,
       ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     MaxForwards header = (MaxForwards) factory.createMaxForwardsHeader(70);
@@ -308,7 +325,7 @@ public class ConveterTests {
   }
 
   @Test
-  public void testContentLengthConveter() throws PeerUnavailableException,
+  public void testContentLengthConverter() throws PeerUnavailableException,
       ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     ContentLength header = (ContentLength) factory.createContentLengthHeader(200);
@@ -322,8 +339,8 @@ public class ConveterTests {
   }
 
   @Test
-  public void testViaConveter() throws PeerUnavailableException,
-      ParseException, InvalidArgumentException, InvalidArgumentException {
+  public void testViaConverter() throws PeerUnavailableException,
+      ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     ViaConverter converter = new ViaConverter();
     Via header = (Via) factory.createViaHeader("sip.local", 5060, "tcp", null);
@@ -336,8 +353,8 @@ public class ConveterTests {
   }
 
   @Test
-  public void testWWWAuthenticationConveter() throws PeerUnavailableException,
-      ParseException, InvalidArgumentException, InvalidArgumentException {
+  public void testWWWAuthenticationConverter() throws PeerUnavailableException,
+      ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     WWWAuthenticateConverter converter = new WWWAuthenticateConverter();
     WWWAuthenticate header = (WWWAuthenticate) factory.createWWWAuthenticateHeader("Digest");
@@ -361,8 +378,8 @@ public class ConveterTests {
   }
 
   @Test
-  public void testAuthorizationConveter() throws PeerUnavailableException,
-      ParseException, InvalidArgumentException, InvalidArgumentException {
+  public void testAuthorizationConverter() throws PeerUnavailableException,
+      ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     AuthorizationConverter converter = new AuthorizationConverter();
     Authorization header = (Authorization) factory.createAuthorizationHeader("Digest");
@@ -384,7 +401,6 @@ public class ConveterTests {
     Authorization headerFromDto = converter.fromDTO(authorizationDTO);
 
     assertEquals(header.getScheme(), headerFromDto.getScheme());
-    // assertEquals("sip.remote", headerFromDto.getDomain());
     assertEquals(header.getRealm(), headerFromDto.getRealm());
     assertEquals(header.getAlgorithm(), headerFromDto.getAlgorithm());
     assertEquals(header.getQop(), headerFromDto.getQop());
@@ -398,8 +414,8 @@ public class ConveterTests {
   }
 
   @Test
-  public void testExtensionConveter() throws PeerUnavailableException,
-      ParseException, InvalidArgumentException, InvalidArgumentException {
+  public void testExtensionConverter() throws PeerUnavailableException,
+      ParseException, InvalidArgumentException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     ExtensionConverter converter = new ExtensionConverter();
     ExtensionHeader header = (ExtensionHeader) factory.createHeader("X-Custom-Header", "my custom header");
@@ -414,7 +430,7 @@ public class ConveterTests {
   }
 
   @Test
-  public void testRequestConvertion() throws Exception {
+  public void testRequestConverter() throws Exception {
     HeaderFactory headerFactory = SipFactory.getInstance().createHeaderFactory();
     MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
 
@@ -447,10 +463,10 @@ public class ConveterTests {
     assertEquals(message.getViaList().get(1).getBranch(), via1.getBranch());
     assertEquals(message.getViaList().get(1).getTransport(), via1.getTransport());
 
-    // WARNINIG: Extensions are not considered repeteable, which causes us only
+    // WARNING: Extensions are not considered repeatable, which causes us only
     // getting
-    // the first occurrence of the header (e.g INVITE was added but BYE wasnt)
-    // That means that we have to implement a converter for ALL repeateable headers.
+    // the first occurrence of the header (e.g. INVITE was added but BYE wasn't)
+    // That means that we have to implement a converter for ALL repeatable headers.
     assertEquals(message.getExtensions(2).getValue(), "INVITE");
 
     // assertEquals(message.getRequestUri().getUser(), null);
@@ -459,7 +475,7 @@ public class ConveterTests {
   }
 
   @Test
-  public void testResponseConvertion() throws Exception {
+  public void testResponseConverter() throws Exception {
     HeaderFactory headerFactory = SipFactory.getInstance().createHeaderFactory();
     MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
 
@@ -515,16 +531,16 @@ public class ConveterTests {
 
     var requestOut = GRPCSipListener.updateRequest(request, headers);
 
-    Iterator<Via> viaIterator = request.getHeaders(Via.NAME);
-    ArrayList<Via> viaList = new ArrayList<Via>();
+    Iterator<Via> viaIterator = (Iterator<Via>) request.getHeaders(Via.NAME);
+    ArrayList<Via> viaList = new ArrayList<>();
 
     while (viaIterator.hasNext()) {
       // Print headers to log
       viaList.add(viaIterator.next());
     }
 
-    Iterator<Via> viaIteratorOut = requestOut.getHeaders(Via.NAME);
-    ArrayList<Via> viaListOut = new ArrayList<Via>();
+    Iterator<Via> viaIteratorOut = (Iterator<Via>) requestOut.getHeaders(Via.NAME);
+    ArrayList<Via> viaListOut = new ArrayList<>();
 
     while (viaIteratorOut.hasNext()) {
       // Print headers to log
@@ -533,9 +549,9 @@ public class ConveterTests {
 
     assertEquals(10, headers.size());
     
-    Iterator names = request.getHeaderNames();
+    Iterator<String> names = (Iterator<String>) request.getHeaderNames();
     while (names.hasNext()) {
-      String n = (String) names.next();
+      String n = names.next();
       
       // TODO: We need to create a converter for this header
       if (!n.equals(Allow.NAME)) {
@@ -545,6 +561,6 @@ public class ConveterTests {
     assertEquals(viaList.get(0).getHost(), viaListOut.get(0).getHost());
     assertEquals(viaList.get(1).getHost(), viaListOut.get(1).getHost());
     assertEquals(viaList.get(2).getHost(), viaListOut.get(2).getHost());
-    assertEquals(requestOut.getHeader("X-Gateway-Auth"), null);
+    assertNull(requestOut.getHeader("X-Gateway-Auth"));
   }
 }

@@ -20,46 +20,29 @@ package io.routr.requester;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.grpc.stub.StreamObserver;
 import io.routr.headers.MessageConverter;
-import io.routr.message.SIPMessage;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.List;
-import java.util.Properties;
-import java.util.TooManyListenersException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.*;
 
-import javax.sip.DialogTerminatedEvent;
-import javax.sip.IOExceptionEvent;
-import javax.sip.InvalidArgumentException;
-import javax.sip.ObjectInUseException;
-import javax.sip.PeerUnavailableException;
-import javax.sip.RequestEvent;
-import javax.sip.ResponseEvent;
-import javax.sip.SipException;
-import javax.sip.SipFactory;
-import javax.sip.SipProvider;
-import javax.sip.SipStack;
-import javax.sip.TimeoutEvent;
-import javax.sip.TransactionTerminatedEvent;
-import javax.sip.TransportAlreadySupportedException;
-import javax.sip.TransportNotSupportedException;
+import javax.sip.*;
 import javax.sip.header.Header;
 import javax.sip.message.MessageFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class Requester {
-
   private final static Logger LOG = LogManager.getLogger(Requester.class);
+  private final Server server;
+  private final RequesterService requesterService;
   private MessageFactory messageFactory;
   private SipProvider sipProvider;
-  private final Server server;
 
   public Requester(final String proxyAddr, final String bindAddr) {
-    server = ServerBuilder.forPort(50072).addService(new RequesterService(this)).build();
+    this.requesterService = new RequesterService(this);
+    server = ServerBuilder.forPort(50072).addService(requesterService).build();
     try {
       this.messageFactory = SipFactory.getInstance().createMessageFactory();
       this.sipProvider = createSipProvider(bindAddr, proxyAddr);
@@ -73,20 +56,17 @@ public class Requester {
   public void start() throws IOException {
     server.start();
     System.out.println("Server started, listening on " + 50072);
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        // Use stderr here since the logger may have been reset by its JVM shutdown
-        // hook.
-        System.err.println("*** shutting down gRPC server since JVM is shutting down");
-        try {
-          Requester.this.stop();
-        } catch (InterruptedException e) {
-          e.printStackTrace(System.err);
-        }
-        System.err.println("*** server shut down");
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      // Use stderr here since the logger may have been reset by its JVM shutdown
+      // hook.
+      System.err.println("*** shutting down gRPC server since JVM is shutting down");
+      try {
+        Requester.this.stop();
+      } catch (InterruptedException e) {
+        e.printStackTrace(System.err);
       }
-    });
+      System.err.println("*** server shut down");
+    }));
   }
 
   public void stop() throws InterruptedException {
@@ -95,21 +75,23 @@ public class Requester {
     }
   }
 
-  private void blockUntilShutdown() throws InterruptedException {
-    if (server != null) {
-      server.awaitTermination();
-    }
-  }
-
-  public void sendRequest(final String target, final SIPMessage request)
+  public void sendRequest(final SendMessageRequest request)
       throws InvalidArgumentException, ParseException, SipException {
-    List<Header> headers = MessageConverter.createHeadersFromMessage(request);
+
+    List<Header> headers = MessageConverter.createHeadersFromMessage(request.getMessage());
+
+    LOG.debug("Header list size: {}", headers.size());
+
     // TODO: Allow sending more than just REGISTER requests
     var req = this.messageFactory.createRequest(
-        String.format("REGISTER sip:%s;transport=%s SIP/2.0\r\n\r\n", 
-          target, request.getRequestUri().getTransportParam()));
+        String.format("%s sip:%s;transport=%s SIP/2.0\r\n\r\n",
+            request.getMethod(),
+            request.getTarget(),
+            request.getTransport()));
 
     headers.forEach(req::addHeader);
+
+    LOG.debug("Sending request: {}", req.toString());
 
     try {
       var clientTransaction = this.sipProvider.getNewClientTransaction(req);
@@ -123,26 +105,25 @@ public class Requester {
       throws PeerUnavailableException, TransportNotSupportedException, InvalidArgumentException,
       ObjectInUseException, TransportAlreadySupportedException {
 
-    String portStr = bindAddr.split(":")[1];
     int port = 7070;
 
-    if (portStr != null && !portStr.isEmpty()) {
-      port = Integer.parseInt(portStr);
-    } 
+    if (bindAddr.split(":").length == 2) {
+      port = Integer.parseInt(bindAddr.split(":")[1]);
+    }
 
-    LOG.debug("Binding Requester to: " + bindAddr + ":" + port);
+    LOG.debug("Binding Requester to " + bindAddr + ":" + port);
 
     var sipFactory = SipFactory.getInstance();
     sipFactory.setPathName("gov.nist");
 
     var sipStack = sipFactory.createSipStack(createProperties(proxyAddr));
-    var lpTCP = ((SipStack) sipStack).createListeningPoint(bindAddr, port, "tcp");
-    var lpUDP = ((SipStack) sipStack).createListeningPoint(bindAddr, port, "udp");
-    var sipProvider = ((SipStack) sipStack).createSipProvider(lpTCP);
+    var lpTCP = ((sipStack).createListeningPoint(bindAddr, port, "tcp"));
+    var lpUDP = (sipStack).createListeningPoint(bindAddr, port, "udp");
+    var sipProvider = (sipStack).createSipProvider(lpTCP);
     sipProvider.addListeningPoint(lpUDP);
 
     try {
-      sipProvider.addSipListener(new RequesterSipListener());
+      sipProvider.addSipListener(this.requesterService);
     } catch (TooManyListenersException e) {
       LOG.warn(e.getMessage());
     }
@@ -177,56 +158,4 @@ public class Requester {
     return properties;
   }
 
-  private static class RequesterService extends RequesterGrpc.RequesterImplBase {
-    private final Requester requester;
-
-    private RequesterService(final Requester requester) {
-      this.requester = requester;
-    }
-
-    /*@Override
-    public void sendMessage(SIPMessage message, StreamObserver<SendMessageResponse> responseObserver) {
-      try {
-        // TODO: Update proto to accept target and replace here!!!!
-        requester.sendRequest("target", message);
-        SendMessageResponse response = SendMessageResponse.newBuilder().build();
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
-      } catch (InvalidArgumentException | ParseException | SipException e) {
-        LOG.warn(e.getMessage());
-      }
-    }*/
-  }
-
-  private class RequesterSipListener implements javax.sip.SipListener {
-    @Override
-    public void processRequest(RequestEvent event) {
-      System.out.println(event.getRequest());
-    }
-
-    @Override
-    public void processResponse(ResponseEvent event) {
-      System.out.println(event);
-    }
-
-    @Override
-    public void processTimeout(TimeoutEvent event) {
-      System.out.println(event);
-    }
-
-    @Override
-    public void processIOException(IOExceptionEvent event) {
-      System.out.println(event);
-    }
-
-    @Override
-    public void processTransactionTerminated(TransactionTerminatedEvent event) {
-      System.out.println(event);
-    }
-
-    @Override
-    public void processDialogTerminated(DialogTerminatedEvent event) {
-      System.out.println(event);
-    }
-  }
 }

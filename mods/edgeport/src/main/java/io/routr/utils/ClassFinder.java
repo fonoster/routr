@@ -31,10 +31,8 @@ public class ClassFinder {
   }
 
   static public Class<Converter> findConverterByHeaderClass(Class<?> clasz) {
-    var converters = findAllConverters().iterator();
-    while (converters.hasNext()) {
-      var converter = converters.next();
-      ProtoMapping mapping = (ProtoMapping) converter.getAnnotation(ProtoMapping.class);
+    for (Class<Converter> converter : findAllConverters()) {
+      ProtoMapping mapping = converter.getAnnotation(ProtoMapping.class);
       if (mapping.header().equals(clasz))
         return converter;
     }

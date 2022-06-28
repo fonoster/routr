@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr
+ *
+ * Licensed under the MIT License (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.routr.headers;
 
 import java.text.ParseException;
@@ -18,7 +36,6 @@ public class AuthorizationConverter implements Converter<Authorization, io.routr
 
     if (header.getScheme() != null) builder.setScheme(header.getScheme());
     if (header.getRealm() != null) builder.setRealm(header.getRealm());
-    // if (header.getDomain() != null) builder.setDomain(header.getDomain());
     if (header.getCNonce() != null) builder.setCNonce(header.getCNonce());
     if (header.getNonce() != null) builder.setNonce(header.getNonce());
     if (header.getAlgorithm() != null) builder.setAlgorithm(header.getAlgorithm());
@@ -39,9 +56,6 @@ public class AuthorizationConverter implements Converter<Authorization, io.routr
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     AddressFactory addrFactory = SipFactory.getInstance().createAddressFactory();
     Authorization header = (Authorization) factory.createAuthorizationHeader(dto.getScheme());
-
-    // header.setDomain(dto.getDomain());
-
     header.setNonceCount(dto.getNonceCount());
     header.setRealm(dto.getRealm());
     header.setOpaque(dto.getOpaque());
@@ -52,7 +66,7 @@ public class AuthorizationConverter implements Converter<Authorization, io.routr
     if (!dto.getQop().isEmpty()) header.setQop(dto.getQop());
     if (!dto.getResponse().isEmpty()) header.setResponse(dto.getResponse());
     if (!dto.getUsername().isEmpty()) header.setUsername(dto.getUsername());
-    if (dto.getUri() != null && !dto.getUri().isEmpty()) {
+    if (!dto.getUri().isEmpty()) {
       header.setURI(addrFactory.createURI(dto.getUri()));
     }
  

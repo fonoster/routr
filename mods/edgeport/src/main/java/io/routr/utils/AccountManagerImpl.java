@@ -43,8 +43,12 @@ public class AccountManagerImpl implements AccountManager {
     return this.password;
   }
 
+  public String getHost() {
+    return this.host;
+  }
+
   @Override
   public UserCredentials getCredentials(ClientTransaction arg0, String arg1) {
-    return new UserCredentialsImpl(this.username, this.password, this.host);
+    return new UserCredentialsImpl(this.getUsername(), this.getPassword(), this.getHost());
   }
 }

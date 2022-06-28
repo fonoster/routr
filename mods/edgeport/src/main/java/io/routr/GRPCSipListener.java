@@ -19,12 +19,7 @@
 package io.routr;
 
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.sip.address.SipURI;
 import javax.sip.ClientTransaction;
@@ -46,12 +41,7 @@ import javax.sip.TransactionAlreadyExistsException;
 import javax.sip.TransactionTerminatedEvent;
 import javax.sip.TransactionUnavailableException;
 import javax.sip.address.AddressFactory;
-import javax.sip.header.CSeqHeader;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.ExtensionHeader;
-import javax.sip.header.Header;
-import javax.sip.header.HeaderFactory;
-import javax.sip.header.ViaHeader;
+import javax.sip.header.*;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -86,7 +76,7 @@ public class GRPCSipListener implements SipListener {
   private final static Logger LOG = LogManager.getLogger(GRPCSipListener.class);
   private final Map<String, Transaction> activeTransactions = new HashMap<>();
 
-  public GRPCSipListener(final SipProvider sipProvider, final Map config,
+  public GRPCSipListener(final SipProvider sipProvider, final Map<String, Object> config,
       final List<String> externalIps, final List<String> localnets) throws PeerUnavailableException {
     MapProxyObject values = new MapProxyObject(config);
     MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
@@ -111,7 +101,7 @@ public class GRPCSipListener implements SipListener {
     blockingStub = ProcessorGrpc.newBlockingStub(channel);
     this.sipProvider = sipProvider;
 
-    Map<String, NetInterface> listeningPoints = new HashMap<String, NetInterface>();
+    Map<String, NetInterface> listeningPoints = new HashMap<>();
     Iterator<ListeningPoint> lps = Arrays.stream(sipProvider.getListeningPoints()).iterator();
 
     while (lps.hasNext()) {
@@ -138,7 +128,7 @@ public class GRPCSipListener implements SipListener {
     Request req = event.getRequest();
     ServerTransaction serverTransaction = event.getServerTransaction();
 
-    if (serverTransaction == null && req.getMethod().equals(Request.ACK) == false) {
+    if (serverTransaction == null && !req.getMethod().equals(Request.ACK)) {
       try {
         serverTransaction = this.sipProvider.getNewServerTransaction(req);
       } catch (TransactionAlreadyExistsException | TransactionUnavailableException e) {
@@ -153,6 +143,7 @@ public class GRPCSipListener implements SipListener {
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
 
       if (!response.getMessage().hasRequestUri()) {
+        assert serverTransaction != null;
         this.sendResponse(serverTransaction, response.getMessage().getResponseType(), headers);
         return;
       }
@@ -205,9 +196,7 @@ public class GRPCSipListener implements SipListener {
       // Removing all the headers of type Via to avoid duplicates
       res.removeHeader(Via.NAME);
 
-      Iterator<Header> h = headers.iterator();
-      while (h.hasNext()) {
-        Header header = h.next();
+      for (Header header : headers) {
         res.addHeader(header);
       }
 
@@ -272,7 +261,7 @@ public class GRPCSipListener implements SipListener {
 
       var clientTransaction = this.sipProvider.getNewClientTransaction(requestOut);
 
-      // Setting authentication artifat
+      // Setting authentication artifact
       var host = ((SipURI) requestOut.getRequestURI()).getHost();
       clientTransaction.setApplicationData(createAccountManager(headers, host));
       clientTransaction.sendRequest();
@@ -289,9 +278,7 @@ public class GRPCSipListener implements SipListener {
       final List<Header> headers) throws ParseException, InvalidArgumentException, SipException {
     Request request = transaction.getRequest();
     Response response = this.messageFactory.createResponse(ResponseCode.valueOf(type.toString()).getCode(), request);
-    Iterator<Header> h = headers.iterator();
-    while (h.hasNext())
-      response.addHeader(h.next());
+    for (Header header : headers) response.addHeader(header);
     transaction.sendResponse(response);
 
     var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
@@ -332,28 +319,24 @@ public class GRPCSipListener implements SipListener {
   static Request updateRequest(final Request request, final List<Header> headers) {
     Request requestOut = (Request) request.clone();
 
-    Iterator names = requestOut.getHeaderNames();
+    Iterator<String> names = requestOut.getHeaderNames();
     while (names.hasNext()) {
-      String n = (String) names.next();
+      String n = names.next();
       // WARN: Perhaps we should compute this value
       if (!n.equals(ContentLength.NAME)) {
         requestOut.removeHeader(n);
       }
     }
 
-    var headersIterator = headers.iterator();
-
-    while (headersIterator.hasNext()) {
-      Header header = headersIterator.next();
-
+    for (Header header : headers) {
       // Ignore special header
       if (header.getName().equalsIgnoreCase("x-gateway-auth")) {
         continue;
       }
 
       String s = header.getName();
-      if (s.equals("From") || s.equals("To") && s.equals("Call-ID")
-          && s.equals("CSeq")) {
+      if (s.equals(FromHeader.NAME) || s.equals(ToHeader.NAME) && s.equals(CallIdHeader.NAME)
+              && s.equals(CSeqHeader.NAME)) {
         requestOut.setHeader(header);
       } else {
         requestOut.addHeader(header);
@@ -365,23 +348,23 @@ public class GRPCSipListener implements SipListener {
 
   private static boolean isTransactional(final ResponseEvent event) {
     return (event.getClientTransaction() != null &&
-        hasMethod(event.getResponse(), new String[] { Request.INVITE, Request.MESSAGE }));
+        hasMethod(event.getResponse(), Request.INVITE, Request.MESSAGE));
   }
 
   private static boolean isStackJob(final Response response) {
-    return hasCodes(response, new int[] { Response.TRYING, Response.REQUEST_TERMINATED })
-        || hasMethod(response, new String[] { Request.CANCEL });
+    return hasCodes(response, Response.TRYING, Response.REQUEST_TERMINATED)
+        || hasMethod(response, Request.CANCEL);
   }
 
   private static boolean authenticationRequired(final Response response) {
-    return hasCodes(response, new int[] { Response.PROXY_AUTHENTICATION_REQUIRED, Response.UNAUTHORIZED });
+    return hasCodes(response, Response.PROXY_AUTHENTICATION_REQUIRED, Response.UNAUTHORIZED);
   }
 
   private static boolean hasMethod(final Response response, final String... methods) {
-    // Get method from cseq header
+    // Get method from CSeq header
     CSeqHeader cseqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
     var method = cseqHeader.getMethod();
-    return Arrays.stream(methods).filter(m -> m == method).toArray().length > 0;
+    return Arrays.stream(methods).filter(m -> Objects.equals(m, method)).toArray().length > 0;
   }
 
   private static boolean hasCodes(final Response response, final int... codes) {
@@ -389,10 +372,7 @@ public class GRPCSipListener implements SipListener {
   }
 
   private static AccountManager createAccountManager(final List<Header> headers, final String host) {
-    var headersIterator = headers.iterator();
-    while (headersIterator.hasNext()) {
-      Header header = headersIterator.next();
-
+    for (Header header : headers) {
       if (header.getName().equalsIgnoreCase("x-gateway-auth")) {
         var authStr = ((ExtensionHeader) header).getValue();
         var auth = new String(Base64.getDecoder().decode(authStr));
@@ -403,7 +383,7 @@ public class GRPCSipListener implements SipListener {
 
         var username = auth.split(":")[0];
         var password = auth.split(":")[1];
-        return new AccountManagerImpl(username, password , host);
+        return new AccountManagerImpl(username, password, host);
       }
     }
     return null;
