@@ -18,7 +18,7 @@
  */
 import {ProcessorGPRCConnection} from "./types"
 import {PROCESSOR_OBJECT_PROTO} from "@routr/common"
-import grpc = require("@grpc/grpc-js")
+import * as grpc from "@grpc/grpc-js"
 
 /**
  * Creates a connection to all the backend processors. The function will
@@ -35,7 +35,7 @@ export default function connectToBackend(
   for (const processor of procs) {
     connections.set(
       processor.ref,
-      new PROCESSOR_OBJECT_PROTO.Processor(
+      new (PROCESSOR_OBJECT_PROTO as any).Processor(
         processor.addr,
         grpc.credentials.createInsecure()
       )

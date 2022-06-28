@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {MessageRequest, NetInterface, Route} from "@routr/common"
+import {MessageRequest, NetInterface, Route, Transport} from "@routr/common"
 import {Extensions as E, Target as T} from "./index"
 
 export const isTypeResponse = (request: MessageRequest): boolean =>
@@ -28,13 +28,14 @@ export const isTypeRequest = (request: MessageRequest): boolean =>
 // Therefore, we are able to re-construct the Route from the request
 export function createRouteFromLastMessage(request: MessageRequest): Route {
   // The requestUri from the last message
-  const uri = request.message.requestUri as any
+  const uri = request.message.requestUri 
+
   return {
     edgePortRef: request.edgePortRef,
     user: uri.user,
     host: uri.host,
     port: uri.port,
-    transport: uri.transport,
+    transport: uri.transportParam as unknown as Transport,
     registeredOn: Date.now(),
     sessionCount: E.getHeaderValue(request, "x-session-count") || -1,
     expires: T.getTargetExpires(request),

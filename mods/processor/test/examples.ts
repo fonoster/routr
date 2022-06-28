@@ -137,7 +137,7 @@ export const request: MessageRequest = {
           "mAddrParam": "",
           "methodParam": "",
           "userParam": "",
-          "tTLParam": -1,
+          "ttlParam": -1,
           "port": 5060,
           "lrParam": false,
           "secure": false

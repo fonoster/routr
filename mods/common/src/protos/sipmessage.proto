@@ -108,7 +108,8 @@ message Authorization {
   string response = 8;
   string username = 9;
   string uri = 10;
-  int32 nonce_count = 11;
+  string method = 11;
+  int32 nonce_count = 12;
 }
 
 message CallID {
@@ -147,7 +148,7 @@ message SipURI {
 
 message Address {
   SipURI uri = 1;
-  string displayName = 2;
+  string display_name = 2;
   bool wildcard = 3;
 }
 

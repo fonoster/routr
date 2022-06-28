@@ -71,5 +71,8 @@
     "@fonoster/logger": "^0.3.3",
     "buffer": "^6.0.3",
     "funfix": "^7.0.1"
+  },
+  "nyc": {
+    "exclude": [ "**/*.js" ]
   }
 }

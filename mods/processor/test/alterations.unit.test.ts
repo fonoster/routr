@@ -94,13 +94,13 @@ describe('@routr/processor/alterations', () => {
   })
 
   it('removes the top via header', () => {
-    expect((A.removeTopVia(request).message.via as [{ host: string }])[0])
+    expect((A.removeTopVia(request).message.via as unknown as [{ host: string }])[0])
       .to.have.property("host")
       .to.be.equal("127.0.0.1")
   })
 
   it('adds record-route using the listening point from the request', () => {
-    const r = A.addSelfRecordRoute(request as any as MessageRequest) as any
+    const r = A.addSelfRecordRoute(request as unknown as MessageRequest) as any
     expect(r.message.recordRoute).to.be.lengthOf(2)
     const uri = r.message.recordRoute[0].address.uri
     expect(uri)
@@ -115,7 +115,7 @@ describe('@routr/processor/alterations', () => {
   })
 
   it('adds route header using the listening point from the route object', () => {
-    const r = A.addRoute(route)(request as any as MessageRequest) as any
+    const r = A.addRoute(route)(request as unknown as MessageRequest) as any
     expect(r.message.route).to.be.lengthOf(2)
     const uri = r.message.route[0].address.uri
     expect(uri)

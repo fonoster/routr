@@ -46,7 +46,7 @@ export default class Location implements ILocationService {
 
   constructor(config: {addr: string}) {
     this.config = config
-    this.location = new LOCATION_OBJECT_PROTO.Location(
+    this.location = new (LOCATION_OBJECT_PROTO as any).Location(
       config.addr,
       grpc.credentials.createInsecure()
     )

@@ -31,16 +31,15 @@ describe('@routr/processor/helper', () => {
 
   it('obtains route from request', () => {
     const route = E.createRouteFromLastMessage(request)
-    const message = request.message as any
-    const uri = request.message.requestUri as any
-    expect(route.host).to.equal(uri.host)
+    const uri = request.message.requestUri
+    expect(route.host).to.equal(uri?.host)
     expect(route.sessionCount).to.equal(-1)
-    expect(route.expires).to.equal(message.expires.expires)
+    expect(route.expires).to.equal(request.message.expires?.expires)
     expect(route.edgePortRef).to.equal(request.edgePortRef)
-    expect(route.user).to.equal(uri.user)
-    expect(route.host).to.equal(uri.host)
-    expect(route.port).to.equal(uri.port)
-    expect(route.transport).to.equal(uri.transport)
+    expect(route.user).to.equal(uri?.user)
+    expect(route.host).to.equal(uri?.host)
+    expect(route.port).to.equal(uri?.port)
+    expect(route.transport).to.equal(uri?.transportParam)
     expect(route.registeredOn).to.not.be.undefined
     expect(route.listeningPoint)
       .to.have.property("host")

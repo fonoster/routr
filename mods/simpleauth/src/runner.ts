@@ -17,9 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("simpleauth")
 import logger from "@fonoster/logger"
-import SimpleAuthProcessor from "./service"
+import simpleAuthProcessor from "./service"
 import {User} from "./types"
 import {Assertions as A} from "@routr/common"
 
@@ -28,8 +29,9 @@ A.assertEnvsAreSet(["PATH_TO_AUTH"])
 const whiteList = process.env.WHITELIST ? process.env.WHITELIST.split(",") : []
 
 try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const users: User[] = require(process.env.PATH_TO_AUTH)
-  SimpleAuthProcessor({
+  simpleAuthProcessor({
     bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903",
     users,
     whiteList

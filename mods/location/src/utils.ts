@@ -45,7 +45,7 @@ export function getServiceInfo(
   return {
     name: "location",
     bindAddr,
-    service: LOCATION_OBJECT_PROTO.Location.service,
+    service: (LOCATION_OBJECT_PROTO as any).Location.service,
     handlers: {
       addRoute: (call, callback) => {
         try {

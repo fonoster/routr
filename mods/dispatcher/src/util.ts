@@ -31,7 +31,7 @@ export function getServiceInfo(
   return {
     name: "dispatcher",
     bindAddr,
-    service: PROCESSOR_OBJECT_PROTO.Processor.service,
+    service: (PROCESSOR_OBJECT_PROTO as any).Processor.service,
     handlers: {
       processMessage: processor(backends)
     }

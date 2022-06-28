@@ -25,6 +25,7 @@ import {getConfig} from '../src/config/get_config'
 import connectToBackend from "../src/connections"
 import processor from '../src/processor'
 import {Transport} from '@routr/common/src/types'
+import { SIPMessage } from '@routr/common/dist/types'
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -67,7 +68,7 @@ const messageRequest: MessageRequest = {
   },
   externalIps: [],
   localnets: [],
-  message: {}
+  message: {} as unknown as SIPMessage
 }
 
 describe('@routr/dispatcher', () => {
@@ -113,7 +114,7 @@ describe('@routr/dispatcher', () => {
 
   describe('@routr/dispatcher/processor', () => {
     it('callback gets invoke with an error', (done) => {
-      sandbox.stub(PROCESSOR_OBJECT_PROTO, 'Processor').returns(
+      sandbox.stub(PROCESSOR_OBJECT_PROTO as any, 'Processor').returns(
         {
           processMessage: (request: any, callback: Function) => {
             callback(new Error())
@@ -131,7 +132,7 @@ describe('@routr/dispatcher', () => {
     })
 
     it('it invokes callback with correct response', (done) => {
-      sandbox.stub(PROCESSOR_OBJECT_PROTO, 'Processor').returns(
+      sandbox.stub(PROCESSOR_OBJECT_PROTO as any, 'Processor').returns(
         {
           processMessage: (request: any, callback: Function) => {
             callback(null, request)
@@ -150,7 +151,7 @@ describe('@routr/dispatcher', () => {
     })
 
     it('callback gets invoke with error 14(service unavailable)', (done) => {
-      sandbox.stub(PROCESSOR_OBJECT_PROTO, 'Processor').returns(
+      sandbox.stub(PROCESSOR_OBJECT_PROTO as any, 'Processor').returns(
         {
           processMessage: (request: any, callback: Function) => {
             callback({
@@ -168,7 +169,7 @@ describe('@routr/dispatcher', () => {
   })
 
   it('creates a connection for every processor config', () => {
-    const processorObjectProtoStub = sandbox.stub(PROCESSOR_OBJECT_PROTO, 'Processor')
+    const processorObjectProtoStub = sandbox.stub(PROCESSOR_OBJECT_PROTO as any, 'Processor')
     connectToBackend([config1, config2])
     expect(processorObjectProtoStub).to.have.been.calledTwice
   })

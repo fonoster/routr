@@ -17,14 +17,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ot from "@opentelemetry/api"
+import opentelemetry from "@opentelemetry/api"
 import logger from "@fonoster/logger"
-import {calculateAuthResponse} from "@routr/common"
+import {calculateAuthResponse, MessageRequest} from "@routr/common"
 import {createUnauthorizedResponse, getCredentials} from "./utils"
 import Processor, {Response} from "@routr/processor"
 import {User} from "./types"
+import {AuthChallengeResponse, Method} from "@routr/common/src/types"
 
-export default function SimpleAuthMiddleware(config: {
+/**
+ * A simple authentication middleware that authenticates users based on a list of users
+ * or whitelisted endpoints paths.
+ *
+ * @param {MiddlewareConfig} config - configuration for the middleware
+ * @param {string} config.bindAddr - address to bind to
+ * @param {User[]} config.users - list of users
+ * @param {string[]} config.whiteList - list of path that required no authentication
+ */
+export default function simpleAuthMiddleware(config: {
   bindAddr: string
   users: User[]
   whiteList: string[]
@@ -32,9 +42,11 @@ export default function SimpleAuthMiddleware(config: {
   const {bindAddr, users, whiteList} = config
 
   new Processor({bindAddr, name: "simpleauth"}).listen(
-    (req: Record<string, any>, res: Response) => {
-      const tracer = ot.trace.getTracer("routr-tracer")
-      const currentSpan = ot.trace.getSpan(ot.context.active())
+    (req: MessageRequest, res: Response) => {
+      const tracer = opentelemetry.trace.getTracer("routr-tracer")
+      const currentSpan = opentelemetry.trace.getSpan(
+        opentelemetry.context.active()
+      )
       // display traceid in the terminal
       logger.silly(
         `authenticating ${req.message.from.address.uri.user} endpoint with simpleauth`,
@@ -45,7 +57,9 @@ export default function SimpleAuthMiddleware(config: {
       const span = tracer.startSpan("server.js:sayHello()", {kind: 1})
 
       // Consider extending the list to other message types
-      if (!["INVITE", "MESSAGE", "REGISTER"].includes(req.method)) {
+      if (
+        ![Method.INVITE, Method.MESSAGE, Method.REGISTER].includes(req.method)
+      ) {
         return res.send(req)
       }
 
@@ -63,7 +77,7 @@ export default function SimpleAuthMiddleware(config: {
         auth.method = req.method
         // Calculate response and compare with the one send by the endpoint
         const calcRes = calculateAuthResponse(
-          auth,
+          auth as unknown as AuthChallengeResponse,
           getCredentials(auth.username, users)
         )
         if (calcRes !== auth.response) {

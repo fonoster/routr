@@ -1,5 +1,3 @@
-import {Method, Route, Transport} from "@routr/common";
-
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -18,6 +16,7 @@ import {Method, Route, Transport} from "@routr/common";
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {MessageRequest, Method, Route, Transport} from "@routr/common";
 
 // Route to Agent 1001
 export const r1: Route = {
@@ -140,7 +139,7 @@ export function createRequest(createRequestObj: {
             "mAddrParam": "",
             "methodParam": "",
             "userParam": "",
-            "tTLParam": -1,
+            "ttlParam": -1,
             "port": 5060,
             "lrParam": false,
             "secure": false
@@ -278,5 +277,5 @@ export function createRequest(createRequestObj: {
       },
       "messageType": "requestUri"
     }
-  }
+  } as unknown as MessageRequest
 }

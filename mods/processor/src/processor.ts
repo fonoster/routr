@@ -36,7 +36,7 @@ export default class Processor {
     createService({
       name: this.config.name,
       bindAddr: this.config.bindAddr,
-      service: PROCESSOR_OBJECT_PROTO.Processor.service,
+      service: (PROCESSOR_OBJECT_PROTO as any).Processor.service,
       handlers: {
         processMessage: (call: any, callback: Function) => {
           func(call.request, new Response(callback))

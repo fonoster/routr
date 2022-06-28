@@ -51,7 +51,7 @@ export interface MessageRequest {
   listeningPoint: NetInterface
   externalIps: string[]
   localnets: string[]
-  message: Record<string, unknown>
+  message: SIPMessage
 }
 
 export interface MessageResponse {
@@ -135,4 +135,187 @@ export interface Route {
   listeningPoint: NetInterface
   labels?: Map<string, string>
   headers?: HeaderModifier[]
+}
+
+export enum ResponseType {
+  UNKNOWN = 0,
+  TRYING = 1,
+  RINGING = 2,
+  CALL_IS_BEING_FORWARDED = 3,
+  QUEUED = 4,
+  SESSION_PROGRESS = 5,
+  SUCCESS = 6,
+  OK = 7,
+  ACCEPTED = 8,
+  REDIRECTION = 9,
+  MULTIPLE_CHOICES = 10,
+  MOVED_PERMANENTLY = 11,
+  MOVED_TEMPORARILY = 12,
+  USE_PROXY = 13,
+  ALTERNATIVE_SERVICE = 14,
+  CLIENT_ERROR = 15,
+  BAD_REQUEST = 16,
+  UNAUTHORIZED = 17,
+  PAYMENT_REQUIRED = 18,
+  FORBIDDEN = 19,
+  NOT_FOUND = 20,
+  METHOD_NOT_ALLOWED = 21,
+  NOT_ACCEPTABLE = 22,
+  PROXY_AUTHENTICATION_REQUIRED = 23,
+  REQUEST_TIMEOUT = 24,
+  GONE = 25,
+  REQUEST_ENTITY_TOO_LARGE = 26,
+  REQUEST_URI_TOO_LONG = 27,
+  UNSUPPORTED_MEDIA_TYPE = 28,
+  UNSUPPORTED_URI_SCHEME = 29,
+  BAD_EXTENSION = 30,
+  EXTENSION_REQUIRED = 31,
+  INTERVAL_TOO_BRIEF = 32,
+  TEMPORARILY_UNAVAILABLE = 33,
+  CALL_OR_TRANSACTION_DOES_NOT_EXIST = 34,
+  LOOP_DETECTED = 35,
+  TOO_MANY_HOPS = 36,
+  ADDRESS_INCOMPLETE = 37,
+  AMBIGUOUS = 38,
+  BUSY_HERE = 39,
+  REQUEST_TERMINATED = 40,
+  NOT_ACCEPTABLE_HERE = 41,
+  BAD_EVENT = 42,
+  REQUEST_PENDING = 43,
+  UNDECIPHERABLE = 44,
+  SERVER_ERROR = 45,
+  SERVER_INTERNAL_ERROR = 46,
+  NOT_IMPLEMENTED = 47,
+  BAD_GATEWAY = 48,
+  SERVICE_UNAVAILABLE = 49,
+  SERVER_TIMEOUT = 50,
+  VERSION_NOT_SUPPORTED = 51,
+  MESSAGE_TOO_LARGE = 52,
+  GLOBAL_ERROR = 53,
+  BUSY_EVERYWHERE = 54,
+  DECLINE = 55,
+  DOES_NOT_EXIST_ANYWHERE = 56,
+  SESSION_NOT_ACCEPTABLE = 57
+}
+
+export interface WWWAuthenticate {
+  realm: string
+  domain: string
+  nonce: string
+  scheme: string
+  algorithm: string
+  qop: string
+  opaque: string
+  stale: boolean
+}
+
+export interface Authorization {
+  realm: string
+  scheme: string
+  nonce: string
+  cNonce: string
+  nonceCount: number
+  response: string
+  username: string
+  uri: string
+  algorithm: string
+  qop: string
+  opaque: string
+  method?: string
+}
+
+export interface CallID {
+  callId: string
+}
+
+export interface ContentLength {
+  contentLength: number
+}
+
+export interface Extension {
+  name: string
+  value: string
+}
+
+export interface Via {
+  host: string
+  port: number
+  branch: string
+  transport: Transport
+}
+
+export interface SipURI {
+  user: string
+  host: string
+  port: number
+  transportParam: string
+  mAddrParam: string
+  userParam: string
+  ttlParam: number
+  lrParam: boolean
+  methodParam: string
+  secure: boolean
+  userPassword: string
+}
+
+export interface Address {
+  uri: SipURI
+  displayName: string
+  wildcard: boolean
+}
+
+export interface MaxForwards {
+  maxForwards: number
+}
+
+// Renamed to avoid conflict with the Route type
+export interface RouteHeader {
+  address: Address
+  parameters?: Record<string, string>
+}
+
+export interface RecordRoute {
+  address: Address
+  parameters?: Record<string, string>
+}
+
+export interface From {
+  address: Address
+  tag: string
+  parameters?: Record<string, string>
+}
+
+export interface To {
+  address: Address
+  tag: string
+  parameters?: Record<string, string>
+}
+
+export interface Contact {
+  address: Address
+  expires: number
+  qValue: number
+}
+
+export interface Expires {
+  expires: number
+}
+
+export interface SIPMessage {
+  messageType: "responseType" | "requestUri"
+  responseType?: ResponseType
+  requestUri?: SipURI
+  from: From
+  to: To
+  contact: Contact
+  callId: CallID
+  contentLength: ContentLength
+  expires?: Expires
+  wwwAuthenticate?: WWWAuthenticate
+  maxForwards: MaxForwards
+  authorization?: Authorization
+  extensions?: Extension[]
+  via: Via[]
+  route?: RouteHeader[]
+  recordRoute?: RecordRoute[]
 }
