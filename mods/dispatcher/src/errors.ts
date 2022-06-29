@@ -18,9 +18,17 @@
  */
 import grpc = require("@grpc/grpc-js")
 
+/**
+ * Thrown when no backened matches the request.
+ */
 export class NotMatchingProcessorFound extends Error {
   code: grpc.status
 
+  /**
+   * Creates a new instance of NotMatchingProcessorFound.
+   *
+   * @param {string} ref - The reference of the processor
+   */
   constructor(ref: string) {
     super(`not matching processor found for request ref: ${ref}`)
     this.code = grpc.status.NOT_FOUND
@@ -29,9 +37,17 @@ export class NotMatchingProcessorFound extends Error {
   }
 }
 
+/**
+ * Thrown when the processor is not available.
+ */
 export class ProcessorUnavailableError extends Error {
   code: number
 
+  /**
+   * Creates a new instance of NotMatchingProcessorFound.
+   *
+   * @param {string} ref - The reference of the processor
+   */
   constructor(ref: string) {
     super(`processor ref = ${ref} is unavailable`)
     this.code = grpc.status.UNAVAILABLE
@@ -40,9 +56,17 @@ export class ProcessorUnavailableError extends Error {
   }
 }
 
+/**
+ * Thrown when the middleware is not available.
+ */
 export class MiddlewareUnavailableError extends Error {
   code: number
 
+  /**
+   * Creates a new instance of NotMatchingProcessorFound.
+   *
+   * @param {string} ref - The reference of the processor
+   */
   constructor(ref: string) {
     super(`middleware ref = ${ref} is unavailable`)
     this.code = grpc.status.UNAVAILABLE

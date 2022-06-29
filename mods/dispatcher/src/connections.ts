@@ -17,24 +17,27 @@
  * limitations under the License.
  */
 import {ProcessorGPRCConnection} from "./types"
-import {PROCESSOR_OBJECT_PROTO} from "@routr/common"
+import {ProcessorConfig, PROCESSOR_OBJECT_PROTO} from "@routr/common"
+import {MiddlewareConfig} from "@routr/common/src/types"
 import * as grpc from "@grpc/grpc-js"
 
 /**
  * Creates a connection to all the backend processors. The function will
  * fail if any of the backends is unavailable during initialization.
  *
- * @param processors list of backend processors
- * @return list of connections
+ * @param {ProcessorConfig} processors list of backend processors
+ * @return {ProcessorGPRCConnection}
  */
 export default function connectToBackend(
-  processors: {ref: string; addr: string}[]
+  processors: ProcessorConfig[] | MiddlewareConfig[]
 ): Map<string, ProcessorGPRCConnection> {
   const procs = processors ? [...processors] : []
   const connections = new Map<string, ProcessorGPRCConnection>()
+  // eslint-disable-next-line no-loops/no-loops
   for (const processor of procs) {
     connections.set(
       processor.ref,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       new (PROCESSOR_OBJECT_PROTO as any).Processor(
         processor.addr,
         grpc.credentials.createInsecure()

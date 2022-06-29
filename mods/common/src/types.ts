@@ -321,7 +321,7 @@ export interface SIPMessage {
 }
 
 export interface GrpcCallback {
-  (error: Error | null, response?: unknown): void
+  (error: Error | {code: number} | null, response?: unknown): void
 }
 
 export interface GrpcCall {

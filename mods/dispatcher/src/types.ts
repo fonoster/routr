@@ -26,13 +26,15 @@ export interface MessageDispatcherConfig {
 }
 
 export interface ProcessorGPRCConnection {
-  processMessage: (request: unknown, callback: Function) => void
+  processMessage: (request: unknown, callback: CT.GrpcCallback) => void
 }
 
 export type CallbackErrors =
   | NotMatchingProcessorFound
   | ProcessorUnavailableError
   | Error
+  | {code: number; message?: string}
+  | null
 
 export type ProcessorCallback = (
   err: CallbackErrors,
@@ -40,14 +42,14 @@ export type ProcessorCallback = (
 ) => void
 
 export interface RunProcessorParams {
-  callback: Function
+  callback: CT.GrpcCallback
   connections: Map<string, ProcessorGPRCConnection>
   processors: ProcessorConfig[]
   request: MessageRequest
 }
 
 export interface RunMiddlewaresParams {
-  callback: Function
+  callback: CT.GrpcCallback
   connections: Map<string, ProcessorGPRCConnection>
   middlewares: CT.MiddlewareConfig[]
   request: MessageRequest

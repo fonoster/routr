@@ -21,6 +21,7 @@ import fs from "fs"
 import {schema} from "./schema"
 import Ajv from "ajv"
 import * as E from "fp-ts/Either"
+import {ProcessorConfig} from "@routr/common"
 
 const ajv = new Ajv()
 const validate = ajv.compile(schema)
@@ -35,9 +36,9 @@ export const getConfig = (
   }
 
   // convert funcMatch to actual functions
-  const processors = c.spec.processors.map((p: any) => {
-    const {ref, isFallback, addr, methods, matchFunc} = p
-    return {ref, isFallback, addr, methods, matchFunc: eval(`(${matchFunc})`)}
+  const processors = c.spec.processors.map((p: ProcessorConfig) => {
+    const {ref, addr, methods, matchFunc} = p
+    return {ref, addr, methods, matchFunc: eval(`(${matchFunc})`)}
   })
 
   // Re-insert processors with matchFunc now as a function

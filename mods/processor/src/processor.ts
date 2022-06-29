@@ -54,7 +54,8 @@ export default class Processor {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       service: (PROCESSOR_OBJECT_PROTO as any).Processor.service,
       handlers: {
-        processMessage: (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        processMessage: (call: CT.GrpcCall, callback: any) => {
           func(
             call.request as unknown as MessageRequest,
             new Response(callback)

@@ -30,4 +30,4 @@ export const findProcessor =
   (list: Array<ProcessorConfig>) =>
   (request: MessageRequest): NotMatchingProcessorFound | ProcessorConfig =>
     list.find((config: ProcessorConfig) => filter(request, config)) ||
-    new NotMatchingProcessorFound(request.ref)
+    new NotMatchingProcessorFound(request?.ref)

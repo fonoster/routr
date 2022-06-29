@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {MessageRequest, CommonTypes as CT} from "@routr/common"
+import {MessageRequest} from "@routr/common"
 
 const buildResponse = (
   code: number,
@@ -29,14 +29,14 @@ const buildResponse = (
  * Response object.
  */
 export default class Response {
-  callback: CT.GrpcCallback
+  callback: (call: unknown, response: unknown) => void
 
   /**
    * Creates a new Response object.
    *
    * @param {GrpcCallback} callback - The callback to be called when the response is ready.
    */
-  constructor(callback: CT.GrpcCallback) {
+  constructor(callback: (call: unknown, response: unknown) => void) {
     this.callback = callback
   }
 

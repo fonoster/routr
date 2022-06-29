@@ -16,12 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("dispatcher")
 import {MessageDispatcherConfig} from "./types"
 import {createService} from "@routr/common"
 import {getServiceInfo} from "./util"
 
-export default function MessageDispatcher(config: MessageDispatcherConfig) {
+/**
+ * Creates a service that can be used to dispatch messages to the backend processors.
+ *
+ * @param {MessageDispatcherConfig} config - Configuration for the dispatcher
+ */
+export default function messageDispatcher(config: MessageDispatcherConfig) {
   const {bindAddr, processors, middlewares} = config
   createService(getServiceInfo(bindAddr, {processors, middlewares}))
 }

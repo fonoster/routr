@@ -24,6 +24,13 @@ import {
   CommonTypes as CT
 } from "@routr/common"
 
+/**
+ * Gets the service metadata for the dispatcher.
+ *
+ * @param {string} bindAddr - The address to bind to
+ * @param {object} backends - The backends to use
+ * @return {ServiceInfo}
+ */
 export function getServiceInfo(
   bindAddr: string,
   backends: {middlewares: CT.MiddlewareConfig[]; processors: ProcessorConfig[]}
@@ -31,6 +38,7 @@ export function getServiceInfo(
   return {
     name: "dispatcher",
     bindAddr,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     service: (PROCESSOR_OBJECT_PROTO as any).Processor.service,
     handlers: {
       processMessage: processor(backends)

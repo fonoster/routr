@@ -22,26 +22,30 @@ import {MessageRequest, MessageResponse, CommonTypes as CT} from "@routr/common"
 import logger from "@fonoster/logger"
 import * as grpc from "@grpc/grpc-js"
 
+// eslint-disable-next-line require-jsdoc
 async function processMessage(
   middlewareRef: string,
   conn: ProcessorGPRCConnection,
   request: MessageRequest
 ): Promise<MessageResponse> {
   return new Promise((resolve, reject) => {
-    conn.processMessage(request, (err: any, response: any) => {
+    conn.processMessage(request, (err: {code: number}, response: unknown) => {
       return err?.code === grpc.status.UNAVAILABLE
         ? reject(new MiddlewareUnavailableError(middlewareRef))
-        : resolve(response)
+        : resolve(response as MessageResponse)
     })
   })
 }
 
+// eslint-disable-next-line require-jsdoc
 export async function runMiddlewares(
   params: RunMiddlewaresParams
 ): Promise<MessageRequest> {
   const {connections, request, middlewares = []} = params
   const req = {...request}
+  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, rejects) => {
+    // eslint-disable-next-line no-loops/no-loops
     for (const midd of middlewares) {
       logger.silly("sending request to middleware", {
         ref: request.ref,

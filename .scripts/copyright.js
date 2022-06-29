@@ -2,7 +2,7 @@
  * Copyright (C) <%= YEAR %> by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
- * This file is part of nodejs-service
+ * This file is part of Routr.
  *
  * Licensed under the MIT License (the "License");
  * you may not use this file except in compliance with

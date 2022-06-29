@@ -18,12 +18,18 @@
  */
 import connectToBackend from "./connections"
 import {ProcessorConfig} from "@routr/common"
-import {ProcessorCallback} from "./types"
+import {ProcessorCallback, RunProcessorParams} from "./types"
 import {runProcessor} from "./run_processor"
 import {CommonTypes as CT} from "@routr/common"
 import {runMiddlewares} from "./run_middlewares"
 import logger from "@fonoster/logger"
 
+/**
+ * Creates a new instance of Processor.
+ *
+ * @param {object} params - The parameters of the processor
+ * @return {Processor}
+ */
 export default function processor(params: {
   processors: ProcessorConfig[]
   middlewares?: CT.MiddlewareConfig[]
@@ -33,7 +39,7 @@ export default function processor(params: {
   const middConns = connectToBackend(middlewares)
 
   // Upstream request and callback
-  return (call: any, callback: ProcessorCallback): void => {
+  return (call: RunProcessorParams, callback: ProcessorCallback): void => {
     const {request} = call
 
     // Messages type reponse will not be sent to middleware chain

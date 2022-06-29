@@ -23,6 +23,12 @@ import logger from "@fonoster/logger"
 import ot from "@opentelemetry/api"
 import grpc = require("@grpc/grpc-js")
 
+/**
+ * Runs the processor.
+ *
+ * @param {RunProcessorParams} params - The parameters for the run processor
+ * @return {Promise<any>}
+ */
 export function runProcessor(params: RunProcessorParams) {
   const currentSpan = ot.trace.getSpan(ot.context.active())
   // display traceid in the terminal
@@ -44,7 +50,7 @@ export function runProcessor(params: RunProcessorParams) {
 
   const conn = connections.get(matchResult.ref)
   // Connects to downstream processor
-  conn.processMessage(request, (err: any, response: any) => {
+  conn.processMessage(request, (err: {code: number}, response: unknown) => {
     if (err?.code === grpc.status.UNAVAILABLE) {
       // We augment the error to indicate which processor failed
       callback(new ProcessorUnavailableError(matchResult.ref))

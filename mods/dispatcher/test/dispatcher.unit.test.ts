@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -30,6 +31,7 @@ import {findProcessor, hasMethod} from "../src/find_processor"
 import {getConfig} from "../src/config/get_config"
 import connectToBackend from "../src/connections"
 import processor from "../src/processor"
+import {ProcessorCallback, RunProcessorParams} from "../src/types"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -122,14 +124,14 @@ describe("@routr/dispatcher", () => {
   describe("@routr/dispatcher/processor", () => {
     it("callback gets invoke with an error", (done) => {
       sandbox.stub(PROCESSOR_OBJECT_PROTO as any, "Processor").returns({
-        processMessage: (request: any, callback: Function) => {
+        processMessage: (_: unknown, callback: any) => {
           callback(new Error())
         }
       })
 
       processor({processors: [config1]})(
-        {request: messageRequest},
-        (err: Error, response: any) => {
+        {request: messageRequest} as unknown as RunProcessorParams,
+        (err: Error) => {
           if (err) {
             done()
           } else {
@@ -141,13 +143,13 @@ describe("@routr/dispatcher", () => {
 
     it("it invokes callback with correct response", (done) => {
       sandbox.stub(PROCESSOR_OBJECT_PROTO as any, "Processor").returns({
-        processMessage: (request: any, callback: Function) => {
+        processMessage: (request: unknown, callback: any) => {
           callback(null, request)
         }
       })
 
       processor({processors: [config1]})(
-        {request: messageRequest},
+        {request: messageRequest} as unknown as RunProcessorParams,
         (err: Error, response: any) => {
           if (err) {
             done(err)
@@ -161,7 +163,7 @@ describe("@routr/dispatcher", () => {
 
     it("callback gets invoke with error 14(service unavailable)", (done) => {
       sandbox.stub(PROCESSOR_OBJECT_PROTO as any, "Processor").returns({
-        processMessage: (request: any, callback: Function) => {
+        processMessage: (_: unknown, callback: ProcessorCallback) => {
           callback({
             code: 14
           })
@@ -169,9 +171,9 @@ describe("@routr/dispatcher", () => {
       })
 
       processor({processors: [config1]})(
-        {request: messageRequest},
-        (err, response: any) => {
-          expect(err.toString()).to.be.include(
+        {request: messageRequest} as unknown as RunProcessorParams,
+        (err) => {
+          expect(err?.toString()).to.be.include(
             "processor ref = processor-ref1 is unavailable"
           )
           done()
