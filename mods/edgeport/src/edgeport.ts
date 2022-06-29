@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: any
 
 import {
@@ -32,7 +33,12 @@ import getServerProperties from "./server_properties"
 const GRPCSipListener = Java.type("io.routr.GRPCSipListener")
 const ArrayList = Java.type("java.util.ArrayList")
 
-export default function EdgePort(config: EdgePortConfig) {
+/**
+ * Starts a new Edgeport service.
+ *
+ * @param {EdgePortConfig} config - Edgeport configuration
+ */
+export default function edgePort(config: EdgePortConfig) {
   assertNoDuplicatedProto(config.spec.transport)
   assertNoDuplicatedPort(config.spec.transport)
   assertHasSecurityContext(config)

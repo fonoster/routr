@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: any
 
 const BufferedWriter = Java.type("java.io.BufferedWriter")
@@ -29,7 +30,7 @@ export const readFile = (path: string) => {
     Paths.get(path),
     Java.type("java.nio.charset.StandardCharsets").UTF_8
   )
-  const data: any = []
+  const data: string[] = []
   lines.forEach((line: string) => {
     data.push(line)
   })

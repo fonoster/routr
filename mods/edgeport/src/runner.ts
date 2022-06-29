@@ -16,17 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const System: any
 
 // require("./tracer").init("dispatcher")
-import EdgePort from "./edgeport"
+import edgePortService from "./edgeport"
 import {getConfig} from "./config/get_config"
 import {EdgePortConfig} from "./types"
+import logger from "@fonoster/logger"
 
 const config = getConfig<EdgePortConfig>(System.getenv("CONFIG_PATH"))
 
 if (config._tag === "Right") {
-  EdgePort(config.right)
+  edgePortService(config.right)
 } else {
-  console.error(config.left)
+  logger.error(config.left)
 }

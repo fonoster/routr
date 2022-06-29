@@ -16,11 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
 import chai from "chai"
-// @ts-ignore
 import sinon from "sinon"
-// @ts-ignore
 import sinonChai from "sinon-chai"
 import createSipStack from "../src/create_sip_stack"
 import createListeningPoints from "../src/create_listening_points"
@@ -44,15 +41,21 @@ chai.use(sinonChai)
 const sandbox = sinon.createSandbox()
 
 const sipProvider: SipProvider = {
-  addListeningPoint: () => {},
-  addSipListener: function (lp: unknown): void {
+  addListeningPoint: () => {
+    // noop
+  },
+  addSipListener: function (): void {
     throw new Error("Function not implemented.")
   }
 }
 const sipStack = {
-  createListeningPoint: (bindAddr: string, port: number, proto: string) => {},
-  createSipProvider: (lp: ListeningPoint) => sipProvider,
-  getClass: () => {}
+  createListeningPoint: () => {
+    // noop
+  },
+  createSipProvider: () => sipProvider,
+  getClass: () => {
+    // noop
+  }
 }
 
 describe("@routr/edgeport", () => {

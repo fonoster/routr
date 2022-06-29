@@ -18,11 +18,19 @@
  */
 import {ListeningPoint, SipProvider, SipStack} from "./types"
 
+/**
+ * Creates a new SIP provider object.
+ *
+ * @param {SipStack} sipStack - SIP stack to use
+ * @param {Array<ListeningPoint>} listeningPoints - Listening points to use
+ * @return {SipProvider}
+ */
 export default function createSipProvider(
   sipStack: SipStack,
   listeningPoints: Array<ListeningPoint>
 ): SipProvider {
   const sipProvider = sipStack.createSipProvider(listeningPoints[0])
+  // eslint-disable-next-line no-loops/no-loops
   for (const lp1 of listeningPoints?.filter(
     (lp: ListeningPoint, index: number) => index > 0
   )) {

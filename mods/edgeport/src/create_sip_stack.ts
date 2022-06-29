@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: any
 
 import {SipStack} from "./types"
@@ -24,11 +25,14 @@ const SipFactory = Java.type("javax.sip.SipFactory")
 const Properties = Java.type("java.util.Properties")
 
 /**
- * Takes a properties map and returns an instance of the
- * Java object SipStack
+ * Takes a properties map and returns an instance of the SipStack(Java object).
+ *
+ * @param {Map<string, string>} props - Properties map
+ * @return {SipStack}
  */
 export default function createSipStack(props: Map<string, string>): SipStack {
   const properties = new Properties()
+  // eslint-disable-next-line no-loops/no-loops
   for (const entry of props) {
     properties.setProperty(entry[0], entry[1])
   }

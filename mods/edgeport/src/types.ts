@@ -53,14 +53,16 @@ export declare interface SipStack {
     proto: string
   ) => unknown
   createSipProvider: (lp: ListeningPoint) => SipProvider
-  getClass: () => any
+  getClass: () => unknown
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export declare interface ListeningPoint {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export declare interface Java {}
 
 export declare interface SipProvider {
   addListeningPoint: (lp: ListeningPoint) => void
   addSipListener: (lp: unknown) => void
 }
-
-export declare interface Java {}

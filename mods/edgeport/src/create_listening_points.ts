@@ -18,12 +18,19 @@
  */
 import {EdgePortConfig, ListeningPoint, SipStack} from "./types"
 
-// Creates LPs for all the given transport and throws if upstream function fails
+/**
+ * Creates "listening" points for all the given transport.
+ *
+ * @param {SipStack} sipStack - SipStack to create LPs for
+ * @param {EdgePortConfig} config - Edgeport configuration
+ * @return {ListeningPoint[]}
+ */
 export default function createListeningPoints(
   sipStack: SipStack,
   config: EdgePortConfig
 ): Array<ListeningPoint> {
   const listeningPoints: Array<ListeningPoint> = []
+  // eslint-disable-next-line no-loops/no-loops
   for (const trans of config.spec.transport) {
     const proto = trans.protocol.toLowerCase()
 

@@ -22,6 +22,9 @@ import {EdgePortConfig} from "./types"
  * Returns a Map object with the properties for the server's SipStack.
  * For more options see:
  *  https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java
+ *
+ * @param {EdgePortConfig} config - Configuration object
+ * @return {Map<string, string>}
  */
 export default function getServerProperties(
   config: EdgePortConfig
