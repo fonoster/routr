@@ -18,7 +18,7 @@
  */
 import connectToBackend from "./connections"
 import {ProcessorConfig} from "@routr/common"
-import {ProcessorCallback, RunProcessorParams} from "./types"
+import {RunProcessorParams} from "./types"
 import {runProcessor} from "./run_processor"
 import {CommonTypes as CT} from "@routr/common"
 import {runMiddlewares} from "./run_middlewares"
@@ -39,7 +39,8 @@ export default function processor(params: {
   const middConns = connectToBackend(middlewares)
 
   // Upstream request and callback
-  return (call: RunProcessorParams, callback: ProcessorCallback): void => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (call: RunProcessorParams, callback: any): void => {
     const {request} = call
 
     // Messages type reponse will not be sent to middleware chain

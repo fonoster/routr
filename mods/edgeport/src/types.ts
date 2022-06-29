@@ -53,7 +53,8 @@ export declare interface SipStack {
     proto: string
   ) => unknown
   createSipProvider: (lp: ListeningPoint) => SipProvider
-  getClass: () => unknown
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getClass: any
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

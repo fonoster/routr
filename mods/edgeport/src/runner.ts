@@ -23,12 +23,13 @@ declare const System: any
 import edgePortService from "./edgeport"
 import {getConfig} from "./config/get_config"
 import {EdgePortConfig} from "./types"
-import logger from "@fonoster/logger"
 
 const config = getConfig<EdgePortConfig>(System.getenv("CONFIG_PATH"))
 
 if (config._tag === "Right") {
   edgePortService(config.right)
 } else {
-  logger.error(config.left)
+  // WARNING: Using @fonoster/logger causes conflict with Webpack.
+  // eslint-disable-next-line no-console
+  console.log(config.left)
 }

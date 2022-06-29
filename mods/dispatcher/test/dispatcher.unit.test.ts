@@ -172,7 +172,7 @@ describe("@routr/dispatcher", () => {
 
       processor({processors: [config1]})(
         {request: messageRequest} as unknown as RunProcessorParams,
-        (err) => {
+        (err: any) => {
           expect(err?.toString()).to.be.include(
             "processor ref = processor-ref1 is unavailable"
           )
