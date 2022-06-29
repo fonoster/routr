@@ -20,7 +20,7 @@ import {DataAPI, Resource} from "../src/types"
 import {r1} from "./examples"
 import loadResources from "../../simpledata/src/utils"
 import jp from "jsonpath"
-import {FindRoutesRequest} from "@routr/location/dist/types"
+import {ILocationService} from "@routr/location"
 
 const resources: Resource[] = loadResources(
   __dirname + "/../../simpledata/etc/schemas",
@@ -41,5 +41,5 @@ export const dataAPI: DataAPI = {
 }
 
 export const locationAPI = {
-  findRoutes: (req: FindRoutesRequest) => [r1]
-}
+  findRoutes: () => [r1]
+} as unknown as ILocationService

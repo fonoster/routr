@@ -54,7 +54,8 @@ export interface Resource {
     name: string
     linkTo?: Array<string>
   }
-  spec: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  spec: Record<string, any>
 }
 
 export interface DataAPI {

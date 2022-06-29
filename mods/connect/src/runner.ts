@@ -17,13 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("dispatcher")
-import ConnectProcessor from "./service"
+import connectProcessor from "./service"
 import {Assertions as A} from "@routr/common"
 
 A.assertEnvsAreSet(["LOCATION_ADDR", "API_ADDR"])
 
-ConnectProcessor({
+connectProcessor({
   bindAddr: process.env.BIND_ADDR || "0.0.0.0:51904",
   locationAddr: process.env.LOCATION_ADDR,
   apiAddr: process.env.API_ADDR

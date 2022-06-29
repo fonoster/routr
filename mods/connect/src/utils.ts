@@ -26,17 +26,17 @@ export const isKind = (req: Resource, kind: KIND) => {
   return req == null ? false : req.kind.toLowerCase() == kind
 }
 
-export async function findDomain(dataAPI: DataAPI, domainUri: string) {
+export const findDomain = async (dataAPI: DataAPI, domainUri: string) => {
   return (
     await dataAPI.find(`$..[?(@.spec.context.domainUri=='${domainUri}')]`)
   )[0]
 }
 
-export async function findResource(
+export const findResource = async (
   dataAPI: DataAPI,
   domainUri: string,
   userpart: string
-): Promise<Resource> {
+): Promise<Resource> => {
   const domain = await findDomain(dataAPI, domainUri)
 
   // TODO: Fix jsonpath not working for logical AND and OR
@@ -55,7 +55,7 @@ export async function findResource(
   return res
 }
 
-export function getRoutingDirection(caller: Resource, callee: Resource) {
+export const getRoutingDirection = (caller: Resource, callee: Resource) => {
   if (isKind(caller, KIND.AGENT) && isKind(callee, KIND.AGENT)) {
     return ROUTING_DIRECTION.AGENT_TO_AGENT
   }
@@ -80,12 +80,12 @@ export function getRoutingDirection(caller: Resource, callee: Resource) {
   return ROUTING_DIRECTION.UNKNOWN
 }
 
-export function createPAssertedIdentity(
+export const createPAssertedIdentity = (
   req: MessageRequest,
   trunk: Resource,
   number: Resource
-): HeaderModifier {
-  const displayName = (req.message.from as any).address.displayName
+): HeaderModifier => {
+  const displayName = req.message.from.address.displayName
   const remoteNumber = number.spec.location.telUrl.split(":")[1]
   const trunkHost = getTrunkURI(trunk).host
   return {
@@ -95,10 +95,10 @@ export function createPAssertedIdentity(
   }
 }
 
-export function createRemotePartyId(
+export const createRemotePartyId = (
   trunk: Resource,
   number: Resource
-): HeaderModifier {
+): HeaderModifier => {
   const remoteNumber = number.spec.location.telUrl.split(":")[1]
   const trunkHost = getTrunkURI(trunk).host
   return {
@@ -108,10 +108,10 @@ export function createRemotePartyId(
   }
 }
 
-export async function createTrunkAuthentication(
+export const createTrunkAuthentication = async (
   dataAPI: DataAPI,
   trunk: Resource
-): Promise<HeaderModifier> {
+): Promise<HeaderModifier> => {
   const credentials = await dataAPI.get(trunk.spec.outbound.credentialsRef)
   return {
     name: "X-Gateway-Auth",
@@ -122,12 +122,14 @@ export async function createTrunkAuthentication(
   }
 }
 
-export function getTrunkURI(trunk: Resource): {
+export const getTrunkURI = (
+  trunk: Resource
+): {
   host: string
   port: number
   user: string
   transport: Transport
-} {
+} => {
   const {user, host, port, transport} = trunk.spec.outbound?.uris[0].uri
   const t = !transport
     ? (Transport.UDP as Transport)

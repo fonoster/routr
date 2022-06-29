@@ -30,6 +30,7 @@ const packageDefinition = protoLoader.loadSync(
   }
 )
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
 
 export const resources = protoDescriptor.fonoster.routr.resources

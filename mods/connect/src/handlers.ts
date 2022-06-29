@@ -29,8 +29,9 @@ import {
 import {pipe} from "fp-ts/function"
 import {router} from "./router"
 import {DataAPI} from "./types"
+import {ILocationService} from "@routr/location/src/types"
 
-export const handleRegister = (location: any) => {
+export const handleRegister = (location: ILocationService) => {
   return async (request: MessageRequest, res: Response) => {
     await location.addRoute({
       aor: T.getTargetAOR(request),
@@ -42,7 +43,7 @@ export const handleRegister = (location: any) => {
 
 // TODO: If request has X-Connect-Object then validate the JWT value and continue
 export const handleRequest =
-  (location: any, dataAPI: DataAPI) =>
+  (location: ILocationService, dataAPI?: DataAPI) =>
   async (req: MessageRequest, res: Response) => {
     // const route = getRoute(location, apiService)(req)
     try {

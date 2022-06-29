@@ -30,15 +30,16 @@ import {MessageRequest, Target as T} from "@routr/processor"
 import {UnsuportedRoutingError} from "./errors"
 import logger from "@fonoster/logger"
 import {NotRoutesFoundForAOR} from "@routr/location/src/errors"
+import {ILocationService} from "@routr/location"
 
 const getSIPURI = (uri: {user: string; host: string}) =>
   `sip:${uri.user}@${uri.host}`
 
-// TODO: Fix types for location and apiService
-export function router(location: any, dataAPI: DataAPI) {
+// eslint-disable-next-line require-jsdoc
+export function router(location: ILocationService, dataAPI: DataAPI) {
   return async (req: MessageRequest): Promise<Route> => {
-    const fromURI = (req.message as any).from.address.uri
-    const requestURI = (req.message as any).requestUri
+    const fromURI = req.message.from.address.uri
+    const requestURI = req.message.requestUri
 
     logger.verbose(
       "routing request from: " +
@@ -65,22 +66,33 @@ export function router(location: any, dataAPI: DataAPI) {
   }
 }
 
+// eslint-disable-next-line require-jsdoc
 async function agentToAgent(
-  location: any,
+  location: ILocationService,
   req: MessageRequest
 ): Promise<Route> {
   return (await location.findRoutes({aor: T.getTargetAOR(req)}))[0]
 }
 
-// TODO: Verify ACL rules
+/**
+ * From PSTN routing.
+ *
+ * @param {ILocationService} location - Location service
+ * @param {uknown} _
+ * @param {Resource} callee - The callee
+ * @return {Promise<Route>}
+ */
 async function fromPSTN(
-  location: any,
-  dataAPI: DataAPI,
+  location: ILocationService,
+  _: unknown,
   callee: Resource
 ): Promise<Route> {
-  const route = await location.findRoutes({
-    aor: callee.spec.location.aorLink
-  })[0]
+  const route = (
+    await location.findRoutes({
+      aor: callee.spec.location.aorLink
+    })
+  )[0]
+
   if (!route) {
     throw new NotRoutesFoundForAOR(callee.spec.location.aorLink)
   }
@@ -99,7 +111,7 @@ async function fromPSTN(
   return route
 }
 
-// TODO: Check if caller is athenticated
+// eslint-disable-next-line require-jsdoc
 async function toPSTN(
   dataAPI: DataAPI,
   req: MessageRequest,

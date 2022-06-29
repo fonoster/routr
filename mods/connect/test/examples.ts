@@ -50,12 +50,12 @@ export const r2: Route = {
   labels: new Map<string, string>([["priority", "1"]])
 }
 
-export function createRequest(createRequestObj: {
+export const createRequest = (createRequestObj: {
   fromDomain: string
   fromUser: string
   toDomain: string
   toUser: string
-}) {
+}) => {
   return {
     ref: "AynhXaFtbdXwHrUEzt_rUQ..",
     edgePortRef: "ep001",

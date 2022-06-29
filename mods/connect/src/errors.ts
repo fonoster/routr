@@ -19,9 +19,17 @@
 import grpc = require("@grpc/grpc-js")
 import {ROUTING_DIRECTION} from "./types"
 
+/**
+ * Throw when the API server is unavailable.
+ */
 export class ServiceUnavailableError extends Error {
   code: number
 
+  /**
+   * Create a new ServiceUnavailableError.
+   *
+   * @param {string} message - The error message
+   */
   constructor(message: string) {
     super(message)
     this.code = grpc.status.UNAVAILABLE
@@ -30,9 +38,17 @@ export class ServiceUnavailableError extends Error {
   }
 }
 
+/**
+ * Throw when the route is not supported.
+ */
 export class UnsuportedRoutingError extends Error {
   code: number
 
+  /**
+   * Create a new ServiceUnavailableError.
+   *
+   * @param {string} routingDir - The routing direction
+   */
   constructor(routingDir: ROUTING_DIRECTION) {
     super("unsopported routing direction: " + routingDir)
     this.code = grpc.status.UNKNOWN

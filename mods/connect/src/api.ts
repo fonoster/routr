@@ -21,6 +21,12 @@ import {Resource} from "./types"
 import {ServiceUnavailableError} from "./errors"
 import grpc = require("@grpc/grpc-js")
 
+/**
+ * Data API for the Connect module.
+ *
+ * @param {string} apiAddr - The address of the API server
+ * @return {Promise<Resource[]>}
+ */
 export function API(apiAddr: string) {
   const client = new resources.v2draft1.Resources(
     apiAddr,
@@ -30,7 +36,7 @@ export function API(apiAddr: string) {
   return {
     get: (ref: string) =>
       new Promise<Resource>((resolve, reject) => {
-        client.get({ref}, (err: any, response: any) => {
+        client.get({ref}, (err: {code: number}, response: Resource) => {
           if (err) {
             return err?.code === grpc.status.UNAVAILABLE
               ? reject(
@@ -45,18 +51,21 @@ export function API(apiAddr: string) {
       }),
     find: (query: string) =>
       new Promise<Resource[]>((resolve, reject) => {
-        client.find({query}, (err: any, response: any) => {
-          if (err) {
-            return err?.code === grpc.status.UNAVAILABLE
-              ? reject(
-                  new ServiceUnavailableError(
-                    `api server at ${apiAddr} is unavailable`
+        client.find(
+          {query},
+          (err: {code: number}, response: {resources: Resource[]}) => {
+            if (err) {
+              return err?.code === grpc.status.UNAVAILABLE
+                ? reject(
+                    new ServiceUnavailableError(
+                      `api server at ${apiAddr} is unavailable`
+                    )
                   )
-                )
-              : reject(err)
+                : reject(err)
+            }
+            resolve(response.resources)
           }
-          resolve(response.resources)
-        })
+        )
       })
   }
 }

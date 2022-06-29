@@ -31,9 +31,11 @@ import logger from "@fonoster/logger"
 import {API} from "./api"
 import {tailor} from "./tailor"
 
+// eslint-disable-next-line require-jsdoc
 export default function ConnectProcessor(config: ConnectProcessorConfig) {
   const {bindAddr, locationAddr} = config
   const location = new Location({addr: locationAddr})
+  // eslint-disable-next-line new-cap
   const dataAPI: DataAPI = API(config.apiAddr)
 
   new Processor({bindAddr, name: "connect"}).listen(
@@ -62,9 +64,11 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           res.sendMethodNotAllowed()
           break
         case "CANCEL":
+          // eslint-disable-next-line no-case-declarations
           const route = (
             await location.findRoutes({aor: T.getTargetAOR(req)})
           )[0]
+
           if (route) {
             res.sendOk([
               {

@@ -22,11 +22,12 @@ import sinonChai from "sinon-chai"
 import {request, route} from "@routr/processor/test/examples"
 import {MessageRequest, Route, Transport} from "@routr/common"
 import {handleRegister, handleRequest} from "../src/handlers"
-import {Extensions as E, Helper as HE} from "@routr/processor"
+import {Extensions as E, Helper as HE, Response} from "@routr/processor"
 import {createRequest, r1} from "./examples"
 import {router} from "../src/router"
 import {dataAPI, locationAPI} from "./mock_apis"
 import {findResource} from "../src/utils"
+import {ILocationService} from "@routr/location"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -37,6 +38,7 @@ describe("@routr/connect", () => {
 
   it("updates a request for inter-domain routing", () => {
     // Test tailor method
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const tailor = require("../src/tailor").tailor
     const tailoredRequest = tailor(route as Route, request as MessageRequest)
     expect(tailoredRequest.message.requestUri.user).to.equal(route.user)
@@ -46,7 +48,9 @@ describe("@routr/connect", () => {
 
   it("handles a register request", (done) => {
     const location = {
-      addRoute: (aor: string, route: Route) => {}
+      addRoute: () => {
+        // noop
+      }
     }
     const addRoute = sandbox.spy(location, "addRoute")
     const response = {
@@ -54,8 +58,8 @@ describe("@routr/connect", () => {
         expect(addRoute).to.have.been.calledOnce
         done()
       }
-    } as any
-    handleRegister(location)(request, response)
+    } as unknown as Response
+    handleRegister(location as unknown as ILocationService)(request, response)
   })
 
   it("handles a request from another edgeport", async () => {
@@ -71,12 +75,14 @@ describe("@routr/connect", () => {
       HE,
       "createRouteFromLastMessage"
     )
-    const location = {findRoutes: (aor: string) => [route]}
+    const location = {findRoutes: () => [route]}
     const findRoutes = sandbox.spy(location, "findRoutes")
     const response = {
-      send: () => {}
-    } as any
-    await handleRequest(location, null)(req, response)
+      send: () => {
+        // noop
+      }
+    } as unknown as Response
+    await handleRequest(location as unknown as ILocationService)(req, response)
     expect(getHeaderValue).to.have.been.calledTwice
     expect(createRouteFromLastMessage).to.have.been.calledOnce
     expect(findRoutes).to.not.have.been.called
