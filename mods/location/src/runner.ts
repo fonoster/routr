@@ -17,9 +17,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("dispatcher")
 import logger from "@fonoster/logger"
-import LocationService from "./service"
+import locationService from "./service"
 import {getConfig} from "./config/get_config"
 import {Assertions as A} from "@routr/common"
 
@@ -28,7 +29,7 @@ A.assertEnvsAreSet(["CONFIG_PATH"])
 const result = getConfig(process.env.CONFIG_PATH)
 
 if (result._tag === "Right") {
-  LocationService(result.right)
+  locationService(result.right)
 } else {
   logger.error(result.left)
 }

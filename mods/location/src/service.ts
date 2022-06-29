@@ -31,6 +31,11 @@ import logger from "@fonoster/logger"
 
 const allowedParameters = ["host", "port", "username", "password", "secure"]
 
+/**
+ * Creates a new locator service.
+ *
+ * @param {LocationConfig} config - Service configuration
+ */
 export default function LocationService(config: LocationConfig) {
   const {bindAddr, cache} = config
   let store
@@ -40,7 +45,7 @@ export default function LocationService(config: LocationConfig) {
       configFromString(
         cache.parameters,
         allowedParameters
-      ) as any as RedisStoreConfig
+      ) as unknown as RedisStoreConfig
     )
   } else {
     store = new MemoryStore()

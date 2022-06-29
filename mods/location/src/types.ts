@@ -74,7 +74,7 @@ export interface LocationConfig {
   backends?: Backend[]
   cache?: {
     provider: CACHE_PROVIDER
-    parameters: string
+    parameters?: string
   }
 }
 

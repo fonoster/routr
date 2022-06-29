@@ -23,9 +23,17 @@ export type InvalidConfiguration =
   | BadAlgorithmAndAffinityCombination
   | InvalidSchemaConfiguration
 
+/**
+ * Error thrown when the location service returns an unsupported schema.
+ */
 export class UnsupportedSchema extends Error {
   code: grpc.status
 
+  /**
+   * Create a new UnsupportedSchema error.
+   *
+   * @param {string} aor - The AOR that was requested
+   */
   constructor(aor: string) {
     super(
       `aor ${aor} has an invalid schema, only "sip:" or "backend:" are allowed`
@@ -36,9 +44,17 @@ export class UnsupportedSchema extends Error {
   }
 }
 
+/**
+ * Error thrown when the location service returns no routes for the AOR.
+ */
 export class NotRoutesFoundForAOR extends Error {
   code: number
 
+  /**
+   * Create a new NotRoutesFoundForAOR error.
+   *
+   * @param {string} aor - The AOR that was requested
+   */
   constructor(aor: string) {
     super(`no routes found for aor: ${aor}`)
     this.code = grpc.status.NOT_FOUND
@@ -46,9 +62,17 @@ export class NotRoutesFoundForAOR extends Error {
   }
 }
 
+/**
+ * Error thrown when the location finds a bad configuration.
+ */
 export class InvalidSchemaConfiguration extends Error {
   code: grpc.status
 
+  /**
+   * Create a new InvalidSchemaConfiguration error.
+   *
+   * @param {string} msg - Message from the validation error
+   */
   constructor(msg: string) {
     super(msg)
     this.code = grpc.status.INVALID_ARGUMENT
@@ -56,9 +80,15 @@ export class InvalidSchemaConfiguration extends Error {
   }
 }
 
+/**
+ * Error thrown when the location finds incompatible algorithm and session affinity.
+ */
 export class BadAlgorithmAndAffinityCombination extends Error {
   code: grpc.status
 
+  /**
+   * Create a new BadAlgorithmAndAffinityCombination error.
+   */
   constructor() {
     super(
       "session affinity can not be combined with round-robin load balancing"
@@ -67,9 +97,15 @@ export class BadAlgorithmAndAffinityCombination extends Error {
   }
 }
 
+/**
+ * Error thrown when the location finds an invalid balancing algorithm.
+ */
 export class InvalidLoadBalancerAlgorithm extends Error {
   code: grpc.status
 
+  /**
+   * Create a new InvalidLoadBalancerAlgorithm error.
+   */
   constructor() {
     super(
       "found invalid load balancing algorithm. must be round-robin or least-sessions"

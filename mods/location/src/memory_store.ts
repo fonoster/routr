@@ -22,16 +22,25 @@ import {duplicateFilter, expiredFilter} from "./utils"
 
 const MAX_CYCLES_BEFORE_CLEANUP = 10000
 
+/**
+ * In-memory store for the locator service.
+ */
 export default class MemoryStore implements ILocatorStore {
   private collections: Map<string, Route[]>
   private cleanupCount: number
   private maxCyclesBeforeCleanup: number
 
+  /**
+   * Creates a new in-memory store.
+   *
+   * @param {number} maxCyclesBeforeCleanup - Maximum number of cycles before cleanup
+   */
   constructor(maxCyclesBeforeCleanup: number = MAX_CYCLES_BEFORE_CLEANUP) {
     this.collections = new Map<string, Route[]>()
     this.maxCyclesBeforeCleanup = maxCyclesBeforeCleanup
   }
 
+  /** @inheritdoc */
   public put(key: string, route: Route): Promise<void> {
     const routes = [...(this.collections.get(key) || [])]
 
@@ -49,6 +58,7 @@ export default class MemoryStore implements ILocatorStore {
     return
   }
 
+  /** @inheritdoc */
   public get(key: string): Promise<Route[]> {
     // Cleanup every so often to avoid memory build up
     this.cleanupCount++
@@ -61,15 +71,18 @@ export default class MemoryStore implements ILocatorStore {
     )
   }
 
+  /** @inheritdoc */
   public delete(key: string): Promise<void> {
     this.collections.delete(key)
     return
   }
 
+  /** @inheritdoc */
   public size() {
     return this.collections.size
   }
 
+  /** @inheritdoc */
   public cleanup() {
     // Remove any expired route from collection
     this.collections.forEach((routes, key) => {

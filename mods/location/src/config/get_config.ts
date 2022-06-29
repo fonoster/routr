@@ -55,10 +55,10 @@ export const getConfig = (
     )
   }
 
-  const config = c.spec as any
+  const config = c.spec as LocationConfig
 
   if (config.backends) {
-    config.backends.map((b: any) => {
+    config.backends.map((b: Backend) => {
       // Setting round-robin by default
       b.balancingAlgorithm = b.balancingAlgorithm
         ? b.balancingAlgorithm

@@ -22,19 +22,29 @@ import {createClient} from "redis"
 import {getUrlString} from "./utils"
 import logger from "@fonoster/logger"
 
+/**
+ * Redis store for the locator service.
+ */
 export default class RedisStore implements ILocatorStore {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   client: any
 
+  /**
+   * Creates a new redis store.
+   *
+   * @param {RedisStoreConfig} config - Optional store config
+   */
   constructor(config?: RedisStoreConfig) {
     this.client = config
       ? createClient({url: getUrlString(config)})
       : createClient()
     this.client.connect()
-    this.client.on("error", (err: any) =>
+    this.client.on("error", (err: unknown) =>
       logger.error("redis client error: ", err)
     )
   }
 
+  /** @inheritdoc */
   public async put(key: string, route: Route): Promise<void> {
     // Formatted the key to ensure it is unique
     await this.client.set(
@@ -47,8 +57,10 @@ export default class RedisStore implements ILocatorStore {
     return
   }
 
+  /** @inheritdoc */
   public async get(key: string): Promise<Route[]> {
     const routes = []
+    // eslint-disable-next-line no-loops/no-loops
     for await (const k of await this.client.scanIterator({
       CURSOR: 0,
       MATCH: `${key}:*`
@@ -58,7 +70,9 @@ export default class RedisStore implements ILocatorStore {
     return routes
   }
 
+  /** @inheritdoc */
   public async delete(key: string): Promise<void> {
+    // eslint-disable-next-line no-loops/no-loops
     for await (const k of await this.client.scanIterator({
       CURSOR: 0,
       MATCH: `${key}:*`

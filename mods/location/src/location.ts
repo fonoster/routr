@@ -34,13 +34,21 @@ enum AOR_SCHEME {
   BACKEND = "backend:"
 }
 
+/**
+ * A locator store that uses the location service to find routes for AORs.
+ */
 export default class Location implements ILocationService {
   private store: ILocatorStore
   private backends: Map<string, Backend>
   private rrCount: Map<string, number>
   private affinityStore: Map<string, Route>
 
-  // Should fail if any backend has sessionAffinity and round-robin
+  /**
+   * Creates a new Location service. Should fail if any backend has sessionAffinity and round-robin
+   *
+   * @param {ILocatorStore} store - The store to use for the location service
+   * @param {Map<string, Backend>} backends - The backends to use for the location service
+   */
   constructor(
     store: ILocatorStore,
     backends: Map<string, Backend> = new Map()
@@ -52,6 +60,7 @@ export default class Location implements ILocationService {
     this.backends.forEach((value, key) => this.rrCount.set(key, 0))
   }
 
+  /** @inheritdoc */
   public addRoute(request: AddRouteRequest): Promise<void> {
     if (
       !request.aor.startsWith(AOR_SCHEME.SIP) &&
@@ -62,6 +71,7 @@ export default class Location implements ILocationService {
     return this.store.put(request.aor, request.route)
   }
 
+  /** @inheritdoc */
   public async findRoutes(request: FindRoutesRequest): Promise<Route[]> {
     const routes = request.labels
       ? (await this.store.get(request.aor)).filter(
@@ -86,10 +96,12 @@ export default class Location implements ILocationService {
     throw new UnsupportedSchema(request.aor)
   }
 
+  /** @inheritdoc */
   public removeRoutes(request: RemoveRoutesRequest): Promise<void> {
     return this.store.delete(request.aor)
   }
 
+  // eslint-disable-next-line require-jsdoc
   private next(routes: Array<Route>, backend: Backend): Route {
     if (backend.balancingAlgorithm === LB_ALGORITHM.LEAST_SESSIONS) {
       return routes.sort((r1, r2) => r1.sessionCount - r2.sessionCount)[0]
@@ -110,6 +122,7 @@ export default class Location implements ILocationService {
   }
 
   // Backend with session affinity does not support round-robin
+  // eslint-disable-next-line require-jsdoc
   private nextWithAffinity(
     routes: Array<Route>,
     sessionAffinityRef: string

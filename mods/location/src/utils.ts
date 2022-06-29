@@ -16,9 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {LOCATION_OBJECT_PROTO, Route, ServiceInfo} from "@routr/common"
+import {
+  LOCATION_OBJECT_PROTO,
+  Route,
+  ServiceInfo,
+  CommonTypes as CT
+} from "@routr/common"
 import {NotRoutesFoundForAOR} from "./errors"
-import {ILocationService, RedisStoreConfig} from "./types"
+import {
+  AddRouteRequest,
+  FindRoutesRequest,
+  ILocationService,
+  RedisStoreConfig
+} from "./types"
 
 export const expiredFilter = (r: Route) =>
   r.expires - (Date.now() - r.registeredOn) / 1000 > 0
@@ -38,28 +48,31 @@ export const filterOnlyMatchingLabels =
       ? compareArrays(mergeKeyValue(requestLabels), mergeKeyValue(route.labels))
       : false
 
-export function getServiceInfo(
+export const getServiceInfo = (
   bindAddr: string,
   locator: ILocationService
-): ServiceInfo {
+): ServiceInfo => {
   return {
     name: "location",
     bindAddr,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     service: (LOCATION_OBJECT_PROTO as any).Location.service,
     handlers: {
-      addRoute: (call, callback) => {
+      addRoute: (call: CT.GrpcCall, callback) => {
         try {
-          locator.addRoute((call as any).request)
+          locator.addRoute(call.request as AddRouteRequest)
           callback(null, {})
         } catch (e) {
           callback(e, null)
         }
       },
-      findRoutes: async (call, callback) => {
+      findRoutes: async (call: CT.GrpcCall, callback) => {
         try {
-          const routes = await locator.findRoutes((call as any).request)
+          const routes = await locator.findRoutes(
+            call.request as FindRoutesRequest
+          )
           if (routes.length === 0)
-            throw new NotRoutesFoundForAOR((call as any).request.aor)
+            throw new NotRoutesFoundForAOR(call.request.aor)
           callback(null, {
             routes: routes
           })
@@ -67,10 +80,10 @@ export function getServiceInfo(
           callback(e, null)
         }
       },
-      removeRoutes: async (call, callback) => {
+      removeRoutes: async (call: CT.GrpcCall, callback) => {
         try {
           callback(null, {
-            routes: await locator.findRoutes((call as any).request)
+            routes: await locator.findRoutes(call.request as FindRoutesRequest)
           })
         } catch (e) {
           callback(e, null)
@@ -91,7 +104,7 @@ export const configFromString = (
       const key = par.split("=")[0]
       const value = par.split("=")[1]
       if (allowedKeys.indexOf(key) === -1) {
-        throw `invalid parameter: ${key}`
+        throw new Error(`invalid parameter: ${key}`)
       } else {
         parameters[key] = value === "true" ? true : value
       }
