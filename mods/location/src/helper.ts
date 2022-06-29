@@ -28,8 +28,8 @@ import {Extensions as E, Target as T} from "@routr/processor"
 export const createRoute = (request: MessageRequest): Route => {
   const uri = request.message.contact.address.uri
   const sessionCount = E.getHeaderValue(request, "x-session-count")
-  ? parseInt(E.getHeaderValue(request, "x-session-count"))
-  : -1
+    ? parseInt(E.getHeaderValue(request, "x-session-count"))
+    : -1
 
   return {
     edgePortRef: request.edgePortRef,
