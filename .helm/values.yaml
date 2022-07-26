@@ -62,6 +62,11 @@ routr:
   ex_uniqueGatewayPerHostPort: false
   ex_convertTelToE164: false
   javaOpts: ""
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 5
+    successThreshold: 1
+    failureThreshold: 3
   ex_rtpEngine:
     enabled: false
   accessControlList:
