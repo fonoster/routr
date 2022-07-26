@@ -63,7 +63,7 @@ routr:
   ex_convertTelToE164: false
   javaOpts: ""
   livenessProbe:
-    initialDelaySeconds: 15
+    initialDelaySeconds: 60
     periodSeconds: 5
     successThreshold: 1
     failureThreshold: 3
