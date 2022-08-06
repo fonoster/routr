@@ -25,10 +25,10 @@ import java.io.IOException;
 
 public class Launcher {
 
-  private final static Logger LOG = LogManager.getLogger(Requester.class);
-
+  private final static Logger LOG = LogManager.getLogger(Launcher.class);
   static public void main(String... args) {
     try {
+      // TODO: Make this a configuratable option
       var proxyAddr = "192.168.1.3:5060";
       var bindAddr = "192.168.1.3";
       var requester = new Requester(proxyAddr, bindAddr);
