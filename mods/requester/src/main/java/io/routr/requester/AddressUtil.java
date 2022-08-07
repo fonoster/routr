@@ -19,7 +19,7 @@
 package io.routr.requester;
 
 final public class AddressUtil {
-    
+
   public static String getHostFromAddress(final String address) {
     if (address.split(":").length != 2) {
       throw new IllegalArgumentException("malformated address; must be ${host}:${port}");
@@ -31,6 +31,13 @@ final public class AddressUtil {
     if (address.split(":").length != 2) {
       throw new IllegalArgumentException("malformated address; must be ${host}:${port}");
     }
-    return Integer.parseInt(address.split(":")[1]);
+    try {
+      return Integer.parseInt(address.split(":")[1]);
+    } catch(Exception e) {
+      if (e instanceof NumberFormatException) {
+        throw new IllegalArgumentException("expects port to be a number");
+      }
+    }
+    return -1;
   }
 }
