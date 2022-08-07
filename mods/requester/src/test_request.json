@@ -37,7 +37,18 @@
         "transport": "TCP"
       }
     ],
-    "route": [],
+    "route": [
+      {
+        "address": {
+          "uri": {
+            "host": "localhost",
+            "port": 5060,
+            "transport_param": "TCP",
+            "lr_param": true
+          }
+        }
+      }  
+    ],
     "record_route": [],
     "from": {
       "parameters": {

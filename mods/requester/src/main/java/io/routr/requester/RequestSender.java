@@ -32,10 +32,10 @@ final public class RequestSender {
   private MessageFactory messageFactory;
   private SipProvider sipProvider;
 
-  public RequestSender(RequesterService requesterService, final String bindAddr, final String proxyAddr) {
+  public RequestSender(RequesterService requesterService, final String bindAddr) {
     try {
       this.messageFactory = SipFactory.getInstance().createMessageFactory();
-      this.sipProvider = SIPProviderBuilder.createSipProvider(requesterService, bindAddr, proxyAddr);
+      this.sipProvider = SIPProviderBuilder.createSipProvider(requesterService, bindAddr);
     } catch (PeerUnavailableException | TransportNotSupportedException | ObjectInUseException
              | TransportAlreadySupportedException | InvalidArgumentException e) {
       LOG.error(e.getMessage());

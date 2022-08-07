@@ -17,21 +17,14 @@
  * limitations under the License.
  */
 package io.routr.requester;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import java.util.Properties;
 
 final public class SIPStackProperties {
 
-  private final static Logger LOG = LogManager.getLogger(SIPStackProperties.class);
-
-  static Properties createProperties(final String proxyAddr) {
-    LOG.info("Creating properties for local proxy" + proxyAddr);
-
+  static Properties createProperties() {
     var properties = new Properties();
     properties.setProperty("javax.sip.STACK_NAME", "routr-registry");
-    properties.setProperty("javax.sip.OUTBOUND_PROXY", proxyAddr);
+    // properties.setProperty("javax.sip.OUTBOUND_PROXY", proxyAddr);
     properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "LOG4J");
     properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "logs/debug_log.txt");
     properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "logs/server_log.txt");

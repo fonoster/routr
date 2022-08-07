@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -33,23 +34,27 @@ public class Requester {
   private final Server server;
   private final RequesterService requesterService;
   private final RequestSender requestSender;
+  private final String bindAddr;
 
-  public Requester(final String proxyAddr, final String bindAddr) {
+  public Requester(final String bindAddr) {
+    String sipBindAddr = "0.0.0.0:" + generatePort(7070, 7080);
     this.requesterService = new RequesterService(this);
-    this.requestSender = new RequestSender(requesterService, bindAddr, proxyAddr);
-    
-    // TODO: Make this a configuratable option
-    server = ServerBuilder.forPort(50072).addService(requesterService).build();
+    this.requestSender = new RequestSender(requesterService, sipBindAddr);
+    server = ServerBuilder.forPort(AddressUtil.getPortFromAddress(bindAddr))
+        .addService(requesterService).build();
+    this.bindAddr = bindAddr;
   }
 
   public void start() throws IOException {
     server.start();
-    // TODO: Take port from config
-    LOG.info("Server started, listening on " + 50072);
+
+    LOG.info("requester gRPC server started, listening on port {}",
+        AddressUtil.getPortFromAddress(bindAddr));
+
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       // Use stderr here since the logger may have been reset by its JVM shutdown
       // hook.
-      LOG.info("*** shutting down gRPC server since JVM is shutting down");
+      LOG.info("*** shutting down Requester gRPC server since JVM is shutting down");
       try {
         Requester.this.stop();
       } catch (InterruptedException e) {
@@ -65,8 +70,13 @@ public class Requester {
     }
   }
 
-  public void sendRequest(final SendMessageRequest request) throws InvalidArgumentException, ParseException, SipException {
+  public void sendRequest(final SendMessageRequest request)
+      throws InvalidArgumentException, ParseException, SipException {
     this.requestSender.sendRequest(request);
   }
 
+  private int generatePort(int min, int max) {
+    Random random = new Random();
+    return random.nextInt(max - min) + min;
+  }
 }

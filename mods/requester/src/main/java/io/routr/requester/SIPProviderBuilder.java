@@ -26,29 +26,25 @@ import org.apache.logging.log4j.Logger;
 public class SIPProviderBuilder {
   private final static Logger LOG = LogManager.getLogger(SIPProviderBuilder.class);
 
-  static public SipProvider createSipProvider(final RequesterService requesterService, final String bindAddr,
-      final String proxyAddr)
+  static public SipProvider createSipProvider(final RequesterService requesterService, final String bindAddr)
       throws PeerUnavailableException, TransportNotSupportedException, InvalidArgumentException,
       ObjectInUseException, TransportAlreadySupportedException {
-
-    // TODO: Make this a function parameter
-    int port = 7070;
-
-    if (bindAddr.split(":").length == 2) {
-      port = Integer.parseInt(bindAddr.split(":")[1]);
-    }
-
-    LOG.debug("Binding Requester to " + bindAddr + ":" + port);
 
     var sipFactory = SipFactory.getInstance();
     sipFactory.setPathName("gov.nist");
 
-    var sipStack = sipFactory.createSipStack(SIPStackProperties.createProperties(proxyAddr));
+    var sipStack = sipFactory.createSipStack(SIPStackProperties.createProperties());
+
+    final String host = AddressUtil.getHostFromAddress(bindAddr);
+    final int port = AddressUtil.getPortFromAddress(bindAddr);
+
+    LOG.info("binding sip listening points to {}:{}" , host, port);
 
     // TODO: Make this a configuratable option
-    var lpTCP = ((sipStack).createListeningPoint(bindAddr, port, "tcp"));
-    var lpUDP = (sipStack).createListeningPoint(bindAddr, port, "udp");
+    var lpTCP = (sipStack).createListeningPoint(host, port, "tcp");
+    var lpUDP = (sipStack).createListeningPoint(host, port, "udp");
     var sipProvider = (sipStack).createSipProvider(lpTCP);
+
     sipProvider.addListeningPoint(lpUDP);
 
     try {

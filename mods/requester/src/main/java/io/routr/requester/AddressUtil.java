@@ -18,25 +18,19 @@
  */
 package io.routr.requester;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.io.IOException;
-
-public class Launcher {
-  private final static Logger LOG = LogManager.getLogger(Launcher.class);
-
-  static public void main(String... args) {
-    try {
-      var bindAddr = System.getenv().get("BIND_ADDR") != null && !System.getenv().get("BIND_ADDR").isEmpty()
-          ? System.getenv().get("BIND_ADDR")
-          : "0.0.0.0:50072";
-
-      var requester = new Requester(bindAddr);
-      requester.start();
-    } catch (IOException e) {
-      LOG.fatal(e.getMessage());
-      System.exit(1);
+final public class AddressUtil {
+    
+  public static String getHostFromAddress(final String address) {
+    if (address.split(":").length != 2) {
+      throw new IllegalArgumentException("malformated address; must be ${host}:${port}");
     }
+    return address.split(":")[0];
+  }
+
+  public static int getPortFromAddress(final String address) {
+    if (address.split(":").length != 2) {
+      throw new IllegalArgumentException("malformated address; must be ${host}:${port}");
+    }
+    return Integer.parseInt(address.split(":")[1]);
   }
 }

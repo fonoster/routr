@@ -17,6 +17,7 @@ envcopy.CONFIG_PATH = __dirname + "/../config/edgeport.alt.json";
 
 const edgeport = spawn("./mods/edgeport/edgeport.sh")
 const edgeportAlt = spawn("./mods/edgeport/edgeport.sh", {env: envcopy})
+const requester = spawn("./mods/requester/requester.sh")
 const users = require(__dirname + "/../config/auth.json")
 const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.json")
 const locationConfig = getLocationConfig(__dirname + "/../config/location.json")
@@ -52,5 +53,9 @@ edgeport.stdout.on("data", (data: any) => {
 });
 
 edgeportAlt.stdout.on("data", (data: any) => {
+  process.stdout.write(`${data}`)
+});
+
+requester.stdout.on("data", (data: any) => {
   process.stdout.write(`${data}`)
 });
