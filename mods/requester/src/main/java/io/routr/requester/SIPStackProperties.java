@@ -24,10 +24,9 @@ final public class SIPStackProperties {
   static Properties createProperties() {
     var properties = new Properties();
     properties.setProperty("javax.sip.STACK_NAME", "routr-registry");
-    // properties.setProperty("javax.sip.OUTBOUND_PROXY", proxyAddr);
-    properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "LOG4J");
     properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "logs/debug_log.txt");
     properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "logs/server_log.txt");
+    properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "0");
     // Guard against denial of service attack.
     properties.setProperty("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "1048576");
     // Drop the client connection after we are done with the transaction.
@@ -40,7 +39,6 @@ final public class SIPStackProperties {
       "false");
     properties.setProperty("gov.nist.javax.sip.NIO_BLOCKING_MODE", "NONBLOCKING");
     properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "false");
-    properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "0");
     properties.setProperty("gov.nist.javax.sip.THREAD_POOL_SIZE", "8");
     properties.setProperty("gov.nist.javax.sip.REENTRANT_LISTENER", "true");
     properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "OFF");
