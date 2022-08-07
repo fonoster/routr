@@ -28,7 +28,7 @@ public class SIPStackPropertiesTests {
   @Test
   public void testCreateProperties() {
     Properties properties = SIPStackProperties.createProperties();
-    assertEquals("routr-registry", properties.get("javax.sip.STACK_NAME"));
+    assertEquals("routr-requester", properties.get("javax.sip.STACK_NAME"));
     assertEquals("logs/debug_log.txt", properties.get("gov.nist.javax.sip.DEBUG_LOG"));
     assertEquals("logs/server_log.txt", properties.get("gov.nist.javax.sip.SERVER_LOG"));
     assertEquals("1048576", properties.get("gov.nist.javax.sip.MAX_MESSAGE_SIZE"));

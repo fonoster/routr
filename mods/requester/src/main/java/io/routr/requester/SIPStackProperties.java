@@ -23,7 +23,7 @@ final public class SIPStackProperties {
 
   static Properties createProperties() {
     var properties = new Properties();
-    properties.setProperty("javax.sip.STACK_NAME", "routr-registry");
+    properties.setProperty("javax.sip.STACK_NAME", "routr-requester");
     properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "logs/debug_log.txt");
     properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "logs/server_log.txt");
     properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "0");

@@ -40,7 +40,6 @@ public class SIPProviderBuilder {
 
     LOG.info("binding sip listening points to {}:{}" , host, port);
 
-    // TODO: Make this a configuratable option
     var lpTCP = (sipStack).createListeningPoint(host, port, "tcp");
     var lpUDP = (sipStack).createListeningPoint(host, port, "udp");
     var sipProvider = (sipStack).createSipProvider(lpTCP);
