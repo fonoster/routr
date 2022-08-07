@@ -24,7 +24,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -37,7 +36,7 @@ public class Requester {
   private final String bindAddr;
 
   public Requester(final String bindAddr) {
-    String sipBindAddr = "0.0.0.0:" + generatePort(7070, 7080);
+    String sipBindAddr = "0.0.0.0:" + Utils.generatePort(7070, 7080);
     this.requesterService = new RequesterService(this);
     this.requestSender = new RequestSender(requesterService, sipBindAddr);
     server = ServerBuilder.forPort(AddressUtil.getPortFromAddress(bindAddr))
@@ -73,10 +72,5 @@ public class Requester {
   public void sendRequest(final SendMessageRequest request)
       throws InvalidArgumentException, ParseException, SipException {
     this.requestSender.sendRequest(request);
-  }
-
-  private int generatePort(int min, int max) {
-    Random random = new Random();
-    return random.nextInt(max - min) + min;
   }
 }
