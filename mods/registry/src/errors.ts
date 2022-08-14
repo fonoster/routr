@@ -4,7 +4,7 @@
  *
  * This file is part of Routr
  *
- * Licensed under the MIT License (the "License");
+ * Licensed under the MIT License (the "License")
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
@@ -17,20 +17,23 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
-import protoLoader = require("@grpc/proto-loader")
 
-const packageDefinition = protoLoader.loadSync(
-  __dirname + "/protos/resources.proto",
-  {
-    keepCase: false,
-    longs: String,
-    enums: String,
-    defaults: true,
-    oneofs: true
+export type InvalidConfiguration = InvalidSchemaConfiguration
+
+/**
+ * Error thrown when the Registry service finds a bad configuration.
+ */
+export class InvalidSchemaConfiguration extends Error {
+  code: grpc.status
+
+  /**
+   * Create a new InvalidSchemaConfiguration error.
+   *
+   * @param {string} msg - Message from the validation error
+   */
+  constructor(msg: string) {
+    super(msg)
+    this.code = grpc.status.INVALID_ARGUMENT
+    Object.setPrototypeOf(this, InvalidSchemaConfiguration.prototype)
   }
-)
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
-
-export const resources = protoDescriptor.fonoster.routr.resources
+}

@@ -16,6 +16,7 @@
     "start:echo": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/echo/src/runner",
     "start:dispatcher": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/dispatcher.json nodemon mods/dispatcher/src/runner",
     "start:location": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/location.json nodemon mods/location/src/runner",
+    "start:registry": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose CONFIG_PATH=$(pwd)/config/registry.json nodemon mods/registry/src/runner",
     "start:edgeport": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./mods/edgeport/edgeport.sh",
     "start:requester": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./mods/requester/requester.sh",
     "transpile": "tsc",

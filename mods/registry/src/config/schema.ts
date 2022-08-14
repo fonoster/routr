@@ -18,12 +18,12 @@
  */
 export const schema = {
   $id: "https://json-schema.org/draft/2020-12/schema",
-  title: "Location Service configuration",
-  description: "Configuration for an instance of the Location Service",
+  title: "Registry Service configuration",
+  description: "Configuration for an instance of the Registry Service",
   type: "object",
   properties: {
     kind: {
-      enum: ["Location", "location"]
+      enum: ["Registry", "registry"]
     },
     apiVersion: {
       enum: ["v2draft1"]
@@ -33,11 +33,15 @@ export const schema = {
       type: "object"
     },
     spec: {
-      description: "Operations spec for Location",
+      description: "Operations spec for Registry",
       type: "object",
       properties: {
         bindAddr: {
           description: "Ipv4 interface to accept request on",
+          type: "string"
+        },
+        requesterAddr: {
+          description: "Address of service to send requests to",
           type: "string"
         },
         cache: {
@@ -52,25 +56,21 @@ export const schema = {
           },
           required: ["provider"]
         },
-        backends: {
-          description: "Optional SIP backends",
+        edgePorts: {
+          description: "List of EdgePorts for outbound registrations",
           type: "array",
           items: {
             type: "object"
           },
           properties: {
-            ref: {
+            address: {
               type: "string"
             },
-            balancingAlgorithm: {
-              enum: ["round-robin", "least-sessions"]
-            },
-            withSessionAffinity: {
-              description: "Optional session affinity",
-              type: "boolean"
+            region: {
+              type: "string"
             }
           },
-          required: ["ref"]
+          required: ["address"]
         }
       }
     }

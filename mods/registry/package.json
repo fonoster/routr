@@ -1,0 +1,54 @@
+{
+  "name": "@routr/registry",
+  "version": "2.0.5-alpha.15",
+  "description": "Sends trunks registrations and maintains their bindings",
+  "author": "Pedro Sanders <psanders@fonoster.com>",
+  "homepage": "https://github.com/fonoster/routr#readme",
+  "license": "MIT",
+  "main": "dist/index",
+  "types": "dist/index",
+  "scripts": {
+    "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
+    "build": "tsc -b tsconfig.json"
+  },
+  "bin": {
+    "run_location": "dist/runner.js"
+  },
+  "directories": {
+    "src": "src",
+    "test": "test"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.5.9",
+    "@opentelemetry/api": "^1.0.4",
+    "@opentelemetry/exporter-jaeger": "^1.0.4",
+    "@opentelemetry/instrumentation": "^0.27.0",
+    "@opentelemetry/instrumentation-grpc": "^0.27.0",
+    "@opentelemetry/resources": "^1.0.4",
+    "@opentelemetry/sdk-trace-base": "^1.0.4",
+    "@opentelemetry/sdk-trace-node": "^1.0.4",
+    "@opentelemetry/semantic-conventions": "^1.0.4",
+    "@routr/common": "^2.0.5-alpha.15",
+    "@routr/processor": "^2.0.5-alpha.15",
+    "ajv": "^6.12.6",
+    "fp-ts": "^2.11.8",
+    "redis": "^4.0.4",
+    "uniqid": "^5.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fonoster/routr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fonoster/routr/issues"
+  },
+  "devDependencies": {
+    "@types/uniqid": "^5.3.2"
+  }
+}

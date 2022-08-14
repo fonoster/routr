@@ -19,7 +19,7 @@
 import {resources} from "./grpc_client"
 import {Resource} from "./types"
 import {ServiceUnavailableError} from "./errors"
-import grpc = require("@grpc/grpc-js")
+import * as grpc from "@grpc/grpc-js"
 
 /**
  * Data API for the Connect module.

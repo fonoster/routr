@@ -21,7 +21,7 @@ import {resources} from "./grpc_server"
 import {nyi} from "./utils"
 import {find, get} from "./api"
 import logger from "@fonoster/logger"
-import grpc = require("@grpc/grpc-js")
+import * as grpc from "@grpc/grpc-js"
 
 /**
  * Starts a new simple data service.

@@ -256,6 +256,7 @@ Example:
   "metadata": {
     "ref": "tk6t67r1",
     "name": "VoIP.ms Trunk",
+    "region": "us-east1",
     "dependsOn": [
       "/acl/acl04b5y",
       "/credential/crd02s23"

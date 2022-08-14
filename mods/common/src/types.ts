@@ -25,7 +25,11 @@ export enum Method {
   MESSAGE = "MESSAGE",
   PUBLISH = "PUBLISH",
   NOTIFY = "NOTIFY",
-  SUBSCRIBE = "SUBSCRIBE"
+  SUBSCRIBE = "SUBSCRIBE",
+  ACK = "ACK",
+  BYE = "BYE",
+  CANCEL = "CANCEL",
+  OPTIONS = "OPTIONS"
 }
 
 export enum Transport {
@@ -245,23 +249,23 @@ export interface Via {
 }
 
 export interface SipURI {
-  user: string
+  user?: string
   host: string
-  port: number
+  port?: number
   transportParam: string
-  mAddrParam: string
-  userParam: string
-  ttlParam: number
-  lrParam: boolean
-  methodParam: string
-  secure: boolean
-  userPassword: string
+  mAddrParam?: string
+  userParam?: string
+  ttlParam?: number
+  lrParam?: boolean
+  methodParam?: string
+  secure?: boolean
+  userPassword?: string
 }
 
 export interface Address {
   uri: SipURI
-  displayName: string
-  wildcard: boolean
+  displayName?: string
+  wildcard?: boolean
 }
 
 export interface MaxForwards {
@@ -287,7 +291,7 @@ export interface From {
 
 export interface To {
   address: Address
-  tag: string
+  tag?: string
   parameters?: Record<string, string>
 }
 
@@ -307,7 +311,7 @@ export interface SIPMessage {
   requestUri?: SipURI
   from: From
   to: To
-  contact: Contact
+  contact?: Contact
   callId: CallID
   contentLength: ContentLength
   expires?: Expires
@@ -315,7 +319,7 @@ export interface SIPMessage {
   maxForwards: MaxForwards
   authorization?: Authorization
   extensions?: Extension[]
-  via: Via[]
+  via?: Via[]
   route?: RouteHeader[]
   recordRoute?: RecordRoute[]
 }

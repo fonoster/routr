@@ -21,7 +21,7 @@ import {findProcessor} from "./find_processor"
 import {RunProcessorParams} from "./types"
 import logger from "@fonoster/logger"
 import ot from "@opentelemetry/api"
-import grpc = require("@grpc/grpc-js")
+import * as grpc from "@grpc/grpc-js"
 
 /**
  * Runs the processor.

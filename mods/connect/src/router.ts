@@ -32,7 +32,7 @@ import logger from "@fonoster/logger"
 import {NotRoutesFoundForAOR} from "@routr/location/src/errors"
 import {ILocationService} from "@routr/location"
 
-const getSIPURI = (uri: {user: string; host: string}) =>
+const getSIPURI = (uri: {user?: string; host: string}) =>
   `sip:${uri.user}@${uri.host}`
 
 // eslint-disable-next-line require-jsdoc

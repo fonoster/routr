@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import grpc = require("@grpc/grpc-js")
+import * as grpc from "@grpc/grpc-js"
 
 /**
  * Error thrown if the definition for a service is not found.

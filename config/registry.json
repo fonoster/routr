@@ -1,0 +1,20 @@
+{
+  "kind": "Registry",
+  "apiVersion": "v2draft1",
+  "spec": {
+    "bindAddr": "0.0.0.0:51904",
+    "requesterAddr": "0.0.0.0:51909",
+    "cache": {
+      "provider": "memory"
+    },
+    "edgePorts": [
+      {
+        "address": "localhost:5060",
+        "region": "us-east1"
+      },
+      {
+        "address": "localhost:5060"
+      }
+    ]
+  }
+}

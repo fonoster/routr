@@ -30,7 +30,7 @@ public class Launcher {
     try {
       var bindAddr = System.getenv().get("BIND_ADDR") != null && !System.getenv().get("BIND_ADDR").isEmpty()
           ? System.getenv().get("BIND_ADDR")
-          : "0.0.0.0:50072";
+          : "0.0.0.0:51909";
 
       var requester = new Requester(bindAddr);
       requester.start();

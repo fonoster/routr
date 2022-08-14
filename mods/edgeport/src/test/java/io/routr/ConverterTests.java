@@ -173,6 +173,7 @@ public class ConverterTests {
     var address = addressFactory.createAddress("sip:1001@sip.local");
     address.setDisplayName("John Doe");
     From from = (From) factory.createFromHeader(address, "1001");
+    from.setParameter("tag", "12345");
     from.setParameter("a", "1");
     from.setParameter("b", "2");
 
@@ -191,6 +192,7 @@ public class ConverterTests {
     assertFalse(dto.getAddress().getWildcard());
     assertEquals(objectFromDto.getParameter("a"), from.getParameter("a"));
     assertEquals(objectFromDto.getParameter("b"), from.getParameter("b"));
+    assertEquals(objectFromDto.getParameter("tag"), from.getParameter("tag"));
   }
 
   @Test
@@ -202,6 +204,7 @@ public class ConverterTests {
     var address = addressFactory.createAddress("sip:1001@sip.local");
     address.setDisplayName("John Doe");
     To to = (To) factory.createToHeader(address, "1001");
+    to.setParameter("tag", "12345");
     to.setParameter("a", "1");
     to.setParameter("b", "2");
 
@@ -220,6 +223,7 @@ public class ConverterTests {
     assertFalse(dto.getAddress().getWildcard());
     assertEquals(objectToDto.getParameter("a"), to.getParameter("a"));
     assertEquals(objectToDto.getParameter("b"), to.getParameter("b"));
+    assertEquals(objectToDto.getParameter("tag"), to.getParameter("tag"));
   }
 
   @Test
