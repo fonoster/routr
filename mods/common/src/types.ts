@@ -33,12 +33,12 @@ export enum Method {
 }
 
 export enum Transport {
-  TCP = "tcp",
-  UDP = "udp",
-  TLS = "tls",
-  SCTP = "sctp",
-  WS = "ws",
-  WSS = "wss"
+  TCP = "TCP",
+  UDP = "UDP",
+  TLS = "TLS",
+  SCTP = "SCTP",
+  WS = "WS",
+  WSS = "WSS"
 }
 
 export interface NetInterface {

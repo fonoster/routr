@@ -134,7 +134,7 @@ export const getTrunkURI = (
   const t = !transport
     ? (Transport.UDP as Transport)
     : (Object.keys(Transport)[
-        Object.values(Transport).indexOf(transport.toLowerCase())
+        Object.values(Transport).indexOf(transport.toUpperCase())
       ] as unknown as Transport)
   return {
     user,
