@@ -49,11 +49,12 @@ export default function simpleAuthMiddleware(config: {
       const currentSpan = opentelemetry.trace.getSpan(
         opentelemetry.context.active()
       )
-      // display traceid in the terminal
+
       logger.silly(
         `authenticating ${req.message.from.address.uri.user} endpoint with simpleauth`,
         {traceId: currentSpan?.spanContext().traceId}
       )
+
       logger.silly(JSON.stringify(req, null, " "))
 
       const span = tracer.startSpan("server.js:sayHello()", {kind: 1})
