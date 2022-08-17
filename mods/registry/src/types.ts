@@ -44,6 +44,10 @@ export interface RegistrationRequest {
   message: SIPMessage
 }
 
+export interface SendMessageResponse {
+  message: SIPMessage
+}
+
 export enum CACHE_PROVIDER {
   MEMORY = "memory",
   REDIS = "redis"

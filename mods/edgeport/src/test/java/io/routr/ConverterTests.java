@@ -135,6 +135,7 @@ public class ConverterTests {
     assertEquals(objectFromDto.getUserParam(), dto.getUserParam());
     assertEquals(objectFromDto.getTTLParam(), dto.getTtlParam());
     assertEquals(objectFromDto.getPort(), dto.getPort());
+    assertEquals(objectFromDto.getPort(), -1);
     assertEquals(objectFromDto.hasLrParam(), dto.getLrParam());
     assertEquals(objectFromDto.isSecure(), dto.getSecure());
   }
@@ -281,7 +282,9 @@ public class ConverterTests {
     Contact objectContactDto = converter.fromDTO(dto);
 
     assertEquals(objectContactDto.getExpires(), dto.getExpires());
+    assertEquals(objectContactDto.getExpires(), -1);
     assertEquals(objectContactDto.getQValue(), dto.getQValue());
+    assertEquals(objectContactDto.getQValue(), -1.0);
     assertNotNull(objectContactDto.getAddress());
   }
 

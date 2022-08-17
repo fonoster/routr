@@ -31,7 +31,7 @@ const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox()
 
-describe("@routr/location", () => {
+describe("@routr/registry", () => {
   afterEach(() => sandbox.restore())
 
   it("creates a registration request", () => {
@@ -96,7 +96,7 @@ describe("@routr/location", () => {
     expect(toURI.transportParam).to.be.equal(requestParams.transport)
     expect(toURI.secure).to.be.equal(requestParams.secure)
 
-    expect(request.message.callId.callId).to.be.lengthOf(15)
+    expect(request.message.callId.callId).to.be.not.null
     expect(request.message.contentLength.contentLength).to.be.not.null
     expect(request.message.expires?.expires).to.be.equal(600)
     expect(request.message.maxForwards?.maxForwards).to.be.equal(70)
@@ -105,6 +105,7 @@ describe("@routr/location", () => {
     expect(requestUri?.methodParam).to.be.equal(Method.REGISTER)
     expect(requestUri?.secure).to.be.equal(requestParams.secure)
     expect(request.message.messageType).to.be.equal("requestUri")
+    expect(requestUri.user).to.be.equal(requestParams.user)
     expect(requestUri?.host).to.be.equal(
       getHostFromAddress(requestParams.targetAddress)
     )

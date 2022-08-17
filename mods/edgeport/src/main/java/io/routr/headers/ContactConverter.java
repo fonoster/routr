@@ -44,8 +44,8 @@ public class ContactConverter implements Converter<Contact, io.routr.message.Con
     var addressConverter = new AddressConverter();
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     Contact contact = (Contact) factory.createContactHeader(addressConverter.fromDTO(dto.getAddress()));
-    contact.setExpires(dto.getExpires());
-    contact.setQValue(dto.getQValue());
+    if (dto.getExpires() > -1) contact.setExpires(dto.getExpires());
+    if (dto.getQValue() > -1.0) contact.setQValue(dto.getQValue());
     return contact;
   }
 }
