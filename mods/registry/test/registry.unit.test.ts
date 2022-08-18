@@ -48,7 +48,11 @@ describe("@routr/registry", () => {
         Method.CANCEL,
         Method.REGISTER,
         Method.OPTIONS
-      ]
+      ],
+      auth: {
+        username: "1001",
+        secret: "1234"
+      }
     }
 
     const request = createRegistrationRequest(requestParams)
@@ -71,6 +75,8 @@ describe("@routr/registry", () => {
     expect(extensions[4]?.value).to.be.include("gin")
     expect(extensions[5]?.name).to.be.equal("Require")
     expect(extensions[5]?.value).to.be.include("gin")
+    expect(extensions[6]?.name).to.be.equal("X-Gateway-Auth")
+    expect(extensions[6]?.value).to.be.include("MTAwMToxMjM0")
 
     expect(route.lrParam).to.be.equal(true)
     expect(route.transportParam).to.be.equal(requestParams.transport)
