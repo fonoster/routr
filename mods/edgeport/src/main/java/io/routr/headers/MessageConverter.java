@@ -176,14 +176,12 @@ public class MessageConverter {
           try {
             headers.add(converter.fromDTO(extension));
           } catch (Exception e) {
-            LOG.warn(e.getMessage());
-            // This will stop happening once we implement all the headers
-            // e.printStackTrace();
+            LOG.error("an exception occurred while processing extension list", e);
           }
         }
       }
     } catch (Exception e) {
-      LOG.warn(e.getMessage());
+      LOG.error("an exception occurred while creating headers for message", e);
     }
     return headers;
   }
@@ -205,7 +203,7 @@ public class MessageConverter {
       try {
         return converter.getDeclaredConstructor().newInstance();
       } catch (Exception e) {
-        LOG.warn(e.getMessage());
+        LOG.error("an exception occurred while getting converter for clasz: {}", clasz.toString(), e);
       }
     }
     return new ExtensionConverter();

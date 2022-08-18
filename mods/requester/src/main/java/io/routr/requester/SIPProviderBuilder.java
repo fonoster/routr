@@ -49,9 +49,8 @@ public class SIPProviderBuilder {
     try {
       sipProvider.addSipListener(requesterService);
     } catch (TooManyListenersException e) {
-      // TODO: Improve error logging
-      // TODO: Should this be a fatal error?
-      LOG.warn(e.getMessage());
+      LOG.fatal("an exception occurred while constructing the class", e);
+      System.exit(1);
     }
 
     return sipProvider;

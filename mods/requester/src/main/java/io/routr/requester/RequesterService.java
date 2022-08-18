@@ -67,7 +67,7 @@ public class RequesterService extends RequesterGrpc.RequesterImplBase implements
       responseObserver.onNext(response);
       responseObserver.onCompleted();
     } catch (ExecutionException | InterruptedException | InvalidArgumentException | ParseException | SipException e) {
-      LOG.warn(e.getMessage());
+      LOG.warn("an exception occurred while sending request with callId: {}", request.getMessage().getCallId().getCallId(), e);
     }
   }
 
@@ -99,7 +99,7 @@ public class RequesterService extends RequesterGrpc.RequesterImplBase implements
         var response = messageFactory.createResponse(Response.REQUEST_TIMEOUT, transaction.getRequest());
         callableResponse.setValue(MessageConverter.convertToMessageDTO(response));
       } catch (ParseException | PeerUnavailableException e) {
-        LOG.warn(e.getMessage());
+        LOG.warn("an exception occurred while the processing timeout event callId: {}", callId, e);
       }
     }
     this.responseMap.remove(callId.getCallId());

@@ -71,9 +71,9 @@ public class GRPCSipListener implements SipListener {
       edgePortRef = System.getenv("EDGEPORT_REF");
     }
 
-    LOG.info("starting edgeport (ref = " + edgePortRef + ") service at " + bindAddr);
-    LOG.info("localnets list [" + String.join(",", localnets) + "]");
-    LOG.info("external ips list [" + String.join(",", externalIps) + "]");
+    LOG.info("starting edgeport ref = {} at {}" , edgePortRef, bindAddr);
+    LOG.info("localnets list [{}]", String.join(",", localnets));
+    LOG.info("external ips list [{}]", String.join(",", externalIps));
 
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
       .usePlaintext()
@@ -137,7 +137,7 @@ public class GRPCSipListener implements SipListener {
 
   private static boolean isTransactional(final ResponseEvent event) {
     return (event.getClientTransaction() != null &&
-      hasMethod(event.getResponse(), Request.INVITE, Request.MESSAGE));
+      hasMethod(event.getResponse(), Request.INVITE, Request.MESSAGE, Request.REGISTER));
   }
 
   private static boolean isStackJob(final Response response) {
@@ -186,7 +186,8 @@ public class GRPCSipListener implements SipListener {
       try {
         serverTransaction = this.sipProvider.getNewServerTransaction(req);
       } catch (TransactionAlreadyExistsException | TransactionUnavailableException e) {
-        LOG.warn(e.getMessage());
+        var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
+        LOG.error("an exception occurred while processing request with callId: {}", callId, e);
       }
     }
 
@@ -210,10 +211,13 @@ public class GRPCSipListener implements SipListener {
 
       this.sendRequest(serverTransaction, req, headers);
     } catch (StatusRuntimeException | SipException | ParseException | InvalidArgumentException e) {
+      var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
+       
       if (e instanceof StatusRuntimeException) {
-        LOG.warn(((StatusRuntimeException) e).getStatus().getDescription());
+        var description = ((StatusRuntimeException) e).getStatus().getDescription();
+        LOG.warn("an exception occurred while processing request with callId: {}, status description: {}", callId, description, e);
       } else {
-        LOG.warn(e.getMessage());
+        LOG.warn("an exception occurred while processing callId: {}", callId, e);
       }
     }
   }
@@ -233,8 +237,9 @@ public class GRPCSipListener implements SipListener {
         var accountManager = (AccountManager) event.getClientTransaction().getApplicationData();
 
         if (accountManager == null) {
-          // TODO: Should provide additional information about the request
-          LOG.warn("no account manager found for transaction");
+          var req = event.getClientTransaction().getRequest();
+          var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
+          LOG.warn("an exception occurred while processing response with callId: {}", callId);
           return;
         }
 
@@ -267,7 +272,9 @@ public class GRPCSipListener implements SipListener {
         this.sipProvider.sendResponse(res);
       }
     } catch (SipException | InvalidArgumentException | ParseException e) {
-      LOG.error(e.getMessage());
+      var req = event.getClientTransaction().getRequest();
+      var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
+      LOG.warn("an exception occurred while processing response with callId: {}", callId);
     }
   }
 
@@ -324,7 +331,8 @@ public class GRPCSipListener implements SipListener {
       this.activeTransactions.put(callId.getCallId() + "_client", clientTransaction);
       this.activeTransactions.put(callId.getCallId() + "_server", serverTransaction);
     } catch (SipException e) {
-      LOG.warn(e.getMessage());
+      var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+      LOG.warn("an exception occurred while sending request with callId: {}", callId);
     }
   }
 
@@ -366,7 +374,9 @@ public class GRPCSipListener implements SipListener {
       authHelper.handleChallenge(event.getResponse(), event.getClientTransaction(),
         (SipProvider) event.getSource(), 5, true).sendRequest();
     } catch (NullPointerException | SipException e) {
-      LOG.warn(e.getMessage());
+      var request = event.getClientTransaction().getRequest();
+      var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+      LOG.warn("an exception occurred while handling authentication challenge for callId: {}", callId);
     }
   }
 }

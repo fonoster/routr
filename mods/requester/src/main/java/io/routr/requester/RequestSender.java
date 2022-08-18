@@ -19,7 +19,9 @@
 package io.routr.requester;
 
 import javax.sip.*;
+import javax.sip.address.AddressFactory;
 import javax.sip.header.Header;
+import javax.sip.header.HeaderFactory;
 import javax.sip.message.MessageFactory;
 import java.text.ParseException;
 import java.util.List;
@@ -30,15 +32,20 @@ import io.routr.headers.MessageConverter;
 final public class RequestSender {
   private final static Logger LOG = LogManager.getLogger(RequestSender.class);
   private MessageFactory messageFactory;
+  private HeaderFactory headerFactory;
   private SipProvider sipProvider;
+  private AddressFactory addressFactory;
 
   public RequestSender(RequesterService requesterService, final String bindAddr) {
     try {
       this.messageFactory = SipFactory.getInstance().createMessageFactory();
+      this.headerFactory = SipFactory.getInstance().createHeaderFactory();
+      this.addressFactory = SipFactory.getInstance().createAddressFactory();
       this.sipProvider = SIPProviderBuilder.createSipProvider(requesterService, bindAddr);
     } catch (PeerUnavailableException | TransportNotSupportedException | ObjectInUseException
-             | TransportAlreadySupportedException | InvalidArgumentException e) {
-      LOG.error(e.getMessage());
+        | TransportAlreadySupportedException | InvalidArgumentException e) {
+      LOG.fatal("an exception occurred while constructing the class", e);
+      System.exit(1);
     }
   }
 
@@ -47,23 +54,41 @@ final public class RequestSender {
 
     List<Header> headers = MessageConverter.createHeadersFromMessage(request.getMessage());
 
-    LOG.debug("Header list size: {}", headers.size());
+    LOG.debug("header list size: {}", headers.size());
 
     var req = this.messageFactory.createRequest(
-        String.format("%s sip:%s;transport=%s SIP/2.0\r\n\r\n",
+        String.format("%s sip:%s@%s;transport=%s SIP/2.0\r\n\r\n",
             request.getMethod(),
+            request.getMessage().getFrom().getAddress().getUri().getUser(),
             request.getTarget(),
             request.getTransport()));
 
+    var lp = this.sipProvider.getListeningPoint(request.getTransport().toString());
+    var viaHeader = this.headerFactory.createViaHeader(
+        lp.getIPAddress(),
+        lp.getPort(),
+        request.getTransport().toString(),
+        null);
+    viaHeader.setRPort();
+
+    var contactAddress = this.addressFactory.createAddress(String.format("sip:%s@%s:%s;transport=%s;bnc",
+        request.getMessage().getFrom().getAddress().getUri().getUser(),
+        lp.getIPAddress(),
+        lp.getPort(),
+        request.getTransport()));
+    var contactHeader = headerFactory.createContactHeader(contactAddress);
+
+    headers.add(contactHeader);
+    headers.add(viaHeader);
     headers.forEach(req::addHeader);
 
-    LOG.debug("Sending request: {}", req.toString());
+    LOG.debug("sending request: {}", req.toString());
 
     try {
       var clientTransaction = this.sipProvider.getNewClientTransaction(req);
       clientTransaction.sendRequest();
     } catch (SipException e) {
-      LOG.warn(e.getMessage());
+      LOG.warn("an exception occurred while sending request callId: {}", request.getMessage().getCallId().getCallId(), e);
     }
   }
 
