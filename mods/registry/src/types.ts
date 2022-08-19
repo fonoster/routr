@@ -73,6 +73,10 @@ export interface RequestParams {
   maxForwards?: number
   expires?: number
   secure?: boolean
+  auth?: {
+    username: string
+    secret: string
+  }
   // TODO: Create SIPEvents Enum
   // allowEvents:
 }

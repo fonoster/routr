@@ -19,9 +19,11 @@
 import {ProcessorUnavailableError} from "./errors"
 import {findProcessor} from "./find_processor"
 import {RunProcessorParams} from "./types"
-import logger from "@fonoster/logger"
 import ot from "@opentelemetry/api"
 import * as grpc from "@grpc/grpc-js"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "dispatcher", filePath: __filename})
 
 /**
  * Runs the processor.

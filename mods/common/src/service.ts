@@ -18,9 +18,11 @@
  */
 import {ObjectProto, ServiceInfo} from "./types"
 import {ServiceDefinitionNotFound} from "./errors"
-import logger from "@fonoster/logger"
 import * as grpc from "@grpc/grpc-js"
 import * as protoLoader from "@grpc/proto-loader"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "connect", filePath: __filename})
 
 const loadOptions = {
   keepCase: false,

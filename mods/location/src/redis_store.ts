@@ -20,7 +20,9 @@ import {Route} from "@routr/common"
 import {ILocatorStore, RedisStoreConfig} from "./types"
 import {createClient} from "redis"
 import {getUrlString} from "./utils"
-import logger from "@fonoster/logger"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "location", filePath: __filename})
 
 /**
  * Redis store for the locator service.

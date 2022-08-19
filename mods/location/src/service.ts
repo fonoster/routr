@@ -27,7 +27,9 @@ import {configFromString, getServiceInfo} from "./utils"
 import Location from "./location"
 import MemoryStore from "./memory_store"
 import RedisStore from "./redis_store"
-import logger from "@fonoster/logger"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "registry", filePath: __filename})
 
 const allowedParameters = ["host", "port", "username", "password", "secure"]
 

@@ -18,7 +18,6 @@
  * limitations under the License.
  */
 import opentelemetry from "@opentelemetry/api"
-import logger from "@fonoster/logger"
 import {
   calculateAuthResponse,
   MessageRequest,
@@ -27,6 +26,10 @@ import {
 import {createUnauthorizedResponse, getCredentials} from "./utils"
 import Processor, {Response} from "@routr/processor"
 import {User} from "./types"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "simpledata", filePath: __filename})
+
 /**
  * A simple authentication middleware that authenticates users based on a list of users
  * or whitelisted endpoints paths.

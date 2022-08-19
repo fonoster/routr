@@ -28,9 +28,11 @@ import {
 } from "./utils"
 import {MessageRequest, Target as T} from "@routr/processor"
 import {UnsuportedRoutingError} from "./errors"
-import logger from "@fonoster/logger"
 import {NotRoutesFoundForAOR} from "@routr/location/src/errors"
 import {ILocationService} from "@routr/location"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "connect", filePath: __filename})
 
 const getSIPURI = (uri: {user?: string; host: string}) =>
   `sip:${uri.user}@${uri.host}`

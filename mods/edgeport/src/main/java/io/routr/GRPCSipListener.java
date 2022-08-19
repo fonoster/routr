@@ -59,6 +59,7 @@ public class GRPCSipListener implements SipListener {
 
   public GRPCSipListener(final SipProvider sipProvider, final Map<String, Object> config,
                          final List<String> externalIps, final List<String> localnets) throws PeerUnavailableException {
+    System.setProperty("serviceName", "edgeport");
     MapProxyObject values = new MapProxyObject(config);
     MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
     MapProxyObject spec = (MapProxyObject) values.getMember("spec");

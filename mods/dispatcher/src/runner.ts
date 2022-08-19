@@ -19,8 +19,10 @@
  */
 import messageDispatcher from "./service"
 import {getConfig} from "./config/get_config"
-import logger from "@fonoster/logger"
 import {Assertions as A} from "@routr/common"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "echo", filePath: __filename})
 
 A.assertEnvsAreSet(["CONFIG_PATH"])
 

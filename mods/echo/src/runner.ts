@@ -19,8 +19,10 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("dispatcher")
-import logger from "@fonoster/logger"
 import Processor, {MessageRequest, Response} from "@routr/processor"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "location", filePath: __filename})
 
 new Processor({
   bindAddr: process.env.BIND_ADDR || "0.0.0.0:51904",

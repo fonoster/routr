@@ -22,7 +22,9 @@ import {RunProcessorParams} from "./types"
 import {runProcessor} from "./run_processor"
 import {CommonTypes as CT} from "@routr/common"
 import {runMiddlewares} from "./run_middlewares"
-import logger from "@fonoster/logger"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "dispatcher", filePath: __filename})
 
 /**
  * Creates a new instance of Processor.

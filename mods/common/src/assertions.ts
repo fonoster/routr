@@ -16,7 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import logger from "@fonoster/logger"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "common", filePath: __filename})
 
 /**
  * Function that asserts that the given environment variable is set.

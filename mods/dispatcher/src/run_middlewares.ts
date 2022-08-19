@@ -19,8 +19,10 @@
 import {MiddlewareUnavailableError} from "./errors"
 import {ProcessorGPRCConnection, RunMiddlewaresParams} from "./types"
 import {MessageRequest, MessageResponse, CommonTypes as CT} from "@routr/common"
-import logger from "@fonoster/logger"
 import * as grpc from "@grpc/grpc-js"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "dispatcher", filePath: __filename})
 
 // eslint-disable-next-line require-jsdoc
 async function processMessage(

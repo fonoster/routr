@@ -16,11 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import logger from "@fonoster/logger"
 import {UnimplementedError} from "./errors"
 import {Resource} from "./types"
 import Ajv from "ajv"
 import {CommonTypes as CT} from "@routr/common"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "simpledata", filePath: __filename})
 
 /**
  * Creates a list of validators from the given schemas.

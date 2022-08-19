@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import logger from '@fonoster/logger'
 import ConnectProcessor from "../mods/connect/src/service"
 import SimpleAuthMiddleware from "../mods/simpleauth/src/service"
 import SimpleDataService from "../mods/simpledata/src/service"
@@ -11,6 +10,7 @@ import {spawn} from "child_process"
 import {Helper as H} from "../mods/common"
 import {Resource} from '../mods/simpledata/src/types'
 import loadResources from '../mods/simpledata/src/utils'
+import {getLogger} from '@fonoster/logger'
 
 const envcopy = H.deepCopy(process.env);
 envcopy.CONFIG_PATH = __dirname + "/../config/edgeport.alt.json";
@@ -23,6 +23,7 @@ const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.
 const locationConfig = getLocationConfig(__dirname + "/../config/location.json")
 const whiteList = process.env.WHITELIST ? process.env.WHITELIST.split(',') : []
 
+const logger = getLogger({service: "base", filePath: __filename})
 logger.info("routr v2 // connect distribution")
 
 if (dispatcherConfig._tag === 'Right') {

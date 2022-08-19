@@ -37,6 +37,15 @@ let cseq = 1
 export default function createRegistrationRequest(
   params: RequestParams
 ): RegistrationRequest {
+  const credentials = params.auth
+    ? {
+        name: "X-Gateway-Auth",
+        value: Buffer.from(
+          `${params.auth.username}:${params.auth.secret}`
+        ).toString("base64")
+      }
+    : undefined
+
   return {
     target: params.targetAddress,
     method: Method.REGISTER,
@@ -48,7 +57,6 @@ export default function createRegistrationRequest(
           value: `${cseq++} ${Method.REGISTER}`
         },
         {
-          // TODO: Need to add remaining "Allow" headers
           name: "Allow",
           value: "INVITE"
         },
@@ -58,20 +66,18 @@ export default function createRegistrationRequest(
           value: params.userAgent || "Routr Connect v2"
         },
         {
-          // TODO: Need to add remaining "Allow" headers
           name: "Allow-Events",
           value: "presence"
         },
         {
-          // TODO: Needs a converter
           name: "Proxy-Require",
           value: "gin"
         },
         {
-          // TODO: Needs a converter
           name: "Require",
           value: "gin"
-        }
+        },
+        credentials
       ],
       route: [
         {
@@ -121,6 +127,7 @@ export default function createRegistrationRequest(
         maxForwards: params.maxForwards || DEFAULT_MAX_FORWARDS
       },
       requestUri: {
+        user: params.user,
         host: getHostFromAddress(params.targetAddress),
         port: getPortFromAddress(params.targetAddress),
         transportParam: params.transport,

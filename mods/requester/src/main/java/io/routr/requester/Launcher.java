@@ -27,6 +27,7 @@ public class Launcher {
   private final static Logger LOG = LogManager.getLogger(Launcher.class);
 
   static public void main(String... args) {
+    System.setProperty("serviceName", "requester");
     try {
       var bindAddr = System.getenv().get("BIND_ADDR") != null && !System.getenv().get("BIND_ADDR").isEmpty()
           ? System.getenv().get("BIND_ADDR")

@@ -20,8 +20,10 @@ import {SimpleDataConfig} from "./types"
 import {resources} from "./grpc_server"
 import {nyi} from "./utils"
 import {find, get} from "./api"
-import logger from "@fonoster/logger"
 import * as grpc from "@grpc/grpc-js"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "simpledata", filePath: __filename})
 
 /**
  * Starts a new simple data service.

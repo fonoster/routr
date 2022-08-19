@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -17,21 +16,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-require("./tracer").init("dispatcher")
-import locationService from "./service"
-import {getConfig} from "./config/get_config"
-import {Assertions as A} from "@routr/common"
-import {getLogger} from "@fonoster/logger"
+import * as grpc from "@grpc/grpc-js"
+import protoLoader = require("@grpc/proto-loader")
 
-const logger = getLogger({service: "location", filePath: __filename})
+const packageDefinition = protoLoader.loadSync(
+  __dirname + "../../../common/src/protos/requester.proto",
+  {
+    keepCase: false,
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true
+  }
+)
 
-A.assertEnvsAreSet(["CONFIG_PATH"])
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
 
-const result = getConfig(process.env.CONFIG_PATH)
-
-if (result._tag === "Right") {
-  locationService(result.right)
-} else {
-  logger.error(result.left)
-}
+export const requester = protoDescriptor.fonoster.routr.requester
