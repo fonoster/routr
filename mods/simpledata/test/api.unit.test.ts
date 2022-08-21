@@ -29,7 +29,7 @@ const sandbox = sinon.createSandbox()
 describe("@routr/simpledata/api", () => {
   afterEach(() => sandbox.restore())
 
-  describe("@routr/simpledata/api/get", () => {
+  describe("get functionality", () => {
     it("gets a not found", (done) => {
       const call = {request: {ref: "crd2c76ft"}}
       const callback = (err: Error, res: unknown) => {
@@ -51,17 +51,6 @@ describe("@routr/simpledata/api", () => {
       }
       const callbackSpy = sandbox.spy(callback)
       get(null)(call, callback)
-      expect(callbackSpy).to.have.been.calledOnce
-    })
-
-    it("gets resource by reference", (done) => {
-      const call = {request: {ref: "crd2c76ftxxxx"}}
-      const callback = (err: Error) => {
-        expect(err).to.be.not.null
-        done()
-      }
-      const callbackSpy = sandbox.spy(callback)
-      get(resources)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
     })
 
@@ -77,7 +66,7 @@ describe("@routr/simpledata/api", () => {
       expect(callbackSpy).to.have.been.calledOnce
     })
 
-    it("gets resource by reference", (done) => {
+    it("gets resource by reference (checks metadata)", (done) => {
       const call = {request: {ref: "crd2c76ft"}}
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.null
@@ -88,9 +77,20 @@ describe("@routr/simpledata/api", () => {
       get(resources)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
     })
+
+    it("it returns an error since the reference doesn't exist", (done) => {
+      const call = {request: {ref: "crd2c76ftxxxx"}}
+      const callback = (err: Error) => {
+        expect(err).to.be.not.null
+        done()
+      }
+      const callbackSpy = sandbox.spy(callback)
+      get(resources)(call, callback)
+      expect(callbackSpy).to.have.been.calledOnce
+    })
   })
 
-  describe("@routr/simpledata/api/find", () => {
+  describe("find functionality", () => {
     it("gets a not found", (done) => {
       const call = {request: {}}
       const callback = (err: Error, res: unknown) => {
@@ -133,7 +133,7 @@ describe("@routr/simpledata/api", () => {
       expect(callbackSpy).to.have.been.calledOnce
     })
 
-    it("is bad json-path", (done) => {
+    it("fails because of bad json-path", (done) => {
       const call = {request: {query: "*.%@3sdsd"}}
       const callback = (err: Error) => {
         expect(err).to.be.not.null
