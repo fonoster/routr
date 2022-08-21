@@ -81,7 +81,7 @@ const messageRequest: MessageRequest = {
 describe("@routr/dispatcher", () => {
   afterEach(() => sandbox.restore())
 
-  describe("@routr/dispatcher/find_processor", () => {
+  describe("find_processor", () => {
     it("checks if method of the request is enabled", () => {
       const messageRequest2 = {...messageRequest}
       messageRequest2.method = Method.MESSAGE
@@ -121,7 +121,7 @@ describe("@routr/dispatcher", () => {
     })
   })
 
-  describe("@routr/dispatcher/processor", () => {
+  describe("processor", () => {
     it("callback gets invoke with an error", (done) => {
       sandbox.stub(PROCESSOR_OBJECT_PROTO as any, "Processor").returns({
         processMessage: (_: unknown, callback: any) => {

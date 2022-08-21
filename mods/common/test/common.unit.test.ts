@@ -41,7 +41,7 @@ describe("@routr/common", () => {
       .to.have.property("service")
   })
 
-  it("fails to gets object proto due to a typo", () => {
+  it("fails to get object proto due to a typo", () => {
     const objectProto2 = {...objectProto}
     // Introduce a typo
     objectProto2.name = "processo"
@@ -50,7 +50,7 @@ describe("@routr/common", () => {
     )
   })
 
-  describe("@routr/common/ip_utils", () => {
+  describe("ip_utils", () => {
     it("ip util for #addressCount", () => {
       expect(addressCount("192.168.1.1/255.255.255.0")).to.be.equal(256)
       expect(addressCount("10.0.0.1")).to.be.equal(1)
