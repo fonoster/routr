@@ -29,7 +29,7 @@ import MemoryStore from "./memory_store"
 import RedisStore from "./redis_store"
 import {getLogger} from "@fonoster/logger"
 
-const logger = getLogger({service: "registry", filePath: __filename})
+const logger = getLogger({service: "location", filePath: __filename})
 
 const allowedParameters = ["host", "port", "username", "password", "secure"]
 
