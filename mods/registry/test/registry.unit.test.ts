@@ -145,8 +145,8 @@ describe("@routr/registry", () => {
     }
   })
 
-  describe("registry/utils", () => {
-    it("getHostFromAddress + getPortFromAddress", () => {
+  describe("utils", () => {
+    it("getHostFromAddress and getPortFromAddress", () => {
       const address = "sip.local:5060"
       const badAddress = "sip.local"
       expect(getHostFromAddress(address)).to.be.equal("sip.local")
