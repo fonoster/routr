@@ -27,9 +27,11 @@ import Processor, {
   Response,
   Target as T
 } from "@routr/processor"
-import logger from "@fonoster/logger"
 import {API} from "./api"
 import {tailor} from "./tailor"
+import {getLogger} from "@fonoster/logger"
+
+const logger = getLogger({service: "connect", filePath: __filename})
 
 // eslint-disable-next-line require-jsdoc
 export default function ConnectProcessor(config: ConnectProcessorConfig) {

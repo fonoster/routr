@@ -22,6 +22,16 @@ import {SIPMessage} from "@routr/common/src/types"
 export const DEFAULT_MAX_FORWARDS = 70
 export const DEFAULT_EXPIRES = 600
 
+export enum CACHE_PROVIDER {
+  MEMORY = "memory",
+  REDIS = "redis"
+}
+
+export enum RegistrationEntryStatus {
+  REGISTERED = "registered",
+  QUARANTINE = "quarantine"
+}
+
 export interface EdgePort {
   address: string
   region: string
@@ -46,11 +56,6 @@ export interface RegistrationRequest {
 
 export interface SendMessageResponse {
   message: SIPMessage
-}
-
-export enum CACHE_PROVIDER {
-  MEMORY = "memory",
-  REDIS = "redis"
 }
 
 export interface RedisStoreConfig {
@@ -79,4 +84,20 @@ export interface RequestParams {
   }
   // TODO: Create SIPEvents Enum
   // allowEvents:
+}
+
+export interface RegistrationEntry {
+  trunkRef: string
+  timeOfEntry: number
+  // Time after which the store will remove this record
+  retationTimeInSeconds: number
+  status: RegistrationEntryStatus
+}
+
+export interface IRegistryStore {
+  put(key: string, entry: RegistrationEntry): Promise<void>
+
+  get(key: string): Promise<RegistrationEntry>
+
+  delete(key: string): Promise<void>
 }

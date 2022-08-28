@@ -41,6 +41,21 @@ export const handleRegister = (location: ILocationService) => {
   }
 }
 
+// TODO: Needs to be completed and tested
+export const handleRegistry = (req: MessageRequest, res: Response) => {
+  const route = HE.createRouteFromLastMessage(req)
+  const newReq = pipe(
+    req,
+    A.addSelfVia(route),
+    A.decreaseMaxForwards,
+    A.removeAuthorization,
+    A.removeRoutes,
+    A.removeXEdgePortRef
+  )
+
+  res.send(newReq)
+}
+
 // TODO: If request has X-Connect-Object then validate the JWT value and continue
 export const handleRequest =
   (location: ILocationService, dataAPI?: DataAPI) =>
