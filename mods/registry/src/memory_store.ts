@@ -45,6 +45,13 @@ export default class MemoryStore implements IRegistryStore {
   }
 
   /** @inheritdoc */
+  public list(): Promise<RegistrationEntry[]> {
+    return Promise.resolve(
+      this.collections.values ? Array.from(this.collections.values()) : []
+    )
+  }
+
+  /** @inheritdoc */
   public get(key: string): Promise<RegistrationEntry> {
     // Cleanup every so often to avoid memory build up
     this.cleanupCount++
@@ -59,11 +66,6 @@ export default class MemoryStore implements IRegistryStore {
   public delete(key: string): Promise<void> {
     this.collections.delete(key)
     return
-  }
-
-  /** @inheritdoc */
-  public size() {
-    return this.collections.size
   }
 
   /** @inheritdoc */

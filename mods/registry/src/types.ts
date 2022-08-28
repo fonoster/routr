@@ -100,4 +100,6 @@ export interface IRegistryStore {
   get(key: string): Promise<RegistrationEntry>
 
   delete(key: string): Promise<void>
+
+  list(): Promise<RegistrationEntry[]>
 }

@@ -19,12 +19,7 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {
-  configFromString,
-  duplicateFilter,
-  expiredFilter,
-  getUrlString
-} from "../src/utils"
+import {configFromString, duplicateFilter, expiredFilter} from "../src/utils"
 import * as Routes from "./route_examples"
 
 const expect = chai.expect
@@ -72,27 +67,5 @@ describe("@routr/location", () => {
     expect(() =>
       configFromString("host2=sip.local,port=5060", ["host", "port"])
     ).to.throw()
-  })
-
-  it("converts parameter string to redis url", () => {
-    const c1 = {host: "test.local", port: 6380}
-    const c2 = {password: "1234", host: "test.local", port: 6380}
-    const c3 = {
-      username: "admin",
-      password: "1234",
-      host: "test.local",
-      port: 6380
-    }
-    const c4 = {
-      secure: true,
-      username: "admin",
-      password: "1234",
-      host: "test.local",
-      port: 6380
-    }
-    expect(getUrlString(c1)).to.be.equal("redis://test.local:6380")
-    expect(getUrlString(c2)).to.be.equal("redis://:1234@test.local:6380")
-    expect(getUrlString(c3)).to.be.equal("redis://admin:1234@test.local:6380")
-    expect(getUrlString(c4)).to.be.equal("rediss://admin:1234@test.local:6380")
   })
 })

@@ -21,6 +21,7 @@ import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import {getObjectProto} from "../src/service"
 import {addressCount, isLocalnet} from "../src/ip_utils"
+import {getRedisUrlFromConfig} from "../src/redis"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -73,5 +74,33 @@ describe("@routr/common", () => {
       expect(isLocalnet(localnets, "192.168.0.14")).to.be.true
       expect(isLocalnet(localnets, "35.196.78.166")).to.be.false
     })
+  })
+
+  it("converts parameter string to redis url", () => {
+    const c1 = {host: "test.local", port: 6380}
+    const c2 = {password: "1234", host: "test.local", port: 6380}
+    const c3 = {
+      username: "admin",
+      password: "1234",
+      host: "test.local",
+      port: 6380
+    }
+    const c4 = {
+      secure: true,
+      username: "admin",
+      password: "1234",
+      host: "test.local",
+      port: 6380
+    }
+    expect(getRedisUrlFromConfig(c1)).to.be.equal("redis://test.local:6380")
+    expect(getRedisUrlFromConfig(c2)).to.be.equal(
+      "redis://:1234@test.local:6380"
+    )
+    expect(getRedisUrlFromConfig(c3)).to.be.equal(
+      "redis://admin:1234@test.local:6380"
+    )
+    expect(getRedisUrlFromConfig(c4)).to.be.equal(
+      "rediss://admin:1234@test.local:6380"
+    )
   })
 })

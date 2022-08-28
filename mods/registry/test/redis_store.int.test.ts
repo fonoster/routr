@@ -19,18 +19,18 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import MemoryStore from "../src/memory_store"
+import RedisStore from "../src/redis_store"
 import {RegistrationEntry, RegistrationEntryStatus} from "../src/types"
 
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox()
 
-describe("@routr/registry/memory_store", () => {
+describe("@routr/registry/redis_store", () => {
   afterEach(() => sandbox.restore())
 
   it("puts value in the store", async () => {
-    const store = new MemoryStore()
+    const store = new RedisStore()
     const entry1: RegistrationEntry = {
       trunkRef: "tk6t67r1",
       timeOfEntry: Date.now(),
@@ -41,17 +41,15 @@ describe("@routr/registry/memory_store", () => {
       trunkRef: "tky767x2",
       // Very old entry
       timeOfEntry: 1661701508130,
-      retationTimeInSeconds: 120,
+      retationTimeInSeconds: 10,
       status: RegistrationEntryStatus.QUARANTINE
     }
     store.put(entry1.trunkRef, entry1)
     store.put(entry2.trunkRef, entry2)
-    expect((await store.list()).length).to.be.equal(2)
 
-    store.cleanup()
-    expect((await store.list()).length).to.be.equal(1)
-    expect(await store.get("tk6t67r1")).to.have.property("status")
-    // expect((await store.list())[0]).to.have.property("status")
-    expect(await store.get("tk6t67r2")).to.be.undefined
+    expect(await (await store.list()).length).to.be.equal(2)
+    expect(await store.get("tk6t67r1"))
+      .to.have.property("status")
+      .to.be.equal(RegistrationEntryStatus.REGISTERED)
   })
 })

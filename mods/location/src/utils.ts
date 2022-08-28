@@ -23,12 +23,7 @@ import {
   CommonTypes as CT
 } from "@routr/common"
 import {NotRoutesFoundForAOR} from "./errors"
-import {
-  AddRouteRequest,
-  FindRoutesRequest,
-  ILocationService,
-  RedisStoreConfig
-} from "./types"
+import {AddRouteRequest, FindRoutesRequest, ILocationService} from "./types"
 
 export const expiredFilter = (r: Route) =>
   r.expires - (Date.now() - r.registeredOn) / 1000 > 0
@@ -115,13 +110,4 @@ export const configFromString = (
     }
   })
   return parameters
-}
-
-export const getUrlString = (config: RedisStoreConfig): string => {
-  return (
-    `redis${config.secure ? "s" : ""}` +
-    `://${config.username ? config.username : ""}` +
-    `${config.password ? ":" + config.password + "@" : ""}` +
-    `${config.host}:${config.port}`
-  )
 }

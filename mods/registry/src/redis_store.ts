@@ -16,18 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Route} from "@routr/common"
-import {ILocatorStore} from "./types"
+import {IRegistryStore, RegistrationEntry} from "./types"
 import {createClient} from "redis"
 import {Redis} from "@routr/common"
 import {getLogger} from "@fonoster/logger"
 
-const logger = getLogger({service: "location", filePath: __filename})
+const KEY_PREFIX = "registry"
+const logger = getLogger({service: "registry", filePath: __filename})
 
 /**
  * Redis store for the locator service.
  */
-export default class RedisStore implements ILocatorStore {
+export default class RedisStore implements IRegistryStore {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   client: any
 
@@ -47,40 +47,35 @@ export default class RedisStore implements ILocatorStore {
   }
 
   /** @inheritdoc */
-  public async put(key: string, route: Route): Promise<void> {
+  public async put(key: string, entry: RegistrationEntry): Promise<void> {
     // Formatted the key to ensure it is unique
-    await this.client.set(
-      `${key}:${route.user}${route.host}${route.port}`,
-      JSON.stringify(route),
-      {
-        EX: route.expires
-      }
-    )
+    await this.client.set(`${KEY_PREFIX}:${key}`, JSON.stringify(entry), {
+      EX: entry.retationTimeInSeconds
+    })
     return
   }
 
   /** @inheritdoc */
-  public async get(key: string): Promise<Route[]> {
-    const routes = []
+  public async list(): Promise<RegistrationEntry[]> {
+    const entries = []
     // eslint-disable-next-line no-loops/no-loops
     for await (const k of await this.client.scanIterator({
       CURSOR: 0,
-      MATCH: `${key}:*`
+      MATCH: `${KEY_PREFIX}:*`
     })) {
-      routes.push(JSON.parse(await this.client.get(k)))
+      entries.push(JSON.parse(await this.client.get(k)))
     }
-    return routes
+    return entries
+  }
+
+  /** @inheritdoc */
+  public async get(key: string): Promise<RegistrationEntry> {
+    const rawEntry = await this.client.get(`${KEY_PREFIX}:${key}`)
+    return rawEntry ? JSON.parse(rawEntry) : null
   }
 
   /** @inheritdoc */
   public async delete(key: string): Promise<void> {
-    // eslint-disable-next-line no-loops/no-loops
-    for await (const k of await this.client.scanIterator({
-      CURSOR: 0,
-      MATCH: `${key}:*`
-    })) {
-      await this.client.del(k)
-    }
-    return
+    this.client.delete(`${KEY_PREFIX}:${key}`)
   }
 }

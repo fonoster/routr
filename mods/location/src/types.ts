@@ -77,12 +77,3 @@ export interface LocationConfig {
     parameters?: string
   }
 }
-
-export interface RedisStoreConfig {
-  username?: string
-  password?: string
-  host: string
-  port: number
-  // dbNumber?: number
-  secure?: boolean
-}

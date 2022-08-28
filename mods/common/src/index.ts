@@ -56,6 +56,7 @@ export {
   LOCATION_OBJECT_PROTO
 }
 
+export * as Redis from "./redis"
 export * as CommonTypes from "./types"
 export * as Helper from "./helper"
 export * as IpUtils from "./ip_utils"
