@@ -90,7 +90,7 @@ export interface RegistrationEntry {
   trunkRef: string
   timeOfEntry: number
   // Time after which the store will remove this record
-  retationTimeInSeconds: number
+  retentionTimeInSeconds: number
   status: RegistrationEntryStatus
 }
 
@@ -102,4 +102,15 @@ export interface IRegistryStore {
   delete(key: string): Promise<void>
 
   list(): Promise<RegistrationEntry[]>
+}
+
+export interface Trunk {
+  ref: string
+  name: string
+  region: string
+  host: string
+  port: number
+  username?: string
+  secret?: string
+  transport: Transport
 }

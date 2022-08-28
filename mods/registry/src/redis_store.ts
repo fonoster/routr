@@ -50,7 +50,7 @@ export default class RedisStore implements IRegistryStore {
   public async put(key: string, entry: RegistrationEntry): Promise<void> {
     // Formatted the key to ensure it is unique
     await this.client.set(`${KEY_PREFIX}:${key}`, JSON.stringify(entry), {
-      EX: entry.retationTimeInSeconds
+      EX: entry.retentionTimeInSeconds
     })
     return
   }

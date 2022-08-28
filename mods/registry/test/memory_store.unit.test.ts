@@ -34,14 +34,14 @@ describe("@routr/registry/memory_store", () => {
     const entry1: RegistrationEntry = {
       trunkRef: "tk6t67r1",
       timeOfEntry: Date.now(),
-      retationTimeInSeconds: 120,
+      retentionTimeInSeconds: 120,
       status: RegistrationEntryStatus.REGISTERED
     }
     const entry2: RegistrationEntry = {
       trunkRef: "tky767x2",
       // Very old entry
       timeOfEntry: 1661701508130,
-      retationTimeInSeconds: 120,
+      retentionTimeInSeconds: 120,
       status: RegistrationEntryStatus.QUARANTINE
     }
     store.put(entry1.trunkRef, entry1)

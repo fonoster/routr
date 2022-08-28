@@ -25,11 +25,40 @@ import createRegistrationRequest, {
   getHostFromAddress,
   getPortFromAddress
 } from "../src/request"
-import {RequestParams} from "../src/types"
+import {RegistrationEntryStatus, RequestParams} from "../src/types"
+import MemoryStore from "../src/memory_store"
+import {getUnregisteredTrunks} from "../src/utils"
 
 const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox()
+
+const trunks = [
+  {
+    ref: "tk6t67r1",
+    name: "T1",
+    region: "us-east1",
+    host: "sip.provider.net",
+    port: 5060,
+    transport: Transport.UDP
+  },
+  {
+    ref: "tkxy23kj",
+    name: "T2",
+    region: "us-east1",
+    host: "sip.provider.net",
+    port: 5061,
+    transport: Transport.UDP
+  },
+  {
+    ref: "tkabc3423",
+    name: "T3",
+    region: "us-east1",
+    host: "sip.provider3.net",
+    port: 5063,
+    transport: Transport.SCTP
+  }
+]
 
 describe("@routr/registry", () => {
   afterEach(() => sandbox.restore())
@@ -157,6 +186,29 @@ describe("@routr/registry", () => {
       expect(() => getPortFromAddress(badAddress)).to.throw(
         /malformated address/
       )
+    })
+
+    it("getUnregisteredTrunks", async () => {
+      const store = new MemoryStore()
+      store.put("tk6t67r1", {
+        trunkRef: "tk6t67r1",
+        timeOfEntry: Date.now(),
+        retentionTimeInSeconds: 120,
+        status: RegistrationEntryStatus.REGISTERED
+      })
+      store.put("tkxy23kj", {
+        trunkRef: "tkxy23kj",
+        timeOfEntry: Date.now(),
+        retentionTimeInSeconds: 120,
+        status: RegistrationEntryStatus.QUARANTINE
+      })
+
+      const unregisteredTrunks = await getUnregisteredTrunks(store)(trunks)
+
+      expect(unregisteredTrunks.length).to.equal(1)
+      expect(unregisteredTrunks[0])
+        .to.have.property("ref")
+        .to.equal("tkabc3423")
     })
   })
 })

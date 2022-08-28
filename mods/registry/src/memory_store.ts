@@ -73,7 +73,7 @@ export default class MemoryStore implements IRegistryStore {
     // Remove all expired registration entries
     this.collections.forEach((entry, key) => {
       const timeElapsed = (Date.now() - entry.timeOfEntry) / 1000
-      if (timeElapsed > entry.retationTimeInSeconds)
+      if (timeElapsed > entry.retentionTimeInSeconds)
         this.collections.delete(key)
     })
   }
