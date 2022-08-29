@@ -26,6 +26,7 @@ import {
   createRemotePartyId,
   createTrunkAuthentication
 } from "../src/utils"
+import {FindCriteria, KIND} from "../src/types"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -39,7 +40,13 @@ describe("@routr/connect/utils", () => {
   it("creates a new p-asserted-identity header", async () => {
     // eslint-disable-next-line prettier/prettier
     const number = (
-      await dataAPI.find("$..[?(@.spec.location.telUrl==\"tel:17066041487\")]")
+      await dataAPI.findBy({
+        kind: KIND.NUMBER,
+        criteria: FindCriteria.FIND_NUMBER_BY_TELURL,
+        parameters: {
+          telUrl: "tel:17066041487"
+        }
+      })
     )[0]
     const trunk = await dataAPI.get(number.spec.trunkRef)
     const headerModifier = createPAssertedIdentity(request, trunk, number)
@@ -54,7 +61,13 @@ describe("@routr/connect/utils", () => {
   it("creates a new remote-party-id header", async () => {
     // eslint-disable-next-line prettier/prettier
     const number = (
-      await dataAPI.find("$..[?(@.spec.location.telUrl==\"tel:17066041487\")]")
+      await dataAPI.findBy({
+        kind: KIND.NUMBER,
+        criteria: FindCriteria.FIND_NUMBER_BY_TELURL,
+        parameters: {
+          telUrl: "tel:17066041487"
+        }
+      })
     )[0]
     const trunk = await dataAPI.get(number.spec.trunkRef)
     const headerModifier = createRemotePartyId(trunk, number)

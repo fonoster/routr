@@ -16,7 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {IRegistryStore, RegistrationEntry, Trunk} from "./types"
+import {
+  DataAPI,
+  FindCriteria,
+  IRegistryStore,
+  KIND,
+  RegistrationEntry,
+  Trunk
+} from "./types"
 
 // eslint-disable-next-line require-jsdoc
 export function getUnregisteredTrunks(store: IRegistryStore) {
@@ -29,4 +36,13 @@ export function getUnregisteredTrunks(store: IRegistryStore) {
           .includes(t.ref)
     )
   }
+}
+
+// eslint-disable-next-line require-jsdoc
+export async function findTrunks(dataAPI: DataAPI) {
+  return await dataAPI.findBy({
+    kind: KIND.TRUNK,
+    criteria: FindCriteria.FIND_TRUNKS_WITH_SEND_REGISTER,
+    parameters: {}
+  })
 }

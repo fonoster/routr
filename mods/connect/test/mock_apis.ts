@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DataAPI, Resource} from "../src/types"
+import {DataAPI, FindCriteria, FindParameters, Resource} from "../src/types"
 import {r1} from "./examples"
 import loadResources from "../../simpledata/src/utils"
 import jp from "jsonpath"
@@ -27,11 +27,49 @@ const resources: Resource[] = loadResources(
   __dirname + "/../../../config/resources"
 )
 
+const findCriteriaMap: any = {}
+
+findCriteriaMap[FindCriteria.FIND_AGENT_BY_USERNAME] = (
+  parameters: Record<string, string>
+) => `$..[?(@.spec.username=='${parameters.username}')]`
+
+findCriteriaMap[FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
+  parameters: Record<string, string>
+) => `$..[?(@.metadata.ref=='${parameters.ref}')]`
+
+findCriteriaMap[FindCriteria.FIND_DOMAIN_BY_DOMAINURI] = (
+  parameters: Record<string, string>
+) => `$..[?(@.spec.context.domainUri=='${parameters.domainUri}')]`
+
+findCriteriaMap[FindCriteria.FIND_NUMBER_BY_TELURL] = (
+  parameters: Record<string, string>
+) => `$..[?(@.spec.location.telUrl=="${parameters.telUrl}")]`
+
+// eslint-disable-next-line require-jsdoc
+export function createQuery(request: FindParameters) {
+  const findCriteria = request.criteria as unknown as FindCriteria
+
+  if (!request["criteria"] || !request["kind"] || !request["parameters"]) {
+    return new Error(
+      "createQuery request is missing 'criteria', 'kind', or 'parameters'"
+    )
+  }
+
+  if (!findCriteriaMap[findCriteria]) {
+    return new Error(`invalid find criteria ${request.criteria}`)
+  }
+
+  return {
+    query: findCriteriaMap[findCriteria](request.parameters),
+    request
+  }
+}
+
 export const dataAPI: DataAPI = {
-  find: (query: string) => {
-    return Promise.resolve(jp.query(resources, query)) as unknown as Promise<
-      Resource[]
-    >
+  findBy: (request: FindParameters) => {
+    return Promise.resolve(
+      jp.query(resources, (createQuery(request) as any).query)
+    ) as unknown as Promise<Resource[]>
   },
   get: (ref: string): Promise<Resource> => {
     return Promise.resolve(

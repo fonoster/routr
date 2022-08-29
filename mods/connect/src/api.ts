@@ -49,10 +49,10 @@ export function API(apiAddr: string) {
           resolve(response)
         })
       }),
-    find: (query: string) =>
+    findBy: (request: FindParameters) =>
       new Promise<Resource[]>((resolve, reject) => {
         client.find(
-          {query},
+          request,
           (err: {code: number}, response: {resources: Resource[]}) => {
             if (err) {
               return err?.code === grpc.status.UNAVAILABLE

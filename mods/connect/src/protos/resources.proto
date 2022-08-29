@@ -12,7 +12,7 @@ service Resources {
   rpc Get (GetRequest) returns (Resource) {}
   rpc Delete (DeleteRequest) returns (Empty) {}
   rpc List (ListRequest) returns (ListResponse) {}
-  rpc Find (FindRequest) returns (FindResponse) {}
+  rpc FindBy (FindByRequest) returns (FindByResponse) {}
 }
 
 message Resource {
@@ -62,8 +62,11 @@ message ListRequest {
   // The filter to apply to the list
   string filter = 3;
 
+  // The type of resource to list
+  string kind = 4;
+
   // Level of detail of the individual entities (reserved)
-  View view = 4;
+  View view = 5;
 }
 
 message ListResponse {
@@ -74,15 +77,21 @@ message ListResponse {
   string next_page_token = 2;
 }
 
-message FindRequest {
-  // The query to apply to the list
-  string query = 1;
+message FindByRequest {
+  // The type of resource to find
+  string kind = 1;
+
+  // Search criteria for the request
+  string criteria = 2;
+
+  // Parameters to apply in combination with the search criteria
+  .google.protobuf.Struct parameters = 3; 
 
   // Level of detail of the individual entities (reserved)
-  View view = 2;
+  View view = 4;
 }
 
-message FindResponse {
+message FindByResponse {
   // List of Resources
   repeated Resource resources = 1;
 }

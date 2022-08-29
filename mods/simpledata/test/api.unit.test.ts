@@ -130,7 +130,7 @@ describe("@routr/simpledata/api", () => {
       expect(result).to.have.property("request").to.have.property("kind")
       expect(result)
         .to.have.property("query")
-        .to.equal("$..[?(@.spec.credentials.username=='myusername')]")
+        .to.equal("$..[?(@.spec.username=='myusername')]")
     })
 
     it("fails to create query due to bad criteria", () => {

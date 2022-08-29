@@ -28,11 +28,19 @@ const findCriteriaMap: any = {}
 
 findCriteriaMap[FindCriteria.FIND_AGENT_BY_USERNAME] = (
   parameters: Record<string, string>
-) => `$..[?(@.spec.credentials.username=='${parameters.username}')]`
+) => `$..[?(@.spec.username=='${parameters.username}')]`
 
 findCriteriaMap[FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
   parameters: Record<string, string>
 ) => `$..[?(@.metadata.ref=='${parameters.ref}')]`
+
+findCriteriaMap[FindCriteria.FIND_DOMAIN_BY_DOMAINURI] = (
+  parameters: Record<string, string>
+) => `$..[?(@.spec.context.domainUri=='${parameters.domainUri}')]`
+
+findCriteriaMap[FindCriteria.FIND_NUMBER_BY_TELURL] = (
+  parameters: Record<string, string>
+) => `$..[?(@.spec.location.telUrl=="tel:${parameters.telUrl}")]`
 
 /**
  * Creates a list of validators from the given schemas.

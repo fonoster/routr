@@ -22,6 +22,24 @@ import {SIPMessage} from "@routr/common/src/types"
 export const DEFAULT_MAX_FORWARDS = 70
 export const DEFAULT_EXPIRES = 600
 
+export enum KIND {
+  AGENT = "agent",
+  PEER = "peer",
+  NUMBER = "number",
+  TRUNK = "trunk",
+  DOMAIN = "domain",
+  UNKNOWN = "unknown",
+  CREDENTIAL = "credential"
+}
+
+export enum FindCriteria {
+  FIND_AGENT_BY_USERNAME = "find_agent_by_username",
+  FIND_CREDENTIAL_BY_REFERENCE = "find_credential_by_reference",
+  FIND_DOMAIN_BY_DOMAINURI = "find_domain_by_domainuri",
+  FIND_NUMBER_BY_TELURL = "find_number_by_telurl",
+  FIND_TRUNKS_WITH_SEND_REGISTER = "find_trunks_with_send_register"
+}
+
 export enum CACHE_PROVIDER {
   MEMORY = "memory",
   REDIS = "redis"
@@ -113,4 +131,27 @@ export interface Trunk {
   username?: string
   secret?: string
   transport: Transport
+}
+
+export interface Resource {
+  apiVersion: string
+  kind: string
+  metadata: {
+    ref: string
+    name: string
+    linkTo?: Array<string>
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  spec: Record<string, any>
+}
+
+export interface DataAPI {
+  get: (ref: string) => Promise<Resource>
+  findBy: (request: FindParameters) => Promise<Resource[]>
+}
+
+export interface FindParameters {
+  kind: KIND
+  criteria: FindCriteria
+  parameters: Record<string, string>
 }

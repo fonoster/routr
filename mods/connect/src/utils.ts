@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import {HeaderModifier, MessageRequest, Transport} from "@routr/common"
-import {DataAPI, KIND, Resource, ROUTING_DIRECTION} from "./types"
+import {DataAPI, FindCriteria, KIND, Resource, ROUTING_DIRECTION} from "./types"
 
 export const isKind = (req: Resource, kind: KIND) => {
   if (req == null && kind === KIND.UNKNOWN) {
@@ -28,7 +28,13 @@ export const isKind = (req: Resource, kind: KIND) => {
 
 export const findDomain = async (dataAPI: DataAPI, domainUri: string) => {
   return (
-    await dataAPI.find(`$..[?(@.spec.context.domainUri=='${domainUri}')]`)
+    await dataAPI.findBy({
+      kind: KIND.DOMAIN,
+      criteria: FindCriteria.FIND_DOMAIN_BY_DOMAINURI,
+      parameters: {
+        domainUri
+      }
+    })
   )[0]
 }
 
@@ -41,11 +47,26 @@ export const findResource = async (
 
   // TODO: Fix jsonpath not working for logical AND and OR
   let res = (
-    await dataAPI.find(`$..[?(@.spec.location.telUrl=="tel:${userpart}")]`)
+    await dataAPI.findBy({
+      kind: KIND.NUMBER,
+      criteria: FindCriteria.FIND_NUMBER_BY_TELURL,
+      parameters: {
+        telUrl: `tel:${userpart}`
+      }
+    })
   )[0]
+
   res =
     res == null
-      ? (await dataAPI.find(`$..[?(@.spec.username=="${userpart}")]`))[0]
+      ? (
+          await dataAPI.findBy({
+            kind: KIND.AGENT,
+            criteria: FindCriteria.FIND_AGENT_BY_USERNAME,
+            parameters: {
+              username: userpart
+            }
+          })
+        )[0]
       : res
 
   if (isKind(res, KIND.AGENT) && res.spec.domainRef != domain?.metadata.ref) {
