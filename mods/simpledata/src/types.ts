@@ -16,6 +16,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export enum Kind {
+  AGENT = "agent",
+  PEER = "peer",
+  NUMBER = "number",
+  TRUNK = "trunk",
+  DOMAIN = "domain",
+  UNKNOWN = "unknown",
+  CREDENTIAL = "credential"
+}
+
+export enum FindCriteria {
+  FIND_AGENT_BY_USERNAME = "find_agent_by_username",
+  FIND_CREDENTIAL_BY_REFERENCE = "find_credential_by_reference"
+}
+
 export interface SimpleDataConfig {
   bindAddr: string
   resources: Array<Resource>
@@ -30,4 +45,10 @@ export interface Resource {
     linkTo?: Array<string>
   }
   spec: Record<string, unknown>
+}
+
+export interface FindParameters {
+  kind: Kind
+  criteria: FindCriteria
+  parameters: Record<string, string>
 }

@@ -20,6 +20,9 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import {find, get} from "../src/api"
+import {BadRequest} from "../src/errors"
+import {FindCriteria, FindParameters, Kind} from "../src/types"
+import {createQuery} from "../src/utils"
 import {resources} from "./examples"
 
 const expect = chai.expect
@@ -115,10 +118,52 @@ describe("@routr/simpledata/api", () => {
       expect(callbackSpy).to.have.been.calledOnce
     })
 
+    it("creates query based on find criteria and parameters", () => {
+      const searchParameters: FindParameters = {
+        kind: Kind.AGENT,
+        criteria: FindCriteria.FIND_AGENT_BY_USERNAME,
+        parameters: {
+          username: "myusername"
+        }
+      }
+      const result = createQuery(searchParameters)
+      expect(result).to.have.property("request").to.have.property("kind")
+      expect(result)
+        .to.have.property("query")
+        .to.equal("$..[?(@.spec.credentials.username=='myusername')]")
+    })
+
+    it("fails to create query due to bad criteria", () => {
+      const searchParameters: FindParameters = {
+        kind: Kind.AGENT,
+        criteria: "bad_criteria" as any,
+        parameters: {
+          username: "myusername"
+        }
+      }
+      expect(createQuery(searchParameters)).to.be.instanceOf(BadRequest)
+    })
+
+    it("fails to create query due to missing parameter", () => {
+      const searchParameters: FindParameters = {
+        kind: Kind.AGENT,
+        parameters: {
+          username: "myusername"
+        }
+      } as any
+      expect(createQuery(searchParameters)).to.be.instanceOf(BadRequest)
+    })
+
     // As per https://www.npmjs.com/package/jsonpath
-    it("finds a resource using json-path", (done) => {
+    it("finds a resource using findBy method", (done) => {
       const call = {
-        request: {query: "$..[?(@.spec.credentials.username=='username')]"}
+        request: {
+          kind: Kind.CREDENTIAL,
+          criteria: FindCriteria.FIND_CREDENTIAL_BY_REFERENCE,
+          parameters: {
+            ref: "crd2c76ft"
+          }
+        }
       }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.null
@@ -131,15 +176,6 @@ describe("@routr/simpledata/api", () => {
       const callbackSpy = sandbox.spy(callback)
       find(resources)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
-    })
-
-    it("fails because of bad json-path", (done) => {
-      const call = {request: {query: "*.%@3sdsd"}}
-      const callback = (err: Error) => {
-        expect(err).to.be.not.null
-        done()
-      }
-      find(resources)(call, callback)
     })
   })
 })

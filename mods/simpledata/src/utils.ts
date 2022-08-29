@@ -16,13 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {UnimplementedError} from "./errors"
-import {Resource} from "./types"
+import {BadRequest, UnimplementedError} from "./errors"
+import {FindCriteria, FindParameters, Resource} from "./types"
 import Ajv from "ajv"
 import {CommonTypes as CT} from "@routr/common"
 import {getLogger} from "@fonoster/logger"
 
 const logger = getLogger({service: "simpledata", filePath: __filename})
+
+const findCriteriaMap: any = {}
+
+findCriteriaMap[FindCriteria.FIND_AGENT_BY_USERNAME] = (
+  parameters: Record<string, string>
+) => `$..[?(@.spec.credentials.username=='${parameters.username}')]`
+
+findCriteriaMap[FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
+  parameters: Record<string, string>
+) => `$..[?(@.metadata.ref=='${parameters.ref}')]`
 
 /**
  * Creates a list of validators from the given schemas.
@@ -82,8 +92,33 @@ export default function loadResources(
       }
     })
   })
-  logger.info("loaded data resources", {total: all.length})
+  logger.verbose("loaded data resources", {total: all.length})
   return all
+}
+
+// eslint-disable-next-line require-jsdoc
+export function createQuery(request: FindParameters):
+  | {
+      request: FindParameters
+      query: string
+    }
+  | BadRequest {
+  const findCriteria = request.criteria as unknown as FindCriteria
+
+  if (!request["criteria"] || !request["kind"] || !request["parameters"]) {
+    return new BadRequest(
+      "createQuery request is missing 'criteria', 'kind', or 'parameters'"
+    )
+  }
+
+  if (!findCriteriaMap[findCriteria]) {
+    return new BadRequest(`invalid find criteria ${request.criteria}`)
+  }
+
+  return {
+    query: findCriteriaMap[findCriteria](request.parameters),
+    request
+  }
 }
 
 /**

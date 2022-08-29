@@ -28,7 +28,7 @@ export const resources: Resource[] = [
     },
     spec: {
       credentials: {
-        username: "username",
+        username: "myusername",
         password: "password"
       }
     }

@@ -17,9 +17,10 @@
  * limitations under the License.
  */
 import {BadRequest, ResourceNotFound} from "./errors"
-import {Resource} from "./types"
+import {FindParameters, Resource} from "./types"
 import {CommonTypes as CT} from "@routr/common"
 import jp from "jsonpath"
+import {createQuery} from "./utils"
 
 /**
  * Enclosure with method to obtain a resource by reference.
@@ -53,19 +54,28 @@ export function get(resources: Resource[]) {
  */
 export function find(resources: Resource[]) {
   return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
-    if (resources == null || resources.length === 0) {
-      return callback(new ResourceNotFound(call.request.query), null)
+    const res = resources.filter(
+      (r: Resource) =>
+        r.kind?.toLowerCase() === call.request.kind?.toLowerCase()
+    )
+
+    if (res == null || res.length === 0) {
+      return callback(new ResourceNotFound("unknown"), null)
     }
 
-    if (call.request.query == null) {
-      return callback(new BadRequest("parameter query is required"), null)
+    const result = createQuery(call.request as FindParameters)
+
+    if (result instanceof BadRequest) {
+      return callback(result, null)
     }
 
     try {
-      callback(null, {resources: jp.query(resources, call.request.query)})
+      callback(null, {
+        resources: jp.query(res, result.query)
+      })
     } catch (e) {
       return callback(
-        new BadRequest(`invalid JSONPath expression: ${call.request.query}`),
+        new BadRequest(`invalid JSONPath expression: ${result.query}`),
         null
       )
     }
