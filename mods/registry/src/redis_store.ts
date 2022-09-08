@@ -25,7 +25,7 @@ const KEY_PREFIX = "registry"
 const logger = getLogger({service: "registry", filePath: __filename})
 
 /**
- * Redis store for the locator service.
+ * Redis store for the registry service.
  */
 export default class RedisStore implements IRegistryStore {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

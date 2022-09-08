@@ -21,7 +21,7 @@ import {IRegistryStore, RegistrationEntry} from "./types"
 const MAX_CYCLES_BEFORE_CLEANUP = 10000
 
 /**
- * In-memory store for the locator service.
+ * In-memory store for the registry service.
  */
 export default class MemoryStore implements IRegistryStore {
   private collections: Map<string, RegistrationEntry>
