@@ -44,6 +44,14 @@ export const schema = {
           description: "Address of service to send requests to",
           type: "string"
         },
+        apiAddr: {
+          description: "Address of API service",
+          type: "string"
+        },
+        registerInterval: {
+          description: "Interval to send registration requests",
+          type: "number"
+        },
         cache: {
           type: "object",
           properties: {

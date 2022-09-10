@@ -46,3 +46,27 @@ export async function findTrunks(dataAPI: DataAPI) {
     parameters: {}
   })
 }
+
+export const configFromString = (
+  params: string,
+  allowedKeys: string[]
+): Record<string, string | boolean> => {
+  if (params.length === 0) return {}
+  const parameters: Record<string, string | boolean> = {}
+  params.split(",").forEach((par) => {
+    try {
+      const key = par.split("=")[0]
+      const value = par.split("=")[1]
+      if (allowedKeys.indexOf(key) === -1) {
+        throw new Error(`invalid parameter: ${key}`)
+      } else {
+        parameters[key] = value === "true" ? true : value
+      }
+    } catch (e) {
+      throw new Error(
+        `invalid parameters string: ${params}; should be something like 'host=localhost,port=6379'`
+      )
+    }
+  })
+  return parameters
+}

@@ -53,12 +53,15 @@ export enum RegistrationEntryStatus {
 export interface EdgePort {
   address: string
   region: string
+  methods: Method[]
 }
 
 export interface RegistryConfig {
   bindAddr: string
   requesterAddr: string
+  apiAddr: string
   edgePorts: EdgePort[]
+  registerInterval: number
   cache?: {
     provider: CACHE_PROVIDER
     parameters?: string

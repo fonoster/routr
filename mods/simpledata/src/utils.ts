@@ -42,6 +42,9 @@ findCriteriaMap[FindCriteria.FIND_NUMBER_BY_TELURL] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.location.telUrl=="tel:${parameters.telUrl}")]`
 
+findCriteriaMap[FindCriteria.FIND_TRUNKS_WITH_SEND_REGISTER] = () =>
+  "$..[?(@.spec.outbound.sendRegister==true)]"
+
 /**
  * Creates a list of validators from the given schemas.
  *

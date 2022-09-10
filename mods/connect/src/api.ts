@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import {resources} from "./grpc_client"
-import {Resource} from "./types"
+import {FindParameters, Resource} from "./types"
 import {ServiceUnavailableError} from "./errors"
 import * as grpc from "@grpc/grpc-js"
 
@@ -51,7 +51,7 @@ export function API(apiAddr: string) {
       }),
     findBy: (request: FindParameters) =>
       new Promise<Resource[]>((resolve, reject) => {
-        client.find(
+        client.findBy(
           request,
           (err: {code: number}, response: {resources: Resource[]}) => {
             if (err) {

@@ -19,45 +19,19 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("dispatcher")
-// import registryService from "./service"
+import registryService from "./service"
 import {getConfig} from "./config/get_config"
-import {Assertions as A, Method, Transport} from "@routr/common"
-import {sendRegisterMessage} from "./sender"
-import createRegistrationRequest from "./request"
+import {Assertions as A} from "@routr/common"
 import {getLogger} from "@fonoster/logger"
 
 const logger = getLogger({service: "simpleauth", filePath: __filename})
 
 A.assertEnvsAreSet(["CONFIG_PATH"])
 
-const result = getConfig(process.env.CONFIG_PATH)
+const config = getConfig(process.env.CONFIG_PATH)
 
-const req = createRegistrationRequest({
-  user: "1001",
-  targetDomain: "sipcd.camanio.com",
-  targetAddress: "sipcd.camanio.com:5060",
-  proxyAddress: "192.168.1.3:5060",
-  transport: Transport.TCP,
-  allow: [
-    Method.INVITE,
-    Method.ACK,
-    Method.BYE,
-    Method.CANCEL,
-    Method.REGISTER,
-    Method.OPTIONS
-  ],
-  auth: {
-    username: "1001",
-    secret: "1234"
-  }
-})
-
-sendRegisterMessage("127.0.0.1:51909")(req)
-  .then(logger.verbose)
-  .catch(logger.error)
-
-if (result._tag === "Right") {
-  // locationService(result.right)
+if (config._tag === "Right") {
+  registryService(config.right)
 } else {
-  logger.error(result.left)
+  logger.error(config.left)
 }

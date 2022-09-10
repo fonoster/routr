@@ -19,7 +19,7 @@
 import {SimpleDataConfig} from "./types"
 import {resources} from "./grpc_server"
 import {nyi} from "./utils"
-import {find, get} from "./api"
+import {findBy, get} from "./api"
 import * as grpc from "@grpc/grpc-js"
 import {getLogger} from "@fonoster/logger"
 
@@ -37,7 +37,7 @@ export default function simpleDataService(config: SimpleDataConfig): void {
 
   server.addService(resources.v2draft1.Resources.service, {
     get: get(config.resources),
-    find: find(config.resources),
+    findBy: findBy(config.resources),
     delete: nyi,
     update: nyi,
     create: nyi,
