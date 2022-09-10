@@ -19,7 +19,7 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {find, get} from "../src/api"
+import {findBy, get} from "../src/api"
 import {BadRequest} from "../src/errors"
 import {FindCriteria, FindParameters, Kind} from "../src/types"
 import {createQuery} from "../src/utils"
@@ -174,7 +174,7 @@ describe("@routr/simpledata/api", () => {
         done()
       }
       const callbackSpy = sandbox.spy(callback)
-      find(resources)(call, callback)
+      findBy(resources)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
     })
   })
