@@ -49,6 +49,16 @@ spec:
           successThreshold: {{ .Values.routr.livenessProbe.successThreshold }}
           failureThreshold: {{ .Values.routr.livenessProbe.failureThreshold }}   
         env:
+        - name: EX_KAFKA_TOPIC
+          value: {{ .Values.routr.ex_kafkaTopic | quote }}
+        - name: EX_KAFKA_BOOTSTRAP_SERVERS
+          value: {{ .Values.routr.ex_kafkaBootstrapServers | quote }}
+        - name: EX_KAFKA_SECURITY_PROTOCOL
+          value: {{ .Values.routr.ex_kafkaSecurityProtocol | quote }}
+        - name: EX_KAFKA_SASL_MECHANISM
+          value: {{ .Values.routr.ex_kafkaSASLMechanism | quote }}
+        - name: EX_KAFKA_SASL_JAAS_CONFIG
+          value: {{ .Values.routr.ex_kafkaSASLJAASConfig | quote }}
         - name: EX_CONVERT_TEL_TO_E164
           value: {{ .Values.routr.ex_convertTelToE164 | quote }}
         - name: EX_UNIQUE_GATEWAY_PER_HOST_PORT

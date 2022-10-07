@@ -21,7 +21,6 @@ const postal = require('postal')
 const {
   getEdgeAddr,
   configureContact,
-  configureRoute,
   configureRouteV2,
   configureVia,
   configureProxyAuthorization,
@@ -250,6 +249,24 @@ class RequestHandler {
           obj.sdp,
           requestOut.getHeader(ContentTypeHeader.NAME)
         )
+      }
+
+      if (request.getMethod() === Request.INVITE) {
+        postal.publish({
+          channel: 'processor',
+          topic: 'call.started',
+          data: {
+            request: requestOut
+          }
+        })
+      } else if (request.getMethod() === Request.BYE) {
+        postal.publish({
+          channel: 'processor',
+          topic: 'call.end',
+          data: {
+            request: requestOut
+          }
+        })
       }
 
       if (

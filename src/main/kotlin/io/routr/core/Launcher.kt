@@ -7,6 +7,7 @@ import kotlin.system.exitProcess
 import org.apache.logging.log4j.LogManager
 import org.graalvm.polyglot.Context
 import org.graalvm.polyglot.HostAccess
+import org.graalvm.polyglot.PolyglotException
 
 /**
  * @author Pedro Sanders
@@ -17,16 +18,19 @@ class Launcher {
   fun launch() {
     val mainCtx = createJSContext(serverRunner, "server")
     val registryCtx = createJSContext(registryRunner, "reg")
-    // createJSContext(restRunner, "nop")
     val server = GRPCServer(mainCtx)
 
     val timer = Timer()
     timer.schedule(
         object : TimerTask() {
           override fun run() {
-            // If it was null the error was reported already, but still need to
-            // consider that the object was never created
-            registryCtx.eval("js", "reg && reg.registerAll()")
+            try {
+              // If it was null the error was reported already, but still need to
+              // consider that the object was never created
+              registryCtx.eval("js", "reg && reg.registerAll()")
+            } catch (ex: PolyglotException) {
+              LOG.error(ex.message)
+            }
           }
         },
         10 * 1000.toLong(),
@@ -36,9 +40,13 @@ class Launcher {
     timer.schedule(
         object : TimerTask() {
           override fun run() {
-            val routeLoaderCtx = createJSContext(routeLoaderRunner, "loader")
-            routeLoaderCtx.eval("js", "loader.loadStaticRoutes()")
-            routeLoaderCtx.close()
+            try {
+              val routeLoaderCtx = createJSContext(routeLoaderRunner, "loader")
+              routeLoaderCtx.eval("js", "loader.loadStaticRoutes()")
+              routeLoaderCtx.close()
+            } catch (ex: PolyglotException) {
+              LOG.error(ex.message)
+            }
           }
         },
         0,
@@ -66,7 +74,8 @@ class Launcher {
     try {
       ctx.eval("js", src)
     } catch (ex: Exception) {
-      LOG.error(ex.message)
+      LOG.fatal(ex.message)
+      exitProcess(1)
     }
 
     return ctx

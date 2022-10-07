@@ -1,102 +1,96 @@
 buildscript {
-    repositories {
-        mavenCentral()
-        jcenter()
-        maven { url 'https://jitpack.io' }
-    }
-}
-
-plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
-    id 'com.google.protobuf' version '0.8.8'
-}
-
-test {
-    useJUnitPlatform()
-}
-
-allprojects {
   repositories {
-    maven { url 'https://jitpack.io' }
+    mavenCentral()
+    jcenter()
   }
 }
 
+plugins {
+  id 'org.jetbrains.kotlin.jvm' version '1.3.72'
+  id 'com.google.protobuf' version '0.8.8'
+}
+
+test {
+  useJUnitPlatform()
+}
+
 dependencies {
-    compile 'com.google.code.gson:gson:2.9.0'
-    compile 'org.fluentd:fluent-logger:0.3.4'
-    compile 'io.grpc:grpc-all:1.19.0'
-    compile 'com.google.protobuf:protobuf-java:3.6.1'
-    compileOnly 'javax.annotation:javax.annotation-api:1.2'
-    compile 'net.openhft:chronicle-map:3.17.6'
-    compile 'log4j:log4j:1.2.17'
-    compile 'org.slf4j:slf4j-nop:1.7.28'
-    compile 'org.apache.logging.log4j:log4j-core:2.12.2'
-    compile 'org.apache.logging.log4j:log4j-1.2-api:2.12.2'
-    compile 'org.apache.commons:commons-lang3:3.10'
-    compile 'org.mongodb:bson:3.7.1'
-    compile 'org.graalvm.js:js:19.3.0'
-    compile 'org.graalvm.js:js-scriptengine:19.3.0'
-    compile 'javax.sip:jain-sip-ri:1.2.324' // Newer versions of JAIN-SIP are causing critical regression with Routr
-    compile 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
-    compile 'redis.clients:jedis:4.2.1'
-    compile 'io.jsonwebtoken:jjwt:0.9.1'
-    compile 'it.unimi.dsi:dsiutils:2.6.0'
-    compile 'commons-codec:commons-codec:1.13'
-    compile 'commons-net:commons-net:3.6'
-    compile 'commons-io:commons-io:2.6'
-    compile 'com.github.ben-manes.caffeine:caffeine:2.8.0'
-    compile 'com.networknt:json-schema-validator:1.0.29'
-    compile 'com.jayway.jsonpath:json-path:2.4.0'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.6'
-    compile 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.6'
-    compile 'com.sparkjava:spark-core:2.9.1'
-    compile 'com.qmetric:spark-authentication:1.4'
-    compile 'io.kotest:kotest-runner-junit5-jvm:4.0.3'
-    compile 'io.kotest:kotest-assertions-core-jvm:4.0.3'
-    compile 'io.kotest:kotest-property-jvm:4.0.3'
-    compile "com.mashape.unirest:unirest-java:1.4.9"
-    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.3.50'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7'
+  compile 'org.apache.kafka:kafka-clients:2.0.0'
+  compile 'com.google.code.gson:gson:2.9.0'
+  compile 'org.fluentd:fluent-logger:0.3.4'
+  compile 'io.grpc:grpc-all:1.19.0'
+  compile 'com.google.protobuf:protobuf-java:3.6.1'
+  compileOnly 'javax.annotation:javax.annotation-api:1.2'
+  compile 'net.openhft:chronicle-map:3.17.6'
+  compile 'log4j:log4j:1.2.17'
+  compile 'org.slf4j:slf4j-nop:1.7.28'
+  compile 'org.apache.logging.log4j:log4j-core:2.12.2'
+  compile 'org.apache.logging.log4j:log4j-1.2-api:2.12.2'
+  compile 'org.apache.commons:commons-lang3:3.10'
+  compile 'org.mongodb:bson:3.7.1'
+  compile 'org.graalvm.js:js:19.3.0'
+  compile 'org.graalvm.js:js-scriptengine:19.3.0'
+  compile 'javax.sip:jain-sip-ri:1.2.324' // Newer versions of JAIN-SIP are causing critical regression with Routr
+  compile 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
+  compile 'redis.clients:jedis:4.2.1'
+  compile 'io.jsonwebtoken:jjwt:0.9.1'
+  compile 'it.unimi.dsi:dsiutils:2.6.0'
+  compile 'commons-codec:commons-codec:1.13'
+  compile 'commons-net:commons-net:3.6'
+  compile 'commons-io:commons-io:2.6'
+  compile 'com.github.ben-manes.caffeine:caffeine:2.8.0'
+  compile 'com.networknt:json-schema-validator:1.0.29'
+  compile 'com.jayway.jsonpath:json-path:2.4.0'
+  compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.5'
+  compile 'com.fasterxml.jackson.core:jackson-databind:2.9.6'
+  compile 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.6'
+  compile 'com.sparkjava:spark-core:2.9.1'
+  compile 'com.qmetric:spark-authentication:1.4'
+  compile 'io.kotest:kotest-runner-junit5-jvm:4.0.3'
+  compile 'io.kotest:kotest-assertions-core-jvm:4.0.3'
+  compile 'io.kotest:kotest-property-jvm:4.0.3'
+  compile "com.mashape.unirest:unirest-java:1.4.9"
+  implementation 'org.jetbrains.kotlin:kotlin-reflect:1.3.50'
+  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7'
 }
 
 sourceSets {
-    main {
-        java {
-            srcDirs 'build/generated/source/proto/main/grpc'
-            srcDirs 'build/generated/source/proto/main/java'
-        }
+  main {
+    java {
+      srcDirs 'build/generated/source/proto/main/grpc'
+      srcDirs 'build/generated/source/proto/main/java'
     }
+  }
 }
 
 protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:3.7.0"
+  protoc {
+    artifact = "com.google.protobuf:protoc:3.7.0"
+  }
+  plugins {
+    grpc {
+      artifact = "io.grpc:protoc-gen-grpc-java:1.19.0"
     }
-    plugins {
-        grpc {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.19.0"
-        }
+  }
+  generateProtoTasks {
+    all()*.plugins {
+      grpc {}
     }
-    generateProtoTasks {
-        all()*.plugins {
-            grpc {}
-        }
-    }
+  }
 }
 
 configurations.all {
-    // Mutes 3rd party loggers
-    exclude group: 'ch.qos.logback', module: 'logback-classic'
-    exclude group: 'ch.qos.logback', module: 'logback-core'
+  // Mutes 3rd party loggers
+  exclude group: 'ch.qos.logback', module: 'logback-classic'
+  exclude group: 'ch.qos.logback', module: 'logback-core'
 }
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 tasks.withType(Jar) {
-    destinationDir = file("$rootDir/libs")
+  destinationDir = file("$rootDir/libs")
 }
 
 task copyRuntimeLibs(type: Copy) {
