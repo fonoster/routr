@@ -82,6 +82,18 @@ class RTPEngineConnector {
 
     return obj
   }
+
+  async getQoS (callId) {
+    const result = await this.sender.sendCmd('query', {
+      'call-id': callId
+    })
+    return result
+      ? {
+          rtcp: result.totals['RTCP'],
+          rtp: result.totals['RTP']
+        }
+      : {}
+  }
 }
 
 module.exports = RTPEngineConnector

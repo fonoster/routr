@@ -59,6 +59,11 @@ routr:
   useToAsAOR: false
   patchRequestURI: false
   registrarIntf: Internal
+  ex_kafkaTopic: ""
+  ex_kafkaBootstrapServers: ""
+  ex_kafkaSecurityProtocol: ""
+  ex_kafkaSASLMechanism: ""
+  ex_kafkaSASLJAASConfig: ""
   ex_uniqueGatewayPerHostPort: false
   ex_convertTelToE164: false
   javaOpts: ""

@@ -1,13 +1,14 @@
 #!/usr/bin/env sh
 
 set -e
-
 HOME="$(cd "$(dirname "$0")"; pwd)"
 RESTART_CODE=123
 
 [ -d "$HOME/jre" ] && JAVA_HOME=$HOME/jre
 [ -z "$LOG4J2" ] && LOG4J2=config/log4j2.yml
 [ -z "$DATA" ] && DATA=$HOME
+
+export HOSTNAME=$(hostname)
 
 run() {
     cd $HOME
