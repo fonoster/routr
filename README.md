@@ -53,9 +53,9 @@ Routr is developed in the open. The best to communicate with us via [GitHub Disc
 
 **Twitter:** [@fonoster](https://twitter.com/fonoster)
 
-**Issue tracker:** Use the GitHub issue tracker for the various [Routr repositories](https://github.com/fonoster/) to file bugs and features request. If you need support, please send your questions to the routr-users mailing list rather than filing a GitHub issue.
+**Issue tracker:** Use the GitHub issue tracker for the various [Routr repositories](https://github.com/fonoster/) to file bugs and features request. If you need support, please send your questions to GitHub Discussions rather than filing a GitHub issue.
 
->Please do not ask individual project members for support. Use the channels above instead, where the whole community can help you and benefit from the solutions provided. If community support is insufficient for your situation, please contact us for Commercial Support.
+> Please do not ask individual project members for support. Use the channels above instead, where the whole community can help you and benefit from the solutions provided. If community support is insufficient for your situation, please contact us for Commercial Support.
 
 ## Deployment
 
