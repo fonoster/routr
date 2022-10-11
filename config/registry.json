@@ -3,10 +3,16 @@
   "apiVersion": "v2draft1",
   "spec": {
     "bindAddr": "0.0.0.0:51904",
-    "requesterAddr": "0.0.0.0:51909",
+    "requesterAddr": "localhost:51909",
+    "apiAddr": "localhost:52901",
+    "registerInterval": 20,
     "cache": {
       "provider": "memory"
     },
+    "methods": [
+      "INVITE",
+      "MESSAGE"
+    ],
     "edgePorts": [
       {
         "address": "localhost:5060",

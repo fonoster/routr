@@ -70,14 +70,7 @@ describe("@routr/registry", () => {
       targetAddress: "sip.provider.net:5060",
       proxyAddress: "sip.proxy01.net:5060",
       transport: Transport.TCP,
-      allow: [
-        Method.INVITE,
-        Method.ACK,
-        Method.BYE,
-        Method.CANCEL,
-        Method.REGISTER,
-        Method.OPTIONS
-      ],
+      methods: [Method.INVITE],
       auth: {
         username: "1001",
         secret: "1234"
@@ -92,10 +85,10 @@ describe("@routr/registry", () => {
     const route = request?.message?.route[0]?.address.uri
     const extensions = request?.message?.extensions
 
-    expect(extensions[0]?.name).to.be.equal("CSeq")
-    expect(extensions[0]?.value).to.be.include(`${Method.REGISTER}`)
-    expect(extensions[1]?.name).to.be.equal("Allow")
-    expect(extensions[1]?.value).to.be.include(Method.INVITE)
+    expect(extensions[0]?.name).to.be.equal("Allow")
+    expect(extensions[0]?.value).to.be.include(Method.INVITE)
+    expect(extensions[1]?.name).to.be.equal("CSeq")
+    expect(extensions[1]?.value).to.be.include(`${Method.REGISTER}`)
     expect(extensions[2]?.name).to.be.equal("User-Agent")
     expect(extensions[2]?.value).to.be.include("Routr Connect")
     expect(extensions[3]?.name).to.be.equal("Allow-Events")

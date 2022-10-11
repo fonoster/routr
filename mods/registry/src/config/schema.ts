@@ -64,6 +64,14 @@ export const schema = {
           },
           required: ["provider"]
         },
+        methods: {
+          description: "Acceptable SIP Methods",
+          type: "array",
+          items: {
+            type: "string"
+          },
+          uniqueItems: true
+        },
         edgePorts: {
           description: "List of EdgePorts for outbound registrations",
           type: "array",

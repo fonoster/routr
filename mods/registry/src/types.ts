@@ -53,7 +53,6 @@ export enum RegistrationEntryStatus {
 export interface EdgePort {
   address: string
   region: string
-  methods: Method[]
 }
 
 export interface RegistryConfig {
@@ -62,6 +61,7 @@ export interface RegistryConfig {
   apiAddr: string
   edgePorts: EdgePort[]
   registerInterval: number
+  methods: Method[]
   cache?: {
     provider: CACHE_PROVIDER
     parameters?: string
@@ -95,7 +95,8 @@ export interface RequestParams {
   proxyAddress: string
   transport: Transport
   userAgent?: string
-  allow?: Method[]
+  // TODO: Perhaps this should be renamed to allowMethods
+  methods?: Method[]
   maxForwards?: number
   expires?: number
   secure?: boolean

@@ -52,19 +52,19 @@ export default function createRegistrationRequest(
     transport: params.transport,
     message: {
       extensions: [
+        ...(params.methods?.map((value: string) => {
+          return {name: "Allow", value}
+        }) || []),
         {
           name: "CSeq",
           value: `${cseq++} ${Method.REGISTER}`
-        },
-        {
-          name: "Allow",
-          value: "INVITE"
         },
         {
           name: "User-Agent",
           // TODO: Take from central location (commons?)
           value: params.userAgent || "Routr Connect v2"
         },
+        // TODO: Q. Should this be in the registry configuration?
         {
           name: "Allow-Events",
           value: "presence"
