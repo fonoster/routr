@@ -82,7 +82,7 @@ final public class RequestSender {
     headers.add(viaHeader);
     headers.forEach(req::addHeader);
 
-    LOG.debug("sending request: {}", req.toString());
+    LOG.debug("sending request: \n {}", req.toString());
 
     try {
       var clientTransaction = this.sipProvider.getNewClientTransaction(req);
