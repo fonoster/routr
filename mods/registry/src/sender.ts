@@ -23,7 +23,7 @@ import {RegistrationRequest, SendMessageResponse} from "./types"
 
 export const sendRegisterMessage = (requesterAddr: string) => {
   return (
-    message: RegistrationRequest
+    request: RegistrationRequest
   ): Promise<ServiceUnavailableError | SendMessageResponse> => {
     const client = new requester.v2draft1.Requester(
       requesterAddr,
@@ -32,14 +32,14 @@ export const sendRegisterMessage = (requesterAddr: string) => {
 
     return new Promise((resolve, reject) => {
       client.sendMessage(
-        message,
+        request,
         (err: {code: number}, response: SendMessageResponse) => {
           if (err?.code === 14) {
             return reject(new ServiceUnavailableError(requesterAddr))
           } else if (err) {
             return reject(err)
           }
-          resolve(response)
+          resolve({trunkRef: request.trunkRef, ...response})
         }
       )
     })

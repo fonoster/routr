@@ -34,20 +34,20 @@ describe("@routr/registry/redis_store", () => {
     const entry1: RegistrationEntry = {
       trunkRef: "tk6t67r1",
       timeOfEntry: Date.now(),
-      retationTimeInSeconds: 120,
+      retentionTimeInSeconds: 120,
       status: RegistrationEntryStatus.REGISTERED
     }
     const entry2: RegistrationEntry = {
       trunkRef: "tky767x2",
       // Very old entry
       timeOfEntry: 1661701508130,
-      retationTimeInSeconds: 10,
+      retentionTimeInSeconds: 10,
       status: RegistrationEntryStatus.QUARANTINE
     }
     store.put(entry1.trunkRef, entry1)
     store.put(entry2.trunkRef, entry2)
 
-    expect(await (await store.list()).length).to.be.equal(2)
+    expect((await store.list()).length).to.be.equal(2)
     expect(await store.get("tk6t67r1"))
       .to.have.property("status")
       .to.be.equal(RegistrationEntryStatus.REGISTERED)

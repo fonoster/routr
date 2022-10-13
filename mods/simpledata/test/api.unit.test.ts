@@ -21,7 +21,7 @@ import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import {findBy, get} from "../src/api"
 import {BadRequest} from "../src/errors"
-import {FindCriteria, FindParameters, Kind} from "../src/types"
+import {CommonConnect as CC} from "@routr/common"
 import {createQuery} from "../src/utils"
 import {resources} from "./examples"
 
@@ -119,9 +119,9 @@ describe("@routr/simpledata/api", () => {
     })
 
     it("creates query based on find criteria and parameters", () => {
-      const searchParameters: FindParameters = {
-        kind: Kind.AGENT,
-        criteria: FindCriteria.FIND_AGENT_BY_USERNAME,
+      const searchParameters: CC.FindParameters = {
+        kind: CC.KIND.AGENT,
+        criteria: CC.FindCriteria.FIND_AGENT_BY_USERNAME,
         parameters: {
           username: "myusername"
         }
@@ -134,8 +134,8 @@ describe("@routr/simpledata/api", () => {
     })
 
     it("fails to create query due to bad criteria", () => {
-      const searchParameters: FindParameters = {
-        kind: Kind.AGENT,
+      const searchParameters: CC.FindParameters = {
+        kind: CC.KIND.AGENT,
         criteria: "bad_criteria" as any,
         parameters: {
           username: "myusername"
@@ -145,8 +145,8 @@ describe("@routr/simpledata/api", () => {
     })
 
     it("fails to create query due to missing parameter", () => {
-      const searchParameters: FindParameters = {
-        kind: Kind.AGENT,
+      const searchParameters: CC.FindParameters = {
+        kind: CC.KIND.AGENT,
         parameters: {
           username: "myusername"
         }
@@ -158,8 +158,8 @@ describe("@routr/simpledata/api", () => {
     it("finds a resource using findBy method", (done) => {
       const call = {
         request: {
-          kind: Kind.CREDENTIAL,
-          criteria: FindCriteria.FIND_CREDENTIAL_BY_REFERENCE,
+          kind: CC.KIND.CREDENTIAL,
+          criteria: CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE,
           parameters: {
             ref: "crd2c76ft"
           }

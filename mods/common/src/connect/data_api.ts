@@ -16,10 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {resources} from "./grpc_client"
-import {FindParameters, Resource} from "./types"
-import {ServiceUnavailableError} from "./errors"
 import * as grpc from "@grpc/grpc-js"
+import {ServiceUnavailableError} from "../errors"
+import {RESOURCES_PROTO} from "./grpc_client"
+import {FindParameters, Resource} from "./types"
 
 /**
  * Data API for the Connect module.
@@ -27,8 +27,8 @@ import * as grpc from "@grpc/grpc-js"
  * @param {string} apiAddr - The address of the API server
  * @return {Promise<Resource[]>}
  */
-export function API(apiAddr: string) {
-  const client = new resources.v2draft1.Resources(
+export function dataAPI(apiAddr: string) {
+  const client = new RESOURCES_PROTO.v2draft1.Resources(
     apiAddr,
     grpc.credentials.createInsecure()
   )

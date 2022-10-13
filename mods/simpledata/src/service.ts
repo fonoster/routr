@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import {SimpleDataConfig} from "./types"
-import {resources} from "./grpc_server"
+import {CommonConnect as CC} from "@routr/common"
 import {nyi} from "./utils"
 import {findBy, get} from "./api"
 import * as grpc from "@grpc/grpc-js"
@@ -35,7 +35,7 @@ export default function simpleDataService(config: SimpleDataConfig): void {
   logger.info("starting routr service", {bindAddr, name: "simpledata"})
   const server = new grpc.Server()
 
-  server.addService(resources.v2draft1.Resources.service, {
+  server.addService(CC.RESOURCES_PROTO.v2draft1.Resources.service, {
     get: get(config.resources),
     findBy: findBy(config.resources),
     delete: nyi,

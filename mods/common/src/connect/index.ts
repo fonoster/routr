@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
- * http://github.com/fonoster/routr
+ * http://github.com/fonoster
  *
- * This file is part of Routr
+ * This file is part of Routr.
  *
  * Licensed under the MIT License (the "License");
  * you may not use this file except in compliance with
@@ -16,21 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as grpc from "@grpc/grpc-js"
-import protoLoader = require("@grpc/proto-loader")
-
-const packageDefinition = protoLoader.loadSync(
-  __dirname + "/protos/resources.proto",
-  {
-    keepCase: false,
-    longs: String,
-    enums: String,
-    defaults: true,
-    oneofs: true
-  }
-)
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
-
-export const resources = protoDescriptor.fonoster.routr.resources
+export * from "./data_api"
+export * from "./grpc_client"
+export * from "./types"

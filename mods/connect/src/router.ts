@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DataAPI, Resource, ROUTING_DIRECTION} from "./types"
+import {ROUTING_DIRECTION} from "./types"
 import {HeaderModifier, Route} from "@routr/common"
 import {
   createPAssertedIdentity,
@@ -31,6 +31,7 @@ import {UnsuportedRoutingError} from "./errors"
 import {NotRoutesFoundForAOR} from "@routr/location/src/errors"
 import {ILocationService} from "@routr/location"
 import {getLogger} from "@fonoster/logger"
+import {CommonConnect as CC} from "@routr/common"
 
 const logger = getLogger({service: "connect", filePath: __filename})
 
@@ -38,7 +39,7 @@ const getSIPURI = (uri: {user?: string; host: string}) =>
   `sip:${uri.user}@${uri.host}`
 
 // eslint-disable-next-line require-jsdoc
-export function router(location: ILocationService, dataAPI: DataAPI) {
+export function router(location: ILocationService, dataAPI: CC.DataAPI) {
   return async (req: MessageRequest): Promise<Route> => {
     const fromURI = req.message.from.address.uri
     const requestURI = req.message.requestUri
@@ -87,7 +88,7 @@ async function agentToAgent(
 async function fromPSTN(
   location: ILocationService,
   _: unknown,
-  callee: Resource
+  callee: CC.Resource
 ): Promise<Route> {
   const route = (
     await location.findRoutes({
@@ -115,9 +116,9 @@ async function fromPSTN(
 
 // eslint-disable-next-line require-jsdoc
 async function toPSTN(
-  dataAPI: DataAPI,
+  dataAPI: CC.DataAPI,
   req: MessageRequest,
-  caller: Resource
+  caller: CC.Resource
 ): Promise<Route> {
   const domain = await dataAPI.get(caller.spec.domainRef)
   const number = await dataAPI.get(domain.spec.context.egressPolicy?.numberRef)

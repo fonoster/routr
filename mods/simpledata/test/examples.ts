@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Resource} from "../src/types"
+import {CommonConnect as CC} from "@routr/common"
 
-export const resources: Resource[] = [
+export const resources: CC.Resource[] = [
   {
     apiVersion: "v2draft1",
     kind: "Credential",

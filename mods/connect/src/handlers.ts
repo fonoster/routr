@@ -28,8 +28,8 @@ import {
 } from "@routr/processor"
 import {pipe} from "fp-ts/function"
 import {router} from "./router"
-import {DataAPI} from "./types"
 import {ILocationService} from "@routr/location/src/types"
+import {CommonConnect as CC} from "@routr/common"
 
 export const handleRegister = (location: ILocationService) => {
   return async (request: MessageRequest, res: Response) => {
@@ -58,7 +58,7 @@ export const handleRegistry = (req: MessageRequest, res: Response) => {
 
 // TODO: If request has X-Connect-Object then validate the JWT value and continue
 export const handleRequest =
-  (location: ILocationService, dataAPI?: DataAPI) =>
+  (location: ILocationService, dataAPI?: CC.DataAPI) =>
   async (req: MessageRequest, res: Response) => {
     // const route = getRoute(location, apiService)(req)
     try {

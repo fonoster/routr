@@ -65,6 +65,7 @@ describe("@routr/registry", () => {
 
   it("creates a registration request", () => {
     const requestParams: RequestParams = {
+      trunkRef: "tk6t67r1",
       user: "user",
       targetDomain: "sip.provider.net",
       targetAddress: "sip.provider.net:5060",
@@ -109,6 +110,7 @@ describe("@routr/registry", () => {
       getPortFromAddress(requestParams.proxyAddress)
     )
 
+    expect(request.trunkRef).to.be.equal(requestParams.trunkRef)
     expect(request.target).to.be.equal(requestParams.targetAddress)
     expect(request.method).to.be.equal(Method.REGISTER)
     expect(request.transport).to.be.equal(requestParams.transport)

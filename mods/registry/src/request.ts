@@ -50,6 +50,8 @@ export default function createRegistrationRequest(
     target: params.targetAddress,
     method: Method.REGISTER,
     transport: params.transport,
+    trunkRef: params.trunkRef,
+    user: params.user,
     message: {
       extensions: [
         ...(params.methods?.map((value: string) => {

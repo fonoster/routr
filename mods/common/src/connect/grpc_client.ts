@@ -20,7 +20,7 @@ import * as grpc from "@grpc/grpc-js"
 import protoLoader = require("@grpc/proto-loader")
 
 const packageDefinition = protoLoader.loadSync(
-  __dirname + "/protos/resources.proto",
+  __dirname + "/../protos/resources.proto",
   {
     keepCase: false,
     longs: String,
@@ -33,4 +33,4 @@ const packageDefinition = protoLoader.loadSync(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
 
-export const resources = protoDescriptor.fonoster.routr.resources
+export const RESOURCES_PROTO = protoDescriptor.fonoster.routr.resources

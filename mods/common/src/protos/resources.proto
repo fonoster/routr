@@ -15,19 +15,21 @@ service Resources {
   rpc FindBy (FindByRequest) returns (FindByResponse) {}
 }
 
+message Metadata {
+  string ref = 1;
+  // The resource's name
+  string name = 2;
+  // Link to dependencies of this resource
+  repeated string depends_on = 3;
+  // Created at
+  int32 create_time = 4;
+  // Updated at
+  int32 update_time = 5;
+}
+
 message Resource {
   // The resources's metadata
-  message Metadata {
-    string ref = 1;
-    // The resource's name
-    string name = 2;
-    // Link to dependencies of this resource
-    repeated string depends_on = 3;
-    // Created at
-    int32 create_time = 4;
-    // Updated at
-    int32 update_time = 5;
-  }
+
   // The resource's metadata
   Metadata metadata = 1;
   // The resource's data

@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 import {BadRequest, ResourceNotFound} from "./errors"
-import {FindParameters, Resource} from "./types"
 import {CommonTypes as CT} from "@routr/common"
 import jp from "jsonpath"
 import {createQuery} from "./utils"
+import {CommonConnect as CC} from "@routr/common"
 
 /**
  * Enclosure with method to obtain a resource by reference.
@@ -28,7 +28,7 @@ import {createQuery} from "./utils"
  * @param {Resource[]} resources - the resources to search from
  * @return {Function } enclosed method with actual "get" logic
  */
-export function get(resources: Resource[]) {
+export function get(resources: CC.Resource[]) {
   return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (resources == null || resources.length === 0) {
       return callback(new ResourceNotFound(call.request.ref), null)
@@ -52,10 +52,10 @@ export function get(resources: Resource[]) {
  * @param {Resource[]} resources - the resources to search from
  * @return {Function } enclosed method with actual "find" logic
  */
-export function findBy(resources: Resource[]) {
+export function findBy(resources: CC.Resource[]) {
   return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     const res = resources.filter(
-      (r: Resource) =>
+      (r: CC.Resource) =>
         r.kind?.toLowerCase() === call.request.kind?.toLowerCase()
     )
 
@@ -63,7 +63,7 @@ export function findBy(resources: Resource[]) {
       return callback(new ResourceNotFound("unknown"), null)
     }
 
-    const result = createQuery(call.request as FindParameters)
+    const result = createQuery(call.request as CC.FindParameters)
 
     if (result instanceof BadRequest) {
       return callback(result, null)

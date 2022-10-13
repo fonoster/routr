@@ -21,7 +21,7 @@
 require("./tracer").init("simpleauth")
 import simpleDataService from "./service"
 import loadResources from "./utils"
-import {Resource} from "./types"
+import {CommonConnect as CC} from "@routr/common"
 import {Assertions as A} from "@routr/common"
 import {getLogger} from "@fonoster/logger"
 
@@ -29,7 +29,7 @@ const logger = getLogger({service: "simpledata", filePath: __filename})
 
 A.assertEnvsAreSet(["PATH_TO_SCHEMAS", "PATH_TO_RESOURCES"])
 
-const resources: Resource[] = loadResources(
+const resources: typeof CC.RESOURCES_PROTO[] = loadResources(
   process.env.PATH_TO_RESOURCES,
   process.env.PATH_TO_SCHEMAS
 )

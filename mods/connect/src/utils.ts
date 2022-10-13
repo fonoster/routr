@@ -17,20 +17,21 @@
  * limitations under the License.
  */
 import {HeaderModifier, MessageRequest, Transport} from "@routr/common"
-import {DataAPI, FindCriteria, KIND, Resource, ROUTING_DIRECTION} from "./types"
+import {CommonConnect as CC} from "@routr/common"
+import {ROUTING_DIRECTION} from "./types"
 
-export const isKind = (req: Resource, kind: KIND) => {
-  if (req == null && kind === KIND.UNKNOWN) {
+export const isKind = (req: CC.Resource, kind: CC.KIND) => {
+  if (req == null && kind === CC.KIND.UNKNOWN) {
     return true
   }
   return req == null ? false : req.kind.toLowerCase() == kind
 }
 
-export const findDomain = async (dataAPI: DataAPI, domainUri: string) => {
+export const findDomain = async (dataAPI: CC.DataAPI, domainUri: string) => {
   return (
     await dataAPI.findBy({
-      kind: KIND.DOMAIN,
-      criteria: FindCriteria.FIND_DOMAIN_BY_DOMAINURI,
+      kind: CC.KIND.DOMAIN,
+      criteria: CC.FindCriteria.FIND_DOMAIN_BY_DOMAINURI,
       parameters: {
         domainUri
       }
@@ -39,17 +40,17 @@ export const findDomain = async (dataAPI: DataAPI, domainUri: string) => {
 }
 
 export const findResource = async (
-  dataAPI: DataAPI,
+  dataAPI: CC.DataAPI,
   domainUri: string,
   userpart: string
-): Promise<Resource> => {
+): Promise<CC.Resource> => {
   const domain = await findDomain(dataAPI, domainUri)
 
   // TODO: Fix jsonpath not working for logical AND and OR
   let res = (
     await dataAPI.findBy({
-      kind: KIND.NUMBER,
-      criteria: FindCriteria.FIND_NUMBER_BY_TELURL,
+      kind: CC.KIND.NUMBER,
+      criteria: CC.FindCriteria.FIND_NUMBER_BY_TELURL,
       parameters: {
         telUrl: `tel:${userpart}`
       }
@@ -60,8 +61,8 @@ export const findResource = async (
     res == null
       ? (
           await dataAPI.findBy({
-            kind: KIND.AGENT,
-            criteria: FindCriteria.FIND_AGENT_BY_USERNAME,
+            kind: CC.KIND.AGENT,
+            criteria: CC.FindCriteria.FIND_AGENT_BY_USERNAME,
             parameters: {
               username: userpart
             }
@@ -69,32 +70,38 @@ export const findResource = async (
         )[0]
       : res
 
-  if (isKind(res, KIND.AGENT) && res.spec.domainRef != domain?.metadata.ref) {
+  if (
+    isKind(res, CC.KIND.AGENT) &&
+    res.spec.domainRef != domain?.metadata.ref
+  ) {
     // Not in the same domain
     return null
   }
   return res
 }
 
-export const getRoutingDirection = (caller: Resource, callee: Resource) => {
-  if (isKind(caller, KIND.AGENT) && isKind(callee, KIND.AGENT)) {
+export const getRoutingDirection = (
+  caller: CC.Resource,
+  callee: CC.Resource
+) => {
+  if (isKind(caller, CC.KIND.AGENT) && isKind(callee, CC.KIND.AGENT)) {
     return ROUTING_DIRECTION.AGENT_TO_AGENT
   }
 
-  if (isKind(caller, KIND.AGENT) && isKind(callee, KIND.UNKNOWN)) {
+  if (isKind(caller, CC.KIND.AGENT) && isKind(callee, CC.KIND.UNKNOWN)) {
     return ROUTING_DIRECTION.AGENT_TO_PSTN
   }
 
-  if (isKind(caller, KIND.PEER) && isKind(callee, KIND.AGENT)) {
+  if (isKind(caller, CC.KIND.PEER) && isKind(callee, CC.KIND.AGENT)) {
     return ROUTING_DIRECTION.PEER_TO_AGENT
   }
 
   // All we know is that the Number is managed by this instance of Routr
-  if (isKind(callee, KIND.NUMBER)) {
+  if (isKind(callee, CC.KIND.NUMBER)) {
     return ROUTING_DIRECTION.FROM_PSTN
   }
 
-  if (isKind(caller, KIND.PEER) && isKind(callee, KIND.UNKNOWN)) {
+  if (isKind(caller, CC.KIND.PEER) && isKind(callee, CC.KIND.UNKNOWN)) {
     return ROUTING_DIRECTION.PEER_TO_PSTN
   }
 
@@ -103,8 +110,8 @@ export const getRoutingDirection = (caller: Resource, callee: Resource) => {
 
 export const createPAssertedIdentity = (
   req: MessageRequest,
-  trunk: Resource,
-  number: Resource
+  trunk: CC.Resource,
+  number: CC.Resource
 ): HeaderModifier => {
   const displayName = req.message.from.address.displayName
   const remoteNumber = number.spec.location.telUrl.split(":")[1]
@@ -117,8 +124,8 @@ export const createPAssertedIdentity = (
 }
 
 export const createRemotePartyId = (
-  trunk: Resource,
-  number: Resource
+  trunk: CC.Resource,
+  number: CC.Resource
 ): HeaderModifier => {
   const remoteNumber = number.spec.location.telUrl.split(":")[1]
   const trunkHost = getTrunkURI(trunk).host
@@ -130,8 +137,8 @@ export const createRemotePartyId = (
 }
 
 export const createTrunkAuthentication = async (
-  dataAPI: DataAPI,
-  trunk: Resource
+  dataAPI: CC.DataAPI,
+  trunk: CC.Resource
 ): Promise<HeaderModifier> => {
   const credentials = await dataAPI.get(trunk.spec.outbound.credentialsRef)
   return {
@@ -144,7 +151,7 @@ export const createTrunkAuthentication = async (
 }
 
 export const getTrunkURI = (
-  trunk: Resource
+  trunk: CC.Resource
 ): {
   host: string
   port: number

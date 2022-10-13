@@ -16,36 +16,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Transport} from "@routr/common"
 import {sendRegisterMessage} from "./sender"
 import createRegistrationRequest from "./request"
+import {IRegistryStore, RegistrationEntryStatus, RegistryConfig} from "./types"
 import {
-  CACHE_PROVIDER,
-  IRegistryStore,
-  RedisStoreConfig,
-  RegistryConfig
-} from "./types"
-import {configFromString, findTrunks} from "./utils"
-import RedisStore from "./redis_store"
-import MemoryStore from "./memory_store"
-import {API as dataAPI} from "../../connect/src/api"
+  buildStore,
+  convertResourceToTrunk,
+  findTrunks,
+  registrationRequestInputFromTrunk
+} from "./utils"
+import {CommonConnect as CC} from "@routr/common"
 import {getLogger} from "@fonoster/logger"
+import {SIPMessage} from "@routr/common/src/types"
+import {ServiceUnavailableError} from "@routr/common"
 
 const logger = getLogger({service: "registry", filePath: __filename})
 
-const allowedParameters = ["host", "port", "username", "password", "secure"]
-const DEFAULT_REGISTRATION_INTERVAL = 60000
+const DEFAULT_REGISTRATION_INTERVAL = 60 * 1000
+const DEFAULT_RETENTION_TIME = 600 * 1000
 
 // TODO:
-// - Fix must decode JSON object from gRPC object
-// - Fix not storing result on Store
-// - Take allow parameters from config or enum list
-
-// Lesser
-// - Create Resource Trunk to RequestParams converter
-// - Create selector Store selector
-// - Find closest edgeport instead of [0]
-// - Do retry with secondary uris if registration fails wit primary (Lets urgent)
+//  - We need a way to obtain the trunk id before storing the registration
+//  - We need to filter quarentine trunks from final list of trunks
 
 /**
  * Loops through all the services and register them with the registry.
@@ -55,86 +47,57 @@ const DEFAULT_REGISTRATION_INTERVAL = 60000
 export default function registryService(config: RegistryConfig) {
   logger.info("starting registry service")
 
-  let store: IRegistryStore
-
-  if (config.cache.provider === CACHE_PROVIDER.REDIS) {
-    store = new RedisStore(
-      configFromString(
-        config.cache.parameters,
-        allowedParameters
-      ) as unknown as RedisStoreConfig
-    )
-  } else {
-    store = new MemoryStore()
-  }
+  const store: IRegistryStore = buildStore(config)
 
   // Create internval to send registration request evert X seconds
   setInterval(async () => {
     logger.verbose("starting registration process")
 
-    // eslint-disable-next-line new-cap
-    logger.verbose("retrieving trunks from API")
-    const trunks = await findTrunks(dataAPI(config.apiAddr))
-    const registryInvocations = []
+    let resources: CC.Resource[] = []
 
-    logger.verbose(`found ${trunks.length} trunks`, {trunkCount: trunks.length})
-
-    // eslint-disable-next-line no-loops/no-loops
-    for (const t of trunks) {
-      const trunk = {
-        ref: t.metadata.ref,
-        name: t.metadata.name,
-        region: (t.metadata as any).region,
-        host: "newyork1.voip.ms",
-        port: 5060,
-        username: "",
-        secret: "",
-        transport: "udp"
-      }
-
-      logger.verbose("trunk resource ref", {ref: t.metadata.ref})
-      logger.verbose("trunk resource spec", {spec: t.spec})
-
-      logger.verbose(
-        `creating registration request for trunk ref ${t.metadata.ref}`,
-        {
-          name: t.metadata.name,
-          host: trunk.host,
-          port: trunk.port,
-          transport: trunk.transport
-        }
-      )
-
-      const request = createRegistrationRequest({
-        user: trunk.username,
-        targetDomain: trunk.host,
-        targetAddress: `${trunk.host}:${trunk.port}`,
-        proxyAddress: config.edgePorts[0].address,
-        transport: Transport.TCP,
-        allow: config.edgePorts[0].methods,
-        auth: {
-          username: trunk.username,
-          secret: trunk.secret
-        }
-      })
-
-      registryInvocations.push(
-        sendRegisterMessage(config.requesterAddr)(request)
-      )
+    try {
+      const dataAPI = CC.dataAPI(config.apiAddr)
+      resources = await findTrunks(dataAPI)
+    } catch (err) {
+      logger.error("failed to retrieve trunks from API", err)
+      return
     }
 
-    const results = await Promise.all(registryInvocations)
+    const registryInvocations = resources.map((resource) => {
+      const registrationRequestInput = registrationRequestInputFromTrunk(
+        convertResourceToTrunk(resource),
+        config
+      )
+      const request = createRegistrationRequest(registrationRequestInput)
+      return sendRegisterMessage(config.requesterAddr)(request)
+    })
 
-    logger.verbose("registration process finished")
+    // TODO: Find a way react to each response individually
+    const results = await Promise.allSettled(registryInvocations)
 
-    // If result is error we register as an error
-    // or otherwise we register as a success
-    results.forEach((result) => {
-      if (result instanceof Error) {
-        // IDEA: This might a good place to change pointer to secondary URI
-      } else {
-        // store.put(result.ref, result)
+    results?.forEach(async (result) => {
+      logger.verbose("processing registration result", {result})
+
+      let retentionTime = DEFAULT_RETENTION_TIME
+
+      if (
+        result.status === "rejected" ||
+        result.value instanceof ServiceUnavailableError
+      ) {
+        logger.error("failed to reach requester")
+        return
       }
+
+      const message = result.value.message as SIPMessage
+      retentionTime = message.expires?.expires || DEFAULT_RETENTION_TIME
+
+      store.put(result.value.trunkRef, {
+        trunkRef: result.value.trunkRef,
+        timeOfEntry: new Date().getTime(),
+        retentionTimeInSeconds: retentionTime,
+        // TODO: Check if we have a 200 OK
+        status: RegistrationEntryStatus.REGISTERED
+      })
     })
   }, config.registerInterval * 1000 || DEFAULT_REGISTRATION_INTERVAL)
 }

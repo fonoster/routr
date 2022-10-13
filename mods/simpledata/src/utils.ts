@@ -17,32 +17,32 @@
  * limitations under the License.
  */
 import {BadRequest, UnimplementedError} from "./errors"
-import {FindCriteria, FindParameters, Resource} from "./types"
 import Ajv from "ajv"
 import {CommonTypes as CT} from "@routr/common"
 import {getLogger} from "@fonoster/logger"
+import {CommonConnect as CC} from "@routr/common"
 
 const logger = getLogger({service: "simpledata", filePath: __filename})
 
 const findCriteriaMap: any = {}
 
-findCriteriaMap[FindCriteria.FIND_AGENT_BY_USERNAME] = (
+findCriteriaMap[CC.FindCriteria.FIND_AGENT_BY_USERNAME] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.username=='${parameters.username}')]`
 
-findCriteriaMap[FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
+findCriteriaMap[CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
   parameters: Record<string, string>
 ) => `$..[?(@.metadata.ref=='${parameters.ref}')]`
 
-findCriteriaMap[FindCriteria.FIND_DOMAIN_BY_DOMAINURI] = (
+findCriteriaMap[CC.FindCriteria.FIND_DOMAIN_BY_DOMAINURI] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.context.domainUri=='${parameters.domainUri}')]`
 
-findCriteriaMap[FindCriteria.FIND_NUMBER_BY_TELURL] = (
+findCriteriaMap[CC.FindCriteria.FIND_NUMBER_BY_TELURL] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.location.telUrl=="tel:${parameters.telUrl}")]`
 
-findCriteriaMap[FindCriteria.FIND_TRUNKS_WITH_SEND_REGISTER] = () =>
+findCriteriaMap[CC.FindCriteria.FIND_TRUNKS_WITH_SEND_REGISTER] = () =>
   "$..[?(@.spec.outbound.sendRegister==true)]"
 
 /**
@@ -52,7 +52,7 @@ findCriteriaMap[FindCriteria.FIND_TRUNKS_WITH_SEND_REGISTER] = () =>
  * @return {Validator} - a list of validators from the path
  */
 export function createValidators(path: string) {
-  const validators: Map<string, (resource: Resource) => unknown> = new Map()
+  const validators: Map<string, (resource: CC.Resource) => unknown> = new Map()
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const files = require("fs").readdirSync(path)
   files.forEach((file: File) => {
@@ -75,15 +75,15 @@ export function createValidators(path: string) {
 export default function loadResources(
   validatorsPath: string,
   resourcesPath: string
-): Resource[] {
+): CC.Resource[] {
   const validators = createValidators(validatorsPath)
-  const all: Resource[] = []
+  const all: CC.Resource[] = []
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const files = require("fs").readdirSync(resourcesPath)
   files.forEach((file: File) => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const resources = require(`${resourcesPath}/${file}`)
-    resources.forEach((resource: Resource) => {
+    resources.forEach((resource: CC.Resource) => {
       // Check if is valid using jsonschema
       const validate = validators.get(resource.kind.toLocaleLowerCase())
       if (!validate) {
@@ -108,13 +108,13 @@ export default function loadResources(
 }
 
 // eslint-disable-next-line require-jsdoc
-export function createQuery(request: FindParameters):
+export function createQuery(request: CC.FindParameters):
   | {
-      request: FindParameters
+      request: CC.FindParameters
       query: string
     }
   | BadRequest {
-  const findCriteria = request.criteria as unknown as FindCriteria
+  const findCriteria = request.criteria as unknown as CC.FindCriteria
 
   if (!request["criteria"] || !request["kind"] || !request["parameters"]) {
     return new BadRequest(

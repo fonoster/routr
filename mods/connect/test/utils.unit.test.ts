@@ -26,7 +26,7 @@ import {
   createRemotePartyId,
   createTrunkAuthentication
 } from "../src/utils"
-import {FindCriteria, KIND} from "../src/types"
+import {CommonConnect as CC} from "@routr/common"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -41,8 +41,8 @@ describe("@routr/connect/utils", () => {
     // eslint-disable-next-line prettier/prettier
     const number = (
       await dataAPI.findBy({
-        kind: KIND.NUMBER,
-        criteria: FindCriteria.FIND_NUMBER_BY_TELURL,
+        kind: CC.KIND.NUMBER,
+        criteria: CC.FindCriteria.FIND_NUMBER_BY_TELURL,
         parameters: {
           telUrl: "tel:17066041487"
         }
@@ -62,8 +62,8 @@ describe("@routr/connect/utils", () => {
     // eslint-disable-next-line prettier/prettier
     const number = (
       await dataAPI.findBy({
-        kind: KIND.NUMBER,
-        criteria: FindCriteria.FIND_NUMBER_BY_TELURL,
+        kind: CC.KIND.NUMBER,
+        criteria: CC.FindCriteria.FIND_NUMBER_BY_TELURL,
         parameters: {
           telUrl: "tel:17066041487"
         }

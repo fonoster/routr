@@ -16,38 +16,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DataAPI, FindCriteria, FindParameters, Resource} from "../src/types"
+import {CommonConnect as CC} from "@routr/common"
 import {r1} from "./examples"
 import loadResources from "../../simpledata/src/utils"
 import jp from "jsonpath"
 import {ILocationService} from "@routr/location"
 
-const resources: Resource[] = loadResources(
+const resources: CC.Resource[] = loadResources(
   __dirname + "/../../simpledata/etc/schemas",
   __dirname + "/../../../config/resources"
 )
 
 const findCriteriaMap: any = {}
 
-findCriteriaMap[FindCriteria.FIND_AGENT_BY_USERNAME] = (
+findCriteriaMap[CC.FindCriteria.FIND_AGENT_BY_USERNAME] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.username=='${parameters.username}')]`
 
-findCriteriaMap[FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
+findCriteriaMap[CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
   parameters: Record<string, string>
 ) => `$..[?(@.metadata.ref=='${parameters.ref}')]`
 
-findCriteriaMap[FindCriteria.FIND_DOMAIN_BY_DOMAINURI] = (
+findCriteriaMap[CC.FindCriteria.FIND_DOMAIN_BY_DOMAINURI] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.context.domainUri=='${parameters.domainUri}')]`
 
-findCriteriaMap[FindCriteria.FIND_NUMBER_BY_TELURL] = (
+findCriteriaMap[CC.FindCriteria.FIND_NUMBER_BY_TELURL] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.location.telUrl=="${parameters.telUrl}")]`
 
 // eslint-disable-next-line require-jsdoc
-export function createQuery(request: FindParameters) {
-  const findCriteria = request.criteria as unknown as FindCriteria
+export function createQuery(request: CC.FindParameters) {
+  const findCriteria = request.criteria as unknown as CC.FindCriteria
 
   if (!request["criteria"] || !request["kind"] || !request["parameters"]) {
     return new Error(
@@ -65,16 +65,16 @@ export function createQuery(request: FindParameters) {
   }
 }
 
-export const dataAPI: DataAPI = {
-  findBy: (request: FindParameters) => {
+export const dataAPI: CC.DataAPI = {
+  findBy: (request: CC.FindParameters) => {
     return Promise.resolve(
       jp.query(resources, (createQuery(request) as any).query)
-    ) as unknown as Promise<Resource[]>
+    ) as unknown as Promise<CC.Resource[]>
   },
-  get: (ref: string): Promise<Resource> => {
+  get: (ref: string): Promise<CC.Resource> => {
     return Promise.resolve(
       jp.query(resources, `$..[?(@.metadata.ref=="${ref}")]`)[0]
-    ) as unknown as Promise<Resource>
+    ) as unknown as Promise<CC.Resource>
   }
 }
 
