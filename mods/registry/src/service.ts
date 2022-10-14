@@ -27,7 +27,7 @@ import {
 } from "./utils"
 import {CommonConnect as CC} from "@routr/common"
 import {getLogger} from "@fonoster/logger"
-import {SIPMessage} from "@routr/common/src/types"
+import {ResponseType, SIPMessage} from "@routr/common/src/types"
 import {ServiceUnavailableError} from "@routr/common"
 
 const logger = getLogger({service: "registry", filePath: __filename})
@@ -36,7 +36,6 @@ const DEFAULT_REGISTRATION_INTERVAL = 60 * 1000
 const DEFAULT_RETENTION_TIME = 600 * 1000
 
 // TODO:
-//  - We need a way to obtain the trunk id before storing the registration
 //  - We need to filter quarentine trunks from final list of trunks
 
 /**
@@ -49,7 +48,7 @@ export default function registryService(config: RegistryConfig) {
 
   const store: IRegistryStore = buildStore(config)
 
-  // Create internval to send registration request evert X seconds
+  // Creates internval to send registration request every X seconds
   setInterval(async () => {
     logger.verbose("starting registration process")
 
@@ -72,31 +71,41 @@ export default function registryService(config: RegistryConfig) {
       return sendRegisterMessage(config.requesterAddr)(request)
     })
 
-    // TODO: Find a way react to each response individually
     const results = await Promise.allSettled(registryInvocations)
 
     results?.forEach(async (result) => {
       logger.verbose("processing registration result", {result})
 
-      let retentionTime = DEFAULT_RETENTION_TIME
+      if (result.status === "rejected") {
+        logger.error("request rejected", result.reason)
+        return
+      }
 
-      if (
-        result.status === "rejected" ||
-        result.value instanceof ServiceUnavailableError
-      ) {
-        logger.error("failed to reach requester")
+      if (result.value instanceof ServiceUnavailableError) {
+        logger.error("service unavailable", result.value)
         return
       }
 
       const message = result.value.message as SIPMessage
-      retentionTime = message.expires?.expires || DEFAULT_RETENTION_TIME
+      const retentionTime = message.expires?.expires || DEFAULT_RETENTION_TIME
+      // TODO: Refactor to use ResponseType instead of string
+      const status =
+        message.responseType.toString() == "OK"
+          ? RegistrationEntryStatus.REGISTERED
+          : RegistrationEntryStatus.QUARANTINE
+
+      // Storing trunk in registry with status and retention time
+      logger.verbose("storing trunk in registry", {
+        trunkRef: result.value.trunkRef,
+        status,
+        retentionTime
+      })
 
       store.put(result.value.trunkRef, {
         trunkRef: result.value.trunkRef,
         timeOfEntry: new Date().getTime(),
         retentionTimeInSeconds: retentionTime,
-        // TODO: Check if we have a 200 OK
-        status: RegistrationEntryStatus.REGISTERED
+        status
       })
     })
   }, config.registerInterval * 1000 || DEFAULT_REGISTRATION_INTERVAL)
