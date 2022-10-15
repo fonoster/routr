@@ -41,7 +41,9 @@ export function get(resources: CC.Resource[]) {
       return callback(new BadRequest("parameter ref is required"), null)
     }
 
-    const resource = resources.find((r) => r.metadata.ref === call.request.ref)
+    const resource = H.deepCopy(
+      resources.find((r) => r.metadata.ref === call.request.ref)
+    )
 
     // Serialize to protobuf
     if (resource) resource.spec = jsonToStruct(resource.spec)

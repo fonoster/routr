@@ -38,6 +38,7 @@ const trunks = [
     ref: "tk6t67r1",
     name: "T1",
     region: "us-east1",
+    user: "user1",
     host: "sip.provider.net",
     port: 5060,
     transport: Transport.UDP
@@ -46,6 +47,7 @@ const trunks = [
     ref: "tkxy23kj",
     name: "T2",
     region: "us-east1",
+    user: "user1",
     host: "sip.provider.net",
     port: 5061,
     transport: Transport.UDP
@@ -54,6 +56,7 @@ const trunks = [
     ref: "tkabc3423",
     name: "T3",
     region: "us-east1",
+    user: "user1",
     host: "sip.provider3.net",
     port: 5063,
     transport: Transport.SCTP

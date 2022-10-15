@@ -110,8 +110,11 @@ export const convertResourceToTrunk = async (
     region: metadata.region,
     host: uri.host,
     port: uri.port || 5060,
-    username: usernameAndPassword.username,
-    secret: usernameAndPassword.password,
+    user: uri.user,
+    credentials: {
+      username: usernameAndPassword.username,
+      secret: usernameAndPassword.password
+    },
     transport: (uri.transport?.toUpperCase() || "TCP") as Transport
   } as Trunk
 }
@@ -122,16 +125,13 @@ export const registrationRequestInputFromTrunk = (
 ) => {
   return {
     trunkRef: trunk.ref,
-    user: trunk.username,
+    user: trunk.user,
     targetDomain: trunk.host,
     targetAddress: `${trunk.host}:${trunk.port}`,
     // TODO: Find closest edgeport instead of [0]
     proxyAddress: config.edgePorts[0].address,
-    transport: trunk.transport as Transport,
-    methods: config.methods,
-    auth: {
-      username: trunk.username,
-      secret: trunk.secret
-    }
+    transport: trunk.transport,
+    auth: trunk.credentials,
+    methods: config.methods
   }
 }

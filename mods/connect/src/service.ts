@@ -16,18 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ConnectProcessorConfig, DataAPI} from "./types"
+import {ConnectProcessorConfig} from "./types"
 import {MessageRequest} from "@routr/common"
 import {LocationClient as Location} from "@routr/location"
-import {handleRegister, handleRequest} from "./handlers"
+import {handleRegister, handleRegistry, handleRequest} from "./handlers"
 import Processor, {
   Alterations as A,
   Helper as H,
   Helper as HE,
-  Response,
-  Target as T
+  Target as T,
+  Extensions as E,
+  Response
 } from "@routr/processor"
-import {API} from "./api"
+import {CommonConnect as CC} from "@routr/common"
 import {tailor} from "./tailor"
 import {getLogger} from "@fonoster/logger"
 
@@ -37,8 +38,6 @@ const logger = getLogger({service: "connect", filePath: __filename})
 export default function ConnectProcessor(config: ConnectProcessorConfig) {
   const {bindAddr, locationAddr} = config
   const location = new Location({addr: locationAddr})
-  // eslint-disable-next-line new-cap
-  const dataAPI: DataAPI = API(config.apiAddr)
 
   new Processor({bindAddr, name: "connect"}).listen(
     async (req: MessageRequest, res: Response) => {
@@ -81,13 +80,17 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           }
           break
         case "REGISTER":
-          await handleRegister(location)(req, res)
+          if (E.getHeaderValue(req, "x-gateway-auth")) {
+            handleRegistry(req, res)
+          } else {
+            handleRegister(location)(req, res)
+          }
           break
         case "BYE":
           res.send(tailor(HE.createRouteFromLastMessage(req), req))
           break
         default:
-          await handleRequest(location, dataAPI)(req, res)
+          await handleRequest(location, CC.dataAPI(config.apiAddr))(req, res)
       }
     }
   )

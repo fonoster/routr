@@ -118,7 +118,11 @@ export interface Trunk {
   region: string
   host: string
   port: number
-  username?: string
-  secret?: string
+  // The user part might be different from the credentials username
+  user: string
+  credentials?: {
+    username: string
+    secret: string
+  }
   transport: Transport
 }
