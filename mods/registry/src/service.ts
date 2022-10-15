@@ -27,7 +27,7 @@ import {
 } from "./utils"
 import {CommonConnect as CC} from "@routr/common"
 import {getLogger} from "@fonoster/logger"
-import {ResponseType, SIPMessage} from "@routr/common/src/types"
+import {SIPMessage} from "@routr/common/src/types"
 import {ServiceUnavailableError} from "@routr/common"
 
 const logger = getLogger({service: "registry", filePath: __filename})

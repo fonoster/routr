@@ -18,9 +18,11 @@
  */
 import {BadRequest, ResourceNotFound} from "./errors"
 import {CommonTypes as CT} from "@routr/common"
-import jp from "jsonpath"
 import {createQuery} from "./utils"
 import {CommonConnect as CC} from "@routr/common"
+import {Helper as H} from "@routr/common"
+import * as protobufUtil from "pb-util"
+import jp from "jsonpath"
 
 /**
  * Enclosure with method to obtain a resource by reference.
@@ -54,28 +56,37 @@ export function get(resources: CC.Resource[]) {
  */
 export function findBy(resources: CC.Resource[]) {
   return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
-    const res = resources.filter(
-      (r: CC.Resource) =>
-        r.kind?.toLowerCase() === call.request.kind?.toLowerCase()
+    const filteredResources = resources.filter(
+      (resource: CC.Resource) =>
+        resource.kind?.toLowerCase() === call.request.kind?.toLowerCase()
     )
 
-    if (res == null || res.length === 0) {
-      return callback(new ResourceNotFound("unknown"), null)
+    if (filteredResources == null || filteredResources.length === 0) {
+      return callback(new ResourceNotFound(""), null)
     }
 
-    const result = createQuery(call.request as CC.FindParameters)
+    const queryObject = createQuery(call.request as CC.FindParameters)
 
-    if (result instanceof BadRequest) {
-      return callback(result, null)
+    if (queryObject instanceof BadRequest) {
+      return callback(queryObject, null)
     }
+
+    const queryResult = H.deepCopy(
+      jp.query(filteredResources, queryObject.query)
+    )
 
     try {
+      queryResult.forEach((resource: CC.Resource) => {
+        resource.spec = protobufUtil.struct.encode(resource.spec)
+        return resource
+      })
+
       callback(null, {
-        resources: jp.query(res, result.query)
+        resources: queryResult
       })
     } catch (e) {
       return callback(
-        new BadRequest(`invalid JSONPath expression: ${result.query}`),
+        new BadRequest(`invalid JSONPath expression: ${queryObject.query}`),
         null
       )
     }
