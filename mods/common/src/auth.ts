@@ -45,7 +45,7 @@ export const buildAuthChallenge = (request: AuthChallengeRequest) => {
 
 export const calculateAuthResponse = (
   res: AuthChallengeResponse,
-  credentials?: {username: string; secret: string}
+  credentials: {username: string; secret: string}
 ) => {
   if (!credentials) return null
 

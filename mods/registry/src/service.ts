@@ -53,18 +53,18 @@ export default function registryService(config: RegistryConfig) {
     logger.verbose("starting registration process")
 
     let resources: CC.Resource[] = []
+    const dataAPI = CC.dataAPI(config.apiAddr)
 
     try {
-      const dataAPI = CC.dataAPI(config.apiAddr)
       resources = await findTrunks(dataAPI)
     } catch (err) {
       logger.error("failed to retrieve trunks from API", err)
       return
     }
 
-    const registryInvocations = resources.map((resource) => {
+    const registryInvocations = resources.map(async (resource) => {
       const registrationRequestInput = registrationRequestInputFromTrunk(
-        convertResourceToTrunk(resource),
+        await convertResourceToTrunk(dataAPI, resource),
         config
       )
       const request = createRegistrationRequest(registrationRequestInput)

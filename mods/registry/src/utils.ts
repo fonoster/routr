@@ -16,14 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {Transport} from "@routr/common"
+import {CommonConnect as CC} from "@routr/common"
+import MemoryStore from "./memory_store"
+import RedisStore from "./redis_store"
 import {
-  DataAPI,
-  FindCriteria,
+  CACHE_PROVIDER,
   IRegistryStore,
-  KIND,
+  RedisStoreConfig,
   RegistrationEntry,
+  RegistryConfig,
   Trunk
 } from "./types"
+import * as protobufUtil from "pb-util"
+const jsonFromStruct = protobufUtil.struct.decode
 
 // eslint-disable-next-line require-jsdoc
 export function getUnregisteredTrunks(store: IRegistryStore) {
@@ -39,10 +45,10 @@ export function getUnregisteredTrunks(store: IRegistryStore) {
 }
 
 // eslint-disable-next-line require-jsdoc
-export async function findTrunks(dataAPI: DataAPI) {
+export async function findTrunks(dataAPI: CC.DataAPI) {
   return await dataAPI.findBy({
-    kind: KIND.TRUNK,
-    criteria: FindCriteria.FIND_TRUNKS_WITH_SEND_REGISTER,
+    kind: CC.KIND.TRUNK,
+    criteria: CC.FindCriteria.FIND_TRUNKS_WITH_SEND_REGISTER,
     parameters: {}
   })
 }
@@ -69,4 +75,63 @@ export const configFromString = (
     }
   })
   return parameters
+}
+
+export const buildStore = (config: RegistryConfig) => {
+  if (config.cache.provider === CACHE_PROVIDER.REDIS) {
+    const allowedParameters = ["host", "port", "username", "password", "secure"]
+    return new RedisStore(
+      configFromString(
+        config.cache.parameters,
+        allowedParameters
+      ) as unknown as RedisStoreConfig
+    )
+  } else {
+    return new MemoryStore()
+  }
+}
+
+export const convertResourceToTrunk = async (
+  dataAPI: CC.DataAPI,
+  resource: CC.Resource
+): Promise<Trunk> => {
+  const metadata = resource.metadata
+  const trunkSpec = jsonFromStruct(resource.spec) as Record<string, any>
+  const uri = trunkSpec.outbound?.uris[0]?.uri
+
+  // WARNING: Perhaps we should bring this on a single API call
+  const credentials = await dataAPI.get(trunkSpec.outbound?.credentialsRef)
+  const credSpec = jsonFromStruct(credentials.spec) as Record<string, any>
+  const usernameAndPassword = credSpec.credentials
+
+  return {
+    ref: resource.metadata.ref,
+    name: resource.metadata.name,
+    region: metadata.region,
+    host: uri.host,
+    port: uri.port || 5060,
+    username: usernameAndPassword.username,
+    secret: usernameAndPassword.password,
+    transport: (uri.transport?.toUpperCase() || "TCP") as Transport
+  } as Trunk
+}
+
+export const registrationRequestInputFromTrunk = (
+  trunk: Trunk,
+  config: RegistryConfig
+) => {
+  return {
+    trunkRef: trunk.ref,
+    user: trunk.username,
+    targetDomain: trunk.host,
+    targetAddress: `${trunk.host}:${trunk.port}`,
+    // TODO: Find closest edgeport instead of [0]
+    proxyAddress: config.edgePorts[0].address,
+    transport: trunk.transport as Transport,
+    methods: config.methods,
+    auth: {
+      username: trunk.username,
+      secret: trunk.secret
+    }
+  }
 }

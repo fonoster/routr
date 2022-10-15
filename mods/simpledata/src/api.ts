@@ -23,6 +23,7 @@ import {CommonConnect as CC} from "@routr/common"
 import {Helper as H} from "@routr/common"
 import * as protobufUtil from "pb-util"
 import jp from "jsonpath"
+const jsonToStruct = protobufUtil.struct.encode
 
 /**
  * Enclosure with method to obtain a resource by reference.
@@ -41,6 +42,9 @@ export function get(resources: CC.Resource[]) {
     }
 
     const resource = resources.find((r) => r.metadata.ref === call.request.ref)
+
+    // Serialize to protobuf
+    if (resource) resource.spec = jsonToStruct(resource.spec)
 
     resource
       ? callback(null, resource)
@@ -77,7 +81,8 @@ export function findBy(resources: CC.Resource[]) {
 
     try {
       queryResult.forEach((resource: CC.Resource) => {
-        resource.spec = protobufUtil.struct.encode(resource.spec)
+        // Serialize to protobuf
+        resource.spec = jsonToStruct(resource.spec)
         return resource
       })
 
