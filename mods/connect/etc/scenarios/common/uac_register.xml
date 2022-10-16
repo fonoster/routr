@@ -2,7 +2,7 @@
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
 <scenario name="registration">
-    <Global variables="requestUri,from,to"/>
+    <Global variables="requestURI,from,to"/>
     <send retrans="500">
         <![CDATA[
       REGISTER sip:[$requestURI];transport=[transport] SIP/2.0
