@@ -143,7 +143,8 @@ message SipURI {
   int32 ttl_param = 8;
   int32 port = 9;
   bool lr_param = 10;
-  bool secure = 11;
+  bool bnc_param = 11;
+  bool secure = 12;
 }
 
 message Address {

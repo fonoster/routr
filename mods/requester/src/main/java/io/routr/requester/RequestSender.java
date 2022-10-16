@@ -56,26 +56,34 @@ final public class RequestSender {
 
     LOG.debug("header list size: {}", headers.size());
 
+    var transport = request.getTransport().toString().toLowerCase();
+
     var req = this.messageFactory.createRequest(
         String.format("%s sip:%s@%s;transport=%s SIP/2.0\r\n\r\n",
             request.getMethod(),
             request.getMessage().getFrom().getAddress().getUri().getUser(),
             request.getTarget(),
-            request.getTransport()));
+            transport));
 
-    var lp = this.sipProvider.getListeningPoint(request.getTransport().toString());
+    var lp = this.sipProvider.getListeningPoint(transport);
     var viaHeader = this.headerFactory.createViaHeader(
         lp.getIPAddress(),
         lp.getPort(),
-        request.getTransport().toString(),
+        transport,
         null);
     viaHeader.setRPort();
 
-    var contactAddress = this.addressFactory.createAddress(String.format("sip:%s@%s:%s;transport=%s;bnc",
-        request.getMessage().getFrom().getAddress().getUri().getUser(),
-        lp.getIPAddress(),
-        lp.getPort(),
-        request.getTransport()));
+    // WARNING: Consider making the use of bnc configurable
+    // var contactAddress = this.addressFactory.createAddress(String.format("sip:%s@%s:%s;transport=%s;bnc",
+    //     request.getMessage().getFrom().getAddress().getUri().getUser(),
+    //     lp.getIPAddress(),
+    //     lp.getPort(),
+    //     transport));
+    var contactAddress = this.addressFactory.createAddress(String.format("sip:%s:%s;transport=%s;bnc",
+      lp.getIPAddress(),
+      lp.getPort(),
+      transport));
+  
     var contactHeader = headerFactory.createContactHeader(contactAddress);
 
     headers.add(contactHeader);

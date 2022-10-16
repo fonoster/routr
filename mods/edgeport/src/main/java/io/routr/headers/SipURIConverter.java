@@ -28,7 +28,7 @@ import java.text.ParseException;
 public class SipURIConverter {
 
   public io.routr.message.SipURI fromObject(SipURI uri) {
-    var builder = io.routr.message.SipURI.newBuilder();
+    final var builder = io.routr.message.SipURI.newBuilder();
     builder.setLrParam(uri.hasLrParam());
     builder.setTtlParam(uri.getTTLParam());
     builder.setSecure(uri.isSecure());
@@ -40,24 +40,32 @@ public class SipURIConverter {
     if (uri.getTransportParam() != null) builder.setTransportParam(uri.getTransportParam());
     if (uri.getMethodParam() != null) builder.setMethodParam(uri.getMethodParam());
     if (uri.getUserParam() != null) builder.setUserParam(uri.getUserParam());
-
     if (uri.getTTLParam() > 0) builder.setTtlParam(uri.getTTLParam());
     if (uri.getMethodParam() != null) builder.setMethodParam(uri.getMethodParam());
+    if (uri.getParameter("bnc") != null) builder.setBncParam(true);
 
     return builder.build();
   }
 
   public SipURI fromDTO(io.routr.message.SipURI dto) throws InvalidArgumentException, PeerUnavailableException, ParseException {
     AddressFactory factory = SipFactory.getInstance().createAddressFactory();
-    SipURI uri = (SipURI) factory.createAddress("sip:" + dto.getHost()).getURI();
+    SipURI uri;
 
-    if (dto.getLrParam()) uri.setLrParam();
+    if(dto.getBncParam()) {
+      uri = (SipURI) factory.createAddress("sip:" + dto.getHost() + ";bnc").getURI();
+    } else {
+      uri = (SipURI) factory.createAddress("sip:" + dto.getHost()).getURI();
+    }
+
+    // TODO: Consider generating an error if the User is present in combination with the bnc flag
     if (!dto.getUser().isEmpty()) uri.setUser(dto.getUser());
-    if (!dto.getHost().isEmpty()) uri.setHost(dto.getHost());
+    if (!dto.getUserParam().isEmpty()) uri.setUserParam(dto.getUserParam());
     if (!dto.getUserPassword().isEmpty()) uri.setUserPassword(dto.getUserPassword());
+    if (!dto.getUserPassword().isEmpty()) uri.setUserPassword(dto.getUserPassword());
+    if (dto.getLrParam()) uri.setLrParam();
+    if (!dto.getHost().isEmpty()) uri.setHost(dto.getHost());
     if (!dto.getTransportParam().isEmpty()) uri.setTransportParam(dto.getTransportParam());
     if (!dto.getMethodParam().isEmpty()) uri.setMethodParam(dto.getMethodParam());
-    if (!dto.getUserParam().isEmpty()) uri.setUserParam(dto.getUserParam());
     if (dto.getTtlParam() > 0) uri.setTTLParam(dto.getTtlParam());
     if (dto.getPort() > -1) uri.setPort(dto.getPort());
 

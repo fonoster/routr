@@ -121,6 +121,7 @@ public class ConverterTests {
     uri.setTTLParam(1000);
     uri.setLrParam();
     uri.setSecure(true);
+    uri.setParameter("bnc", "");
 
     SipURIConverter converter = new SipURIConverter();
 
@@ -138,6 +139,8 @@ public class ConverterTests {
     assertEquals(objectFromDto.getPort(), -1);
     assertEquals(objectFromDto.hasLrParam(), dto.getLrParam());
     assertEquals(objectFromDto.isSecure(), dto.getSecure());
+    assertEquals(objectFromDto.getParameter("bnc"), "");
+    assertTrue(dto.getBncParam());
   }
 
   @Test
@@ -275,7 +278,7 @@ public class ConverterTests {
     AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
     ContactConverter converter = new ContactConverter();
 
-    var address = addressFactory.createAddress("sip:1001@sip.local");
+    var address = addressFactory.createAddress("sip:1001@sip.local;bnc;transport=tcp");
     Contact contact = (Contact) factory.createContactHeader(address);
 
     io.routr.message.Contact dto = converter.fromHeader(contact);

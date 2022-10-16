@@ -79,6 +79,10 @@ export default function createRegistrationRequest(
           name: "Require",
           value: "gin"
         },
+        {
+          name: "Supported",
+          value: "path"
+        },
         credentials
       ],
       route: [

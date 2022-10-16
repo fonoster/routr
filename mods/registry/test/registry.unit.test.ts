@@ -101,8 +101,10 @@ describe("@routr/registry", () => {
     expect(extensions[4]?.value).to.be.include("gin")
     expect(extensions[5]?.name).to.be.equal("Require")
     expect(extensions[5]?.value).to.be.include("gin")
-    expect(extensions[6]?.name).to.be.equal("X-Gateway-Auth")
-    expect(extensions[6]?.value).to.be.include("MTAwMToxMjM0")
+    expect(extensions[6]?.name).to.be.equal("Supported")
+    expect(extensions[6]?.value).to.be.include("path")
+    expect(extensions[7]?.name).to.be.equal("X-Gateway-Auth")
+    expect(extensions[7]?.value).to.be.include("MTAwMToxMjM0")
 
     expect(route.lrParam).to.be.equal(true)
     expect(route.transportParam).to.be.equal(requestParams.transport)
@@ -138,7 +140,7 @@ describe("@routr/registry", () => {
     expect(requestUri?.methodParam).to.be.equal(Method.REGISTER)
     expect(requestUri?.secure).to.be.equal(requestParams.secure)
     expect(request.message.messageType).to.be.equal("requestUri")
-    expect(requestUri.user).to.be.equal(requestParams.user)
+    expect(requestUri?.user).to.be.equal(requestParams.user)
     expect(requestUri?.host).to.be.equal(
       getHostFromAddress(requestParams.targetAddress)
     )
