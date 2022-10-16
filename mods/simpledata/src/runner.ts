@@ -30,8 +30,8 @@ const logger = getLogger({service: "simpledata", filePath: __filename})
 A.assertEnvsAreSet(["PATH_TO_SCHEMAS", "PATH_TO_RESOURCES"])
 
 const resources: typeof CC.RESOURCES_PROTO[] = loadResources(
-  process.env.PATH_TO_RESOURCES,
-  process.env.PATH_TO_SCHEMAS
+  process.env.PATH_TO_SCHEMAS,
+  process.env.PATH_TO_RESOURCES
 )
 
 try {
