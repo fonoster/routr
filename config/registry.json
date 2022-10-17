@@ -3,8 +3,8 @@
   "apiVersion": "v2draft1",
   "spec": {
     "bindAddr": "0.0.0.0:51904",
-    "requesterAddr": "localhost:51909",
-    "apiAddr": "localhost:52901",
+    "requesterAddr": "requester:51909",
+    "apiAddr": "requester:52901",
     "registerInterval": 20,
     "cache": {
       "provider": "memory"
@@ -15,11 +15,11 @@
     ],
     "edgePorts": [
       {
-        "address": "localhost:5060",
+        "address": "edgeport01:5060",
         "region": "us-east1"
       },
       {
-        "address": "localhost:5060"
+        "address": "edgeport02:6060"
       }
     ]
   }

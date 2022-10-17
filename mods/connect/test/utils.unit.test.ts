@@ -84,6 +84,6 @@ describe("@routr/connect/utils", () => {
     const headerModifier = await createTrunkAuthentication(dataAPI, trunk)
     expect(headerModifier).to.have.property("action", "add")
     expect(headerModifier).to.have.property("name", "X-Gateway-Auth")
-    expect(headerModifier).to.have.property("value", "dXNlcm5hbWU6cGFzc3dvcmQ=")
+    expect(headerModifier).to.have.property("value", "cGJ4LTE6MTIzNA==")
   })
 })

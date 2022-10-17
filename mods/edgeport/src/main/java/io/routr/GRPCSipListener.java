@@ -58,7 +58,7 @@ public class GRPCSipListener implements SipListener {
   private final Map<String, Transaction> activeTransactions = new HashMap<>();
 
   public GRPCSipListener(final SipProvider sipProvider, final Map<String, Object> config,
-                         final List<String> externalIps, final List<String> localnets) throws PeerUnavailableException {
+      final List<String> externalIps, final List<String> localnets) throws PeerUnavailableException {
     System.setProperty("serviceName", "edgeport");
     MapProxyObject values = new MapProxyObject(config);
     MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
@@ -68,17 +68,13 @@ public class GRPCSipListener implements SipListener {
     String bindAddr = (String) spec.getMember("bindAddr");
     String edgePortRef = (String) metadata.getMember("ref");
 
-    if (System.getenv("EDGEPORT_REF") != null) {
-      edgePortRef = System.getenv("EDGEPORT_REF");
-    }
-
-    LOG.info("starting edgeport ref = {} at {}" , edgePortRef, bindAddr);
+    LOG.info("starting edgeport ref = {} at {}", edgePortRef, bindAddr);
     LOG.info("localnets list [{}]", String.join(",", localnets));
     LOG.info("external ips list [{}]", String.join(",", externalIps));
 
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
-      .usePlaintext()
-      .build();
+        .usePlaintext()
+        .build();
 
     blockingStub = ProcessorGrpc.newBlockingStub(channel);
     this.sipProvider = sipProvider;
@@ -89,10 +85,10 @@ public class GRPCSipListener implements SipListener {
     while (lps.hasNext()) {
       var currentLp = lps.next();
       var ni = NetInterface.newBuilder()
-        .setPort(currentLp.getPort())
-        .setHost(currentLp.getIPAddress())
-        .setTransport(Transport.valueOf(currentLp.getTransport().toUpperCase()))
-        .build();
+          .setPort(currentLp.getPort())
+          .setHost(currentLp.getIPAddress())
+          .setTransport(Transport.valueOf(currentLp.getTransport().toUpperCase()))
+          .build();
       listeningPoints.put(currentLp.getTransport().toUpperCase(), ni);
     }
 
@@ -126,7 +122,7 @@ public class GRPCSipListener implements SipListener {
 
       String s = header.getName();
       if (s.equals(FromHeader.NAME) || s.equals(ToHeader.NAME) && s.equals(CallIdHeader.NAME)
-        && s.equals(CSeqHeader.NAME)) {
+          && s.equals(CSeqHeader.NAME)) {
         requestOut.setHeader(header);
       } else {
         requestOut.addHeader(header);
@@ -138,12 +134,12 @@ public class GRPCSipListener implements SipListener {
 
   private static boolean isTransactional(final ResponseEvent event) {
     return (event.getClientTransaction() != null &&
-      hasMethod(event.getResponse(), Request.INVITE, Request.MESSAGE, Request.REGISTER));
+        hasMethod(event.getResponse(), Request.INVITE, Request.MESSAGE, Request.REGISTER));
   }
 
   private static boolean isStackJob(final Response response) {
     return hasCodes(response, Response.TRYING, Response.REQUEST_TERMINATED)
-      || hasMethod(response, Request.CANCEL);
+        || hasMethod(response, Request.CANCEL);
   }
 
   private static boolean authenticationRequired(final Response response) {
@@ -168,7 +164,8 @@ public class GRPCSipListener implements SipListener {
         var auth = new String(Base64.getDecoder().decode(authStr));
 
         if (auth.split(":").length != 2) {
-          throw new IllegalArgumentException("invalid 'x-gateway-auth' header value; should be base64('username:password')");
+          throw new IllegalArgumentException(
+              "invalid 'x-gateway-auth' header value; should be base64('username:password')");
         }
 
         var username = auth.split(":")[0];
@@ -213,10 +210,11 @@ public class GRPCSipListener implements SipListener {
       this.sendRequest(serverTransaction, req, headers);
     } catch (StatusRuntimeException | SipException | ParseException | InvalidArgumentException e) {
       var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
-       
+
       if (e instanceof StatusRuntimeException) {
         var description = ((StatusRuntimeException) e).getStatus().getDescription();
-        LOG.warn("an exception occurred while processing request with callId: {}, status description: {}", callId, description, e);
+        LOG.warn("an exception occurred while processing request with callId: {}, status description: {}", callId,
+            description, e);
       } else {
         LOG.warn("an exception occurred while processing callId: {}", callId, e);
       }
@@ -281,8 +279,8 @@ public class GRPCSipListener implements SipListener {
 
   public void processTimeout(final TimeoutEvent event) {
     var transaction = event.getClientTransaction() != null
-      ? (Transaction) event.getClientTransaction()
-      : (Transaction) event.getServerTransaction();
+        ? (Transaction) event.getClientTransaction()
+        : (Transaction) event.getServerTransaction();
     if (transaction != null) {
       var request = transaction.getRequest();
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
@@ -293,8 +291,8 @@ public class GRPCSipListener implements SipListener {
 
   public void processTransactionTerminated(final TransactionTerminatedEvent event) {
     var transaction = event.getClientTransaction() != null
-      ? (Transaction) event.getClientTransaction()
-      : (Transaction) event.getServerTransaction();
+        ? (Transaction) event.getClientTransaction()
+        : (Transaction) event.getServerTransaction();
     if (transaction != null) {
       var request = transaction.getRequest();
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
@@ -312,7 +310,7 @@ public class GRPCSipListener implements SipListener {
   }
 
   private void sendRequest(final ServerTransaction serverTransaction, final Request request,
-                           final List<Header> headers) {
+      final List<Header> headers) {
     try {
       Request requestOut = updateRequest(request, headers);
       // Does not need a transaction
@@ -338,10 +336,11 @@ public class GRPCSipListener implements SipListener {
   }
 
   private void sendResponse(final ServerTransaction transaction, final ResponseType type,
-                            final List<Header> headers) throws ParseException, InvalidArgumentException, SipException {
+      final List<Header> headers) throws ParseException, InvalidArgumentException, SipException {
     Request request = transaction.getRequest();
     Response response = this.messageFactory.createResponse(ResponseCode.valueOf(type.toString()).getCode(), request);
-    for (Header header : headers) response.addHeader(header);
+    for (Header header : headers)
+      response.addHeader(header);
     transaction.sendResponse(response);
 
     var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
@@ -361,19 +360,19 @@ public class GRPCSipListener implements SipListener {
       // Sends 487 (Request terminated) back to client
       var requestIn = originalServerTransaction.getRequest();
       var terminatedResponse = messageFactory
-        .createResponse(Response.REQUEST_TERMINATED, requestIn);
+          .createResponse(Response.REQUEST_TERMINATED, requestIn);
       originalServerTransaction.sendResponse(terminatedResponse);
     }
   }
 
   private void handleAuthChallenge(final SipStackExt sipStack, final ResponseEvent event,
-                                   final AccountManager accountManager) {
+      final AccountManager accountManager) {
     var authHelper = sipStack.getAuthenticationHelper(accountManager, this.headerFactory);
     // Setting looseRouting to false will cause
     // https://github.com/fonoster/routr/issues/18
     try {
       authHelper.handleChallenge(event.getResponse(), event.getClientTransaction(),
-        (SipProvider) event.getSource(), 5, true).sendRequest();
+          (SipProvider) event.getSource(), 5, true).sendRequest();
     } catch (NullPointerException | SipException e) {
       var request = event.getClientTransaction().getRequest();
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);

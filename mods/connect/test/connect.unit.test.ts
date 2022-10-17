@@ -111,10 +111,10 @@ describe("@routr/connect", () => {
     })
     const route = await router(locationAPI, dataAPI)(req)
     expect(route).to.be.not.null
-    expect(route).to.have.property("user", "username")
+    expect(route).to.have.property("user", "pbx-1")
     expect(route).to.have.property("host", "sip.provider.net")
-    expect(route).to.have.property("port", 5060)
-    expect(route).to.have.property("transport", Transport.UDP)
+    expect(route).to.have.property("port", 7060)
+    expect(route).to.have.property("transport", Transport.TCP)
     expect(route).to.have.property("headers").to.be.an("array").lengthOf(3)
   })
 

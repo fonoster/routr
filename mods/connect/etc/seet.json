@@ -9,7 +9,7 @@
         "scenarioFile": "scenarios/sc/sip_pbx/registration_mode/registration_setup.xml",
         "expires": 60,
         "timeout": 60,
-        "port": 6060
+        "port": 7060
       }
     ],
     "enabled": true

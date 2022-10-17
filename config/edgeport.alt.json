@@ -11,16 +11,14 @@
       "client": {
         "protocols": [
           "SSLv3",
-          "TLSv1.2",
-          "TLSv1.1",
-          "TLSv1"
+          "TLSv1.2"
         ],
         "authType": "DisabledAll"
       },
       "keyStorePassword": "changeit",
       "trustStorePassword": "changeit",
-      "keyStore": "./etc/certs/domains-cert.jks",
-      "trustStore": "./etc/certs/domains-cert.jks",
+      "keyStore": "/etc/routr/domains-cert.jks",
+      "trustStore": "/etc/routr/domains-cert.jks",
       "keyStoreType": "pkcs12"
     },
     "processor": {
@@ -48,6 +46,18 @@
       {
         "port": 6060,
         "protocol": "udp"
+      },
+      {
+        "port": 6061,
+        "protocol": "tls"
+      },
+      {
+        "port": 6062,
+        "protocol": "ws"
+      },
+      {
+        "port": 6063,
+        "protocol": "wss"
       }
     ]
   }

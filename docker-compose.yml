@@ -3,8 +3,9 @@ version: '3.7'
 services:
 
   edgeport01:
-    build: ./mods/edgeport
+    container_name: edgeport01
     image: fonoster/edgeport
+    build: ./mods/edgeport
     environment:
       CONFIG_PATH: /etc/routr/edgeport.json
       LOG4J2: /etc/routr/log4j2.yml
@@ -14,18 +15,18 @@ services:
       - 5060:5060
       - 5060:5060/udp
       - 5061:5061
-      - 5062:5061
-      - 5063:5061
+      - 5062:5062
+      - 5063:5063
     volumes:
       - ./config/log4j2.yml:/etc/routr/log4j2.yml
       - ./config/edgeport.json:/etc/routr/edgeport.json
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
 
   edgeport02:
-    build: ./mods/edgeport
+    container_name: edgeport02
     image: fonoster/edgeport
+    build: ./mods/edgeport
     environment:
-      EDGEPORT_REF: ep002
       CONFIG_PATH: /etc/routr/edgeport.json
       LOG4J2: /etc/routr/log4j2.yml
       LOGS_LEVEL: verbose
@@ -34,16 +35,17 @@ services:
       - 6060:6060
       - 6060:6060/udp
       - 6061:6061
-      - 6062:6061
-      - 6063:6061
+      - 6062:6062
+      - 6063:6063
     volumes:
       - ./config/log4j2.yml:/etc/routr/log4j2.yml
       - ./config/edgeport.alt.json:/etc/routr/edgeport.json
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
 
   dispatcher:
-    build: ./mods/dispatcher
+    container_name: dispatcher
     image: fonoster/dispatcher
+    build: ./mods/dispatcher
     environment:
       CONFIG_PATH: '/etc/routr/dispatcher.json'
       LOGS_LEVEL: verbose
@@ -54,8 +56,9 @@ services:
       - ./config/dispatcher.json:/etc/routr/dispatcher.json
 
   location:
-    build: ./mods/location
+    container_name: location
     image: fonoster/location
+    build: ./mods/location
     environment:
       CONFIG_PATH: '/etc/routr/location.json'
       LOGS_LEVEL: verbose
@@ -67,8 +70,9 @@ services:
 
   # Connect processor
   connect:
-    build: ./mods/connect
+    container_name: connect
     image: fonoster/connect
+    build: ./mods/connect
     environment:
       LOCATION_ADDR: location:51902
       LOGS_LEVEL: verbose
@@ -80,11 +84,12 @@ services:
 
   # Use the auth.json file to add or remove agents
   simpleauth:
-    build: ./mods/simpleauth
+    container_name: simpleauth
     image: fonoster/simpleauth
+    build: ./mods/simpleauth
     environment:
       # Comma separated list of agents that are allowed to skip authentication
-      WHITELIST: someuser01,someuser02
+      WHITELIST: pbx-1
       PATH_TO_AUTH: '/etc/routr/auth.json'
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: 'http://jaeger:14268/api/traces'
@@ -95,8 +100,9 @@ services:
 
   # Echo processor
   echo:
-    build: ./mods/echo
+    container_name: echo
     image: fonoster/echo
+    build: ./mods/echo
     environment:
       LOGS_LEVEL: verbose
     expose:
@@ -104,6 +110,7 @@ services:
 
   # Jaeger
   jaeger:
+    container_name: jaeger
     image: jaegertracing/all-in-one:1.30.0
     ports:
       - "16686:16686"

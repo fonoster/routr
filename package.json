@@ -1,14 +1,6 @@
 {
   "name": "root",
   "private": true,
-  "nodemonConfig": {
-    "watch": [
-      "./mods/"
-    ],
-    "ext": "ts",
-    "exec": "ts-node",
-    "ignore": "**/*.d.ts"
-  },
   "scripts": {
     "start": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose nodemon ./.scripts/runner",
     "start:connect": "cross-env PATH_TO_AUTH=$(pwd)/config/auth.json NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/connect/src/runner",
@@ -74,10 +66,18 @@
     "webpack-cli": "^4.7.0"
   },
   "dependencies": {
-    "@fonoster/logger": "0.3.16-alpha.2",
+    "@fonoster/logger": "0.3.17-alpha.2",
     "buffer": "^6.0.3",
     "funfix": "^7.0.1",
     "pb-util": "^1.0.3"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "./mods/"
+    ],
+    "ext": "ts",
+    "exec": "ts-node",
+    "ignore": "**/*.d.ts"
   },
   "nyc": {
     "exclude": [
