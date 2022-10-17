@@ -38,6 +38,7 @@
     "@routr/processor": "^2.0.5-alpha.21",
     "ajv": "^6.12.6",
     "fp-ts": "^2.11.8",
+    "pb-util": "^1.0.3",
     "redis": "^4.0.4",
     "uniqid": "^5.4.0"
   },
