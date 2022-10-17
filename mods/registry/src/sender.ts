@@ -18,14 +18,14 @@
  */
 import * as grpc from "@grpc/grpc-js"
 import {ServiceUnavailableError} from "@routr/common"
-import {requester} from "./grpc_client"
+import {CommonRequester as CR} from "@routr/common"
 import {RegistrationRequest, SendMessageResponse} from "./types"
 
 export const sendRegisterMessage = (requesterAddr: string) => {
   return (
     request: RegistrationRequest
   ): Promise<ServiceUnavailableError | SendMessageResponse> => {
-    const client = new requester.v2draft1.Requester(
+    const client = new CR.REQUESTER_PROTO.v2draft1.Requester(
       requesterAddr,
       grpc.credentials.createInsecure()
     )

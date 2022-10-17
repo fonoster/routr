@@ -24,7 +24,7 @@ import {getConfig} from "./config/get_config"
 import {Assertions as A} from "@routr/common"
 import {getLogger} from "@fonoster/logger"
 
-const logger = getLogger({service: "simpleauth", filePath: __filename})
+const logger = getLogger({service: "registry", filePath: __filename})
 
 A.assertEnvsAreSet(["CONFIG_PATH"])
 

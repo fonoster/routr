@@ -115,6 +115,34 @@ services:
       - ./mods/simpledata/etc/schemas/:/etc/routr/schemas
       - ./config/resources:/etc/routr/resources
 
+  # Takes gRPC requests and sends them to an EdgePort
+  requester:
+    container_name: requester
+    image: fonoster/requester
+    build: ./mods/requester
+    environment:
+      LOG4J2: /etc/routr/log4j2.yml
+      LOGS_LEVEL: verbose
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    expose:
+      - 51909
+    volumes:
+      - ./config/log4j2.yml:/etc/routr/log4j2.yml
+
+  # Sends registration request on behalf of trunks
+  registry:
+    container_name: registry
+    image: fonoster/registry
+    build: ./mods/registry
+    environment:
+      CONFIG_PATH: /etc/routr/registry.json
+      LOGS_LEVEL: verbose
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    expose:
+      - 51910
+    volumes:
+      - ./config/registry.json:/etc/routr/registry.json
+
   # Echo processor
   echo:
     container_name: echo
@@ -126,10 +154,10 @@ services:
       - 51904
 
   # Jaeger
-  jaeger:
-    container_name: jaeger
-    image: jaegertracing/all-in-one:1.30.0
-    ports:
-      - "16686:16686"
-      - "14268:14268"
-      - "14250"
+  # jaeger:
+  #   container_name: jaeger
+  #   image: jaegertracing/all-in-one:1.30.0
+  #   ports:
+  #     - "16686:16686"
+  #     - "14268:14268"
+  #     - "14250"

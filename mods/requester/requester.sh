@@ -2,7 +2,6 @@
 export HOME="$(cd "$(dirname "$0")"; pwd)"
 
 [ -z "$LOG4J2" ] && LOG4J2=config/log4j2.yml
-[ -z "$CONFIG_PATH" ] && export CONFIG_PATH=$(pwd)/config/requester.json
 [ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment. Please setup environment variable JAVA_HOME"; exit 1; }
 
 export JAVA_OPTS="-Dlog4j.configurationFile=${LOG4J2} \

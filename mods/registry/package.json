@@ -12,7 +12,7 @@
     "build": "tsc -b tsconfig.json"
   },
   "bin": {
-    "run_location": "dist/runner.js"
+    "run_registry": "dist/runner.js"
   },
   "directories": {
     "src": "src",

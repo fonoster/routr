@@ -22,7 +22,7 @@ import * as grpc from "@grpc/grpc-js"
 import * as protoLoader from "@grpc/proto-loader"
 import {getLogger} from "@fonoster/logger"
 
-const logger = getLogger({service: "connect", filePath: __filename})
+const logger = getLogger({service: "common", filePath: __filename})
 
 const loadOptions = {
   keepCase: false,

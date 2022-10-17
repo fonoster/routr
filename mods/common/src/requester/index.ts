@@ -1,9 +1,8 @@
-#!/usr/bin/env node
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
- * http://github.com/fonoster/routr
+ * http://github.com/fonoster
  *
- * This file is part of Routr
+ * This file is part of Routr.
  *
  * Licensed under the MIT License (the "License");
  * you may not use this file except in compliance with
@@ -17,19 +16,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import messageDispatcher from "./service"
-import {getConfig} from "./config/get_config"
-import {Assertions as A} from "@routr/common"
-import {getLogger} from "@fonoster/logger"
-
-const logger = getLogger({service: "dispatcher", filePath: __filename})
-
-A.assertEnvsAreSet(["CONFIG_PATH"])
-
-const result = getConfig(process.env.CONFIG_PATH)
-
-if (result._tag === "Right") {
-  messageDispatcher(result.right)
-} else {
-  logger.error(result.left)
-}
+export * from "./grpc_client"
