@@ -28,7 +28,7 @@ import {
 } from "./utils"
 import {MessageRequest, Target as T} from "@routr/processor"
 import {UnsuportedRoutingError} from "./errors"
-import {NotRoutesFoundForAOR} from "@routr/location/src/errors"
+import {NotRoutesFoundForAOR} from "@routr/location"
 import {ILocationService} from "@routr/location"
 import {getLogger} from "@fonoster/logger"
 import {CommonConnect as CC} from "@routr/common"
