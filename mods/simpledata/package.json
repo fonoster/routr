@@ -31,6 +31,7 @@
     "@opentelemetry/semantic-conventions": "^1.0.4",
     "@routr/common": "^2.0.5-alpha.17",
     "@routr/processor": "^2.0.5-alpha.17",
+    "ajv": "^6.12.6",
     "google-protobuf": "^3.9.2",
     "jsonpath": "^1.1.1"
   },

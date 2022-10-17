@@ -47,9 +47,9 @@ services:
     image: fonoster/dispatcher
     build: ./mods/dispatcher
     environment:
-      CONFIG_PATH: '/etc/routr/dispatcher.json'
+      CONFIG_PATH: /etc/routr/dispatcher.json
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: 'http://jaeger:14268/api/traces'
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51901
     volumes:
@@ -60,9 +60,9 @@ services:
     image: fonoster/location
     build: ./mods/location
     environment:
-      CONFIG_PATH: '/etc/routr/location.json'
+      CONFIG_PATH: /etc/routr/location.json
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: 'http://jaeger:14268/api/traces'
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51902
     volumes:
@@ -75,8 +75,9 @@ services:
     build: ./mods/connect
     environment:
       LOCATION_ADDR: location:51902
+      API_ADDR: simpledata:52901
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: 'http://jaeger:14268/api/traces'
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     ports:
       - 51904:51904
     expose:
@@ -90,13 +91,29 @@ services:
     environment:
       # Comma separated list of agents that are allowed to skip authentication
       WHITELIST: pbx-1
-      PATH_TO_AUTH: '/etc/routr/auth.json'
+      PATH_TO_AUTH: /etc/routr/auth.json
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: 'http://jaeger:14268/api/traces'
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51903
     volumes:
       - ./config/auth.json:/etc/routr/auth.json
+
+  # Simple data API
+  simpledata:
+    container_name: simpledata
+    image: fonoster/simpledata
+    build: ./mods/simpledata
+    environment:
+      PATH_TO_SCHEMAS: /etc/routr/schemas
+      PATH_TO_RESOURCES: /etc/routr/resources
+      LOGS_LEVEL: verbose
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    expose:
+      - 52901
+    volumes:
+      - ./mods/simpledata/etc/schemas/:/etc/routr/schemas
+      - ./config/resources:/etc/routr/resources
 
   # Echo processor
   echo:
