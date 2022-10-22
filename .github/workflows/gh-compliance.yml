@@ -1,4 +1,4 @@
-name: SIP Connect v1.1
+name: sip-connect v1.1
 on:
   workflow_dispatch:
   push:
