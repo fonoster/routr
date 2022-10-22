@@ -15,4 +15,17 @@
       <test assign_to="pass" variable="pass" compare="equal" value="1"/>
     </action>
   </recv>
+
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:[local_ip]:[local_port];transport=[transport]>;expires=0
+      Content-Length: 0
+    ]]>
+  </send>
 </scenario>
