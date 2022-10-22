@@ -1,0 +1,18 @@
+name: sip-connect v1.1
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+    - 'docs/**'
+    branches:
+    - v2
+jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Integration tests
+        run: |
+          docker-compose up --abort-on-container-exit --exit-code-from seet
