@@ -13,6 +13,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
+      - name: Installing Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - name: Build project
+        run: npm run make
       - name: Integration tests
         run: |
           docker-compose up --abort-on-container-exit --exit-code-from seet
