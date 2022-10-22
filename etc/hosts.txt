@@ -1,0 +1,12 @@
+# hosts.txt
+127.0.0.1 sip.provider.net
+127.0.0.1 edgeport01
+127.0.0.1 edgeport02
+127.0.0.1 echo
+127.0.0.1 dispatcher
+127.0.0.1 location
+127.0.0.1 connect
+127.0.0.1 simpleauth
+127.0.0.1 simpledata
+127.0.0.1 requester
+127.0.0.1 jaeger
