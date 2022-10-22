@@ -22,13 +22,14 @@
       "keyStoreType": "pkcs12"
     },
     "processor": {
-      "addr": "localhost:51901"
+      "addr": "dispatcher:51901"
     },
     "externalIps": [
-      "192.168.1.3"
+      "10.111.220.3",
+      "edgeport02"
     ],
     "localnets": [
-      "192.168.1.3"
+      "10.111.221.3"
     ],
     "methods": [
       "REGISTER",

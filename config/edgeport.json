@@ -25,10 +25,11 @@
       "addr": "dispatcher:51901"
     },
     "externalIps": [
-      "47.132.130.31"
+      "10.111.220.2",
+      "edgeport01"
     ],
     "localnets": [
-      "192.168.1.3"
+      "10.111.221.2"
     ],
     "methods": [
       "REGISTER",

@@ -1,7 +1,8 @@
-version: '3.7'
+version: "3.7"
 
 services:
 
+  # Main EdgePort server
   edgeport01:
     container_name: edgeport01
     image: fonoster/edgeport
@@ -10,7 +11,7 @@ services:
       CONFIG_PATH: /etc/routr/edgeport.json
       LOG4J2: /etc/routr/log4j2.yml
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: 'http://jaeger:14268/api/traces'
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     ports:
       - 5060:5060
       - 5060:5060/udp
@@ -21,7 +22,13 @@ services:
       - ./config/log4j2.yml:/etc/routr/log4j2.yml
       - ./config/edgeport.json:/etc/routr/edgeport.json
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
+    networks:
+      public: 
+        ipv4_address: 10.111.220.2
+      internal:
+        ipv4_address: 10.111.221.2
 
+  # Secondary EdgePort server
   edgeport02:
     container_name: edgeport02
     image: fonoster/edgeport
@@ -30,7 +37,7 @@ services:
       CONFIG_PATH: /etc/routr/edgeport.json
       LOG4J2: /etc/routr/log4j2.yml
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: 'http://jaeger:14268/api/traces'
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     ports:
       - 6060:6060
       - 6060:6060/udp
@@ -41,7 +48,13 @@ services:
       - ./config/log4j2.yml:/etc/routr/log4j2.yml
       - ./config/edgeport.alt.json:/etc/routr/edgeport.json
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
+    networks:
+      public: 
+        ipv4_address: 10.111.220.3
+      internal:
+        ipv4_address: 10.111.221.3
 
+  # Takes care of routing traffic from the EdgePort servers
   dispatcher:
     container_name: dispatcher
     image: fonoster/dispatcher
@@ -54,7 +67,11 @@ services:
       - 51901
     volumes:
       - ./config/dispatcher.json:/etc/routr/dispatcher.json
+    networks:
+      internal:
+        ipv4_address: 10.111.221.4
 
+  # Store the location to all SIP endpoints in the network
   location:
     container_name: location
     image: fonoster/location
@@ -67,6 +84,9 @@ services:
       - 51902
     volumes:
       - ./config/location.json:/etc/routr/location.json
+    networks:
+      internal:
+        ipv4_address: 10.111.221.5
 
   # Connect processor
   connect:
@@ -78,11 +98,11 @@ services:
       API_ADDR: simpledata:52901
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
-    ports:
-      - 51904:51904
     expose:
       - 51904
-
+    networks:
+      internal:
+        ipv4_address: 10.111.221.6
   # Use the auth.json file to add or remove agents
   simpleauth:
     container_name: simpleauth
@@ -98,6 +118,9 @@ services:
       - 51903
     volumes:
       - ./config/auth.json:/etc/routr/auth.json
+    networks:
+      internal:
+        ipv4_address: 10.111.221.7
 
   # Simple data API
   simpledata:
@@ -114,6 +137,9 @@ services:
     volumes:
       - ./mods/simpledata/etc/schemas/:/etc/routr/schemas
       - ./config/resources:/etc/routr/resources
+    networks:
+      internal:
+        ipv4_address: 10.111.221.8
 
   # Takes gRPC requests and sends them to an EdgePort
   requester:
@@ -128,6 +154,9 @@ services:
       - 51909
     volumes:
       - ./config/log4j2.yml:/etc/routr/log4j2.yml
+    networks:
+      internal:
+        ipv4_address: 10.111.221.9
 
   # Sends registration request on behalf of trunks
   registry:
@@ -142,6 +171,9 @@ services:
       - 51910
     volumes:
       - ./config/registry.json:/etc/routr/registry.json
+    networks:
+      internal:
+        ipv4_address: 10.111.221.10
 
   # Echo processor
   echo:
@@ -152,12 +184,47 @@ services:
       LOGS_LEVEL: verbose
     expose:
       - 51904
+    networks:
+      internal:
+        ipv4_address: 10.111.221.11
 
-  # Jaeger
-  # jaeger:
-  #   container_name: jaeger
-  #   image: jaegertracing/all-in-one:1.30.0
-  #   ports:
-  #     - "16686:16686"
-  #     - "14268:14268"
-  #     - "14250"
+  # Tracing monitoring
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:1.30.0
+    ports:
+      - 16686:16686
+      - 14268:14268
+      - 14250:14250
+    networks:
+      internal:
+        ipv4_address: 10.111.221.12
+
+  # End to end tests
+  seet:
+    container_name: seet
+    image: fonoster/seet
+    environment:
+      SCENARIOS: /seet.json
+    ports:
+      - 7060:7060/udp
+    volumes:
+      - ./mods/connect/etc/seet.json/:/seet.json
+      - ./mods/connect/etc/scenarios:/scenarios
+    networks:
+      internal:
+        ipv4_address: 10.111.221.22
+        aliases:
+          - sip.provider.net
+
+networks:
+  public:
+    driver: "bridge"
+    ipam:
+      config:
+        - subnet: 10.111.220.1/24
+  internal:
+    driver: "bridge"
+    ipam:
+      config:
+        - subnet: 10.111.221.1/24

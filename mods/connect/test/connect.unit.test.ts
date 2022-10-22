@@ -114,7 +114,7 @@ describe("@routr/connect", () => {
     expect(route).to.have.property("user", "pbx-1")
     expect(route).to.have.property("host", "sip.provider.net")
     expect(route).to.have.property("port", 7060)
-    expect(route).to.have.property("transport", Transport.TCP)
+    expect(route).to.have.property("transport", Transport.UDP)
     expect(route).to.have.property("headers").to.be.an("array").lengthOf(3)
   })
 
