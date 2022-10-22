@@ -38,7 +38,6 @@ export interface EdgePort {
 }
 
 export interface RegistryConfig {
-  bindAddr: string
   requesterAddr: string
   apiAddr: string
   edgePorts: EdgePort[]

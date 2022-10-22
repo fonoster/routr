@@ -36,7 +36,7 @@ const resources: typeof CC.RESOURCES_PROTO[] = loadResources(
 
 try {
   simpleDataService({
-    bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903",
+    bindAddr: process.env.BIND_ADDR || "0.0.0.0:51907",
     resources
   })
 } catch (e) {

@@ -28,7 +28,9 @@
     "bump:version": "rimraf mods/**/.lerna-changed-buster-* && lerna exec -- touch .lerna-changed-buster-$RANDOM",
     "lint": "eslint mods --ext .ts --fix",
     "format": "prettier --write mods/**/src",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "hostile:load": "sudo hostile load etc/hosts.txt",
+    "hostile:unload": "sudo hostile unload etc/hosts.txt"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
@@ -50,6 +52,7 @@
     "eslint-plugin-notice": "^0.9.10",
     "eslint-plugin-prettier": "^3.3.1",
     "esm": "^3.2.25",
+    "hostile": "^1.3.3",
     "husky": "^5.2.0",
     "jvm-npm": "^0.1.1",
     "lerna": "^4.0.0",

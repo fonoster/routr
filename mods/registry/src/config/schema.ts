@@ -36,10 +36,6 @@ export const schema = {
       description: "Operations spec for Registry",
       type: "object",
       properties: {
-        bindAddr: {
-          description: "Ipv4 interface to accept request on",
-          type: "string"
-        },
         requesterAddr: {
           description: "Address of service to send requests to",
           type: "string"

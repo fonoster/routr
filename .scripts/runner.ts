@@ -53,7 +53,7 @@ if (registryConfig._tag === 'Right') {
 const resources: Resource[] = loadResources(__dirname + "/../mods/simpledata/etc/schemas",
   __dirname + "/../config/resources")
 
-simpleDataService({bindAddr: "0.0.0.0:52901", resources})
+simpleDataService({bindAddr: "0.0.0.0:51907", resources})
 simpleAuthMiddleware({bindAddr: "0.0.0.0:51903", users, whiteList})
 connectProcessor({
   bindAddr: "0.0.0.0:51904",

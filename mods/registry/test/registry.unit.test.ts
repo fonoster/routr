@@ -153,7 +153,6 @@ describe("@routr/registry", () => {
     const result = getConfig(__dirname + "/../../../config/registry.json")
     if (result._tag === "Right") {
       const config = result.right
-      expect(config).to.have.property("bindAddr")
       expect(config)
         .to.have.property("cache")
         .to.have.property("provider")

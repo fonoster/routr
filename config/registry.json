@@ -2,9 +2,8 @@
   "kind": "Registry",
   "apiVersion": "v2draft1",
   "spec": {
-    "bindAddr": "0.0.0.0:51904",
     "requesterAddr": "requester:51909",
-    "apiAddr": "simpledata:51903",
+    "apiAddr": "simpledata:51907",
     "registerInterval": 20,
     "cache": {
       "provider": "memory"

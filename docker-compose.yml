@@ -95,7 +95,7 @@ services:
     build: ./mods/connect
     environment:
       LOCATION_ADDR: location:51902
-      API_ADDR: simpledata:52901
+      API_ADDR: simpledata:51907
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
@@ -133,7 +133,7 @@ services:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
-      - 52901
+      - 51907
     volumes:
       - ./mods/simpledata/etc/schemas/:/etc/routr/schemas
       - ./config/resources:/etc/routr/resources
@@ -200,10 +200,23 @@ services:
       internal:
         ipv4_address: 10.111.221.12
 
-  # End to end tests
+  #
+  # SIP End to End Test (SEET) compliance test for SIPConnect v1.1 support
+  # docker-compose up --abort-on-container-exit --exit-code-from seet
+  #
   seet:
     container_name: seet
     image: fonoster/seet
+    depends_on: 
+      - edgeport01
+      - edgeport02
+      - echo 
+      - dispatcher
+      - registry
+      - requester
+      - simpledata
+      - simpleauth
+      - connect
     environment:
       SCENARIOS: /seet.json
     ports:
