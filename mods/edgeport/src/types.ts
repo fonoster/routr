@@ -25,7 +25,7 @@ export interface Transport {
 export interface EdgePortConfig {
   spec: {
     bindAddr: string
-    transport: Array<Transport>
+    transport: Transport[]
     processor: {
       addr: string
     }
@@ -40,7 +40,7 @@ export interface EdgePortConfig {
       keyStoreType: string
       client: {
         authType: string
-        protocols: Array<string>
+        protocols: string[]
       }
     }
   }

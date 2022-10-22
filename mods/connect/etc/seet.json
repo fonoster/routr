@@ -2,7 +2,7 @@
   {
     "name": "Test Group 1.1: Registration Mode -> SC-IT.Conf.1.1.1: Registration Setup",
     "description": "This test case verifies SIP-PBX Registration during the initial setup phase.",
-    "transportMode": "t1",
+    "transportMode": "u1",
     "userAgents": [
       {
         "mode": "uas",
