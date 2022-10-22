@@ -18,7 +18,12 @@
  */
 import {sendRegisterMessage} from "./sender"
 import createRegistrationRequest from "./request"
-import {IRegistryStore, RegistrationEntryStatus, RegistryConfig} from "./types"
+import {
+  DEFAULT_EXPIRES,
+  IRegistryStore,
+  RegistrationEntryStatus,
+  RegistryConfig
+} from "./types"
 import {
   buildStore,
   convertResourceToTrunk,
@@ -32,8 +37,7 @@ import {ServiceUnavailableError} from "@routr/common"
 
 const logger = getLogger({service: "registry", filePath: __filename})
 
-const DEFAULT_REGISTRATION_INTERVAL = 60 * 1000
-const DEFAULT_RETENTION_TIME = 600 * 1000
+const DEFAULT_REGISTRATION_INTERVAL = 60
 
 // TODO:
 //  - We need to filter quarentine trunks from final list of trunks
@@ -45,6 +49,9 @@ const DEFAULT_RETENTION_TIME = 600 * 1000
  */
 export default function registryService(config: RegistryConfig) {
   logger.info("starting registry service")
+
+  const registerInterval =
+    config.registerInterval || DEFAULT_REGISTRATION_INTERVAL
 
   const store: IRegistryStore = buildStore(config)
 
@@ -62,14 +69,19 @@ export default function registryService(config: RegistryConfig) {
       return
     }
 
-    const registryInvocations = resources.map(async (resource) => {
-      const registrationRequestInput = registrationRequestInputFromTrunk(
-        await convertResourceToTrunk(dataAPI, resource),
-        config
-      )
-      const request = createRegistrationRequest(registrationRequestInput)
-      return sendRegisterMessage(config.requesterAddr)(request)
-    })
+    // Create a list of trunks in the Store
+    const trunksInStore = (await store.list()).map((r) => r.trunkRef)
+
+    const registryInvocations = resources
+      .filter((resources) => !trunksInStore.includes(resources.metadata.ref))
+      .map(async (resource) => {
+        const registrationRequestInput = registrationRequestInputFromTrunk(
+          await convertResourceToTrunk(dataAPI, resource),
+          config
+        )
+        const request = createRegistrationRequest(registrationRequestInput)
+        return sendRegisterMessage(config.requesterAddr)(request)
+      })
 
     const results = await Promise.allSettled(registryInvocations)
 
@@ -87,7 +99,13 @@ export default function registryService(config: RegistryConfig) {
       }
 
       const message = result.value.message as SIPMessage
-      const retentionTime = message.expires?.expires || DEFAULT_RETENTION_TIME
+
+      // Makes sure we send register before the last register expires
+      const retentionTime =
+        (message.contact?.expires ||
+          message.expires?.expires ||
+          DEFAULT_EXPIRES) - registerInterval
+
       // TODO: Refactor to use ResponseType instead of string
       const status =
         message.responseType.toString() == "OK"
@@ -108,5 +126,5 @@ export default function registryService(config: RegistryConfig) {
         status
       })
     })
-  }, config.registerInterval * 1000 || DEFAULT_REGISTRATION_INTERVAL)
+  }, registerInterval * 1000)
 }

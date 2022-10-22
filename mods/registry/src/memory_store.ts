@@ -18,13 +18,18 @@
  */
 import {IRegistryStore, RegistrationEntry} from "./types"
 
+const notExpired = (entry: RegistrationEntry) => {
+  const timeElapsed = (Date.now() - entry.timeOfEntry) / 1000
+  return timeElapsed <= entry.retentionTimeInSeconds
+}
+
 const MAX_CYCLES_BEFORE_CLEANUP = 10000
 
 /**
  * In-memory store for the registry service.
  */
 export default class MemoryStore implements IRegistryStore {
-  private collections: Map<string, RegistrationEntry>
+  private map: Map<string, RegistrationEntry>
   private cleanupCount: number
   private maxCyclesBeforeCleanup: number
 
@@ -34,47 +39,53 @@ export default class MemoryStore implements IRegistryStore {
    * @param {number} maxCyclesBeforeCleanup - Maximum number of cycles before cleanup
    */
   constructor(maxCyclesBeforeCleanup: number = MAX_CYCLES_BEFORE_CLEANUP) {
-    this.collections = new Map<string, RegistrationEntry>()
+    this.map = new Map<string, RegistrationEntry>()
     this.maxCyclesBeforeCleanup = maxCyclesBeforeCleanup
   }
 
   /** @inheritdoc */
   public put(key: string, entry: RegistrationEntry): Promise<void> {
-    this.collections.set(key, entry)
-    return
-  }
+    this.map.set(key, entry)
 
-  /** @inheritdoc */
-  public list(): Promise<RegistrationEntry[]> {
-    return Promise.resolve(
-      this.collections.values ? Array.from(this.collections.values()) : []
-    )
-  }
-
-  /** @inheritdoc */
-  public get(key: string): Promise<RegistrationEntry> {
     // Cleanup every so often to avoid memory build up
     this.cleanupCount++
     if (this.cleanupCount >= this.maxCyclesBeforeCleanup) {
       this.cleanupCount = 0
       this.cleanup()
     }
-    return Promise.resolve(this.collections.get(key))
+
+    return
+  }
+
+  /** @inheritdoc */
+  public list(): Promise<RegistrationEntry[]> {
+    return Promise.resolve(
+      this.map.values ? Array.from(this.map.values()).filter(notExpired) : []
+    )
+  }
+
+  /** @inheritdoc */
+  public get(key: string): Promise<RegistrationEntry> {
+    const entry = this.map.get(key)
+    if (entry && notExpired(entry)) {
+      return Promise.resolve(entry)
+    }
+    return null
   }
 
   /** @inheritdoc */
   public delete(key: string): Promise<void> {
-    this.collections.delete(key)
+    this.map.delete(key)
     return
   }
 
   /** @inheritdoc */
   public cleanup(): void {
     // Remove all expired registration entries
-    this.collections.forEach((entry, key) => {
-      const timeElapsed = (Date.now() - entry.timeOfEntry) / 1000
-      if (timeElapsed > entry.retentionTimeInSeconds)
-        this.collections.delete(key)
+    this.map.forEach((entry, key) => {
+      if (!notExpired(entry)) {
+        this.map.delete(key)
+      }
     })
   }
 }

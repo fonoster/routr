@@ -46,12 +46,12 @@ describe("@routr/registry/memory_store", () => {
     }
     store.put(entry1.trunkRef, entry1)
     store.put(entry2.trunkRef, entry2)
-    expect((await store.list()).length).to.be.equal(2)
+    expect((await store.list()).length).to.be.equal(1)
 
     store.cleanup()
     expect((await store.list()).length).to.be.equal(1)
     expect(await store.get("tk6t67r1")).to.have.property("status")
-    // expect((await store.list())[0]).to.have.property("status")
-    expect(await store.get("tk6t67r2")).to.be.undefined
+    expect((await store.list())[0]).to.have.property("status")
+    expect(await store.get("tk6t67r2")).to.be.null
   })
 })

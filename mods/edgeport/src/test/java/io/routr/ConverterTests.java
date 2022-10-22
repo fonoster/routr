@@ -280,12 +280,13 @@ public class ConverterTests {
 
     var address = addressFactory.createAddress("sip:1001@sip.local;bnc;transport=tcp");
     Contact contact = (Contact) factory.createContactHeader(address);
+    contact.setExpires(600);
 
     io.routr.message.Contact dto = converter.fromHeader(contact);
     Contact objectContactDto = converter.fromDTO(dto);
 
     assertEquals(objectContactDto.getExpires(), dto.getExpires());
-    assertEquals(objectContactDto.getExpires(), -1);
+    assertEquals(objectContactDto.getExpires(), 600);
     assertEquals(objectContactDto.getQValue(), dto.getQValue());
     assertEquals(objectContactDto.getQValue(), -1.0);
     assertNotNull(objectContactDto.getAddress());
