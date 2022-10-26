@@ -1,7 +1,7 @@
 Routr is developed in the open. Here are some of the channels we use to communicate and contribute:
 
 
-[Slack](https://fonosterteam.typeform.com/to/Xy8Oc0)
+[Discord community](https://discord.com/invite/mpWSRUhG7e)
 
 **User mailing lists:**
 
