@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-4.4.0">
     
     
       
@@ -1684,34 +1684,34 @@
 <h3 id="single-domain-example">Single Domain Example<a class="headerlink" href="#single-domain-example" title="Permanent link">&para;</a></h3>
 <p>The following yaml configuration shows a simple setup, involving one Domain and two Agents:</p>
 <p><strong>Domain configuration</strong></p>
-<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1beta1</span><span class="w"></span>
-<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Domain</span><span class="w"></span>
-<span class="w">  </span><span class="nt">metadata</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Local Office</span><span class="w"></span>
-<span class="w">  </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">context</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="nt">domainUri</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sip.local</span><span class="w"></span>
-</code></pre></div>
+<p><code>yaml
+- apiVersion: v1beta1
+  kind: Domain
+  metadata:
+    name: Local Office
+  spec:
+    context:
+      domainUri: sip.local</code></p>
 <p><strong>Agents configuration</strong></p>
-<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1beta1</span><span class="w"></span>
-<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Agent</span><span class="w"></span>
-<span class="w">  </span><span class="nt">metadata</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">John Doe</span><span class="w"></span>
-<span class="w">  </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">credentials</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">john</span><span class="w"></span>
-<span class="w">      </span><span class="nt">secret</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;1234&#39;</span><span class="w"></span>
-<span class="w">    </span><span class="nt">domains</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">sip.local</span><span class="p p-Indicator">]</span><span class="w"></span>
-<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Agent</span><span class="w"></span>
-<span class="w">  </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1beta1</span><span class="w"></span>
-<span class="w">  </span><span class="nt">metadata</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Janie Doe</span><span class="w"></span>
-<span class="w">  </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">credentials</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">janie</span><span class="w"></span>
-<span class="w">      </span><span class="nt">secret</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;1234&#39;</span><span class="w"></span>
-<span class="w">    </span><span class="nt">domains</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">sip.local</span><span class="p p-Indicator">]</span><span class="w"></span>
-</code></pre></div>
+<p><code>yaml
+- apiVersion: v1beta1
+  kind: Agent
+  metadata:
+    name: John Doe
+  spec:
+    credentials:
+      username: john
+      secret: '1234'
+    domains: [sip.local]
+- kind: Agent
+  apiVersion: v1beta1
+  metadata:
+    name: Janie Doe
+  spec:
+    credentials:
+      username: janie
+      secret: '1234'
+    domains: [sip.local]</code></p>
 <p>Voila! That's all the configuration you need for intra-domain communication. For calls outside the Domain, see "Domain Egress Routing" section and to receive calls from the PSTN check section "Domain Ingress Routing."</p>
 <blockquote>
 <p>To configure your sip devices use the information found in <code>config/agents.yml</code>. Also, you must use the Host/IP of Routr server as
@@ -1726,34 +1726,34 @@ the OUTBOUND PROXY of your sip device.</p>
 </ul>
 <h2 id="domain-ingress-routing">Domain Ingress Routing<a class="headerlink" href="#domain-ingress-routing" title="Permanent link">&para;</a></h2>
 <p>In Routr, the process of receiving a call from PSTN to a Domain is as <em>Domain Ingress Routing(DIR)</em> and it is done using a Gateway resource. The yaml file <code>config/gateways.yml</code> contains the Gateways. The following example shows a typical Gateway configuration.</p>
-<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1beta1</span><span class="w"></span>
-<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Gateway</span><span class="w"></span>
-<span class="w">  </span><span class="nt">metadata</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Plain Old Phone Service Provider</span><span class="w"></span>
-<span class="w">  </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">regService</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sip.provider.net</span><span class="w"></span>
-<span class="w">      </span><span class="nt">credentials</span><span class="p">:</span><span class="w"></span>
-<span class="w">        </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;gwuser&#39;</span><span class="w"></span>
-<span class="w">        </span><span class="nt">secret</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gwsecret</span><span class="w"></span>
-<span class="w">      </span><span class="nt">transport</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">udp</span><span class="w"></span>
-<span class="w">      </span><span class="nt">registries</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">sip.nyc.provider.net</span><span class="p p-Indicator">]</span><span class="w">     </span><span class="c1"># These are additional registrars within the provider&#39;s network</span><span class="w"></span>
-</code></pre></div>
+<p><code>yaml
+- apiVersion: v1beta1
+  kind: Gateway
+  metadata:
+    name: Plain Old Phone Service Provider
+  spec:
+    regService:
+      host: sip.provider.net
+      credentials:
+        username: 'gwuser'
+        secret: gwsecret
+      transport: udp
+      registries: [sip.nyc.provider.net]     # These are additional registrars within the provider's network</code></p>
 <p>You also need to define Numbers. Routr uses the Address Of Record(AOR) to routes incoming calls from a Number  to an existing Agent or Peer. The AOR must be available in the location service at the time of the call, or the call gets rejected.</p>
 <p>Please examine the following example:</p>
-<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1beta1</span><span class="w"></span>
-<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Number</span><span class="w"></span>
-<span class="w">  </span><span class="nt">metadata</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">gwRef</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dd50baa4</span><span class="w"></span>
-<span class="w">    </span><span class="nt">geoInfo</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="nt">city</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Columbus, GA</span><span class="w"></span>
-<span class="w">      </span><span class="nt">country</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">USA</span><span class="w"></span>
-<span class="w">      </span><span class="nt">countryISOCode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">US</span><span class="w"></span>
-<span class="w">  </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">location</span><span class="p">:</span><span class="w"></span>
-<span class="w">      </span><span class="nt">telUri</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;tel:17066041487&#39;</span><span class="w"></span>
-<span class="w">      </span><span class="nt">aorLink</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;sip:john@sip.local&#39;</span><span class="w">      </span><span class="c1"># This is the sip uri of an agent that is expected to be logged in</span><span class="w"></span>
-</code></pre></div>
+<p><code>yaml
+- apiVersion: v1beta1
+  kind: Number
+  metadata:
+    gwRef: dd50baa4
+    geoInfo:
+      city: Columbus, GA
+      country: USA
+      countryISOCode: US
+  spec:
+    location:
+      telUri: 'tel:17066041487'
+      aorLink: 'sip:john@sip.local'      # This is the sip uri of an agent that is expected to be logged in</code></p>
 <p>Easy right? Any incoming call is routed from this Gateway and Number to "Jhon Doe" @ Ocean New York.</p>
 <p><strong>Routing Rules</strong></p>
 <p>The <code>spec.location</code> block of a <code>Number</code> resource configuration, determines the path of an inbound call from the PSTN. The <code>aorLink</code> refers to an Address of Record(Agent or Peer) that is available in the <code>location service</code>.</p>
@@ -1893,7 +1893,7 @@ the OUTBOUND PROXY of your sip device.</p>
     
       <script src="../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.3.0",url:{base:".."}})</script>
+      <script>app.initialize({version:"1.3.1",url:{base:".."}})</script>
       
     
   </body>

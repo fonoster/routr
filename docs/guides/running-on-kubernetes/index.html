@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-4.4.0">
     
     
       
@@ -1599,10 +1599,10 @@
 <p>This variable must be set to the public address(if running Routr locally, use your host address)</p>
 </blockquote>
 <p>Additionally, you must create the following Kubernetes resources:</p>
-<div class="highlight"><pre><span></span><code>kubectl create -f k8s/configmaps.yml
+<p><code>bash
+kubectl create -f k8s/configmaps.yml
 kubectl create -f k8s/redis.yml
-kubectl create -f k8s/routr.yml
-</code></pre></div>
+kubectl create -f k8s/routr.yml</code></p>
                 
                   
                 
@@ -1717,7 +1717,7 @@ kubectl create -f k8s/routr.yml
     
       <script src="../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.3.0",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.3.1",url:{base:"../.."}})</script>
       
     
   </body>
