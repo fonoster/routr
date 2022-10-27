@@ -5,7 +5,7 @@ on:
     - 'docs/**'
     - '.charts/**'
     branches:
-    - master
+    - main
 jobs:
   build-deploy:
     runs-on: ubuntu-18.04
