@@ -2,6 +2,7 @@ Routr is developed in the open. Here are some of the channels we use to communic
 
 
 [Discord community](https://discord.com/invite/mpWSRUhG7e)
+[GitHub Discussions](https://github.com/orgs/fonoster/discussions)
 
 **User mailing lists:**
 
@@ -18,7 +19,7 @@ Routr is developed in the open. Here are some of the channels we use to communic
 
 We welcome community contributions! Please see the CONTRIBUTING.md file in the respective Routr repository for instructions on how to submit changes. If you are planning on making more elaborate or controversial changes, please discuss them on the mailing list before sending a pull request.
 
-Development mailing list: [routr-developers](https://groups.google.com/forum/#!forum/routr-developers) – for discussions around Routr development
+Development: [GitHub Discussions](https://github.com/orgs/fonoster/discussions) – for discussions around Routr development
 
 ## Developer Summits
 
