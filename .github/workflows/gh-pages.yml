@@ -1,5 +1,6 @@
 name: publish to gh pages
 on:
+  workflow_dispatch:
   push:
     paths:
     - 'docs/**'
