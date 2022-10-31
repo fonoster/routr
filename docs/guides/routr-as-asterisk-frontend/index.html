@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-4.4.0">
     
     
       
@@ -1672,16 +1672,16 @@
 <p>With a fresh installation of <strong>Routr</strong>, you have most of the configuration you need to follow this tutorial. We, however, need to make some minor changes to configuration files to run our scenario.</p>
 <p>The first file we need to examine and change is <code>config/peers.yml</code>. Make a note of the username and secret for the Peer "ast" since we are using this to configure Asterisk. Also, search for the field <code>spec.device</code> and change it to match the Agents domain(<code>sip.local</code>). The file now looks similar to this:</p>
 <p><code>config/peers.yml</code></p>
-<p><code>yml
-- apiVersion: v1beta1
+<div class="highlight"><pre><span></span><code>- apiVersion: v1beta1
   kind: Peer
   metadata:
     name: Asterisk PBX
   spec:
-    device: 'sip.local'
+    device: &#39;sip.local&#39;
     credentials:
       username: ast
-      secret: '1234'</code></p>
+      secret: &#39;1234&#39;
+</code></pre></div>
 <p>Head to the console and run the command <code>rctl -- get peers</code> to confirm that the Peer exist. The result should be as follows:</p>
 <p><img src="/docs/assets/images/get_peers_cmd_output.png" width=600 ></p>
 <p>Next, we focus our attention on <code>domains.yml</code> and <code>agents.yml</code>. With a fresh installation, we don't need to make any changes to these files. However, you could run the commands <code>get domains</code> and <code>get agents</code> to ensure that both, the Agent and the Domain, exist on the server. Your output should look similar to:</p>
@@ -1697,12 +1697,13 @@
 <h2 id="configuring-asterisk">Configuring Asterisk<a class="headerlink" href="#configuring-asterisk" title="Permanent link">&para;</a></h2>
 <p><strong>Using PJSIP</strong></p>
 <p>Backup your <code>pjsip.conf</code> and <code>pjsip_wizard.conf</code>. Update your pjsip.conf with the following:</p>
-<p><code>[transport-tcp]
+<div class="highlight"><pre><span></span><code>[transport-tcp]
 type=transport
 protocol=tcp
-bind=0.0.0.0:6060</code></p>
+bind=0.0.0.0:6060
+</code></pre></div>
 <p>Then, in your pjsip_wizard.conf:</p>
-<p><code>[routr]
+<div class="highlight"><pre><span></span><code>[routr]
 type = wizard
 sends_auth = yes
 sends_registrations = yes
@@ -1715,19 +1716,22 @@ endpoint/allow = ulaw
 endpoint/allow = alaw
 endpoint/allow = opus
 endpoint/context = default
-transport = transport-tcp</code></p>
+transport = transport-tcp
+</code></pre></div>
 <p><strong>Using the "old" Chan SIP</strong></p>
 <p>First backup your <code>sip.conf</code>. Then, replace your configuration and edit the file to reflect the following:</p>
-<p><code>[general]
+<div class="highlight"><pre><span></span><code>[general]
 udpbindaddr=0.0.0.0:6060
 context=default
-register =&gt; ast:1234@192.168.1.2:5060/1001    ; This information must match the credentials in `config/peers.yml`</code></p>
+register =&gt; ast:1234@192.168.1.2:5060/1001    ; This information must match the credentials in `config/peers.yml`
+</code></pre></div>
 <p><strong>Configuring the Dialplan</strong></p>
 <p>We are going to use a very simple dialplan to play a sound file. Again, make a backup of your configuration and replace its content with this:</p>
-<p><code>[default]
+<div class="highlight"><pre><span></span><code>[default]
 exten =&gt; 1001,1,Answer
 exten =&gt; 1001,n,Playback(tt-monkeys)
-exten =&gt; 1001,n,Hangup</code></p>
+exten =&gt; 1001,n,Hangup
+</code></pre></div>
 <p>Restart your Asterisk and check the location service. A new device now appears.</p>
 <p><img src="/docs/assets/images/locate_john_and_ast.png" width=600 ></p>
 <h2 id="calling-asterisk-from-johns-device">Calling Asterisk from John's device<a class="headerlink" href="#calling-asterisk-from-johns-device" title="Permanent link">&para;</a></h2>
@@ -1852,7 +1856,7 @@ exten =&gt; 1001,n,Hangup</code></p>
     
       <script src="../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.3.1",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.4.1",url:{base:"../.."}})</script>
       
     
   </body>

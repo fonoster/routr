@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.4.1, mkdocs-material-4.4.0">
     
     
       
@@ -786,12 +786,44 @@
     
     <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
     
-      
     
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Overview
+      </label>
     
     <a href="./" title="Overview" class="md-nav__link md-nav__link--active">
       Overview
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#authentication" title="Authentication" class="md-nav__link">
+    Authentication
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-responses" title="Error Responses" class="md-nav__link">
+    Error Responses
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -1535,8 +1567,29 @@
 <nav class="md-nav md-nav--secondary">
   
   
-    
   
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#authentication" title="Authentication" class="md-nav__link">
+    Authentication
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-responses" title="Error Responses" class="md-nav__link">
+    Error Responses
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1551,6 +1604,8 @@
                   <a href="https://github.com/fonoster/routr/edit/main/docs/api/overview.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
+                  <h1>Overview</h1>
+                
                 <p>Routr API version is currently <code>v1beta1</code>. We continue to improve the API, resource definition, and other artifacts until we reach a final version. We can then establish a policy to ensure backward compatibility. Until then keep an eye on this document.</p>
 <p>The endpoint for the API is:</p>
 <p><code>/api/{apiversion}</code></p>
@@ -1561,30 +1616,30 @@
 </blockquote>
 <p><strong>Sample call</strong></p>
 <p>To obtain the token</p>
-<p>```bash
-curl -k -u "admin:changeit" <a href="https://localhost:4567/api/v1beta1/token">https://localhost:4567/api/v1beta1/token</a></p>
-<h1 id="resulted-in">Resulted in<a class="headerlink" href="#resulted-in" title="Permanent link">&para;</a></h1>
-<p>{
-    "status":200,
-    "message":"Successful request",
-    "data":"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiJ9.TZZ4kp5xIdYzs5RRt6_qVxJcOiLdk1IEHFMBSZ7SRENx6kyVhwfAlm-oeM4L2XFIr4evlTCxKEIKc0fZKwPcjw"
-}
-```</p>
+<div class="highlight"><pre><span></span><code>curl -k -u <span class="s2">&quot;admin:changeit&quot;</span> https://localhost:4567/api/v1beta1/token
+
+<span class="c1"># Resulted in</span>
+<span class="o">{</span>
+    <span class="s2">&quot;status&quot;</span>:200,
+    <span class="s2">&quot;message&quot;</span>:<span class="s2">&quot;Successful request&quot;</span>,
+    <span class="s2">&quot;data&quot;</span>:<span class="s2">&quot;eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiJ9.TZZ4kp5xIdYzs5RRt6_qVxJcOiLdk1IEHFMBSZ7SRENx6kyVhwfAlm-oeM4L2XFIr4evlTCxKEIKc0fZKwPcjw&quot;</span>
+<span class="o">}</span>
+</code></pre></div>
 <p>To use the token</p>
-<p>```bash
-curl -k -u "admin:changeit" <a href="https://localhost:4567/api/v1beta1/location?token=eyJhbGciOiJIUzUxMiJ9.e">https://localhost:4567/api/v1beta1/location?token=eyJhbGciOiJIUzUxMiJ9.e</a>...</p>
-<h1 id="resulted-in_1">Resulted in<a class="headerlink" href="#resulted-in_1" title="Permanent link">&para;</a></h1>
-<p>{<br />
-   "status":200,
-   "message":"Successful request",
-   "data":[<br />
-      {<br />
-         "addressOfRecord":"sip:<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#49;&#48;&#48;&#49;&#64;&#115;&#105;&#112;&#46;&#108;&#111;&#99;&#97;&#108;">&#49;&#48;&#48;&#49;&#64;&#115;&#105;&#112;&#46;&#108;&#111;&#99;&#97;&#108;</a>",
-         "contactInfo":"sip:45962087@192.168.1.127:61147;transport=tcp;nat=false;expires=600"
-      }
-   ]
-}
-```</p>
+<div class="highlight"><pre><span></span><code>curl -k -u <span class="s2">&quot;admin:changeit&quot;</span> https://localhost:4567/api/v1beta1/location?token<span class="o">=</span>eyJhbGciOiJIUzUxMiJ9.e...
+
+<span class="c1"># Resulted in</span>
+<span class="o">{</span>  
+   <span class="s2">&quot;status&quot;</span>:200,
+   <span class="s2">&quot;message&quot;</span>:<span class="s2">&quot;Successful request&quot;</span>,
+   <span class="s2">&quot;data&quot;</span>:<span class="o">[</span>  
+      <span class="o">{</span>  
+         <span class="s2">&quot;addressOfRecord&quot;</span>:<span class="s2">&quot;sip:1001@sip.local&quot;</span>,
+         <span class="s2">&quot;contactInfo&quot;</span>:<span class="s2">&quot;sip:45962087@192.168.1.127:61147;transport=tcp;nat=false;expires=600&quot;</span>
+      <span class="o">}</span>
+   <span class="o">]</span>
+<span class="o">}</span>
+</code></pre></div>
 <h2 id="error-responses">Error Responses<a class="headerlink" href="#error-responses" title="Permanent link">&para;</a></h2>
 <p>The following are general errors we might have to account for:</p>
 <table>
@@ -1731,7 +1786,7 @@ curl -k -u "admin:changeit" <a href="https://localhost:4567/api/v1beta1/location
     
       <script src="../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.3.1",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.4.1",url:{base:"../.."}})</script>
       
     
   </body>
