@@ -9,13 +9,13 @@ on:
     - main
 jobs:
   build-deploy:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
-        python-version: '3.6'
+        python-version: '3.9'
         architecture: 'x64'
     - name: Install dependencies
       run: |
