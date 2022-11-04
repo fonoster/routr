@@ -1,5 +1,6 @@
 name: publish to docker hub
 on:
+  workflow_dispatch:
   release:
     types: [published]
 jobs:
@@ -10,33 +11,20 @@ jobs:
         uses: actions/checkout@v1
       - name: Get the version
         id: get_version
-        run: echo ::set-output name=ROUTR_VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
       - name: Download
         env:
-          ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
         run: |
-          BASE_URL=https://github.com/fonoster/routr/releases/download/$ROUTR_VERSION
-          FILE=routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz
+          BASE_URL=https://github.com/fonoster/routr/releases/download/$VERSION
+          FILE=routr-${VERSION}_linux-x64_bin.tar.gz
           curl -L $BASE_URL/$FILE > $FILE
           tar xvf $FILE
-      - name: Publish to Registry(pushed tag)
-        env:
-          ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
+      - name: Publish to Docker Hub
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: .
-          buildargs: ROUTR_VERSION
-          tag_names: true
-      - name: Publish to Registry(latest tag)
-        env:
-          ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
-        uses: elgohr/Publish-Docker-Github-Action@master
-        with:
-          name: fonoster/routr
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          workdir: .
-          buildargs: ROUTR_VERSION
+          tags: "latest, ${{ steps.get_version.outputs.VERSION }}"
