@@ -3,7 +3,6 @@
   "version": "1.0.7",
   "description": "Next-generation SIP Server",
   "scripts": {
-    "distro": "./distro.sh",
     "prepack": "npm test",
     "test": "cross-env ./etc/tests/tester2 mod/**/*.unit.test.js",
     "test-kt": "gradle test --tests *Test",
@@ -14,7 +13,10 @@
     "format": "prettier-standard 'mod/**/*.js'",
     "clean": "rimraf node_modules build libs .gradle .routr.salt *.dat",
     "create:helm-chart": "helm package .helm/ -d .charts && helm repo index .charts",
-    "create:jre": "./etc/create-jre.sh"
+    "create:jre": "./etc/create-jre.sh",
+    "distro:windows": "./distro.sh windows jre-11.0.10_windows-x64_bin.tar.gz",
+    "distro:darwin": "./distro.sh osx jre-11.0.9.1_osx-x64_bin.tar.gz",
+    "distro:linux": "./distro.sh linux jre-11.0.15+10_linux-x64_bin.tar.gz"
   },
   "lint-staged": {
     "mod/**/*.js": [

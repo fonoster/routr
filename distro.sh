@@ -35,6 +35,4 @@ build_for_platform() {
   rm -rf $BUILD_NAME
 }
 
-build_for_platform 'windows' 'jre-11.0.10_windows-x64_bin.tar.gz'
-build_for_platform 'linux' 'jre-11.0.15+10_linux-x64_bin.tar.gz'
-build_for_platform 'osx' 'jre-11.0.9.1_osx-x64_bin.tar.gz'
+build_for_platform $1 $2
