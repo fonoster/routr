@@ -83,8 +83,8 @@ module.exports = upSince => {
         keyStorePassword: 'changeit',
         keyStoreType: 'jks',
         client: {
-          authType: 'DisabledAll',
-          protocols: ['SSLv3', 'TLSv1.2', 'TLSv1.1', 'TLSv1']
+          authType: 'Want',
+          protocols: ['TLSv1.2']
         }
       },
       accessControlList: {

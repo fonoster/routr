@@ -95,7 +95,7 @@ routr:
     debugging: false
     client:
       keyStoreType: jks
-      protocols: [TLSv1.2,TLSv1.1,TLSv1]
+      protocols: [TLSv1.2]
   logLevel: info
 
 redis:

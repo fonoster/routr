@@ -12,6 +12,7 @@ node_modules
 *.zip
 *.dat
 .routr.salt
+bin
 build
 libs
 config/sc/*.yml
