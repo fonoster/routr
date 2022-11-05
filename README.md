@@ -11,8 +11,6 @@
 * [Community](#community)
 * [Deployment](#deployment)
     * [Snaps](#instant-server-installation-with-snaps)
-    * [Microsoft Azure](#microsoft-azure)
-    * [DigitalOcean droplet](#digitalocean-droplet)
     * [Docker](#docker)  
     * [Kubernetes](#kubernetes)  
     * [Google Cloud Shell](#google-cloud-shell)
@@ -73,18 +71,6 @@ For Linux deployments, Routr Snap is the recommended method of installation.
 
 Installing snaps is very quick. By running that command, you have your full Routr server up and running. Snaps are secure. They are isolated, with everything they need to run. Snaps also auto-update when we release a new version.
 
-### Microsoft Azure
-
-One-Click deployment to Azure
-
-[![Deploy to Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Ffonoster%2Froutr%2Fmaster%2F.azure%2Fazuredeploy.json)
-
-### DigitalOcean droplet
-
-Build and Deploy to a DigitalOcean droplet
-
-[![do-btn-blue](https://user-images.githubusercontent.com/51996/58146107-50512580-7c1a-11e9-8ec9-e032ba387c2a.png)](https://github.com/fonoster/routr/tree/master/.digitalocean/README.md)
-
 ### Docker
 
 [Deploy with docker compose](https://routr.io/docs/guides/running-with-docker-or-compose/)
@@ -104,7 +90,7 @@ docker pull fonoster/routr:vX.X.X
 
 ### Kubernetes
 
-Deploy to Kubernetes in [few easy steps](https://github.com/fonoster/routr/tree/master/.k8s/README.md)
+Deploy to Kubernetes in [few easy steps](https://github.com/fonoster/routr/tree/master/.helm/README.md)
 
 ### Google Cloud Shell
 
@@ -120,9 +106,9 @@ There are no special requirements to install and run the server. Just follow the
 
 | Platform | Download |
 | -- | -- |
-| Linux | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.3/routr-1.0.3_linux-x64_bin.tar.gz) |  
-| macOS | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.3/routr-1.0.3_osx-x64_bin.tar.gz) |  
-| Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.3/routr-1.0.3_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.3/routr-1.0.3_windows-x64_bin.zip) |  
+| Linux | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.8/routr-1.0.8_linux-x64_bin.tar.gz) |  
+| macOS | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.8/routr-1.0.8_osx-x64_bin.tar.gz) |  
+| Windows | [tar.gz](https://github.com/fonoster/routr/releases/download/1.0.8/routr-1.0.8_windows-x64_bin.tar.gz), [zip](https://github.com/fonoster/routr/releases/download/1.0.8/routr-1.0.8_windows-x64_bin.zip) |  
 
 &#10123; Then extract it:
 
