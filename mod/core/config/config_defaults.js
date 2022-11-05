@@ -1,3 +1,7 @@
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
 const InetAddress = Java.type('java.net.InetAddress')
 const version = 'v1.0'
 const apiVersion = 'v1beta1'
@@ -56,6 +60,10 @@ module.exports = upSince => {
             flags: 'trust-address replace-origin replace-session-connection'
           }
         }
+      },
+      ex_kafka: {
+        saslMechanism: 'PLAIN',
+        securityProtocol: 'SASL_SSL'
       },
       registrarIntf: 'External',
       restService: {

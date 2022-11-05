@@ -1,6 +1,6 @@
 {
   "name": "routr",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Next-generation SIP Server",
   "scripts": {
     "prepack": "npm test",

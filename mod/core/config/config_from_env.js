@@ -1,3 +1,7 @@
+/**
+ * @author Pedro Sanders
+ * @since v1
+ */
 const System = Java.type('java.lang.System')
 const flat = require('flat')
 const unflatten = require('flat').unflatten
@@ -50,6 +54,12 @@ envsMap.set('EX_RTP_ENGINE_PROTO', 'spec.ex_rtpEngine.proto')
 envsMap.set('EX_RTP_ENGINE_HOST', 'spec.ex_rtpEngine.host')
 envsMap.set('EX_RTP_ENGINE_PORT', 'spec.ex_rtpEngine.port')
 envsMap.set('EX_CONVERT_TEL_TO_E164', 'spec.ex_convertTelToE164')
+envsMap.set('EX_KAFKA_ENABLED', 'spec.ex_kafka.enabled')
+envsMap.set('EX_KAFKA_BOOTSTRAP_SERVERS', 'spec.ex_kafka.bootstrapServers')
+envsMap.set('EX_KAFKA_SECURITY_PROTOCOL', 'spec.ex_kafka.securityProtocol')
+envsMap.set('EX_KAFKA_SASL_MECHANISM', 'spec.ex_kafka.saslMechanism')
+envsMap.set('EX_KAFKA_SASL_JAAS_CONFIG', 'spec.ex_kafka.saslJaasConfig')
+envsMap.set('EX_KAFKA_TOPIC', 'spec.ex_kafka.topic')
 envsMap.set(
   'EX_UNIQUE_GATEWAY_PER_HOST_PORT',
   'spec.ex_uniqueGatewayPerHostPort'
