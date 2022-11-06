@@ -113,8 +113,8 @@ The following table lists the configurable parameters of the Routr chart and the
 | routr.securityContext.trustStore | Path to trueStore | `/opt/routr/etc/certs/domain-cert.jks` |
 | routr.securityContext.keyStorePassword | Password for keyStore | `changeit` |
 | routr.securityContext.keyStoreType | KeyStore type | `jks` |
-| routr.securityContext.client.authType | Type of client authentication. See https://goo.gl/1vKbXW for more options | `DisabledAll` |
-| routr.securityContext.client.protocols.[*] | Accepted TLS protocols |`[TLSv1.2, TLSv1.1, TLSv1]` |
+| routr.securityContext.client.authType | Type of client authentication. See https://goo.gl/1vKbXW for more options | `Want` |
+| routr.securityContext.client.protocols.[*] | Accepted TLS protocols |`[TLSv1.2]` |
 | routr.securityContext.debugging | Turns `ON` or `OFF` SSL debugging | `false` |
 | routr.logLevel | Routr's logging level  | `info` |
 | routr.ex_rtpEngine.enabled | If enabled, it will send all media thru the RTPEngine. | `false` |
