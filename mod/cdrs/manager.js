@@ -20,7 +20,6 @@ const System = Java.type('java.lang.System')
 
 class CDRSManager {
   constructor () {
-    LOG.info('Starting CDRS Manager')
     postal.subscribe({
       channel: 'processor',
       topic: 'call.started',
