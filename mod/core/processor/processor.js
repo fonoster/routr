@@ -27,7 +27,7 @@ class Processor {
         try {
           this.requestProcessor.process(event)
         } catch (e) {
-          LOG.error(e)
+          LOG.error(e.message || e)
         }
       },
 
@@ -35,7 +35,7 @@ class Processor {
         try {
           this.responseProcessor.process(event)
         } catch (e) {
-          LOG.error(e)
+          LOG.error(e.message || e)
         }
       },
 

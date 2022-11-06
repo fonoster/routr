@@ -56,13 +56,6 @@ class Locator {
         route.maxContact
       }, current route length = ${routes.length}]`
     )
-    if (route.maxContact && routes.length >= route.maxContact) {
-      const message = `location.Locator.addEndpoint [aor ${addressOfRecord} reached the max allowed registration of ${
-        route.maxContact
-      } contacts]`
-      LOG.warning(message)
-      throw new Error(message)
-    }
 
     routes = routes
       .filter(r => !LocatorUtils.expiredRouteFilter(r))
@@ -71,8 +64,19 @@ class Locator {
         r => !LocatorUtils.contactURIFilter(r.contactURI, route.contactURI)
       )
 
+    if (routes.length >= route.maxContact) {
+      const message = `location.Locator.addEndpoint [aor ${addressOfRecord} reached the max allowed registration of ${
+        route.maxContact
+      } contacts]`
+      LOG.debug(message)
+
+      routes.pop()
+      routes.push(route)
+    } else {
+      routes.push(route)
+    }
+
     // See NOTE #1
-    routes.push(route)
     this.store.put(addressOfRecord, JSON.stringify(routes))
   }
 

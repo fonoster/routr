@@ -7,6 +7,8 @@ const FluentLogger = Java.type('org.fluentd.logger.FluentLogger')
 const HashMap = Java.type('java.util.HashMap')
 const Response = Java.type('javax.sip.message.Response')
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
+const StringWriter = Java.type('java.io.StringWriter')
+const PrintWriter = Java.type('java.io.PrintWriter')
 const LOG = LogManager.getLogger(Java.type('io.routr.core.Launcher'))
 const uLOG = FluentLogger.getLogger(
   'user',
@@ -31,6 +33,7 @@ function sendUserLog (log) {
   data.put('message', log.message)
   data.put('body', body)
   uLOG.log('follow', data)
+  LOG.debug('User log => ' + log)
 }
 
 module.exports.connectionException = (e, host, transaction, route) => {
@@ -54,7 +57,13 @@ module.exports.connectionException = (e, host, transaction, route) => {
     if (transaction) {
       sendResponse(transaction, Response.SERVER_INTERNAL_ERROR)
     }
-    LOG.error(e)
+
+    const sw = new StringWriter()
+    const pw = new PrintWriter(sw)
+    e.printStackTrace(new PrintWriter(sw))
+    LOG.error(sw.toString())
+    pw.close()
+
     isInternal = true
   }
 

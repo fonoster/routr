@@ -6,7 +6,7 @@
  */
 const TerminationCause = {
   '-1': 'UNKNOWN',
-  '0': 'CAUSE_NORMAL_CLEARING',
+  '16': 'CAUSE_NORMAL_CLEARING',
   '1': 'CAUSE_UNALLOCATED',
   '17': 'CAUSE_USER_BUSY',
   '18': 'CAUSE_NO_USER_RESPONSE',
