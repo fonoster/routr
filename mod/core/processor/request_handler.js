@@ -52,8 +52,9 @@ class RequestHandler {
   constructor (sipProvider, contextStorage) {
     this.sipProvider = sipProvider
     this.contextStorage = contextStorage
-    if (config.spec.ex_rtpEngine.enabled)
+    if (config.spec.ex_rtpEngine.enabled) {
       this.rtpeConnector = new RTPEngineConnector(config.spec.ex_rtpEngine)
+    }
 
     postal.subscribe({
       channel: 'locator',

@@ -29,7 +29,8 @@ class Launcher {
               // consider that the object was never created
               registryCtx.eval("js", "reg && reg.registerAll()")
             } catch (ex: PolyglotException) {
-              LOG.error(ex.message)
+              LOG.fatal(ex.message)
+              exitProcess(1)
             }
           }
         },

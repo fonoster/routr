@@ -31,7 +31,7 @@ class CDRSender {
   }
 
   sendCallRecord (callRecord) {
-    LOG.debug('Sending callRecord ==> \n' + callRecord)
+    LOG.debug('cdrs.sender kafka sender sending callRecord ==> \n' + callRecord)
     this.producer.send(new ProducerRecord(this.topic, callRecord))
   }
 }

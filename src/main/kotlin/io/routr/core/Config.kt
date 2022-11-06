@@ -22,10 +22,10 @@ class Config {
         bindAddr = $bindAddr 
         port = $port
         unsecured = $unsecured
-        keyStorePassword = *****
+        keyStorePassword = /REDACTED/
         keyStore = $keyStore
         trustStore = $trustStore
-        trustStorePassword = *****
+        trustStorePassword = /REDACTED/
         maxThreads = $maxThreads
         minThreads = $minThreads
         timeoutMillis = $timeoutMillis

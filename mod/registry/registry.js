@@ -52,14 +52,11 @@ class Registry {
 
   async register (gateway, received, rport) {
     const gatewayCopy = gateway
-    if (
-      gatewayCopy &&
-      gatewayCopy.spec &&
-      gatewayCopy.spec.credentials &&
-      gatewayCopy.spec.credentials.secret
-    ) {
-      gatewayCopy.spec.credentials.secret = '****'
+
+    if (gatewayCopy?.spec.credentials?.secret) {
+      gatewayCopy.spec.credentials.secret = '/REDACTED/'
     }
+
     LOG.debug(
       `registry.Registry.register [gateway ${JSON.stringify(gatewayCopy)}]`
     )
@@ -99,7 +96,7 @@ class Registry {
   }
 
   registerAll () {
-    LOG.debug(`registry.Registry.registerAll [sending gateways registration]`)
+    LOG.debug('registry.Registry.registerAll [sending gateways registration]')
 
     this.store
       .withCollection('registry')

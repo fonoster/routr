@@ -43,14 +43,11 @@ class RequestProcessor {
     const routeInfo = new RouteInfo(request, this.dataAPIs)
 
     const callee = routeInfo.getCallee()
-    if (
-      callee &&
-      callee.spec &&
-      callee.spec.credentials &&
-      callee.spec.credentials.secret
-    ) {
-      callee.spec.credentials.secret = '****'
+
+    if (callee?.spec?.credentials?.secret) {
+      callee.spec.credentials.secret = '/REDACTED/'
     }
+
     LOG.debug(
       `core.processor.RequestProcessor.process [route type ${routeInfo.getRoutingType()}]`
     )

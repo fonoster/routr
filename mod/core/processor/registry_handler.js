@@ -24,7 +24,7 @@ class RegistryHandler {
     this.quanrentineHosts = this.quanrentineHosts.filter(quarentine)
 
     LOG.debug(
-      'List of gateways in quarantine: ' +
+      'core.processor.RegistryHandler.doProcess list of gateways in quarantine: ' +
         JSON.stringify(this.quanrentineHosts)
     )
     const isInQuarentine = host =>
