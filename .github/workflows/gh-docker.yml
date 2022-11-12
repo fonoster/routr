@@ -19,7 +19,6 @@ jobs:
           BASE_URL=https://github.com/fonoster/routr/releases/download/$VERSION
           FILE=routr-${VERSION}_linux-x64_bin.tar.gz
           curl -L $BASE_URL/$FILE > $FILE
-          tar xvf $FILE
       - name: Publish to Docker Hub
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
