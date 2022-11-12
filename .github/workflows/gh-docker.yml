@@ -9,13 +9,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+      - name: Get Package Version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@main
       - name: Download
         env:
-          # VERSION: ${{ steps.get_version.outputs.VERSION }}
-          VERSION: 1.0.8
+          VERSION: ${{ steps.package-version.outputs.current-version }}
         run: |
           BASE_URL=https://github.com/fonoster/routr/releases/download/$VERSION
           FILE=routr-${VERSION}_linux-x64_bin.tar.gz
@@ -32,4 +31,12 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: .
           tags: "latest, ${{ steps.get_version.outputs.VERSION }}"
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64          
+      - name: Publish to Docker Hub
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: .
+          tags: "latest, ${{ steps.get_version.outputs.VERSION }}"
