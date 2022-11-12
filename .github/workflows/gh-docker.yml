@@ -28,3 +28,4 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: .
           tags: "latest, ${{ steps.get_version.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
