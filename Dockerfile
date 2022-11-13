@@ -1,20 +1,20 @@
-FROM debian:buster
+FROM --platform=linux/amd64 debian:buster
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 ENV TINI_VERSION v0.19.0
 ENV LANG C.UTF-8
-ARG ROUTR_VERSION=1.0.8
+ARG VERSION=1.1.0
 
 RUN mkdir -p /opt/routr
 WORKDIR /opt/routr
 
-COPY routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz .
+COPY routr-${VERSION}_linux-x64_bin.tar.gz .
 
 RUN apt-get update \
-  && tar xvf routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz \
-  && mv routr-${ROUTR_VERSION}_linux-x64_bin/* . \
-  && rm -rf routr-${ROUTR_VERSION}_linux-x64_bin.tar.gz \
-  routr-${ROUTR_VERSION}_linux-x64_bin \
+  && tar xvf routr-${VERSION}_linux-x64_bin.tar.gz \
+  && mv routr-${VERSION}_linux-x64_bin/* . \
+  && rm -rf routr-${VERSION}_linux-x64_bin.tar.gz \
+  routr-${VERSION}_linux-x64_bin \
   routr.bat \
   && apt-get install curl netcat -y \
   && curl -qL -o /usr/bin/netdiscover https://github.com/CyCoreSystems/netdiscover/releases/download/v1.2.5/netdiscover.linux.amd64 \

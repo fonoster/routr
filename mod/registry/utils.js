@@ -6,7 +6,11 @@
  */
 const isRegistered = (regs, gwRef) =>
   regs.filter(r => JSON.parse(r).gwRef === gwRef).length > 0
-const isStaticMode = gw => gw.spec.credentials === undefined
+
+// Q. Is there a situation were we want to send register without authentication?
+const isStaticMode = gw =>
+  gw.spec.credentials === undefined || gw.spec.sendRegister != true
+
 const unregistered = (regs, gateways, failRegs = []) =>
   gateways && regs
     ? gateways.filter(
@@ -17,6 +21,7 @@ const unregistered = (regs, gateways, failRegs = []) =>
           !failRegs.includes(gw.metadata.ref)
       )
     : []
+
 const isExpired = reg => {
   if (reg === null) {
     return true
