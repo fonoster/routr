@@ -47,7 +47,10 @@ jobs:
       - name: Create dist files
         env:
           ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
-        run: ./distro.sh linux jre-11.0.15+10_linux-x64_bin.tar.gz
+        run: |
+          npm run distro:linux
+          npm run distro:darwin
+          npm run distro:windows
       #- name: Compliance tests
       #  env:
       #    ROUTR_VERSION: ${{ steps.get_version.outputs.ROUTR_VERSION }}
