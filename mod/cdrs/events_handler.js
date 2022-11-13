@@ -33,7 +33,7 @@ class EventsHandler {
       this.kafkaSender.sendCallRecord(JSON.stringify(cdr))
     }
 
-    // We need to send full CDRs to Fluentd
+    // We only need to send full CDRs to Fluentd
     if (cdr.endTime) {
       sendCallRecordToFluent(cdr)
     }
