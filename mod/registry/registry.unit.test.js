@@ -48,6 +48,7 @@ const gateway = {
     host: 'sip.provider.net',
     port: 5061,
     transport: 'tcp',
+    sendRegister: true,
     credentials: {
       username: 'pbx-1',
       secret: '1234'

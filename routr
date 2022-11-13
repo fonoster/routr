@@ -1,7 +1,10 @@
 #!/usr/bin/env sh
 
 set -e
-HOME="$(cd "$(dirname "$0")"; pwd)"
+HOME="$(
+  cd "$(dirname "$0")"
+  pwd
+)"
 RESTART_CODE=123
 
 [ -d "$HOME/jre" ] && JAVA_HOME=$HOME/jre
@@ -11,8 +14,8 @@ RESTART_CODE=123
 export HOSTNAME=$(hostname)
 
 run() {
-    cd $HOME
-    $JAVA_HOME/bin/java \
+  cd $HOME
+  $JAVA_HOME/bin/java \
     -DDATA=$DATA \
     -Djava.net.preferIPv4Stack=true \
     -Dlog4j.configurationFile=$LOG4J2 \
@@ -21,24 +24,27 @@ run() {
     $JAVA_OPTS \
     -classpath "$HOME/libs/*" \
     io.routr.core.Launcher
-    return $?
+  return $?
 }
 
 if [ -f /.dockerenv ]; then
-    [ -z "$LOCALNETS" ] && export LOCALNETS=$(netdiscover -field privatev4)/31
-    [ -z "$BIND_ADDR" ] && export BIND_ADDR=$(netdiscover -field privatev4)
+  [ -z "$LOCALNETS" ] && export LOCALNETS=$(netdiscover -field privatev4)/31
+  [ -z "$BIND_ADDR" ] && export BIND_ADDR=$(netdiscover -field privatev4)
 fi
 
-[ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment. Please setup the JAVA_HOME environment variable"; exit 1; }
+[ -z "$JAVA_HOME" ] && {
+  echo "Could not find a runtime environment. Please setup the JAVA_HOME environment variable"
+  exit 1
+}
 
 {
-    until false; do
-      run
-      exit_code=$?
-      if [ $exit_code -ne $RESTART_CODE ] ; then
-          break
-      fi
-    done
+  until false; do
+    run
+    exit_code=$?
+    if [ $exit_code -ne $RESTART_CODE ]; then
+      break
+    fi
+  done
 } || {
-    echo 'Done'
+  echo 'Done'
 }

@@ -18,6 +18,7 @@ class Launcher {
   fun launch() {
     val mainCtx = createJSContext(serverRunner, "server")
     val registryCtx = createJSContext(registryRunner, "reg")
+    val routeLoaderCtx = createJSContext(routeLoaderRunner, "loader")
     val server = GRPCServer(mainCtx)
 
     val timer = Timer()
@@ -30,6 +31,7 @@ class Launcher {
               registryCtx.eval("js", "reg && reg.registerAll()")
             } catch (ex: PolyglotException) {
               LOG.fatal(ex.message)
+              registryCtx.close()
               exitProcess(1)
             }
           }
@@ -42,11 +44,13 @@ class Launcher {
         object : TimerTask() {
           override fun run() {
             try {
-              val routeLoaderCtx = createJSContext(routeLoaderRunner, "loader")
-              routeLoaderCtx.eval("js", "loader.loadStaticRoutes()")
-              routeLoaderCtx.close()
+              // If it was null the error was reported already, but still need to
+              // consider that the object was never created
+              routeLoaderCtx.eval("js", "loader && loader.loadStaticRoutes()")
             } catch (ex: PolyglotException) {
-              LOG.error(ex.message)
+              LOG.fatal(ex.message)
+              routeLoaderCtx.close()
+              exitProcess(1)
             }
           }
         },
@@ -58,6 +62,9 @@ class Launcher {
 
     server.start()
     server.blockUntilShutdown()
+    mainCtx.close()
+    registryCtx.close()
+    routeLoaderCtx.close()
   }
 
   private fun createJSContext(src: String?, `var`: String?): Context {
