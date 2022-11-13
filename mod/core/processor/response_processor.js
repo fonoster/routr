@@ -54,7 +54,7 @@ function sendUserLog (log) {
   data.put('level', 'error')
   data.put('message', log.message)
   data.put('body', body)
-  uLOG.log('follow', data)
+  uLOG.log('logs', data)
 }
 
 class ResponseProcessor {
