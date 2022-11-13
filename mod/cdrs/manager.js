@@ -83,6 +83,11 @@ class CDRSManager {
       codec,
       extraHeaders: getExtraHeaders(request)
     }
+
+    if (request.getHeader('X-Access-Key-Id')?.value) {
+      cdr.accessKeyId = request.getHeader('X-Access-Key-Id')?.value
+    }
+
     this.store.set(cdr.callId, cdr)
 
     postal.publish({

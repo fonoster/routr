@@ -17,6 +17,8 @@ const FromHeader = Java.type('javax.sip.header.FromHeader')
 const Request = Java.type('javax.sip.message.Request')
 const LocatorUtils = require('@routr/location/utils')
 const postal = require('postal')
+const SipFactory = Java.type('javax.sip.SipFactory')
+const headerFactory = SipFactory.getInstance().createHeaderFactory()
 
 const {
   getEdgeAddr,
@@ -210,6 +212,15 @@ class RequestHandler {
         targetInterfaceAddr,
         targetTransport
       )
+
+      // If route has accessKeyId, then add as an extra header
+      if (route?.accessKeyId) {
+        const accessKeyId = headerFactory.createHeader(
+          'X-Access-Key-Id',
+          route?.accessKeyId
+        )
+        requestOut.setHeader(accessKeyId)
+      }
 
       if (!isInDialog(request)) {
         requestOut = configureRequestURI(requestOut, routeInfo, route)
