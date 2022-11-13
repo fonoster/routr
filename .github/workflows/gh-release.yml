@@ -58,7 +58,7 @@ jobs:
       - name: Publish draft release
         uses: ncipollo/release-action@v1
         with:
-          name: Routr 1.0.x (Draft)
+          name: Routr 1.x.x (Draft)
           artifacts: "routr-1.*"
           bodyFile: "RELEASE.md"
           draft: true
