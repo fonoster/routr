@@ -30,13 +30,6 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: .
-          tags: "latest, ${{ steps.get_version.outputs.VERSION }}"
+          tags: "latest, ${{ steps.package-version.outputs.current-version }}"
           platforms: linux/amd64,linux/arm64          
-      - name: Publish to Docker Hub
-        uses: elgohr/Publish-Docker-Github-Action@master
-        with:
-          name: fonoster/routr
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          workdir: .
-          tags: "latest, ${{ steps.get_version.outputs.VERSION }}"
+
