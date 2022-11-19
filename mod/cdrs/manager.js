@@ -74,8 +74,8 @@ class CDRSManager {
 
     const cdr = {
       callId: request.getHeader(CallIdHeader.NAME).getCallId(),
-      from: `${fromAddress.getUser()}@${fromAddress.getHost()}`,
-      to: `${toAddress.getUser()}@${toAddress.getHost()}`,
+      from: `sip:${fromAddress.getUser()}@${fromAddress.getHost()}`,
+      to: `sip:${toAddress.getUser()}@${toAddress.getHost()}`,
       startTime: new Date(),
       gatewayRef: request.getHeader('X-Gateway-Ref')?.value || '',
       gatewayHost: request.getRequestURI().getHost(),
@@ -107,7 +107,9 @@ class CDRSManager {
     let terminationCode = -1
 
     if (response) {
-      terminationCode = response.getStatusCode()
+      // Mapping response SIP reject to ISDN reject
+      terminationCode =
+        response.getStatusCode() === 603 ? 21 : response.getStatusCode()
     } else if (isMethod(request, [Request.CANCEL])) {
       terminationCode = 16
     } else if (request.getHeader('X-Asterisk-HangupCauseCode')?.value) {
