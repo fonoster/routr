@@ -8,16 +8,10 @@
 ## or hacking on something new.
 ##
 
-# Need a custom image to be able to run hostile:load
-#image:
-#  file: .gitpod.Dockerfile
-
 # Currently it is set to work from v2 branch.
 tasks:
   - name: Setup & start
-    init: |
-      git checkout --track origin/v2 
-      npm run make
+    init: npm run make
     command: npm start
 
 #ports:
