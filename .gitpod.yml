@@ -14,10 +14,10 @@
 
 # Currently it is set to work from v2 branch.
 tasks:
-  - init: echo 127.0.0.1 simpledata | sudo tee -a /etc/hosts
   - name: Setup & start
-    before: git checkout --track origin/v2
-    init: npm run make
+    init: |
+      git checkout --track origin/v2 
+      npm run make
     command: npm start
 
 #ports:
