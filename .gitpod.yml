@@ -14,10 +14,10 @@ image:
 
 # Currently it is set to work from v2 branch.
 tasks:
-  - start: |
-      git checkout --track origin/v2
-      npm run make
-      npm start
+  - name: Setup & start
+    before: git checkout --track origin/v2
+    init: npm run make
+    command: npm start
 
 #ports:
 #  - port: 8080 # alternatively configure entire ranges via '8080-8090'
