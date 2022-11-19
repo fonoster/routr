@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "composite": true,
-    "outDir": "./dist",
+    "outDir": "dist",
     "rootDir": ".",
     "declaration": true,
     "noImplicitAny": true,
@@ -19,6 +19,7 @@
   },
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/bin/*"
   ]
 }

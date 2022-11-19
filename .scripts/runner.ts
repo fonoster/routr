@@ -10,7 +10,7 @@ import {getConfig as getDispatcherConfig} from "../mods/dispatcher/src/config/ge
 import {getConfig as getLocationConfig} from "../mods/location/src/config/get_config"
 import {getConfig as getRegistryConfig} from "../mods/registry/src/config/get_config"
 import {spawn} from "child_process"
-import {Helper as H} from "../mods/common"
+import {Helper as H} from "../mods/common/src"
 import {Resource} from '../mods/common/src/connect/types'
 import {getLogger} from '@fonoster/logger'
 
