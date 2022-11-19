@@ -12,13 +12,11 @@
 tasks:
   - init: |
       git checkout --track origin/v2
-      npm install
-      npm run bootstrap 
+      npm run make
 
   - command: |
       git checkout v2
-      npm run build
-      npm run setup && npm start 
+      npm start 
 
 #ports:
 #  - port: 8080 # alternatively configure entire ranges via '8080-8090'
