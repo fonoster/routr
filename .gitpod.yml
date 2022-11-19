@@ -9,11 +9,12 @@
 ##
 
 # Need a custom image to be able to run hostile:load
-image:
-  file: .gitpod.Dockerfile
+#image:
+#  file: .gitpod.Dockerfile
 
 # Currently it is set to work from v2 branch.
 tasks:
+  - init: sudo sh -c "echo 127.0.0.1 simpledata >> /etc/hosts"
   - name: Setup & start
     before: git checkout --track origin/v2
     init: npm run make
