@@ -1,33 +1,33 @@
 plugins {
-    id 'com.github.ben-manes.versions' version '0.17.0'
-    id 'com.google.protobuf' version '0.8.8'
+  id 'com.github.ben-manes.versions' version '0.17.0'
+  id 'com.google.protobuf' version '0.8.8'
 }
 
 sourceSets {
-    main {
-        proto {
-            // In addition to the default 'src/main/proto'
-            srcDir '../common/src/protos'
-        }
-        java {
-            srcDirs 'build/generated/source/proto/main/grpc'
-            srcDirs 'build/generated/source/proto/main/java'
-        }
+  main {
+    proto {
+      // In addition to the default 'src/main/proto'
+      srcDir '../common/src/protos'
     }
+    java {
+      srcDirs 'build/generated/source/proto/main/grpc'
+      srcDirs 'build/generated/source/proto/main/java'
+    }
+  }
 }
 
 protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:3.7.0"
+  protoc {
+    artifact = "com.google.protobuf:protoc:3.7.0"
+  }
+  plugins {
+    grpc {
+      artifact = "io.grpc:protoc-gen-grpc-java:1.19.0"
     }
-    plugins {
-        grpc {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.19.0"
-        }
+  }
+  generateProtoTasks {
+    all()*.plugins {
+      grpc {}
     }
-    generateProtoTasks {
-        all()*.plugins {
-            grpc {}
-        }
-    }
+  }
 }
