@@ -40,7 +40,7 @@ findCriteriaMap[CC.FindCriteria.FIND_DOMAIN_BY_DOMAINURI] = (
 
 findCriteriaMap[CC.FindCriteria.FIND_NUMBER_BY_TELURL] = (
   parameters: Record<string, string>
-) => `$..[?(@.spec.location.telUrl=="tel:${parameters.telUrl}")]`
+) => `$..[?(@.spec.location.telUrl=="${parameters.telUrl}")]`
 
 findCriteriaMap[CC.FindCriteria.FIND_TRUNKS_WITH_SEND_REGISTER] = () =>
   "$..[?(@.spec.outbound.sendRegister==true)]"
@@ -116,7 +116,7 @@ export function createQuery(request: CC.FindParameters):
   | BadRequest {
   const findCriteria = request.criteria as unknown as CC.FindCriteria
 
-  if (!request["criteria"] || !request["kind"] || !request["parameters"]) {
+  if (!request.criteria || !request.kind || !request.parameters) {
     return new BadRequest(
       "createQuery request is missing 'criteria', 'kind', or 'parameters'"
     )

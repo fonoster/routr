@@ -28,8 +28,6 @@ import {
   RegistryConfig,
   Trunk
 } from "./types"
-import * as protobufUtil from "pb-util"
-const jsonFromStruct = protobufUtil.struct.decode
 
 // eslint-disable-next-line require-jsdoc
 export function getUnregisteredTrunks(store: IRegistryStore) {
@@ -96,13 +94,12 @@ export const convertResourceToTrunk = async (
   resource: CC.Resource
 ): Promise<Trunk> => {
   const metadata = resource.metadata
-  const trunkSpec = jsonFromStruct(resource.spec) as Record<string, any>
+  const trunkSpec = resource.spec
   const uri = trunkSpec.outbound?.uris[0]?.uri
 
   // WARNING: Perhaps we should bring this on a single API call
-  const credentials = await dataAPI.get(trunkSpec.outbound?.credentialsRef)
-  const credSpec = jsonFromStruct(credentials.spec) as Record<string, any>
-  const usernameAndPassword = credSpec.credentials
+  const cred = await dataAPI.get(trunkSpec.outbound?.credentialsRef)
+  const usernameAndPassword = cred?.spec.credentials
 
   return {
     ref: resource.metadata.ref,
@@ -112,8 +109,8 @@ export const convertResourceToTrunk = async (
     port: uri.port || 5060,
     user: uri.user,
     credentials: {
-      username: usernameAndPassword.username,
-      secret: usernameAndPassword.password
+      username: usernameAndPassword?.username,
+      secret: usernameAndPassword?.password
     },
     transport: (uri.transport?.toUpperCase() || "TCP") as Transport
   } as Trunk

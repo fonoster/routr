@@ -92,7 +92,7 @@ export function findBy(resources: CC.Resource[]) {
         resources: queryResult
       })
     } catch (e) {
-      return callback(
+      callback(
         new BadRequest(`invalid JSONPath expression: ${queryObject.query}`),
         null
       )

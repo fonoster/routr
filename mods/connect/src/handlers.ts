@@ -60,7 +60,6 @@ export const handleRegistry = (req: MessageRequest, res: Response) => {
 export const handleRequest =
   (location: ILocationService, dataAPI?: CC.DataAPI) =>
   async (req: MessageRequest, res: Response) => {
-    // const route = getRoute(location, apiService)(req)
     try {
       const route =
         E.getHeaderValue(req, "x-edgeport-ref") !== undefined ||

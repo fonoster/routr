@@ -17,10 +17,12 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
+import * as protobufUtil from "pb-util"
 import { ServiceUnavailableError } from "../errors"
 import { RESOURCES_PROTO } from "./grpc_client"
 import { FindParameters, Resource } from "./types"
-
+const jsonToStruct = protobufUtil.struct.encode
+const jsonFromStruct = protobufUtil.struct.decode
 /**
  * Data API for the Connect module.
  *
@@ -46,11 +48,15 @@ export function dataAPI(apiAddr: string) {
                 )
               : reject(err)
           }
+          // Convert back to Json
+          response.spec = jsonFromStruct(response.spec)
           resolve(response)
         })
       }),
     findBy: (request: FindParameters) =>
       new Promise<Resource[]>((resolve, reject) => {
+        request.parameters = jsonToStruct(request.parameters) as any
+
         client.findBy(
           request,
           (err: { code: number }, response: { resources: Resource[] }) => {
@@ -63,7 +69,13 @@ export function dataAPI(apiAddr: string) {
                   )
                 : reject(err)
             }
-            resolve(response.resources)
+            const res = response?.resources?.map((resource: Resource) => {
+              // Convert back to Json
+              resource.spec = jsonFromStruct(resource.spec)
+              return resource
+            })
+
+            resolve(res)
           }
         )
       })

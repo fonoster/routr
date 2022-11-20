@@ -25,13 +25,13 @@
       "name": "Jane Doe",
       "dependsOn": [
         "/domain/dm2c76ft",
-        "/credential/crd2c76ft"
+        "/credential/crd6y56yt"
       ]
     },
     "spec": {
       "username": "1002",
       "domainRef": "dm2c76ft",
-      "credentialRef": "crd2c76ft",
+      "credentialRef": "crd6y56yt",
       "enabled": true
     }
   }

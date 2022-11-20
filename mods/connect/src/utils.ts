@@ -20,11 +20,11 @@ import { HeaderModifier, MessageRequest, Transport } from "@routr/common"
 import { CommonConnect as CC } from "@routr/common"
 import { ROUTING_DIRECTION } from "./types"
 
-export const isKind = (req: CC.Resource, kind: CC.KIND) => {
-  if (req == null && kind === CC.KIND.UNKNOWN) {
+export const isKind = (res: CC.Resource, kind: CC.KIND) => {
+  if (res == null && kind === CC.KIND.UNKNOWN) {
     return true
   }
-  return req == null ? false : req.kind.toLowerCase() == kind
+  return res?.kind.toLowerCase() === kind
 }
 
 export const findDomain = async (dataAPI: CC.DataAPI, domainUri: string) => {

@@ -28,12 +28,14 @@ message Metadata {
 }
 
 message Resource {
-  // The resources's metadata
-
+  // The resource's api version
+  string apiVersion = 1;
+  // The resource's kind
+  string kind = 2;
   // The resource's metadata
-  Metadata metadata = 1;
+  Metadata metadata = 3;
   // The resource's data
-  .google.protobuf.Struct spec = 2;
+  .google.protobuf.Struct spec = 4;
 }
 
 message CreateRequest  {

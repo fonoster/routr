@@ -57,8 +57,8 @@ simpleDataService({bindAddr: "0.0.0.0:51907", resources})
 simpleAuthMiddleware({bindAddr: "0.0.0.0:51903", users, whiteList})
 connectProcessor({
   bindAddr: "0.0.0.0:51904",
-  locationAddr: "localhost:51902",
-  apiAddr: "localhost:52901"
+  locationAddr: "location:51902",
+  apiAddr: "simpledata:51907"
 })
 
 edgeport.stdout.on("data", (data: any) => {

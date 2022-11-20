@@ -22,8 +22,6 @@ import org.junit.jupiter.api.Test;
 import javax.sip.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Properties;
-
 public class SIPProviderBuilderTests {
 
   @Test
