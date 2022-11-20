@@ -14,6 +14,132 @@
     "enabled": true
   },
   {
+    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part A)",
+    "description": "No Register Response, Established Connection-based Transport.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 240,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part B)",
+    "description": "No Register Response, Established Connection-based Transport.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 240,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part C)",
+    "description": "Transport Error.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 240,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part D)",
+    "description": "Reception of “404 Not Found” Response.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 240,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part E)",
+    "description": "Multiple Error Responses.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 240,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part F)",
+    "description": "Reception of “480 Temporarily Unavailable” Response.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 240,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part G)",
+    "description": "SP-SSE Administratively Disabled or Overloaded.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 240,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part H)",
+    "description": "Other 4xx/5xx/6xx Responses.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 240,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part I)",
+    "description": "Registration-related failures for other Requests.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 240,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
     "name": "SC-IT.Conf.1.1.3: Maintaining Registration (Part 1 / Expires = 60s)",
     "description": "This test verifies that a SIP-PBX honors the REGISTER expiry timer provided by the SP-SSE.",
     "transportMode": "u1",
@@ -24,7 +150,10 @@
         "timeout": 240,
         "port": 7060,
         "variables": [
-          { "name": "expires", "value": 60}
+          {
+            "name": "expires",
+            "value": 60
+          }
         ]
       }
     ],
@@ -41,7 +170,10 @@
         "timeout": 240,
         "port": 7060,
         "variables": [
-          { "name": "expires", "value": 120}
+          {
+            "name": "expires",
+            "value": 120
+          }
         ]
       }
     ],
@@ -58,7 +190,10 @@
         "timeout": 240,
         "port": 7060,
         "variables": [
-          { "name": "expires", "value": 30}
+          {
+            "name": "expires",
+            "value": 30
+          }
         ]
       }
     ],
