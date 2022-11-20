@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {MessageRequest, Method, Route, Transport} from "@routr/common"
+import { MessageRequest, Method, Route, Transport } from "@routr/common"
 
 // Route to Agent 1001
 export const r1: Route = {

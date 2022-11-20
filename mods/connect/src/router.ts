@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ROUTING_DIRECTION} from "./types"
-import {HeaderModifier, Route} from "@routr/common"
+import { ROUTING_DIRECTION } from "./types"
+import { HeaderModifier, Route } from "@routr/common"
 import {
   createPAssertedIdentity,
   createRemotePartyId,
@@ -26,16 +26,16 @@ import {
   getRoutingDirection,
   getTrunkURI
 } from "./utils"
-import {MessageRequest, Target as T} from "@routr/processor"
-import {UnsuportedRoutingError} from "./errors"
-import {NotRoutesFoundForAOR} from "@routr/location"
-import {ILocationService} from "@routr/location"
-import {getLogger} from "@fonoster/logger"
-import {CommonConnect as CC} from "@routr/common"
+import { MessageRequest, Target as T } from "@routr/processor"
+import { UnsuportedRoutingError } from "./errors"
+import { NotRoutesFoundForAOR } from "@routr/location"
+import { ILocationService } from "@routr/location"
+import { getLogger } from "@fonoster/logger"
+import { CommonConnect as CC } from "@routr/common"
 
-const logger = getLogger({service: "connect", filePath: __filename})
+const logger = getLogger({ service: "connect", filePath: __filename })
 
-const getSIPURI = (uri: {user?: string; host: string}) =>
+const getSIPURI = (uri: { user?: string; host: string }) =>
   `sip:${uri.user}@${uri.host}`
 
 // eslint-disable-next-line require-jsdoc
@@ -49,7 +49,7 @@ export function router(location: ILocationService, dataAPI: CC.DataAPI) {
         getSIPURI(fromURI) +
         ", to: " +
         getSIPURI(requestURI),
-      {fromURI: getSIPURI(fromURI), requestURI: getSIPURI(requestURI)}
+      { fromURI: getSIPURI(fromURI), requestURI: getSIPURI(requestURI) }
     )
 
     const caller = await findResource(dataAPI, fromURI.host, fromURI.user)
@@ -74,7 +74,7 @@ async function agentToAgent(
   location: ILocationService,
   req: MessageRequest
 ): Promise<Route> {
-  return (await location.findRoutes({aor: T.getTargetAOR(req)}))[0]
+  return (await location.findRoutes({ aor: T.getTargetAOR(req) }))[0]
 }
 
 /**
@@ -102,14 +102,16 @@ async function fromPSTN(
 
   if (!route.headers) route.headers = []
 
-  callee.spec.location.props?.forEach((prop: {name: string; value: string}) => {
-    const p: HeaderModifier = {
-      name: prop.name,
-      value: prop.value,
-      action: "add"
+  callee.spec.location.props?.forEach(
+    (prop: { name: string; value: string }) => {
+      const p: HeaderModifier = {
+        name: prop.name,
+        value: prop.value,
+        action: "add"
+      }
+      route.headers.push(p)
     }
-    route.headers.push(p)
-  })
+  )
 
   return route
 }

@@ -16,14 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {SimpleDataConfig} from "./types"
-import {CommonConnect as CC} from "@routr/common"
-import {nyi} from "./utils"
-import {findBy, get} from "./api"
+import { SimpleDataConfig } from "./types"
+import { CommonConnect as CC } from "@routr/common"
+import { nyi } from "./utils"
+import { findBy, get } from "./api"
 import * as grpc from "@grpc/grpc-js"
-import {getLogger} from "@fonoster/logger"
+import { getLogger } from "@fonoster/logger"
 
-const logger = getLogger({service: "simpledata", filePath: __filename})
+const logger = getLogger({ service: "simpledata", filePath: __filename })
 
 /**
  * Starts a new simple data service.
@@ -31,8 +31,8 @@ const logger = getLogger({service: "simpledata", filePath: __filename})
  * @param {SimpleDataConfig} config - the configuration of the service
  */
 export default function simpleDataService(config: SimpleDataConfig): void {
-  const {bindAddr} = config
-  logger.info("starting routr service", {bindAddr, name: "simpledata"})
+  const { bindAddr } = config
+  logger.info("starting routr service", { bindAddr, name: "simpledata" })
   const server = new grpc.Server()
 
   server.addService(CC.RESOURCES_PROTO.v2draft1.Resources.service, {

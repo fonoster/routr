@@ -17,14 +17,14 @@
  * limitations under the License.
  */
 import connectToBackend from "./connections"
-import {ProcessorConfig} from "@routr/common"
-import {RunProcessorParams} from "./types"
-import {runProcessor} from "./run_processor"
-import {CommonTypes as CT} from "@routr/common"
-import {runMiddlewares} from "./run_middlewares"
-import {getLogger} from "@fonoster/logger"
+import { ProcessorConfig } from "@routr/common"
+import { RunProcessorParams } from "./types"
+import { runProcessor } from "./run_processor"
+import { CommonTypes as CT } from "@routr/common"
+import { runMiddlewares } from "./run_middlewares"
+import { getLogger } from "@fonoster/logger"
 
-const logger = getLogger({service: "dispatcher", filePath: __filename})
+const logger = getLogger({ service: "dispatcher", filePath: __filename })
 
 /**
  * Creates a new instance of Processor.
@@ -36,14 +36,14 @@ export default function processor(params: {
   processors: ProcessorConfig[]
   middlewares?: CT.MiddlewareConfig[]
 }) {
-  const {processors, middlewares} = params
+  const { processors, middlewares } = params
   const procConns = connectToBackend(processors)
   const middConns = connectToBackend(middlewares)
 
   // Upstream request and callback
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (call: RunProcessorParams, callback: any): void => {
-    const {request} = call
+    const { request } = call
 
     // Messages type reponse will not be sent to middleware chain
     if (request.message.messageType === "responseType") {
@@ -55,11 +55,11 @@ export default function processor(params: {
       })
     }
 
-    runMiddlewares({callback, request, middlewares, connections: middConns})
+    runMiddlewares({ callback, request, middlewares, connections: middConns })
       .then((req: CT.MessageRequest) => {
         // Since the chain was broken we need to skip the processor and return the updated request
         if (req.message.messageType === "responseType") {
-          logger.silly("skipped processsing request", {ref: req.ref})
+          logger.silly("skipped processsing request", { ref: req.ref })
           return callback(null, req)
         }
         runProcessor({

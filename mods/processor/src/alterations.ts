@@ -103,7 +103,7 @@ export const applyXHeaders = (route: Route) => {
       )
 
       headersToAdd.forEach((h: HeaderModifier) => {
-        req.message.extensions.push({name: h.name, value: h.value})
+        req.message.extensions.push({ name: h.name, value: h.value })
       })
     }
     return req

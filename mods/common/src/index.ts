@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {calculateAuthResponse, generateNonce} from "./auth"
-import {ServiceUnavailableError} from "./errors"
+import { calculateAuthResponse, generateNonce } from "./auth"
+import { ServiceUnavailableError } from "./errors"
 import createService, {
   getObjectProto,
   LOCATION_OBJECT_PROTO,

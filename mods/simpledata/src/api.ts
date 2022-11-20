@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {BadRequest, ResourceNotFound} from "./errors"
-import {CommonTypes as CT} from "@routr/common"
-import {createQuery} from "./utils"
-import {CommonConnect as CC} from "@routr/common"
-import {Helper as H} from "@routr/common"
+import { BadRequest, ResourceNotFound } from "./errors"
+import { CommonTypes as CT } from "@routr/common"
+import { createQuery } from "./utils"
+import { CommonConnect as CC } from "@routr/common"
+import { Helper as H } from "@routr/common"
 import * as protobufUtil from "pb-util"
 import jp from "jsonpath"
 const jsonToStruct = protobufUtil.struct.encode

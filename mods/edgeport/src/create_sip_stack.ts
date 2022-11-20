@@ -19,7 +19,7 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: any
 
-import {SipStack} from "./types"
+import { SipStack } from "./types"
 
 const SipFactory = Java.type("javax.sip.SipFactory")
 const Properties = Java.type("java.util.Properties")

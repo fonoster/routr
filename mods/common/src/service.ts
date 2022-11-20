@@ -16,13 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ObjectProto, ServiceInfo} from "./types"
-import {ServiceDefinitionNotFound} from "./errors"
+import { ObjectProto, ServiceInfo } from "./types"
+import { ServiceDefinitionNotFound } from "./errors"
 import * as grpc from "@grpc/grpc-js"
 import * as protoLoader from "@grpc/proto-loader"
-import {getLogger} from "@fonoster/logger"
+import { getLogger } from "@fonoster/logger"
 
-const logger = getLogger({service: "common", filePath: __filename})
+const logger = getLogger({ service: "common", filePath: __filename })
 
 const loadOptions = {
   keepCase: false,

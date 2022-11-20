@@ -19,8 +19,8 @@
 import * as J from "fp-ts/Json"
 import * as E from "fp-ts/Either"
 import * as F from "./fs"
-import {pipe} from "fp-ts/function"
-import {schema} from "./schema"
+import { pipe } from "fp-ts/function"
+import { schema } from "./schema"
 import Ajv from "ajv"
 
 const ajv = new Ajv()

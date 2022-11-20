@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ProcessorGPRCConnection} from "./types"
-import {ProcessorConfig, PROCESSOR_OBJECT_PROTO} from "@routr/common"
-import {MiddlewareConfig} from "@routr/common/src/types"
+import { ProcessorGPRCConnection } from "./types"
+import { ProcessorConfig, PROCESSOR_OBJECT_PROTO } from "@routr/common"
+import { MiddlewareConfig } from "@routr/common/src/types"
 import * as grpc from "@grpc/grpc-js"
 
 /**

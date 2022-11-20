@@ -16,12 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {CACHE_PROVIDER, RegistryConfig} from "../types"
+import { CACHE_PROVIDER, RegistryConfig } from "../types"
 import fs from "fs"
-import {schema} from "./schema"
+import { schema } from "./schema"
 import Ajv from "ajv"
 import * as E from "fp-ts/Either"
-import {InvalidConfiguration, InvalidSchemaConfiguration} from "../errors"
+import { InvalidConfiguration, InvalidSchemaConfiguration } from "../errors"
 
 const ajv = new Ajv()
 const validate = ajv.compile(schema)
@@ -31,7 +31,7 @@ export const getConfig = (
 ): E.Either<InvalidConfiguration, RegistryConfig> => {
   const c = JSON.parse(fs.readFileSync(path, "utf8"))
 
-  if (!validate({...c})) {
+  if (!validate({ ...c })) {
     return E.left(
       new InvalidSchemaConfiguration(JSON.stringify(validate.errors[0].message))
     )

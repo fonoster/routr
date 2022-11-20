@@ -33,7 +33,7 @@ type RequestType = AddRouteRequest | FindRoutesRequest | RemoveRoutesRequest
 
 const container = (self: Location, request: RequestType, name: string) => {
   return new Promise((resolve, reject) => {
-    self.location[name](request, (err: {code: number}, response: unknown) => {
+    self.location[name](request, (err: { code: number }, response: unknown) => {
       if (err?.code === grpc.status.UNAVAILABLE) {
         return reject(new ServiceUnavailableError(self.config.addr))
       }
@@ -48,7 +48,7 @@ const container = (self: Location, request: RequestType, name: string) => {
 export default class Location implements ILocationService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   location: any
-  config: {addr: string}
+  config: { addr: string }
 
   /**
    * Create a new Location client.
@@ -56,7 +56,7 @@ export default class Location implements ILocationService {
    * @param {object} config - Location client config
    * @param {string} config.addr - Location service address
    */
-  constructor(config: {addr: string}) {
+  constructor(config: { addr: string }) {
     this.config = config
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.location = new (LOCATION_OBJECT_PROTO as any).Location(

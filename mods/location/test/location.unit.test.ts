@@ -21,7 +21,7 @@ import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import Locator from "../src/location"
 import MemoryStore from "../src/memory_store"
-import {getConfig} from "../src/config/get_config"
+import { getConfig } from "../src/config/get_config"
 import * as Routes from "./route_examples"
 
 const expect = chai.expect
@@ -39,12 +39,12 @@ describe("@routr/location", () => {
       ["region", "us-east01"]
     ])
 
-    locator.addRoute({aor: "sip:1001@sip.local", route: Routes.simpleRoute01})
-    locator.addRoute({aor: "sip:1001@sip.local", route: Routes.simpleRoute02})
+    locator.addRoute({ aor: "sip:1001@sip.local", route: Routes.simpleRoute01 })
+    locator.addRoute({ aor: "sip:1001@sip.local", route: Routes.simpleRoute02 })
 
-    const findRoutesRequest1 = {aor: "sip:1001@sip.local"}
-    const findRoutesRequest2 = {aor: "sip:1001@sip.local", labels: labels1}
-    const findRoutesRequest3 = {aor: "sip:1001@sip.local", labels: labels2}
+    const findRoutesRequest1 = { aor: "sip:1001@sip.local" }
+    const findRoutesRequest2 = { aor: "sip:1001@sip.local", labels: labels1 }
+    const findRoutesRequest3 = { aor: "sip:1001@sip.local", labels: labels2 }
 
     expect((await locator.findRoutes(findRoutesRequest1)).length).to.be.equal(2)
     expect((await locator.findRoutes(findRoutesRequest1))[0])
@@ -82,7 +82,7 @@ describe("@routr/location", () => {
       route: Routes.voiceBackendRoute05
     })
 
-    const findRoutesRequest1 = {aor: "backend:voice_ls"}
+    const findRoutesRequest1 = { aor: "backend:voice_ls" }
 
     expect((await locator.findRoutes(findRoutesRequest1))[0])
       .to.be.have.property("sessionCount")
@@ -112,7 +112,7 @@ describe("@routr/location", () => {
       route: Routes.voiceBackendRoute01
     })
 
-    const findRoutesRequest1 = {aor: "backend:voice_rr"}
+    const findRoutesRequest1 = { aor: "backend:voice_rr" }
 
     expect((await locator.findRoutes(findRoutesRequest1))[0])
       .to.be.have.property("user")
@@ -152,7 +152,7 @@ describe("@routr/location", () => {
       route: Routes.conferenceBackendRoute01
     })
 
-    const findRoutesRequest1 = {aor: "backend:conference"}
+    const findRoutesRequest1 = { aor: "backend:conference" }
     expect((await locator.findRoutes(findRoutesRequest1))[0])
       .to.have.property("user")
       .to.be.equal("conference01")

@@ -19,11 +19,11 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {findBy, get} from "../src/api"
-import {BadRequest} from "../src/errors"
-import {CommonConnect as CC} from "@routr/common"
-import {createQuery} from "../src/utils"
-import {resources} from "./examples"
+import { findBy, get } from "../src/api"
+import { BadRequest } from "../src/errors"
+import { CommonConnect as CC } from "@routr/common"
+import { createQuery } from "../src/utils"
+import { resources } from "./examples"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -34,7 +34,7 @@ describe("@routr/simpledata/api", () => {
 
   describe("get functionality", () => {
     it("gets a not found", (done) => {
-      const call = {request: {ref: "crd2c76ft"}}
+      const call = { request: { ref: "crd2c76ft" } }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null
@@ -46,7 +46,7 @@ describe("@routr/simpledata/api", () => {
     })
 
     it("gets a not found", (done) => {
-      const call = {request: {ref: "crd2c76ft"}}
+      const call = { request: { ref: "crd2c76ft" } }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null
@@ -58,7 +58,7 @@ describe("@routr/simpledata/api", () => {
     })
 
     it("gets bad request", (done) => {
-      const call = {request: {}}
+      const call = { request: {} }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null
@@ -70,7 +70,7 @@ describe("@routr/simpledata/api", () => {
     })
 
     it("gets resource by reference (checks metadata)", (done) => {
-      const call = {request: {ref: "crd2c76ft"}}
+      const call = { request: { ref: "crd2c76ft" } }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.null
         expect(res).to.have.property("metadata")
@@ -82,7 +82,7 @@ describe("@routr/simpledata/api", () => {
     })
 
     it("it returns an error since the reference doesn't exist", (done) => {
-      const call = {request: {ref: "crd2c76ftxxxx"}}
+      const call = { request: { ref: "crd2c76ftxxxx" } }
       const callback = (err: Error) => {
         expect(err).to.be.not.null
         done()
@@ -95,7 +95,7 @@ describe("@routr/simpledata/api", () => {
 
   describe("find functionality", () => {
     it("gets a not found", (done) => {
-      const call = {request: {}}
+      const call = { request: {} }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null
@@ -107,7 +107,7 @@ describe("@routr/simpledata/api", () => {
     })
 
     it("gets bad request", (done) => {
-      const call = {request: {}}
+      const call = { request: {} }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null

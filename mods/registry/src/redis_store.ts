@@ -16,13 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {IRegistryStore, RegistrationEntry} from "./types"
-import {createClient} from "redis"
-import {Redis} from "@routr/common"
-import {getLogger} from "@fonoster/logger"
+import { IRegistryStore, RegistrationEntry } from "./types"
+import { createClient } from "redis"
+import { Redis } from "@routr/common"
+import { getLogger } from "@fonoster/logger"
 
 const KEY_PREFIX = "registry"
-const logger = getLogger({service: "registry", filePath: __filename})
+const logger = getLogger({ service: "registry", filePath: __filename })
 
 /**
  * Redis store for the registry service.
@@ -38,7 +38,7 @@ export default class RedisStore implements IRegistryStore {
    */
   constructor(config?: Redis.RedisStoreConfig) {
     this.client = config
-      ? createClient({url: Redis.getRedisUrlFromConfig(config)})
+      ? createClient({ url: Redis.getRedisUrlFromConfig(config) })
       : createClient()
     this.client.connect()
     this.client.on("error", (err: unknown) =>

@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {CommonConnect as CC} from "@routr/common"
-import {r1} from "./examples"
+import { CommonConnect as CC } from "@routr/common"
+import { r1 } from "./examples"
 import loadResources from "../../simpledata/src/utils"
 import jp from "jsonpath"
-import {ILocationService} from "@routr/location"
+import { ILocationService } from "@routr/location"
 
 const resources: CC.Resource[] = loadResources(
   __dirname + "/../../simpledata/etc/schemas",

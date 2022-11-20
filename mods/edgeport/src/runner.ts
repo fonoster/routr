@@ -21,8 +21,8 @@ declare const System: any
 
 // require("./tracer").init("dispatcher")
 import edgePortService from "./edgeport"
-import {getConfig} from "./config/get_config"
-import {EdgePortConfig} from "./types"
+import { getConfig } from "./config/get_config"
+import { EdgePortConfig } from "./types"
 
 const config = getConfig<EdgePortConfig>(System.getenv("CONFIG_PATH"))
 

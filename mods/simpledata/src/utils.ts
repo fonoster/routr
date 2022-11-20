@@ -16,13 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {BadRequest, UnimplementedError} from "./errors"
+import { BadRequest, UnimplementedError } from "./errors"
 import Ajv from "ajv"
-import {CommonTypes as CT} from "@routr/common"
-import {getLogger} from "@fonoster/logger"
-import {CommonConnect as CC} from "@routr/common"
+import { CommonTypes as CT } from "@routr/common"
+import { getLogger } from "@fonoster/logger"
+import { CommonConnect as CC } from "@routr/common"
 
-const logger = getLogger({service: "simpledata", filePath: __filename})
+const logger = getLogger({ service: "simpledata", filePath: __filename })
 
 const findCriteriaMap: any = {}
 
@@ -103,7 +103,7 @@ export default function loadResources(
       }
     })
   })
-  logger.verbose("loaded data resources", {total: all.length})
+  logger.verbose("loaded data resources", { total: all.length })
   return all
 }
 

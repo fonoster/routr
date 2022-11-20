@@ -16,18 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Method, Transport} from "@routr/common"
+import { Method, Transport } from "@routr/common"
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {getConfig} from "../src/config/get_config"
+import { getConfig } from "../src/config/get_config"
 import createRegistrationRequest, {
   getHostFromAddress,
   getPortFromAddress
 } from "../src/request"
-import {RegistrationEntryStatus, RequestParams} from "../src/types"
+import { RegistrationEntryStatus, RequestParams } from "../src/types"
 import MemoryStore from "../src/memory_store"
-import {getUnregisteredTrunks} from "../src/utils"
+import { getUnregisteredTrunks } from "../src/utils"
 
 const expect = chai.expect
 chai.use(sinonChai)

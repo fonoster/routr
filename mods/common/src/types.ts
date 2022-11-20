@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ServiceDefinition} from "@grpc/proto-loader"
+import { ServiceDefinition } from "@grpc/proto-loader"
 
 export enum Method {
   UNKNOWN = "UNKNOWN",
@@ -325,7 +325,7 @@ export interface SIPMessage {
 }
 
 export interface GrpcCallback {
-  (error: Error | {code: number} | null, response?: unknown): void
+  (error: Error | { code: number } | null, response?: unknown): void
 }
 
 export interface GrpcCall {

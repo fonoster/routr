@@ -16,13 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {MiddlewareUnavailableError} from "./errors"
-import {ProcessorGPRCConnection, RunMiddlewaresParams} from "./types"
-import {MessageRequest, MessageResponse, CommonTypes as CT} from "@routr/common"
+import { MiddlewareUnavailableError } from "./errors"
+import { ProcessorGPRCConnection, RunMiddlewaresParams } from "./types"
+import {
+  MessageRequest,
+  MessageResponse,
+  CommonTypes as CT
+} from "@routr/common"
 import * as grpc from "@grpc/grpc-js"
-import {getLogger} from "@fonoster/logger"
+import { getLogger } from "@fonoster/logger"
 
-const logger = getLogger({service: "dispatcher", filePath: __filename})
+const logger = getLogger({ service: "dispatcher", filePath: __filename })
 
 // eslint-disable-next-line require-jsdoc
 async function processMessage(
@@ -31,7 +35,7 @@ async function processMessage(
   request: MessageRequest
 ): Promise<MessageResponse> {
   return new Promise((resolve, reject) => {
-    conn.processMessage(request, (err: {code: number}, response: unknown) => {
+    conn.processMessage(request, (err: { code: number }, response: unknown) => {
       return err?.code === grpc.status.UNAVAILABLE
         ? reject(new MiddlewareUnavailableError(middlewareRef))
         : resolve(response as MessageResponse)
@@ -43,8 +47,8 @@ async function processMessage(
 export async function runMiddlewares(
   params: RunMiddlewaresParams
 ): Promise<MessageRequest> {
-  const {connections, request, middlewares = []} = params
-  const req = {...request}
+  const { connections, request, middlewares = [] } = params
+  const req = { ...request }
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, rejects) => {
     // eslint-disable-next-line no-loops/no-loops

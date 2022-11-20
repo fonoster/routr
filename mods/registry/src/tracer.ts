@@ -17,13 +17,13 @@
  * limitations under the License.
  */
 import opentelemetry from "@opentelemetry/api"
-import {registerInstrumentations} from "@opentelemetry/instrumentation"
-import {NodeTracerProvider} from "@opentelemetry/sdk-trace-node"
-import {Resource} from "@opentelemetry/resources"
-import {SemanticResourceAttributes} from "@opentelemetry/semantic-conventions"
-import {SimpleSpanProcessor} from "@opentelemetry/sdk-trace-base"
-import {JaegerExporter} from "@opentelemetry/exporter-jaeger"
-import {GrpcInstrumentation} from "@opentelemetry/instrumentation-grpc"
+import { registerInstrumentations } from "@opentelemetry/instrumentation"
+import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
+import { Resource } from "@opentelemetry/resources"
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions"
+import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base"
+import { JaegerExporter } from "@opentelemetry/exporter-jaeger"
+import { GrpcInstrumentation } from "@opentelemetry/instrumentation-grpc"
 
 /**
  * This function registers the instrumentations for the service.

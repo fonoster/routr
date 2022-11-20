@@ -22,14 +22,14 @@ import {
   LocationConfig,
   RedisStoreConfig
 } from "./types"
-import {createService} from "@routr/common"
-import {configFromString, getServiceInfo} from "./utils"
+import { createService } from "@routr/common"
+import { configFromString, getServiceInfo } from "./utils"
 import Location from "./location"
 import MemoryStore from "./memory_store"
 import RedisStore from "./redis_store"
-import {getLogger} from "@fonoster/logger"
+import { getLogger } from "@fonoster/logger"
 
-const logger = getLogger({service: "location", filePath: __filename})
+const logger = getLogger({ service: "location", filePath: __filename })
 
 const allowedParameters = ["host", "port", "username", "password", "secure"]
 
@@ -39,7 +39,7 @@ const allowedParameters = ["host", "port", "username", "password", "secure"]
  * @param {LocationConfig} config - Service configuration
  */
 export default function LocationService(config: LocationConfig) {
-  const {bindAddr, cache} = config
+  const { bindAddr, cache } = config
   let store
 
   if (cache.provider === CACHE_PROVIDER.REDIS) {

@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
-import {ServiceUnavailableError} from "@routr/common"
-import {CommonRequester as CR} from "@routr/common"
-import {RegistrationRequest, SendMessageResponse} from "./types"
+import { ServiceUnavailableError } from "@routr/common"
+import { CommonRequester as CR } from "@routr/common"
+import { RegistrationRequest, SendMessageResponse } from "./types"
 
 export const sendRegisterMessage = (requesterAddr: string) => {
   return (
@@ -33,13 +33,13 @@ export const sendRegisterMessage = (requesterAddr: string) => {
     return new Promise((resolve, reject) => {
       client.sendMessage(
         request,
-        (err: {code: number}, response: SendMessageResponse) => {
+        (err: { code: number }, response: SendMessageResponse) => {
           if (err?.code === 14) {
             return reject(new ServiceUnavailableError(requesterAddr))
           } else if (err) {
             return reject(err)
           }
-          resolve({trunkRef: request.trunkRef, ...response})
+          resolve({ trunkRef: request.trunkRef, ...response })
         }
       )
     })

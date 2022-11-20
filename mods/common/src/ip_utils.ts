@@ -16,7 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {cidrInfo, isValidIpv4, isValidIpv6, subnet, subnetInfo} from "ip-utils"
+import {
+  cidrInfo,
+  isValidIpv4,
+  isValidIpv6,
+  subnet,
+  subnetInfo
+} from "ip-utils"
 
 export const formatNet = (net: string) => {
   if (net.split("/").length === 1) {

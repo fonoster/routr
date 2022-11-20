@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Route, Transport} from "@routr/common"
-import {Backend, LB_ALGORITHM} from "../src/types"
+import { Route, Transport } from "@routr/common"
+import { Backend, LB_ALGORITHM } from "../src/types"
 
 export const simpleRoute01: Route = {
   user: "1001",

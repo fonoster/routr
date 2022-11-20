@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {AuthChallengeRequest, AuthChallengeResponse} from "./types"
+import { AuthChallengeRequest, AuthChallengeResponse } from "./types"
 import crypto from "crypto"
 
 const DEFAULT_ALGORITHM = "MD5"
@@ -31,7 +31,7 @@ export const generateNonce = (algorithm: string = DEFAULT_ALGORITHM) =>
   md5hex(`${new Date().getTime()}${Math.random()}`, algorithm)
 
 export const buildAuthChallenge = (request: AuthChallengeRequest) => {
-  const {realm, scheme, algorithm, qop, opaque, stale} = request
+  const { realm, scheme, algorithm, qop, opaque, stale } = request
   return {
     realm,
     scheme,
@@ -45,7 +45,7 @@ export const buildAuthChallenge = (request: AuthChallengeRequest) => {
 
 export const calculateAuthResponse = (
   res: AuthChallengeResponse,
-  credentials: {username: string; secret: string}
+  credentials: { username: string; secret: string }
 ) => {
   if (!credentials) return null
 

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {CommonConnect as CC} from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
 
 export const resources: CC.Resource[] = [
   {

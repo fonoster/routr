@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {generateNonce} from "@routr/common"
-import {User} from "./types"
+import { generateNonce } from "@routr/common"
+import { User } from "./types"
 
 export const getCredentials = (username: string, users: User[]) =>
   users.find((user) => user.username === username)
@@ -27,7 +27,7 @@ export const createUnauthorizedResponse = (
   params: {
     qop: string
     algorithm: string
-  } = {qop: "auth", algorithm: "MD5"}
+  } = { qop: "auth", algorithm: "MD5" }
 ) => {
   return {
     message: {

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ListeningPoint, SipProvider, SipStack} from "./types"
+import { ListeningPoint, SipProvider, SipStack } from "./types"
 
 /**
  * Creates a new SIP provider object.

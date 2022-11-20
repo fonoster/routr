@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
-import {ServiceUnavailableError} from "../errors"
-import {RESOURCES_PROTO} from "./grpc_client"
-import {FindParameters, Resource} from "./types"
+import { ServiceUnavailableError } from "../errors"
+import { RESOURCES_PROTO } from "./grpc_client"
+import { FindParameters, Resource } from "./types"
 
 /**
  * Data API for the Connect module.
@@ -36,7 +36,7 @@ export function dataAPI(apiAddr: string) {
   return {
     get: (ref: string) =>
       new Promise<Resource>((resolve, reject) => {
-        client.get({ref}, (err: {code: number}, response: Resource) => {
+        client.get({ ref }, (err: { code: number }, response: Resource) => {
           if (err) {
             return err?.code === grpc.status.UNAVAILABLE
               ? reject(
@@ -53,7 +53,7 @@ export function dataAPI(apiAddr: string) {
       new Promise<Resource[]>((resolve, reject) => {
         client.findBy(
           request,
-          (err: {code: number}, response: {resources: Resource[]}) => {
+          (err: { code: number }, response: { resources: Resource[] }) => {
             if (err) {
               return err?.code === grpc.status.UNAVAILABLE
                 ? reject(

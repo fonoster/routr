@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 import LocationClient from "./client"
-import {ILocationService} from "./types"
+import { ILocationService } from "./types"
 
 export * as Helper from "./helper"
 export * as Utils from "./utils"
 export * from "./errors"
 
-export {LocationClient, ILocationService}
+export { LocationClient, ILocationService }

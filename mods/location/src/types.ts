@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Route} from "@routr/common"
+import { Route } from "@routr/common"
 
 export enum LB_ALGORITHM {
   ROUND_ROBIN = "round-robin",

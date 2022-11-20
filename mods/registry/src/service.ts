@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {sendRegisterMessage} from "./sender"
+import { sendRegisterMessage } from "./sender"
 import createRegistrationRequest from "./request"
 import {
   DEFAULT_EXPIRES,
@@ -30,12 +30,12 @@ import {
   findTrunks,
   registrationRequestInputFromTrunk
 } from "./utils"
-import {CommonConnect as CC} from "@routr/common"
-import {getLogger} from "@fonoster/logger"
-import {SIPMessage} from "@routr/common/src/types"
-import {ServiceUnavailableError} from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
+import { getLogger } from "@fonoster/logger"
+import { SIPMessage } from "@routr/common/src/types"
+import { ServiceUnavailableError } from "@routr/common"
 
-const logger = getLogger({service: "registry", filePath: __filename})
+const logger = getLogger({ service: "registry", filePath: __filename })
 
 const DEFAULT_REGISTRATION_INTERVAL = 60
 
@@ -86,7 +86,7 @@ export default function registryService(config: RegistryConfig) {
     const results = await Promise.allSettled(registryInvocations)
 
     results?.forEach(async (result) => {
-      logger.verbose("processing registration result", {result})
+      logger.verbose("processing registration result", { result })
 
       if (result.status === "rejected") {
         logger.error("request rejected", result.reason)

@@ -19,14 +19,14 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {request} from "@routr/processor/test/examples"
-import {dataAPI} from "./mock_apis"
+import { request } from "@routr/processor/test/examples"
+import { dataAPI } from "./mock_apis"
 import {
   createPAssertedIdentity,
   createRemotePartyId,
   createTrunkAuthentication
 } from "../src/utils"
-import {CommonConnect as CC} from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
 
 const expect = chai.expect
 chai.use(sinonChai)

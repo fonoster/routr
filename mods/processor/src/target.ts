@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {MessageRequest} from "@routr/common"
-import {CommonTypes as CT} from "@routr/common"
+import { MessageRequest } from "@routr/common"
+import { CommonTypes as CT } from "@routr/common"
 
 export const getAOR = (uri: CT.SipURI) =>
   `${uri.secure ? "sips" : "sip"}:${uri.user ? uri.user + "@" : ""}${uri.host}`
@@ -31,5 +31,5 @@ export const getTargetExpires = (request: MessageRequest) => {
   const expires: number = request.message?.contact?.expires || -1
   return expires > -1
     ? expires
-    : (request.message.expires as {expires: number})?.expires || -1
+    : (request.message.expires as { expires: number })?.expires || -1
 }

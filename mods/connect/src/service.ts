@@ -16,10 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ConnectProcessorConfig} from "./types"
-import {MessageRequest} from "@routr/common"
-import {LocationClient as Location} from "@routr/location"
-import {handleRegister, handleRegistry, handleRequest} from "./handlers"
+import { ConnectProcessorConfig } from "./types"
+import { MessageRequest } from "@routr/common"
+import { LocationClient as Location } from "@routr/location"
+import { handleRegister, handleRegistry, handleRequest } from "./handlers"
 import Processor, {
   Alterations as A,
   Helper as H,
@@ -28,18 +28,18 @@ import Processor, {
   Extensions as E,
   Response
 } from "@routr/processor"
-import {CommonConnect as CC} from "@routr/common"
-import {tailor} from "./tailor"
-import {getLogger} from "@fonoster/logger"
+import { CommonConnect as CC } from "@routr/common"
+import { tailor } from "./tailor"
+import { getLogger } from "@fonoster/logger"
 
-const logger = getLogger({service: "connect", filePath: __filename})
+const logger = getLogger({ service: "connect", filePath: __filename })
 
 // eslint-disable-next-line require-jsdoc
 export default function ConnectProcessor(config: ConnectProcessorConfig) {
-  const {bindAddr, locationAddr} = config
-  const location = new Location({addr: locationAddr})
+  const { bindAddr, locationAddr } = config
+  const location = new Location({ addr: locationAddr })
 
-  new Processor({bindAddr, name: "connect"}).listen(
+  new Processor({ bindAddr, name: "connect" }).listen(
     async (req: MessageRequest, res: Response) => {
       logger.verbose("connect processor received new request", {
         ref: req.ref,
@@ -67,7 +67,7 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
         case "CANCEL":
           // eslint-disable-next-line no-case-declarations
           const route = (
-            await location.findRoutes({aor: T.getTargetAOR(req)})
+            await location.findRoutes({ aor: T.getTargetAOR(req) })
           )[0]
 
           if (route) {

@@ -20,11 +20,11 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("dispatcher")
 import locationService from "./service"
-import {getConfig} from "./config/get_config"
-import {Assertions as A} from "@routr/common"
-import {getLogger} from "@fonoster/logger"
+import { getConfig } from "./config/get_config"
+import { Assertions as A } from "@routr/common"
+import { getLogger } from "@fonoster/logger"
 
-const logger = getLogger({service: "location", filePath: __filename})
+const logger = getLogger({ service: "location", filePath: __filename })
 
 A.assertEnvsAreSet(["CONFIG_PATH"])
 

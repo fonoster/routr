@@ -16,13 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {MessageRequest} from "@routr/common"
+import { MessageRequest } from "@routr/common"
 
 const buildResponse = (
   code: number,
-  extraHeaders?: Array<{name: string; value: string}>
+  extraHeaders?: Array<{ name: string; value: string }>
 ) => {
-  return {message: {responseType: code, extensions: extraHeaders}}
+  return { message: { responseType: code, extensions: extraHeaders } }
 }
 
 /**
@@ -45,7 +45,7 @@ export default class Response {
    *
    * @param {object[]} extraHeaders - Optional extra headers to be sent.
    */
-  sendOk(extraHeaders?: Array<{name: string; value: string}>) {
+  sendOk(extraHeaders?: Array<{ name: string; value: string }>) {
     this.callback(null, buildResponse(7, extraHeaders))
   }
 

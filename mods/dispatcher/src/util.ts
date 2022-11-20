@@ -33,7 +33,10 @@ import {
  */
 export function getServiceInfo(
   bindAddr: string,
-  backends: {middlewares: CT.MiddlewareConfig[]; processors: ProcessorConfig[]}
+  backends: {
+    middlewares: CT.MiddlewareConfig[]
+    processors: ProcessorConfig[]
+  }
 ): ServiceInfo {
   return {
     name: "dispatcher",

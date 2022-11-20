@@ -20,7 +20,7 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import MemoryStore from "../src/memory_store"
-import {RegistrationEntry, RegistrationEntryStatus} from "../src/types"
+import { RegistrationEntry, RegistrationEntryStatus } from "../src/types"
 
 const expect = chai.expect
 chai.use(sinonChai)

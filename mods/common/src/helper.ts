@@ -36,7 +36,7 @@ export const deepCopy = <T>(source: T): T => {
           Object.getOwnPropertyDescriptor(source, prop)
         )
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        o[prop] = deepCopy((source as {[key: string]: any})[prop])
+        o[prop] = deepCopy((source as { [key: string]: any })[prop])
         return o
       }, Object.create(Object.getPrototypeOf(source)))
     : (source as T)

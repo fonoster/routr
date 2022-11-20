@@ -19,9 +19,9 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {request, route, routeOnAnotherEdgePort} from "./examples"
-import {Alterations as A, Extensions as E} from "../src"
-import {pipe} from "fp-ts/function"
+import { request, route, routeOnAnotherEdgePort } from "./examples"
+import { Alterations as A, Extensions as E } from "../src"
+import { pipe } from "fp-ts/function"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -55,7 +55,7 @@ describe("@routr/processor/alterations", () => {
   })
 
   it("updates the request uri but removes user", () => {
-    const ro = {...route}
+    const ro = { ...route }
     delete ro.user
 
     const r = A.updateRequestURI(ro)(request)
@@ -100,7 +100,7 @@ describe("@routr/processor/alterations", () => {
 
   it("removes the top via header", () => {
     expect(
-      (A.removeTopVia(request).message.via as unknown as [{host: string}])[0]
+      (A.removeTopVia(request).message.via as unknown as [{ host: string }])[0]
     )
       .to.have.property("host")
       .to.be.equal("127.0.0.1")

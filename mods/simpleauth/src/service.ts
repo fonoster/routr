@@ -23,12 +23,12 @@ import {
   MessageRequest,
   CommonTypes as CT
 } from "@routr/common"
-import {createUnauthorizedResponse, getCredentials} from "./utils"
-import Processor, {Response} from "@routr/processor"
-import {User} from "./types"
-import {getLogger} from "@fonoster/logger"
+import { createUnauthorizedResponse, getCredentials } from "./utils"
+import Processor, { Response } from "@routr/processor"
+import { User } from "./types"
+import { getLogger } from "@fonoster/logger"
 
-const logger = getLogger({service: "simpledata", filePath: __filename})
+const logger = getLogger({ service: "simpledata", filePath: __filename })
 
 /**
  * A simple authentication middleware that authenticates users based on a list of users
@@ -44,9 +44,9 @@ export default function simpleAuthMiddleware(config: {
   users: User[]
   whiteList: string[]
 }) {
-  const {bindAddr, users, whiteList} = config
+  const { bindAddr, users, whiteList } = config
 
-  new Processor({bindAddr, name: "simpleauth"}).listen(
+  new Processor({ bindAddr, name: "simpleauth" }).listen(
     (req: MessageRequest, res: Response) => {
       const tracer = opentelemetry.trace.getTracer("routr-tracer")
       const currentSpan = opentelemetry.trace.getSpan(
@@ -55,12 +55,12 @@ export default function simpleAuthMiddleware(config: {
 
       logger.silly(
         `authenticating ${req.message.from.address.uri.user} endpoint with simpleauth`,
-        {traceId: currentSpan?.spanContext().traceId}
+        { traceId: currentSpan?.spanContext().traceId }
       )
 
       logger.silly(JSON.stringify(req, null, " "))
 
-      const span = tracer.startSpan("server.js:sayHello()", {kind: 1})
+      const span = tracer.startSpan("server.js:sayHello()", { kind: 1 })
 
       // Consider extending the list to other message types
       if (
@@ -81,7 +81,7 @@ export default function simpleAuthMiddleware(config: {
 
       // Calculate and return challenge
       if (req.message.authorization) {
-        const auth = {...req.message.authorization}
+        const auth = { ...req.message.authorization }
         auth.method = req.method
         // Calculate response and compare with the one send by the endpoint
         const calcRes = calculateAuthResponse(

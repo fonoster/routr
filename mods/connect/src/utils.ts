@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {HeaderModifier, MessageRequest, Transport} from "@routr/common"
-import {CommonConnect as CC} from "@routr/common"
-import {ROUTING_DIRECTION} from "./types"
+import { HeaderModifier, MessageRequest, Transport } from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
+import { ROUTING_DIRECTION } from "./types"
 
 export const isKind = (req: CC.Resource, kind: CC.KIND) => {
   if (req == null && kind === CC.KIND.UNKNOWN) {
@@ -158,7 +158,7 @@ export const getTrunkURI = (
   user: string
   transport: Transport
 } => {
-  const {user, host, port, transport} = trunk.spec.outbound?.uris[0].uri
+  const { user, host, port, transport } = trunk.spec.outbound?.uris[0].uri
   const t = !transport
     ? (Transport.UDP as Transport)
     : (Object.keys(Transport)[

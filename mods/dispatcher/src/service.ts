@@ -18,9 +18,9 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("dispatcher")
-import {MessageDispatcherConfig} from "./types"
-import {createService} from "@routr/common"
-import {getServiceInfo} from "./util"
+import { MessageDispatcherConfig } from "./types"
+import { createService } from "@routr/common"
+import { getServiceInfo } from "./util"
 
 /**
  * Creates a service that can be used to dispatch messages to the backend processors.
@@ -28,6 +28,6 @@ import {getServiceInfo} from "./util"
  * @param {MessageDispatcherConfig} config - Configuration for the dispatcher
  */
 export default function messageDispatcher(config: MessageDispatcherConfig) {
-  const {bindAddr, processors, middlewares} = config
-  createService(getServiceInfo(bindAddr, {processors, middlewares}))
+  const { bindAddr, processors, middlewares } = config
+  createService(getServiceInfo(bindAddr, { processors, middlewares }))
 }

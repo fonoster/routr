@@ -19,8 +19,8 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {request} from "./examples"
-import {Target as T} from "../src"
+import { request } from "./examples"
+import { Target as T } from "../src"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -39,7 +39,7 @@ describe("@routr/processor/target", () => {
     expect(T.getTargetExpires(request)).to.be.equal(60)
 
     // Taking expires from contact header if is different than -1
-    const req = {...request}
+    const req = { ...request }
     req.message.contact.expires = 600
     expect(T.getTargetExpires(request)).to.be.equal(600)
   })

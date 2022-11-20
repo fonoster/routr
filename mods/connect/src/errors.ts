@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
-import {ROUTING_DIRECTION} from "./types"
+import { ROUTING_DIRECTION } from "./types"
 
 /**
  * Throw when the API server is unavailable.

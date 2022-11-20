@@ -24,7 +24,7 @@ import {
   assertNoDuplicatedPort,
   assertNoDuplicatedProto
 } from "./assertions"
-import {EdgePortConfig} from "./types"
+import { EdgePortConfig } from "./types"
 import createListeningPoints from "./create_listening_points"
 import createSipProvider from "./create_sip_provider"
 import createSipStack from "./create_sip_stack"

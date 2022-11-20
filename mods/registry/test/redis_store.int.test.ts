@@ -20,7 +20,7 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import RedisStore from "../src/redis_store"
-import {RegistrationEntry, RegistrationEntryStatus} from "../src/types"
+import { RegistrationEntry, RegistrationEntryStatus } from "../src/types"
 
 const expect = chai.expect
 chai.use(sinonChai)

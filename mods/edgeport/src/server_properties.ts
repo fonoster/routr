@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {EdgePortConfig} from "./types"
+import { EdgePortConfig } from "./types"
 
 /**
  * Returns a Map object with the properties for the server's SipStack.

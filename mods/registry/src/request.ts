@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Method} from "@routr/common"
+import { Method } from "@routr/common"
 import {
   DEFAULT_EXPIRES,
   DEFAULT_MAX_FORWARDS,
@@ -55,7 +55,7 @@ export default function createRegistrationRequest(
     message: {
       extensions: [
         ...(params.methods?.map((value: string) => {
-          return {name: "Allow", value}
+          return { name: "Allow", value }
         }) || []),
         {
           name: "CSeq",

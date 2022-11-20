@@ -19,7 +19,7 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {configFromString, duplicateFilter, expiredFilter} from "../src/utils"
+import { configFromString, duplicateFilter, expiredFilter } from "../src/utils"
 import * as Routes from "./route_examples"
 
 const expect = chai.expect
@@ -30,10 +30,10 @@ describe("@routr/location", () => {
   afterEach(() => sandbox.restore())
 
   it("verifies that a route is not expired", () => {
-    const route1 = {...Routes.simpleRoute01}
+    const route1 = { ...Routes.simpleRoute01 }
     route1.registeredOn = 1647038272294
 
-    const route2 = {...route1}
+    const route2 = { ...route1 }
     route2.registeredOn = Date.now()
 
     expect(expiredFilter(route1)).to.be.false
@@ -41,15 +41,15 @@ describe("@routr/location", () => {
   })
 
   it("verifies that a route is not duplicate", () => {
-    const route1 = {...Routes.simpleRoute01}
+    const route1 = { ...Routes.simpleRoute01 }
     route1.host = "sip.local"
     route1.port = 5060
 
-    const route2 = {...Routes.simpleRoute01}
+    const route2 = { ...Routes.simpleRoute01 }
     route2.host = "sip.local"
     route2.port = 5060
 
-    const route3 = {...Routes.simpleRoute01}
+    const route3 = { ...Routes.simpleRoute01 }
     route3.host = "sip.local"
     route3.port = 5061
 

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {EdgePortConfig, ListeningPoint, SipStack} from "./types"
+import { EdgePortConfig, ListeningPoint, SipStack } from "./types"
 
 /**
  * Creates "listening" points for all the given transport.

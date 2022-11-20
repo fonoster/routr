@@ -19,15 +19,15 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {request, route} from "@routr/processor/test/examples"
-import {MessageRequest, Route, Transport} from "@routr/common"
-import {handleRegister, handleRequest} from "../src/handlers"
-import {Extensions as E, Helper as HE, Response} from "@routr/processor"
-import {createRequest, r1} from "./examples"
-import {router} from "../src/router"
-import {dataAPI, locationAPI} from "./mock_apis"
-import {findResource} from "../src/utils"
-import {ILocationService} from "@routr/location"
+import { request, route } from "@routr/processor/test/examples"
+import { MessageRequest, Route, Transport } from "@routr/common"
+import { handleRegister, handleRequest } from "../src/handlers"
+import { Extensions as E, Helper as HE, Response } from "@routr/processor"
+import { createRequest, r1 } from "./examples"
+import { router } from "../src/router"
+import { dataAPI, locationAPI } from "./mock_apis"
+import { findResource } from "../src/utils"
+import { ILocationService } from "@routr/location"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -64,7 +64,7 @@ describe("@routr/connect", () => {
 
   it("handles a request from another edgeport", async () => {
     const req = E.addHeader(
-      {...request},
+      { ...request },
       {
         name: "x-edgeport-ref",
         value: "xyz"
@@ -75,7 +75,7 @@ describe("@routr/connect", () => {
       HE,
       "createRouteFromLastMessage"
     )
-    const location = {findRoutes: () => [route]}
+    const location = { findRoutes: () => [route] }
     const findRoutes = sandbox.spy(location, "findRoutes")
     const response = {
       send: () => {

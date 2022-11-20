@@ -19,8 +19,8 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {request} from "./examples"
-import {Extensions as E} from "../src"
+import { request } from "./examples"
+import { Extensions as E } from "../src"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -36,7 +36,7 @@ describe("@routr/processor/extensions", () => {
 
   it("updates extension header", () => {
     const req = E.updateHeader(
-      {...request},
+      { ...request },
       {
         name: "Allow",
         value: "REGISTER"

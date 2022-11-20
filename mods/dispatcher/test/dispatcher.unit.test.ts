@@ -27,11 +27,11 @@ import {
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {findProcessor, hasMethod} from "../src/find_processor"
-import {getConfig} from "../src/config/get_config"
+import { findProcessor, hasMethod } from "../src/find_processor"
+import { getConfig } from "../src/config/get_config"
 import connectToBackend from "../src/connections"
 import processor from "../src/processor"
-import {ProcessorCallback, RunProcessorParams} from "../src/types"
+import { ProcessorCallback, RunProcessorParams } from "../src/types"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -83,7 +83,7 @@ describe("@routr/dispatcher", () => {
 
   describe("find_processor", () => {
     it("checks if method of the request is enabled", () => {
-      const messageRequest2 = {...messageRequest}
+      const messageRequest2 = { ...messageRequest }
       messageRequest2.method = Method.MESSAGE
       expect(hasMethod(config1, messageRequest)).to.be.equal(true)
       expect(hasMethod(config1, messageRequest2)).to.be.equal(false)
@@ -96,7 +96,7 @@ describe("@routr/dispatcher", () => {
     })
 
     it("matches incomming request as an INVITE", () => {
-      const messageRequest2 = {...messageRequest}
+      const messageRequest2 = { ...messageRequest }
       messageRequest2.method = Method.INVITE
       expect(findProcessor([config1, config2])(messageRequest2))
         .to.be.have.property("ref")
@@ -104,7 +104,7 @@ describe("@routr/dispatcher", () => {
     })
 
     it("matches incomming request as an MESSAGE", () => {
-      const messageRequest2 = {...messageRequest}
+      const messageRequest2 = { ...messageRequest }
       messageRequest2.method = Method.MESSAGE
       expect(findProcessor([config1, config2, config3])(messageRequest2))
         .to.be.have.property("ref")
@@ -112,7 +112,7 @@ describe("@routr/dispatcher", () => {
     })
 
     it("fails because there is not matching processor", () => {
-      const messageRequest2 = {...messageRequest}
+      const messageRequest2 = { ...messageRequest }
       messageRequest2.method = Method.PUBLISH
       const error = findProcessor([config1, config2, config3])(messageRequest2)
       expect(error.toString()).to.include(
@@ -129,8 +129,8 @@ describe("@routr/dispatcher", () => {
         }
       })
 
-      processor({processors: [config1]})(
-        {request: messageRequest} as unknown as RunProcessorParams,
+      processor({ processors: [config1] })(
+        { request: messageRequest } as unknown as RunProcessorParams,
         (err: Error) => {
           if (err) {
             done()
@@ -148,8 +148,8 @@ describe("@routr/dispatcher", () => {
         }
       })
 
-      processor({processors: [config1]})(
-        {request: messageRequest} as unknown as RunProcessorParams,
+      processor({ processors: [config1] })(
+        { request: messageRequest } as unknown as RunProcessorParams,
         (err: Error, response: any) => {
           if (err) {
             done(err)
@@ -170,8 +170,8 @@ describe("@routr/dispatcher", () => {
         }
       })
 
-      processor({processors: [config1]})(
-        {request: messageRequest} as unknown as RunProcessorParams,
+      processor({ processors: [config1] })(
+        { request: messageRequest } as unknown as RunProcessorParams,
         (err: any) => {
           expect(err?.toString()).to.be.include(
             "processor ref = processor-ref1 is unavailable"

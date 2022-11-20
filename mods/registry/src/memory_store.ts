@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {IRegistryStore, RegistrationEntry} from "./types"
+import { IRegistryStore, RegistrationEntry } from "./types"
 
 const notExpired = (entry: RegistrationEntry) => {
   const timeElapsed = (Date.now() - entry.timeOfEntry) / 1000

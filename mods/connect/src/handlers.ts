@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Helper as H} from "@routr/location"
-import {tailor} from "./tailor"
+import { Helper as H } from "@routr/location"
+import { tailor } from "./tailor"
 import {
   Alterations as A,
   Extensions as E,
@@ -26,10 +26,10 @@ import {
   Response,
   Target as T
 } from "@routr/processor"
-import {pipe} from "fp-ts/function"
-import {router} from "./router"
-import {ILocationService} from "@routr/location/src/types"
-import {CommonConnect as CC} from "@routr/common"
+import { pipe } from "fp-ts/function"
+import { router } from "./router"
+import { ILocationService } from "@routr/location/src/types"
+import { CommonConnect as CC } from "@routr/common"
 
 export const handleRegister = (location: ILocationService) => {
   return async (request: MessageRequest, res: Response) => {

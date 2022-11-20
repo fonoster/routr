@@ -34,7 +34,7 @@ import {
   assertNoDuplicatedPort,
   assertNoDuplicatedProto
 } from "../src/assertions"
-import {ListeningPoint, SipProvider} from "../src/types"
+import { ListeningPoint, SipProvider } from "../src/types"
 
 const expect = chai.expect
 chai.use(sinonChai)

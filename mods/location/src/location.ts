@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NotRoutesFoundForAOR, UnsupportedSchema} from "./errors"
+import { NotRoutesFoundForAOR, UnsupportedSchema } from "./errors"
 import {
   AddRouteRequest,
   Backend,
@@ -26,8 +26,8 @@ import {
   LB_ALGORITHM,
   RemoveRoutesRequest
 } from "./types"
-import {Route} from "@routr/common"
-import {filterOnlyMatchingLabels} from "./utils"
+import { Route } from "@routr/common"
+import { filterOnlyMatchingLabels } from "./utils"
 
 enum AOR_SCHEME {
   SIP = "sip:",

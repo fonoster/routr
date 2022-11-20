@@ -18,11 +18,11 @@
  * limitations under the License.
  */
 import messageDispatcher from "./service"
-import {getConfig} from "./config/get_config"
-import {Assertions as A} from "@routr/common"
-import {getLogger} from "@fonoster/logger"
+import { getConfig } from "./config/get_config"
+import { Assertions as A } from "@routr/common"
+import { getLogger } from "@fonoster/logger"
 
-const logger = getLogger({service: "dispatcher", filePath: __filename})
+const logger = getLogger({ service: "dispatcher", filePath: __filename })
 
 A.assertEnvsAreSet(["CONFIG_PATH"])
 

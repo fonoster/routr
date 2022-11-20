@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import Response from "./response"
-import {ProcessorConfig} from "./types"
+import { ProcessorConfig } from "./types"
 import {
   createService,
   MessageRequest,
@@ -38,7 +38,9 @@ export default class Processor {
    *
    * @param {ProcessorConfig} config The processor configuration
    */
-  constructor(config: ProcessorConfig = {bindAddr: "0.0.0.0:51904", name: ""}) {
+  constructor(
+    config: ProcessorConfig = { bindAddr: "0.0.0.0:51904", name: "" }
+  ) {
     this.config = config
   }
 

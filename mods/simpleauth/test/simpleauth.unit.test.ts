@@ -19,7 +19,7 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {createUnauthorizedResponse, getCredentials} from "../src/utils"
+import { createUnauthorizedResponse, getCredentials } from "../src/utils"
 
 const expect = chai.expect
 chai.use(sinonChai)

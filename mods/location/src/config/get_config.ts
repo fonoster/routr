@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Backend, CACHE_PROVIDER, LB_ALGORITHM, LocationConfig} from "../types"
+import { Backend, CACHE_PROVIDER, LB_ALGORITHM, LocationConfig } from "../types"
 import fs from "fs"
-import {schema} from "./schema"
+import { schema } from "./schema"
 import Ajv from "ajv"
 import * as E from "fp-ts/Either"
 import {
@@ -49,7 +49,7 @@ export const getConfig = (
 ): E.Either<InvalidConfiguration, LocationConfig> => {
   const c = JSON.parse(fs.readFileSync(path, "utf8"))
 
-  if (!validate({...c})) {
+  if (!validate({ ...c })) {
     return E.left(
       new InvalidSchemaConfiguration(JSON.stringify(validate.errors[0].message))
     )

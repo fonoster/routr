@@ -16,8 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {MessageRequest, ProcessorConfig, CommonTypes as CT} from "@routr/common"
-import {NotMatchingProcessorFound, ProcessorUnavailableError} from "./errors"
+import {
+  MessageRequest,
+  ProcessorConfig,
+  CommonTypes as CT
+} from "@routr/common"
+import { NotMatchingProcessorFound, ProcessorUnavailableError } from "./errors"
 
 export interface MessageDispatcherConfig {
   bindAddr: string
@@ -33,7 +37,7 @@ export type CallbackErrors =
   | NotMatchingProcessorFound
   | ProcessorUnavailableError
   | Error
-  | {code: number; message?: string}
+  | { code: number; message?: string }
   | null
 
 export type ProcessorCallback = (

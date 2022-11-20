@@ -22,8 +22,8 @@ import {
   ServiceInfo,
   CommonTypes as CT
 } from "@routr/common"
-import {NotRoutesFoundForAOR} from "./errors"
-import {AddRouteRequest, FindRoutesRequest, ILocationService} from "./types"
+import { NotRoutesFoundForAOR } from "./errors"
+import { AddRouteRequest, FindRoutesRequest, ILocationService } from "./types"
 
 export const expiredFilter = (r: Route) =>
   r.expires - (Date.now() - r.registeredOn) / 1000 > 0

@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Transport} from "@routr/common"
-import {CommonConnect as CC} from "@routr/common"
+import { Transport } from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
 import MemoryStore from "./memory_store"
 import RedisStore from "./redis_store"
 import {

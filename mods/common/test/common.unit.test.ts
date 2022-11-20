@@ -19,9 +19,9 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import {getObjectProto} from "../src/service"
-import {addressCount, isLocalnet} from "../src/ip_utils"
-import {getRedisUrlFromConfig} from "../src/redis"
+import { getObjectProto } from "../src/service"
+import { addressCount, isLocalnet } from "../src/ip_utils"
+import { getRedisUrlFromConfig } from "../src/redis"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -43,7 +43,7 @@ describe("@routr/common", () => {
   })
 
   it("fails to get object proto due to a typo", () => {
-    const objectProto2 = {...objectProto}
+    const objectProto2 = { ...objectProto }
     // Introduce a typo
     objectProto2.name = "processo"
     expect(getObjectProto(objectProto2).toString()).to.include(
@@ -77,8 +77,8 @@ describe("@routr/common", () => {
   })
 
   it("converts parameter string to redis url", () => {
-    const c1 = {host: "test.local", port: 6380}
-    const c2 = {password: "1234", host: "test.local", port: 6380}
+    const c1 = { host: "test.local", port: 6380 }
+    const c2 = { password: "1234", host: "test.local", port: 6380 }
     const c3 = {
       username: "admin",
       password: "1234",

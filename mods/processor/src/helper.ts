@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {MessageRequest, NetInterface, Route, Transport} from "@routr/common"
-import {Extensions as E, Target as T} from "./index"
+import { MessageRequest, NetInterface, Route, Transport } from "@routr/common"
+import { Extensions as E, Target as T } from "./index"
 
 export const isTypeResponse = (request: MessageRequest): boolean =>
   request.message.messageType === "responseType"
