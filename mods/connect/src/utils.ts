@@ -118,7 +118,9 @@ export const createPAssertedIdentity = (
   const trunkHost = getTrunkURI(trunk).host
   return {
     name: "P-Asserted-Identity",
-    value: `${displayName}<sip:${remoteNumber}@${trunkHost}>`,
+    value: displayName
+      ? `"${displayName}" <sip:${remoteNumber}@${trunkHost}>`
+      : `<sip:${remoteNumber}@${trunkHost}>`,
     action: "add"
   }
 }

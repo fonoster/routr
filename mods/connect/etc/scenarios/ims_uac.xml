@@ -7,7 +7,7 @@
         <![CDATA[MESSAGE sip:[$requestURI];transport=[transport] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=a[branch]
       Max-Forwards: 70
-      From: <sip:[$from]>;tag=[pid]SIPpTag00[call_number]
+      From: <sip:[$from]>;tag=[call_number]
       To: <sip:[$to]>
       Call-ID: [call_id]
       CSeq: 1 MESSAGE
@@ -24,7 +24,7 @@
         <![CDATA[MESSAGE sip:[$requestURI];transport=[transport] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=a[branch]
       Max-Forwards: 70
-      From: <sip:[$from]>;tag=[pid]SIPpTag00[call_number]
+      From: <sip:[$from]>;tag=[call_number]
       To: <sip:[$to]>
       Call-ID: [call_id]
       CSeq: 2 MESSAGE

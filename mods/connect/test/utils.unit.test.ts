@@ -54,7 +54,7 @@ describe("@routr/connect/utils", () => {
     expect(headerModifier).to.have.property("name", "P-Asserted-Identity")
     expect(headerModifier).to.have.property(
       "value",
-      "<sip:17066041487@sip.provider.net>"
+      "\"John Doe\" <sip:17066041487@sip.provider.net>"
     )
   })
 

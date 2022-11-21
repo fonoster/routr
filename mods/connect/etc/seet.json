@@ -212,5 +212,174 @@
       }
     ],
     "enabled": true
+  },
+  {
+    "name": "SC-IT.Conf.1.1.5: TLS Server Mode",
+    "description": "Verify that a SIP-PBX is capable of initializing a TLS connection, acting as a TLS client, and correctly utilizes a SP-SSE acting as a TLS server.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 60,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.2.1: SP-SSE Address Acquisition by SIP-PBX (Part A)",
+    "description": "Manual Configuration",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 60,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.2.1: SP-SSE Address Acquisition by SIP-PBX (Part B)",
+    "description": "DNS Configuration",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 60,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.2.2: Static Mode Failure Detection (Part A)",
+    "description": "Periodic OPTIONS Request",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 60,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.2.2: Static Mode Failure Detection (Part B)",
+    "description": "Periodic CR/LF",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 60,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.2.2: Static Mode Failure Detection (Part C)",
+    "description": "Configurable Keep-Alive",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 60,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.2.3: TLS Authentication (Part A)",
+    "description": "Session initiated by SIP-PBX",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 60,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.2.3: TLS Authentication (Part B)",
+    "description": "Session initiated by SIP-SSE",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 60,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.2.3: TLS Authentication (Part C)",
+    "description": "Reject Non-TLS Connection Attempts",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/common/noop.xml",
+        "timeout": 60,
+        "port": 7060
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.3.1: Verification of INVITE Message Parameters When Originating a DOD Call",
+    "description": "This test case verifies the format of the INVITE message sent by a SIP-PBX when originating a DOD call.",
+    "transportMode": "u1",
+    "target": "edgeport01:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/dod_call_uas.xml",
+        "port": 7060,
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        },
+        "sendRegister": true,
+        "expires": 30
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/dod_call_uac.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:1002@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:1002@sip.local"
+          }
+        ]
+      }
+    ],
+    "enabled": true
   }
 ]

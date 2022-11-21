@@ -64,9 +64,12 @@ export default function simpleAuthMiddleware(config: {
 
       // Consider extending the list to other message types
       if (
-        ![CT.Method.INVITE, CT.Method.MESSAGE, CT.Method.REGISTER].includes(
-          req.method
-        )
+        ![
+          CT.Method.INVITE,
+          CT.Method.BYE,
+          CT.Method.MESSAGE,
+          CT.Method.REGISTER
+        ].includes(req.method)
       ) {
         return res.send(req)
       }

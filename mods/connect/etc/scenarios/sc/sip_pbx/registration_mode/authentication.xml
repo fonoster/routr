@@ -3,12 +3,15 @@
 
 <scenario name="SC-IT.Conf.1.1.4: Authentication">
     <label id="badauth"/>
+    
     <recv request="REGISTER"/>
-    <send><![CDATA[
+
+    <send>
+      <![CDATA[
         SIP/2.0 401 Authorization Required
         [last_Via:]
         [last_From:]
-        [last_To:];tag=[pid]SIPpTag01[call_number]
+        [last_To:]
         [last_Call-ID:]
         [last_CSeq:]
         Contact: <sip:[local_ip]:[local_port];transport=[transport]>
@@ -16,6 +19,7 @@
         Content-Length: [len]
       ]]>
     </send>
+
     <recv request="REGISTER">
       <action>
         <verifyauth assign_to="authvalid" username="pbx-1" password="1234" />
@@ -32,7 +36,7 @@
         SIP/2.0 200 OK
         [last_Via:]
         [last_From:]
-        [last_To:];tag=[call_number]
+        [last_To:]
         [last_Call-ID:]
         [last_CSeq:]
         Contact: <sip:[local_ip]:[local_port];transport=[transport]>

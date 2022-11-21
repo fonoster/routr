@@ -125,7 +125,7 @@ export const request: MessageRequest = {
           lrParam: false,
           secure: false
         },
-        displayName: "",
+        displayName: "John Doe",
         wildcard: false
       },
       tag: "9041462a"

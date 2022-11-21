@@ -22,6 +22,7 @@ import gov.nist.javax.sip.SipStackExt;
 import gov.nist.javax.sip.clientauthutils.AccountManager;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.header.Contact;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -251,10 +252,12 @@ public class GRPCSipListener implements SipListener {
       MessageResponse response = blockingStub.processMessage(request);
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
 
-      // Removing all the headers of type Via to avoid duplicates
+      // Removing all the headers of type Via and Contact to avoid duplicates
       res.removeHeader(Via.NAME);
+      res.removeHeader(Contact.NAME);
 
       for (Header header : headers) {
+        // WARNING: Using setHeader causes some headers to be overwritten 
         res.addHeader(header);
       }
 

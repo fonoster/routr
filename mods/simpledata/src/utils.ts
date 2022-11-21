@@ -21,6 +21,8 @@ import Ajv from "ajv"
 import { CommonTypes as CT } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
 import { CommonConnect as CC } from "@routr/common"
+import * as protobufUtil from "pb-util"
+const jsonFromStruct = protobufUtil.struct.decode
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
 
@@ -127,7 +129,7 @@ export function createQuery(request: CC.FindParameters):
   }
 
   return {
-    query: findCriteriaMap[findCriteria](request.parameters),
+    query: findCriteriaMap[findCriteria](jsonFromStruct(request.parameters)),
     request
   }
 }

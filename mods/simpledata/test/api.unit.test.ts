@@ -24,6 +24,8 @@ import { BadRequest } from "../src/errors"
 import { CommonConnect as CC } from "@routr/common"
 import { createQuery } from "../src/utils"
 import { resources } from "./examples"
+import * as protobufUtil from "pb-util"
+const jsonToStruct = protobufUtil.struct.encode
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -122,9 +124,9 @@ describe("@routr/simpledata/api", () => {
       const searchParameters: CC.FindParameters = {
         kind: CC.KIND.AGENT,
         criteria: CC.FindCriteria.FIND_AGENT_BY_USERNAME,
-        parameters: {
+        parameters: jsonToStruct({
           username: "myusername"
-        }
+        }) as any
       }
       const result = createQuery(searchParameters)
       expect(result).to.have.property("request").to.have.property("kind")
@@ -137,9 +139,9 @@ describe("@routr/simpledata/api", () => {
       const searchParameters: CC.FindParameters = {
         kind: CC.KIND.AGENT,
         criteria: "bad_criteria" as any,
-        parameters: {
+        parameters: jsonToStruct({
           username: "myusername"
-        }
+        }) as any
       }
       expect(createQuery(searchParameters)).to.be.instanceOf(BadRequest)
     })
@@ -147,9 +149,9 @@ describe("@routr/simpledata/api", () => {
     it("fails to create query due to missing parameter", () => {
       const searchParameters: CC.FindParameters = {
         kind: CC.KIND.AGENT,
-        parameters: {
+        parameters: jsonToStruct({
           username: "myusername"
-        }
+        }) as any
       } as any
       expect(createQuery(searchParameters)).to.be.instanceOf(BadRequest)
     })
@@ -160,9 +162,9 @@ describe("@routr/simpledata/api", () => {
         request: {
           kind: CC.KIND.CREDENTIAL,
           criteria: CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE,
-          parameters: {
+          parameters: jsonToStruct({
             ref: "crd2c76ft"
-          }
+          }) as any
         }
       }
       const callback = (err: Error, res: unknown) => {
