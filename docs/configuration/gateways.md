@@ -8,18 +8,19 @@ For static IP authentication be sure to properly configure the `spec.externAddr`
 
 ## Gateway Resource
 
-| Property | Description | Required |
-| --- | --- | --- |
-| apiVersion | Indicates the version of the resource (Not yet implemented)| Yes |
-| kind | Defines the type of resource | Yes |
-| metadata.name | Friendly name for the SIP device | Yes |
-| metadata.ref | Reference to this resource | No |
-| spec.credentials.username | Gateway username. No required for static IP authentication | No |
-| spec.credentials.secret |  Gateway secret. No required for static IP authentication | No |
-| spec.host | Gateway host | Yes |
-| spec.transport | Transport protocol | Yes |
-| spec.expires | Requested lifespan of the registration in seconds. Defaults to `600` | No |
-| spec.registries.[*] | Additional registries for ingress calls | No |
+| Property                  | Description                                                          | Required |
+|---------------------------|----------------------------------------------------------------------|----------|
+| apiVersion                | Indicates the version of the resource (Not yet implemented)          | Yes      |
+| kind                      | Defines the type of resource                                         | Yes      |
+| metadata.name             | Friendly name for the SIP device                                     | Yes      |
+| metadata.ref              | Reference to this resource                                           | No       |
+| spec.sendRegister         | Send SIP REGISTER package to gateway host. Defaults to `false`       | No       |
+| spec.credentials.username | Gateway username. No required for static IP authentication           | No       |
+| spec.credentials.secret   | Gateway secret. No required for static IP authentication             | No       |
+| spec.host                 | Gateway host                                                         | Yes      |
+| spec.transport            | Transport protocol                                                   | Yes      |
+| spec.expires              | Requested lifespan of the registration in seconds. Defaults to `600` | No       |
+| spec.registries.[*]       | Additional registries for ingress calls                              | No       |
 
 ## Example of Gateway in `Registration Mode`
 
