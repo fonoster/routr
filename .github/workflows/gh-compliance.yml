@@ -19,6 +19,6 @@ jobs:
           node-version: '16.x'
       - name: Build project
         run: npm run make
-      - name: Integration tests
+      - name: Compliance tests
         run: |
-          docker-compose up --abort-on-container-exit --exit-code-from seet
+          docker-compose up --abort-on-container-exit --exit-code-from compliance
