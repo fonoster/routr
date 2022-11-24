@@ -36,25 +36,18 @@ when, and only when, they appear in all capitals, as shown here.
 
 This document aims to present a detailed description of the SIP Server *Routr*. It will explain the purpose and features
 of the system, the interfaces of the system, what the system will do, the constraints under which it must operate, and
-how the system will react to external stimuli. This document is intended for both the stakeholders and the developers of
-the system.
+how the system will react to external stimuli. This document is intended for the system's stakeholders and developers.
 
 ### Scope of Project
 
-This software system will be a SIP Server that cares for the signaling as a standalone system or as part of a broader
-one. The specification aims for a design that maximizes scalability and extensibility by using a microservice
-architecture which was a challenging factor on **v1**.
+This software system will be a SIP Server that cares for the signaling as a standalone system or as part of a broader one. The specification aims for a design that maximizes scalability and extensibility. It uses a microservice architecture which was a challenging factor on **v1**.
 
-By using a microservice architecture, we will ensure that portions of the system can be deployed independently and each
-treated according to its problem domain.
+We will use a microservice architecture to ensure that portions of the system can be deployed independently and treated according to its problem domain.
 
 More specifically, this system will be designed to allow for the separation of concerns within the logical components of
-a SIP Server. The software MUST be able to accept SIP Messages via *UDP*, *TCP*, *TLS*, *WS*, and *WSS*. It should then
-transform the messages efficiently and facilitate communication between the various components.
+a SIP Server. The software MUST be able to accept SIP Messages via *UDP*, *TCP*, *TLS*, *WS*, and *WSS*. It should transform the messages efficiently and facilitate communication between the various components.
 
-Furthermore, the system MUST include a mechanism to replace the SIP Message processing without updating the entire
-system. It should also facilitate communication with external systems for Authentication, Authorization, and
-Accounting (AAA) and allow to host multiple tenants by using a Role-based Access Control (RBAC) system.
+Furthermore, the system MUST include a mechanism to replace the SIP Message processing without updating the entire system. It should also facilitate communication with external systems for Authentication, Authorization, and Accounting (AAA) and allow to host of multiple tenants by using a Role-based Access Control (RBAC) system.
 
 ### Glossary
 
@@ -62,13 +55,13 @@ Accounting (AAA) and allow to host multiple tenants by using a Role-based Access
 | ----------- | ----------- |
 | *Backend
 Service* | A service that provides a use-case or capability for the overall system (e.g., Asterisk or FreeSWITCH) |
-| *SIP Client* | A SIP Client is any SIP capable device or software that communicates thru *Routr* |
+| *SIP Client* | A SIP Client is any SIP-capable device or software that communicates thru *Routr* |
 | *Role-Based Access Control (
 RBAC)* |  Mechanism that restricts access to parts of Routr based on a user's role and resource ownership |
 | *SIP
 Server* | Also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients to place and terminate calls and process other types of requests |
 | *gRPC* | Is a modern open-source, high-performance Remote Procedure Call (RPC) framework |
-| *Stakeholder* |Any person with interest in the project who is not a developer |
+| *Stakeholder* |Any person with interest in the project which is not a developer |
 | *Nexthop* | The next network element within the signaling path of a given request |
 | *M.E.L.T* | M.E.L.T stands for Metrics, Events, Logs, Tracing |
 
@@ -107,9 +100,9 @@ Raw Diagram:
 
 The SIP Server "Routr" has three main components and one cooperating service. The first component, the EdgePort, is
 responsible for accepting SIP Messages, parsing them into protobuf, and sending them to the Message Dispatcher. After a
-SIP Message is processed, the EdgePort will forward the SIP Message to the next hop.
+SIP Message is processed, and the EdgePort will forward the SIP Message to the next hop.
 
-The job of *Message Dispatcher* is to accept SIP Messages encapsulated as protobuf from the EdgePort, and routing the
+The job of *Message Dispatcher* is to accept SIP Messages encapsulated as protobuf from the EdgePort, and route the
 SIP Message to and from the Message Processor.
 
 *Message Processor(s)* is responsible for the authentication, validation, and processing of SIP Messages. They are also
@@ -123,8 +116,8 @@ configured to modify requests (e.g., RTPEngine Middleware) or read them for obse
 <!--
 Diagram generated with: https://arthursonzogni.com/Diagon/#Sequence
 Raw Diagram:
-  SIP Client -> EdgePort: SIP Request
-  EdgePort -> Message Dispatcher: gRPC Request
+  SIP Client -> EdgePort: SIP request
+  EdgePort -> Message Dispatcher: gRPC request
   EdgePort <- Message Dispatcher: gRPC Response
   SIP Client <- EdgePort: SIP Response
 -->
@@ -134,16 +127,16 @@ Raw Diagram:
  │SIP Client│  │EdgePort│ │Message Dispatcher│
  └────┬─────┘  └───┬────┘ └──────┬───────────┘
       │            │             │        
-      │SIP Request │             │        
+      │SIP request │             │        
       │───────────>│             │        
       │            │             │        
-      │            │gRPC Request │        
+      │            │gRPC request │        
       │            │────────────>│        
       │            │             │        
-      │            │gRPC Response│        
+      │            │gRPC response│        
       │            │<────────────│        
       │            │             │        
-      │SIP Response│             │        
+      │SIP response│             │        
       │<───────────│             │        
  ┌────┴─────┐  ┌───┴────┐ ┌──────┴───────────┐
  │SIP Client│  │EdgePort│ │Message Dispatcher│
@@ -159,7 +152,7 @@ convert them to protobuf and forward them downstream for processing. A *Routr* n
 
 The following functions are essential for an implementation of an *EdgePort*:
 
-- *Accept SIP Msg* - Accept Messages using as transport UDP, TCP, TLS, WS, and WSS
+- *Accept SIP Msg* - Accept Messages using transport UDP, TCP, TLS, WS, and WSS
 - *Accept SIP Msg (Part2)* - Accept Messages on some or all network interfaces
 - *Transform SIP Msg* - Transform Messages to protobuf
 - *Keep Msg's state* - MUST keep the state until the message is processed or a timeout occurs
@@ -178,9 +171,7 @@ The following requirements are essential to have for an implementation of an *Ed
 
 **Service Configuration**
 
-The configuration for the *EdgePort* could be represented as JSON or YAML formats. However, internal use and validation
-will be done as per [https://json-schema.org](https://json-schema.org/learn/getting-started-step-by-step). The following
-example summarizes de configuration REQUIRED by the *EdgePort*:
+The configuration for the *EdgePort* could be represented as JSON or YAML formats. However, internal use and validation will use [https://json-schema.org](https://json-schema.org/learn/getting-started-step-by-step). The following example summarizes de configuration REQUIRED by the *EdgePort*:
 
 ```json
 {
@@ -285,7 +276,7 @@ example summarizes de configuration REQUIRED by the *EdgePort*:
           "uniqueItems": true
         },
         "unknownMethodAction": {
-          "description": "What to do if an incomming request type is not allowed",
+          "description": "What to do if an incoming request type is not allowed",
           "enum": ["Discard", "Respond"]
         },
         "transport": {
@@ -371,7 +362,7 @@ EdgePort* MUST pass the following tests:
 
 Since the *EdgePort* sits at the edge of the network, it must be capable of withstanding typical SIP attacks. On SIP
 over TCP or TLS, the server should avoid descriptors resource exhaustion, especially during a SIP INVITE flood attack.
-Consider monitoring and alerting for CPU and/or memory usage needed to handle SIP sessions and dialog, not exceeding the
+Consider monitoring and alerting for CPU and memory usage needed to handle SIP sessions and dialog, staying within the
 resources available. Finally, the server should drop any malformed SIP messages and avoid filling up the log files or
 logging servers.
 
@@ -391,7 +382,7 @@ deploying to Kubernetes:
  │EdgePort│ │Message Dispatcher│             │Message Processor│
  └───┬────┘ └──────┬───────────┘             └────────┬────────┘
      │             │                                  │         
-     │gRPC Request │                                  │         
+     │gRPC request │                                  │         
      │────────────>│                                  │         
      │             │                                  │         
      │             │findProcessor() & forwardMessage()│         
@@ -400,7 +391,7 @@ deploying to Kubernetes:
      │             │        Processed Message         │         
      │             │<─────────────────────────────────│         
      │             │                                  │         
-     │gRPC Response│                                  │         
+     │gRPC response│                                  │         
      │<────────────│                                  │         
  ┌───┴────┐ ┌──────┴───────────┐             ┌────────┴────────┐
  │EdgePort│ │Message Dispatcher│             │Message Processor│
@@ -409,12 +400,9 @@ deploying to Kubernetes:
 
 **Brief Description**
 
-The *Message Dispatcher* component takes a SIP message and forwards them to the corresponding Message Processor. The
-matching process is done using the request from the *EdgePort*.
+The *Message Dispatcher* component takes a SIP message and forwards them to the corresponding Message Processor. The the matching process is done using the request from the *EdgePort*.
 
-The *Message Dispatcher* will always use the first Processor that matches a request. If no match is found for the given
-request, the server MUST respond with a `SIP 405: Method Not Allowed.` The *Message Dispatcher* component does not
-manipulate the SIP Messages.
+The *Message Dispatcher* will always use the first Processor that matches a request. If no match is found for the given request, the server MUST respond with a `SIP 405: Method Not Allowed.` The *Message Dispatcher* component does not manipulate the SIP Messages.
 
 **Functional Requirements**
 
@@ -576,8 +564,7 @@ Example:
 
 **Communication with Adjacent Services**
 
-The adjacent services of the *Message Dispatcher* are the *EdgePort* and the *Message Processor*. The communication with
-all adjacent services is done with gRPC and protobuf. The `processor.proto` contains the following code:
+The adjacent services of the *Message Dispatcher* are the *EdgePort* and the *Message Processor*. The communication with all adjacent services is done with gRPC and protobuf. The `processor.proto` contains the following code:
 
 ```proto
 syntax = "proto3";
@@ -630,7 +617,7 @@ Interface Pseudocode:
 
 **Non-functional Requirements**
 
-The following requirements are essential to have for an implementation of a *Message Processor*:
+The following requirements are essential to have to a *Message Processor*:
 
 - *Msg Processed/second* - Should be able to process *TBT* number of Msg per second
 - *Recoverability* - Recover from an unhealthy state
@@ -657,9 +644,7 @@ However, the following "base" configuration is recommended as the starting point
 
 **Communication with Adjacent Services**
 
-Adjacent to the *Message Processor* is the *Message Dispatcher*. The communication flows from the *Message Dispatcher*
-to the *Message Processor*, where the *Message Processor* is the server and *Message Dispatcher* is the client. A *
-Message Processor* MUST have the following protobuf interface:
+Adjacent to the *Message Processor* is the *Message Dispatcher*. The communication flows from the *Message Dispatcher* to the *Message Processor*, where the *Message Processor* is the server and *Message Dispatcher* is the client. A *Message Processor* MUST have the following protobuf interface:
 
 ```proto
 syntax = "proto3";
@@ -685,15 +670,11 @@ None.
 
 **Brief Description**
 
-The Location Service(LS) is responsible for storing routing information for all participating endpoints. A Processor can
-later retrieve the route and learn how to reach the endpoint.
+The Location Service(LS) stores routing information for all participating endpoints. A Processor can later retrieve the route and learn how to reach the endpoint.
 
-The proto definition for the LS route includes all necessary information to reach a target endpoint, including
-the `host`, `port`, `transport`, and ingress `listening_point.`
+The proto definition for the LS route includes all necessary information to reach a target endpoint, including the `host`, `port` `transport`, and ingress `listening_point.`
 
-Suppose an endpoint participating as "backend" wishes to use the `least-sessions` balancing algorithm. In that case, it
-must report the number of active sessions using the `session_count` field. The session count could come in the form of a
-header (e.g.: `X-Session-Count`).
+Suppose an endpoint participating as "backend" wishes to use the `least-sessions` balancing algorithm. In that case, it must report the number of active sessions using the `session_count` field. The session count could come in the form of a header (e.g.: `X-Session-Count`).
 
 > For a complete picture of the routing, the `listening_point` of the originating endpoint must be taken into account.
 > This information is present on all requests arriving at a Processor.
@@ -712,9 +693,9 @@ message Route {
   int32 session_count = 7;
   string edge_port_ref = 8;
   fonoster.routr.processor.v2draft1.NetInterface listening_point = 9;
-  // During route creation, an endpoint can request to add labels than can later be
-  // used as selectors. For example, a Softphone can add a label `priority=1` to indicate
-  // that it is the prefered endpoint for the given AOR.
+  // During route creation, an endpoint can request to add labels that can later be
+  // used as selectors. For example, a Softphone can add the label `priority=1` to indicate
+  // that it is the preferred endpoint for the given AOR.
   map<string, string> labels = 10;
 }
 ```
@@ -723,7 +704,7 @@ message Route {
 
 The following functions are MUST have for an implementation of a *Location Service*:
 
-- *Stateless Service* - The service must be built in such a way to allow for scalability
+- *Stateless Service* - The service must be built in such a way as to allow for scalability
 - *Accept gRPC Requests* - Accept gRPC Requests
 - *Find Routes* - Find all the routes to an endpoint
 - *Filtering Labels* - MUST be able to store endpoints using labels (for filtering)

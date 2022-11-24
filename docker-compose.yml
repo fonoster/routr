@@ -103,6 +103,7 @@ services:
     networks:
       internal:
         ipv4_address: 10.111.221.6
+
   # Use the auth.json file to add or remove agents
   simpleauth:
     container_name: simpleauth

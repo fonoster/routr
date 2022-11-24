@@ -17,6 +17,7 @@
     "bootstrap": "lerna bootstrap --no-ci --hoist",
     "setup": "./.scripts/setup.sh",
     "test": "cross-env NODE_ENV=dev nyc mocha mods/*/test/*.unit.test.ts --exit",
+    "test:compliance": "docker compose -f compliance.yml up --abort-on-container-exit --exit-code-from compliance",
     "test:integration": "cross-env NODE_ENV=dev nyc mocha mods/*/test/*.int.test.ts --exit",
     "test:graaljs": "cross-env NODE_ENV=dev nyc .scripts/mocha_wrapper.sh mods/**/graaljstest/*.unit.test.ts --exit",
     "test:java": "./gradlew test",
