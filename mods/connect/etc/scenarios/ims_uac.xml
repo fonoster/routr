@@ -1,10 +1,13 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
 <scenario name="UAC IMS">
-    <Global variables="requestURI,from,to"/>
-    <send retrans="500">
-        <![CDATA[MESSAGE sip:[$requestURI];transport=[transport] SIP/2.0
+
+  <Global variables="requestURI,from,to" />
+
+  <send>
+    <![CDATA[
+      MESSAGE sip:[$requestURI];transport=[transport] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=a[branch]
       Max-Forwards: 70
       From: <sip:[$from]>;tag=[call_number]
@@ -14,14 +17,17 @@
       Subject: Performance Test
       Content-Type: text/plain
       Content-Length: [len]
-      Hello!]]>
-    </send>
+      Hello!
+    ]]>
+  </send>
 
-    <recv response="100" optional="true"/>
-    <recv response="401" auth="true" rtd="true"/>
+  <recv response="100" optional="true" />
 
-    <send>
-        <![CDATA[MESSAGE sip:[$requestURI];transport=[transport] SIP/2.0
+  <recv response="401" auth="true" />
+
+  <send>
+    <![CDATA[
+      MESSAGE sip:[$requestURI];transport=[transport] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=a[branch]
       Max-Forwards: 70
       From: <sip:[$from]>;tag=[call_number]
@@ -32,11 +38,10 @@
       Content-Type: text/plain
       [authentication]
       Content-Length: [len]
-      Hello!]]>
-    </send>
+      Hello!
+    ]]>
+  </send>
 
-    <recv response="200" crlf="true" rtd="true"></recv>
+  <recv response="200" />
 
-    <CallLengthRepartition value="10, 50, 100, 150, 200, 500, 1000"/>
-    <ResponseTimeRepartition value="10, 50, 100, 150, 200, 500, 1000"/>
 </scenario>

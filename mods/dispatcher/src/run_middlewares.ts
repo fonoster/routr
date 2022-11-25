@@ -64,7 +64,7 @@ export async function runMiddlewares(
       try {
         req.message = (await processMessage(midd.ref, conn, req))
           .message as unknown as CT.SIPMessage
-        if (req.message.messageType === "responseType") {
+        if (req.message.messageType === CT.MessageType.RESPONSE) {
           logger.silly(
             "found messageType to be responseType and broke the chain",
             {

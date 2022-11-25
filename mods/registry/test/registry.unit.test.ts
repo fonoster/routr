@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Method, Transport } from "@routr/common"
+import { Method, Transport, CommonTypes as CT } from "@routr/common"
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
@@ -103,7 +103,7 @@ describe("@routr/registry", () => {
     expect(extensions[5]?.value).to.be.include("gin")
     expect(extensions[6]?.name).to.be.equal("Supported")
     expect(extensions[6]?.value).to.be.include("path")
-    expect(extensions[7]?.name).to.be.equal("X-Gateway-Auth")
+    expect(extensions[7]?.name).to.be.equal(CT.ExtraHeader.GATEWAY_AUTH)
     expect(extensions[7]?.value).to.be.include("MTAwMToxMjM0")
 
     expect(route.lrParam).to.be.equal(true)
@@ -139,7 +139,7 @@ describe("@routr/registry", () => {
     expect(requestUri?.transportParam).to.be.equal(requestParams.transport)
     expect(requestUri?.methodParam).to.be.equal(Method.REGISTER)
     expect(requestUri?.secure).to.be.equal(requestParams.secure)
-    expect(request.message.messageType).to.be.equal("requestUri")
+    expect(request.message.messageType).to.be.equal(CT.MessageType.REQUEST)
     expect(requestUri?.user).to.be.equal(requestParams.user)
     expect(requestUri?.host).to.be.equal(
       getHostFromAddress(requestParams.targetAddress)

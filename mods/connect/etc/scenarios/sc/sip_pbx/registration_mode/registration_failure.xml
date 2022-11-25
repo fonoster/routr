@@ -1,22 +1,24 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
 <scenario name="SC-IT.Conf.1.1.2: Registration Failure">
-  <label id="start_of_loop"/>
-  
+
+  <label id="start_of_loop" />
+
   <recv request="REGISTER" timeout="30000" ontimeout="end">
     <action>
-      <exec command="echo WTF >> from_list.log"/>
+      <exec command="echo WTF >> from_list.log" />
     </action>
   </recv>
 
-  <nop next="start_of_loop"/>
+  <nop next="start_of_loop" />
 
-  <label id="end"/>
+  <label id="end" />
 
   <nop>
     <action>
-      <exec int_cmd="stop_now"/>
+      <exec int_cmd="stop_now" />
     </action>
   </nop>
+
 </scenario>

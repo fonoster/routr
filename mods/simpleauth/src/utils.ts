@@ -41,13 +41,7 @@ export const createUnauthorizedResponse = (
         stale: false,
         nonce: generateNonce(),
         algorithm: params.algorithm
-      },
-      extensions: [
-        {
-          name: "Expires",
-          value: 0
-        }
-      ]
+      }
     }
   }
 }

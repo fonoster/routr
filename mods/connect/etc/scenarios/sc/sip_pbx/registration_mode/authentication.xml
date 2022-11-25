@@ -1,47 +1,50 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
 <scenario name="SC-IT.Conf.1.1.4: Authentication">
-    <label id="badauth"/>
-    
-    <recv request="REGISTER"/>
 
-    <send>
-      <![CDATA[
-        SIP/2.0 401 Authorization Required
-        [last_Via:]
-        [last_From:]
-        [last_To:]
-        [last_Call-ID:]
-        [last_CSeq:]
-        Contact: <sip:[local_ip]:[local_port];transport=[transport]>
-        WWW-Authenticate: Digest realm="sip.provider.net", nonce="47ebe028cda119c35d4877b383027d28da013815"
-        Content-Length: [len]
-      ]]>
-    </send>
+  <label id="badauth" />
 
-    <recv request="REGISTER">
-      <action>
-        <verifyauth assign_to="authvalid" username="pbx-1" password="1234" />
-      </action>
-    </recv>
+  <recv request="REGISTER" />
 
-    <nop hide="true" test="authvalid" next="goodauth" />
-    <nop hide="true" next="badauth" />
+  <send>
+    <![CDATA[
+      SIP/2.0 401 Authorization Required
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      WWW-Authenticate: Digest realm="sip.provider.net", nonce="47ebe028cda119c35d4877b383027d28da013815"
+      Content-Length: [len]
+    ]]>
+  </send>
 
-    <label id="goodauth"/>
+  <recv request="REGISTER">
+    <action>
+      <verifyauth assign_to="authvalid" username="pbx-1" password="1234" />
+    </action>
+  </recv>
 
-    <send>
-      <![CDATA[
-        SIP/2.0 200 OK
-        [last_Via:]
-        [last_From:]
-        [last_To:]
-        [last_Call-ID:]
-        [last_CSeq:]
-        Contact: <sip:[local_ip]:[local_port];transport=[transport]>
-        Content-Length: 0
-        Expires: 30
-      ]]>
-    </send>
+  <nop hide="true" test="authvalid" next="goodauth" />
+
+  <nop hide="true" next="badauth" />
+
+  <label id="goodauth" />
+
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+      Expires: 30
+    ]]>
+  </send>
+
 </scenario>

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Method } from "@routr/common"
+import { Method, CommonTypes as CT } from "@routr/common"
 import {
   DEFAULT_EXPIRES,
   DEFAULT_MAX_FORWARDS,
@@ -39,7 +39,7 @@ export default function createRegistrationRequest(
 ): RegistrationRequest {
   const credentials = params.auth
     ? {
-        name: "X-Gateway-Auth",
+        name: CT.ExtraHeader.GATEWAY_AUTH,
         value: Buffer.from(
           `${params.auth.username}:${params.auth.secret}`
         ).toString("base64")
@@ -140,7 +140,7 @@ export default function createRegistrationRequest(
         methodParam: Method.REGISTER,
         secure: params.secure
       },
-      messageType: "requestUri"
+      messageType: CT.MessageType.REQUEST
     }
   }
 }

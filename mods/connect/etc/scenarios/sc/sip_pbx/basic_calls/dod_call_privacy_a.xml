@@ -1,11 +1,12 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
 <scenario name="SC-IT.Conf.1.3.4.a: SIPPBX Support for Private when Generating INVITE for Originating DOD Call (Part A)">
-  <recv request="INVITE" crlf="true">
-    <action>
-      <ereg regexp=".*sip:anonymous@anonymous.invalid.*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="pass"/>
-      <ereg regexp=".*id.*" search_in="hdr" header="Privacy" case_indep="true" check_it="true" assign_to="pass"/>
+
+  <recv request="INVITE">
+    <action >
+      <ereg regexp=".*sip:anonymous@anonymous.invalid.*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="pass" />
+      <ereg regexp=".*id.*" search_in="hdr" header="Privacy" case_indep="true" check_it="true" assign_to="pass" />
       <test assign_to="pass" variable="pass" compare="equal" value="1" />
     </action>
   </recv>
@@ -23,7 +24,7 @@
     ]]>
   </send>
 
-  <send retrans="500">
+  <send>
     <![CDATA[
       SIP/2.0 200 OK
       [last_Via:]
@@ -44,7 +45,7 @@
     ]]>
   </send>
 
-  <recv request="ACK" optional="true" rtd="true" crlf="true" />
+  <recv request="ACK" />
 
   <recv request="BYE" />
 
@@ -60,4 +61,5 @@
       Content-Length: 0
     ]]>
   </send>
+
 </scenario>

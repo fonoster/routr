@@ -152,8 +152,7 @@ The following JSON is an example of a `Connect Object` that results from process
 }
 ```
 
-> A signed request we the custom header `X-Fonoster-Rtr` could bypass the authentication and the need to construct
-> a `Connect Object`.
+> A JWT token in the customer header `X-Connect-Token` could bypass the authentication and the need to construct `Connect Object`.
 
 For error response, the `Connect Object` will look like this:
 

@@ -41,6 +41,13 @@ export enum Transport {
   WSS = "WSS"
 }
 
+export enum ExtraHeader {
+  REQUEST_URI = "X-Request-Uri",
+  GATEWAY_AUTH = "X-Gateway-Auth",
+  EDGEPORT_REF = "X-Edgeport-Ref",
+  SESSION_COUNT = "X-Session-Count"
+}
+
 export interface NetInterface {
   host: string
   port: number
@@ -121,10 +128,15 @@ export interface AuthChallengeResponse {
   method: string
 }
 
+export enum HeaderModifierAction {
+  ADD = "add",
+  REMOVE = "remove"
+}
+
 export interface HeaderModifier {
   name: string
   value?: string
-  action: "add" | "remove"
+  action: HeaderModifierAction
 }
 
 export interface Route {
@@ -305,8 +317,13 @@ export interface Expires {
   expires: number
 }
 
+export enum MessageType {
+  REQUEST = "requestUri",
+  RESPONSE = "responseType"
+}
+
 export interface SIPMessage {
-  messageType: "responseType" | "requestUri"
+  messageType: MessageType
   responseType?: ResponseType
   requestUri?: SipURI
   from: From

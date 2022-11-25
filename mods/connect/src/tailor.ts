@@ -20,12 +20,13 @@ import { Alterations as A, MessageRequest } from "@routr/processor"
 import { Route } from "@routr/common"
 import { pipe } from "fp-ts/function"
 
+// Q: Shoukd we add support for strict routing?
 export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
   pipe(
     req,
-    A.updateRequestURI(route),
     A.addSelfVia(route),
     A.applyXHeaders(route),
+    A.addRoute(route),
     A.addSelfRecordRoute,
     A.decreaseMaxForwards,
     A.removeAuthorization,

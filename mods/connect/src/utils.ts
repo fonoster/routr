@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { HeaderModifier, MessageRequest, Transport } from "@routr/common"
-import { CommonConnect as CC } from "@routr/common"
+import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { ROUTING_DIRECTION } from "./types"
 
 export const isKind = (res: CC.Resource, kind: CC.KIND) => {
@@ -119,9 +119,9 @@ export const createPAssertedIdentity = (
   return {
     name: "P-Asserted-Identity",
     value: displayName
-      ? `"${displayName}" <sip:${remoteNumber}@${trunkHost}>`
-      : `<sip:${remoteNumber}@${trunkHost}>`,
-    action: "add"
+      ? `"${displayName}" <sip:${remoteNumber}@${trunkHost};user=phone>`
+      : `<sip:${remoteNumber}@${trunkHost};user=phone>`,
+    action: CT.HeaderModifierAction.ADD
   }
 }
 
@@ -134,7 +134,7 @@ export const createRemotePartyId = (
   return {
     name: "Remote-Party-ID",
     value: `<sip:${remoteNumber}@${trunkHost}>;screen=yes;party=calling`,
-    action: "add"
+    action: CT.HeaderModifierAction.ADD
   }
 }
 
@@ -144,11 +144,11 @@ export const createTrunkAuthentication = async (
 ): Promise<HeaderModifier> => {
   const credentials = await dataAPI.get(trunk.spec.outbound.credentialsRef)
   return {
-    name: "X-Gateway-Auth",
+    name: CT.ExtraHeader.GATEWAY_AUTH,
     value: Buffer.from(
       `${credentials.spec.credentials.username}:${credentials.spec.credentials.password}`
     ).toString("base64"),
-    action: "add"
+    action: CT.HeaderModifierAction.ADD
   }
 }
 

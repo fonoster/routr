@@ -16,7 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, Method, Route, Transport } from "@routr/common"
+import {
+  MessageRequest,
+  Method,
+  Route,
+  Transport,
+  CommonTypes as CT
+} from "@routr/common"
+import { MessageType } from "@routr/common/dist/types"
 
 export const route: Route = {
   user: "1001",
@@ -34,13 +41,13 @@ export const route: Route = {
   },
   headers: [
     {
-      name: "x-gateway-auth",
+      name: CT.ExtraHeader.GATEWAY_AUTH,
       value: "dXNlcm5hbWU6cGFzc3dvcmQ=",
-      action: "add"
+      action: CT.HeaderModifierAction.ADD
     },
     {
       name: "user-agent",
-      action: "remove"
+      action: CT.HeaderModifierAction.REMOVE
     }
   ]
 }
@@ -276,6 +283,6 @@ export const request: MessageRequest = {
       lrParam: false,
       secure: false
     },
-    messageType: "requestUri"
+    messageType: MessageType.REQUEST
   }
 }

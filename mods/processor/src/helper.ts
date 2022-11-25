@@ -16,11 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, NetInterface, Route, Transport } from "@routr/common"
+import {
+  MessageRequest,
+  NetInterface,
+  Route,
+  Transport,
+  CommonTypes as CT
+} from "@routr/common"
 import { Extensions as E, Target as T } from "./index"
 
 export const isTypeResponse = (request: MessageRequest): boolean =>
-  request.message.messageType === "responseType"
+  request.message.messageType === CT.MessageType.RESPONSE
 export const isTypeRequest = (request: MessageRequest): boolean =>
   !isTypeResponse(request)
 
@@ -33,8 +39,8 @@ export const isTypeRequest = (request: MessageRequest): boolean =>
  */
 export function createRouteFromLastMessage(request: MessageRequest): Route {
   const uri = request.message.requestUri
-  const sessionCount = E.getHeaderValue(request, "x-session-count")
-    ? parseInt(E.getHeaderValue(request, "x-session-count"))
+  const sessionCount = E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT)
+    ? parseInt(E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT))
     : -1
 
   return {

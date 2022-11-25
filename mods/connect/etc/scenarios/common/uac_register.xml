@@ -1,10 +1,12 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
-<scenario name="registration">
-    <Global variables="requestURI,from,to"/>
-    <send retrans="500">
-        <![CDATA[
+<scenario name="UAC Register">
+
+  <global variables="requestURI,from,to" />
+
+  <send>
+    <![CDATA[
       REGISTER sip:[$requestURI];transport=[transport] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
       Max-Forwards: 70
@@ -16,30 +18,32 @@
       Expires: 60
       Content-Length: 0
       User-Agent: SIPp
-    ]]>
-    </send>
+		]]>
+  </send>
 
-    <recv response="100" optional="true"/>
+  <recv response="100" optional="true" />
 
-    <recv response="401" auth="true" rtd="true"/>
+  <recv response="401" auth="true" />
 
-    <send retrans="500" rtd="true">
-        <![CDATA[
-      REGISTER sip:[$requestURI];transport=[transport] SIP/2.0
-      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
-      Max-Forwards: 70
-      From: <sip:[$from]>;tag=[call_number]
-      To: <sip:[$to]>
-      Call-ID: [call_id]
-      CSeq: 8 REGISTER
-      Contact: <sip:sipp@[local_ip]:[local_port]>
-      Expires: 60
-      Content-Length: 0
-      User-Agent: SIPp
-      [authentication]
-    ]]>
-    </send>
+  <send>
+    <![CDATA[
+		REGISTER sip:[$requestURI];transport=[transport] SIP/2.0
+		Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+		Max-Forwards: 70
+		From: <sip:[$from]>;tag=[call_number]
+		To: <sip:[$to]>
+		Call-ID: [call_id]
+		CSeq: 8 REGISTER
+		Contact: <sip:sipp@[local_ip]:[local_port]>
+		Expires: 60
+		Content-Length: 0
+		User-Agent: SIPp
+		[authentication]
+		]]>
+  </send>
 
-    <recv response="100" optional="true"/>
-    <recv response="200" rtd="true"/>
+  <recv response="100" optional="true" />
+
+  <recv response="200" />
+
 </scenario>

@@ -20,6 +20,7 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { request, route, routeOnAnotherEdgePort } from "./examples"
+import { CommonTypes as CT } from "@routr/common"
 import { Alterations as A, Extensions as E } from "../src"
 import { pipe } from "fp-ts/function"
 
@@ -117,9 +118,18 @@ describe("@routr/processor/alterations", () => {
       .to.be.equal(r.listeningPoint.transport)
   })
 
-  it("adds route header using the listening point from the route object", () => {
+  it("adds route header from the route object", () => {
     const r = A.addRoute(route)(request)
-    expect(r.message.route).to.be.lengthOf(2)
+    expect(r.message.route).to.be.lengthOf(3)
+    const uri = r.message.route[0].address.uri
+    expect(uri).to.have.property("host").to.be.equal(route.host)
+    expect(uri).to.have.property("port").to.be.equal(route.port)
+    expect(uri).to.have.property("transportParam").to.be.equal(route.transport)
+  })
+
+  it("adds route header using the listening point from the route object", () => {
+    const r = A.addRouteToListeningPoint(route)(request)
+    expect(r.message.route).to.be.lengthOf(3)
     const uri = r.message.route[0].address.uri
     expect(uri).to.have.property("host").to.be.equal(route.listeningPoint.host)
     expect(uri).to.have.property("port").to.be.equal(route.listeningPoint.port)
@@ -142,7 +152,7 @@ describe("@routr/processor/alterations", () => {
 
   it("applies the extension headers from Route", () => {
     const r = A.applyXHeaders(route)(request)
-    expect(E.getHeaderValue(r, "x-gateway-auth")).to.not.be.null
+    expect(E.getHeaderValue(r, CT.ExtraHeader.GATEWAY_AUTH)).to.not.be.null
     expect(E.getHeaderValue(r, "user-agent")).to.be.undefined
   })
 

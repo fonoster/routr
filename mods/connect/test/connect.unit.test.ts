@@ -20,7 +20,7 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { request, route } from "@routr/processor/test/examples"
-import { MessageRequest, Route, Transport } from "@routr/common"
+import { MessageRequest, Route, Transport, CommonTypes } from "@routr/common"
 import { handleRegister, handleRequest } from "../src/handlers"
 import { Extensions as E, Helper as HE, Response } from "@routr/processor"
 import { createRequest, r1 } from "./examples"
@@ -41,7 +41,12 @@ describe("@routr/connect", () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const tailor = require("../src/tailor").tailor
     const tailoredRequest = tailor(route as Route, request as MessageRequest)
-    expect(tailoredRequest.message.requestUri.user).to.equal(route.user)
+    const tailerRequestUri = tailoredRequest.message.requestUri
+    const messageRequestUri = tailoredRequest.message.requestUri
+
+    expect(tailerRequestUri.user).to.equal(messageRequestUri.user)
+    expect(tailerRequestUri.host).to.equal(messageRequestUri.host)
+    expect(tailerRequestUri.port).to.equal(messageRequestUri.port)
     expect(tailoredRequest.message.via).to.be.lengthOf(3)
     expect(tailoredRequest.message.maxForwards.maxForwards).to.be.equal(69)
   })
@@ -66,7 +71,7 @@ describe("@routr/connect", () => {
     const req = E.addHeader(
       { ...request },
       {
-        name: "x-edgeport-ref",
+        name: CommonTypes.ExtraHeader.EDGEPORT_REF,
         value: "xyz"
       }
     )

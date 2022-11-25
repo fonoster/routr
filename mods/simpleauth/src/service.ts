@@ -62,14 +62,11 @@ export default function simpleAuthMiddleware(config: {
 
       const span = tracer.startSpan("server.js:sayHello()", { kind: 1 })
 
-      // Consider extending the list to other message types
+      // Q: Should we extend the list to other message types?
       if (
-        ![
-          CT.Method.INVITE,
-          CT.Method.BYE,
-          CT.Method.MESSAGE,
-          CT.Method.REGISTER
-        ].includes(req.method)
+        ![CT.Method.INVITE, CT.Method.MESSAGE, CT.Method.REGISTER].includes(
+          req.method
+        )
       ) {
         return res.send(req)
       }

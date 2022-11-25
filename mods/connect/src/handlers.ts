@@ -29,7 +29,7 @@ import {
 import { pipe } from "fp-ts/function"
 import { router } from "./router"
 import { ILocationService } from "@routr/location/src/types"
-import { CommonConnect as CC } from "@routr/common"
+import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 
 export const handleRegister = (location: ILocationService) => {
   return async (request: MessageRequest, res: Response) => {
@@ -41,7 +41,7 @@ export const handleRegister = (location: ILocationService) => {
   }
 }
 
-// TODO: Needs to be completed and tested
+// TODO: Needs test
 export const handleRegistry = (req: MessageRequest, res: Response) => {
   const route = HE.createRouteFromLastMessage(req)
   const newReq = pipe(
@@ -56,26 +56,27 @@ export const handleRegistry = (req: MessageRequest, res: Response) => {
   res.send(newReq)
 }
 
-// TODO: If request has X-Connect-Object then validate the JWT value and continue
+// TODO: If request has X-Connect-Token then validate the JWT value and continue
 export const handleRequest =
   (location: ILocationService, dataAPI?: CC.DataAPI) =>
   async (req: MessageRequest, res: Response) => {
     try {
       const route =
-        E.getHeaderValue(req, "x-edgeport-ref") !== undefined ||
+        E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF) !== undefined ||
         req.method.toString() === "ACK"
           ? HE.createRouteFromLastMessage(req)
           : await router(location, dataAPI)(req)
 
       if (!route) return res.sendNotFound()
 
-      // Check if it belongs to this EdgePort
+      // Forward request to peer edgeport
       if (req.edgePortRef !== route.edgePortRef) {
         return pipe(
           req,
           A.addSelfVia(route),
           A.updateRequestURI(route),
-          A.addRoute(route),
+          // The LP address belongs to another edgeport
+          A.addRouteToListeningPoint(route),
           A.addXEdgePortRef,
           A.decreaseMaxForwards
         )

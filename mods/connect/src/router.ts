@@ -31,7 +31,7 @@ import { UnsuportedRoutingError } from "./errors"
 import { NotRoutesFoundForAOR } from "@routr/location"
 import { ILocationService } from "@routr/location"
 import { getLogger } from "@fonoster/logger"
-import { CommonConnect as CC } from "@routr/common"
+import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 
@@ -107,7 +107,7 @@ async function fromPSTN(
       const p: HeaderModifier = {
         name: prop.name,
         value: prop.value,
-        action: "add"
+        action: CT.HeaderModifierAction.ADD
       }
       route.headers.push(p)
     }

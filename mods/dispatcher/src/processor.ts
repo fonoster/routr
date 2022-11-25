@@ -46,7 +46,7 @@ export default function processor(params: {
     const { request } = call
 
     // Messages type reponse will not be sent to middleware chain
-    if (request.message.messageType === "responseType") {
+    if (request.message.messageType === CT.MessageType.RESPONSE) {
       return runProcessor({
         callback,
         request,
@@ -58,7 +58,7 @@ export default function processor(params: {
     runMiddlewares({ callback, request, middlewares, connections: middConns })
       .then((req: CT.MessageRequest) => {
         // Since the chain was broken we need to skip the processor and return the updated request
-        if (req.message.messageType === "responseType") {
+        if (req.message.messageType === CT.MessageType.RESPONSE) {
           logger.silly("skipped processsing request", { ref: req.ref })
           return callback(null, req)
         }

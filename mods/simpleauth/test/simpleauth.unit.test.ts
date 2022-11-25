@@ -76,7 +76,5 @@ describe("@routr/simpleauth", () => {
       .to.have.property("wwwAuthenticate")
       .to.have.property("nonce")
       .to.be.length(32)
-    expect(response).to.have.property("message").to.have.property("extensions")
-      .to.be.not.null
   })
 })

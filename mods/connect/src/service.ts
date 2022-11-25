@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { ConnectProcessorConfig } from "./types"
-import { MessageRequest } from "@routr/common"
+import { MessageRequest, Method } from "@routr/common"
 import { LocationClient as Location } from "@routr/location"
 import { handleRegister, handleRegistry, handleRequest } from "./handlers"
 import Processor, {
@@ -28,7 +28,7 @@ import Processor, {
   Extensions as E,
   Response
 } from "@routr/processor"
-import { CommonConnect as CC } from "@routr/common"
+import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { tailor } from "./tailor"
 import { getLogger } from "@fonoster/logger"
 
@@ -45,7 +45,7 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
         ref: req.ref,
         method: req.method,
         type:
-          req.message.messageType === "responseType"
+          req.message.messageType === CT.MessageType.RESPONSE
             ? "(response)"
             : "(request)",
         edgePort: req.edgePortRef
@@ -59,12 +59,12 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
       }
 
       switch (req.method.toString()) {
-        case "PUBLISH":
-        case "NOTIFY":
-        case "SUBSCRIBE":
+        case Method.PUBLISH:
+        case Method.NOTIFY:
+        case Method.SUBSCRIBE:
           res.sendMethodNotAllowed()
           break
-        case "CANCEL":
+        case Method.CANCEL:
           // eslint-disable-next-line no-case-declarations
           const route = (
             await location.findRoutes({ aor: T.getTargetAOR(req) })
@@ -73,20 +73,20 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           if (route) {
             res.sendOk([
               {
-                name: "x-request-uri",
+                name: CT.ExtraHeader.REQUEST_URI,
                 value: `${route?.user},${route.host},${route.port},${route.transport}`
               }
             ])
           }
           break
-        case "REGISTER":
-          if (E.getHeaderValue(req, "x-gateway-auth")) {
+        case Method.REGISTER:
+          if (E.getHeaderValue(req, CT.ExtraHeader.GATEWAY_AUTH)) {
             handleRegistry(req, res)
           } else {
             handleRegister(location)(req, res)
           }
           break
-        case "BYE":
+        case Method.BYE:
           res.send(tailor(HE.createRouteFromLastMessage(req), req))
           break
         default:

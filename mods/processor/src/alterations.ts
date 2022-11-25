@@ -25,6 +25,7 @@ import {
   CommonTypes
 } from "@routr/common"
 
+// Q: Should we deprecate this method since we are not doing strict routing?
 export const updateRequestURI = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
@@ -70,18 +71,35 @@ export const addSelfVia = (route: Route) => {
 export const addRoute = (route: Route) => {
   return (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
-    const lp = route.listeningPoint
     const r = {
       address: {
         uri: {
-          host: lp.host,
-          port: lp.port,
-          transportParam: lp.transport,
+          host: route.host,
+          port: route.port,
+          transportParam: route.transport,
           lrParam: true
         }
       }
-    } as CommonTypes.RecordRoute
-    req.message.route = [r, ...req.message.recordRoute]
+    } as CommonTypes.RouteHeader
+    req.message.route = [r, ...req.message.route]
+    return req
+  }
+}
+
+export const addRouteToListeningPoint = (route: Route) => {
+  return (request: MessageRequest): MessageRequest => {
+    const req = H.deepCopy(request)
+    const r = {
+      address: {
+        uri: {
+          host: route.listeningPoint.host,
+          port: route.listeningPoint.port,
+          transportParam: route.listeningPoint.transport,
+          lrParam: true
+        }
+      }
+    } as CommonTypes.RouteHeader
+    req.message.route = [r, ...req.message.route]
     return req
   }
 }
@@ -130,7 +148,7 @@ export const addSelfRecordRoute = (request: MessageRequest): MessageRequest => {
 export const addXEdgePortRef = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
   const r = {
-    name: "X-EdgePort-Ref",
+    name: CommonTypes.ExtraHeader.EDGEPORT_REF,
     value: request.edgePortRef
   }
   req.message.extensions = [r, ...req.message.extensions]
@@ -140,7 +158,8 @@ export const addXEdgePortRef = (request: MessageRequest): MessageRequest => {
 export const removeXEdgePortRef = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
   req.message.extensions = req.message.extensions.filter(
-    (ext: CommonTypes.Extension) => ext.name.toLowerCase() !== "x-edgeport-ref"
+    (ext: CommonTypes.Extension) =>
+      ext.name.toLowerCase() !== CommonTypes.ExtraHeader.EDGEPORT_REF
   )
   return req
 }
