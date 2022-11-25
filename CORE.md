@@ -53,13 +53,10 @@ Furthermore, the system MUST include a mechanism to replace the SIP Message proc
 
 |  | Description |
 | ----------- | ----------- |
-| *Backend
-Service* | A service that provides a use-case or capability for the overall system (e.g., Asterisk or FreeSWITCH) |
+| *Backend Service* | A service that provides a use-case or capability for the overall system (e.g., Asterisk or FreeSWITCH) |
 | *SIP Client* | A SIP Client is any SIP-capable device or software that communicates thru *Routr* |
-| *Role-Based Access Control (
-RBAC)* |  Mechanism that restricts access to parts of Routr based on a user's role and resource ownership |
-| *SIP
-Server* | Also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients to place and terminate calls and process other types of requests |
+| *Role-Based Access Control (RBAC)* |  Mechanism that restricts access to parts of Routr based on a user's role and resource ownership |
+| *SIP Server* | Also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients to place and terminate calls and process other types of requests |
 | *gRPC* | Is a modern open-source, high-performance Remote Procedure Call (RPC) framework |
 | *Stakeholder* |Any person with interest in the project which is not a developer |
 | *Nexthop* | The next network element within the signaling path of a given request |
