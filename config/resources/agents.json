@@ -14,6 +14,7 @@
       "username": "1001",
       "domainRef": "dm2c76ft",
       "credentialRef": "crd2c76ft",
+      "privacy": "private",
       "enabled": true
     }
   },
@@ -32,6 +33,7 @@
       "username": "1002",
       "domainRef": "dm2c76ft",
       "credentialRef": "crd6y56yt",
+      "privacy": "none",
       "enabled": true
     }
   }

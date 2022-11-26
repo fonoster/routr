@@ -41,6 +41,12 @@
         "enabled": {
           "description": "Whether the Agent is enabled",
           "type": "boolean"
+        },
+        "privacy": {
+          "enum": [
+            "private",
+            "none"
+          ]
         }
       },
       "required": [

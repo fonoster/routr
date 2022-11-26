@@ -14,132 +14,6 @@
     "enabled": true
   },
   {
-    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part A)",
-    "description": "No Register Response, Established Connection-based Transport.",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 240,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part B)",
-    "description": "No Register Response, Established Connection-based Transport.",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 240,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part C)",
-    "description": "Transport Error.",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 240,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part D)",
-    "description": "Reception of “404 Not Found” Response.",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 240,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part E)",
-    "description": "Multiple Error Responses.",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 240,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part F)",
-    "description": "Reception of “480 Temporarily Unavailable” Response.",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 240,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part G)",
-    "description": "SP-SSE Administratively Disabled or Overloaded.",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 240,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part H)",
-    "description": "Other 4xx/5xx/6xx Responses.",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 240,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.1.2: Registration Failure (Part I)",
-    "description": "Registration-related failures for other Requests.",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 240,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
     "name": "SC-IT.Conf.1.1.3: Maintaining Registration (Part 1 / Expires = 60s)",
     "description": "This test verifies that a SIP-PBX honors the REGISTER expiry timer provided by the SP-SSE.",
     "transportMode": "u1",
@@ -214,152 +88,19 @@
     "enabled": true
   },
   {
-    "name": "SC-IT.Conf.1.1.5: TLS Server Mode",
-    "description": "Verify that a SIP-PBX is capable of initializing a TLS connection, acting as a TLS client, and correctly utilizes a SP-SSE acting as a TLS server.",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 60,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.2.1: SP-SSE Address Acquisition by SIP-PBX (Part A)",
-    "description": "Manual Configuration",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 60,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.2.1: SP-SSE Address Acquisition by SIP-PBX (Part B)",
-    "description": "DNS Configuration",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 60,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.2.2: Static Mode Failure Detection (Part A)",
-    "description": "Periodic OPTIONS Request",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 60,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.2.2: Static Mode Failure Detection (Part B)",
-    "description": "Periodic CR/LF",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 60,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.2.2: Static Mode Failure Detection (Part C)",
-    "description": "Configurable Keep-Alive",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 60,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.2.3: TLS Authentication (Part A)",
-    "description": "Session initiated by SIP-PBX",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 60,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.2.3: TLS Authentication (Part B)",
-    "description": "Session initiated by SIP-SSE",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 60,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
-    "name": "SC-IT.Conf.1.2.3: TLS Authentication (Part C)",
-    "description": "Reject Non-TLS Connection Attempts",
-    "transportMode": "u1",
-    "userAgents": [
-      {
-        "mode": "uas",
-        "scenarioFile": "scenarios/common/noop.xml",
-        "timeout": 60,
-        "port": 7060
-      }
-    ],
-    "enabled": false
-  },
-  {
     "name": "SC-IT.Conf.1.3.1: Verification of INVITE Message Parameters When Originating a DOD Call",
     "description": "This test case verifies the format of the INVITE message sent by a SIP-PBX when originating a DOD call.",
     "transportMode": "u1",
     "target": "edgeport01:5060",
-    "domain": "sip.local",
     "userAgents": [
       {
         "mode": "uas",
-        "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/dod_call_uas.xml",
-        "port": 7060,
-        "authentication": {
-          "username": "1002",
-          "secret": "1234"
-        },
-        "sendRegister": true,
-        "expires": 30
+        "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/dod_originating_call_parameters.xml",
+        "port": 7060
       },
       {
         "mode": "uac",
-        "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/dod_call_uac.xml",
+        "scenarioFile": "scenarios/common/uac_invite.xml",
         "authentication": {
           "username": "1001",
           "secret": "1234"
@@ -367,7 +108,7 @@
         "variables": [
           {
             "name": "requestURI",
-            "value": "sip:1002@sip.local"
+            "value": "sip:17853178070@sip.local"
           },
           {
             "name": "from",
@@ -375,11 +116,179 @@
           },
           {
             "name": "to",
-            "value": "sip:1002@sip.local"
+            "value": "sip:17853178070@sip.local"
           }
         ]
       }
     ],
     "enabled": true
-  }
+  },
+  {
+    "name": "SC-IT.Conf.1.3.2: INVITE Message Processing When Terminating a DID Call (Part A/B/C)",
+    "description": "This test case verifies a SIP-PBX correctly processes an INVITE Request message received from an SP-SSE when terminating a DID call.",
+    "transportMode": "u1",
+    "target": "edgeport01:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/did_terminating_call_part_abc.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/common/uac_invite.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+19103434434@sip.provider.net;user=phone"
+          },
+          {
+            "name": "from",
+            "value": "sip:+17853178070@sip.provider.net;user=phone"
+          },
+          {
+            "name": "to",
+            "value": "sip:+12225553000@unknown.com;user=phone"
+          }
+        ]
+      }
+    ],
+    "enabled": true
+  },
+  {
+    "name": "SC-IT.Conf.1.3.3: SIP-PBX Support for Privacy when processing INVITE for Terminating DID Call",
+    "description": "This test case verifies a SIP-PBX correctly supports the “Privacy” header field.",
+    "transportMode": "u1",
+    "target": "edgeport01:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/did_terminating_call_privacy.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/common/uac_invite.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+19103434434@sip.provider.net;user=phone"
+          },
+          {
+            "name": "from",
+            "value": "sip:anonymous@anonymous.invalid"
+          },
+          {
+            "name": "to",
+            "value": "sip:+12225553000@unknown.com;user=phone"
+          }
+        ]
+      }
+    ],
+    "enabled": true
+  },
+  {
+    "name": "SC-IT.Conf.1.3.4: SIP-PBX Support for Privacy when generating INVITE message for Originating DOD Call (Part A)",
+    "description": "This test verifies that a SIP-PBX correctly formats an INVITE message when privacy has been request for originating a DOD call.",
+    "transportMode": "u1",
+    "target": "edgeport01:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/dod_originating_call_privacy_part_a.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/common/uac_invite.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+19103434434@sip.provider.net;user=phone"
+          },
+          {
+            "name": "from",
+            "value": "sip:anonymous@anonymous.invalid"
+          },
+          {
+            "name": "to",
+            "value": "sip:+12225553000@unknown.com;user=phone"
+          }
+        ]
+      }
+    ],
+    "enabled": false
+  },
+  {
+    "name": "SC-IT.Conf.1.3.4: SIP-PBX Support for Privacy when generating INVITE message for Originating DOD Call (Part B)",
+    "description": "This test verifies that a SIP-PBX correctly formats an INVITE message when privacy has been request for originating a DOD call.",
+    "transportMode": "u1",
+    "target": "edgeport01:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/dod_originating_call_privacy_part_b.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/common/uac_invite.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:12225553000@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:12225553000@sip.local"
+          }
+        ]
+      }
+    ],
+    "enabled": true
+  }      
 ]

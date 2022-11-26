@@ -48,6 +48,11 @@ export enum ExtraHeader {
   SESSION_COUNT = "X-Session-Count"
 }
 
+export enum Privacy {
+  NONE = "none",
+  PRIVATE = "id"
+}
+
 export interface NetInterface {
   host: string
   port: number

@@ -120,7 +120,7 @@ describe("@routr/connect", () => {
     expect(route).to.have.property("host", "sip.provider.net")
     expect(route).to.have.property("port", 7060)
     expect(route).to.have.property("transport", Transport.UDP)
-    expect(route).to.have.property("headers").to.be.an("array").lengthOf(3)
+    expect(route).to.have.property("headers").to.be.an("array").lengthOf(4)
   })
 
   it("handles a request from pstn to agent or peer", async () => {

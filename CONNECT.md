@@ -1,6 +1,6 @@
 # Routr Connect Processor
 
-### Version 0.1.1 (Draft)
+### Version 0.1.2 (Draft)
 
 <details>
 <summary>Table of Contents</summary>
@@ -199,6 +199,7 @@ Example:
     "username": "johndoe",
     "domains": ["dm2c76ft", "dm5774ux"],
     "credentialRef": "crd2c76ft",
+    "privacy": "private",
     "enabled": true
   }
 }

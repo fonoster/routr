@@ -150,6 +150,14 @@ async function toPSTN(
     edgePortRef: req.edgePortRef,
     listeningPoint: req.listeningPoint,
     headers: [
+      {
+        name: "Privacy",
+        value:
+          caller.spec.privacy === CT.Privacy.PRIVATE
+            ? CT.Privacy.PRIVATE
+            : CT.Privacy.NONE,
+        action: CT.HeaderModifierAction.ADD
+      },
       createRemotePartyId(trunk, number),
       createPAssertedIdentity(req, trunk, number),
       await createTrunkAuthentication(dataAPI, trunk)

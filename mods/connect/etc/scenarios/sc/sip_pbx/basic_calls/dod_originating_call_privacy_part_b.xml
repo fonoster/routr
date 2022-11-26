@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
-<scenario name="SC-IT.Conf.1.3.4.a: SIPPBX Support for Private when Generating INVITE for Originating DOD Call (Part A)">
+<scenario name="SC-IT.Conf.1.3.4.b: SIPPBX Support for Private when Generating INVITE for Originating DOD Call (Part B)">
 
   <recv request="INVITE">
-    <action >
-      <ereg regexp=".*sip:anonymous@anonymous.invalid.*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="pass" />
-      <ereg regexp=".*id.*" search_in="hdr" header="Privacy" case_indep="true" check_it="true" assign_to="pass" />
-      <test assign_to="pass" variable="pass" compare="equal" value="1" />
+    <action>
+      <ereg regexp=".*none.*" search_in="hdr" header="Privacy" case_indep="true" check_it="true" assign_to="1" />
     </action>
   </recv>
+    
+  <Reference variables="1" />
 
   <send>
     <![CDATA[
@@ -19,7 +19,7 @@
       [last_To:]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Content-Length: 0
     ]]>
   </send>
@@ -32,7 +32,7 @@
       [last_To:]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Content-Type: application/sdp
       Content-Length: [len]
       v=0
@@ -54,12 +54,14 @@
       SIP/2.0 200 OK
       [last_Via:]
       [last_From:]
-      [last_To:];tag=[call_number]
+      [last_To:]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Content-Length: 0
     ]]>
   </send>
+
+
 
 </scenario>
