@@ -87,6 +87,7 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           }
           break
         case Method.BYE:
+        case Method.ACK:
           res.send(tailor(HE.createRouteFromLastMessage(req), req))
           break
         default:

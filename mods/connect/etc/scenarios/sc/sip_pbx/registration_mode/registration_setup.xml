@@ -3,7 +3,7 @@
 
 <scenario name="SC-IT.Conf.1.1.1: Registration Setup">
 
-  <recv request="REGISTER" crlf="true">
+  <recv request="REGISTER">
     <action>
       <ereg regexp=".*sip.provider.net.*" search_in="msg" case_indep="true" check_it="true" assign_to="pass" />
       <ereg regexp=".*gin.*" search_in="hdr" header="Proxy-Require" case_indep="true" check_it="true" assign_to="pass" />
@@ -11,9 +11,7 @@
       <ereg regexp=".*path.*" search_in="hdr" header="Supported" case_indep="true" check_it="true" assign_to="pass" />
       <ereg regexp=".*pbx-1@sip.provider.net.*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="pass" />
       <ereg regexp=".*pbx-1@sip.provider.net.*" search_in="hdr" header="To" case_indep="true" check_it="true" assign_to="pass" />
-      <!-- NOTE: Keeping this very simple to match IPV4 and IPV6 addresses -->
       <ereg regexp=".*(sips?):([^@]+);bnc.*" search_in="hdr" header="Contact" case_indep="true" check_it="true" assign_to="pass" />
-      <test assign_to="pass" variable="pass" compare="equal" value="1" />
     </action>
   </recv>
 

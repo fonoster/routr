@@ -14,7 +14,7 @@
       To: <sip:[$to]>
       Call-ID: [call_id]
       CSeq: 7 REGISTER
-      Contact: <sip:sipp@[local_ip]:[local_port]>
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Expires: 60
       Content-Length: 0
       User-Agent: SIPp
@@ -34,7 +34,7 @@
 		To: <sip:[$to]>
 		Call-ID: [call_id]
 		CSeq: 8 REGISTER
-		Contact: <sip:sipp@[local_ip]:[local_port]>
+    Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
 		Expires: 60
 		Content-Length: 0
 		User-Agent: SIPp

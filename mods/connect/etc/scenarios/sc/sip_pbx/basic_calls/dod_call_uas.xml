@@ -20,7 +20,7 @@
       [last_To:];tag=[call_number]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Content-Length: 0
     ]]>
   </send>
@@ -33,7 +33,7 @@
       [last_To:];tag=[call_number]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Content-Type: application/sdp
       Content-Length: [len]
       v=0
@@ -58,7 +58,7 @@
       [last_To:][peer_tag_param]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Content-Length: 0
     ]]>
   </send>

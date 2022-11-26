@@ -61,11 +61,9 @@ export const handleRequest =
   (location: ILocationService, dataAPI?: CC.DataAPI) =>
   async (req: MessageRequest, res: Response) => {
     try {
-      const route =
-        E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF) !== undefined ||
-        req.method.toString() === "ACK"
-          ? HE.createRouteFromLastMessage(req)
-          : await router(location, dataAPI)(req)
+      const route = E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF)
+        ? HE.createRouteFromLastMessage(req)
+        : await router(location, dataAPI)(req)
 
       if (!route) return res.sendNotFound()
 
@@ -74,7 +72,6 @@ export const handleRequest =
         return pipe(
           req,
           A.addSelfVia(route),
-          A.updateRequestURI(route),
           // The LP address belongs to another edgeport
           A.addRouteToListeningPoint(route),
           A.addXEdgePortRef,

@@ -37,7 +37,7 @@
       [last_Via]
       [last_From]
       [last_To]
-      [last_Contact]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Call-ID: [call_id]
       CSeq: 1 ACK
       Max-Forwards: 70
@@ -74,37 +74,40 @@
 
   <recv response="183" optional="true" />
 
-  <recv response="200" />
-  
-  <!-- Needs fix: Currently hardcoding the uas AOR -->
+  <recv response="200">
+    <action>
+      <ereg regexp=".*(sips?:[0-9a-z]+@[0-9a-z\.:]+[0-9a-z=;]+).*" search_in="hdr" header="Contact" case_indep="true" check_it="true" assign_to="1,remoteURI" />
+    </action>
+  </recv>
+  <Reference variables="1" />
+
   <send>
     <![CDATA[
-		ACK sip:17853178070@127.0.0.1:7060;transport=UDP SIP/2.0
-		[last_Via]
-		[last_From]
-		[last_To]
-		[last_Contact]
-		Call-ID: [call_id]
-		CSeq: 1 ACK
-		Max-Forwards: 70
-		Content-Length: 0
+      ACK [$remoteURI] SIP/2.0
+      [last_Via]
+      [last_From]
+      [last_To]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Call-ID: [call_id]
+      CSeq: 1 ACK
+      Max-Forwards: 70
+      Content-Length: 0
 		]]>
   </send>
   
   <pause />
   
-  <!-- Needs fix: Currently hardcoding the uas AOR -->
   <send>
     <![CDATA[
-		BYE sip:17853178070@127.0.0.1:7060;transport=UDP SIP/2.0
-		Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
-		[last_From]
-		[last_To]
-		[last_Contact]
-		Call-ID: [call_id]
-		CSeq: 2 BYE
-		Max-Forwards: 70
-		Content-Length: 0
+      BYE [$remoteURI] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
+      [last_From]
+      [last_To]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Call-ID: [call_id]
+      CSeq: 2 BYE
+      Max-Forwards: 70
+      Content-Length: 0
 		]]>
   </send>
 
