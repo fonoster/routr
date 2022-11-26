@@ -81,8 +81,26 @@
       {
         "mode": "uas",
         "scenarioFile": "scenarios/sc/sip_pbx/registration_mode/authentication.xml",
-        "timeout": 60,
         "port": 7060
+      }
+    ],
+    "enabled": true
+  },
+  {
+    "name": "=== Registering sip.provider.net for at least 1200 seconds to prevent collisions ===",
+    "description": "Hack to prevent trunk from sending additional REGISTER meesages.",
+    "transportMode": "u1",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/registration_mode/maintaining_registration.xml",
+        "port": 7060,
+        "variables": [
+          {
+            "name": "expires",
+            "value": 1200
+          }
+        ]
       }
     ],
     "enabled": true
@@ -92,11 +110,18 @@
     "description": "This test case verifies the format of the INVITE message sent by a SIP-PBX when originating a DOD call.",
     "transportMode": "u1",
     "target": "edgeport01:5060",
+    "domain": "sip.local",
     "userAgents": [
       {
         "mode": "uas",
         "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/dod_originating_call_parameters.xml",
-        "port": 7060
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
       },
       {
         "mode": "uac",
@@ -135,6 +160,7 @@
         "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/did_terminating_call_part_abc.xml",
         "port": 7060,
         "sendRegister": true,
+        "expires": 60,
         "authentication": {
           "username": "1001",
           "secret": "1234"
@@ -177,6 +203,7 @@
         "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/did_terminating_call_privacy.xml",
         "port": 7060,
         "sendRegister": true,
+        "expires": 60,
         "authentication": {
           "username": "1001",
           "secret": "1234"
@@ -219,6 +246,7 @@
         "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/dod_originating_call_privacy_part_a.xml",
         "port": 7060,
         "sendRegister": true,
+        "expires": 60,
         "authentication": {
           "username": "1001",
           "secret": "1234"
@@ -247,7 +275,7 @@
         ]
       }
     ],
-    "enabled": false
+    "enabled": true
   },
   {
     "name": "SC-IT.Conf.1.3.4: SIP-PBX Support for Privacy when generating INVITE message for Originating DOD Call (Part B)",
@@ -261,6 +289,7 @@
         "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/dod_originating_call_privacy_part_b.xml",
         "port": 7060,
         "sendRegister": true,
+        "expires": 60,
         "authentication": {
           "username": "1001",
           "secret": "1234"
@@ -290,5 +319,5 @@
       }
     ],
     "enabled": true
-  }      
+  }
 ]
