@@ -30,7 +30,10 @@
     "format": "prettier --write mods/**/src",
     "prepare": "husky install",
     "hostile:load": "sudo hostile load etc/hosts.txt",
-    "hostile:unload": "sudo hostile unload etc/hosts.txt"
+    "hostile:unload": "sudo hostile unload etc/hosts.txt",
+    "publish": "lerna publish",
+    "publish:prerelease": "lerna publish prerelease --dist-tag next",
+    "publish:frompackages": "lerna publish from-package"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
