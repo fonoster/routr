@@ -13,7 +13,7 @@
     "postbuild": "mkdir -p dist/protos && cp src/protos/* dist/protos"
   },
   "dependencies": {
-    "@fonoster/logger": "0.3.17-alpha.2",
+    "@fonoster/logger": "0.3.18",
     "@grpc/grpc-js": "^1.5.9",
     "@grpc/proto-loader": "^0.6.9",
     "@opentelemetry/api": "^1.0.4",
@@ -25,7 +25,8 @@
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
     "fp-ts": "^2.11.8",
-    "ip-utils": "^2.4.0"
+    "ip-utils": "^2.4.0",
+    "pb-util": "^1.0.3"
   },
   "directories": {
     "src": "src",

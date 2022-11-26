@@ -72,7 +72,7 @@
     "webpack-cli": "^4.7.0"
   },
   "dependencies": {
-    "@fonoster/logger": "0.3.17-alpha.2",
+    "@fonoster/logger": "0.3.18",
     "buffer": "^6.0.3",
     "funfix": "^7.0.1",
     "pb-util": "^1.0.3"
