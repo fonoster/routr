@@ -66,7 +66,7 @@ export class BadRequest extends Error {
    * @param {string} message - optional message with the error. Defaults to "bad request."
    */
   constructor(message?: string) {
-    super(message || "bad request")
+    super(message ?? "bad request")
     this.code = grpc.status.INVALID_ARGUMENT
     Object.setPrototypeOf(this, BadRequest.prototype)
   }

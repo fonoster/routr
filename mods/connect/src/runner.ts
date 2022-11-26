@@ -25,7 +25,7 @@ import { Assertions as A } from "@routr/common"
 A.assertEnvsAreSet(["LOCATION_ADDR", "API_ADDR"])
 
 connectProcessor({
-  bindAddr: process.env.BIND_ADDR || "0.0.0.0:51904",
+  bindAddr: process.env.BIND_ADDR ?? "0.0.0.0:51904",
   locationAddr: process.env.LOCATION_ADDR,
   apiAddr: process.env.API_ADDR
 })

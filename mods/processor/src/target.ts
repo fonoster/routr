@@ -28,8 +28,8 @@ export const getTargetAOR = (request: MessageRequest) =>
 export const getTargetExpires = (request: MessageRequest) => {
   // The expires value in the Contact header takes presendence over the value
   // on the Expires header
-  const expires: number = request.message?.contact?.expires || -1
+  const expires: number = request.message?.contact?.expires ?? -1
   return expires > -1
     ? expires
-    : (request.message.expires as { expires: number })?.expires || -1
+    : (request.message.expires as { expires: number })?.expires ?? -1
 }

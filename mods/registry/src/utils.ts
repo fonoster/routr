@@ -106,13 +106,14 @@ export const convertResourceToTrunk = async (
     name: resource.metadata.name,
     region: metadata.region,
     host: uri.host,
-    port: uri.port || 5060,
+    port: uri.port ?? 5060,
     user: uri.user,
     credentials: {
       username: usernameAndPassword?.username,
       secret: usernameAndPassword?.password
     },
-    transport: (uri.transport?.toUpperCase() || "TCP") as Transport
+    // Q. Why default to TCP?
+    transport: (uri.transport?.toUpperCase() ?? Transport.TCP) as Transport
   } as Trunk
 }
 

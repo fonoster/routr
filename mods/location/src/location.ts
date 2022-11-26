@@ -77,7 +77,7 @@ export default class Location implements ILocationService {
       ? (await this.store.get(request.aor)).filter(
           filterOnlyMatchingLabels(request.labels)
         )
-      : (await this.store.get(request.aor)) || []
+      : (await this.store.get(request.aor)) ?? []
 
     if (request.aor.startsWith(AOR_SCHEME.SIP)) {
       return routes

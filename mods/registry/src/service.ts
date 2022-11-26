@@ -51,7 +51,7 @@ export default function registryService(config: RegistryConfig) {
   logger.info("starting registry service")
 
   const registerInterval =
-    config.registerInterval || DEFAULT_REGISTRATION_INTERVAL
+    config.registerInterval ?? DEFAULT_REGISTRATION_INTERVAL
 
   const store: IRegistryStore = buildStore(config)
 
@@ -102,8 +102,8 @@ export default function registryService(config: RegistryConfig) {
 
       // Makes sure we send register before the last register expires
       const retentionTime =
-        (message.contact?.expires ||
-          message.expires?.expires ||
+        (message.contact?.expires ??
+          message.expires?.expires ??
           DEFAULT_EXPIRES) - registerInterval
 
       // TODO: Refactor to use ResponseType instead of string

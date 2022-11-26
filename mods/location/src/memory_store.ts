@@ -42,7 +42,7 @@ export default class MemoryStore implements ILocatorStore {
 
   /** @inheritdoc */
   public put(key: string, route: Route): Promise<void> {
-    const routes = [...(this.collections.get(key) || [])]
+    const routes = [...(this.collections.get(key) ?? [])]
 
     // Avoids duplicate or expired routes
     const filteredRoutes = routes
@@ -67,7 +67,7 @@ export default class MemoryStore implements ILocatorStore {
       this.cleanup()
     }
     return Promise.resolve(
-      (this.collections.get(key) || []).filter(expiredFilter)
+      (this.collections.get(key) ?? []).filter(expiredFilter)
     )
   }
 

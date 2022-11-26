@@ -28,5 +28,28 @@
         ]
       }
     }
-  }
+  },
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Number",
+    "metadata": {
+      "ref": "nb7c86r2",
+      "name": "(910)3434434",
+      "dependsOn": [
+        "/trunk/tk6t67r1"
+      ],
+      "geoInfo": {
+        "city": "Durham, NC",
+        "country": "USA",
+        "countryISOCode": "US"
+      }
+    },
+    "spec": {
+      "trunkRef": "tk6t67r1",
+      "location": {
+        "telUrl": "tel:+19103434434",
+        "aorLink": "sip:1001@sip.local"
+      }
+    }
+  }  
 ]

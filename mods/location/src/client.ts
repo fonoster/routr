@@ -93,7 +93,7 @@ export default class Location implements ILocationService {
   public async findRoutes(request: FindRoutesRequest): Promise<Route[]> {
     return (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ((await container(this, request, this.findRoutes.name)) as any)?.routes ||
+      ((await container(this, request, this.findRoutes.name)) as any)?.routes ??
       ([] as Route[])
     )
   }

@@ -56,7 +56,7 @@ export default function createRegistrationRequest(
       extensions: [
         ...(params.methods?.map((value: string) => {
           return { name: "Allow", value }
-        }) || []),
+        }) ?? []),
         {
           name: "CSeq",
           value: `${cseq++} ${Method.REGISTER}`
@@ -64,7 +64,7 @@ export default function createRegistrationRequest(
         {
           name: "User-Agent",
           // TODO: Take from central location (commons?)
-          value: params.userAgent || "Routr Connect v2"
+          value: params.userAgent ?? "Routr Connect v2"
         },
         // TODO: Q. Should this be in the registry configuration?
         {
@@ -127,10 +127,10 @@ export default function createRegistrationRequest(
         contentLength: 0
       },
       expires: {
-        expires: params.expires || DEFAULT_EXPIRES
+        expires: params.expires ?? DEFAULT_EXPIRES
       },
       maxForwards: {
-        maxForwards: params.maxForwards || DEFAULT_MAX_FORWARDS
+        maxForwards: params.maxForwards ?? DEFAULT_MAX_FORWARDS
       },
       requestUri: {
         user: params.user,

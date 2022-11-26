@@ -34,7 +34,7 @@ try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const users: User[] = require(process.env.PATH_TO_AUTH)
   simpleAuthProcessor({
-    bindAddr: process.env.BIND_ADDR || "0.0.0.0:51903",
+    bindAddr: process.env.BIND_ADDR ?? "0.0.0.0:51903",
     users,
     whiteList
   })

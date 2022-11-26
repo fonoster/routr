@@ -25,7 +25,7 @@ import { getLogger } from "@fonoster/logger"
 const logger = getLogger({ service: "echo", filePath: __filename })
 
 new Processor({
-  bindAddr: process.env.BIND_ADDR || "0.0.0.0:51904",
+  bindAddr: process.env.BIND_ADDR ?? "0.0.0.0:51904",
   name: "echo"
 }).listen((req: MessageRequest, res: Response) => {
   logger.verbose("got new request: ")

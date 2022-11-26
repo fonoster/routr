@@ -169,7 +169,7 @@ export const getTrunkURI = (
   return {
     user,
     host,
-    port: port || 5060,
+    port: port ?? 5060,
     transport: t
   }
 }

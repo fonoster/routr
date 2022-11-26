@@ -57,7 +57,7 @@ export const addSelfVia = (route: Route) => {
       ? route.listeningPoint
       : {
           // fallback to lp host if there is no external ips
-          host: req.externalIps[0] || req.listeningPoint.host,
+          host: req.externalIps[0] ?? req.listeningPoint.host,
           port: req.listeningPoint.port,
           transport: req.listeningPoint.transport
         }
