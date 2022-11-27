@@ -12,7 +12,7 @@
     "build": "tsc -b tsconfig.json"
   },
   "dependencies": {
-    "@fonoster/logger": "0.3.17",
+    "@fonoster/logger": "0.3.18",
     "@grpc/grpc-js": "^1.5.9",
     "@grpc/proto-loader": "^0.6.9",
     "@opentelemetry/api": "^1.0.4",
