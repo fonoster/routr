@@ -173,7 +173,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
 ```json
 {
   "kind": "EdgePort",
-  "apiVersionv": "v2draft1",
+  "apiVersion": "v2draft1",
   "metadata": {
     "ref": "ep001",
     "region": "us-east1"
