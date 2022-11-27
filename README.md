@@ -55,7 +55,7 @@ Routr's main features are:
 - [ ] Endpoint Authentication with JWT (For web phones)
 - [ ] RTPEngine middleware
 - [ ] Support for STIR/SHAKEN 
-- [ ] Helm Chart
+- [ ] Helm Chart for  Kubernetes deployments
 
 To learn more, read the [documentation](https://routr.io/docs). :books:
 
