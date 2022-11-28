@@ -58,7 +58,7 @@ IEEE/ISO/IEC 29148-2018 - ISO/IEC/IEEE International Standard - Systems and soft
 
 **Brief Description**
 
-The `Connect Processor` is a Routr Processor that carries the necessary logic to implement the SIP Connect v1.2 implementation. For this implementation, we are going to have named routing types. For example, Ingress Routing (IR) for calls coming from the PSTN, Egress Routing (ER) for calls going out to the PSTN, and Intra-Domain Routing (IDR) for internal calling.
+The `Connect Processor` is a Routr Processor that carries the necessary logic to implement the **SIP Connect v1.1** specification. For this implementation, we are going to have named routing types. For example, Ingress Routing (IR) for calls coming from the PSTN, Egress Routing (ER) for calls going out to the PSTN, and Intra-Domain Routing (IDR) for internal calling.
 
 **Functional Requirements**
 
