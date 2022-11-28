@@ -37,7 +37,7 @@ Routr's main features are:
 
 - [x] Common SIP Server functions; Proxy, Registrar, Location Service
 - [x] Programmable Routing
-- [x] Load balancing strategy against media servers like Asterisk and FreeSWITCH
+- [x] Load balancing strategies against Media Servers like Asterisk and FreeSWITCH
 - [x] Session Affinity 
 - [x] Multi-Tenant/Multi-Domain with Domain level Access Control List
 - [ ] Region-based routing
@@ -53,9 +53,9 @@ Routr's main features are:
 - [ ] Server management with CLI and WebApp
 - [ ] NodeJS and WebSDK
 - [ ] Endpoint Authentication with JWT (For web phones)
-- [ ] RTPEngine middleware
+- [ ] RTPEngine Middleware
 - [ ] Support for STIR/SHAKEN 
-- [ ] Helm Chart for  Kubernetes deployments
+- [ ] Helm Chart for  Kubernetes Deployments
 
 To learn more, read the [documentation](https://routr.io/docs). :books:
 
