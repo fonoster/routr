@@ -203,7 +203,7 @@ services:
 
   #
   # SIP End to End Test (SEET) compliance test for SIPConnect v1.1 support
-  # docker-compose up --abort-on-container-exit --exit-code-from seet
+  # docker-compose up --abort-on-container-exit --exit-code-from compliance
   #
   compliance:
     container_name: compliance

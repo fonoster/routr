@@ -36,7 +36,7 @@ public class Requester {
   private final String bindAddr;
 
   public Requester(final String bindAddr) {
-    String sipBindAddr = "0.0.0.0:" + Utils.generatePort(7070, 7080);
+    String sipBindAddr = Utils.getLocalIP() + ":" + Utils.getFreePort();
     this.requesterService = new RequesterService(this);
     this.requestSender = new RequestSender(requesterService, sipBindAddr);
     server = ServerBuilder.forPort(AddressUtil.getPortFromAddress(bindAddr))

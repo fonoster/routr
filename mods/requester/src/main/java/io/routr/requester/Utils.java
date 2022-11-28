@@ -18,12 +18,32 @@
  */
 package io.routr.requester;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Random;
 
 final public class Utils {
 
+  // @Deprecated
   public static int generatePort(int min, int max) {
     Random random = new Random();
     return random.nextInt(max - min) + min;
+  }
+
+  public static int getFreePort() {
+    try (ServerSocket socket = new ServerSocket(0)) {
+      return socket.getLocalPort();
+    } catch (IOException e) {
+      throw new IllegalStateException("could not find a free port to start requester service on", e);
+    }
+  }
+
+  // Create a method to get local IP address
+  public static String getLocalIP() {
+    try {
+      return java.net.InetAddress.getLocalHost().getHostAddress();
+    } catch (java.net.UnknownHostException e) {
+      throw new IllegalStateException("could not get local ip for requester service", e);
+    }
   }
 }
