@@ -11,9 +11,8 @@
 # Currently it is set to work from v2 branch.
 tasks:
   - name: Setup & start
-    init: |
-      sudo sh -c "cat etc/hosts.txt >> /etc/hosts"
-      npm run make
+    before: sudo sh -c "cat etc/hosts.txt >> /etc/hosts"
+    init: npm run make
     command: npm start
 
 #ports:
