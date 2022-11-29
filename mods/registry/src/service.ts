@@ -73,7 +73,7 @@ export default function registryService(config: RegistryConfig) {
     const trunksInStore = (await store.list()).map((r) => r.trunkRef)
 
     const registryInvocations = resources
-      .filter((resources) => !trunksInStore.includes(resources.metadata.ref))
+      .filter((resources) => !trunksInStore.includes(resources.ref))
       .map(async (resource) => {
         const registrationRequestInput = registrationRequestInputFromTrunk(
           await convertResourceToTrunk(dataAPI, resource),

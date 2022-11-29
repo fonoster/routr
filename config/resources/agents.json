@@ -2,39 +2,29 @@
   {
     "apiVersion": "v2draft1",
     "kind": "Agent",
+    "ref": "ag2c77f4",
     "metadata": {
-      "ref": "ag2c77f4",
-      "name": "John Doe",
-      "dependsOn": [
-        "/domain/dm2c76ft",
-        "/credential/crd2c76ft"
-      ]
+      "name": "John Doe"
     },
     "spec": {
       "username": "1001",
       "domainRef": "dm2c76ft",
       "credentialRef": "crd2c76ft",
-      "privacy": "private",
-      "enabled": true
+      "privacy": "Private"
     }
   },
   {
     "apiVersion": "v2draft1",
     "kind": "Agent",
+    "ref": "ag2c77fx",
     "metadata": {
-      "ref": "ag2c77fx",
-      "name": "Jane Doe",
-      "dependsOn": [
-        "/domain/dm2c76ft",
-        "/credential/crd6y56yt"
-      ]
+      "name": "Jane Doe"
     },
     "spec": {
       "username": "1002",
       "domainRef": "dm2c76ft",
       "credentialRef": "crd6y56yt",
-      "privacy": "none",
-      "enabled": true
+      "privacy": "None"
     }
   }
 ]

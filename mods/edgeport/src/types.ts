@@ -29,7 +29,7 @@ export interface EdgePortConfig {
     processor: {
       addr: string
     }
-    externalIps: string[]
+    externalAddrs: string[]
     localnets: string[]
     securityContext?: {
       debugging: boolean

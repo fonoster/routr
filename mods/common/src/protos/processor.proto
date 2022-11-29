@@ -79,7 +79,7 @@ message MessageRequest {
   Method method = 3;
   NetInterface sender = 4;
   NetInterface listening_point = 5;
-  repeated string external_ips = 6;
+  repeated string external_addrs = 6;
   repeated string localnets = 7;
   fonoster.routr.sipmessage.v2draft1.SIPMessage message = 8;
   // .google.protobuf.Struct metadata = 8;

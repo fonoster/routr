@@ -50,7 +50,7 @@ public class MessageConverter {
   private final static Logger LOG = LogManager.getLogger(MessageConverter.class);
   private final String edgePortRef;
   private Map<String, NetInterface> listeningPoints;
-  private List<String> externalIps;
+  private List<String> externalAddrs;
   private List<String> localnets;
 
   public MessageConverter(String edgePortRef) {
@@ -230,7 +230,7 @@ public class MessageConverter {
       .setMethod(method)
       .setSender(sender)
       .setListeningPoint(listeningPoint)
-      .addAllExternalIps(this.externalIps)
+      .addAllExternalAddrs(this.externalAddrs)
       .addAllLocalnets(this.localnets)
       .setMessage(convertToMessageDTO(message))
       .build();
@@ -240,8 +240,8 @@ public class MessageConverter {
     this.listeningPoints = listeningPoints;
   }
 
-  public void setExternalIps(final List<String> externalIps) {
-    this.externalIps = externalIps;
+  public void setExternalAddrs(final List<String> externalAddrs) {
+    this.externalAddrs = externalAddrs;
   }
 
   public void setLocalnets(final List<String> localnets) {

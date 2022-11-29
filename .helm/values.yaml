@@ -29,7 +29,7 @@ udpSignalingService:
   type: ClusterIP
   port: 5060
   annotations: { }
-  externalIPs: [ ]
+  externalAddrs: [ ]
 
 # Use this service to enable TCP access to the server's signaling
 # capabilities. Keep in mind that this will create the service for you
@@ -43,7 +43,7 @@ tcpSignalingService:
     - name: siptcp
       port: 5060
   annotations: { }
-  externalIPs: [ ]
+  externalAddrs: [ ]
 
 replicaCount: 2
 nameOverride: ""

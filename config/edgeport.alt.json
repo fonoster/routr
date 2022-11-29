@@ -24,7 +24,7 @@
     "processor": {
       "addr": "dispatcher:51901"
     },
-    "externalIps": [
+    "externalAddrs": [
       "10.111.220.3",
       "edgeport02"
     ],

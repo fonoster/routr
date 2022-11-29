@@ -16,15 +16,12 @@ service Resources {
 }
 
 message Metadata {
-  string ref = 1;
   // The resource's name
-  string name = 2;
-  // Link to dependencies of this resource
-  repeated string depends_on = 3;
+  string name = 1;
   // Created at
-  int32 create_time = 4;
+  int32 create_time = 2;
   // Updated at
-  int32 update_time = 5;
+  int32 update_time = 3;
 }
 
 message Resource {
@@ -32,10 +29,12 @@ message Resource {
   string apiVersion = 1;
   // The resource's kind
   string kind = 2;
+  // The resource's unique identifier
+  string ref = 3;
   // The resource's metadata
-  Metadata metadata = 3;
+  Metadata metadata = 4;
   // The resource's data
-  .google.protobuf.Struct spec = 4;
+  .google.protobuf.Struct spec = 5;
 }
 
 message CreateRequest  {

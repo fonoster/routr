@@ -2,12 +2,9 @@
   {
     "apiVersion": "v2draft1",
     "kind": "Number",
+    "ref": "nb6c87r2",
     "metadata": {
-      "ref": "nb6c87r2",
       "name": "(706)604-1487",
-      "dependsOn": [
-        "/trunk/tk6t67r1"
-      ],
       "geoInfo": {
         "city": "Columbus, GA",
         "country": "USA",
@@ -32,12 +29,9 @@
   {
     "apiVersion": "v2draft1",
     "kind": "Number",
+    "ref": "nb7c86r2",
     "metadata": {
-      "ref": "nb7c86r2",
-      "name": "(910)3434434",
-      "dependsOn": [
-        "/trunk/tk6t67r1"
-      ],
+      "localFormat": "(910)343-4434",
       "geoInfo": {
         "city": "Durham, NC",
         "country": "USA",

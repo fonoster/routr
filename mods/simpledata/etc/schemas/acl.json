@@ -50,9 +50,9 @@
     }
   },
   "required": [
+    "apiVersion",
     "kind",
     "metadata",
-    "spec",
-    "apiVersion"
+    "spec"
   ]
 }

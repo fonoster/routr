@@ -58,7 +58,7 @@ export function router(location: ILocationService, dataAPI: CC.DataAPI) {
 
     switch (routingDir) {
       case ROUTING_DIRECTION.AGENT_TO_PSTN:
-        return await toPSTN(dataAPI, req, caller)
+        return await toPSTN(dataAPI, req, caller, requestURI.user)
       case ROUTING_DIRECTION.AGENT_TO_AGENT:
         return agentToAgent(location, req)
       case ROUTING_DIRECTION.FROM_PSTN:
@@ -120,24 +120,31 @@ async function fromPSTN(
 async function toPSTN(
   dataAPI: CC.DataAPI,
   req: MessageRequest,
-  caller: CC.Resource
+  caller: CC.Resource,
+  calleeNumber: string
 ): Promise<Route> {
   const domain = await dataAPI.get(caller.spec.domainRef)
-  const number = await dataAPI.get(domain.spec.context.egressPolicy?.numberRef)
+
+  // Look for Number in domain that matches regex callee
+  const policy = domain.spec.context.egressPolicies?.find(
+    (policy: { rule: string }) => {
+      const regex = new RegExp(policy.rule)
+      return regex.test(calleeNumber)
+    }
+  )
+
+  const number = await dataAPI.get(policy?.numberRef)
+
   const trunk = await dataAPI.get(number?.spec.trunkRef)
 
-  if (!domain.spec.context.egressPolicy) {
+  if (!domain.spec.context.egressPolicies) {
     // TODO: Create custom error
-    throw new Error(
-      "no egress policy found for Domain ref" + domain.metadata.ref
-    )
+    throw new Error(`no egress policy found for Domain ref: ${domain.ref}`)
   }
 
   if (!trunk) {
     // TODO: Create custom error
-    throw new Error(
-      "no trunk associated with Number ref: " + number.metadata.ref
-    )
+    throw new Error(`no trunk associated with Number ref: ${number?.ref}`)
   }
 
   const uri = getTrunkURI(trunk)
@@ -153,7 +160,7 @@ async function toPSTN(
       {
         name: "Privacy",
         value:
-          caller.spec.privacy === CT.Privacy.PRIVATE
+          caller.spec.privacy?.toLowerCase() === CT.Privacy.PRIVATE
             ? CT.Privacy.PRIVATE
             : CT.Privacy.NONE,
         action: CT.HeaderModifierAction.ADD

@@ -51,7 +51,7 @@ data:
         "processor": {
           "addr": "localhost:51901"
         },
-        "externalIps": ["47.132.130.31"],
+        "externalAddrs": ["47.132.130.31"],
         "localnets": ["192.168.1.9"],
         "methods": [
           "INVITE",

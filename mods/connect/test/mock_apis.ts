@@ -35,7 +35,7 @@ findCriteriaMap[CC.FindCriteria.FIND_AGENT_BY_USERNAME] = (
 
 findCriteriaMap[CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
   parameters: Record<string, string>
-) => `$..[?(@.metadata.ref=='${parameters.ref}')]`
+) => `$..[?(@.ref=='${parameters.ref}')]`
 
 findCriteriaMap[CC.FindCriteria.FIND_DOMAIN_BY_DOMAINURI] = (
   parameters: Record<string, string>
@@ -73,7 +73,7 @@ export const dataAPI: CC.DataAPI = {
   },
   get: (ref: string): Promise<CC.Resource> => {
     return Promise.resolve(
-      jp.query(resources, `$..[?(@.metadata.ref=="${ref}")]`)[0]
+      jp.query(resources, `$..[?(@.ref=="${ref}")]`)[0]
     ) as unknown as Promise<CC.Resource>
   }
 }

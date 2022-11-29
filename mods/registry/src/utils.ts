@@ -102,7 +102,7 @@ export const convertResourceToTrunk = async (
   const usernameAndPassword = cred?.spec.credentials
 
   return {
-    ref: resource.metadata.ref,
+    ref: resource.ref,
     name: resource.metadata.name,
     region: metadata.region,
     host: uri.host,

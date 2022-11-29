@@ -73,12 +73,9 @@ First, you will start by creating a Peer configuration for your Asterisk server 
 {
   "apiVersion": "v2draft1",
   "kind": "Peer",
+  "ref": "prxt67rx",
   "metadata": {
-    "ref": "prxt67rx",
-    "name": "Asterisk (Media Server)",
-    "dependsOn": [
-      "/credentials/crd6t67r1"
-    ]
+    "name": "Asterisk (Media Server)"
   },
   "spec": {
     "username": "asterisk",
@@ -95,12 +92,9 @@ Every Asterik server that registers using the `crd6t67r1` credentials will be gr
 {
   "apiVersion": "v2draft1",
   "kind": "Number",
+  "ref": "nbxt67rx",
   "metadata": {
-    "ref": "nbxt67rx",
     "name": "(706)604-1487",
-    "dependsOn": [
-      "/trunk/tk6t67r1"
-    ],
     "geoInfo": {
       "city": "Columbus, GA",
       "country": "USA",

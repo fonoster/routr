@@ -48,11 +48,10 @@ export interface DataAPI {
 export interface Resource {
   apiVersion: string
   kind: string
+  ref: string
   metadata: {
-    ref: string
     name: string
     region?: string
-    linkTo?: Array<string>
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   spec: Record<string, any>

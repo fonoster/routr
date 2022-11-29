@@ -73,7 +73,7 @@ const messageRequest: MessageRequest = {
     host: "localhost",
     transport: CT.Transport.TCP
   },
-  externalIps: [],
+  externalAddrs: [],
   localnets: [],
   message: {} as unknown as CT.SIPMessage
 }

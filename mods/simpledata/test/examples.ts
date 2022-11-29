@@ -22,8 +22,8 @@ export const resources: CC.Resource[] = [
   {
     apiVersion: "v2draft1",
     kind: "Credential",
+    ref: "crd2c76ft",
     metadata: {
-      ref: "crd2c76ft",
       name: "my-secret-credential"
     },
     spec: {
@@ -36,8 +36,8 @@ export const resources: CC.Resource[] = [
   {
     apiVersion: "v2draft1",
     kind: "AccessControlList",
+    ref: "acl2c77f4",
     metadata: {
-      ref: "acl2c77f4",
       name: "Europe ACL"
     },
     spec: {

@@ -42,7 +42,7 @@ export function get(resources: CC.Resource[]) {
     }
 
     const resource = H.deepCopy(
-      resources.find((r) => r.metadata.ref === call.request.ref)
+      resources.find((r) => r.ref === call.request.ref)
     )
 
     // Serialize to protobuf

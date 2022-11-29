@@ -24,7 +24,7 @@ const edgePortConfig: EdgePortConfig = {
     processor: {
       addr: "localhost:51903"
     },
-    externalIps: [],
+    externalAddrs: [],
     localnets: [],
     transport: [
       {

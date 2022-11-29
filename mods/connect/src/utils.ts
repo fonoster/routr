@@ -70,10 +70,7 @@ export const findResource = async (
         )[0]
       : res
 
-  if (
-    isKind(res, CC.KIND.AGENT) &&
-    res.spec.domainRef != domain?.metadata.ref
-  ) {
+  if (isKind(res, CC.KIND.AGENT) && res.spec.domainRef != domain?.ref) {
     // Not in the same domain
     return null
   }
@@ -146,7 +143,7 @@ export const createTrunkAuthentication = async (
   return {
     name: CT.ExtraHeader.GATEWAY_AUTH,
     value: Buffer.from(
-      `${credentials.spec.credentials.username}:${credentials.spec.credentials.password}`
+      `${credentials.spec.credentials?.username}:${credentials.spec.credentials?.password}`
     ).toString("base64"),
     action: CT.HeaderModifierAction.ADD
   }

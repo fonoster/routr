@@ -78,7 +78,7 @@ describe("@routr/processor/alterations", () => {
   it("adds via header and same edgeport", () => {
     const r = A.addSelfVia(route)(request)
     expect(r).to.have.property("message").to.have.property("via").lengthOf(3)
-    expect(r.message.via[0].host).to.be.equal(r.externalIps[0])
+    expect(r.message.via[0].host).to.be.equal(r.externalAddrs[0])
     expect(r.message.via[0].port).to.be.equal(route.listeningPoint.port)
     expect(r.message.via[0].transport).to.be.equal(
       route.listeningPoint.transport

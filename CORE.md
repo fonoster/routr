@@ -172,10 +172,10 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
 
 ```json
 {
-  "kind": "EdgePort",
   "apiVersion": "v2draft1",
+  "kind": "EdgePort",
+  "ref": "ep001",
   "metadata": {
-    "ref": "ep001",
     "region": "us-east1"
   },
   "spec": {
@@ -183,7 +183,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
     "processor": {
       "addr": "dispatcher:51901"
     },
-    "externalIps": ["165.227.217.102"],
+    "externalAddrs": ["165.227.217.102"],
     "localnets": ["172.17.0.2/16"],
     "methods": [
       "INVITE",
@@ -216,27 +216,26 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
   "description": "Configuration for an EdgePort instance",
   "type": "object",
   "properties": {
+    "apiVersion": {
+      "enum": ["v2draft1", "v2.0", "v2"]
+    },
     "kind": {
       "description": "Resouce type",
       "type": "string"
     },
-    "apiVersion": {
-      "enum": ["v2draft1", "v2.0", "v2"]
+    "ref": {
+      "description": "EdgePort reference",
+      "type": "string"
     },
     "metadata": {
       "description": "Resource metadata",
       "type": "object",
       "properties": {
-        "ref": {
-          "description": "EdgePort reference",
-          "type": "string"
-        },
         "region": {
           "description": "Optional region where the EdgePort is operating",
           "type": "string"
         }
-      },
-      "required": ["ref"]
+      }
     },
     "spec": {
       "description": "Operation spec for the EdgePort",
@@ -246,7 +245,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
           "description": "Ipv4 interface to accept request on",
           "type": "string"
         },
-        "externalIps": {
+        "externalAddrs": {
           "description": "EdgePort external ip addresses.",
           "type": "array",
           "items": {
@@ -308,7 +307,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
       "required": ["methods", "transport", "processor"]
     },
   },
-  "required": ["kind", "metadata", "spec", "apiVersion"]
+  "required": [ "apiVersion", "kind", "ref", "metadata", "spec" ]
 }
 ```
 
@@ -431,9 +430,7 @@ Example:
 {
   "kind": "MessageDispatcher",
   "apiVersion": "v2draft1",
-  "metadata": {
-    "ref": "mr001"
-  },
+  "ref": "mr001",
   "spec": {
     "bindAddr": "0.0.0.0",
     "middlewares": [
@@ -481,24 +478,17 @@ Example:
   "description": "Configuration for a Message Dispatcher instance",
   "type": "object",
   "properties": {
-    "kind": {
-      "description": "Resouce type",
-      "type": "string"
-    },
     "apiVersion": {
       "description": "Resource version",
       "type": "string"
     },
-    "metadata": {
-      "description": "Resource metadata",
-      "type": "object",
-      "properties": {
-         "ref": {
-           "description": "EdgePort reference",
-           "type": "string"
-         }
-       },
-      "required": [ "ref" ]
+    "kind": {
+      "description": "Resouce type",
+      "type": "string"
+    },
+    "ref": {
+      "description": "EdgePort reference",
+      "type": "string"
     },
     "spec": {
       "description": "Operations spec for EdgePort",
@@ -549,11 +539,10 @@ Example:
            },
            "required": [ "ref", "addr", "methods", "matchFunc" ]
          }
-       },
-      "required": [ "ref" ]
+       }
     }    
   },
-  "required": [ "kind", "metadata", "spec", "apiVersion" ]
+  "required": [ "apiVersion", "kind", "ref", "metadata", "spec" ]
 }
 ``` 
 
@@ -629,8 +618,8 @@ However, the following "base" configuration is recommended as the starting point
 {
   "kind": "Processor",
   "apiVersion": "v2draft1",
+  "ref": "logging-processor",
   "metadata": {
-    "ref": "logging-processor"
     "region": "us-east1"
   },
   "spec": {
@@ -826,7 +815,7 @@ Example:
       }
     }
   },
-  "required": ["kind", "metadata", "spec", "apiVersion"]
+  "required": [ "apiVersion", "kind", "metadata", "spec" ]
 }
 ```
 

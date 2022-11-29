@@ -4,16 +4,22 @@
   "description": "Credentials resource for Agents and Trunks",
   "type": "object",
   "properties": {
+    "apiVersion": {
+      "enum": [
+        "v2draft1",
+        "v2.0",
+        "v2"
+      ]
+    },    
     "kind": {
       "enum": [
         "Credentials",
         "credentials"
       ]
     },
-    "apiVersion": {
-      "enum": [
-        "v2draft1"
-      ]
+    "ref": {
+      "description": "Reference to the resource",
+      "type": "string"
     },
     "metadata": {
       "description": "Resource metadata",

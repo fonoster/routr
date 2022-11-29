@@ -49,13 +49,13 @@ export default function edgePort(config: EdgePortConfig) {
     createListeningPoints(sipStack, config)
   )
 
-  const externalIps = new ArrayList()
+  const externalAddrs = new ArrayList()
   const localnets = new ArrayList()
 
-  config.spec.externalIps?.forEach((addr: string) => externalIps.add(addr))
+  config.spec.externalAddrs?.forEach((addr: string) => externalAddrs.add(addr))
   config.spec.localnets?.forEach((net: string) => localnets.add(net))
 
   sipProvider.addSipListener(
-    new GRPCSipListener(sipProvider, config, externalIps, localnets)
+    new GRPCSipListener(sipProvider, config, externalAddrs, localnets)
   )
 }

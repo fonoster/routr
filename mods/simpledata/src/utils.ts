@@ -34,7 +34,7 @@ findCriteriaMap[CC.FindCriteria.FIND_AGENT_BY_USERNAME] = (
 
 findCriteriaMap[CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
   parameters: Record<string, string>
-) => `$..[?(@.metadata.ref=='${parameters.ref}')]`
+) => `$..[?(@.ref=='${parameters.ref}')]`
 
 findCriteriaMap[CC.FindCriteria.FIND_DOMAIN_BY_DOMAINURI] = (
   parameters: Record<string, string>

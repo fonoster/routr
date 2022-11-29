@@ -12,9 +12,9 @@ annotations:
   { { - toYaml . | nindent 4 } }
   { { - end } }
 spec:
-  { { - if .Values.udpSignalingService.externalIPs } }
-  externalIPs:
-  { { - range .Values.udpSignalingService.externalIPs } }
+  { { - if .Values.udpSignalingService.externalAddrs } }
+  externalAddrs:
+  { { - range .Values.udpSignalingService.externalAddrs } }
   - { { . } }
   { { - end } }
   { { - end } }
@@ -44,9 +44,9 @@ annotations:
   { { - toYaml . | nindent 4 } }
   { { - end } }
 spec:
-  { { - if .Values.tcpSignalingService.externalIPs } }
-  externalIPs:
-  { { - range .Values.tcpSignalingService.externalIPs } }
+  { { - if .Values.tcpSignalingService.externalAddrs } }
+  externalAddrs:
+  { { - range .Values.tcpSignalingService.externalAddrs } }
   - { { . } }
   { { - end } }
   { { - end } }

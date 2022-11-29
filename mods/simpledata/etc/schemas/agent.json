@@ -12,7 +12,9 @@
     },
     "apiVersion": {
       "enum": [
-        "v2draft1"
+        "v2draft1",
+        "v2.0",
+        "v2"
       ]
     },
     "metadata": {
@@ -44,6 +46,8 @@
         },
         "privacy": {
           "enum": [
+            "Private",
+            "None",
             "private",
             "none"
           ]

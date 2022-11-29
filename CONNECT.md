@@ -1,6 +1,6 @@
 # Routr Connect Processor
 
-### Version 0.1.2 (Draft)
+### Version 0.1.3 (Draft)
 
 <details>
 <summary>Table of Contents</summary>
@@ -186,20 +186,15 @@ Example:
 {
   "apiVersion": "v2draft1",
   "kind": "Agent",
+  "ref": "ag2c77f4",
   "metadata": {
-    "ref": "ag2c77f4",
-    "name": "John Doe",
-    "dependsOn": [
-      "/domain/dm2c76ft"
-      "/domain/dm5774ux",
-      "/credentials/crd2c76ft"
-    ]
+    "name": "John Doe"
   },
   "spec": {
     "username": "johndoe",
     "domains": ["dm2c76ft", "dm5774ux"],
     "credentialRef": "crd2c76ft",
-    "privacy": "private",
+    "privacy": "Private",
     "enabled": true
   }
 }
@@ -213,19 +208,18 @@ Example:
 {
   "apiVersion": "v2draft1",
   "kind": "Domain",
+  "ref": "dm2c76ft",
   "metadata": {
-    "ref": "dm2c76ft",
-    "name": "Local Domain",
-    "dependsOn": ["/number/nb6c87r2"]
+    "name": "Local Domain"
   },
   "spec": {
     "context": {
       "domainUri": "sip.local",
-      "egressPolicy": {
+      "accessControlListRef": "acl04b5y",
+      "egressPolicies": [{
         "rule": ".*",
         "numberRef": "nb6c87r2"
-      },
-      "accessControlListRef": "acl04b5y"
+      }]
     }
   }
 }
@@ -239,14 +233,10 @@ Example:
 {
   "apiVersion": "v2draft1",
   "kind": "Trunk",
+  "ref": "tk6t67r1",
   "metadata": {
-    "ref": "tk6t67r1",
     "name": "VoIP.ms Trunk",
-    "region": "us-east1",
-    "dependsOn": [
-      "/acl/acl04b5y",
-      "/credential/crd02s23"
-    ]
+    "region": "us-east1"
   },
   "spec": {
     "inbound": {
@@ -281,12 +271,9 @@ Numbers represent virtual numbers that route calls from/to the PSTN via a Trunk.
 {
   "apiVersion": "v2draft1",
   "kind": "Number",
+  "ref": "nbxt67rx",
   "metadata": {
-    "ref": "nbxt67rx",
-    "name": "(706)604-1487",
-    "dependsOn": [
-      "/trunk/tk6t67r1"
-    ],
+    "localFormat": "(706)604-1487",
     "geoInfo": {
       "city": "Columbus, GA",
       "country": "USA",
@@ -314,15 +301,14 @@ Like Agents, Peers represent SIP endpoints such as Media Servers. Unlike Agents,
 {
   "apiVersion": "v2draft1",
   "kind": "Peer",
+  "ref": "prxt67rx",
   "metadata": {
-    "ref": "prxt67rx",
-    "name": "Asterisk (Media Server)",
-    "dependsOn": ["/credentials/crd6t67r1"],
+    "name": "Asterisk (Media Server)"
   },
   "spec": {
-    "credentialsRef": "crd6t67r1",
     "aor": "backend:conference",
-    "contactAddr": "192.168.1.2:6060"
+    "contactAddr": "192.168.1.2:6060",
+    "credentialsRef": "crd6t67r1"
   }
 }
 ```

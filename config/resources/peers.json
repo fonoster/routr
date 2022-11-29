@@ -2,12 +2,9 @@
   {
     "apiVersion": "v2draft1",
     "kind": "Peer",
+    "ref": "prxt67rx",
     "metadata": {
-      "ref": "prxt67rx",
-      "name": "Asterisk (Media Server)",
-      "dependsOn": [
-        "/credentials/crd6t67r1"
-      ]
+      "name": "Asterisk (Media Server)"
     },
     "spec": {
       "username": "asterisk",

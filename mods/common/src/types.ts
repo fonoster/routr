@@ -65,7 +65,7 @@ export interface MessageRequest {
   method: Method
   sender: NetInterface
   listeningPoint: NetInterface
-  externalIps: string[]
+  externalAddrs: string[]
   localnets: string[]
   message: SIPMessage
 }

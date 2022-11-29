@@ -59,7 +59,7 @@ public class GRPCSipListener implements SipListener {
   private final Map<String, Transaction> activeTransactions = new HashMap<>();
 
   public GRPCSipListener(final SipProvider sipProvider, final Map<String, Object> config,
-      final List<String> externalIps, final List<String> localnets) throws PeerUnavailableException {
+      final List<String> externalAddrs, final List<String> localnets) throws PeerUnavailableException {
     System.setProperty("serviceName", "edgeport");
     MapProxyObject values = new MapProxyObject(config);
     MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
@@ -71,7 +71,7 @@ public class GRPCSipListener implements SipListener {
 
     LOG.info("starting edgeport ref = {} at {}", edgePortRef, bindAddr);
     LOG.info("localnets list [{}]", String.join(",", localnets));
-    LOG.info("external ips list [{}]", String.join(",", externalIps));
+    LOG.info("external ips list [{}]", String.join(",", externalAddrs));
 
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
         .usePlaintext()
@@ -94,7 +94,7 @@ public class GRPCSipListener implements SipListener {
     }
 
     messageConverter = new MessageConverter(edgePortRef);
-    messageConverter.setExternalIps(externalIps);
+    messageConverter.setExternalAddrs(externalAddrs);
     messageConverter.setLocalnets(localnets);
     messageConverter.setListeningPoints(listeningPoints);
 

@@ -57,7 +57,7 @@ export const addSelfVia = (route: Route) => {
       ? route.listeningPoint
       : {
           // fallback to lp host if there is no external ips
-          host: req.externalIps[0] ?? req.listeningPoint.host,
+          host: req.externalAddrs[0] ?? req.listeningPoint.host,
           port: req.listeningPoint.port,
           transport: req.listeningPoint.transport
         }
@@ -178,7 +178,7 @@ export const removeRoutes = (request: MessageRequest): MessageRequest => {
     const lp = request.listeningPoint
     const route = r.address.uri
     return !(
-      (route.host === lp.host || request.externalIps.includes(route.host)) &&
+      (route.host === lp.host || request.externalAddrs.includes(route.host)) &&
       route.port === lp.port
     )
   })
