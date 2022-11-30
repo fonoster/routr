@@ -47,7 +47,7 @@
     "husky": "^4.2.3",
     "jvm-npm": "^0.1.1",
     "lint-staged": "^10.0.9",
-    "mocha": "^6.2.3",
+    "mocha": "^10.1.0",
     "npm": "^8.6.0",
     "nyc": "^14.1.1",
     "prettier-standard": "^9.1.1",
