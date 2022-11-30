@@ -32,7 +32,6 @@ const {
   configureRecordRoute,
   configureIdentity,
   configureXHeaders,
-  configureCSeq,
   isInDialog,
   getTargetTransport
 } = require('@routr/core/processor/request_utils')
@@ -234,14 +233,6 @@ class RequestHandler {
         )
       } else if (route) {
         requestOut = configureRequestURI(requestOut, null, route)
-      }
-
-      if (
-        routeInfo &&
-        routeInfo.getRoutingType() === RoutingType.DOMAIN_EGRESS_ROUTING
-      ) {
-        // XXX: Please document this situation :(
-        requestOut = configureCSeq(requestOut)
       }
 
       let bridgingNote

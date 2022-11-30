@@ -117,6 +117,15 @@ class ResponseProcessor {
     LOG.debug(event.getResponse())
     const appData = event.getClientTransaction()?.getApplicationData()
 
+    let response = event.getResponse().clone()
+
+    // Gateway calls using the handleAuthChallenge must compensate and reduce the CSeq 
+    // before sending back the response to match the original request.
+    if (appData?.thruGw && appData?.gwUsername) {
+      const cseq = response.getHeader(CSeqHeader.NAME).getSeqNumber() - 1
+      response.getHeader(CSeqHeader.NAME).setSeqNumber(cseq)
+    }
+
     if (event.getResponse().getStatusCode() >= 400 && appData?.accessKeyId) {
       appData.message = `The call was rejected by the sip endpoint with error code ${event
         .getResponse()
@@ -131,7 +140,6 @@ class ResponseProcessor {
     }
 
     try {
-      let response = event.getResponse().clone()
       let bridgingNote
       if (
         config.spec.ex_rtpEngine.enabled &&

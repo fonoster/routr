@@ -96,6 +96,7 @@ const configureContact = request => {
 
   return requestOut
 }
+// @Deprecated
 const configureCSeq = request => {
   const requestOut = request.clone()
   // Lower the cseq to match the original request
