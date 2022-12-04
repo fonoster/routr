@@ -16,14 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alterations as A, MessageRequest } from "@routr/processor"
+import {
+  Alterations as A,
+  Extensions as E,
+  MessageRequest
+} from "@routr/processor"
 import { Route } from "@routr/common"
 import { pipe } from "fp-ts/function"
 
 // Q: Shoukd we add support for strict routing?
 export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
   pipe(
-    req,
+    // TODO: Fix this hardcode
+    E.removeHeader(req, "Privacy"),
     A.addSelfVia(route),
     A.applyXHeaders(route),
     A.addRoute(route),

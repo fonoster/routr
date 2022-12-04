@@ -45,3 +45,14 @@ export const addHeader = (
   r.message.extensions = [...request.message.extensions, header]
   return r
 }
+
+export const removeHeader = (
+  request: MessageRequest,
+  name: string
+): MessageRequest => {
+  const r = H.deepCopy(request)
+  r.message.extensions = request.message.extensions.filter(
+    (ext: CommonTypes.Extension) => ext.name !== name
+  )
+  return r
+}
