@@ -112,8 +112,7 @@ export const convertResourceToTrunk = async (
       username: usernameAndPassword?.username,
       secret: usernameAndPassword?.password
     },
-    // Q. Why default to TCP?
-    transport: (uri.transport?.toUpperCase() ?? Transport.TCP) as Transport
+    transport: (uri.transport?.toUpperCase() ?? Transport.UDP) as Transport
   } as Trunk
 }
 
