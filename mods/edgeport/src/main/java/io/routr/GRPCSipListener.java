@@ -208,6 +208,11 @@ public class GRPCSipListener implements SipListener {
 
       req.setRequestURI(sipURI);
 
+      if (req.getMethod().equals(Request.CANCEL)) {
+        assert serverTransaction != null;
+        this.sendCancel(serverTransaction, req, headers);
+        return;
+      }
       this.sendRequest(serverTransaction, req, headers);
     } catch (StatusRuntimeException | SipException | ParseException | InvalidArgumentException e) {
       var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
@@ -233,7 +238,6 @@ public class GRPCSipListener implements SipListener {
       var isTransactional = isTransactional(event);
 
       if (isTransactional && authenticationRequired(res)) {
-        // Q. What if it has no application data?
         var accountManager = (AccountManager) event.getClientTransaction().getApplicationData();
 
         if (accountManager == null) {
@@ -266,6 +270,9 @@ public class GRPCSipListener implements SipListener {
         var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
         var originalServerTransaction = (ServerTransaction) this.activeTransactions.get(callId.getCallId() + "_server");
         if (originalServerTransaction != null) {
+          // The response CSeq number must be the same as the original request CSeq number
+          var originalCSeq = (CSeqHeader) originalServerTransaction.getRequest().getHeader(CSeqHeader.NAME);
+          res.setHeader(originalCSeq);
           originalServerTransaction.sendResponse(res);
         } else if (res.getHeader(ViaHeader.NAME) != null) {
           this.sipProvider.sendResponse(res);
@@ -316,8 +323,19 @@ public class GRPCSipListener implements SipListener {
       final List<Header> headers) {
     try {
       Request requestOut = updateRequest(request, headers);
+      var callId = (CallIdHeader) requestOut.getHeader(CallIdHeader.NAME);
       // Does not need a transaction
       if (requestOut.getMethod().equals(Request.ACK)) {
+        var transaction = this.activeTransactions.get(callId.getCallId() + "_client");
+        // If appData is set increase the CSeq for the Ack request
+        if (transaction != null && transaction.getApplicationData() != null) {
+          var cSeq = (CSeqHeader) requestOut.getHeader(CSeqHeader.NAME);
+          try {
+            cSeq.setSeqNumber(cSeq.getSeqNumber() + 1);
+          } catch (InvalidArgumentException e) {
+            LOG.warn("an exception occurred while processing callId: {}", callId, e);
+          }
+        }
         this.sipProvider.sendRequest(requestOut);
         return;
       }
@@ -328,13 +346,57 @@ public class GRPCSipListener implements SipListener {
       var host = ((SipURI) requestOut.getRequestURI()).getHost();
       clientTransaction.setApplicationData(createAccountManager(headers, host));
       clientTransaction.sendRequest();
-
-      var callId = (CallIdHeader) requestOut.getHeader(CallIdHeader.NAME);
       this.activeTransactions.put(callId.getCallId() + "_client", clientTransaction);
       this.activeTransactions.put(callId.getCallId() + "_server", serverTransaction);
     } catch (SipException e) {
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
       LOG.warn("an exception occurred while sending request with callId: {}", callId, e);
+    }
+  }
+
+  private void sendCancel(final ServerTransaction serverTransaction, final Request request, 
+      final List<Header> headers) {
+    try {
+      var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+      var originalClientTransaction = (ClientTransaction) this.activeTransactions.get(callId.getCallId() + "_client");
+      var originalServerTransaction = (ServerTransaction) this.activeTransactions.get(callId.getCallId() + "_server");      
+      
+      Request updatedRequest = updateRequest(request, headers);
+
+      // Let client know we are processing the request
+      var cancelResponse = this.messageFactory.createResponse(
+        Response.OK,
+        serverTransaction.getRequest()
+      );
+
+      serverTransaction.sendResponse(cancelResponse);
+
+      // Send CANCEL request to destination
+      var cseq = ((CSeqHeader) originalServerTransaction.getRequest().getHeader(CSeqHeader.NAME)).getSeqNumber();
+      var cseqHeader = this.headerFactory.createCSeqHeader(
+        cseq,
+        Request.CANCEL
+      );
+
+
+      var cancelRequest = originalClientTransaction.createCancel();
+      cancelRequest.setHeader(cseqHeader);
+      var clientTransaction = this.sipProvider.getNewClientTransaction(
+        cancelRequest
+      );
+
+      clientTransaction.sendRequest();
+
+      // Sends 487 (Request terminated) back to client
+      var terminatedResponse = this.messageFactory.createResponse(
+        Response.REQUEST_TERMINATED,
+        originalServerTransaction.getRequest()
+      );
+
+      originalServerTransaction.sendResponse(terminatedResponse);
+    } catch (SipException | InvalidArgumentException | ParseException e) {
+      var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+      LOG.warn("an exception occurred while sending a CANCEL request for callId: {}", callId, e);
     }
   }
 

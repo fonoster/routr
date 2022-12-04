@@ -64,21 +64,6 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
         case Method.SUBSCRIBE:
           res.sendMethodNotAllowed()
           break
-        case Method.CANCEL:
-          // eslint-disable-next-line no-case-declarations
-          const route = (
-            await location.findRoutes({ aor: T.getTargetAOR(req) })
-          )[0]
-
-          if (route) {
-            res.sendOk([
-              {
-                name: CT.ExtraHeader.REQUEST_URI,
-                value: `${route?.user},${route.host},${route.port},${route.transport}`
-              }
-            ])
-          }
-          break
         case Method.REGISTER:
           if (E.getHeaderValue(req, CT.ExtraHeader.GATEWAY_AUTH)) {
             handleRegistry(req, res)
