@@ -5,7 +5,7 @@ export HOME="$(cd "$(dirname "$0")"; pwd)"
 [ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment. Please setup environment variable JAVA_HOME"; exit 1; }
 
 export JAVA_OPTS="-Dlog4j.configurationFile=${LOG4J2} \
-  -Dpolyglot.js.experimental-foreign-object-prototype=true \
+  -Dpolyglot.js.foreign-object-prototype=true \
   -Dpolyglot.js.nashorn-compat=true \
   -Dnashorn.args=--language=es6 -Xmn256m -Xmx800M -Xms400M \
   -XX:CMSInitiatingOccupancyFraction=80 \
