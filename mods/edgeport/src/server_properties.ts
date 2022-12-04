@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 import { EdgePortConfig } from "./types"
+declare const Java: any
+const Properties = Java.type("java.util.Properties")
 
 /**
  * Returns a Map object with the properties for the server's SipStack.
@@ -24,59 +26,62 @@ import { EdgePortConfig } from "./types"
  *  https://github.com/RestComm/jain-sip/blob/master/src/gov/nist/javax/sip/SipStackImpl.java
  *
  * @param {EdgePortConfig} config - Configuration object
- * @return {Map<string, string>}
+ * @return {Properties}
  */
 export default function getServerProperties(
   config: EdgePortConfig
-): Map<string, string> {
-  const properties = new Map()
-  properties.set("javax.sip.STACK_NAME", "routr")
-  properties.set("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "OFF")
-  properties.set(
+): typeof Properties {
+  const properties = new Properties()
+  properties.setProperty("javax.sip.STACK_NAME", "routr")
+  properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "OFF")
+  properties.setProperty(
     "gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY",
     "gov.nist.javax.sip.stack.NioMessageProcessorFactory"
   )
-  properties.set("gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS", "false")
-  properties.set("gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS", "true")
-  properties.set("gov.nist.javax.sip.REENTRANT_LISTENER", "false")
-  properties.set("gov.nist.javax.sip.THREAD_POOL_SIZE", "16")
-  properties.set("gov.nist.javax.sip.NIO_BLOCKING_MODE", "NONBLOCKING")
+  properties.setProperty(
+    "gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS",
+    "false"
+  )
+  properties.setProperty("gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS", "true")
+  properties.setProperty("gov.nist.javax.sip.REENTRANT_LISTENER", "false")
+  properties.setProperty("gov.nist.javax.sip.THREAD_POOL_SIZE", "16")
+  properties.setProperty("gov.nist.javax.sip.NIO_BLOCKING_MODE", "NONBLOCKING")
 
   // Guard against denial of service attack.
-  properties.set("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "1048576")
-  properties.set("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true")
+  properties.setProperty("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "1048576")
+  properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true")
 
   // Default host
-  properties.set("javax.sip.IP_ADDRESS", config.spec.bindAddr)
+  properties.setProperty("javax.sip.IP_ADDRESS", config.spec.bindAddr)
 
   if (config.spec.securityContext) {
-    properties.set(
+    properties.setProperty(
       "gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS",
       config.spec.securityContext.client?.protocols.join()
     )
     // This must be set to 'Disabled' when using WSS
-    properties.set(
+    properties.setProperty(
       "gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE",
       config.spec.securityContext.client?.authType
     )
-    properties.set(
+    properties.setProperty(
       "javax.net.ssl.keyStore",
       config.spec.securityContext.keyStore
     )
-    properties.set(
+    properties.setProperty(
       "javax.net.ssl.trustStore",
       config.spec.securityContext.trustStore
     )
 
-    properties.set(
+    properties.setProperty(
       "javax.net.ssl.keyStorePassword",
       config.spec.securityContext.keyStorePassword
     )
-    properties.set(
+    properties.setProperty(
       "javax.net.ssl.trustStorePassword",
       config.spec.securityContext.trustStorePassword
     )
-    properties.set(
+    properties.setProperty(
       "javax.net.ssl.keyStoreType",
       config.spec.securityContext.keyStoreType
     )

@@ -27,15 +27,12 @@ const Properties = Java.type("java.util.Properties")
 /**
  * Takes a properties map and returns an instance of the SipStack(Java object).
  *
- * @param {Map<string, string>} props - Properties map
+ * @param {Properties} properties - Properties map
  * @return {SipStack}
  */
-export default function createSipStack(props: Map<string, string>): SipStack {
-  const properties = new Properties()
-  // eslint-disable-next-line no-loops/no-loops
-  for (const entry of props) {
-    properties.setProperty(entry[0], entry[1])
-  }
+export default function createSipStack(
+  properties: typeof Properties
+): SipStack {
   const sipFactory = SipFactory.getInstance()
   sipFactory.setPathName("gov.nist")
   return sipFactory.createSipStack(properties)

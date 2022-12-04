@@ -30,8 +30,7 @@ export default function createListeningPoints(
   config: EdgePortConfig
 ): Array<ListeningPoint> {
   const listeningPoints: Array<ListeningPoint> = []
-  // eslint-disable-next-line no-loops/no-loops
-  for (const trans of config.spec.transport) {
+  config.spec.transport?.forEach((trans) => {
     const proto = trans.protocol.toLowerCase()
 
     // If none was found we use the global bindAddr
@@ -51,6 +50,7 @@ export default function createListeningPoints(
         `unable to bind ${proto}://${trans.bindAddr}:${trans.port}`
       )
     }
-  }
+  })
+
   return listeningPoints
 }

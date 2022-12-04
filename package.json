@@ -22,7 +22,7 @@
     "test:java": "./gradlew test",
     "build": "lerna run build && npm run bundle",
     "build:java": "npm run setup",
-    "clean": "gradle clean && rimraf **/*/tsconfig.tsbuildinfo && rimraf **/*/dist && rimraf **/*/dist && rimraf **/*/node_modules && rimraf dist node_modules build libs .gradle ",
+    "clean": "./gradlew clean && rimraf **/*/tsconfig.tsbuildinfo && rimraf **/*/dist && rimraf **/*/dist && rimraf **/*/node_modules && rimraf dist node_modules mods/**/build mods/**/libs mods/**/bin mods/**/dist .gradle",
     "bundle": "webpack --config webpack.config.js --mode none",
     "prebundle": "cross-env npm run setup && npm run transpile && ./.scripts/prebundle.sh",
     "bump:version": "rimraf mods/**/.lerna-changed-buster-* && lerna exec -- touch .lerna-changed-buster-$RANDOM",

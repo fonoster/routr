@@ -30,11 +30,10 @@ export default function createSipProvider(
   listeningPoints: Array<ListeningPoint>
 ): SipProvider {
   const sipProvider = sipStack.createSipProvider(listeningPoints[0])
-  // eslint-disable-next-line no-loops/no-loops
-  for (const lp1 of listeningPoints?.filter(
-    (lp: ListeningPoint, index: number) => index > 0
-  )) {
-    sipProvider.addListeningPoint(lp1)
-  }
+  listeningPoints
+    ?.filter((_, index: number) => index > 0)
+    .forEach((lp1) => {
+      sipProvider.addListeningPoint(lp1)
+    })
   return sipProvider
 }
