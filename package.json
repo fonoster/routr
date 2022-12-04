@@ -2,7 +2,7 @@
   "name": "root",
   "private": true,
   "scripts": {
-    "start": "cross-env WHITELIST=pbx-1 NODE_ENV=dev LOGS_LEVEL=verbose nodemon ./.scripts/runner",
+    "start": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose nodemon ./.scripts/runner",
     "start:connect": "cross-env PATH_TO_AUTH=$(pwd)/config/auth.json NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/connect/src/runner",
     "start:simpleauth": "cross-env PATH_TO_AUTH=$(pwd)/config/auth.json NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/simpleauth/src/runner",
     "start:simpledata": "cross-env PATH_TO_SCHEMAS=$(pwd)/mods/simpledata/etc/schemas PATH_TO_RESOURCES=$(pwd)/config/resources NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/simpledata/src/runner",

@@ -20,9 +20,6 @@
           "enabled": true,
           "ref": "room_id"
         }
-      },
-      {
-        "ref": "arc"
       }
     ]
   }
