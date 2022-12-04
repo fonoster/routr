@@ -13,7 +13,7 @@
       From: <sip:[$from]>;tag=[call_number]
       To: <sip:[$to]>
       Call-ID: [call_id]
-      CSeq: 7 REGISTER
+      CSeq: 1 REGISTER
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Expires: 60
       Content-Length: 0
@@ -33,7 +33,7 @@
 		From: <sip:[$from]>;tag=[call_number]
 		To: <sip:[$to]>
 		Call-ID: [call_id]
-		CSeq: 8 REGISTER
+		CSeq: 2 REGISTER
     Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
 		Expires: 60
 		Content-Length: 0

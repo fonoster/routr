@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<scenario name="RR.Tst.Plan.1.1.4.UAS">
+
+  <recv request="INVITE" />
+
+  <send>
+    <![CDATA[
+      SIP/2.0 180 Ringing
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <pause milliseconds="1500" />
+
+  <send>
+    <![CDATA[
+      SIP/2.0 603 Declined
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <recv request="ACK">
+    <action>
+      <ereg regexp="2 ACK" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
+    </action>
+  </recv>
+
+  <Reference variables="1" />
+
+</scenario>

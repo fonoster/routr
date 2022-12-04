@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<scenario name="RR.Tst.Plan.1.2.1.UAS">
+
+  <recv request="INVITE" />
+
+  <send>
+    <![CDATA[
+      SIP/2.0 401 Unauthorized
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+      Server: SIP Gateway
+      WWW-Authenticate: Digest realm="provider", nonce="d6b6b6b6"
+    ]]>
+  </send>
+
+  <recv request="ACK">
+    <action>
+      <ereg regexp="2 ACK" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
+    </action>  
+  </recv>
+
+  <recv request="INVITE">
+    <action>
+      <ereg regexp="3 INVITE" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
+    </action>  
+  </recv>
+
+  <send>
+    <![CDATA[
+      SIP/2.0 603 Declined
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <recv request="ACK">
+    <action>
+      <ereg regexp="3 ACK" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
+    </action>
+  </recv>
+
+</scenario>

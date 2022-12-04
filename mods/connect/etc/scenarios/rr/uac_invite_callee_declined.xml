@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
-<scenario name="UAC Invite">
+<scenario name="RR.Tst.Plan.1.1.4.UAC">
 
   <Global variables="requestURI,from,to" />
 
-  <!-- The P-Asserted-Identity and Privacy is needed for SC-IT.Conf.1.3.x -->
   <send>
     <![CDATA[
 			INVITE [$requestURI];transport=[transport] SIP/2.0
@@ -49,7 +48,6 @@
 		]]>
   </send>
 
-  <!-- The P-Asserted-Identity and Privacy is needed for SC-IT.Conf.1.3.x -->
   <send>
     <![CDATA[
       INVITE [$requestURI];transport=[transport] SIP/2.0
@@ -78,52 +76,23 @@
 
   <recv response="100" optional="true" />
 
-  <recv response="180" optional="true" />
+  <recv response="180" />
 
-  <recv response="183" optional="true" />
+  <pause milliseconds="1500" />
 
-  <recv response="200">
-    <action>
-      <ereg regexp=".*(sips?:[0-9a-z]+@[0-9a-z\.:]+[0-9a-z=;]+).*" search_in="hdr" header="Contact" case_indep="true" check_it="true" assign_to="1,remoteURI" />
-      <ereg regexp="2 INVITE" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
-    </action>
-  </recv>
-  <Reference variables="1" />
+  <recv response="603" />
 
   <send>
     <![CDATA[
-      ACK [$remoteURI] SIP/2.0
-      [last_Via]
-      [last_From]
-      [last_To]
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:][peer_tag_param]
+      [last_Call-ID:]
+      [last_CSeq:]
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
-      Call-ID: [call_id]
-      CSeq: 2 ACK
-      Max-Forwards: 70
       Content-Length: 0
-		]]>
+    ]]>
   </send>
-  
-  <pause />
-  
-  <send>
-    <![CDATA[
-      BYE [$remoteURI] SIP/2.0
-      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
-      [last_From]
-      [last_To]
-      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
-      Call-ID: [call_id]
-      CSeq: 1 BYE
-      Max-Forwards: 70
-      Content-Length: 0
-		]]>
-  </send>
-
-  <recv response="200">
-    <action>
-      <ereg regexp="1 BYE" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
-    </action>
-  </recv>
 
 </scenario>

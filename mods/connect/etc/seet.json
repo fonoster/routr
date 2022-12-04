@@ -308,5 +308,256 @@
         ]
       }
     ]
-  }
+  },
+  {
+    "name": "RR.Tst.Plan.1.1.1: Verification of CSeq Header when Proxy authenticates on behalf of caller",
+    "description": "This test case verifies that the CSeq in the response matches the CSeq in original request.",
+    "transportMode": "u1",
+    "target": "edgeport01:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_proxy_auth.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/common/uac_invite.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:17853178070@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:17853178070@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.1.2: Verification of callee BYE for Agent to Agent routing",
+    "description": "This test case verifies the flow of BYE message from callee to caller when both are in the same Domain",
+    "transportMode": "u1",
+    "target": "edgeport01:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_agent_to_agent_callee_bye.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_callee_bye.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:1002@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:1002@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.1.3: Verification of caller CANCEL for Agent to Agent routing",
+    "description": "This test case verifies the flow of CANCEL message from caller",
+    "transportMode": "u1",
+    "target": "edgeport01:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_agent_to_agent_caller_cancel.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_caller_cancel.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:1002@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:1002@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.1.4: Verification of callee Declined (603) for Agent to Agent routing",
+    "description": "This test case verifies the flow of a Declined (603) response from callee when both are in the same Domain",
+    "transportMode": "u1",
+    "target": "edgeport01:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_agent_to_agent_callee_declined.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_callee_declined.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:1002@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:1002@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.2.1: Call Declined by Service Provider in Agent to PSTN routing",
+    "description": "This test verifies that Routr correctly routes a declined response from the Service Provider",
+    "transportMode": "u1",
+    "target": "edgeport01:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_agent_to_pstn_provider_declined.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_provider_declined.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:12225553000@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:12225553000@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.3.1: Peer registration with Routr",
+    "description": "This test verifies that a Peer can register to Routr using special backend AOR",
+    "transportMode": "u1",
+    "target": "edgeport01:5060",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_peer_invite.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "conference",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/common/uac_invite.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:conference@edgeport01"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:conference@edgeport01"
+          }
+        ]
+      }
+    ]
+  }  
 ]
