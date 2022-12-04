@@ -1,6 +1,4 @@
 {
-  "packages": [
-    "mods/*"
-  ],
-  "version": "2.0.7-alpha.0"
+  "packages": ["mods/*"],
+  "version": "2.0.8-alpha.0"
 }

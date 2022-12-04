@@ -1,6 +1,6 @@
 {
   "name": "@routr/location",
-  "version": "2.0.7-alpha.0",
+  "version": "2.0.8-alpha.0",
   "description": "Creates and maintains a list of routes to all registered endpoints",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -35,8 +35,8 @@
     "@opentelemetry/sdk-trace-base": "^1.0.4",
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
-    "@routr/common": "^2.0.7-alpha.0",
-    "@routr/processor": "^2.0.7-alpha.0",
+    "@routr/common": "^2.0.8-alpha.0",
+    "@routr/processor": "^2.0.8-alpha.0",
     "ajv": "^6.12.6",
     "fp-ts": "^2.11.8",
     "redis": "^4.0.4"
