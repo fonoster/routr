@@ -157,6 +157,11 @@ async function toPSTN(
     edgePortRef: req.edgePortRef,
     listeningPoint: req.listeningPoint,
     headers: [
+      // TODO: Find a more deterministic way to remove re-add the Privacy header
+      {
+        name: "Privacy",
+        action: CT.HeaderModifierAction.REMOVE
+      },
       {
         name: "Privacy",
         value:

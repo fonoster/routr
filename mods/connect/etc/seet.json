@@ -185,7 +185,7 @@
   },
   {
     "name": "SC-IT.Conf.1.3.3: SIP-PBX Support for Privacy when processing INVITE for Terminating DID Call",
-    "description": "This test case verifies a SIP-PBX correctly supports the “Privacy” header field.",
+    "description": "This test case verifies a SIP-PBX correctly supports the Privacy header field.",
     "transportMode": "u1",
     "target": "edgeport01:5060",
     "domain": "sip.local",
@@ -227,7 +227,7 @@
   },
   {
     "name": "SC-IT.Conf.1.3.4: SIP-PBX Support for Privacy when generating INVITE message for Originating DOD Call (Part A)",
-    "description": "This test verifies that a SIP-PBX correctly formats an INVITE message when privacy has been request for originating a DOD call.",
+    "description": "This test verifies that a SIP-PBX correctly formats an INVITE message when Privacy has been request for originating a DOD call.",
     "transportMode": "u1",
     "target": "edgeport01:5060",
     "domain": "sip.local",
