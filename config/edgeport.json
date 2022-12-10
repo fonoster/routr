@@ -26,7 +26,7 @@
     },
     "externalAddrs": [
       "10.111.220.2",
-      "edgeport01"
+      "sip01.edgeport.net"
     ],
     "localnets": [
       "10.111.221.2"

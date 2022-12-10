@@ -14,11 +14,11 @@
     ],
     "edgePorts": [
       {
-        "address": "edgeport01:5060",
+        "address": "sip01.edgeport.net:5060",
         "region": "us-east1"
       },
       {
-        "address": "edgeport02:6060"
+        "address": "sip02.edgeport.net:6060"
       }
     ]
   }

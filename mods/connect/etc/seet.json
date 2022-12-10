@@ -103,7 +103,7 @@
     "name": "SC-IT.Conf.1.3.1: Verification of INVITE Message Parameters When Originating a DOD Call",
     "description": "This test case verifies the format of the INVITE message sent by a SIP-PBX when originating a DOD call.",
     "transportMode": "u1",
-    "target": "edgeport01:5060",
+    "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
     "userAgents": [
       {
@@ -145,7 +145,7 @@
     "name": "SC-IT.Conf.1.3.2: INVITE Message Processing When Terminating a DID Call (Part A/B/C)",
     "description": "This test case verifies a SIP-PBX correctly processes an INVITE Request message received from an SP-SSE when terminating a DID call.",
     "transportMode": "u1",
-    "target": "edgeport01:5060",
+    "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
     "userAgents": [
       {
@@ -187,7 +187,7 @@
     "name": "SC-IT.Conf.1.3.3: SIP-PBX Support for Privacy when processing INVITE for Terminating DID Call",
     "description": "This test case verifies a SIP-PBX correctly supports the Privacy header field.",
     "transportMode": "u1",
-    "target": "edgeport01:5060",
+    "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
     "userAgents": [
       {
@@ -229,7 +229,7 @@
     "name": "SC-IT.Conf.1.3.4: SIP-PBX Support for Privacy when generating INVITE message for Originating DOD Call (Part A)",
     "description": "This test verifies that a SIP-PBX correctly formats an INVITE message when Privacy has been request for originating a DOD call.",
     "transportMode": "u1",
-    "target": "edgeport01:5060",
+    "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
     "userAgents": [
       {
@@ -271,7 +271,7 @@
     "name": "SC-IT.Conf.1.3.4: SIP-PBX Support for Privacy when generating INVITE message for Originating DOD Call (Part B)",
     "description": "This test verifies that a SIP-PBX correctly formats an INVITE message when privacy has been request for originating a DOD call.",
     "transportMode": "u1",
-    "target": "edgeport01:5060",
+    "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
     "userAgents": [
       {
@@ -313,7 +313,7 @@
     "name": "RR.Tst.Plan.1.1.1: Verification of CSeq Header when Proxy authenticates on behalf of caller",
     "description": "This test case verifies that the CSeq in the response matches the CSeq in original request.",
     "transportMode": "u1",
-    "target": "edgeport01:5060",
+    "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
     "userAgents": [
       {
@@ -355,7 +355,7 @@
     "name": "RR.Tst.Plan.1.1.2: Verification of callee BYE for Agent to Agent routing",
     "description": "This test case verifies the flow of BYE message from callee to caller when both are in the same Domain",
     "transportMode": "u1",
-    "target": "edgeport01:5060",
+    "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
     "userAgents": [
       {
@@ -397,7 +397,7 @@
     "name": "RR.Tst.Plan.1.1.3: Verification of caller CANCEL for Agent to Agent routing",
     "description": "This test case verifies the flow of CANCEL message from caller",
     "transportMode": "u1",
-    "target": "edgeport01:5060",
+    "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
     "userAgents": [
       {
@@ -439,7 +439,7 @@
     "name": "RR.Tst.Plan.1.1.4: Verification of callee Declined (603) for Agent to Agent routing",
     "description": "This test case verifies the flow of a Declined (603) response from callee when both are in the same Domain",
     "transportMode": "u1",
-    "target": "edgeport01:5060",
+    "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
     "userAgents": [
       {
@@ -481,7 +481,7 @@
     "name": "RR.Tst.Plan.1.2.1: Call Declined by Service Provider in Agent to PSTN routing",
     "description": "This test verifies that Routr correctly routes a declined response from the Service Provider",
     "transportMode": "u1",
-    "target": "edgeport01:5060",
+    "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
     "userAgents": [
       {
@@ -523,7 +523,7 @@
     "name": "RR.Tst.Plan.1.3.1: Peer registration with Routr",
     "description": "This test verifies that a Peer can register to Routr using special backend AOR",
     "transportMode": "u1",
-    "target": "edgeport01:5060",
+    "target": "sip01.edgeport.net:5060",
     "userAgents": [
       {
         "mode": "uas",
@@ -546,7 +546,7 @@
         "variables": [
           {
             "name": "requestURI",
-            "value": "sip:conference@edgeport01"
+            "value": "sip:conference@sip01.edgeport.net"
           },
           {
             "name": "from",
@@ -554,7 +554,7 @@
           },
           {
             "name": "to",
-            "value": "sip:conference@edgeport01"
+            "value": "sip:conference@sip01.edgeport.net"
           }
         ]
       }

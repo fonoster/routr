@@ -1,7 +1,7 @@
 # hosts.txt
 127.0.0.1 sip.provider.net
-127.0.0.1 edgeport01
-127.0.0.1 edgeport02
+127.0.0.1 sip01.edgeport.net
+127.0.0.1 sip02.edgeport.net
 127.0.0.1 echo
 127.0.0.1 dispatcher
 127.0.0.1 location

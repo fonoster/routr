@@ -27,6 +27,8 @@ services:
         ipv4_address: 10.111.220.2
       internal:
         ipv4_address: 10.111.221.2
+        aliases:
+          - sip01.edgeport.net
 
   # Secondary EdgePort server
   edgeport02:
@@ -53,6 +55,8 @@ services:
         ipv4_address: 10.111.220.3
       internal:
         ipv4_address: 10.111.221.3
+        aliases:
+          - sip02.edgeport.net        
 
   # Takes care of routing traffic from the EdgePort servers
   dispatcher:
