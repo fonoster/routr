@@ -17,7 +17,8 @@
  * limitations under the License.
  */
 import { EdgePortConfig } from "./types"
-declare const Java: any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const Java: { type(name: string): any }
 const Properties = Java.type("java.util.Properties")
 
 /**

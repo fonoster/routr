@@ -126,7 +126,7 @@ describe("@routr/simpledata/api", () => {
         criteria: CC.FindCriteria.FIND_AGENT_BY_USERNAME,
         parameters: jsonToStruct({
           username: "myusername"
-        }) as any
+        }) as Record<string, string>
       }
       const result = createQuery(searchParameters)
       expect(result).to.have.property("request").to.have.property("kind")
@@ -138,10 +138,10 @@ describe("@routr/simpledata/api", () => {
     it("fails to create query due to bad criteria", () => {
       const searchParameters: CC.FindParameters = {
         kind: CC.KIND.AGENT,
-        criteria: "bad_criteria" as any,
+        criteria: "bad_criteria" as never,
         parameters: jsonToStruct({
           username: "myusername"
-        }) as any
+        }) as Record<string, string>
       }
       expect(createQuery(searchParameters)).to.be.instanceOf(BadRequest)
     })
@@ -151,8 +151,8 @@ describe("@routr/simpledata/api", () => {
         kind: CC.KIND.AGENT,
         parameters: jsonToStruct({
           username: "myusername"
-        }) as any
-      } as any
+        }) as Record<string, string>
+      } as never
       expect(createQuery(searchParameters)).to.be.instanceOf(BadRequest)
     })
 
@@ -164,7 +164,7 @@ describe("@routr/simpledata/api", () => {
           criteria: CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE,
           parameters: jsonToStruct({
             ref: "crd2c76ft"
-          }) as any
+          })
         }
       }
       const callback = (err: Error, res: unknown) => {

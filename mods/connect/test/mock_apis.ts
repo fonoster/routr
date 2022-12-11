@@ -27,7 +27,9 @@ const resources: CC.Resource[] = loadResources(
   __dirname + "/../../../config/resources"
 )
 
-const findCriteriaMap: any = {}
+const findCriteriaMap: {
+  [key: string]: (parameters: Record<string, string>) => string
+} = {}
 
 findCriteriaMap[CC.FindCriteria.FIND_AGENT_BY_USERNAME] = (
   parameters: Record<string, string>
@@ -68,7 +70,7 @@ export function createQuery(request: CC.FindParameters) {
 export const dataAPI: CC.DataAPI = {
   findBy: (request: CC.FindParameters) => {
     return Promise.resolve(
-      jp.query(resources, (createQuery(request) as any).query)
+      jp.query(resources, (createQuery(request) as { query: string }).query)
     ) as unknown as Promise<CC.Resource[]>
   },
   get: (ref: string): Promise<CC.Resource> => {
