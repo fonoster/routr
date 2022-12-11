@@ -55,7 +55,10 @@ export function dataAPI(apiAddr: string) {
       }),
     findBy: (request: FindParameters) =>
       new Promise<Resource[]>((resolve, reject) => {
-        request.parameters = jsonToStruct(request.parameters) as any
+        request.parameters = jsonToStruct(request.parameters) as Record<
+          string,
+          string
+        >
 
         client.findBy(
           request,
