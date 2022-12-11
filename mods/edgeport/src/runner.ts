@@ -27,6 +27,8 @@ import { EdgePortConfig } from "./types"
 const config = getConfig<EdgePortConfig>(System.getenv("CONFIG_PATH"))
 
 if (config._tag === "Right") {
+  // TODO: Remove this once we have a proper config (It should be managed by getConfig)
+  config.right.spec.bindAddr = config.right.spec.bindAddr ?? "0.0.0.0"
   edgePortService(config.right)
 } else {
   // WARNING: Using @fonoster/logger causes conflict with Webpack.

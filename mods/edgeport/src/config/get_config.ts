@@ -48,5 +48,5 @@ export const getConfig = <C>(path: string): E.Either<Error, C> =>
         E.chain(validateConfig)
       )
     ),
-    E.map((v) => v as unknown as C)
+    E.map((v) => v as C)
   )

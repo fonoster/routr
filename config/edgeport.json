@@ -6,7 +6,6 @@
     "region": "us-east1"
   },
   "spec": {
-    "bindAddr": "0.0.0.0",
     "securityContext": {
       "client": {
         "protocols": [

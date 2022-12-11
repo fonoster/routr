@@ -69,6 +69,18 @@ public class GRPCSipListener implements SipListener {
     String bindAddr = (String) spec.getMember("bindAddr");
     String edgePortRef = (String) metadata.getMember("ref");
 
+    if (localnets.isEmpty()) {
+      try {
+        Enumeration<java.net.NetworkInterface> nets = java.net.NetworkInterface.getNetworkInterfaces();
+        for (java.net.NetworkInterface netint : Collections.list(nets)) {
+          List<java.net.InterfaceAddress> interfaces = netint.getInterfaceAddresses();
+          localnets.add(interfaces.get(0).getAddress().getHostAddress() + "/" + interfaces.get(0).getNetworkPrefixLength());
+        }
+      } catch (java.net.SocketException e) {
+        LOG.error("error getting network interfaces", e);
+      }
+    }
+
     LOG.info("starting edgeport ref = {} at {}", edgePortRef, bindAddr);
     LOG.info("localnets list [{}]", String.join(",", localnets));
     LOG.info("external ips list [{}]", String.join(",", externalAddrs));
