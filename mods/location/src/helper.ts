@@ -18,10 +18,10 @@
  */
 import {
   MessageRequest,
-  NetInterface,
   Route,
   Transport,
-  CommonTypes
+  CommonTypes,
+  Helper
 } from "@routr/common"
 import { Extensions as E, Target as T } from "@routr/processor"
 
@@ -40,15 +40,20 @@ export const createRoute = (request: MessageRequest): Route => {
     ? parseInt(E.getHeaderValue(request, CommonTypes.ExtraHeader.SESSION_COUNT))
     : -1
 
+  const egressListeningPoint = Helper.getListeningPoint(
+    request,
+    uri.transportParam.toLowerCase() as Transport
+  )
+
   return {
     edgePortRef: request.edgePortRef,
     user: uri.user,
     host: uri.host,
     port: uri.port,
-    transport: uri.transportParam as unknown as Transport,
+    transport: uri.transportParam.toLowerCase() as Transport,
     registeredOn: Date.now(),
     sessionCount,
     expires: T.getTargetExpires(request),
-    listeningPoint: request.listeningPoint as NetInterface
+    egressListeningPoint
   }
 }

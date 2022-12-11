@@ -63,11 +63,13 @@ const messageRequest: MessageRequest = {
   ref: "call-id",
   edgePortRef: "d001",
   method: Method.REGISTER,
-  listeningPoint: {
-    host: "localhost",
-    port: 5060,
-    transport: CT.Transport.TCP
-  },
+  listeningPoints: [
+    {
+      host: "localhost",
+      port: 5060,
+      transport: CT.Transport.TCP
+    }
+  ],
   sender: {
     port: 5060,
     host: "localhost",

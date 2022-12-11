@@ -49,7 +49,7 @@ import java.util.Map;
 public class MessageConverter {
   private final static Logger LOG = LogManager.getLogger(MessageConverter.class);
   private final String edgePortRef;
-  private Map<String, NetInterface> listeningPoints;
+  private List<NetInterface> listeningPoints;
   private List<String> externalAddrs;
   private List<String> localnets;
 
@@ -221,7 +221,6 @@ public class MessageConverter {
     String callId = ((CallIdHeader) message.getHeader(CallIdHeader.NAME)).getCallId();
     assert methodStr != null;
     Method method = Method.valueOf(methodStr.toUpperCase());
-    NetInterface listeningPoint = this.listeningPoints.get(sender.getTransport().toString());
 
     return MessageRequest
       .newBuilder()
@@ -229,14 +228,14 @@ public class MessageConverter {
       .setEdgePortRef(this.edgePortRef)
       .setMethod(method)
       .setSender(sender)
-      .setListeningPoint(listeningPoint)
+      .addAllListeningPoints(this.listeningPoints)
       .addAllExternalAddrs(this.externalAddrs)
       .addAllLocalnets(this.localnets)
       .setMessage(convertToMessageDTO(message))
       .build();
   }
 
-  public void setListeningPoints(final Map<String, NetInterface> listeningPoints) {
+  public void setListeningPoints(final List<NetInterface> listeningPoints) {
     this.listeningPoints = listeningPoints;
   }
 

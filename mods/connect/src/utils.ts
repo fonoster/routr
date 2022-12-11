@@ -160,13 +160,14 @@ export const getTrunkURI = (
   const { user, host, port, transport } = trunk.spec.outbound?.uris[0].uri
   const t = !transport
     ? (Transport.UDP as Transport)
-    : (Object.keys(Transport)[
-        Object.values(Transport).indexOf(transport.toUpperCase())
-      ] as unknown as Transport)
+    : Object.values(Transport)[
+        Object.values(Transport).indexOf(transport.toLowerCase())
+      ]
+
   return {
     user,
     host,
     port: port ?? 5060,
-    transport: t
+    transport: t as Transport
   }
 }

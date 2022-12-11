@@ -34,7 +34,7 @@ export const route: Route = {
   sessionCount: -1,
   expires: 600,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.TCP
@@ -61,7 +61,7 @@ export const routeOnAnotherEdgePort: Route = {
   sessionCount: -1,
   expires: 600,
   edgePortRef: "ep002",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "10.100.42.128",
     port: 5060,
     transport: Transport.TCP
@@ -74,11 +74,18 @@ export const request: MessageRequest = {
   method: Method.REGISTER,
   externalAddrs: ["200.22.21.42"],
   localnets: ["10.100.42.127/31", "10.100.42.128/31"],
-  listeningPoint: {
-    host: "10.100.42.127",
-    port: 5060,
-    transport: Transport.TCP
-  },
+  listeningPoints: [
+    {
+      host: "10.100.42.127",
+      port: 5060,
+      transport: Transport.TCP
+    },
+    {
+      host: "10.100.42.127",
+      port: 5060,
+      transport: Transport.UDP
+    }
+  ],
   sender: {
     host: "127.0.0.1",
     port: 36214,
@@ -123,7 +130,7 @@ export const request: MessageRequest = {
           user: "1001",
           userPassword: "",
           host: "voip.ms",
-          transportParam: "UDP",
+          transportParam: Transport.UDP,
           mAddrParam: "",
           methodParam: "",
           userParam: "",
@@ -143,7 +150,7 @@ export const request: MessageRequest = {
           user: "1001",
           userPassword: "",
           host: "sip.local",
-          transportParam: "UDP",
+          transportParam: Transport.TCP,
           mAddrParam: "",
           methodParam: "",
           userParam: "",
@@ -163,7 +170,7 @@ export const request: MessageRequest = {
           user: "1001",
           userPassword: "",
           host: "127.0.0.1",
-          transportParam: "UDP",
+          transportParam: Transport.TCP,
           mAddrParam: "",
           methodParam: "",
           userParam: "",
@@ -201,7 +208,7 @@ export const request: MessageRequest = {
             user: "",
             userPassword: "",
             host: "sip.local",
-            transportParam: "",
+            transportParam: Transport.TCP,
             mAddrParam: "",
             methodParam: "",
             userParam: "",
@@ -223,7 +230,7 @@ export const request: MessageRequest = {
             user: "",
             userPassword: "",
             host: "10.100.42.127",
-            transportParam: "",
+            transportParam: Transport.TCP,
             mAddrParam: "",
             methodParam: "",
             userParam: "",
@@ -243,7 +250,7 @@ export const request: MessageRequest = {
             user: "",
             userPassword: "",
             host: "10.100.42.128",
-            transportParam: "",
+            transportParam: Transport.TCP,
             mAddrParam: "",
             methodParam: "",
             userParam: "",
@@ -267,14 +274,14 @@ export const request: MessageRequest = {
       opaque: "",
       response: "301f56515b1fdc751c54af6d85398067",
       username: "1001",
-      uri: "sip:voip.ms;transport=UDP",
+      uri: `sip:voip.ms;transport=${Transport.TCP}`,
       nonceCount: 13
     },
     requestUri: {
       user: "",
       userPassword: "",
       host: "sip.local",
-      transportParam: "UDP",
+      transportParam: Transport.TCP,
       mAddrParam: "",
       methodParam: "",
       userParam: "",

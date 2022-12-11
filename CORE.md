@@ -678,7 +678,7 @@ message Route {
   int32 expires = 6;
   int32 session_count = 7;
   string edge_port_ref = 8;
-  fonoster.routr.processor.v2draft1.NetInterface listening_point = 9;
+  fonoster.routr.processor.v2draft1.NetInterface egress_listening_point = 9;
   // During route creation, an endpoint can request to add labels that can later be
   // used as selectors. For example, a Softphone can add the label `priority=1` to indicate
   // that it is the preferred endpoint for the given AOR.

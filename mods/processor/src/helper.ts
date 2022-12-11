@@ -18,17 +18,31 @@
  */
 import {
   MessageRequest,
-  NetInterface,
   Route,
   Transport,
-  CommonTypes as CT
+  CommonTypes as CT,
+  Helper
 } from "@routr/common"
+import { IpUtils } from "@routr/common"
 import { Extensions as E, Target as T } from "./index"
 
 export const isTypeResponse = (request: MessageRequest): boolean =>
   request.message.messageType === CT.MessageType.RESPONSE
+
 export const isTypeRequest = (request: MessageRequest): boolean =>
   !isTypeResponse(request)
+
+export const isInvalidHost = (request: MessageRequest) =>
+  request.message.via[0].host.endsWith(".invalid")
+
+export const isPublicAddress = (localnets: string[], host: string) =>
+  !IpUtils.isLocalnet(localnets, host)
+
+export const needsExternAddress = (request: MessageRequest, host: string) =>
+  isInvalidHost(request) || isPublicAddress(request.localnets, host)
+
+// Get closest edge address to the originator of the request
+// Get closest edge address to the target endpoint of the request
 
 /**
  * A request traversing a second EdgePort would have an updated the requestUri.
@@ -43,15 +57,20 @@ export function createRouteFromLastMessage(request: MessageRequest): Route {
     ? parseInt(E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT))
     : -1
 
+  const egressListeningPoint = Helper.getListeningPoint(
+    request,
+    uri.transportParam.toLowerCase() as Transport
+  )
+
   return {
     edgePortRef: request.edgePortRef,
     user: uri.user,
     host: uri.host,
     port: uri.port,
-    transport: uri.transportParam as unknown as Transport,
+    transport: uri.transportParam.toLowerCase() as Transport,
     registeredOn: Date.now(),
     sessionCount,
     expires: T.getTargetExpires(request),
-    listeningPoint: request.listeningPoint as NetInterface
+    egressListeningPoint
   }
 }

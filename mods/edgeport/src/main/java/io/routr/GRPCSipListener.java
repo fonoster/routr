@@ -80,8 +80,8 @@ public class GRPCSipListener implements SipListener {
     blockingStub = ProcessorGrpc.newBlockingStub(channel);
     this.sipProvider = sipProvider;
 
-    Map<String, NetInterface> listeningPoints = new HashMap<>();
     Iterator<ListeningPoint> lps = Arrays.stream(sipProvider.getListeningPoints()).iterator();
+    List<NetInterface> listeningPoints = new ArrayList<>();
 
     while (lps.hasNext()) {
       var currentLp = lps.next();
@@ -90,9 +90,8 @@ public class GRPCSipListener implements SipListener {
           .setHost(currentLp.getIPAddress())
           .setTransport(Transport.valueOf(currentLp.getTransport().toUpperCase()))
           .build();
-      listeningPoints.put(currentLp.getTransport().toUpperCase(), ni);
+      listeningPoints.add(ni);
     }
-
     messageConverter = new MessageConverter(edgePortRef);
     messageConverter.setExternalAddrs(externalAddrs);
     messageConverter.setLocalnets(localnets);

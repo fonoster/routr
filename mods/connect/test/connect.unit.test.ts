@@ -87,7 +87,9 @@ describe("@routr/connect", () => {
         // noop
       }
     } as unknown as Response
+
     await handleRequest(location as unknown as ILocationService)(req, response)
+
     expect(getHeaderValue).to.have.been.calledTwice
     expect(createRouteFromLastMessage).to.have.been.calledOnce
     expect(findRoutes).to.not.have.been.called

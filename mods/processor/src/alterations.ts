@@ -22,7 +22,8 @@ import {
   IpUtils as I,
   MessageRequest,
   Route,
-  CommonTypes
+  CommonTypes,
+  Helper
 } from "@routr/common"
 
 // Q: Should we deprecate this method since we are not doing strict routing?
@@ -49,17 +50,22 @@ export const addSelfVia = (route: Route) => {
     const nextHopHost =
       request.edgePortRef === route.edgePortRef
         ? route.host
-        : route.listeningPoint.host
+        : route.egressListeningPoint.host
+
+    const egressListeningPoint = Helper.getListeningPoint(
+      request,
+      route.transport
+    )
 
     // If the nextHopHost host is local, then use use lp to construct via
-    // otherwise, we use the first external ip available.
+    // otherwise, we use the first available external ip.
     const via = I.isLocalnet(req.localnets, nextHopHost)
-      ? route.listeningPoint
+      ? route.egressListeningPoint
       : {
           // fallback to lp host if there is no external ips
-          host: req.externalAddrs[0] ?? req.listeningPoint.host,
-          port: req.listeningPoint.port,
-          transport: req.listeningPoint.transport
+          host: req.externalAddrs[0] ?? egressListeningPoint.host,
+          port: egressListeningPoint.port,
+          transport: egressListeningPoint.transport
         }
 
     req.message.via = [via, ...req.message.via]
@@ -92,9 +98,9 @@ export const addRouteToListeningPoint = (route: Route) => {
     const r = {
       address: {
         uri: {
-          host: route.listeningPoint.host,
-          port: route.listeningPoint.port,
-          transportParam: route.listeningPoint.transport,
+          host: route.egressListeningPoint.host,
+          port: route.egressListeningPoint.port,
+          transportParam: route.egressListeningPoint.transport,
           lrParam: true
         }
       }
@@ -130,7 +136,7 @@ export const applyXHeaders = (route: Route) => {
 
 export const addSelfRecordRoute = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
-  const lp = req.listeningPoint
+  const lp = req.listeningPoints[0]
   const r = {
     address: {
       uri: {
@@ -175,7 +181,7 @@ export const removeAuthorization = (
 export const removeRoutes = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
   req.message.route = req.message.route.filter((r: CommonTypes.RouteHeader) => {
-    const lp = request.listeningPoint
+    const lp = request.listeningPoints[0]
     const route = r.address.uri
     return !(
       (route.host === lp.host || request.externalAddrs.includes(route.host)) &&

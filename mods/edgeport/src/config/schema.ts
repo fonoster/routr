@@ -59,7 +59,7 @@ export const schema = {
             type: "string"
           },
           uniqueItems: true,
-          minItems: 1
+          minItems: 0
         },
         localnets: {
           description: "Networks considered to be in the same local network",
@@ -68,7 +68,7 @@ export const schema = {
             type: "string"
           },
           uniqueItems: true,
-          minItems: 1
+          minItems: 0
         },
         methods: {
           description: "Acceptable SIP Methods",

@@ -28,7 +28,7 @@ export const simpleRoute01: Route = {
   sessionCount: -1,
   expires: 600,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.TCP
@@ -45,7 +45,7 @@ export const simpleRoute02: Route = {
   sessionCount: -1,
   expires: 600,
   edgePortRef: "ep002",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.UDP
@@ -62,7 +62,7 @@ export const voiceBackendRoute01: Route = {
   sessionCount: 50,
   expires: 600,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.TCP
@@ -79,7 +79,7 @@ export const voiceBackendRoute02: Route = {
   sessionCount: 200,
   expires: 600,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.UDP
@@ -95,7 +95,7 @@ export const voiceBackendRoute03: Route = {
   sessionCount: 150,
   expires: 600,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.UDP
@@ -111,7 +111,7 @@ export const voiceBackendRoute04: Route = {
   sessionCount: 201,
   expires: 600,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.UDP
@@ -127,7 +127,7 @@ export const voiceBackendRoute05: Route = {
   sessionCount: 5,
   expires: 600,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.UDP
@@ -143,7 +143,7 @@ export const conferenceBackendRoute01: Route = {
   sessionCount: 20,
   expires: 600,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.TCP
@@ -159,7 +159,7 @@ export const conferenceBackendRoute02: Route = {
   sessionCount: 50,
   expires: 600,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.TCP
@@ -175,7 +175,7 @@ export const conferenceWithExpiredRoute: Route = {
   sessionCount: 10,
   expires: 10,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "proxy",
     port: 5060,
     transport: Transport.TCP

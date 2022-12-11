@@ -26,7 +26,7 @@ export const r1: Route = {
   transport: Transport.TCP,
   sessionCount: -1,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "10.1.1.1",
     port: 5060,
     transport: Transport.TCP
@@ -42,7 +42,7 @@ export const r2: Route = {
   transport: Transport.TCP,
   sessionCount: -1,
   edgePortRef: "ep001",
-  listeningPoint: {
+  egressListeningPoint: {
     host: "10.1.1.1",
     port: 5060,
     transport: Transport.TCP
@@ -62,11 +62,18 @@ export const createRequest = (createRequestObj: {
     method: Method.INVITE,
     externalAddrs: ["200.22.21.42"],
     localnets: ["10.100.42.127/31", "10.100.42.128/31"],
-    listeningPoint: {
-      host: "10.100.42.127",
-      port: 5060,
-      transport: Transport.TCP
-    },
+    listeningPoints: [
+      {
+        host: "10.100.42.127",
+        port: 5060,
+        transport: Transport.TCP
+      },
+      {
+        host: "10.100.42.127",
+        port: 5060,
+        transport: Transport.UDP
+      }
+    ],
     sender: {
       host: "127.0.0.1",
       port: 36214,

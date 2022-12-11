@@ -33,12 +33,12 @@ export enum Method {
 }
 
 export enum Transport {
-  TCP = "TCP",
-  UDP = "UDP",
-  TLS = "TLS",
-  SCTP = "SCTP",
-  WS = "WS",
-  WSS = "WSS"
+  TCP = "tcp",
+  UDP = "udp",
+  TLS = "tls",
+  SCTP = "sctp",
+  WS = "ws",
+  WSS = "wss"
 }
 
 export enum ExtraHeader {
@@ -64,7 +64,7 @@ export interface MessageRequest {
   edgePortRef: string
   method: Method
   sender: NetInterface
-  listeningPoint: NetInterface
+  listeningPoints: NetInterface[]
   externalAddrs: string[]
   localnets: string[]
   message: SIPMessage
@@ -153,7 +153,7 @@ export interface Route {
   sessionCount?: number
   expires?: number
   edgePortRef: string
-  listeningPoint: NetInterface
+  egressListeningPoint: NetInterface
   labels?: Map<string, string>
   headers?: HeaderModifier[]
 }

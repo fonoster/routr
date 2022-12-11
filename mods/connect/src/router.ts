@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { ROUTING_DIRECTION } from "./types"
-import { HeaderModifier, Route } from "@routr/common"
+import { HeaderModifier, Helper, Route } from "@routr/common"
 import {
   createPAssertedIdentity,
   createRemotePartyId,
@@ -149,13 +149,15 @@ async function toPSTN(
 
   const uri = getTrunkURI(trunk)
 
+  const egressListeningPoint = Helper.getListeningPoint(req, uri.transport)
+
   return {
     user: uri.user,
     host: uri.host,
     port: uri.port,
     transport: uri.transport,
     edgePortRef: req.edgePortRef,
-    listeningPoint: req.listeningPoint,
+    egressListeningPoint,
     headers: [
       // TODO: Find a more deterministic way to re-add the Privacy header
       {

@@ -78,11 +78,11 @@ message MessageRequest {
   string edge_port_ref = 2;
   Method method = 3;
   NetInterface sender = 4;
-  NetInterface listening_point = 5;
+  repeated NetInterface listening_points = 5;
   repeated string external_addrs = 6;
   repeated string localnets = 7;
   fonoster.routr.sipmessage.v2draft1.SIPMessage message = 8;
-  // .google.protobuf.Struct metadata = 8;
+  // .google.protobuf.Struct metadata = 9;
 }
 
 message MessageResponse {

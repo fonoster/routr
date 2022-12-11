@@ -44,4 +44,4 @@ export const addressCount = (net: string) =>
   cidrInfo(formatNet(net)).inclusiveNumberHosts
 
 export const isLocalnet = (nets: string[], addr: string) =>
-  nets && nets.length > 0 && nets.filter((net) => hasIp(net, addr)).length > 0
+  nets?.filter((net) => hasIp(net, addr)).length > 0

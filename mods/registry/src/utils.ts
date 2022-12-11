@@ -112,7 +112,7 @@ export const convertResourceToTrunk = async (
       username: usernameAndPassword?.username,
       secret: usernameAndPassword?.password
     },
-    transport: (uri.transport?.toUpperCase() ?? Transport.UDP) as Transport
+    transport: uri.transport?.toLowerCase() ?? Transport.UDP
   } as Trunk
 }
 

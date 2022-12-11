@@ -79,9 +79,9 @@ describe("@routr/processor/alterations", () => {
     const r = A.addSelfVia(route)(request)
     expect(r).to.have.property("message").to.have.property("via").lengthOf(3)
     expect(r.message.via[0].host).to.be.equal(r.externalAddrs[0])
-    expect(r.message.via[0].port).to.be.equal(route.listeningPoint.port)
+    expect(r.message.via[0].port).to.be.equal(route.egressListeningPoint.port)
     expect(r.message.via[0].transport).to.be.equal(
-      route.listeningPoint.transport
+      route.egressListeningPoint.transport
     )
   })
 
@@ -89,13 +89,13 @@ describe("@routr/processor/alterations", () => {
     const r = A.addSelfVia(routeOnAnotherEdgePort)(request)
     expect(r).to.have.property("message").to.have.property("via").lengthOf(3)
     expect(r.message.via[0].host).to.be.equal(
-      routeOnAnotherEdgePort.listeningPoint.host
+      routeOnAnotherEdgePort.egressListeningPoint.host
     )
     expect(r.message.via[0].port).to.be.equal(
-      routeOnAnotherEdgePort.listeningPoint.port
+      routeOnAnotherEdgePort.egressListeningPoint.port
     )
     expect(r.message.via[0].transport).to.be.equal(
-      routeOnAnotherEdgePort.listeningPoint.transport
+      routeOnAnotherEdgePort.egressListeningPoint.transport
     )
   })
 
@@ -111,11 +111,11 @@ describe("@routr/processor/alterations", () => {
     const r = A.addSelfRecordRoute(request)
     expect(r.message.recordRoute).to.be.lengthOf(2)
     const uri = r.message.recordRoute[0].address.uri
-    expect(uri).to.have.property("host").to.be.equal(r.listeningPoint.host)
-    expect(uri).to.have.property("port").to.be.equal(r.listeningPoint.port)
+    expect(uri).to.have.property("host").to.be.equal(r.listeningPoints[0].host)
+    expect(uri).to.have.property("port").to.be.equal(r.listeningPoints[0].port)
     expect(uri)
       .to.have.property("transportParam")
-      .to.be.equal(r.listeningPoint.transport)
+      .to.be.equal(r.listeningPoints[0].transport)
   })
 
   it("adds route header from the route object", () => {
@@ -131,11 +131,15 @@ describe("@routr/processor/alterations", () => {
     const r = A.addRouteToListeningPoint(route)(request)
     expect(r.message.route).to.be.lengthOf(3)
     const uri = r.message.route[0].address.uri
-    expect(uri).to.have.property("host").to.be.equal(route.listeningPoint.host)
-    expect(uri).to.have.property("port").to.be.equal(route.listeningPoint.port)
+    expect(uri)
+      .to.have.property("host")
+      .to.be.equal(route.egressListeningPoint.host)
+    expect(uri)
+      .to.have.property("port")
+      .to.be.equal(route.egressListeningPoint.port)
     expect(uri)
       .to.have.property("transportParam")
-      .to.be.equal(route.listeningPoint.transport)
+      .to.be.equal(route.egressListeningPoint.transport)
   })
 
   it("removes all loose routes(lr)", () => {
@@ -144,10 +148,10 @@ describe("@routr/processor/alterations", () => {
     const uri = r.message.route[0].address?.uri
     expect(uri)
       .to.be.have.property("host")
-      .to.be.equal(routeOnAnotherEdgePort.listeningPoint.host)
+      .to.be.equal(routeOnAnotherEdgePort.egressListeningPoint.host)
     expect(uri)
       .to.be.have.property("port")
-      .to.be.equal(routeOnAnotherEdgePort.listeningPoint.port)
+      .to.be.equal(routeOnAnotherEdgePort.egressListeningPoint.port)
   })
 
   it("applies the extension headers from Route", () => {

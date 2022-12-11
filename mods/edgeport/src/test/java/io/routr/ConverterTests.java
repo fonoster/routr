@@ -377,7 +377,7 @@ public class ConverterTests {
     header.setOpaque("");
     header.setResponse("1234");
     header.setUsername("1001");
-    header.setURI(addrFactory.createURI("sip:100@sip.local;transport=UDP"));
+    header.setURI(addrFactory.createURI("sip:100@sip.local;transport=udp"));
 
     io.routr.message.Authorization authorizationDTO = converter.fromHeader(header);
     Authorization headerFromDto = converter.fromDTO(authorizationDTO);
