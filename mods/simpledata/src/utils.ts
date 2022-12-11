@@ -26,7 +26,9 @@ const jsonFromStruct = protobufUtil.struct.decode
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
 
-const findCriteriaMap: any = {}
+const findCriteriaMap: {
+  [key: string]: (parameters: Record<string, string>) => string
+} = {}
 
 findCriteriaMap[CC.FindCriteria.FIND_AGENT_BY_USERNAME] = (
   parameters: Record<string, string>
@@ -129,7 +131,9 @@ export function createQuery(request: CC.FindParameters):
   }
 
   return {
-    query: findCriteriaMap[findCriteria](jsonFromStruct(request.parameters)),
+    query: findCriteriaMap[findCriteria](
+      jsonFromStruct(request.parameters) as Record<string, string>
+    ),
     request
   }
 }

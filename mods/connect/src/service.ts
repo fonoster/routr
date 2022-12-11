@@ -24,7 +24,6 @@ import Processor, {
   Alterations as A,
   Helper as H,
   Helper as HE,
-  Target as T,
   Extensions as E,
   Response
 } from "@routr/processor"
