@@ -26,7 +26,6 @@ import {
   Helper,
   Transport
 } from "@routr/common"
-import { getListeningPoint } from "@routr/common/src/helper"
 import { getEdgeInterface } from "./helper"
 
 // Q: Should we deprecate this method since we are not doing strict routing?
@@ -227,7 +226,7 @@ export const removeRoutes = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
   req.message.route = req.message.route.filter((r: CommonTypes.RouteHeader) => {
     const localIps = request.localnets.map((ln) => ln.split("/")[0])
-    const lp = getListeningPoint(
+    const lp = Helper.getListeningPoint(
       request,
       (r.address.uri.transportParam?.toLowerCase() as Transport) ||
         Transport.UDP
