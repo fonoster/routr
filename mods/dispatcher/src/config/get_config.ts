@@ -35,7 +35,7 @@ export const getConfig = (
     return E.left(new Error(JSON.stringify(validate.errors[0].message)))
   }
 
-  // convert funcMatch to actual functions
+  // Convert funcMatch to actual functions
   const processors = c.spec.processors.map((p: ProcessorConfig) => {
     const { ref, addr, methods, matchFunc } = p
     return { ref, addr, methods, matchFunc: eval(`(${matchFunc})`) }
