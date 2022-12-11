@@ -21,7 +21,7 @@ import { Backend, LB_ALGORITHM } from "../src/types"
 
 export const simpleRoute01: Route = {
   user: "1001",
-  host: "sip.local",
+  host: "127.0.0.1",
   port: 6060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
@@ -38,7 +38,7 @@ export const simpleRoute01: Route = {
 
 export const simpleRoute02: Route = {
   user: "1001",
-  host: "sip.local",
+  host: "127.0.0.1",
   port: 6061,
   transport: Transport.UDP,
   registeredOn: Date.now(),

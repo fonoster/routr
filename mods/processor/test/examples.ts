@@ -27,7 +27,7 @@ import { MessageType } from "@routr/common/dist/types"
 
 export const route: Route = {
   user: "1001",
-  host: "sip.local",
+  host: "127.0.0.1",
   port: 5060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
@@ -54,7 +54,7 @@ export const route: Route = {
 
 export const routeOnAnotherEdgePort: Route = {
   user: "1001",
-  host: "sip.local",
+  host: "127.0.0.1",
   port: 5060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
@@ -73,15 +73,15 @@ export const request: MessageRequest = {
   edgePortRef: "ep001",
   method: Method.REGISTER,
   externalAddrs: ["200.22.21.42"],
-  localnets: ["10.100.42.127/31", "10.100.42.128/31"],
+  localnets: ["127.0.0.1/8", "10.100.42.127/24", "10.100.43.128/31"],
   listeningPoints: [
     {
-      host: "10.100.42.127",
+      host: "0.0.0.0",
       port: 5060,
       transport: Transport.TCP
     },
     {
-      host: "10.100.42.127",
+      host: "0.0.0.0",
       port: 5060,
       transport: Transport.UDP
     }

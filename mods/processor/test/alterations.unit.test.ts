@@ -20,7 +20,7 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { request, route, routeOnAnotherEdgePort } from "./examples"
-import { CommonTypes as CT } from "@routr/common"
+import { CommonTypes as CT, Transport } from "@routr/common"
 import { Alterations as A, Extensions as E } from "../src"
 import { pipe } from "fp-ts/function"
 
@@ -78,7 +78,7 @@ describe("@routr/processor/alterations", () => {
   it("adds via header and same edgeport", () => {
     const r = A.addSelfVia(route)(request)
     expect(r).to.have.property("message").to.have.property("via").lengthOf(3)
-    expect(r.message.via[0].host).to.be.equal(r.externalAddrs[0])
+    expect(r.message.via[0].host).to.be.equal(route.egressListeningPoint.host)
     expect(r.message.via[0].port).to.be.equal(route.egressListeningPoint.port)
     expect(r.message.via[0].transport).to.be.equal(
       route.egressListeningPoint.transport
@@ -108,14 +108,12 @@ describe("@routr/processor/alterations", () => {
   })
 
   it("adds record-route using the listening point from the request", () => {
-    const r = A.addSelfRecordRoute(request)
+    const r = A.addSelfRecordRoute(route)(request)
     expect(r.message.recordRoute).to.be.lengthOf(2)
     const uri = r.message.recordRoute[0].address.uri
-    expect(uri).to.have.property("host").to.be.equal(r.listeningPoints[0].host)
-    expect(uri).to.have.property("port").to.be.equal(r.listeningPoints[0].port)
-    expect(uri)
-      .to.have.property("transportParam")
-      .to.be.equal(r.listeningPoints[0].transport)
+    expect(uri).to.have.property("host").to.be.equal("127.0.0.1")
+    expect(uri).to.have.property("port").to.be.equal(5060)
+    expect(uri).to.have.property("transportParam").to.be.equal(Transport.TCP)
   })
 
   it("adds route header from the route object", () => {

@@ -23,12 +23,16 @@ import {
   MessageRequest,
   Route,
   CommonTypes,
-  Helper
+  Helper,
+  Transport
 } from "@routr/common"
+import { getListeningPoint } from "@routr/common/src/helper"
+import { getEdgeInterface } from "./helper"
 
 // Q: Should we deprecate this method since we are not doing strict routing?
-export const updateRequestURI = (route: Route) => {
-  return (request: MessageRequest): MessageRequest => {
+export const updateRequestURI =
+  (route: Route) =>
+  (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
     if (route.user) {
       req.message.requestUri.user = route.user
@@ -40,10 +44,10 @@ export const updateRequestURI = (route: Route) => {
     req.message.requestUri.transportParam = route.transport
     return req
   }
-}
 
-export const addSelfVia = (route: Route) => {
-  return (request: MessageRequest): MessageRequest => {
+export const addSelfVia =
+  (route: Route) =>
+  (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
     // If is comming from a different edgeport we use the listening point instead
     // of the endpoint to ensure connectivity.
@@ -72,10 +76,10 @@ export const addSelfVia = (route: Route) => {
 
     return req
   }
-}
 
-export const addRoute = (route: Route) => {
-  return (request: MessageRequest): MessageRequest => {
+export const addRoute =
+  (route: Route) =>
+  (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
     const r = {
       address: {
@@ -90,10 +94,10 @@ export const addRoute = (route: Route) => {
     req.message.route = [r, ...req.message.route]
     return req
   }
-}
 
-export const addRouteToListeningPoint = (route: Route) => {
-  return (request: MessageRequest): MessageRequest => {
+export const addRouteToListeningPoint =
+  (route: Route) =>
+  (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
     const r = {
       address: {
@@ -108,17 +112,22 @@ export const addRouteToListeningPoint = (route: Route) => {
     req.message.route = [r, ...req.message.route]
     return req
   }
-}
 
-export const applyXHeaders = (route: Route) => {
-  return (request: MessageRequest): MessageRequest => {
+export const applyXHeaders =
+  (route: Route) =>
+  (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
     if (route.headers && route.headers.length > 0) {
       const headersToRemove = route.headers
-        .filter((h: HeaderModifier) => h.action === "remove")
+        .filter(
+          (h: HeaderModifier) =>
+            h.action === CommonTypes.HeaderModifierAction.REMOVE
+        )
         .map((h) => h.name)
+
       const headersToAdd = route.headers.filter(
-        (h: HeaderModifier) => h.action !== "remove"
+        (h: HeaderModifier) =>
+          h.action !== CommonTypes.HeaderModifierAction.REMOVE
       )
 
       req.message.extensions = req.message.extensions.filter(
@@ -132,24 +141,60 @@ export const applyXHeaders = (route: Route) => {
     }
     return req
   }
-}
 
-export const addSelfRecordRoute = (request: MessageRequest): MessageRequest => {
-  const req = H.deepCopy(request)
-  const lp = req.listeningPoints[0]
-  const r = {
-    address: {
-      uri: {
-        host: lp.host,
-        port: lp.port,
-        transportParam: lp.transport,
-        lrParam: true
+export const addSelfRecordRoute =
+  (route: Route) =>
+  (request: MessageRequest): MessageRequest => {
+    const req = H.deepCopy(request)
+    const originIntf = getEdgeInterface(request, request.sender)
+    const targetIntf = getEdgeInterface(request, route)
+
+    const originRoute: CommonTypes.RecordRoute = {
+      address: {
+        uri: {
+          host: originIntf.host,
+          port: originIntf.port,
+          transportParam: originIntf.transport,
+          lrParam: true
+        }
       }
     }
-  } as CommonTypes.RouteHeader
-  req.message.recordRoute = [r, ...req.message.recordRoute]
-  return req
-}
+
+    if (
+      originIntf.host !== targetIntf.host ||
+      originIntf.port !== targetIntf.port ||
+      originIntf.transport !== targetIntf.transport
+    ) {
+      const targetRoute: CommonTypes.RecordRoute = {
+        address: {
+          uri: {
+            host: targetIntf.host,
+            port: targetIntf.port,
+            transportParam: targetIntf.transport,
+            lrParam: true
+          }
+        },
+        parameters: {
+          r2: "on"
+        }
+      }
+
+      // Add r2 on to origin route
+      originRoute.parameters = {
+        r2: "on"
+      }
+
+      req.message.recordRoute = [
+        targetRoute,
+        originRoute,
+        ...req.message.recordRoute
+      ]
+    } else {
+      req.message.recordRoute = [originRoute, ...req.message.recordRoute]
+    }
+
+    return req
+  }
 
 export const addXEdgePortRef = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
@@ -181,10 +226,17 @@ export const removeAuthorization = (
 export const removeRoutes = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
   req.message.route = req.message.route.filter((r: CommonTypes.RouteHeader) => {
-    const lp = request.listeningPoints[0]
+    const localIps = request.localnets.map((ln) => ln.split("/")[0])
+    const lp = getListeningPoint(
+      request,
+      (r.address.uri.transportParam?.toLowerCase() as Transport) ||
+        Transport.UDP
+    )
+
     const route = r.address.uri
     return !(
-      (route.host === lp.host || request.externalAddrs.includes(route.host)) &&
+      (localIps.includes(route.host) ||
+        request.externalAddrs.includes(route.host)) &&
       route.port === lp.port
     )
   })

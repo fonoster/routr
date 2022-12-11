@@ -29,7 +29,8 @@
       "sip01.edgeport.net"
     ],
     "localnets": [
-      "10.111.221.2"
+      "127.0.0.1/8",
+      "10.111.221.2/24"
     ],
     "methods": [
       "REGISTER",

@@ -195,7 +195,7 @@ export const createRequest = (createRequestObj: {
             uri: {
               user: "",
               userPassword: "",
-              host: "sip.local",
+              host: "127.0.0.1",
               transportParam: "",
               mAddrParam: "",
               methodParam: "",

@@ -45,3 +45,6 @@ export const addressCount = (net: string) =>
 
 export const isLocalnet = (nets: string[], addr: string) =>
   nets?.filter((net) => hasIp(net, addr)).length > 0
+
+export const getLocalnetIp = (nets: string[], addr: string) =>
+  nets?.filter((net) => hasIp(net, addr))[0]?.split("/")[0]

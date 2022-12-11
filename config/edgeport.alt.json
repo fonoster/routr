@@ -29,7 +29,8 @@
       "sip02.edgeport.net"
     ],
     "localnets": [
-      "10.111.221.3"
+      "127.0.0.1/8",
+      "10.111.221.3/24"
     ],
     "methods": [
       "REGISTER",

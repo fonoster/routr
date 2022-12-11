@@ -20,7 +20,7 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { getObjectProto } from "../src/service"
-import { addressCount, isLocalnet } from "../src/ip_utils"
+import { addressCount, getLocalnetIp, isLocalnet } from "../src/ip_utils"
 import { getRedisUrlFromConfig } from "../src/redis"
 
 const expect = chai.expect
@@ -73,6 +73,13 @@ describe("@routr/common", () => {
       expect(isLocalnet(localnets, "10.88.1.34")).to.be.true
       expect(isLocalnet(localnets, "192.168.0.14")).to.be.true
       expect(isLocalnet(localnets, "35.196.78.166")).to.be.false
+    })
+
+    it("gets the ip of a localnet for a given address", () => {
+      const localnets = ["127.0.0.1/8", "192.168.1.3/24"]
+      expect(getLocalnetIp(localnets, "192.168.1.6")).to.be.equal("192.168.1.3")
+      expect(getLocalnetIp(localnets, "47.132.130.31")).to.be.undefined
+      expect(getLocalnetIp(localnets, ".invalid")).to.be.undefined
     })
   })
 

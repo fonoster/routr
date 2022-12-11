@@ -21,7 +21,8 @@ import {
   Route,
   Transport,
   CommonTypes as CT,
-  Helper
+  Helper,
+  NetInterface
 } from "@routr/common"
 import { IpUtils } from "@routr/common"
 import { Extensions as E, Target as T } from "./index"
@@ -32,17 +33,32 @@ export const isTypeResponse = (request: MessageRequest): boolean =>
 export const isTypeRequest = (request: MessageRequest): boolean =>
   !isTypeResponse(request)
 
-export const isInvalidHost = (request: MessageRequest) =>
-  request.message.via[0].host.endsWith(".invalid")
+export const getEdgeInterface = (
+  request: MessageRequest,
+  endpointIntf: NetInterface
+): NetInterface => {
+  const localnetIp = IpUtils.getLocalnetIp(request.localnets, endpointIntf.host)
+  const host = localnetIp ?? request.externalAddrs[0]
+  const lp = Helper.getListeningPoint(request, endpointIntf.transport)
 
-export const isPublicAddress = (localnets: string[], host: string) =>
-  !IpUtils.isLocalnet(localnets, host)
+  if (!localnetIp && request.externalAddrs.length === 0) {
+    throw new Error(
+      `unable to find a valid interface for host ${endpointIntf.host} and transport ${lp.transport}`
+    )
+  }
 
-export const needsExternAddress = (request: MessageRequest, host: string) =>
-  isInvalidHost(request) || isPublicAddress(request.localnets, host)
+  if (localnetIp && lp.host !== "0.0.0.0" && lp.host !== host) {
+    throw new Error(
+      `listening point host ${lp.host} does not match interface host ${host}`
+    )
+  }
 
-// Get closest edge address to the originator of the request
-// Get closest edge address to the target endpoint of the request
+  return {
+    host,
+    port: lp.port,
+    transport: lp.transport
+  }
+}
 
 /**
  * A request traversing a second EdgePort would have an updated the requestUri.

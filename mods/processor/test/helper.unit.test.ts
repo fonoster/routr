@@ -20,7 +20,8 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { request } from "./examples"
-import { Helper as E } from "../src"
+import { Helper as H } from "../src"
+import { Transport } from "@routr/common"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -30,7 +31,7 @@ describe("@routr/processor/helper", () => {
   afterEach(() => sandbox.restore())
 
   it("obtains route from request", () => {
-    const route = E.createRouteFromLastMessage(request)
+    const route = H.createRouteFromLastMessage(request)
     const uri = request.message.requestUri
     expect(route.host).to.equal(uri?.host)
     expect(route.sessionCount).to.equal(-1)
@@ -50,5 +51,35 @@ describe("@routr/processor/helper", () => {
     expect(route.egressListeningPoint)
       .to.have.property("transport")
       .to.equal(request.listeningPoints[0].transport)
+  })
+
+  it("obtains edge interface for and address not in localnets", () => {
+    const intf = H.getEdgeInterface(request, {
+      host: "47.131.130.35",
+      port: 5060,
+      transport: Transport.UDP
+    })
+    expect(intf).to.have.property("host").to.equal("200.22.21.42")
+  })
+
+  it("obtains edge interface for and address in localnets", () => {
+    const intf = H.getEdgeInterface(request, {
+      host: "10.100.42.12",
+      port: 5060,
+      transport: Transport.UDP
+    })
+    expect(intf).to.have.property("host").to.equal("10.100.42.127")
+  })
+
+  it("should fail if routing to internet but finds no external addr", () => {
+    const req = JSON.parse(JSON.stringify(request))
+    req.externalAddrs = []
+    expect(() =>
+      H.getEdgeInterface(req, {
+        host: "47.131.130.35",
+        port: 5060,
+        transport: Transport.UDP
+      })
+    ).to.throw()
   })
 })
