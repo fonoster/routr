@@ -17,7 +17,13 @@
  * limitations under the License.
  */
 import { RoutingDirection } from "./types"
-import { HeaderModifier, Helper, Route } from "@routr/common"
+import {
+  CommonConnect as CC,
+  CommonTypes as CT,
+  HeaderModifier,
+  Helper,
+  Route
+} from "@routr/common"
 import {
   createPAssertedIdentity,
   createRemotePartyId,
@@ -27,11 +33,9 @@ import {
   getTrunkURI
 } from "./utils"
 import { MessageRequest, Target as T } from "@routr/processor"
+import { NotRoutesFoundForAOR, ILocationService } from "@routr/location"
 import { UnsuportedRoutingError } from "./errors"
-import { NotRoutesFoundForAOR } from "@routr/location"
-import { ILocationService } from "@routr/location"
 import { getLogger } from "@fonoster/logger"
-import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 
