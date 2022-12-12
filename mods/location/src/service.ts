@@ -18,7 +18,7 @@
  */
 import {
   Backend,
-  CACHE_PROVIDER,
+  CacheProvider,
   LocationConfig,
   RedisStoreConfig
 } from "./types"
@@ -42,7 +42,7 @@ export default function LocationService(config: LocationConfig) {
   const { bindAddr, cache } = config
   let store
 
-  if (cache.provider === CACHE_PROVIDER.REDIS) {
+  if (cache.provider === CacheProvider.REDIS) {
     store = new RedisStore(
       configFromString(
         cache.parameters,

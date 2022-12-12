@@ -16,14 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum KIND {
+export enum Kind {
   AGENT = "agent",
   PEER = "peer",
   NUMBER = "number",
   TRUNK = "trunk",
   DOMAIN = "domain",
   UNKNOWN = "unknown",
-  CREDENTIAL = "credential"
+  CREDENTIAL = "credential",
+  ACL = "accesscontrollist"
 }
 
 export enum FindCriteria {
@@ -35,7 +36,7 @@ export enum FindCriteria {
 }
 
 export interface FindParameters {
-  kind: KIND
+  kind: Kind
   criteria: FindCriteria
   parameters: Record<string, string>
 }
@@ -47,7 +48,7 @@ export interface DataAPI {
 
 export interface Resource {
   apiVersion: string
-  kind: string
+  kind: Kind
   ref: string
   metadata: {
     name: string

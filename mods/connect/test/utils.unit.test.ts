@@ -41,7 +41,7 @@ describe("@routr/connect/utils", () => {
     // eslint-disable-next-line prettier/prettier
     const number = (
       await dataAPI.findBy({
-        kind: CC.KIND.NUMBER,
+        kind: CC.Kind.NUMBER,
         criteria: CC.FindCriteria.FIND_NUMBER_BY_TELURL,
         parameters: {
           telUrl: "tel:17066041487"
@@ -62,7 +62,7 @@ describe("@routr/connect/utils", () => {
     // eslint-disable-next-line prettier/prettier
     const number = (
       await dataAPI.findBy({
-        kind: CC.KIND.NUMBER,
+        kind: CC.Kind.NUMBER,
         criteria: CC.FindCriteria.FIND_NUMBER_BY_TELURL,
         parameters: {
           telUrl: "tel:17066041487"

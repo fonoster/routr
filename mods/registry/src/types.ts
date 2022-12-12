@@ -22,7 +22,7 @@ import { SIPMessage } from "@routr/common/src/types"
 export const DEFAULT_MAX_FORWARDS = 70
 export const DEFAULT_EXPIRES = 600
 
-export enum CACHE_PROVIDER {
+export enum CacheProvider {
   MEMORY = "memory",
   REDIS = "redis"
 }
@@ -44,7 +44,7 @@ export interface RegistryConfig {
   registerInterval: number
   methods: Method[]
   cache?: {
-    provider: CACHE_PROVIDER
+    provider: CacheProvider
     parameters?: string
   }
 }

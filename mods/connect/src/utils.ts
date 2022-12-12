@@ -16,12 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HeaderModifier, MessageRequest, Transport } from "@routr/common"
-import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
-import { ROUTING_DIRECTION } from "./types"
+import {
+  HeaderModifier,
+  MessageRequest,
+  Transport,
+  CommonConnect as CC,
+  CommonTypes as CT
+} from "@routr/common"
+import { RoutingDirection } from "./types"
 
-export const isKind = (res: CC.Resource, kind: CC.KIND) => {
-  if (res == null && kind === CC.KIND.UNKNOWN) {
+export const isKind = (res: CC.Resource, kind: CC.Kind) => {
+  if (res == null && kind === CC.Kind.UNKNOWN) {
     return true
   }
   return res?.kind.toLowerCase() === kind
@@ -30,7 +35,7 @@ export const isKind = (res: CC.Resource, kind: CC.KIND) => {
 export const findDomain = async (dataAPI: CC.DataAPI, domainUri: string) => {
   return (
     await dataAPI.findBy({
-      kind: CC.KIND.DOMAIN,
+      kind: CC.Kind.DOMAIN,
       criteria: CC.FindCriteria.FIND_DOMAIN_BY_DOMAINURI,
       parameters: {
         domainUri
@@ -49,7 +54,7 @@ export const findResource = async (
   // TODO: Fix jsonpath not working for logical AND and OR
   let res = (
     await dataAPI.findBy({
-      kind: CC.KIND.NUMBER,
+      kind: CC.Kind.NUMBER,
       criteria: CC.FindCriteria.FIND_NUMBER_BY_TELURL,
       parameters: {
         telUrl: `tel:${userpart}`
@@ -61,7 +66,7 @@ export const findResource = async (
     res == null
       ? (
           await dataAPI.findBy({
-            kind: CC.KIND.AGENT,
+            kind: CC.Kind.AGENT,
             criteria: CC.FindCriteria.FIND_AGENT_BY_USERNAME,
             parameters: {
               username: userpart
@@ -70,7 +75,7 @@ export const findResource = async (
         )[0]
       : res
 
-  if (isKind(res, CC.KIND.AGENT) && res.spec.domainRef != domain?.ref) {
+  if (isKind(res, CC.Kind.AGENT) && res.spec.domainRef != domain?.ref) {
     // Not in the same domain
     return null
   }
@@ -81,28 +86,28 @@ export const getRoutingDirection = (
   caller: CC.Resource,
   callee: CC.Resource
 ) => {
-  if (isKind(caller, CC.KIND.AGENT) && isKind(callee, CC.KIND.AGENT)) {
-    return ROUTING_DIRECTION.AGENT_TO_AGENT
+  if (isKind(caller, CC.Kind.AGENT) && isKind(callee, CC.Kind.AGENT)) {
+    return RoutingDirection.AGENT_TO_AGENT
   }
 
-  if (isKind(caller, CC.KIND.AGENT) && isKind(callee, CC.KIND.UNKNOWN)) {
-    return ROUTING_DIRECTION.AGENT_TO_PSTN
+  if (isKind(caller, CC.Kind.AGENT) && isKind(callee, CC.Kind.UNKNOWN)) {
+    return RoutingDirection.AGENT_TO_PSTN
   }
 
-  if (isKind(caller, CC.KIND.PEER) && isKind(callee, CC.KIND.AGENT)) {
-    return ROUTING_DIRECTION.PEER_TO_AGENT
+  if (isKind(caller, CC.Kind.PEER) && isKind(callee, CC.Kind.AGENT)) {
+    return RoutingDirection.PEER_TO_AGENT
   }
 
   // All we know is that the Number is managed by this instance of Routr
-  if (isKind(callee, CC.KIND.NUMBER)) {
-    return ROUTING_DIRECTION.FROM_PSTN
+  if (isKind(callee, CC.Kind.NUMBER)) {
+    return RoutingDirection.FROM_PSTN
   }
 
-  if (isKind(caller, CC.KIND.PEER) && isKind(callee, CC.KIND.UNKNOWN)) {
-    return ROUTING_DIRECTION.PEER_TO_PSTN
+  if (isKind(caller, CC.Kind.PEER) && isKind(callee, CC.Kind.UNKNOWN)) {
+    return RoutingDirection.PEER_TO_PSTN
   }
 
-  return ROUTING_DIRECTION.UNKNOWN
+  return RoutingDirection.UNKNOWN
 }
 
 export const createPAssertedIdentity = (

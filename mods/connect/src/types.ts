@@ -18,7 +18,7 @@
  */
 import { HeaderModifier } from "@routr/common"
 
-export enum ROUTING_DIRECTION {
+export enum RoutingDirection {
   FROM_PSTN = "from-pstn",
   AGENT_TO_AGENT = "agent-to-agent",
   AGENT_TO_PSTN = "agent-to-pstn",

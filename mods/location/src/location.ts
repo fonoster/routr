@@ -23,7 +23,7 @@ import {
   FindRoutesRequest,
   ILocationService,
   ILocatorStore,
-  LB_ALGORITHM,
+  LoadBalancingAlgorithm,
   RemoveRoutesRequest
 } from "./types"
 import { Route } from "@routr/common"
@@ -103,7 +103,7 @@ export default class Location implements ILocationService {
 
   // eslint-disable-next-line require-jsdoc
   private next(routes: Array<Route>, backend: Backend): Route {
-    if (backend.balancingAlgorithm === LB_ALGORITHM.LEAST_SESSIONS) {
+    if (backend.balancingAlgorithm === LoadBalancingAlgorithm.LEAST_SESSIONS) {
       return routes.sort((r1, r2) => r1.sessionCount - r2.sessionCount)[0]
     }
 

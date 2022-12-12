@@ -18,12 +18,12 @@
  */
 import { Route } from "@routr/common"
 
-export enum LB_ALGORITHM {
+export enum LoadBalancingAlgorithm {
   ROUND_ROBIN = "round-robin",
   LEAST_SESSIONS = "least-sessions"
 }
 
-export enum CACHE_PROVIDER {
+export enum CacheProvider {
   MEMORY = "memory",
   REDIS = "redis"
 }
@@ -65,7 +65,7 @@ export interface RemoveRoutesRequest {
 
 export interface Backend {
   ref: string
-  balancingAlgorithm?: LB_ALGORITHM
+  balancingAlgorithm?: LoadBalancingAlgorithm
   withSessionAffinity?: boolean
 }
 
@@ -73,7 +73,7 @@ export interface LocationConfig {
   bindAddr: string
   backends?: Backend[]
   cache?: {
-    provider: CACHE_PROVIDER
+    provider: CacheProvider
     parameters?: string
   }
 }

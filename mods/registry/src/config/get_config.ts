@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CACHE_PROVIDER, RegistryConfig } from "../types"
+import { CacheProvider, RegistryConfig } from "../types"
 import fs from "fs"
 import { schema } from "./schema"
 import Ajv from "ajv"
@@ -41,16 +41,16 @@ export const getConfig = (
 
   if (!config?.cache?.provider) {
     config.cache = {
-      provider: CACHE_PROVIDER.MEMORY
+      provider: CacheProvider.MEMORY
     }
   }
 
   if (
-    config?.cache?.provider === CACHE_PROVIDER.REDIS &&
+    config?.cache?.provider === CacheProvider.REDIS &&
     !config?.cache?.parameters
   ) {
     config.cache = {
-      provider: CACHE_PROVIDER.REDIS,
+      provider: CacheProvider.REDIS,
       parameters: "host=localhost,port=6379"
     }
   }

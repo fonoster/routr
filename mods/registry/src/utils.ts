@@ -21,7 +21,7 @@ import { CommonConnect as CC } from "@routr/common"
 import MemoryStore from "./memory_store"
 import RedisStore from "./redis_store"
 import {
-  CACHE_PROVIDER,
+  CacheProvider,
   IRegistryStore,
   RedisStoreConfig,
   RegistrationEntry,
@@ -45,7 +45,7 @@ export function getUnregisteredTrunks(store: IRegistryStore) {
 // eslint-disable-next-line require-jsdoc
 export async function findTrunks(dataAPI: CC.DataAPI) {
   return await dataAPI.findBy({
-    kind: CC.KIND.TRUNK,
+    kind: CC.Kind.TRUNK,
     criteria: CC.FindCriteria.FIND_TRUNKS_WITH_SEND_REGISTER,
     parameters: {}
   })
@@ -76,7 +76,7 @@ export const configFromString = (
 }
 
 export const buildStore = (config: RegistryConfig) => {
-  if (config.cache.provider === CACHE_PROVIDER.REDIS) {
+  if (config.cache.provider === CacheProvider.REDIS) {
     const allowedParameters = ["host", "port", "username", "password", "secure"]
     return new RedisStore(
       configFromString(

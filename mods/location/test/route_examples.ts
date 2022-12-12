@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { Route, Transport } from "@routr/common"
-import { Backend, LB_ALGORITHM } from "../src/types"
+import { Backend, LoadBalancingAlgorithm } from "../src/types"
 
 export const simpleRoute01: Route = {
   user: "1001",
@@ -186,16 +186,16 @@ export const backends = new Map<string, Backend>()
 
 backends.set("backend:voice_rr", {
   ref: "voice_rr",
-  balancingAlgorithm: LB_ALGORITHM.ROUND_ROBIN
+  balancingAlgorithm: LoadBalancingAlgorithm.ROUND_ROBIN
 })
 
 backends.set("backend:voice_ls", {
   ref: "voice-least-sessions",
-  balancingAlgorithm: LB_ALGORITHM.LEAST_SESSIONS
+  balancingAlgorithm: LoadBalancingAlgorithm.LEAST_SESSIONS
 })
 
 backends.set("backend:conference", {
   ref: "conference-with-session-affinity",
-  balancingAlgorithm: LB_ALGORITHM.LEAST_SESSIONS,
+  balancingAlgorithm: LoadBalancingAlgorithm.LEAST_SESSIONS,
   withSessionAffinity: true
 })

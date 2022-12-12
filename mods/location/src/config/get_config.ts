@@ -16,7 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Backend, CACHE_PROVIDER, LB_ALGORITHM, LocationConfig } from "../types"
+import {
+  Backend,
+  CacheProvider,
+  LoadBalancingAlgorithm,
+  LocationConfig
+} from "../types"
 import fs from "fs"
 import { schema } from "./schema"
 import Ajv from "ajv"
@@ -34,14 +39,15 @@ const validate = ajv.compile(schema)
 const hasBadCombiniation = (backends: Backend[]) =>
   backends.some(
     (b: Backend) =>
-      b.balancingAlgorithm === LB_ALGORITHM.ROUND_ROBIN && b.withSessionAffinity
+      b.balancingAlgorithm === LoadBalancingAlgorithm.ROUND_ROBIN &&
+      b.withSessionAffinity
   )
 
 const hasBadAlgorithm = (backends: Backend[]) =>
   backends.some(
     (b: Backend) =>
-      b.balancingAlgorithm !== LB_ALGORITHM.ROUND_ROBIN &&
-      b.balancingAlgorithm !== LB_ALGORITHM.LEAST_SESSIONS
+      b.balancingAlgorithm !== LoadBalancingAlgorithm.ROUND_ROBIN &&
+      b.balancingAlgorithm !== LoadBalancingAlgorithm.LEAST_SESSIONS
   )
 
 export const getConfig = (
@@ -62,7 +68,7 @@ export const getConfig = (
       // Setting round-robin by default
       b.balancingAlgorithm = b.balancingAlgorithm
         ? b.balancingAlgorithm
-        : LB_ALGORITHM.ROUND_ROBIN
+        : LoadBalancingAlgorithm.ROUND_ROBIN
       return b
     })
 
@@ -77,16 +83,16 @@ export const getConfig = (
 
   if (!config?.cache?.provider) {
     config.cache = {
-      provider: CACHE_PROVIDER.MEMORY
+      provider: CacheProvider.MEMORY
     }
   }
 
   if (
-    config?.cache?.provider === CACHE_PROVIDER.REDIS &&
+    config?.cache?.provider === CacheProvider.REDIS &&
     !config?.cache?.parameters
   ) {
     config.cache = {
-      provider: CACHE_PROVIDER.REDIS,
+      provider: CacheProvider.REDIS,
       parameters: "host=localhost,port=6379"
     }
   }

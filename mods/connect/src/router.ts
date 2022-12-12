@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ROUTING_DIRECTION } from "./types"
+import { RoutingDirection } from "./types"
 import { HeaderModifier, Helper, Route } from "@routr/common"
 import {
   createPAssertedIdentity,
@@ -57,11 +57,11 @@ export function router(location: ILocationService, dataAPI: CC.DataAPI) {
     const routingDir = getRoutingDirection(caller, callee)
 
     switch (routingDir) {
-      case ROUTING_DIRECTION.AGENT_TO_PSTN:
+      case RoutingDirection.AGENT_TO_PSTN:
         return await toPSTN(dataAPI, req, caller, requestURI.user)
-      case ROUTING_DIRECTION.AGENT_TO_AGENT:
+      case RoutingDirection.AGENT_TO_AGENT:
         return agentToAgent(location, req)
-      case ROUTING_DIRECTION.FROM_PSTN:
+      case RoutingDirection.FROM_PSTN:
         return await fromPSTN(location, dataAPI, callee)
       default:
         throw new UnsuportedRoutingError(routingDir)

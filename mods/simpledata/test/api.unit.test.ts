@@ -122,7 +122,7 @@ describe("@routr/simpledata/api", () => {
 
     it("creates query based on find criteria and parameters", () => {
       const searchParameters: CC.FindParameters = {
-        kind: CC.KIND.AGENT,
+        kind: CC.Kind.AGENT,
         criteria: CC.FindCriteria.FIND_AGENT_BY_USERNAME,
         parameters: jsonToStruct({
           username: "myusername"
@@ -137,7 +137,7 @@ describe("@routr/simpledata/api", () => {
 
     it("fails to create query due to bad criteria", () => {
       const searchParameters: CC.FindParameters = {
-        kind: CC.KIND.AGENT,
+        kind: CC.Kind.AGENT,
         criteria: "bad_criteria" as never,
         parameters: jsonToStruct({
           username: "myusername"
@@ -148,7 +148,7 @@ describe("@routr/simpledata/api", () => {
 
     it("fails to create query due to missing parameter", () => {
       const searchParameters: CC.FindParameters = {
-        kind: CC.KIND.AGENT,
+        kind: CC.Kind.AGENT,
         parameters: jsonToStruct({
           username: "myusername"
         }) as Record<string, string>
@@ -160,7 +160,7 @@ describe("@routr/simpledata/api", () => {
     it("finds a resource using findBy method", (done) => {
       const call = {
         request: {
-          kind: CC.KIND.CREDENTIAL,
+          kind: CC.Kind.CREDENTIAL,
           criteria: CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE,
           parameters: jsonToStruct({
             ref: "crd2c76ft"
