@@ -16,8 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { MessageRequest, Transport } from "./types"
+import { NetInterface, Transport } from "./types"
 
 /**
  * Makes a deep copy of an object.
@@ -47,21 +46,19 @@ export const deepCopy = <T>(source: T): T => {
 /**
  * Gets a listening point from a request.
  *
- * @param {MessageRequest} request - The source object.
- * @param {Transport} transport - The source object.
+ * @param {NetInterface[]} listeningPoints - The listening points.
+ * @param {Transport} transport - The transport.
  * @return {NetInterface} transport The deep copy of the source object.
  */
 export const getListeningPoint = (
-  request: MessageRequest,
+  listeningPoints: NetInterface[],
   transport: Transport
 ) => {
   const listeningPoint = transport
-    ? request.listeningPoints.find(
+    ? listeningPoints.find(
         (lp) => lp.transport.toLowerCase() === transport.toLowerCase()
       )
-    : request.listeningPoints.find(
-        (lp) => lp.transport.toLowerCase() === Transport.UDP
-      )
+    : listeningPoints.find((lp) => lp.transport.toLowerCase() === Transport.UDP)
 
   if (!listeningPoint) {
     throw new Error(`no listening point found for transport ${transport}`)

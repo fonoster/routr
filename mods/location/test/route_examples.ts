@@ -28,11 +28,15 @@ export const simpleRoute01: Route = {
   sessionCount: -1,
   expires: 600,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "proxy",
-    port: 5060,
-    transport: Transport.TCP
-  },
+  listeningPoints: [
+    {
+      host: "proxy",
+      port: 5060,
+      transport: Transport.TCP
+    }
+  ],
+  localnets: [],
+  externalAddrs: [],
   labels: new Map<string, string>([["priority", "1"]])
 }
 
@@ -45,11 +49,15 @@ export const simpleRoute02: Route = {
   sessionCount: -1,
   expires: 600,
   edgePortRef: "ep002",
-  egressListeningPoint: {
-    host: "proxy",
-    port: 5060,
-    transport: Transport.UDP
-  },
+  listeningPoints: [
+    {
+      host: "proxy",
+      port: 5060,
+      transport: Transport.UDP
+    }
+  ],
+  localnets: [],
+  externalAddrs: [],
   labels: new Map<string, string>([["priority", "2"]])
 }
 
@@ -62,11 +70,15 @@ export const voiceBackendRoute01: Route = {
   sessionCount: 50,
   expires: 600,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "proxy",
-    port: 5060,
-    transport: Transport.TCP
-  },
+  listeningPoints: [
+    {
+      host: "proxy",
+      port: 5060,
+      transport: Transport.TCP
+    }
+  ],
+  localnets: [],
+  externalAddrs: [],
   labels: new Map<string, string>([["region", "us-east01"]])
 }
 
@@ -79,11 +91,15 @@ export const voiceBackendRoute02: Route = {
   sessionCount: 200,
   expires: 600,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "proxy",
-    port: 5060,
-    transport: Transport.UDP
-  }
+  listeningPoints: [
+    {
+      host: "proxy",
+      port: 5060,
+      transport: Transport.UDP
+    }
+  ],
+  localnets: [],
+  externalAddrs: []
 }
 
 export const voiceBackendRoute03: Route = {
@@ -95,11 +111,15 @@ export const voiceBackendRoute03: Route = {
   sessionCount: 150,
   expires: 600,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "proxy",
-    port: 5060,
-    transport: Transport.UDP
-  }
+  listeningPoints: [
+    {
+      host: "proxy",
+      port: 5060,
+      transport: Transport.UDP
+    }
+  ],
+  localnets: [],
+  externalAddrs: []
 }
 
 export const voiceBackendRoute04: Route = {
@@ -111,11 +131,15 @@ export const voiceBackendRoute04: Route = {
   sessionCount: 201,
   expires: 600,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "proxy",
-    port: 5060,
-    transport: Transport.UDP
-  }
+  listeningPoints: [
+    {
+      host: "proxy",
+      port: 5060,
+      transport: Transport.UDP
+    }
+  ],
+  localnets: [],
+  externalAddrs: []
 }
 
 export const voiceBackendRoute05: Route = {
@@ -127,11 +151,15 @@ export const voiceBackendRoute05: Route = {
   sessionCount: 5,
   expires: 600,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "proxy",
-    port: 5060,
-    transport: Transport.UDP
-  }
+  listeningPoints: [
+    {
+      host: "proxy",
+      port: 5060,
+      transport: Transport.UDP
+    }
+  ],
+  localnets: [],
+  externalAddrs: []
 }
 
 export const conferenceBackendRoute01: Route = {
@@ -143,11 +171,15 @@ export const conferenceBackendRoute01: Route = {
   sessionCount: 20,
   expires: 600,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "proxy",
-    port: 5060,
-    transport: Transport.TCP
-  }
+  listeningPoints: [
+    {
+      host: "proxy",
+      port: 5060,
+      transport: Transport.TCP
+    }
+  ],
+  localnets: [],
+  externalAddrs: []
 }
 
 export const conferenceBackendRoute02: Route = {
@@ -159,11 +191,15 @@ export const conferenceBackendRoute02: Route = {
   sessionCount: 50,
   expires: 600,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "proxy",
-    port: 5060,
-    transport: Transport.TCP
-  }
+  listeningPoints: [
+    {
+      host: "proxy",
+      port: 5060,
+      transport: Transport.TCP
+    }
+  ],
+  localnets: [],
+  externalAddrs: []
 }
 
 export const conferenceWithExpiredRoute: Route = {
@@ -175,11 +211,15 @@ export const conferenceWithExpiredRoute: Route = {
   sessionCount: 10,
   expires: 10,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "proxy",
-    port: 5060,
-    transport: Transport.TCP
-  }
+  listeningPoints: [
+    {
+      host: "proxy",
+      port: 5060,
+      transport: Transport.TCP
+    }
+  ],
+  localnets: [],
+  externalAddrs: []
 }
 
 export const backends = new Map<string, Backend>()

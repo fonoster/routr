@@ -16,13 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  MessageRequest,
-  Route,
-  Transport,
-  CommonTypes,
-  Helper
-} from "@routr/common"
+import { MessageRequest, Route, Transport, CommonTypes } from "@routr/common"
 import { Extensions as E, Target as T } from "@routr/processor"
 
 // TODO: Before finalizing this, consider using the old approach of saving the rport
@@ -40,11 +34,6 @@ export const createRoute = (request: MessageRequest): Route => {
     ? parseInt(E.getHeaderValue(request, CommonTypes.ExtraHeader.SESSION_COUNT))
     : -1
 
-  const egressListeningPoint = Helper.getListeningPoint(
-    request,
-    uri.transportParam.toLowerCase() as Transport
-  )
-
   return {
     edgePortRef: request.edgePortRef,
     user: uri.user,
@@ -54,6 +43,8 @@ export const createRoute = (request: MessageRequest): Route => {
     registeredOn: Date.now(),
     sessionCount,
     expires: T.getTargetExpires(request),
-    egressListeningPoint
+    listeningPoints: request.listeningPoints,
+    localnets: request.localnets,
+    externalAddrs: request.externalAddrs
   }
 }

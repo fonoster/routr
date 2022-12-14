@@ -48,30 +48,15 @@ export const addSelfVia =
   (route: Route) =>
   (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
-    // If is comming from a different edgeport we use the listening point instead
-    // of the endpoint to ensure connectivity.
-    const nextHopHost =
-      request.edgePortRef === route.edgePortRef
-        ? route.host
-        : route.egressListeningPoint.host
 
-    const egressListeningPoint = Helper.getListeningPoint(
-      request,
-      route.transport
-    )
+    const routingObjects =
+      request.edgePortRef === route.edgePortRef ? request : route
 
-    // If the nextHopHost host is local, then use use lp to construct via
-    // otherwise, we use the first available external ip.
-    const via = I.isLocalnet(req.localnets, nextHopHost)
-      ? route.egressListeningPoint
-      : {
-          // fallback to lp host if there is no external ips
-          host: req.externalAddrs[0] ?? egressListeningPoint.host,
-          port: egressListeningPoint.port,
-          transport: egressListeningPoint.transport
-        }
-
-    req.message.via = [via, ...req.message.via]
+    const targetIntf = getEdgeInterface({
+      ...routingObjects,
+      endpointIntf: route
+    })
+    req.message.via = [{ ...targetIntf }, ...req.message.via]
 
     return req
   }
@@ -94,16 +79,22 @@ export const addRoute =
     return req
   }
 
-export const addRouteToListeningPoint =
+export const addRouteToPeerEdgePort =
   (route: Route) =>
   (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
+    const targetIntf = getEdgeInterface({
+      listeningPoints: route.listeningPoints,
+      localnets: route.localnets,
+      externalAddrs: route.externalAddrs,
+      endpointIntf: route
+    })
     const r = {
       address: {
         uri: {
-          host: route.egressListeningPoint.host,
-          port: route.egressListeningPoint.port,
-          transportParam: route.egressListeningPoint.transport,
+          host: targetIntf.host,
+          port: targetIntf.port,
+          transportParam: targetIntf.transport,
           lrParam: true
         }
       }
@@ -145,8 +136,18 @@ export const addSelfRecordRoute =
   (route: Route) =>
   (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
-    const originIntf = getEdgeInterface(request, request.sender)
-    const targetIntf = getEdgeInterface(request, route)
+    const originIntf = getEdgeInterface({
+      listeningPoints: request.listeningPoints,
+      localnets: request.localnets,
+      externalAddrs: request.externalAddrs,
+      endpointIntf: request.sender
+    })
+    const targetIntf = getEdgeInterface({
+      listeningPoints: request.listeningPoints,
+      localnets: request.localnets,
+      externalAddrs: request.externalAddrs,
+      endpointIntf: route
+    })
 
     const originRoute: CommonTypes.RecordRoute = {
       address: {
@@ -224,19 +225,20 @@ export const removeAuthorization = (
 
 export const removeRoutes = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
+  const localIps = request.localnets.map((ln) => ln.split("/")[0])
+
   req.message.route = req.message.route.filter((r: CommonTypes.RouteHeader) => {
-    const localIps = request.localnets.map((ln) => ln.split("/")[0])
     const lp = Helper.getListeningPoint(
-      request,
+      request.listeningPoints,
       (r.address.uri.transportParam?.toLowerCase() as Transport) ||
         Transport.UDP
     )
 
-    const route = r.address.uri
+    const routeUri = r.address.uri
     return !(
-      (localIps.includes(route.host) ||
-        request.externalAddrs.includes(route.host)) &&
-      route.port === lp.port
+      (localIps.includes(routeUri.host) ||
+        request.externalAddrs.includes(routeUri.host)) &&
+      routeUri.port === lp.port
     )
   })
   return req

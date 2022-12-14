@@ -33,15 +33,18 @@ export const isTypeResponse = (request: MessageRequest): boolean =>
 export const isTypeRequest = (request: MessageRequest): boolean =>
   !isTypeResponse(request)
 
-export const getEdgeInterface = (
-  request: MessageRequest,
+export const getEdgeInterface = (nets: {
+  listeningPoints: NetInterface[]
   endpointIntf: NetInterface
-): NetInterface => {
-  const localnetIp = IpUtils.getLocalnetIp(request.localnets, endpointIntf.host)
-  const host = localnetIp ?? request.externalAddrs[0]
-  const lp = Helper.getListeningPoint(request, endpointIntf.transport)
+  localnets: string[]
+  externalAddrs: string[]
+}): NetInterface => {
+  const { listeningPoints, endpointIntf, localnets, externalAddrs } = nets
+  const localnetIp = IpUtils.getLocalnetIp(localnets, endpointIntf.host)
+  const host = localnetIp ?? externalAddrs[0]
+  const lp = Helper.getListeningPoint(listeningPoints, endpointIntf.transport)
 
-  if (!localnetIp && request.externalAddrs.length === 0) {
+  if (!localnetIp && externalAddrs.length === 0) {
     throw new Error(
       `unable to find a valid interface for host ${endpointIntf.host} and transport ${lp.transport}`
     )
@@ -73,11 +76,6 @@ export function createRouteFromLastMessage(request: MessageRequest): Route {
     ? parseInt(E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT))
     : -1
 
-  const egressListeningPoint = Helper.getListeningPoint(
-    request,
-    uri.transportParam.toLowerCase() as Transport
-  )
-
   return {
     edgePortRef: request.edgePortRef,
     user: uri.user,
@@ -87,6 +85,8 @@ export function createRouteFromLastMessage(request: MessageRequest): Route {
     registeredOn: Date.now(),
     sessionCount,
     expires: T.getTargetExpires(request),
-    egressListeningPoint
+    listeningPoints: request.listeningPoints,
+    localnets: request.localnets,
+    externalAddrs: request.externalAddrs
   }
 }

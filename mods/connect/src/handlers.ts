@@ -72,8 +72,7 @@ export const handleRequest =
         return pipe(
           req,
           A.addSelfVia(route),
-          // The LP address belongs to another edgeport
-          A.addRouteToListeningPoint(route),
+          A.addRouteToPeerEdgePort(route),
           A.addXEdgePortRef,
           A.decreaseMaxForwards
         )

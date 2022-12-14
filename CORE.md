@@ -668,7 +668,7 @@ Suppose an endpoint participating as "backend" wishes to use the `least-sessions
 Route DTO:
 
 ```proto
-// A binding create by an actual endpoint (Softphone, PBX, Conference System, etc.)
+// A binding created by an actual endpoint (Softphone, PBX, Conference System, etc.)
 message Route {
   string user = 1;
   string host = 2;
@@ -678,11 +678,13 @@ message Route {
   int32 expires = 6;
   int32 session_count = 7;
   string edge_port_ref = 8;
-  fonoster.routr.processor.v2draft1.NetInterface egress_listening_point = 9;
-  // During route creation, an endpoint can request to add labels that can later be
-  // used as selectors. For example, a Softphone can add the label `priority=1` to indicate
-  // that it is the preferred endpoint for the given AOR.
-  map<string, string> labels = 10;
+  repeated fonoster.routr.processor.v2draft1.NetInterface listening_points = 9;
+  repeated string localnets = 10;
+  repeated string external_addrs = 11;
+  // During route creation, an endpoint can request to add labels than can later be
+  // used as selectors. For example, a Softphone can add a label `priority=1` to indicate
+  // that it is the prefered endpoint for the given AOR.
+  map<string, string> labels = 12;
 }
 ```
 

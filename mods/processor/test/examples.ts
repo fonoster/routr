@@ -34,11 +34,15 @@ export const route: Route = {
   sessionCount: -1,
   expires: 600,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "proxy",
-    port: 5060,
-    transport: Transport.TCP
-  },
+  listeningPoints: [
+    {
+      host: "0.0.0.0",
+      port: 5060,
+      transport: Transport.TCP
+    }
+  ],
+  localnets: ["127.0.0.1/8"],
+  externalAddrs: ["47.132.130.31"],
   headers: [
     {
       name: CT.ExtraHeader.GATEWAY_AUTH,
@@ -61,11 +65,15 @@ export const routeOnAnotherEdgePort: Route = {
   sessionCount: -1,
   expires: 600,
   edgePortRef: "ep002",
-  egressListeningPoint: {
-    host: "10.100.42.128",
-    port: 5060,
-    transport: Transport.TCP
-  }
+  listeningPoints: [
+    {
+      host: "0.0.0.0",
+      port: 5060,
+      transport: Transport.TCP
+    }
+  ],
+  localnets: ["127.0.0.1/8", "10.100.42.128/24"],
+  externalAddrs: ["47.132.130.31"]
 }
 
 export const request: MessageRequest = {

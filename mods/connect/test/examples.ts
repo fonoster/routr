@@ -26,11 +26,15 @@ export const r1: Route = {
   transport: Transport.TCP,
   sessionCount: -1,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "10.1.1.1",
-    port: 5060,
-    transport: Transport.TCP
-  },
+  listeningPoints: [
+    {
+      host: "10.1.1.1",
+      port: 5060,
+      transport: Transport.TCP
+    }
+  ],
+  localnets: [],
+  externalAddrs: [],
   labels: new Map<string, string>([["priority", "1"]])
 }
 
@@ -42,11 +46,15 @@ export const r2: Route = {
   transport: Transport.TCP,
   sessionCount: -1,
   edgePortRef: "ep001",
-  egressListeningPoint: {
-    host: "10.1.1.1",
-    port: 5060,
-    transport: Transport.TCP
-  },
+  listeningPoints: [
+    {
+      host: "10.1.1.1",
+      port: 5060,
+      transport: Transport.TCP
+    }
+  ],
+  localnets: [],
+  externalAddrs: [],
   labels: new Map<string, string>([["priority", "1"]])
 }
 

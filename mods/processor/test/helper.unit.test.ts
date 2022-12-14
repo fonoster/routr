@@ -42,31 +42,37 @@ describe("@routr/processor/helper", () => {
     expect(route.port).to.equal(uri?.port)
     expect(route.transport).to.equal(uri?.transportParam)
     expect(route.registeredOn).to.not.be.undefined
-    expect(route.egressListeningPoint)
+    expect(route.listeningPoints[0])
       .to.have.property("host")
       .to.equal(request.listeningPoints[0].host)
-    expect(route.egressListeningPoint)
+    expect(route.listeningPoints[0])
       .to.have.property("port")
       .to.equal(request.listeningPoints[0].port)
-    expect(route.egressListeningPoint)
+    expect(route.listeningPoints[0])
       .to.have.property("transport")
       .to.equal(request.listeningPoints[0].transport)
   })
 
   it("obtains edge interface for and address not in localnets", () => {
-    const intf = H.getEdgeInterface(request, {
-      host: "47.131.130.35",
-      port: 5060,
-      transport: Transport.UDP
+    const intf = H.getEdgeInterface({
+      ...request,
+      endpointIntf: {
+        host: "47.131.130.35",
+        port: 5060,
+        transport: Transport.UDP
+      }
     })
     expect(intf).to.have.property("host").to.equal("200.22.21.42")
   })
 
   it("obtains edge interface for and address in localnets", () => {
-    const intf = H.getEdgeInterface(request, {
-      host: "10.100.42.12",
-      port: 5060,
-      transport: Transport.UDP
+    const intf = H.getEdgeInterface({
+      ...request,
+      endpointIntf: {
+        host: "10.100.42.12",
+        port: 5060,
+        transport: Transport.UDP
+      }
     })
     expect(intf).to.have.property("host").to.equal("10.100.42.127")
   })
@@ -75,10 +81,13 @@ describe("@routr/processor/helper", () => {
     const req = JSON.parse(JSON.stringify(request))
     req.externalAddrs = []
     expect(() =>
-      H.getEdgeInterface(req, {
-        host: "47.131.130.35",
-        port: 5060,
-        transport: Transport.UDP
+      H.getEdgeInterface({
+        ...req,
+        endpointIntf: {
+          host: "47.131.130.35",
+          port: 5060,
+          transport: Transport.UDP
+        }
       })
     ).to.throw()
   })

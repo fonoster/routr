@@ -153,7 +153,9 @@ export interface Route {
   sessionCount?: number
   expires?: number
   edgePortRef: string
-  egressListeningPoint: NetInterface
+  listeningPoints: NetInterface[]
+  localnets: string[]
+  externalAddrs: string[]
   labels?: Map<string, string>
   headers?: HeaderModifier[]
 }

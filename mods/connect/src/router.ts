@@ -153,15 +153,15 @@ async function toPSTN(
 
   const uri = getTrunkURI(trunk)
 
-  const egressListeningPoint = Helper.getListeningPoint(req, uri.transport)
-
   return {
     user: uri.user,
     host: uri.host,
     port: uri.port,
     transport: uri.transport,
     edgePortRef: req.edgePortRef,
-    egressListeningPoint,
+    listeningPoints: req.listeningPoints,
+    localnets: req.localnets,
+    externalAddrs: req.externalAddrs,
     headers: [
       // TODO: Find a more deterministic way to re-add the Privacy header
       {
