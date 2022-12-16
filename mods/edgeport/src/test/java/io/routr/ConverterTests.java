@@ -68,21 +68,6 @@ public class ConverterTests {
   }
 
   @Test
-  public void testGetSenderMethod() throws PeerUnavailableException, ParseException, InvalidArgumentException {
-    HeaderFactory headerFactory = SipFactory.getInstance().createHeaderFactory();
-    MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
-    Request request = messageFactory.createRequest(
-      "INVITE sip:sip.target;transport=tcp SIP/2.0\r\n\r\n");
-    request.addHeader(headerFactory.createViaHeader("sip.local", 5060, "tcp", null));
-
-    NetInterface sender = MessageConverter.getSender(request);
-
-    assertEquals(5060, sender.getPort());
-    assertEquals("sip.local", sender.getHost());
-    assertEquals(Transport.TCP, sender.getTransport());
-  }
-
-  @Test
   public void testCallIdConverter() throws PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     CallID header = (CallID) factory.createCallIdHeader("call001");

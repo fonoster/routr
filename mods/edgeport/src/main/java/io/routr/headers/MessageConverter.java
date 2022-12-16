@@ -21,6 +21,7 @@ package io.routr.headers;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.GeneratedMessageV3;
 import gov.nist.javax.sip.header.*;
+import gov.nist.javax.sip.RequestEventExt;
 import io.routr.common.Transport;
 import io.routr.message.ResponseType;
 import io.routr.message.SIPMessage;
@@ -186,13 +187,12 @@ public class MessageConverter {
     return headers;
   }
 
-  static public NetInterface getSender(final Message message) {
-    // The top header belongs to the sender. This method must be called before
-    // any updates is made to the request.
-    ViaHeader via = (ViaHeader) message.getHeader(ViaHeader.NAME);
+  static public NetInterface getSender(final RequestEventExt event) {
+    Request request = event.getRequest();
+    ViaHeader via = (ViaHeader) request.getHeader(ViaHeader.NAME);
     return NetInterface.newBuilder()
-      .setHost(via.getHost())
-      .setPort(via.getPort())
+      .setHost(event.getRemoteIpAddress())
+      .setPort(event.getRemotePort())
       .setTransport(Transport.valueOf(via.getTransport().toUpperCase()))
       .build();
   }
@@ -209,7 +209,7 @@ public class MessageConverter {
     return new ExtensionConverter();
   }
 
-  public MessageRequest createMessageRequest(final Message message) {
+  public MessageRequest createMessageRequest(final Message message, final RequestEventExt event) {
     String methodStr = null;
     if (message instanceof Request) {
       methodStr = ((Request) message).getMethod();
@@ -217,7 +217,7 @@ public class MessageConverter {
       methodStr = ((CSeq) (message).getHeader(CSeq.NAME)).getMethod();
     }
 
-    NetInterface sender = getSender(message);
+    NetInterface sender = event != null ? getSender(event) : null;
     String callId = ((CallIdHeader) message.getHeader(CallIdHeader.NAME)).getCallId();
     assert methodStr != null;
     Method method = Method.valueOf(methodStr.toUpperCase());
