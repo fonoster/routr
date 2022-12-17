@@ -116,6 +116,7 @@ services:
     environment:
       # Comma separated list of agents that are allowed to skip authentication
       WHITELIST: pbx-1
+      METHODS: "REGISTER"
       PATH_TO_AUTH: /etc/routr/auth.json
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces

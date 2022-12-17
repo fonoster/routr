@@ -62,3 +62,59 @@ export const calculateAuthResponse = (
       )
     : md5hex(`${ha1}:${res.nonce}:${ha2}`)
 }
+
+export const getCredentials = (
+  username: string,
+  users: { username: string; secret: string }[]
+) => users.find((user) => user.username === username)
+
+export const createUnauthorizedResponse = (
+  realm: string,
+  params: {
+    qop: string
+    algorithm: string
+  } = { qop: "auth", algorithm: "MD5" }
+) => {
+  return {
+    message: {
+      // Unauthorized Code
+      responseType: 17,
+      wwwAuthenticate: {
+        scheme: "Digest",
+        realm: realm,
+        qop: params.qop,
+        opaque: "",
+        stale: false,
+        nonce: generateNonce(),
+        algorithm: params.algorithm
+      }
+    }
+  }
+}
+
+export const createUnauthorizedResponseWithoutChallenge = () => {
+  return {
+    message: {
+      // Unauthorized Code
+      responseType: 17
+    }
+  }
+}
+
+export const createServerInternalErrorResponse = () => {
+  return {
+    message: {
+      // Unauthorized Code
+      responseType: 46
+    }
+  }
+}
+
+export const createForbideenResponse = () => {
+  return {
+    message: {
+      // Forbideen Code
+      responseType: 19
+    }
+  }
+}

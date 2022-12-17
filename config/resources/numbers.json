@@ -45,5 +45,25 @@
         "aorLink": "sip:1001@sip.local"
       }
     }
+  },
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Number",
+    "ref": "nb6006r2",
+    "metadata": {
+      "localFormat": "(706)604-1487",
+      "geoInfo": {
+        "city": "Durham, NC",
+        "country": "USA",
+        "countryISOCode": "US"
+      }
+    },
+    "spec": {
+      "trunkRef": "tk600yx",
+      "location": {
+        "telUrl": "tel:+18295863314",
+        "aorLink": "sip:1001@sip.local"
+      }
+    }
   }  
 ]

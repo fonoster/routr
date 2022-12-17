@@ -67,18 +67,23 @@ export const handleRequest =
 
       if (!route) return res.sendNotFound()
 
-      // Forward request to peer edgeport
-      if (req.edgePortRef !== route.edgePortRef) {
-        return pipe(
-          req,
-          A.addSelfVia(route),
-          A.addRouteToPeerEdgePort(route),
-          A.addXEdgePortRef,
-          A.decreaseMaxForwards
-        )
-      }
+      // If route is not type Route then return
+      if (!("user" in route)) {
+        return res.send(route as Record<string, unknown>)
+      } else {
+        // Forward request to peer edgeport
+        if (req.edgePortRef !== route.edgePortRef) {
+          return pipe(
+            req,
+            A.addSelfVia(route as unknown as CT.Route),
+            A.addRouteToPeerEdgePort(route as unknown as CT.Route),
+            A.addXEdgePortRef,
+            A.decreaseMaxForwards
+          )
+        }
 
-      res.send(tailor(route, req))
+        res.send(tailor(route as unknown as CT.Route, req))
+      }
     } catch (err) {
       res.sendError(err)
     }

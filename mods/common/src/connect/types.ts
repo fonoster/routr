@@ -32,7 +32,8 @@ export enum FindCriteria {
   FIND_CREDENTIAL_BY_REFERENCE = "find_credential_by_reference",
   FIND_DOMAIN_BY_DOMAINURI = "find_domain_by_domainuri",
   FIND_NUMBER_BY_TELURL = "find_number_by_telurl",
-  FIND_TRUNKS_WITH_SEND_REGISTER = "find_trunks_with_send_register"
+  FIND_TRUNKS_WITH_SEND_REGISTER = "find_trunks_with_send_register",
+  FIND_TRUNK_BY_REQUEST_URI = "find_trunk_by_request_uri"
 }
 
 export interface FindParameters {

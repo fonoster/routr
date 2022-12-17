@@ -188,6 +188,10 @@ public class MessageConverter {
   }
 
   static public NetInterface getSender(final RequestEventExt event) {
+    if (event == null) {
+      return NetInterface.newBuilder().build();
+    }
+
     Request request = event.getRequest();
     ViaHeader via = (ViaHeader) request.getHeader(ViaHeader.NAME);
     return NetInterface.newBuilder()
@@ -217,7 +221,6 @@ public class MessageConverter {
       methodStr = ((CSeq) (message).getHeader(CSeq.NAME)).getMethod();
     }
 
-    NetInterface sender = event != null ? getSender(event) : null;
     String callId = ((CallIdHeader) message.getHeader(CallIdHeader.NAME)).getCallId();
     assert methodStr != null;
     Method method = Method.valueOf(methodStr.toUpperCase());
@@ -227,7 +230,7 @@ public class MessageConverter {
       .setRef(callId)
       .setEdgePortRef(this.edgePortRef)
       .setMethod(method)
-      .setSender(sender)
+      .setSender(getSender(event))
       .addAllListeningPoints(this.listeningPoints)
       .addAllExternalAddrs(this.externalAddrs)
       .addAllLocalnets(this.localnets)

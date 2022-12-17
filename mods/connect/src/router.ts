@@ -29,23 +29,23 @@ import {
   createTrunkAuthentication,
   findResource,
   getRoutingDirection,
+  getSIPURI,
   getTrunkURI
 } from "./utils"
 import { MessageRequest, Target as T } from "@routr/processor"
 import { NotRoutesFoundForAOR, ILocationService } from "@routr/location"
 import { UnsuportedRoutingError } from "./errors"
 import { getLogger } from "@fonoster/logger"
+import { checkAccess } from "./access"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
-
-const getSIPURI = (uri: { user?: string; host: string }) =>
-  `sip:${uri.user}@${uri.host}`
-
 // eslint-disable-next-line require-jsdoc
 export function router(location: ILocationService, dataAPI: CC.DataAPI) {
-  return async (req: MessageRequest): Promise<Route> => {
-    const fromURI = req.message.from.address.uri
-    const requestURI = req.message.requestUri
+  return async (
+    request: MessageRequest
+  ): Promise<Route | Record<string, unknown>> => {
+    const fromURI = request.message.from.address.uri
+    const requestURI = request.message.requestUri
 
     logger.verbose(
       "routing request from: " +
@@ -57,17 +57,28 @@ export function router(location: ILocationService, dataAPI: CC.DataAPI) {
 
     const caller = await findResource(dataAPI, fromURI.host, fromURI.user)
     const callee = await findResource(dataAPI, requestURI.host, requestURI.user)
-    const routingDir = getRoutingDirection(caller, callee)
+    const routingDirection = getRoutingDirection(caller, callee)
+    const failedCheck = await checkAccess({
+      dataAPI,
+      request,
+      caller,
+      callee,
+      routingDirection
+    })
 
-    switch (routingDir) {
-      case RoutingDirection.AGENT_TO_PSTN:
-        return await toPSTN(dataAPI, req, caller, requestURI.user)
+    if (failedCheck) {
+      return failedCheck
+    }
+
+    switch (routingDirection) {
       case RoutingDirection.AGENT_TO_AGENT:
-        return agentToAgent(location, req)
+        return agentToAgent(location, request)
+      case RoutingDirection.AGENT_TO_PSTN:
+        return await toPSTN(dataAPI, request, caller, requestURI.user)
       case RoutingDirection.FROM_PSTN:
         return await fromPSTN(location, dataAPI, callee)
       default:
-        throw new UnsuportedRoutingError(routingDir)
+        throw new UnsuportedRoutingError(routingDirection)
     }
   }
 }

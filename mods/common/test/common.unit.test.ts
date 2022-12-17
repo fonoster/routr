@@ -22,6 +22,7 @@ import sinonChai from "sinon-chai"
 import { getObjectProto } from "../src/service"
 import { addressCount, getLocalnetIp, isLocalnet } from "../src/ip_utils"
 import { getRedisUrlFromConfig } from "../src/redis"
+import { createUnauthorizedResponse, getCredentials } from "../src/auth"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -48,6 +49,34 @@ describe("@routr/common", () => {
     objectProto2.name = "processo"
     expect(getObjectProto(objectProto2).toString()).to.include(
       "Service definition for processo/v2draft1 not found"
+    )
+  })
+
+  it("converts parameter string to redis url", () => {
+    const c1 = { host: "test.local", port: 6380 }
+    const c2 = { password: "1234", host: "test.local", port: 6380 }
+    const c3 = {
+      username: "admin",
+      password: "1234",
+      host: "test.local",
+      port: 6380
+    }
+    const c4 = {
+      secure: true,
+      username: "admin",
+      password: "1234",
+      host: "test.local",
+      port: 6380
+    }
+    expect(getRedisUrlFromConfig(c1)).to.be.equal("redis://test.local:6380")
+    expect(getRedisUrlFromConfig(c2)).to.be.equal(
+      "redis://:1234@test.local:6380"
+    )
+    expect(getRedisUrlFromConfig(c3)).to.be.equal(
+      "redis://admin:1234@test.local:6380"
+    )
+    expect(getRedisUrlFromConfig(c4)).to.be.equal(
+      "rediss://admin:1234@test.local:6380"
     )
   })
 
@@ -83,31 +112,57 @@ describe("@routr/common", () => {
     })
   })
 
-  it("converts parameter string to redis url", () => {
-    const c1 = { host: "test.local", port: 6380 }
-    const c2 = { password: "1234", host: "test.local", port: 6380 }
-    const c3 = {
-      username: "admin",
-      password: "1234",
-      host: "test.local",
-      port: 6380
-    }
-    const c4 = {
-      secure: true,
-      username: "admin",
-      password: "1234",
-      host: "test.local",
-      port: 6380
-    }
-    expect(getRedisUrlFromConfig(c1)).to.be.equal("redis://test.local:6380")
-    expect(getRedisUrlFromConfig(c2)).to.be.equal(
-      "redis://:1234@test.local:6380"
-    )
-    expect(getRedisUrlFromConfig(c3)).to.be.equal(
-      "redis://admin:1234@test.local:6380"
-    )
-    expect(getRedisUrlFromConfig(c4)).to.be.equal(
-      "rediss://admin:1234@test.local:6380"
-    )
+  describe("authentication", () => {
+    afterEach(() => sandbox.restore())
+
+    it("gets credentials by username", () => {
+      const users = [
+        {
+          username: "john",
+          secret: "changeit"
+        },
+        {
+          username: "1001",
+          secret: "changeit"
+        }
+      ]
+
+      expect(getCredentials("1001", users))
+        .to.have.property("secret")
+        .to.be.equal("changeit")
+    })
+
+    it("creates an unauthorized response", () => {
+      const response = createUnauthorizedResponse("localhost")
+      expect(response)
+        .to.have.property("message")
+        .to.have.property("responseType")
+        .to.be.equal(17)
+      expect(response)
+        .to.have.property("message")
+        .to.have.property("wwwAuthenticate")
+        .to.have.property("scheme")
+        .to.be.equal("Digest")
+      expect(response)
+        .to.have.property("message")
+        .to.have.property("wwwAuthenticate")
+        .to.have.property("realm")
+        .to.be.equal("localhost")
+      expect(response)
+        .to.have.property("message")
+        .to.have.property("wwwAuthenticate")
+        .to.have.property("algorithm")
+        .to.be.equal("MD5")
+      expect(response)
+        .to.have.property("message")
+        .to.have.property("wwwAuthenticate")
+        .to.have.property("qop")
+        .to.be.equal("auth")
+      expect(response)
+        .to.have.property("message")
+        .to.have.property("wwwAuthenticate")
+        .to.have.property("nonce")
+        .to.be.length(32)
+    })
   })
 })

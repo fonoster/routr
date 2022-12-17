@@ -44,6 +44,36 @@ export const findDomain = async (dataAPI: CC.DataAPI, domainUri: string) => {
   )[0]
 }
 
+export const findTrunkByRequestURI = async (
+  dataAPI: CC.DataAPI,
+  requestUri: string
+) => {
+  return (
+    await dataAPI.findBy({
+      kind: CC.Kind.TRUNK,
+      criteria: CC.FindCriteria.FIND_TRUNK_BY_REQUEST_URI,
+      parameters: {
+        requestUri
+      }
+    })
+  )[0]
+}
+
+export const findNumberByTelUrl = async (
+  dataAPI: CC.DataAPI,
+  telUrl: string
+) => {
+  return (
+    await dataAPI.findBy({
+      kind: CC.Kind.NUMBER,
+      criteria: CC.FindCriteria.FIND_NUMBER_BY_TELURL,
+      parameters: {
+        telUrl
+      }
+    })
+  )[0]
+}
+
 export const findResource = async (
   dataAPI: CC.DataAPI,
   domainUri: string,
@@ -52,15 +82,7 @@ export const findResource = async (
   const domain = await findDomain(dataAPI, domainUri)
 
   // TODO: Fix jsonpath not working for logical AND and OR
-  let res = (
-    await dataAPI.findBy({
-      kind: CC.Kind.NUMBER,
-      criteria: CC.FindCriteria.FIND_NUMBER_BY_TELURL,
-      parameters: {
-        telUrl: `tel:${userpart}`
-      }
-    })
-  )[0]
+  let res = await findNumberByTelUrl(dataAPI, `tel:${userpart}`)
 
   res =
     res == null
@@ -176,3 +198,6 @@ export const getTrunkURI = (
     transport: t as Transport
   }
 }
+
+export const getSIPURI = (uri: { user?: string; host: string }) =>
+  uri.user ? `sip:${uri.user}@${uri.host}` : `sip:${uri.host}`

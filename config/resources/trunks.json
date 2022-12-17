@@ -4,17 +4,49 @@
     "kind": "Trunk",
     "ref": "tk6t67r1",
     "metadata": {
-      "name": "VoIP.ms Trunk",
+      "name": "Test Trunk",
       "region": "us-east1"
     },
     "spec": {
       "inbound": {
         "uri": "fn01.sip.fonoster.io",
+        "accessControlListRef": "acl04b5y"
+      },
+      "outbound": {
+        "sendRegister": true,
+        "credentialsRef": "crd02s23",
+        "uris": [
+          {
+            "uri": {
+              "user": "pbx-1",
+              "host": "sip.provider.net",
+              "port": 7060,
+              "transport": "udp"
+            },
+            "priority": 10,
+            "weight": 10,
+            "enabled": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Trunk",
+    "ref": "tk600yx",
+    "metadata": {
+      "name": "Test Trunk2",
+      "region": "us-east1"
+    },
+    "spec": {
+      "inbound": {
+        "uri": "fn02.sip.fonoster.io",
         "accessControlListRef": "acl04b5y",
         "credentialsRef": "crd02s23"
       },
       "outbound": {
-        "sendRegister": true,
+        "sendRegister": false,
         "credentialsRef": "crd02s23",
         "uris": [
           {

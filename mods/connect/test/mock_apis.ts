@@ -47,6 +47,10 @@ findCriteriaMap[CC.FindCriteria.FIND_NUMBER_BY_TELURL] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.location.telUrl=="${parameters.telUrl}")]`
 
+findCriteriaMap[CC.FindCriteria.FIND_TRUNK_BY_REQUEST_URI] = (
+  parameters: Record<string, string>
+) => `$..[?(@.spec.inbound.uri=="${parameters.requestUri}")]`
+
 // eslint-disable-next-line require-jsdoc
 export function createQuery(request: CC.FindParameters) {
   const findCriteria = request.criteria as unknown as CC.FindCriteria
@@ -76,7 +80,7 @@ export const dataAPI: CC.DataAPI = {
   get: (ref: string): Promise<CC.Resource> => {
     return Promise.resolve(
       jp.query(resources, `$..[?(@.ref=="${ref}")]`)[0]
-    ) as unknown as Promise<CC.Resource>
+    ) as Promise<CC.Resource>
   }
 }
 

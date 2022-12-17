@@ -2,8 +2,8 @@
   {
     "apiVersion": "v2draft1",
     "kind": "AccessControlList",
+    "ref": "acl04b5y",
     "metadata": {
-      "ref": "acl2c77f4",
       "name": "Europe ACL"
     },
     "spec": {
@@ -12,7 +12,8 @@
           "0.0.0.0/1"
         ],
         "allow": [
-          "192.168.0.1/31"
+          "192.168.0.1/31",
+          "127.0.0.1/8"
         ]
       }
     }
