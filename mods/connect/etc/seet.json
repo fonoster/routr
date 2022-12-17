@@ -163,13 +163,13 @@
         "mode": "uac",
         "scenarioFile": "scenarios/common/uac_invite.xml",
         "authentication": {
-          "username": "1001",
+          "username": "pbx-1",
           "secret": "1234"
         },
         "variables": [
           {
             "name": "requestURI",
-            "value": "sip:+19103434434@sip.provider.net;user=phone"
+            "value": "sip:+18295863314@trunk02.acme.com;user=phone"
           },
           {
             "name": "from",
@@ -205,13 +205,13 @@
         "mode": "uac",
         "scenarioFile": "scenarios/common/uac_invite.xml",
         "authentication": {
-          "username": "1001",
+          "username": "pbx-1",
           "secret": "1234"
         },
         "variables": [
           {
             "name": "requestURI",
-            "value": "sip:+19103434434@sip.provider.net;user=phone"
+            "value": "sip:+18295863314@trunk02.acme.com;user=phone"
           },
           {
             "name": "from",
@@ -247,13 +247,13 @@
         "mode": "uac",
         "scenarioFile": "scenarios/common/uac_invite.xml",
         "authentication": {
-          "username": "1001",
+          "username": "pbx-1",
           "secret": "1234"
         },
         "variables": [
           {
             "name": "requestURI",
-            "value": "sip:+19103434434@sip.provider.net;user=phone"
+            "value": "sip:+18295863314@trunk02.acme.com;user=phone"
           },
           {
             "name": "from",

@@ -58,16 +58,19 @@ export function router(location: ILocationService, dataAPI: CC.DataAPI) {
     const caller = await findResource(dataAPI, fromURI.host, fromURI.user)
     const callee = await findResource(dataAPI, requestURI.host, requestURI.user)
     const routingDirection = getRoutingDirection(caller, callee)
-    const failedCheck = await checkAccess({
-      dataAPI,
-      request,
-      caller,
-      callee,
-      routingDirection
-    })
 
-    if (failedCheck) {
-      return failedCheck
+    if (request.method === CT.Method.INVITE) {
+      const failedCheck = await checkAccess({
+        dataAPI,
+        request,
+        caller,
+        callee,
+        routingDirection
+      })
+
+      if (failedCheck) {
+        return failedCheck
+      }
     }
 
     switch (routingDirection) {

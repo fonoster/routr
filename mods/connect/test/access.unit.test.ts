@@ -73,7 +73,7 @@ describe("@routr/connect/access", () => {
   it("allows request from pstn", async () => {
     // Arrange
     const req = createRequest({
-      requestUriHost: "fn01.sip.fonoster.io",
+      requestUriHost: "trunk01.acme.com",
       fromUser: "+17853178070",
       fromDomain: "newyork7.voip.ms",
       toUser: "+19103434434",
@@ -92,7 +92,7 @@ describe("@routr/connect/access", () => {
   it("declines request from pstn", async () => {
     // Arrange
     const req = createRequest({
-      requestUriHost: "fn02.sip.fonoster.io",
+      requestUriHost: "trunk02.acme.com",
       fromUser: "+17853178070",
       fromDomain: "newyork7.voip.ms",
       toUser: "+18295863314",

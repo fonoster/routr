@@ -78,8 +78,6 @@
 
   <recv response="180" />
 
-  <pause milliseconds="1500" />
-
   <recv response="603" />
 
   <send>

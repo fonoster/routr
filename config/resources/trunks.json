@@ -9,7 +9,7 @@
     },
     "spec": {
       "inbound": {
-        "uri": "fn01.sip.fonoster.io",
+        "uri": "trunk01.acme.com",
         "accessControlListRef": "acl04b5y"
       },
       "outbound": {
@@ -41,7 +41,7 @@
     },
     "spec": {
       "inbound": {
-        "uri": "fn02.sip.fonoster.io",
+        "uri": "trunk02.acme.com",
         "accessControlListRef": "acl04b5y",
         "credentialsRef": "crd02s23"
       },
