@@ -193,7 +193,7 @@ Example:
   "spec": {
     "username": "johndoe",
     "domains": ["dm2c76ft", "dm5774ux"],
-    "credentialRef": "crd2c76ft",
+    "credentialsRef": "crd2c76ft",
     "privacy": "Private",
     "enabled": true
   }

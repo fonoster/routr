@@ -18,13 +18,8 @@
  * limitations under the License.
  */
 import opentelemetry from "@opentelemetry/api"
-import {
-  calculateAuthResponse,
-  MessageRequest,
-  CommonTypes as CT
-} from "@routr/common"
-import { createUnauthorizedResponse, getCredentials } from "./utils"
 import Processor, { Response } from "@routr/processor"
+import { MessageRequest, Auth, CommonTypes as CT } from "@routr/common"
 import { User } from "./types"
 import { getLogger } from "@fonoster/logger"
 
@@ -43,8 +38,9 @@ export default function simpleAuthMiddleware(config: {
   bindAddr: string
   users: User[]
   whiteList: string[]
+  methods: string[]
 }) {
-  const { bindAddr, users, whiteList } = config
+  const { bindAddr, users, whiteList, methods } = config
 
   new Processor({ bindAddr, name: "simpleauth" }).listen(
     (req: MessageRequest, res: Response) => {
@@ -63,11 +59,7 @@ export default function simpleAuthMiddleware(config: {
       const span = tracer.startSpan("server.js:sayHello()", { kind: 1 })
 
       // Q: Should we extend the list to other message types?
-      if (
-        ![CT.Method.INVITE, CT.Method.MESSAGE, CT.Method.REGISTER].includes(
-          req.method
-        )
-      ) {
+      if (!methods.includes(req.method)) {
         return res.send(req)
       }
 
@@ -84,23 +76,27 @@ export default function simpleAuthMiddleware(config: {
         const auth = { ...req.message.authorization }
         auth.method = req.method
         // Calculate response and compare with the one send by the endpoint
-        const calcRes = calculateAuthResponse(
-          auth as unknown as CT.AuthChallengeResponse,
-          getCredentials(auth.username, users)
+        const calcRes = Auth.calculateAuthResponse(
+          auth as CT.AuthChallengeResponse,
+          Auth.getCredentials(auth.username, users)
         )
         if (calcRes !== auth.response) {
           span.addEvent(
             `user ${req.message.from.address.uri.user} unauthorized to complete request`
           )
           span.end()
-          return res.send(createUnauthorizedResponse(auth.realm))
+          return res.send(
+            Auth.createUnauthorizedResponse(req.message.requestUri.host)
+          )
         }
       } else {
         span.addEvent(
           `authorization header not found for user ${req.message.from.address.uri.user}`
         )
         span.end()
-        return res.send(createUnauthorizedResponse(req.message.requestUri.host))
+        return res.send(
+          Auth.createUnauthorizedResponse(req.message.requestUri.host)
+        )
       }
       // Forward request to next middleware
       span.addEvent(`user ${req.message.from.address.uri.user} authorized`)

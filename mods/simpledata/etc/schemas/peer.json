@@ -40,12 +40,12 @@
           "description": "Contact address of the Peer",
           "type": "string"
         },
-        "credentialRef": {
-          "description": "The credential the Agent uses to authenticate",
+        "credentialsRef": {
+          "description": "The credential the Peer uses to authenticate",
           "type": "string"
         },
         "accessControlListRef": {
-          "description": "The ACL the Agent uses to control access to the Peer",
+          "description": "The ACL the Peer uses to control access to the Peer",
           "type": "string"
         },
         "enabled": {

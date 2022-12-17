@@ -47,10 +47,10 @@ export class UnsuportedRoutingError extends Error {
   /**
    * Create a new ServiceUnavailableError.
    *
-   * @param {string} routingDir - The routing direction
+   * @param {RoutingDirection} routingDirection - The routing direction
    */
-  constructor(routingDir: RoutingDirection) {
-    super("unsupported routing direction: " + routingDir)
+  constructor(routingDirection: RoutingDirection) {
+    super("unsupported routing direction: " + routingDirection)
     this.code = grpc.status.UNKNOWN
     // Set the prototype explicitly.
     Object.setPrototypeOf(this, ServiceUnavailableError.prototype)

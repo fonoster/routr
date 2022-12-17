@@ -26,9 +26,10 @@ import { getLogger } from "@fonoster/logger"
 
 const logger = getLogger({ service: "simpleauth", filePath: __filename })
 
-A.assertEnvsAreSet(["PATH_TO_AUTH"])
+A.assertEnvsAreSet(["PATH_TO_AUTH", "METHODS"])
 
-const whiteList = process.env.WHITELIST ? process.env.WHITELIST.split(",") : []
+const whiteList = process.env.WHITELIST?.split(",") ?? []
+const methods = process.env.METHODS?.split(",") ?? []
 
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -36,7 +37,8 @@ try {
   simpleAuthProcessor({
     bindAddr: process.env.BIND_ADDR ?? "0.0.0.0:51903",
     users,
-    whiteList
+    whiteList,
+    methods
   })
 } catch (e) {
   if (e.code === "MODULE_NOT_FOUND") {

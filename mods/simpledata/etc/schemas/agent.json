@@ -36,7 +36,7 @@
           "description": "The domain the Agent belongs to",
           "type": "string"
         },
-        "credentialRef": {
+        "credentialsRef": {
           "description": "The credential the Agent uses to authenticate",
           "type": "string"
         },
@@ -56,7 +56,7 @@
       "required": [
         "username",
         "domainRef",
-        "credentialRef"
+        "credentialsRef"
       ]
     }
   },

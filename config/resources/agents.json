@@ -9,7 +9,7 @@
     "spec": {
       "username": "1001",
       "domainRef": "dm2c76ft",
-      "credentialRef": "crd2c76ft",
+      "credentialsRef": "crd2c76ft",
       "privacy": "Private"
     }
   },
@@ -23,7 +23,7 @@
     "spec": {
       "username": "1002",
       "domainRef": "dm2c76ft",
-      "credentialRef": "crd6y56yt",
+      "credentialsRef": "crd6y56yt",
       "privacy": "None"
     }
   }

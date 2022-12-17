@@ -130,7 +130,8 @@ describe("@routr/connect", () => {
       fromUser: "9195551212",
       fromDomain: "newyork1.voip.ms",
       toUser: "17066041487",
-      toDomain: "newyork1.voip.ms"
+      toDomain: "newyork1.voip.ms",
+      requestUriHost: "fn01.sip.fonoster.io"
     })
     const route = await router(locationAPI, dataAPI)(req)
     expect(route).to.be.not.null

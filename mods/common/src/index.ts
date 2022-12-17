@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { calculateAuthResponse, generateNonce } from "./auth"
 import { ServiceUnavailableError } from "./errors"
 import createService, {
   getObjectProto,
@@ -39,8 +38,6 @@ import {
 export {
   createService,
   getObjectProto,
-  generateNonce,
-  calculateAuthResponse,
   HeaderModifier,
   Route,
   ServiceUnavailableError,
@@ -64,3 +61,4 @@ export * as Tracer from "./tracer"
 export * as Assertions from "./assertions"
 export * as CommonConnect from "./connect"
 export * as CommonRequester from "./requester"
+export * as Auth from "./auth"

@@ -63,6 +63,7 @@ export const createRequest = (createRequestObj: {
   fromUser: string
   toDomain: string
   toUser: string
+  requestUriHost?: string
 }) => {
   return {
     ref: "AynhXaFtbdXwHrUEzt_rUQ..",
@@ -263,20 +264,20 @@ export const createRequest = (createRequestObj: {
       authorization: {
         realm: "sip.local",
         scheme: "Digest",
-        cNonce: "acbcc60094edde23f49b01e18bafd34e",
-        nonce: "b8fe2321cf489ac475c80c6e5cfa1c22",
+        cNonce: "7314861c4c17b0ea43311cce5eae2506",
+        nonce: "b5a3226fa1899b33872e953643e0bca9",
         algorithm: "MD5",
-        qop: "auth",
+        // qop: "auth",
         opaque: "",
-        response: "301f56515b1fdc751c54af6d85398067",
+        response: "17483289ac848e302b070cc797bf75b3",
         username: "1001",
-        uri: "sip:voip.ms;transport=" + Transport.TCP,
+        uri: "sip:1002@sip.local;transport=" + Transport.TCP,
         nonceCount: 13
       },
       requestUri: {
         user: createRequestObj.toUser,
         userPassword: "",
-        host: createRequestObj.toDomain,
+        host: createRequestObj.requestUriHost || createRequestObj.toDomain,
         transportParam: Transport.TCP,
         mAddrParam: "",
         methodParam: "",
