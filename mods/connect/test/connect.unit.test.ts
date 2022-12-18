@@ -63,8 +63,12 @@ describe("@routr/connect", () => {
         expect(addRoute).to.have.been.calledOnce
         done()
       }
-    } as unknown as Response
-    handleRegister(location as unknown as ILocationService)(request, response)
+    } as Response
+
+    handleRegister(dataAPI, location as unknown as ILocationService)(
+      request,
+      response
+    )
   })
 
   it("handles a request from another edgeport", async () => {

@@ -28,11 +28,48 @@ import {
 } from "@routr/processor"
 import { pipe } from "fp-ts/function"
 import { router } from "./router"
-import { ILocationService } from "@routr/location/src/types"
-import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
+import { ILocationService } from "@routr/location"
+import { Auth, CommonConnect as CC, CommonTypes as CT } from "@routr/common"
+import { findResource } from "./utils"
 
-export const handleRegister = (location: ILocationService) => {
+export const handleRegister = (
+  dataAPI: CC.DataAPI,
+  location: ILocationService
+) => {
   return async (request: MessageRequest, res: Response) => {
+    // Calculate and return challenge
+    if (request.message.authorization) {
+      const auth = { ...request.message.authorization }
+      auth.method = request.method
+      const fromURI = request.message.from.address.uri
+      const agent = await findResource(dataAPI, fromURI.host, fromURI.user)
+
+      if (!agent) {
+        return res.send(Auth.createForbideenResponse())
+      }
+
+      const credentials = await dataAPI.get(agent?.spec.credentialsRef)
+
+      // Calculate response and compare with the one send by the endpoint
+      const calcRes = Auth.calculateAuthResponse(
+        auth as CT.AuthChallengeResponse,
+        {
+          username: credentials?.spec.credentials.username,
+          secret: credentials?.spec.credentials.password
+        }
+      )
+
+      if (calcRes !== auth.response) {
+        return res.send(
+          Auth.createUnauthorizedResponse(request.message.requestUri.host)
+        )
+      }
+    } else {
+      return res.send(
+        Auth.createUnauthorizedResponse(request.message.requestUri.host)
+      )
+    }
+
     await location.addRoute({
       aor: T.getTargetAOR(request),
       route: H.createRoute(request)

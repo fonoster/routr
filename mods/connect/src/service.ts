@@ -67,7 +67,7 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           if (E.getHeaderValue(req, CT.ExtraHeader.GATEWAY_AUTH)) {
             handleRegistry(req, res)
           } else {
-            handleRegister(location)(req, res)
+            handleRegister(CC.dataAPI(config.apiAddr), location)(req, res)
           }
           break
         case Method.BYE:

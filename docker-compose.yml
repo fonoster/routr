@@ -108,26 +108,6 @@ services:
       internal:
         ipv4_address: 10.111.221.6
 
-  # Use the auth.json file to add or remove agents
-  simpleauth:
-    container_name: simpleauth
-    image: fonoster/simpleauth
-    build: ./mods/simpleauth
-    environment:
-      # Comma separated list of agents that are allowed to skip authentication
-      WHITELIST: pbx-1
-      METHODS: "REGISTER"
-      PATH_TO_AUTH: /etc/routr/auth.json
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
-    expose:
-      - 51903
-    volumes:
-      - ./config/auth.json:/etc/routr/auth.json
-    networks:
-      internal:
-        ipv4_address: 10.111.221.7
-
   # Simple data API
   simpledata:
     container_name: simpledata

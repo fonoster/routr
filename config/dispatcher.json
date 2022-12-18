@@ -6,12 +6,6 @@
   },
   "spec": {
     "bindAddr": "0.0.0.0:51901",
-    "middlewares": [
-      {
-        "ref": "simpleauth",
-        "addr": "simpleauth:51903"
-      }
-    ],
     "processors": [
       {
         "ref": "echo-processor",

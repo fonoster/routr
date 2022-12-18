@@ -137,7 +137,7 @@ export const request: MessageRequest = {
         uri: {
           user: "1001",
           userPassword: "",
-          host: "voip.ms",
+          host: "sip.local",
           transportParam: Transport.UDP,
           mAddrParam: "",
           methodParam: "",
@@ -278,11 +278,11 @@ export const request: MessageRequest = {
       cNonce: "acbcc60094edde23f49b01e18bafd34e",
       nonce: "b8fe2321cf489ac475c80c6e5cfa1c22",
       algorithm: "MD5",
-      qop: "auth",
+      qop: "",
       opaque: "",
-      response: "301f56515b1fdc751c54af6d85398067",
+      response: "2977dc1addd5eeffc6eeded71dc86bf4",
       username: "1001",
-      uri: `sip:voip.ms;transport=${Transport.TCP}`,
+      uri: `sip:sip.local;transport=${Transport.TCP}`,
       nonceCount: 13
     },
     requestUri: {

@@ -24,8 +24,6 @@ const users = require(__dirname + "/../config/auth.json")
 const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.json")
 const locationConfig = getLocationConfig(__dirname + "/../config/location.json")
 const registryConfig = getRegistryConfig(__dirname + "/../config/registry.json")
-const whiteList = process.env.WHITELIST?.split(',') ?? []
-const methods = process.env.METHODS?.split(',') ?? ["REGISTER"]
 const logger = getLogger({service: "base", filePath: __filename})
 
 logger.info("routr v2 // connect distribution")
@@ -55,7 +53,7 @@ const resources: Resource[] = loadResources(__dirname + "/../mods/simpledata/etc
   __dirname + "/../config/resources")
 
 simpleDataService({bindAddr: "0.0.0.0:51907", resources})
-simpleAuthMiddleware({bindAddr: "0.0.0.0:51903", users, whiteList, methods})
+
 connectProcessor({
   bindAddr: "0.0.0.0:51904",
   locationAddr: "location:51902",
