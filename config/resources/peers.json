@@ -2,13 +2,13 @@
   {
     "apiVersion": "v2draft1",
     "kind": "Peer",
-    "ref": "peer-ast-conference",
+    "ref": "peer-01",
     "metadata": {
       "name": "Asterisk (Media Server)"
     },
     "spec": {
       "aor": "backend:conference",
-      "credentialsRef": "peer-credentials-conference"
+      "credentialsRef": "credentials-03"
     }
   }
 ]

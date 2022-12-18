@@ -35,7 +35,7 @@ const sandbox = sinon.createSandbox()
 
 const trunks = [
   {
-    ref: "trunk-acme-com-01",
+    ref: "trunk-01",
     name: "T1",
     region: "us-east1",
     user: "user1",
@@ -68,7 +68,7 @@ describe("@routr/registry", () => {
 
   it("creates a registration request", () => {
     const requestParams: RequestParams = {
-      trunkRef: "trunk-acme-com-01",
+      trunkRef: "trunk-01",
       user: "user",
       targetDomain: "sip.provider.net",
       targetAddress: "sip.provider.net:5060",
@@ -189,8 +189,8 @@ describe("@routr/registry", () => {
 
     it("getUnregisteredTrunks", async () => {
       const store = new MemoryStore()
-      store.put("trunk-acme-com-01", {
-        trunkRef: "trunk-acme-com-01",
+      store.put("trunk-01", {
+        trunkRef: "trunk-01",
         timeOfEntry: Date.now(),
         retentionTimeInSeconds: 120,
         status: RegistrationEntryStatus.REGISTERED

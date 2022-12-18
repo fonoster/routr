@@ -2,7 +2,7 @@
   {
     "apiVersion": "v2draft1",
     "kind": "Trunk",
-    "ref": "trunk-acme-com-01",
+    "ref": "trunk-01",
     "metadata": {
       "name": "Test Trunk",
       "region": "us-east1"
@@ -10,11 +10,11 @@
     "spec": {
       "inbound": {
         "uri": "trunk01.acme.com",
-        "accessControlListRef": "access-control-list-01"
+        "accessControlListRef": "acl-01"
       },
       "outbound": {
         "sendRegister": true,
-        "credentialsRef": "trunk-credentials-pbx-1",
+        "credentialsRef": "credentials-04",
         "uris": [
           {
             "uri": {
@@ -34,7 +34,7 @@
   {
     "apiVersion": "v2draft1",
     "kind": "Trunk",
-    "ref": "trunk-acme-com-02",
+    "ref": "trunk-02",
     "metadata": {
       "name": "Test Trunk2",
       "region": "us-east1"
@@ -42,12 +42,12 @@
     "spec": {
       "inbound": {
         "uri": "trunk02.acme.com",
-        "accessControlListRef": "access-control-list-01",
-        "credentialsRef": "trunk-credentials-pbx-1"
+        "accessControlListRef": "acl-01",
+        "credentialsRef": "credentials-04"
       },
       "outbound": {
         "sendRegister": false,
-        "credentialsRef": "trunk-credentials-pbx-1",
+        "credentialsRef": "credentials-04",
         "uris": [
           {
             "uri": {

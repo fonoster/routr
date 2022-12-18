@@ -73,14 +73,14 @@ First, you will start by creating a Peer configuration for your Asterisk server 
 {
   "apiVersion": "v2draft1",
   "kind": "Peer",
-  "ref": "peer-ast-conference",
+  "ref": "peer-01",
   "metadata": {
     "name": "Asterisk (Media Server)"
   },
   "spec": {
     "username": "asterisk",
     "aor": "backend:conference",
-    "credentialsRef": "crd6t67r1",
+    "credentialsRef": "credentials-01",
     "contactAddr": "192.168.1.2:6060"
   }
 }
@@ -92,7 +92,7 @@ Every Asterik server that registers using the `crd6t67r1` credentials will be gr
 {
   "apiVersion": "v2draft1",
   "kind": "Number",
-  "ref": "nbxt67rx",
+  "ref": "number-01",
   "metadata": {
     "name": "(706)604-1487",
     "geoInfo": {
@@ -102,9 +102,9 @@ Every Asterik server that registers using the `crd6t67r1` credentials will be gr
     }
   },
   "spec": {
-    "trunkRef": "trunk-acme-com-01",
+    "trunkRef": "trunk-01",
     "location": {
-      "telUrl": "tel:17066041487",
+      "telUrl": "tel:+17066041487",
       "aorLink": "backend:conference",
       "sessionAffinityProp": "x-room-id",
       "props": [{

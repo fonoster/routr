@@ -36,7 +36,7 @@ describe("@routr/simpledata/api", () => {
 
   describe("get functionality", () => {
     it("gets a not found", (done) => {
-      const call = { request: { ref: "agent-credentials-1001" } }
+      const call = { request: { ref: "credentials-01" } }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null
@@ -48,7 +48,7 @@ describe("@routr/simpledata/api", () => {
     })
 
     it("gets a not found", (done) => {
-      const call = { request: { ref: "agent-credentials-1001" } }
+      const call = { request: { ref: "credentials-01" } }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.not.null
         expect(res).to.be.null
@@ -72,7 +72,7 @@ describe("@routr/simpledata/api", () => {
     })
 
     it("gets resource by reference (checks metadata)", (done) => {
-      const call = { request: { ref: "agent-credentials-1001" } }
+      const call = { request: { ref: "credentials-01" } }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.null
         expect(res).to.have.property("metadata")
@@ -84,7 +84,7 @@ describe("@routr/simpledata/api", () => {
     })
 
     it("it returns an error since the reference doesn't exist", (done) => {
-      const call = { request: { ref: "agent-credentials-1001xxxx" } }
+      const call = { request: { ref: "credentials-01xxxx" } }
       const callback = (err: Error) => {
         expect(err).to.be.not.null
         done()
@@ -163,7 +163,7 @@ describe("@routr/simpledata/api", () => {
           kind: CC.Kind.CREDENTIAL,
           criteria: CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE,
           parameters: jsonToStruct({
-            ref: "agent-credentials-1001"
+            ref: "credentials-01"
           })
         }
       }

@@ -186,14 +186,14 @@ Example:
 {
   "apiVersion": "v2draft1",
   "kind": "Agent",
-  "ref": "agent-john-doe",
+  "ref": "agent-01",
   "metadata": {
     "name": "John Doe"
   },
   "spec": {
     "username": "johndoe",
-    "domains": ["domain-sip-local", "dm5774ux"],
-    "credentialsRef": "agent-credentials-1001",
+    "domains": ["domain-01", "domain-02"],
+    "credentialsRef": "credentials-01",
     "privacy": "Private",
     "enabled": true
   }
@@ -208,17 +208,17 @@ Example:
 {
   "apiVersion": "v2draft1",
   "kind": "Domain",
-  "ref": "domain-sip-local",
+  "ref": "domain-01",
   "metadata": {
     "name": "Local Domain"
   },
   "spec": {
     "context": {
       "domainUri": "sip.local",
-      "accessControlListRef": "access-control-list-01",
+      "accessControlListRef": "acl-01",
       "egressPolicies": [{
         "rule": ".*",
-        "numberRef": "number-17066041487"
+        "numberRef": "number-01"
       }]
     }
   }
@@ -233,7 +233,7 @@ Example:
 {
   "apiVersion": "v2draft1",
   "kind": "Trunk",
-  "ref": "trunk-acme-com-01",
+  "ref": "trunk-01",
   "metadata": {
     "name": "VoIP.ms Trunk",
     "region": "us-east1"
@@ -241,12 +241,12 @@ Example:
   "spec": {
     "inbound": {
       "uri": "fn01.sip.fonoster.com",
-      "accessControlListRef": "access-control-list-01",
-      "credentialsRef": "trunk-credentials-pbx-1"
+      "accessControlListRef": "acl-01",
+      "credentialsRef": "credentials-04"
     },
     "outbound": {
       "sendRegister": false,
-      "credentialsRef": "trunk-credentials-pbx-1",
+      "credentialsRef": "credentials-04",
       "uris": [
         {
           "uri": {
@@ -271,7 +271,7 @@ Numbers represent virtual numbers that route calls from/to the PSTN via a Trunk.
 {
   "apiVersion": "v2draft1",
   "kind": "Number",
-  "ref": "nbxt67rx",
+  "ref": "number-01",
   "metadata": {
     "localFormat": "(706)604-1487",
     "geoInfo": {
@@ -281,7 +281,7 @@ Numbers represent virtual numbers that route calls from/to the PSTN via a Trunk.
     }
   },
   "spec": {
-    "trunkRef": "trunk-acme-com-01",
+    "trunkRef": "trunk-01",
     "location": {
       "telUrl": "tel:17066041487",
       "aorLink": "backend:conference",
@@ -301,14 +301,14 @@ Like Agents, Peers represent SIP endpoints such as Media Servers. Unlike Agents,
 {
   "apiVersion": "v2draft1",
   "kind": "Peer",
-  "ref": "peer-ast-conference",
+  "ref": "peer-01",
   "metadata": {
     "name": "Asterisk (Media Server)"
   },
   "spec": {
     "aor": "backend:conference",
     "contactAddr": "192.168.1.2:6060",
-    "credentialsRef": "crd6t67r1"
+    "credentialsRef": "credentials-01"
   }
 }
 ```

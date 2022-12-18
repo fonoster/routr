@@ -73,6 +73,97 @@ export function createValidators(path: string) {
   return validators
 }
 
+// Create function to validate reference exists for Agent
+const checkReferences = (resources: CC.Resource[]) => {
+  const referenceExist = (ref: string) =>
+    resources.filter((r) => r.ref === ref)[0]
+
+  // For every resource, check that the reference exists using a switch
+  resources.forEach((resource: CC.Resource) => {
+    switch (resource.kind.toLocaleLowerCase()) {
+      case CC.Kind.AGENT:
+        if (resource.spec.credentialsRef) {
+          if (!referenceExist(resource.spec.credentialsRef)) {
+            logger.error(
+              `agent ${resource.ref} has a credential reference that does not exist: ${resource.spec.credentialsRef}; exiting`
+            )
+            process.exit(1)
+          }
+        }
+        if (resource.spec.domainRef) {
+          if (!referenceExist(resource.spec.domainRef)) {
+            logger.error(
+              `agent ${resource.ref} has a domain reference that does not exist: ${resource.spec.domainRef}; exiting`
+            )
+            process.exit(1)
+          }
+        }
+        break
+      case CC.Kind.PEER:
+        if (resource.spec.credentialsRef) {
+          if (!referenceExist(resource.spec.credentialsRef)) {
+            logger.error(
+              `peer ${resource.ref} has a credential reference that does not exist: ${resource.spec.credentialsRef}; exiting`
+            )
+            process.exit(1)
+          }
+        }
+        break
+      case CC.Kind.TRUNK:
+        if (resource.spec.inbound.credentialsRef) {
+          if (!referenceExist(resource.spec.inbound.credentialsRef)) {
+            logger.error(
+              `trunk ${resource.ref} has a credential reference that does not exist: ${resource.spec.inbound.credentialsRef}; exiting`
+            )
+            process.exit(1)
+          }
+        }
+        if (resource.spec.inbound.accessControlListRef) {
+          if (!referenceExist(resource.spec.inbound.accessControlListRef)) {
+            logger.error(
+              `trunk ${resource.ref} has an acl reference that does not exist: ${resource.spec.inbound.accessControlListRef}; exiting`
+            )
+            process.exit(1)
+          }
+        }
+        break
+      case CC.Kind.DOMAIN:
+        if (resource.spec.accessControlListRef) {
+          if (!referenceExist(resource.spec.accessControlListRef)) {
+            logger.error(
+              `domain ${resource.ref} has an acl reference that does not exist: ${resource.spec.accessControlListRef}; exiting`
+            )
+            process.exit(1)
+          }
+        }
+
+        if (resource.spec.context?.egressPolicies) {
+          resource.spec.context.egressPolicies.forEach(
+            (policy: { numberRef: string }) => {
+              if (policy.numberRef) {
+                if (!referenceExist(policy.numberRef)) {
+                  logger.error(
+                    `domain ${resource.ref} has a number reference that does not exist: ${policy.numberRef}; exiting`
+                  )
+                  process.exit(1)
+                }
+              }
+            }
+          )
+        }
+        break
+      case CC.Kind.NUMBER:
+        if (!referenceExist(resource.spec.trunkRef)) {
+          logger.error(
+            `number ${resource.ref} has a trunk reference that does not exist: ${resource.spec.trunkRef}; exiting`
+          )
+          process.exit(1)
+        }
+        break
+    }
+  })
+}
+
 /**
  * Loads a list of resources from a file.
  *
@@ -91,7 +182,16 @@ export default function loadResources(
   files.forEach((file: File) => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const resources = require(`${resourcesPath}/${file}`)
+
     resources.forEach((resource: CC.Resource) => {
+      // Assert the reference has no spaces
+      if (resource.ref.includes(" ")) {
+        logger.error(
+          `resource type ${resource.kind} has spaces in the reference: "${resource.ref}"; exiting`
+        )
+        process.exit(1)
+      }
+
       // Check if is valid using jsonschema
       const validate = validators.get(resource.kind.toLocaleLowerCase())
       if (!validate) {
@@ -111,6 +211,10 @@ export default function loadResources(
       }
     })
   })
+
+  // Referencial check
+  checkReferences(all)
+
   logger.verbose("loaded data resources", { total: all.length })
   return all
 }

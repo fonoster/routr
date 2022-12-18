@@ -2,17 +2,17 @@
   {
     "apiVersion": "v2draft1",
     "kind": "Domain",
-    "ref": "domain-sip-local",
+    "ref": "domain-01",
     "metadata": {
       "name": "Local Domain"
     },
     "spec": {
+      "accessControlListRef": "acl-01",
       "context": {
-        "accessControlListRef": "access-control-list-01",
         "domainUri": "sip.local",
         "egressPolicies": [{
           "rule": ".*",
-          "numberRef": "number-17066041487"
+          "numberRef": "number-01"
         }]
       }
     }
