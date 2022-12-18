@@ -100,7 +100,7 @@ export const convertResourceToTrunk = async (
     throw new Error(`trunk ${resource.ref} has no outbound settings`)
   }
 
-  const uri = trunkSpec.outbound?.uris[0].uri
+  const uri = trunkSpec.outbound.uris[0].uri
 
   // WARNING: Perhaps we should bring this on a single API call
   const cred = await dataAPI.get(trunkSpec.outbound?.credentialsRef)
