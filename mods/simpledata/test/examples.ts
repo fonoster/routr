@@ -22,7 +22,7 @@ export const resources: CC.Resource[] = [
   {
     apiVersion: "v2draft1",
     kind: CC.Kind.CREDENTIAL,
-    ref: "crd2c76ft",
+    ref: "agent-credentials-1001",
     metadata: {
       name: "my-secret-credential"
     },

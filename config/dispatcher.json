@@ -2,7 +2,7 @@
   "kind": "MessageDispatcher",
   "apiVersion": "v2draft1",
   "metadata": {
-    "ref": "mr001"
+    "ref": "message-dispatcher"
   },
   "spec": {
     "bindAddr": "0.0.0.0:51901",

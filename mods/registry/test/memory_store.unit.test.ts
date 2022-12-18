@@ -32,7 +32,7 @@ describe("@routr/registry/memory_store", () => {
   it("puts value in the store", async () => {
     const store = new MemoryStore()
     const entry1: RegistrationEntry = {
-      trunkRef: "tk6t67r1",
+      trunkRef: "trunk-acme-com-01",
       timeOfEntry: Date.now(),
       retentionTimeInSeconds: 120,
       status: RegistrationEntryStatus.REGISTERED
@@ -50,7 +50,7 @@ describe("@routr/registry/memory_store", () => {
 
     store.cleanup()
     expect((await store.list()).length).to.be.equal(1)
-    expect(await store.get("tk6t67r1")).to.have.property("status")
+    expect(await store.get("trunk-acme-com-01")).to.have.property("status")
     expect((await store.list())[0]).to.have.property("status")
     expect(await store.get("tk6t67r2")).to.be.null
   })

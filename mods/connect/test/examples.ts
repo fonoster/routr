@@ -25,7 +25,7 @@ export const r1: Route = {
   port: 5060,
   transport: Transport.TCP,
   sessionCount: -1,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "10.1.1.1",
@@ -45,7 +45,7 @@ export const r2: Route = {
   port: 5060,
   transport: Transport.TCP,
   sessionCount: -1,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "10.1.1.1",
@@ -67,7 +67,7 @@ export const createRequest = (createRequestObj: {
 }) => {
   return {
     ref: "AynhXaFtbdXwHrUEzt_rUQ..",
-    edgePortRef: "ep001",
+    edgePortRef: "edge-port-01",
     method: Method.INVITE,
     externalAddrs: ["200.22.21.42"],
     localnets: ["10.100.42.127/31", "10.100.42.128/31"],

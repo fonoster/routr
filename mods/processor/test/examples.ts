@@ -33,7 +33,7 @@ export const route: Route = {
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "0.0.0.0",
@@ -64,7 +64,7 @@ export const routeOnAnotherEdgePort: Route = {
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: "ep002",
+  edgePortRef: "edge-port-02",
   listeningPoints: [
     {
       host: "0.0.0.0",
@@ -78,7 +78,7 @@ export const routeOnAnotherEdgePort: Route = {
 
 export const request: MessageRequest = {
   ref: "AynhXaFtbdXwHrUEzt_rUQ..",
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   method: Method.REGISTER,
   externalAddrs: ["200.22.21.42"],
   localnets: ["127.0.0.1/8", "10.100.42.127/24", "10.100.43.128/31"],

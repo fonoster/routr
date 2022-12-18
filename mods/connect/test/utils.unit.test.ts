@@ -80,7 +80,7 @@ describe("@routr/connect/utils", () => {
   })
 
   it("creates a new x-gateway-auth header", async () => {
-    const trunk = await dataAPI.get("tk6t67r1")
+    const trunk = await dataAPI.get("trunk-acme-com-01")
     const headerModifier = await createTrunkAuthentication(dataAPI, trunk)
     expect(headerModifier).to.have.property("action", CT.HeaderModifierAction.ADD)
     expect(headerModifier).to.have.property("name", CT.ExtraHeader.GATEWAY_AUTH)

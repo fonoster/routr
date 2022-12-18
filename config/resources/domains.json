@@ -2,17 +2,17 @@
   {
     "apiVersion": "v2draft1",
     "kind": "Domain",
-    "ref": "dm2c76ft",
+    "ref": "domain-sip-local",
     "metadata": {
       "name": "Local Domain"
     },
     "spec": {
       "context": {
-        "accessControlListRef": "acl04b5y",
+        "accessControlListRef": "access-control-list-01",
         "domainUri": "sip.local",
         "egressPolicies": [{
           "rule": ".*",
-          "numberRef": "nb6c87r2"
+          "numberRef": "number-17066041487"
         }]
       }
     }

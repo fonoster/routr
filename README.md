@@ -73,7 +73,7 @@ First, you will start by creating a Peer configuration for your Asterisk server 
 {
   "apiVersion": "v2draft1",
   "kind": "Peer",
-  "ref": "prxt67rx",
+  "ref": "peer-ast-conference",
   "metadata": {
     "name": "Asterisk (Media Server)"
   },
@@ -102,7 +102,7 @@ Every Asterik server that registers using the `crd6t67r1` credentials will be gr
     }
   },
   "spec": {
-    "trunkRef": "tk6t67r1",
+    "trunkRef": "trunk-acme-com-01",
     "location": {
       "telUrl": "tel:17066041487",
       "aorLink": "backend:conference",

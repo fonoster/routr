@@ -2,7 +2,7 @@
   "kind": "EdgePort",
   "apiVersion": "v2draft1",
   "metadata": {
-    "ref": "ep002",
+    "ref": "edge-port-02",
     "region": "us-east1"
   },
   "spec": {

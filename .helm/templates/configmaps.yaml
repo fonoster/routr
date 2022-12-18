@@ -9,7 +9,7 @@ data:
       "kind": "MessageDispatcher",
       "apiVersion": "v2draft1",
       "metadata": {
-        "ref": "mr001"
+        "ref": "message-dispatcher"
       },
       "spec": {
         "bindAddr": "0.0.0.0:51901",
@@ -32,7 +32,7 @@ data:
       "kind": "EdgePort",
       "apiVersion": "v2draft1",
       "metadata": {
-        "ref": "ep001",
+        "ref": "edge-port-01",
         "region": "us-east1"
       },
       "spec": {

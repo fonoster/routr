@@ -2,28 +2,28 @@
   {
     "apiVersion": "v2draft1",
     "kind": "Agent",
-    "ref": "ag2c77f4",
+    "ref": "agent-john-doe",
     "metadata": {
       "name": "John Doe"
     },
     "spec": {
       "username": "1001",
-      "domainRef": "dm2c76ft",
-      "credentialsRef": "crd2c76ft",
+      "domainRef": "domain-sip-local",
+      "credentialsRef": "agent-credentials-1001",
       "privacy": "Private"
     }
   },
   {
     "apiVersion": "v2draft1",
     "kind": "Agent",
-    "ref": "ag2c77fx",
+    "ref": "agent-jane-doe",
     "metadata": {
       "name": "Jane Doe"
     },
     "spec": {
       "username": "1002",
-      "domainRef": "dm2c76ft",
-      "credentialsRef": "crd6y56yt",
+      "domainRef": "domain-sip-local",
+      "credentialsRef": "agent-credentials-1002",
       "privacy": "None"
     }
   }

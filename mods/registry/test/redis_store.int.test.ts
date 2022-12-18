@@ -32,7 +32,7 @@ describe("@routr/registry/redis_store", () => {
   it("puts value in the store", async () => {
     const store = new RedisStore()
     const entry1: RegistrationEntry = {
-      trunkRef: "tk6t67r1",
+      trunkRef: "trunk-acme-com-01",
       timeOfEntry: Date.now(),
       retentionTimeInSeconds: 120,
       status: RegistrationEntryStatus.REGISTERED
@@ -48,7 +48,7 @@ describe("@routr/registry/redis_store", () => {
     store.put(entry2.trunkRef, entry2)
 
     expect((await store.list()).length).to.be.equal(2)
-    expect(await store.get("tk6t67r1"))
+    expect(await store.get("trunk-acme-com-01"))
       .to.have.property("status")
       .to.be.equal(RegistrationEntryStatus.REGISTERED)
   })

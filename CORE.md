@@ -174,7 +174,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
 {
   "apiVersion": "v2draft1",
   "kind": "EdgePort",
-  "ref": "ep001",
+  "ref": "edge-port-01",
   "metadata": {
     "region": "us-east1"
   },
@@ -430,7 +430,7 @@ Example:
 {
   "kind": "MessageDispatcher",
   "apiVersion": "v2draft1",
-  "ref": "mr001",
+  "ref": "message-dispatcher",
   "spec": {
     "bindAddr": "0.0.0.0",
     "middlewares": [

@@ -2,7 +2,7 @@
   {
     "apiVersion": "v2draft1",
     "kind": "AccessControlList",
-    "ref": "acl04b5y",
+    "ref": "access-control-list-01",
     "metadata": {
       "name": "Europe ACL"
     },

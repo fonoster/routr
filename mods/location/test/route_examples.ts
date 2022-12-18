@@ -27,7 +27,7 @@ export const simpleRoute01: Route = {
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -48,7 +48,7 @@ export const simpleRoute02: Route = {
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: "ep002",
+  edgePortRef: "edge-port-02",
   listeningPoints: [
     {
       host: "proxy",
@@ -69,7 +69,7 @@ export const voiceBackendRoute01: Route = {
   registeredOn: Date.now(),
   sessionCount: 50,
   expires: 600,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -90,7 +90,7 @@ export const voiceBackendRoute02: Route = {
   registeredOn: Date.now(),
   sessionCount: 200,
   expires: 600,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -110,7 +110,7 @@ export const voiceBackendRoute03: Route = {
   registeredOn: Date.now(),
   sessionCount: 150,
   expires: 600,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -130,7 +130,7 @@ export const voiceBackendRoute04: Route = {
   registeredOn: Date.now(),
   sessionCount: 201,
   expires: 600,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -150,7 +150,7 @@ export const voiceBackendRoute05: Route = {
   registeredOn: Date.now(),
   sessionCount: 5,
   expires: 600,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -170,7 +170,7 @@ export const conferenceBackendRoute01: Route = {
   registeredOn: Date.now(),
   sessionCount: 20,
   expires: 600,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -190,7 +190,7 @@ export const conferenceBackendRoute02: Route = {
   registeredOn: Date.now(),
   sessionCount: 50,
   expires: 600,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -210,7 +210,7 @@ export const conferenceWithExpiredRoute: Route = {
   registeredOn: 1647054012869,
   sessionCount: 10,
   expires: 10,
-  edgePortRef: "ep001",
+  edgePortRef: "edge-port-01",
   listeningPoints: [
     {
       host: "proxy",

@@ -186,14 +186,14 @@ Example:
 {
   "apiVersion": "v2draft1",
   "kind": "Agent",
-  "ref": "ag2c77f4",
+  "ref": "agent-john-doe",
   "metadata": {
     "name": "John Doe"
   },
   "spec": {
     "username": "johndoe",
-    "domains": ["dm2c76ft", "dm5774ux"],
-    "credentialsRef": "crd2c76ft",
+    "domains": ["domain-sip-local", "dm5774ux"],
+    "credentialsRef": "agent-credentials-1001",
     "privacy": "Private",
     "enabled": true
   }
@@ -208,17 +208,17 @@ Example:
 {
   "apiVersion": "v2draft1",
   "kind": "Domain",
-  "ref": "dm2c76ft",
+  "ref": "domain-sip-local",
   "metadata": {
     "name": "Local Domain"
   },
   "spec": {
     "context": {
       "domainUri": "sip.local",
-      "accessControlListRef": "acl04b5y",
+      "accessControlListRef": "access-control-list-01",
       "egressPolicies": [{
         "rule": ".*",
-        "numberRef": "nb6c87r2"
+        "numberRef": "number-17066041487"
       }]
     }
   }
@@ -233,7 +233,7 @@ Example:
 {
   "apiVersion": "v2draft1",
   "kind": "Trunk",
-  "ref": "tk6t67r1",
+  "ref": "trunk-acme-com-01",
   "metadata": {
     "name": "VoIP.ms Trunk",
     "region": "us-east1"
@@ -241,12 +241,12 @@ Example:
   "spec": {
     "inbound": {
       "uri": "fn01.sip.fonoster.com",
-      "accessControlListRef": "acl04b5y",
-      "credentialsRef": "crd02s23"
+      "accessControlListRef": "access-control-list-01",
+      "credentialsRef": "trunk-credentials-pbx-1"
     },
     "outbound": {
       "sendRegister": false,
-      "credentialsRef": "crd02s23",
+      "credentialsRef": "trunk-credentials-pbx-1",
       "uris": [
         {
           "uri": {
@@ -281,7 +281,7 @@ Numbers represent virtual numbers that route calls from/to the PSTN via a Trunk.
     }
   },
   "spec": {
-    "trunkRef": "tk6t67r1",
+    "trunkRef": "trunk-acme-com-01",
     "location": {
       "telUrl": "tel:17066041487",
       "aorLink": "backend:conference",
@@ -301,7 +301,7 @@ Like Agents, Peers represent SIP endpoints such as Media Servers. Unlike Agents,
 {
   "apiVersion": "v2draft1",
   "kind": "Peer",
-  "ref": "prxt67rx",
+  "ref": "peer-ast-conference",
   "metadata": {
     "name": "Asterisk (Media Server)"
   },
