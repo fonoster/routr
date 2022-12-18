@@ -161,19 +161,6 @@ services:
       internal:
         ipv4_address: 10.111.221.10
 
-  # Echo processor
-  echo:
-    container_name: echo
-    image: fonoster/echo
-    build: ./mods/echo
-    environment:
-      LOGS_LEVEL: verbose
-    expose:
-      - 51904
-    networks:
-      internal:
-        ipv4_address: 10.111.221.11
-
   # Tracing monitoring
   jaeger:
     container_name: jaeger
@@ -196,12 +183,10 @@ services:
     depends_on: 
       - edgeport01
       - edgeport02
-      - echo 
       - dispatcher
       - registry
       - requester
       - simpledata
-      - simpleauth
       - connect
     environment:
       SCENARIOS: /seet.json
