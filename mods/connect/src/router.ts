@@ -79,7 +79,7 @@ export function router(location: ILocationService, dataAPI: CC.DataAPI) {
       case RoutingDirection.AGENT_TO_PSTN:
         return await toPSTN(dataAPI, request, caller, requestURI.user)
       case RoutingDirection.FROM_PSTN:
-        return await fromPSTN(location, dataAPI, callee)
+        return await fromPSTN(location, callee)
       default:
         throw new UnsuportedRoutingError(routingDirection)
     }
@@ -104,7 +104,6 @@ async function agentToAgent(
  */
 async function fromPSTN(
   location: ILocationService,
-  _: unknown,
   callee: CC.Resource
 ): Promise<Route> {
   const route = (

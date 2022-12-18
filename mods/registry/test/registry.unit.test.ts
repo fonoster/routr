@@ -86,8 +86,8 @@ describe("@routr/registry", () => {
     const fromURI = request.message.from.address.uri
     const toURI = request.message.from.address.uri
     const requestUri = request.message.requestUri
-    const route = request?.message?.route[0]?.address.uri
-    const extensions = request?.message?.extensions
+    const route = request.message.route[0].address.uri
+    const extensions = request.message.extensions
 
     expect(extensions[0]?.name).to.be.equal("Allow")
     expect(extensions[0]?.value).to.be.include(Method.INVITE)

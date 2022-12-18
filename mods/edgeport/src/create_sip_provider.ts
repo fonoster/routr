@@ -31,7 +31,7 @@ export default function createSipProvider(
 ): SipProvider {
   const sipProvider = sipStack.createSipProvider(listeningPoints[0])
   listeningPoints
-    ?.filter((_, index: number) => index > 0)
+    .filter((_, index: number) => index > 0)
     .forEach((lp1) => {
       sipProvider.addListeningPoint(lp1)
     })
