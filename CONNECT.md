@@ -283,7 +283,7 @@ Numbers represent virtual numbers that route calls from/to the PSTN via a Trunk.
   "spec": {
     "trunkRef": "trunk-01",
     "location": {
-      "telUrl": "tel:17066041487",
+      "telUrl": "tel:+17066041487",
       "aorLink": "backend:conference",
       "sessionAffinityProp": "x-room-id",
       "props": [{
@@ -306,6 +306,7 @@ Like Agents, Peers represent SIP endpoints such as Media Servers. Unlike Agents,
     "name": "Asterisk (Media Server)"
   },
   "spec": {
+    "username": "asterisk",
     "aor": "backend:conference",
     "contactAddr": "192.168.1.2:6060",
     "credentialsRef": "credentials-01"

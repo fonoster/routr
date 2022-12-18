@@ -3,7 +3,7 @@
 
 <scenario name="UAC Register">
 
-  <global variables="requestURI,from,to" />
+  <Global variables="requestURI,from,to" />
 
   <send>
     <![CDATA[

@@ -7,8 +7,22 @@
       "name": "Asterisk (Media Server)"
     },
     "spec": {
+      "username": "asterisk",
       "aor": "backend:conference",
       "credentialsRef": "credentials-03"
+    }
+  },
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Peer",
+    "ref": "peer-02",
+    "metadata": {
+      "name": "FS Voice Feature Server"
+    },
+    "spec": {
+      "username": "freeswitch",
+      "aor": "backend:voice",
+      "credentialsRef": "credentials-05"
     }
   }
 ]

@@ -84,23 +84,37 @@ export const findResource = async (
   // TODO: Fix jsonpath not working for logical AND and OR
   let res = await findNumberByTelUrl(dataAPI, `tel:${userpart}`)
 
-  res =
-    res == null
-      ? (
-          await dataAPI.findBy({
-            kind: CC.Kind.AGENT,
-            criteria: CC.FindCriteria.FIND_AGENT_BY_USERNAME,
-            parameters: {
-              username: userpart
-            }
-          })
-        )[0]
-      : res
+  // Next, try to find an agent
+  if (res == null) {
+    res = (
+      await dataAPI.findBy({
+        kind: CC.Kind.AGENT,
+        criteria: CC.FindCriteria.FIND_AGENT_BY_USERNAME,
+        parameters: {
+          username: userpart
+        }
+      })
+    )[0]
+  }
+
+  // Next, try to find a peer
+  if (res == null) {
+    res = (
+      await dataAPI.findBy({
+        kind: CC.Kind.PEER,
+        criteria: CC.FindCriteria.FIND_PEER_BY_USERNAME,
+        parameters: {
+          username: userpart
+        }
+      })
+    )[0]
+  }
 
   if (isKind(res, CC.Kind.AGENT) && res.spec.domainRef != domain?.ref) {
     // Not in the same domain
     return null
   }
+
   return res
 }
 

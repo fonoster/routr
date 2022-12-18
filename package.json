@@ -33,7 +33,8 @@
     "hostile:unload": "sudo hostile unload etc/hosts.txt",
     "publish": "lerna publish",
     "publish:prerelease": "lerna publish prerelease --dist-tag next",
-    "publish:frompackages": "lerna publish from-package"
+    "publish:frompackages": "lerna publish from-package",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",

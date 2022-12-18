@@ -14,7 +14,7 @@
     "spec": {
       "trunkRef": "trunk-01",
       "location": {
-        "telUrl": "tel:17066041487",
+        "telUrl": "tel:+17066041487",
         "aorLink": "backend:conference",
         "sessionAffinityProp": "x-room-id",
         "props": [
@@ -65,5 +65,25 @@
         "aorLink": "sip:1001@sip.local"
       }
     }
-  }  
+  },
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Number",
+    "ref": "number-04",
+    "metadata": {
+      "name": "(809)586-3314",
+      "geoInfo": {
+        "city": "Mobile Network",
+        "country": "USA",
+        "countryISOCode": "US"
+      }
+    },
+    "spec": {
+      "trunkRef": "trunk-03",
+      "location": {
+        "telUrl": "tel:+18095863314",
+        "aorLink": "backend:voice"
+      }
+    }
+  }
 ]

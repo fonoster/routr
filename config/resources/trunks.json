@@ -63,5 +63,20 @@
         ]
       }
     }
+  },
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Trunk",
+    "ref": "trunk-03",
+    "metadata": {
+      "name": "Test Trunk3",
+      "region": "us-west1"
+    },
+    "spec": {
+      "inbound": {
+        "uri": "trunk03.acme.com",
+        "credentialsRef": "credentials-04"
+      }
+    }
   }
 ]

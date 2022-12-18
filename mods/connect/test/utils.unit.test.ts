@@ -44,7 +44,7 @@ describe("@routr/connect/utils", () => {
         kind: CC.Kind.NUMBER,
         criteria: CC.FindCriteria.FIND_NUMBER_BY_TELURL,
         parameters: {
-          telUrl: "tel:17066041487"
+          telUrl: "tel:+17066041487"
         }
       })
     )[0]
@@ -54,7 +54,7 @@ describe("@routr/connect/utils", () => {
     expect(headerModifier).to.have.property("name", "P-Asserted-Identity")
     expect(headerModifier).to.have.property(
       "value",
-      "\"John Doe\" <sip:17066041487@sip.provider.net;user=phone>"
+      "\"John Doe\" <sip:+17066041487@sip.provider.net;user=phone>"
     )
   })
 
@@ -65,7 +65,7 @@ describe("@routr/connect/utils", () => {
         kind: CC.Kind.NUMBER,
         criteria: CC.FindCriteria.FIND_NUMBER_BY_TELURL,
         parameters: {
-          telUrl: "tel:17066041487"
+          telUrl: "tel:+17066041487"
         }
       })
     )[0]
@@ -75,7 +75,7 @@ describe("@routr/connect/utils", () => {
     expect(headerModifier).to.have.property("name", "Remote-Party-ID")
     expect(headerModifier).to.have.property(
       "value",
-      "<sip:17066041487@sip.provider.net>;screen=yes;party=calling"
+      "<sip:+17066041487@sip.provider.net>;screen=yes;party=calling"
     )
   })
 

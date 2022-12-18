@@ -29,23 +29,30 @@
       "description": "Operations spec for an Peer",
       "type": "object",
       "properties": {
-        "aor": {
-          "description": "Address of the Peer",
+        "username": {
+          "description": "The username for the Peer",
           "type": "string",
           "minLength": 3,
-          "maxLength": 255,
+          "maxLength": 60,
           "readOnly": true
+        },
+        "aor": {
+          "description": "Address of the Peer (acceptable schemas are sip, backend.)",
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 255
         },
         "contactAddr": {
           "description": "Contact address of the Peer",
-          "type": "string"
+          "type": "string",
+          "maxLength": 255
         },
         "credentialsRef": {
           "description": "The credential the Peer uses to authenticate",
           "type": "string"
         },
         "accessControlListRef": {
-          "description": "The ACL the Peer uses to control access to the Peer",
+          "description": "The ACL the Peer uses to control access to the Peer (Reserved for future use)",
           "type": "string"
         },
         "enabled": {
@@ -54,6 +61,7 @@
         }
       },
       "required": [
+        "username",
         "aor"
       ]
     }

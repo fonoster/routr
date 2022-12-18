@@ -41,7 +41,7 @@
 
   <recv request="ACK">
     <action>
-      <ereg regexp="3 ACK" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
+      <ereg regexp="2 ACK" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
     </action>
   </recv>
 

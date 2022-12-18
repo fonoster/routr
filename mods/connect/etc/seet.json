@@ -82,7 +82,7 @@
     ]
   },
   {
-    "name": "=== Registering sip.provider.net for at least 1200 seconds to prevent collisions ===",
+    "name": "=== Registering sip.provider.net for 1200 seconds to prevent collisions ===",
     "description": "Hack to prevent trunk from sending additional REGISTER meesages.",
     "transportMode": "u1",
     "userAgents": [
@@ -532,7 +532,7 @@
         "sendRegister": true,
         "expires": 60,
         "authentication": {
-          "username": "conference",
+          "username": "freeswitch",
           "secret": "1234"
         }
       },
@@ -540,25 +540,24 @@
         "mode": "uac",
         "scenarioFile": "scenarios/common/uac_invite.xml",
         "authentication": {
-          "username": "1001",
+          "username": "pbx-1",
           "secret": "1234"
         },
         "variables": [
           {
             "name": "requestURI",
-            "value": "sip:conference@sip01.edgeport.net"
+            "value": "sip:+18095863314@trunk03.acme.com"
           },
           {
             "name": "from",
-            "value": "sip:1001@sip.local"
+            "value": "sip:+17853178070@unknown.com"
           },
           {
             "name": "to",
-            "value": "sip:conference@sip01.edgeport.net"
+            "value": "sip:+18095863314@unknown.com"
           }
         ]
       }
-    ],
-    "skip": true
+    ]
   }  
 ]

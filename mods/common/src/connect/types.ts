@@ -29,6 +29,7 @@ export enum Kind {
 
 export enum FindCriteria {
   FIND_AGENT_BY_USERNAME = "find_agent_by_username",
+  FIND_PEER_BY_USERNAME = "find_peer_by_username",
   FIND_CREDENTIAL_BY_REFERENCE = "find_credential_by_reference",
   FIND_DOMAIN_BY_DOMAINURI = "find_domain_by_domainuri",
   FIND_NUMBER_BY_TELURL = "find_number_by_telurl",

@@ -42,13 +42,17 @@ export const handleRegister = (
       const auth = { ...request.message.authorization }
       auth.method = request.method
       const fromURI = request.message.from.address.uri
-      const agent = await findResource(dataAPI, fromURI.host, fromURI.user)
+      const peerOrAgent = await findResource(
+        dataAPI,
+        fromURI.host,
+        fromURI.user
+      )
 
-      if (!agent) {
+      if (!peerOrAgent) {
         return res.send(Auth.createForbideenResponse())
       }
 
-      const credentials = await dataAPI.get(agent.spec.credentialsRef)
+      const credentials = await dataAPI.get(peerOrAgent.spec.credentialsRef)
 
       // Calculate response and compare with the one send by the endpoint
       const calcRes = Auth.calculateAuthResponse(
@@ -64,17 +68,18 @@ export const handleRegister = (
           Auth.createUnauthorizedResponse(request.message.requestUri.host)
         )
       }
+
+      // TODO: Needs test
+      await location.addRoute({
+        aor: peerOrAgent.spec.aor || T.getTargetAOR(request),
+        route: H.createRoute(request)
+      })
+      res.sendOk()
     } else {
       return res.send(
         Auth.createUnauthorizedResponse(request.message.requestUri.host)
       )
     }
-
-    await location.addRoute({
-      aor: T.getTargetAOR(request),
-      route: H.createRoute(request)
-    })
-    res.sendOk()
   }
 }
 

@@ -34,6 +34,10 @@ findCriteriaMap[CC.FindCriteria.FIND_AGENT_BY_USERNAME] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.username=='${parameters.username}')]`
 
+findCriteriaMap[CC.FindCriteria.FIND_PEER_BY_USERNAME] = (
+  parameters: Record<string, string>
+) => `$..[?(@.spec.username=='${parameters.username}')]`
+
 findCriteriaMap[CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
   parameters: Record<string, string>
 ) => `$..[?(@.ref=='${parameters.ref}')]`

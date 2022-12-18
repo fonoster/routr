@@ -133,7 +133,7 @@ describe("@routr/connect", () => {
     const req = createRequest({
       fromUser: "9195551212",
       fromDomain: "newyork1.voip.ms",
-      toUser: "17066041487",
+      toUser: "+17066041487",
       toDomain: "newyork1.voip.ms",
       requestUriHost: "trunk01.acme.com"
     })
@@ -163,7 +163,7 @@ describe("@routr/connect", () => {
   it("gets resource by domainUri and userpart", async () => {
     const r1 = await findResource(dataAPI, "sip.local", "1001")
     // Domain with xxx reference does not exist
-    const r2 = await findResource(dataAPI, "sip.local2", "17066041487")
+    const r2 = await findResource(dataAPI, "sip.local2", "+17066041487")
     const r3 = await findResource(dataAPI, "sip.localx", "1001")
     expect(r1).to.have.property("kind", "Agent")
     expect(r2).to.have.property("kind", "Number")
