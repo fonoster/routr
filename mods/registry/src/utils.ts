@@ -103,7 +103,7 @@ export const convertResourceToTrunk = async (
   const uri = trunkSpec.outbound.uris[0].uri
 
   // WARNING: Perhaps we should bring this on a single API call
-  const cred = await dataAPI.get(trunkSpec.outbound?.credentialsRef)
+  const cred = await dataAPI.get(trunkSpec.outbound.credentialsRef)
   const usernameAndPassword = cred?.spec.credentials
 
   return {
