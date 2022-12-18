@@ -46,7 +46,6 @@
         "credentialsRef": "credentials-04"
       },
       "outbound": {
-        "sendRegister": false,
         "credentialsRef": "credentials-04",
         "uris": [
           {
@@ -76,6 +75,22 @@
       "inbound": {
         "uri": "trunk03.acme.com",
         "credentialsRef": "credentials-04"
+      },
+      "outbound": {
+        "credentialsRef": "credentials-04",
+        "uris": [
+          {
+            "uri": {
+              "user": "pbx-1",
+              "host": "sip.provider.net",
+              "port": 7060,
+              "transport": "udp"
+            },
+            "priority": 10,
+            "weight": 10,
+            "enabled": true
+          }
+        ]
       }
     }
   }

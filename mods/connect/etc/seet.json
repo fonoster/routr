@@ -559,5 +559,51 @@
         ]
       }
     ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.3.2: Verification of INVITE Message Parameters When Originating a DOD Call from Peer",
+    "description": "This test verifies that the INVITE message parameters are correct when originating a DOD call from a Peer",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_peer_invite_with_dod_number.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_peer_invite_with_dod_number.xml",
+        "authentication": {
+          "username": "asterisk",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+17853178070@unknown.com"
+          },
+          {
+            "name": "from",
+            "value": "sip:asterisk@unknown.com"
+          },
+          {
+            "name": "to",
+            "value": "sip:+17853178070@unknown.com"
+          },
+          {
+            "name": "dodNumber",
+            "value": "+18095863314"
+          }
+        ]
+      }
+    ]
   }  
 ]

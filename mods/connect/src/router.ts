@@ -27,12 +27,13 @@ import {
   createPAssertedIdentity,
   createRemotePartyId,
   createTrunkAuthentication,
+  findNumberByTelUrl,
   findResource,
   getRoutingDirection,
   getSIPURI,
   getTrunkURI
 } from "./utils"
-import { MessageRequest, Target as T } from "@routr/processor"
+import { MessageRequest, Target as T, Extensions as E } from "@routr/processor"
 import { NotRoutesFoundForAOR, ILocationService } from "@routr/location"
 import { UnsuportedRoutingError } from "./errors"
 import { getLogger } from "@fonoster/logger"
@@ -77,9 +78,11 @@ export function router(location: ILocationService, dataAPI: CC.DataAPI) {
       case RoutingDirection.AGENT_TO_AGENT:
         return agentToAgent(location, request)
       case RoutingDirection.AGENT_TO_PSTN:
-        return await toPSTN(dataAPI, request, caller, requestURI.user)
+        return await agentToPSTN(dataAPI, request, caller, requestURI.user)
       case RoutingDirection.FROM_PSTN:
         return await fromPSTN(location, callee)
+      case RoutingDirection.PEER_TO_PSTN:
+        return await peerToPSTN(dataAPI, request)
       default:
         throw new UnsuportedRoutingError(routingDirection)
     }
@@ -132,7 +135,7 @@ async function fromPSTN(
 }
 
 // eslint-disable-next-line require-jsdoc
-async function toPSTN(
+async function agentToPSTN(
   dataAPI: CC.DataAPI,
   req: MessageRequest,
   caller: CC.Resource,
@@ -140,8 +143,13 @@ async function toPSTN(
 ): Promise<Route> {
   const domain = await dataAPI.get(caller.spec.domainRef)
 
+  if (!domain.spec.context.egressPolicies) {
+    // TODO: Create custom error
+    throw new Error(`no egress policy found for Domain ref: ${domain.ref}`)
+  }
+
   // Look for Number in domain that matches regex callee
-  const policy = domain.spec.context.egressPolicies?.find(
+  const policy = domain.spec.context.egressPolicies.find(
     (policy: { rule: string }) => {
       const regex = new RegExp(policy.rule)
       return regex.test(calleeNumber)
@@ -149,17 +157,11 @@ async function toPSTN(
   )
 
   const number = await dataAPI.get(policy?.numberRef)
-
   const trunk = await dataAPI.get(number?.spec.trunkRef)
 
-  if (!domain.spec.context.egressPolicies) {
-    // TODO: Create custom error
-    throw new Error(`no egress policy found for Domain ref: ${domain.ref}`)
-  }
-
   if (!trunk) {
-    // TODO: Create custom error
-    throw new Error(`no trunk associated with Number ref: ${number?.ref}`)
+    // This should never happen
+    throw new Error(`no trunk associated with Number ref: ${number.ref}`)
   }
 
   const uri = getTrunkURI(trunk)
@@ -183,6 +185,58 @@ async function toPSTN(
         name: "Privacy",
         value:
           caller.spec.privacy?.toLowerCase() === CT.Privacy.PRIVATE
+            ? CT.Privacy.PRIVATE
+            : CT.Privacy.NONE,
+        action: CT.HeaderModifierAction.ADD
+      },
+      createRemotePartyId(trunk, number),
+      createPAssertedIdentity(req, trunk, number),
+      await createTrunkAuthentication(dataAPI, trunk)
+    ]
+  }
+}
+
+// eslint-disable-next-line require-jsdoc
+async function peerToPSTN(
+  dataAPI: CC.DataAPI,
+  req: MessageRequest
+): Promise<Route> {
+  const numberTel = E.getHeaderValue(req, CT.ExtraHeader.DOD_NUMBER)
+  const privacy = E.getHeaderValue(req, CT.ExtraHeader.DOD_PRIVACY)
+  const number = await findNumberByTelUrl(dataAPI, `tel:${numberTel}`)
+
+  if (!number) {
+    throw new Error(`no Number found for tel: ${numberTel}`)
+  }
+
+  const trunk = await dataAPI.get(number?.spec.trunkRef)
+
+  if (!trunk) {
+    // TODO: Create custom error
+    throw new Error(`no trunk associated with Number ref: ${number.ref}`)
+  }
+
+  const uri = getTrunkURI(trunk)
+
+  return {
+    user: uri.user,
+    host: uri.host,
+    port: uri.port,
+    transport: uri.transport,
+    edgePortRef: req.edgePortRef,
+    listeningPoints: req.listeningPoints,
+    localnets: req.localnets,
+    externalAddrs: req.externalAddrs,
+    headers: [
+      // TODO: Find a more deterministic way to re-add the Privacy header
+      {
+        name: "Privacy",
+        action: CT.HeaderModifierAction.REMOVE
+      },
+      {
+        name: "Privacy",
+        value:
+          privacy?.toLocaleLowerCase() === CT.Privacy.PRIVATE
             ? CT.Privacy.PRIVATE
             : CT.Privacy.NONE,
         action: CT.HeaderModifierAction.ADD

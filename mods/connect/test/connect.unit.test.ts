@@ -20,7 +20,13 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { request, route } from "@routr/processor/test/examples"
-import { MessageRequest, Route, Transport, CommonTypes } from "@routr/common"
+import {
+  MessageRequest,
+  Route,
+  Transport,
+  CommonTypes,
+  Helper
+} from "@routr/common"
 import { handleRegister, handleRequest } from "../src/handlers"
 import { Extensions as E, Helper as HE, Response } from "@routr/processor"
 import { createRequest, r1 } from "./examples"
@@ -131,7 +137,7 @@ describe("@routr/connect", () => {
 
   it("handles a request from pstn to agent or peer", async () => {
     const req = createRequest({
-      fromUser: "9195551212",
+      fromUser: "+19195551212",
       fromDomain: "newyork1.voip.ms",
       toUser: "+17066041487",
       toDomain: "newyork1.voip.ms",
@@ -146,18 +152,21 @@ describe("@routr/connect", () => {
     expect(route).to.have.property("headers").to.be.an("array").lengthOf(1)
   })
 
-  // TODO: Peer to PSTN must be done using the Connect Object
-  it.skip("handles a request from peer to pstn", async () => {
+  it("handles a request from peer to pstn", async () => {
     const req = createRequest({
       fromUser: "asterisk",
-      fromDomain: "sip.local",
-      toUser: "17853178070",
-      toDomain: "sip.local"
+      fromDomain: "unknown.com",
+      toUser: "+17853178070",
+      toDomain: "unknown.com",
+      dodNumber: "+18095863314"
     })
-    const route = await router(locationAPI, dataAPI)(req)
+    const reqWithUpdatedAuth = Helper.deepCopy(req)
+    reqWithUpdatedAuth.message.authorization.response =
+      "c72e79e7f8af73a880fa4ad0bf4da2ac"
+
+    const route = await router(locationAPI, dataAPI)(reqWithUpdatedAuth)
     expect(route).to.be.not.null
-    // Expects the user and host to correspond with the Gateway
-    // Expects to have the asserted identity headers
+    expect(route).to.have.property("headers").to.be.an("array").lengthOf(5)
   })
 
   it("gets resource by domainUri and userpart", async () => {

@@ -22,7 +22,6 @@ import {
   MessageRequest,
   Route,
   CommonTypes,
-  Helper,
   Transport
 } from "@routr/common"
 import { getEdgeInterface } from "./helper"
@@ -227,7 +226,7 @@ export const removeRoutes = (request: MessageRequest): MessageRequest => {
   const localIps = request.localnets.map((ln) => ln.split("/")[0])
 
   req.message.route = req.message.route.filter((r: CommonTypes.RouteHeader) => {
-    const lp = Helper.getListeningPoint(
+    const lp = H.getListeningPoint(
       request.listeningPoints,
       (r.address.uri.transportParam?.toLowerCase() as Transport) ||
         Transport.UDP

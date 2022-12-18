@@ -16,7 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, Method, Route, Transport } from "@routr/common"
+import {
+  MessageRequest,
+  Method,
+  Route,
+  Transport,
+  CommonTypes as CT
+} from "@routr/common"
 
 // Route to Agent 1001
 export const r1: Route = {
@@ -64,8 +70,10 @@ export const createRequest = (createRequestObj: {
   toDomain: string
   toUser: string
   requestUriHost?: string
+  dodNumber?: string
+  dodPrivacy?: CT.Privacy
 }) => {
-  return {
+  const request: MessageRequest = {
     ref: "AynhXaFtbdXwHrUEzt_rUQ..",
     edgePortRef: "edge-port-01",
     method: Method.INVITE,
@@ -267,7 +275,7 @@ export const createRequest = (createRequestObj: {
         cNonce: "7314861c4c17b0ea43311cce5eae2506",
         nonce: "b5a3226fa1899b33872e953643e0bca9",
         algorithm: "MD5",
-        // qop: "auth",
+        qop: "",
         opaque: "",
         response: "17483289ac848e302b070cc797bf75b3",
         username: "1001",
@@ -287,7 +295,23 @@ export const createRequest = (createRequestObj: {
         lrParam: false,
         secure: false
       },
-      messageType: "requestUri"
+      messageType: CT.MessageType.REQUEST
     }
-  } as unknown as MessageRequest
+  }
+
+  if (createRequestObj.dodNumber) {
+    request.message.extensions.push({
+      name: CT.ExtraHeader.DOD_NUMBER,
+      value: createRequestObj.dodNumber
+    })
+  }
+
+  if (createRequestObj.dodPrivacy) {
+    request.message.extensions.push({
+      name: CT.ExtraHeader.DOD_PRIVACY,
+      value: createRequestObj.dodPrivacy
+    })
+  }
+
+  return request
 }

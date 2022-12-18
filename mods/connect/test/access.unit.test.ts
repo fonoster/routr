@@ -21,7 +21,7 @@ import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { dataAPI } from "./mock_apis"
 import { findResource } from "../src/utils"
-import { checkAccessFromPSTN, checkAgentAccess } from "../src/access"
+import { checkAccessFromPSTN, checkAgentOrPeerAccess } from "../src/access"
 import { createRequest } from "./examples"
 
 const expect = chai.expect
@@ -43,7 +43,7 @@ describe("@routr/connect/access", () => {
     const caller = await findResource(dataAPI, fromURI.host, fromURI.user)
 
     // Act
-    const result = await checkAgentAccess(dataAPI, req, caller)
+    const result = await checkAgentOrPeerAccess(dataAPI, req, caller)
 
     // Assert
     expect(result).to.be.undefined
@@ -62,7 +62,7 @@ describe("@routr/connect/access", () => {
     const caller = await findResource(dataAPI, fromURI.host, fromURI.user)
 
     // Act
-    const result = await checkAgentAccess(dataAPI, req, caller)
+    const result = await checkAgentOrPeerAccess(dataAPI, req, caller)
 
     // Assert
     expect(result)

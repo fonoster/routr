@@ -45,7 +45,9 @@ export enum ExtraHeader {
   REQUEST_URI = "X-Request-Uri",
   GATEWAY_AUTH = "X-Gateway-Auth",
   EDGEPORT_REF = "X-Edgeport-Ref",
-  SESSION_COUNT = "X-Session-Count"
+  SESSION_COUNT = "X-Session-Count",
+  DOD_NUMBER = "X-DOD-Number",
+  DOD_PRIVACY = "X-DOD-Privacy"
 }
 
 export enum Privacy {
