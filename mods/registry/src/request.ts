@@ -140,6 +140,8 @@ export default function createRegistrationRequest(
         methodParam: Method.REGISTER,
         secure: params.secure
       },
+      via: [],
+      recordRoute: [],
       messageType: CT.MessageType.REQUEST
     }
   }

@@ -186,7 +186,7 @@ export const getTrunkURI = (
 } => {
   const { user, host, port, transport } = trunk.spec.outbound?.uris[0].uri
   const t = !transport
-    ? (Transport.UDP as Transport)
+    ? Transport.UDP
     : Object.values(Transport)[
         Object.values(Transport).indexOf(transport.toLowerCase())
       ]
@@ -195,7 +195,7 @@ export const getTrunkURI = (
     user,
     host,
     port: port ?? 5060,
-    transport: t as Transport
+    transport: t
   }
 }
 

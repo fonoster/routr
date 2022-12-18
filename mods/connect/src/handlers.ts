@@ -48,7 +48,7 @@ export const handleRegister = (
         return res.send(Auth.createForbideenResponse())
       }
 
-      const credentials = await dataAPI.get(agent?.spec.credentialsRef)
+      const credentials = await dataAPI.get(agent.spec.credentialsRef)
 
       // Calculate response and compare with the one send by the endpoint
       const calcRes = Auth.calculateAuthResponse(

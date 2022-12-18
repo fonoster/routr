@@ -24,10 +24,10 @@ export const hasMethod = (config: ProcessorConfig, request: MessageRequest) =>
 
 // TODO: We need a way to test the matching function
 export const filter = (request: MessageRequest, config: ProcessorConfig) =>
-  hasMethod(config, request) && config?.matchFunc(request)
+  hasMethod(config, request) && config.matchFunc(request)
 
 export const findProcessor =
   (list: Array<ProcessorConfig>) =>
   (request: MessageRequest): NotMatchingProcessorFound | ProcessorConfig =>
     list.find((config: ProcessorConfig) => filter(request, config)) ??
-    new NotMatchingProcessorFound(request?.ref)
+    new NotMatchingProcessorFound(request.ref)

@@ -342,10 +342,10 @@ export interface SIPMessage {
   wwwAuthenticate?: WWWAuthenticate
   maxForwards: MaxForwards
   authorization?: Authorization
-  extensions?: Extension[]
-  via?: Via[]
-  route?: RouteHeader[]
-  recordRoute?: RecordRoute[]
+  extensions: Extension[]
+  via: Via[]
+  route: RouteHeader[]
+  recordRoute: RecordRoute[]
 }
 
 export interface GrpcCallback {

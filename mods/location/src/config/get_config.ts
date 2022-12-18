@@ -81,15 +81,15 @@ export const getConfig = (
     }
   }
 
-  if (!config?.cache?.provider) {
+  if (!config.cache?.provider) {
     config.cache = {
       provider: CacheProvider.MEMORY
     }
   }
 
   if (
-    config?.cache?.provider === CacheProvider.REDIS &&
-    !config?.cache?.parameters
+    config.cache?.provider === CacheProvider.REDIS &&
+    !config.cache?.parameters
   ) {
     config.cache = {
       provider: CacheProvider.REDIS,

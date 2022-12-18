@@ -40,7 +40,7 @@ export function dataAPI(apiAddr: string) {
       new Promise<Resource>((resolve, reject) => {
         client.get({ ref }, (err: { code: number }, response: Resource) => {
           if (err) {
-            return err?.code === grpc.status.UNAVAILABLE
+            return err.code === grpc.status.UNAVAILABLE
               ? reject(
                   new ServiceUnavailableError(
                     `api server at ${apiAddr} is unavailable`
@@ -64,7 +64,7 @@ export function dataAPI(apiAddr: string) {
           request,
           (err: { code: number }, response: { resources: Resource[] }) => {
             if (err) {
-              return err?.code === grpc.status.UNAVAILABLE
+              return err.code === grpc.status.UNAVAILABLE
                 ? reject(
                     new ServiceUnavailableError(
                       `api server at ${apiAddr} is unavailable`

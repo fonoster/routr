@@ -137,8 +137,8 @@ export const checkAccessFromPSTN = async (
       const calcRes = Auth.calculateAuthResponse(
         auth as CT.AuthChallengeResponse,
         {
-          username: credentials?.spec.credentials.username,
-          secret: credentials?.spec.credentials.password
+          username: credentials.spec.credentials.username,
+          secret: credentials.spec.credentials.password
         }
       )
 

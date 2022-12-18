@@ -67,7 +67,8 @@ export function findBy(resources: CC.Resource[]) {
         resource.kind?.toLowerCase() === call.request.kind?.toLowerCase()
     )
 
-    if (filteredResources == null || filteredResources.length === 0) {
+    // WARNING: This seems to contradict the result of the query
+    if (filteredResources.length === 0) {
       return callback(new ResourceNotFound(""), null)
     }
 

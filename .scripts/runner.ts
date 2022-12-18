@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import connectProcessor from "../mods/connect/src/service"
-import simpleAuthMiddleware from "../mods/simpleauth/src/service"
 import simpleDataService from "../mods/simpledata/src/service"
 import messageDispatcher from "../mods/dispatcher/src/service"
 import locationService from "../mods/location/src/service"
@@ -20,7 +19,6 @@ envcopy.CONFIG_PATH = __dirname + "/../config/edgeport.alt.json";
 const edgeport = spawn("./mods/edgeport/edgeport.sh")
 const edgeportAlt = spawn("./mods/edgeport/edgeport.sh", {env: envcopy})
 const requester = spawn("./mods/requester/requester.sh")
-const users = require(__dirname + "/../config/auth.json")
 const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.json")
 const locationConfig = getLocationConfig(__dirname + "/../config/location.json")
 const registryConfig = getRegistryConfig(__dirname + "/../config/registry.json")
