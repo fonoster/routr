@@ -98,7 +98,6 @@ async function agentToAgent(
  * From PSTN routing.
  *
  * @param {ILocationService} location - Location service
- * @param {uknown} _
  * @param {Resource} callee - The callee
  * @return {Promise<Route>}
  */

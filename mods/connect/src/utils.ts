@@ -184,7 +184,11 @@ export const getTrunkURI = (
   user: string
   transport: Transport
 } => {
-  const { user, host, port, transport } = trunk.spec.outbound?.uris[0].uri
+  if (!trunk.spec.outbound) {
+    throw new Error(`trunk ${trunk.ref} has no outbound settings`)
+  }
+
+  const { user, host, port, transport } = trunk.spec.outbound.uris[0].uri
   const t = !transport
     ? Transport.UDP
     : Object.values(Transport)[

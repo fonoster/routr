@@ -32,80 +32,90 @@
         "inbound": {
           "description": "Inbound configuration",
           "type": "object",
-          "uri": {
-            "description": "URI of the inbound endpoint",
-            "type": "string"
+          "properties": {
+            "uri": {
+              "description": "URI of the inbound endpoint",
+              "type": "string"
+            },
+            "accessControlListRef": {
+              "description": "Reference to the ACL to be used for inbound traffic",
+              "type": "string"
+            },
+            "credentialsRef": {
+              "description": "Reference to the credentials to be used for inbound traffic",
+              "type": "string"
+            }
           },
-          "accessControlListRef": {
-            "description": "Reference to the ACL to be used for inbound traffic",
-            "type": "string"
-          },
-          "credentialsRef": {
-            "description": "Reference to the credentials to be used for inbound traffic",
-            "type": "string"
-          }
+          "required": [
+            "uri"
+          ]
         },
         "outbound": {
           "description": "Outbound configuration",
           "type": "object",
-          "sendRegister": {
-            "description": "Whether to send register messages",
-            "type": "boolean"
-          },
-          "credentialsRef": {
-            "description": "Reference to the credentials to be used for outbound traffic",
-            "type": "string"
-          },
-          "uris": {
-            "description": "List of URIs to be used for outbound traffic",
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "uri": {
-                  "description": "URI to be used for outbound traffic",
-                  "type": "object",
-                  "properties": {
-                    "host": {
-                      "description": "Hostname of the URI",
-                      "type": "string"
-                    },
-                    "port": {
-                      "description": "Port of the URI",
-                      "type": "integer"
-                    },
-                    "transport": {
-                      "description": "Transport of the URI",
-                      "enum": [
-                        "tcp",
-                        "sctp",
-                        "udp",
-                        "tls",
-                        "ws",
-                        "wss"
-                      ]
-                    },
-                    "user": {
-                      "description": "Username of the URI",
-                      "type": "string"
+          "properties": {
+            "sendRegister": {
+              "description": "Whether to send register messages",
+              "type": "boolean"
+            },
+            "credentialsRef": {
+              "description": "Reference to the credentials to be used for outbound traffic",
+              "type": "string"
+            },
+            "uris": {
+              "description": "List of URIs to be used for outbound traffic",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "uri": {
+                    "description": "URI to be used for outbound traffic",
+                    "type": "object",
+                    "properties": {
+                      "host": {
+                        "description": "Hostname of the URI",
+                        "type": "string"
+                      },
+                      "port": {
+                        "description": "Port of the URI",
+                        "type": "integer"
+                      },
+                      "transport": {
+                        "description": "Transport of the URI",
+                        "enum": [
+                          "tcp",
+                          "sctp",
+                          "udp",
+                          "tls",
+                          "ws",
+                          "wss"
+                        ]
+                      },
+                      "user": {
+                        "description": "Username of the URI",
+                        "type": "string"
+                      }
                     }
+                  },
+                  "weight": {
+                    "description": "Weight of the URI",
+                    "type": "integer"
+                  },
+                  "priority": {
+                    "description": "Priority of the URI",
+                    "type": "integer"
+                  },
+                  "enabled": {
+                    "description": "Whether the URI is enabled",
+                    "type": "boolean"
                   }
-                },
-                "weight": {
-                  "description": "Weight of the URI",
-                  "type": "integer"
-                },
-                "priority": {
-                  "description": "Priority of the URI",
-                  "type": "integer"
-                },
-                "enabled": {
-                  "description": "Whether the URI is enabled",
-                  "type": "boolean"
                 }
               }
             }
-          }
+          },
+          "required": [
+            "uris"
+          ]
         }
       }
     }

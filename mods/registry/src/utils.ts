@@ -95,7 +95,12 @@ export const convertResourceToTrunk = async (
 ): Promise<Trunk> => {
   const metadata = resource.metadata
   const trunkSpec = resource.spec
-  const uri = trunkSpec.outbound?.uris[0]?.uri
+
+  if (!trunkSpec.outbound) {
+    throw new Error(`trunk ${resource.ref} has no outbound settings`)
+  }
+
+  const uri = trunkSpec.outbound?.uris[0].uri
 
   // WARNING: Perhaps we should bring this on a single API call
   const cred = await dataAPI.get(trunkSpec.outbound?.credentialsRef)
