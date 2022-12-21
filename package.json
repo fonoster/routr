@@ -1,6 +1,6 @@
 {
   "name": "routr",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Next-generation SIP Server",
   "scripts": {
     "prepack": "npm test",
@@ -36,7 +36,7 @@
     "ip-utils": "^2.4.0",
     "moment": "^2.22.2",
     "paginate-array": "^2.1.0",
-    "phone": "^2.4.20",
+    "phone": "^3.1.31",
     "postal": "^2.0.5",
     "xxhashjs": "^0.2.2"
   },

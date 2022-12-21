@@ -19,6 +19,7 @@ const LocatorUtils = require('@routr/location/utils')
 const postal = require('postal')
 const SipFactory = Java.type('javax.sip.SipFactory')
 const headerFactory = SipFactory.getInstance().createHeaderFactory()
+const { phone } = require('phone')
 
 const {
   getEdgeAddr,
@@ -233,6 +234,39 @@ class RequestHandler {
         )
       } else if (route) {
         requestOut = configureRequestURI(requestOut, null, route)
+      }
+
+      if (config.spec.ex_convertTelToE164) {
+        // Normalize To header
+        const toHeader = requestOut.getHeader(ToHeader.NAME)
+        const toURI = toHeader.getAddress().getURI()
+        const telWithoutPlusTo = toURI.getUser().replace('+', '')
+        const normalizedTelTo = phone(`+${telWithoutPlusTo}`, { validateMobilePrefix: false })
+
+        if (normalizedTelTo.isValid) {
+          toURI.setUser(normalizedTelTo.phoneNumber)
+        }
+
+        // Normalize From header
+        const fromHeader = requestOut.getHeader(FromHeader.NAME)
+        const fromURI = fromHeader.getAddress().getURI()
+        const telWithoutPlusFrom = fromURI.getUser().replace('+', '')
+        const normalizedTelFrom = phone(`+${telWithoutPlusFrom}`, { validateMobilePrefix: false })
+
+        if (normalizedTelFrom.isValid) {
+          fromURI.setUser(normalizedTelFrom.phoneNumber)
+        }
+
+        // Normalize Request URI header
+        const requestURI = requestOut.getRequestURI()
+        if (requestURI.getUser()) {
+          const telWithoutPlusRequestURI = requestURI.getUser().replace('+', '')
+          const normalizedTelRequestURI = phone(`+${telWithoutPlusRequestURI}`, { validateMobilePrefix: false })
+
+          if (normalizedTelRequestURI.isValid) {
+            requestURI.setUser(normalizedTelRequestURI.phoneNumber)
+          }
+        }
       }
 
       let bridgingNote

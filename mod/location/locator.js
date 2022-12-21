@@ -13,7 +13,7 @@ const SDSelector = require('@routr/data_api/store_driver_selector')
 const StoreAPI = require('@routr/data_api/store_api')
 const postal = require('postal')
 const { Status } = require('@routr/core/status')
-const phone = require('phone')
+const { phone } = require('phone')
 const getConfig = require('@routr/core/config_util')
 
 const LogManager = Java.type('org.apache.logging.log4j.LogManager')
@@ -97,14 +97,23 @@ class Locator {
       return this.findEndpointByTelUrl(addressOfRecord)
     } else {
       try {
-        const tel = LocatorUtils.aorAsObj(addressOfRecord).getUser()
-        const telE164 = this.ex_convertTelToE164
-          ? phone('+' + tel, '', true)[0]
-          : tel
-        const response = this.findEndpointByTelUrl(`tel:${telE164}`)
+        let tel = LocatorUtils.aorAsObj(addressOfRecord).getUser()
+
+        if (this.ex_convertTelToE164) {
+          // Remove + to make sure is not duplicated
+          const telWithoutPlus = tel.replace('+', '')
+          const normalizedTel = phone(`+${telWithoutPlus}`, { validateMobilePrefix: false })
+
+          if (normalizedTel.isValid) {
+            tel = normalizedTel.phoneNumber
+          }
+        }
+
+        const response = this.findEndpointByTelUrl(`tel:${tel}`)
+
         if (response.status === Status.OK) return response
       } catch (e) {
-        LOG.warning(`Tel '${tel}' not a valid e164`)
+        LOG.warn(`Unable to process tel url: ${addressOfRecord}`)
       }
     }
 
