@@ -31,8 +31,13 @@ class CDRSender {
   }
 
   sendCallRecord (callRecord) {
-    LOG.debug('cdrs.sender kafka sender sending callRecord ==> \n' + callRecord)
-    this.producer.send(new ProducerRecord(this.topic, callRecord))
+    const record = new ProducerRecord(this.topic, callRecord)
+    if (callRecord.endTime) {
+      record.headers().add('MessageType', 'CallEnd'.getBytes());
+    } else {
+      record.headers().add('MessageType', 'CallStart'.getBytes());
+    }
+    this.producer.send(record)
   }
 }
 

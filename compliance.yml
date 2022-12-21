@@ -9,7 +9,7 @@ services:
   routr-eet:
     image: fonoster/routr-eet:latest
     expose: [5061, 5062]
-    env_file: env_test
+    env_file: .env.test
 
   routr:
     links:
