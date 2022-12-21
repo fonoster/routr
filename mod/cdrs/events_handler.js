@@ -30,7 +30,8 @@ class EventsHandler {
 
   processEvent (cdr) {
     if (config.spec.ex_kafka?.enabled) {
-      this.kafkaSender.sendCallRecord(JSON.stringify(cdr))
+      const isCallEnd = cdr.endTime ? true : false
+      this.kafkaSender.sendCallRecord(JSON.stringify(cdr), isCallEnd)
     }
 
     // We only need to send full CDRs to Fluentd

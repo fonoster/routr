@@ -30,9 +30,9 @@ class CDRSender {
     this.topic = kafkaConfig.topic
   }
 
-  sendCallRecord (callRecord) {
+  sendCallRecord (callRecord, isCallEnd) {
     const record = new ProducerRecord(this.topic, callRecord)
-    if (callRecord.endTime) {
+    if (isCallEnd) {
       record.headers().add('MessageType', 'CallEnd'.getBytes());
     } else {
       record.headers().add('MessageType', 'CallStart'.getBytes());
