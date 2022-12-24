@@ -208,9 +208,10 @@ public class GRPCSipListener implements SipListener {
 
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
 
+      // Forwarding SIP response to the client
       if (!response.getMessage().hasRequestUri()) {
         assert serverTransaction != null;
-        this.sendResponse(serverTransaction, response.getMessage().getResponseType(), headers);
+        this.sendResponse(serverTransaction, response.getMessage().getResponseType(), headers, response.getMessage().getReasonPhrase());
         return;
       }
 
@@ -219,6 +220,11 @@ public class GRPCSipListener implements SipListener {
       sipURI.setPort(requestUriDTO.getPort());
 
       req.setRequestURI(sipURI);
+
+      if (response.getMessage().getBody() != null) {
+        assert req.getHeader(ContentTypeHeader.NAME) != null;
+        req.setContent(response.getMessage().getBody(), (ContentTypeHeader) req.getHeader(ContentTypeHeader.NAME));
+      }
 
       if (req.getMethod().equals(Request.CANCEL)) {
         assert serverTransaction != null;
@@ -267,6 +273,11 @@ public class GRPCSipListener implements SipListener {
       MessageRequest request = this.messageConverter.createMessageRequest(res, null);
       MessageResponse response = blockingStub.processMessage(request);
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
+
+      // Update reason phrase
+      if (response.getMessage().getReasonPhrase() != null) {
+        res.setReasonPhrase(response.getMessage().getReasonPhrase());
+      }
 
       // Removing all the headers of type Via and Contact to avoid duplicates
       res.removeHeader(Via.NAME);
@@ -413,9 +424,14 @@ public class GRPCSipListener implements SipListener {
   }
 
   private void sendResponse(final ServerTransaction transaction, final ResponseType type,
-      final List<Header> headers) throws ParseException, InvalidArgumentException, SipException {
+      final List<Header> headers, final String reasonPhrase) throws ParseException, InvalidArgumentException, SipException {
     Request request = transaction.getRequest();
     Response response = this.messageFactory.createResponse(ResponseCode.valueOf(type.toString()).getCode(), request);
+    
+    if (reasonPhrase != null) {
+      response.setReasonPhrase(reasonPhrase);
+    }
+
     for (Header header : headers)
       response.addHeader(header);
     transaction.sendResponse(response);

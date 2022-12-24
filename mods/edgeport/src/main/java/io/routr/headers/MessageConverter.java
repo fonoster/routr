@@ -45,7 +45,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 
 public class MessageConverter {
   private final static Logger LOG = LogManager.getLogger(MessageConverter.class);
@@ -69,6 +68,11 @@ public class MessageConverter {
       Response response = (Response) message;
       sipMessageBuilder.setResponseType(
         ResponseType.valueOf(ResponseCode.fromCode(response.getStatusCode())));
+      sipMessageBuilder.setReasonPhrase(response.getReasonPhrase());
+    }
+
+    if(message.getContent() != null) {
+      sipMessageBuilder.setBody(message.getContent().toString());
     }
 
     // Getting a list of names of all headers present on SIP Message
@@ -217,7 +221,7 @@ public class MessageConverter {
     String methodStr = null;
     if (message instanceof Request) {
       methodStr = ((Request) message).getMethod();
-    } else if (message instanceof Response) {
+    } else {
       methodStr = ((CSeq) (message).getHeader(CSeq.NAME)).getMethod();
     }
 

@@ -19,11 +19,9 @@
 package io.routr;
 
 import gov.nist.javax.sip.header.*;
-import io.routr.common.Transport;
 import io.routr.headers.*;
 import io.routr.message.ResponseType;
 import io.routr.message.SIPMessage;
-import io.routr.processor.NetInterface;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.junit.jupiter.api.Test;
@@ -401,25 +399,26 @@ public class ConverterTests {
     HeaderFactory headerFactory = SipFactory.getInstance().createHeaderFactory();
     MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
 
+    var contentType = headerFactory.createContentTypeHeader("application", "text");
     var via1 = headerFactory.createViaHeader("sip.local.hop1", 5060, "tcp", null);
     via1.setBranch("1234");
 
     Request request = messageFactory.createRequest(
-      "REGISTER sip:sip.local;transport=tcp SIP/2.0\r\n\r\n");
+      "MESSAGE sip:sip.local;transport=tcp SIP/2.0\r\n\r\n");
     request.addHeader(headerFactory.createCallIdHeader("call001"));
-    request.addHeader(headerFactory.createContentLengthHeader(200));
     request.addHeader(headerFactory.createHeader("X-Custom-Header-01", "my custom header 01"));
     request.addHeader(headerFactory.createHeader("X-Custom-Header-02", "my custom header 02"));
     request.addHeader(via1);
     request.addHeader(headerFactory.createViaHeader("sip.local.hop1", 5060, "tcp", null));
     request.addHeader(headerFactory.createAllowHeader("INVITE"));
     request.addHeader(headerFactory.createAllowHeader("BYE"));
+    request.setContent("Hello world", contentType);
 
     SIPMessage message = MessageConverter.convertToMessageDTO(request);
 
     assertEquals(message.getCallId().getCallId(), "call001");
-    assertEquals(message.getContentLength().getContentLength(), 200);
-    assertEquals(message.getExtensionsCount(), 3);
+    assertEquals(message.getContentLength().getContentLength(), 11);
+    assertEquals(message.getExtensionsCount(), 4);
     assertEquals(message.getExtensions(0).getName(), "X-Custom-Header-01");
     assertEquals(message.getExtensions(0).getValue(), "my custom header 01");
     assertEquals(message.getExtensions(1).getName(), "X-Custom-Header-02");
@@ -463,6 +462,7 @@ public class ConverterTests {
     assertEquals(message.getExtensionsCount(), 1);
     assertEquals(message.getExtensions(0).getName(), "X-Custom-Header");
     assertEquals(message.getExtensions(0).getValue(), "my custom header");
+    assertEquals(message.getReasonPhrase(), "Unauthorized");
 
     // ? Why 1 and not 0?
     assertEquals(message.getViaList().get(1).getBranch(), via1.getBranch());

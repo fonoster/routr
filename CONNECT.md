@@ -135,7 +135,6 @@ Forward inbound traffic if its a Number it controls
 </tr>
 </table>
 
-
 The following JSON is an example of a `Connect Object` that results from processing a message:
 
 ```json
@@ -158,7 +157,6 @@ For error response, the `Connect Object` will look like this:
 
 ```json
 {
-  "type": "error",
   "code": 401,
   "reason": "Unauthorized",
   "headers": [
@@ -167,7 +165,7 @@ For error response, the `Connect Object` will look like this:
 }
 ```
 
-> Header should not allow for "add" action since it will be sent back as a response.
+> Headers with action "delete" will be ignored since we are not modifying an existing response but creating a new one.
 
 **Non-functional Requirements**
 

@@ -16,7 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AuthChallengeRequest, AuthChallengeResponse } from "./types"
+import {
+  AuthChallengeRequest,
+  AuthChallengeResponse,
+  ResponseType
+} from "./types"
 import crypto from "crypto"
 
 const DEFAULT_ALGORITHM = "MD5"
@@ -73,12 +77,11 @@ export const createUnauthorizedResponse = (
   params: {
     qop: string
     algorithm: string
-  } = { qop: "auth", algorithm: "MD5" }
+  } = { qop: "auth", algorithm: DEFAULT_ALGORITHM }
 ) => {
   return {
     message: {
-      // Unauthorized Code
-      responseType: 17,
+      responseType: ResponseType.UNAUTHORIZED,
       wwwAuthenticate: {
         scheme: "Digest",
         realm: realm,
@@ -95,8 +98,7 @@ export const createUnauthorizedResponse = (
 export const createUnauthorizedResponseWithoutChallenge = () => {
   return {
     message: {
-      // Unauthorized Code
-      responseType: 17
+      responseType: ResponseType.UNAUTHORIZED
     }
   }
 }
@@ -104,8 +106,7 @@ export const createUnauthorizedResponseWithoutChallenge = () => {
 export const createServerInternalErrorResponse = () => {
   return {
     message: {
-      // Unauthorized Code
-      responseType: 46
+      responseType: ResponseType.SERVER_INTERNAL_ERROR
     }
   }
 }
@@ -113,8 +114,7 @@ export const createServerInternalErrorResponse = () => {
 export const createForbideenResponse = () => {
   return {
     message: {
-      // Forbideen Code
-      responseType: 19
+      responseType: ResponseType.FORBIDDEN
     }
   }
 }

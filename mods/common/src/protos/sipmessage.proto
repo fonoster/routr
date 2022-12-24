@@ -207,4 +207,6 @@ message SIPMessage {
   repeated Via via = 13;
   repeated Route route = 14;
   repeated RecordRoute record_route = 15;
+  string reason_phrase = 16;
+  string body = 17;
 }

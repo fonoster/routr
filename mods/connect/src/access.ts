@@ -103,7 +103,7 @@ export const checkAccessFromPSTN = async (
       const acl = await dataAPI.get(trunk.spec.inbound.accessControlListRef)
 
       if (!acl) {
-        // Should never happen since the ACL is required
+        // Should never happen since the ACL is required on start
         return Auth.createServerInternalErrorResponse()
       }
 
@@ -112,11 +112,11 @@ export const checkAccessFromPSTN = async (
       })[0]
 
       if (!allow) {
-        // TODO: Replace with Unauthorized
         return Auth.createUnauthorizedResponseWithoutChallenge()
       }
     } catch (e) {
       logger.error(e)
+      return Auth.createServerInternalErrorResponse()
     }
   }
 
