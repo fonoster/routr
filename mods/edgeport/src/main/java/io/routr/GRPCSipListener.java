@@ -221,7 +221,7 @@ public class GRPCSipListener implements SipListener {
 
       req.setRequestURI(sipURI);
 
-      if (response.getMessage().getBody() != null) {
+      if (!response.getMessage().getBody().isEmpty()) {
         assert req.getHeader(ContentTypeHeader.NAME) != null;
         req.setContent(response.getMessage().getBody(), (ContentTypeHeader) req.getHeader(ContentTypeHeader.NAME));
       }

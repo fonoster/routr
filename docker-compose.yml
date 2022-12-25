@@ -193,8 +193,8 @@ services:
     ports:
       - 7060:7060/udp
     volumes:
-      - ./mods/connect/etc/seet.json/:/seet.json
-      - ./mods/connect/etc/scenarios:/scenarios
+      - ./etc/seet.json/:/seet.json
+      - ./etc/scenarios:/scenarios
     networks:
       internal:
         ipv4_address: 10.111.221.22

@@ -21,8 +21,8 @@ import { Helper as H, MessageRequest, CommonTypes } from "@routr/common"
 export const getHeaderValue = (request: MessageRequest, name: string) =>
   request.message.extensions.find(
     (ext: CommonTypes.Extension) =>
-      ext.name.toLowerCase() === name.toLowerCase()
-  )?.value
+      ext.name.toLowerCase() === name?.toLowerCase()
+  )?.value || null
 
 export const updateHeader = (
   request: MessageRequest,

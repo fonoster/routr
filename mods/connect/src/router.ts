@@ -121,7 +121,7 @@ async function fromPSTN(
     await location.findRoutes({
       aor: callee.spec.location.aorLink,
       callId: req.ref,
-      sessionAffinityRef: sessionAffinityRef
+      sessionAffinityRef
     })
   )[0]
 
