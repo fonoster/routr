@@ -31,7 +31,7 @@ describe("@routr/processor/extensions", () => {
 
   it("gets value from extension header", () => {
     expect(E.getHeaderValue(request, "Allow")).to.be.equal("INVITE")
-    expect(E.getHeaderValue(request, "Allowx")).to.be.undefined
+    expect(E.getHeaderValue(request, "Allowx")).to.be.null
   })
 
   it("updates extension header", () => {

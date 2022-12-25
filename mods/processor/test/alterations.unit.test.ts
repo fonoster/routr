@@ -158,7 +158,7 @@ describe("@routr/processor/alterations", () => {
   it("applies the extension headers from Route", () => {
     const r = A.applyXHeaders(route)(request)
     expect(E.getHeaderValue(r, CT.ExtraHeader.GATEWAY_AUTH)).to.not.be.null
-    expect(E.getHeaderValue(r, "user-agent")).to.be.undefined
+    expect(E.getHeaderValue(r, "user-agent")).to.be.null
   })
 
   it("pipes alterations and checks the result", () => {
