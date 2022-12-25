@@ -75,7 +75,7 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           res.send(tailor(HE.createRouteFromLastMessage(req), req))
           break
         default:
-          await handleRequest(location, CC.dataAPI(config.apiAddr))(req, res)
+          handleRequest(location, CC.dataAPI(config.apiAddr))(req, res)
       }
     }
   )

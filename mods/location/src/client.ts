@@ -86,15 +86,14 @@ export default class Location implements ILocationService {
    *
    * @param {FindRoutesResponse} request - Request to find routes
    * @param {string} request.aor - AOR of the route
-   * @param {Map<string, string>} request.labels - Optional Route labels
-   * @param {string} request.sessionAffinityRef - Optiona session affinity ref
+   * @param {Map<string, string>} request.labels - Optional Route labels (reserved for future use)
    * @return {Promise<void>}
    */
   public async findRoutes(request: FindRoutesRequest): Promise<Route[]> {
     return (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ((await container(this, request, this.findRoutes.name)) as any)?.routes ??
-      ([] as Route[])
+      []
     )
   }
 

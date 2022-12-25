@@ -1,9 +1,4 @@
-import {
-  HeaderModifier,
-  HeaderModifierAction,
-  MessageRequest,
-  ResponseType
-} from "../types"
+import { HeaderModifier, HeaderModifierAction, ResponseType } from "../types"
 
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)

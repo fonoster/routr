@@ -55,6 +55,20 @@ export enum Privacy {
   PRIVATE = "id"
 }
 
+export enum AuthorizationAlgorithm {
+  MD5 = "MD5"
+}
+
+export enum AuthorizationScheme {
+  DIGEST = "Digest"
+}
+
+export enum Qop {
+  AUTH = "auth",
+  AUTH_INT = "auth-int",
+  NONE = ""
+}
+
 export interface NetInterface {
   host: string
   port: number
@@ -110,29 +124,29 @@ export interface ObjectProto {
 export interface AuthChallengeRequest {
   realm: string
   domain: string
-  scheme: string
-  nonce: string
-  algorithm: string
-  qop: string
   opaque: string
   stale: boolean
+  nonce: string
+  scheme: AuthorizationScheme
+  algorithm: AuthorizationAlgorithm
+  qop: Qop
 }
 
 export interface AuthChallengeResponse {
   realm: string
   domain: string
-  scheme: string
   cNonce: string
+  nonce: string
   nonceCount: number
   response: string
   username: string
-  nonce: string
-  algorithm: string
-  qop: string
   opaque: string
   stale: boolean
   uri: string
-  method: string
+  method: Method
+  scheme: AuthorizationScheme
+  algorithm: AuthorizationAlgorithm
+  qop: Qop
 }
 
 export enum HeaderModifierAction {
@@ -152,12 +166,20 @@ export interface Route {
   port: number
   transport: Transport
   registeredOn?: number
+  /**
+   * Number of active sessions. This is used to determine if a route is
+   * overloaded and for load balancing.
+   *
+   * This value is reported by the endpoint during the REGISTER request,
+   * using the X-Session-Count header.
+   */
   sessionCount?: number
   expires?: number
   edgePortRef: string
   listeningPoints: NetInterface[]
   localnets: string[]
   externalAddrs: string[]
+  // Reserved for future use
   labels?: Map<string, string>
   headers?: HeaderModifier[]
 }
@@ -236,17 +258,17 @@ export interface WWWAuthenticate {
 
 export interface Authorization {
   realm: string
-  scheme: string
+  scheme: AuthorizationScheme
   nonce: string
   cNonce: string
   nonceCount: number
   response: string
   username: string
   uri: string
-  algorithm: string
-  qop: string
+  algorithm: AuthorizationAlgorithm
+  qop: Qop
   opaque: string
-  method?: string
+  method?: Method
 }
 
 export interface CallID {

@@ -75,5 +75,5 @@ export const schema = {
       }
     }
   },
-  required: ["kind", "spec", "apiVersion"]
+  required: ["apiVersion", "kind", "metadata", "spec"]
 }

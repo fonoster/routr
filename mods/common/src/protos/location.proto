@@ -60,8 +60,10 @@ message AddRouteRequest {
 }
 
 message FindRoutesRequest {
-  string aor = 1;
-  map<string, string> labels = 2;
+  string call_id = 1;
+  string aor = 2;
+  string session_affinity_ref = 3;
+  map<string, string> labels = 4;
 }
 
 message FindRoutesResponse {

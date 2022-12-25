@@ -42,9 +42,20 @@ describe("@routr/location", () => {
     locator.addRoute({ aor: "sip:1001@sip.local", route: Routes.simpleRoute01 })
     locator.addRoute({ aor: "sip:1001@sip.local", route: Routes.simpleRoute02 })
 
-    const findRoutesRequest1 = { aor: "sip:1001@sip.local" }
-    const findRoutesRequest2 = { aor: "sip:1001@sip.local", labels: labels1 }
-    const findRoutesRequest3 = { aor: "sip:1001@sip.local", labels: labels2 }
+    const findRoutesRequest1 = {
+      callId: "3848276298220188511",
+      aor: "sip:1001@sip.local"
+    }
+    const findRoutesRequest2 = {
+      callId: "3848276298220188511",
+      aor: "sip:1001@sip.local",
+      labels: labels1
+    }
+    const findRoutesRequest3 = {
+      callId: "a-non-existent-call-id",
+      aor: "sip:1001@sip.local",
+      labels: labels2
+    }
 
     expect((await locator.findRoutes(findRoutesRequest1)).length).to.be.equal(2)
     expect((await locator.findRoutes(findRoutesRequest1))[0])
@@ -82,11 +93,14 @@ describe("@routr/location", () => {
       route: Routes.voiceBackendRoute05
     })
 
-    const findRoutesRequest1 = { aor: "backend:voice_ls" }
+    const findRoutesRequest1 = {
+      callId: "3848276298220188511",
+      aor: "backend:voice_ls"
+    }
 
     expect((await locator.findRoutes(findRoutesRequest1))[0])
       .to.be.have.property("sessionCount")
-      .to.be.equal(5)
+      .to.be.equal(Routes.voiceBackendRoute05.sessionCount)
   })
 
   it("find next backend using round-robin", async () => {
@@ -112,27 +126,38 @@ describe("@routr/location", () => {
       route: Routes.voiceBackendRoute01
     })
 
-    const findRoutesRequest1 = { aor: "backend:voice_rr" }
+    const findRoutesRequest1 = { callId: "01", aor: "backend:voice_rr" }
+    const findRoutesRequest2 = { callId: "02", aor: "backend:voice_rr" }
+    const findRoutesRequest3 = { callId: "03", aor: "backend:voice_rr" }
+    const findRoutesRequest4 = { callId: "04", aor: "backend:voice_rr" }
+    const findRoutesRequest5 = { callId: "05", aor: "backend:voice_rr" }
+    const findRoutesRequest6 = { callId: "06", aor: "backend:voice_rr" }
+    const findRoutesRequest7 = { callId: "07", aor: "backend:voice_rr" }
 
     expect((await locator.findRoutes(findRoutesRequest1))[0])
       .to.be.have.property("user")
       .to.be.equal("voice01")
-    expect((await locator.findRoutes(findRoutesRequest1))[0])
+    expect((await locator.findRoutes(findRoutesRequest2))[0])
       .to.be.have.property("user")
       .to.be.equal("voice02")
-    expect((await locator.findRoutes(findRoutesRequest1))[0])
+    expect((await locator.findRoutes(findRoutesRequest3))[0])
       .to.be.have.property("user")
       .to.be.equal("voice03")
-    expect((await locator.findRoutes(findRoutesRequest1))[0])
+    expect((await locator.findRoutes(findRoutesRequest4))[0])
       .to.be.have.property("user")
       .to.be.equal("voice04")
-    expect((await locator.findRoutes(findRoutesRequest1))[0])
+    expect((await locator.findRoutes(findRoutesRequest5))[0])
       .to.be.have.property("user")
       .to.be.equal("voice05")
-    expect((await locator.findRoutes(findRoutesRequest1))[0])
+    expect((await locator.findRoutes(findRoutesRequest6))[0])
       .to.be.have.property("user")
       .to.be.equal("voice01")
-    expect((await locator.findRoutes(findRoutesRequest1))[0])
+    expect((await locator.findRoutes(findRoutesRequest7))[0])
+      .to.be.have.property("user")
+      .to.be.equal("voice02")
+
+    // Observe how we get the same backend since it is the same callId
+    expect((await locator.findRoutes(findRoutesRequest7))[0])
       .to.be.have.property("user")
       .to.be.equal("voice02")
   })
@@ -152,11 +177,22 @@ describe("@routr/location", () => {
       route: Routes.conferenceBackendRoute01
     })
 
-    const findRoutesRequest1 = { aor: "backend:conference" }
+    const findRoutesRequest1 = {
+      callId: "3848276298220188511",
+      aor: "backend:conference",
+      sessionAffinityRef: "any-session-affinity-ref"
+    }
+
+    const findRoutesRequest2 = {
+      callId: "any-call-id",
+      aor: "backend:conference",
+      sessionAffinityRef: "any-session-affinity-ref"
+    }
+
     expect((await locator.findRoutes(findRoutesRequest1))[0])
       .to.have.property("user")
       .to.be.equal("conference01")
-    expect((await locator.findRoutes(findRoutesRequest1))[0])
+    expect((await locator.findRoutes(findRoutesRequest2))[0])
       .to.have.property("user")
       .to.be.equal("conference01")
   })
@@ -178,13 +214,8 @@ describe("@routr/location", () => {
         .to.have.property("balancingAlgorithm")
         .to.be.equal("least-sessions")
       expect(config.backends[1])
-        .to.have.property("sessionAffinity")
-        .to.have.property("enabled")
+        .to.have.property("withSessionAffinity")
         .to.be.equal(true)
-      expect(config.backends[1])
-        .to.have.property("sessionAffinity")
-        .to.have.property("ref")
-        .to.be.equal("room_id")
       done()
     } else {
       done(result.left)

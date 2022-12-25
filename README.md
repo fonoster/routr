@@ -86,7 +86,7 @@ First, you will start by creating a Peer configuration for your Asterisk server 
 }
 ```
 
-Every Asterik server that registers using the `crd6t67r1` credentials will be grouped under the `backend:conference` Address of Record (AOR). Next, we need to tell Routr to map all inbound calls from given number to the conference room in Asterik. For that, we use the `aorLink` and `sessionAffinityPro` properties on the desired Number. Here is an example: 
+Every Asterik server that registers using the `crd6t67r1` credentials will be grouped under the `backend:conference` Address of Record (AOR). Next, we need to tell Routr to map all inbound calls from given number to the conference room in Asterik. For that, we use the `aorLink` and `sessionAffinityHeader` on the desired Number. Here is an example: 
 
 ```json
 {
@@ -106,8 +106,8 @@ Every Asterik server that registers using the `crd6t67r1` credentials will be gr
     "location": {
       "telUrl": "tel:+17066041487",
       "aorLink": "backend:conference",
-      "sessionAffinityProp": "x-room-id",
-      "props": [{
+      "sessionAffinityHeader": "x-room-id",
+      "extraHeaders": [{
         "name": "x-room-id",
         "value": "jsa-shqm-iyo"
       }]
@@ -116,7 +116,7 @@ Every Asterik server that registers using the `crd6t67r1` credentials will be gr
 }
 ```
 
-Finally, we configure the Location service to load-balance the traffic based on the `least-sessions` algorithm, and use `x-room-id` for session affinity.
+Finally, we configure the Location service to load-balance the traffic based on the `least-sessions` algorithm.
 
 > We need Session Affinity to ensure all calls for a given `x-room-id` go to the same Asterisk server.
 
@@ -136,10 +136,7 @@ Finally, we configure the Location service to load-balance the traffic based on 
       {
         "ref": "conference",
         "balancingAlgorithm": "least-sessions",
-        "sessionAffinity": {
-          "enabled": true,
-          "ref": "x-room-id"
-        }
+        "withSessionAffinity": true
       }
     ]
   }

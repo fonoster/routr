@@ -148,7 +148,7 @@ export const voiceBackendRoute05: Route = {
   port: 5060,
   transport: Transport.UDP,
   registeredOn: Date.now(),
-  sessionCount: 5,
+  sessionCount: 3,
   expires: 600,
   edgePortRef: "edge-port-01",
   listeningPoints: [

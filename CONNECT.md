@@ -1,6 +1,6 @@
 # Routr Connect Processor
 
-### Version 0.1.3 (Draft)
+### Version 0.1.4 (Draft)
 
 <details>
 <summary>Table of Contents</summary>
@@ -283,8 +283,8 @@ Numbers represent virtual numbers that route calls from/to the PSTN via a Trunk.
     "location": {
       "telUrl": "tel:+17066041487",
       "aorLink": "backend:conference",
-      "sessionAffinityProp": "x-room-id",
-      "props": [{
+      "sessionAffinityHeader": "x-room-id",
+      "extraHeaders": [{
         "name": "x-room-id",
         "value": "jsa-shqm-iyo"
       }]

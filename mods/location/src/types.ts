@@ -30,17 +30,13 @@ export enum CacheProvider {
 
 export interface ILocationService {
   addRoute(request: AddRouteRequest): Promise<void>
-
   findRoutes(request: FindRoutesRequest): Promise<Route[]>
-
   removeRoutes(request: RemoveRoutesRequest): Promise<void>
 }
 
 export interface ILocatorStore {
   put(key: string, route: Route): Promise<void>
-
   get(key: string): Promise<Route[]>
-
   delete(key: string): Promise<void>
 }
 
@@ -51,8 +47,10 @@ export interface AddRouteRequest {
 
 export interface FindRoutesRequest {
   aor: string
-  labels?: Map<string, string>
+  callId: string
   sessionAffinityRef?: string
+  // Reserved for future use
+  labels?: Map<string, string>
 }
 
 export interface FindRoutesResponse {

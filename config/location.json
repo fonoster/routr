@@ -16,10 +16,7 @@
       {
         "ref": "conference",
         "balancingAlgorithm": "least-sessions",
-        "sessionAffinity": {
-          "enabled": true,
-          "ref": "room_id"
-        }
+        "withSessionAffinity": true
       }
     ]
   }

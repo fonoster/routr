@@ -64,7 +64,7 @@ export const getEdgeInterface = (nets: {
 }
 
 /**
- * A request traversing a second EdgePort would have an updated the requestUri.
+ * A request traversing a second EdgePort would have updated the requestUri.
  * Therefore, we are able to re-construct the Route from the request.
  *
  * @param {MessageRequest} request - the request

@@ -41,7 +41,6 @@ export default class Location implements ILocationService {
   private store: ILocatorStore
   private backends: Map<string, Backend>
   private rrCount: Map<string, number>
-  private affinityStore: Map<string, Route>
 
   /**
    * Creates a new Location service. Should fail if any backend has sessionAffinity and round-robin
@@ -56,8 +55,7 @@ export default class Location implements ILocationService {
     this.store = store
     this.backends = backends
     this.rrCount = new Map<string, number>()
-    this.affinityStore = new Map<string, Route>()
-    this.backends.forEach((value, key) => this.rrCount.set(key, 0))
+    this.backends.forEach((_, key) => this.rrCount.set(key, 0))
   }
 
   /** @inheritdoc */
@@ -73,13 +71,21 @@ export default class Location implements ILocationService {
 
   /** @inheritdoc */
   public async findRoutes(request: FindRoutesRequest): Promise<Route[]> {
-    const routes = request.labels
+    let routes = await this.store.get(request.callId)
+
+    if (routes.length > 0) {
+      return routes
+    }
+
+    routes = request.labels
       ? (await this.store.get(request.aor)).filter(
           filterOnlyMatchingLabels(request.labels)
         )
       : (await this.store.get(request.aor)) ?? []
 
     if (request.aor.startsWith(AOR_SCHEME.SIP)) {
+      // Set call to the last route
+      this.store.put(request.callId, routes[0])
       return routes
     } else if (request.aor.startsWith(AOR_SCHEME.BACKEND)) {
       const backend = this.backends.get(request.aor)
@@ -89,9 +95,14 @@ export default class Location implements ILocationService {
       }
 
       // If it has not affinity sesssion then get next
-      return backend.withSessionAffinity
-        ? [this.nextWithAffinity(routes, request.sessionAffinityRef)]
+      const r = backend.withSessionAffinity
+        ? [await this.nextWithAffinity(routes, request.sessionAffinityRef)]
         : [this.next(routes, backend)]
+
+      // Next time we will get the route with callId
+      this.store.put(request.callId, r[0])
+
+      return r
     }
     throw new UnsupportedSchema(request.aor)
   }
@@ -123,18 +134,19 @@ export default class Location implements ILocationService {
 
   // Backend with session affinity does not support round-robin
   // eslint-disable-next-line require-jsdoc
-  private nextWithAffinity(
+  private async nextWithAffinity(
     routes: Array<Route>,
-    sessionAffinityRef: string
-  ): Route {
-    let route = this.affinityStore.get(sessionAffinityRef)
-    if (route) {
-      return route
+    sessionAffinityHeader: string
+  ): Promise<Route> {
+    const route = await this.store.get(sessionAffinityHeader)
+
+    if (route.length > 0) {
+      return route[0]
     }
 
-    route = routes.sort((r1, r2) => r1.sessionCount - r2.sessionCount)[0]
-    this.affinityStore.set(sessionAffinityRef, route)
+    const r = routes.sort((r1, r2) => r1.sessionCount - r2.sessionCount)[0]
+    this.store.put(sessionAffinityHeader, r)
 
-    return route
+    return r
   }
 }

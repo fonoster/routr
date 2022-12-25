@@ -45,22 +45,22 @@
               "description": "AOR link",
               "type": "string"
             },
-            "sessionAffinityProp": {
+            "sessionAffinityHeader": {
               "description": "Session affinity",
               "type": "string"
             },
-            "props": {
+            "extraHeaders": {
               "description": "Properties",
               "type": "array",
               "items": {
                 "type": "object",
                 "properties": {
                   "name": {
-                    "description": "Name of the property",
+                    "description": "Name of the header",
                     "type": "string"
                   },
                   "value": {
-                    "description": "Value of the property",
+                    "description": "Value of the header",
                     "type": "string"
                   }
                 }

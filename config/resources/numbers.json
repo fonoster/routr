@@ -16,8 +16,8 @@
       "location": {
         "telUrl": "tel:+17066041487",
         "aorLink": "backend:conference",
-        "sessionAffinityProp": "x-room-id",
-        "props": [
+        "sessionAffinityHeader": "x-room-id",
+        "extraHeaders": [
           {
             "name": "x-room-id",
             "value": "jsa-shqm-iyo"

@@ -80,7 +80,7 @@ export function router(location: ILocationService, dataAPI: CC.DataAPI) {
       case RoutingDirection.AGENT_TO_PSTN:
         return await agentToPSTN(dataAPI, request, caller, requestURI.user)
       case RoutingDirection.FROM_PSTN:
-        return await fromPSTN(location, callee)
+        return await fromPSTN(location, callee, request)
       case RoutingDirection.PEER_TO_PSTN:
         return await peerToPSTN(dataAPI, request)
       default:
@@ -94,7 +94,9 @@ async function agentToAgent(
   location: ILocationService,
   req: MessageRequest
 ): Promise<Route> {
-  return (await location.findRoutes({ aor: T.getTargetAOR(req) }))[0]
+  return (
+    await location.findRoutes({ aor: T.getTargetAOR(req), callId: req.ref })
+  )[0]
 }
 
 /**
@@ -102,15 +104,24 @@ async function agentToAgent(
  *
  * @param {ILocationService} location - Location service
  * @param {Resource} callee - The callee
+ * @param {MessageRequest} req - The request
  * @return {Promise<Route>}
  */
 async function fromPSTN(
   location: ILocationService,
-  callee: CC.Resource
+  callee: CC.Resource,
+  req: MessageRequest
 ): Promise<Route> {
+  const sessionAffinityRef = E.getHeaderValue(
+    req,
+    callee.spec.location.sessionAffinityHeader
+  )
+
   const route = (
     await location.findRoutes({
-      aor: callee.spec.location.aorLink
+      aor: callee.spec.location.aorLink,
+      callId: req.ref,
+      sessionAffinityRef: sessionAffinityRef
     })
   )[0]
 
@@ -120,7 +131,7 @@ async function fromPSTN(
 
   if (!route.headers) route.headers = []
 
-  callee.spec.location.props?.forEach(
+  callee.spec.location.extraHeaders?.forEach(
     (prop: { name: string; value: string }) => {
       const p: HeaderModifier = {
         name: prop.name,

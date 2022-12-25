@@ -110,21 +110,23 @@ export const handleRequest =
       if (!route) return res.sendNotFound()
 
       // If route is not type Route then return
-      if (!("user" in route)) {
+      if (!("listeningPoints" in route)) {
         return res.send(route as Record<string, unknown>)
       } else {
         // Forward request to peer edgeport
         if (req.edgePortRef !== route.edgePortRef) {
-          return pipe(
-            req,
-            A.addSelfVia(route as unknown as CT.Route),
-            A.addRouteToPeerEdgePort(route as unknown as CT.Route),
-            A.addXEdgePortRef,
-            A.decreaseMaxForwards
+          return res.send(
+            pipe(
+              req,
+              A.addSelfVia(route as CT.Route),
+              A.addRouteToPeerEdgePort(route as CT.Route),
+              A.addXEdgePortRef,
+              A.decreaseMaxForwards
+            )
           )
         }
 
-        res.send(tailor(route as unknown as CT.Route, req))
+        res.send(tailor(route as CT.Route, req))
       }
     } catch (err) {
       res.sendError(err)

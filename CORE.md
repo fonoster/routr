@@ -1,6 +1,6 @@
 # Routr Specification
 
-### Version 0.1.2 (Draft)
+### Version 0.1.4 (Draft)
 
 <details>
 <summary>Table of Contents</summary>
@@ -335,10 +335,15 @@ message SIPMessage {
   CallID call_id = 6;
   ContentLength content_length = 7;
   Expires expires = 8;
-  repeated Via via = 9;
-  repeated Extension extensions = 10;
-  WWWAuthenticate www_authenticate = 11;
-  Authorization authorization = 12;
+  WWWAuthenticate www_authenticate = 9;
+  MaxForwards max_forwards = 10;
+  Authorization authorization = 11;
+  repeated Extension extensions = 12;
+  repeated Via via = 13;
+  repeated Route route = 14;
+  repeated RecordRoute record_route = 15;
+  string reason_phrase = 16;
+  string body = 17;
 }
  
 ...
@@ -798,19 +803,10 @@ Example:
             "balancingAlgorithm": {
               "enum": ["round-robin", "least-sessions"]
             },
-            "sessionAffinity": {
+            "withSessionAffinity": {
               "description": "Optional session affinity",
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean"
-                },
-                "ref": {
-                  "type": "string"
-                }
-              },
-              "required": ["ref"]
-            },
+              "type": "boolean"
+            }
           },
           "required": ["ref"]
         },

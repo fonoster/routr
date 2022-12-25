@@ -23,6 +23,11 @@ import {
   Transport,
   CommonTypes as CT
 } from "@routr/common"
+import {
+  AuthorizationAlgorithm,
+  AuthorizationScheme,
+  Qop
+} from "@routr/common/dist/types"
 
 // Route to Agent 1001
 export const r1: Route = {
@@ -271,11 +276,11 @@ export const createRequest = (createRequestObj: {
       ],
       authorization: {
         realm: "sip.local",
-        scheme: "Digest",
+        scheme: AuthorizationScheme.DIGEST,
         cNonce: "7314861c4c17b0ea43311cce5eae2506",
         nonce: "b5a3226fa1899b33872e953643e0bca9",
-        algorithm: "MD5",
-        qop: "",
+        algorithm: AuthorizationAlgorithm.MD5,
+        qop: Qop.NONE,
         opaque: "",
         response: "17483289ac848e302b070cc797bf75b3",
         username: "1001",
