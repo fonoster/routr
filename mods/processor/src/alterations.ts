@@ -48,7 +48,7 @@ export const addSelfVia =
     const req = H.deepCopy(request)
 
     const routingObjects =
-      request.edgePortRef === route.edgePortRef ? request : route
+      request.edgePortRef === route.edgePortRef ? route : request
 
     const targetIntf = getEdgeInterface({
       ...routingObjects,
@@ -59,9 +59,13 @@ export const addSelfVia =
     return req
   }
 
-export const addRoute =
+export const addRouteToNextHop =
   (route: Route) =>
   (request: MessageRequest): MessageRequest => {
+    if (request.message.requestUri.host === route.host) {
+      return request
+    }
+
     const req = H.deepCopy(request)
     const r = {
       address: {
@@ -221,7 +225,7 @@ export const removeAuthorization = (
   return req
 }
 
-export const removeRoutes = (request: MessageRequest): MessageRequest => {
+export const removeSelfRoutes = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
   const localIps = request.localnets.map((ln) => ln.split("/")[0])
 

@@ -283,9 +283,9 @@ Numbers represent virtual numbers that route calls from/to the PSTN via a Trunk.
     "location": {
       "telUrl": "tel:+17066041487",
       "aorLink": "backend:conference",
-      "sessionAffinityHeader": "x-room-id",
+      "sessionAffinityHeader": "X-Room-Id",
       "extraHeaders": [{
-        "name": "x-room-id",
+        "name": "X-Room-Id",
         "value": "jsa-shqm-iyo"
       }]
     }

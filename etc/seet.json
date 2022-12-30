@@ -605,5 +605,185 @@
         ]
       }
     ]
-  }  
+  },
+  {
+    "name": "RR.Tst.Plan.1.4.1: Sending a SIP Message to a Peer with Load Balacing in Round Robin Mode",
+    "description": "This test verifies that Routr correctly routes a SIP message to a Peer with load balancing in Round Robin Mode",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_peer_invite_from_pstn_with_ip_auth.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "freeswitch",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_peer_invite_from_pstn_with_ip_auth.xml",
+        "port": 7061,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "freeswitch",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_from_pstn_with_ip_auth.xml",
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+14045551212@trunk01.acme.com"
+          },
+          {
+            "name": "from",
+            "value": "sip:+178531789070@unknown.com"
+          },
+          {
+            "name": "to",
+            "value": "sip:+14045551212@unknown.com"
+          }
+        ]
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_from_pstn_with_ip_auth.xml",
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+14045551212@trunk01.acme.com"
+          },
+          {
+            "name": "from",
+            "value": "sip:+178531789070@unknown.com"
+          },
+          {
+            "name": "to",
+            "value": "sip:+14045551212@unknown.com"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.4.2: Sending a SIP Message to a Peer with Load Balacing using Least-Sessions Mode",
+    "description": "Unsupported scenario. Please enable and visualy inspect the signaling!",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "enabled": false,
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_peer_invite_from_pstn_with_ip_auth.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "sessionCount": 25,
+        "authentication": {
+          "username": "asterisk",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_peer_invite_from_pstn_with_ip_auth.xml",
+        "port": 7061,
+        "sendRegister": true,
+        "expires": 60,
+        "sessionCount": 50,
+        "authentication": {
+          "username": "asterisk",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_from_pstn_with_ip_auth.xml",
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+17066041487@trunk01.acme.com"
+          },
+          {
+            "name": "from",
+            "value": "sip:+178531789070@unknown.com"
+          },
+          {
+            "name": "to",
+            "value": "sip:+17066041487@unknown.com"
+          }
+        ]
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_from_pstn_with_ip_auth.xml",
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+17066041487@trunk01.acme.com"
+          },
+          {
+            "name": "from",
+            "value": "sip:+178531789070@unknown.com"
+          },
+          {
+            "name": "to",
+            "value": "sip:+17066041487@unknown.com"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.5.1: Verification of callee BYE for Agent to Agent routing with Peer EdgePorts",
+    "description": "",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_agent_to_agent_callee_bye.xml",
+        "port": 7060,
+        "target": "sip02.edgeport.net:6060",
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_callee_bye.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:1002@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:1002@sip.local"
+          }
+        ]
+      }
+    ]
+  }
 ]

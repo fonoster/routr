@@ -106,9 +106,9 @@ Every Asterik server that registers using the `crd6t67r1` credentials will be gr
     "location": {
       "telUrl": "tel:+17066041487",
       "aorLink": "backend:conference",
-      "sessionAffinityHeader": "x-room-id",
+      "sessionAffinityHeader": "X-Room-Id",
       "extraHeaders": [{
-        "name": "x-room-id",
+        "name": "X-Room-Id",
         "value": "jsa-shqm-iyo"
       }]
     }
@@ -118,7 +118,7 @@ Every Asterik server that registers using the `crd6t67r1` credentials will be gr
 
 Finally, we configure the Location service to load-balance the traffic based on the `least-sessions` algorithm.
 
-> We need Session Affinity to ensure all calls for a given `x-room-id` go to the same Asterisk server.
+> We need Session Affinity to ensure all calls for a given `X-Room-Id` go to the same Asterisk server.
 
 ```json
 {

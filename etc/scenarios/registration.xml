@@ -3,7 +3,7 @@
 
 <scenario name="registration">
 
-  <global variables="domain,username,expires" />
+  <global variables="domain,username,expires,sessionCount" />
 
   <send>
     <![CDATA[
@@ -17,6 +17,7 @@
       Contact: <sip:sipp@[local_ip]:[local_port]>
       Expires: [$expires]
       Content-Length: 0
+      X-Session-Count: [$sessionCount]
       User-Agent: SIPp
     ]]>
   </send>
@@ -38,6 +39,7 @@
       Expires: [$expires]
       Content-Length: 0
       User-Agent: SIPp
+      X-Session-Count: [$sessionCount]
       [authentication]
     ]]>
   </send>

@@ -21,16 +21,16 @@ import { Route } from "@routr/common"
 import { pipe } from "fp-ts/function"
 
 // Q: Should we add support for strict routing?
+// TODO: Add updateContact for SIP.js support
 export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
   pipe(
     req,
-    A.addSelfVia(route),
-    A.applyXHeaders(route),
-    A.addRoute(route),
-    A.addSelfRecordRoute(route),
     A.decreaseMaxForwards,
     A.removeAuthorization,
-    A.removeRoutes,
-    A.removeXEdgePortRef
-    // Add updateContact for SIP.js support
+    A.removeSelfRoutes,
+    A.removeXEdgePortRef,
+    A.addSelfVia(route),
+    A.applyXHeaders(route),
+    A.addSelfRecordRoute(route),
+    A.addRouteToNextHop(route)
   )

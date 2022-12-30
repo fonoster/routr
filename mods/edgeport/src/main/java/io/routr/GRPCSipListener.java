@@ -23,6 +23,7 @@ import gov.nist.javax.sip.clientauthutils.AccountManager;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.Contact;
+import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.RequestEventExt;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -282,6 +283,7 @@ public class GRPCSipListener implements SipListener {
       // Removing all the headers of type Via and Contact to avoid duplicates
       res.removeHeader(Via.NAME);
       res.removeHeader(Contact.NAME);
+      res.removeHeader(Route.NAME);
 
       for (Header header : headers) {
         // WARNING: Using setHeader causes some headers to be overwritten 
@@ -383,8 +385,6 @@ public class GRPCSipListener implements SipListener {
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
       var originalClientTransaction = (ClientTransaction) this.activeTransactions.get(callId.getCallId() + "_client");
       var originalServerTransaction = (ServerTransaction) this.activeTransactions.get(callId.getCallId() + "_server");      
-      
-      Request updatedRequest = updateRequest(request, headers);
 
       // Let client know we are processing the request
       var cancelResponse = this.messageFactory.createResponse(
@@ -400,7 +400,6 @@ public class GRPCSipListener implements SipListener {
         cseq,
         Request.CANCEL
       );
-
 
       var cancelRequest = originalClientTransaction.createCancel();
       cancelRequest.setHeader(cseqHeader);

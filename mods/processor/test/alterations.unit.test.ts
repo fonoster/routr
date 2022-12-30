@@ -122,7 +122,7 @@ describe("@routr/processor/alterations", () => {
   })
 
   it("adds route header from the route object", () => {
-    const r = A.addRoute(route)(request)
+    const r = A.addRouteToNextHop(route)(request)
     expect(r.message.route).to.be.lengthOf(3)
     const uri = r.message.route[0].address.uri
     expect(uri).to.have.property("host").to.be.equal(route.host)
@@ -148,7 +148,7 @@ describe("@routr/processor/alterations", () => {
   })
 
   it("removes all loose routes(lr)", () => {
-    const r = A.removeRoutes(request)
+    const r = A.removeSelfRoutes(request)
     expect(r.message.route).to.be.lengthOf(1)
     const uri = r.message.route[0].address?.uri
     expect(uri).to.be.have.property("host").to.be.equal("10.100.42.128")

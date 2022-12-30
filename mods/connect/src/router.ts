@@ -40,6 +40,7 @@ import { getLogger } from "@fonoster/logger"
 import { checkAccess } from "./access"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
+
 // eslint-disable-next-line require-jsdoc
 export function router(location: ILocationService, dataAPI: CC.DataAPI) {
   return async (
@@ -48,17 +49,22 @@ export function router(location: ILocationService, dataAPI: CC.DataAPI) {
     const fromURI = request.message.from.address.uri
     const requestURI = request.message.requestUri
 
+    const caller = await findResource(dataAPI, fromURI.host, fromURI.user)
+    const callee = await findResource(dataAPI, requestURI.host, requestURI.user)
+    const routingDirection = getRoutingDirection(caller, callee)
+
     logger.verbose(
       "routing request from: " +
         getSIPURI(fromURI) +
         ", to: " +
         getSIPURI(requestURI),
-      { fromURI: getSIPURI(fromURI), requestURI: getSIPURI(requestURI) }
+      {
+        fromURI: getSIPURI(fromURI),
+        requestURI: getSIPURI(requestURI),
+        routingDirection,
+        sessionAffinityHeader: callee?.spec.location?.sessionAffinityHeader
+      }
     )
-
-    const caller = await findResource(dataAPI, fromURI.host, fromURI.user)
-    const callee = await findResource(dataAPI, requestURI.host, requestURI.user)
-    const routingDirection = getRoutingDirection(caller, callee)
 
     if (request.method === CT.Method.INVITE) {
       const failedCheck = await checkAccess({

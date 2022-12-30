@@ -16,10 +16,10 @@
       "location": {
         "telUrl": "tel:+17066041487",
         "aorLink": "backend:conference",
-        "sessionAffinityHeader": "x-room-id",
+        "sessionAffinityHeader": "X-Room-Id",
         "extraHeaders": [
           {
-            "name": "x-room-id",
+            "name": "X-Room-Id",
             "value": "jsa-shqm-iyo"
           }
         ]
@@ -51,7 +51,7 @@
     "kind": "Number",
     "ref": "number-03",
     "metadata": {
-      "localFormat": "(706)604-1487",
+      "localFormat": "(829)586-3314",
       "geoInfo": {
         "city": "Durham, NC",
         "country": "USA",
@@ -82,6 +82,26 @@
       "trunkRef": "trunk-03",
       "location": {
         "telUrl": "tel:+18095863314",
+        "aorLink": "backend:voice"
+      }
+    }
+  },
+  {
+    "apiVersion": "v2draft1",
+    "kind": "Number",
+    "ref": "number-05",
+    "metadata": {
+      "name": "(404)555-1212",
+      "geoInfo": {
+        "city": "Unknown",
+        "country": "USA",
+        "countryISOCode": "US"
+      }
+    },
+    "spec": {
+      "trunkRef": "trunk-01",
+      "location": {
+        "telUrl": "tel:+14045551212",
         "aorLink": "backend:voice"
       }
     }

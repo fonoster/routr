@@ -92,7 +92,7 @@ export const handleRegistry = (req: MessageRequest, res: Response) => {
       A.addSelfVia(route),
       A.decreaseMaxForwards,
       A.removeAuthorization,
-      A.removeRoutes,
+      A.removeSelfRoutes,
       A.removeXEdgePortRef
     )
   )
@@ -119,7 +119,10 @@ export const handleRequest =
             pipe(
               req,
               A.addSelfVia(route as CT.Route),
+              A.addSelfRecordRoute(route as CT.Route),
+              // The order of the routes is important
               A.addRouteToPeerEdgePort(route as CT.Route),
+              A.addRouteToNextHop(route as CT.Route),
               A.addXEdgePortRef,
               A.decreaseMaxForwards
             )

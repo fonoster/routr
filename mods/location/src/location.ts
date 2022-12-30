@@ -95,9 +95,11 @@ export default class Location implements ILocationService {
       }
 
       // If it has not affinity sesssion then get next
-      const r = backend.withSessionAffinity
-        ? [await this.nextWithAffinity(routes, request.sessionAffinityRef)]
-        : [this.next(routes, backend)]
+      const r =
+        // Falls back to round-robin if no session affinity ref is provided
+        backend.withSessionAffinity && request.sessionAffinityRef
+          ? [await this.nextWithAffinity(routes, request.sessionAffinityRef)]
+          : [this.next(routes, backend)]
 
       // Next time we will get the route with callId
       this.store.put(request.callId, r[0])
