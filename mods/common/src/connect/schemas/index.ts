@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
- * http://github.com/fonoster/routr
+ * http://github.com/fonoster
  *
- * This file is part of Routr
+ * This file is part of Routr.
  *
  * Licensed under the MIT License (the "License");
  * you may not use this file except in compliance with
@@ -16,18 +16,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import chai from "chai"
-import sinon from "sinon"
-import sinonChai from "sinon-chai"
-import loadResources from "../src/utils"
-
-chai.use(sinonChai)
-const sandbox = sinon.createSandbox()
-
-describe("@routr/simpledata/resources", () => {
-  afterEach(() => sandbox.restore())
-
-  it("loads and validate resources from a path", () => {
-    loadResources(__dirname + "/../../../config/resources")
-  })
-})
+export * from "./validators"

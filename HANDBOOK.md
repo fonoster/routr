@@ -54,4 +54,4 @@
   - Scaling
 - Building your own Processor or Middleware
   - Overview of the Tailor API
-
+- Telemetry

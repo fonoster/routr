@@ -160,8 +160,8 @@ describe("@routr/simpledata/api", () => {
     it("finds a resource using findBy method", (done) => {
       const call = {
         request: {
-          kind: CC.Kind.CREDENTIAL,
-          criteria: CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE,
+          kind: CC.Kind.CREDENTIALS,
+          criteria: CC.FindCriteria.FIND_CREDENTIALS_BY_REFERENCE,
           parameters: jsonToStruct({
             ref: "credentials-01"
           })

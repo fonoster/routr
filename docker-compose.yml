@@ -114,14 +114,12 @@ services:
     image: fonoster/simpledata
     build: ./mods/simpledata
     environment:
-      PATH_TO_SCHEMAS: /etc/routr/schemas
       PATH_TO_RESOURCES: /etc/routr/resources
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51907
     volumes:
-      - ./mods/simpledata/etc/schemas/:/etc/routr/schemas
       - ./config/resources:/etc/routr/resources
     networks:
       internal:

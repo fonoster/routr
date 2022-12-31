@@ -47,8 +47,7 @@ if (registryConfig._tag === 'Right') {
   process.exit(1)
 }
 
-const resources: Resource[] = loadResources(__dirname + "/../mods/simpledata/etc/schemas",
-  __dirname + "/../config/resources")
+const resources: Resource[] = loadResources(__dirname + "/../config/resources")
 
 simpleDataService({bindAddr: "0.0.0.0:51907", resources})
 

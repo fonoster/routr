@@ -58,7 +58,7 @@ export function get(resources: CC.Resource[]) {
  * Enclosure with method to obtain a resource with a query.
  *
  * @param {Resource[]} resources - the resources to search from
- * @return {Function } enclosed method with actual "find" logic
+ * @return {Function} enclosed method with actual "find" logic
  */
 export function findBy(resources: CC.Resource[]) {
   return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {

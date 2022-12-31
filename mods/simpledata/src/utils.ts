@@ -17,12 +17,12 @@
  * limitations under the License.
  */
 import { BadRequest, UnimplementedError } from "./errors"
-import Ajv from "ajv"
 import { getLogger } from "@fonoster/logger"
 import {
   CommonConnect as CC,
   CommonTypes as CT,
-  Helper as H
+  Helper as H,
+  ConnectSchemas as CS
 } from "@routr/common"
 import * as protobufUtil from "pb-util"
 
@@ -42,7 +42,7 @@ findCriteriaMap[CC.FindCriteria.FIND_PEER_BY_USERNAME] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.username=='${parameters.username}')]`
 
-findCriteriaMap[CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
+findCriteriaMap[CC.FindCriteria.FIND_CREDENTIALS_BY_REFERENCE] = (
   parameters: Record<string, string>
 ) => `$..[?(@.ref=='${parameters.ref}')]`
 
@@ -61,26 +61,6 @@ findCriteriaMap[CC.FindCriteria.FIND_TRUNK_BY_REQUEST_URI] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.inbound.uri=="${parameters.requestUri}")]`
 
-/**
- * Creates a list of validators from the given schemas.
- *
- * @param {string} path - the path to the resource
- * @return {Validator} - a list of validators from the path
- */
-export function createValidators(path: string) {
-  const validators: Map<string, (resource: CC.Resource) => unknown> = new Map()
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const files = require("fs").readdirSync(path)
-  files.forEach((file: File) => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const schema = require(`${path}/${file}`)
-    const ajv = new Ajv()
-    const validator = ajv.compile(schema)
-    validators.set(schema.properties.kind.enum[0].toLowerCase(), validator)
-  })
-  return validators
-}
-
 // Create function to validate reference exists for Agent
 const checkReferences = (resources: CC.Resource[]) => {
   const referenceExist = (ref: string) =>
@@ -88,7 +68,7 @@ const checkReferences = (resources: CC.Resource[]) => {
 
   // For every resource, check that the reference exists using a switch
   resources.forEach((resource: CC.Resource) => {
-    switch (resource.kind.toLocaleLowerCase()) {
+    switch (resource.kind.toLowerCase()) {
       case CC.Kind.AGENT:
         if (resource.spec.credentialsRef) {
           if (!referenceExist(resource.spec.credentialsRef)) {
@@ -186,15 +166,10 @@ const checkReferences = (resources: CC.Resource[]) => {
 /**
  * Loads a list of resources from a file.
  *
- * @param {string} validatorsPath - the path to the validators
  * @param {string} resourcesPath - the path to the resources
  * @return {Resource[]} the loaded resources
  */
-export default function loadResources(
-  validatorsPath: string,
-  resourcesPath: string
-): CC.Resource[] {
-  const validators = createValidators(validatorsPath)
+export default function loadResources(resourcesPath: string): CC.Resource[] {
   const all: CC.Resource[] = []
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const files = require("fs").readdirSync(resourcesPath)
@@ -212,7 +187,8 @@ export default function loadResources(
       }
 
       // Check if is valid using jsonschema
-      const validate = validators.get(resource.kind.toLocaleLowerCase())
+      const validate = CS.schemaValidators.get(resource.kind.toLowerCase())
+
       if (!validate) {
         logger.error(`unable to find validator for ${resource.kind}; exiting`)
         process.exit(1)

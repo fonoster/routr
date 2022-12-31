@@ -23,7 +23,6 @@ import jp from "jsonpath"
 import { ILocationService } from "@routr/location"
 
 const resources: CC.Resource[] = loadResources(
-  __dirname + "/../../simpledata/etc/schemas",
   __dirname + "/../../../config/resources"
 )
 
@@ -39,7 +38,7 @@ findCriteriaMap[CC.FindCriteria.FIND_PEER_BY_USERNAME] = (
   parameters: Record<string, string>
 ) => `$..[?(@.spec.username=='${parameters.username}')]`
 
-findCriteriaMap[CC.FindCriteria.FIND_CREDENTIAL_BY_REFERENCE] = (
+findCriteriaMap[CC.FindCriteria.FIND_CREDENTIALS_BY_REFERENCE] = (
   parameters: Record<string, string>
 ) => `$..[?(@.ref=='${parameters.ref}')]`
 

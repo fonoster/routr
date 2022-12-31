@@ -21,7 +21,7 @@ import { CommonConnect as CC } from "@routr/common"
 export const resources: CC.Resource[] = [
   {
     apiVersion: "v2draft1",
-    kind: CC.Kind.CREDENTIAL,
+    kind: CC.Kind.CREDENTIALS,
     ref: "credentials-01",
     metadata: {
       name: "my-secret-credential"
