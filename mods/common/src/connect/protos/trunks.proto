@@ -1,0 +1,186 @@
+/*
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr
+ *
+ * Licensed under the MIT License (the "License")
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+syntax = "proto3";
+
+package fonoster.routr.connect.trunks.v2draft1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+import "acl.proto";
+import "credentials.proto";
+
+// The Trunks service definition
+service Trunks {
+  // Create a new Trunk
+  rpc Create (CreateTrunkRequest) returns (Trunk) {}
+  // Update an existing Trunk
+  rpc Update (UpdateTrunkRequest) returns (Trunk) {}
+  // Get a Trunk by reference
+  rpc Get (GetTrunkRequest) returns (Trunk) {}
+  // Delete a Trunk by reference
+  rpc Delete (DeleteTrunkRequest) returns (.google.protobuf.Empty) {}
+  // List all Trunks
+  rpc List (ListTrunkRequest) returns (ListTrunksResponse) {}
+  // Find Trunks by field name and value
+  rpc FindBy (FindByRequest) returns (FindByResponse) {}
+}
+
+// The message for the Trunk URIs
+message TrunkUri {
+  // The host name or IP address of the Trunk
+  string host = 1;
+  // The port number of the Trunk
+  int32 port = 2;
+  // The transport protocol of the Trunk
+  string transport = 3;
+  // The username to use when authenticating with the Trunk
+  string user = 4;
+  // The weight of the Trunk
+  int32 weight = 5;
+  // The priority of the Trunk
+  int32 priority = 6;
+  // The flag to enable or disable the Trunk
+  bool enabled = 7;
+} 
+
+// The message for the Trunk resource
+message Trunk {
+  // The API version of the Trunk
+  string api_version = 2;
+  // The reference of the Trunk
+  string ref = 1;
+  // The name of the Trunk
+  string name = 3;
+  // A flag to indicate if we should send a REGISTER request to the Trunk
+  bool send_register = 4;
+  // The URI for inbound requests
+  string inbound_uri = 5;
+  // The date and time when the Trunk was created
+  int32 created_at = 6;
+  // The date and time when the Trunk was last updated
+  int32 updated_at = 7;
+  // The list of IP addresses that are allowed to access the Trunks
+  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 8;
+  // The credentials to use when authenticating with the Trunk
+  fonoster.routr.connect.credentials.v2draft1.Credentials inbound_credentials = 9;
+  // The credentials to use when authenticating with the Provider
+  fonoster.routr.connect.credentials.v2draft1.Credentials outbound_credentials = 10;
+  // The list of URIs for the Trunk
+  repeated TrunkUri uris = 11;
+  // The extended attributes of the Trunk
+  .google.protobuf.Struct extended = 12;
+}
+
+// The message for the Trunk.Create
+message CreateTrunkRequest {
+  // The API version of the Trunk
+  string api_version = 1;
+  // The name of the Trunk
+  string name = 2;
+  // A flag to indicate if we should send a REGISTER request to the Trunk
+  bool send_register = 3;
+  // The URI for inbound requests
+  string inbound_uri = 4;
+  // The date and time when the Trunk was created
+  int32 created_at = 5;
+  // The date and time when the Trunk was last updated
+  int32 updated_at = 6;
+  // The list of IP addresses that are allowed to access the Trunks
+  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 7;
+  // The credentials to use when authenticating with the Trunk
+  fonoster.routr.connect.credentials.v2draft1.Credentials inbound_credentials = 8;
+  // The credentials to use when authenticating with the Provider
+  fonoster.routr.connect.credentials.v2draft1.Credentials outbound_credentials = 9;
+  // The list of URIs for the Trunk
+  repeated TrunkUri uris = 10;
+  // The extended attributes of the Trunk
+  .google.protobuf.Struct extended = 11;
+}
+
+// The message for the Trunk.Update
+message UpdateTrunkRequest {
+  // The API version of the Trunk
+  string api_version = 1;
+  // The reference of the Trunk
+  string ref = 2;
+  // The name of the Trunk
+  string name = 3;
+  // A flag to indicate if we should send a REGISTER request to the Trunk
+  bool send_register = 4;
+  // The URI for inbound requests
+  string inbound_uri = 5;
+  // The date and time when the Trunk was created
+  int32 created_at = 6;
+  // The date and time when the Trunk was last updated
+  int32 updated_at = 7;
+  // // The list of IP addresses that are allowed to access the Trunks
+  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 8;
+  // The credentials to use when authenticating with the Trunk
+  fonoster.routr.connect.credentials.v2draft1.Credentials inbound_credentials = 9;
+  // The credentials to use when authenticating with the Provider
+  fonoster.routr.connect.credentials.v2draft1.Credentials outbound_credentials = 10;
+  // The list of URIs for the Trunk
+  repeated TrunkUri uris = 11;
+  // The extended attributes of the Trunk
+  .google.protobuf.Struct extended = 12;
+}
+
+// The message for the Trunk.Get
+message GetTrunkRequest {
+  // The reference of the Trunk
+  string ref = 1;
+}
+
+// The message for the Trunk.Delete
+message DeleteTrunkRequest {
+  // The reference of the Trunk
+  string ref = 1;
+}
+
+// The message for the Trunk.FindBy
+message FindByRequest {
+  // The field name to search
+  string field_name = 1;
+  // The value to search
+  string field_value = 2;
+}
+
+// The response message for the Trunks.FindBy method
+message FindByResponse {
+  // The list of Trunks items
+  repeated Trunk items = 1;
+} 
+
+// The message for the Trunk.List
+message ListTrunkRequest {
+  // The maximum number of items in the list
+  int32 page_size = 1;
+
+  // The next_page_token value returned from the previous request, if any
+  string page_token = 2;
+}
+
+// The message for the Trunk.List response
+message ListTrunksResponse {
+  // List of Trunks
+  repeated Trunk items = 1;
+
+  // Token to retrieve the next page of results, or empty if there are no more results in the list
+  string next_page_token = 2;
+}

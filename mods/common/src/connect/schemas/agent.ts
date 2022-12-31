@@ -40,7 +40,8 @@ export default {
           description: "Resource's friendly name",
           type: "string"
         }
-      }
+      },
+      required: ["name"]
     },
     spec: {
       description: "Operations spec for an Agent",
@@ -69,8 +70,8 @@ export default {
           enum: ["Private", "None", "private", "none"]
         }
       },
-      required: ["username", "domainRef", "credentialsRef"]
+      required: ["username"]
     }
   },
-  required: ["apiVersion", "kind", "ref", "metadata", "spec"]
+  required: ["apiVersion", "kind", "metadata", "spec"]
 }

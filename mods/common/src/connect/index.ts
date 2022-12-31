@@ -16,6 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from "./data_api"
+export * from "./api"
 export * from "./grpc_client"
 export * from "./types"
+export * from "./config"
+export * from "./converters"

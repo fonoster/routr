@@ -25,102 +25,84 @@ import {
 } from "@routr/common"
 import { RoutingDirection } from "./types"
 
-export const isKind = (res: CC.Resource, kind: CC.Kind) => {
+// OMG, this is so ugly and hacky
+export const isKind = (res: CC.RoutableResourceUnion, kind: CC.Kind) => {
   if (res == null && kind === CC.Kind.UNKNOWN) {
     return true
+  } else if (res == null) {
+    return false
+  } else if ("privacy" in res && kind === CC.Kind.AGENT) {
+    return true
+  } else if ("telUrl" in res && kind === CC.Kind.NUMBER) {
+    return true
+  } else if ("username" in res && kind === CC.Kind.PEER) {
+    return true
   }
-  return res?.kind.toLowerCase() === kind
 }
 
-export const findDomain = async (dataAPI: CC.DataAPI, domainUri: string) => {
-  return (
-    await dataAPI.findBy({
-      kind: CC.Kind.DOMAIN,
-      criteria: CC.FindCriteria.FIND_DOMAIN_BY_DOMAINURI,
-      parameters: {
-        domainUri
-      }
-    })
-  )[0]
-}
-
-export const findTrunkByRequestURI = async (
-  dataAPI: CC.DataAPI,
-  requestUri: string
+export const findDomain = async (
+  apiClient: CC.APIClient,
+  domainUri: string
 ) => {
   return (
-    await dataAPI.findBy({
-      kind: CC.Kind.TRUNK,
-      criteria: CC.FindCriteria.FIND_TRUNK_BY_REQUEST_URI,
-      parameters: {
-        requestUri
-      }
+    await apiClient.domains.findBy<CC.Domain>({
+      fieldName: "domainUri",
+      fieldValue: domainUri
     })
-  )[0]
+  ).items[0]
 }
 
 export const findNumberByTelUrl = async (
-  dataAPI: CC.DataAPI,
+  apiClient: CC.APIClient,
   telUrl: string
 ) => {
   return (
-    await dataAPI.findBy({
-      kind: CC.Kind.NUMBER,
-      criteria: CC.FindCriteria.FIND_NUMBER_BY_TELURL,
-      parameters: {
-        telUrl
-      }
+    await apiClient.numbers.findBy<CC.INumber>({
+      fieldName: "telUrl",
+      fieldValue: telUrl
     })
-  )[0]
+  ).items[0]
 }
 
 export const findResource = async (
-  dataAPI: CC.DataAPI,
+  apiClient: CC.APIClient,
   domainUri: string,
   userpart: string
-): Promise<CC.Resource> => {
-  const domain = await findDomain(dataAPI, domainUri)
+): Promise<CC.RoutableResourceUnion> => {
+  const domain = await findDomain(apiClient, domainUri)
 
-  // TODO: Fix jsonpath not working for logical AND and OR
-  let res = await findNumberByTelUrl(dataAPI, `tel:${userpart}`)
+  // First, try to find a number
+  const number = await findNumberByTelUrl(apiClient, `tel:${userpart}`)
+
+  if (number != null) return number
 
   // Next, try to find an agent
-  if (res == null) {
-    res = (
-      await dataAPI.findBy({
-        kind: CC.Kind.AGENT,
-        criteria: CC.FindCriteria.FIND_AGENT_BY_USERNAME,
-        parameters: {
-          username: userpart
-        }
-      })
-    )[0]
-  }
+  const agent = (
+    await apiClient.agents.findBy<CC.Agent>({
+      fieldName: "username",
+      fieldValue: userpart
+    })
+  ).items[0]
 
-  // Next, try to find a peer
-  if (res == null) {
-    res = (
-      await dataAPI.findBy({
-        kind: CC.Kind.PEER,
-        criteria: CC.FindCriteria.FIND_PEER_BY_USERNAME,
-        parameters: {
-          username: userpart
-        }
-      })
-    )[0]
-  }
-
-  if (isKind(res, CC.Kind.AGENT) && res.spec.domainRef != domain?.ref) {
+  if (agent && agent.domain.ref != domain?.ref) {
     // Not in the same domain
     return null
   }
 
-  return res
+  if (agent != null) return agent
+
+  // Next, try to find a peer
+  return (
+    await apiClient.peers.findBy<CC.Peer>({
+      fieldName: "username",
+      fieldValue: userpart
+    })
+  ).items[0]
 }
 
 export const getRoutingDirection = (
-  caller: CC.Resource,
-  callee: CC.Resource
+  caller: CC.RoutableResourceUnion,
+  callee: CC.RoutableResourceUnion
 ) => {
   if (isKind(caller, CC.Kind.AGENT) && isKind(callee, CC.Kind.AGENT)) {
     return RoutingDirection.AGENT_TO_AGENT
@@ -148,11 +130,11 @@ export const getRoutingDirection = (
 
 export const createPAssertedIdentity = (
   req: MessageRequest,
-  trunk: CC.Resource,
-  number: CC.Resource
+  trunk: CC.Trunk,
+  number: CC.INumber
 ): HeaderModifier => {
   const displayName = req.message.from.address.displayName
-  const remoteNumber = number.spec.location.telUrl.split(":")[1]
+  const remoteNumber = number.telUrl.split(":")[1]
   const trunkHost = getTrunkURI(trunk).host
   return {
     name: "P-Asserted-Identity",
@@ -164,10 +146,10 @@ export const createPAssertedIdentity = (
 }
 
 export const createRemotePartyId = (
-  trunk: CC.Resource,
-  number: CC.Resource
+  trunk: CC.Trunk,
+  number: CC.INumber
 ): HeaderModifier => {
-  const remoteNumber = number.spec.location.telUrl.split(":")[1]
+  const remoteNumber = number.telUrl.split(":")[1]
   const trunkHost = getTrunkURI(trunk).host
   return {
     name: "Remote-Party-ID",
@@ -177,43 +159,36 @@ export const createRemotePartyId = (
 }
 
 export const createTrunkAuthentication = async (
-  dataAPI: CC.DataAPI,
-  trunk: CC.Resource
+  trunk: CC.Trunk
 ): Promise<HeaderModifier> => {
-  const credentials = await dataAPI.get(trunk.spec.outbound.credentialsRef)
   return {
     name: CT.ExtraHeader.GATEWAY_AUTH,
     value: Buffer.from(
-      `${credentials.spec.credentials?.username}:${credentials.spec.credentials?.password}`
+      `${trunk.outboundCredentials?.username}:${trunk.outboundCredentials?.password}`
     ).toString("base64"),
     action: CT.HeaderModifierAction.ADD
   }
 }
 
 export const getTrunkURI = (
-  trunk: CC.Resource
+  trunk: CC.Trunk
 ): {
   host: string
   port: number
   user: string
   transport: Transport
 } => {
-  if (!trunk.spec.outbound) {
+  if (!trunk.uris) {
     throw new Error(`trunk ${trunk.ref} has no outbound settings`)
   }
 
-  const { user, host, port, transport } = trunk.spec.outbound.uris[0].uri
-  const t = !transport
-    ? Transport.UDP
-    : Object.values(Transport)[
-        Object.values(Transport).indexOf(transport.toLowerCase())
-      ]
+  const { user, host, port, transport } = trunk.uris[0]
 
   return {
     user,
     host,
     port: port ?? 5060,
-    transport: t
+    transport: transport ?? Transport.UDP
   }
 }
 

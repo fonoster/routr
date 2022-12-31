@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.8"
 
 services:
 
@@ -23,7 +23,7 @@ services:
       - ./config/edgeport.yaml:/etc/routr/edgeport.yaml
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
     networks:
-      public: 
+      public:
         ipv4_address: 10.111.220.2
       internal:
         ipv4_address: 10.111.221.2
@@ -51,12 +51,12 @@ services:
       - ./config/edgeport.alt.yaml:/etc/routr/edgeport.yaml
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
     networks:
-      public: 
+      public:
         ipv4_address: 10.111.220.3
       internal:
         ipv4_address: 10.111.221.3
         aliases:
-          - sip02.edgeport.net        
+          - sip02.edgeport.net
 
   # Takes care of routing traffic from the EdgePort servers
   dispatcher:
@@ -178,7 +178,7 @@ services:
   compliance:
     container_name: compliance
     image: fonoster/seet
-    depends_on: 
+    depends_on:
       - edgeport01
       - edgeport02
       - dispatcher

@@ -16,9 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonConnect as CC } from "@routr/common"
-
 export interface SimpleDataConfig {
   bindAddr: string
-  resources: Array<CC.Resource>
+  pathToResources: string
 }

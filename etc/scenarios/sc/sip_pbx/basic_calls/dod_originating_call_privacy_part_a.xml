@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
-<scenario name="SC-IT.Conf.1.3.4.a: SIPPBX Support for Private when Generating INVITE for Originating DOD Call (Part A)">
+<scenario name="SC-IT.Conf.1.3.4.a.UAS">
 
   <recv request="INVITE">
     <action >

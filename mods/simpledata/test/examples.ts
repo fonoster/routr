@@ -18,33 +18,19 @@
  */
 import { CommonConnect as CC } from "@routr/common"
 
-export const resources: CC.Resource[] = [
+export const configs: CC.RoutrResourceUnion[] = [
   {
     apiVersion: "v2draft1",
-    kind: CC.Kind.CREDENTIALS,
     ref: "credentials-01",
-    metadata: {
-      name: "my-secret-credential"
-    },
-    spec: {
-      credentials: {
-        username: "myusername",
-        password: "password"
-      }
-    }
+    name: "my-secret-credential",
+    username: "myusername",
+    password: "password"
   },
   {
     apiVersion: "v2draft1",
-    kind: CC.Kind.ACL,
     ref: "acl2c77f4",
-    metadata: {
-      name: "Europe ACL"
-    },
-    spec: {
-      accessControlList: {
-        deny: ["0.0.0.0/1"],
-        allow: ["192.168.0.1/31"]
-      }
-    }
+    name: "Europe ACL",
+    deny: ["0.0.0.0/1"],
+    allow: ["192.168.0.1/31"]
   }
 ]

@@ -67,7 +67,10 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           if (E.getHeaderValue(req, CT.ExtraHeader.GATEWAY_AUTH)) {
             handleRegistry(req, res)
           } else {
-            handleRegister(CC.dataAPI(config.apiAddr), location)(req, res)
+            handleRegister(CC.apiClient({ apiAddr: config.apiAddr }), location)(
+              req,
+              res
+            )
           }
           break
         case Method.BYE:
@@ -75,7 +78,10 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           res.send(tailor(HE.createRouteFromLastMessage(req), req))
           break
         default:
-          handleRequest(location, CC.dataAPI(config.apiAddr))(req, res)
+          handleRequest(location, CC.apiClient({ apiAddr: config.apiAddr }))(
+            req,
+            res
+          )
       }
     }
   )

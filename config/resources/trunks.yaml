@@ -20,6 +20,7 @@
           priority: 10
           weight: 10
           enabled: true
+
 - apiVersion: v2draft1
   kind: Trunk
   ref: trunk-02
@@ -42,6 +43,7 @@
           priority: 10
           weight: 10
           enabled: true
+
 - apiVersion: v2draft1
   kind: Trunk
   ref: trunk-03

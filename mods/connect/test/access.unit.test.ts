@@ -19,10 +19,11 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import { dataAPI } from "./mock_apis"
+import { apiClient } from "./mock_apis"
 import { findResource } from "../src/utils"
 import { checkAccessFromPSTN, checkAgentOrPeerAccess } from "../src/access"
 import { createRequest } from "./examples"
+import { INumber } from "@routr/common/dist/connect"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -40,10 +41,14 @@ describe("@routr/connect/access", () => {
       toDomain: "sip.local"
     })
     const fromURI = req.message.from.address.uri
-    const caller = await findResource(dataAPI, fromURI.host, fromURI.user)
+    const caller = await findResource(
+      apiClient,
+      fromURI.host,
+      fromURI.user as string
+    )
 
     // Act
-    const result = await checkAgentOrPeerAccess(dataAPI, req, caller)
+    const result = await checkAgentOrPeerAccess(req, caller)
 
     // Assert
     expect(result).to.be.undefined
@@ -59,10 +64,14 @@ describe("@routr/connect/access", () => {
     })
     req.message.authorization = undefined
     const fromURI = req.message.from.address.uri
-    const caller = await findResource(dataAPI, fromURI.host, fromURI.user)
+    const caller = await findResource(
+      apiClient,
+      fromURI.host,
+      fromURI.user as string
+    )
 
     // Act
-    const result = await checkAgentOrPeerAccess(dataAPI, req, caller)
+    const result = await checkAgentOrPeerAccess(req, caller)
 
     // Assert
     expect(result)
@@ -80,10 +89,14 @@ describe("@routr/connect/access", () => {
       toDomain: "newyork7.voip.ms"
     })
     const requestURI = req.message.requestUri
-    const callee = await findResource(dataAPI, requestURI.host, requestURI.user)
+    const callee = await findResource(
+      apiClient,
+      requestURI?.host as string,
+      requestURI?.user as string
+    )
 
     // Act
-    const result = await checkAccessFromPSTN(dataAPI, req, callee)
+    const result = await checkAccessFromPSTN(apiClient, req, callee as INumber)
 
     // Assert
     expect(result).to.be.undefined
@@ -99,10 +112,14 @@ describe("@routr/connect/access", () => {
       toDomain: "newyork7.voip.ms"
     })
     const requestURI = req.message.requestUri
-    const callee = await findResource(dataAPI, requestURI.host, requestURI.user)
+    const callee = await findResource(
+      apiClient,
+      requestURI?.host as string,
+      requestURI?.user as string
+    )
 
     // Act
-    const result = await checkAccessFromPSTN(dataAPI, req, callee)
+    const result = await checkAccessFromPSTN(apiClient, req, callee as INumber)
 
     // Assert
     // It fails because the response in the authorization header doen't match the one from the API

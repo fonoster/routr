@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { ObjectProto, ServiceInfo } from "./types"
-import { ServiceDefinitionNotFound } from "./errors"
+import { ServiceDefinitionNotFoundError } from "./errors"
 import * as grpc from "@grpc/grpc-js"
 import * as protoLoader from "@grpc/proto-loader"
 import { getLogger } from "@fonoster/logger"
@@ -55,14 +55,14 @@ export const LOCATION_OBJECT_PROTO = getObjectProto({
  */
 export function getObjectProto<A>(
   objectProto: ObjectProto
-): A | ServiceDefinitionNotFound {
+): A | ServiceDefinitionNotFoundError {
   const definitions = protoLoader.loadSync(objectProto.path, loadOptions)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const objProto = (grpc.loadPackageDefinition(definitions) as any)?.fonoster
     ?.routr[objectProto.name]
   return objProto?.[objectProto.version]
     ? objProto[objectProto.version]
-    : new ServiceDefinitionNotFound(objectProto.name, objectProto.version)
+    : new ServiceDefinitionNotFoundError(objectProto.name, objectProto.version)
 }
 
 /**

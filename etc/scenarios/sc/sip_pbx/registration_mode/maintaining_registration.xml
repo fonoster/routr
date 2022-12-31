@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
-<scenario name="SC-IT.Conf.1.1.3: Maintaining Registration">
+<scenario name="SC-IT.Conf.1.1.3.UAS">
 
   <Global variables="expires" />
 

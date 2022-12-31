@@ -16,141 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BadRequest, UnimplementedError } from "./errors"
 import { getLogger } from "@fonoster/logger"
 import {
   CommonConnect as CC,
   CommonTypes as CT,
-  Helper as H,
-  ConnectSchemas as CS
+  CommonErrors as CE,
+  ConnectSchemas as CS,
+  Helper as H
 } from "@routr/common"
-import * as protobufUtil from "pb-util"
-
-const jsonFromStruct = protobufUtil.struct.decode
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
 
-const findCriteriaMap: {
-  [key: string]: (parameters: Record<string, string>) => string
-} = {}
-
-findCriteriaMap[CC.FindCriteria.FIND_AGENT_BY_USERNAME] = (
-  parameters: Record<string, string>
-) => `$..[?(@.spec.username=='${parameters.username}')]`
-
-findCriteriaMap[CC.FindCriteria.FIND_PEER_BY_USERNAME] = (
-  parameters: Record<string, string>
-) => `$..[?(@.spec.username=='${parameters.username}')]`
-
-findCriteriaMap[CC.FindCriteria.FIND_CREDENTIALS_BY_REFERENCE] = (
-  parameters: Record<string, string>
-) => `$..[?(@.ref=='${parameters.ref}')]`
-
-findCriteriaMap[CC.FindCriteria.FIND_DOMAIN_BY_DOMAINURI] = (
-  parameters: Record<string, string>
-) => `$..[?(@.spec.context.domainUri=='${parameters.domainUri}')]`
-
-findCriteriaMap[CC.FindCriteria.FIND_NUMBER_BY_TELURL] = (
-  parameters: Record<string, string>
-) => `$..[?(@.spec.location.telUrl=="${parameters.telUrl}")]`
-
-findCriteriaMap[CC.FindCriteria.FIND_TRUNKS_WITH_SEND_REGISTER] = () =>
-  "$..[?(@.spec.outbound.sendRegister==true)]"
-
-findCriteriaMap[CC.FindCriteria.FIND_TRUNK_BY_REQUEST_URI] = (
-  parameters: Record<string, string>
-) => `$..[?(@.spec.inbound.uri=="${parameters.requestUri}")]`
-
 // Create function to validate reference exists for Agent
-const checkReferences = (resources: CC.Resource[]) => {
-  const referenceExist = (ref: string) =>
-    resources.filter((r) => r.ref === ref)[0]
-
-  // For every resource, check that the reference exists using a switch
-  resources.forEach((resource: CC.Resource) => {
-    switch (resource.kind.toLowerCase()) {
-      case CC.Kind.AGENT:
-        if (resource.spec.credentialsRef) {
-          if (!referenceExist(resource.spec.credentialsRef)) {
-            logger.error(
-              `agent ${resource.ref} has a credential reference that does not exist: ${resource.spec.credentialsRef}; exiting`
-            )
-            process.exit(1)
-          }
-        }
-        if (resource.spec.domainRef) {
-          if (!referenceExist(resource.spec.domainRef)) {
-            logger.error(
-              `agent ${resource.ref} has a domain reference that does not exist: ${resource.spec.domainRef}; exiting`
-            )
-            process.exit(1)
-          }
-        }
-        break
-      case CC.Kind.PEER:
-        if (resource.spec.credentialsRef) {
-          if (!referenceExist(resource.spec.credentialsRef)) {
-            logger.error(
-              `peer ${resource.ref} has a credential reference that does not exist: ${resource.spec.credentialsRef}; exiting`
-            )
-            process.exit(1)
-          }
-        }
-        break
-      case CC.Kind.TRUNK:
-        if (resource.spec.inbound.credentialsRef) {
-          if (!referenceExist(resource.spec.inbound.credentialsRef)) {
-            logger.error(
-              `trunk ${resource.ref} has a credential reference that does not exist: ${resource.spec.inbound.credentialsRef}; exiting`
-            )
-            process.exit(1)
-          }
-        }
-        if (resource.spec.inbound.accessControlListRef) {
-          if (!referenceExist(resource.spec.inbound.accessControlListRef)) {
-            logger.error(
-              `trunk ${resource.ref} has an acl reference that does not exist: ${resource.spec.inbound.accessControlListRef}; exiting`
-            )
-            process.exit(1)
-          }
-        }
-        break
-      case CC.Kind.DOMAIN:
-        if (resource.spec.accessControlListRef) {
-          if (!referenceExist(resource.spec.accessControlListRef)) {
-            logger.error(
-              `domain ${resource.ref} has an acl reference that does not exist: ${resource.spec.accessControlListRef}; exiting`
-            )
-            process.exit(1)
-          }
-        }
-
-        if (resource.spec.context?.egressPolicies) {
-          resource.spec.context.egressPolicies.forEach(
-            (policy: { numberRef: string }) => {
-              if (policy.numberRef) {
-                if (!referenceExist(policy.numberRef)) {
-                  logger.error(
-                    `domain ${resource.ref} has a number reference that does not exist: ${policy.numberRef}; exiting`
-                  )
-                  process.exit(1)
-                }
-              }
-            }
-          )
-        }
-        break
-      case CC.Kind.NUMBER:
-        if (!referenceExist(resource.spec.trunkRef)) {
-          logger.error(
-            `number ${resource.ref} has a trunk reference that does not exist: ${resource.spec.trunkRef}; exiting`
-          )
-          process.exit(1)
-        }
-        break
-    }
-  })
-
+const checkReferences = (resources: CC.UserConfig[]) => {
   // Check that reference have not been duplicated
   const references = resources.map((r) => r.ref)
   const duplicates = references.filter(
@@ -167,17 +45,24 @@ const checkReferences = (resources: CC.Resource[]) => {
  * Loads a list of resources from a file.
  *
  * @param {string} resourcesPath - the path to the resources
+ * @param {string} kind - the kind of resource to load
  * @return {Resource[]} the loaded resources
  */
-export default function loadResources(resourcesPath: string): CC.Resource[] {
-  const all: CC.Resource[] = []
+export default function loadResources(
+  resourcesPath: string,
+  kind?: CC.Kind
+): CC.RoutrResourceUnion[] {
+  const all: CC.UserConfig[] = []
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const files = require("fs").readdirSync(resourcesPath)
+
   files.forEach((file: File) => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const resources = H.readConfigFile(`${resourcesPath}/${file}`)
 
-    resources.forEach((resource: CC.Resource) => {
+    resources.forEach((resource: CC.UserConfig) => {
+      resource.kind = resource.kind.toLowerCase() as any
+
       // Assert the reference has no spaces
       if (resource.ref.includes(" ")) {
         logger.error(
@@ -210,35 +95,13 @@ export default function loadResources(resourcesPath: string): CC.Resource[] {
   // Referencial check
   checkReferences(all)
 
-  logger.verbose("loaded data resources", { total: all.length })
-  return all
-}
+  // Convert to Resource
+  const allMapToResources: CC.RoutrResourceUnion[] = all
+    .filter((r) => !kind || r.kind.toLowerCase() == kind.toLowerCase())
+    .map((r) => CC.getConverter(r.kind)(r, all))
 
-// eslint-disable-next-line require-jsdoc
-export function createQuery(request: CC.FindParameters):
-  | {
-      request: CC.FindParameters
-      query: string
-    }
-  | BadRequest {
-  const findCriteria = request.criteria as unknown as CC.FindCriteria
-
-  if (!request.criteria || !request.kind || !request.parameters) {
-    return new BadRequest(
-      "createQuery request is missing 'criteria', 'kind', or 'parameters'"
-    )
-  }
-
-  if (!findCriteriaMap[findCriteria]) {
-    return new BadRequest(`invalid find criteria ${request.criteria}`)
-  }
-
-  return {
-    query: findCriteriaMap[findCriteria](
-      jsonFromStruct(request.parameters) as Record<string, string>
-    ),
-    request
-  }
+  logger.verbose("loaded data resources", { total: allMapToResources.length })
+  return allMapToResources
 }
 
 /**
@@ -248,5 +111,5 @@ export function createQuery(request: CC.FindParameters):
  * @param {GrpcCallback} callback - the grpc callback
  */
 export function nyi(call: CT.GrpcCall, callback: CT.GrpcCallback) {
-  callback(new UnimplementedError())
+  callback(new CE.UnimplementedError())
 }

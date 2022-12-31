@@ -26,14 +26,12 @@ import {
 } from "./types"
 import {
   buildStore,
-  convertResourceToTrunk,
   findTrunks,
   registrationRequestInputFromTrunk
 } from "./utils"
-import { CommonConnect as CC } from "@routr/common"
+import { CommonConnect as CC, CommonErrors as CE } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
 import { SIPMessage } from "@routr/common/src/types"
-import { ServiceUnavailableError } from "@routr/common"
 
 const logger = getLogger({ service: "registry", filePath: __filename })
 
@@ -49,21 +47,19 @@ const DEFAULT_REGISTRATION_INTERVAL = 60
  */
 export default function registryService(config: RegistryConfig) {
   logger.info("starting registry service")
-
+  const store: IRegistryStore = buildStore(config)
+  const dataAPI = CC.apiClient({ apiAddr: config.apiAddr })
   const registerInterval =
     config.registerInterval ?? DEFAULT_REGISTRATION_INTERVAL
-
-  const store: IRegistryStore = buildStore(config)
 
   // Creates internval to send registration request every X seconds
   setInterval(async () => {
     logger.verbose("starting registration process")
 
-    let resources: CC.Resource[] = []
-    const dataAPI = CC.dataAPI(config.apiAddr)
+    let trunks: CC.Trunk[] = []
 
     try {
-      resources = await findTrunks(dataAPI)
+      trunks = await findTrunks(dataAPI)
     } catch (err) {
       logger.error("failed to retrieve trunks from API", err)
       return
@@ -72,11 +68,11 @@ export default function registryService(config: RegistryConfig) {
     // Create a list of trunks in the Store
     const trunksInStore = (await store.list()).map((r) => r.trunkRef)
 
-    const registryInvocations = resources
-      .filter((resources) => !trunksInStore.includes(resources.ref))
-      .map(async (resource) => {
+    const registryInvocations = trunks
+      .filter((trunk) => !trunksInStore.includes(trunk.ref))
+      .map(async (trunk) => {
         const registrationRequestInput = registrationRequestInputFromTrunk(
-          await convertResourceToTrunk(dataAPI, resource),
+          trunk,
           config
         )
         const request = createRegistrationRequest(registrationRequestInput)
@@ -93,7 +89,7 @@ export default function registryService(config: RegistryConfig) {
         return
       }
 
-      if (result.value instanceof ServiceUnavailableError) {
+      if (result.value instanceof CE.ServiceUnavailableError) {
         logger.error("service unavailable", result.value)
         return
       }

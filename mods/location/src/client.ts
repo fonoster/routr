@@ -22,11 +22,7 @@ import {
   ILocationService,
   RemoveRoutesRequest
 } from "./types"
-import {
-  LOCATION_OBJECT_PROTO,
-  Route,
-  ServiceUnavailableError
-} from "@routr/common"
+import { LOCATION_OBJECT_PROTO, Route, CommonErrors as CE } from "@routr/common"
 import * as grpc from "@grpc/grpc-js"
 
 type RequestType = AddRouteRequest | FindRoutesRequest | RemoveRoutesRequest
@@ -35,7 +31,7 @@ const container = (self: Location, request: RequestType, name: string) => {
   return new Promise((resolve, reject) => {
     self.location[name](request, (err: { code: number }, response: unknown) => {
       if (err?.code === grpc.status.UNAVAILABLE) {
-        return reject(new ServiceUnavailableError(self.config.addr))
+        return reject(new CE.ServiceUnavailableError(self.config.addr))
       }
       resolve(response)
     })

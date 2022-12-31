@@ -8,6 +8,7 @@
     domainRef: domain-01
     credentialsRef: credentials-01
     privacy: Private
+
 - apiVersion: v2draft1
   kind: Agent
   ref: agent-02

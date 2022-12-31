@@ -16,29 +16,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BadRequest, ResourceNotFound } from "./errors"
-import { CommonTypes as CT } from "@routr/common"
-import { createQuery } from "./utils"
-import { CommonConnect as CC } from "@routr/common"
-import { Helper as H } from "@routr/common"
 import * as protobufUtil from "pb-util"
-import jp from "jsonpath"
+import { CommonTypes as CT } from "@routr/common"
+import { CommonConnect as CC, CommonErrors as CE } from "@routr/common"
+import { Helper as H } from "@routr/common"
+
 const jsonToStruct = protobufUtil.struct.encode
 
 /**
  * Enclosure with method to obtain a resource by reference.
  *
- * @param {Resource[]} resources - the resources to search from
+ * @param {CC.RoutrResourceUnion[]} resources - the resources to search from
  * @return {Function } enclosed method with actual "get" logic
  */
-export function get(resources: CC.Resource[]) {
+export function get(resources: CC.RoutrResourceUnion[]) {
   return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (resources == null || resources.length === 0) {
-      return callback(new ResourceNotFound(call.request.ref), null)
+      return callback(new CE.ResourceNotFoundError(call.request.ref), null)
     }
 
     if (call.request.ref == null) {
-      return callback(new BadRequest("parameter ref is required"), null)
+      return callback(new CE.BadRequestError("parameter ref is required"), null)
     }
 
     const resource = H.deepCopy(
@@ -46,57 +44,43 @@ export function get(resources: CC.Resource[]) {
     )
 
     // Serialize to protobuf
-    if (resource) resource.spec = jsonToStruct(resource.spec)
+    if (resource?.extended)
+      resource.extended = jsonToStruct(resource.extended as any) as any
 
     resource
       ? callback(null, resource)
-      : callback(new ResourceNotFound(call.request.ref), null)
+      : callback(new CE.ResourceNotFoundError(call.request.ref), null)
   }
 }
 
 /**
  * Enclosure with method to obtain a resource with a query.
  *
- * @param {Resource[]} resources - the resources to search from
- * @return {Function} enclosed method with actual "find" logic
+ * @param {CC.RoutrResourceUnion[]} resources - the resources to search from
+ * @return {Function} enclosed method with actual "findBy" logic
  */
-export function findBy(resources: CC.Resource[]) {
+export function findBy(resources: CC.RoutrResourceUnion[]) {
   return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
-    const filteredResources = resources.filter(
-      (resource: CC.Resource) =>
-        resource.kind?.toLowerCase() === call.request.kind?.toLowerCase()
+    if (resources.length === 0) {
+      return callback(new CE.ResourceNotFoundError(""), null)
+    }
+
+    const { request } = call
+    const queryResult = resources.filter(
+      (r) =>
+        `${r[request.fieldName as keyof CC.RoutrResourceUnion]}` ===
+        `${request.fieldValue}`
     )
 
-    // WARNING: This seems to contradict the result of the query
-    if (filteredResources.length === 0) {
-      return callback(new ResourceNotFound(""), null)
-    }
+    queryResult.forEach((resource: CC.RoutrResourceUnion) => {
+      // Serialize to protobuf
+      if (resource.extended)
+        resource.extended = jsonToStruct(resource.extended as any) as any
+      return resource
+    })
 
-    const queryObject = createQuery(call.request as CC.FindParameters)
-
-    if (queryObject instanceof BadRequest) {
-      return callback(queryObject, null)
-    }
-
-    const queryResult = H.deepCopy(
-      jp.query(filteredResources, queryObject.query)
-    )
-
-    try {
-      queryResult.forEach((resource: CC.Resource) => {
-        // Serialize to protobuf
-        resource.spec = jsonToStruct(resource.spec)
-        return resource
-      })
-
-      callback(null, {
-        resources: queryResult
-      })
-    } catch (e) {
-      callback(
-        new BadRequest(`invalid JSONPath expression: ${queryObject.query}`),
-        null
-      )
-    }
+    callback(null, {
+      items: queryResult
+    })
   }
 }

@@ -1,0 +1,117 @@
+/*
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr
+ *
+ * Licensed under the MIT License (the "License")
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+syntax = "proto3";
+
+package fonoster.routr.connect.acl.v2draft1;
+
+import "google/protobuf/empty.proto";
+
+// AccessControlList(ACL) service definition
+service ACLService {
+  // Create a new ACL
+  rpc Create (CreateACLRequest) returns (AccessControlList) {}
+  // Update an existing ACL
+  rpc Update (UpdateACLRequest) returns (AccessControlList) {}
+  // Get an existing ACL
+  rpc Get (GetACLRequest) returns (AccessControlList) {}
+  // Delete an existing ACL
+  rpc Delete (DeleteACLRequest) returns (.google.protobuf.Empty) {}
+  // Get a list of ACLs
+  rpc List (ListACLsRequest) returns (ListACLsResponse) {}
+}
+
+// The message for AccessControlList resource
+message AccessControlList {
+  // The version of the API
+  string api_version = 1;
+  // The ACL reference
+  string ref = 2;
+  // A friendly name for the ACL
+  string name = 3;
+  // The list of allowed IP addresses
+  repeated string allow = 4;
+  // The list of denied IP addresses
+  repeated string deny = 5;
+  // The date the ACL was created
+  int32 created_at = 6;
+  // The date the ACL was last updated
+  int32 updated_at = 7;
+}
+
+// The request message for the AccessControlList.Create method
+message CreateACLRequest {
+  // The version of the API
+  string api_version = 1;
+  // A friendly name for the ACL
+  string name = 2;
+  // The list of allowed IP addresses
+  repeated string allow = 3;
+  // The list of denied IP addresses
+  repeated string deny = 4;
+  // The date the ACL was created
+  int32 created_at = 5;
+  // The date the ACL was last updated
+  int32 updated_at = 6;
+}
+
+// The request message for the AccessControlList.Update method
+message UpdateACLRequest {
+  // The version of the API
+  string api_version = 1;
+  // The ACL reference
+  string ref = 2;
+  // A friendly name for the ACL
+  string name = 3;
+  // The list of allowed IP addresses
+  repeated string allow = 4;
+  // The list of denied IP addresses
+  repeated string deny = 5;
+  // The date the ACL was created
+  int32 created_at = 6;
+  // The date the ACL was last updated
+  int32 updated_at = 7;
+} 
+
+// The request message for the AccessControlList.Get method
+message GetACLRequest  {
+  string ref = 1;
+}
+
+// The request message for the AccessControlList.Delete method
+message DeleteACLRequest  {
+  string ref = 1;
+}
+
+// The request message for the AccessControlList.List method
+message ListACLsRequest {
+  // The maximum number of items in the list
+  int32 page_size = 1;
+
+  // The next_page_token value returned from the previous request, if any
+  string page_token = 2;
+}
+
+// The response message for the AccessControlList.List method
+message ListACLsResponse {
+  // List of items
+  repeated AccessControlList items = 1;
+
+  // Token to retrieve the next page of results, or empty if there are no more results in the list
+  string next_page_token = 2;
+}

@@ -1,0 +1,150 @@
+/*
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr
+ *
+ * Licensed under the MIT License (the "License")
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+syntax = "proto3";
+
+package fonoster.routr.connect.domains.v2draft1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+import "acl.proto";
+import "numbers.proto";
+
+// The Domains service definition
+service Domains {
+  // Create a new Domain
+  rpc Create (CreateDomainRequest) returns (Domain) {}
+  // Update an existing Domain
+  rpc Update (UpdateDomainRequest) returns (Domain) {}
+  // Get an existing Domain
+  rpc Get (GetDomainRequest) returns (Domain) {}
+  // Delete an existing Domain
+  rpc Delete (DeleteDomainRequest) returns (.google.protobuf.Empty) {}
+  // List all Domains
+  rpc List (ListDomainRequest) returns (ListDomainsResponse) {}
+  // Find a Domain by field name and value
+  rpc FindBy (FindByRequest) returns (FindByResponse) {}
+}
+
+// EgressPolicy defines the policy for egress traffic
+message EgressPolicy {
+  // The pattern to match
+  string rule = 1;
+  // The egress Number
+  fonoster.routr.connect.numbers.v2draft1.Number number = 2;
+}
+
+// The message for the Domain resource
+message Domain {
+  // The API version of the Domain
+  string api_version = 1;  
+  // The unique identifier of the Domain
+  string ref = 2;
+  // The name of the Domain
+  string name = 3;
+  // The URI of the Domain
+  string domain_uri = 4;
+  // The date of creation of the Domain
+  int32 created_at = 5;
+  // The date of the last update
+  int32 updated_at = 6;
+  // The list of IP addresses that are allowed to access the Domain
+  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 7;
+  // The egress_policy of the Domain
+  repeated EgressPolicy egress_policies = 8;
+  // The extended attributes of the Domain
+  .google.protobuf.Struct extended = 9;
+}
+
+// The request message for Domains.Create
+message CreateDomainRequest {
+  // The API version of the Domain
+  string api_version = 1;
+  // The name of the Domain
+  string name = 2;
+  // The domain_uri of the Domain
+  string domain_uri = 3;
+  // The list of IP addresses that are allowed to access the Domain
+  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 4;
+  // The egress_policy of the Domain
+  repeated EgressPolicy egress_policies = 5;
+  // The extended attributes of the Domain
+  .google.protobuf.Struct extended = 6;
+}
+
+// The request message for Domains.Update
+message UpdateDomainRequest {
+  // The API version of the Domain
+  string api_version = 1;
+  // The unique identifier of the Domain
+  string ref = 2;
+  // The name of the Domain
+  string name = 3;
+  // The domain_uri of the Domain
+  string domain_uri = 4;
+  // The list of IP addresses that are allowed to access the Domain
+  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 5;
+  // The egress_policy of the Domain
+  repeated EgressPolicy egress_policies = 6;
+  // The extended attributes of the Domain
+  .google.protobuf.Struct extended = 7;
+}
+
+// The request message for Domains.Get
+message GetDomainRequest {
+  // The unique identifier of the Domain
+  string ref = 1;
+}
+
+// The request message for Domains.Delete
+message DeleteDomainRequest {
+  // The unique identifier of the Domain
+  string ref = 1;
+}
+
+// The request message for Domains.FindBy
+message FindByRequest {
+  // The field name to search
+  string field_name = 1;
+  // The value to search
+  string field_value = 2;
+}
+
+// The response message for the Domains.FindBy method
+message FindByResponse {
+  // The list of Domains
+  repeated Domain items = 1;
+} 
+
+// The request message for Domains.List
+message ListDomainRequest {
+  // The maximum number of items in the list
+  int32 page_size = 1;
+
+  // The next_page_token value returned from the previous request, if any
+  string page_token = 2;
+}
+
+// The response message for Domains.List
+message ListDomainsResponse {
+  // List of Domains
+  repeated Domain items = 1;
+
+  // Token to retrieve the next page of results, or empty if there are no more results in the list
+  string next_page_token = 2;
+}

@@ -4,25 +4,23 @@ import simpleDataService from "../mods/simpledata/src/service"
 import messageDispatcher from "../mods/dispatcher/src/service"
 import locationService from "../mods/location/src/service"
 import registryService from "../mods/registry/src/service"
-import loadResources from '../mods/simpledata/src/utils'
-import {getConfig as getDispatcherConfig} from "../mods/dispatcher/src/config/get_config"
-import {getConfig as getLocationConfig} from "../mods/location/src/config/get_config"
-import {getConfig as getRegistryConfig} from "../mods/registry/src/config/get_config"
-import {spawn} from "child_process"
-import {Helper as H} from "../mods/common/src"
-import {Resource} from '../mods/common/src/connect/types'
-import {getLogger} from '@fonoster/logger'
+import { getConfig as getDispatcherConfig } from "../mods/dispatcher/src/config/get_config"
+import { getConfig as getLocationConfig } from "../mods/location/src/config/get_config"
+import { getConfig as getRegistryConfig } from "../mods/registry/src/config/get_config"
+import { spawn } from "child_process"
+import { Helper as H } from "../mods/common/src"
+import { getLogger } from '@fonoster/logger'
 
 const envcopy = H.deepCopy(process.env);
 envcopy.CONFIG_PATH = __dirname + "/../config/edgeport.alt.yaml";
 
 const edgeport = spawn("./mods/edgeport/edgeport.sh")
-const edgeportAlt = spawn("./mods/edgeport/edgeport.sh", {env: envcopy})
+const edgeportAlt = spawn("./mods/edgeport/edgeport.sh", { env: envcopy })
 const requester = spawn("./mods/requester/requester.sh")
 const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.yaml")
 const locationConfig = getLocationConfig(__dirname + "/../config/location.yaml")
 const registryConfig = getRegistryConfig(__dirname + "/../config/registry.yaml")
-const logger = getLogger({service: "base", filePath: __filename})
+const logger = getLogger({ service: "base", filePath: __filename })
 
 logger.info("routr v2 // connect distribution")
 
@@ -47,9 +45,7 @@ if (registryConfig._tag === 'Right') {
   process.exit(1)
 }
 
-const resources: Resource[] = loadResources(__dirname + "/../config/resources")
-
-simpleDataService({bindAddr: "0.0.0.0:51907", resources})
+simpleDataService({ bindAddr: "0.0.0.0:51907", pathToResources: __dirname + "/../config/resources" })
 
 connectProcessor({
   bindAddr: "0.0.0.0:51904",

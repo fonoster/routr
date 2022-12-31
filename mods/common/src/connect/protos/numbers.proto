@@ -1,0 +1,184 @@
+/*
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr
+ *
+ * Licensed under the MIT License (the "License")
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+syntax = "proto3";
+
+package fonoster.routr.connect.numbers.v2draft1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+import "trunks.proto";
+
+// The Numbers service definition
+service Numbers {
+  // Create a new Number
+  rpc Create (CreateNumberRequest) returns (Number) {}
+  // Update an existing Number
+  rpc Update (UpdateNumberRequest) returns (Number) {}
+  // Get an existing Number
+  rpc Get (GetNumberRequest) returns (Number) {}
+  // Delete an existing Number
+  rpc Delete (DeleteNumberRequest) returns (.google.protobuf.Empty) {}
+  // List Numbers
+  rpc List (ListNumberRequest) returns (ListNumbersResponse) {}
+  // Find Numbers by field name and value
+  rpc FindBy (FindByRequest) returns (FindByResponse) {}
+}
+
+// The message for the Number resource
+message Number {
+  // The version of the Number
+  string api_version = 1;
+  // The unique identifier of the Number
+  string ref = 2;
+  // The name of the Number
+  string name = 3;
+  // The tel_url of the Number
+  string tel_url = 4;
+  // The aor_link of the Number
+  string aor_link = 5;
+  // The city of the Number
+  string city = 6;
+  // The country of the Number
+  string country = 7;
+  // The country_iso_code of the Number
+  string country_iso_code = 8;
+  // The header to use for session affinity
+  string session_affinity_header = 9;
+  // Extra headers to send to the trunk
+  repeated ExtraHeader extra_headers = 10;
+  // The date when the Number was created
+  int32 created_at = 11;
+  // The date when the Number was last updated
+  int32 updated_at = 12;
+  // The trunk this number is associated with
+  fonoster.routr.connect.trunks.v2draft1.Trunk trunk = 13;
+  // The extended attributes of the Number
+  .google.protobuf.Struct extended = 14;
+}
+
+// The message for the ExtraHeader field
+message ExtraHeader {
+  string name = 1;
+  string value = 2;
+}
+
+// The request message for Numbers.Create
+message CreateNumberRequest {
+  // The version of the Number
+  string api_version = 1;
+  // The name of the Number
+  string name = 2;
+  // The tel_url of the Number
+  string tel_url = 3;
+  // The aor_link of the Number
+  string aor_link = 4;
+  // The city of the Number
+  string city = 5;
+  // The country of the Number
+  string country = 6;
+  // The country_iso_code of the Number
+  string country_iso_code = 7;
+  // The header to use for session affinity
+  string session_affinity_header = 8;
+  // Extra headers to send to the trunk
+  repeated ExtraHeader extra_headers = 9;
+  // The date when the Number was created
+  int32 created_at = 10;
+  // The date when the Number was last updated
+  int32 updated_at = 11;
+  // The trunk this number is associated with
+  fonoster.routr.connect.trunks.v2draft1.Trunk trunk = 12;
+  // The extended attributes of the Number
+  .google.protobuf.Struct extended = 13;
+}
+
+// The request message for Numbers.Update
+message UpdateNumberRequest {
+  // The version of the Number
+  string api_version = 1;
+  // The unique identifier of the Number
+  string ref = 2;
+  // The name of the Number
+  string name = 3;
+  // The tel_url of the Number
+  string tel_url = 4;
+  // The aor_link of the Number
+  string aor_link = 5;
+  // The city of the Number
+  string city = 6;
+  // The country of the Number
+  string country = 7;
+  // The country_iso_code of the Number
+  string country_iso_code = 8;
+  // The header to use for session affinity
+  string session_affinity_header = 9;
+  // Extra headers to send to the trunk
+  repeated ExtraHeader extra_headers = 10;
+  // The date when the Number was created
+  int32 created_at = 11;
+  // The date when the Number was last updated
+  int32 updated_at = 12;
+  // The trunk this number is associated with
+  fonoster.routr.connect.trunks.v2draft1.Trunk trunk = 13;
+  // The extended attributes of the Number
+  .google.protobuf.Struct extended = 14;
+}
+
+// The request message for Numbers.Get
+message GetNumberRequest {
+  // The unique identifier of the Number
+  string ref = 1;
+}
+
+// The request message for Numbers.Delete
+message DeleteNumberRequest {
+  // The unique identifier of the Number
+  string ref = 1;
+}
+
+// The request message for Numbers.FindBy
+message FindByRequest {
+  // The field name to search
+  string field_name = 1;
+  // The value to search
+  string field_value = 2;
+}
+
+// The response message for the Numbers.FindBy method
+message FindByResponse {
+  // The list of Numbers
+  repeated Number items = 1;
+} 
+
+// The request message for Numbers.List
+message ListNumberRequest {
+  // The maximum number of items in the list
+  int32 page_size = 1;
+
+  // The next_page_token value returned from the previous request, if any
+  string page_token = 2;
+}
+
+message ListNumbersResponse {
+  // List of Numbers
+  repeated Number items = 1;
+
+  // Token to retrieve the next page of results, or empty if there are no more results in the list
+  string next_page_token = 2;
+}

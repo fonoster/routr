@@ -33,5 +33,3 @@ enum Transport {
   WS = 4;
   WSS = 5;
 }
-
-message Empty {}

@@ -16,21 +16,69 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable require-jsdoc */
 import * as grpc from "@grpc/grpc-js"
 import protoLoader = require("@grpc/proto-loader")
+import { toPascaleCase } from "../helper"
+import { Kind } from "./types"
 
-const packageDefinition = protoLoader.loadSync(
-  __dirname + "/../protos/resources.proto",
-  {
-    keepCase: false,
-    longs: String,
-    enums: String,
-    defaults: true,
-    oneofs: true
+const protoOptions = {
+  keepCase: false,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true
+}
+
+function getProtoPath(kind: Kind): string {
+  switch (kind) {
+    case Kind.ACL:
+      return __dirname + "/protos/acl.proto"
+    case Kind.CREDENTIALS:
+      return __dirname + "/protos/credentials.proto"
+    default:
+      return __dirname + `/protos/${kind}s.proto`
   }
-)
+}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any
+export function createClient(options: {
+  kind: Kind
+  credentials: grpc.ChannelCredentials
+  apiAddr: string
+}) {
+  const def = protoLoader.loadSync(getProtoPath(options.kind), protoOptions)
+  const descriptor = grpc.loadPackageDefinition(def) as any
+  const base = descriptor.fonoster.routr.connect
 
-export const RESOURCES_PROTO = protoDescriptor.fonoster.routr.resources
+  switch (options.kind) {
+    case Kind.ACL:
+      return new base.acl.v2draft1.ACLService(
+        options.apiAddr,
+        options.credentials
+      )
+    case Kind.CREDENTIALS:
+      return new base.credentials.v2draft1.CredentialsService(
+        options.apiAddr,
+        options.credentials
+      )
+    default:
+      return new base[options.kind + "s"].v2draft1[
+        toPascaleCase(options.kind) + "s"
+      ](options.apiAddr, options.credentials)
+  }
+}
+
+export function createService(kind: Kind) {
+  const def = protoLoader.loadSync(getProtoPath(kind), protoOptions)
+  const descriptor = grpc.loadPackageDefinition(def) as any
+  const base = descriptor.fonoster.routr.connect
+
+  switch (kind) {
+    case Kind.ACL:
+      return base.acl.v2draft1.ACLService.service
+    case Kind.CREDENTIALS:
+      return base.credentials.v2draft1.CredentialsService.service
+    default:
+      return base[kind + "s"].v2draft1[toPascaleCase(kind) + "s"].service
+  }
+}

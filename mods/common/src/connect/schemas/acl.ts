@@ -26,7 +26,7 @@ export default {
       enum: ["v2draft1", "v2.0", "v2"]
     },
     kind: {
-      enum: ["AccessControlList", "accesscontrolList"]
+      enum: ["AccessControlList", "accesscontrollist"]
     },
     ref: {
       description: "Unique identifier for this resource",
@@ -40,7 +40,8 @@ export default {
           description: "Resource's friendly name",
           type: "string"
         }
-      }
+      },
+      required: ["name"]
     },
     spec: {
       description: "Operations spec for ACL",

@@ -25,47 +25,45 @@ import {
   IpUtils
 } from "@routr/common"
 import { RoutingDirection } from "./types"
-import { findTrunkByRequestURI } from "./utils"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 
 export const checkAccess = async (accessRequest: {
-  dataAPI: CC.DataAPI
+  apiClient: CC.APIClient
   request: MessageRequest
-  caller: CC.Resource
-  callee: CC.Resource
+  caller: CC.RoutableResourceUnion
+  callee: CC.RoutableResourceUnion
   routingDirection: RoutingDirection
 }): Promise<Record<string, unknown>> => {
-  const { dataAPI, request, caller, callee, routingDirection } = accessRequest
+  const { apiClient, request, caller, callee, routingDirection } = accessRequest
   switch (routingDirection) {
     case RoutingDirection.PEER_TO_PSTN:
     case RoutingDirection.AGENT_TO_AGENT:
     case RoutingDirection.AGENT_TO_PSTN:
-      return checkAgentOrPeerAccess(dataAPI, request, caller)
+      return checkAgentOrPeerAccess(request, caller as CC.RoutableResourceUnion)
     case RoutingDirection.FROM_PSTN:
-      return checkAccessFromPSTN(dataAPI, request, callee)
+      return checkAccessFromPSTN(apiClient, request, callee as CC.INumber)
     case RoutingDirection.UNKNOWN:
       return Auth.createForbideenResponse()
   }
 }
 
 export const checkAgentOrPeerAccess = async (
-  dataAPI: CC.DataAPI,
   request: MessageRequest,
-  caller: CC.Resource
+  caller: CC.RoutableResourceUnion
 ) => {
   // Calculate and return challenge
   if (request.message.authorization) {
     const auth = { ...request.message.authorization }
     auth.method = request.method
-    const credentials = await dataAPI.get(caller.spec.credentialsRef)
+    const credentials = (caller as CC.Agent).credentials
 
     // Calculate response and compare with the one send by the endpoint
     const calcRes = Auth.calculateAuthResponse(
       auth as CT.AuthChallengeResponse,
       {
-        username: credentials?.spec.credentials.username,
-        secret: credentials?.spec.credentials.password
+        username: credentials?.username,
+        secret: credentials?.password
       }
     )
 
@@ -78,36 +76,31 @@ export const checkAgentOrPeerAccess = async (
 }
 
 export const checkAccessFromPSTN = async (
-  dataAPI: CC.DataAPI,
+  apiClient: CC.APIClient,
   request: MessageRequest,
-  callee: CC.Resource
+  callee: CC.INumber
 ) => {
   // Get the Trunk associated with the SIP URI
-  const trunk = await findTrunkByRequestURI(
-    dataAPI,
-    request.message.requestUri.host
-  )
+  const trunk = (
+    await apiClient.trunks.findBy<CC.Trunk>({
+      fieldName: "inboundUri",
+      fieldValue: request.message.requestUri.host
+    })
+  ).items[0]
 
   // If the Trunk or Number doesn't exist reject the call
   if (!callee || !trunk) {
     return Auth.createForbideenResponse()
   }
 
-  if (callee.spec.trunkRef !== trunk.ref) {
+  if (callee.trunk.ref !== trunk.ref) {
     return Auth.createForbideenResponse()
   }
 
   // Verify that the IP is whitelisted which means getting the access control list for the trunk
-  if (trunk.spec.inbound?.accessControlListRef) {
+  if (trunk.accessControlList) {
     try {
-      const acl = await dataAPI.get(trunk.spec.inbound.accessControlListRef)
-
-      if (!acl) {
-        // Should never happen since the ACL is required on start
-        return Auth.createServerInternalErrorResponse()
-      }
-
-      const allow = acl.spec.accessControlList.allow.filter((net: string) => {
+      const allow = trunk.accessControlList.allow.filter((net: string) => {
         return IpUtils.hasIp(net, request.sender.host)
       })[0]
 
@@ -121,13 +114,7 @@ export const checkAccessFromPSTN = async (
   }
 
   // If the Trunk has a User/Password we must verify that the User/Password are valid
-  if (trunk.spec.inbound?.credentialsRef) {
-    const credentials = await dataAPI.get(trunk.spec.inbound.credentialsRef)
-    if (!credentials) {
-      // Should never happen since the Credentials is required
-      return Auth.createServerInternalErrorResponse()
-    }
-
+  if (trunk.inboundCredentials) {
     // Calculate and return challenge
     if (request.message.authorization) {
       const auth = { ...request.message.authorization }
@@ -137,8 +124,8 @@ export const checkAccessFromPSTN = async (
       const calcRes = Auth.calculateAuthResponse(
         auth as CT.AuthChallengeResponse,
         {
-          username: credentials.spec.credentials.username,
-          secret: credentials.spec.credentials.password
+          username: trunk.inboundCredentials.username,
+          secret: trunk.inboundCredentials.password
         }
       )
 

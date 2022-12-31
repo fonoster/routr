@@ -25,13 +25,14 @@ option java_package = "io.routr.location";
 option java_outer_classname = "LocationProto";
 option objc_class_prefix = "LC";
 
+import "google/protobuf/empty.proto";
 import "common.proto";
 import "processor.proto";
 
 service Location {
-  rpc AddRoute (AddRouteRequest) returns (fonoster.routr.common.v2draft1.Empty) {}
+  rpc AddRoute (AddRouteRequest) returns (.google.protobuf.Empty) {}
   rpc FindRoutes (FindRoutesRequest) returns (FindRoutesResponse) {}
-  rpc RemoveRoutes (RemoveRoutesRequest) returns (fonoster.routr.common.v2draft1.Empty) {}
+  rpc RemoveRoutes (RemoveRoutesRequest) returns (.google.protobuf.Empty) {}
 }
 
 // A binding created by an actual endpoint (Softphone, PBX, Conference System, etc.)

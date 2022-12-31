@@ -40,7 +40,8 @@ export default {
           description: "Resource's friendly name",
           type: "string"
         }
-      }
+      },
+      required: ["name"]
     },
     spec: {
       description: "Operations spec for an Domain",
@@ -60,7 +61,7 @@ export default {
               description: "The reference to the AccessControlList",
               type: "string"
             },
-            egressPolicy: {
+            egressPolicies: {
               description: "The egress policy for the Domain",
               type: "array",
               items: {

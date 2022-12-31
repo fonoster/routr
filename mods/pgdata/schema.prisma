@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  apiVersion     APIVersion @map("api_version")
+  ref            String     @id @default(uuid())
+  domainRef      String?    @map("domain_ref")
+  credentialsRef String?    @map("credentials_ref")
+  name           String     @db.VarChar(60)
+  username       String     @unique @db.VarChar(60)
+  privacy        Privacy    @default(NONE)
+  enabled        Boolean    @default(true)
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  extended       Json?
+
+  // Relations
+  credentials Credentials? @relation(fields: [credentialsRef], references: [ref], onDelete: SetNull)
+  domain      Domain?      @relation(fields: [domainRef], references: [ref], onDelete: SetNull)
+
+  // Indexes and maps
+  @@index([username], type: Hash)
+  @@map("agents")
+}
+
+model Peer {
+  apiVersion           APIVersion @map("api_version")
+  ref                  String     @id @default(uuid())
+  credentialsRef       String?    @map("credentials_ref")
+  accessControlListRef String?    @map("acl_ref")
+  name                 String     @db.VarChar(60)
+  username             String     @unique @db.VarChar(60)
+  aor                  String     @db.VarChar(255)
+  contactAddr          String     @map("contact_addr") @db.VarChar(255)
+  enabled              Boolean    @default(true)
+  createdAt            DateTime   @default(now()) @map("created_at")
+  updatedAt            DateTime   @updatedAt @map("updated_at")
+  extended             Json?
+
+  // Relations
+  accessControlList AccessControlList? @relation(fields: [accessControlListRef], references: [ref], onDelete: SetNull)
+  credentials       Credentials?       @relation(fields: [credentialsRef], references: [ref], onDelete: SetNull)
+
+  // Indexes and maps
+  @@index([username], type: Hash)
+  @@map("peers")
+}
+
+model Domain {
+  apiVersion           APIVersion @map("api_version")
+  ref                  String     @id @default(uuid())
+  accessControlListRef String?    @map("acl_ref")
+  name                 String
+  domainUri            String     @unique @map("domain_uri") @db.VarChar(255)
+  createdAt            DateTime   @default(now()) @map("created_at")
+  updatedAt            DateTime   @updatedAt @map("updated_at")
+  extended             Json?
+
+  // Relations
+  accessControlList AccessControlList? @relation(fields: [accessControlListRef], references: [ref], onDelete: SetNull)
+  agents            Agent[]
+  egressPolicies    EgressPolicy[]
+
+  // Indexes and maps
+  @@index([domainUri], type: Hash)
+  @@map("domains")
+}
+
+model Trunk {
+  apiVersion             APIVersion @map("api_version")
+  ref                    String     @id @default(uuid())
+  accessControlListRef   String?    @map("acl_ref")
+  inboundCredentialsRef  String?    @map("inbound_credentials_ref")
+  outboundCredentialsRef String?    @map("outbound_credentials_ref")
+  name                   String     @db.VarChar(60)
+  sendRegister           Boolean    @default(false) @map("send_register")
+  inboundUri             String?    @unique @map("inbound_uri")
+  createdAt              DateTime   @default(now()) @map("created_at")
+  updatedAt              DateTime   @updatedAt @map("updated_at")
+  extended               Json?
+
+  // Relations
+  accessControlList   AccessControlList? @relation(fields: [accessControlListRef], references: [ref], onDelete: SetNull)
+  inboundCredentials  Credentials?       @relation(name: "InboundCredentials", fields: [inboundCredentialsRef], references: [ref], onDelete: SetNull)
+  outboundCredentials Credentials?       @relation(name: "OutboundCredentials", fields: [outboundCredentialsRef], references: [ref], onDelete: SetNull)
+  numbers             Number[]
+  uris                TrunkURI[]
+
+  // Indexes and maps
+  @@index([inboundUri], type: Hash)
+  @@map("trunks")
+}
+
+model Number {
+  apiVersion            APIVersion @map("api_version")
+  ref                   String     @id @default(uuid())
+  trunkRef              String?    @map("trunk_ref")
+  telUrl                String     @unique @map("tel_url") @db.VarChar(60)
+  name                  String     @db.VarChar(60)
+  aorLink               String?    @map("aor_link")
+  city                  String     @default("Unknown") @db.VarChar(60)
+  country               String     @db.VarChar(60)
+  countryISOCode        String     @map("country_iso_code") @db.VarChar(2)
+  sessionAffinityHeader String?    @map("session_affinity_header") @db.VarChar(60)
+  extraHeaders          Json?      @map("extra_headers")
+  createdAt             DateTime   @default(now()) @map("created_at")
+  updatedAt             DateTime   @updatedAt @map("updated_at")
+  extended              Json?
+
+  // Relations
+  trunk        Trunk?         @relation(fields: [trunkRef], references: [ref], onDelete: SetNull)
+  EgressPolicy EgressPolicy[]
+
+  // Indexes and maps
+  @@index([telUrl], type: Hash)
+  @@map("numbers")
+}
+
+model AccessControlList {
+  apiVersion APIVersion @map("api_version")
+  ref        String     @id @default(uuid())
+  name       String     @db.VarChar(60)
+  allow      String[]   @db.VarChar(60)
+  deny       String[]   @db.VarChar(60)
+
+  // Relations
+  domain Domain[]
+  Trunk  Trunk[]
+  Peer   Peer[]
+
+  // Indexes and maps
+  @@map("access_control_lists")
+}
+
+model Credentials {
+  apiVersion APIVersion @map("api_version")
+  ref        String     @id @default(uuid())
+  name       String     @db.VarChar(60)
+  username   String     @db.VarChar(60)
+  password   String     @db.VarChar(60)
+  extended   Json?
+
+  // Relations
+  inboundCredentials  Trunk[] @relation(name: "InboundCredentials")
+  outboundCredentials Trunk[] @relation(name: "OutboundCredentials")
+  Peer                Peer[]
+  Agent               Agent[]
+
+  @@index([username], type: Hash)
+  // Indexes and maps
+  @@map("credentials")
+}
+
+model EgressPolicy {
+  ref       String @id @default(uuid())
+  domainRef String @map("domain_ref")
+  numberRef String @map("number_ref")
+  rule      String
+
+  // Relations
+  domain Domain @relation(fields: [domainRef], references: [ref], onDelete: Cascade)
+  number Number @relation(fields: [numberRef], references: [ref], onDelete: Cascade)
+
+  // Indexes and maps
+  @@map("egress_policies")
+}
+
+model TrunkURI {
+  ref       String    @id @default(uuid())
+  trunkRef  String    @map("trunk_ref")
+  host      String    @db.VarChar(255)
+  port      Int
+  transport Transport
+  user      String?
+  weight    Int?
+  priority  Int?
+  enabled   Boolean   @default(true)
+
+  // Relations
+  trunk Trunk @relation(fields: [trunkRef], references: [ref], onDelete: Cascade)
+
+  // Indexes and maps
+  @@index([host], type: Hash)
+  @@map("trunk_uris")
+}
+
+enum Privacy {
+  NONE
+  PRIVATE
+}
+
+enum APIVersion {
+  v2draft1
+  v2_0     @map("v2.0")
+  v2
+
+  @@map("api_version")
+}
+
+enum Transport {
+  UDP
+  TCP
+  TLS
+  WS
+  WSS
+}

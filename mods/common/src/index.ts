@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ServiceUnavailableError } from "./errors"
 import createService, {
   getObjectProto,
   LOCATION_OBJECT_PROTO,
@@ -40,7 +39,6 @@ export {
   getObjectProto,
   HeaderModifier,
   Route,
-  ServiceUnavailableError,
   Transport,
   ProcessorConfig,
   MessageRequest,
@@ -53,13 +51,14 @@ export {
   LOCATION_OBJECT_PROTO
 }
 
+export * as Auth from "./auth"
 export * as Redis from "./redis"
-export * as CommonTypes from "./types"
 export * as Helper from "./helper"
 export * as IpUtils from "./ip_utils"
 export * as Tracer from "./tracer"
 export * as Assertions from "./assertions"
 export * as CommonConnect from "./connect"
 export * as CommonRequester from "./requester"
-export * as Auth from "./auth"
+export * as CommonTypes from "./types"
+export * as CommonErrors from "./errors"
 export * as ConnectSchemas from "./connect/schemas"

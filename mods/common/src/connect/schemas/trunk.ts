@@ -40,7 +40,8 @@ export default {
           description: "Resource's friendly name",
           type: "string"
         }
-      }
+      },
+      required: ["name"]
     },
     spec: {
       description: "Operations spec for an Trunk",
@@ -106,7 +107,8 @@ export default {
                         description: "Username of the URI",
                         type: "string"
                       }
-                    }
+                    },
+                    required: ["host", "port", "transport"]
                   },
                   weight: {
                     description: "Weight of the URI",
@@ -120,7 +122,8 @@ export default {
                     description: "Whether the URI is enabled",
                     type: "boolean"
                   }
-                }
+                },
+                required: ["uri"]
               }
             }
           },

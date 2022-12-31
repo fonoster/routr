@@ -17,6 +17,12 @@
  * limitations under the License.
  */
 import { ServiceDefinition } from "@grpc/proto-loader"
+import { JsonArray, JsonValue, Struct } from "pb-util/build"
+
+export type JsonData = Record<
+  string,
+  string | number | boolean | JsonValue | JsonArray | Struct
+>
 
 export enum Method {
   UNKNOWN = "UNKNOWN",

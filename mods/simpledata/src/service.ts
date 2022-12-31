@@ -18,10 +18,10 @@
  */
 import { SimpleDataConfig } from "./types"
 import { CommonConnect as CC } from "@routr/common"
-import { nyi } from "./utils"
+import loadResources, { nyi } from "./utils"
 import { findBy, get } from "./api"
-import * as grpc from "@grpc/grpc-js"
 import { getLogger } from "@fonoster/logger"
+import * as grpc from "@grpc/grpc-js"
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
 
@@ -33,15 +33,33 @@ const logger = getLogger({ service: "simpledata", filePath: __filename })
 export default function simpleDataService(config: SimpleDataConfig): void {
   const { bindAddr } = config
   logger.info("starting routr service", { bindAddr, name: "simpledata" })
+
   const server = new grpc.Server()
 
-  server.addService(CC.RESOURCES_PROTO.v2draft1.Resources.service, {
-    get: get(config.resources),
-    findBy: findBy(config.resources),
-    delete: nyi,
-    update: nyi,
-    create: nyi,
-    list: nyi
+  const kinds = [
+    CC.Kind.AGENT,
+    CC.Kind.ACL,
+    CC.Kind.CREDENTIALS,
+    CC.Kind.NUMBER,
+    CC.Kind.TRUNK,
+    CC.Kind.PEER,
+    CC.Kind.DOMAIN
+  ]
+
+  kinds.forEach((kind) => {
+    const resources: CC.RoutrResourceUnion[] = loadResources(
+      config.pathToResources,
+      kind
+    )
+
+    server.addService(CC.createService(kind), {
+      get: get(resources),
+      findBy: findBy(resources),
+      delete: nyi,
+      update: nyi,
+      create: nyi,
+      list: nyi
+    })
   })
 
   server.bindAsync(

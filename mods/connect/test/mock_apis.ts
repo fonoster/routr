@@ -21,70 +21,38 @@ import { r1 } from "./examples"
 import loadResources from "../../simpledata/src/utils"
 import jp from "jsonpath"
 import { ILocationService } from "@routr/location"
+import { FindByResponse, Kind } from "@routr/common/dist/connect"
 
-const resources: CC.Resource[] = loadResources(
-  __dirname + "/../../../config/resources"
-)
-
-const findCriteriaMap: {
-  [key: string]: (parameters: Record<string, string>) => string
-} = {}
-
-findCriteriaMap[CC.FindCriteria.FIND_AGENT_BY_USERNAME] = (
-  parameters: Record<string, string>
-) => `$..[?(@.spec.username=='${parameters.username}')]`
-
-findCriteriaMap[CC.FindCriteria.FIND_PEER_BY_USERNAME] = (
-  parameters: Record<string, string>
-) => `$..[?(@.spec.username=='${parameters.username}')]`
-
-findCriteriaMap[CC.FindCriteria.FIND_CREDENTIALS_BY_REFERENCE] = (
-  parameters: Record<string, string>
-) => `$..[?(@.ref=='${parameters.ref}')]`
-
-findCriteriaMap[CC.FindCriteria.FIND_DOMAIN_BY_DOMAINURI] = (
-  parameters: Record<string, string>
-) => `$..[?(@.spec.context.domainUri=='${parameters.domainUri}')]`
-
-findCriteriaMap[CC.FindCriteria.FIND_NUMBER_BY_TELURL] = (
-  parameters: Record<string, string>
-) => `$..[?(@.spec.location.telUrl=="${parameters.telUrl}")]`
-
-findCriteriaMap[CC.FindCriteria.FIND_TRUNK_BY_REQUEST_URI] = (
-  parameters: Record<string, string>
-) => `$..[?(@.spec.inbound.uri=="${parameters.requestUri}")]`
-
-// eslint-disable-next-line require-jsdoc
-export function createQuery(request: CC.FindParameters) {
-  const findCriteria = request.criteria as unknown as CC.FindCriteria
-
-  if (!request["criteria"] || !request["kind"] || !request["parameters"]) {
-    return new Error(
-      "createQuery request is missing 'criteria', 'kind', or 'parameters'"
-    )
-  }
-
-  if (!findCriteriaMap[findCriteria]) {
-    return new Error(`invalid find criteria ${request.criteria}`)
-  }
+export const serviceAPI = (kind: Kind): CC.ServiceAPI => {
+  const filteredResources = loadResources(
+    __dirname + "/../../../config/resources",
+    kind
+  )
 
   return {
-    query: findCriteriaMap[findCriteria](request.parameters),
-    request
-  }
+    get: <R>(ref: string): Promise<R> =>
+      Promise.resolve(
+        jp.query(filteredResources, `$..[?(@.ref=="${ref}")]`)[0]
+      ),
+
+    findBy: <R>(request: CC.FindByRequest): Promise<FindByResponse<R>> =>
+      Promise.resolve({
+        items: jp.query(
+          filteredResources,
+          `$..[?(@.${request.fieldName}=="${request.fieldValue}")]`
+        )
+      })
+  } as unknown as CC.ServiceAPI
 }
 
-export const dataAPI: CC.DataAPI = {
-  findBy: (request: CC.FindParameters) => {
-    return Promise.resolve(
-      jp.query(resources, (createQuery(request) as { query: string }).query)
-    ) as unknown as Promise<CC.Resource[]>
-  },
-  get: (ref: string): Promise<CC.Resource> => {
-    return Promise.resolve(
-      jp.query(resources, `$..[?(@.ref=="${ref}")]`)[0]
-    ) as Promise<CC.Resource>
-  }
+export const apiClient: CC.APIClient = {
+  trunks: serviceAPI(Kind.TRUNK),
+  domains: serviceAPI(Kind.DOMAIN),
+  numbers: serviceAPI(Kind.NUMBER),
+  acl: serviceAPI(Kind.ACL),
+  agents: serviceAPI(Kind.AGENT),
+  credentials: serviceAPI(Kind.CREDENTIALS),
+  peers: serviceAPI(Kind.PEER)
 }
 
 export const locationAPI = {

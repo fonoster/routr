@@ -25,7 +25,7 @@ import createRegistrationRequest, {
   getHostFromAddress,
   getPortFromAddress
 } from "../src/request"
-import { RegistrationEntryStatus, RequestParams } from "../src/types"
+import { RegistrationEntryStatus, RequestParams, Trunk } from "../src/types"
 import MemoryStore from "../src/memory_store"
 import { getUnregisteredTrunks } from "../src/utils"
 
@@ -33,7 +33,7 @@ const expect = chai.expect
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox()
 
-const trunks = [
+const trunks: Trunk[] = [
   {
     ref: "trunk-01",
     name: "T1",

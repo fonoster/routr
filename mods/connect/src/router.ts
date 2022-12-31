@@ -42,15 +42,20 @@ import { checkAccess } from "./access"
 const logger = getLogger({ service: "connect", filePath: __filename })
 
 // eslint-disable-next-line require-jsdoc
-export function router(location: ILocationService, dataAPI: CC.DataAPI) {
+export function router(location: ILocationService, apiClient: CC.APIClient) {
   return async (
     request: MessageRequest
   ): Promise<Route | Record<string, unknown>> => {
     const fromURI = request.message.from.address.uri
     const requestURI = request.message.requestUri
 
-    const caller = await findResource(dataAPI, fromURI.host, fromURI.user)
-    const callee = await findResource(dataAPI, requestURI.host, requestURI.user)
+    const caller = await findResource(apiClient, fromURI.host, fromURI.user)
+    const callee = await findResource(
+      apiClient,
+      requestURI.host,
+      requestURI.user
+    )
+
     const routingDirection = getRoutingDirection(caller, callee)
 
     logger.verbose(
@@ -61,14 +66,14 @@ export function router(location: ILocationService, dataAPI: CC.DataAPI) {
       {
         fromURI: getSIPURI(fromURI),
         requestURI: getSIPURI(requestURI),
-        routingDirection,
-        sessionAffinityHeader: callee?.spec.location?.sessionAffinityHeader
+        routingDirection
+        // sessionAffinityHeader: callee?.spec.location?.sessionAffinityHeader
       }
     )
 
     if (request.method === CT.Method.INVITE) {
       const failedCheck = await checkAccess({
-        dataAPI,
+        apiClient,
         request,
         caller,
         callee,
@@ -84,11 +89,11 @@ export function router(location: ILocationService, dataAPI: CC.DataAPI) {
       case RoutingDirection.AGENT_TO_AGENT:
         return agentToAgent(location, request)
       case RoutingDirection.AGENT_TO_PSTN:
-        return await agentToPSTN(dataAPI, request, caller, requestURI.user)
+        return await agentToPSTN(request, caller as CC.Agent, requestURI.user)
       case RoutingDirection.FROM_PSTN:
-        return await fromPSTN(location, callee, request)
+        return await fromPSTN(location, callee as CC.INumber, request)
       case RoutingDirection.PEER_TO_PSTN:
-        return await peerToPSTN(dataAPI, request)
+        return await peerToPSTN(apiClient, request)
       default:
         throw new UnsuportedRoutingError(routingDirection)
     }
@@ -115,70 +120,65 @@ async function agentToAgent(
  */
 async function fromPSTN(
   location: ILocationService,
-  callee: CC.Resource,
+  callee: CC.INumber,
   req: MessageRequest
 ): Promise<Route> {
-  const sessionAffinityRef = E.getHeaderValue(
-    req,
-    callee.spec.location.sessionAffinityHeader
-  )
+  const sessionAffinityRef = E.getHeaderValue(req, callee.sessionAffinityHeader)
 
   const route = (
     await location.findRoutes({
-      aor: callee.spec.location.aorLink,
+      aor: callee.aorLink,
       callId: req.ref,
       sessionAffinityRef
     })
   )[0]
 
   if (!route) {
-    throw new NotRoutesFoundForAOR(callee.spec.location.aorLink)
+    throw new NotRoutesFoundForAOR(callee.aorLink)
   }
 
   if (!route.headers) route.headers = []
 
-  callee.spec.location.extraHeaders?.forEach(
-    (prop: { name: string; value: string }) => {
-      const p: HeaderModifier = {
-        name: prop.name,
-        value: prop.value,
-        action: CT.HeaderModifierAction.ADD
-      }
-      route.headers.push(p)
+  callee.extraHeaders?.forEach((prop: { name: string; value: string }) => {
+    const p: HeaderModifier = {
+      name: prop.name,
+      value: prop.value,
+      action: CT.HeaderModifierAction.ADD
     }
-  )
+    route.headers.push(p)
+  })
 
   return route
 }
 
 // eslint-disable-next-line require-jsdoc
 async function agentToPSTN(
-  dataAPI: CC.DataAPI,
   req: MessageRequest,
-  caller: CC.Resource,
+  agent: CC.Agent,
   calleeNumber: string
 ): Promise<Route> {
-  const domain = await dataAPI.get(caller.spec.domainRef)
-
-  if (!domain.spec.context.egressPolicies) {
+  if (!agent.domain?.egressPolicies) {
     // TODO: Create custom error
-    throw new Error(`no egress policy found for Domain ref: ${domain.ref}`)
+    throw new Error(
+      `no egress policy found for Domain ref: ${agent.domain.ref}`
+    )
   }
 
   // Look for Number in domain that matches regex callee
-  const policy = domain.spec.context.egressPolicies.find(
+  const policy = agent.domain.egressPolicies.find(
     (policy: { rule: string }) => {
       const regex = new RegExp(policy.rule)
       return regex.test(calleeNumber)
     }
   )
 
-  const number = await dataAPI.get(policy?.numberRef)
-  const trunk = await dataAPI.get(number?.spec.trunkRef)
+  const trunk = policy.number?.trunk
 
   if (!trunk) {
     // This should never happen
-    throw new Error(`no trunk associated with Number ref: ${number.ref}`)
+    throw new Error(
+      `no trunk associated with Number ref: ${policy.number?.ref}`
+    )
   }
 
   const uri = getTrunkURI(trunk)
@@ -201,39 +201,37 @@ async function agentToPSTN(
       {
         name: "Privacy",
         value:
-          caller.spec.privacy?.toLowerCase() === CT.Privacy.PRIVATE
+          agent.privacy?.toLowerCase() === CT.Privacy.PRIVATE
             ? CT.Privacy.PRIVATE
             : CT.Privacy.NONE,
         action: CT.HeaderModifierAction.ADD
       },
-      createRemotePartyId(trunk, number),
-      createPAssertedIdentity(req, trunk, number),
-      await createTrunkAuthentication(dataAPI, trunk)
+      createRemotePartyId(trunk, policy.number),
+      createPAssertedIdentity(req, trunk, policy.number),
+      await createTrunkAuthentication(trunk)
     ]
   }
 }
 
 // eslint-disable-next-line require-jsdoc
 async function peerToPSTN(
-  dataAPI: CC.DataAPI,
+  apiClient: CC.APIClient,
   req: MessageRequest
 ): Promise<Route> {
   const numberTel = E.getHeaderValue(req, CT.ExtraHeader.DOD_NUMBER)
   const privacy = E.getHeaderValue(req, CT.ExtraHeader.DOD_PRIVACY)
-  const number = await findNumberByTelUrl(dataAPI, `tel:${numberTel}`)
+  const number = await findNumberByTelUrl(apiClient, `tel:${numberTel}`)
 
   if (!number) {
     throw new Error(`no Number found for tel: ${numberTel}`)
   }
 
-  const trunk = await dataAPI.get(number?.spec.trunkRef)
-
-  if (!trunk) {
+  if (!number.trunk) {
     // TODO: Create custom error
     throw new Error(`no trunk associated with Number ref: ${number.ref}`)
   }
 
-  const uri = getTrunkURI(trunk)
+  const uri = getTrunkURI(number.trunk)
 
   return {
     user: uri.user,
@@ -258,9 +256,9 @@ async function peerToPSTN(
             : CT.Privacy.NONE,
         action: CT.HeaderModifierAction.ADD
       },
-      createRemotePartyId(trunk, number),
-      createPAssertedIdentity(req, trunk, number),
-      await createTrunkAuthentication(dataAPI, trunk)
+      createRemotePartyId(number.trunk, number),
+      createPAssertedIdentity(req, number.trunk, number),
+      await createTrunkAuthentication(number.trunk)
     ]
   }
 }

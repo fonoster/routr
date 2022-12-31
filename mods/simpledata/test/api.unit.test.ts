@@ -20,12 +20,7 @@ import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { findBy, get } from "../src/api"
-import { BadRequest } from "../src/errors"
-import { CommonConnect as CC } from "@routr/common"
-import { createQuery } from "../src/utils"
-import { resources } from "./examples"
-import * as protobufUtil from "pb-util"
-const jsonToStruct = protobufUtil.struct.encode
+import { configs } from "./examples"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -43,19 +38,7 @@ describe("@routr/simpledata/api", () => {
         done()
       }
       const callbackSpy = sandbox.spy(callback)
-      get(null)(call, callback)
-      expect(callbackSpy).to.have.been.calledOnce
-    })
-
-    it("gets a not found", (done) => {
-      const call = { request: { ref: "credentials-01" } }
-      const callback = (err: Error, res: unknown) => {
-        expect(err).to.be.not.null
-        expect(res).to.be.null
-        done()
-      }
-      const callbackSpy = sandbox.spy(callback)
-      get(null)(call, callback)
+      get(null as any)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
     })
 
@@ -67,19 +50,19 @@ describe("@routr/simpledata/api", () => {
         done()
       }
       const callbackSpy = sandbox.spy(callback)
-      get(resources)(call, callback)
+      get(configs)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
     })
 
-    it("gets resource by reference (checks metadata)", (done) => {
+    it("gets resource by reference (checks name)", (done) => {
       const call = { request: { ref: "credentials-01" } }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.null
-        expect(res).to.have.property("metadata")
+        expect(res).to.have.property("name")
         done()
       }
       const callbackSpy = sandbox.spy(callback)
-      get(resources)(call, callback)
+      get(configs)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
     })
 
@@ -90,93 +73,30 @@ describe("@routr/simpledata/api", () => {
         done()
       }
       const callbackSpy = sandbox.spy(callback)
-      get(resources)(call, callback)
+      get(configs)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
     })
   })
 
   describe("find functionality", () => {
-    it("gets a not found", (done) => {
-      const call = { request: {} }
-      const callback = (err: Error, res: unknown) => {
-        expect(err).to.be.not.null
-        expect(res).to.be.null
-        done()
-      }
-      const callbackSpy = sandbox.spy(callback)
-      get(null)(call, callback)
-      expect(callbackSpy).to.have.been.calledOnce
-    })
-
-    it("gets bad request", (done) => {
-      const call = { request: {} }
-      const callback = (err: Error, res: unknown) => {
-        expect(err).to.be.not.null
-        expect(res).to.be.null
-        done()
-      }
-      const callbackSpy = sandbox.spy(callback)
-      get(resources)(call, callback)
-      expect(callbackSpy).to.have.been.calledOnce
-    })
-
-    it("creates query based on find criteria and parameters", () => {
-      const searchParameters: CC.FindParameters = {
-        kind: CC.Kind.AGENT,
-        criteria: CC.FindCriteria.FIND_AGENT_BY_USERNAME,
-        parameters: jsonToStruct({
-          username: "myusername"
-        }) as Record<string, string>
-      }
-      const result = createQuery(searchParameters)
-      expect(result).to.have.property("request").to.have.property("kind")
-      expect(result)
-        .to.have.property("query")
-        .to.equal("$..[?(@.spec.username=='myusername')]")
-    })
-
-    it("fails to create query due to bad criteria", () => {
-      const searchParameters: CC.FindParameters = {
-        kind: CC.Kind.AGENT,
-        criteria: "bad_criteria" as never,
-        parameters: jsonToStruct({
-          username: "myusername"
-        }) as Record<string, string>
-      }
-      expect(createQuery(searchParameters)).to.be.instanceOf(BadRequest)
-    })
-
-    it("fails to create query due to missing parameter", () => {
-      const searchParameters: CC.FindParameters = {
-        kind: CC.Kind.AGENT,
-        parameters: jsonToStruct({
-          username: "myusername"
-        }) as Record<string, string>
-      } as never
-      expect(createQuery(searchParameters)).to.be.instanceOf(BadRequest)
-    })
-
     // As per https://www.npmjs.com/package/jsonpath
     it("finds a resource using findBy method", (done) => {
       const call = {
         request: {
-          kind: CC.Kind.CREDENTIALS,
-          criteria: CC.FindCriteria.FIND_CREDENTIALS_BY_REFERENCE,
-          parameters: jsonToStruct({
-            ref: "credentials-01"
-          })
+          fieldName: "ref",
+          fieldValue: "credentials-01"
         }
       }
       const callback = (err: Error, res: unknown) => {
         expect(err).to.be.null
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect((res as any).resources)
+        expect((res as any).items)
           .to.be.an("array")
           .to.be.lengthOf(1)
         done()
       }
       const callbackSpy = sandbox.spy(callback)
-      findBy(resources)(call, callback)
+      findBy(configs)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
     })
   })

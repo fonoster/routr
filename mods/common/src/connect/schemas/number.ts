@@ -40,7 +40,8 @@ export default {
           description: "Resource's friendly name",
           type: "string"
         }
-      }
+      },
+      required: ["name"]
     },
     spec: {
       description: "Operations spec for Numbers",
@@ -84,10 +85,10 @@ export default {
               }
             }
           },
-          required: ["telUrl", "aorLink"]
+          required: ["telUrl"]
         }
       },
-      required: ["trunkRef", "location"]
+      required: ["location"]
     }
   },
   required: ["apiVersion", "kind", "ref", "metadata", "spec"]

@@ -40,7 +40,8 @@ export default {
           description: "Resource's friendly name",
           type: "string"
         }
-      }
+      },
+      required: ["name"]
     },
     spec: {
       description: "Operations spec for an Peer",
@@ -79,7 +80,7 @@ export default {
           type: "boolean"
         }
       },
-      required: ["username", "aor"]
+      required: ["username"]
     }
   },
   required: ["apiVersion", "kind", "ref", "metadata", "spec"]

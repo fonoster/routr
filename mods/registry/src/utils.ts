@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Transport } from "@routr/common"
 import { CommonConnect as CC } from "@routr/common"
 import MemoryStore from "./memory_store"
 import RedisStore from "./redis_store"
@@ -43,12 +42,13 @@ export function getUnregisteredTrunks(store: IRegistryStore) {
 }
 
 // eslint-disable-next-line require-jsdoc
-export async function findTrunks(dataAPI: CC.DataAPI) {
-  return await dataAPI.findBy({
-    kind: CC.Kind.TRUNK,
-    criteria: CC.FindCriteria.FIND_TRUNKS_WITH_SEND_REGISTER,
-    parameters: {}
-  })
+export async function findTrunks(apiClient: CC.APIClient) {
+  return (
+    await apiClient.trunks.findBy<CC.Trunk>({
+      fieldName: "sendRegister",
+      fieldValue: "true"
+    })
+  ).items
 }
 
 export const configFromString = (
@@ -89,51 +89,24 @@ export const buildStore = (config: RegistryConfig) => {
   }
 }
 
-export const convertResourceToTrunk = async (
-  dataAPI: CC.DataAPI,
-  resource: CC.Resource
-): Promise<Trunk> => {
-  const metadata = resource.metadata
-  const trunkSpec = resource.spec
-
-  if (!trunkSpec.outbound) {
-    throw new Error(`trunk ${resource.ref} has no outbound settings`)
-  }
-
-  const uri = trunkSpec.outbound.uris[0].uri
-
-  // WARNING: Perhaps we should bring this on a single API call
-  const cred = await dataAPI.get(trunkSpec.outbound.credentialsRef)
-  const usernameAndPassword = cred?.spec.credentials
-
-  return {
-    ref: resource.ref,
-    name: resource.metadata.name,
-    region: metadata.region,
-    host: uri.host,
-    port: uri.port ?? 5060,
-    user: uri.user,
-    credentials: {
-      username: usernameAndPassword?.username,
-      secret: usernameAndPassword?.password
-    },
-    transport: uri.transport?.toLowerCase() ?? Transport.UDP
-  } as Trunk
-}
-
 export const registrationRequestInputFromTrunk = (
-  trunk: Trunk,
+  trunk: CC.Trunk,
   config: RegistryConfig
 ) => {
+  const uri = trunk.uris[0]
+
   return {
     trunkRef: trunk.ref,
-    user: trunk.user,
-    targetDomain: trunk.host,
-    targetAddress: `${trunk.host}:${trunk.port}`,
+    user: uri.user,
+    targetDomain: uri.host,
+    targetAddress: `${uri.host}:${uri.port}`,
     // TODO: Find closest edgeport instead of [0]
     proxyAddress: config.edgePorts[0].address,
-    transport: trunk.transport,
-    auth: trunk.credentials,
+    transport: uri.transport,
+    auth: {
+      username: trunk.outboundCredentials?.username,
+      secret: trunk.outboundCredentials?.password
+    },
     methods: config.methods
   }
 }

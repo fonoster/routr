@@ -33,7 +33,7 @@ import { Auth, CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { findResource } from "./utils"
 
 export const handleRegister = (
-  dataAPI: CC.DataAPI,
+  apiClient: CC.APIClient,
   location: ILocationService
 ) => {
   return async (request: MessageRequest, res: Response) => {
@@ -43,7 +43,7 @@ export const handleRegister = (
       auth.method = request.method
       const fromURI = request.message.from.address.uri
       const peerOrAgent = await findResource(
-        dataAPI,
+        apiClient,
         fromURI.host,
         fromURI.user
       )
@@ -52,14 +52,16 @@ export const handleRegister = (
         return res.send(Auth.createForbideenResponse())
       }
 
-      const credentials = await dataAPI.get(peerOrAgent.spec.credentialsRef)
+      const credentials = (
+        peerOrAgent as { credentials: { username: string; password: string } }
+      ).credentials
 
       // Calculate response and compare with the one send by the endpoint
       const calcRes = Auth.calculateAuthResponse(
         auth as CT.AuthChallengeResponse,
         {
-          username: credentials?.spec.credentials.username,
-          secret: credentials?.spec.credentials.password
+          username: credentials?.username,
+          secret: credentials?.password
         }
       )
 
@@ -71,7 +73,7 @@ export const handleRegister = (
 
       // TODO: Needs test
       await location.addRoute({
-        aor: peerOrAgent.spec.aor || T.getTargetAOR(request),
+        aor: "aor" in peerOrAgent ? peerOrAgent.aor : T.getTargetAOR(request),
         route: H.createRoute(request)
       })
       res.sendOk()
@@ -100,12 +102,12 @@ export const handleRegistry = (req: MessageRequest, res: Response) => {
 
 // TODO: If request has X-Connect-Token then validate the JWT value and continue
 export const handleRequest =
-  (location: ILocationService, dataAPI?: CC.DataAPI) =>
+  (location: ILocationService, apiClient?: CC.APIClient) =>
   async (req: MessageRequest, res: Response) => {
     try {
       const route = E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF)
         ? HE.createRouteFromLastMessage(req)
-        : await router(location, dataAPI)(req)
+        : await router(location, apiClient)(req)
 
       if (!route) return res.sendNotFound()
 

@@ -31,7 +31,7 @@ import { handleRegister, handleRequest } from "../src/handlers"
 import { Extensions as E, Helper as HE, Response } from "@routr/processor"
 import { createRequest, r1 } from "./examples"
 import { router } from "../src/router"
-import { dataAPI, locationAPI } from "./mock_apis"
+import { apiClient, locationAPI } from "./mock_apis"
 import { findResource } from "../src/utils"
 import { ILocationService } from "@routr/location"
 
@@ -71,7 +71,7 @@ describe("@routr/connect", () => {
       }
     } as Response
 
-    handleRegister(dataAPI, location as unknown as ILocationService)(
+    handleRegister(apiClient, location as unknown as ILocationService)(
       request,
       response
     )
@@ -112,7 +112,8 @@ describe("@routr/connect", () => {
       toDomain: "sip.local",
       toUser: "1002"
     })
-    const route = await router(locationAPI, dataAPI)(req)
+    const route = await router(locationAPI, apiClient)(req)
+
     expect(route).to.be.not.null
     expect(route).to.have.property("user", r1.user)
     expect(route).to.have.property("host", r1.host)
@@ -126,7 +127,8 @@ describe("@routr/connect", () => {
       toUser: "17853178070",
       toDomain: "sip.local"
     })
-    const route = await router(locationAPI, dataAPI)(req)
+    const route = await router(locationAPI, apiClient)(req)
+
     expect(route).to.be.not.null
     expect(route).to.have.property("user", "pbx-1")
     expect(route).to.have.property("host", "sip.provider.net")
@@ -143,7 +145,7 @@ describe("@routr/connect", () => {
       toDomain: "newyork1.voip.ms",
       requestUriHost: "trunk01.acme.com"
     })
-    const route = await router(locationAPI, dataAPI)(req)
+    const route = await router(locationAPI, apiClient)(req)
     expect(route).to.be.not.null
     expect(route).to.have.property("user", r1.user)
     expect(route).to.have.property("host", r1.host)
@@ -164,18 +166,19 @@ describe("@routr/connect", () => {
     reqWithUpdatedAuth.message.authorization.response =
       "c72e79e7f8af73a880fa4ad0bf4da2ac"
 
-    const route = await router(locationAPI, dataAPI)(reqWithUpdatedAuth)
+    const route = await router(locationAPI, apiClient)(reqWithUpdatedAuth)
+
     expect(route).to.be.not.null
     expect(route).to.have.property("headers").to.be.an("array").lengthOf(5)
   })
 
   it("gets resource by domainUri and userpart", async () => {
-    const r1 = await findResource(dataAPI, "sip.local", "1001")
+    const r1 = await findResource(apiClient, "sip.local", "1001")
     // Domain with xxx reference does not exist
-    const r2 = await findResource(dataAPI, "sip.local2", "+17066041487")
-    const r3 = await findResource(dataAPI, "sip.localx", "1001")
-    expect(r1).to.have.property("kind", "Agent")
-    expect(r2).to.have.property("kind", "Number")
+    const r2 = await findResource(apiClient, "sip.local2", "+17066041487")
+    const r3 = await findResource(apiClient, "sip.localx", "1001")
+    expect(r1).to.have.property("username", "1001")
+    expect(r2).to.have.property("telUrl", "tel:+17066041487")
     expect(r3).to.not.exist
   })
 })

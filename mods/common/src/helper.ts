@@ -16,10 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NetInterface, Transport } from "./types"
-import fs from "fs"
 import * as yaml from "js-yaml"
 import * as toml from "toml"
+import fs from "fs"
+import { NetInterface, Transport } from "./types"
 
 /**
  * Makes a deep copy of an object.
@@ -106,4 +106,12 @@ export const readConfigFile = (path: string): Record<string, any> => {
   } catch (e) {
     throw new Error("file is not a valid JSON or YAML file")
   }
+}
+
+export const toPascaleCase = (str: string) => {
+  return str
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+      return index === 0 ? word.toUpperCase() : word.toUpperCase()
+    })
+    .replace(/\s+/g, "")
 }

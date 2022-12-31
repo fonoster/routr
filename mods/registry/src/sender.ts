@@ -16,15 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as grpc from "@grpc/grpc-js"
-import { ServiceUnavailableError } from "@routr/common"
-import { CommonRequester as CR } from "@routr/common"
+import { CommonRequester as CR, CommonErrors as CE } from "@routr/common"
 import { RegistrationRequest, SendMessageResponse } from "./types"
+import * as grpc from "@grpc/grpc-js"
 
 export const sendRegisterMessage = (requesterAddr: string) => {
   return (
     request: RegistrationRequest
-  ): Promise<ServiceUnavailableError | SendMessageResponse> => {
+  ): Promise<CE.ServiceUnavailableError | SendMessageResponse> => {
     const client = new CR.REQUESTER_PROTO.v2draft1.Requester(
       requesterAddr,
       grpc.credentials.createInsecure()
@@ -35,7 +34,7 @@ export const sendRegisterMessage = (requesterAddr: string) => {
         request,
         (err: { code: number }, response: SendMessageResponse) => {
           if (err?.code === 14) {
-            return reject(new ServiceUnavailableError(requesterAddr))
+            return reject(new CE.ServiceUnavailableError(requesterAddr))
           } else if (err) {
             return reject(err)
           }

@@ -16,6 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { JsonData, Transport } from "../types"
+
 export enum Kind {
   AGENT = "agent",
   PEER = "peer",
@@ -27,35 +29,95 @@ export enum Kind {
   ACL = "accesscontrollist"
 }
 
-export enum FindCriteria {
-  FIND_AGENT_BY_USERNAME = "find_agent_by_username",
-  FIND_PEER_BY_USERNAME = "find_peer_by_username",
-  FIND_CREDENTIALS_BY_REFERENCE = "find_credentials_by_reference",
-  FIND_DOMAIN_BY_DOMAINURI = "find_domain_by_domainuri",
-  FIND_NUMBER_BY_TELURL = "find_number_by_telurl",
-  FIND_TRUNKS_WITH_SEND_REGISTER = "find_trunks_with_send_register",
-  FIND_TRUNK_BY_REQUEST_URI = "find_trunk_by_request_uri"
+export enum APIVersion {
+  V2DRAFT1 = "v2draft1",
+  V2 = "v2"
 }
 
-export interface FindParameters {
-  kind: Kind
-  criteria: FindCriteria
-  parameters: Record<string, string>
-}
-
-export interface DataAPI {
-  get: (ref: string) => Promise<Resource>
-  findBy: (request: FindParameters) => Promise<Resource[]>
-}
-
-export interface Resource {
+export interface RoutrResourceBase {
   apiVersion: string
-  kind: Kind
   ref: string
-  metadata: {
-    name: string
-    region?: string
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  spec: Record<string, any>
+  name: string
+  createdAt?: Date
+  updatedAt?: Date
+  extended?: JsonData
 }
+
+export interface AccessControlList extends RoutrResourceBase {
+  allow: string[]
+  deny: string[]
+}
+
+export interface Domain extends RoutrResourceBase {
+  domainUri: string
+  accessControlList: AccessControlList
+  egressPolicies: EgressPolicy[]
+}
+
+export interface EgressPolicy {
+  number: INumber
+  rule: string
+}
+
+export interface Agent extends RoutrResourceBase {
+  username: string
+  privacy: string
+  enabled: boolean
+  domain?: Domain
+  credentials?: Credentials
+}
+
+export interface Credentials extends RoutrResourceBase {
+  username: string
+  password: string
+}
+
+export interface INumber extends RoutrResourceBase {
+  telUrl: string
+  aorLink: string
+  city: string
+  country: string
+  countryIsoCode: string
+  sessionAffinityHeader: string
+  extraHeaders: { name: string; value: string }[]
+  trunk?: Trunk
+}
+
+export interface Trunk extends RoutrResourceBase {
+  sendRegister: boolean
+  inboundUri: string
+  accessControlList?: AccessControlList
+  inboundCredentials?: Credentials
+  outboundCredentials?: Credentials
+  uris: TrunkUri[]
+}
+
+export interface TrunkUri {
+  host: string
+  port: number
+  transport: Transport
+  user: string
+  weight: number
+  priority: number
+  enabled: boolean
+}
+
+export interface Peer extends RoutrResourceBase {
+  username: string
+  aor: string
+  contactAddr: string
+  enabled: boolean
+  accessControlList?: AccessControlList
+  credentials?: Credentials
+}
+
+export type RoutrResourceUnion =
+  | Agent
+  | Peer
+  | INumber
+  | Trunk
+  | Domain
+  | Credentials
+  | AccessControlList
+
+export type RoutableResourceUnion = Agent | Peer | INumber

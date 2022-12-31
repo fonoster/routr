@@ -20,8 +20,6 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("simpleauth")
 import simpleDataService from "./service"
-import loadResources from "./utils"
-import { CommonConnect as CC } from "@routr/common"
 import { Assertions as A } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
 
@@ -29,14 +27,10 @@ const logger = getLogger({ service: "simpledata", filePath: __filename })
 
 A.assertEnvsAreSet(["PATH_TO_RESOURCES"])
 
-const resources: typeof CC.RESOURCES_PROTO[] = loadResources(
-  process.env.PATH_TO_RESOURCES
-)
-
 try {
   simpleDataService({
     bindAddr: process.env.BIND_ADDR ?? "0.0.0.0:51907",
-    resources
+    pathToResources: process.env.PATH_TO_RESOURCES
   })
 } catch (e) {
   logger.error(e)

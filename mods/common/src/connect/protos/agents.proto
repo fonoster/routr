@@ -1,0 +1,154 @@
+/*
+ * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr
+ *
+ * Licensed under the MIT License (the "License")
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+syntax = "proto3";
+
+package fonoster.routr.connect.agents.v2draft1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+import "domains.proto";
+import "credentials.proto";
+
+// The Agents service definition
+service Agents {
+  // Creates a new Agent
+  rpc Create (CreateAgentRequest) returns (Agent) {}
+  // Updates an existing Agent
+  rpc Update (UpdateAgentRequest) returns (Agent) {}
+  // Gets an existing Agent
+  rpc Get (GetAgentRequest) returns (Agent) {}
+  // Deletes an existing Agent
+  rpc Delete (DeleteAgentRequest) returns (.google.protobuf.Empty) {}
+  // Lists all Agents
+  rpc List (ListAgentsRequest) returns (ListAgentsResponse) {}
+  // Find Agents by field name and value
+  rpc FindBy (FindByRequest) returns (FindByResponse) {}
+}
+
+// The message for the Agent resource
+message Agent {
+  // The API version of the Agent
+  string api_version = 1;
+  // The unique identifier of the Agent
+  string ref = 2;
+  // The name of the Agent
+  string name = 3;
+  // The username of the Agent
+  string username = 4;
+  // The password of the Agent
+  string privacy = 5;
+  // The enabled status of the Agent
+  bool enabled = 6;
+  // The created_at timestamp of the Agent
+  int32 created_at = 7;
+  // The updated_at timestamp of the Agent
+  int32 updated_at = 8;
+  // The domain of the Agent
+  fonoster.routr.connect.domains.v2draft1.Domain domain = 9;
+  // The credentials of the Agent
+  fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 10;
+  // The extended attributes of the Agent
+  .google.protobuf.Struct extended = 11;  
+}
+
+// The request message for the Agents.Create method
+message CreateAgentRequest {
+  // The API version of the Agent
+  string api_version = 1;
+  // The name of the Agent
+  string name = 2;
+  // The username of the Agent
+  string username = 3;
+  // The password of the Agent
+  string privacy = 4;
+  // The enabled status of the Agent
+  bool enabled = 5;
+  // The domain of the Agent
+  //fonoster.routr.connect.domains.v2draft1.Domain domain = 6;
+  // The credentials of the Agent
+  // fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 7;
+  // The extended attributes of the Agent
+  .google.protobuf.Struct extended = 8;  
+}
+
+// The request message for the Agents.Update method
+message UpdateAgentRequest {
+  // The API version of the Agent
+  string api_version = 1;
+  // The unique identifier of the Agent
+  string ref = 2;
+  // The name of the Agent
+  string name = 3;
+  // The username of the Agent
+  string username = 4;
+  // The privacy settings of the Agent
+  string privacy = 5;
+  // The enabled status of the Agent
+  bool enabled = 6;
+  // The domain of the Agent
+  fonoster.routr.connect.domains.v2draft1.Domain domain = 7;
+  // The credentials of the Agent
+  fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 8;
+  // The extended attributes of the Agent
+  .google.protobuf.Struct extended = 9;
+}
+
+// The request message for the Agents.Get method
+message GetAgentRequest {
+  // The unique identifier of the Agent
+  string ref = 1;
+}
+
+// The request message for the Agents.Delete method
+message DeleteAgentRequest  {
+  // The unique identifier of the Agent
+  string ref = 1;
+}
+
+// The request message for the Agents.FindBy method
+message FindByRequest {
+  // The field name to search
+  string field_name = 1;
+  // The value to search
+  string field_value = 2;
+}
+
+// The response message for the Agents.FindBy method
+message FindByResponse {
+  // The list of Agents
+  repeated Agent items = 1;
+} 
+
+// The request message for the Agents.List method
+message ListAgentsRequest {
+  // The maximum number of items in the list
+  int32 page_size = 1;
+
+  // The next_page_token value returned from the previous request, if any
+  string page_token = 2;
+}
+
+// The response message for the Agents.List method
+message ListAgentsResponse {
+  // List of Agents
+  repeated Agent items = 1;
+
+  // Token to retrieve the next page of results, or empty if there are no more results in the list
+  string next_page_token = 2;
+}

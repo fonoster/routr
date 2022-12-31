@@ -16,11 +16,12 @@
       extraHeaders:
         - name: X-Room-Id
           value: jsa-shqm-iyo
+
 - apiVersion: v2draft1
   kind: Number
   ref: number-02
   metadata:
-    localFormat: "(910)343-4434"
+    name: "(910)343-4434"
     geoInfo:
       city: Durham, NC
       country: USA
@@ -30,11 +31,12 @@
     location:
       telUrl: tel:+19103434434
       aorLink: sip:1001@sip.local
+
 - apiVersion: v2draft1
   kind: Number
   ref: number-03
   metadata:
-    localFormat: "(829)586-3314"
+    name: "(829)586-3314"
     geoInfo:
       city: Durham, NC
       country: USA
@@ -44,6 +46,7 @@
     location:
       telUrl: tel:+18295863314
       aorLink: sip:1001@sip.local
+
 - apiVersion: v2draft1
   kind: Number
   ref: number-04
@@ -58,6 +61,7 @@
     location:
       telUrl: tel:+18095863314
       aorLink: backend:voice
+
 - apiVersion: v2draft1
   kind: Number
   ref: number-05

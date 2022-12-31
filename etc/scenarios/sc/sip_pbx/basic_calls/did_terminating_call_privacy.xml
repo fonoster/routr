@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
-<scenario name="SC-IT.Conf.1.3.3: SIP-PBX Support for Privacy when processing INVITE for Terminating DID Call">
+<scenario name="SC-IT.Conf.1.3.3.UAS">
 
   <recv request="INVITE">
     <action>
