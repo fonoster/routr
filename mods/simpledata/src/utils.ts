@@ -18,10 +18,14 @@
  */
 import { BadRequest, UnimplementedError } from "./errors"
 import Ajv from "ajv"
-import { CommonTypes as CT } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
-import { CommonConnect as CC } from "@routr/common"
+import {
+  CommonConnect as CC,
+  CommonTypes as CT,
+  Helper as H
+} from "@routr/common"
 import * as protobufUtil from "pb-util"
+
 const jsonFromStruct = protobufUtil.struct.decode
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
@@ -166,6 +170,17 @@ const checkReferences = (resources: CC.Resource[]) => {
         break
     }
   })
+
+  // Check that reference have not been duplicated
+  const references = resources.map((r) => r.ref)
+  const duplicates = references.filter(
+    (ref, index) => references.indexOf(ref) !== index
+  )
+
+  if (duplicates.length > 0) {
+    logger.error(`found duplicated references: ${duplicates}; exiting`)
+    process.exit(1)
+  }
 }
 
 /**
@@ -185,7 +200,7 @@ export default function loadResources(
   const files = require("fs").readdirSync(resourcesPath)
   files.forEach((file: File) => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const resources = require(`${resourcesPath}/${file}`)
+    const resources = H.readConfigFile(`${resourcesPath}/${file}`)
 
     resources.forEach((resource: CC.Resource) => {
       // Assert the reference has no spaces

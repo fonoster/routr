@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 import { MessageDispatcherConfig } from "../types"
-import fs from "fs"
 import { schema } from "./schema"
 import Ajv from "ajv"
 import * as E from "fp-ts/Either"
 import { ProcessorConfig } from "@routr/common"
+import { Helper as H } from "@routr/common"
 
 const ajv = new Ajv()
 const validate = ajv.compile(schema)
@@ -29,7 +29,7 @@ const validate = ajv.compile(schema)
 export const getConfig = (
   path: string
 ): E.Either<Error, MessageDispatcherConfig> => {
-  const c = JSON.parse(fs.readFileSync(path, "utf8"))
+  const c = H.readConfigFile(path) as Record<string, any>
 
   if (!validate({ ...c })) {
     return E.left(new Error(JSON.stringify(validate.errors[0].message)))

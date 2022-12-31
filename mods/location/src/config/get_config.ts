@@ -22,7 +22,7 @@ import {
   LoadBalancingAlgorithm,
   LocationConfig
 } from "../types"
-import fs from "fs"
+import { Helper as H } from "@routr/common"
 import { schema } from "./schema"
 import Ajv from "ajv"
 import * as E from "fp-ts/Either"
@@ -53,7 +53,7 @@ const hasBadAlgorithm = (backends: Backend[]) =>
 export const getConfig = (
   path: string
 ): E.Either<InvalidConfiguration, LocationConfig> => {
-  const c = JSON.parse(fs.readFileSync(path, "utf8"))
+  const c = H.readConfigFile(path) as Record<string, unknown>
 
   if (!validate({ ...c })) {
     return E.left(

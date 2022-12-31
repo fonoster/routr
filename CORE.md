@@ -547,7 +547,7 @@ Example:
        }
     }    
   },
-  "required": [ "apiVersion", "kind", "ref", "metadata", "spec" ]
+  "required": [ "apiVersion", "kind", "ref", "spec" ]
 }
 ``` 
 

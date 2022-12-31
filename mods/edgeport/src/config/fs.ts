@@ -18,9 +18,9 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: any
+import * as yaml from "js-yaml"
+import * as toml from "toml"
 
-const BufferedWriter = Java.type("java.io.BufferedWriter")
-const FileWriter = Java.type("java.io.FileWriter")
 const JFile = Java.type("java.io.File")
 const Files = Java.type("java.nio.file.Files")
 const Paths = Java.type("java.nio.file.Paths")
@@ -37,9 +37,44 @@ export const readFile = (path: string) => {
   return data.join("\n").trim()
 }
 
-export const writeFile = (path: string, text: string) => {
-  const file = new JFile(path)
-  const out = new BufferedWriter(new FileWriter(file))
-  out.write(text)
-  out.close()
+export const exists = (path: string) => new JFile(path).exists()
+
+export const isFile = (path: string) => new JFile(path).isFile()
+
+/**
+ * Reads a file and returns a JSON object or throws an error.
+ * The file must be a valid JSON, YAML, or TOML file.
+ *
+ * @param {string} path - The path to the file.
+ * @return {object} The JSON object.
+ * @throws {Error} If the file is not a valid JSON, YAML, or TOML file.
+ * @throws {Error} If the file does not exist.
+ * @throws {Error} If the file is not readable.
+ * @throws {Error} If the file is empty.
+ */
+export const readConfigFile = (path: string): Record<string, any> => {
+  if (!exists(path) || !isFile(path)) {
+    throw new Error(`config file ${path} does not exist`)
+  }
+
+  const content = readFile(path)
+
+  try {
+    return yaml.load(content)
+  } catch (e) {
+    // Ignore
+  }
+
+  // Experimental TOML support
+  try {
+    return toml.parse(content)
+  } catch (e) {
+    // Ignore
+  }
+
+  try {
+    return JSON.parse(content)
+  } catch (e) {
+    throw new Error("file is not a valid JSON or YAML file")
+  }
 }

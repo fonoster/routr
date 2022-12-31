@@ -1,0 +1,44 @@
+kind: EdgePort
+apiVersion: v2draft1
+ref: edge-port-02
+metadata:
+  region: us-east1
+spec:
+  unknownMethodAction: Discard
+  processor:
+    addr: dispatcher:51901
+  securityContext:
+    client:
+      protocols:
+        - SSLv3
+        - TLSv1.2
+      authType: DisabledAll
+    keyStorePassword: changeit
+    trustStorePassword: changeit
+    keyStore: "/etc/routr/domains-cert.jks"
+    trustStore: "/etc/routr/domains-cert.jks"
+    keyStoreType: pkcs12
+  externalAddrs:
+    - 10.111.220.3
+    - sip02.edgeport.net
+  localnets:
+    - 127.0.0.1/8
+    - 10.111.221.3/24
+  methods:
+    - REGISTER
+    - MESSAGE
+    - INVITE
+    - ACK
+    - BYE
+    - CANCEL
+  transport:
+    - protocol: tcp
+      port: 6060
+    - protocol: udp
+      port: 6060
+    - protocol: tls
+      port: 6061
+    - protocol: ws 
+      port: 6062
+    - protocol: wss
+      port: 6063

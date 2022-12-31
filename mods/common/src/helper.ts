@@ -17,6 +17,9 @@
  * limitations under the License.
  */
 import { NetInterface, Transport } from "./types"
+import fs from "fs"
+import * as yaml from "js-yaml"
+import * as toml from "toml"
 
 /**
  * Makes a deep copy of an object.
@@ -65,4 +68,42 @@ export const getListeningPoint = (
   }
 
   return listeningPoint
+}
+
+/**
+ * Reads a file and returns a JSON object or throws an error.
+ * The file must be a valid JSON, YAML, or TOML file.
+ *
+ * @param {string} path - The path to the file.
+ * @return {object} The JSON object.
+ * @throws {Error} If the file is not a valid JSON, YAML, or TOML file.
+ * @throws {Error} If the file does not exist.
+ * @throws {Error} If the file is not readable.
+ * @throws {Error} If the file is empty.
+ */
+export const readConfigFile = (path: string): Record<string, any> => {
+  if (!fs.existsSync(path) || !fs.statSync(path).isFile()) {
+    throw new Error(`config file ${path} does not exist`)
+  }
+
+  const content = fs.readFileSync(path, "utf8")
+
+  try {
+    return yaml.load(content)
+  } catch (e) {
+    // Ignore
+  }
+
+  // Experimental TOML support
+  try {
+    return toml.parse(content)
+  } catch (e) {
+    // Ignore
+  }
+
+  try {
+    return JSON.parse(content)
+  } catch (e) {
+    throw new Error("file is not a valid JSON or YAML file")
+  }
 }

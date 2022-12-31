@@ -29,7 +29,7 @@ describe("@routr/edgeport/config", () => {
   afterEach(() => sandbox.restore())
 
   it("fails because file does not meet schema criteria", () => {
-    const result = readFile(__dirname + ".././../config/edgeport.json")
+    const result = readFile(__dirname + ".././../config/edgeport.yaml")
     expect(result).to.have.property("_tag").to.be.equal("Right")
 
     if (result._tag === "Right") {
@@ -42,7 +42,7 @@ describe("@routr/edgeport/config", () => {
 
   it("reads a file a returns a string", () => {
     const result = getConfig(
-      "/Users/pedrosanders/Projects/routr/config/edgeport.json"
+      "/Users/pedrosanders/Projects/routr/config/edgeport.yaml"
     )
     expect(result).to.have.property("right").to.have.property("kind")
   })

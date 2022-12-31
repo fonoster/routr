@@ -1,0 +1,15 @@
+kind: Registry
+apiVersion: v2draft1
+spec:
+  requesterAddr: requester:51909
+  apiAddr: simpledata:51907
+  registerInterval: 20
+  cache:
+    provider: memory
+  methods:
+    - INVITE
+    - MESSAGE
+  edgePorts:
+    - address: sip01.edgeport.net:5060
+      region: us-east1
+    - address: sip02.edgeport.net:6060

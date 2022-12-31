@@ -29,20 +29,19 @@ export const schema = {
     apiVersion: {
       enum: ["v2draft1", "v2.0", "v2"]
     },
+    ref: {
+      description: "EdgePort reference",
+      type: "string"
+    },
     metadata: {
       description: "Resource metadata",
       type: "object",
       properties: {
-        ref: {
-          description: "EdgePort reference",
-          type: "string"
-        },
         region: {
           description: "Optional region where the EdgePort is operating",
           type: "string"
         }
-      },
-      required: ["ref"]
+      }
     },
     spec: {
       description: "Operation spec for the EdgePort",
@@ -114,5 +113,5 @@ export const schema = {
       required: ["methods", "transport", "processor"]
     }
   },
-  required: ["kind", "metadata", "spec", "apiVersion"]
+  required: ["kind", "ref", "spec", "apiVersion"]
 }

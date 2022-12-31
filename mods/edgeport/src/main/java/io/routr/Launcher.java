@@ -39,7 +39,7 @@ public class Launcher {
     try {
       new Launcher().launch();
     } catch (ScriptException ex) {
-      System.out.println("Unable to run routr: " + ex.getMessage());
+      System.out.println("unable to run routr: " + ex.getMessage());
     }
   }
 

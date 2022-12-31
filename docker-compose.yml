@@ -8,7 +8,7 @@ services:
     image: fonoster/edgeport
     build: ./mods/edgeport
     environment:
-      CONFIG_PATH: /etc/routr/edgeport.json
+      CONFIG_PATH: /etc/routr/edgeport.yaml
       LOG4J2: /etc/routr/log4j2.yml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
@@ -20,7 +20,7 @@ services:
       - 5063:5063
     volumes:
       - ./config/log4j2.yml:/etc/routr/log4j2.yml
-      - ./config/edgeport.json:/etc/routr/edgeport.json
+      - ./config/edgeport.yaml:/etc/routr/edgeport.yaml
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
     networks:
       public: 
@@ -36,7 +36,7 @@ services:
     image: fonoster/edgeport
     build: ./mods/edgeport
     environment:
-      CONFIG_PATH: /etc/routr/edgeport.json
+      CONFIG_PATH: /etc/routr/edgeport.yaml
       LOG4J2: /etc/routr/log4j2.yml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
@@ -48,7 +48,7 @@ services:
       - 6063:6063
     volumes:
       - ./config/log4j2.yml:/etc/routr/log4j2.yml
-      - ./config/edgeport.alt.json:/etc/routr/edgeport.json
+      - ./config/edgeport.alt.yaml:/etc/routr/edgeport.yaml
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
     networks:
       public: 
@@ -64,13 +64,13 @@ services:
     image: fonoster/dispatcher
     build: ./mods/dispatcher
     environment:
-      CONFIG_PATH: /etc/routr/dispatcher.json
+      CONFIG_PATH: /etc/routr/dispatcher.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51901
     volumes:
-      - ./config/dispatcher.json:/etc/routr/dispatcher.json
+      - ./config/dispatcher.yaml:/etc/routr/dispatcher.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.4
@@ -81,13 +81,13 @@ services:
     image: fonoster/location
     build: ./mods/location
     environment:
-      CONFIG_PATH: /etc/routr/location.json
+      CONFIG_PATH: /etc/routr/location.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51902
     volumes:
-      - ./config/location.json:/etc/routr/location.json
+      - ./config/location.yaml:/etc/routr/location.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.5
@@ -150,13 +150,13 @@ services:
     image: fonoster/registry
     build: ./mods/registry
     environment:
-      CONFIG_PATH: /etc/routr/registry.json
+      CONFIG_PATH: /etc/routr/registry.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51910
     volumes:
-      - ./config/registry.json:/etc/routr/registry.json
+      - ./config/registry.yaml:/etc/routr/registry.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.10

@@ -2,7 +2,7 @@ Configuration:
   Appenders:
     Console:
       PatternLayout:
-        pattern: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%-4level{lowerCase=true}]: (${sys:serviceName}) %c{1}.java %msg%n'
+        pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%-4level{lowerCase=true}]: (${sys:serviceName}) %c{1}.java %msg%n"
       name: Console
       target: SYSTEM_OUT
     RollingFile:
@@ -10,7 +10,7 @@ Configuration:
         fileName: logs/routr.log
         filePattern: "logs/routr-%d{MM-dd-yyyy}-%i.log.gz"
         PatternLayout:
-          pattern: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%-4level{lowerCase=true}]: (${sys:serviceName}) %c{1}.java %msg%n'
+          pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%-4level{lowerCase=true}]: (${sys:serviceName}) %c{1}.java %msg%n"
         Policies:
           SizeBasedTriggeringPolicy:
             size: 10MB

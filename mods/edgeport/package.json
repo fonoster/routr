@@ -29,6 +29,9 @@
     "url": "https://github.com/fonoster/routr/issues"
   },
   "dependencies": {
-    "fp-ts": "^2.11.8"
+    "@routr/common": "^2.0.8-alpha.12",
+    "fp-ts": "^2.11.8",
+    "js-yaml": "^4.1.0",
+    "toml": "^3.0.0"
   }
 }

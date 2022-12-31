@@ -64,12 +64,12 @@ public class GRPCSipListener implements SipListener {
       final List<String> externalAddrs, final List<String> localnets) throws PeerUnavailableException {
     System.setProperty("serviceName", "edgeport");
     MapProxyObject values = new MapProxyObject(config);
-    MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
+    // MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
     MapProxyObject spec = (MapProxyObject) values.getMember("spec");
     MapProxyObject processor = (MapProxyObject) spec.getMember("processor");
     String addr = (String) processor.getMember("addr");
     String bindAddr = (String) spec.getMember("bindAddr");
-    String edgePortRef = (String) metadata.getMember("ref");
+    String edgePortRef = (String) values.getMember("ref");
 
     if (localnets.isEmpty()) {
       try {

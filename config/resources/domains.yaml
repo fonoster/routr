@@ -1,0 +1,12 @@
+- apiVersion: v2draft1
+  kind: Domain
+  ref: domain-01
+  metadata:
+    name: Local Domain
+  spec:
+    accessControlListRef: acl-01
+    context:
+      domainUri: sip.local
+      egressPolicies:
+        - rule: ".*"
+          numberRef: number-01

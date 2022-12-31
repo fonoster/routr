@@ -14,14 +14,14 @@ import {Resource} from '../mods/common/src/connect/types'
 import {getLogger} from '@fonoster/logger'
 
 const envcopy = H.deepCopy(process.env);
-envcopy.CONFIG_PATH = __dirname + "/../config/edgeport.alt.json";
+envcopy.CONFIG_PATH = __dirname + "/../config/edgeport.alt.yaml";
 
 const edgeport = spawn("./mods/edgeport/edgeport.sh")
 const edgeportAlt = spawn("./mods/edgeport/edgeport.sh", {env: envcopy})
 const requester = spawn("./mods/requester/requester.sh")
-const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.json")
-const locationConfig = getLocationConfig(__dirname + "/../config/location.json")
-const registryConfig = getRegistryConfig(__dirname + "/../config/registry.json")
+const dispatcherConfig = getDispatcherConfig(__dirname + "/../config/dispatcher.yaml")
+const locationConfig = getLocationConfig(__dirname + "/../config/location.yaml")
+const registryConfig = getRegistryConfig(__dirname + "/../config/registry.yaml")
 const logger = getLogger({service: "base", filePath: __filename})
 
 logger.info("routr v2 // connect distribution")

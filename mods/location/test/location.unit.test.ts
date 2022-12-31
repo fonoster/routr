@@ -198,7 +198,7 @@ describe("@routr/location", () => {
   })
 
   it("gets configuration from file", (done) => {
-    const result = getConfig(__dirname + "/../../../config/location.json")
+    const result = getConfig(__dirname + "/../../../config/location.yaml")
     if (result._tag === "Right") {
       const config = result.right
 

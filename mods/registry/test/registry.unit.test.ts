@@ -150,7 +150,7 @@ describe("@routr/registry", () => {
   })
 
   it("gets configuration from file", (done) => {
-    const result = getConfig(__dirname + "/../../../config/registry.json")
+    const result = getConfig(__dirname + "/../../../config/registry.yaml")
     if (result._tag === "Right") {
       const config = result.right
       expect(config)

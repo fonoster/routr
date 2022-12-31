@@ -1,0 +1,20 @@
+- apiVersion: v2draft1
+  kind: Agent
+  ref: agent-01
+  metadata:
+    name: John Doe
+  spec:
+    username: "1001"
+    domainRef: domain-01
+    credentialsRef: credentials-01
+    privacy: Private
+- apiVersion: v2draft1
+  kind: Agent
+  ref: agent-02
+  metadata:
+    name: Jane Doe
+  spec:
+    username: "1002"
+    domainRef: domain-01
+    credentialsRef: credentials-02
+    privacy: None

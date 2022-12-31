@@ -1,0 +1,74 @@
+- apiVersion: v2draft1
+  kind: Number
+  ref: number-01
+  metadata:
+    name: "(706)604-1487"
+    geoInfo:
+      city: Columbus, GA
+      country: USA
+      countryISOCode: US
+  spec:
+    trunkRef: trunk-01
+    location:
+      telUrl: tel:+17066041487
+      aorLink: backend:conference
+      sessionAffinityHeader: X-Room-Id
+      extraHeaders:
+        - name: X-Room-Id
+          value: jsa-shqm-iyo
+- apiVersion: v2draft1
+  kind: Number
+  ref: number-02
+  metadata:
+    localFormat: "(910)343-4434"
+    geoInfo:
+      city: Durham, NC
+      country: USA
+      countryISOCode: US
+  spec:
+    trunkRef: trunk-01
+    location:
+      telUrl: tel:+19103434434
+      aorLink: sip:1001@sip.local
+- apiVersion: v2draft1
+  kind: Number
+  ref: number-03
+  metadata:
+    localFormat: "(829)586-3314"
+    geoInfo:
+      city: Durham, NC
+      country: USA
+      countryISOCode: US
+  spec:
+    trunkRef: trunk-02
+    location:
+      telUrl: tel:+18295863314
+      aorLink: sip:1001@sip.local
+- apiVersion: v2draft1
+  kind: Number
+  ref: number-04
+  metadata:
+    name: "(809)586-3314"
+    geoInfo:
+      city: Mobile Network
+      country: USA
+      countryISOCode: US
+  spec:
+    trunkRef: trunk-03
+    location:
+      telUrl: tel:+18095863314
+      aorLink: backend:voice
+- apiVersion: v2draft1
+  kind: Number
+  ref: number-05
+  metadata:
+    name: "(404)555-1212"
+    geoInfo:
+      city: Unknown
+      country: USA
+      countryISOCode: US
+  spec:
+    trunkRef: trunk-01
+    location:
+      telUrl: tel:+14045551212
+      aorLink: backend:voice

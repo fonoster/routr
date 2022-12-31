@@ -1,0 +1,13 @@
+- apiVersion: v2draft1
+  kind: AccessControlList
+  ref: acl-01
+  metadata:
+    name: Europe ACL
+  spec:
+    accessControlList:
+      deny:
+        - 0.0.0.0/1
+      allow:
+        - 192.168.1.3/31
+        - 127.0.0.1/8
+        - 10.111.221.22/31

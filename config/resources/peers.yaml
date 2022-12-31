@@ -1,0 +1,18 @@
+- apiVersion: v2draft1
+  kind: Peer
+  ref: peer-01
+  metadata:
+    name: Asterisk (Media Server)
+  spec:
+    aor: backend:conference
+    username: asterisk
+    credentialsRef: credentials-03
+- apiVersion: v2draft1
+  kind: Peer
+  ref: peer-02
+  metadata:
+    name: FS Voice Feature Server
+  spec:
+    aor: backend:voice
+    username: freeswitch
+    credentialsRef: credentials-05

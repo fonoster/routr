@@ -30,16 +30,9 @@ export const schema = {
       description: "Resource version",
       type: "string"
     },
-    metadata: {
-      description: "Resource metadata",
-      type: "object",
-      properties: {
-        ref: {
-          description: "EdgePort reference",
-          type: "string"
-        }
-      },
-      required: ["ref"]
+    ref: {
+      description: "EdgePort reference",
+      type: "string"
     },
     spec: {
       description: "Operations spec for EdgePort",
@@ -93,5 +86,5 @@ export const schema = {
       }
     }
   },
-  required: ["kind", "metadata", "spec", "apiVersion"]
+  required: ["kind", "ref", "spec", "apiVersion"]
 }

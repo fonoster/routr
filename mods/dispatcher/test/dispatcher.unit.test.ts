@@ -194,13 +194,13 @@ describe("@routr/dispatcher", () => {
   })
 
   it("gets configuration from file", (done) => {
-    const result = getConfig(__dirname + "/../../../config/dispatcher.json")
+    const result = getConfig(__dirname + "/../../../config/dispatcher.yaml")
     if (result._tag === "Right") {
       const config = result.right
       expect(config).to.have.property("bindAddr")
       expect(config.processors[0])
         .to.have.property("ref")
-        .to.be.equal("echo-processor")
+        .to.be.equal("connect-processor")
       done()
     } else {
       done(result.left)

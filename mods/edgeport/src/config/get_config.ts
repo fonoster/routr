@@ -18,17 +18,17 @@
  */
 import * as J from "fp-ts/Json"
 import * as E from "fp-ts/Either"
-import * as F from "./fs"
+import Ajv from "ajv"
 import { pipe } from "fp-ts/function"
 import { schema } from "./schema"
-import Ajv from "ajv"
+import { readConfigFile } from "./fs"
 
 const ajv = new Ajv()
 const validate = ajv.compile(schema)
 
-// Reads a file a returns as a string
+// TODO: Fix this unnecessary conversion to string
 export const readFile = (path: string): E.Either<Error, string> =>
-  E.tryCatch(() => F.readFile(path), E.toError)
+  E.tryCatch(() => JSON.stringify(readConfigFile(path)), E.toError)
 
 // Validate Json with Ajv
 export const validateConfig = (j: J.Json): E.Either<Error, J.Json> =>

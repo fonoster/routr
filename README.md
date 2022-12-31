@@ -45,9 +45,7 @@ Routr's main features are:
 - [x] No single point of failure
 - [x] Transport: TCP, UDP, TLS, WS, WSS
 - [x] In-memory and Redis Location Service 
-- [x] JSON files as a data source
-- [ ] YAML files as a data source
-- [ ] TOML files as a data source
+- [x] JSON and YAML files as a data source
 - [ ] Postgres as a data source
 - [x] Server management with the gRPC API
 - [ ] Server management with CLI and WebApp
@@ -69,78 +67,58 @@ Consider a situation where you want to deploy the server and send all PSTN traff
 
 First, you will start by creating a Peer configuration for your Asterisk server similar to the following one:
 
-```json
-{
-  "apiVersion": "v2draft1",
-  "kind": "Peer",
-  "ref": "peer-01",
-  "metadata": {
-    "name": "Asterisk (Media Server)"
-  },
-  "spec": {
-    "username": "asterisk",
-    "aor": "backend:conference",
-    "credentialsRef": "credentials-01",
-    "contactAddr": "192.168.1.2:6060"
-  }
-}
+```yaml
+apiVersion: v2draft1
+kind: Peer
+ref: peer-01
+metadata:
+  name: Asterisk (Media Server)
+spec:
+  aor: backend:conference
+  username: asterisk
+  credentialsRef: credentials-01
 ```
 
 Every Asterik server that registers using the `crd6t67r1` credentials will be grouped under the `backend:conference` Address of Record (AOR). Next, we need to tell Routr to map all inbound calls from given number to the conference room in Asterik. For that, we use the `aorLink` and `sessionAffinityHeader` on the desired Number. Here is an example: 
 
-```json
-{
-  "apiVersion": "v2draft1",
-  "kind": "Number",
-  "ref": "number-01",
-  "metadata": {
-    "name": "(706)604-1487",
-    "geoInfo": {
-      "city": "Columbus, GA",
-      "country": "USA",
-      "countryISOCode": "US"
-    }
-  },
-  "spec": {
-    "trunkRef": "trunk-01",
-    "location": {
-      "telUrl": "tel:+17066041487",
-      "aorLink": "backend:conference",
-      "sessionAffinityHeader": "X-Room-Id",
-      "extraHeaders": [{
-        "name": "X-Room-Id",
-        "value": "jsa-shqm-iyo"
-      }]
-    }
-  }
-}
+```yaml
+apiVersion: v2draft1
+kind: Number
+ref: number-01
+metadata:
+  name: "(706)604-1487"
+  geoInfo:
+    city: Columbus, GA
+    country: USA
+    countryISOCode: US
+spec:
+  trunkRef: trunk-01
+  location:
+    telUrl: tel:+17066041487
+    aorLink: backend:conference
+    sessionAffinityHeader: X-Room-Id
+    extraHeaders:
+      - name: X-Room-Id
+        value: jsa-shqm-iyo
 ```
 
 Finally, we configure the Location service to load-balance the traffic based on the `least-sessions` algorithm.
 
 > We need Session Affinity to ensure all calls for a given `X-Room-Id` go to the same Asterisk server.
 
-```json
-{
-  "kind": "Location",
-  "apiVersion": "v2draft1",
-  "metadata": {
-    "region": "us-east1"
-  },
-  "spec": {
-    "bindAddr": "0.0.0.0:51902",
-    "cache": {
-      "provider": "memory"
-    },
-    "backends": [
-      {
-        "ref": "conference",
-        "balancingAlgorithm": "least-sessions",
-        "withSessionAffinity": true
-      }
-    ]
-  }
-}
+```yaml
+kind: Location
+apiVersion: v2draft1
+metadata:
+  region: us-east1
+spec:
+  bindAddr: 0.0.0.0:51902
+  cache:
+    provider: memory
+  backends:
+    - ref: conference
+      balancingAlgorithm: least-sessions
+      withSessionAffinity: true
 ```
 
 The last scenario is just one of the many possible scenarios you can accomplish with Routr (v2). Please spend some time getting familiar with the [configuration files](https://github.com/fonoster/routr/blob/v2/CONNECT.md).
@@ -160,7 +138,7 @@ docker-compose up
 
 &#10123; Connect to Routr using Zoiper or another softphone
 
-In the `config/resources`, you will find the `domains.json` and `agents.json` files. Those files contain the configuration to run a simple local network with two SIP Agents (John and Jane).
+In the `config/resources`, you will find the `domains.yaml` and `agents.yaml` files. Those files contain the configuration to run a simple local network with two SIP Agents (John and Jane).
 
 ### Deploying in development mode with Gitpod
 
