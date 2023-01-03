@@ -20,7 +20,7 @@
     "make": "npm install && npm run bootstrap && npm run build && npm run setup",
     "bootstrap": "lerna bootstrap --no-ci --hoist",
     "setup": "./.scripts/setup.sh",
-    "test": "cross-env NODE_ENV=dev nyc mocha mods/*/test/*.unit.test.ts --exit",
+    "test": "cross-env NODE_ENV=dev mocha mods/*/test/*.unit.test.ts --exit",
     "test:integration": "cross-env NODE_ENV=dev nyc mocha mods/*/test/*.int.test.ts --exit",
     "test:graaljs": "cross-env NODE_ENV=dev nyc .scripts/mocha_wrapper.sh mods/**/graaljstest/*.unit.test.ts --exit",
     "test:java": "./gradlew test",
