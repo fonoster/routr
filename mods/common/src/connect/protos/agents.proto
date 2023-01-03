@@ -41,6 +41,11 @@ service Agents {
   rpc FindBy (FindByRequest) returns (FindByResponse) {}
 }
 
+enum Privacy {
+  PRIVATE = 0;
+  NONE = 1;
+}
+
 // The message for the Agent resource
 message Agent {
   // The API version of the Agent
@@ -52,7 +57,7 @@ message Agent {
   // The username of the Agent
   string username = 4;
   // The password of the Agent
-  string privacy = 5;
+  Privacy privacy = 5;
   // The enabled status of the Agent
   bool enabled = 6;
   // The created_at timestamp of the Agent
@@ -76,13 +81,13 @@ message CreateAgentRequest {
   // The username of the Agent
   string username = 3;
   // The password of the Agent
-  string privacy = 4;
+  Privacy privacy = 4;
   // The enabled status of the Agent
   bool enabled = 5;
   // The domain of the Agent
-  //fonoster.routr.connect.domains.v2draft1.Domain domain = 6;
+  fonoster.routr.connect.domains.v2draft1.Domain domain = 6;
   // The credentials of the Agent
-  // fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 7;
+  fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 7;
   // The extended attributes of the Agent
   .google.protobuf.Struct extended = 8;  
 }
@@ -98,7 +103,7 @@ message UpdateAgentRequest {
   // The username of the Agent
   string username = 4;
   // The privacy settings of the Agent
-  string privacy = 5;
+  Privacy privacy = 5;
   // The enabled status of the Agent
   bool enabled = 6;
   // The domain of the Agent

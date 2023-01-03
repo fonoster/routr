@@ -18,6 +18,7 @@
  */
 /* eslint-disable require-jsdoc */
 import { getLogger } from "@fonoster/logger"
+import { Privacy } from "../types"
 import { UserConfig } from "./config"
 import {
   AccessControlList,
@@ -76,7 +77,7 @@ export function convertAgentConfigToAgent(
     ref: config.ref,
     name: config.metadata.name,
     username: config.spec.username,
-    privacy: config.spec.privacy,
+    privacy: (config.spec.privacy?.toLowerCase() as Privacy) ?? Privacy.NONE,
     enabled: config.spec.enabled as boolean,
     domain: findByRef(config.spec.domainRef, list) as Domain,
     credentials: findByRef(config.spec.credentialsRef, list) as Credentials

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { JsonData, Transport } from "../types"
+import { JsonData, Privacy, Transport } from "../types"
 
 export enum Kind {
   AGENT = "agent",
@@ -61,7 +61,7 @@ export interface EgressPolicy {
 
 export interface Agent extends RoutrResourceBase {
   username: string
-  privacy: string
+  privacy: Privacy
   enabled: boolean
   domain?: Domain
   credentials?: Credentials

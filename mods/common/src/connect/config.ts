@@ -1,6 +1,3 @@
-import { Transport } from "../types"
-import { Kind } from "./types"
-
 /*
  * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
@@ -19,6 +16,9 @@ import { Kind } from "./types"
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Privacy, Transport } from "../types"
+import { Kind } from "./types"
+
 export interface ConfigBase {
   apiVersion: string
   ref: string
@@ -41,7 +41,7 @@ export interface AgentConfig extends ConfigBase {
     username: string
     domainRef: string
     credentialsRef: string
-    privacy: string
+    privacy: Privacy
     enabled: boolean
   }
 }
