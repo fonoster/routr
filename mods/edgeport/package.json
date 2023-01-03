@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@routr/common": "^2.0.8-alpha.15",
+    "ajv": "^8.11.2",
     "fp-ts": "^2.11.8",
     "js-yaml": "^4.1.0",
     "toml": "^3.0.0"

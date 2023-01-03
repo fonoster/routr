@@ -42,7 +42,7 @@ service Trunks {
 }
 
 // The message for the Trunk URIs
-message TrunkUri {
+message TrunkURI {
   // The host name or IP address of the Trunk
   string host = 1;
   // The port number of the Trunk
@@ -82,7 +82,7 @@ message Trunk {
   // The credentials to use when authenticating with the Provider
   fonoster.routr.connect.credentials.v2draft1.Credentials outbound_credentials = 10;
   // The list of URIs for the Trunk
-  repeated TrunkUri uris = 11;
+  repeated TrunkURI uris = 11;
   // The extended attributes of the Trunk
   .google.protobuf.Struct extended = 12;
 }
@@ -108,7 +108,7 @@ message CreateTrunkRequest {
   // The credentials to use when authenticating with the Provider
   fonoster.routr.connect.credentials.v2draft1.Credentials outbound_credentials = 9;
   // The list of URIs for the Trunk
-  repeated TrunkUri uris = 10;
+  repeated TrunkURI uris = 10;
   // The extended attributes of the Trunk
   .google.protobuf.Struct extended = 11;
 }
@@ -136,7 +136,7 @@ message UpdateTrunkRequest {
   // The credentials to use when authenticating with the Provider
   fonoster.routr.connect.credentials.v2draft1.Credentials outbound_credentials = 10;
   // The list of URIs for the Trunk
-  repeated TrunkUri uris = 11;
+  repeated TrunkURI uris = 11;
   // The extended attributes of the Trunk
   .google.protobuf.Struct extended = 12;
 }

@@ -89,10 +89,10 @@ export interface Trunk extends RoutrResourceBase {
   accessControlList?: AccessControlList
   inboundCredentials?: Credentials
   outboundCredentials?: Credentials
-  uris: TrunkUri[]
+  uris: TrunkURI[]
 }
 
-export interface TrunkUri {
+export interface TrunkURI {
   host: string
   port: number
   transport: Transport
