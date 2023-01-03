@@ -47,7 +47,7 @@ export default function simpleDataService(config: SimpleDataConfig): void {
   ]
 
   kinds.forEach((kind) => {
-    const resources: CC.RoutrResourceUnion[] = loadResources(
+    const resources: CC.ConnectModel[] = loadResources(
       config.pathToResources,
       kind
     )

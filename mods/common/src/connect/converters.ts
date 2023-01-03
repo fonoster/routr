@@ -28,13 +28,12 @@ import {
   INumber,
   Kind,
   Peer,
-  RoutrResourceUnion,
   Trunk
 } from "./types"
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
 
-const findByRef = (ref: string, list: UserConfig[]): RoutrResourceUnion => {
+const findByRef = (ref: string, list: UserConfig[]) => {
   const resource = list.find((r) => r.ref === ref)
   if (ref != null && resource == null) {
     logger.error(

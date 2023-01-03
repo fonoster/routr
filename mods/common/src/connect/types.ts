@@ -34,7 +34,7 @@ export enum APIVersion {
   V2 = "v2"
 }
 
-export interface RoutrResourceBase {
+export interface BaseConnectModel {
   apiVersion: string
   ref: string
   name: string
@@ -43,12 +43,12 @@ export interface RoutrResourceBase {
   extended?: JsonData
 }
 
-export interface AccessControlList extends RoutrResourceBase {
+export interface AccessControlList extends BaseConnectModel {
   allow: string[]
   deny: string[]
 }
 
-export interface Domain extends RoutrResourceBase {
+export interface Domain extends BaseConnectModel {
   domainUri: string
   accessControlList: AccessControlList
   egressPolicies: EgressPolicy[]
@@ -59,7 +59,7 @@ export interface EgressPolicy {
   rule: string
 }
 
-export interface Agent extends RoutrResourceBase {
+export interface Agent extends BaseConnectModel {
   username: string
   privacy: Privacy
   enabled: boolean
@@ -67,12 +67,12 @@ export interface Agent extends RoutrResourceBase {
   credentials?: Credentials
 }
 
-export interface Credentials extends RoutrResourceBase {
+export interface Credentials extends BaseConnectModel {
   username: string
   password: string
 }
 
-export interface INumber extends RoutrResourceBase {
+export interface INumber extends BaseConnectModel {
   telUrl: string
   aorLink: string
   city: string
@@ -83,7 +83,7 @@ export interface INumber extends RoutrResourceBase {
   trunk?: Trunk
 }
 
-export interface Trunk extends RoutrResourceBase {
+export interface Trunk extends BaseConnectModel {
   sendRegister: boolean
   inboundUri: string
   accessControlList?: AccessControlList
@@ -102,7 +102,7 @@ export interface TrunkURI {
   enabled: boolean
 }
 
-export interface Peer extends RoutrResourceBase {
+export interface Peer extends BaseConnectModel {
   username: string
   aor: string
   contactAddr: string
@@ -111,7 +111,7 @@ export interface Peer extends RoutrResourceBase {
   credentials?: Credentials
 }
 
-export type RoutrResourceUnion =
+export type ConnectModel =
   | Agent
   | Peer
   | INumber

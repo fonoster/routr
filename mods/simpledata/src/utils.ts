@@ -51,7 +51,7 @@ const checkReferences = (resources: CC.UserConfig[]) => {
 export default function loadResources(
   resourcesPath: string,
   kind?: CC.Kind
-): CC.RoutrResourceUnion[] {
+): CC.ConnectModel[] {
   const all: CC.UserConfig[] = []
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const files = require("fs").readdirSync(resourcesPath)
@@ -96,7 +96,7 @@ export default function loadResources(
   checkReferences(all)
 
   // Convert to Resource
-  const allMapToResources: CC.RoutrResourceUnion[] = all
+  const allMapToResources: CC.ConnectModel[] = all
     .filter((r) => !kind || r.kind.toLowerCase() == kind.toLowerCase())
     .map((r) => CC.getConverter(r.kind)(r, all))
 

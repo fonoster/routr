@@ -26,10 +26,10 @@ const jsonToStruct = protobufUtil.struct.encode
 /**
  * Enclosure with method to obtain a resource by reference.
  *
- * @param {CC.RoutrResourceUnion[]} resources - the resources to search from
+ * @param {CC.ConnectModel[]} resources - the resources to search from
  * @return {Function } enclosed method with actual "get" logic
  */
-export function get(resources: CC.RoutrResourceUnion[]) {
+export function get(resources: CC.ConnectModel[]) {
   return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (resources == null || resources.length === 0) {
       return callback(new CE.ResourceNotFoundError(call.request.ref), null)
@@ -56,10 +56,10 @@ export function get(resources: CC.RoutrResourceUnion[]) {
 /**
  * Enclosure with method to obtain a resource with a query.
  *
- * @param {CC.RoutrResourceUnion[]} resources - the resources to search from
+ * @param {CC.ConnectModel[]} resources - the resources to search from
  * @return {Function} enclosed method with actual "findBy" logic
  */
-export function findBy(resources: CC.RoutrResourceUnion[]) {
+export function findBy(resources: CC.ConnectModel[]) {
   return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (resources.length === 0) {
       return callback(new CE.ResourceNotFoundError(""), null)
@@ -68,11 +68,11 @@ export function findBy(resources: CC.RoutrResourceUnion[]) {
     const { request } = call
     const queryResult = resources.filter(
       (r) =>
-        `${r[request.fieldName as keyof CC.RoutrResourceUnion]}` ===
+        `${r[request.fieldName as keyof CC.ConnectModel]}` ===
         `${request.fieldValue}`
     )
 
-    queryResult.forEach((resource: CC.RoutrResourceUnion) => {
+    queryResult.forEach((resource: CC.ConnectModel) => {
       // Serialize to protobuf
       if (resource.extended)
         resource.extended = jsonToStruct(resource.extended as any) as any

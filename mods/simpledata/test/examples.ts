@@ -18,7 +18,7 @@
  */
 import { CommonConnect as CC } from "@routr/common"
 
-export const configs: CC.RoutrResourceUnion[] = [
+export const configs: CC.ConnectModel[] = [
   {
     apiVersion: "v2draft1",
     ref: "credentials-01",
