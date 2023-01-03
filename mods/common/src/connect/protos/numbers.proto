@@ -98,46 +98,36 @@ message CreateNumberRequest {
   string session_affinity_header = 8;
   // Extra headers to send to the trunk
   repeated ExtraHeader extra_headers = 9;
-  // The date when the Number was created
-  int32 created_at = 10;
-  // The date when the Number was last updated
-  int32 updated_at = 11;
-  // The trunk this number is associated with
-  fonoster.routr.connect.trunks.v2draft1.Trunk trunk = 12;
+  // Reference to the trunk this number is associated with
+  string trunk_ref = 10;
   // The extended attributes of the Number
-  .google.protobuf.Struct extended = 13;
+  .google.protobuf.Struct extended = 11;
 }
 
 // The request message for Numbers.Update
 message UpdateNumberRequest {
-  // The version of the Number
-  string api_version = 1;
   // The unique identifier of the Number
-  string ref = 2;
+  string ref = 1;
   // The name of the Number
-  string name = 3;
+  string name = 2;
   // The tel_url of the Number
-  string tel_url = 4;
+  string tel_url = 3;
   // The aor_link of the Number
-  string aor_link = 5;
+  string aor_link = 4;
   // The city of the Number
-  string city = 6;
+  string city = 5;
   // The country of the Number
-  string country = 7;
+  string country = 6;
   // The country_iso_code of the Number
-  string country_iso_code = 8;
+  string country_iso_code = 7;
   // The header to use for session affinity
-  string session_affinity_header = 9;
+  string session_affinity_header = 8;
   // Extra headers to send to the trunk
-  repeated ExtraHeader extra_headers = 10;
-  // The date when the Number was created
-  int32 created_at = 11;
-  // The date when the Number was last updated
-  int32 updated_at = 12;
-  // The trunk this number is associated with
-  fonoster.routr.connect.trunks.v2draft1.Trunk trunk = 13;
+  repeated ExtraHeader extra_headers = 9;
+  // Reference to the trunk this number is associated with
+  string trunk_ref = 10;
   // The extended attributes of the Number
-  .google.protobuf.Struct extended = 14;
+  .google.protobuf.Struct extended = 11;
 }
 
 // The request message for Numbers.Get

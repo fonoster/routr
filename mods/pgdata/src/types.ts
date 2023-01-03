@@ -16,6 +16,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CommonConnect as CC } from "@routr/common"
+import { JsonObject } from "pb-util/build"
+
 export interface PostgresDataConfig {
   bindAddr: string
 }
+
+export type DBDelegate =
+  | Exclude<Exclude<CC.Kind, CC.Kind.UNKNOWN>, CC.Kind.ACL>
+  | "accessControlList"
+
+export type PrismaOperation = (request: {
+  where: {
+    ref: string
+  }
+  include?: JsonObject
+}) => unknown
+
+export type PrismaFindByOperation = (request: {
+  where: {
+    [key: string]: boolean | string | number
+  }
+  include?: JsonObject
+}) => unknown
+
+export type PrismaListOperation = (request: {
+  take: number
+  skip: number
+  cursor: {
+    ref: string
+  }
+  orderBy: JsonObject
+  include?: JsonObject
+}) => unknown
+
+export type PrismaCreateOperation = (request: {
+  data: any
+  include?: JsonObject
+}) => unknown
+
+export type PrismaUpdateOperation = (request: {
+  where: {
+    ref: string
+  }
+  data: any
+  include?: JsonObject
+}) => unknown

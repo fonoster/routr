@@ -23,7 +23,7 @@ export default {
   type: "object",
   properties: {
     apiVersion: {
-      enum: ["v2draft1", "v2.0", "v2"]
+      enum: ["v2draft1", "v2"]
     },
     kind: {
       enum: ["Trunk", "trunk"]
@@ -38,7 +38,9 @@ export default {
       properties: {
         name: {
           description: "Resource's friendly name",
-          type: "string"
+          type: "string",
+          minLength: 3,
+          maxLength: 64
         }
       },
       required: ["name"]
@@ -53,7 +55,8 @@ export default {
           properties: {
             uri: {
               description: "URI of the inbound endpoint",
-              type: "string"
+              type: "string",
+              maxLength: 255
             },
             accessControlListRef: {
               description:
@@ -101,7 +104,20 @@ export default {
                       },
                       transport: {
                         description: "Transport of the URI",
-                        enum: ["tcp", "sctp", "udp", "tls", "ws", "wss"]
+                        enum: [
+                          "TCP",
+                          "SCTP",
+                          "UDP",
+                          "TLS",
+                          "WS",
+                          "WSS",
+                          "tcp",
+                          "sctp",
+                          "udp",
+                          "tls",
+                          "ws",
+                          "wss"
+                        ]
                       },
                       user: {
                         description: "Username of the URI",

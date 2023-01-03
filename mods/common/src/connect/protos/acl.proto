@@ -20,6 +20,7 @@ syntax = "proto3";
 
 package fonoster.routr.connect.acl.v2draft1;
 
+import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
 
 // AccessControlList(ACL) service definition
@@ -52,40 +53,34 @@ message AccessControlList {
   int32 created_at = 6;
   // The date the ACL was last updated
   int32 updated_at = 7;
+  // The extended attributes of the ACL
+  .google.protobuf.Struct extended = 8;
 }
 
 // The request message for the AccessControlList.Create method
 message CreateACLRequest {
-  // The version of the API
-  string api_version = 1;
   // A friendly name for the ACL
   string name = 2;
   // The list of allowed IP addresses
   repeated string allow = 3;
   // The list of denied IP addresses
   repeated string deny = 4;
-  // The date the ACL was created
-  int32 created_at = 5;
-  // The date the ACL was last updated
-  int32 updated_at = 6;
+  // The extended attributes of the ACL
+  .google.protobuf.Struct extended = 5;  
 }
 
 // The request message for the AccessControlList.Update method
 message UpdateACLRequest {
-  // The version of the API
-  string api_version = 1;
   // The ACL reference
-  string ref = 2;
+  string ref = 1;
   // A friendly name for the ACL
-  string name = 3;
+  string name = 2;
   // The list of allowed IP addresses
-  repeated string allow = 4;
+  repeated string allow = 3;
   // The list of denied IP addresses
-  repeated string deny = 5;
-  // The date the ACL was created
-  int32 created_at = 6;
-  // The date the ACL was last updated
-  int32 updated_at = 7;
+  repeated string deny = 4;
+  // The extended attributes of the ACL
+  .google.protobuf.Struct extended = 5;
 } 
 
 // The request message for the AccessControlList.Get method

@@ -81,7 +81,7 @@ export function createRouteFromLastMessage(request: MessageRequest): Route {
     user: uri.user,
     host: uri.host,
     port: uri.port,
-    transport: uri.transportParam.toLowerCase() as Transport,
+    transport: uri.transportParam?.toUpperCase() as Transport,
     registeredOn: Date.now(),
     sessionCount,
     expires: T.getTargetExpires(request),

@@ -38,6 +38,7 @@ describe("@routr/simpledata/api", () => {
         done()
       }
       const callbackSpy = sandbox.spy(callback)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       get(null as any)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
     })

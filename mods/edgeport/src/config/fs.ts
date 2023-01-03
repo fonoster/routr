@@ -19,6 +19,7 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: any
 import * as yaml from "js-yaml"
+import { JsonObject } from "pb-util/build"
 import * as toml from "toml"
 
 const JFile = Java.type("java.io.File")
@@ -52,7 +53,7 @@ export const isFile = (path: string) => new JFile(path).isFile()
  * @throws {Error} If the file is not readable.
  * @throws {Error} If the file is empty.
  */
-export const readConfigFile = (path: string): Record<string, any> => {
+export const readConfigFile = (path: string): JsonObject => {
   if (!exists(path) || !isFile(path)) {
     throw new Error(`config file ${path} does not exist`)
   }
@@ -60,7 +61,7 @@ export const readConfigFile = (path: string): Record<string, any> => {
   const content = readFile(path)
 
   try {
-    return yaml.load(content)
+    return yaml.load(content) as JsonObject
   } catch (e) {
     // Ignore
   }

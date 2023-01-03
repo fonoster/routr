@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
- * http://github.com/fonoster/routr
+ * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster
  *
- * This file is part of Routr
+ * This file is part of Routr.
  *
  * Licensed under the MIT License (the "License");
  * you may not use this file except in compliance with
@@ -16,14 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonTypes as CT, CommonErrors as CE } from "@routr/common"
+import { JsonObject } from "pb-util/build"
 
-/**
- * Returns UnimplementedError via callback.
- *
- * @param {GrpcCall} call - the grpc request
- * @param {GrpcCallback} callback - the grpc callback
- */
-export function nyi(call: CT.GrpcCall, callback: CT.GrpcCallback) {
-  callback(new CE.UnimplementedError())
+/* eslint-disable require-jsdoc */
+export abstract class EntityManager {
+  static includeFields: () => JsonObject
+  abstract validOrThrowCreate(): void
+  abstract validOrThrowUpdate(): void
+  // abstract mapToPrisma<T>(): T
 }

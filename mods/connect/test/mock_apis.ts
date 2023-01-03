@@ -21,12 +21,16 @@ import { r1 } from "./examples"
 import loadResources from "../../simpledata/src/utils"
 import jp from "jsonpath"
 import { ILocationService } from "@routr/location"
-import { FindByResponse, Kind } from "@routr/common/dist/connect"
+import {
+  FindByResponse,
+  Kind,
+  KindWithoutUnknown
+} from "@routr/common/dist/connect"
 
 export const serviceAPI = <T>(kind: Kind): CC.ServiceAPI<T> => {
   const filteredResources = loadResources(
     __dirname + "/../../../config/resources",
-    kind
+    kind as KindWithoutUnknown
   )
 
   return {

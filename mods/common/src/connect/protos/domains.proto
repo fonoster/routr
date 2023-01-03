@@ -45,8 +45,10 @@ service Domains {
 message EgressPolicy {
   // The pattern to match
   string rule = 1;
+  // Reference to the number to use for egress
+  string number_ref = 2;
   // The egress Number
-  fonoster.routr.connect.numbers.v2draft1.Number number = 2;
+  fonoster.routr.connect.numbers.v2draft1.Number number = 3;
 }
 
 // The message for the Domain resource
@@ -73,36 +75,32 @@ message Domain {
 
 // The request message for Domains.Create
 message CreateDomainRequest {
-  // The API version of the Domain
-  string api_version = 1;
   // The name of the Domain
-  string name = 2;
+  string name = 1;
   // The domain_uri of the Domain
-  string domain_uri = 3;
-  // The list of IP addresses that are allowed to access the Domain
-  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 4;
+  string domain_uri = 2;
+  // Reference to the ACL to use for this Domain
+  string access_control_list_ref = 3;
   // The egress_policy of the Domain
-  repeated EgressPolicy egress_policies = 5;
+  repeated EgressPolicy egress_policies = 4;
   // The extended attributes of the Domain
-  .google.protobuf.Struct extended = 6;
+  .google.protobuf.Struct extended = 5;
 }
 
 // The request message for Domains.Update
 message UpdateDomainRequest {
-  // The API version of the Domain
-  string api_version = 1;
   // The unique identifier of the Domain
-  string ref = 2;
+  string ref = 1;
   // The name of the Domain
-  string name = 3;
+  string name = 2;
   // The domain_uri of the Domain
-  string domain_uri = 4;
-  // The list of IP addresses that are allowed to access the Domain
-  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 5;
+  string domain_uri = 3;
+  // Reference to the ACL to use for this Domain
+  string access_control_list_ref = 4;
   // The egress_policy of the Domain
-  repeated EgressPolicy egress_policies = 6;
+  repeated EgressPolicy egress_policies = 5;
   // The extended attributes of the Domain
-  .google.protobuf.Struct extended = 7;
+  .google.protobuf.Struct extended = 6;
 }
 
 // The request message for Domains.Get

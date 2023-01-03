@@ -39,12 +39,12 @@ export enum Method {
 }
 
 export enum Transport {
-  TCP = "tcp",
-  UDP = "udp",
-  TLS = "tls",
-  SCTP = "sctp",
-  WS = "ws",
-  WSS = "wss"
+  TCP = "TCP",
+  UDP = "UDP",
+  TLS = "TLS",
+  SCTP = "SCTP",
+  WS = "WS",
+  WSS = "WSS"
 }
 
 export enum ExtraHeader {
@@ -57,23 +57,15 @@ export enum ExtraHeader {
 }
 
 export enum Privacy {
-  NONE = "none",
-  PRIVATE = "id"
+  NONE = "NONE",
+  PRIVATE = "ID"
 }
 
-export enum AuthorizationAlgorithm {
-  MD5 = "MD5"
-}
+export type AuthorizationAlgorithm = "MD5"
 
-export enum AuthorizationScheme {
-  DIGEST = "Digest"
-}
+export type AuthorizationScheme = "Digest"
 
-export enum Qop {
-  AUTH = "auth",
-  AUTH_INT = "auth-int",
-  NONE = ""
-}
+export type Qop = "auth" | "auth-int" | ""
 
 export interface NetInterface {
   host: string
@@ -301,7 +293,7 @@ export interface SipURI {
   user?: string
   host: string
   port?: number
-  transportParam: string
+  transportParam: Transport
   mAddrParam?: string
   userParam?: string
   ttlParam?: number

@@ -51,9 +51,9 @@ export interface PeerConfig extends ConfigBase {
   spec: {
     aor: string
     username: string
-    credentialsRef: string
-    contactAddr: string
-    enabled: boolean
+    credentialsRef?: string
+    contactAddr?: string
+    enabled?: boolean
   }
 }
 
@@ -70,10 +70,10 @@ export interface CredentialsConfig extends ConfigBase {
 export interface DomainConfig extends ConfigBase {
   kind: Kind.DOMAIN
   spec: {
-    accessControlListRef: string
+    accessControlListRef?: string
     context: {
       domainUri: string
-      egressPolicies: { rule: string; numberRef: string }[]
+      egressPolicies?: { rule: string; numberRef: string }[]
     }
   }
 }

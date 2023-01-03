@@ -21,9 +21,10 @@ import {
   CommonConnect as CC,
   CommonTypes as CT,
   CommonErrors as CE,
-  ConnectSchemas as CS,
   Helper as H
 } from "@routr/common"
+import { readdirSync } from "fs"
+import { getLoader } from "./loaders"
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
 
@@ -50,18 +51,16 @@ const checkReferences = (resources: CC.UserConfig[]) => {
  */
 export default function loadResources(
   resourcesPath: string,
-  kind?: CC.Kind
+  kind?: CC.KindWithoutUnknown
 ): CC.ConnectModel[] {
   const all: CC.UserConfig[] = []
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const files = require("fs").readdirSync(resourcesPath)
+  const files = readdirSync(resourcesPath)
 
-  files.forEach((file: File) => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+  files.forEach((file: string) => {
     const resources = H.readConfigFile(`${resourcesPath}/${file}`)
 
     resources.forEach((resource: CC.UserConfig) => {
-      resource.kind = resource.kind.toLowerCase() as any
+      resource.kind = resource.kind.toLowerCase() as CC.KindWithoutUnknown
 
       // Assert the reference has no spaces
       if (resource.ref.includes(" ")) {
@@ -71,24 +70,7 @@ export default function loadResources(
         process.exit(1)
       }
 
-      // Check if is valid using jsonschema
-      const validate = CS.schemaValidators.get(resource.kind.toLowerCase())
-
-      if (!validate) {
-        logger.error(`unable to find validator for ${resource.kind}; exiting`)
-        process.exit(1)
-      }
-
-      if (validate(resource)) {
-        all.push(resource)
-      } else {
-        logger.error(
-          "found a bad resource: " +
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            JSON.stringify((validate as any).errors[0].message)
-        )
-        process.exit(1)
-      }
+      all.push(resource)
     })
   })
 
@@ -98,7 +80,7 @@ export default function loadResources(
   // Convert to Resource
   const allMapToResources: CC.ConnectModel[] = all
     .filter((r) => !kind || r.kind.toLowerCase() == kind.toLowerCase())
-    .map((r) => CC.getConverter(r.kind)(r, all))
+    .map((r) => getLoader(r.kind)(r, all))
 
   logger.verbose("loaded data resources", { total: allMapToResources.length })
   return allMapToResources

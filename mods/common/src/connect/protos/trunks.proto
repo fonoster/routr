@@ -97,20 +97,16 @@ message CreateTrunkRequest {
   bool send_register = 3;
   // The URI for inbound requests
   string inbound_uri = 4;
-  // The date and time when the Trunk was created
-  int32 created_at = 5;
-  // The date and time when the Trunk was last updated
-  int32 updated_at = 6;
-  // The list of IP addresses that are allowed to access the Trunks
-  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 7;
-  // The credentials to use when authenticating with the Trunk
-  fonoster.routr.connect.credentials.v2draft1.Credentials inbound_credentials = 8;
-  // The credentials to use when authenticating with the Provider
-  fonoster.routr.connect.credentials.v2draft1.Credentials outbound_credentials = 9;
+  // Reference to the AccessControlList
+  string access_control_list_ref = 5;
+  // Reference to the inbound Credentials
+  string inbound_credentials_ref = 6;
+  // Reference to the outbound Credentials
+  string outbound_credentials_ref = 7;
   // The list of URIs for the Trunk
-  repeated TrunkURI uris = 10;
+  repeated TrunkURI uris = 8;
   // The extended attributes of the Trunk
-  .google.protobuf.Struct extended = 11;
+  .google.protobuf.Struct extended = 9;
 }
 
 // The message for the Trunk.Update
@@ -125,20 +121,16 @@ message UpdateTrunkRequest {
   bool send_register = 4;
   // The URI for inbound requests
   string inbound_uri = 5;
-  // The date and time when the Trunk was created
-  int32 created_at = 6;
-  // The date and time when the Trunk was last updated
-  int32 updated_at = 7;
-  // // The list of IP addresses that are allowed to access the Trunks
-  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 8;
-  // The credentials to use when authenticating with the Trunk
-  fonoster.routr.connect.credentials.v2draft1.Credentials inbound_credentials = 9;
-  // The credentials to use when authenticating with the Provider
-  fonoster.routr.connect.credentials.v2draft1.Credentials outbound_credentials = 10;
+  // Reference to the AccessControlList
+  string access_control_list_ref = 6;
+  // Reference to the inbound Credentials
+  string inbound_credentials_ref = 7;
+  // Reference to the outbound Credentials
+  string outbound_credentials_ref = 8;
   // The list of URIs for the Trunk
-  repeated TrunkURI uris = 11;
+  repeated TrunkURI uris = 9;
   // The extended attributes of the Trunk
-  .google.protobuf.Struct extended = 12;
+  .google.protobuf.Struct extended = 10;
 }
 
 // The message for the Trunk.Get

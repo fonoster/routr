@@ -20,7 +20,7 @@
 import * as grpc from "@grpc/grpc-js"
 import protoLoader = require("@grpc/proto-loader")
 import { toPascaleCase } from "../helper"
-import { Kind } from "./types"
+import { Kind, KindWithoutUnknown } from "./types"
 
 const protoOptions = {
   keepCase: false,
@@ -68,7 +68,7 @@ export function createClient(options: {
   }
 }
 
-export function createService(kind: Kind) {
+export function createService(kind: KindWithoutUnknown) {
   const def = protoLoader.loadSync(getProtoPath(kind), protoOptions)
   const descriptor = grpc.loadPackageDefinition(def) as any
   const base = descriptor.fonoster.routr.connect

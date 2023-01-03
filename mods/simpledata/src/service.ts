@@ -49,10 +49,10 @@ export default function simpleDataService(config: SimpleDataConfig): void {
   kinds.forEach((kind) => {
     const resources: CC.ConnectModel[] = loadResources(
       config.pathToResources,
-      kind
+      kind as CC.KindWithoutUnknown
     )
 
-    server.addService(CC.createService(kind), {
+    server.addService(CC.createService(kind as CC.KindWithoutUnknown), {
       get: get(resources),
       findBy: findBy(resources),
       delete: nyi,

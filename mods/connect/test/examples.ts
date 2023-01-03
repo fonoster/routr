@@ -23,11 +23,6 @@ import {
   Transport,
   CommonTypes as CT
 } from "@routr/common"
-import {
-  AuthorizationAlgorithm,
-  AuthorizationScheme,
-  Qop
-} from "@routr/common/dist/types"
 
 // Route to Agent 1001
 export const r1: Route = {
@@ -218,7 +213,7 @@ export const createRequest = (createRequestObj: {
               user: "",
               userPassword: "",
               host: "127.0.0.1",
-              transportParam: "",
+              transportParam: Transport.TCP,
               mAddrParam: "",
               methodParam: "",
               userParam: "",
@@ -240,7 +235,7 @@ export const createRequest = (createRequestObj: {
               user: "",
               userPassword: "",
               host: "10.100.42.127",
-              transportParam: "",
+              transportParam: Transport.TCP,
               mAddrParam: "",
               methodParam: "",
               userParam: "",
@@ -260,7 +255,7 @@ export const createRequest = (createRequestObj: {
               user: "",
               userPassword: "",
               host: "10.100.42.128",
-              transportParam: "",
+              transportParam: Transport.TCP,
               mAddrParam: "",
               methodParam: "",
               userParam: "",
@@ -276,15 +271,15 @@ export const createRequest = (createRequestObj: {
       ],
       authorization: {
         realm: "sip.local",
-        scheme: AuthorizationScheme.DIGEST,
+        scheme: "Digest",
         cNonce: "7314861c4c17b0ea43311cce5eae2506",
         nonce: "b5a3226fa1899b33872e953643e0bca9",
-        algorithm: AuthorizationAlgorithm.MD5,
-        qop: Qop.NONE,
+        algorithm: "MD5",
+        qop: "",
         opaque: "",
-        response: "17483289ac848e302b070cc797bf75b3",
+        response: "c4b79a63227ae7a6980018c3543fc3d0",
         username: "1001",
-        uri: "sip:1002@sip.local;transport=" + Transport.TCP,
+        uri: `sip:1002@sip.local;transport=${Transport.TCP}`,
         nonceCount: 13
       },
       requestUri: {

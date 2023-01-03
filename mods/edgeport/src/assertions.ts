@@ -48,12 +48,19 @@ export const assertNoDuplicatedProto = (transports: Array<Transport>) => {
 // The only protocol that can accept the same port twice are udp and tcp
 export const assertNoDuplicatedPort = (transports: Array<Transport>) => {
   const duplicateCondition = (t1: Transport, t2: Transport) =>
-    t1.port === t2.port && t1.protocol !== "udp" && t1.protocol !== "tcp"
+    t1.port === t2.port && t1.protocol !== "UDP" && t1.protocol !== "TCP"
 
   if (
-    transports.some(
-      (t1) => transports.filter((t2) => duplicateCondition(t1, t2)).length > 1
-    )
+    transports
+      .map((t) => {
+        return {
+          port: t.port,
+          protocol: t.protocol.toUpperCase()
+        }
+      })
+      .some(
+        (t1) => transports.filter((t2) => duplicateCondition(t1, t2)).length > 1
+      )
   ) {
     throw new Error(
       "found the same port on more that one entry at .spec.transport"

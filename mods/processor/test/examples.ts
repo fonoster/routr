@@ -23,12 +23,7 @@ import {
   Transport,
   CommonTypes as CT
 } from "@routr/common"
-import {
-  AuthorizationAlgorithm,
-  AuthorizationScheme,
-  MessageType,
-  Qop
-} from "@routr/common/dist/types"
+import { MessageType } from "@routr/common/dist/types"
 
 export const route: Route = {
   user: "1001",
@@ -279,13 +274,13 @@ export const request: MessageRequest = {
     ],
     authorization: {
       realm: "sip.local",
-      scheme: AuthorizationScheme.DIGEST,
+      scheme: "Digest",
       cNonce: "acbcc60094edde23f49b01e18bafd34e",
       nonce: "b8fe2321cf489ac475c80c6e5cfa1c22",
-      algorithm: AuthorizationAlgorithm.MD5,
-      qop: Qop.NONE,
+      algorithm: "MD5",
+      qop: "",
       opaque: "",
-      response: "2977dc1addd5eeffc6eeded71dc86bf4",
+      response: "227fe247ff0b9fa4fcf2706b587bf995",
       username: "1001",
       uri: `sip:sip.local;transport=${Transport.TCP}`,
       nonceCount: 13

@@ -27,7 +27,7 @@ export const schema = {
       type: "string"
     },
     apiVersion: {
-      enum: ["v2draft1", "v2.0", "v2"]
+      enum: ["v2draft1", "v2"]
     },
     ref: {
       description: "EdgePort reference",

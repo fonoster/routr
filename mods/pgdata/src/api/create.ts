@@ -16,24 +16,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as protobufUtil from "pb-util"
-import { PrismaClient } from "@prisma/client"
-import { CommonTypes as CT } from "@routr/common"
+/* eslint-disable require-jsdoc */
+import { JsonObject, struct } from "pb-util"
+import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
+import { BadRequestError } from "@routr/common/src/errors"
+import { PrismaCreateOperation } from "../types"
+import { getManager } from "../mappers/utils"
 
-const jsonToStruct = protobufUtil.struct.encode
-const structToJson = protobufUtil.struct.decode
-
-// eslint-disable-next-line require-jsdoc
-export function create(prisma: PrismaClient) {
+export function create(
+  operation: PrismaCreateOperation,
+  kind: CC.KindWithoutUnknown
+) {
   return async (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
-    const { request } = call
+    try {
+      const { request } = call
 
-    if (request.extended) {
-      request.extended = structToJson(request.extended)
+      if (request.extended) {
+        request.extended = struct.decode(request.extended)
+      }
+
+      const Manager = getManager(kind)
+      const manager = new Manager(request as any)
+
+      manager.validOrThrowCreate()
+
+      const objFromDB = (await operation({
+        data: manager.mapToPrisma(),
+        include: Manager.includeFields()
+      })) as { extended: unknown }
+
+      if (objFromDB.extended) {
+        objFromDB.extended = struct.encode(objFromDB.extended as JsonObject)
+      }
+
+      callback(null, objFromDB)
+    } catch (e) {
+      if (e.code === "P2002") {
+        callback(
+          new BadRequestError(
+            "entity already exist for field: " + e.meta.target[0]
+          ),
+          null
+        )
+      } else if (e.code === "P2003") {
+        callback(
+          new BadRequestError(
+            "dependent entity doesn't exist for: " + e.meta.field_name
+          ),
+          null
+        )
+      } else {
+        callback(e, null)
+      }
     }
-
-    if (request.extended) request.extended = jsonToStruct(request.extended)
-
-    callback(null, request)
   }
 }

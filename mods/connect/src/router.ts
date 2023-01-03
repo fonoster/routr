@@ -187,7 +187,7 @@ async function agentToPSTN(
     user: uri.user,
     host: uri.host,
     port: uri.port,
-    transport: uri.transport,
+    transport: uri.transport?.toUpperCase() as CT.Transport,
     edgePortRef: req.edgePortRef,
     listeningPoints: req.listeningPoints,
     localnets: req.localnets,
@@ -201,7 +201,7 @@ async function agentToPSTN(
       {
         name: "Privacy",
         value:
-          agent.privacy?.toLowerCase() === CT.Privacy.PRIVATE
+          agent.privacy?.toUpperCase() === CT.Privacy.PRIVATE
             ? CT.Privacy.PRIVATE
             : CT.Privacy.NONE,
         action: CT.HeaderModifierAction.ADD

@@ -23,7 +23,7 @@ export default {
   type: "object",
   properties: {
     apiVersion: {
-      enum: ["v2draft1", "v2.0", "v2"]
+      enum: ["v2draft1", "v2"]
     },
     kind: {
       enum: ["Peer", "peer"]
@@ -38,7 +38,9 @@ export default {
       properties: {
         name: {
           description: "Resource's friendly name",
-          type: "string"
+          type: "string",
+          minLength: 3,
+          maxLength: 64
         }
       },
       required: ["name"]
@@ -51,7 +53,7 @@ export default {
           description: "The username for the Peer",
           type: "string",
           minLength: 3,
-          maxLength: 60,
+          maxLength: 64,
           readOnly: true
         },
         aor: {

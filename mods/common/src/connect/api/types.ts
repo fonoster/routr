@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
-import { JsonData } from "../../types"
+import { JsonObject } from "pb-util/build"
 import {
   AccessControlList,
   Agent,
@@ -69,9 +69,9 @@ export type APIClient = {
   numbers: ServiceAPI<INumber>
 }
 
-export type ServiceAPI<R extends { extended?: JsonData }> = {
-  create: (request: JsonData) => Promise<R>
-  update: (request: JsonData) => Promise<R>
+export type ServiceAPI<R extends { extended?: JsonObject }> = {
+  create: (request: JsonObject) => Promise<R>
+  update: (request: JsonObject) => Promise<R>
   get: (ref: string) => Promise<R>
   del: (ref: string) => Promise<void>
   list: (request: {

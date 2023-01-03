@@ -16,12 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as protobufUtil from "pb-util"
+import { JsonObject, struct } from "pb-util"
 import { CommonTypes as CT } from "@routr/common"
 import { CommonConnect as CC, CommonErrors as CE } from "@routr/common"
 import { Helper as H } from "@routr/common"
-
-const jsonToStruct = protobufUtil.struct.encode
 
 /**
  * Enclosure with method to obtain a resource by reference.
@@ -41,11 +39,12 @@ export function get(resources: CC.ConnectModel[]) {
 
     const resource = H.deepCopy(
       resources.find((r) => r.ref === call.request.ref)
-    )
+    ) as { extended: unknown }
 
     // Serialize to protobuf
-    if (resource?.extended)
-      resource.extended = jsonToStruct(resource.extended as any) as any
+    if (resource?.extended) {
+      resource.extended = struct.encode(resource.extended as JsonObject)
+    }
 
     resource
       ? callback(null, resource)
@@ -72,10 +71,11 @@ export function findBy(resources: CC.ConnectModel[]) {
         `${request.fieldValue}`
     )
 
-    queryResult.forEach((resource: CC.ConnectModel) => {
+    queryResult.forEach((resource: { extended?: unknown }) => {
       // Serialize to protobuf
-      if (resource.extended)
-        resource.extended = jsonToStruct(resource.extended as any) as any
+      if (resource.extended) {
+        resource.extended = struct.encode(resource.extended as JsonObject)
+      }
       return resource
     })
 

@@ -17,13 +17,16 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
-import { PostgresDataConfig } from "./types"
+import { DBDelegate, PostgresDataConfig } from "./types"
 import { CommonConnect as CC } from "@routr/common"
-import { nyi } from "./utils"
 import { getLogger } from "@fonoster/logger"
-import { get } from "./api"
-import { create } from "./api/create"
 import { PrismaClient } from "@prisma/client"
+import { create } from "./api/create"
+import { update } from "./api/update"
+import { get } from "./api/get"
+import { del } from "./api/delete"
+import { findBy } from "./api/find"
+import { list } from "./api/list"
 
 const prisma = new PrismaClient()
 const logger = getLogger({ service: "pgdata", filePath: __filename })
@@ -38,13 +41,27 @@ export default function pgDataService(config: PostgresDataConfig): void {
   logger.info("starting routr service", { bindAddr, name: "pgdata" })
   const server = new grpc.Server()
 
-  server.addService(CC.createService(CC.Kind.AGENT), {
-    get: get,
-    findBy: nyi,
-    delete: nyi,
-    update: nyi,
-    create: create(prisma),
-    list: nyi
+  const kinds = [
+    CC.Kind.AGENT,
+    CC.Kind.CREDENTIALS,
+    CC.Kind.NUMBER,
+    CC.Kind.TRUNK,
+    CC.Kind.PEER,
+    CC.Kind.DOMAIN,
+    "accessControlList"
+  ]
+
+  kinds.forEach((kind) => {
+    const k = kind.toLowerCase() as CC.KindWithoutUnknown
+    const delegate = prisma[kind as DBDelegate]
+    server.addService(CC.createService(k), {
+      create: create(delegate.create, k),
+      get: get(delegate.findUnique, k),
+      findBy: findBy(delegate.findMany, k),
+      delete: del(delegate.delete),
+      update: update(delegate.update, k),
+      list: list(delegate.findMany, k)
+    })
   })
 
   server.bindAsync(

@@ -16,24 +16,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PrismaClient } from "@prisma/client"
-import { CommonTypes as CT, CommonErrors as CE } from "@routr/common"
+/* eslint-disable require-jsdoc */
+import { CommonTypes as CT } from "@routr/common"
+import { BadRequestError } from "@routr/common/src/errors"
+import { PrismaOperation } from "../types"
 
-const prisma = new PrismaClient()
-
-// eslint-disable-next-line require-jsdoc
-export async function get(call: CT.GrpcCall, callback: CT.GrpcCallback) {
-  if (!call.request.ref) {
-    return callback(new CE.BadRequestError("parameter ref is required"), null)
-  }
-
-  const resource = (await prisma.agent.findUnique({
-    where: {
-      ref: call.request.ref
+export function del(operation: PrismaOperation) {
+  return async (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
+    if (!call.request.ref) {
+      return callback(new BadRequestError("parameter ref is required"), null)
     }
-  })) as any
 
-  resource
-    ? callback(null, resource)
-    : callback(new CE.ResourceNotFoundError(call.request.ref), null)
+    try {
+      await operation({
+        where: {
+          ref: call.request.ref
+        }
+      })
+    } catch (e) {
+      // Ignore
+    }
+
+    callback(null, {})
+  }
 }

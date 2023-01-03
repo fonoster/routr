@@ -232,7 +232,7 @@ export const removeSelfRoutes = (request: MessageRequest): MessageRequest => {
   req.message.route = req.message.route.filter((r: CommonTypes.RouteHeader) => {
     const lp = H.getListeningPoint(
       request.listeningPoints,
-      (r.address.uri.transportParam?.toLowerCase() as Transport) ||
+      (r.address.uri.transportParam?.toUpperCase() as Transport) ||
         Transport.UDP
     )
 

@@ -37,7 +37,7 @@ model Peer {
   name                 String     @db.VarChar(60)
   username             String     @unique @db.VarChar(60)
   aor                  String     @db.VarChar(255)
-  contactAddr          String     @map("contact_addr") @db.VarChar(255)
+  contactAddr          String?    @map("contact_addr") @db.VarChar(255)
   enabled              Boolean    @default(true)
   createdAt            DateTime   @default(now()) @map("created_at")
   updatedAt            DateTime   @updatedAt @map("updated_at")
@@ -115,7 +115,7 @@ model Number {
 
   // Relations
   trunk        Trunk?         @relation(fields: [trunkRef], references: [ref], onDelete: SetNull)
-  EgressPolicy EgressPolicy[]
+  egressPolicy EgressPolicy[]
 
   // Indexes and maps
   @@index([telUrl], type: Hash)
@@ -128,6 +128,7 @@ model AccessControlList {
   name       String     @db.VarChar(60)
   allow      String[]   @db.VarChar(60)
   deny       String[]   @db.VarChar(60)
+  extended   Json?
 
   // Relations
   domain Domain[]
@@ -152,8 +153,8 @@ model Credentials {
   Peer                Peer[]
   Agent               Agent[]
 
-  @@index([username], type: Hash)
   // Indexes and maps
+  @@index([username], type: Hash)
   @@map("credentials")
 }
 
@@ -191,13 +192,12 @@ model TrunkURI {
 }
 
 enum Privacy {
-  NONE
-  PRIVATE
+  NONE @map("NONE")
+  PRIVATE @map("ID")
 }
 
 enum APIVersion {
   v2draft1
-  v2_0     @map("v2.0")
   v2
 
   @@map("api_version")
@@ -206,6 +206,7 @@ enum APIVersion {
 enum Transport {
   UDP
   TCP
+  SCTP
   TLS
   WS
   WSS

@@ -74,44 +74,40 @@ message Agent {
 
 // The request message for the Agents.Create method
 message CreateAgentRequest {
-  // The API version of the Agent
-  string api_version = 1;
   // The name of the Agent
-  string name = 2;
+  string name = 1;
   // The username of the Agent
-  string username = 3;
+  string username = 2;
   // The password of the Agent
-  Privacy privacy = 4;
+  Privacy privacy = 3;
   // The enabled status of the Agent
-  bool enabled = 5;
-  // The domain of the Agent
-  fonoster.routr.connect.domains.v2draft1.Domain domain = 6;
-  // The credentials of the Agent
-  fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 7;
+  bool enabled = 4;
+  // Reference to the Domain of the Agent
+  string domain_ref = 5;
+  // Reference to the Credentials of the Agent
+  string credentials_ref = 6;
   // The extended attributes of the Agent
-  .google.protobuf.Struct extended = 8;  
+  .google.protobuf.Struct extended = 7;  
 }
 
 // The request message for the Agents.Update method
 message UpdateAgentRequest {
-  // The API version of the Agent
-  string api_version = 1;
   // The unique identifier of the Agent
-  string ref = 2;
+  string ref = 1;
   // The name of the Agent
-  string name = 3;
+  string name = 2;
   // The username of the Agent
-  string username = 4;
+  string username = 3;
   // The privacy settings of the Agent
-  Privacy privacy = 5;
+  Privacy privacy = 4;
   // The enabled status of the Agent
-  bool enabled = 6;
-  // The domain of the Agent
-  fonoster.routr.connect.domains.v2draft1.Domain domain = 7;
-  // The credentials of the Agent
-  fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 8;
+  bool enabled = 5;
+  // Reference to the Domain of the Agent
+  string domain_ref = 6;
+  // Reference to the Credentials of the Agent
+  string credentials_ref = 7;
   // The extended attributes of the Agent
-  .google.protobuf.Struct extended = 9;
+  .google.protobuf.Struct extended = 8;
 }
 
 // The request message for the Agents.Get method

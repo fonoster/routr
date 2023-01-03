@@ -29,7 +29,9 @@ const validate = ajv.compile(schema)
 export const getConfig = (
   path: string
 ): E.Either<Error, MessageDispatcherConfig> => {
-  const c = H.readConfigFile(path) as Record<string, any>
+  const c = H.readConfigFile(path) as unknown as {
+    spec: MessageDispatcherConfig
+  }
 
   if (!validate({ ...c })) {
     return E.left(new Error(JSON.stringify(validate.errors[0].message)))

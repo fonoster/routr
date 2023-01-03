@@ -59,9 +59,9 @@ export const getListeningPoint = (
 ) => {
   const listeningPoint = transport
     ? listeningPoints.find(
-        (lp) => lp.transport.toLowerCase() === transport.toLowerCase()
+        (lp) => lp.transport.toUpperCase() === transport.toUpperCase()
       )
-    : listeningPoints.find((lp) => lp.transport.toLowerCase() === Transport.UDP)
+    : listeningPoints.find((lp) => lp.transport.toUpperCase() === Transport.UDP)
 
   if (!listeningPoint) {
     throw new Error(`no listening point found for transport ${transport}`)

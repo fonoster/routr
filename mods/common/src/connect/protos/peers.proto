@@ -71,8 +71,28 @@ message Peer {
 
 // The request message for the Peers.Create method
 message CreatePeerRequest  {
-  // The API version of the Peer
-  string api_version = 1;
+  // The name of the Peer
+  string name = 1;
+  // The username of the Peer
+  string username = 2;
+  // The address of record of the Peer
+  string aor = 3;
+  // The contact address of the Peer
+  string contact_addr = 4;
+  // The status of the Peer
+  bool enabled = 5;
+  // Reference to the ACL of the Peer
+  string access_control_list_ref = 6;
+  // Reference to the Credentials of the Peer
+  string credentials_ref = 7;
+  // The extended attributes of the Peer
+  .google.protobuf.Struct extended = 8;
+}
+
+// The request message for the Peers.Update method
+message UpdatePeerRequest {
+  // The unique identifier of the Peer
+  string ref = 1;
   // The name of the Peer
   string name = 2;
   // The username of the Peer
@@ -83,44 +103,12 @@ message CreatePeerRequest  {
   string contact_addr = 5;
   // The status of the Peer
   bool enabled = 6;
-  // The date and time when the Peer was created
-  int32 created_at = 7;
-  // The date and time when the Peer was last updated
-  int32 updated_at = 8;
-  //The list of IP addresses that are allowed to access the Peer
-  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 9;
-  // The credentials of the Peer
-  fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 10;
+  // Reference to the ACL of the Peer
+  string access_control_list_ref = 7;
+  // Reference to the Credentials of the Peer
+  string credentials_ref = 8;
   // The extended attributes of the Peer
-  .google.protobuf.Struct extended = 11;
-}
-
-// The request message for the Peers.Update method
-message UpdatePeerRequest {
-  // The API version of the Peer
-  string api_version = 1;
-  // The unique identifier of the Peer
-  string ref = 2;
-  // The name of the Peer
-  string name = 3;
-  // The username of the Peer
-  string username = 4;
-  // The address of record of the Peer
-  string aor = 5;
-  // The contact address of the Peer
-  string contact_addr = 6;
-  // The status of the Peer
-  bool enabled = 7;
-  // The date and time when the Peer was created
-  int32 created_at = 8;
-  // The date and time when the Peer was last updated
-  int32 updated_at = 9;
-  // The list of IP addresses that are allowed to access the Peer
-  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 10;
-  // The credentials of the Peer
-  fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 11;
-  // The extended attributes of the Peer
-  .google.protobuf.Struct extended = 12;
+  .google.protobuf.Struct extended = 9;
 }
 
 // The request message for the Peers.Get method

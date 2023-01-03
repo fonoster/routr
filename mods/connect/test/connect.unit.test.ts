@@ -164,7 +164,7 @@ describe("@routr/connect", () => {
     })
     const reqWithUpdatedAuth = Helper.deepCopy(req)
     reqWithUpdatedAuth.message.authorization.response =
-      "c72e79e7f8af73a880fa4ad0bf4da2ac"
+      "09f30fe20face5e168ca7dafcbf154c0"
 
     const route = await router(locationAPI, apiClient)(reqWithUpdatedAuth)
 

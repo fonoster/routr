@@ -18,9 +18,8 @@
  */
 /* eslint-disable require-jsdoc */
 import * as grpc from "@grpc/grpc-js"
-import * as protobufUtil from "pb-util"
+import { JsonObject, struct } from "pb-util"
 import { ServiceUnavailableError } from "../../errors"
-import { JsonData } from "../../types"
 import { createClient } from "../grpc_client"
 import { Kind } from "../types"
 import {
@@ -33,9 +32,6 @@ import {
   ServiceAPI,
   ServiceAPIOptions
 } from "./types"
-
-const jsonToStruct = protobufUtil.struct.encode
-const structToJson = protobufUtil.struct.decode
 
 type GrpcError = { code: number }
 
@@ -72,12 +68,12 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
   })
 
   return {
-    create: <R extends { extended?: JsonData }>(request: JsonData) =>
+    create: <R extends { extended?: JsonObject }>(request: JsonObject) =>
       new Promise<R>((resolve, reject) => {
         if (request.extended) {
-          request.extended = jsonToStruct(
-            request.extended as Omit<JsonData, string>
-          )
+          request.extended = struct.encode(
+            request.extended as JsonObject
+          ) as JsonObject
         }
 
         client.create(request, (err: GrpcError, response: R) => {
@@ -86,19 +82,19 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
           }
 
           if (response.extended) {
-            response.extended = structToJson(response.extended)
+            response.extended = struct.decode(response.extended)
           }
 
           resolve(response)
         })
       }),
 
-    update: <R extends { extended?: JsonData }>(request: JsonData) =>
+    update: <R extends { extended?: JsonObject }>(request: JsonObject) =>
       new Promise<R>((resolve, reject) => {
         if (request.extended) {
-          request.extended = jsonToStruct(
-            request.extended as Omit<JsonData, string>
-          )
+          request.extended = struct.encode(
+            request.extended as JsonObject
+          ) as JsonObject
         }
 
         client.update(request, (err: GrpcError, response: R) => {
@@ -107,14 +103,14 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
           }
 
           if (response.extended) {
-            response.extended = structToJson(response.extended)
+            response.extended = struct.decode(response.extended)
           }
 
           resolve(response)
         })
       }),
 
-    get: <R extends { extended?: JsonData }>(ref: string) =>
+    get: <R extends { extended?: JsonObject }>(ref: string) =>
       new Promise<R>((resolve, reject) => {
         client.get({ ref }, (err: GrpcError, response: R) => {
           if (err) {
@@ -122,23 +118,23 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
           }
 
           if (response.extended) {
-            response.extended = structToJson(response.extended)
+            response.extended = struct.decode(response.extended)
           }
 
           resolve(response)
         })
       }),
 
-    list: <R extends { extended?: JsonData }>(request: ListRequest) =>
+    list: <R extends { extended?: JsonObject }>(request: ListRequest) =>
       new Promise<ListResponse<R>>((resolve, reject) => {
         client.list(request, (err: GrpcError, response: ListResponse<R>) => {
           if (err) {
             return reject(fire(err, apiAddr))
           }
 
-          response.items.forEach((item: { extended?: JsonData }) => {
+          response.items.forEach((item: { extended?: JsonObject }) => {
             if (item.extended) {
-              item.extended = structToJson(item.extended)
+              item.extended = struct.decode(item.extended)
             }
           })
 
@@ -158,9 +154,9 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
               return reject(fire(err, apiAddr))
             }
 
-            response.items.forEach((item: { extended?: JsonData }) => {
+            response.items.forEach((item: { extended?: JsonObject }) => {
               if (item.extended) {
-                item.extended = structToJson(item.extended)
+                item.extended = struct.decode(item.extended)
               }
             })
 

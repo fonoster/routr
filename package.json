@@ -15,7 +15,7 @@
     "start:requester": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./mods/requester/requester.sh",
     "db:up": "docker-compose -f docker-compose.dev.yml up -d",
     "db:down": "docker-compose -f docker-compose.dev.yml down",
-    "db:migrate": "npx prisma migrate dev --schema ./mods/pgdata/schema.prisma --name init --preview-feature",
+    "db:migrate": "npx prisma migrate dev --schema ./mods/pgdata/schema.prisma --name changeit --preview-feature",
     "transpile": "tsc",
     "make": "npm install && npm run bootstrap && npm run build && npm run setup",
     "bootstrap": "lerna bootstrap --no-ci --hoist",

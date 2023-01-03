@@ -16,7 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { JsonData, Privacy, Transport } from "../types"
+import { JsonObject } from "pb-util/build"
+import { Privacy, Transport } from "../types"
 
 export enum Kind {
   AGENT = "agent",
@@ -29,6 +30,8 @@ export enum Kind {
   ACL = "accesscontrollist"
 }
 
+export type KindWithoutUnknown = Exclude<Kind, Kind.UNKNOWN>
+
 export enum APIVersion {
   V2DRAFT1 = "v2draft1",
   V2 = "v2"
@@ -40,7 +43,7 @@ export interface BaseConnectModel {
   name: string
   createdAt?: Date
   updatedAt?: Date
-  extended?: JsonData
+  extended?: JsonObject
 }
 
 export interface AccessControlList extends BaseConnectModel {
@@ -50,12 +53,14 @@ export interface AccessControlList extends BaseConnectModel {
 
 export interface Domain extends BaseConnectModel {
   domainUri: string
-  accessControlList: AccessControlList
-  egressPolicies: EgressPolicy[]
+  accessControlListRef?: string
+  accessControlList?: AccessControlList
+  egressPolicies?: EgressPolicy[]
 }
 
 export interface EgressPolicy {
-  number: INumber
+  numberRef: string
+  number?: INumber
   rule: string
 }
 
@@ -63,7 +68,9 @@ export interface Agent extends BaseConnectModel {
   username: string
   privacy: Privacy
   enabled: boolean
+  domainRef?: string
   domain?: Domain
+  credentialsRef?: string
   credentials?: Credentials
 }
 
@@ -77,17 +84,21 @@ export interface INumber extends BaseConnectModel {
   aorLink: string
   city: string
   country: string
-  countryIsoCode: string
+  countryISOCode: string
   sessionAffinityHeader: string
   extraHeaders: { name: string; value: string }[]
+  trunkRef?: string
   trunk?: Trunk
 }
 
 export interface Trunk extends BaseConnectModel {
   sendRegister: boolean
   inboundUri: string
+  accessControlListRef?: string
   accessControlList?: AccessControlList
+  inboundCredentialsRef?: string
   inboundCredentials?: Credentials
+  outboundCredentialsRef?: string
   outboundCredentials?: Credentials
   uris: TrunkURI[]
 }
@@ -107,7 +118,9 @@ export interface Peer extends BaseConnectModel {
   aor: string
   contactAddr: string
   enabled: boolean
+  accessControlListRef?: string
   accessControlList?: AccessControlList
+  credentialsRef?: string
   credentials?: Credentials
 }
 

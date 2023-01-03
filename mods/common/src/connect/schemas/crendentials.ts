@@ -23,7 +23,7 @@ export default {
   type: "object",
   properties: {
     apiVersion: {
-      enum: ["v2draft1", "v2.0", "v2"]
+      enum: ["v2draft1", "v2"]
     },
     kind: {
       enum: ["Credentials", "credentials"]
@@ -38,7 +38,9 @@ export default {
       properties: {
         name: {
           description: "Resource's friendly name",
-          type: "string"
+          type: "string",
+          minLength: 3,
+          maxLength: 64
         }
       },
       required: ["name"]
@@ -54,7 +56,9 @@ export default {
             username: {
               description: "Username",
               type: "string",
-              readOnly: true
+              readOnly: true,
+              minLength: 3,
+              maxLength: 64
             },
             password: {
               description: "Password",
