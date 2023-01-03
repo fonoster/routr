@@ -44,7 +44,7 @@ export function getUnregisteredTrunks(store: IRegistryStore) {
 // eslint-disable-next-line require-jsdoc
 export async function findTrunks(apiClient: CC.APIClient) {
   return (
-    await apiClient.trunks.findBy<CC.Trunk>({
+    await apiClient.trunks.findBy({
       fieldName: "sendRegister",
       fieldValue: "true"
     })

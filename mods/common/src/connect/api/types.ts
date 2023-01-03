@@ -18,7 +18,16 @@
  */
 import * as grpc from "@grpc/grpc-js"
 import { JsonData } from "../../types"
-import { Kind } from "../types"
+import {
+  AccessControlList,
+  Agent,
+  Credentials,
+  Domain,
+  INumber,
+  Kind,
+  Peer,
+  Trunk
+} from "../types"
 
 export interface DataAPIOptions {
   apiAddr: string
@@ -51,23 +60,23 @@ export interface FindByResponse<R> {
 }
 
 export type APIClient = {
-  agents: ServiceAPI
-  domains: ServiceAPI
-  trunks: ServiceAPI
-  credentials: ServiceAPI
-  acl: ServiceAPI
-  peers: ServiceAPI
-  numbers: ServiceAPI
+  agents: ServiceAPI<Agent>
+  domains: ServiceAPI<Domain>
+  trunks: ServiceAPI<Trunk>
+  credentials: ServiceAPI<Credentials>
+  acl: ServiceAPI<AccessControlList>
+  peers: ServiceAPI<Peer>
+  numbers: ServiceAPI<INumber>
 }
 
-export type ServiceAPI = {
-  create: <R extends { extended?: JsonData }>(request: JsonData) => Promise<R>
-  update: <R extends { extended?: JsonData }>(request: JsonData) => Promise<R>
-  get: <R extends { extended?: JsonData }>(ref: string) => Promise<R>
+export type ServiceAPI<R extends { extended?: JsonData }> = {
+  create: (request: JsonData) => Promise<R>
+  update: (request: JsonData) => Promise<R>
+  get: (ref: string) => Promise<R>
   del: (ref: string) => Promise<void>
-  list: <R extends { extended?: JsonData }>(request: {
+  list: (request: {
     pageSize: number
     pageToken: string
   }) => Promise<ListResponse<R>>
-  findBy: <R>(request: FindByRequest) => Promise<FindByResponse<R>>
+  findBy: (request: FindByRequest) => Promise<FindByResponse<R>>
 }

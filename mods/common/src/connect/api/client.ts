@@ -62,7 +62,7 @@ export function apiClient(options: DataAPIOptions): APIClient {
   }
 }
 
-export function serviceAPI(options: ServiceAPIOptions): ServiceAPI {
+export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
   const { kind, apiAddr, credentials } = options
 
   const client = createClient({

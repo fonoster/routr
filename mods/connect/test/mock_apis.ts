@@ -23,36 +23,36 @@ import jp from "jsonpath"
 import { ILocationService } from "@routr/location"
 import { FindByResponse, Kind } from "@routr/common/dist/connect"
 
-export const serviceAPI = (kind: Kind): CC.ServiceAPI => {
+export const serviceAPI = <T>(kind: Kind): CC.ServiceAPI<T> => {
   const filteredResources = loadResources(
     __dirname + "/../../../config/resources",
     kind
   )
 
   return {
-    get: <R>(ref: string): Promise<R> =>
+    get: (ref: string): Promise<T> =>
       Promise.resolve(
         jp.query(filteredResources, `$..[?(@.ref=="${ref}")]`)[0]
       ),
 
-    findBy: <R>(request: CC.FindByRequest): Promise<FindByResponse<R>> =>
+    findBy: (request: CC.FindByRequest): Promise<FindByResponse<T>> =>
       Promise.resolve({
         items: jp.query(
           filteredResources,
           `$..[?(@.${request.fieldName}=="${request.fieldValue}")]`
         )
       })
-  } as unknown as CC.ServiceAPI
+  } as unknown as CC.ServiceAPI<T>
 }
 
 export const apiClient: CC.APIClient = {
-  trunks: serviceAPI(Kind.TRUNK),
-  domains: serviceAPI(Kind.DOMAIN),
-  numbers: serviceAPI(Kind.NUMBER),
-  acl: serviceAPI(Kind.ACL),
-  agents: serviceAPI(Kind.AGENT),
-  credentials: serviceAPI(Kind.CREDENTIALS),
-  peers: serviceAPI(Kind.PEER)
+  trunks: serviceAPI<CC.Trunk>(Kind.TRUNK),
+  domains: serviceAPI<CC.Domain>(Kind.DOMAIN),
+  numbers: serviceAPI<CC.INumber>(Kind.NUMBER),
+  acl: serviceAPI<CC.AccessControlList>(Kind.ACL),
+  agents: serviceAPI<CC.Agent>(Kind.AGENT),
+  credentials: serviceAPI<CC.Credentials>(Kind.CREDENTIALS),
+  peers: serviceAPI<CC.Peer>(Kind.PEER)
 }
 
 export const locationAPI = {

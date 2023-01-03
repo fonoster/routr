@@ -45,7 +45,7 @@ export const findDomain = async (
   domainUri: string
 ) => {
   return (
-    await apiClient.domains.findBy<CC.Domain>({
+    await apiClient.domains.findBy({
       fieldName: "domainUri",
       fieldValue: domainUri
     })
@@ -57,7 +57,7 @@ export const findNumberByTelUrl = async (
   telUrl: string
 ) => {
   return (
-    await apiClient.numbers.findBy<CC.INumber>({
+    await apiClient.numbers.findBy({
       fieldName: "telUrl",
       fieldValue: telUrl
     })
@@ -78,7 +78,7 @@ export const findResource = async (
 
   // Next, try to find an agent
   const agent = (
-    await apiClient.agents.findBy<CC.Agent>({
+    await apiClient.agents.findBy({
       fieldName: "username",
       fieldValue: userpart
     })
@@ -93,7 +93,7 @@ export const findResource = async (
 
   // Next, try to find a peer
   return (
-    await apiClient.peers.findBy<CC.Peer>({
+    await apiClient.peers.findBy({
       fieldName: "username",
       fieldValue: userpart
     })

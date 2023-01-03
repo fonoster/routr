@@ -82,7 +82,7 @@ export const checkAccessFromPSTN = async (
 ) => {
   // Get the Trunk associated with the SIP URI
   const trunk = (
-    await apiClient.trunks.findBy<CC.Trunk>({
+    await apiClient.trunks.findBy({
       fieldName: "inboundUri",
       fieldValue: request.message.requestUri.host
     })

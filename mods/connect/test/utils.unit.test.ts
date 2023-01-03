@@ -26,7 +26,7 @@ import {
   createRemotePartyId,
   createTrunkAuthentication
 } from "../src/utils"
-import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
+import { CommonTypes as CT } from "@routr/common"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -40,9 +40,9 @@ describe("@routr/connect/utils", () => {
   it("creates a new p-asserted-identity header", async () => {
     // eslint-disable-next-line prettier/prettier
     const number = (
-      await apiClient.numbers.findBy<CC.INumber>({ fieldName: "telUrl", fieldValue: "tel:+17066041487" })
+      await apiClient.numbers.findBy({ fieldName: "telUrl", fieldValue: "tel:+17066041487" })
     ).items[0]
-    const trunk = await apiClient.trunks.get<CC.Trunk>(number.trunk?.ref || "")
+    const trunk = await apiClient.trunks.get(number.trunk?.ref || "")
     const headerModifier = createPAssertedIdentity(request, trunk, number)
     expect(headerModifier).to.have.property("action", CT.HeaderModifierAction.ADD)
     expect(headerModifier).to.have.property("name", "P-Asserted-Identity")
@@ -55,9 +55,9 @@ describe("@routr/connect/utils", () => {
   it("creates a new remote-party-id header", async () => {
     // eslint-disable-next-line prettier/prettier
     const number = (
-      await apiClient.numbers.findBy<CC.INumber>({ fieldName: "telUrl", fieldValue: "tel:+17066041487" })
+      await apiClient.numbers.findBy({ fieldName: "telUrl", fieldValue: "tel:+17066041487" })
     ).items[0]
-    const trunk = await apiClient.trunks.get<CC.Trunk>(number.trunk?.ref as string)
+    const trunk = await apiClient.trunks.get(number.trunk?.ref as string)
     const headerModifier = createRemotePartyId(trunk, number)
     expect(headerModifier).to.have.property("action", CT.HeaderModifierAction.ADD)
     expect(headerModifier).to.have.property("name", "Remote-Party-ID")
@@ -68,7 +68,7 @@ describe("@routr/connect/utils", () => {
   })
 
   it("creates a new x-gateway-auth header", async () => {
-    const trunk = await apiClient.trunks.get<CC.Trunk>("trunk-01")
+    const trunk = await apiClient.trunks.get("trunk-01")
     const headerModifier = await createTrunkAuthentication(trunk)
     expect(headerModifier).to.have.property("action", CT.HeaderModifierAction.ADD)
     expect(headerModifier).to.have.property("name", CT.ExtraHeader.GATEWAY_AUTH)

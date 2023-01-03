@@ -36,7 +36,7 @@
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
     "@routr/common": "^2.0.8-alpha.16",
-    "ajv": "^8.11.2",
+    "ajv": "^6.12.6",
     "fp-ts": "^2.11.8"
   },
   "repository": {
