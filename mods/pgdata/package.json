@@ -1,6 +1,6 @@
 {
   "name": "@routr/pgdata",
-  "version": "2.0.8-alpha.14",
+  "version": "2.0.8-alpha.15",
   "description": "Postgres API Server for Routr Connect",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -30,8 +30,8 @@
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
     "@prisma/client": "^4.8.0",
-    "@routr/common": "^2.0.8-alpha.14",
-    "@routr/processor": "^2.0.8-alpha.14",
+    "@routr/common": "^2.0.8-alpha.15",
+    "@routr/processor": "^2.0.8-alpha.15",
     "google-protobuf": "^3.9.2",
     "pb-util": "^1.0.3"
   },
