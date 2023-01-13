@@ -41,6 +41,13 @@ service Peers {
   rpc FindBy (FindByRequest) returns (FindByResponse) {}
 }
 
+enum LoadBalancingAlgorithm {
+  // The round robin load balancing algorithm
+  ROUND_ROBIN = 0;
+  // The least sessions load balancing algorithm
+  LEAST_SESSIONS = 1;
+}
+
 // The message for the Peer resource
 message Peer {
   // The API version of the Peer
@@ -55,18 +62,22 @@ message Peer {
   string aor = 5;
   // The contact address of the Peer
   string contact_addr = 6;
+  // The load balancing algorithm of the Peer
+  LoadBalancingAlgorithm load_balancing_algorithm = 7;
+  // The session affinity of the Peer
+  bool with_session_affinity = 8;
   // The status of the Peer
-  bool enabled = 7;
+  bool enabled = 9;
   // The date and time when the Peer was created
-  int32 created_at = 8;
+  int32 created_at = 10;
   // The date and time when the Peer was last updated
-  int32 updated_at = 9;
+  int32 updated_at = 11;
   // The list of IP addresses that are allowed to access the Peer
-  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 10;
+  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 12;
   // The credentials of the Peer
-  fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 11;
+  fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 13;
   // The extended attributes of the Peer
-  .google.protobuf.Struct extended = 12;
+  .google.protobuf.Struct extended = 14;
 }
 
 // The request message for the Peers.Create method
@@ -79,14 +90,18 @@ message CreatePeerRequest  {
   string aor = 3;
   // The contact address of the Peer
   string contact_addr = 4;
-  // The status of the Peer
-  bool enabled = 5;
+  // The load balancing algorithm of the Peer
+  LoadBalancingAlgorithm load_balancing_algorithm = 5;
+  // The session affinity of the Peer
+  bool with_session_affinity = 6;
   // Reference to the ACL of the Peer
-  string access_control_list_ref = 6;
+  string access_control_list_ref = 7;
   // Reference to the Credentials of the Peer
-  string credentials_ref = 7;
+  string credentials_ref = 8;
+  // The status of the Peer
+  bool enabled = 9;
   // The extended attributes of the Peer
-  .google.protobuf.Struct extended = 8;
+  .google.protobuf.Struct extended = 10;
 }
 
 // The request message for the Peers.Update method
@@ -101,14 +116,18 @@ message UpdatePeerRequest {
   string aor = 4;
   // The contact address of the Peer
   string contact_addr = 5;
-  // The status of the Peer
-  bool enabled = 6;
+  // The load balancing algorithm of the Peer
+  LoadBalancingAlgorithm load_balancing_algorithm = 6;
+  // The session affinity of the Peer
+  bool with_session_affinity = 7;
   // Reference to the ACL of the Peer
-  string access_control_list_ref = 7;
+  string access_control_list_ref = 8;
   // Reference to the Credentials of the Peer
-  string credentials_ref = 8;
+  string credentials_ref = 9;
+  // The status of the Peer
+  bool enabled = 10;
   // The extended attributes of the Peer
-  .google.protobuf.Struct extended = 9;
+  .google.protobuf.Struct extended = 11;
 }
 
 // The request message for the Peers.Get method

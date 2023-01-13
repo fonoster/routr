@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Privacy, Transport } from "../types"
+import { LoadBalancingAlgorithm, Privacy, Transport } from "../types"
 import { Kind } from "./types"
 
 export interface ConfigBase {
@@ -54,6 +54,10 @@ export interface PeerConfig extends ConfigBase {
     credentialsRef?: string
     contactAddr?: string
     enabled?: boolean
+    loadBalancing?: {
+      algorithm: LoadBalancingAlgorithm
+      withSessionAffinity: boolean
+    }
   }
 }
 

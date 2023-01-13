@@ -47,6 +47,11 @@ export enum Transport {
   WSS = "WSS"
 }
 
+export enum LoadBalancingAlgorithm {
+  ROUND_ROBIN = "ROUND-ROBIN",
+  LEAST_SESSIONS = "LEAST-SESSIONS"
+}
+
 export enum ExtraHeader {
   REQUEST_URI = "X-Request-Uri",
   GATEWAY_AUTH = "X-Gateway-Auth",
@@ -148,8 +153,8 @@ export interface AuthChallengeResponse {
 }
 
 export enum HeaderModifierAction {
-  ADD = "add",
-  REMOVE = "remove"
+  ADD,
+  REMOVE
 }
 
 export interface HeaderModifier {

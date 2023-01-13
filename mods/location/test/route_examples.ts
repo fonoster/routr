@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import { Route, Transport } from "@routr/common"
-import { Backend, LoadBalancingAlgorithm } from "../src/types"
 
 export const simpleRoute01: Route = {
   user: "1001",
@@ -221,21 +220,3 @@ export const conferenceWithExpiredRoute: Route = {
   localnets: [],
   externalAddrs: []
 }
-
-export const backends = new Map<string, Backend>()
-
-backends.set("backend:voice_rr", {
-  ref: "voice_rr",
-  balancingAlgorithm: LoadBalancingAlgorithm.ROUND_ROBIN
-})
-
-backends.set("backend:voice_ls", {
-  ref: "voice-least-sessions",
-  balancingAlgorithm: LoadBalancingAlgorithm.LEAST_SESSIONS
-})
-
-backends.set("backend:conference", {
-  ref: "conference-with-session-affinity",
-  balancingAlgorithm: LoadBalancingAlgorithm.LEAST_SESSIONS,
-  withSessionAffinity: true
-})

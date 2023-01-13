@@ -30,17 +30,19 @@ model Agent {
 }
 
 model Peer {
-  apiVersion           APIVersion @map("api_version")
-  ref                  String     @id @default(uuid())
-  credentialsRef       String?    @map("credentials_ref")
-  accessControlListRef String?    @map("acl_ref")
-  name                 String     @db.VarChar(60)
-  username             String     @unique @db.VarChar(60)
-  aor                  String     @db.VarChar(255)
-  contactAddr          String?    @map("contact_addr") @db.VarChar(255)
-  enabled              Boolean    @default(true)
-  createdAt            DateTime   @default(now()) @map("created_at")
-  updatedAt            DateTime   @updatedAt @map("updated_at")
+  apiVersion           APIVersion              @map("api_version")
+  ref                  String                  @id @default(uuid())
+  credentialsRef       String?                 @map("credentials_ref")
+  accessControlListRef String?                 @map("acl_ref")
+  name                 String                  @db.VarChar(60)
+  username             String                  @unique @db.VarChar(60)
+  aor                  String                  @db.VarChar(255)
+  contactAddr          String?                 @map("contact_addr") @db.VarChar(255)
+  balancingAlgorithm   LoadBalancingAlgorithm? @map("balancing_algorithm")
+  withSessionAffinity  Boolean                 @default(false) @map("with_session_affinity")
+  enabled              Boolean                 @default(true)
+  createdAt            DateTime                @default(now()) @map("created_at")
+  updatedAt            DateTime                @updatedAt @map("updated_at")
   extended             Json?
 
   // Relations
@@ -192,7 +194,7 @@ model TrunkURI {
 }
 
 enum Privacy {
-  NONE @map("NONE")
+  NONE    @map("NONE")
   PRIVATE @map("ID")
 }
 
@@ -210,4 +212,9 @@ enum Transport {
   TLS
   WS
   WSS
+}
+
+enum LoadBalancingAlgorithm {
+  ROUND_ROBIN @map("ROUND-ROBIN")
+  LEAST_SESSIONS @map("LEAST-SESSIONS")
 }

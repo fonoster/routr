@@ -16,12 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  Backend,
-  CacheProvider,
-  LocationConfig,
-  RedisStoreConfig
-} from "./types"
+import { CacheProvider, LocationConfig, RedisStoreConfig } from "./types"
 import { createService } from "@routr/common"
 import { configFromString, getServiceInfo } from "./utils"
 import Location from "./location"
@@ -42,7 +37,7 @@ export default function LocationService(config: LocationConfig) {
   const { bindAddr, cache } = config
   let store
 
-  if (cache.provider === CacheProvider.REDIS) {
+  if (cache.provider?.toUpperCase() === CacheProvider.REDIS) {
     store = new RedisStore(
       configFromString(
         cache.parameters,
@@ -53,9 +48,7 @@ export default function LocationService(config: LocationConfig) {
     store = new MemoryStore()
   }
 
-  const backends = new Map<string, Backend>()
-  config.backends.forEach((b) => backends.set(`backend:${b.ref}`, b))
-  createService(getServiceInfo(bindAddr, new Location(store, backends)))
+  createService(getServiceInfo(bindAddr, new Location(store)))
 
   logger.info(`using ${cache.provider} as cache provider`)
 }

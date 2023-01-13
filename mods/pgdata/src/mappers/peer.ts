@@ -18,8 +18,17 @@
  */
 /* eslint-disable require-jsdoc */
 import * as Validator from "validator"
-import { Peer as PeerPrismaModel, APIVersion, Prisma } from "@prisma/client"
-import { CommonConnect as CC, CommonErrors as CE } from "@routr/common"
+import {
+  Peer as PeerPrismaModel,
+  APIVersion,
+  Prisma,
+  LoadBalancingAlgorithm
+} from "@prisma/client"
+import {
+  CommonConnect as CC,
+  CommonErrors as CE,
+  CommonTypes as CT
+} from "@routr/common"
 import { JsonObject } from "pb-util/build"
 import { ACLManager } from "./acl"
 import { CredentialsManager } from "./credentials"
@@ -78,8 +87,24 @@ export class PeerManager extends EntityManager {
       !this.peer.aor.startsWith("sip:")
     ) {
       throw new CE.BadRequestError(
-        "the aorLink must start with backend: or sip:"
+        "the aor schema must start with `backend:` or `sip:`"
       )
+    }
+
+    if (this.peer.aor.startsWith("backend:")) {
+      if (!this.peer.balancingAlgorithm) {
+        throw new CE.BadRequestError(
+          "when the aor schema is `backend:`, the balancing algorithm is required"
+        )
+      }
+    }
+
+    if (this.peer.aor.startsWith("sip:")) {
+      if (this.peer.balancingAlgorithm) {
+        throw new CE.BadRequestError(
+          "when the aor schema is `sip:`, the balancing algorithm is not allowed"
+        )
+      }
     }
   }
 
@@ -107,7 +132,23 @@ export class PeerManager extends EntityManager {
         !this.peer.aor.startsWith("sip:")
       ) {
         throw new CE.BadRequestError(
-          "the aorLink must start with backend: or sip:"
+          "the aor schema must start with `backend:` or `sip:`"
+        )
+      }
+    }
+
+    if (this.peer.aor.startsWith("backend:")) {
+      if (!this.peer.balancingAlgorithm) {
+        throw new CE.BadRequestError(
+          "when the aor schema is `backend:`, the balancing algorithm is required"
+        )
+      }
+    }
+
+    if (this.peer.aor.startsWith("sip:")) {
+      if (this.peer.balancingAlgorithm) {
+        throw new CE.BadRequestError(
+          "when the aor schema is `sip:`, the balancing algorithm is not allowed"
         )
       }
     }
@@ -122,6 +163,9 @@ export class PeerManager extends EntityManager {
       username: this.peer.username,
       aor: this.peer.aor,
       contactAddr: this.peer.contactAddr,
+      balancingAlgorithm: this.peer
+        .balancingAlgorithm as unknown as LoadBalancingAlgorithm,
+      withSessionAffinity: this.peer.withSessionAffinity,
       enabled: this.peer.enabled,
       credentialsRef: this.peer.credentialsRef,
       accessControlListRef: this.peer.accessControlListRef,
@@ -139,6 +183,8 @@ export class PeerManager extends EntityManager {
       username: peer.username,
       aor: peer.aor,
       contactAddr: peer.contactAddr,
+      balancingAlgorithm: peer.balancingAlgorithm as CT.LoadBalancingAlgorithm,
+      withSessionAffinity: peer.withSessionAffinity,
       enabled: peer.enabled,
       credentialsRef: peer.credentialsRef,
       credentials: CredentialsManager.mapToDto(peer.credentials),

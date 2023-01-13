@@ -115,11 +115,10 @@ export const applyXHeaders =
           (h: HeaderModifier) =>
             h.action === CommonTypes.HeaderModifierAction.REMOVE
         )
-        .map((h) => h.name)
+        .map((h) => h.name.toLowerCase())
 
       const headersToAdd = route.headers.filter(
-        (h: HeaderModifier) =>
-          h.action !== CommonTypes.HeaderModifierAction.REMOVE
+        (h: HeaderModifier) => h.action === CommonTypes.HeaderModifierAction.ADD
       )
 
       req.message.extensions = req.message.extensions.filter(

@@ -16,7 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIVersion, Prisma } from "@prisma/client"
+import { APIVersion, LoadBalancingAlgorithm, Prisma } from "@prisma/client"
+import { CommonTypes as CT } from "@routr/common"
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
@@ -40,6 +41,8 @@ describe("@routr/pgdata/mappers/peer", () => {
       username: "asterisk",
       aor: "sip:1001@sip.local",
       contactAddr: "192.168.1.12",
+      balancingAlgorithm: "ROUND-ROBIN" as CT.LoadBalancingAlgorithm,
+      withSessionAffinity: false,
       enabled: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -72,6 +75,8 @@ describe("@routr/pgdata/mappers/peer", () => {
       username: "asterisk",
       aor: "backend:voice",
       contactAddr: "192.168.1.3",
+      balancingAlgorithm: "ROUND-ROBIN" as LoadBalancingAlgorithm,
+      withSessionAffinity: false,
       enabled: true,
       credentials: {
         apiVersion: "v2" as APIVersion,
@@ -304,10 +309,76 @@ describe("@routr/pgdata/mappers/peer", () => {
 
       // Assert
       expect(createResult).to.throw(
-        "the aorLink must start with backend: or sip:"
+        "the aor schema must start with `backend:` or `sip:`"
       )
       expect(createUpdate).to.throw(
-        "the aorLink must start with backend: or sip:"
+        "the aor schema must start with `backend:` or `sip:`"
+      )
+    })
+
+    it("when aor schema is backend: but defined no balancing algorithm", () => {
+      // Arrange
+      const peer = {
+        apiVersion: "v2",
+        ref: "peer-01",
+        credentialsRef: "credentials-01",
+        accessControlListRef: "acl-01",
+        name: "Asterisk Media Server",
+        username: "asterisk",
+        aor: "backend:aor-01",
+        contactAddr: "192.168.1.12:5060",
+        enabled: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        extended: {
+          test: "test"
+        }
+      }
+
+      // Act
+      const createResult = () => new PeerManager(peer).validOrThrowCreate()
+      const createUpdate = () => new PeerManager(peer).validOrThrowUpdate()
+
+      // Assert
+      expect(createResult).to.throw(
+        "when the aor schema is `backend:`, the balancing algorithm is required"
+      )
+      expect(createUpdate).to.throw(
+        "when the aor schema is `backend:`, the balancing algorithm is required"
+      )
+    })
+
+    it("when aor schema is sip: balancing algorithm is not allowed", () => {
+      // Arrange
+      const peer = {
+        apiVersion: "v2",
+        ref: "peer-01",
+        credentialsRef: "credentials-01",
+        accessControlListRef: "acl-01",
+        name: "Asterisk Media Server",
+        username: "asterisk",
+        aor: "sip:1001@sip.local",
+        balancingAlgorithm: "ROUND-ROBIN" as CT.LoadBalancingAlgorithm,
+        withSessionAffinity: false,
+        contactAddr: "192.168.1.12:5060",
+        enabled: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        extended: {
+          test: "test"
+        }
+      }
+
+      // Act
+      const createResult = () => new PeerManager(peer).validOrThrowCreate()
+      const createUpdate = () => new PeerManager(peer).validOrThrowUpdate()
+
+      // Assert
+      expect(createResult).to.throw(
+        "when the aor schema is `sip:`, the balancing algorithm is not allowed"
+      )
+      expect(createUpdate).to.throw(
+        "when the aor schema is `sip:`, the balancing algorithm is not allowed"
       )
     })
   })

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { JsonObject } from "pb-util/build"
-import { Privacy, Transport } from "../types"
+import { LoadBalancingAlgorithm, Privacy, Transport } from "../types"
 
 export enum Kind {
   AGENT = "agent",
@@ -122,6 +122,8 @@ export interface Peer extends BaseConnectModel {
   accessControlList?: AccessControlList
   credentialsRef?: string
   credentials?: Credentials
+  balancingAlgorithm?: LoadBalancingAlgorithm
+  withSessionAffinity?: boolean
 }
 
 export type ConnectModel =

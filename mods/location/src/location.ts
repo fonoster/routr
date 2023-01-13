@@ -16,17 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NotRoutesFoundForAOR, UnsupportedSchema } from "./errors"
+import { UnsupportedSchema } from "./errors"
 import {
   AddRouteRequest,
   Backend,
   FindRoutesRequest,
   ILocationService,
   ILocatorStore,
-  LoadBalancingAlgorithm,
   RemoveRoutesRequest
 } from "./types"
-import { Route } from "@routr/common"
+import { Route, CommonTypes as CT } from "@routr/common"
 import { filterOnlyMatchingLabels } from "./utils"
 
 enum AOR_SCHEME {
@@ -39,7 +38,6 @@ enum AOR_SCHEME {
  */
 export default class Location implements ILocationService {
   private store: ILocatorStore
-  private backends: Map<string, Backend>
   private rrCount: Map<string, number>
 
   /**
@@ -48,14 +46,9 @@ export default class Location implements ILocationService {
    * @param {ILocatorStore} store - The store to use for the location service
    * @param {Map<string, Backend>} backends - The backends to use for the location service
    */
-  constructor(
-    store: ILocatorStore,
-    backends: Map<string, Backend> = new Map()
-  ) {
+  constructor(store: ILocatorStore) {
     this.store = store
-    this.backends = backends
     this.rrCount = new Map<string, number>()
-    this.backends.forEach((_, key) => this.rrCount.set(key, 0))
   }
 
   /** @inheritdoc */
@@ -88,11 +81,7 @@ export default class Location implements ILocationService {
       this.store.put(request.callId, routes[0])
       return routes
     } else if (request.aor.startsWith(AOR_SCHEME.BACKEND)) {
-      const backend = this.backends.get(request.aor)
-
-      if (!backend) {
-        throw new NotRoutesFoundForAOR(request.aor)
-      }
+      const { backend } = request
 
       // If it has not affinity sesssion then get next
       const r =
@@ -116,12 +105,16 @@ export default class Location implements ILocationService {
 
   // eslint-disable-next-line require-jsdoc
   private next(routes: Array<Route>, backend: Backend): Route {
-    if (backend.balancingAlgorithm === LoadBalancingAlgorithm.LEAST_SESSIONS) {
+    if (
+      backend.balancingAlgorithm === CT.LoadBalancingAlgorithm.LEAST_SESSIONS
+    ) {
       return routes.sort((r1, r2) => r1.sessionCount - r2.sessionCount)[0]
     }
 
     // Continues using round-robin
-    const nextPosition = this.rrCount.get(`${AOR_SCHEME.BACKEND}${backend.ref}`)
+    const nextPosition =
+      this.rrCount.get(`${AOR_SCHEME.BACKEND}${backend.ref}`) ?? 0
+
     const result = routes[nextPosition]
 
     if (nextPosition >= routes.length - 1) {

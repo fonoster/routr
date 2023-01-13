@@ -38,6 +38,7 @@ import { NotRoutesFoundForAOR, ILocationService } from "@routr/location"
 import { UnsuportedRoutingError } from "./errors"
 import { getLogger } from "@fonoster/logger"
 import { checkAccess } from "./access"
+import { Backend } from "@routr/location/src/types"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 
@@ -91,7 +92,12 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
       case RoutingDirection.AGENT_TO_PSTN:
         return await agentToPSTN(request, caller as CC.Agent, requestURI.user)
       case RoutingDirection.FROM_PSTN:
-        return await fromPSTN(location, callee as CC.INumber, request)
+        return await fromPSTN(
+          apiClient,
+          location,
+          callee as CC.INumber,
+          request
+        )
       case RoutingDirection.PEER_TO_PSTN:
         return await peerToPSTN(apiClient, request)
       default:
@@ -113,23 +119,42 @@ async function agentToAgent(
 /**
  * From PSTN routing.
  *
+ * @param {APIClient} apiClient - API client
  * @param {ILocationService} location - Location service
  * @param {Resource} callee - The callee
  * @param {MessageRequest} req - The request
  * @return {Promise<Route>}
  */
 async function fromPSTN(
+  apiClient: CC.APIClient,
   location: ILocationService,
   callee: CC.INumber,
   req: MessageRequest
 ): Promise<Route> {
   const sessionAffinityRef = E.getHeaderValue(req, callee.sessionAffinityHeader)
+  let backend: Backend
+
+  if (callee.aorLink.startsWith("backend:")) {
+    const peer = (
+      await apiClient.peers.findBy({
+        fieldName: "aor",
+        fieldValue: callee.aorLink
+      })
+    ).items[0]
+
+    backend = {
+      ref: peer.ref,
+      balancingAlgorithm: peer.balancingAlgorithm,
+      withSessionAffinity: peer.withSessionAffinity
+    }
+  }
 
   const route = (
     await location.findRoutes({
       aor: callee.aorLink,
       callId: req.ref,
-      sessionAffinityRef
+      sessionAffinityRef,
+      backend
     })
   )[0]
 
@@ -202,8 +227,8 @@ async function agentToPSTN(
         name: "Privacy",
         value:
           agent.privacy?.toUpperCase() === CT.Privacy.PRIVATE
-            ? CT.Privacy.PRIVATE
-            : CT.Privacy.NONE,
+            ? CT.Privacy.PRIVATE.toLowerCase()
+            : CT.Privacy.NONE.toLowerCase(),
         action: CT.HeaderModifierAction.ADD
       },
       createRemotePartyId(trunk, policy.number),
@@ -252,8 +277,8 @@ async function peerToPSTN(
         name: "Privacy",
         value:
           privacy?.toLocaleLowerCase() === CT.Privacy.PRIVATE
-            ? CT.Privacy.PRIVATE
-            : CT.Privacy.NONE,
+            ? CT.Privacy.PRIVATE.toLowerCase()
+            : CT.Privacy.NONE.toLowerCase(),
         action: CT.HeaderModifierAction.ADD
       },
       createRemotePartyId(number.trunk, number),

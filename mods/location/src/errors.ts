@@ -19,9 +19,6 @@
 import * as grpc from "@grpc/grpc-js"
 
 export type LocationError = UnsupportedSchema | NotRoutesFoundForAOR
-export type InvalidConfiguration =
-  | BadAlgorithmAndAffinityCombination
-  | InvalidSchemaConfiguration
 
 /**
  * Error thrown when the location service returns an unsupported schema.
@@ -77,39 +74,5 @@ export class InvalidSchemaConfiguration extends Error {
     super(msg)
     this.code = grpc.status.INVALID_ARGUMENT
     Object.setPrototypeOf(this, InvalidSchemaConfiguration.prototype)
-  }
-}
-
-/**
- * Error thrown when the location finds incompatible algorithm and session affinity.
- */
-export class BadAlgorithmAndAffinityCombination extends Error {
-  code: grpc.status
-
-  /**
-   * Create a new BadAlgorithmAndAffinityCombination error.
-   */
-  constructor() {
-    super(
-      "session affinity can not be combined with round-robin load balancing"
-    )
-    Object.setPrototypeOf(this, BadAlgorithmAndAffinityCombination.prototype)
-  }
-}
-
-/**
- * Error thrown when the location finds an invalid balancing algorithm.
- */
-export class InvalidLoadBalancerAlgorithm extends Error {
-  code: grpc.status
-
-  /**
-   * Create a new InvalidLoadBalancerAlgorithm error.
-   */
-  constructor() {
-    super(
-      "found invalid load balancing algorithm. must be round-robin or least-sessions"
-    )
-    Object.setPrototypeOf(this, BadAlgorithmAndAffinityCombination.prototype)
   }
 }

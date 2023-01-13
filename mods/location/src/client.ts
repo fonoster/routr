@@ -83,6 +83,7 @@ export default class Location implements ILocationService {
    * @param {FindRoutesResponse} request - Request to find routes
    * @param {string} request.aor - AOR of the route
    * @param {Map<string, string>} request.labels - Optional Route labels (reserved for future use)
+   * @param {object} request.backend - Optional Route backend (reserved for future use)
    * @return {Promise<void>}
    */
   public async findRoutes(request: FindRoutesRequest): Promise<Route[]> {

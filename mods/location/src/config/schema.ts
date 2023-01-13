@@ -26,7 +26,7 @@ export const schema = {
       enum: ["Location", "location"]
     },
     apiVersion: {
-      enum: ["v2draft1"]
+      enum: ["v2draft1", "v2"]
     },
     metadata: {
       description: "Resource metadata",
@@ -44,33 +44,13 @@ export const schema = {
           type: "object",
           properties: {
             provider: {
-              enum: ["memory", "redis"]
+              enum: ["Memory", "Redis", "memory", "redis"]
             },
             parameters: {
               type: "string"
             }
           },
           required: ["provider"]
-        },
-        backends: {
-          description: "Optional SIP backends",
-          type: "array",
-          items: {
-            type: "object"
-          },
-          properties: {
-            ref: {
-              type: "string"
-            },
-            balancingAlgorithm: {
-              enum: ["round-robin", "least-sessions"]
-            },
-            withSessionAffinity: {
-              description: "Optional session affinity",
-              type: "boolean"
-            }
-          },
-          required: ["ref"]
         }
       }
     }

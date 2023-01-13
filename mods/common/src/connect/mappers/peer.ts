@@ -17,15 +17,17 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import { LoadBalancingAlgorithm } from "../../types"
 import { PeerConfig } from "../config"
 import { schemaValidators } from "../schemas"
 import { Peer, Kind } from "../types"
-import { assertValidSchema } from "./assertions"
+import { assertValidAorSchema, assertValidSchema } from "./assertions"
 
 const valid = schemaValidators.get(Kind.PEER)
 
 export function mapToPeer(config: PeerConfig): Peer {
   assertValidSchema(config, valid)
+  assertValidAorSchema(config)
 
   return {
     apiVersion: config.apiVersion,
@@ -34,7 +36,10 @@ export function mapToPeer(config: PeerConfig): Peer {
     username: config.spec.username,
     aor: config.spec.aor,
     contactAddr: config.spec.contactAddr,
-    enabled: config.spec.enabled as boolean,
-    credentialsRef: config.spec.credentialsRef
+    enabled: config.spec.enabled,
+    credentialsRef: config.spec.credentialsRef,
+    balancingAlgorithm:
+      config.spec.loadBalancing?.algorithm.toUpperCase() as LoadBalancingAlgorithm,
+    withSessionAffinity: config.spec.loadBalancing?.withSessionAffinity
   }
 }

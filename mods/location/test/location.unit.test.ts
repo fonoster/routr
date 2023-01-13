@@ -16,13 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as Routes from "./route_examples"
+import { getConfig } from "../src/config/get_config"
+import { FindRoutesRequest } from "../src/types"
+import { CommonTypes as CT } from "@routr/common"
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import Locator from "../src/location"
 import MemoryStore from "../src/memory_store"
-import { getConfig } from "../src/config/get_config"
-import * as Routes from "./route_examples"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -32,7 +34,7 @@ describe("@routr/location", () => {
   afterEach(() => sandbox.restore())
 
   it("gets a simple route", async () => {
-    const locator = new Locator(new MemoryStore(), Routes.backends)
+    const locator = new Locator(new MemoryStore())
     const labels1 = new Map<string, string>([["priority", "1"]])
     const labels2 = new Map<string, string>([
       ["priority", "2"],
@@ -71,7 +73,7 @@ describe("@routr/location", () => {
   })
 
   it("find next backend using least-sessions", async () => {
-    const locator = new Locator(new MemoryStore(), Routes.backends)
+    const locator = new Locator(new MemoryStore())
     locator.addRoute({
       aor: "backend:voice_ls",
       route: Routes.voiceBackendRoute01
@@ -93,9 +95,14 @@ describe("@routr/location", () => {
       route: Routes.voiceBackendRoute05
     })
 
-    const findRoutesRequest1 = {
+    const findRoutesRequest1: FindRoutesRequest = {
       callId: "3848276298220188511",
-      aor: "backend:voice_ls"
+      aor: "backend:voice_ls",
+      backend: {
+        withSessionAffinity: true,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS,
+        ref: "voice_ls"
+      }
     }
 
     expect((await locator.findRoutes(findRoutesRequest1))[0])
@@ -104,7 +111,7 @@ describe("@routr/location", () => {
   })
 
   it("find next backend using round-robin", async () => {
-    const locator = new Locator(new MemoryStore(), Routes.backends)
+    const locator = new Locator(new MemoryStore())
     locator.addRoute({
       aor: "backend:voice_rr",
       route: Routes.voiceBackendRoute05
@@ -126,13 +133,69 @@ describe("@routr/location", () => {
       route: Routes.voiceBackendRoute01
     })
 
-    const findRoutesRequest1 = { callId: "01", aor: "backend:voice_rr" }
-    const findRoutesRequest2 = { callId: "02", aor: "backend:voice_rr" }
-    const findRoutesRequest3 = { callId: "03", aor: "backend:voice_rr" }
-    const findRoutesRequest4 = { callId: "04", aor: "backend:voice_rr" }
-    const findRoutesRequest5 = { callId: "05", aor: "backend:voice_rr" }
-    const findRoutesRequest6 = { callId: "06", aor: "backend:voice_rr" }
-    const findRoutesRequest7 = { callId: "07", aor: "backend:voice_rr" }
+    const findRoutesRequest1 = {
+      callId: "01",
+      aor: "backend:voice_rr",
+      backend: {
+        withSessionAffinity: false,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
+        ref: "voice_rr"
+      }
+    }
+    const findRoutesRequest2 = {
+      callId: "02",
+      aor: "backend:voice_rr",
+      backend: {
+        withSessionAffinity: false,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
+        ref: "voice_rr"
+      }
+    }
+    const findRoutesRequest3 = {
+      callId: "03",
+      aor: "backend:voice_rr",
+      backend: {
+        withSessionAffinity: false,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
+        ref: "voice_rr"
+      }
+    }
+    const findRoutesRequest4 = {
+      callId: "04",
+      aor: "backend:voice_rr",
+      backend: {
+        withSessionAffinity: false,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
+        ref: "voice_rr"
+      }
+    }
+    const findRoutesRequest5 = {
+      callId: "05",
+      aor: "backend:voice_rr",
+      backend: {
+        withSessionAffinity: false,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
+        ref: "voice_rr"
+      }
+    }
+    const findRoutesRequest6 = {
+      callId: "06",
+      aor: "backend:voice_rr",
+      backend: {
+        withSessionAffinity: false,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
+        ref: "voice_rr"
+      }
+    }
+    const findRoutesRequest7 = {
+      callId: "07",
+      aor: "backend:voice_rr",
+      backend: {
+        withSessionAffinity: false,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
+        ref: "voice_rr"
+      }
+    }
 
     expect((await locator.findRoutes(findRoutesRequest1))[0])
       .to.be.have.property("user")
@@ -163,7 +226,7 @@ describe("@routr/location", () => {
   })
 
   it("find next backend with session affinity enabled", async () => {
-    const locator = new Locator(new MemoryStore(), Routes.backends)
+    const locator = new Locator(new MemoryStore())
     locator.addRoute({
       aor: "backend:conference",
       route: Routes.conferenceWithExpiredRoute
@@ -180,13 +243,23 @@ describe("@routr/location", () => {
     const findRoutesRequest1 = {
       callId: "3848276298220188511",
       aor: "backend:conference",
-      sessionAffinityRef: "any-session-affinity-ref"
+      sessionAffinityRef: "any-session-affinity-ref",
+      backend: {
+        withSessionAffinity: true,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS,
+        ref: "conference"
+      }
     }
 
     const findRoutesRequest2 = {
       callId: "any-call-id",
       aor: "backend:conference",
-      sessionAffinityRef: "any-session-affinity-ref"
+      sessionAffinityRef: "any-session-affinity-ref",
+      backend: {
+        withSessionAffinity: true,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS,
+        ref: "conference"
+      }
     }
 
     expect((await locator.findRoutes(findRoutesRequest1))[0])
@@ -201,21 +274,7 @@ describe("@routr/location", () => {
     const result = getConfig(__dirname + "/../../../config/location.yaml")
     if (result._tag === "Right") {
       const config = result.right
-
       expect(config).to.have.property("bindAddr")
-      expect(config.backends[0]).to.have.property("ref").to.be.equal("voice")
-      expect(config.backends[0])
-        .to.have.property("balancingAlgorithm")
-        .to.be.equal("round-robin")
-      expect(config.backends[1])
-        .to.have.property("ref")
-        .to.be.equal("conference")
-      expect(config.backends[1])
-        .to.have.property("balancingAlgorithm")
-        .to.be.equal("least-sessions")
-      expect(config.backends[1])
-        .to.have.property("withSessionAffinity")
-        .to.be.equal(true)
       done()
     } else {
       done(result.left)

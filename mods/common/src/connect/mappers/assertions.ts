@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { getLogger } from "@fonoster/logger"
-import { UserConfig } from "../config"
+import { PeerConfig, UserConfig } from "../config"
 const logger = getLogger({ service: "common", filePath: __filename })
 
 export const assertValidSchema = (
@@ -33,6 +33,23 @@ export const assertValidSchema = (
       "found a bad resource: " + error.message + " at `" + error.dataPath + "`"
     )
 
+    process.exit(1)
+  }
+}
+
+export const assertValidAorSchema = (config: UserConfig) => {
+  const spec = (config as PeerConfig).spec
+  if (spec.aor.startsWith("backend:") && !spec.loadBalancing) {
+    logger.error(
+      "found a bad resource: balancing algorithm is required for `backend:` aors"
+    )
+    process.exit(1)
+  }
+
+  if (spec.aor.startsWith("sip:") && spec.loadBalancing) {
+    logger.error(
+      "found a bad resource: balancing algorithm is not allowed for `sip:` aors"
+    )
     process.exit(1)
   }
 }

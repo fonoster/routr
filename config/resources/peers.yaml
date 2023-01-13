@@ -7,6 +7,9 @@
     aor: backend:conference
     username: asterisk
     credentialsRef: credentials-03
+    loadBalancing:
+      withSessionAffinity: true
+      algorithm: least-sessions  
 - apiVersion: v2draft1
   kind: Peer
   ref: peer-02
@@ -16,3 +19,5 @@
     aor: backend:voice
     username: freeswitch
     credentialsRef: credentials-05
+    loadBalancing:
+      algorithm: round-robin

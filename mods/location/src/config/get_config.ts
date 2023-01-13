@@ -16,43 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  Backend,
-  CacheProvider,
-  LoadBalancingAlgorithm,
-  LocationConfig
-} from "../types"
+import { CacheProvider, LocationConfig } from "../types"
 import { Helper as H } from "@routr/common"
 import { schema } from "./schema"
 import Ajv from "ajv"
 import * as E from "fp-ts/Either"
-import {
-  BadAlgorithmAndAffinityCombination,
-  InvalidConfiguration,
-  InvalidLoadBalancerAlgorithm,
-  InvalidSchemaConfiguration
-} from "../errors"
+import { InvalidSchemaConfiguration } from "../errors"
 
 const ajv = new Ajv()
 const validate = ajv.compile(schema)
 
-const hasBadCombiniation = (backends: Backend[]) =>
-  backends.some(
-    (b: Backend) =>
-      b.balancingAlgorithm === LoadBalancingAlgorithm.ROUND_ROBIN &&
-      b.withSessionAffinity
-  )
-
-const hasBadAlgorithm = (backends: Backend[]) =>
-  backends.some(
-    (b: Backend) =>
-      b.balancingAlgorithm !== LoadBalancingAlgorithm.ROUND_ROBIN &&
-      b.balancingAlgorithm !== LoadBalancingAlgorithm.LEAST_SESSIONS
-  )
-
 export const getConfig = (
   path: string
-): E.Either<InvalidConfiguration, LocationConfig> => {
+): E.Either<InvalidSchemaConfiguration, LocationConfig> => {
   const c = H.readConfigFile(path) as Record<string, unknown>
 
   if (!validate({ ...c })) {
@@ -62,24 +38,6 @@ export const getConfig = (
   }
 
   const config = c.spec as LocationConfig
-
-  if (config.backends) {
-    config.backends.map((b: Backend) => {
-      // Setting round-robin by default
-      b.balancingAlgorithm = b.balancingAlgorithm
-        ? b.balancingAlgorithm
-        : LoadBalancingAlgorithm.ROUND_ROBIN
-      return b
-    })
-
-    if (hasBadCombiniation(config.backends)) {
-      return E.left(new BadAlgorithmAndAffinityCombination())
-    }
-
-    if (hasBadAlgorithm(config.backends)) {
-      return E.left(new InvalidLoadBalancerAlgorithm())
-    }
-  }
 
   if (!config.cache?.provider) {
     config.cache = {

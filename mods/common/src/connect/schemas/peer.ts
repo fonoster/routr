@@ -77,6 +77,20 @@ export default {
             "The ACL the Peer uses to control access to the Peer (Reserved for future use)",
           type: "string"
         },
+        loadBalancing: {
+          description: "The load balancing strategy for the Peer",
+          type: "object",
+          properties: {
+            algorithm: {
+              description: "The load balancing algorithm",
+              enum: ["round-robin", "least-sessions"]
+            },
+            withSessionAffinity: {
+              description: "Whether to allow session affinity",
+              type: "boolean"
+            }
+          }
+        },
         enabled: {
           description: "Whether the Peer is enabled",
           type: "boolean"

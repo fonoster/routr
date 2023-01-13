@@ -16,17 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Route } from "@routr/common"
-
-export enum LoadBalancingAlgorithm {
-  ROUND_ROBIN = "round-robin",
-  LEAST_SESSIONS = "least-sessions"
-}
-
-export enum CacheProvider {
-  MEMORY = "memory",
-  REDIS = "redis"
-}
+import { Route, CommonTypes as CT } from "@routr/common"
 
 export interface ILocationService {
   addRoute(request: AddRouteRequest): Promise<void>
@@ -49,6 +39,7 @@ export interface FindRoutesRequest {
   aor: string
   callId: string
   sessionAffinityRef?: string
+  backend?: Backend
   // Reserved for future use
   labels?: Map<string, string>
 }
@@ -63,13 +54,17 @@ export interface RemoveRoutesRequest {
 
 export interface Backend {
   ref: string
-  balancingAlgorithm?: LoadBalancingAlgorithm
-  withSessionAffinity?: boolean
+  balancingAlgorithm: CT.LoadBalancingAlgorithm
+  withSessionAffinity: boolean
+}
+
+export enum CacheProvider {
+  MEMORY = "MEMORY",
+  REDIS = "REDIS"
 }
 
 export interface LocationConfig {
   bindAddr: string
-  backends?: Backend[]
   cache?: {
     provider: CacheProvider
     parameters?: string
@@ -81,6 +76,5 @@ export interface RedisStoreConfig {
   password?: string
   host: string
   port: number
-  // dbNumber?: number
   secure?: boolean
 }
