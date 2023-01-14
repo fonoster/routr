@@ -52,7 +52,7 @@ export default function simpleDataService(config: SimpleDataConfig): void {
       kind as CC.KindWithoutUnknown
     )
 
-    server.addService(CC.createService(kind as CC.KindWithoutUnknown), {
+    server.addService(CC.createConnectService(kind as CC.KindWithoutUnknown), {
       get: get(resources),
       findBy: findBy(resources),
       delete: nyi,

@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
- * http://github.com/fonoster
+ * http://github.com/fonoster/routr
  *
- * This file is part of Routr.
+ * This file is part of Routr
  *
  * Licensed under the MIT License (the "License");
  * you may not use this file except in compliance with
@@ -16,8 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from "./api"
-export * from "./client"
-export * from "./types"
-export * from "./config"
-export * from "./mappers"
+import chai from "chai"
+import sinon from "sinon"
+import sinonChai from "sinon-chai"
+import SDK from "../src"
+
+chai.use(sinonChai)
+const sandbox = sinon.createSandbox()
+
+describe("@routr/sdk/acl", () => {
+  afterEach(() => sandbox.restore())
+
+  it.skip("needs testing", async () => {
+    // TODO: Implement test
+  })
+})

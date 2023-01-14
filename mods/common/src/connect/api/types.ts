@@ -32,12 +32,14 @@ import {
 export interface DataAPIOptions {
   apiAddr: string
   credentials?: grpc.ChannelCredentials
+  metadata?: grpc.Metadata
 }
 
 export interface ServiceAPIOptions {
   apiAddr: string
   kind: Kind
   credentials?: grpc.ChannelCredentials
+  metadata?: grpc.Metadata
 }
 
 export interface FindByRequest {
@@ -70,8 +72,8 @@ export type APIClient = {
 }
 
 export type ServiceAPI<R extends { extended?: JsonObject }> = {
-  create: (request: JsonObject) => Promise<R>
-  update: (request: JsonObject) => Promise<R>
+  create: (request: unknown) => Promise<R>
+  update: (request: unknown) => Promise<R>
   get: (ref: string) => Promise<R>
   del: (ref: string) => Promise<void>
   list: (request: {

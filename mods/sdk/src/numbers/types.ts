@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -16,8 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from "./api"
-export * from "./client"
-export * from "./types"
-export * from "./config"
-export * from "./mappers"
+import { CommonConnect as CC } from "@routr/common"
+import { CreateBaseOmit } from "../types"
+
+export type CreateNumberRequest = Omit<CC.INumber, CreateBaseOmit | "trunk">
+
+export type CreateNumberResponse = CC.INumber
+
+export type UpdateNumberRequest = { ref: string } & Partial<CreateNumberRequest>
+
+export type UpdateNumberResponse = CC.INumber
+
+export type ListNumberRequest = CC.ListRequest
+
+export type ListNumberResponse = CC.ListResponse<CC.INumber>
+
+export type GetNumberResponse = CC.INumber

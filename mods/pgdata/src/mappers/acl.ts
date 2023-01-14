@@ -56,15 +56,21 @@ export class ACLManager extends EntityManager {
 
     this.acl.deny.forEach((cidr) => {
       // 4 => IPv4
-      if (!Validator.default.isIPRange(cidr, 4)) {
-        throw new CE.BadRequestError(`${cidr} is not a valid cidr`)
+      if (
+        !Validator.default.isIPRange(cidr, 4) &&
+        !Validator.default.isIP(cidr, 4)
+      ) {
+        throw new CE.BadRequestError(`${cidr} is not a valid cidr or ip`)
       }
     })
 
     this.acl.allow.forEach((cidr) => {
       // 4 => IPv4
-      if (!Validator.default.isIPRange(cidr, 4)) {
-        throw new CE.BadRequestError(`${cidr} is not a valid cidr`)
+      if (
+        !Validator.default.isIPRange(cidr, 4) &&
+        !Validator.default.isIP(cidr, 4)
+      ) {
+        throw new CE.BadRequestError(`${cidr} is not a valid cidr or ip`)
       }
     })
   }
@@ -97,15 +103,21 @@ export class ACLManager extends EntityManager {
 
     this.acl.deny.forEach((cidr) => {
       // 4 => IPv4
-      if (!Validator.default.isIPRange(cidr, 4)) {
-        throw new CE.BadRequestError(`${cidr} is not a valid cidr`)
+      if (
+        !Validator.default.isIPRange(cidr, 4) &&
+        !Validator.default.isIP(cidr, 4)
+      ) {
+        throw new CE.BadRequestError(`${cidr} is not a valid cidr or ip`)
       }
     })
 
     this.acl.allow.forEach((cidr) => {
       // 4 => IPv4
-      if (!Validator.default.isIPRange(cidr, 4)) {
-        throw new CE.BadRequestError(`${cidr} is not a valid cidr`)
+      if (
+        !Validator.default.isIPRange(cidr, 4) &&
+        !Validator.default.isIP(cidr, 4)
+      ) {
+        throw new CE.BadRequestError(`${cidr} is not a valid cidr or ip`)
       }
     })
   }

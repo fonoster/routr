@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -16,8 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from "./api"
-export * from "./client"
-export * from "./types"
-export * from "./config"
-export * from "./mappers"
+import { CommonConnect as CC } from "@routr/common"
+import { CreateBaseOmit } from "../types"
+
+export type CreatePeerRequest = Omit<
+  CC.Peer,
+  CreateBaseOmit | "accessControlList" | "credentials"
+>
+
+export type CreatePeerResponse = CC.Peer
+
+export type UpdatePeerRequest = { ref: string } & Partial<CreatePeerRequest>
+
+export type UpdatePeerResponse = CC.Peer
+
+export type ListPeerRequest = CC.ListRequest
+
+export type ListPeerResponse = CC.ListResponse<CC.Peer>
+
+export type GetPeerResponse = CC.Peer

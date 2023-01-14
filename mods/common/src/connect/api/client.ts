@@ -20,7 +20,7 @@
 import * as grpc from "@grpc/grpc-js"
 import { JsonObject, struct } from "pb-util"
 import { ServiceUnavailableError } from "../../errors"
-import { createClient } from "../grpc_client"
+import { createConnectClient } from "../client"
 import { Kind } from "../types"
 import {
   APIClient,
@@ -45,23 +45,30 @@ function fire(err: GrpcError, apiAddr: string) {
 }
 
 export function apiClient(options: DataAPIOptions): APIClient {
-  const { apiAddr, credentials } = options
-
   return {
-    agents: serviceAPI({ kind: Kind.AGENT, apiAddr, credentials }),
-    domains: serviceAPI({ kind: Kind.DOMAIN, apiAddr, credentials }),
-    trunks: serviceAPI({ kind: Kind.TRUNK, apiAddr, credentials }),
-    credentials: serviceAPI({ kind: Kind.CREDENTIALS, apiAddr, credentials }),
-    acl: serviceAPI({ kind: Kind.AGENT, apiAddr, credentials }),
-    peers: serviceAPI({ kind: Kind.PEER, apiAddr, credentials }),
-    numbers: serviceAPI({ kind: Kind.NUMBER, apiAddr, credentials })
+    agents: serviceAPI({ kind: Kind.AGENT, ...options }),
+    domains: serviceAPI({ kind: Kind.DOMAIN, ...options }),
+    trunks: serviceAPI({ kind: Kind.TRUNK, ...options }),
+    credentials: serviceAPI({ kind: Kind.CREDENTIALS, ...options }),
+    acl: serviceAPI({ kind: Kind.ACL, ...options }),
+    peers: serviceAPI({ kind: Kind.PEER, ...options }),
+    numbers: serviceAPI({ kind: Kind.NUMBER, ...options })
   }
 }
 
 export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
-  const { kind, apiAddr, credentials } = options
+  const { kind, apiAddr, credentials, metadata } = options
 
-  const client = createClient({
+  // Workaround for issue not allowing to pass metadata to grpc-js
+  const meta = new grpc.Metadata()
+
+  if (metadata) {
+    Object.keys(metadata.toJSON()).forEach((key) => {
+      meta.set(key, metadata.getMap()[key])
+    })
+  }
+
+  const client = createConnectClient({
     kind,
     apiAddr,
     credentials: credentials ?? grpc.credentials.createInsecure()
@@ -76,7 +83,7 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
           ) as JsonObject
         }
 
-        client.create(request, (err: GrpcError, response: R) => {
+        client.create(request, meta, (err: GrpcError, response: R) => {
           if (err) {
             return reject(fire(err, apiAddr))
           }
@@ -97,7 +104,7 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
           ) as JsonObject
         }
 
-        client.update(request, (err: GrpcError, response: R) => {
+        client.update(request, meta, (err: GrpcError, response: R) => {
           if (err) {
             return reject(fire(err, apiAddr))
           }
@@ -112,7 +119,7 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
 
     get: <R extends { extended?: JsonObject }>(ref: string) =>
       new Promise<R>((resolve, reject) => {
-        client.get({ ref }, (err: GrpcError, response: R) => {
+        client.get({ ref }, meta, (err: GrpcError, response: R) => {
           if (err) {
             return reject(fire(err, apiAddr))
           }
@@ -127,28 +134,33 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
 
     list: <R extends { extended?: JsonObject }>(request: ListRequest) =>
       new Promise<ListResponse<R>>((resolve, reject) => {
-        client.list(request, (err: GrpcError, response: ListResponse<R>) => {
-          if (err) {
-            return reject(fire(err, apiAddr))
-          }
-
-          response.items.forEach((item: { extended?: JsonObject }) => {
-            if (item.extended) {
-              item.extended = struct.decode(item.extended)
+        client.list(
+          request,
+          meta,
+          (err: GrpcError, response: ListResponse<R>) => {
+            if (err) {
+              return reject(fire(err, apiAddr))
             }
-          })
 
-          resolve({
-            items: response?.items ?? [],
-            nextPageToken: response.nextPageToken
-          })
-        })
+            response.items.forEach((item: { extended?: JsonObject }) => {
+              if (item.extended) {
+                item.extended = struct.decode(item.extended)
+              }
+            })
+
+            resolve({
+              items: response?.items ?? [],
+              nextPageToken: response.nextPageToken
+            })
+          }
+        )
       }),
 
     findBy: <R>(request: FindByRequest) =>
       new Promise<FindByResponse<R>>((resolve, reject) => {
         client.findBy(
           request,
+          meta,
           (err: GrpcError, response: FindByResponse<R>) => {
             if (err) {
               return reject(fire(err, apiAddr))
@@ -167,7 +179,7 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
 
     del: (ref: string) =>
       new Promise((resolve, reject) => {
-        client.get({ ref }, (err: GrpcError) =>
+        client.get({ ref }, meta, (err: GrpcError) =>
           err ? reject(fire(err, apiAddr)) : resolve()
         )
       })

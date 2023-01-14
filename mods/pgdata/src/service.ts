@@ -54,7 +54,7 @@ export default function pgDataService(config: PostgresDataConfig): void {
   kinds.forEach((kind) => {
     const k = kind.toLowerCase() as CC.KindWithoutUnknown
     const delegate = prisma[kind as DBDelegate]
-    server.addService(CC.createService(k), {
+    server.addService(CC.createConnectService(k), {
       create: create(delegate.create, k),
       get: get(delegate.findUnique, k),
       findBy: findBy(delegate.findMany, k),

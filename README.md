@@ -48,7 +48,7 @@ Routr's main features are:
 - [x] JSON and YAML files as a data source
 - [x] Postgres as a data source
 - [x] Server management with the gRPC API
-- [ ] NodeSDK
+- [x] NodeSDK
 - [ ] Server management with CLI and WebApp
 - [ ] Endpoint Authentication with JWT (For web phones)
 - [ ] RTPEngine Middleware

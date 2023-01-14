@@ -41,7 +41,7 @@ function getProtoPath(kind: Kind): string {
   }
 }
 
-export function createClient(options: {
+export function createConnectClient(options: {
   kind: Kind
   credentials: grpc.ChannelCredentials
   apiAddr: string
@@ -68,7 +68,7 @@ export function createClient(options: {
   }
 }
 
-export function createService(kind: KindWithoutUnknown) {
+export function createConnectService(kind: KindWithoutUnknown) {
   const def = protoLoader.loadSync(getProtoPath(kind), protoOptions)
   const descriptor = grpc.loadPackageDefinition(def) as any
   const base = descriptor.fonoster.routr.connect

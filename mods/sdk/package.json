@@ -1,12 +1,12 @@
 {
-  "name": "@routr/pgdata",
+  "name": "@routr/sdk",
   "version": "2.0.8-alpha.19",
-  "description": "Postgres API Server for Routr Connect",
+  "description": "The Routr SDK for Node.js",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
   "license": "MIT",
-  "main": "dist/pgdata",
-  "types": "dist/pgdata",
+  "main": "dist/sdk",
+  "types": "dist/sdk",
   "directories": {
     "src": "src",
     "test": "test"
@@ -14,9 +14,6 @@
   "scripts": {
     "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
     "build": "tsc -b tsconfig.json"
-  },
-  "bin": {
-    "run_pgdata": "dist/runner.js"
   },
   "dependencies": {
     "@fonoster/logger": "0.3.18",
@@ -29,12 +26,9 @@
     "@opentelemetry/sdk-trace-base": "^1.0.4",
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
-    "@prisma/client": "^4.8.0",
     "@routr/common": "^2.0.8-alpha.19",
-    "@routr/processor": "^2.0.8-alpha.19",
     "google-protobuf": "^3.9.2",
-    "pb-util": "^1.0.3",
-    "validator": "^13.7.0"
+    "pb-util": "^1.0.3"
   },
   "files": [
     "dist"
@@ -50,8 +44,6 @@
     "url": "https://github.com/fonoster/routr/issues"
   },
   "devDependencies": {
-    "@types/google-protobuf": "^3.15.6",
-    "@types/validator": "^13.7.10",
-    "prisma": "^4.8.0"
+    "@types/google-protobuf": "^3.15.6"
   }
 }

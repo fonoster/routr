@@ -25,7 +25,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.5.9",
+    "@grpc/grpc-js": "^1.8.4",
     "@opentelemetry/api": "^1.0.4",
     "@opentelemetry/exporter-jaeger": "^1.0.4",
     "@opentelemetry/instrumentation": "^0.27.0",
