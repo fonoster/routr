@@ -307,7 +307,11 @@ Like Agents, Peers represent SIP endpoints such as Media Servers. Unlike Agents,
     "username": "asterisk",
     "aor": "backend:conference",
     "contactAddr": "192.168.1.2:6060",
-    "credentialsRef": "credentials-01"
+    "credentialsRef": "credentials-01",
+    "loadBalancing": {
+      "withSessionAffinity": true,
+      "algorithm": "least-sessions"
+    }
   }
 }
 ```

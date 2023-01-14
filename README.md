@@ -46,10 +46,10 @@ Routr's main features are:
 - [x] Transport: TCP, UDP, TLS, WS, WSS
 - [x] In-memory and Redis Location Service 
 - [x] JSON and YAML files as a data source
-- [ ] Postgres as a data source
+- [x] Postgres as a data source
 - [x] Server management with the gRPC API
+- [ ] NodeSDK
 - [ ] Server management with CLI and WebApp
-- [ ] NodeJS and WebSDK
 - [ ] Endpoint Authentication with JWT (For web phones)
 - [ ] RTPEngine Middleware
 - [ ] Support for STIR/SHAKEN 
@@ -63,9 +63,9 @@ If you like this project or plan to use it in the future, please give it a star.
 
 ## Example configuration
 
-Consider a situation where you want to deploy the server and send all PSTN traffic to a conference room in Asterisk. For such a scenario, you must combine the `Peer` and `Number` resources and the `Location` service.
+Consider a situation where you want to deploy the server and send all PSTN traffic to a conference room in Asterisk. For such a scenario, you must configure a Peer to present your feauture server, and a Number to route calls from the PSTN.
 
-First, you will start by creating a Peer configuration for your Asterisk server similar to the following one:
+First, start by creating a Peer configuration for your Asterisk server similar to the following one:
 
 ```yaml
 apiVersion: v2draft1
@@ -77,9 +77,14 @@ spec:
   aor: backend:conference
   username: asterisk
   credentialsRef: credentials-01
+  loadBalancing:
+    withSessionAffinity: true
+    algorithm: least-sessions
 ```
 
-Every Asterik server that registers using the `crd6t67r1` credentials will be grouped under the `backend:conference` Address of Record (AOR). Next, we need to tell Routr to map all inbound calls from given number to the conference room in Asterik. For that, we use the `aorLink` and `sessionAffinityHeader` on the desired Number. Here is an example: 
+Notice that the loadBalancing section sets the `withSessionAffinity` to true. This is to ensure that all all calls related to the conference arrive to the same Asterisk server. Every Asterik server that registers using the `asterisk` username will be grouped under the `backend:conference` Address of Record (AOR). 
+
+Next, we need to tell Routr to map all inbound calls from given number to the conference room in Asterik. For that, we use the `aorLink` and `sessionAffinityHeader` on the desired Number. Here is an example: 
 
 ```yaml
 apiVersion: v2draft1
@@ -98,27 +103,9 @@ spec:
     aorLink: backend:conference
     sessionAffinityHeader: X-Room-Id
     extraHeaders:
+      # Appends the X-Room-Id header to all inbound calls
       - name: X-Room-Id
         value: jsa-shqm-iyo
-```
-
-Finally, we configure the Location service to load-balance the traffic based on the `least-sessions` algorithm.
-
-> We need Session Affinity to ensure all calls for a given `X-Room-Id` go to the same Asterisk server.
-
-```yaml
-kind: Location
-apiVersion: v2draft1
-metadata:
-  region: us-east1
-spec:
-  bindAddr: 0.0.0.0:51902
-  cache:
-    provider: memory
-  backends:
-    - ref: conference
-      balancingAlgorithm: least-sessions
-      withSessionAffinity: true
 ```
 
 The last scenario is just one of the many possible scenarios you can accomplish with Routr (v2). Please spend some time getting familiar with the [configuration files](https://github.com/fonoster/routr/blob/v2/CONNECT.md).

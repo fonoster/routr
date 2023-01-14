@@ -730,24 +730,13 @@ Example:
     "bindAddr": "0.0.0.0:51902",
     "cache": {
       "provider": "memory"
-    },
-    "backends": [
-      {
-        "ref": "voice"
-      },
-      {
-        "ref": "conference",
-        "balancingAlgorithm": "least-sessions",
-        "withSessionAffinity": true
-      }
-    ]    
+    }
   }
 }
 ```
 
-> Notice that using the `memory` provider will only work for simple cases where you run a single instance of the
-> Location Service. Suppose you need the `least-session` algorithm and run multiple instances of the Location Service. In
-> that case, you will need a distributed provider such as `Redis.`
+> Notice that using the `memory` provider will only work for simple cases where you run a single instance of the Location Service. 
+> Suppose you need the `least-session` algorithm and run multiple instances of the Location Service. In such cases, you will need a distributed provider such as `Redis.`
 
 <details>
 <summary>Schema</summary>
@@ -788,27 +777,7 @@ Example:
             },
           },
           "required": ["provider"]
-        },
-        "backends": {
-          "description": "Optional SIP backends",
-          "type": "array",
-          "items": {
-            "type": "object"
-          },
-          "properties": {
-            "ref": {
-              "type": "string"
-            },
-            "balancingAlgorithm": {
-              "enum": ["round-robin", "least-sessions"]
-            },
-            "withSessionAffinity": {
-              "description": "Optional session affinity",
-              "type": "boolean"
-            }
-          },
-          "required": ["ref"]
-        },
+        }
       }
     }
   },
