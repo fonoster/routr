@@ -19,7 +19,6 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import SDK from "../src"
 
 chai.use(sinonChai)
 const sandbox = sinon.createSandbox()
