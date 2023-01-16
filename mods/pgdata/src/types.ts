@@ -60,6 +60,6 @@ export type PrismaUpdateOperation = (request: {
   where: {
     ref: string
   }
-  data: any
+  data: unknown
   include?: JsonObject
 }) => unknown

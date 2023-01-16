@@ -101,8 +101,14 @@ export class CredentialsManager extends EntityManager {
       ref: this.credentials.ref,
       name: this.credentials.name,
       username: this.credentials.username,
-      password: this.credentials.password,
-      extended: this.credentials.extended as JsonObject
+      password: this.credentials.password || undefined,
+      createdAt: this.credentials.createdAt
+        ? new Date(this.credentials.createdAt * 1000)
+        : undefined,
+      updatedAt: this.credentials.updatedAt
+        ? new Date(this.credentials.updatedAt * 1000)
+        : undefined,
+      extended: this.credentials.extended || {}
     }
   }
 
@@ -113,6 +119,8 @@ export class CredentialsManager extends EntityManager {
       name: credentials.name,
       username: credentials.username,
       password: credentials.password,
+      createdAt: credentials.createdAt.getTime() / 1000,
+      updatedAt: credentials.updatedAt.getTime() / 1000,
       extended: credentials.extended as JsonObject
     }
   }

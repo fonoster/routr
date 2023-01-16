@@ -18,12 +18,7 @@
  */
 /* eslint-disable require-jsdoc */
 import * as Validator from "validator"
-import {
-  Peer as PeerPrismaModel,
-  APIVersion,
-  Prisma,
-  LoadBalancingAlgorithm
-} from "@prisma/client"
+import { Peer as PeerPrismaModel, APIVersion, Prisma } from "@prisma/client"
 import {
   CommonConnect as CC,
   CommonErrors as CE,
@@ -92,15 +87,20 @@ export class PeerManager extends EntityManager {
     }
 
     if (this.peer.aor.startsWith("backend:")) {
-      if (!this.peer.balancingAlgorithm) {
+      if (
+        !this.peer.balancingAlgorithm ||
+        this.peer.balancingAlgorithm === CT.LoadBalancingAlgorithm.UNSPECIFIED
+      ) {
         throw new CE.BadRequestError(
           "when the aor schema is `backend:`, the balancing algorithm is required"
         )
       }
-    }
-
-    if (this.peer.aor.startsWith("sip:")) {
-      if (this.peer.balancingAlgorithm) {
+    } else {
+      if (
+        this.peer.balancingAlgorithm !==
+          CT.LoadBalancingAlgorithm.UNSPECIFIED ||
+        this.peer.balancingAlgorithm
+      ) {
         throw new CE.BadRequestError(
           "when the aor schema is `sip:`, the balancing algorithm is not allowed"
         )
@@ -138,15 +138,20 @@ export class PeerManager extends EntityManager {
     }
 
     if (this.peer.aor.startsWith("backend:")) {
-      if (!this.peer.balancingAlgorithm) {
+      if (
+        !this.peer.balancingAlgorithm ||
+        this.peer.balancingAlgorithm === CT.LoadBalancingAlgorithm.UNSPECIFIED
+      ) {
         throw new CE.BadRequestError(
           "when the aor schema is `backend:`, the balancing algorithm is required"
         )
       }
-    }
-
-    if (this.peer.aor.startsWith("sip:")) {
-      if (this.peer.balancingAlgorithm) {
+    } else {
+      if (
+        this.peer.balancingAlgorithm !==
+          CT.LoadBalancingAlgorithm.UNSPECIFIED ||
+        this.peer.balancingAlgorithm
+      ) {
         throw new CE.BadRequestError(
           "when the aor schema is `sip:`, the balancing algorithm is not allowed"
         )
@@ -155,6 +160,11 @@ export class PeerManager extends EntityManager {
   }
 
   mapToPrisma(): PeerPrismaModel {
+    const normalizeAlgorithm = (algorithm: CT.LoadBalancingAlgorithm) =>
+      algorithm === CT.LoadBalancingAlgorithm.UNSPECIFIED
+        ? undefined
+        : algorithm
+
     return {
       // TODO: Set a default value for apiVersion
       apiVersion: "v2" as APIVersion,
@@ -163,15 +173,18 @@ export class PeerManager extends EntityManager {
       username: this.peer.username,
       aor: this.peer.aor,
       contactAddr: this.peer.contactAddr,
-      balancingAlgorithm: this.peer
-        .balancingAlgorithm as unknown as LoadBalancingAlgorithm,
+      balancingAlgorithm: normalizeAlgorithm(this.peer.balancingAlgorithm),
       withSessionAffinity: this.peer.withSessionAffinity,
       enabled: this.peer.enabled,
       credentialsRef: this.peer.credentialsRef,
       accessControlListRef: this.peer.accessControlListRef,
-      createdAt: this.peer.createdAt,
-      updatedAt: this.peer.updatedAt,
-      extended: this.peer.extended
+      createdAt: this.peer.createdAt
+        ? new Date(this.peer.createdAt * 1000)
+        : undefined,
+      updatedAt: this.peer.updatedAt
+        ? new Date(this.peer.updatedAt * 1000)
+        : undefined,
+      extended: this.peer.extended || {}
     }
   }
 
@@ -190,8 +203,8 @@ export class PeerManager extends EntityManager {
       credentials: CredentialsManager.mapToDto(peer.credentials),
       accessControlListRef: peer.accessControlListRef,
       accessControlList: ACLManager.mapToDto(peer.accessControlList),
-      createdAt: peer.createdAt,
-      updatedAt: peer.updatedAt,
+      createdAt: peer.createdAt.getTime() / 1000,
+      updatedAt: peer.updatedAt.getTime() / 1000,
       extended: peer.extended as JsonObject
     }
   }

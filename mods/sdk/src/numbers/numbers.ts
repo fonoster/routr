@@ -41,6 +41,7 @@ import {
  * const request = {
  *   name: "(415) 555-1212",
  *   telUrl: "teL:+14155551212",
+ *   trunkRef: "6f941c63-880c-419a-a72a-4a107cbaf5c5",
  *   aorLink: "sip:100@sip.local",
  *   city: "San Francisco",
  *   country: "United States",
@@ -81,7 +82,7 @@ export class Numbers extends APIClient {
    * @param {string} request.country - The country where the number is located
    * @param {string} request.countryISOCode - The country ISO code where the number is located
    * @param {{ name: string, value: string}[]} request.extraHeaders - Extra headers to be used
-   * @param {string} request.trunkRef - The trunk reference to be used
+   * @param {string} request.trunkRef - The Trunk reference to be used
    * @param {string} request.sessionAffinityHeader - Optional session affinity header
    * @param {string} request.extended - Optional extended attributes
    * @return {Promise<CreateNumberResponse>} The newly created Number
@@ -91,6 +92,7 @@ export class Numbers extends APIClient {
    * const request = {
    *   name: "(415) 555-1212",
    *   telUrl: "teL:+14155551212",
+   *   trunkRef: "6f941c63-880c-419a-a72a-4a107cbaf5c5",
    *   aorLink: "sip:100@sip.local",
    *   city: "San Francisco",
    *   country: "United States",
@@ -112,7 +114,10 @@ export class Numbers extends APIClient {
   async createNumber(
     request: CreateNumberRequest
   ): Promise<CreateNumberResponse> {
-    return this.client.numbers.create(request)
+    return this.client.numbers.create({
+      ...request,
+      countryIsoCode: request.countryISOCode
+    })
   }
 
   /**
@@ -126,7 +131,7 @@ export class Numbers extends APIClient {
    * @param {string} request.country - The country where the number is located
    * @param {string} request.countryISOCode - The country ISO code where the number is located
    * @param {{ name: string, value: string}[]} request.extraHeaders - Extra headers to be used
-   * @param {string} request.trunkRef - The trunk reference to be used
+   * @param {string} request.trunkRef - The Trunk reference to be used
    * @param {string} request.sessionAffinityHeader - Optional session affinity header
    * @param {string} request.extended - Optional extended attributes
    * @return {Promise<UpdateNumberResponse>} The updated Number
@@ -144,7 +149,10 @@ export class Numbers extends APIClient {
   async updateNumber(
     request: UpdateNumberRequest
   ): Promise<UpdateNumberResponse> {
-    return this.client.numbers.update(request)
+    return this.client.numbers.update({
+      ...request,
+      countryIsoCode: request.countryISOCode
+    })
   }
 
   /**

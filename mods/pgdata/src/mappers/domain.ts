@@ -92,23 +92,24 @@ export class DomainManager extends EntityManager {
       name: this.domain.name,
       accessControlListRef: this.domain.accessControlListRef,
       domainUri: this.domain.domainUri,
-      extended: this.domain.extended as JsonObject,
-      createdAt: this.domain.createdAt,
+      extended: this.domain.extended || {},
+      createdAt: this.domain.createdAt
+        ? new Date(this.domain.createdAt * 1000)
+        : undefined,
       updatedAt: this.domain.updatedAt
+        ? new Date(this.domain.updatedAt * 1000)
+        : undefined
     }
   }
 
   static mapToDto(domain: DomainWithACL): CC.Domain {
     return {
-      apiVersion: domain.apiVersion,
-      ref: domain.ref,
-      name: domain.name,
+      ...domain,
       accessControlListRef: domain.accessControlList?.ref,
       accessControlList: ACLManager.mapToDto(domain.accessControlList),
-      domainUri: domain.domainUri,
       extended: domain.extended as JsonObject,
-      createdAt: domain.createdAt,
-      updatedAt: domain.updatedAt
+      createdAt: domain.createdAt.getTime() / 1000,
+      updatedAt: domain.updatedAt.getTime() / 1000
     }
   }
 }

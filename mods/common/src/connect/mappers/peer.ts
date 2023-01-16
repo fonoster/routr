@@ -28,6 +28,8 @@ const valid = schemaValidators.get(Kind.PEER)
 export function mapToPeer(config: PeerConfig): Peer {
   assertValidSchema(config, valid)
   assertValidAorSchema(config)
+  const normalizeAlgorithm = (algorithm: string) =>
+    algorithm?.replace(/-/g, "_").toUpperCase() as LoadBalancingAlgorithm
 
   return {
     apiVersion: config.apiVersion,
@@ -38,8 +40,9 @@ export function mapToPeer(config: PeerConfig): Peer {
     contactAddr: config.spec.contactAddr,
     enabled: config.spec.enabled,
     credentialsRef: config.spec.credentialsRef,
-    balancingAlgorithm:
-      config.spec.loadBalancing?.algorithm.toUpperCase() as LoadBalancingAlgorithm,
+    balancingAlgorithm: normalizeAlgorithm(
+      config.spec.loadBalancing?.algorithm
+    ),
     withSessionAffinity: config.spec.loadBalancing?.withSessionAffinity
   }
 }

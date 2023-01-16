@@ -8,7 +8,7 @@ CREATE TYPE "api_version" AS ENUM ('v2draft1', 'v2');
 CREATE TYPE "Transport" AS ENUM ('UDP', 'TCP', 'SCTP', 'TLS', 'WS', 'WSS');
 
 -- CreateEnum
-CREATE TYPE "LoadBalancingAlgorithm" AS ENUM ('ROUND-ROBIN', 'LEAST-SESSIONS');
+CREATE TYPE "LoadBalancingAlgorithm" AS ENUM ('ROUND_ROBIN', 'LEAST_SESSIONS');
 
 -- CreateTable
 CREATE TABLE "agents" (
@@ -105,6 +105,8 @@ CREATE TABLE "access_control_lists" (
     "name" VARCHAR(60) NOT NULL,
     "allow" VARCHAR(60)[],
     "deny" VARCHAR(60)[],
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
     "extended" JSONB,
 
     CONSTRAINT "access_control_lists_pkey" PRIMARY KEY ("ref")
@@ -117,6 +119,8 @@ CREATE TABLE "credentials" (
     "name" VARCHAR(60) NOT NULL,
     "username" VARCHAR(60) NOT NULL,
     "password" VARCHAR(60) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
     "extended" JSONB,
 
     CONSTRAINT "credentials_pkey" PRIMARY KEY ("ref")

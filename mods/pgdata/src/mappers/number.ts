@@ -144,17 +144,21 @@ export class NumberManager extends EntityManager {
       apiVersion: "v2" as APIVersion,
       ref: this.number.ref,
       name: this.number.name,
-      trunkRef: this.number.trunkRef,
+      trunkRef: this.number.trunkRef || null,
       telUrl: this.number.telUrl,
-      aorLink: this.number.aorLink,
-      city: this.number.city,
+      aorLink: this.number.aorLink || null,
+      city: this.number.city || undefined,
       country: this.number.country,
-      countryISOCode: this.number.countryISOCode,
-      sessionAffinityHeader: this.number.sessionAffinityHeader,
-      extraHeaders: this.number.extraHeaders,
-      extended: this.number.extended,
-      createdAt: this.number.createdAt,
+      countryISOCode: this.number.countryIsoCode,
+      sessionAffinityHeader: this.number.sessionAffinityHeader || null,
+      extraHeaders: this.number.extraHeaders || null,
+      createdAt: this.number.createdAt
+        ? new Date(this.number.createdAt * 1000)
+        : undefined,
       updatedAt: this.number.updatedAt
+        ? new Date(this.number.updatedAt * 1000)
+        : undefined,
+      extended: this.number.extended || {}
     }
   }
 
@@ -169,12 +173,12 @@ export class NumberManager extends EntityManager {
       aorLink: number.aorLink,
       city: number.city,
       country: number.country,
-      countryISOCode: number.countryISOCode,
+      countryIsoCode: number.countryISOCode,
       sessionAffinityHeader: number.sessionAffinityHeader,
       extraHeaders: number.extraHeaders as { name: string; value: string }[],
       extended: number.extended as JsonObject,
-      createdAt: number.createdAt,
-      updatedAt: number.updatedAt
+      createdAt: number.createdAt.getTime() / 1000,
+      updatedAt: number.updatedAt.getTime() / 1000
     }
   }
 }

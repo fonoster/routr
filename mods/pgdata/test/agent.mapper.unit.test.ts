@@ -18,13 +18,15 @@
  */
 import { APIVersion, Privacy as PrismaPrivacy, Prisma } from "@prisma/client"
 import { Privacy } from "@routr/common/src/types"
+import { AgentManager } from "../src/mappers/agent"
 import chai from "chai"
 import sinon from "sinon"
+import chaiExclude from "chai-exclude"
 import sinonChai from "sinon-chai"
-import { AgentManager } from "../src/mappers/agent"
 
 const expect = chai.expect
 chai.use(sinonChai)
+chai.use(chaiExclude)
 const sandbox = sinon.createSandbox()
 
 describe("@routr/pgdata/mappers/agent", () => {
@@ -44,15 +46,15 @@ describe("@routr/pgdata/mappers/agent", () => {
       extended: {
         test: "test"
       },
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: new Date().getTime() / 1000,
+      updatedAt: new Date().getTime() / 1000
     }
 
     // Act
     const result = new AgentManager(agent).mapToPrisma()
 
     // Assert
-    expect(result).to.deep.equal(agent)
+    expect(result).excluding(["createdAt", "updatedAt"]).to.deep.equal(agent)
   })
 
   it("takes a prisma model and converts it to dto object", () => {
@@ -86,22 +88,23 @@ describe("@routr/pgdata/mappers/agent", () => {
         apiVersion: "v2" as APIVersion,
         ref: "domain-01",
         name: "test",
+        domainUri: "test",
         accessControlListRef: "acl-01",
         accessControlList: {
           apiVersion: "v2" as APIVersion,
           ref: "acl-01",
           name: "test",
+          allow: ["0.0.0.0/1"],
+          deny: ["0.0.0.0/1"],
+          createdAt: new Date(),
+          updatedAt: new Date(),
           extended: {
             test: "test"
-          },
-          allow: ["0.0.0.0/1"],
-          deny: ["0.0.0.0/1"]
+          }
         },
-        domainUri: "test",
         extended: {
           test: "test"
         },
-
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -111,6 +114,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         name: "test",
         username: "1001",
         password: "test",
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -121,7 +126,9 @@ describe("@routr/pgdata/mappers/agent", () => {
     const result = AgentManager.mapToDto(agent)
 
     // Assert
-    expect(result).to.deep.equal(agent)
+    expect(result)
+      .excludingEvery(["createdAt", "updatedAt"])
+      .to.deep.equal(agent)
   })
 
   describe("throws errors", () => {
@@ -139,8 +146,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act
@@ -170,8 +177,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act
@@ -201,8 +208,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act
@@ -226,8 +233,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act
@@ -251,8 +258,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act

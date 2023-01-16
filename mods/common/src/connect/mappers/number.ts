@@ -36,7 +36,7 @@ export function mapToNumber(config: NumberConfig): INumber {
     name: metadata.name,
     city: metadata.geoInfo.city,
     country: metadata.geoInfo.country,
-    countryISOCode: metadata.geoInfo.countryISOCode,
+    countryIsoCode: metadata.geoInfo.countryISOCode,
     telUrl: location.telUrl,
     aorLink: location.aorLink,
     sessionAffinityHeader: location.sessionAffinityHeader,

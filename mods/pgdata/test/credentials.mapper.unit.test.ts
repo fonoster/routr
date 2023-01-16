@@ -17,13 +17,15 @@
  * limitations under the License.
  */
 import { APIVersion } from "@prisma/client"
+import { CredentialsManager } from "../src/mappers/credentials"
 import chai from "chai"
 import sinon from "sinon"
+import chaiExclude from "chai-exclude"
 import sinonChai from "sinon-chai"
-import { CredentialsManager } from "../src/mappers/credentials"
 
 const expect = chai.expect
 chai.use(sinonChai)
+chai.use(chaiExclude)
 const sandbox = sinon.createSandbox()
 
 describe("@routr/pgdata/mappers/credentials", () => {
@@ -37,6 +39,8 @@ describe("@routr/pgdata/mappers/credentials", () => {
       name: "Global Credentials",
       username: "1001",
       password: "1234",
+      createdAt: new Date().getTime() / 1000,
+      updatedAt: new Date().getTime() / 1000,
       extended: {
         test: "test"
       }
@@ -46,7 +50,9 @@ describe("@routr/pgdata/mappers/credentials", () => {
     const result = new CredentialsManager(credentials).mapToPrisma()
 
     // Assert
-    expect(result).to.deep.equal(credentials)
+    expect(result)
+      .excluding(["createdAt", "updatedAt"])
+      .to.deep.equal(credentials)
   })
 
   it("takes a prisma model and converts it to dto object", () => {
@@ -57,6 +63,8 @@ describe("@routr/pgdata/mappers/credentials", () => {
       name: "Global Credentials",
       username: "1001",
       password: "1234",
+      createdAt: new Date(),
+      updatedAt: new Date(),
       extended: {
         test: "test"
       }
@@ -66,7 +74,9 @@ describe("@routr/pgdata/mappers/credentials", () => {
     const result = CredentialsManager.mapToDto(credentials)
 
     // Assert
-    expect(result).to.deep.equal(credentials)
+    expect(result)
+      .excluding(["createdAt", "updatedAt"])
+      .to.deep.equal(credentials)
   })
 
   describe("throws errors", () => {

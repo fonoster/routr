@@ -124,12 +124,18 @@ export class ACLManager extends EntityManager {
 
   mapToPrisma(): ACLPrismaModel {
     return {
-      // TODO: Set a default value for apiVersion
+      // TODO: Create a default value for apiVersion
       apiVersion: "v2" as APIVersion,
       ref: this.acl.ref,
       name: this.acl.name,
       allow: this.acl.allow,
       deny: this.acl.deny,
+      createdAt: this.acl.createdAt
+        ? new Date(this.acl.createdAt * 1000)
+        : undefined,
+      updatedAt: this.acl.updatedAt
+        ? new Date(this.acl.updatedAt * 1000)
+        : undefined,
       extended: this.acl.extended || {}
     }
   }
@@ -137,6 +143,8 @@ export class ACLManager extends EntityManager {
   static mapToDto(acl: ACLPrismaModel): CC.AccessControlList {
     return {
       ...acl,
+      createdAt: acl.createdAt.getTime() / 1000,
+      updatedAt: acl.updatedAt.getTime() / 1000,
       extended: acl.extended as JsonObject
     }
   }

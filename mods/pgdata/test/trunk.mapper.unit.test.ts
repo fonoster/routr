@@ -16,15 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import chai from "chai"
-import sinon from "sinon"
-import sinonChai from "sinon-chai"
 import { TrunkManager } from "../src/mappers/trunk"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { APIVersion, Prisma } from "@prisma/client"
+import chai from "chai"
+import sinon from "sinon"
+import chaiExclude from "chai-exclude"
+import sinonChai from "sinon-chai"
 
 const expect = chai.expect
 chai.use(sinonChai)
+chai.use(chaiExclude)
 const sandbox = sinon.createSandbox()
 
 describe("@routr/pgdata/mappers/trunk", () => {
@@ -41,8 +43,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
       inboundCredentialsRef: "credentials-01",
       outboundCredentialsRef: "credentials-01",
       sendRegister: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().getTime() / 1000,
+      updatedAt: new Date().getTime() / 1000,
       extended: {
         test: "test"
       }
@@ -52,7 +54,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
     const result = new TrunkManager(trunk).mapToPrisma()
 
     // Assert
-    expect(result).to.deep.equal(trunk)
+    expect(result).excluding(["createdAt", "updatedAt"]).to.deep.equal(trunk)
   })
 
   it("takes a prisma model and converts it to dto object", () => {
@@ -86,6 +88,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         name: "Global ACL",
         allow: [""],
         deny: [""],
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -96,6 +100,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         name: "test",
         username: "trunk01",
         password: "1234",
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -106,6 +112,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         name: "test",
         username: "trunk01",
         password: "1234",
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -129,7 +137,9 @@ describe("@routr/pgdata/mappers/trunk", () => {
     const result = TrunkManager.mapToDto(trunk)
 
     // Assert
-    expect(result).to.deep.equal(trunk)
+    expect(result)
+      .excludingEvery(["createdAt", "updatedAt"])
+      .to.deep.equal(trunk)
   })
 
   describe("throws errors", () => {
@@ -144,8 +154,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -175,8 +185,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -206,8 +216,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -231,8 +241,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -256,8 +266,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }

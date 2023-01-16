@@ -191,7 +191,7 @@ describe("@routr/common/connect/mappers", () => {
     )
     expect(number).to.have.property("city", numberConfig.metadata.geoInfo.city)
     expect(number).to.have.property(
-      "countryISOCode",
+      "countryIsoCode",
       numberConfig.metadata.geoInfo.countryISOCode
     )
     expect(number).to.have.property("trunkRef", numberConfig.spec.trunkRef)

@@ -43,7 +43,7 @@ export function update(
 
       manager.validOrThrowUpdate()
 
-      const agentFromDB = (await operation({
+      const objectFromDB = (await operation({
         where: {
           ref: request.ref
         },
@@ -51,11 +51,13 @@ export function update(
         include: Manager.includeFields()
       })) as { extended: unknown }
 
-      if (agentFromDB.extended) {
-        agentFromDB.extended = struct.encode(agentFromDB.extended as JsonObject)
+      if (objectFromDB.extended) {
+        objectFromDB.extended = struct.encode(
+          objectFromDB.extended as JsonObject
+        )
       }
 
-      callback(null, agentFromDB)
+      callback(null, Manager.mapToDto(objectFromDB as any))
     } catch (e) {
       if (e.code === "P2025") {
         callback(new ResourceNotFoundError(call.request.ref), null)

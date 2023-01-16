@@ -110,10 +110,14 @@ export class TrunkManager extends EntityManager {
       inboundUri: this.trunk.inboundUri,
       inboundCredentialsRef: this.trunk.inboundCredentialsRef,
       outboundCredentialsRef: this.trunk.outboundCredentialsRef,
-      extended: this.trunk.extended,
       sendRegister: this.trunk.sendRegister,
-      createdAt: this.trunk.createdAt,
+      createdAt: this.trunk.createdAt
+        ? new Date(this.trunk.createdAt * 1000)
+        : undefined,
       updatedAt: this.trunk.updatedAt
+        ? new Date(this.trunk.updatedAt * 1000)
+        : undefined,
+      extended: this.trunk.extended || {}
     }
   }
 
@@ -146,8 +150,8 @@ export class TrunkManager extends EntityManager {
           enabled: uri.enabled
         }
       }),
-      createdAt: trunk.createdAt,
-      updatedAt: trunk.updatedAt
+      createdAt: trunk.createdAt.getTime() / 1000,
+      updatedAt: trunk.updatedAt.getTime() / 1000
     }
   }
 }

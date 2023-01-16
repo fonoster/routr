@@ -49,8 +49,9 @@ export enum Transport {
 }
 
 export enum LoadBalancingAlgorithm {
-  ROUND_ROBIN = "ROUND-ROBIN",
-  LEAST_SESSIONS = "LEAST-SESSIONS"
+  UNSPECIFIED = "UNSPECIFIED",
+  ROUND_ROBIN = "ROUND_ROBIN",
+  LEAST_SESSIONS = "LEAST_SESSIONS"
 }
 
 export enum ExtraHeader {

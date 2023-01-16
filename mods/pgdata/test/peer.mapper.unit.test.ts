@@ -18,13 +18,15 @@
  */
 import { APIVersion, LoadBalancingAlgorithm, Prisma } from "@prisma/client"
 import { CommonTypes as CT } from "@routr/common"
+import { PeerManager } from "../src/mappers/peer"
 import chai from "chai"
 import sinon from "sinon"
+import chaiExclude from "chai-exclude"
 import sinonChai from "sinon-chai"
-import { PeerManager } from "../src/mappers/peer"
 
 const expect = chai.expect
 chai.use(sinonChai)
+chai.use(chaiExclude)
 const sandbox = sinon.createSandbox()
 
 describe("@routr/pgdata/mappers/peer", () => {
@@ -41,11 +43,11 @@ describe("@routr/pgdata/mappers/peer", () => {
       username: "asterisk",
       aor: "sip:1001@sip.local",
       contactAddr: "192.168.1.12",
-      balancingAlgorithm: "ROUND-ROBIN" as CT.LoadBalancingAlgorithm,
+      balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
       withSessionAffinity: false,
       enabled: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().getTime() / 1000,
+      updatedAt: new Date().getTime() / 1000,
       extended: {
         test: "test"
       }
@@ -55,7 +57,7 @@ describe("@routr/pgdata/mappers/peer", () => {
     const result = new PeerManager(peer).mapToPrisma()
 
     // Assert
-    expect(result).to.deep.equal(peer)
+    expect(result).excluding(["createdAt", "updatedAt"]).to.deep.equal(peer)
   })
 
   it("takes a prisma model and converts it to dto object", () => {
@@ -75,7 +77,7 @@ describe("@routr/pgdata/mappers/peer", () => {
       username: "asterisk",
       aor: "backend:voice",
       contactAddr: "192.168.1.3",
-      balancingAlgorithm: "ROUND-ROBIN" as LoadBalancingAlgorithm,
+      balancingAlgorithm: "ROUND_ROBIN" as LoadBalancingAlgorithm,
       withSessionAffinity: false,
       enabled: true,
       credentials: {
@@ -84,6 +86,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         ref: "credentials-01",
         username: "asterisk",
         password: "1234",
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -94,7 +98,9 @@ describe("@routr/pgdata/mappers/peer", () => {
         ref: "acl-01",
         name: "test",
         allow: ["0.0.0.1/16"],
-        deny: ["0.0.0.1/16"],
+        deny: ["0.0.0.0/1"],
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -110,7 +116,9 @@ describe("@routr/pgdata/mappers/peer", () => {
     const result = PeerManager.mapToDto(peer)
 
     // Assert
-    expect(result).to.deep.equal(peer)
+    expect(result)
+      .excludingEvery(["createdAt", "updatedAt"])
+      .to.deep.equal(peer)
   })
 
   describe("throws errors", () => {
@@ -126,8 +134,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -158,8 +166,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -190,8 +198,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -216,8 +224,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -242,8 +250,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -270,8 +278,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         aor: "",
         contactAddr: "192.168.1.12",
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -296,8 +304,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         aor: "backendx:aor-01",
         contactAddr: "192.168.1.12:5060",
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -328,8 +336,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         aor: "backend:aor-01",
         contactAddr: "192.168.1.12:5060",
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }
@@ -358,12 +366,12 @@ describe("@routr/pgdata/mappers/peer", () => {
         name: "Asterisk Media Server",
         username: "asterisk",
         aor: "sip:1001@sip.local",
-        balancingAlgorithm: "ROUND-ROBIN" as CT.LoadBalancingAlgorithm,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
         withSessionAffinity: false,
         contactAddr: "192.168.1.12:5060",
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000,
         extended: {
           test: "test"
         }

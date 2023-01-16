@@ -49,7 +49,7 @@ export function create(
         objFromDB.extended = struct.encode(objFromDB.extended as JsonObject)
       }
 
-      callback(null, objFromDB)
+      callback(null, Manager.mapToDto(objFromDB as any))
     } catch (e) {
       if (e.code === "P2002") {
         callback(

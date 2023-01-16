@@ -42,16 +42,29 @@ export function list(
           createdAt: "desc"
         },
         include: Manager.includeFields()
-      })) as { extended: unknown; ref: string }[]
+      })) as {
+        extended: unknown
+        ref: string
+        createdAt: Date
+        updatedAt: Date
+      }[]
 
-      items.forEach((item: { extended: unknown }) => {
-        if (item.extended) {
-          item.extended = struct.encode(item.extended as JsonObject)
+      const itemsWithEncodedDates = items.map(
+        (item: { extended: unknown; createdAt: Date; updatedAt: Date }) => {
+          if (item.extended) {
+            item.extended = struct.encode(item.extended as JsonObject)
+          }
+
+          return {
+            ...item,
+            createdAt: item.createdAt.getTime() / 1000,
+            updatedAt: item.updatedAt.getTime() / 1000
+          }
         }
-      })
+      )
 
       callback(null, {
-        items,
+        items: itemsWithEncodedDates,
         nextPageToken: items[items.length - 1]?.ref
       })
     } catch (e) {

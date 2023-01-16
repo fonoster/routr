@@ -21,6 +21,7 @@ import { CommonTypes as CT } from "@routr/common"
 import { BadRequestError } from "@routr/common/src/errors"
 import { PrismaOperation } from "../types"
 
+// TODO: Fix the error handling. We should return the error
 export function del(operation: PrismaOperation) {
   return async (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (!call.request.ref) {

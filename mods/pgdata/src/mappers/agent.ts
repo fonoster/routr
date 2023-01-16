@@ -115,8 +115,12 @@ export class AgentManager extends EntityManager {
       enabled: this.agent.enabled,
       domainRef: this.agent.domainRef || null,
       credentialsRef: this.agent.credentialsRef || null,
-      createdAt: this.agent.createdAt,
-      updatedAt: this.agent.updatedAt,
+      createdAt: this.agent.createdAt
+        ? new Date(this.agent.createdAt * 1000)
+        : undefined,
+      updatedAt: this.agent.updatedAt
+        ? new Date(this.agent.updatedAt * 1000)
+        : undefined,
       extended: this.agent.extended || {}
     }
   }
@@ -136,8 +140,8 @@ export class AgentManager extends EntityManager {
         ? CredentialsManager.mapToDto(agent.credentials)
         : undefined,
       extended: (agent.extended || {}) as JsonObject,
-      createdAt: agent.createdAt,
-      updatedAt: agent.updatedAt
+      createdAt: agent.createdAt.getTime() / 1000,
+      updatedAt: agent.updatedAt.getTime() / 1000
     }
   }
 }

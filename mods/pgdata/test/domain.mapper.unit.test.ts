@@ -17,13 +17,15 @@
  * limitations under the License.
  */
 import { APIVersion, Prisma } from "@prisma/client"
+import { DomainManager } from "../src/mappers/domain"
 import chai from "chai"
 import sinon from "sinon"
+import chaiExclude from "chai-exclude"
 import sinonChai from "sinon-chai"
-import { DomainManager } from "../src/mappers/domain"
 
 const expect = chai.expect
 chai.use(sinonChai)
+chai.use(chaiExclude)
 const sandbox = sinon.createSandbox()
 
 describe("@routr/pgdata/mappers/domain", () => {
@@ -40,15 +42,15 @@ describe("@routr/pgdata/mappers/domain", () => {
       extended: {
         test: "test"
       },
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: new Date().getTime() / 1000,
+      updatedAt: new Date().getTime() / 1000
     }
 
     // Act
     const result = new DomainManager(domain).mapToPrisma()
 
     // Assert
-    expect(result).to.deep.equal(domain)
+    expect(result).excluding(["createdAt", "updatedAt"]).to.deep.equal(domain)
   })
 
   it("takes a prisma model and converts it to dto object", () => {
@@ -65,17 +67,19 @@ describe("@routr/pgdata/mappers/domain", () => {
       name: "Local Domain",
       accessControlListRef: "acl-01",
       domainUri: "sip.local",
+      createdAt: new Date(),
+      updatedAt: new Date(),
       extended: {
         test: "test"
       },
-      createdAt: new Date(),
-      updatedAt: new Date(),
       accessControlList: {
         apiVersion: "v2" as APIVersion,
         ref: "acl-01",
         name: "test",
         allow: ["192.168.1.2/31"],
         deny: ["0.0.0.0/1"],
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -86,7 +90,9 @@ describe("@routr/pgdata/mappers/domain", () => {
     const result = DomainManager.mapToDto(domain)
 
     // Assert
-    expect(result).to.deep.equal(domain)
+    expect(result)
+      .excludingEvery(["createdAt", "updatedAt"])
+      .to.deep.equal(domain)
   })
 
   describe("throws errors", () => {
@@ -101,8 +107,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act
@@ -129,8 +135,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act
@@ -157,8 +163,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act
@@ -179,8 +185,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act

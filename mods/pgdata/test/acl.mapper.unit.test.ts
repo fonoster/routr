@@ -20,10 +20,12 @@ import { APIVersion } from "@prisma/client"
 import { ACLManager } from "../src/mappers/acl"
 import chai from "chai"
 import sinon from "sinon"
+import chaiExclude from "chai-exclude"
 import sinonChai from "sinon-chai"
 
 const expect = chai.expect
 chai.use(sinonChai)
+chai.use(chaiExclude)
 const sandbox = sinon.createSandbox()
 
 describe("@routr/pgdata/mappers/acl", () => {
@@ -37,6 +39,8 @@ describe("@routr/pgdata/mappers/acl", () => {
       name: "Local Network ACL",
       allow: ["192.168.1.3/31"],
       deny: ["0.0.0.0/1"],
+      createdAt: new Date().getTime() / 1000,
+      updatedAt: new Date().getTime() / 1000,
       extended: {
         test: "test"
       }
@@ -46,7 +50,7 @@ describe("@routr/pgdata/mappers/acl", () => {
     const result = new ACLManager(acl).mapToPrisma()
 
     // Assert
-    expect(result).to.deep.equal(acl)
+    expect(result).excluding(["createdAt", "updatedAt"]).to.deep.equal(acl)
   })
 
   it("takes a prisma model and converts it to dto object", () => {
@@ -57,6 +61,8 @@ describe("@routr/pgdata/mappers/acl", () => {
       name: "Local Network ACL",
       allow: ["192.168.1.3/31"],
       deny: ["0.0.0.0/1"],
+      createdAt: new Date(),
+      updatedAt: new Date(),
       extended: {
         test: "test"
       }
@@ -66,7 +72,7 @@ describe("@routr/pgdata/mappers/acl", () => {
     const result = ACLManager.mapToDto(acl)
 
     // Assert
-    expect(result).to.deep.equal(acl)
+    expect(result).excluding(["createdAt", "updatedAt"]).to.deep.equal(acl)
   })
 
   describe("throws errors", () => {

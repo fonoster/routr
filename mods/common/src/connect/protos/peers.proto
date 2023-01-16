@@ -42,10 +42,13 @@ service Peers {
 }
 
 enum LoadBalancingAlgorithm {
+  // Value for situations where the load balancing algorithm is not specified
+  // Such as having an aor starting with "sip:"
+  UNSPECIFIED = 0;
   // The round robin load balancing algorithm
-  ROUND_ROBIN = 0;
+  ROUND_ROBIN = 1;
   // The least sessions load balancing algorithm
-  LEAST_SESSIONS = 1;
+  LEAST_SESSIONS = 2;
 }
 
 // The message for the Peer resource
@@ -63,7 +66,7 @@ message Peer {
   // The contact address of the Peer
   string contact_addr = 6;
   // The load balancing algorithm of the Peer
-  LoadBalancingAlgorithm load_balancing_algorithm = 7;
+  LoadBalancingAlgorithm balancing_algorithm = 7;
   // The session affinity of the Peer
   bool with_session_affinity = 8;
   // The status of the Peer
@@ -91,7 +94,7 @@ message CreatePeerRequest  {
   // The contact address of the Peer
   string contact_addr = 4;
   // The load balancing algorithm of the Peer
-  LoadBalancingAlgorithm load_balancing_algorithm = 5;
+  LoadBalancingAlgorithm balancing_algorithm = 5;
   // The session affinity of the Peer
   bool with_session_affinity = 6;
   // Reference to the ACL of the Peer
@@ -117,7 +120,7 @@ message UpdatePeerRequest {
   // The contact address of the Peer
   string contact_addr = 5;
   // The load balancing algorithm of the Peer
-  LoadBalancingAlgorithm load_balancing_algorithm = 6;
+  LoadBalancingAlgorithm balancing_algorithm = 6;
   // The session affinity of the Peer
   bool with_session_affinity = 7;
   // Reference to the ACL of the Peer

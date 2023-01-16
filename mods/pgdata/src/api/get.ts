@@ -46,7 +46,7 @@ export function get(operation: PrismaOperation, kind: CC.KindWithoutUnknown) {
     }
 
     objectFromDB
-      ? callback(null, objectFromDB)
+      ? callback(null, Manager.mapToDto(objectFromDB as any))
       : callback(new CE.ResourceNotFoundError(call.request.ref), null)
   }
 }

@@ -19,7 +19,10 @@
 import { CommonConnect as CC } from "@routr/common"
 import { CreateBaseOmit } from "../types"
 
-export type CreateNumberRequest = Omit<CC.INumber, CreateBaseOmit | "trunk">
+export type CreateNumberRequest = Omit<
+  CC.INumber,
+  CreateBaseOmit | "trunk" | "countryIsoCode"
+> & { countryISOCode: string }
 
 export type CreateNumberResponse = CC.INumber
 

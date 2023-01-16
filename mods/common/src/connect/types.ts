@@ -41,8 +41,8 @@ export interface BaseConnectModel {
   apiVersion: string
   ref: string
   name: string
-  createdAt?: Date
-  updatedAt?: Date
+  createdAt?: number
+  updatedAt?: number
   extended?: JsonObject
 }
 
@@ -84,7 +84,7 @@ export interface INumber extends BaseConnectModel {
   aorLink: string
   city: string
   country: string
-  countryISOCode: string
+  countryIsoCode: string
   sessionAffinityHeader: string
   extraHeaders: { name: string; value: string }[]
   trunkRef?: string

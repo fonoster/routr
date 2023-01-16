@@ -38,7 +38,7 @@ export abstract class APIClient {
     }
 
     const credentials =
-      process.env.ALLOW_INSECURE === "true"
+      process.env.ALLOW_INSECURE === "true" || options.insecure === true
         ? grpc.credentials.createInsecure()
         : grpc.credentials.createSsl()
 

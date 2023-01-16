@@ -18,6 +18,7 @@
  */
 export interface ClientOptions {
   endpoint: string
+  insecure?: boolean
   username?: string
   password?: string
 }

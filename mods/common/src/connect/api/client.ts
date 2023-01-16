@@ -179,7 +179,7 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
 
     del: (ref: string) =>
       new Promise((resolve, reject) => {
-        client.get({ ref }, meta, (err: GrpcError) =>
+        client.delete({ ref }, meta, (err: GrpcError) =>
           err ? reject(fire(err, apiAddr)) : resolve()
         )
       })

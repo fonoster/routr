@@ -16,8 +16,8 @@ model Agent {
   username       String     @unique @db.VarChar(60)
   privacy        Privacy    @default(NONE)
   enabled        Boolean    @default(true)
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended       Json?
 
   // Relations
@@ -41,8 +41,8 @@ model Peer {
   balancingAlgorithm   LoadBalancingAlgorithm? @map("balancing_algorithm")
   withSessionAffinity  Boolean                 @default(false) @map("with_session_affinity")
   enabled              Boolean                 @default(true)
-  createdAt            DateTime                @default(now()) @map("created_at")
-  updatedAt            DateTime                @updatedAt @map("updated_at")
+  createdAt            DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended             Json?
 
   // Relations
@@ -60,8 +60,8 @@ model Domain {
   accessControlListRef String?    @map("acl_ref")
   name                 String
   domainUri            String     @unique @map("domain_uri") @db.VarChar(255)
-  createdAt            DateTime   @default(now()) @map("created_at")
-  updatedAt            DateTime   @updatedAt @map("updated_at")
+  createdAt            DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended             Json?
 
   // Relations
@@ -83,8 +83,8 @@ model Trunk {
   name                   String     @db.VarChar(60)
   sendRegister           Boolean    @default(false) @map("send_register")
   inboundUri             String?    @unique @map("inbound_uri")
-  createdAt              DateTime   @default(now()) @map("created_at")
-  updatedAt              DateTime   @updatedAt @map("updated_at")
+  createdAt              DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended               Json?
 
   // Relations
@@ -111,8 +111,8 @@ model Number {
   countryISOCode        String     @map("country_iso_code") @db.VarChar(2)
   sessionAffinityHeader String?    @map("session_affinity_header") @db.VarChar(60)
   extraHeaders          Json?      @map("extra_headers")
-  createdAt             DateTime   @default(now()) @map("created_at")
-  updatedAt             DateTime   @updatedAt @map("updated_at")
+  createdAt             DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended              Json?
 
   // Relations
@@ -130,6 +130,8 @@ model AccessControlList {
   name       String     @db.VarChar(60)
   allow      String[]   @db.VarChar(60)
   deny       String[]   @db.VarChar(60)
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended   Json?
 
   // Relations
@@ -147,6 +149,8 @@ model Credentials {
   name       String     @db.VarChar(60)
   username   String     @db.VarChar(60)
   password   String     @db.VarChar(60)
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended   Json?
 
   // Relations
@@ -215,6 +219,6 @@ enum Transport {
 }
 
 enum LoadBalancingAlgorithm {
-  ROUND_ROBIN @map("ROUND-ROBIN")
-  LEAST_SESSIONS @map("LEAST-SESSIONS")
+  ROUND_ROBIN
+  LEAST_SESSIONS
 }

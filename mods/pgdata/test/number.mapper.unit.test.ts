@@ -17,13 +17,15 @@
  * limitations under the License.
  */
 import { APIVersion, Prisma, Transport } from "@prisma/client"
+import { NumberManager } from "../src/mappers/number"
 import chai from "chai"
 import sinon from "sinon"
+import chaiExclude from "chai-exclude"
 import sinonChai from "sinon-chai"
-import { NumberManager } from "../src/mappers/number"
 
 const expect = chai.expect
 chai.use(sinonChai)
+chai.use(chaiExclude)
 const sandbox = sinon.createSandbox()
 
 describe("@routr/pgdata/mappers/number", () => {
@@ -40,7 +42,7 @@ describe("@routr/pgdata/mappers/number", () => {
       aorLink: "backend:aor-01",
       city: "Durham",
       country: "United States",
-      countryISOCode: "US",
+      countryIsoCode: "US",
       sessionAffinityHeader: "x-session-affinity",
       extraHeaders: [
         {
@@ -51,15 +53,18 @@ describe("@routr/pgdata/mappers/number", () => {
       extended: {
         test: "test"
       },
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: new Date().getTime() / 1000,
+      updatedAt: new Date().getTime() / 1000
     }
 
     // Act
     const result = new NumberManager(number).mapToPrisma()
 
     // Assert
-    expect(result).to.deep.equal(number)
+    expect(result)
+      .excluding(["createdAt", "updatedAt", "countryISOCode", "countryIsoCode"])
+      .to.deep.equal(number)
+    expect(result).to.have.property("countryISOCode", number.countryIsoCode)
   })
 
   it("takes a prisma model and converts it to dto object", () => {
@@ -108,6 +113,8 @@ describe("@routr/pgdata/mappers/number", () => {
           name: "test",
           username: "test",
           password: "test",
+          createdAt: new Date(),
+          updatedAt: new Date(),
           extended: {
             test: "test"
           }
@@ -119,6 +126,8 @@ describe("@routr/pgdata/mappers/number", () => {
           name: "test",
           username: "test",
           password: "test",
+          createdAt: new Date(),
+          updatedAt: new Date(),
           extended: {
             test: "test"
           }
@@ -129,6 +138,8 @@ describe("@routr/pgdata/mappers/number", () => {
           name: "test",
           allow: ["0.0.0.1/1"],
           deny: ["0.0.0.0./1"],
+          createdAt: new Date(),
+          updatedAt: new Date(),
           extended: {
             test: "test"
           }
@@ -158,7 +169,15 @@ describe("@routr/pgdata/mappers/number", () => {
     const result = NumberManager.mapToDto(number)
 
     // Assert
-    expect(result).to.deep.equal(number)
+    expect(result)
+      .excludingEvery([
+        "createdAt",
+        "updatedAt",
+        "countryISOCode",
+        "countryIsoCode"
+      ])
+      .to.deep.equal(number)
+    expect(result).to.have.property("countryIsoCode", number.countryISOCode)
   })
 
   describe("throws errors", () => {
@@ -173,7 +192,7 @@ describe("@routr/pgdata/mappers/number", () => {
         aorLink: "backend:aor-01",
         city: "Durham",
         country: "United States",
-        countryISOCode: "US",
+        countryIsoCode: "US",
         sessionAffinityHeader: "x-session-affinity",
         extraHeaders: [
           {
@@ -184,8 +203,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act
@@ -212,7 +231,7 @@ describe("@routr/pgdata/mappers/number", () => {
         aorLink: "backend:aor-01",
         city: "Durham",
         country: "United States",
-        countryISOCode: "US",
+        countryIsoCode: "US",
         sessionAffinityHeader: "x-session-affinity",
         extraHeaders: [
           {
@@ -223,8 +242,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act
@@ -251,7 +270,7 @@ describe("@routr/pgdata/mappers/number", () => {
         aorLink: "backend:aor-01",
         city: "Durham",
         country: "United States",
-        countryISOCode: "US",
+        countryIsoCode: "US",
         sessionAffinityHeader: "x-session-affinity",
         extraHeaders: [
           {
@@ -262,8 +281,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
 
       // Act
@@ -284,7 +303,7 @@ describe("@routr/pgdata/mappers/number", () => {
         aorLink: "backend:aor-01",
         city: "Durham",
         country: "United States",
-        countryISOCode: "US",
+        countryIsoCode: "US",
         sessionAffinityHeader: "x-session-affinity",
         extraHeaders: [
           {
@@ -295,8 +314,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
       // Act
       const result = () => new NumberManager(number).validOrThrowCreate()
@@ -316,7 +335,7 @@ describe("@routr/pgdata/mappers/number", () => {
         aorLink: "aor-01",
         city: "Durham",
         country: "United States",
-        countryISOCode: "US",
+        countryIsoCode: "US",
         sessionAffinityHeader: "x-session-affinity space",
         extraHeaders: [
           {
@@ -327,8 +346,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
       // Act
       const createResult = () => new NumberManager(number).validOrThrowCreate()
@@ -354,7 +373,7 @@ describe("@routr/pgdata/mappers/number", () => {
         aorLink: "backenx:aor-01",
         city: "Durham",
         country: "United States",
-        countryISOCode: "US",
+        countryIsoCode: "US",
         sessionAffinityHeader: "x-session-affinity",
         extraHeaders: [
           {
@@ -365,8 +384,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime() / 1000,
+        updatedAt: new Date().getTime() / 1000
       }
       // Act
       const createResult = () => new NumberManager(number).validOrThrowCreate()
