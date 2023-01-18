@@ -107,12 +107,6 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
         when: () => domains.items.length > 0
       },
       {
-        name: "username",
-        message: "Username",
-        type: "input",
-        default: agentFromDB.username
-      },
-      {
         name: "credentialsRef",
         message: "Credentials",
         type: "list",

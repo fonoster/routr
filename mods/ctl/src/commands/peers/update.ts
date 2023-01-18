@@ -87,12 +87,6 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
         default: peerFromDB.name
       },
       {
-        name: "username",
-        message: "Username",
-        type: "input",
-        default: peerFromDB.username
-      },
-      {
         name: "aor",
         message: "Adress of Record (e.g. sip:5001@sip.local)",
         type: "input",

@@ -26,7 +26,9 @@ export type CreatePeerRequest = Omit<
 
 export type CreatePeerResponse = CC.Peer
 
-export type UpdatePeerRequest = { ref: string } & Partial<CreatePeerRequest>
+export type UpdatePeerRequest = { ref: string } & Partial<
+  Omit<CreatePeerRequest, "username">
+>
 
 export type UpdatePeerResponse = CC.Peer
 

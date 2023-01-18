@@ -113,24 +113,22 @@ message UpdatePeerRequest {
   string ref = 1;
   // The name of the Peer
   string name = 2;
-  // The username of the Peer
-  string username = 3;
   // The address of record of the Peer
-  string aor = 4;
+  string aor = 3;
   // The contact address of the Peer
-  string contact_addr = 5;
+  string contact_addr = 4;
   // The load balancing algorithm of the Peer
-  LoadBalancingAlgorithm balancing_algorithm = 6;
+  LoadBalancingAlgorithm balancing_algorithm = 5;
   // The session affinity of the Peer
-  bool with_session_affinity = 7;
+  bool with_session_affinity = 6;
   // Reference to the ACL of the Peer
-  string access_control_list_ref = 8;
+  string access_control_list_ref = 7;
   // Reference to the Credentials of the Peer
-  string credentials_ref = 9;
+  string credentials_ref = 8;
   // The status of the Peer
-  bool enabled = 10;
+  bool enabled = 9;
   // The extended attributes of the Peer
-  .google.protobuf.Struct extended = 11;
+  .google.protobuf.Struct extended = 10;
 }
 
 // The request message for the Peers.Get method

@@ -110,16 +110,8 @@ message UpdateNumberRequest {
   string ref = 1;
   // The name of the Number
   string name = 2;
-  // The tel_url of the Number
-  string tel_url = 3;
   // The aor_link of the Number
   string aor_link = 4;
-  // The city of the Number
-  string city = 5;
-  // The country of the Number
-  string country = 6;
-  // The country_iso_code of the Number
-  string country_iso_code = 7;
   // The header to use for session affinity
   string session_affinity_header = 8;
   // Extra headers to send to the trunk

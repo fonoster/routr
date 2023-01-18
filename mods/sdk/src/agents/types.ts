@@ -26,7 +26,9 @@ export type CreateAgentRequest = Omit<
 
 export type CreateAgentResponse = CC.Agent
 
-export type UpdateAgentRequest = { ref: string } & Partial<CreateAgentRequest>
+export type UpdateAgentRequest = { ref: string } & Partial<
+  Omit<CreateAgentRequest, "username">
+>
 
 export type UpdateAgentResponse = CC.Agent
 

@@ -125,11 +125,7 @@ export class Numbers extends APIClient {
    *
    * @param {UpdateNumberRequest} request - Partial with the fields to update
    * @param {string} request.name - Name of the Number
-   * @param {string} request.telUrl - The number URI to be used (e.g. te:+1234567890)
    * @param {string} request.aorLink - The AOR link to be used (e.g. sip:1001@sip.local)
-   * @param {string} request.city - The city where the number is located
-   * @param {string} request.country - The country where the number is located
-   * @param {string} request.countryISOCode - The country ISO code where the number is located
    * @param {{ name: string, value: string}[]} request.extraHeaders - Extra headers to be used
    * @param {string} request.trunkRef - The Trunk reference to be used
    * @param {string} request.sessionAffinityHeader - Optional session affinity header
@@ -149,10 +145,7 @@ export class Numbers extends APIClient {
   async updateNumber(
     request: UpdateNumberRequest
   ): Promise<UpdateNumberResponse> {
-    return this.client.numbers.update({
-      ...request,
-      countryIsoCode: request.countryISOCode
-    })
+    return this.client.numbers.update(request)
   }
 
   /**

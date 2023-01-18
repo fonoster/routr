@@ -26,7 +26,9 @@ export type CreateDomainRequest = Omit<
 
 export type CreateDomainResponse = CC.Domain
 
-export type UpdateDomainRequest = { ref: string } & Partial<CreateDomainRequest>
+export type UpdateDomainRequest = { ref: string } & Partial<
+  Omit<CreateDomainRequest, "domainUri">
+>
 
 export type UpdateDomainResponse = CC.Domain
 

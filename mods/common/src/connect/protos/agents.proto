@@ -96,18 +96,16 @@ message UpdateAgentRequest {
   string ref = 1;
   // The name of the Agent
   string name = 2;
-  // The username of the Agent
-  string username = 3;
   // The privacy settings of the Agent
-  Privacy privacy = 4;
+  Privacy privacy = 3;
   // The enabled status of the Agent
-  bool enabled = 5;
+  bool enabled = 4;
   // Reference to the Domain of the Agent
-  string domain_ref = 6;
+  string domain_ref = 5;
   // Reference to the Credentials of the Agent
-  string credentials_ref = 7;
+  string credentials_ref = 6;
   // The extended attributes of the Agent
-  .google.protobuf.Struct extended = 8;
+  .google.protobuf.Struct extended = 7;
 }
 
 // The request message for the Agents.Get method

@@ -20,8 +20,6 @@
 import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
-import { countries } from "../../countries"
-import FuzzySearch from "fuzzy-search"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -53,10 +51,6 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
     const numberFromDB = await api.getNumber(args.ref)
 
-    const searcher = new FuzzySearch(countries, ["name"], {
-      caseSensitive: false
-    })
-
     const answers = await inquirer.prompt([
       {
         name: "name",
@@ -69,18 +63,6 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
         message: "AOR Link",
         type: "input",
         default: numberFromDB.aorLink || undefined
-      },
-      {
-        name: "city",
-        message: "City",
-        type: "input",
-        default: numberFromDB.city
-      },
-      {
-        type: "autocomplete",
-        name: "countryISOCode",
-        message: "Select a Country",
-        source: (_: unknown, input: string) => searcher.search(input)
       },
       {
         name: "sessionAffinityHeader",
@@ -118,10 +100,6 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
     }
 
     answers.ref = args.ref
-
-    answers.country = countries.find(
-      (country) => country.value === answers.countryISOCode
-    ).name
 
     if (!answers.confirm) {
       this.warn("Aborted")

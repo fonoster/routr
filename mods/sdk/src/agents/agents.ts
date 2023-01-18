@@ -105,7 +105,6 @@ export class Agents extends APIClient {
    *
    * @param {UpdateAgentRequest} request - Partial with the fields to update
    * @param {string} request.name - Name of the Agent
-   * @param {string} request.username - Username of the Agent
    * @param {Privacy} request.privacy - Privacy of the Agent (e.g. Privacy.PRIVATE)
    * @param {string} request.domainRef - Domain reference of the Domain the Agent belongs to
    * @param {string} request.credentialsRef - Credentials reference of the Credentials for the Agent

@@ -84,12 +84,6 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
         default: domainFromDB.name
       },
       {
-        name: "domainUri",
-        message: "URI (e.g. sip.local)",
-        type: "input",
-        default: domainFromDB.domainUri
-      },
-      {
         name: "accessControlListRef",
         message: "ACL",
         type: "list",

@@ -26,7 +26,9 @@ export type CreateNumberRequest = Omit<
 
 export type CreateNumberResponse = CC.INumber
 
-export type UpdateNumberRequest = { ref: string } & Partial<CreateNumberRequest>
+export type UpdateNumberRequest = { ref: string } & Partial<
+  Omit<CreateNumberRequest, "telUrl" | "city" | "country" | "countryIsoCode">
+>
 
 export type UpdateNumberResponse = CC.INumber
 
