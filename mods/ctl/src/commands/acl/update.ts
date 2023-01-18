@@ -27,7 +27,7 @@ import SDK from "@routr/sdk"
 import inquirer from "inquirer"
 
 export default class UpdateCommand extends BaseCommand {
-  static description = "Updates an existing Access Control List"
+  static description = "Updates an existing ACL"
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
@@ -35,14 +35,16 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
 `
   ]
 
-  static args = [{ name: "ref", required: true, description: "ACL reference" }]
+  static args = [
+    { name: "ref", required: true, description: "reference to an ACL" }
+  ]
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
     const { endpoint, insecure } = flags
     const api = new SDK.ACL({ endpoint, insecure })
 
-    this.log("This utility will help you update an existing ACL")
+    this.log("This utility will help you update an existing ACL.")
     this.log("Press ^C at any time to quit.")
 
     const aclFromDB = await api.getACL(args.ref)

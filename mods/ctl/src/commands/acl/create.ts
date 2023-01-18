@@ -28,11 +28,11 @@ import SDK from "@routr/sdk"
 import inquirer from "inquirer"
 
 export default class CreateCommand extends BaseCommand {
-  static description = "Creates a new access control list"
+  static description = "Creates a new ACL"
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Creating Test ACL Rule... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 `
   ]
 

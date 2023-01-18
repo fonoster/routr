@@ -55,11 +55,7 @@ export function list(
             item.extended = struct.encode(item.extended as JsonObject)
           }
 
-          return {
-            ...item,
-            createdAt: item.createdAt.getTime() / 1000,
-            updatedAt: item.updatedAt.getTime() / 1000
-          }
+          return Manager.mapToDto(item as any)
         }
       )
 

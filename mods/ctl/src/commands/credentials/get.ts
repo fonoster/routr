@@ -49,7 +49,7 @@ Ref                                  Name       Deny List Allow List
     {
       name: "ref",
       required: false,
-      description: "optional Credentials reference"
+      description: "optional reference to a set of Credentials"
     }
   ]
 

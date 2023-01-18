@@ -28,12 +28,12 @@ import { JsonObject } from "pb-util/build"
 
 export default class GetCommand extends BaseCommand {
   static description =
-    "Shows a list of paginated acls or a single acl if ref is provided"
+    "Shows a list of paginated ACLs or a single ACL if a ref is provided"
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Ref                                  Name       Deny List Allow List
-80181ca6-d4aa-4575-9375-8f72b07d6666 Europe ACL 0.0.0.0/0 10.0.0.25  
+Ref                                  Name              Deny List Allow List
+9e7a88f0-8390-42f5-a2cb-689583ba9f4f Local Network ACL 0.0.0.0/0 10.0.0.28 
 `
   ]
 
@@ -46,7 +46,11 @@ Ref                                  Name       Deny List Allow List
   }
 
   static args = [
-    { name: "ref", required: false, description: "optional acl reference" }
+    {
+      name: "ref",
+      required: false,
+      description: "optional reference to an ACL"
+    }
   ]
 
   async run(): Promise<void> {

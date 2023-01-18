@@ -21,6 +21,7 @@ import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
+import FuzzySearch from "fuzzy-search"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -37,7 +38,11 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
   ]
 
   static args = [
-    { name: "ref", required: true, description: "Agent's reference" }
+    {
+      name: "ref",
+      required: true,
+      description: "optional reference to an Agent"
+    }
   ]
 
   async run(): Promise<void> {
@@ -79,6 +84,14 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
       }
     )
 
+    const searcher = new FuzzySearch(
+      domainsList,
+      ["name", "value", "description"],
+      {
+        caseSensitive: false
+      }
+    )
+
     const answers = await inquirer.prompt([
       {
         name: "name",
@@ -87,11 +100,10 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
         default: agentFromDB.name
       },
       {
+        type: "autocomplete",
         name: "domainRef",
-        message: "Domain",
-        type: "list",
-        choices: domainsList,
-        default: agentFromDB.domainRef,
+        message: "Select a Domain",
+        source: (_: unknown, input: string) => searcher.search(input),
         when: () => domains.items.length > 0
       },
       {
@@ -147,7 +159,7 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
       this.warn("Aborted")
     } else {
       try {
-        CliUx.ux.action.start(`Updating Agent for ${answers.name}`)
+        CliUx.ux.action.start(`Updating Agent ${answers.name}`)
         const agent = await api.updateAgent(answers)
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(agent.ref)

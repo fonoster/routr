@@ -95,6 +95,18 @@ export class NumberManager extends EntityManager {
         )
       }
     }
+
+    if (!this.number.city) {
+      throw new CE.BadRequestError("the city is required")
+    }
+
+    if (!this.number.country) {
+      throw new CE.BadRequestError("the country is required")
+    }
+
+    if (!this.number.countryIsoCode) {
+      throw new CE.BadRequestError("the countryISOCode is required")
+    }
   }
 
   // TODO: Add validation for countryISOCode (it should be an enum)
@@ -135,6 +147,18 @@ export class NumberManager extends EntityManager {
           "the aorLink must start with backend: or sip:"
         )
       }
+    }
+
+    if (!this.number.city) {
+      throw new CE.BadRequestError("the city is required")
+    }
+
+    if (!this.number.country) {
+      throw new CE.BadRequestError("the country is required")
+    }
+
+    if (!this.number.countryIsoCode) {
+      throw new CE.BadRequestError("the countryISOCode is required")
     }
   }
 

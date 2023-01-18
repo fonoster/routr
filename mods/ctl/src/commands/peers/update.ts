@@ -66,7 +66,7 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
     })
 
     if (acls.items.length === 0 || credentials.items.length === 0) {
-      throw new Error("you must create at least one ACL and Credentials")
+      this.warn("ACL and Credentials are required for correct operation.")
     }
 
     const aclList =
@@ -109,14 +109,16 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
         message: "Access Control List",
         choices: aclList,
         type: "list",
-        default: peerFromDB.accessControlListRef
+        default: peerFromDB.accessControlListRef,
+        when: aclList.length > 0
       },
       {
         name: "credentialsRef",
         message: "Credentials",
         choices: credentialsList,
         type: "list",
-        default: peerFromDB.credentialsRef
+        default: peerFromDB.credentialsRef,
+        when: credentialsList.length > 0
       },
       {
         name: "withSessionAffinity",

@@ -28,16 +28,16 @@ import SDK from "@routr/sdk"
 import inquirer from "inquirer"
 
 export default class UpdateCommand extends BaseCommand {
-  static description = "Updates an existing set of Credentials"
+  static description = "Updates an existing Trunk"
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
+Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
 `
   ]
 
   static args = [
-    { name: "ref", required: true, description: "Credentials reference" }
+    { name: "ref", required: true, description: "Trunk's reference" }
   ]
 
   async run(): Promise<void> {
@@ -45,9 +45,7 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
     const { endpoint, insecure } = flags
     const api = new SDK.Trunks({ endpoint, insecure })
 
-    this.log(
-      "This utility will help you update an existing set of Credentials."
-    )
+    this.log("This utility will help you update an existing Trunk.")
     this.log("Press ^C at any time to quit.")
 
     const trunkFromDB = await api.getTrunk(args.ref)
@@ -128,13 +126,7 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
             name: "transport",
             message: "Transport",
             type: "list",
-            choices: [
-              CC.Transport.UDP,
-              CC.Transport.TCP,
-              CC.Transport.TLS,
-              CC.Transport.WS,
-              CC.Transport.WSS
-            ],
+            choices: [CC.Transport.UDP, CC.Transport.TCP, CC.Transport.TLS],
             default: CC.Transport.UDP
           },
           {

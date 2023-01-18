@@ -31,11 +31,11 @@ import inquirer from "inquirer"
 inquirer.registerPrompt("loop", require("inquirer-loop")(inquirer))
 
 export default class CreateCommand extends BaseCommand {
-  static description = "Creates a new set of Credentials"
+  static description = "Creates a new set Domain"
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 `
   ]
 
@@ -43,7 +43,7 @@ Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
     const { flags } = await this.parse(CreateCommand)
     const { endpoint, insecure } = flags
 
-    this.log("This utility will help you create a new set of Credentials.")
+    this.log("This utility will help you create a new Domain.")
     this.log("Press ^C at any time to quit.")
 
     // TODO: Fix hardcoded pageSize

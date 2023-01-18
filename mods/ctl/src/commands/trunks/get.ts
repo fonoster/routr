@@ -28,12 +28,12 @@ import { JsonObject } from "pb-util/build"
 
 export default class GetTrunksCommand extends BaseCommand {
   static description =
-    "Shows a list of paginated Numbers or a single Number if ref is provided"
+    "Shows a list of paginated Trunks or a single Trunk if ref is provided"
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Ref                                  Name       Deny List Allow List
-80181ca6-d4aa-4575-9375-8f72b07d6666 Europe ACL 0.0.0.0/0 10.0.0.25  
+Ref                                  Name   Inbound URI 
+8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local  sip.t01.provider.net
 `
   ]
 
@@ -49,7 +49,7 @@ Ref                                  Name       Deny List Allow List
     {
       name: "ref",
       required: false,
-      description: "optional Number's reference"
+      description: "optional reference to a Trunk"
     }
   ]
 

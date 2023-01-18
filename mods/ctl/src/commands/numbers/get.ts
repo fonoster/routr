@@ -32,8 +32,8 @@ export default class GetNumbersCommand extends BaseCommand {
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Ref                                  Name       Deny List Allow List
-80181ca6-d4aa-4575-9375-8f72b07d6666 Europe ACL 0.0.0.0/0 10.0.0.25  
+Ref                                  Name           TEL URL      AOR Link           Geo              
+a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070 sip:1001@sip.local Cameron, USA (US)
 `
   ]
 
@@ -49,7 +49,7 @@ Ref                                  Name       Deny List Allow List
     {
       name: "ref",
       required: false,
-      description: "optional Number's reference"
+      description: "optional reference to a Number"
     }
   ]
 
@@ -79,22 +79,14 @@ Ref                                  Name       Deny List Allow List
             header: "AOR Link"
           },
           sessionAffinityHeader: {
-            header: "Session Affinity Header"
-          },
-          extraHeaders: {
-            header: "Extra Headers",
-            get: (row: JsonObject) => row.extraHeaders || [{}]
-          },
-          countryIsoCode: {
-            header: "Country ISO Code"
-          },
-          city: {
-            header: "City",
+            header: "Session Affinity Header",
             extended: true
           },
-          country: {
-            header: "Country",
-            extended: true
+          geo: {
+            header: "Geo",
+            // Combine city, country and countryIsoCode
+            get: (row: JsonObject) =>
+              `${row.city}, ${row.country} (${row.countryIsoCode})`
           },
           createdAt: {
             header: "Created",
@@ -104,6 +96,11 @@ Ref                                  Name       Deny List Allow List
           updatedAt: {
             header: "Updated",
             get: (row: { updatedAt: number }) => new Date(row.updatedAt * 1000),
+            extended: true
+          },
+          extraHeaders: {
+            header: "Extra Headers",
+            get: (row: JsonObject) => row.extraHeaders || [{}],
             extended: true
           },
           extended: {

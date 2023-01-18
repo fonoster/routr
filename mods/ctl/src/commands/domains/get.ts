@@ -32,8 +32,8 @@ export default class GetDomainsCommand extends BaseCommand {
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Ref                                  Name       Deny List Allow List
-80181ca6-d4aa-4575-9375-8f72b07d6666 Europe ACL 0.0.0.0/0 10.0.0.25  
+Ref                                  Name         URI            
+ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
 `
   ]
 
@@ -49,7 +49,7 @@ Ref                                  Name       Deny List Allow List
     {
       name: "ref",
       required: false,
-      description: "optional Domain's reference"
+      description: "optional reference to a Domain"
     }
   ]
 

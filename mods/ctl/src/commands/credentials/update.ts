@@ -31,7 +31,7 @@ export default class UpdateCommand extends BaseCommand {
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
+Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
 `
   ]
 

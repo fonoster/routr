@@ -32,7 +32,7 @@ export default class CreateNumberCommand extends BaseCommand {
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
 `
   ]
 
@@ -40,7 +40,7 @@ Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
     const { flags } = await this.parse(CreateNumberCommand)
     const { endpoint, insecure } = flags
 
-    this.log("This utility will help you create a new set of Credentials.")
+    this.log("This utility will help you create a new Number.")
     this.log("Press ^C at any time to quit.")
 
     const answers = await inquirer.prompt([

@@ -62,7 +62,7 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
         name: "aorLink",
         message: "AOR Link",
         type: "input",
-        default: numberFromDB.aorLink
+        default: numberFromDB.aorLink || undefined
       },
       {
         name: "city",
@@ -87,14 +87,14 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
         name: "sessionAffinityHeader",
         message: "Session Affinity Header (e.g. X-Room-Id)",
         type: "input",
-        default: numberFromDB.sessionAffinityHeader
+        default: numberFromDB.sessionAffinityHeader || undefined
       },
       {
         name: "extraHeaders",
         message: "Extra Headers (e.g. X-Room-Id: abc-2s3-xyz)",
         type: "input",
         default: numberFromDB.extraHeaders
-          .map((header: { name: string; value: string }) => {
+          ?.map((header: { name: string; value: string }) => {
             return `${header.name}:${header.value}`
           })
           .join(",")

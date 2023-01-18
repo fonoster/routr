@@ -32,8 +32,8 @@ export default class GetCommand extends BaseCommand {
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Ref                                  Name       Deny List Allow List
-80181ca6-d4aa-4575-9375-8f72b07d6666 Europe ACL 0.0.0.0/0 10.0.0.25  
+Ref                                  Name                Username   AOR                Balancing Algorithm Session Affinity 
+6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference backend:conference ROUND_ROBIN         Yes 
 `
   ]
 
@@ -49,7 +49,7 @@ Ref                                  Name       Deny List Allow List
     {
       name: "ref",
       required: false,
-      description: "optional Credentials reference"
+      description: "optional reference to a Peer"
     }
   ]
 

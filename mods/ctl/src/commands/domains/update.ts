@@ -37,7 +37,7 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
   ]
 
   static args = [
-    { name: "ref", required: true, description: "Credentials reference" }
+    { name: "ref", required: true, description: "reference to a Domain" }
   ]
 
   async run(): Promise<void> {
@@ -45,9 +45,7 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
     const { endpoint, insecure } = flags
     const api = new SDK.Domains({ endpoint, insecure })
 
-    this.log(
-      "This utility will help you update an existing set of Credentials."
-    )
+    this.log("This utility will help you update an existing Domain.")
     this.log("Press ^C at any time to quit.")
 
     const domainFromDB = await api.getDomain(args.ref)

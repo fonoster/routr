@@ -33,7 +33,7 @@ export default class CreateTrunkCommand extends BaseCommand {
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 `
   ]
 
@@ -121,13 +121,7 @@ Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
             name: "transport",
             message: "Transport",
             type: "list",
-            choices: [
-              CC.Transport.UDP,
-              CC.Transport.TCP,
-              CC.Transport.TLS,
-              CC.Transport.WS,
-              CC.Transport.WSS
-            ],
+            choices: [CC.Transport.UDP, CC.Transport.TCP, CC.Transport.TLS],
             default: CC.Transport.UDP
           },
           {
