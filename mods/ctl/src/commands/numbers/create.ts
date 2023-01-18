@@ -21,6 +21,8 @@ import * as grpc from "@grpc/grpc-js"
 import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
+import { countries } from "../../countries"
+import FuzzySearch from "fuzzy-search"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -42,6 +44,10 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
 
     this.log("This utility will help you create a new Number.")
     this.log("Press ^C at any time to quit.")
+
+    const searcher = new FuzzySearch(countries, ["name"], {
+      caseSensitive: false
+    })
 
     const answers = await inquirer.prompt([
       {
@@ -65,15 +71,10 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
         type: "input"
       },
       {
-        name: "country",
-        message: "Country",
-        type: "input"
-      },
-      {
-        // TODO: This should have a searchable list of countries
-        name: "countryIsoCode",
-        message: "Country ISO Code",
-        type: "input"
+        type: "autocomplete",
+        name: "countryISOCode",
+        message: "Select a Country",
+        source: (_: unknown, input: string) => searcher.search(input)
       },
       {
         name: "sessionAffinityHeader",
@@ -102,6 +103,10 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
         })
       answers.extraHeaders = extraHeaders
     }
+
+    answers.country = countries.find(
+      (country) => country.value === answers.countryISOCode
+    ).name
 
     if (!answers.confirm) {
       this.warn("Aborted")

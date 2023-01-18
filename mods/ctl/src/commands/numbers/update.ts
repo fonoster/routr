@@ -20,6 +20,8 @@
 import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
+import { countries } from "../../countries"
+import FuzzySearch from "fuzzy-search"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -51,6 +53,10 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
     const numberFromDB = await api.getNumber(args.ref)
 
+    const searcher = new FuzzySearch(countries, ["name"], {
+      caseSensitive: false
+    })
+
     const answers = await inquirer.prompt([
       {
         name: "name",
@@ -71,17 +77,10 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
         default: numberFromDB.city
       },
       {
-        name: "country",
-        message: "Country",
-        type: "input",
-        default: numberFromDB.country
-      },
-      {
-        // TODO: This should have a searchable list of countries
-        name: "countryIsoCode",
-        message: "Country ISO Code",
-        type: "input",
-        default: numberFromDB.countryIsoCode
+        type: "autocomplete",
+        name: "countryISOCode",
+        message: "Select a Country",
+        source: (_: unknown, input: string) => searcher.search(input)
       },
       {
         name: "sessionAffinityHeader",
@@ -93,11 +92,12 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
         name: "extraHeaders",
         message: "Extra Headers (e.g. X-Room-Id: abc-2s3-xyz)",
         type: "input",
-        default: numberFromDB.extraHeaders
-          ?.map((header: { name: string; value: string }) => {
-            return `${header.name}:${header.value}`
-          })
-          .join(",")
+        default:
+          numberFromDB.extraHeaders
+            ?.map((header: { name: string; value: string }) => {
+              return `${header.name}:${header.value}`
+            })
+            .join(",") || undefined
       },
       {
         name: "confirm",
@@ -118,6 +118,10 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
     }
 
     answers.ref = args.ref
+
+    answers.country = countries.find(
+      (country) => country.value === answers.countryISOCode
+    ).name
 
     if (!answers.confirm) {
       this.warn("Aborted")

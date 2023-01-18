@@ -66,7 +66,7 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
     })
 
     if (acls.items.length === 0 || credentials.items.length === 0) {
-      this.warn("ACL and Credentials are required for correct operation.")
+      this.warn("Credentials are required for correct operation.")
     }
 
     const aclList =
