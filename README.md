@@ -29,7 +29,7 @@ We are building Routr in the open. The best to communicate with us via [GitHub D
 
 **Issue tracker:** Use the GitHub issue tracker for the various [Routr repositories](https://github.com/fonoster/) to file bugs and features request. If you need support, please send your questions to the routr-users mailing list rather than filing a GitHub issue.
 
-> Please do not ask individual project members for support. Use the channels above instead, where the whole community can help you and benefit from the solutions provided. Please get in touch with us for Commercial Support if community support is insufficient for your situation.
+> Please do not ask individual project members for support. Use the channels above instead, where the whole community can help you and benefit from the solutions provided. Please contact us for Commercial Support if you need more than community support.
 
 ## Features
 
@@ -49,7 +49,8 @@ Routr's main features are:
 - [x] Postgres as a data source
 - [x] Server management with the gRPC API
 - [x] NodeSDK
-- [ ] Server management with CLI and WebApp
+- [x] Command-Line Tool
+- [ ] Web Application
 - [ ] Endpoint Authentication with JWT (For web phones)
 - [ ] RTPEngine Middleware
 - [ ] Support for STIR/SHAKEN 
@@ -63,7 +64,7 @@ If you like this project or plan to use it in the future, please give it a star.
 
 ## Example configuration
 
-Consider a situation where you want to deploy the server and send all PSTN traffic to a conference room in Asterisk. For such a scenario, you must configure a Peer to present your feauture server, and a Number to route calls from the PSTN.
+Consider a situation where you want to deploy the server and send all PSTN traffic to a conference room in Asterisk. For such a scenario, you must configure a Peer to present your feature server and a Number to route calls from the PSTN.
 
 First, start by creating a Peer configuration for your Asterisk server similar to the following one:
 
@@ -82,9 +83,9 @@ spec:
     algorithm: least-sessions
 ```
 
-Notice that the loadBalancing section sets the `withSessionAffinity` to true. This is to ensure that all all calls related to the conference arrive to the same Asterisk server. Every Asterik server that registers using the `asterisk` username will be grouped under the `backend:conference` Address of Record (AOR). 
+Notice that the loadBalancing section sets the `withSessionAffinity` to true. We need session affinity to ensure that all calls related to the conference arrive on the same Asterisk server. Every Asterisk server that registers using the `asterisk` username will be grouped under the `backend:conference` Address of Record (AOR). 
 
-Next, we need to tell Routr to map all inbound calls from given number to the conference room in Asterik. For that, we use the `aorLink` and `sessionAffinityHeader` on the desired Number. Here is an example: 
+Next, we need to tell Routr to map all inbound calls from a given Number to the conference room in Asterisk. For that, we use the `aorLink` and `sessionAffinityHeader` on the desired Number. Here is an example: 
 
 ```yaml
 apiVersion: v2draft1
@@ -108,13 +109,13 @@ spec:
         value: jsa-shqm-iyo
 ```
 
-The last scenario is just one of the many possible scenarios you can accomplish with Routr (v2). Please spend some time getting familiar with the [configuration files](https://github.com/fonoster/routr/blob/v2/CONNECT.md).
+The last scenario is one of the many possible scenarios you can accomplish with Routr (v2). Please spend some time getting familiar with the [configuration files](https://github.com/fonoster/routr/blob/v2/CONNECT.md).
 
 ## Deployment
 
 ### Instant Server deployment with Docker and Compose
 
-For a quick demo of Routr follow the next two steps:
+For a quick demo of Routr, follow the next two steps:
 
 &#10122; Clone the repository and run the server
 
