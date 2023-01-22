@@ -34,7 +34,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
 
   it("takes a dto object and converts it to prisma model", () => {
     // Arrange
-    const trunk: Omit<CC.Trunk, "uris"> = {
+    const trunk = {
       apiVersion: "v2",
       ref: "trunk-01",
       name: "Global Trunk",
@@ -54,7 +54,9 @@ describe("@routr/pgdata/mappers/trunk", () => {
     const result = new TrunkManager(trunk).mapToPrisma()
 
     // Assert
-    expect(result).excluding(["createdAt", "updatedAt"]).to.deep.equal(trunk)
+    expect(result)
+      .excluding(["createdAt", "updatedAt", "uris"])
+      .to.deep.equal(trunk)
   })
 
   it("takes a prisma model and converts it to dto object", () => {
@@ -143,7 +145,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
   })
 
   describe("throws errors", () => {
-    it("when the friendly name is not provided for create or update operations", () => {
+    it("when the friendly name is not provided for trunk creation", () => {
       // Arrange
       const trunk: Omit<CC.Trunk, "uris"> = {
         apiVersion: "v2",
@@ -162,24 +164,20 @@ describe("@routr/pgdata/mappers/trunk", () => {
       }
 
       // Act
-      const updateResult = () => new TrunkManager(trunk).validOrThrowUpdate()
       const createResult = () => new TrunkManager(trunk).validOrThrowCreate()
 
       // Assert
-      expect(updateResult).to.throw(
-        "the friendly name for the resource is required"
-      )
       expect(createResult).to.throw(
         "the friendly name for the resource is required"
       )
     })
 
-    it("when the friendly namy has less than 3 or more than 64 characters", () => {
+    it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const trunk: Omit<CC.Trunk, "uris"> = {
         apiVersion: "v2",
         ref: "trunk-01",
-        name: "Gl",
+        name: "a".repeat(65),
         accessControlListRef: "acl-01",
         inboundUri: "sip:sip.local",
         inboundCredentialsRef: "credentials-01",
@@ -198,10 +196,10 @@ describe("@routr/pgdata/mappers/trunk", () => {
 
       // Assert
       expect(updateResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
       expect(createResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
     })
 
@@ -230,9 +228,10 @@ describe("@routr/pgdata/mappers/trunk", () => {
       expect(result).to.throw("the reference to the resource is required")
     })
 
+    // It is still not clear if we should make the inboundUri required
     it("when the request is missing the inboundUri", () => {
       // Arrange
-      const trunk: Omit<CC.Trunk, "uris"> = {
+      const trunk: CC.Trunk = {
         apiVersion: "v2",
         ref: "trunk-01",
         name: "Global Trunk",
@@ -275,13 +274,9 @@ describe("@routr/pgdata/mappers/trunk", () => {
 
       // Act
       const createResult = () => new TrunkManager(trunk).validOrThrowCreate()
-      const updateResult = () => new TrunkManager(trunk).validOrThrowUpdate()
 
       // Assert
       expect(createResult).to.throw(
-        "the inbound URI must be a valid FQDN (e.g. sip.example.com)"
-      )
-      expect(updateResult).to.throw(
         "the inbound URI must be a valid FQDN (e.g. sip.example.com)"
       )
     })

@@ -25,6 +25,7 @@ import SDK from "@routr/sdk"
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
 // (node:75345) [ERR_REQUIRE_ESM] Error Plugin: @routr/ctl [ERR_REQUIRE_ESM]: require() of ES Module
 import inquirer from "inquirer"
+import { nameValidator, usernameValidator } from "../../validators"
 
 export default class UpdateCommand extends BaseCommand {
   static description = "Updates an existing set of Credentials"
@@ -36,7 +37,11 @@ Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
   ]
 
   static args = [
-    { name: "ref", required: true, description: "Credentials reference" }
+    {
+      name: "ref",
+      required: true,
+      description: "reference to an existing set of Credentials"
+    }
   ]
 
   async run(): Promise<void> {
@@ -54,15 +59,17 @@ Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
     const answers = await inquirer.prompt([
       {
         name: "name",
-        message: "Name",
+        message: "Friendly Name",
         type: "input",
-        default: credentialsFromDB.name
+        default: credentialsFromDB.name,
+        validate: nameValidator
       },
       {
         name: "username",
         message: "Username",
         type: "input",
-        default: credentialsFromDB.username
+        default: credentialsFromDB.username,
+        validate: usernameValidator
       },
       {
         name: "password",

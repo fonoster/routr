@@ -22,6 +22,7 @@ import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
+import { nameValidator, usernameValidator } from "../../validators"
 import FuzzySearch from "fuzzy-search"
 import SDK from "@routr/sdk"
 
@@ -63,10 +64,6 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       pageToken: ""
     })
 
-    if (domains.items.length === 0 || credentials.items.length === 0) {
-      this.warn("Domains and Credentials are required for correct operation.")
-    }
-
     const domainsList = domains.items.map((domain: CC.Domain) => {
       return {
         name: domain.domainUri,
@@ -92,8 +89,9 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
     const answers = await inquirer.prompt([
       {
         name: "name",
-        message: "Name",
-        type: "input"
+        message: "Friendly Name",
+        type: "input",
+        validate: nameValidator
       },
       {
         type: "autocomplete",
@@ -105,14 +103,14 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       {
         name: "username",
         message: "Username",
-        type: "input"
+        type: "input",
+        validate: usernameValidator
       },
       {
         name: "credentialsRef",
-        message: "Credentials",
+        message: "Credentials Name",
         type: "list",
-        choices: credentialsList,
-        when: () => credentials.items.length > 0
+        choices: [{ name: "None", value: undefined }, ...credentialsList]
       },
       {
         name: "privacy",
@@ -120,12 +118,12 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         type: "list",
         choices: [
           {
-            name: "Private",
-            value: CT.Privacy.PRIVATE
-          },
-          {
             name: "None",
             value: CT.Privacy.NONE
+          },
+          {
+            name: "Private",
+            value: CT.Privacy.PRIVATE
           }
         ],
         default: CT.Privacy.NONE

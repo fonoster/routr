@@ -39,8 +39,7 @@ export default {
         name: {
           description: "Resource's friendly name",
           type: "string",
-          minLength: 3,
-          maxLength: 64
+          maxLength: 60
         }
       },
       required: ["name"]
@@ -64,7 +63,7 @@ export default {
             aorLink: {
               description: "AOR link",
               type: "string",
-              minLength: 3,
+              minLength: 5,
               maxLength: 255
             },
             sessionAffinityHeader: {

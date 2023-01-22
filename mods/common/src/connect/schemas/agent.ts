@@ -39,8 +39,7 @@ export default {
         name: {
           description: "Resource's friendly name",
           type: "string",
-          minLength: 3,
-          maxLength: 64
+          maxLength: 60
         }
       },
       required: ["name"]
@@ -52,8 +51,8 @@ export default {
         username: {
           description: "The username for the Agent",
           type: "string",
-          minLength: 3,
-          maxLength: 64,
+          minLength: 4,
+          maxLength: 60,
           readOnly: true
         },
         domainRef: {

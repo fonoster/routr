@@ -17,9 +17,13 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import * as Validator from "validator"
-import { Domain as DomainPrismaModel, APIVersion, Prisma } from "@prisma/client"
-import { CommonConnect as CC, CommonErrors as CE } from "@routr/common"
+import {
+  Domain as DomainPrismaModel,
+  APIVersion,
+  Prisma,
+  EgressPolicy
+} from "@prisma/client"
+import { CommonConnect as CC } from "@routr/common"
 import { JsonObject } from "pb-util/build"
 import { ACLManager } from "./acl"
 import { EntityManager } from "./manager"
@@ -27,6 +31,7 @@ import { EntityManager } from "./manager"
 type DomainWithACL = Prisma.DomainGetPayload<{
   include: {
     accessControlList: true
+    egressPolicies: true
   }
 }>
 
@@ -43,54 +48,27 @@ export class DomainManager extends EntityManager {
   }
 
   validOrThrowCreate() {
-    if (!this.domain.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (!Validator.default.isLength(this.domain.name, { min: 3, max: 64 })) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
-
-    if (!this.domain.domainUri) {
-      throw new CE.BadRequestError("the domainUri is required")
-    }
-
-    if (!Validator.default.isFQDN(this.domain.domainUri)) {
-      throw new CE.BadRequestError(
-        "the domainUri must be a valid fully qualified domain name"
-      )
-    }
+    CC.hasNameOrThrow(this.domain.name)
+    CC.isValidNameOrThrow(this.domain.name)
+    CC.isValidDomainUriOrThrow(this.domain.domainUri)
   }
 
   validOrThrowUpdate() {
-    if (!this.domain.ref) {
-      throw new CE.BadRequestError("the reference to the resource is required")
-    }
-
-    if (!this.domain.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (!Validator.default.isLength(this.domain.name, { min: 3, max: 64 })) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
+    CC.hasRefenceOrThrow(this.domain.ref)
+    CC.isValidNameOrThrow(this.domain.name)
   }
 
-  mapToPrisma(): DomainPrismaModel {
+  mapToPrisma(): DomainPrismaModel & {
+    egressPolicies: {
+      create: Omit<EgressPolicy, "ref" | "domainRef">[]
+    }
+  } {
     return {
       // TODO: Set a default value for apiVersion
       apiVersion: "v2" as APIVersion,
       ref: this.domain.ref,
       name: this.domain.name,
-      accessControlListRef: this.domain.accessControlListRef,
+      accessControlListRef: this.domain.accessControlListRef || null,
       domainUri: this.domain.domainUri,
       extended: this.domain.extended || {},
       createdAt: this.domain.createdAt
@@ -98,18 +76,26 @@ export class DomainManager extends EntityManager {
         : undefined,
       updatedAt: this.domain.updatedAt
         ? new Date(this.domain.updatedAt * 1000)
-        : undefined
+        : undefined,
+      egressPolicies: {
+        create: this.domain.egressPolicies?.map((policy) => ({
+          rule: policy.rule,
+          numberRef: policy.numberRef
+        }))
+      }
     }
   }
 
   static mapToDto(domain: DomainWithACL): CC.Domain {
-    return {
-      ...domain,
-      accessControlListRef: domain.accessControlList?.ref,
-      accessControlList: ACLManager.mapToDto(domain.accessControlList),
-      extended: domain.extended as JsonObject,
-      createdAt: domain.createdAt.getTime() / 1000,
-      updatedAt: domain.updatedAt.getTime() / 1000
-    }
+    return domain
+      ? {
+          ...domain,
+          accessControlListRef: domain.accessControlList?.ref,
+          accessControlList: ACLManager.mapToDto(domain.accessControlList),
+          extended: domain.extended as JsonObject,
+          createdAt: domain.createdAt.getTime() / 1000,
+          updatedAt: domain.updatedAt.getTime() / 1000
+        }
+      : undefined
   }
 }

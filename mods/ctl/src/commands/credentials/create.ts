@@ -26,6 +26,7 @@ import SDK from "@routr/sdk"
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
 // (node:75345) [ERR_REQUIRE_ESM] Error Plugin: @routr/ctl [ERR_REQUIRE_ESM]: require() of ES Module
 import inquirer from "inquirer"
+import { nameValidator, usernameValidator } from "../../validators"
 
 export default class CreateCommand extends BaseCommand {
   static description = "Creates a new set of Credentials"
@@ -46,18 +47,27 @@ Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
     const answers = await inquirer.prompt([
       {
         name: "name",
-        message: "Name",
-        type: "input"
+        message: "Friendly Name",
+        type: "input",
+        validate: nameValidator
       },
       {
         name: "username",
         message: "Username",
-        type: "input"
+        type: "input",
+        validate: usernameValidator
       },
       {
         name: "password",
         message: "Password",
-        type: "password"
+        type: "password",
+        validate: (value: string) => {
+          if (!value) {
+            return "the password is required"
+          }
+
+          return true
+        }
       },
       {
         name: "confirm",

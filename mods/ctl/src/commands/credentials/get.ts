@@ -67,7 +67,8 @@ Ref                                  Name       Deny List Allow List
         data,
         {
           ref: {
-            minWidth: 7
+            minWidth: 7,
+            extended: true
           },
           name: {
             minWidth: 7
@@ -113,7 +114,7 @@ Ref                                  Name       Deny List Allow List
   }
 
   async catch(error: { code: number; message: string } | CommandError) {
-    // To be andled globally
+    // To be handled globally
     if ("code" in error && error.code === grpc.status.NOT_FOUND) {
       const { args } = await this.parse(GetCommand)
       throw new CLIError(

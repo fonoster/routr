@@ -64,6 +64,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         domain: {
           include: {
             accessControlList: true
+            egressPolicies: true
           }
         }
         credentials: true
@@ -102,6 +103,7 @@ describe("@routr/pgdata/mappers/agent", () => {
             test: "test"
           }
         },
+        egressPolicies: [],
         extended: {
           test: "test"
         },
@@ -132,7 +134,7 @@ describe("@routr/pgdata/mappers/agent", () => {
   })
 
   describe("throws errors", () => {
-    it("when the friendly name is not provided for create or update operations", () => {
+    it("when the friendly name is not provided for agent creation", () => {
       // Arrange
       const agent = {
         apiVersion: "v2",
@@ -151,24 +153,20 @@ describe("@routr/pgdata/mappers/agent", () => {
       }
 
       // Act
-      const updateResult = () => new AgentManager(agent).validOrThrowUpdate()
       const createResult = () => new AgentManager(agent).validOrThrowCreate()
 
       // Assert
       expect(createResult).to.throw(
         "the friendly name for the resource is required"
       )
-      expect(updateResult).to.throw(
-        "the friendly name for the resource is required"
-      )
     })
 
-    it("when the friendly namy has less than 3 or more than 64 characters", () => {
+    it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const agent = {
         apiVersion: "v2",
         ref: "agent-01",
-        name: "Jh",
+        name: "a".repeat(65),
         username: "1001",
         privacy: Privacy.PRIVATE,
         enabled: true,
@@ -187,10 +185,10 @@ describe("@routr/pgdata/mappers/agent", () => {
 
       // Assert
       expect(updateResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
       expect(createResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
     })
 
@@ -267,7 +265,7 @@ describe("@routr/pgdata/mappers/agent", () => {
 
       // Assert
       expect(result).to.throw(
-        "the username must be alphanumeric and without spaces"
+        "the username must be a lowercase, alphanumeric, and without spaces"
       )
     })
   })

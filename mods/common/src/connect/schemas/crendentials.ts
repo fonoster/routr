@@ -39,8 +39,7 @@ export default {
         name: {
           description: "Resource's friendly name",
           type: "string",
-          minLength: 3,
-          maxLength: 64
+          maxLength: 60
         }
       },
       required: ["name"]
@@ -57,13 +56,14 @@ export default {
               description: "Username",
               type: "string",
               readOnly: true,
-              minLength: 3,
-              maxLength: 64
+              minLength: 4,
+              maxLength: 60
             },
             password: {
               description: "Password",
               type: "string",
-              writeOnly: true
+              writeOnly: true,
+              maxLength: 255
             }
           },
           required: ["username", "password"]

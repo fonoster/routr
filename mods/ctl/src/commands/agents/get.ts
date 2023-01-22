@@ -68,7 +68,8 @@ d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local PRIVATE Yes
         data,
         {
           ref: {
-            minWidth: 7
+            minWidth: 7,
+            extended: true
           },
           name: {
             minWidth: 7
@@ -78,18 +79,18 @@ d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local PRIVATE Yes
           },
           domain: {
             header: "Domain",
-            get: (row: { domain: CC.Domain }) => row.domain?.domainUri || "N/A"
+            get: (row: { domain: CC.Domain }) => row.domain?.domainUri || "None"
           },
           privacy: {
             header: "Privacy",
             get: (row: { privacy: CT.Privacy }) => capitalize(row.privacy)
           },
           credentials: {
-            header: "Credentials",
+            header: "Credentials Name",
             get: (row: { credentials: CC.Credentials }) =>
               row.credentials
                 ? `${row.credentials.name} (${row.credentials.username})`
-                : "N/A",
+                : "None",
             extended: true
           },
           enabled: {
@@ -134,7 +135,7 @@ d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local PRIVATE Yes
   }
 
   async catch(error: { code: number; message: string } | CommandError) {
-    // To be andled globally
+    // To be handled globally
     if ("code" in error && error.code === grpc.status.NOT_FOUND) {
       const { args } = await this.parse(GetAgentsCommand)
       throw new CLIError(

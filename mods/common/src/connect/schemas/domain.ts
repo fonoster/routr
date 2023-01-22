@@ -39,8 +39,7 @@ export default {
         name: {
           description: "Resource's friendly name",
           type: "string",
-          minLength: 3,
-          maxLength: 64
+          maxLength: 60
         }
       },
       required: ["name"]
@@ -56,7 +55,6 @@ export default {
             domainUri: {
               description: "The URI of the Domain",
               type: "string",
-              minLength: 3,
               maxLength: 255
             },
             accessControlListRef: {
@@ -71,8 +69,7 @@ export default {
                 properties: {
                   rule: {
                     description: "The rule for the egress policy",
-                    type: "string",
-                    minLength: 1
+                    type: "string"
                   },
                   numberRef: {
                     description: "The reference to the number",

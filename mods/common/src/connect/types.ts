@@ -100,10 +100,12 @@ export interface Trunk extends BaseConnectModel {
   inboundCredentials?: Credentials
   outboundCredentialsRef?: string
   outboundCredentials?: Credentials
-  uris: TrunkURI[]
+  uris?: TrunkURI[]
 }
 
 export interface TrunkURI {
+  ref?: string
+  trunkRef?: string
   host: string
   port: number
   transport: Transport

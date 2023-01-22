@@ -76,7 +76,7 @@ describe("@routr/pgdata/mappers/acl", () => {
   })
 
   describe("throws errors", () => {
-    it("when the friendly name is not provided for create or update operations", () => {
+    it("when the friendly name is not provided for create operations", () => {
       // Arrange
       const acl = {
         apiVersion: "v2",
@@ -90,24 +90,20 @@ describe("@routr/pgdata/mappers/acl", () => {
       }
 
       // Act
-      const updateResult = () => new ACLManager(acl).validOrThrowUpdate()
       const createResult = () => new ACLManager(acl).validOrThrowCreate()
 
       // Assert
-      expect(updateResult).to.throw(
-        "the friendly name for the resource is required"
-      )
       expect(createResult).to.throw(
         "the friendly name for the resource is required"
       )
     })
 
-    it("when the friendly namy has less than 3 or more than 64 characters", () => {
+    it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const acl = {
         apiVersion: "v2",
         ref: "acl-01",
-        name: "Lo",
+        name: "a".repeat(65),
         allow: ["192.168.1.3/31"],
         deny: ["0.0.0.0/1"],
         extended: {
@@ -121,10 +117,10 @@ describe("@routr/pgdata/mappers/acl", () => {
 
       // Assert
       expect(updateResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
       expect(createResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
     })
 
@@ -148,7 +144,7 @@ describe("@routr/pgdata/mappers/acl", () => {
       expect(result).to.throw("the reference to the resource is required")
     })
 
-    it("when any of the provided rules are not valid cidr", () => {
+    it("when it finds an invalid allow or deny rule", () => {
       // Arrange
       const acl = {
         apiVersion: "v2",
@@ -185,11 +181,9 @@ describe("@routr/pgdata/mappers/acl", () => {
 
       // Act
       const createResult = () => new ACLManager(acl).validOrThrowCreate()
-      const updateResult = () => new ACLManager(acl).validOrThrowUpdate()
 
       // Assert
       expect(createResult).to.throw("acl rules are required")
-      expect(updateResult).to.throw("acl rules are required")
     })
   })
 })

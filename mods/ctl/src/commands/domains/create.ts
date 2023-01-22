@@ -22,13 +22,12 @@ import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommonConnect as CC } from "@routr/common"
+import { domainUriValidator, nameValidator } from "../../validators"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
 // (node:75345) [ERR_REQUIRE_ESM] Error Plugin: @routr/ctl [ERR_REQUIRE_ESM]: require() of ES Module
 import inquirer from "inquirer"
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-inquirer.registerPrompt("loop", require("inquirer-loop")(inquirer))
 
 export default class CreateCommand extends BaseCommand {
   static description = "Creates a new set Domain"
@@ -72,68 +71,102 @@ Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       }
     })
 
-    const answers = await inquirer.prompt([
+    const group1 = await inquirer.prompt([
       {
         name: "name",
-        message: "Name",
-        type: "input"
+        message: "Friendly Name",
+        type: "input",
+        validate: nameValidator
       },
       {
         name: "domainUri",
-        message: "URI (e.g. sip.local)",
-        type: "input"
+        message: "SIP URI",
+        type: "input",
+        validate: domainUriValidator
       },
       {
         name: "accessControlListRef",
-        message: "ACL",
+        message: "IP Access Control List",
         type: "list",
-        choices: aclChoices,
-        when: aclChoices.length > 0
+        choices: [{ name: "None", value: undefined }, ...aclChoices]
       },
       {
-        type: "loop",
-        name: "egressPolicies",
-        message: "Add an Egress Policy?",
-        questions: [
-          {
-            name: "rule",
-            type: "input",
-            message: "Egress Rule",
-            default: ".*"
-          },
-          {
-            name: "numberRef",
-            message: "Number",
-            type: "list",
-            choices: [...numberChoices]
-          }
-        ],
+        name: "addEgressRule",
+        message: "Add an Egress Rule?",
+        type: "confirm",
+        default: false,
         when: numberChoices.length > 0
-      } /* ,
+      }
+    ])
+
+    const group2Questions = [
+      {
+        name: "numberRef",
+        message: "Number",
+        type: "list",
+        choices: [{ name: "None", value: undefined }, ...numberChoices],
+        when: numberChoices.length > 0
+      },
+      {
+        name: "rule",
+        message: "Rule",
+        type: "input",
+        default: ".*",
+        when: (answers: { numberRef: string }) => answers.numberRef
+      },
+      {
+        name: "addEgressRule",
+        message: "Add another Egress Rule?",
+        type: "confirm",
+        default: false,
+        when: (answers: { numberRef: string }) => answers.numberRef
+      }
+    ]
+
+    let addEgressRule = group1.addEgressRule
+    const egressPolicies: CC.EgressPolicy[] = []
+
+    // eslint-disable-next-line no-loops/no-loops
+    while (addEgressRule) {
+      const group2 = await inquirer.prompt(group2Questions)
+      if (group2.numberRef) {
+        egressPolicies.push({
+          numberRef: group2.numberRef,
+          rule: group2.rule
+        })
+      }
+
+      addEgressRule = group2.addEgressRule
+    }
+
+    const group3 = await inquirer.prompt([
       {
         name: "confirm",
         message: "Ready?",
         type: "confirm"
-      }*/
+      }
     ])
 
-    // if (!answers.confirm) {
-    //   this.warn("Aborted")
-    // } else {
-    try {
-      CliUx.ux.action.start(`Creating Domain ${answers.name}`)
-      const api = new SDK.Domains({ endpoint, insecure })
-      const domains = await api.createDomain(answers)
-      await CliUx.ux.wait(1000)
-      CliUx.ux.action.stop(domains.ref)
-    } catch (e) {
-      CliUx.ux.action.stop()
-      if (e.code === grpc.status.ALREADY_EXISTS) {
-        throw new CLIError("This Domain already exist")
-      } else {
-        throw new CLIError(e.message)
+    if (!group3.confirm) {
+      this.warn("Aborted")
+    } else {
+      try {
+        CliUx.ux.action.start(`Creating Domain ${group1.name}`)
+        const api = new SDK.Domains({ endpoint, insecure })
+        const domains = await api.createDomain({
+          ...group1,
+          egressPolicies
+        })
+        await CliUx.ux.wait(1000)
+        CliUx.ux.action.stop(domains.ref)
+      } catch (e) {
+        CliUx.ux.action.stop()
+        if (e.code === grpc.status.ALREADY_EXISTS) {
+          throw new CLIError("This Domain already exist")
+        } else {
+          throw new CLIError(e.message)
+        }
       }
     }
-    // }
   }
 }

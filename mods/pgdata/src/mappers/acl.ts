@@ -17,9 +17,8 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import * as Validator from "validator"
 import { AccessControlList as ACLPrismaModel, APIVersion } from "@prisma/client"
-import { CommonConnect as CC, CommonErrors as CE } from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
 import { JsonObject } from "pb-util/build"
 import { EntityManager } from "./manager"
 
@@ -33,93 +32,16 @@ export class ACLManager extends EntityManager {
   }
 
   validOrThrowCreate() {
-    if (!this.acl.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (!Validator.default.isLength(this.acl.name, { min: 3, max: 64 })) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
-
-    if (
-      !this.acl.deny ||
-      !this.acl.allow ||
-      this.acl.deny?.length === 0 ||
-      this.acl.allow?.length === 0
-    ) {
-      throw new CE.BadRequestError("acl rules are required")
-    }
-
-    this.acl.deny.forEach((cidr) => {
-      // 4 => IPv4
-      if (
-        !Validator.default.isIPRange(cidr, 4) &&
-        !Validator.default.isIP(cidr, 4)
-      ) {
-        throw new CE.BadRequestError(`${cidr} is not a valid cidr or ip`)
-      }
-    })
-
-    this.acl.allow.forEach((cidr) => {
-      // 4 => IPv4
-      if (
-        !Validator.default.isIPRange(cidr, 4) &&
-        !Validator.default.isIP(cidr, 4)
-      ) {
-        throw new CE.BadRequestError(`${cidr} is not a valid cidr or ip`)
-      }
-    })
+    CC.hasNameOrThrow(this.acl.name)
+    CC.isValidNameOrThrow(this.acl.name)
+    CC.hasACLRulesOrThrow(this.acl)
+    CC.hasValidACLRulesOrThrow(this.acl)
   }
 
   validOrThrowUpdate() {
-    if (!this.acl.ref) {
-      throw new CE.BadRequestError("the reference to the resource is required")
-    }
-
-    if (!this.acl.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (!Validator.default.isLength(this.acl.name, { min: 4, max: 64 })) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
-
-    if (
-      !this.acl.deny ||
-      !this.acl.allow ||
-      this.acl.deny?.length === 0 ||
-      this.acl.allow?.length === 0
-    ) {
-      throw new CE.BadRequestError("acl rules are required")
-    }
-
-    this.acl.deny.forEach((cidr) => {
-      // 4 => IPv4
-      if (
-        !Validator.default.isIPRange(cidr, 4) &&
-        !Validator.default.isIP(cidr, 4)
-      ) {
-        throw new CE.BadRequestError(`${cidr} is not a valid cidr or ip`)
-      }
-    })
-
-    this.acl.allow.forEach((cidr) => {
-      // 4 => IPv4
-      if (
-        !Validator.default.isIPRange(cidr, 4) &&
-        !Validator.default.isIP(cidr, 4)
-      ) {
-        throw new CE.BadRequestError(`${cidr} is not a valid cidr or ip`)
-      }
-    })
+    CC.hasRefenceOrThrow(this.acl.ref)
+    CC.isValidNameOrThrow(this.acl.name)
+    CC.hasValidACLRulesOrThrow(this.acl)
   }
 
   mapToPrisma(): ACLPrismaModel {
@@ -141,11 +63,13 @@ export class ACLManager extends EntityManager {
   }
 
   static mapToDto(acl: ACLPrismaModel): CC.AccessControlList {
-    return {
-      ...acl,
-      createdAt: acl.createdAt.getTime() / 1000,
-      updatedAt: acl.updatedAt.getTime() / 1000,
-      extended: acl.extended as JsonObject
-    }
+    return acl
+      ? {
+          ...acl,
+          createdAt: acl.createdAt.getTime() / 1000,
+          updatedAt: acl.updatedAt.getTime() / 1000,
+          extended: acl.extended as JsonObject
+        }
+      : undefined
   }
 }

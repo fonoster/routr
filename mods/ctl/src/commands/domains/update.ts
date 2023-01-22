@@ -21,6 +21,7 @@ import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommonConnect as CC } from "@routr/common"
+import { nameValidator } from "../../validators"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -37,7 +38,11 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
   ]
 
   static args = [
-    { name: "ref", required: true, description: "reference to a Domain" }
+    {
+      name: "ref",
+      required: true,
+      description: "reference to an existing Domain"
+    }
   ]
 
   async run(): Promise<void> {
@@ -47,6 +52,7 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
     this.log("This utility will help you update an existing Domain.")
     this.log("Press ^C at any time to quit.")
+    this.warn("Adding Egress Policies will delete existing ones.")
 
     const domainFromDB = await api.getDomain(args.ref)
 
@@ -76,62 +82,93 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
       }
     })
 
-    const answers = await inquirer.prompt([
+    const group1 = await inquirer.prompt([
       {
         name: "name",
-        message: "Name",
+        message: "Friendly Name",
         type: "input",
-        default: domainFromDB.name
+        default: domainFromDB.name,
+        validate: nameValidator
       },
       {
         name: "accessControlListRef",
-        message: "ACL",
+        message: "IP Access Control List",
         type: "list",
-        choices: aclChoices,
-        when: aclChoices.length > 0,
+        choices: [{ name: "None", value: undefined }, ...aclChoices],
         default: domainFromDB.accessControlListRef
       },
       {
-        type: "loop",
-        name: "egressPolicies",
-        message: "Add an Egress Policy?",
-        questions: [
-          {
-            name: "rule",
-            type: "input",
-            message: "Egress Rule",
-            default: ".*"
-          },
-          {
-            name: "numberRef",
-            message: "Number",
-            type: "list",
-            choices: [...numberChoices]
-          }
-        ],
-        when: numberChoices.length > 0
+        name: "addEgressRule",
+        message: "Add an Egress Rule?",
+        type: "confirm",
+        default: false,
+        when: aclChoices.length > 0
       }
-      /* {
+    ])
+
+    const group2Questions = [
+      {
+        name: "numberRef",
+        message: "Number",
+        type: "list",
+        choices: [{ name: "None", value: undefined }, ...numberChoices]
+      },
+      {
+        name: "rule",
+        message: "Rule",
+        type: "input",
+        default: ".*",
+        when: (answers: { numberRef: string }) => answers.numberRef
+      },
+      {
+        name: "addEgressRule",
+        message: "Add another Egress Rule?",
+        type: "confirm",
+        default: false,
+        when: (answers: { numberRef: string }) => answers.numberRef
+      }
+    ]
+
+    let addEgressRule = group1.addEgressRule
+    const egressPolicies: CC.EgressPolicy[] = []
+
+    // eslint-disable-next-line no-loops/no-loops
+    while (addEgressRule) {
+      const group2 = await inquirer.prompt(group2Questions)
+      if (group2.numberRef) {
+        egressPolicies.push({
+          numberRef: group2.numberRef,
+          rule: group2.rule
+        })
+      }
+
+      addEgressRule = group2.addEgressRule
+    }
+
+    const group3 = await inquirer.prompt([
+      {
         name: "confirm",
         message: "Ready?",
         type: "confirm"
-      }*/
+      }
     ])
 
-    answers.ref = args.ref
-
-    // if (!answers.confirm) {
-    //   this.warn("Aborted")
-    // } else {
-    try {
-      CliUx.ux.action.start(`Updating Domain ${answers.name}`)
-      const domain = await api.updateDomain(answers)
-      await CliUx.ux.wait(1000)
-      CliUx.ux.action.stop(domain.ref)
-    } catch (e) {
-      CliUx.ux.action.stop()
-      throw new CLIError(e.message)
+    if (!group3.confirm) {
+      this.warn("Aborted")
+    } else {
+      try {
+        CliUx.ux.action.start(`Updating Domain ${group1.name}`)
+        const domain = await api.updateDomain({
+          ref: domainFromDB.ref,
+          ...group1,
+          egressPolicies
+        })
+        await CliUx.ux.wait(1000)
+        CliUx.ux.action.stop(domain.ref)
+      } catch (e) {
+        CliUx.ux.action.stop()
+        throw new CLIError(e.message)
+      }
     }
-    // }
   }
 }

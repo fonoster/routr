@@ -21,6 +21,11 @@ import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
+import {
+  aorValidator,
+  contactAddrValidator,
+  nameValidator
+} from "../../validators"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -37,7 +42,11 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
   ]
 
   static args = [
-    { name: "ref", required: true, description: "Credentials reference" }
+    {
+      name: "ref",
+      required: true,
+      description: "reference to an existing Peer"
+    }
   ]
 
   async run(): Promise<void> {
@@ -65,10 +74,6 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
       pageToken: ""
     })
 
-    if (acls.items.length === 0 || credentials.items.length === 0) {
-      this.warn("Credentials are required for correct operation.")
-    }
-
     const aclList =
       acls.items?.map((acl: CC.AccessControlList) => {
         return { name: acl.name, value: acl.ref }
@@ -82,44 +87,45 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
     const answers = await inquirer.prompt([
       {
         name: "name",
-        message: "Name",
+        message: "Friendly Name",
         type: "input",
-        default: peerFromDB.name
+        default: peerFromDB.name,
+        validate: nameValidator
       },
       {
         name: "aor",
-        message: "Adress of Record (e.g. sip:5001@sip.local)",
+        message: "Adress of Record",
         type: "input",
-        default: peerFromDB.aor
+        default: peerFromDB.aor,
+        validate: aorValidator
       },
       {
         name: "contactAddr",
-        message: "Optional Contact Addresss",
+        message: "Contact Address",
         type: "input",
-        default: peerFromDB.contactAddr || undefined
+        default: peerFromDB.contactAddr || undefined,
+        validate: contactAddrValidator
       },
       {
         name: "accessControlListRef",
-        message: "Access Control List",
-        choices: aclList,
+        message: "IP Access Control List",
+        choices: [{ name: "None", value: undefined }, ...aclList],
         type: "list",
-        default: peerFromDB.accessControlListRef,
-        when: aclList.length > 0
+        default: peerFromDB.accessControlListRef
       },
       {
         name: "credentialsRef",
-        message: "Credentials",
-        choices: credentialsList,
+        message: "Credentials Name",
+        choices: [{ name: "None", value: undefined }, ...credentialsList],
         type: "list",
-        default: peerFromDB.credentialsRef,
-        when: credentialsList.length > 0
+        default: peerFromDB.credentialsRef
       },
       {
         name: "withSessionAffinity",
-        message: "With Session Affinity?",
+        message: "Enable Session Affinity?",
         type: "confirm",
         default: peerFromDB.withSessionAffinity,
-        when: (answers) => answers.aor.includes("backend:")
+        when: (answers) => answers.aor.startsWith("backend:")
       },
       {
         name: "balancingAlgorithm",
@@ -133,7 +139,7 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
         ],
         type: "list",
         default: peerFromDB.balancingAlgorithm,
-        when: (answers) => answers.aor.includes("backend:")
+        when: (answers) => answers.aor.startsWith("backend:")
       },
       {
         name: "confirm",

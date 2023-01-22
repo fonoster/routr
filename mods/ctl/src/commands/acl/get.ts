@@ -67,17 +67,18 @@ Ref                                  Name              Deny List Allow List
         data,
         {
           ref: {
-            minWidth: 7
+            minWidth: 7,
+            extended: true
           },
           name: {
             minWidth: 7
           },
           deny: {
-            header: "Deny List",
+            header: "Deny CIDR Networks",
             get: (row: { deny: string[] }) => row.deny.join(", ")
           },
           allow: {
-            header: "Allow List",
+            header: "Allow CIDR Networks",
             get: (row: { allow: string[] }) => row.allow.join(", ")
           },
           createdAt: {
@@ -118,7 +119,7 @@ Ref                                  Name              Deny List Allow List
   }
 
   async catch(error: { code: number; message: string } | CommandError) {
-    // To be andled globally
+    // To be handled globally
     if ("code" in error && error.code === grpc.status.NOT_FOUND) {
       const { args } = await this.parse(GetCommand)
       throw new CLIError(

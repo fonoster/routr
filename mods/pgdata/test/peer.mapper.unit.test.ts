@@ -122,7 +122,7 @@ describe("@routr/pgdata/mappers/peer", () => {
   })
 
   describe("throws errors", () => {
-    it("when the friendly name is not provided for create or update operations", () => {
+    it("when the friendly name is not provided for peer creation", () => {
       // Arrange
       const peer = {
         apiVersion: "v2",
@@ -142,26 +142,22 @@ describe("@routr/pgdata/mappers/peer", () => {
       }
 
       // Act
-      const updateResult = () => new PeerManager(peer).validOrThrowUpdate()
       const createResult = () => new PeerManager(peer).validOrThrowCreate()
 
       // Assert
-      expect(updateResult).to.throw(
-        "the friendly name for the resource is required"
-      )
       expect(createResult).to.throw(
         "the friendly name for the resource is required"
       )
     })
 
-    it("when the friendly namy has less than 3 or more than 64 characters", () => {
+    it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const peer = {
         apiVersion: "v2",
         ref: "peer-01",
         credentialsRef: "credentials-01",
         accessControlListRef: "acl-01",
-        name: "As",
+        name: "a".repeat(65),
         username: "asterisk",
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
@@ -179,10 +175,10 @@ describe("@routr/pgdata/mappers/peer", () => {
 
       // Assert
       expect(updateResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
       expect(createResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
     })
 
@@ -262,7 +258,7 @@ describe("@routr/pgdata/mappers/peer", () => {
 
       // Assert
       expect(result).to.throw(
-        "the username must be alphanumeric and without spaces"
+        "the username must be a lowercase, alphanumeric, and without spaces"
       )
     })
 

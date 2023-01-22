@@ -29,7 +29,8 @@
     "ip-utils": "^2.4.0",
     "js-yaml": "^4.1.0",
     "pb-util": "^1.0.3",
-    "toml": "^3.0.0"
+    "toml": "^3.0.0",
+    "validator": "^13.7.0"
   },
   "directories": {
     "src": "src",

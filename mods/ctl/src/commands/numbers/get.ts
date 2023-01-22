@@ -32,8 +32,8 @@ export default class GetNumbersCommand extends BaseCommand {
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Ref                                  Name           TEL URL      AOR Link           Geo              
-a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070 sip:1001@sip.local Cameron, USA (US)
+Ref                                  Name           Telephony URL      AOR Link           Geo              
+a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@sip.local Cameron, USA (US)
 `
   ]
 
@@ -67,13 +67,14 @@ a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070 sip:1001@sip.lo
         data,
         {
           ref: {
-            minWidth: 7
+            minWidth: 7,
+            extended: true
           },
           name: {
             minWidth: 7
           },
           telUrl: {
-            header: "TEL URL"
+            header: "Telephony URL"
           },
           aorLink: {
             header: "AOR Link"
@@ -131,7 +132,7 @@ a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070 sip:1001@sip.lo
   }
 
   async catch(error: { code: number; message: string } | CommandError) {
-    // To be andled globally
+    // To be handled globally
     if ("code" in error && error.code === grpc.status.NOT_FOUND) {
       const { args } = await this.parse(GetNumbersCommand)
       throw new CLIError(

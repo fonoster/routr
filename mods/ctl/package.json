@@ -27,8 +27,7 @@
     "figlet": "^1.5.2",
     "fuzzy-search": "^3.2.1",
     "inquirer": "^8.2.5",
-    "inquirer-autocomplete-prompt": "^2.0.0",
-    "inquirer-loop": "^0.3.0"
+    "inquirer-autocomplete-prompt": "^2.0.0"
   },
   "devDependencies": {
     "@oclif/test": "^2.2.20",

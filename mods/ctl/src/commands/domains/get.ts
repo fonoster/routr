@@ -67,7 +67,8 @@ ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
         data,
         {
           ref: {
-            minWidth: 7
+            minWidth: 7,
+            extended: true
           },
           name: {
             minWidth: 7
@@ -76,9 +77,9 @@ ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
             header: "URI"
           },
           accessControlListRef: {
-            header: "ACL",
+            header: "IP Access Control List",
             get: (row: { accessControlList: { name: string } }) =>
-              row.accessControlList.name,
+              row.accessControlList?.name || "None",
             extended: true
           },
           egressPolicies: {
@@ -129,7 +130,7 @@ ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
   }
 
   async catch(error: { code: number; message: string } | CommandError) {
-    // To be andled globally
+    // To be handled globally
     if ("code" in error && error.code === grpc.status.NOT_FOUND) {
       const { args } = await this.parse(GetDomainsCommand)
       throw new CLIError(

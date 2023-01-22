@@ -80,7 +80,7 @@ describe("@routr/pgdata/mappers/credentials", () => {
   })
 
   describe("throws errors", () => {
-    it("when the friendly name is not provided for create or update operations", () => {
+    it("when the friendly name is not provided for credentials creation", () => {
       // Arrange
       const credentials = {
         apiVersion: "v2" as APIVersion,
@@ -94,26 +94,21 @@ describe("@routr/pgdata/mappers/credentials", () => {
       }
 
       // Act
-      const updateResult = () =>
-        new CredentialsManager(credentials).validOrThrowUpdate()
       const createResult = () =>
         new CredentialsManager(credentials).validOrThrowCreate()
 
       // Assert
-      expect(updateResult).to.throw(
-        "the friendly name for the resource is required"
-      )
       expect(createResult).to.throw(
         "the friendly name for the resource is required"
       )
     })
 
-    it("when the friendly namy has less than 3 or more than 64 characters", () => {
+    it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const credentials = {
         apiVersion: "v2" as APIVersion,
         ref: "credentials-01",
-        name: "Gl",
+        name: "a".repeat(65),
         username: "1001",
         password: "1234",
         extended: {
@@ -129,10 +124,10 @@ describe("@routr/pgdata/mappers/credentials", () => {
 
       // Assert
       expect(updateResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
       expect(createResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
     })
 
@@ -199,10 +194,10 @@ describe("@routr/pgdata/mappers/credentials", () => {
 
       // Assert
       expect(createResult).to.throw(
-        "the username must be alphanumeric and without space"
+        "the username must be a lowercase, alphanumeric, and without spaces"
       )
       expect(updateResult).to.throw(
-        "the username must be alphanumeric and without space"
+        "the username must be a lowercase, alphanumeric, and without spaces"
       )
     })
 

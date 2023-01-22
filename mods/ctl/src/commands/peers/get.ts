@@ -67,7 +67,8 @@ Ref                                  Name                Username   AOR         
         data,
         {
           ref: {
-            minWidth: 7
+            minWidth: 7,
+            extended: true
           },
           name: {
             minWidth: 7
@@ -87,7 +88,7 @@ Ref                                  Name                Username   AOR         
               row.withSessionAffinity ? "Yes" : "No"
           },
           contactAddr: {
-            header: "Contact Addr",
+            header: "Contact Address",
             extended: true
           },
           enabled: {
@@ -96,14 +97,15 @@ Ref                                  Name                Username   AOR         
             extended: true
           },
           accessControlList: {
-            header: "ACL",
+            header: "IP Access Control List",
             get: (row: { accessControlList: CC.AccessControlList }) =>
-              row.accessControlList.name,
+              row.accessControlList?.name || "None",
             extended: true
           },
           credentials: {
-            header: "Credentials",
-            get: (row: { credentials: CC.Credentials }) => row.credentials.name,
+            header: "Credentials Name",
+            get: (row: { credentials: CC.Credentials }) =>
+              row.credentials?.name || "None",
             extended: true
           },
           createdAt: {
@@ -144,7 +146,7 @@ Ref                                  Name                Username   AOR         
   }
 
   async catch(error: { code: number; message: string } | CommandError) {
-    // To be andled globally
+    // To be handled globally
     if ("code" in error && error.code === grpc.status.NOT_FOUND) {
       const { args } = await this.parse(GetCommand)
       throw new CLIError(

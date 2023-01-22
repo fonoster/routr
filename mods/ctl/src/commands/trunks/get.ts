@@ -32,7 +32,7 @@ export default class GetTrunksCommand extends BaseCommand {
 
   static examples = [
     `<%= config.bin %> <%= command.id %>
-Ref                                  Name   Inbound URI 
+Ref                                  Name   Inbound SIP URI 
 8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local  sip.t01.provider.net
 `
   ]
@@ -67,30 +67,31 @@ Ref                                  Name   Inbound URI
         data,
         {
           ref: {
-            minWidth: 7
+            minWidth: 7,
+            extended: true
           },
           name: {
             minWidth: 7
           },
           inboundUri: {
-            header: "Inbound URI"
+            header: "Inbound SIP URI"
           },
           accessControlListRef: {
-            header: "ACL",
+            header: "IP Access Control List",
             get: (row: { accessControlList: CC.AccessControlList }) =>
-              row.accessControlList.name,
+              row.accessControlList?.name || "None",
             extended: true
           },
           inboundCredentialsRef: {
-            header: "Inbound Credentials",
+            header: "Inbound Credentials Name",
             get: (row: { inboundCredentials: CC.Credentials }) =>
-              row.inboundCredentials.name,
+              row.inboundCredentials?.name || "None",
             extended: true
           },
           outboundCredentialsRef: {
-            header: "Outbound Credentials",
+            header: "Outbound Credentials Name",
             get: (row: { outboundCredentials: CC.Credentials }) =>
-              row.outboundCredentials.name,
+              row.outboundCredentials?.name || "None",
             extended: true
           },
           createdAt: {
@@ -131,7 +132,7 @@ Ref                                  Name   Inbound URI
   }
 
   async catch(error: { code: number; message: string } | CommandError) {
-    // To be andled globally
+    // To be handled globally
     if ("code" in error && error.code === grpc.status.NOT_FOUND) {
       const { args } = await this.parse(GetTrunksCommand)
       throw new CLIError(

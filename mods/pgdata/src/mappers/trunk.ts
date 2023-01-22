@@ -17,10 +17,13 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import * as Validator from "validator"
-import { Trunk as TrunkPrismaModel, APIVersion, Prisma } from "@prisma/client"
+import {
+  Trunk as TrunkPrismaModel,
+  APIVersion,
+  Prisma,
+  TrunkURI
+} from "@prisma/client"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
-import { CommonErrors as CE } from "@routr/common"
 import { JsonObject } from "pb-util/build"
 import { ACLManager } from "./acl"
 import { CredentialsManager } from "./credentials"
@@ -37,7 +40,7 @@ type TrunkWithEagerLoading = Prisma.TrunkGetPayload<{
 
 // Needs testing
 export class TrunkManager extends EntityManager {
-  constructor(private trunk: CC.Trunk | Omit<CC.Trunk, "uris">) {
+  constructor(private trunk: CC.Trunk) {
     super()
   }
 
@@ -51,65 +54,31 @@ export class TrunkManager extends EntityManager {
   }
 
   validOrThrowCreate() {
-    if (!this.trunk.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (!Validator.default.isLength(this.trunk.name, { min: 3, max: 64 })) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
-
-    if (!this.trunk.inboundUri) {
-      throw new CE.BadRequestError("the inboundUri is required")
-    }
-
-    if (!Validator.default.isFQDN(this.trunk.inboundUri)) {
-      throw new CE.BadRequestError(
-        "the inbound URI must be a valid FQDN (e.g. sip.example.com)"
-      )
-    }
+    CC.hasNameOrThrow(this.trunk.name)
+    CC.isValidNameOrThrow(this.trunk.name)
+    CC.hasInboundUriOrThrow(this.trunk.inboundUri)
+    CC.isValidInboundUriOrThrow(this.trunk.inboundUri)
+    CC.hasValidOutboundUrisOrThrow(this.trunk.uris)
   }
 
   validOrThrowUpdate() {
-    if (!this.trunk.ref) {
-      throw new CE.BadRequestError("the reference to the resource is required")
-    }
-
-    if (!this.trunk.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (!Validator.default.isLength(this.trunk.name, { min: 3, max: 64 })) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
-
-    if (this.trunk.inboundUri) {
-      if (!Validator.default.isFQDN(this.trunk.inboundUri)) {
-        throw new CE.BadRequestError(
-          "the inbound URI must be a valid FQDN (e.g. sip.example.com)"
-        )
-      }
-    }
+    CC.hasRefenceOrThrow(this.trunk.ref)
+    CC.isValidNameOrThrow(this.trunk.name)
+    CC.isValidInboundUriOrThrow(this.trunk.inboundUri)
   }
 
-  mapToPrisma(): TrunkPrismaModel {
+  mapToPrisma(): TrunkPrismaModel & {
+    uris: { create: Omit<TrunkURI, "ref" | "trunkRef">[] }
+  } {
     return {
       // TODO: Set a default value for apiVersion
       apiVersion: "v2" as APIVersion,
       ref: this.trunk.ref,
       name: this.trunk.name,
-      accessControlListRef: this.trunk.accessControlListRef,
+      accessControlListRef: this.trunk.accessControlListRef || null,
       inboundUri: this.trunk.inboundUri,
-      inboundCredentialsRef: this.trunk.inboundCredentialsRef,
-      outboundCredentialsRef: this.trunk.outboundCredentialsRef,
+      inboundCredentialsRef: this.trunk.inboundCredentialsRef || null,
+      outboundCredentialsRef: this.trunk.outboundCredentialsRef || null,
       sendRegister: this.trunk.sendRegister,
       createdAt: this.trunk.createdAt
         ? new Date(this.trunk.createdAt * 1000)
@@ -117,41 +86,58 @@ export class TrunkManager extends EntityManager {
       updatedAt: this.trunk.updatedAt
         ? new Date(this.trunk.updatedAt * 1000)
         : undefined,
-      extended: this.trunk.extended || {}
+      extended: this.trunk.extended || {},
+      uris: {
+        create: this.trunk.uris?.map((uri) => {
+          return {
+            host: uri.host,
+            port: uri.port,
+            transport: uri.transport,
+            user: uri.user,
+            weight: uri.weight,
+            priority: uri.priority,
+            enabled: uri.enabled
+          }
+        })
+      }
     }
   }
 
   static mapToDto(trunk: TrunkWithEagerLoading): CC.Trunk {
-    return {
-      apiVersion: trunk.apiVersion,
-      ref: trunk.ref,
-      name: trunk.name,
-      accessControlListRef: trunk.accessControlList?.ref,
-      accessControlList: ACLManager.mapToDto(trunk.accessControlList),
-      inboundUri: trunk.inboundUri,
-      inboundCredentialsRef: trunk.inboundCredentials?.ref,
-      inboundCredentials: CredentialsManager.mapToDto(trunk.inboundCredentials),
-      outboundCredentialsRef: trunk.outboundCredentials?.ref,
-      outboundCredentials: CredentialsManager.mapToDto(
-        trunk.outboundCredentials
-      ),
-      extended: trunk.extended as JsonObject,
-      sendRegister: trunk.sendRegister,
-      uris: trunk.uris.map((uri) => {
-        return {
-          ref: uri.ref,
-          trunkRef: uri.trunkRef,
-          host: uri.host,
-          port: uri.port,
-          transport: uri.transport.toUpperCase() as CT.Transport,
-          user: uri.user,
-          weight: uri.weight,
-          priority: uri.priority,
-          enabled: uri.enabled
+    return trunk
+      ? {
+          apiVersion: trunk.apiVersion,
+          ref: trunk.ref,
+          name: trunk.name,
+          inboundUri: trunk.inboundUri,
+          accessControlListRef: trunk.accessControlList?.ref,
+          inboundCredentialsRef: trunk.inboundCredentials?.ref,
+          outboundCredentialsRef: trunk.outboundCredentials?.ref,
+          inboundCredentials: CredentialsManager.mapToDto(
+            trunk.inboundCredentials
+          ),
+          accessControlList: ACLManager.mapToDto(trunk.accessControlList),
+          outboundCredentials: CredentialsManager.mapToDto(
+            trunk.outboundCredentials
+          ),
+          extended: trunk.extended as JsonObject,
+          sendRegister: trunk.sendRegister,
+          uris: trunk.uris.map((uri) => {
+            return {
+              ref: uri.ref,
+              trunkRef: uri.trunkRef,
+              host: uri.host,
+              port: uri.port,
+              transport: uri.transport.toUpperCase() as CT.Transport,
+              user: uri.user,
+              weight: uri.weight,
+              priority: uri.priority,
+              enabled: uri.enabled
+            }
+          }),
+          createdAt: trunk.createdAt.getTime() / 1000,
+          updatedAt: trunk.updatedAt.getTime() / 1000
         }
-      }),
-      createdAt: trunk.createdAt.getTime() / 1000,
-      updatedAt: trunk.updatedAt.getTime() / 1000
-    }
+      : undefined
   }
 }

@@ -27,6 +27,7 @@ import SDK from "@routr/sdk"
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
 // (node:75345) [ERR_REQUIRE_ESM] Error Plugin: @routr/ctl [ERR_REQUIRE_ESM]: require() of ES Module
 import inquirer from "inquirer"
+import { nameValidator } from "../../validators"
 
 export default class UpdateCommand extends BaseCommand {
   static description = "Updates an existing Agent"
@@ -41,7 +42,7 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
     {
       name: "ref",
       required: true,
-      description: "optional reference to an Agent"
+      description: "reference to an existing Agent"
     }
   ]
 
@@ -70,10 +71,6 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
       pageToken: ""
     })
 
-    if (domains.items.length === 0 || credentials.items.length === 0) {
-      this.warn("Domains and Credentials are required for correct operation.")
-    }
-
     const domainsList = domains.items?.map((domain: CC.Domain) => {
       return { name: domain.domainUri, value: domain.ref }
     })
@@ -95,9 +92,10 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
     const answers = await inquirer.prompt([
       {
         name: "name",
-        message: "Name",
+        message: "Friendly Name",
         type: "input",
-        default: agentFromDB.name
+        default: agentFromDB.name,
+        validate: nameValidator
       },
       {
         type: "autocomplete",
@@ -108,11 +106,10 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
       },
       {
         name: "credentialsRef",
-        message: "Credentials",
+        message: "Credentials Name",
         type: "list",
-        choices: credentialsList,
-        default: agentFromDB.credentialsRef,
-        when: () => credentials.items.length > 0
+        choices: [{ name: "None", value: undefined }, ...credentialsList],
+        default: agentFromDB.credentialsRef
       },
       {
         name: "privacy",
@@ -120,12 +117,12 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
         type: "list",
         choices: [
           {
-            name: "Private",
-            value: CT.Privacy.PRIVATE
-          },
-          {
             name: "None",
             value: CT.Privacy.NONE
+          },
+          {
+            name: "Private",
+            value: CT.Privacy.PRIVATE
           }
         ],
         default: agentFromDB.privacy

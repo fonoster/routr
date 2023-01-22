@@ -21,6 +21,8 @@ import * as grpc from "@grpc/grpc-js"
 import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
+import { aclRuleValidator, nameValidator } from "../../validators"
+import { stringToACL } from "../../utils"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -46,18 +48,22 @@ Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
     const answers = await inquirer.prompt([
       {
         name: "name",
-        message: "Name",
-        type: "input"
+        message: "Friendly Name",
+        type: "input",
+        validate: nameValidator
       },
       {
         name: "deny",
-        message: "Deny List (Comma separated)",
-        type: "input"
+        message: "Deny CIDR Networks",
+        type: "input",
+        default: "0.0.0.0/0",
+        validate: aclRuleValidator
       },
       {
         name: "allow",
-        message: "Allow List (Comma separated)",
-        type: "input"
+        message: "Allow CIDR Networks",
+        type: "input",
+        validate: aclRuleValidator
       },
       {
         name: "confirm",
@@ -67,8 +73,8 @@ Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
     ])
 
     // Re-assign allow and deny rules as arrays
-    answers.allow = answers.allow.split(",").map((rule: string) => rule.trim())
-    answers.deny = answers.deny.split(",").map((rule: string) => rule.trim())
+    answers.allow = stringToACL(answers.allow)
+    answers.deny = stringToACL(answers.deny)
 
     if (!answers.confirm) {
       this.warn("Aborted")

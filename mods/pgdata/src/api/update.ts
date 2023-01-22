@@ -25,6 +25,12 @@ import {
 } from "@routr/common/src/errors"
 import { PrismaUpdateOperation } from "../types"
 import { getManager } from "../mappers/utils"
+import { Kind } from "@routr/common/src/connect"
+import { PrismaClient } from "@prisma/client"
+
+// TODO: The entire function should be wrapped in a transaction
+// TODO: We should reuse the prisma client
+const prisma = new PrismaClient()
 
 export function update(
   operation: PrismaUpdateOperation,
@@ -42,6 +48,22 @@ export function update(
       const manager = new Manager(request as any)
 
       manager.validOrThrowUpdate()
+
+      if (kind === Kind.DOMAIN) {
+        await prisma.egressPolicy.deleteMany({
+          where: {
+            domainRef: request.ref
+          }
+        })
+      }
+
+      if (kind === Kind.TRUNK) {
+        await prisma.trunkURI.deleteMany({
+          where: {
+            trunkRef: request.ref
+          }
+        })
+      }
 
       const objectFromDB = (await operation({
         where: {

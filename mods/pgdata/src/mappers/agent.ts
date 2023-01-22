@@ -17,18 +17,13 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import * as Validator from "validator"
 import {
   Agent as AgentPrismaModel,
   APIVersion,
   Prisma,
   Privacy
 } from "@prisma/client"
-import {
-  CommonConnect as CC,
-  CommonTypes as CT,
-  CommonErrors as CE
-} from "@routr/common"
+import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { JsonObject } from "pb-util/build"
 import { CredentialsManager } from "./credentials"
 import { DomainManager } from "./domain"
@@ -39,6 +34,7 @@ type AgentWithDomainAndCredentials = Prisma.AgentGetPayload<{
     domain: {
       include: {
         accessControlList: true
+        egressPolicies: true
       }
     }
     credentials: true
@@ -63,45 +59,15 @@ export class AgentManager extends EntityManager {
   }
 
   validOrThrowCreate() {
-    if (!this.agent.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (!Validator.default.isLength(this.agent.name, { min: 3, max: 64 })) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
-
-    if (!this.agent.username) {
-      throw new CE.BadRequestError("the username is required")
-    }
-
-    if (!Validator.default.isAlphanumeric(this.agent.username)) {
-      throw new CE.BadRequestError(
-        "the username must be alphanumeric and without spaces"
-      )
-    }
+    CC.hasNameOrThrow(this.agent.name)
+    CC.isValidNameOrThrow(this.agent.name)
+    CC.hasUsernameOrThrow(this.agent.username)
+    CC.isValidUsernameOrThrow(this.agent.username)
   }
 
   validOrThrowUpdate() {
-    if (!this.agent.ref) {
-      throw new CE.BadRequestError("the reference to the resource is required")
-    }
-
-    if (!this.agent.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (!Validator.default.isLength(this.agent.name, { min: 3, max: 64 })) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
+    CC.hasRefenceOrThrow(this.agent.ref)
+    CC.isValidNameOrThrow(this.agent.name)
   }
 
   mapToPrisma(): AgentPrismaModel {
@@ -126,22 +92,22 @@ export class AgentManager extends EntityManager {
   }
 
   static mapToDto(agent: AgentWithDomainAndCredentials): CC.Agent {
-    return {
-      apiVersion: agent.apiVersion,
-      ref: agent.ref,
-      name: agent.name,
-      username: agent.username,
-      privacy: agent.privacy as CT.Privacy,
-      enabled: agent.enabled,
-      domainRef: agent.domainRef,
-      domain: agent.domain ? DomainManager.mapToDto(agent.domain) : undefined,
-      credentialsRef: agent.credentialsRef,
-      credentials: agent.credentials
-        ? CredentialsManager.mapToDto(agent.credentials)
-        : undefined,
-      extended: (agent.extended || {}) as JsonObject,
-      createdAt: agent.createdAt.getTime() / 1000,
-      updatedAt: agent.updatedAt.getTime() / 1000
-    }
+    return agent
+      ? {
+          apiVersion: agent.apiVersion,
+          ref: agent.ref,
+          name: agent.name,
+          username: agent.username,
+          privacy: agent.privacy as CT.Privacy,
+          enabled: agent.enabled,
+          domainRef: agent.domainRef,
+          credentialsRef: agent.credentialsRef,
+          domain: DomainManager.mapToDto(agent.domain),
+          credentials: CredentialsManager.mapToDto(agent.credentials),
+          extended: (agent.extended || {}) as JsonObject,
+          createdAt: agent.createdAt.getTime() / 1000,
+          updatedAt: agent.updatedAt.getTime() / 1000
+        }
+      : undefined
   }
 }

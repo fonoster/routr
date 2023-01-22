@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Types and Lengths
+//  - Friendly names have a length is 60
+//  - Username length is 60 (Minimun for validation is 4)
+//  - Domain URI length is 255
+//  - AOR length is 323 (Accounts for 255 character domain URI, 60 character username, longer schema size (backend:))
+//  - Tel URL length is 15 (Max length of a phone number is 15 digits)
+//  - Password length is 255
+//  - ACL deny and allow length are 18 (Max size of IP post CIDR mask)
+//  - Contact address length is 20 (Max size of IP address pluse port and colon)
+
 model Agent {
   apiVersion     APIVersion @map("api_version")
   ref            String     @id @default(uuid())
@@ -36,8 +46,8 @@ model Peer {
   accessControlListRef String?                 @map("acl_ref")
   name                 String                  @db.VarChar(60)
   username             String                  @unique @db.VarChar(60)
-  aor                  String                  @db.VarChar(255)
-  contactAddr          String?                 @map("contact_addr") @db.VarChar(255)
+  aor                  String                  @db.VarChar(323)
+  contactAddr          String?                 @map("contact_addr") @db.VarChar(20)
   balancingAlgorithm   LoadBalancingAlgorithm? @map("balancing_algorithm")
   withSessionAffinity  Boolean                 @default(false) @map("with_session_affinity")
   enabled              Boolean                 @default(true)
@@ -58,7 +68,7 @@ model Domain {
   apiVersion           APIVersion @map("api_version")
   ref                  String     @id @default(uuid())
   accessControlListRef String?    @map("acl_ref")
-  name                 String
+  name                 String     @db.VarChar(60)
   domainUri            String     @unique @map("domain_uri") @db.VarChar(255)
   createdAt            DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt            DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -103,9 +113,9 @@ model Number {
   apiVersion            APIVersion @map("api_version")
   ref                   String     @id @default(uuid())
   trunkRef              String?    @map("trunk_ref")
-  telUrl                String     @unique @map("tel_url") @db.VarChar(60)
+  telUrl                String     @unique @map("tel_url") @db.VarChar(15)
   name                  String     @db.VarChar(60)
-  aorLink               String?    @map("aor_link")
+  aorLink               String?    @map("aor_link") @db.VarChar(323)
   city                  String     @default("Unknown") @db.VarChar(60)
   country               String     @db.VarChar(60)
   countryISOCode        String     @map("country_iso_code") @db.VarChar(2)
@@ -128,8 +138,8 @@ model AccessControlList {
   apiVersion APIVersion @map("api_version")
   ref        String     @id @default(uuid())
   name       String     @db.VarChar(60)
-  allow      String[]   @db.VarChar(60)
-  deny       String[]   @db.VarChar(60)
+  allow      String[]   @db.VarChar(18)
+  deny       String[]   @db.VarChar(18)
   createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt  DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended   Json?
@@ -148,7 +158,7 @@ model Credentials {
   ref        String     @id @default(uuid())
   name       String     @db.VarChar(60)
   username   String     @db.VarChar(60)
-  password   String     @db.VarChar(60)
+  password   String     @db.VarChar(255)
   createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt  DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended   Json?
@@ -184,7 +194,7 @@ model TrunkURI {
   host      String    @db.VarChar(255)
   port      Int
   transport Transport
-  user      String?
+  user      String?   @db.VarChar(60)
   weight    Int?
   priority  Int?
   enabled   Boolean   @default(true)

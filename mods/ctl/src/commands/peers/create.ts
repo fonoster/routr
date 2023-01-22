@@ -27,6 +27,12 @@ import SDK from "@routr/sdk"
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
 // (node:75345) [ERR_REQUIRE_ESM] Error Plugin: @routr/ctl [ERR_REQUIRE_ESM]: require() of ES Module
 import inquirer from "inquirer"
+import {
+  aorValidator,
+  contactAddrValidator,
+  nameValidator,
+  usernameValidator
+} from "../../validators"
 
 export default class CreateCommand extends BaseCommand {
   static description = "Creates a new Peer"
@@ -59,10 +65,6 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       pageToken: ""
     })
 
-    if (acls.items.length === 0 || credentials.items.length === 0) {
-      this.warn("Credentials are required for correct operation.")
-    }
-
     const aclList =
       acls.items?.map((acl: CC.AccessControlList) => {
         return { name: acl.name, value: acl.ref }
@@ -76,43 +78,46 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
     const answers = await inquirer.prompt([
       {
         name: "name",
-        message: "Name",
-        type: "input"
+        message: "Friendly Name",
+        type: "input",
+        validate: nameValidator
       },
       {
         name: "username",
         message: "Username",
-        type: "input"
+        type: "input",
+        validate: usernameValidator
       },
       {
         name: "aor",
-        message: "Adress of Record (e.g. sip:5001@sip.local)",
-        type: "input"
+        message: "Adress of Record",
+        type: "input",
+        validate: aorValidator
       },
       {
         name: "contactAddr",
-        message: "Optional Contact Addresss",
-        type: "input"
+        message: "Contact Address",
+        type: "input",
+        validate: contactAddrValidator
       },
       {
         name: "accessControlListRef",
-        message: "Access Control List",
-        choices: aclList,
-        type: "list",
-        when: aclList.length > 0
+        message: "IP Access Control List",
+        choices: [{ name: "None", value: undefined }, ...aclList],
+        type: "list"
       },
       {
         name: "credentialsRef",
-        message: "Credentials",
-        choices: credentialsList,
-        type: "list",
-        when: credentialsList.length > 0
+        message: "Credentials Name",
+        choices: [{ name: "None", value: undefined }, ...credentialsList],
+        type: "list"
       },
       {
         name: "withSessionAffinity",
-        message: "With Session Affinity?",
+        message: "Enable Session Affinity?",
         type: "confirm",
-        default: false
+        default: false,
+        when: (answers) => answers.aor.startsWith("backend:")
       },
       {
         name: "balancingAlgorithm",
@@ -125,7 +130,8 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           }
         ],
         type: "list",
-        default: CT.LoadBalancingAlgorithm.ROUND_ROBIN
+        default: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
+        when: (answers) => answers.aor.startsWith("backend:")
       },
       {
         name: "confirm",

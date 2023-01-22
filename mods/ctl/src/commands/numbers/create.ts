@@ -22,6 +22,15 @@ import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
 import { countries } from "../../countries"
+import {
+  aorLinkValidator,
+  headersValidator,
+  nameValidator,
+  sessionAffinityHeaderValidator,
+  telUrlValidator
+} from "../../validators"
+import { stringToHeaders } from "../../utils"
+import { CommonConnect as CC } from "@routr/common"
 import FuzzySearch from "fuzzy-search"
 import SDK from "@routr/sdk"
 
@@ -49,26 +58,53 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
       caseSensitive: false
     })
 
+    const trunks = await new SDK.Trunks({ endpoint, insecure }).listTrunks({
+      pageSize: 25,
+      pageToken: ""
+    })
+
+    const trunksChoices = trunks.items.map((trunk: CC.Trunk) => {
+      return {
+        name: trunk.name,
+        value: trunk.ref
+      }
+    })
+
     const answers = await inquirer.prompt([
       {
         name: "name",
-        message: "Name",
-        type: "input"
+        message: "Friendly Name",
+        type: "input",
+        validate: nameValidator
       },
       {
         name: "telUrl",
-        message: "Tel URL",
-        type: "input"
+        message: "Telephony URL",
+        type: "input",
+        validate: telUrlValidator
       },
       {
         name: "aorLink",
         message: "AOR Link",
-        type: "input"
+        type: "input",
+        validate: aorLinkValidator
+      },
+      {
+        name: "trunkRef",
+        message: "Trunk",
+        type: "list",
+        choices: [{ name: "None", value: undefined }, ...trunksChoices]
       },
       {
         name: "city",
         message: "City",
-        type: "input"
+        type: "input",
+        validate: (input: string) => {
+          if (input.length === 0) {
+            return "the city is required"
+          }
+          return true
+        }
       },
       {
         type: "autocomplete",
@@ -78,13 +114,15 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
       },
       {
         name: "sessionAffinityHeader",
-        message: "Session Affinity Header (e.g. X-Room-Id)",
-        type: "input"
+        message: "Session Affinity Header",
+        type: "input",
+        validate: sessionAffinityHeaderValidator
       },
       {
         name: "extraHeaders",
-        message: "Extra Headers (e.g. X-Room-Id: abc-2s3-xyz)",
-        type: "input"
+        message: "Extra Headers",
+        type: "input",
+        validate: headersValidator
       },
       {
         name: "confirm",
@@ -94,15 +132,7 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
     ])
 
     // Re-write extraHeaders
-    if (answers.extraHeaders) {
-      const extraHeaders = answers.extraHeaders
-        .split(",")
-        .map((header: string) => {
-          const [name, value] = header.split(":")
-          return { name, value }
-        })
-      answers.extraHeaders = extraHeaders
-    }
+    answers.extraHeaders = stringToHeaders(answers.extraHeaders)
 
     answers.country = countries.find(
       (country) => country.value === answers.countryISOCode

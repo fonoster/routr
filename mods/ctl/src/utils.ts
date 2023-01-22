@@ -27,6 +27,9 @@ import inquirer from "inquirer"
 
 export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
+export const stringToACL = (aclRule: string) =>
+  aclRule.split(",").map((rule: string) => rule.trim())
+
 type APIName =
   | "ACL"
   | "Credentials"
@@ -129,4 +132,14 @@ export function toPascalCase(s: string) {
   return s.replace(/(\w)(\w*)/g, function (g0, g1, g2) {
     return g1.toUpperCase() + g2.toLowerCase()
   })
+}
+
+export function stringToHeaders(headers: string) {
+  return headers
+    .split(",")
+    .filter((header: string) => header)
+    .map((header: string) => {
+      const [name, value] = header.split(":")
+      return { name, value }
+    })
 }

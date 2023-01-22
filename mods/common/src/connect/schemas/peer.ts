@@ -39,8 +39,7 @@ export default {
         name: {
           description: "Resource's friendly name",
           type: "string",
-          minLength: 3,
-          maxLength: 64
+          maxLength: 60
         }
       },
       required: ["name"]
@@ -52,21 +51,22 @@ export default {
         username: {
           description: "The username for the Peer",
           type: "string",
-          minLength: 3,
-          maxLength: 64,
+          minLength: 4,
+          maxLength: 60,
           readOnly: true
         },
         aor: {
           description:
             "Address of the Peer (acceptable schemas are sip, backend.)",
           type: "string",
-          minLength: 3,
-          maxLength: 255
+          minLength: 5,
+          maxLength: 323
         },
         contactAddr: {
           description: "Contact address of the Peer",
           type: "string",
-          maxLength: 255
+          minLength: 7,
+          maxLength: 20
         },
         credentialsRef: {
           description: "The credential the Peer uses to authenticate",

@@ -20,8 +20,8 @@ CREATE TABLE "agents" (
     "username" VARCHAR(60) NOT NULL,
     "privacy" "Privacy" NOT NULL DEFAULT 'NONE',
     "enabled" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL,
     "extended" JSONB,
 
     CONSTRAINT "agents_pkey" PRIMARY KEY ("ref")
@@ -35,13 +35,13 @@ CREATE TABLE "peers" (
     "acl_ref" TEXT,
     "name" VARCHAR(60) NOT NULL,
     "username" VARCHAR(60) NOT NULL,
-    "aor" VARCHAR(255) NOT NULL,
-    "contact_addr" VARCHAR(255),
+    "aor" VARCHAR(323) NOT NULL,
+    "contact_addr" VARCHAR(20),
     "balancing_algorithm" "LoadBalancingAlgorithm",
     "with_session_affinity" BOOLEAN NOT NULL DEFAULT false,
     "enabled" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL,
     "extended" JSONB,
 
     CONSTRAINT "peers_pkey" PRIMARY KEY ("ref")
@@ -52,10 +52,10 @@ CREATE TABLE "domains" (
     "api_version" "api_version" NOT NULL,
     "ref" TEXT NOT NULL,
     "acl_ref" TEXT,
-    "name" TEXT NOT NULL,
+    "name" VARCHAR(60) NOT NULL,
     "domain_uri" VARCHAR(255) NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL,
     "extended" JSONB,
 
     CONSTRAINT "domains_pkey" PRIMARY KEY ("ref")
@@ -71,8 +71,8 @@ CREATE TABLE "trunks" (
     "name" VARCHAR(60) NOT NULL,
     "send_register" BOOLEAN NOT NULL DEFAULT false,
     "inbound_uri" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL,
     "extended" JSONB,
 
     CONSTRAINT "trunks_pkey" PRIMARY KEY ("ref")
@@ -83,16 +83,16 @@ CREATE TABLE "numbers" (
     "api_version" "api_version" NOT NULL,
     "ref" TEXT NOT NULL,
     "trunk_ref" TEXT,
-    "tel_url" VARCHAR(60) NOT NULL,
+    "tel_url" VARCHAR(15) NOT NULL,
     "name" VARCHAR(60) NOT NULL,
-    "aor_link" TEXT,
+    "aor_link" VARCHAR(323),
     "city" VARCHAR(60) NOT NULL DEFAULT 'Unknown',
     "country" VARCHAR(60) NOT NULL,
     "country_iso_code" VARCHAR(2) NOT NULL,
     "session_affinity_header" VARCHAR(60),
     "extra_headers" JSONB,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL,
     "extended" JSONB,
 
     CONSTRAINT "numbers_pkey" PRIMARY KEY ("ref")
@@ -103,10 +103,10 @@ CREATE TABLE "access_control_lists" (
     "api_version" "api_version" NOT NULL,
     "ref" TEXT NOT NULL,
     "name" VARCHAR(60) NOT NULL,
-    "allow" VARCHAR(60)[],
-    "deny" VARCHAR(60)[],
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "allow" VARCHAR(18)[],
+    "deny" VARCHAR(18)[],
+    "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL,
     "extended" JSONB,
 
     CONSTRAINT "access_control_lists_pkey" PRIMARY KEY ("ref")
@@ -118,9 +118,9 @@ CREATE TABLE "credentials" (
     "ref" TEXT NOT NULL,
     "name" VARCHAR(60) NOT NULL,
     "username" VARCHAR(60) NOT NULL,
-    "password" VARCHAR(60) NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "password" VARCHAR(255) NOT NULL,
+    "created_at" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL,
     "extended" JSONB,
 
     CONSTRAINT "credentials_pkey" PRIMARY KEY ("ref")
@@ -143,7 +143,7 @@ CREATE TABLE "trunk_uris" (
     "host" VARCHAR(255) NOT NULL,
     "port" INTEGER NOT NULL,
     "transport" "Transport" NOT NULL,
-    "user" TEXT,
+    "user" VARCHAR(60),
     "weight" INTEGER,
     "priority" INTEGER,
     "enabled" BOOLEAN NOT NULL DEFAULT true,

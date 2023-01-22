@@ -17,9 +17,8 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import * as Validator from "validator"
 import { Number as NumberPrismaModel, APIVersion, Prisma } from "@prisma/client"
-import { CommonConnect as CC, CommonErrors as CE } from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
 import { JsonObject } from "pb-util/build"
 import { EntityManager } from "./manager"
 import { TrunkManager } from "./trunk"
@@ -57,109 +56,23 @@ export class NumberManager extends EntityManager {
   }
 
   validOrThrowCreate() {
-    if (!this.number.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (!Validator.default.isLength(this.number.name, { min: 3, max: 64 })) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
-
-    if (!this.number.telUrl) {
-      // TODO: Consider adding a feature flag to validate e164
-      throw new CE.BadRequestError("the telUrl is required")
-    }
-
-    if (this.number.sessionAffinityHeader) {
-      if (
-        !Validator.default.isAlphanumeric(this.number.sessionAffinityHeader)
-      ) {
-        throw new CE.BadRequestError(
-          "the sessionAffinityHeader must be alphanumeric and without spaces"
-        )
-      }
-    }
-
-    // TODO: We will need a better way to validate this so is a valid SIP URI
-    if (this.number.aorLink) {
-      if (
-        !this.number.aorLink.startsWith("backend:") &&
-        !this.number.aorLink.startsWith("sip:")
-      ) {
-        throw new CE.BadRequestError(
-          "the aorLink must start with backend: or sip:"
-        )
-      }
-    }
-
-    if (!this.number.city) {
-      throw new CE.BadRequestError("the city is required")
-    }
-
-    if (!this.number.country) {
-      throw new CE.BadRequestError("the country is required")
-    }
-
-    if (!this.number.countryIsoCode) {
-      throw new CE.BadRequestError("the countryISOCode is required")
-    }
+    CC.hasNameOrThrow(this.number.name)
+    CC.isValidNameOrThrow(this.number.name)
+    CC.hasTelUrlOrThrow(this.number.telUrl)
+    CC.isValidAORLinkOrThrow(this.number.aorLink)
+    CC.hasCityOrThrow(this.number.city)
+    CC.hasCountryOrThrow(this.number.country)
+    CC.hasCountryISOCodeOrThrow(this.number.countryIsoCode)
+    CC.hasValidHeadersOrThrow(this.number.extraHeaders)
+    CC.isValidSessionAffinityHeaderOrThrow(this.number.sessionAffinityHeader)
   }
 
-  // TODO: Add validation for countryISOCode (it should be an enum)
   validOrThrowUpdate() {
-    if (!this.number.ref) {
-      throw new CE.BadRequestError("the reference to the resource is required")
-    }
-
-    if (!this.number.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (!Validator.default.isLength(this.number.name, { min: 3, max: 64 })) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
-
-    if (this.number.sessionAffinityHeader) {
-      if (
-        !Validator.default.isAlphanumeric(this.number.sessionAffinityHeader)
-      ) {
-        throw new CE.BadRequestError(
-          "the sessionAffinityHeader must be alphanumeric and without spaces"
-        )
-      }
-    }
-
-    // TODO: We will need a better way to validate this so is a valid SIP URI
-    if (this.number.aorLink) {
-      if (
-        !this.number.aorLink.startsWith("backend:") &&
-        !this.number.aorLink.startsWith("sip:")
-      ) {
-        throw new CE.BadRequestError(
-          "the aorLink must start with backend: or sip:"
-        )
-      }
-    }
-
-    if (!this.number.city) {
-      throw new CE.BadRequestError("the city is required")
-    }
-
-    if (!this.number.country) {
-      throw new CE.BadRequestError("the country is required")
-    }
-
-    if (!this.number.countryIsoCode) {
-      throw new CE.BadRequestError("the countryISOCode is required")
-    }
+    CC.hasRefenceOrThrow(this.number.ref)
+    CC.isValidNameOrThrow(this.number.name)
+    CC.isValidAORLinkOrThrow(this.number.aorLink)
+    CC.hasValidHeadersOrThrow(this.number.extraHeaders)
+    CC.isValidSessionAffinityHeaderOrThrow(this.number.sessionAffinityHeader)
   }
 
   mapToPrisma(): NumberPrismaModel {
@@ -187,22 +100,27 @@ export class NumberManager extends EntityManager {
   }
 
   static mapToDto(number: NumberWithTrunk): CC.INumber {
-    return {
-      apiVersion: number.apiVersion,
-      ref: number.ref,
-      name: number.name,
-      trunkRef: number.trunkRef,
-      trunk: number.trunk ? TrunkManager.mapToDto(number.trunk) : undefined,
-      telUrl: number.telUrl,
-      aorLink: number.aorLink,
-      city: number.city,
-      country: number.country,
-      countryIsoCode: number.countryISOCode,
-      sessionAffinityHeader: number.sessionAffinityHeader,
-      extraHeaders: number.extraHeaders as { name: string; value: string }[],
-      extended: number.extended as JsonObject,
-      createdAt: number.createdAt.getTime() / 1000,
-      updatedAt: number.updatedAt.getTime() / 1000
-    }
+    return number
+      ? {
+          apiVersion: number.apiVersion,
+          ref: number.ref,
+          name: number.name,
+          trunkRef: number.trunkRef,
+          trunk: TrunkManager.mapToDto(number.trunk),
+          telUrl: number.telUrl,
+          aorLink: number.aorLink,
+          city: number.city,
+          country: number.country,
+          countryIsoCode: number.countryISOCode,
+          sessionAffinityHeader: number.sessionAffinityHeader,
+          extraHeaders: number.extraHeaders as {
+            name: string
+            value: string
+          }[],
+          extended: number.extended as JsonObject,
+          createdAt: number.createdAt.getTime() / 1000,
+          updatedAt: number.updatedAt.getTime() / 1000
+        }
+      : undefined
   }
 }

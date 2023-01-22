@@ -17,12 +17,11 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import * as Validator from "validator"
 import {
   Credentials as CredentialsPrismaModel,
   APIVersion
 } from "@prisma/client"
-import { CommonConnect as CC, CommonErrors as CE } from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
 import { JsonObject } from "pb-util/build"
 import { EntityManager } from "./manager"
 
@@ -37,61 +36,17 @@ export class CredentialsManager extends EntityManager {
   }
 
   validOrThrowCreate() {
-    if (!this.credentials.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (
-      !Validator.default.isLength(this.credentials.name, { min: 3, max: 64 })
-    ) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
-
-    if (!this.credentials.username) {
-      throw new CE.BadRequestError("the username is required")
-    }
-
-    if (!this.credentials.password) {
-      throw new CE.BadRequestError("the password is required")
-    }
-
-    if (!Validator.default.isAlphanumeric(this.credentials.username)) {
-      throw new CE.BadRequestError(
-        "the username must be alphanumeric and without spaces"
-      )
-    }
+    CC.hasNameOrThrow(this.credentials.name)
+    CC.isValidNameOrThrow(this.credentials.name)
+    CC.hasUsernameOrThrow(this.credentials.username)
+    CC.isValidUsernameOrThrow(this.credentials.username)
+    CC.hasPasswordOrThrow(this.credentials.password)
   }
 
   validOrThrowUpdate() {
-    if (!this.credentials.ref) {
-      throw new CE.BadRequestError("the reference to the resource is required")
-    }
-
-    if (!this.credentials.name) {
-      throw new CE.BadRequestError(
-        "the friendly name for the resource is required"
-      )
-    }
-
-    if (
-      !Validator.default.isLength(this.credentials.name, { min: 3, max: 64 })
-    ) {
-      throw new CE.BadRequestError(
-        "the friendly name must be between 3 and 64 characters"
-      )
-    }
-
-    if (this.credentials.username) {
-      if (!Validator.default.isAlphanumeric(this.credentials.username)) {
-        throw new CE.BadRequestError(
-          "the username must be alphanumeric and without spaces"
-        )
-      }
-    }
+    CC.hasRefenceOrThrow(this.credentials.ref)
+    CC.isValidNameOrThrow(this.credentials.name)
+    CC.isValidUsernameOrThrow(this.credentials.username)
   }
 
   mapToPrisma(): CredentialsPrismaModel {
@@ -113,15 +68,17 @@ export class CredentialsManager extends EntityManager {
   }
 
   static mapToDto(credentials: CredentialsPrismaModel): CC.Credentials {
-    return {
-      apiVersion: credentials.apiVersion,
-      ref: credentials.ref,
-      name: credentials.name,
-      username: credentials.username,
-      password: credentials.password,
-      createdAt: credentials.createdAt.getTime() / 1000,
-      updatedAt: credentials.updatedAt.getTime() / 1000,
-      extended: credentials.extended as JsonObject
-    }
+    return credentials
+      ? {
+          apiVersion: credentials.apiVersion,
+          ref: credentials.ref,
+          name: credentials.name,
+          username: credentials.username,
+          password: credentials.password,
+          createdAt: credentials.createdAt.getTime() / 1000,
+          updatedAt: credentials.updatedAt.getTime() / 1000,
+          extended: credentials.extended as JsonObject
+        }
+      : undefined
   }
 }

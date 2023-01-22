@@ -47,8 +47,10 @@ export default class MyHelpClass extends Help {
   }
 
   private get customCommands() {
-    const removeLastDot = (s: string) =>
-      s.endsWith(".") ? s.slice(0, s.length - 1) : s
+    const removeLastDot = (s: string) => {
+      const str = s.split("\n")[0].trim()
+      return str.endsWith(".") ? str.slice(0, str.length - 1) : s
+    }
 
     const lowercaseFirstLetter = (s: string) =>
       s.charAt(0).toLowerCase() + s.slice(1)

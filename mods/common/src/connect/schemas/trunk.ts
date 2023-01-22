@@ -39,8 +39,7 @@ export default {
         name: {
           description: "Resource's friendly name",
           type: "string",
-          minLength: 3,
-          maxLength: 64
+          maxLength: 60
         }
       },
       required: ["name"]
@@ -96,11 +95,13 @@ export default {
                     properties: {
                       host: {
                         description: "Hostname of the URI",
-                        type: "string"
+                        type: "string",
+                        maxLength: 255
                       },
                       port: {
                         description: "Port of the URI",
-                        type: "integer"
+                        type: "integer",
+                        maximum: 65535
                       },
                       transport: {
                         description: "Transport of the URI",
@@ -121,18 +122,23 @@ export default {
                       },
                       user: {
                         description: "Username of the URI",
-                        type: "string"
+                        type: "string",
+                        maxLength: 60
                       }
                     },
                     required: ["host", "port", "transport"]
                   },
                   weight: {
                     description: "Weight of the URI",
-                    type: "integer"
+                    type: "integer",
+                    minimum: 1,
+                    maximum: 65535
                   },
                   priority: {
                     description: "Priority of the URI",
-                    type: "integer"
+                    type: "integer",
+                    minimum: 0,
+                    maximum: 65535
                   },
                   enabled: {
                     description: "Whether the URI is enabled",

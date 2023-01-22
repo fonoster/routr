@@ -50,7 +50,9 @@ describe("@routr/pgdata/mappers/domain", () => {
     const result = new DomainManager(domain).mapToPrisma()
 
     // Assert
-    expect(result).excluding(["createdAt", "updatedAt"]).to.deep.equal(domain)
+    expect(result)
+      .excluding(["createdAt", "updatedAt", "egressPolicies"])
+      .to.deep.equal(domain)
   })
 
   it("takes a prisma model and converts it to dto object", () => {
@@ -58,6 +60,7 @@ describe("@routr/pgdata/mappers/domain", () => {
     type DomainWithACL = Prisma.DomainGetPayload<{
       include: {
         accessControlList: true
+        egressPolicies: true
       }
     }>
 
@@ -83,7 +86,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         }
-      }
+      },
+      egressPolicies: []
     }
 
     // Act
@@ -96,7 +100,7 @@ describe("@routr/pgdata/mappers/domain", () => {
   })
 
   describe("throws errors", () => {
-    it("when the friendly name is not provided for create or update operations", () => {
+    it("when the friendly name is not provided for domain creation", () => {
       // Arrange
       const domain = {
         apiVersion: "v2",
@@ -112,24 +116,20 @@ describe("@routr/pgdata/mappers/domain", () => {
       }
 
       // Act
-      const updateResult = () => new DomainManager(domain).validOrThrowUpdate()
       const createResult = () => new DomainManager(domain).validOrThrowCreate()
 
       // Assert
-      expect(updateResult).to.throw(
-        "the friendly name for the resource is required"
-      )
       expect(createResult).to.throw(
         "the friendly name for the resource is required"
       )
     })
 
-    it("when the friendly namy has less than 3 or more than 64 characters", () => {
+    it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const domain = {
         apiVersion: "v2",
         ref: "domain-01",
-        name: "Lo",
+        name: "a".repeat(65),
         accessControlListRef: "acl-01",
         domainUri: "sip.local",
         extended: {
@@ -145,10 +145,10 @@ describe("@routr/pgdata/mappers/domain", () => {
 
       // Assert
       expect(updateResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
       expect(createResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
     })
 

@@ -39,8 +39,7 @@ export default {
         name: {
           description: "Resource's friendly name",
           type: "string",
-          minLength: 3,
-          maxLength: 64
+          maxLength: 60
         }
       },
       required: ["name"]
@@ -58,7 +57,9 @@ export default {
               description: "Allowed list of access control rules",
               type: "array",
               items: {
-                type: "string"
+                type: "string",
+                minLength: 7,
+                maxLength: 18
               },
               minItems: 1,
               uniqueItems: true
@@ -67,7 +68,9 @@ export default {
               description: "Denied list of access control rules",
               type: "array",
               items: {
-                type: "string"
+                type: "string",
+                minLength: 7,
+                maxLength: 18
               },
               minItems: 1,
               uniqueItems: true

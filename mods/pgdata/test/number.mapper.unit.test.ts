@@ -181,7 +181,7 @@ describe("@routr/pgdata/mappers/number", () => {
   })
 
   describe("throws errors", () => {
-    it("when the friendly name is not provided for create or update operations", () => {
+    it("when the friendly name is not provided for create operations", () => {
       // Arrange
       const number = {
         apiVersion: "v2",
@@ -208,25 +208,21 @@ describe("@routr/pgdata/mappers/number", () => {
       }
 
       // Act
-      const updateResult = () => new NumberManager(number).validOrThrowUpdate()
       const createResult = () => new NumberManager(number).validOrThrowCreate()
 
       // Assert
-      expect(updateResult).to.throw(
-        "the friendly name for the resource is required"
-      )
       expect(createResult).to.throw(
         "the friendly name for the resource is required"
       )
     })
 
-    it("when the friendly namy has less than 3 or more than 64 characters", () => {
+    it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const number = {
         apiVersion: "v2",
         ref: "number-01",
         trunkRef: "trunk-01",
-        name: "(7",
+        name: "a".repeat(65),
         telUrl: "tel:+17853178070",
         aorLink: "backend:aor-01",
         city: "Durham",
@@ -252,10 +248,10 @@ describe("@routr/pgdata/mappers/number", () => {
 
       // Assert
       expect(updateResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
       expect(createResult).to.throw(
-        "the friendly name must be between 3 and 64 characters"
+        "the friendly name must have less than 60 characters"
       )
     })
 
@@ -332,7 +328,7 @@ describe("@routr/pgdata/mappers/number", () => {
         trunkRef: "trunk-01",
         name: "(785)317-8070",
         telUrl: "tel:+17853178070",
-        aorLink: "aor-01",
+        aorLink: "backend:aor-01",
         city: "Durham",
         country: "United States",
         countryIsoCode: "US",
@@ -393,10 +389,10 @@ describe("@routr/pgdata/mappers/number", () => {
 
       // Assert
       expect(createResult).to.throw(
-        "the sessionAffinityHeader must be alphanumeric and without spaces"
+        "the aorLink must start with backend: or sip"
       )
       expect(updateResult).to.throw(
-        "the sessionAffinityHeader must be alphanumeric and without spaces"
+        "the aorLink must start with backend: or sip"
       )
     })
   })

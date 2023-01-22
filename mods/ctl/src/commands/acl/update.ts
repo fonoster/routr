@@ -20,6 +20,8 @@
 import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
+import { aclRuleValidator, nameValidator } from "../../validators"
+import { stringToACL } from "../../utils"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -52,21 +54,24 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
     const answers = await inquirer.prompt([
       {
         name: "name",
-        message: "Name",
+        message: "Friendly Name",
         type: "input",
-        default: aclFromDB.name
+        default: aclFromDB.name,
+        validate: nameValidator
       },
       {
         name: "deny",
-        message: "Deny List (Comma separated)",
+        message: "Deny CIDR Networks",
         type: "input",
-        default: aclFromDB.deny.join(",")
+        default: aclFromDB.deny.join(","),
+        validate: aclRuleValidator
       },
       {
         name: "allow",
-        message: "Allow List (Comma separated)",
+        message: "Allow CIDR Networks",
         type: "input",
-        default: aclFromDB.allow.join(",")
+        default: aclFromDB.allow.join(","),
+        validate: aclRuleValidator
       },
       {
         name: "confirm",
@@ -78,8 +83,8 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
     answers.ref = args.ref
 
     // Re-assign allow and deny rules as arrays
-    answers.allow = answers.allow.split(",").map((rule: string) => rule.trim())
-    answers.deny = answers.deny.split(",").map((rule: string) => rule.trim())
+    answers.allow = stringToACL(answers.allow)
+    answers.deny = stringToACL(answers.deny)
 
     if (!answers.confirm) {
       this.warn("Aborted")
