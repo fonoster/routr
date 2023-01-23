@@ -20,7 +20,7 @@ $ npm install -g @routr/ctl
 $ rctl COMMAND
 running command...
 $ rctl (--version)
-@routr/ctl/0.0.0 darwin-x64 node-v16.18.1
+@routr/ctl/2.0.8-alpha.21 darwin-x64 node-v16.18.1
 $ rctl --help [COMMAND]
 USAGE
   $ rctl COMMAND
@@ -29,9 +29,31 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`rctl hello PERSON`](#rctl-hello-person)
-* [`rctl hello world`](#rctl-hello-world)
-* [`rctl help [COMMAND]`](#rctl-help-command)
+* [`rctl acl create`](#rctl-acl-create)
+* [`rctl acl delete [REF]`](#rctl-acl-delete-ref)
+* [`rctl acl get [REF]`](#rctl-acl-get-ref)
+* [`rctl acl update REF`](#rctl-acl-update-ref)
+* [`rctl agents create`](#rctl-agents-create)
+* [`rctl agents delete [REF]`](#rctl-agents-delete-ref)
+* [`rctl agents get [REF]`](#rctl-agents-get-ref)
+* [`rctl agents update REF`](#rctl-agents-update-ref)
+* [`rctl autocomplete [SHELL]`](#rctl-autocomplete-shell)
+* [`rctl credentials create`](#rctl-credentials-create)
+* [`rctl credentials delete [REF]`](#rctl-credentials-delete-ref)
+* [`rctl credentials get [REF]`](#rctl-credentials-get-ref)
+* [`rctl credentials update REF`](#rctl-credentials-update-ref)
+* [`rctl domains create`](#rctl-domains-create)
+* [`rctl domains delete [REF]`](#rctl-domains-delete-ref)
+* [`rctl domains get [REF]`](#rctl-domains-get-ref)
+* [`rctl domains update REF`](#rctl-domains-update-ref)
+* [`rctl numbers create`](#rctl-numbers-create)
+* [`rctl numbers delete [REF]`](#rctl-numbers-delete-ref)
+* [`rctl numbers get [REF]`](#rctl-numbers-get-ref)
+* [`rctl numbers update REF`](#rctl-numbers-update-ref)
+* [`rctl peers create`](#rctl-peers-create)
+* [`rctl peers delete [REF]`](#rctl-peers-delete-ref)
+* [`rctl peers get [REF]`](#rctl-peers-get-ref)
+* [`rctl peers update REF`](#rctl-peers-update-ref)
 * [`rctl plugins`](#rctl-plugins)
 * [`rctl plugins:install PLUGIN...`](#rctl-pluginsinstall-plugin)
 * [`rctl plugins:inspect PLUGIN...`](#rctl-pluginsinspect-plugin)
@@ -41,66 +63,591 @@ USAGE
 * [`rctl plugins:uninstall PLUGIN...`](#rctl-pluginsuninstall-plugin-1)
 * [`rctl plugins:uninstall PLUGIN...`](#rctl-pluginsuninstall-plugin-2)
 * [`rctl plugins update`](#rctl-plugins-update)
+* [`rctl trunks create`](#rctl-trunks-create)
+* [`rctl trunks delete [REF]`](#rctl-trunks-delete-ref)
+* [`rctl trunks get [REF]`](#rctl-trunks-get-ref)
+* [`rctl trunks update REF`](#rctl-trunks-update-ref)
 
-## `rctl hello PERSON`
+## `rctl acl create`
 
-Say hello
+Creates a new ACL
 
 ```
 USAGE
-  $ rctl hello [PERSON] -f <value>
-
-ARGUMENTS
-  PERSON  Person to say hello to
+  $ rctl acl create [-x] [-i] [-e <value>]
 
 FLAGS
-  -f, --from=<value>  (required) Who is saying hello
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
 
 DESCRIPTION
-  Say hello
+  Creates a new ACL
 
 EXAMPLES
-  $ oex hello friend --from oclif
-  hello friend from oclif! (./src/commands/hello/index.ts)
+  $ rctl acl create
+  Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [dist/commands/hello/index.ts](https://github.com/fonoster/routr/https://github.com/fonoster/routr/blob/v0.0.0/dist/commands/hello/index.ts)_
+## `rctl acl delete [REF]`
 
-## `rctl hello world`
-
-Say hello world
+Deletes an Access Control List
 
 ```
 USAGE
-  $ rctl hello world
-
-DESCRIPTION
-  Say hello world
-
-EXAMPLES
-  $ rctl hello world
-  hello world! (./src/commands/hello/world.ts)
-```
-
-## `rctl help [COMMAND]`
-
-Display help for rctl.
-
-```
-USAGE
-  $ rctl help [COMMAND] [-n]
-
-ARGUMENTS
-  COMMAND  Command to show help for.
+  $ rctl acl delete [REF] [-x] [-i] [-e <value>]
 
 FLAGS
-  -n, --nested-commands  Include all nested commands in the output.
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
 
 DESCRIPTION
-  Display help for rctl.
+  Deletes an Access Control List
+
+EXAMPLES
+  $ rctl acl delete
+  Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.22/src/commands/help.ts)_
+## `rctl acl get [REF]`
+
+Shows a list of paginated ACLs or a single ACL if a ref is provided
+
+```
+USAGE
+  $ rctl acl get [REF] [-x] [-i] [-e <value>] [-s <value>]
+
+ARGUMENTS
+  REF  optional reference to an ACL
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -s, --size=<value>      [default: 50] the number of items to return
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Shows a list of paginated ACLs or a single ACL if a ref is provided
+
+EXAMPLES
+  $ rctl acl get
+  Ref                                  Name              Deny List Allow List
+  9e7a88f0-8390-42f5-a2cb-689583ba9f4f Local Network ACL 0.0.0.0/0 10.0.0.28
+```
+
+## `rctl acl update REF`
+
+Updates an existing ACL
+
+```
+USAGE
+  $ rctl acl update [REF] [-x] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to an ACL
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Updates an existing ACL
+
+EXAMPLES
+  $ rctl acl update
+  Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+## `rctl agents create`
+
+Creates a new Agent
+
+```
+USAGE
+  $ rctl agents create [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Creates a new Agent
+
+EXAMPLES
+  $ rctl agents create
+  Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+```
+
+## `rctl agents delete [REF]`
+
+Deletes an Agent
+
+```
+USAGE
+  $ rctl agents delete [REF] [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Deletes an Agent
+
+EXAMPLES
+  $ rctl agents delete
+  Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
+```
+
+## `rctl agents get [REF]`
+
+Shows a list of paginated Agents or a single Agent if ref is provided
+
+```
+USAGE
+  $ rctl agents get [REF] [-x] [-i] [-e <value>] [-s <value>]
+
+ARGUMENTS
+  REF  Optional Agents reference
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -s, --size=<value>      [default: 50] The number of items to return
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Shows a list of paginated Agents or a single Agent if ref is provided
+
+EXAMPLES
+  $ rctl agents get
+  Ref                                  Name     Username Domain    Privacy Enabled
+  d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local PRIVATE Yes
+```
+
+## `rctl agents update REF`
+
+Updates an existing Agent
+
+```
+USAGE
+  $ rctl agents update [REF] [-x] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to an existing Agent
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Updates an existing Agent
+
+EXAMPLES
+  $ rctl agents update
+  Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+## `rctl autocomplete [SHELL]`
+
+display autocomplete installation instructions
+
+```
+USAGE
+  $ rctl autocomplete [SHELL] [-r]
+
+ARGUMENTS
+  SHELL  shell type
+
+FLAGS
+  -r, --refresh-cache  Refresh cache (ignores displaying instructions)
+
+DESCRIPTION
+  display autocomplete installation instructions
+
+EXAMPLES
+  $ rctl autocomplete
+
+  $ rctl autocomplete bash
+
+  $ rctl autocomplete zsh
+
+  $ rctl autocomplete --refresh-cache
+```
+
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.3.10/src/commands/autocomplete/index.ts)_
+
+## `rctl credentials create`
+
+Creates a new set of Credentials
+
+```
+USAGE
+  $ rctl credentials create [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Creates a new set of Credentials
+
+EXAMPLES
+  $ rctl credentials create
+  Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+```
+
+## `rctl credentials delete [REF]`
+
+Deletes a set of Credentials
+
+```
+USAGE
+  $ rctl credentials delete [REF] [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Deletes a set of Credentials
+
+EXAMPLES
+  $ rctl credentials delete
+  Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
+```
+
+## `rctl credentials get [REF]`
+
+Shows a list of paginated Credentials or a single set if ref is provided
+
+```
+USAGE
+  $ rctl credentials get [REF] [-x] [-i] [-e <value>] [-s <value>]
+
+ARGUMENTS
+  REF  optional reference to a set of Credentials
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -s, --size=<value>      [default: 50] the number of items to return
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Shows a list of paginated Credentials or a single set if ref is provided
+
+EXAMPLES
+  $ rctl credentials get
+  Ref                                  Name       Deny List Allow List
+  80181ca6-d4aa-4575-9375-8f72b07d6666 Europe ACL 0.0.0.0/0 10.0.0.25
+```
+
+## `rctl credentials update REF`
+
+Updates an existing set of Credentials
+
+```
+USAGE
+  $ rctl credentials update [REF] [-x] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to an existing set of Credentials
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Updates an existing set of Credentials
+
+EXAMPLES
+  $ rctl credentials update
+  Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+## `rctl domains create`
+
+Creates a new set Domain
+
+```
+USAGE
+  $ rctl domains create [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Creates a new set Domain
+
+EXAMPLES
+  $ rctl domains create
+  Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+```
+
+## `rctl domains delete [REF]`
+
+Deletes a Domain
+
+```
+USAGE
+  $ rctl domains delete [REF] [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Deletes a Domain
+
+EXAMPLES
+  $ rctl domains delete
+  Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
+```
+
+## `rctl domains get [REF]`
+
+Shows a list of paginated Domains or a single Domain if ref is provided
+
+```
+USAGE
+  $ rctl domains get [REF] [-x] [-i] [-e <value>] [-s <value>]
+
+ARGUMENTS
+  REF  optional reference to a Domain
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -s, --size=<value>      [default: 50] the number of items to return
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Shows a list of paginated Domains or a single Domain if ref is provided
+
+EXAMPLES
+  $ rctl domains get
+  Ref                                  Name         URI            
+  ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
+```
+
+## `rctl domains update REF`
+
+Updates an existing Domain
+
+```
+USAGE
+  $ rctl domains update [REF] [-x] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to an existing Domain
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Updates an existing Domain
+
+EXAMPLES
+  $ rctl domains update
+  Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+## `rctl numbers create`
+
+Creates a new Number
+
+```
+USAGE
+  $ rctl numbers create [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Creates a new Number
+
+EXAMPLES
+  $ rctl numbers create
+  Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
+```
+
+## `rctl numbers delete [REF]`
+
+Deletes a Number
+
+```
+USAGE
+  $ rctl numbers delete [REF] [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Deletes a Number
+
+EXAMPLES
+  $ rctl numbers delete
+  Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
+```
+
+## `rctl numbers get [REF]`
+
+Shows a list of paginated Numbers or a single Number if ref is provided
+
+```
+USAGE
+  $ rctl numbers get [REF] [-x] [-i] [-e <value>] [-s <value>]
+
+ARGUMENTS
+  REF  optional reference to a Number
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -s, --size=<value>      [default: 50] the number of items to return
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Shows a list of paginated Numbers or a single Number if ref is provided
+
+EXAMPLES
+  $ rctl numbers get
+  Ref                                  Name           Telephony URL      AOR Link           Geo              
+  a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@sip.local Cameron, USA (US)
+```
+
+## `rctl numbers update REF`
+
+Updates an existing set of Credentials
+
+```
+USAGE
+  $ rctl numbers update [REF] [-x] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to an existing Number
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Updates an existing set of Credentials
+
+EXAMPLES
+  $ rctl numbers update
+  Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+## `rctl peers create`
+
+Creates a new Peer
+
+```
+USAGE
+  $ rctl peers create [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Creates a new Peer
+
+EXAMPLES
+  $ rctl peers create
+  Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+```
+
+## `rctl peers delete [REF]`
+
+Deletes a Peer
+
+```
+USAGE
+  $ rctl peers delete [REF] [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Deletes a Peer
+
+EXAMPLES
+  $ rctl peers delete
+  Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
+```
+
+## `rctl peers get [REF]`
+
+Shows a list of paginated Peers or a single Peer if ref is provided
+
+```
+USAGE
+  $ rctl peers get [REF] [-x] [-i] [-e <value>] [-s <value>]
+
+ARGUMENTS
+  REF  optional reference to a Peer
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -s, --size=<value>      [default: 50] the number of items to return
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Shows a list of paginated Peers or a single Peer if ref is provided
+
+EXAMPLES
+  $ rctl peers get
+  Ref                                  Name                Username   AOR                Balancing Algorithm Session Affinity 
+  6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference backend:conference ROUND_ROBIN         Yes
+```
+
+## `rctl peers update REF`
+
+Updates an existing Peer
+
+```
+USAGE
+  $ rctl peers update [REF] [-x] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to an existing Peer
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Updates an existing Peer
+
+EXAMPLES
+  $ rctl peers update
+  Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
 
 ## `rctl plugins`
 
@@ -330,5 +877,97 @@ FLAGS
 
 DESCRIPTION
   Update installed plugins.
+```
+
+## `rctl trunks create`
+
+Creates a new Trunk
+
+```
+USAGE
+  $ rctl trunks create [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Creates a new Trunk
+
+EXAMPLES
+  $ rctl trunks create
+  Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+```
+
+## `rctl trunks delete [REF]`
+
+Deletes a Trunk
+
+```
+USAGE
+  $ rctl trunks delete [REF] [-x] [-i] [-e <value>]
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Deletes a Trunk
+
+EXAMPLES
+  $ rctl trunks delete
+  Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
+```
+
+## `rctl trunks get [REF]`
+
+Shows a list of paginated Trunks or a single Trunk if ref is provided
+
+```
+USAGE
+  $ rctl trunks get [REF] [-x] [-i] [-e <value>] [-s <value>]
+
+ARGUMENTS
+  REF  optional reference to a Trunk
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -s, --size=<value>      [default: 50] the number of items to return
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Shows a list of paginated Trunks or a single Trunk if ref is provided
+
+EXAMPLES
+  $ rctl trunks get
+  Ref                                  Name   Inbound SIP URI 
+  8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local  sip.t01.provider.net
+```
+
+## `rctl trunks update REF`
+
+Updates an existing Trunk
+
+```
+USAGE
+  $ rctl trunks update [REF] [-x] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to an existing Trunk
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+  -x, --extended          extended output format
+
+DESCRIPTION
+  Updates an existing Trunk
+
+EXAMPLES
+  $ rctl trunks update
+  Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 <!-- commandsstop -->
