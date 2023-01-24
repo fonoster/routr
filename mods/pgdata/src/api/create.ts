@@ -17,11 +17,13 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import * as grpc from "@grpc/grpc-js"
 import { JsonObject, struct } from "pb-util"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
 import { BadRequestError } from "@routr/common/src/errors"
 import { PrismaCreateOperation } from "../types"
 import { getManager } from "../mappers/utils"
+import { PrismaClientInitializationError } from "@prisma/client/runtime"
 
 export function create(
   operation: PrismaCreateOperation,
@@ -51,7 +53,16 @@ export function create(
 
       callback(null, Manager.mapToDto(objFromDB as any))
     } catch (e) {
-      if (e.code === "P2002") {
+      if (e instanceof PrismaClientInitializationError) {
+        callback(
+          {
+            code: grpc.status.UNAVAILABLE,
+            message: "database is not available"
+          },
+          null
+        )
+        return
+      } else if (e.code === "P2002") {
         callback(
           new BadRequestError(
             "entity already exist for field: " + e.meta.target[0]

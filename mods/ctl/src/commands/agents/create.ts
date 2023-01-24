@@ -46,122 +46,124 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
     const { flags } = await this.parse(CreateAgentCommand)
     const { endpoint, insecure } = flags
 
-    this.log("This utility will help you create a new Agent.")
-    this.log("Press ^C at any time to quit.")
+    try {
+      // TODO: Fix hardcoded pageSize
+      const domains = await new SDK.Domains({ endpoint, insecure }).listDomains(
+        {
+          pageSize: 25,
+          pageToken: ""
+        }
+      )
 
-    // TODO: Fix hardcoded pageSize
-    const domains = await new SDK.Domains({ endpoint, insecure }).listDomains({
-      pageSize: 25,
-      pageToken: ""
-    })
+      // TODO: Fix hardcoded pageSize
+      const credentials = await new SDK.Credentials({
+        endpoint,
+        insecure
+      }).listCredentials({
+        pageSize: 25,
+        pageToken: ""
+      })
 
-    // TODO: Fix hardcoded pageSize
-    const credentials = await new SDK.Credentials({
-      endpoint,
-      insecure
-    }).listCredentials({
-      pageSize: 25,
-      pageToken: ""
-    })
+      const domainsList = domains.items.map((domain: CC.Domain) => {
+        return {
+          name: domain.domainUri,
+          description: domain.name,
+          value: domain.ref
+        }
+      })
 
-    const domainsList = domains.items.map((domain: CC.Domain) => {
-      return {
-        name: domain.domainUri,
-        description: domain.name,
-        value: domain.ref
-      }
-    })
+      const credentialsList = credentials.items.map(
+        (credential: CC.Credentials) => {
+          return { name: credential.name, value: credential.ref }
+        }
+      )
 
-    const credentialsList = credentials.items.map(
-      (credential: CC.Credentials) => {
-        return { name: credential.name, value: credential.ref }
-      }
-    )
+      const searcher = new FuzzySearch(
+        domainsList,
+        ["name", "value", "description"],
+        {
+          caseSensitive: false
+        }
+      )
 
-    const searcher = new FuzzySearch(
-      domainsList,
-      ["name", "value", "description"],
-      {
-        caseSensitive: false
-      }
-    )
+      this.log("This utility will help you create a new Agent.")
+      this.log("Press ^C at any time to quit.")
 
-    const answers = await inquirer.prompt([
-      {
-        name: "name",
-        message: "Friendly Name",
-        type: "input",
-        validate: nameValidator
-      },
-      {
-        type: "autocomplete",
-        name: "domainRef",
-        message: "Select a Domain",
-        source: (_: unknown, input: string) => searcher.search(input),
-        when: () => domains.items.length > 0
-      },
-      {
-        name: "username",
-        message: "Username",
-        type: "input",
-        validate: usernameValidator
-      },
-      {
-        name: "credentialsRef",
-        message: "Credentials Name",
-        type: "list",
-        choices: [{ name: "None", value: undefined }, ...credentialsList]
-      },
-      {
-        name: "privacy",
-        message: "Privacy",
-        type: "list",
-        choices: [
-          {
-            name: "None",
-            value: CT.Privacy.NONE
-          },
-          {
-            name: "Private",
-            value: CT.Privacy.PRIVATE
-          }
-        ],
-        default: CT.Privacy.NONE
-      },
-      {
-        name: "enabled",
-        message: "Enabled",
-        type: "confirm",
-        default: true
-      },
-      {
-        name: "confirm",
-        message: "Ready?",
-        type: "confirm"
-      }
-    ])
+      const answers = await inquirer.prompt([
+        {
+          name: "name",
+          message: "Friendly Name",
+          type: "input",
+          validate: nameValidator
+        },
+        {
+          type: "autocomplete",
+          name: "domainRef",
+          message: "Select a Domain",
+          source: (_: unknown, input: string) => searcher.search(input),
+          when: () => domains.items.length > 0
+        },
+        {
+          name: "username",
+          message: "Username",
+          type: "input",
+          validate: usernameValidator
+        },
+        {
+          name: "credentialsRef",
+          message: "Credentials Name",
+          type: "list",
+          choices: [{ name: "None", value: undefined }, ...credentialsList]
+        },
+        {
+          name: "privacy",
+          message: "Privacy",
+          type: "list",
+          choices: [
+            {
+              name: "None",
+              value: CT.Privacy.NONE
+            },
+            {
+              name: "Private",
+              value: CT.Privacy.PRIVATE
+            }
+          ],
+          default: CT.Privacy.NONE
+        },
+        {
+          name: "enabled",
+          message: "Enabled",
+          type: "confirm",
+          default: true
+        },
+        {
+          name: "confirm",
+          message: "Ready?",
+          type: "confirm"
+        }
+      ])
 
-    // Re-write privacy to enum
-    answers.privacy =
-      CT.Privacy[answers.privacy.toUpperCase() as keyof typeof CT.Privacy]
+      // Re-write privacy to enum
+      answers.privacy =
+        CT.Privacy[answers.privacy.toUpperCase() as keyof typeof CT.Privacy]
 
-    if (!answers.confirm) {
-      this.warn("Aborted")
-    } else {
-      try {
+      if (!answers.confirm) {
+        this.warn("Aborted")
+      } else {
         CliUx.ux.action.start(`Creating Agent ${answers.name}`)
         const api = new SDK.Agents({ endpoint, insecure })
         const agent = await api.createAgent(answers)
 
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(agent.ref)
-      } catch (e) {
-        CliUx.ux.action.stop()
-        if (e.code === grpc.status.ALREADY_EXISTS) {
-          throw new CLIError("This Agent already exist")
-        } else {
-          throw new CLIError(e.message)
-        }
+      }
+    } catch (e) {
+      CliUx.ux.action.stop()
+      if (e.code === grpc.status.ALREADY_EXISTS) {
+        throw new CLIError("This Agent already exist")
+      } else {
+        throw new CLIError(e.message)
       }
     }
   }

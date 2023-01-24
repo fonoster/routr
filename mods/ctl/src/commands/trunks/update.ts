@@ -58,166 +58,166 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
     const { endpoint, insecure } = flags
     const api = new SDK.Trunks({ endpoint, insecure })
 
-    this.log("This utility will help you update an existing Trunk.")
-    this.log("Press ^C at any time to quit.")
-    this.warn("Adding Outbound SIP URIs will delete existing ones.")
+    try {
+      const trunkFromDB = await api.getTrunk(args.ref)
 
-    const trunkFromDB = await api.getTrunk(args.ref)
+      // TODO: Add support for pagination
+      const acls = await new SDK.ACL({ endpoint, insecure }).listACLs({
+        pageSize: 25,
+        pageToken: ""
+      })
 
-    // TODO: Add support for pagination
-    const acls = await new SDK.ACL({ endpoint, insecure }).listACLs({
-      pageSize: 25,
-      pageToken: ""
-    })
+      const aclChoices = acls.items.map((acl) => {
+        return {
+          name: acl.name,
+          value: acl.ref
+        }
+      })
 
-    const aclChoices = acls.items.map((acl) => {
-      return {
-        name: acl.name,
-        value: acl.ref
+      const credentials = await new SDK.Credentials({
+        endpoint,
+        insecure
+      }).listCredentials({
+        pageSize: 25,
+        pageToken: ""
+      })
+
+      const credentialsChoice = credentials.items.map((acl) => {
+        return {
+          name: acl.name,
+          value: acl.ref
+        }
+      })
+
+      this.log("This utility will help you update an existing Trunk.")
+      this.log("Press ^C at any time to quit.")
+      this.warn("Adding Outbound SIP URIs will delete existing ones.")
+
+      const group1 = await inquirer.prompt([
+        {
+          name: "name",
+          message: "Friendly Name",
+          type: "input",
+          default: trunkFromDB.name,
+          validate: nameValidator
+        },
+        {
+          name: "inboundUri",
+          message: "Inbound SIP URI",
+          type: "input",
+          validate: inboundUriValidator,
+          default: trunkFromDB.inboundUri
+        },
+        {
+          name: "accessControlListRef",
+          message: "IP Access Control List",
+          type: "list",
+          default: trunkFromDB.accessControlListRef,
+          choices: [{ name: "None", value: undefined }, ...aclChoices]
+        },
+        {
+          name: "inboundCredentialsRef",
+          message: "Inbound Credentials",
+          type: "list",
+          default: trunkFromDB.inboundCredentialsRef,
+          choices: [{ name: "None", value: undefined }, ...credentialsChoice]
+        },
+        {
+          name: "outboundCredentialsRef",
+          message: "Outbound Credentials",
+          type: "list",
+          default: trunkFromDB.outboundCredentialsRef,
+          choices: [{ name: "None", value: undefined }, ...credentialsChoice]
+        },
+        {
+          name: "addOutboundUri",
+          message: "Add an Outbound SIP URI?",
+          type: "confirm",
+          default: false
+        }
+      ])
+
+      const group2Questions = [
+        {
+          name: "host",
+          message: "Host",
+          type: "input",
+          validate: hostValidator
+        },
+        {
+          name: "port",
+          message: "Post",
+          type: "input",
+          default: "5060",
+          validate: portValidator
+        },
+        {
+          name: "transport",
+          message: "Transport",
+          type: "list",
+          choices: [CT.Transport.UDP, CT.Transport.TCP, CT.Transport.TLS],
+          default: CT.Transport.UDP
+        },
+        {
+          name: "user",
+          message: "User Part",
+          type: "input",
+          validate: optionalUsernameValidator
+        },
+        {
+          name: "priority",
+          message: "Priority",
+          type: "input",
+          default: "10",
+          validate: priorityValidator
+        },
+        {
+          name: "weight",
+          message: "Weight",
+          type: "input",
+          default: "10",
+          validate: weightValidator
+        },
+        {
+          name: "addOutboundUri",
+          message: "Add another Outbound SIP URI?",
+          type: "confirm",
+          default: false
+        }
+      ]
+
+      let addOutboundUri = group1.addOutboundUri
+      const uris: CC.TrunkURI[] = []
+
+      // eslint-disable-next-line no-loops/no-loops
+      while (addOutboundUri) {
+        const group2 = await inquirer.prompt(group2Questions)
+        if (group2.numberRef) {
+          uris.push({
+            host: group2.host,
+            port: group2.port,
+            transport: group2.transport,
+            user: group2.user,
+            priority: group2.priority,
+            weight: group2.weight,
+            enabled: true
+          })
+        }
+
+        addOutboundUri = group2.addOutboundUri
       }
-    })
 
-    const credentials = await new SDK.Credentials({
-      endpoint,
-      insecure
-    }).listCredentials({
-      pageSize: 25,
-      pageToken: ""
-    })
+      const group3 = await inquirer.prompt([
+        {
+          name: "confirm",
+          message: "Ready?",
+          type: "confirm"
+        }
+      ])
 
-    const credentialsChoice = credentials.items.map((acl) => {
-      return {
-        name: acl.name,
-        value: acl.ref
-      }
-    })
-
-    const group1 = await inquirer.prompt([
-      {
-        name: "name",
-        message: "Friendly Name",
-        type: "input",
-        default: trunkFromDB.name,
-        validate: nameValidator
-      },
-      {
-        name: "inboundUri",
-        message: "Inbound SIP URI",
-        type: "input",
-        validate: inboundUriValidator,
-        default: trunkFromDB.inboundUri
-      },
-      {
-        name: "accessControlListRef",
-        message: "IP Access Control List",
-        type: "list",
-        default: trunkFromDB.accessControlListRef,
-        choices: [{ name: "None", value: undefined }, ...aclChoices]
-      },
-      {
-        name: "inboundCredentialsRef",
-        message: "Inbound Credentials",
-        type: "list",
-        default: trunkFromDB.inboundCredentialsRef,
-        choices: [{ name: "None", value: undefined }, ...credentialsChoice]
-      },
-      {
-        name: "outboundCredentialsRef",
-        message: "Outbound Credentials",
-        type: "list",
-        default: trunkFromDB.outboundCredentialsRef,
-        choices: [{ name: "None", value: undefined }, ...credentialsChoice]
-      },
-      {
-        name: "addOutboundUri",
-        message: "Add an Outbound SIP URI?",
-        type: "confirm",
-        default: false
-      }
-    ])
-
-    const group2Questions = [
-      {
-        name: "host",
-        message: "Host",
-        type: "input",
-        validate: hostValidator
-      },
-      {
-        name: "port",
-        message: "Post",
-        type: "input",
-        default: "5060",
-        validate: portValidator
-      },
-      {
-        name: "transport",
-        message: "Transport",
-        type: "list",
-        choices: [CT.Transport.UDP, CT.Transport.TCP, CT.Transport.TLS],
-        default: CT.Transport.UDP
-      },
-      {
-        name: "user",
-        message: "User Part",
-        type: "input",
-        validate: optionalUsernameValidator
-      },
-      {
-        name: "priority",
-        message: "Priority",
-        type: "input",
-        default: "10",
-        validate: priorityValidator
-      },
-      {
-        name: "weight",
-        message: "Weight",
-        type: "input",
-        default: "10",
-        validate: weightValidator
-      },
-      {
-        name: "addOutboundUri",
-        message: "Add another Outbound SIP URI?",
-        type: "confirm",
-        default: false
-      }
-    ]
-
-    let addOutboundUri = group1.addOutboundUri
-    const uris: CC.TrunkURI[] = []
-
-    // eslint-disable-next-line no-loops/no-loops
-    while (addOutboundUri) {
-      const group2 = await inquirer.prompt(group2Questions)
-      if (group2.numberRef) {
-        uris.push({
-          host: group2.host,
-          port: group2.port,
-          transport: group2.transport,
-          user: group2.user,
-          priority: group2.priority,
-          weight: group2.weight,
-          enabled: true
-        })
-      }
-
-      addOutboundUri = group2.addOutboundUri
-    }
-
-    const group3 = await inquirer.prompt([
-      {
-        name: "confirm",
-        message: "Ready?",
-        type: "confirm"
-      }
-    ])
-
-    if (!group3.confirm) {
-      this.warn("Aborted")
-    } else {
-      try {
+      if (!group3.confirm) {
+        this.warn("Aborted")
+      } else {
         CliUx.ux.action.start(`Updating Trunk ${group1.name}`)
         const trunk = await api.updateTrunk({
           ref: trunkFromDB.ref,
@@ -226,10 +226,10 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
         })
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(trunk.ref)
-      } catch (e) {
-        CliUx.ux.action.stop()
-        throw new CLIError(e.message)
       }
+    } catch (e) {
+      CliUx.ux.action.stop()
+      throw new CLIError(e.message)
     }
   }
 }

@@ -33,9 +33,13 @@ export default abstract class DeleteCommand extends BaseCommand {
     }
 
     CliUx.ux.action.start(`Deleting item ${args.ref}`)
-    await API[funcName](args.ref)
-    await CliUx.ux.wait(1000)
-    CliUx.ux.action.stop("Done")
+    try {
+      await API[funcName](args.ref)
+      await CliUx.ux.wait(1000)
+      CliUx.ux.action.stop("Done")
+    } catch (e) {
+      throw new CLIError(e.message)
+    }
   }
 
   async catch(err: Error) {

@@ -42,57 +42,57 @@ Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
     const { flags } = await this.parse(CreateCommand)
     const { endpoint, insecure } = flags
 
-    this.log("This utility will help you create a new ACL")
-    this.log("Press ^C at any time to quit.")
+    try {
+      this.log("This utility will help you create a new ACL")
+      this.log("Press ^C at any time to quit.")
 
-    const answers = await inquirer.prompt([
-      {
-        name: "name",
-        message: "Friendly Name",
-        type: "input",
-        validate: nameValidator
-      },
-      {
-        name: "deny",
-        message: "Deny CIDR Networks",
-        type: "input",
-        default: "0.0.0.0/0",
-        validate: aclRuleValidator
-      },
-      {
-        name: "allow",
-        message: "Allow CIDR Networks",
-        type: "input",
-        validate: aclRuleValidator
-      },
-      {
-        name: "confirm",
-        message: "Ready?",
-        type: "confirm"
-      }
-    ])
+      const answers = await inquirer.prompt([
+        {
+          name: "name",
+          message: "Friendly Name",
+          type: "input",
+          validate: nameValidator
+        },
+        {
+          name: "deny",
+          message: "Deny CIDR Networks",
+          type: "input",
+          default: "0.0.0.0/0",
+          validate: aclRuleValidator
+        },
+        {
+          name: "allow",
+          message: "Allow CIDR Networks",
+          type: "input",
+          validate: aclRuleValidator
+        },
+        {
+          name: "confirm",
+          message: "Ready?",
+          type: "confirm"
+        }
+      ])
 
-    // Re-assign allow and deny rules as arrays
-    answers.allow = stringToACL(answers.allow)
-    answers.deny = stringToACL(answers.deny)
+      // Re-assign allow and deny rules as arrays
+      answers.allow = stringToACL(answers.allow)
+      answers.deny = stringToACL(answers.deny)
 
-    if (!answers.confirm) {
-      this.warn("Aborted")
-    } else {
-      try {
+      if (!answers.confirm) {
+        this.warn("Aborted")
+      } else {
         CliUx.ux.action.start(`Creating ACL ${answers.name}`)
         const api = new SDK.ACL({ endpoint, insecure })
         const acl = await api.createACL(answers)
 
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(acl.ref)
-      } catch (e) {
-        CliUx.ux.action.stop()
-        if (e.code === grpc.status.ALREADY_EXISTS) {
-          throw new CLIError("This ACL already exist")
-        } else {
-          throw new CLIError(e.message)
-        }
+      }
+    } catch (e) {
+      CliUx.ux.action.stop()
+      if (e.code === grpc.status.ALREADY_EXISTS) {
+        throw new CLIError("This ACL already exist")
+      } else {
+        throw new CLIError(e.message)
       }
     }
   }

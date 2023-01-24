@@ -48,115 +48,117 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
     const { endpoint, insecure } = flags
-    const api = new SDK.Domains({ endpoint, insecure })
 
-    this.log("This utility will help you update an existing Domain.")
-    this.log("Press ^C at any time to quit.")
-    this.warn("Adding Egress Policies will delete existing ones.")
+    try {
+      const api = new SDK.Domains({ endpoint, insecure })
+      const domainFromDB = await api.getDomain(args.ref)
 
-    const domainFromDB = await api.getDomain(args.ref)
+      // TODO: Fix hardcoded pageSize
+      const acls = await new SDK.ACL({ endpoint, insecure }).listACLs({
+        pageSize: 25,
+        pageToken: ""
+      })
 
-    // TODO: Fix hardcoded pageSize
-    const acls = await new SDK.ACL({ endpoint, insecure }).listACLs({
-      pageSize: 25,
-      pageToken: ""
-    })
+      const aclChoices = acls.items.map((acl: CC.AccessControlList) => {
+        return {
+          name: acl.name,
+          value: acl.ref
+        }
+      })
 
-    const aclChoices = acls.items.map((acl: CC.AccessControlList) => {
-      return {
-        name: acl.name,
-        value: acl.ref
+      // TODO: Fix hardcoded pageSize
+      const numbers = await new SDK.Numbers({ endpoint, insecure }).listNumbers(
+        {
+          pageSize: 25,
+          pageToken: ""
+        }
+      )
+
+      const numberChoices = numbers.items.map((number: CC.INumber) => {
+        return {
+          name: number.name,
+          value: number.ref
+        }
+      })
+
+      this.log("This utility will help you update an existing Domain.")
+      this.log("Press ^C at any time to quit.")
+      this.warn("Adding Egress Policies will delete existing ones.")
+
+      const group1 = await inquirer.prompt([
+        {
+          name: "name",
+          message: "Friendly Name",
+          type: "input",
+          default: domainFromDB.name,
+          validate: nameValidator
+        },
+        {
+          name: "accessControlListRef",
+          message: "IP Access Control List",
+          type: "list",
+          choices: [{ name: "None", value: undefined }, ...aclChoices],
+          default: domainFromDB.accessControlListRef
+        },
+        {
+          name: "addEgressRule",
+          message: "Add an Egress Rule?",
+          type: "confirm",
+          default: false,
+          when: aclChoices.length > 0
+        }
+      ])
+
+      const group2Questions = [
+        {
+          name: "numberRef",
+          message: "Number",
+          type: "list",
+          choices: [{ name: "None", value: undefined }, ...numberChoices]
+        },
+        {
+          name: "rule",
+          message: "Rule",
+          type: "input",
+          default: ".*",
+          when: (answers: { numberRef: string }) => answers.numberRef
+        },
+        {
+          name: "addEgressRule",
+          message: "Add another Egress Rule?",
+          type: "confirm",
+          default: false,
+          when: (answers: { numberRef: string }) => answers.numberRef
+        }
+      ]
+
+      let addEgressRule = group1.addEgressRule
+      const egressPolicies: CC.EgressPolicy[] = []
+
+      // eslint-disable-next-line no-loops/no-loops
+      while (addEgressRule) {
+        const group2 = await inquirer.prompt(group2Questions)
+        if (group2.numberRef) {
+          egressPolicies.push({
+            numberRef: group2.numberRef,
+            rule: group2.rule
+          })
+        }
+
+        addEgressRule = group2.addEgressRule
       }
-    })
 
-    // TODO: Fix hardcoded pageSize
-    const numbers = await new SDK.Numbers({ endpoint, insecure }).listNumbers({
-      pageSize: 25,
-      pageToken: ""
-    })
+      const group3 = await inquirer.prompt([
+        {
+          name: "confirm",
+          message: "Ready?",
+          type: "confirm"
+        }
+      ])
 
-    const numberChoices = numbers.items.map((number: CC.INumber) => {
-      return {
-        name: number.name,
-        value: number.ref
-      }
-    })
-
-    const group1 = await inquirer.prompt([
-      {
-        name: "name",
-        message: "Friendly Name",
-        type: "input",
-        default: domainFromDB.name,
-        validate: nameValidator
-      },
-      {
-        name: "accessControlListRef",
-        message: "IP Access Control List",
-        type: "list",
-        choices: [{ name: "None", value: undefined }, ...aclChoices],
-        default: domainFromDB.accessControlListRef
-      },
-      {
-        name: "addEgressRule",
-        message: "Add an Egress Rule?",
-        type: "confirm",
-        default: false,
-        when: aclChoices.length > 0
-      }
-    ])
-
-    const group2Questions = [
-      {
-        name: "numberRef",
-        message: "Number",
-        type: "list",
-        choices: [{ name: "None", value: undefined }, ...numberChoices]
-      },
-      {
-        name: "rule",
-        message: "Rule",
-        type: "input",
-        default: ".*",
-        when: (answers: { numberRef: string }) => answers.numberRef
-      },
-      {
-        name: "addEgressRule",
-        message: "Add another Egress Rule?",
-        type: "confirm",
-        default: false,
-        when: (answers: { numberRef: string }) => answers.numberRef
-      }
-    ]
-
-    let addEgressRule = group1.addEgressRule
-    const egressPolicies: CC.EgressPolicy[] = []
-
-    // eslint-disable-next-line no-loops/no-loops
-    while (addEgressRule) {
-      const group2 = await inquirer.prompt(group2Questions)
-      if (group2.numberRef) {
-        egressPolicies.push({
-          numberRef: group2.numberRef,
-          rule: group2.rule
-        })
-      }
-
-      addEgressRule = group2.addEgressRule
-    }
-
-    const group3 = await inquirer.prompt([
-      {
-        name: "confirm",
-        message: "Ready?",
-        type: "confirm"
-      }
-    ])
-
-    if (!group3.confirm) {
-      this.warn("Aborted")
-    } else {
-      try {
+      if (!group3.confirm) {
+        this.warn("Aborted")
+      } else {
         CliUx.ux.action.start(`Updating Domain ${group1.name}`)
         const domain = await api.updateDomain({
           ref: domainFromDB.ref,
@@ -165,10 +167,10 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
         })
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(domain.ref)
-      } catch (e) {
-        CliUx.ux.action.stop()
-        throw new CLIError(e.message)
       }
+    } catch (e) {
+      CliUx.ux.action.stop()
+      throw new CLIError(e.message)
     }
   }
 }

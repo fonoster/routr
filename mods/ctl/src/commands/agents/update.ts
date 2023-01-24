@@ -49,115 +49,117 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
     const { endpoint, insecure } = flags
-    const api = new SDK.Agents({ endpoint, insecure })
 
-    this.log("This utility will help you update an existing Agent.")
-    this.log("Press ^C at any time to quit.")
+    try {
+      const api = new SDK.Agents({ endpoint, insecure })
+      const agentFromDB = await api.getAgent(args.ref)
 
-    const agentFromDB = await api.getAgent(args.ref)
+      // TODO: Fix hardcoded pageSize
+      const domains = await new SDK.Domains({ endpoint, insecure }).listDomains(
+        {
+          pageSize: 25,
+          pageToken: ""
+        }
+      )
 
-    // TODO: Fix hardcoded pageSize
-    const domains = await new SDK.Domains({ endpoint, insecure }).listDomains({
-      pageSize: 25,
-      pageToken: ""
-    })
+      // TODO: Fix hardcoded pageSize
+      const credentials = await new SDK.Credentials({
+        endpoint,
+        insecure
+      }).listCredentials({
+        pageSize: 25,
+        pageToken: ""
+      })
 
-    // TODO: Fix hardcoded pageSize
-    const credentials = await new SDK.Credentials({
-      endpoint,
-      insecure
-    }).listCredentials({
-      pageSize: 25,
-      pageToken: ""
-    })
+      const domainsList = domains.items?.map((domain: CC.Domain) => {
+        return { name: domain.domainUri, value: domain.ref }
+      })
 
-    const domainsList = domains.items?.map((domain: CC.Domain) => {
-      return { name: domain.domainUri, value: domain.ref }
-    })
+      const credentialsList = credentials.items?.map(
+        (credential: CC.Credentials) => {
+          return { name: credential.name, value: credential.ref }
+        }
+      )
 
-    const credentialsList = credentials.items?.map(
-      (credential: CC.Credentials) => {
-        return { name: credential.name, value: credential.ref }
-      }
-    )
+      const searcher = new FuzzySearch(
+        domainsList,
+        ["name", "value", "description"],
+        {
+          caseSensitive: false
+        }
+      )
 
-    const searcher = new FuzzySearch(
-      domainsList,
-      ["name", "value", "description"],
-      {
-        caseSensitive: false
-      }
-    )
+      this.log("This utility will help you update an existing Agent.")
+      this.log("Press ^C at any time to quit.")
 
-    const answers = await inquirer.prompt([
-      {
-        name: "name",
-        message: "Friendly Name",
-        type: "input",
-        default: agentFromDB.name,
-        validate: nameValidator
-      },
-      {
-        type: "autocomplete",
-        name: "domainRef",
-        message: "Select a Domain",
-        source: (_: unknown, input: string) => searcher.search(input),
-        when: () => domains.items.length > 0
-      },
-      {
-        name: "credentialsRef",
-        message: "Credentials Name",
-        type: "list",
-        choices: [{ name: "None", value: undefined }, ...credentialsList],
-        default: agentFromDB.credentialsRef
-      },
-      {
-        name: "privacy",
-        message: "Privacy",
-        type: "list",
-        choices: [
-          {
-            name: "None",
-            value: CT.Privacy.NONE
-          },
-          {
-            name: "Private",
-            value: CT.Privacy.PRIVATE
-          }
-        ],
-        default: agentFromDB.privacy
-      },
-      {
-        name: "enabled",
-        message: "Enabled",
-        type: "confirm",
-        default: agentFromDB.enabled
-      },
-      {
-        name: "confirm",
-        message: "Ready?",
-        type: "confirm"
-      }
-    ])
+      const answers = await inquirer.prompt([
+        {
+          name: "name",
+          message: "Friendly Name",
+          type: "input",
+          default: agentFromDB.name,
+          validate: nameValidator
+        },
+        {
+          type: "autocomplete",
+          name: "domainRef",
+          message: "Select a Domain",
+          source: (_: unknown, input: string) => searcher.search(input),
+          when: () => domains.items.length > 0
+        },
+        {
+          name: "credentialsRef",
+          message: "Credentials Name",
+          type: "list",
+          choices: [{ name: "None", value: undefined }, ...credentialsList],
+          default: agentFromDB.credentialsRef
+        },
+        {
+          name: "privacy",
+          message: "Privacy",
+          type: "list",
+          choices: [
+            {
+              name: "None",
+              value: CT.Privacy.NONE
+            },
+            {
+              name: "Private",
+              value: CT.Privacy.PRIVATE
+            }
+          ],
+          default: agentFromDB.privacy
+        },
+        {
+          name: "enabled",
+          message: "Enabled",
+          type: "confirm",
+          default: agentFromDB.enabled
+        },
+        {
+          name: "confirm",
+          message: "Ready?",
+          type: "confirm"
+        }
+      ])
 
-    // Re-write privacy to enum
-    answers.privacy =
-      CT.Privacy[answers.privacy.toUpperCase() as keyof typeof CT.Privacy]
+      // Re-write privacy to enum
+      answers.privacy =
+        CT.Privacy[answers.privacy.toUpperCase() as keyof typeof CT.Privacy]
 
-    answers.ref = args.ref
+      answers.ref = args.ref
 
-    if (!answers.confirm) {
-      this.warn("Aborted")
-    } else {
-      try {
+      if (!answers.confirm) {
+        this.warn("Aborted")
+      } else {
         CliUx.ux.action.start(`Updating Agent ${answers.name}`)
         const agent = await api.updateAgent(answers)
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(agent.ref)
-      } catch (e) {
-        CliUx.ux.action.stop()
-        throw new CLIError(e.message)
       }
+    } catch (e) {
+      CliUx.ux.action.stop()
+      throw new CLIError(e.message)
     }
   }
 }

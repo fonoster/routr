@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import * as grpc from "@grpc/grpc-js"
+import { PrismaClientInitializationError } from "@prisma/client/runtime"
 import { CommonTypes as CT } from "@routr/common"
 import { BadRequestError } from "@routr/common/src/errors"
 import { PrismaOperation } from "../types"
@@ -35,7 +37,16 @@ export function del(operation: PrismaOperation) {
         }
       })
     } catch (e) {
-      // Ignore
+      if (e instanceof PrismaClientInitializationError) {
+        callback(
+          {
+            code: grpc.status.UNAVAILABLE,
+            message: "database is not available"
+          },
+          null
+        )
+        return
+      }
     }
 
     callback(null, {})

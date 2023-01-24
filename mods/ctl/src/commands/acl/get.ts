@@ -17,13 +17,13 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import * as grpc from "@grpc/grpc-js"
 import { CliUx, Command, Flags } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { showPaginatedList, ShowTable } from "../../utils"
 import { CommonConnect as CC } from "@routr/common"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommandError } from "@oclif/core/lib/interfaces"
-import * as grpc from "@grpc/grpc-js"
 import { JsonObject } from "pb-util/build"
 
 export default class GetCommand extends BaseCommand {

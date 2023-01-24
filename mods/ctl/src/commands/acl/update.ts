@@ -46,58 +46,58 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
     const { endpoint, insecure } = flags
     const api = new SDK.ACL({ endpoint, insecure })
 
-    this.log("This utility will help you update an existing ACL.")
-    this.log("Press ^C at any time to quit.")
+    try {
+      const aclFromDB = await api.getACL(args.ref)
 
-    const aclFromDB = await api.getACL(args.ref)
+      this.log("This utility will help you update an existing ACL.")
+      this.log("Press ^C at any time to quit.")
 
-    const answers = await inquirer.prompt([
-      {
-        name: "name",
-        message: "Friendly Name",
-        type: "input",
-        default: aclFromDB.name,
-        validate: nameValidator
-      },
-      {
-        name: "deny",
-        message: "Deny CIDR Networks",
-        type: "input",
-        default: aclFromDB.deny.join(","),
-        validate: aclRuleValidator
-      },
-      {
-        name: "allow",
-        message: "Allow CIDR Networks",
-        type: "input",
-        default: aclFromDB.allow.join(","),
-        validate: aclRuleValidator
-      },
-      {
-        name: "confirm",
-        message: "Ready?",
-        type: "confirm"
-      }
-    ])
+      const answers = await inquirer.prompt([
+        {
+          name: "name",
+          message: "Friendly Name",
+          type: "input",
+          default: aclFromDB.name,
+          validate: nameValidator
+        },
+        {
+          name: "deny",
+          message: "Deny CIDR Networks",
+          type: "input",
+          default: aclFromDB.deny.join(","),
+          validate: aclRuleValidator
+        },
+        {
+          name: "allow",
+          message: "Allow CIDR Networks",
+          type: "input",
+          default: aclFromDB.allow.join(","),
+          validate: aclRuleValidator
+        },
+        {
+          name: "confirm",
+          message: "Ready?",
+          type: "confirm"
+        }
+      ])
 
-    answers.ref = args.ref
+      answers.ref = args.ref
 
-    // Re-assign allow and deny rules as arrays
-    answers.allow = stringToACL(answers.allow)
-    answers.deny = stringToACL(answers.deny)
+      // Re-assign allow and deny rules as arrays
+      answers.allow = stringToACL(answers.allow)
+      answers.deny = stringToACL(answers.deny)
 
-    if (!answers.confirm) {
-      this.warn("Aborted")
-    } else {
-      try {
+      if (!answers.confirm) {
+        this.warn("Aborted")
+      } else {
         CliUx.ux.action.start(`Updating ACL ${answers.name}`)
         const acl = await api.updateACL(answers)
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(acl.ref)
-      } catch (e) {
-        CliUx.ux.action.stop()
-        throw new CLIError(e.message)
       }
+    } catch (e) {
+      CliUx.ux.action.stop()
+      throw new CLIError(e.message)
     }
   }
 }

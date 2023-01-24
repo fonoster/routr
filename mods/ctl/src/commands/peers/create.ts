@@ -47,103 +47,106 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
     const { flags } = await this.parse(CreateCommand)
     const { endpoint, insecure } = flags
 
-    this.log("This utility will help you create a new Peer.")
-    this.log("Press ^C at any time to quit.")
+    try {
+      // TODO: Fix hardcoded pageSize
+      const acls = await new SDK.ACL({ endpoint, insecure }).listACLs({
+        pageSize: 25,
+        pageToken: ""
+      })
 
-    // TODO: Fix hardcoded pageSize
-    const acls = await new SDK.ACL({ endpoint, insecure }).listACLs({
-      pageSize: 25,
-      pageToken: ""
-    })
+      // TODO: Fix hardcoded pageSize
+      const credentials = await new SDK.Credentials({
+        endpoint,
+        insecure
+      }).listCredentials({
+        pageSize: 25,
+        pageToken: ""
+      })
 
-    // TODO: Fix hardcoded pageSize
-    const credentials = await new SDK.Credentials({
-      endpoint,
-      insecure
-    }).listCredentials({
-      pageSize: 25,
-      pageToken: ""
-    })
+      const aclList =
+        acls.items?.map((acl: CC.AccessControlList) => {
+          return { name: acl.name, value: acl.ref }
+        }) || []
 
-    const aclList =
-      acls.items?.map((acl: CC.AccessControlList) => {
-        return { name: acl.name, value: acl.ref }
-      }) || []
+      const credentialsList =
+        credentials.items?.map((credential: CC.Credentials) => {
+          return { name: credential.name, value: credential.ref }
+        }) || []
 
-    const credentialsList =
-      credentials.items?.map((credential: CC.Credentials) => {
-        return { name: credential.name, value: credential.ref }
-      }) || []
+      this.log("This utility will help you create a new Peer.")
+      this.log("Press ^C at any time to quit.")
 
-    const answers = await inquirer.prompt([
-      {
-        name: "name",
-        message: "Friendly Name",
-        type: "input",
-        validate: nameValidator
-      },
-      {
-        name: "username",
-        message: "Username",
-        type: "input",
-        validate: usernameValidator
-      },
-      {
-        name: "aor",
-        message: "Adress of Record",
-        type: "input",
-        validate: aorValidator
-      },
-      {
-        name: "contactAddr",
-        message: "Contact Address",
-        type: "input",
-        validate: contactAddrValidator
-      },
-      {
-        name: "accessControlListRef",
-        message: "IP Access Control List",
-        choices: [{ name: "None", value: undefined }, ...aclList],
-        type: "list"
-      },
-      {
-        name: "credentialsRef",
-        message: "Credentials Name",
-        choices: [{ name: "None", value: undefined }, ...credentialsList],
-        type: "list"
-      },
-      {
-        name: "withSessionAffinity",
-        message: "Enable Session Affinity?",
-        type: "confirm",
-        default: false,
-        when: (answers) => answers.aor.startsWith("backend:")
-      },
-      {
-        name: "balancingAlgorithm",
-        message: "Balancing Algorithm",
-        choices: [
-          { name: "Round Robin", value: CT.LoadBalancingAlgorithm.ROUND_ROBIN },
-          {
-            name: "Least Sessions",
-            value: CT.LoadBalancingAlgorithm.LEAST_SESSIONS
-          }
-        ],
-        type: "list",
-        default: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
-        when: (answers) => answers.aor.startsWith("backend:")
-      },
-      {
-        name: "confirm",
-        message: "Ready?",
-        type: "confirm"
-      }
-    ])
+      const answers = await inquirer.prompt([
+        {
+          name: "name",
+          message: "Friendly Name",
+          type: "input",
+          validate: nameValidator
+        },
+        {
+          name: "username",
+          message: "Username",
+          type: "input",
+          validate: usernameValidator
+        },
+        {
+          name: "aor",
+          message: "Adress of Record",
+          type: "input",
+          validate: aorValidator
+        },
+        {
+          name: "contactAddr",
+          message: "Contact Address",
+          type: "input",
+          validate: contactAddrValidator
+        },
+        {
+          name: "accessControlListRef",
+          message: "IP Access Control List",
+          choices: [{ name: "None", value: undefined }, ...aclList],
+          type: "list"
+        },
+        {
+          name: "credentialsRef",
+          message: "Credentials Name",
+          choices: [{ name: "None", value: undefined }, ...credentialsList],
+          type: "list"
+        },
+        {
+          name: "withSessionAffinity",
+          message: "Enable Session Affinity?",
+          type: "confirm",
+          default: false,
+          when: (answers) => answers.aor.startsWith("backend:")
+        },
+        {
+          name: "balancingAlgorithm",
+          message: "Balancing Algorithm",
+          choices: [
+            {
+              name: "Round Robin",
+              value: CT.LoadBalancingAlgorithm.ROUND_ROBIN
+            },
+            {
+              name: "Least Sessions",
+              value: CT.LoadBalancingAlgorithm.LEAST_SESSIONS
+            }
+          ],
+          type: "list",
+          default: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
+          when: (answers) => answers.aor.startsWith("backend:")
+        },
+        {
+          name: "confirm",
+          message: "Ready?",
+          type: "confirm"
+        }
+      ])
 
-    if (!answers.confirm) {
-      this.warn("Aborted")
-    } else {
-      try {
+      if (!answers.confirm) {
+        this.warn("Aborted")
+      } else {
         CliUx.ux.action.start(`Creating Peer ${answers.name}`)
         const api = new SDK.Peers({ endpoint, insecure })
 
@@ -151,13 +154,13 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(peer.ref)
-      } catch (e) {
-        CliUx.ux.action.stop()
-        if (e.code === grpc.status.ALREADY_EXISTS) {
-          throw new CLIError("This Peer already exist")
-        } else {
-          throw new CLIError(e.message)
-        }
+      }
+    } catch (e) {
+      CliUx.ux.action.stop()
+      if (e.code === grpc.status.ALREADY_EXISTS) {
+        throw new CLIError("This Peer already exist")
+      } else {
+        throw new CLIError(e.message)
       }
     }
   }

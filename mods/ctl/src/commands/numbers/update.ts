@@ -54,90 +54,90 @@ Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
     const { endpoint, insecure } = flags
-    const api = new SDK.Numbers({ endpoint, insecure })
 
-    this.log("This utility will help you update an existing Number.")
-    this.log("Press ^C at any time to quit.")
+    try {
+      const api = new SDK.Numbers({ endpoint, insecure })
+      const numberFromDB = await api.getNumber(args.ref)
 
-    const numberFromDB = await api.getNumber(args.ref)
+      const trunks = await new SDK.Trunks({ endpoint, insecure }).listTrunks({
+        pageSize: 25,
+        pageToken: ""
+      })
 
-    const trunks = await new SDK.Trunks({ endpoint, insecure }).listTrunks({
-      pageSize: 25,
-      pageToken: ""
-    })
+      const trunksChoices = trunks.items.map((trunk: CC.Trunk) => {
+        return {
+          name: trunk.name,
+          value: trunk.ref
+        }
+      })
 
-    const trunksChoices = trunks.items.map((trunk: CC.Trunk) => {
-      return {
-        name: trunk.name,
-        value: trunk.ref
-      }
-    })
+      this.log("This utility will help you update an existing Number.")
+      this.log("Press ^C at any time to quit.")
 
-    const answers = await inquirer.prompt([
-      {
-        name: "name",
-        message: "Friendly Name",
-        type: "input",
-        default: numberFromDB.name,
-        validate: nameValidator
-      },
-      {
-        name: "aorLink",
-        message: "AOR Link",
-        type: "input",
-        default: numberFromDB.aorLink || undefined,
-        validate: aorLinkValidator
-      },
-      {
-        name: "trunkRef",
-        message: "Trunk",
-        type: "list",
-        choices: [{ name: "None", value: undefined }, ...trunksChoices],
-        default: numberFromDB.trunkRef
-      },
-      {
-        name: "sessionAffinityHeader",
-        message: "Session Affinity Header",
-        type: "input",
-        default: numberFromDB.sessionAffinityHeader || undefined,
-        validate: sessionAffinityHeaderValidator
-      },
-      {
-        name: "extraHeaders",
-        message: "Extra Headers",
-        type: "input",
-        default:
-          numberFromDB.extraHeaders
-            ?.map((header: { name: string; value: string }) => {
-              return `${header.name}:${header.value}`
-            })
-            .join(",") || undefined,
-        validate: headersValidator
-      },
-      {
-        name: "confirm",
-        message: "Ready?",
-        type: "confirm"
-      }
-    ])
+      const answers = await inquirer.prompt([
+        {
+          name: "name",
+          message: "Friendly Name",
+          type: "input",
+          default: numberFromDB.name,
+          validate: nameValidator
+        },
+        {
+          name: "aorLink",
+          message: "AOR Link",
+          type: "input",
+          default: numberFromDB.aorLink || undefined,
+          validate: aorLinkValidator
+        },
+        {
+          name: "trunkRef",
+          message: "Trunk",
+          type: "list",
+          choices: [{ name: "None", value: undefined }, ...trunksChoices],
+          default: numberFromDB.trunkRef
+        },
+        {
+          name: "sessionAffinityHeader",
+          message: "Session Affinity Header",
+          type: "input",
+          default: numberFromDB.sessionAffinityHeader || undefined,
+          validate: sessionAffinityHeaderValidator
+        },
+        {
+          name: "extraHeaders",
+          message: "Extra Headers",
+          type: "input",
+          default:
+            numberFromDB.extraHeaders
+              ?.map((header: { name: string; value: string }) => {
+                return `${header.name}:${header.value}`
+              })
+              .join(",") || undefined,
+          validate: headersValidator
+        },
+        {
+          name: "confirm",
+          message: "Ready?",
+          type: "confirm"
+        }
+      ])
 
-    answers.ref = args.ref
+      answers.ref = args.ref
 
-    // Re-write extraHeaders
-    answers.extraHeaders = stringToHeaders(answers.extraHeaders)
+      // Re-write extraHeaders
+      answers.extraHeaders = stringToHeaders(answers.extraHeaders)
 
-    if (!answers.confirm) {
-      this.warn("Aborted")
-    } else {
-      try {
+      if (!answers.confirm) {
+        this.warn("Aborted")
+      } else {
         CliUx.ux.action.start(`Updating Number ${answers.name}`)
         const number = await api.updateNumber(answers)
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(number.ref)
-      } catch (e) {
-        CliUx.ux.action.stop()
-        throw new CLIError(e.message)
       }
+    } catch (e) {
+      CliUx.ux.action.stop()
+      throw new CLIError(e.message)
     }
   }
 }

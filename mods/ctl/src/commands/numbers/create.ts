@@ -51,109 +51,109 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
     const { flags } = await this.parse(CreateNumberCommand)
     const { endpoint, insecure } = flags
 
-    this.log("This utility will help you create a new Number.")
-    this.log("Press ^C at any time to quit.")
+    try {
+      const searcher = new FuzzySearch(countries, ["name"], {
+        caseSensitive: false
+      })
 
-    const searcher = new FuzzySearch(countries, ["name"], {
-      caseSensitive: false
-    })
+      const trunks = await new SDK.Trunks({ endpoint, insecure }).listTrunks({
+        pageSize: 25,
+        pageToken: ""
+      })
 
-    const trunks = await new SDK.Trunks({ endpoint, insecure }).listTrunks({
-      pageSize: 25,
-      pageToken: ""
-    })
-
-    const trunksChoices = trunks.items.map((trunk: CC.Trunk) => {
-      return {
-        name: trunk.name,
-        value: trunk.ref
-      }
-    })
-
-    const answers = await inquirer.prompt([
-      {
-        name: "name",
-        message: "Friendly Name",
-        type: "input",
-        validate: nameValidator
-      },
-      {
-        name: "telUrl",
-        message: "Telephony URL",
-        type: "input",
-        validate: telUrlValidator
-      },
-      {
-        name: "aorLink",
-        message: "AOR Link",
-        type: "input",
-        validate: aorLinkValidator
-      },
-      {
-        name: "trunkRef",
-        message: "Trunk",
-        type: "list",
-        choices: [{ name: "None", value: undefined }, ...trunksChoices]
-      },
-      {
-        name: "city",
-        message: "City",
-        type: "input",
-        validate: (input: string) => {
-          if (input.length === 0) {
-            return "the city is required"
-          }
-          return true
+      const trunksChoices = trunks.items.map((trunk: CC.Trunk) => {
+        return {
+          name: trunk.name,
+          value: trunk.ref
         }
-      },
-      {
-        type: "autocomplete",
-        name: "countryISOCode",
-        message: "Select a Country",
-        source: (_: unknown, input: string) => searcher.search(input)
-      },
-      {
-        name: "sessionAffinityHeader",
-        message: "Session Affinity Header",
-        type: "input",
-        validate: sessionAffinityHeaderValidator
-      },
-      {
-        name: "extraHeaders",
-        message: "Extra Headers",
-        type: "input",
-        validate: headersValidator
-      },
-      {
-        name: "confirm",
-        message: "Ready?",
-        type: "confirm"
-      }
-    ])
+      })
 
-    // Re-write extraHeaders
-    answers.extraHeaders = stringToHeaders(answers.extraHeaders)
+      this.log("This utility will help you create a new Number.")
+      this.log("Press ^C at any time to quit.")
 
-    answers.country = countries.find(
-      (country) => country.value === answers.countryISOCode
-    ).name
+      const answers = await inquirer.prompt([
+        {
+          name: "name",
+          message: "Friendly Name",
+          type: "input",
+          validate: nameValidator
+        },
+        {
+          name: "telUrl",
+          message: "Telephony URL",
+          type: "input",
+          validate: telUrlValidator
+        },
+        {
+          name: "aorLink",
+          message: "AOR Link",
+          type: "input",
+          validate: aorLinkValidator
+        },
+        {
+          name: "trunkRef",
+          message: "Trunk",
+          type: "list",
+          choices: [{ name: "None", value: undefined }, ...trunksChoices]
+        },
+        {
+          name: "city",
+          message: "City",
+          type: "input",
+          validate: (input: string) => {
+            if (input.length === 0) {
+              return "the city is required"
+            }
+            return true
+          }
+        },
+        {
+          type: "autocomplete",
+          name: "countryISOCode",
+          message: "Select a Country",
+          source: (_: unknown, input: string) => searcher.search(input)
+        },
+        {
+          name: "sessionAffinityHeader",
+          message: "Session Affinity Header",
+          type: "input",
+          validate: sessionAffinityHeaderValidator
+        },
+        {
+          name: "extraHeaders",
+          message: "Extra Headers",
+          type: "input",
+          validate: headersValidator
+        },
+        {
+          name: "confirm",
+          message: "Ready?",
+          type: "confirm"
+        }
+      ])
 
-    if (!answers.confirm) {
-      this.warn("Aborted")
-    } else {
-      try {
+      // Re-write extraHeaders
+      answers.extraHeaders = stringToHeaders(answers.extraHeaders)
+
+      answers.country = countries.find(
+        (country) => country.value === answers.countryISOCode
+      ).name
+
+      if (!answers.confirm) {
+        this.warn("Aborted")
+      } else {
         CliUx.ux.action.start(`Creating Number ${answers.name}`)
         const api = new SDK.Numbers({ endpoint, insecure })
         const number = await api.createNumber(answers)
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(number.ref)
-      } catch (e) {
-        CliUx.ux.action.stop()
-        if (e.code === grpc.status.ALREADY_EXISTS) {
-          throw new CLIError("This Number already exist")
-        } else {
-          throw new CLIError(e.message)
-        }
+      }
+    } catch (e) {
+      CliUx.ux.action.stop()
+      if (e.code === grpc.status.ALREADY_EXISTS) {
+        throw new CLIError("This Number already exist")
+      } else {
+        throw new CLIError(e.message)
       }
     }
   }

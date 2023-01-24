@@ -47,56 +47,56 @@ Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
     const { endpoint, insecure } = flags
-    const api = new SDK.Credentials({ endpoint, insecure })
 
-    this.log(
-      "This utility will help you update an existing set of Credentials."
-    )
-    this.log("Press ^C at any time to quit.")
+    try {
+      const api = new SDK.Credentials({ endpoint, insecure })
+      const credentialsFromDB = await api.getCredentials(args.ref)
 
-    const credentialsFromDB = await api.getCredentials(args.ref)
+      this.log(
+        "This utility will help you update an existing set of Credentials."
+      )
+      this.log("Press ^C at any time to quit.")
 
-    const answers = await inquirer.prompt([
-      {
-        name: "name",
-        message: "Friendly Name",
-        type: "input",
-        default: credentialsFromDB.name,
-        validate: nameValidator
-      },
-      {
-        name: "username",
-        message: "Username",
-        type: "input",
-        default: credentialsFromDB.username,
-        validate: usernameValidator
-      },
-      {
-        name: "password",
-        message: "Password",
-        type: "password"
-      },
-      {
-        name: "confirm",
-        message: "Ready?",
-        type: "confirm"
-      }
-    ])
+      const answers = await inquirer.prompt([
+        {
+          name: "name",
+          message: "Friendly Name",
+          type: "input",
+          default: credentialsFromDB.name,
+          validate: nameValidator
+        },
+        {
+          name: "username",
+          message: "Username",
+          type: "input",
+          default: credentialsFromDB.username,
+          validate: usernameValidator
+        },
+        {
+          name: "password",
+          message: "Password",
+          type: "password"
+        },
+        {
+          name: "confirm",
+          message: "Ready?",
+          type: "confirm"
+        }
+      ])
 
-    answers.ref = args.ref
+      answers.ref = args.ref
 
-    if (!answers.confirm) {
-      this.warn("Aborted")
-    } else {
-      try {
+      if (!answers.confirm) {
+        this.warn("Aborted")
+      } else {
         CliUx.ux.action.start(`Updating Credentials for ${answers.name}`)
         const acl = await api.updateCredentials(answers)
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(acl.ref)
-      } catch (e) {
-        CliUx.ux.action.stop()
-        throw new CLIError(e.message)
       }
+    } catch (e) {
+      CliUx.ux.action.stop()
+      throw new CLIError(e.message)
     }
   }
 }

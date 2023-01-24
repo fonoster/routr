@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import * as grpc from "@grpc/grpc-js"
 import { JsonObject, struct } from "pb-util"
 import {
   CommonTypes as CT,
@@ -25,6 +26,7 @@ import {
 } from "@routr/common"
 import { PrismaOperation } from "../types"
 import { getManager } from "../mappers/utils"
+import { PrismaClientInitializationError } from "@prisma/client/runtime"
 
 export function get(operation: PrismaOperation, kind: CC.KindWithoutUnknown) {
   return async (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
@@ -34,19 +36,33 @@ export function get(operation: PrismaOperation, kind: CC.KindWithoutUnknown) {
 
     const Manager = getManager(kind)
 
-    const objectFromDB = (await operation({
-      where: {
-        ref: call.request.ref
-      },
-      include: Manager.includeFields()
-    })) as { extended: unknown }
+    try {
+      const objectFromDB = (await operation({
+        where: {
+          ref: call.request.ref
+        },
+        include: Manager.includeFields()
+      })) as { extended: unknown }
 
-    if (objectFromDB?.extended) {
-      objectFromDB.extended = struct.encode(objectFromDB.extended as JsonObject)
+      if (objectFromDB?.extended) {
+        objectFromDB.extended = struct.encode(
+          objectFromDB.extended as JsonObject
+        )
+      }
+
+      objectFromDB
+        ? callback(null, Manager.mapToDto(objectFromDB as any))
+        : callback(new CE.ResourceNotFoundError(call.request.ref), null)
+    } catch (e) {
+      if (e instanceof PrismaClientInitializationError) {
+        callback(
+          {
+            code: grpc.status.UNAVAILABLE,
+            message: "database is not available"
+          },
+          null
+        )
+      }
     }
-
-    objectFromDB
-      ? callback(null, Manager.mapToDto(objectFromDB as any))
-      : callback(new CE.ResourceNotFoundError(call.request.ref), null)
   }
 }

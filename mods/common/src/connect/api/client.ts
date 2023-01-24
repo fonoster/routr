@@ -37,9 +37,7 @@ type GrpcError = { code: number }
 
 function fire(err: GrpcError, apiAddr: string) {
   if (err.code === grpc.status.UNAVAILABLE) {
-    return new ServiceUnavailableError(
-      `api server at ${apiAddr} is unavailable`
-    )
+    return new ServiceUnavailableError(apiAddr)
   }
   return err
 }

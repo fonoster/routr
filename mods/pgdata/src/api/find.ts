@@ -17,10 +17,12 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import * as grpc from "@grpc/grpc-js"
 import { JsonObject, struct } from "pb-util"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
 import { PrismaFindByOperation } from "../types"
 import { getManager } from "../mappers/utils"
+import { PrismaClientInitializationError } from "@prisma/client/runtime"
 
 export function findBy(
   operation: PrismaFindByOperation,
@@ -47,6 +49,16 @@ export function findBy(
         items: items
       })
     } catch (e) {
+      if (e instanceof PrismaClientInitializationError) {
+        callback(
+          {
+            code: grpc.status.UNAVAILABLE,
+            message: "database is not available"
+          },
+          null
+        )
+        return
+      }
       callback(e, null)
     }
   }
