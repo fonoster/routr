@@ -20,7 +20,7 @@ $ npm install -g @routr/ctl
 $ rctl COMMAND
 running command...
 $ rctl (--version)
-@routr/ctl/2.0.8-alpha.21 darwin-x64 node-v16.18.1
+@routr/ctl/2.0.8-alpha.22 darwin-x64 node-v16.18.1
 $ rctl --help [COMMAND]
 USAGE
   $ rctl COMMAND
@@ -279,7 +279,7 @@ EXAMPLES
   $ rctl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.3.10/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.4.2/src/commands/autocomplete/index.ts)_
 
 ## `rctl credentials create`
 
@@ -667,7 +667,7 @@ EXAMPLES
   $ rctl plugins
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.1.12/src/commands/plugins/index.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.2.3/src/commands/plugins/index.ts)_
 
 ## `rctl plugins:install PLUGIN...`
 
