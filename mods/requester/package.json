@@ -30,5 +30,6 @@
   },
   "dependencies": {
     "fp-ts": "^2.11.8"
-  }
+  },
+  "gitHead": "1841d2d8d51bebfdc3af7e81435064e81b176449"
 }

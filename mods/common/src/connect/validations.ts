@@ -19,6 +19,7 @@
 import * as Validator from "validator"
 import { BadRequestError } from "../errors"
 import { LoadBalancingAlgorithm } from "../types"
+import { phone } from "phone"
 
 export const hasReference = (ref: string) =>
   ref ? true : new BadRequestError("the reference to the resource is required")
@@ -286,5 +287,20 @@ export const isValidWeight = (weight: string) => {
     if (w < 1 || w > 65535) {
       return new BadRequestError("the weight must be between 1 and 65535")
     }
+  }
+}
+
+export const isValidE164 = (
+  e164Number: string,
+  countryISOCode: string,
+  validateMobilePrefix = false
+) => {
+  const result = phone(e164Number, {
+    country: countryISOCode,
+    validateMobilePrefix
+  })
+
+  if (!result.isValid) {
+    return new BadRequestError("the telUrl must be a valid e164 number")
   }
 }

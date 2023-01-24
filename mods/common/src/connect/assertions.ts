@@ -41,6 +41,7 @@ import {
   isValidBalancingAlgorithm,
   isValidContactAddress,
   isValidDomainUri,
+  isValidE164,
   isValidHost,
   isValidInboundUri,
   isValidName,
@@ -147,6 +148,17 @@ export const isValidAORLinkOrThrow = (aorLink: string) =>
 
 export const isValidContactAddressOrThrow = (contactAddress: string) =>
   validOrThrow(isValidContactAddress, contactAddress)
+
+export const isValidE164OrThrow = (
+  e164Number: string,
+  countryISOCode: string,
+  validateMobilePrefix: boolean
+) => {
+  const R = isValidE164(e164Number, countryISOCode, validateMobilePrefix)
+  if (R instanceof BadRequestError) {
+    throw R
+  }
+}
 
 export const hasValidOutboundUrisOrThrow = (outboundUris: TrunkURI[]) =>
   outboundUris?.forEach((uri) => {

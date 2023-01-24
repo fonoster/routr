@@ -22,6 +22,7 @@ import { CommonConnect as CC } from "@routr/common"
 import { JsonObject } from "pb-util/build"
 import { EntityManager } from "./manager"
 import { TrunkManager } from "./trunk"
+import { ENFORCE_E164, ENFORCE_E164_WITH_MOBILE_PREFIX } from "../envs"
 
 type NumberWithTrunk = Prisma.NumberGetPayload<{
   include: {
@@ -56,6 +57,13 @@ export class NumberManager extends EntityManager {
   }
 
   validOrThrowCreate() {
+    if (ENFORCE_E164) {
+      CC.isValidE164OrThrow(
+        this.number.telUrl,
+        this.number.countryIsoCode,
+        ENFORCE_E164_WITH_MOBILE_PREFIX
+      )
+    }
     CC.hasNameOrThrow(this.number.name)
     CC.isValidNameOrThrow(this.number.name)
     CC.hasTelUrlOrThrow(this.number.telUrl)

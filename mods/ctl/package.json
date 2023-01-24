@@ -16,6 +16,9 @@
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@oclif/core": "^1.24.0",
     "@oclif/plugin-autocomplete": "^1.3.10",
@@ -81,5 +84,6 @@
   "keywords": [
     "oclif"
   ],
-  "types": "dist/index.d.ts"
+  "types": "dist/index.d.ts",
+  "gitHead": "1841d2d8d51bebfdc3af7e81435064e81b176449"
 }
