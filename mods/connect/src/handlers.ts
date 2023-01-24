@@ -29,8 +29,18 @@ import {
 import { pipe } from "fp-ts/function"
 import { router } from "./router"
 import { ILocationService } from "@routr/location"
-import { Auth, CommonConnect as CC, CommonTypes as CT } from "@routr/common"
+import {
+  Auth,
+  CommonConnect as CC,
+  CommonTypes as CT,
+  Environment
+} from "@routr/common"
 import { findResource } from "./utils"
+
+const enforceE164 = A.enforceE164(
+  Environment.ENFORCE_E164,
+  Environment.ENFORCE_E164_WITH_MOBILE_PREFIX
+)
 
 export const handleRegister = (
   apiClient: CC.APIClient,
@@ -103,8 +113,10 @@ export const handleRegistry = (req: MessageRequest, res: Response) => {
 // TODO: If request has X-Connect-Token then validate the JWT value and continue
 export const handleRequest =
   (location: ILocationService, apiClient?: CC.APIClient) =>
-  async (req: MessageRequest, res: Response) => {
+  async (request: MessageRequest, res: Response) => {
     try {
+      const req = Environment.ENFORCE_E164 ? enforceE164(request) : request
+
       const route = E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF)
         ? HE.createRouteFromLastMessage(req)
         : await router(location, apiClient)(req)

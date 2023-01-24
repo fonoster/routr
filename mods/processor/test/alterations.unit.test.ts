@@ -19,7 +19,12 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import { request, route, routeOnAnotherEdgePort } from "./examples"
+import {
+  createPSTNMessage,
+  request,
+  route,
+  routeOnAnotherEdgePort
+} from "./examples"
 import { CommonTypes as CT, Transport } from "@routr/common"
 import { Alterations as A, Extensions as E } from "../src"
 import { pipe } from "fp-ts/function"
@@ -169,5 +174,31 @@ describe("@routr/processor/alterations", () => {
       A.decreaseMaxForwards
     )
     expect(result).to.have.property("message")
+  })
+
+  it.only("converts 'From' and 'To' headers to e164 format", () => {
+    const req = createPSTNMessage(request, {
+      from: "17853178071",
+      to: "46721895538"
+    })
+    const enforceE164 = A.enforceE164(true, false)
+    const r = enforceE164(req)
+    expect(r).to.have.property("message")
+    expect(r.message.from.address.uri.user).to.be.equal("+17853178071")
+    expect(r.message.to.address.uri.user).to.be.equal("+46721895538")
+    expect(r.message.requestUri.user).to.be.equal("+46721895538")
+  })
+
+  it.only("converts the 'To' header to e164 format and leaves 'From' header unchanged", () => {
+    const req = createPSTNMessage(request, {
+      from: "1001",
+      to: "46721895538"
+    })
+    const enforceE164 = A.enforceE164(true, false)
+    const r = enforceE164(req)
+    expect(r).to.have.property("message")
+    expect(r.message.from.address.uri.user).to.be.equal("1001")
+    expect(r.message.to.address.uri.user).to.be.equal("+46721895538")
+    expect(r.message.requestUri.user).to.be.equal("+46721895538")
   })
 })

@@ -21,7 +21,8 @@ import {
   Method,
   Route,
   Transport,
-  CommonTypes as CT
+  CommonTypes as CT,
+  Helper as H
 } from "@routr/common"
 import { MessageType } from "@routr/common/dist/types"
 
@@ -300,4 +301,23 @@ export const request: MessageRequest = {
     },
     messageType: MessageType.REQUEST
   }
+}
+
+export const createPSTNMessage = (
+  message: MessageRequest,
+  modifiers: {
+    from: string
+    to: string
+  }
+): MessageRequest => {
+  const newMessage = H.deepCopy(message)
+  newMessage.message.requestUri = {
+    user: modifiers.to,
+    host: "someprovider.net",
+    port: 5060,
+    transportParam: Transport.TCP
+  }
+  newMessage.message.to.address.uri.user = modifiers.to
+  newMessage.message.from.address.uri.user = modifiers.from
+  return newMessage
 }

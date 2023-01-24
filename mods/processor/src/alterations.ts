@@ -24,6 +24,7 @@ import {
   CommonTypes,
   Transport
 } from "@routr/common"
+import { phone } from "phone"
 import { getEdgeInterface } from "./helper"
 
 // Q: Should we deprecate this method since we are not doing strict routing?
@@ -259,3 +260,41 @@ export const decreaseMaxForwards = (request: MessageRequest) => {
   }
   return req
 }
+
+// Will do the best effort to normalize from/to/requestUri users as e164 values
+export const enforceE164 =
+  (enforceE164: boolean, validateMobilePrefix: boolean) =>
+  (request: MessageRequest): MessageRequest => {
+    if (!enforceE164) return request
+
+    const req = H.deepCopy(request)
+
+    // Removes the + to ensure not having duplicates
+    const fromUser = req.message.from.address.uri.user?.replace("+", "")
+    const toUser = req.message.to.address.uri.user?.replace("+", "")
+    const requestUriUser = req.message.requestUri.user?.replace("+", "")
+
+    // Normalizing as e164
+    const normalizedTo = phone(`+${toUser}`, { validateMobilePrefix })
+    const normalizedFrom = phone(`+${fromUser}`, {
+      validateMobilePrefix: true
+    })
+    const normalizedReqUri = phone(`+${requestUriUser}`, {
+      validateMobilePrefix
+    })
+
+    // If the normalization worked we overwrite the original values
+    if (normalizedFrom.isValid) {
+      req.message.from.address.uri.user = normalizedFrom.phoneNumber
+    }
+
+    if (normalizedTo.isValid) {
+      req.message.to.address.uri.user = normalizedTo.phoneNumber
+    }
+
+    if (normalizedReqUri.isValid) {
+      req.message.requestUri.user = normalizedReqUri.phoneNumber
+    }
+
+    return req
+  }
