@@ -138,6 +138,12 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           when: (answers) => answers.aor.startsWith("backend:")
         },
         {
+          name: "enabled",
+          message: "Enabled?",
+          type: "confirm",
+          default: true
+        },
+        {
           name: "confirm",
           message: "Ready?",
           type: "confirm"

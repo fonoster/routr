@@ -130,6 +130,12 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
           choices: [{ name: "None", value: undefined }, ...credentialsChoice]
         },
         {
+          name: "sendRegister",
+          message: "Send Register?",
+          type: "confirm",
+          default: trunkFromDB.sendRegister
+        },
+        {
           name: "addOutboundUri",
           message: "Add an Outbound SIP URI?",
           type: "confirm",
@@ -192,17 +198,16 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
       // eslint-disable-next-line no-loops/no-loops
       while (addOutboundUri) {
         const group2 = await inquirer.prompt(group2Questions)
-        if (group2.numberRef) {
-          uris.push({
-            host: group2.host,
-            port: group2.port,
-            transport: group2.transport,
-            user: group2.user,
-            priority: group2.priority,
-            weight: group2.weight,
-            enabled: true
-          })
-        }
+
+        uris.push({
+          host: group2.host,
+          port: group2.port,
+          transport: group2.transport,
+          user: group2.user,
+          priority: group2.priority,
+          weight: group2.weight,
+          enabled: true
+        })
 
         addOutboundUri = group2.addOutboundUri
       }

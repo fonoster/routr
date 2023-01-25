@@ -146,6 +146,12 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
           when: (answers) => answers.aor.startsWith("backend:")
         },
         {
+          name: "enabled",
+          message: "Enabled?",
+          type: "confirm",
+          default: peerFromDB.enabled
+        },
+        {
           name: "confirm",
           message: "Ready?",
           type: "confirm"

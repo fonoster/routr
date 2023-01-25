@@ -133,7 +133,7 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         },
         {
           name: "enabled",
-          message: "Enabled",
+          message: "Enabled?",
           type: "confirm",
           default: true
         },

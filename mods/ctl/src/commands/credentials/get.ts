@@ -17,14 +17,13 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import * as grpc from "@grpc/grpc-js"
 import { CliUx, Command, Flags } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { showPaginatedList, ShowTable } from "../../utils"
 import { CommonConnect as CC } from "@routr/common"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommandError } from "@oclif/core/lib/interfaces"
-import * as grpc from "@grpc/grpc-js"
-import { JsonObject } from "pb-util/build"
 
 export default class GetCommand extends BaseCommand {
   static description =
@@ -42,6 +41,10 @@ Ref                                  Name       Deny List Allow List
       char: "s",
       description: "the number of items to return",
       default: 50
+    }),
+    extended: Flags.boolean({
+      char: "x",
+      description: "extended output format"
     })
   }
 
@@ -75,25 +78,6 @@ Ref                                  Name       Deny List Allow List
           },
           username: {
             header: "Username"
-          },
-          createdAt: {
-            header: "Created",
-            get: (row: { createdAt: number }) => new Date(row.createdAt * 1000),
-            extended: true
-          },
-          updatedAt: {
-            header: "Updated",
-            get: (row: { updatedAt: number }) => new Date(row.updatedAt * 1000),
-            extended: true
-          },
-          extended: {
-            header: "Extended",
-            get: (row: JsonObject) => row.extended || {},
-            extended: true
-          },
-          apiVersion: {
-            header: "API",
-            extended: true
           }
         },
         {

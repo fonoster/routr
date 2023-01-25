@@ -42,6 +42,10 @@ a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@
       char: "s",
       description: "the number of items to return",
       default: 50
+    }),
+    extended: Flags.boolean({
+      char: "x",
+      description: "extended output format"
     })
   }
 
@@ -88,30 +92,6 @@ a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@
             // Combine city, country and countryIsoCode
             get: (row: JsonObject) =>
               `${row.city}, ${row.country} (${row.countryIsoCode})`
-          },
-          createdAt: {
-            header: "Created",
-            get: (row: { createdAt: number }) => new Date(row.createdAt * 1000),
-            extended: true
-          },
-          updatedAt: {
-            header: "Updated",
-            get: (row: { updatedAt: number }) => new Date(row.updatedAt * 1000),
-            extended: true
-          },
-          extraHeaders: {
-            header: "Extra Headers",
-            get: (row: JsonObject) => row.extraHeaders || [{}],
-            extended: true
-          },
-          extended: {
-            header: "Extended",
-            get: (row: JsonObject) => row.extended || {},
-            extended: true
-          },
-          apiVersion: {
-            header: "API",
-            extended: true
           }
         },
         {

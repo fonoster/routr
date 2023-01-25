@@ -24,7 +24,6 @@ import { capitalize, showPaginatedList, ShowTable } from "../../utils"
 import { CommonConnect as CC } from "@routr/common"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommandError } from "@oclif/core/lib/interfaces"
-import { JsonObject } from "pb-util/build"
 import { CommonTypes as CT } from "@routr/common"
 
 export default class GetAgentsCommand extends BaseCommand {
@@ -43,6 +42,10 @@ d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local PRIVATE Yes
       char: "s",
       description: "The number of items to return",
       default: 50
+    }),
+    extended: Flags.boolean({
+      char: "x",
+      description: "extended output format"
     })
   }
 
@@ -85,36 +88,9 @@ d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local PRIVATE Yes
             header: "Privacy",
             get: (row: { privacy: CT.Privacy }) => capitalize(row.privacy)
           },
-          credentials: {
-            header: "Credentials Name",
-            get: (row: { credentials: CC.Credentials }) =>
-              row.credentials
-                ? `${row.credentials.name} (${row.credentials.username})`
-                : "None",
-            extended: true
-          },
           enabled: {
             header: "Enabled",
             get: (row: { enabled: boolean }) => (row.enabled ? "Yes" : "No")
-          },
-          createdAt: {
-            header: "Created",
-            get: (row: { createdAt: number }) => new Date(row.createdAt * 1000),
-            extended: true
-          },
-          updatedAt: {
-            header: "Updated",
-            get: (row: { updatedAt: number }) => new Date(row.updatedAt * 1000),
-            extended: true
-          },
-          extended: {
-            header: "Extended",
-            get: (row: JsonObject) => row.extended || {},
-            extended: true
-          },
-          apiVersion: {
-            header: "API",
-            extended: true
           }
         },
         {

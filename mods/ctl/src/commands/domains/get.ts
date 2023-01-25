@@ -24,7 +24,6 @@ import { showPaginatedList, ShowTable } from "../../utils"
 import { CommonConnect as CC } from "@routr/common"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommandError } from "@oclif/core/lib/interfaces"
-import { JsonObject } from "pb-util/build"
 
 export default class GetDomainsCommand extends BaseCommand {
   static description =
@@ -42,6 +41,10 @@ ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
       char: "s",
       description: "the number of items to return",
       default: 50
+    }),
+    extended: Flags.boolean({
+      char: "x",
+      description: "extended output format"
     })
   }
 
@@ -76,12 +79,6 @@ ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
           domainUri: {
             header: "URI"
           },
-          accessControlListRef: {
-            header: "IP Access Control List",
-            get: (row: { accessControlList: { name: string } }) =>
-              row.accessControlList?.name || "None",
-            extended: true
-          },
           egressPolicies: {
             header: "Egress Policies",
             get: (row: {
@@ -90,25 +87,6 @@ ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
               row.egressPolicies
                 .map((p) => `${p.rule}/${p.number.telUrl.split("tel:")[1]}`)
                 .join(", "),
-            extended: true
-          },
-          createdAt: {
-            header: "Created",
-            get: (row: { createdAt: number }) => new Date(row.createdAt * 1000),
-            extended: true
-          },
-          updatedAt: {
-            header: "Updated",
-            get: (row: { updatedAt: number }) => new Date(row.updatedAt * 1000),
-            extended: true
-          },
-          extended: {
-            header: "Extended",
-            get: (row: JsonObject) => row.extended || {},
-            extended: true
-          },
-          apiVersion: {
-            header: "API",
             extended: true
           }
         },

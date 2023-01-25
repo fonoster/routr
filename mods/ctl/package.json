@@ -30,7 +30,9 @@
     "figlet": "^1.5.2",
     "fuzzy-search": "^3.2.1",
     "inquirer": "^8.2.5",
-    "inquirer-autocomplete-prompt": "^2.0.0"
+    "inquirer-autocomplete-prompt": "^2.0.0",
+    "moment": "^2.29.4",
+    "prettyjson": "^1.2.5"
   },
   "devDependencies": {
     "@oclif/test": "^2.2.20",
@@ -41,6 +43,7 @@
     "@types/inquirer-autocomplete-prompt": "^3.0.0",
     "@types/mocha": "^8.2.3",
     "@types/node": "^18.11.9",
+    "@types/prettyjson": "^0.0.30",
     "chai": "^4",
     "mocha": "^9.2.2",
     "oclif": "^3",

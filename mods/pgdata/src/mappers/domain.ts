@@ -43,7 +43,8 @@ export class DomainManager extends EntityManager {
 
   static includeFields(): JsonObject {
     return {
-      accessControlList: true
+      accessControlList: true,
+      egressPolicies: true
     }
   }
 

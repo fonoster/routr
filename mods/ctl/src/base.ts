@@ -21,10 +21,6 @@ import { Command, Flags } from "@oclif/core"
 
 export abstract class BaseCommand extends Command {
   static globalFlags = {
-    extended: Flags.boolean({
-      char: "x",
-      description: "extended output format"
-    }),
     insecure: Flags.boolean({
       char: "i",
       description: "allow insecure connections to the routr server",
