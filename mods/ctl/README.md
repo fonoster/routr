@@ -20,7 +20,7 @@ $ npm install -g @routr/ctl
 $ rctl COMMAND
 running command...
 $ rctl (--version)
-@routr/ctl/2.0.8-alpha.24 darwin-x64 node-v16.18.1
+@routr/ctl/2.0.8-alpha.25 darwin-x64 node-v16.18.1
 $ rctl --help [COMMAND]
 USAGE
   $ rctl COMMAND
@@ -31,27 +31,33 @@ USAGE
 <!-- commands -->
 * [`rctl acl create`](#rctl-acl-create)
 * [`rctl acl delete [REF]`](#rctl-acl-delete-ref)
+* [`rctl acl describe [REF]`](#rctl-acl-describe-ref)
 * [`rctl acl get [REF]`](#rctl-acl-get-ref)
 * [`rctl acl update REF`](#rctl-acl-update-ref)
 * [`rctl agents create`](#rctl-agents-create)
 * [`rctl agents delete [REF]`](#rctl-agents-delete-ref)
+* [`rctl agents describe [REF]`](#rctl-agents-describe-ref)
 * [`rctl agents get [REF]`](#rctl-agents-get-ref)
 * [`rctl agents update REF`](#rctl-agents-update-ref)
 * [`rctl autocomplete [SHELL]`](#rctl-autocomplete-shell)
 * [`rctl credentials create`](#rctl-credentials-create)
 * [`rctl credentials delete [REF]`](#rctl-credentials-delete-ref)
+* [`rctl credentials describe [REF]`](#rctl-credentials-describe-ref)
 * [`rctl credentials get [REF]`](#rctl-credentials-get-ref)
 * [`rctl credentials update REF`](#rctl-credentials-update-ref)
 * [`rctl domains create`](#rctl-domains-create)
 * [`rctl domains delete [REF]`](#rctl-domains-delete-ref)
+* [`rctl domains describe [REF]`](#rctl-domains-describe-ref)
 * [`rctl domains get [REF]`](#rctl-domains-get-ref)
 * [`rctl domains update REF`](#rctl-domains-update-ref)
 * [`rctl numbers create`](#rctl-numbers-create)
 * [`rctl numbers delete [REF]`](#rctl-numbers-delete-ref)
+* [`rctl numbers describe [REF]`](#rctl-numbers-describe-ref)
 * [`rctl numbers get [REF]`](#rctl-numbers-get-ref)
 * [`rctl numbers update REF`](#rctl-numbers-update-ref)
 * [`rctl peers create`](#rctl-peers-create)
 * [`rctl peers delete [REF]`](#rctl-peers-delete-ref)
+* [`rctl peers describe [REF]`](#rctl-peers-describe-ref)
 * [`rctl peers get [REF]`](#rctl-peers-get-ref)
 * [`rctl peers update REF`](#rctl-peers-update-ref)
 * [`rctl plugins`](#rctl-plugins)
@@ -65,6 +71,7 @@ USAGE
 * [`rctl plugins update`](#rctl-plugins-update)
 * [`rctl trunks create`](#rctl-trunks-create)
 * [`rctl trunks delete [REF]`](#rctl-trunks-delete-ref)
+* [`rctl trunks describe [REF]`](#rctl-trunks-describe-ref)
 * [`rctl trunks get [REF]`](#rctl-trunks-get-ref)
 * [`rctl trunks update REF`](#rctl-trunks-update-ref)
 
@@ -74,12 +81,11 @@ Creates a new ACL
 
 ```
 USAGE
-  $ rctl acl create [-x] [-i] [-e <value>]
+  $ rctl acl create [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Creates a new ACL
@@ -95,12 +101,11 @@ Deletes an Access Control List
 
 ```
 USAGE
-  $ rctl acl delete [REF] [-x] [-i] [-e <value>]
+  $ rctl acl delete [REF] [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Deletes an Access Control List
@@ -110,13 +115,32 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+## `rctl acl describe [REF]`
+
+shows details of an ACL
+
+```
+USAGE
+  $ rctl acl describe [REF] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to the ACL
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+
+DESCRIPTION
+  shows details of an ACL
+```
+
 ## `rctl acl get [REF]`
 
 Shows a list of paginated ACLs or a single ACL if a ref is provided
 
 ```
 USAGE
-  $ rctl acl get [REF] [-x] [-i] [-e <value>] [-s <value>]
+  $ rctl acl get [REF] [-i] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to an ACL
@@ -142,7 +166,7 @@ Updates an existing ACL
 
 ```
 USAGE
-  $ rctl acl update [REF] [-x] [-i] [-e <value>]
+  $ rctl acl update [REF] [-i] [-e <value>]
 
 ARGUMENTS
   REF  reference to an ACL
@@ -150,7 +174,6 @@ ARGUMENTS
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Updates an existing ACL
@@ -166,12 +189,11 @@ Creates a new Agent
 
 ```
 USAGE
-  $ rctl agents create [-x] [-i] [-e <value>]
+  $ rctl agents create [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Creates a new Agent
@@ -187,12 +209,11 @@ Deletes an Agent
 
 ```
 USAGE
-  $ rctl agents delete [REF] [-x] [-i] [-e <value>]
+  $ rctl agents delete [REF] [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Deletes an Agent
@@ -202,13 +223,32 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+## `rctl agents describe [REF]`
+
+shows details of an Agent
+
+```
+USAGE
+  $ rctl agents describe [REF] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to the Agent
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+
+DESCRIPTION
+  shows details of an Agent
+```
+
 ## `rctl agents get [REF]`
 
 Shows a list of paginated Agents or a single Agent if ref is provided
 
 ```
 USAGE
-  $ rctl agents get [REF] [-x] [-i] [-e <value>] [-s <value>]
+  $ rctl agents get [REF] [-i] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  Optional Agents reference
@@ -234,7 +274,7 @@ Updates an existing Agent
 
 ```
 USAGE
-  $ rctl agents update [REF] [-x] [-i] [-e <value>]
+  $ rctl agents update [REF] [-i] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Agent
@@ -242,7 +282,6 @@ ARGUMENTS
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Updates an existing Agent
@@ -287,12 +326,11 @@ Creates a new set of Credentials
 
 ```
 USAGE
-  $ rctl credentials create [-x] [-i] [-e <value>]
+  $ rctl credentials create [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Creates a new set of Credentials
@@ -308,12 +346,11 @@ Deletes a set of Credentials
 
 ```
 USAGE
-  $ rctl credentials delete [REF] [-x] [-i] [-e <value>]
+  $ rctl credentials delete [REF] [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Deletes a set of Credentials
@@ -323,13 +360,32 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+## `rctl credentials describe [REF]`
+
+shows details for a set of Credentials
+
+```
+USAGE
+  $ rctl credentials describe [REF] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to the set of Credentials
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+
+DESCRIPTION
+  shows details for a set of Credentials
+```
+
 ## `rctl credentials get [REF]`
 
 Shows a list of paginated Credentials or a single set if ref is provided
 
 ```
 USAGE
-  $ rctl credentials get [REF] [-x] [-i] [-e <value>] [-s <value>]
+  $ rctl credentials get [REF] [-i] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to a set of Credentials
@@ -355,7 +411,7 @@ Updates an existing set of Credentials
 
 ```
 USAGE
-  $ rctl credentials update [REF] [-x] [-i] [-e <value>]
+  $ rctl credentials update [REF] [-i] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing set of Credentials
@@ -363,7 +419,6 @@ ARGUMENTS
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Updates an existing set of Credentials
@@ -379,12 +434,11 @@ Creates a new set Domain
 
 ```
 USAGE
-  $ rctl domains create [-x] [-i] [-e <value>]
+  $ rctl domains create [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Creates a new set Domain
@@ -400,12 +454,11 @@ Deletes a Domain
 
 ```
 USAGE
-  $ rctl domains delete [REF] [-x] [-i] [-e <value>]
+  $ rctl domains delete [REF] [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Deletes a Domain
@@ -415,13 +468,32 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+## `rctl domains describe [REF]`
+
+show details of a Domain
+
+```
+USAGE
+  $ rctl domains describe [REF] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to the Domain
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+
+DESCRIPTION
+  show details of a Domain
+```
+
 ## `rctl domains get [REF]`
 
 Shows a list of paginated Domains or a single Domain if ref is provided
 
 ```
 USAGE
-  $ rctl domains get [REF] [-x] [-i] [-e <value>] [-s <value>]
+  $ rctl domains get [REF] [-i] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to a Domain
@@ -447,7 +519,7 @@ Updates an existing Domain
 
 ```
 USAGE
-  $ rctl domains update [REF] [-x] [-i] [-e <value>]
+  $ rctl domains update [REF] [-i] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Domain
@@ -455,7 +527,6 @@ ARGUMENTS
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Updates an existing Domain
@@ -471,12 +542,11 @@ Creates a new Number
 
 ```
 USAGE
-  $ rctl numbers create [-x] [-i] [-e <value>]
+  $ rctl numbers create [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Creates a new Number
@@ -492,12 +562,11 @@ Deletes a Number
 
 ```
 USAGE
-  $ rctl numbers delete [REF] [-x] [-i] [-e <value>]
+  $ rctl numbers delete [REF] [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Deletes a Number
@@ -507,13 +576,32 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+## `rctl numbers describe [REF]`
+
+shows details for a Number
+
+```
+USAGE
+  $ rctl numbers describe [REF] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to the Number
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+
+DESCRIPTION
+  shows details for a Number
+```
+
 ## `rctl numbers get [REF]`
 
 Shows a list of paginated Numbers or a single Number if ref is provided
 
 ```
 USAGE
-  $ rctl numbers get [REF] [-x] [-i] [-e <value>] [-s <value>]
+  $ rctl numbers get [REF] [-i] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to a Number
@@ -539,7 +627,7 @@ Updates an existing set of Credentials
 
 ```
 USAGE
-  $ rctl numbers update [REF] [-x] [-i] [-e <value>]
+  $ rctl numbers update [REF] [-i] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Number
@@ -547,7 +635,6 @@ ARGUMENTS
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Updates an existing set of Credentials
@@ -563,12 +650,11 @@ Creates a new Peer
 
 ```
 USAGE
-  $ rctl peers create [-x] [-i] [-e <value>]
+  $ rctl peers create [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Creates a new Peer
@@ -584,12 +670,11 @@ Deletes a Peer
 
 ```
 USAGE
-  $ rctl peers delete [REF] [-x] [-i] [-e <value>]
+  $ rctl peers delete [REF] [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Deletes a Peer
@@ -599,13 +684,32 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+## `rctl peers describe [REF]`
+
+shows details for a Peer
+
+```
+USAGE
+  $ rctl peers describe [REF] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to the Peer
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+
+DESCRIPTION
+  shows details for a Peer
+```
+
 ## `rctl peers get [REF]`
 
 Shows a list of paginated Peers or a single Peer if ref is provided
 
 ```
 USAGE
-  $ rctl peers get [REF] [-x] [-i] [-e <value>] [-s <value>]
+  $ rctl peers get [REF] [-i] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to a Peer
@@ -631,7 +735,7 @@ Updates an existing Peer
 
 ```
 USAGE
-  $ rctl peers update [REF] [-x] [-i] [-e <value>]
+  $ rctl peers update [REF] [-i] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Peer
@@ -639,7 +743,6 @@ ARGUMENTS
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Updates an existing Peer
@@ -667,7 +770,7 @@ EXAMPLES
   $ rctl plugins
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.2.3/src/commands/plugins/index.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.2.4/src/commands/plugins/index.ts)_
 
 ## `rctl plugins:install PLUGIN...`
 
@@ -885,12 +988,11 @@ Creates a new Trunk
 
 ```
 USAGE
-  $ rctl trunks create [-x] [-i] [-e <value>]
+  $ rctl trunks create [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Creates a new Trunk
@@ -906,12 +1008,11 @@ Deletes a Trunk
 
 ```
 USAGE
-  $ rctl trunks delete [REF] [-x] [-i] [-e <value>]
+  $ rctl trunks delete [REF] [-i] [-e <value>]
 
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Deletes a Trunk
@@ -921,13 +1022,32 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+## `rctl trunks describe [REF]`
+
+shows details for a Trunk
+
+```
+USAGE
+  $ rctl trunks describe [REF] [-i] [-e <value>]
+
+ARGUMENTS
+  REF  reference to the Trunk
+
+FLAGS
+  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -i, --insecure          allow insecure connections to the routr server
+
+DESCRIPTION
+  shows details for a Trunk
+```
+
 ## `rctl trunks get [REF]`
 
 Shows a list of paginated Trunks or a single Trunk if ref is provided
 
 ```
 USAGE
-  $ rctl trunks get [REF] [-x] [-i] [-e <value>] [-s <value>]
+  $ rctl trunks get [REF] [-i] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to a Trunk
@@ -953,7 +1073,7 @@ Updates an existing Trunk
 
 ```
 USAGE
-  $ rctl trunks update [REF] [-x] [-i] [-e <value>]
+  $ rctl trunks update [REF] [-i] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Trunk
@@ -961,7 +1081,6 @@ ARGUMENTS
 FLAGS
   -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
-  -x, --extended          extended output format
 
 DESCRIPTION
   Updates an existing Trunk
