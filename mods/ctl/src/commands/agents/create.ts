@@ -23,7 +23,6 @@ import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
 import { nameValidator, usernameValidator } from "../../validators"
-import FuzzySearch from "fuzzy-search"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -78,14 +77,6 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         }
       )
 
-      const searcher = new FuzzySearch(
-        domainsList,
-        ["name", "value", "description"],
-        {
-          caseSensitive: false
-        }
-      )
-
       this.log("This utility will help you create a new Agent.")
       this.log("Press ^C at any time to quit.")
 
@@ -97,11 +88,10 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           validate: nameValidator
         },
         {
-          type: "autocomplete",
           name: "domainRef",
           message: "Select a Domain",
-          source: (_: unknown, input: string) => searcher.search(input),
-          when: () => domains.items.length > 0
+          choices: [{ name: "None", value: undefined }, ...domainsList],
+          type: "list"
         },
         {
           name: "username",

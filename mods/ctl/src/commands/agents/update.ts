@@ -21,13 +21,12 @@ import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
-import FuzzySearch from "fuzzy-search"
+import { nameValidator } from "../../validators"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
 // (node:75345) [ERR_REQUIRE_ESM] Error Plugin: @routr/ctl [ERR_REQUIRE_ESM]: require() of ES Module
 import inquirer from "inquirer"
-import { nameValidator } from "../../validators"
 
 export default class UpdateCommand extends BaseCommand {
   static description = "Updates an existing Agent"
@@ -81,14 +80,6 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
         }
       )
 
-      const searcher = new FuzzySearch(
-        domainsList,
-        ["name", "value", "description"],
-        {
-          caseSensitive: false
-        }
-      )
-
       this.log("This utility will help you update an existing Agent.")
       this.log("Press ^C at any time to quit.")
 
@@ -101,11 +92,10 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
           validate: nameValidator
         },
         {
-          type: "autocomplete",
           name: "domainRef",
           message: "Select a Domain",
-          source: (_: unknown, input: string) => searcher.search(input),
-          when: () => domains.items.length > 0
+          choices: [{ name: "None", value: undefined }, ...domainsList],
+          type: "list"
         },
         {
           name: "credentialsRef",
