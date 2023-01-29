@@ -86,5 +86,6 @@ message MessageRequest {
 }
 
 message MessageResponse {
-  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 1;
+  NetInterface sender = 1;
+  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 2;
 }

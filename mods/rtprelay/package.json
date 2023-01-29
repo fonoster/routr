@@ -1,32 +1,25 @@
 {
-  "name": "@routr/dispatcher",
+  "name": "@routr/rtprelay",
   "version": "2.0.8-alpha.27",
-  "description": "Receives SIP messages and forwards them to the corresponding Message Processor",
+  "description": "Media Relay for Routr using RTPengine",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
   "license": "MIT",
-  "main": "dist/dispatcher",
-  "types": "dist/dispatcher",
+  "main": "dist/runner",
+  "types": "dist/runner",
+  "directories": {
+    "src": "src",
+    "test": "test"
+  },
   "scripts": {
     "prebuild": "rimraf ./dist tsconfig.tsbuildinfo",
     "build": "tsc -b tsconfig.json"
   },
   "bin": {
-    "run_dispatcher": "dist/runner.js"
-  },
-  "directories": {
-    "src": "src",
-    "test": "test"
-  },
-  "files": [
-    "dist"
-  ],
-  "publishConfig": {
-    "access": "public"
+    "run_rtprelay": "dist/runner.js"
   },
   "dependencies": {
     "@fonoster/logger": "0.3.18",
-    "@grpc/grpc-js": "^1.8.4",
     "@opentelemetry/api": "^1.0.4",
     "@opentelemetry/exporter-jaeger": "^1.0.4",
     "@opentelemetry/instrumentation": "^0.27.0",
@@ -37,8 +30,13 @@
     "@opentelemetry/semantic-conventions": "^1.0.4",
     "@routr/common": "^2.0.8-alpha.27",
     "@routr/processor": "^2.0.8-alpha.27",
-    "ajv": "^6.12.6",
-    "fp-ts": "^2.11.8"
+    "rtpengine-client": "^0.4.11"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "repository": {
     "type": "git",

@@ -33,12 +33,26 @@ public class ViaConverter implements Converter<Via, io.routr.message.Via> {
   public io.routr.message.Via fromHeader(Via header) {
     var builder = io.routr.message.Via.newBuilder();
     builder
-      .setPort(header.getPort() == -1 ? 5060 : header.getPort())
+      .setPort(header.getPort())
       .setTransport(header.getTransport())
-      .setHost(header.getHost()).build();
+      .setHost(header.getHost())
+      .setRPort(header.getRPort())
+      .setTtl(header.getTTL());
 
     if (header.getBranch() != null) {
       builder.setBranch(header.getBranch());
+    }
+
+    if (header.getReceived() != null) {
+      builder.setReceived(header.getReceived());
+    }
+
+    if (header.getMAddr() != null) {
+      builder.setMAddr(header.getMAddr());
+    }
+
+    if (header.hasParameter("rport")) {
+      builder.setRPortFlag(true);
     }
 
     return builder.build();
@@ -47,11 +61,33 @@ public class ViaConverter implements Converter<Via, io.routr.message.Via> {
   @Override
   public Via fromDTO(io.routr.message.Via dto) throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
-    int port = dto.getPort() <= 0 ? 5060 : dto.getPort();
+    int port = dto.getPort();
     Via header = (Via) factory.createViaHeader(dto.getHost(), port, dto.getTransport(), null);
+   
     if (!dto.getBranch().isEmpty()) {
       header.setBranch(dto.getBranch());
     }
+
+    if (!dto.getReceived().isEmpty()) {
+      header.setReceived(dto.getReceived());
+    }
+
+    if (!dto.getMAddr().isEmpty()) {
+      header.setMAddr(dto.getMAddr());
+    }
+
+    if (dto.getTtl() > 0) {
+      header.setTTL(dto.getTtl());
+    }
+
+    if (dto.getRPortFlag()) {
+      header.setRPort();
+    } 
+
+    if (dto.getRPort() > 0) {
+      header.setParameter("rport", "" + dto.getRPort());
+    }
+
     return header;
   }
 }

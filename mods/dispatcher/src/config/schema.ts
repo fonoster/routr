@@ -54,6 +54,9 @@ export const schema = {
             },
             addr: {
               type: "string"
+            },
+            postProcessor: {
+              type: "boolean"
             }
           },
           required: ["ref", "addr"]

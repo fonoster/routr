@@ -176,7 +176,7 @@ describe("@routr/processor/alterations", () => {
     expect(result).to.have.property("message")
   })
 
-  it.only("converts 'From' and 'To' headers to e164 format", () => {
+  it("converts 'From' and 'To' headers to e164 format", () => {
     const req = createPSTNMessage(request, {
       from: "17853178071",
       to: "46721895538"
@@ -189,7 +189,7 @@ describe("@routr/processor/alterations", () => {
     expect(r.message.requestUri.user).to.be.equal("+46721895538")
   })
 
-  it.only("converts the 'To' header to e164 format and leaves 'From' header unchanged", () => {
+  it("converts the 'To' header to e164 format and leaves 'From' header unchanged", () => {
     const req = createPSTNMessage(request, {
       from: "1001",
       to: "46721895538"

@@ -29,7 +29,11 @@ import {
   findTrunks,
   registrationRequestInputFromTrunk
 } from "./utils"
-import { CommonConnect as CC, CommonErrors as CE } from "@routr/common"
+import {
+  CommonConnect as CC,
+  CommonErrors as CE,
+  CommonTypes as CT
+} from "@routr/common"
 import { getLogger } from "@fonoster/logger"
 import { SIPMessage } from "@routr/common/src/types"
 
@@ -104,7 +108,7 @@ export default function registryService(config: RegistryConfig) {
 
       // TODO: Refactor to use ResponseType instead of string
       const status =
-        message.responseType.toString() == "OK"
+        message.responseType == CT.ResponseType.OK
           ? RegistrationEntryStatus.REGISTERED
           : RegistrationEntryStatus.QUARANTINE
 

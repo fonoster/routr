@@ -22,7 +22,8 @@ import {
   Transport,
   CommonTypes as CT,
   Helper,
-  NetInterface
+  NetInterface,
+  Method
 } from "@routr/common"
 import { IpUtils } from "@routr/common"
 import { Extensions as E, Target as T } from "./index"
@@ -90,3 +91,28 @@ export function createRouteFromLastMessage(request: MessageRequest): Route {
     externalAddrs: request.externalAddrs
   }
 }
+
+export const hasSDP = (request: MessageRequest) =>
+  request.message.body?.length > 0
+
+export const isOk = (request: MessageRequest) =>
+  request.message.responseType === CT.ResponseType.OK
+
+export const isRinging = (request: MessageRequest) =>
+  request.message.responseType === CT.ResponseType.RINGING
+
+export const isWebRTC = (transport: Transport) =>
+  transport === Transport.WS || transport === Transport.WSS
+
+export const isInviteOrAckWithSDP = (request: MessageRequest) =>
+  isTypeRequest(request) &&
+  hasSDP(request) &&
+  (request.method === Method.INVITE || request.method === Method.ACK)
+
+export const isOkOrRingingWithSDP = (request: MessageRequest) =>
+  isTypeResponse(request) &&
+  hasSDP(request) &&
+  (isOk(request) || isRinging(request))
+
+export const isBye = (request: MessageRequest) =>
+  isTypeRequest(request) && request.method === Method.BYE

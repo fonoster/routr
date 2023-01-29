@@ -25,6 +25,7 @@ import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.RequestEventExt;
+import gov.nist.javax.sip.ResponseEventExt;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -204,7 +205,7 @@ public class GRPCSipListener implements SipListener {
     }
 
     try {
-      MessageRequest request = this.messageConverter.createMessageRequest(req, (RequestEventExt) event);
+      MessageRequest request = this.messageConverter.createMessageRequest(req, (RequestEventExt) event, null);
       MessageResponse response = blockingStub.processMessage(request);
 
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
@@ -271,13 +272,19 @@ public class GRPCSipListener implements SipListener {
         return;
       }
 
-      MessageRequest request = this.messageConverter.createMessageRequest(res, null);
+      MessageRequest request = this.messageConverter.createMessageRequest(res, null, 
+        (ResponseEventExt) event);
       MessageResponse response = blockingStub.processMessage(request);
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
 
       // Update reason phrase
       if (response.getMessage().getReasonPhrase() != null) {
         res.setReasonPhrase(response.getMessage().getReasonPhrase());
+      }
+
+      if (!response.getMessage().getBody().isEmpty()) {
+        assert res.getHeader(ContentTypeHeader.NAME) != null;
+        res.setContent(response.getMessage().getBody(), (ContentTypeHeader) res.getHeader(ContentTypeHeader.NAME));
       }
 
       // Removing all the headers of type Via and Contact to avoid duplicates
@@ -425,7 +432,7 @@ public class GRPCSipListener implements SipListener {
   private void sendResponse(final ServerTransaction transaction, final ResponseType type,
       final List<Header> headers, final String reasonPhrase) throws ParseException, InvalidArgumentException, SipException {
     Request request = transaction.getRequest();
-    Response response = this.messageFactory.createResponse(ResponseCode.valueOf(type.toString()).getCode(), request);
+    Response response = this.messageFactory.createResponse(ResponseCode.valueOf(type.name()).getCode(), request);
     
     if (reasonPhrase != null) {
       response.setReasonPhrase(reasonPhrase);

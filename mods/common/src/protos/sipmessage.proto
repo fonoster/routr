@@ -130,6 +130,11 @@ message Via {
   int32 port = 2;
   string branch = 3;
   string transport = 4;
+  bool r_port_flag = 5;
+  int32 r_port = 6;
+  string received = 7;
+  string m_addr = 8;
+  int32 ttl = 9;
 }
 
 message SipURI {

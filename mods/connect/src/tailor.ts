@@ -29,6 +29,7 @@ export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
     A.removeAuthorization,
     A.removeSelfRoutes,
     A.removeXEdgePortRef,
+    A.fixNatedContact,
     A.addSelfVia(route),
     A.applyXHeaders(route),
     A.addSelfRecordRoute(route),

@@ -2,6 +2,24 @@ version: "3.8"
 
 services:
 
+  # RTPEngine requires of network mode "host" to work properly. However, this option doesn't work on OSX.
+  # For developement, we are openining a few port to the host machine. For production, you must use 
+  # the network_mode: host which works on Linux.
+  rtpengine:
+    image: fonoster/rtpengine:latest
+    restart: always
+    # Uncomment the following line for production
+    # network_mode: host
+    environment:
+      # Uncomment and updated with your host IP
+      # PUBLIC_IP: <YOUR_HOST_IP>
+      PORT_MIN: 10000
+      PORT_MAX: 10010
+      LOG_LEVEL: '8'
+    ports:
+      - 22222:22222/udp
+      - 10000-10010:10000-10010/udp
+
   postgres:
     image: postgres:14.1-alpine
     restart: always

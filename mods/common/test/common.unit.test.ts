@@ -23,6 +23,7 @@ import { getObjectProto } from "../src/service"
 import { addressCount, getLocalnetIp, isLocalnet } from "../src/ip_utils"
 import { getRedisUrlFromConfig } from "../src/redis"
 import { createUnauthorizedResponse, getCredentials } from "../src/auth"
+import { ResponseType } from "../src/types"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -137,7 +138,7 @@ describe("@routr/common", () => {
       expect(response)
         .to.have.property("message")
         .to.have.property("responseType")
-        .to.be.equal(17)
+        .to.be.equal(ResponseType.UNAUTHORIZED)
       expect(response)
         .to.have.property("message")
         .to.have.property("wwwAuthenticate")

@@ -35,11 +35,14 @@ async function processMessage(
   request: MessageRequest
 ): Promise<MessageResponse> {
   return new Promise((resolve, reject) => {
-    conn.processMessage(request, (err: { code: number }, response: unknown) => {
-      return err?.code === grpc.status.UNAVAILABLE
-        ? reject(new MiddlewareUnavailableError(middlewareRef))
-        : resolve(response as MessageResponse)
-    })
+    conn.processMessage(
+      request,
+      (err: { code: number }, response: MessageResponse) => {
+        return err?.code === grpc.status.UNAVAILABLE
+          ? reject(new MiddlewareUnavailableError(middlewareRef))
+          : resolve(response)
+      }
+    )
   })
 }
 
@@ -47,25 +50,36 @@ async function processMessage(
 export async function runMiddlewares(
   params: RunMiddlewaresParams
 ): Promise<MessageRequest> {
-  const { connections, request, middlewares = [] } = params
+  const {
+    connections,
+    request,
+    middlewares = [],
+    runPostProcessorMiddlewares
+  } = params
   const req = { ...request }
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, rejects) => {
     // eslint-disable-next-line no-loops/no-loops
     for (const midd of middlewares) {
-      logger.silly("sending request to middleware", {
+      logger.verbose("sending request to middleware", {
         ref: request.ref,
         middlewareRef: midd.ref,
-        addr: midd.addr
+        addr: midd.addr,
+        postProcessor: midd.postProcessor,
+        runPostProcessorMiddlewares
       })
+
+      if (runPostProcessorMiddlewares !== midd.postProcessor) continue
+
       // Get the next middleware
       const conn = connections.get(midd.ref)
+
       // Send message and re-insert response for next middleware
       try {
         req.message = (await processMessage(midd.ref, conn, req))
           .message as unknown as CT.SIPMessage
         if (req.message.messageType === CT.MessageType.RESPONSE) {
-          logger.silly(
+          logger.verbose(
             "found messageType to be responseType and broke the chain",
             {
               ref: request.ref,
@@ -76,7 +90,7 @@ export async function runMiddlewares(
           break
         }
       } catch (e) {
-        rejects(e)
+        return rejects(e)
       }
     }
     resolve(req)

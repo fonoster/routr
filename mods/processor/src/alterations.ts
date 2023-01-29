@@ -55,7 +55,14 @@ export const addSelfVia =
       ...routingObjects,
       endpointIntf: route
     })
-    req.message.via = [{ ...targetIntf }, ...req.message.via]
+
+    req.message.via = [
+      {
+        ...targetIntf,
+        rPortFlag: true
+      },
+      ...req.message.via
+    ]
 
     return req
   }
@@ -257,6 +264,15 @@ export const decreaseMaxForwards = (request: MessageRequest) => {
   if (req.message.maxForwards) {
     req.message.maxForwards.maxForwards =
       req.message.maxForwards.maxForwards - 1
+  }
+  return req
+}
+
+export const fixNatedContact = (request: MessageRequest) => {
+  const req = H.deepCopy(request)
+  if (req.message.contact?.address.uri.host.includes(".invalid")) {
+    req.message.contact.address.uri.host = request.sender.host
+    req.message.contact.address.uri.port = request.sender.port
   }
   return req
 }

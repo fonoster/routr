@@ -27,10 +27,10 @@ import {
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import { findProcessor, hasMethod } from "../src/find_processor"
-import { getConfig } from "../src/config/get_config"
 import connectToBackend from "../src/connections"
 import processor from "../src/processor"
+import { findProcessor, hasMethod } from "../src/find_processor"
+import { getConfig } from "../src/config/get_config"
 import { ProcessorCallback, RunProcessorParams } from "../src/types"
 
 const expect = chai.expect
@@ -124,46 +124,37 @@ describe("@routr/dispatcher", () => {
   })
 
   describe("processor", () => {
-    it("callback gets invoke with an error", (done) => {
+    it("callback gets invoke with an error", async () => {
       sandbox.stub(PROCESSOR_OBJECT_PROTO as any, "Processor").returns({
         processMessage: (_: unknown, callback: any) => {
           callback(new Error())
         }
       })
 
-      processor({ processors: [config1] })(
-        { request: messageRequest } as unknown as RunProcessorParams,
+      await processor({ processors: [config1] })(
+        { request: messageRequest } as RunProcessorParams,
         (err: Error) => {
-          if (err) {
-            done()
-          } else {
-            done("if it gets here there is a problem :(")
-          }
+          expect(err).to.be.null
         }
       )
     })
 
-    it("it invokes callback with correct response", (done) => {
+    it("it invokes callback with correct response", async () => {
       sandbox.stub(PROCESSOR_OBJECT_PROTO as any, "Processor").returns({
         processMessage: (request: unknown, callback: any) => {
           callback(null, request)
         }
       })
 
-      processor({ processors: [config1] })(
-        { request: messageRequest } as unknown as RunProcessorParams,
+      await processor({ processors: [config1] })(
+        { request: messageRequest } as RunProcessorParams,
         (err: Error, response: any) => {
-          if (err) {
-            done(err)
-          } else {
-            expect(response).to.be.deep.equal(messageRequest)
-            done()
-          }
+          expect(response).to.be.deep.equal(messageRequest)
         }
       )
     })
 
-    it("callback gets invoke with error 14(service unavailable)", (done) => {
+    it("callback gets invoke with error 14(service unavailable)", async () => {
       sandbox.stub(PROCESSOR_OBJECT_PROTO as any, "Processor").returns({
         processMessage: (_: unknown, callback: ProcessorCallback) => {
           callback({
@@ -172,13 +163,12 @@ describe("@routr/dispatcher", () => {
         }
       })
 
-      processor({ processors: [config1] })(
-        { request: messageRequest } as unknown as RunProcessorParams,
+      await processor({ processors: [config1] })(
+        { request: messageRequest } as RunProcessorParams,
         (err: any) => {
           expect(err?.toString()).to.be.include(
             "processor ref = processor-ref1 is unavailable"
           )
-          done()
         }
       )
     })
@@ -193,7 +183,7 @@ describe("@routr/dispatcher", () => {
     expect(processorObjectProtoStub).to.have.been.calledTwice
   })
 
-  it("gets configuration from file", (done) => {
+  it("gets configuration from file", async () => {
     const result = getConfig(__dirname + "/../../../config/dispatcher.yaml")
     if (result._tag === "Right") {
       const config = result.right
@@ -201,9 +191,6 @@ describe("@routr/dispatcher", () => {
       expect(config.processors[0])
         .to.have.property("ref")
         .to.be.equal("connect-processor")
-      done()
-    } else {
-      done(result.left)
     }
   })
 })

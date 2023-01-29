@@ -16,13 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest } from "@routr/common"
+import { MessageRequest, CommonTypes as CT } from "@routr/common"
 
-const buildResponse = (
-  code: number,
+const buildResponse = (info: {
+  code: string | number
+  reasonPhrase?: string
   extraHeaders?: Array<{ name: string; value: string }>
-) => {
-  return { message: { responseType: code, extensions: extraHeaders } }
+}) => {
+  return {
+    message: {
+      responseType: info.code,
+      reasonPhrase: info.reasonPhrase,
+      extensions: info.extraHeaders
+    }
+  }
 }
 
 /**
@@ -46,28 +53,62 @@ export default class Response {
    * @param {object[]} extraHeaders - Optional extra headers to be sent.
    */
   sendOk(extraHeaders?: Array<{ name: string; value: string }>) {
-    this.callback(null, buildResponse(7, extraHeaders))
+    this.callback(
+      null,
+      buildResponse({ code: CT.ResponseType.OK, extraHeaders })
+    )
   }
 
   /**
    * Sends a method not allowed response.
    */
   sendMethodNotAllowed() {
-    this.callback(null, buildResponse(21))
+    this.callback(
+      null,
+      buildResponse({
+        code: CT.ResponseType.METHOD_NOT_ALLOWED,
+        reasonPhrase: "Method Not Allowed"
+      })
+    )
   }
 
   /**
    * Sends a not found response.
    */
   sendNotFound() {
-    this.callback(null, buildResponse(20))
+    this.callback(
+      null,
+      buildResponse({
+        code: CT.ResponseType.NOT_FOUND,
+        reasonPhrase: "Not Found"
+      })
+    )
   }
 
   /**
    * Sends a not implemented response.
    */
   sendNotImplemented() {
-    this.callback(null, buildResponse(47))
+    this.callback(
+      null,
+      buildResponse({
+        code: CT.ResponseType.NOT_IMPLEMENTED,
+        reasonPhrase: "Not Implemented"
+      })
+    )
+  }
+
+  /**
+   * Sends a internal server error response.
+   */
+  sendInternalServerError() {
+    this.callback(
+      null,
+      buildResponse({
+        code: CT.ResponseType.SERVER_INTERNAL_ERROR,
+        reasonPhrase: "Internal Server Error"
+      })
+    )
   }
 
   /**
@@ -83,6 +124,7 @@ export default class Response {
    * Sends an error response.
    *
    * @param {Error} error - The error to be sent.
+   * @deprecated
    */
   sendError(error: Error) {
     this.callback(error, null)

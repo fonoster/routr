@@ -21,10 +21,11 @@ import { ProcessorConfig } from "@routr/common"
 import { RunProcessorParams } from "./types"
 import { runProcessor } from "./run_processor"
 import { CommonTypes as CT } from "@routr/common"
+import { Helper as H } from "@routr/processor"
 import { runMiddlewares } from "./run_middlewares"
-import { getLogger } from "@fonoster/logger"
 
-const logger = getLogger({ service: "dispatcher", filePath: __filename })
+const isErrorResponse = (request: CT.MessageRequest): boolean =>
+  H.isTypeResponse(request) && !H.isOk(request) && !H.isRinging(request)
 
 /**
  * Creates a new instance of Processor.
@@ -42,33 +43,52 @@ export default function processor(params: {
 
   // Upstream request and callback
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (call: RunProcessorParams, callback: any): void => {
+  return async (call: RunProcessorParams, callback: any): Promise<void> => {
     const { request } = call
+    try {
+      if (isErrorResponse(request)) {
+        callback(
+          null,
+          await runProcessor({
+            request,
+            processors,
+            connections: procConns
+          })
+        )
+        return
+      }
 
-    // Messages type reponse will not be sent to middleware chain
-    if (request.message.messageType === CT.MessageType.RESPONSE) {
-      return runProcessor({
-        callback,
+      const preProcessorRequest = await runMiddlewares({
         request,
+        middlewares,
+        connections: middConns,
+        runPostProcessorMiddlewares: false
+      })
+
+      if (isErrorResponse(request)) {
+        return callback(null, preProcessorRequest)
+      }
+
+      const processedRequest = await runProcessor({
+        request: preProcessorRequest,
         processors,
         connections: procConns
       })
-    }
 
-    runMiddlewares({ callback, request, middlewares, connections: middConns })
-      .then((req: CT.MessageRequest) => {
-        // Since the chain was broken we need to skip the processor and return the updated request
-        if (req.message.messageType === CT.MessageType.RESPONSE) {
-          logger.silly("skipped processsing request", { ref: req.ref })
-          return callback(null, req)
-        }
-        runProcessor({
-          callback,
-          request: req,
-          processors,
-          connections: procConns
-        })
+      if (isErrorResponse(request)) {
+        return callback(null, processedRequest)
+      }
+
+      const postProcessorRequest = await runMiddlewares({
+        request: processedRequest,
+        middlewares,
+        connections: middConns,
+        runPostProcessorMiddlewares: true
       })
-      .catch(callback)
+
+      return callback(null, postProcessorRequest)
+    } catch (err) {
+      return callback(err, null)
+    }
   }
 }

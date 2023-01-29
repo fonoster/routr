@@ -309,11 +309,16 @@ public class ConverterTests {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     ViaConverter converter = new ViaConverter();
     Via header = (Via) factory.createViaHeader("sip.local", 5060, "tcp", null);
+    header.setReceived("127.0.0.1");
+    header.setRPort();
+
     io.routr.message.Via viaDTO = converter.fromHeader(header);
     Via headerFromDto = converter.fromDTO(viaDTO);
 
     assertEquals("sip.local", header.getHost());
     assertEquals(viaDTO.getHost(), header.getHost());
+    assertEquals(headerFromDto.getReceived(), header.getReceived());
+    assertEquals(headerFromDto.getRPort(), header.getRPort());
     assertEquals(headerFromDto.getHost(), header.getHost());
   }
 

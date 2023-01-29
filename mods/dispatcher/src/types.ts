@@ -46,15 +46,14 @@ export type ProcessorCallback = (
 ) => void
 
 export interface RunProcessorParams {
-  callback: CT.GrpcCallback
   connections: Map<string, ProcessorGPRCConnection>
   processors: ProcessorConfig[]
   request: MessageRequest
 }
 
 export interface RunMiddlewaresParams {
-  callback: CT.GrpcCallback
   connections: Map<string, ProcessorGPRCConnection>
   middlewares: CT.MiddlewareConfig[]
   request: MessageRequest
+  runPostProcessorMiddlewares: boolean
 }

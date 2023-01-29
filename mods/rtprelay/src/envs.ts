@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -16,11 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from "./api"
-export * from "./client"
-export * from "./types"
-export * from "./config"
-export * from "./mappers"
-export * from "./assertions"
-export * from "./validations"
-export * from "./connect_error"
+import { Assertions as A } from "@routr/common"
+
+A.assertEnvsAreSet(["RTPENGINE_HOST"])
+
+export const RTPENGINE_HOST = process.env.RTPENGINE_HOST
+export const RTPENGINE_PORT = parseInt(process.env.RTPENGINE_PORT ?? "22222")
+export const RTPENGINE_TIMEOUT = parseInt(
+  process.env.RTPENGINE_TIMEOUT ?? "5000"
+)

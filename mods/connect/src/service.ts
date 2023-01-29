@@ -23,7 +23,6 @@ import { handleRegister, handleRegistry, handleRequest } from "./handlers"
 import Processor, {
   Alterations as A,
   Helper as H,
-  Helper as HE,
   Extensions as E,
   Response
 } from "@routr/processor"
@@ -57,10 +56,11 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
         return res.send(A.removeTopVia(req))
       }
 
-      switch (req.method.toString()) {
+      switch (req.method) {
         case Method.PUBLISH:
         case Method.NOTIFY:
         case Method.SUBSCRIBE:
+        case Method.MESSAGE:
           res.sendMethodNotAllowed()
           break
         case Method.REGISTER:
@@ -75,7 +75,7 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           break
         case Method.BYE:
         case Method.ACK:
-          res.send(tailor(HE.createRouteFromLastMessage(req), req))
+          res.send(tailor(H.createRouteFromLastMessage(req), req))
           break
         default:
           handleRequest(location, CC.apiClient({ apiAddr: config.apiAddr }))(

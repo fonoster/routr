@@ -22,6 +22,7 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.GeneratedMessageV3;
 import gov.nist.javax.sip.header.*;
 import gov.nist.javax.sip.RequestEventExt;
+import gov.nist.javax.sip.ResponseEventExt;
 import io.routr.common.Transport;
 import io.routr.message.ResponseType;
 import io.routr.message.SIPMessage;
@@ -72,7 +73,7 @@ public class MessageConverter {
     }
 
     if(message.getContent() != null) {
-      sipMessageBuilder.setBody(message.getContent().toString());
+      sipMessageBuilder.setBody(new String(message.getRawContent()));
     }
 
     // Getting a list of names of all headers present on SIP Message
@@ -191,16 +192,34 @@ public class MessageConverter {
     return headers;
   }
 
-  static public NetInterface getSender(final RequestEventExt event) {
+  static public NetInterface getSenderFromRequest(final RequestEventExt event) {
     if (event == null) {
       return NetInterface.newBuilder().build();
     }
 
     Request request = event.getRequest();
     ViaHeader via = (ViaHeader) request.getHeader(ViaHeader.NAME);
+    return MessageConverter.getSenderFromVia(via);
+  }
+
+  static public NetInterface getSenderFromResponse(final ResponseEventExt event) {
+    if (event == null) {
+      return NetInterface.newBuilder().build();
+    }
+
+    Response response = event.getResponse();
+    ViaHeader via = (ViaHeader) response.getHeader(ViaHeader.NAME);
+    return MessageConverter.getSenderFromVia(via);
+  }
+
+  static public NetInterface getSenderFromVia(final ViaHeader via) {
+    if (via == null) {
+      return NetInterface.newBuilder().build();
+    }
+
     return NetInterface.newBuilder()
-      .setHost(event.getRemoteIpAddress())
-      .setPort(event.getRemotePort())
+      .setHost(via.getHost())
+      .setPort(via.getPort())
       .setTransport(Transport.valueOf(via.getTransport().toUpperCase()))
       .build();
   }
@@ -217,12 +236,21 @@ public class MessageConverter {
     return new ExtensionConverter();
   }
 
-  public MessageRequest createMessageRequest(final Message message, final RequestEventExt event) {
+  public MessageRequest createMessageRequest(final Message message, final RequestEventExt requestEvent, 
+    final ResponseEventExt responseEvent) {
     String methodStr = null;
     if (message instanceof Request) {
       methodStr = ((Request) message).getMethod();
     } else {
       methodStr = ((CSeq) (message).getHeader(CSeq.NAME)).getMethod();
+    }
+
+    NetInterface sender = NetInterface.newBuilder().build();
+
+    if (requestEvent != null) {
+      sender = getSenderFromRequest(requestEvent);
+    } else if (responseEvent != null) {
+      sender = getSenderFromResponse(responseEvent);
     }
 
     String callId = ((CallIdHeader) message.getHeader(CallIdHeader.NAME)).getCallId();
@@ -234,7 +262,7 @@ public class MessageConverter {
       .setRef(callId)
       .setEdgePortRef(this.edgePortRef)
       .setMethod(method)
-      .setSender(getSender(event))
+      .setSender(sender)
       .addAllListeningPoints(this.listeningPoints)
       .addAllExternalAddrs(this.externalAddrs)
       .addAllLocalnets(this.localnets)

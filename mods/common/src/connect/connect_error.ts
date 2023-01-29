@@ -1,5 +1,3 @@
-import { HeaderModifier, HeaderModifierAction, ResponseType } from "../types"
-
 /*
  * Copyright (C) 2022 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
@@ -18,6 +16,8 @@ import { HeaderModifier, HeaderModifierAction, ResponseType } from "../types"
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HeaderModifier, HeaderModifierAction, ResponseType } from "../types"
+
 export const CodeToResponseTypeMap = {
   401: ResponseType.UNAUTHORIZED,
   403: ResponseType.FORBIDDEN,

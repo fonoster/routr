@@ -16,12 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as grpc from "@grpc/grpc-js"
+import ot from "@opentelemetry/api"
 import { ProcessorUnavailableError } from "./errors"
 import { findProcessor } from "./find_processor"
 import { RunProcessorParams } from "./types"
-import ot from "@opentelemetry/api"
-import * as grpc from "@grpc/grpc-js"
 import { getLogger } from "@fonoster/logger"
+import { MessageRequest } from "@routr/common"
 
 const logger = getLogger({ service: "dispatcher", filePath: __filename })
 
@@ -29,35 +30,41 @@ const logger = getLogger({ service: "dispatcher", filePath: __filename })
  * Runs the processor.
  *
  * @param {RunProcessorParams} params - The parameters for the run processor
- * @return {Promise<any>}
+ * @return {Promise<MessageRequest>}
  */
-export function runProcessor(params: RunProcessorParams) {
+export async function runProcessor(
+  params: RunProcessorParams
+): Promise<MessageRequest> {
   const currentSpan = ot.trace.getSpan(ot.context.active())
-  // display traceid in the terminal
-  logger.silly(`traceid: ${currentSpan?.spanContext().traceId}`)
-  const tracer = ot.trace.getTracer("routr-tracer")
-  const span = tracer.startSpan("server.js:sayHello()", { kind: 1 })
-  span.addEvent("invoking sayHello() to...")
+  // Display traceid in the terminal
+  logger.verbose(`traceid: ${currentSpan?.spanContext().traceId}`)
 
-  const { callback, connections, processors, request } = params
-  const matchResult = findProcessor(processors)(request)
+  const { connections, processors, request } = params
 
-  if ("code" in matchResult) {
-    return callback(matchResult)
-  }
+  return new Promise((resolve, reject) => {
+    const matchResult = findProcessor(processors)(request)
 
-  logger.silly("forwarding request to processor", {
-    processorRef: matchResult.ref
-  })
-
-  const conn = connections.get(matchResult.ref)
-  // Connects to downstream processor
-  conn.processMessage(request, (err: { code: number }, response: unknown) => {
-    if (err?.code === grpc.status.UNAVAILABLE) {
-      // We augment the error to indicate which processor failed
-      callback(new ProcessorUnavailableError(matchResult.ref))
-      return
+    if ("code" in matchResult) {
+      return reject(matchResult)
     }
-    callback(err, response)
+
+    const conn = connections.get(matchResult.ref)
+
+    logger.verbose("forwarding request to processor", { ref: matchResult.ref })
+
+    conn.processMessage(
+      request,
+      (err: { code: number }, result: MessageRequest) => {
+        if (err?.code === grpc.status.UNAVAILABLE) {
+          // We augment the error to indicate which processor failed
+          return reject(new ProcessorUnavailableError(matchResult.ref))
+        }
+
+        resolve({
+          ...request,
+          ...result
+        })
+      }
+    )
   })
 }

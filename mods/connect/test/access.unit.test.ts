@@ -23,7 +23,8 @@ import { apiClient } from "./mock_apis"
 import { findResource } from "../src/utils"
 import { checkAccessFromPSTN, checkAgentOrPeerAccess } from "../src/access"
 import { createRequest } from "./examples"
-import { INumber } from "@routr/common/dist/connect"
+import { INumber } from "@routr/common/src/connect"
+import { ResponseType } from "@routr/common/src/types"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -76,7 +77,7 @@ describe("@routr/connect/access", () => {
     // Assert
     expect(result)
       .to.be.have.property("message")
-      .to.have.property("responseType", 17)
+      .to.have.property("responseType", ResponseType.UNAUTHORIZED)
   })
 
   it("allows request from pstn", async () => {
@@ -125,6 +126,6 @@ describe("@routr/connect/access", () => {
     // It fails because the response in the authorization header doen't match the one from the API
     expect(result)
       .to.be.have.property("message")
-      .to.have.property("responseType", 17)
+      .to.have.property("responseType", ResponseType.UNAUTHORIZED)
   })
 })
