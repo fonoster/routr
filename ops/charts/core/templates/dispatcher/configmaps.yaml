@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: voipnet-routr-dispatcher-config
+  namespace: default
+data:
+  dispatcher.yaml: |-
+    kind: MessageDispatcher
+    apiVersion: v2draft1
+    ref: message-dispatcher
+    spec:
+      bindAddr: 0.0.0.0:51901
+      processors:
+        - ref: connect-processor
+          addr: connect:51904
+          matchFunc: req => true
+          methods:
+            - REGISTER
+            - INVITE
+            - ACK
+            - BYE
+            - CANCEL

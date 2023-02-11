@@ -25,7 +25,6 @@ import {
 } from "@routr/common"
 import { PrismaUpdateOperation } from "../types"
 import { getManager } from "../mappers/utils"
-import { Kind } from "@routr/common/src/connect"
 import { PrismaClient } from "@prisma/client"
 
 // TODO: The entire function should be wrapped in a transaction
@@ -49,7 +48,7 @@ export function update(
 
       manager.validOrThrowUpdate()
 
-      if (kind === Kind.DOMAIN) {
+      if (kind === CC.Kind.DOMAIN) {
         await prisma.egressPolicy.deleteMany({
           where: {
             domainRef: request.ref
@@ -57,7 +56,7 @@ export function update(
         })
       }
 
-      if (kind === Kind.TRUNK) {
+      if (kind === CC.Kind.TRUNK) {
         await prisma.trunkURI.deleteMany({
           where: {
             trunkRef: request.ref

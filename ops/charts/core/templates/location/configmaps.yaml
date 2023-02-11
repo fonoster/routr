@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: voipnet-routr-location-config
+  namespace: default
+data:
+  location.yaml: |-
+    kind: Location
+    apiVersion: v2draft1
+    metadata:
+      region: us-east1
+    spec:
+      bindAddr: 0.0.0.0:51902
+      cache:
+        provider: memory

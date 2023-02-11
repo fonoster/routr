@@ -1,0 +1,10 @@
+apiVersion: v2
+name: routr-connect
+description: Routr Connect Helm Chart
+type: application
+version: 0.1.0
+appVersion: 1.16.0
+dependencies:
+  - name: routr-core
+    version: 0.1.0
+    repository: file://../core

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voipnet-routr-dispatcher
+  labels:
+    app: routr-dispatcher
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: routr-dispatcher
+  template:
+    metadata:
+      labels:
+        app: routr-dispatcher
+    spec:
+      containers:
+      - name: routr-dispatcher
+        image: fonoster/routr-dispatcher:latest
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: CONFIG_PATH
+            value: /etc/routr/dispatcher.yaml
+          - name: LOGS_LEVEL
+            value: verbose
+          - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+            value: http://jaeger:14268/api/traces            
+        ports:
+          - containerPort: 51901 
+        volumeMounts:
+          - name: config
+            mountPath: /etc/routr/dispatcher.yaml
+            subPath: dispatcher.yaml
+      volumes:
+        - name: config
+          configMap:
+            name: voipnet-routr-dispatcher-config

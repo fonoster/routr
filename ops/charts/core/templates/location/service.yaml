@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: voipnet-routr-location
+  labels:
+    app: routr-location
+spec:
+  ports:
+  - port: 51902
+    targetPort: 51902
+  selector:
+    app: routr-location

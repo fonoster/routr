@@ -1,0 +1,6 @@
+dependencies:
+- name: routr-core
+  repository: file://../core
+  version: 0.1.0
+digest: sha256:6c458cd22f5779c87fe1db9768c80ef832cdbeb76d3712d7d7ff66e438cf0b0f
+generated: "2023-02-09T21:37:56.320605-05:00"

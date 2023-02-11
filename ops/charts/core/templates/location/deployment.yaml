@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voipnet-routr-location
+  labels:
+    app: routr-location
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: routr-location
+  template:
+    metadata:
+      labels:
+        app: routr-location
+    spec:
+      containers:
+      - name: routr-location
+        image: fonoster/routr-location:latest
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: CONFIG_PATH
+            value: /etc/routr/location.yaml
+          - name: LOGS_LEVEL
+            value: verbose
+          - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+            value: http://jaeger:14268/api/traces            
+        ports:
+          - containerPort: 51902 
+        volumeMounts:
+          - name: config
+            mountPath: /etc/routr/location.yaml
+            subPath: location.yaml
+      volumes:
+        - name: config
+          configMap:
+            name: voipnet-routr-location-config

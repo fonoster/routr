@@ -1,0 +1,11 @@
+# WTF
+global:
+  postgresql:
+    auth:
+      username: postgres
+      password: postgres
+
+postgresql:
+  auth:
+    username: postgres
+    password: postgres

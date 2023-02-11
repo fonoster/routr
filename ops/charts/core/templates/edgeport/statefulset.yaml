@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: voipnet-routr-edgeport
+  labels:
+    app: routr-edgeport
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: routr-edgeport
+  serviceName: edgeport
+  minReadySeconds: 10
+  template:
+    metadata:
+      labels:
+        app: routr-edgeport
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: routr-edgeport
+        image: fonoster/routr-edgeport:latest
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: CONFIG_PATH
+            value: /etc/routr/edgeport.yaml
+          - name: LOG4J2
+            value: /etc/routr/log4j2.yaml
+          - name: LOGS_LEVEL
+            value: verbose
+          - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+            value: http://jaeger:14268/api/traces            
+        ports:
+        - name: siptcp
+          containerPort: 5060
+          protocol: TCP
+        - name: sipudp
+          containerPort: 5060
+          protocol: UDP     
+        volumeMounts:
+          - name: config
+            mountPath: /etc/routr/log4j2.yaml
+            subPath: log4j2.yaml
+          - name: config
+            mountPath: /etc/routr/edgeport.yaml
+            subPath: edgeport.yaml
+      volumes:
+        - name: config
+          configMap:
+            name: voipnet-routr-edgeport-config
