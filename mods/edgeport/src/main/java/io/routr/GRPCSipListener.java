@@ -72,6 +72,11 @@ public class GRPCSipListener implements SipListener {
     String bindAddr = (String) spec.getMember("bindAddr");
     String edgePortRef = (String) values.getMember("ref");
 
+    // If running in K8s we set the edgeport ref to the pod name
+    if (System.getenv("HOSTNAME") != null) {
+      edgePortRef = System.getenv("HOSTNAME");
+    }
+
     if (localnets.isEmpty()) {
       try {
         Enumeration<java.net.NetworkInterface> nets = java.net.NetworkInterface.getNetworkInterfaces();

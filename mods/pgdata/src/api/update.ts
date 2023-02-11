@@ -18,11 +18,11 @@
  */
 /* eslint-disable require-jsdoc */
 import { JsonObject, struct } from "pb-util"
-import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
 import {
-  BadRequestError,
-  ResourceNotFoundError
-} from "@routr/common/src/errors"
+  CommonTypes as CT,
+  CommonConnect as CC,
+  CommonErrors as CE
+} from "@routr/common"
 import { PrismaUpdateOperation } from "../types"
 import { getManager } from "../mappers/utils"
 import { Kind } from "@routr/common/src/connect"
@@ -82,10 +82,10 @@ export function update(
       callback(null, Manager.mapToDto(objectFromDB as any))
     } catch (e) {
       if (e.code === "P2025") {
-        callback(new ResourceNotFoundError(call.request.ref), null)
+        callback(new CE.ResourceNotFoundError(call.request.ref), null)
       } else if (e.code === "P2003") {
         callback(
-          new BadRequestError(
+          new CE.BadRequestError(
             "dependent entity doesn't exist for: " + e.meta.field_name
           ),
           null

@@ -5,11 +5,11 @@ services:
   # Main EdgePort server
   edgeport01:
     container_name: edgeport01
-    image: fonoster/edgeport
+    image: fonoster/routr-edgeport
     build: ./mods/edgeport
     environment:
       CONFIG_PATH: /etc/routr/edgeport.yaml
-      LOG4J2: /etc/routr/log4j2.yml
+      LOG4J2: /etc/routr/log4j2.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     ports:
@@ -19,7 +19,7 @@ services:
       - 5062:5062
       - 5063:5063
     volumes:
-      - ./config/log4j2.yml:/etc/routr/log4j2.yml
+      - ./config/log4j2.yaml:/etc/routr/log4j2.yaml
       - ./config/edgeport.yaml:/etc/routr/edgeport.yaml
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
     networks:
@@ -33,11 +33,11 @@ services:
   # Secondary EdgePort server
   edgeport02:
     container_name: edgeport02
-    image: fonoster/edgeport
+    image: fonoster/routr-edgeport
     build: ./mods/edgeport
     environment:
       CONFIG_PATH: /etc/routr/edgeport.yaml
-      LOG4J2: /etc/routr/log4j2.yml
+      LOG4J2: /etc/routr/log4j2.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     ports:
@@ -47,7 +47,7 @@ services:
       - 6062:6062
       - 6063:6063
     volumes:
-      - ./config/log4j2.yml:/etc/routr/log4j2.yml
+      - ./config/log4j2.yaml:/etc/routr/log4j2.yaml
       - ./config/edgeport.alt.yaml:/etc/routr/edgeport.yaml
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
     networks:
@@ -61,7 +61,7 @@ services:
   # Takes care of routing traffic from the EdgePort servers
   dispatcher:
     container_name: dispatcher
-    image: fonoster/dispatcher
+    image: fonoster/routr-dispatcher
     build: ./mods/dispatcher
     environment:
       CONFIG_PATH: /etc/routr/dispatcher.yaml
@@ -78,7 +78,7 @@ services:
   # Store the location to all SIP endpoints in the network
   location:
     container_name: location
-    image: fonoster/location
+    image: fonoster/routr-location
     build: ./mods/location
     environment:
       CONFIG_PATH: /etc/routr/location.yaml
@@ -95,7 +95,7 @@ services:
   # Connect processor
   connect:
     container_name: connect
-    image: fonoster/connect
+    image: fonoster/routr-connect
     build: ./mods/connect
     environment:
       LOCATION_ADDR: location:51902
@@ -111,7 +111,7 @@ services:
   # Simple data API
   simpledata:
     container_name: simpledata
-    image: fonoster/simpledata
+    image: fonoster/routr-simpledata
     build: ./mods/simpledata
     environment:
       PATH_TO_RESOURCES: /etc/routr/resources
@@ -128,16 +128,16 @@ services:
   # Takes gRPC requests and sends them to an EdgePort
   requester:
     container_name: requester
-    image: fonoster/requester
+    image: fonoster/routr-requester
     build: ./mods/requester
     environment:
-      LOG4J2: /etc/routr/log4j2.yml
+      LOG4J2: /etc/routr/log4j2.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51909
     volumes:
-      - ./config/log4j2.yml:/etc/routr/log4j2.yml
+      - ./config/log4j2.yaml:/etc/routr/log4j2.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.9
@@ -145,7 +145,7 @@ services:
   # Sends registration request on behalf of trunks
   registry:
     container_name: registry
-    image: fonoster/registry
+    image: fonoster/routr-registry
     build: ./mods/registry
     environment:
       CONFIG_PATH: /etc/routr/registry.yaml

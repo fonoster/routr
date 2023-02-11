@@ -19,15 +19,14 @@
 /* eslint-disable require-jsdoc */
 import * as grpc from "@grpc/grpc-js"
 import { PrismaClientInitializationError } from "@prisma/client/runtime"
-import { CommonTypes as CT } from "@routr/common"
-import { BadRequestError } from "@routr/common/src/errors"
+import { CommonTypes as CT, CommonErrors as CE } from "@routr/common"
 import { PrismaOperation } from "../types"
 
 // TODO: Fix the error handling. We should return the error
 export function del(operation: PrismaOperation) {
   return async (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (!call.request.ref) {
-      return callback(new BadRequestError("parameter ref is required"), null)
+      return callback(new CE.BadRequestError("parameter ref is required"), null)
     }
 
     try {

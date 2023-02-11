@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 export HOME="$(cd "$(dirname "$0")"; pwd)"
 
-[ -z "$LOG4J2" ] && LOG4J2=config/log4j2.yml
+[ -z "$LOG4J2" ] && LOG4J2=config/log4j2.yaml
 [ -z "$CONFIG_PATH" ] && export CONFIG_PATH=$(pwd)/config/edgeport.yaml
 [ -z "$JAVA_HOME" ] && { echo "Could not find a runtime environment. Please setup environment variable JAVA_HOME"; exit 1; }
 
