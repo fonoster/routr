@@ -1,6 +1,6 @@
 {
   "name": "@routr/rtprelay",
-  "version": "2.0.8-alpha.29",
+  "version": "2.0.8-alpha.30",
   "description": "Media Relay for Routr using RTPengine",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -28,8 +28,8 @@
     "@opentelemetry/sdk-trace-base": "^1.0.4",
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
-    "@routr/common": "^2.0.8-alpha.29",
-    "@routr/processor": "^2.0.8-alpha.29",
+    "@routr/common": "^2.0.8-alpha.30",
+    "@routr/processor": "^2.0.8-alpha.30",
     "rtpengine-client": "^0.4.11"
   },
   "files": [
