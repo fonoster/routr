@@ -15,10 +15,16 @@ services:
       # PUBLIC_IP: <YOUR_HOST_IP>
       PORT_MIN: 10000
       PORT_MAX: 10010
-      LOG_LEVEL: '8'
+      LOG_LEVEL: 8
     ports:
       - 22222:22222/udp
       - 10000-10010:10000-10010/udp
+
+  redis:
+    image: redis:7.0.8-alpine
+    restart: always
+    ports:
+      - 6379:6379
 
   postgres:
     image: postgres:14.1-alpine
@@ -29,7 +35,7 @@ services:
       - TZ=UTC
       - PGTZ=UTC
     ports:
-      - '5432:5432'
+      - 5432:5432
     volumes:
       - db:/var/lib/postgresql/data
 
@@ -39,7 +45,7 @@ services:
     environment:
       - ADMINER_DEFAULT_SERVER=postgres
     ports:
-      - '8080:8080'
+      - 8080:8080
 
 volumes:
   db:

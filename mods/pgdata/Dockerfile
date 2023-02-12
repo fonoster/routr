@@ -7,6 +7,9 @@ WORKDIR /scripts
 RUN apk add --no-cache --update curl tini nodejs npm python3 make cmake g++ \
   && npm pack \
   && npm install -g routr-*.tgz \
+  && cp schema.prisma /usr/local/lib/node_modules/@routr/pgdata/ \
+  && cd /usr/local/lib/node_modules/@routr/pgdata/ \
+  && npx prisma generate \
   && link /usr/local/bin/run_pgdata /usr/local/bin/run \
   && rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/* \
   && apk del curl python3 make cmake g++

@@ -15,6 +15,7 @@
     "start:requester": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./mods/requester/requester.sh",
     "start:rtprelay": "cross-env  NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/rtprelay/src/runner",
     "rtpengine:up": "docker-compose -f docker-compose.dev.yml up rtpengine -d",
+    "redis:up": "docker-compose -f docker-compose.dev.yml up redis -d",
     "db:up": "docker-compose -f docker-compose.dev.yml up postgres adminer -d",
     "db:down": "docker-compose -f docker-compose.dev.yml down",
     "db:migrate": "npx prisma migrate dev --schema ./mods/pgdata/schema.prisma --name changeit --preview-feature",
