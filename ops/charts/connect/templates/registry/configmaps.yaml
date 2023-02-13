@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-routr-registry-config
+  namespace: {{ .Release.Namespace }}
+data:
+  registry.yaml: |-
+    kind: Registry
+    apiVersion: v2draft1
+    spec:
+      requesterAddr: {{ .Release.Name }}-routr-requester.{{ .Release.Namespace }}:51909
+      apiAddr: {{ .Release.Name }}-routr-apiserver.{{ .Release.Namespace }}:51907
+      registerInterval: 20
+      cache:
+        provider: memory
+      methods:
+        - INVITE
+        - MESSAGE
+      edgePorts:
+        - address: {{ .Release.Name }}-routr-edgeport.{{ .Release.Namespace }}:5060

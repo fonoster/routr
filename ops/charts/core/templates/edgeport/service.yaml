@@ -1,18 +1,45 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: voipnet-routr-edgeport
+  name: {{ .Release.Name }}-routr-edgeport
+  namespace: {{ .Release.Namespace }}  
   labels:
-    app: routr-edgeport
+    app: routr
+    service: edgeport
 spec:
+  type: LoadBalancer
+  # externalIPs: {{ .Values.edgeport.externalAddrs }}
   ports:
-  - name: siptcp
-    port: 5060
-    targetPort: 5060
-    protocol: TCP
-  - name: sipudp
-    port: 5060
-    targetPort: 5060
-    protocol: UDP    
+  {{- if .Values.edgeport.transport.tcp.enabled }}
+    - name: siptcp
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.tcp.port }}
+      targetPort: {{ .Values.edgeport.transport.tcp.port }}
+  {{- end }}
+  {{- if .Values.edgeport.transport.udp.enabled }}
+    - name: sipudp
+      protocol: UDP
+      port: {{ .Values.edgeport.transport.udp.port }}
+      targetPort: {{ .Values.edgeport.transport.udp.port }}
+  {{- end }}
+  {{- if .Values.edgeport.transport.tls.enabled }}
+    - name: siptls
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.tls.port }}
+      targetPort: {{ .Values.edgeport.transport.tls.port }}
+  {{- end }}      
+  {{- if .Values.edgeport.transport.ws.enabled }}
+    - name: sipws
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.ws.port }}
+      targetPort: {{ .Values.edgeport.transport.ws.port }}
+  {{- end }}
+  {{- if .Values.edgeport.transport.wss.enabled }}
+    - name: sipwss
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.wss.port }}
+      targetPort: {{ .Values.edgeport.transport.wss.port }}
+  {{- end }}   
   selector:
-    app: routr-edgeport
+    app: routr
+    service: edgeport

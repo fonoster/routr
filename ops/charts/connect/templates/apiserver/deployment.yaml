@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-routr-apiserver
+  namespace: {{ .Release.Namespace }}  
+  labels:
+    app: routr
+    service: apiserver
+spec:
+  selector:
+    matchLabels:
+      app: routr
+      service: apiserver
+  template:
+    metadata:
+      labels:
+        app: routr
+        service: apiserver
+    spec:
+      securityContext:
+        runAsUser: {{ .Values.apiserver.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.apiserver.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.apiserver.securityContext.fsGroup }}
+      containers:
+        - name: apiserver
+          image: "{{ .Values.apiserver.image.repository }}:{{ .Values.apiserver.image.tag }}"
+          imagePullPolicy: {{ .Values.apiserver.image.pullPolicy }}
+          env:
+            - name: DATABASE_URL
+              value: postgresql://routr:changeit@{{ .Release.Name }}-postgresql.{{ .Release.Namespace }}:5432/routr?schema=public
+            - name: LOGS_LEVEL
+              value: {{ .Values.global.routr.logsLevel }}
+            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+              value: {{ .Values.global.routr.otlExporter }}
+          ports:
+            - containerPort: 51907
+          resources:
+            limits:
+              cpu: {{ .Values.dispatcher.resources.limits.cpu }}
+            requests:
+              cpu: {{ .Values.dispatcher.resources.requests.cpu }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.dispatcher.securityContext.allowPrivilegeEscalation }}

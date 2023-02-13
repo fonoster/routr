@@ -1,37 +1,51 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: voipnet-routr-location
+  name: {{ .Release.Name }}-routr-location
+  namespace: {{ .Release.Namespace }}  
   labels:
-    app: routr-location
+    app: routr
+    service: location
 spec:
-  replicas: 2
   selector:
     matchLabels:
-      app: routr-location
+      app: routr
+      service: location
   template:
     metadata:
       labels:
-        app: routr-location
+        app: routr
+        service: location
     spec:
+      securityContext:
+        runAsUser: {{ .Values.location.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.location.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.location.securityContext.fsGroup }}
       containers:
-      - name: routr-location
-        image: fonoster/routr-location:latest
-        imagePullPolicy: IfNotPresent
-        env:
-          - name: CONFIG_PATH
-            value: /etc/routr/location.yaml
-          - name: LOGS_LEVEL
-            value: verbose
-          - name: OTEL_EXPORTER_JAEGER_ENDPOINT
-            value: http://jaeger:14268/api/traces            
-        ports:
-          - containerPort: 51902 
-        volumeMounts:
-          - name: config
-            mountPath: /etc/routr/location.yaml
-            subPath: location.yaml
+        - name: location
+          image: "{{ .Values.location.image.repository }}:{{ .Values.dispatcher.image.tag }}"
+          imagePullPolicy: {{ .Values.location.image.pullPolicy }}
+          env:
+            - name: CONFIG_PATH
+              value: /etc/routr/location.yaml
+            - name: LOGS_LEVEL
+              value: {{ .Values.global.routr.logsLevel }}
+            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+              value: {{ .Values.global.routr.otlExporter }}
+          ports:
+            - containerPort: 51902
+          volumeMounts:
+            - name: config
+              mountPath: /etc/routr/location.yaml
+              subPath: location.yaml
+          resources:
+            limits:
+              cpu: {{ .Values.location.resources.limits.cpu }}
+            requests:
+              cpu: {{ .Values.location.resources.requests.cpu }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.location.securityContext.allowPrivilegeEscalation }}          
       volumes:
         - name: config
           configMap:
-            name: voipnet-routr-location-config
+            name: {{ .Release.Name }}-routr-location-config

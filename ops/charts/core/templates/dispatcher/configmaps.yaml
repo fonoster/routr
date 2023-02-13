@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: voipnet-routr-dispatcher-config
-  namespace: default
+  name: {{ .Release.Name }}-routr-dispatcher-config
+  namespace: {{ .Release.Namespace }}
 data:
   dispatcher.yaml: |-
     kind: MessageDispatcher
@@ -12,7 +12,7 @@ data:
       bindAddr: 0.0.0.0:51901
       processors:
         - ref: connect-processor
-          addr: connect:51904
+          addr: {{ .Release.Name }}-routr-connect.{{ .Release.Namespace }}:51904
           matchFunc: req => true
           methods:
             - REGISTER

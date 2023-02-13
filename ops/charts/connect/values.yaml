@@ -1,8 +1,81 @@
-# Default values for Routr.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+global:
+  routr:
+    logsLevel: verbose
+    otlExporter: http://jaeger:14268/api/traces
+  postgresql:
+    auth:
+      username: routr
+      password: changeit
 
-image:
-  repository: fonoster/edgeport
-  pullPolicy: Always
-  tag: latest
+postgresql:
+  auth:
+    username: routr
+    password: changeit
+
+redis:
+  architecture: standalone
+  auth:
+    enabled: false
+
+# Connect Service defaults
+apiserver:
+  image: 
+    repository: fonoster/routr-pgdata
+    tag: latest
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+    allowPrivilegeEscalation: false
+  resources:
+    limits:
+      cpu: 300m
+    requests:
+      cpu: 200m
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+
+# Connect Service defaults
+connect:
+  image: 
+    repository: fonoster/routr-connect
+    tag: latest
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+    allowPrivilegeEscalation: false
+  resources:
+    limits:
+      cpu: 300m
+    requests:
+      cpu: 200m
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+
+# APIServer Service defaults
+registry:
+  image: 
+    repository: fonoster/routr-registry
+    tag: latest
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+    allowPrivilegeEscalation: false
+  resources:
+    limits:
+      cpu: 300m
+    requests:
+      cpu: 200m
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50

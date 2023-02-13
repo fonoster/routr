@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-routr-requester
+  labels:
+    app: routr
+    service: requester
+spec:
+  selector:
+    matchLabels:
+      app: routr
+      service: requester
+  template:
+    metadata:
+      labels:
+        app: routr
+        service: requester
+    spec:
+      securityContext:
+        runAsUser: {{ .Values.requester.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.requester.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.requester.securityContext.fsGroup }}
+      containers:
+        - name: requester
+          image: "{{ .Values.requester.image.repository }}:{{ .Values.requester.image.tag }}"
+          imagePullPolicy: {{ .Values.requester.image.pullPolicy }}
+          env:
+            - name: LOGS_LEVEL
+              value: {{ .Values.global.routr.logsLevel }}
+            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+              value: {{ .Values.global.routr.otlExporter }}
+          ports:
+            - containerPort: 51909
+          volumeMounts:
+            - name: config
+              mountPath: /etc/routr/log4j2.yaml
+              subPath: log4j2.yaml
+          resources:
+            limits:
+              cpu: {{ .Values.requester.resources.limits.cpu }}
+            requests:
+              cpu: {{ .Values.requester.resources.requests.cpu }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.requester.securityContext.allowPrivilegeEscalation }}         
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-routr-requester-config

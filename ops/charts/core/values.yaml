@@ -1,11 +1,110 @@
-# WTF
 global:
-  postgresql:
-    auth:
-      username: postgres
-      password: postgres
+  routr:
+    logsLevel: verbose
+    otlExporter: http://jaeger:14268/api/traces
 
-postgresql:
-  auth:
-    username: postgres
-    password: postgres
+# EdgePort Service defaults
+edgeport:
+  image: 
+    repository: fonoster/routr-edgeport
+    tag: latest
+    pullPolicy: Always
+  methods:
+    - REGISTER
+    - MESSAGE
+    - INVITE
+    - ACK
+    - BYE
+    - CANCEL
+  transport:
+    tcp:
+      enabled: true
+      port: 5060
+    udp:
+      enabled: true
+      port: 5060
+    tls:
+      enabled: false
+      port: 5061
+    ws:
+      enabled: true
+      port: 5062
+    wss:
+      enabled: false
+      port: 5063
+  replicas: 1
+  minReadySeconds: 10
+  terminationGracePeriodSeconds: 10
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+    allowPrivilegeEscalation: false
+  resources:
+    limits:
+      cpu: 300m
+    requests:
+      cpu: 200m
+
+# Dispatcher Service defaults
+dispatcher:
+  image: 
+    repository: fonoster/routr-dispatcher
+    tag: latest
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+    allowPrivilegeEscalation: false
+  resources:
+    limits:
+      cpu: 300m
+    requests:
+      cpu: 200m
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+
+# Location Service defaults
+location:
+  image: 
+    repository: fonoster/routr-location
+    tag: latest
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+    allowPrivilegeEscalation: false
+  resources:
+    limits:
+      cpu: 300m
+    requests:
+      cpu: 200m
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
+
+# Requester Service defaults
+requester:
+  image: 
+    repository: fonoster/routr-requester
+    tag: latest
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+    allowPrivilegeEscalation: false
+  resources:
+    limits:
+      cpu: 300m
+    requests:
+      cpu: 200m
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50

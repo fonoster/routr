@@ -1,50 +1,89 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: voipnet-routr-edgeport
+  name: {{ .Release.Name }}-routr-edgeport
+  namespace: {{ .Release.Namespace }}
   labels:
-    app: routr-edgeport
+    app: routr
+    service: edgeport
 spec:
-  replicas: 2
+  replicas: {{ .Values.edgeport.replicas }}
   selector:
     matchLabels:
-      app: routr-edgeport
+      app: routr
+      service: edgeport
   serviceName: edgeport
-  minReadySeconds: 10
+  minReadySeconds: {{ .Values.edgeport.minReadySeconds }}
   template:
     metadata:
       labels:
-        app: routr-edgeport
+        app: routr
+        service: edgeport
     spec:
-      terminationGracePeriodSeconds: 10
+      securityContext:
+        runAsUser: {{ .Values.edgeport.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.edgeport.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.edgeport.securityContext.fsGroup }}
+      terminationGracePeriodSeconds: {{ .Values.edgeport.terminationGracePeriodSeconds }}
       containers:
-      - name: routr-edgeport
-        image: fonoster/routr-edgeport:latest
-        imagePullPolicy: IfNotPresent
-        env:
-          - name: CONFIG_PATH
-            value: /etc/routr/edgeport.yaml
-          - name: LOG4J2
-            value: /etc/routr/log4j2.yaml
-          - name: LOGS_LEVEL
-            value: verbose
-          - name: OTEL_EXPORTER_JAEGER_ENDPOINT
-            value: http://jaeger:14268/api/traces            
-        ports:
-        - name: siptcp
-          containerPort: 5060
-          protocol: TCP
-        - name: sipudp
-          containerPort: 5060
-          protocol: UDP     
-        volumeMounts:
-          - name: config
-            mountPath: /etc/routr/log4j2.yaml
-            subPath: log4j2.yaml
-          - name: config
-            mountPath: /etc/routr/edgeport.yaml
-            subPath: edgeport.yaml
+        - name: edgeport
+          image: "{{ .Values.edgeport.image.repository }}:{{ .Values.edgeport.image.tag }}"
+          imagePullPolicy: {{ .Values.edgeport.image.pullPolicy }}
+          env:
+            - name: CONFIG_PATH
+              value: /etc/routr/edgeport.yaml
+            - name: LOG4J2
+              value: /etc/routr/log4j2.yaml
+            - name: LOGS_LEVEL
+              value: {{ .Values.global.routr.logsLevel }}
+            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+              value: {{ .Values.global.routr.otlExporter }}
+          ports:
+          {{- if .Values.edgeport.transport.tcp.enabled }}
+            - name: siptcp
+              protocol: TCP
+              containerPort: {{ .Values.edgeport.transport.tcp.port }}
+          {{- end }}
+          {{- if .Values.edgeport.transport.udp.enabled }}
+            - name: sipudp
+              protocol: UDP
+              containerPort: {{ .Values.edgeport.transport.udp.port }}
+          {{- end }}
+          {{- if .Values.edgeport.transport.tls.enabled }}
+            - name: siptls
+              protocol: TCP
+              containerPort: {{ .Values.edgeport.transport.tls.port }}
+          {{- end }}      
+          {{- if .Values.edgeport.transport.ws.enabled }}
+            - name: sipws
+              protocol: TCP
+              containerPort: {{ .Values.edgeport.transport.ws.port }}
+          {{- end }}
+          {{- if .Values.edgeport.transport.wss.enabled }}
+            - name: sipwss
+              protocol: TCP
+              containerPort: {{ .Values.edgeport.transport.wss.port }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/routr/log4j2.yaml
+              subPath: log4j2.yaml
+            - name: config
+              mountPath: /etc/routr/edgeport.yaml
+              subPath: edgeport.yaml
+            # - mountPath: /etc/routr/letsencrypt
+            #   name: letscrypt-certificate
+          resources:
+            limits:
+              cpu: {{ .Values.edgeport.resources.limits.cpu }}
+            requests:
+              cpu: {{ .Values.edgeport.resources.requests.cpu }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.edgeport.securityContext.allowPrivilegeEscalation }}
       volumes:
         - name: config
           configMap:
-            name: voipnet-routr-edgeport-config
+            name:  {{ .Release.Name }}-routr-edgeport-config
+        # - name: letscrypt-certificate
+        #   secret:
+        #     secretName: {{ .Release.Name }}-routr-letsencrypt

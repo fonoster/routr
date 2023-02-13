@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-routr-connect
+  namespace: {{ .Release.Namespace }}  
+  labels:
+    app: routr
+    service: connect
+spec:
+  selector:
+    matchLabels:
+      app: routr
+      service: connect
+  template:
+    metadata:
+      labels:
+        app: routr
+        service: connect
+    spec:
+      securityContext:
+        runAsUser: {{ .Values.connect.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.connect.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.connect.securityContext.fsGroup }}
+      containers:
+        - name: connect
+          image: "{{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}"
+          imagePullPolicy: {{ .Values.connect.image.pullPolicy }}
+          env:
+            - name: LOCATION_ADDR
+              value: {{ .Release.Name }}-routr-location.{{ .Release.Namespace }}:51902
+            - name: API_ADDR
+              value: {{ .Release.Name }}-routr-apiserver.{{ .Release.Namespace }}:51907
+            - name: LOGS_LEVEL
+              value: {{ .Values.global.routr.logsLevel }}
+            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+              value: {{ .Values.global.routr.otlExporter }}
+          ports:
+            - containerPort: 51904
+          resources:
+            limits:
+              cpu: {{ .Values.connect.resources.limits.cpu }}
+            requests:
+              cpu: {{ .Values.connect.resources.requests.cpu }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.connect.securityContext.allowPrivilegeEscalation }}

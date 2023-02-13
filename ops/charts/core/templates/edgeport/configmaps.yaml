@@ -1,8 +1,11 @@
+{{- $name := .Values.edgeport.methods | required ".Values.edgeport.methods is required." -}}
+
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: voipnet-routr-edgeport-config
-  namespace: default
+  name: {{ .Release.Name }}-routr-edgeport-config
+  namespace: {{ .Release.Namespace }}
 data:
   edgeport.yaml: |-
     kind: EdgePort
@@ -13,7 +16,7 @@ data:
     spec:
       unknownMethodAction: Discard
       processor:
-        addr: voipnet-routr-dispatcher.default:51901  
+        addr: {{ .Release.Name }}-routr-dispatcher.{{ .Release.Namespace }}:51901  
       # securityContext:
       #   client:
       #     protocols:
@@ -25,29 +28,45 @@ data:
       #   keyStore: "/etc/routr/domains-cert.jks"
       #   trustStore: "/etc/routr/domains-cert.jks"
       #   keyStoreType: pkcs12
-      externalAddrs:
-        - 192.168.1.3
-      localnets:
-        - 192.168.1.3
-      methods:
-        - REGISTER
-        - MESSAGE
-        - INVITE
-        - ACK
-        - BYE
-        - CANCEL
+      {{- if .Values.edgeport.externalAddrs }}
+      externalAddrs: 
+      {{- range .Values.edgeport.externalAddrs }}
+        - {{.}}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.edgeport.localnets }}
+      localnets: 
+      {{- range .Values.edgeport.localnets }}
+        - {{.}}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.edgeport.methods }}
+      methods: 
+      {{- range .Values.edgeport.methods }}
+        - {{.}}
+      {{- end }}
+      {{- end }}
       transport:
+      {{- if .Values.edgeport.transport.tcp.enabled }}
         - protocol: tcp
-          port: 5060
+          port: {{ .Values.edgeport.transport.tcp.port }}
+      {{- end }}
+      {{- if .Values.edgeport.transport.udp.enabled }}
         - protocol: udp
-          port: 5060
-        # - protocol: tls
-        #   port: 5061
-        - protocol: ws 
-          port: 5062
-        # - protocol: wss
-        #   port: 5063
-
+          port: {{ .Values.edgeport.transport.udp.port }}
+      {{- end }}
+      {{- if .Values.edgeport.transport.tls.enabled }}
+        - protocol: tls
+          port: {{ .Values.edgeport.transport.tls.port }}
+      {{- end }}      
+      {{- if .Values.edgeport.transport.ws.enabled }}
+        - protocol: ws
+          port: {{ .Values.edgeport.transport.ws.port }}
+      {{- end }}
+      {{- if .Values.edgeport.transport.wss.enabled }}
+        - protocol: wss
+          port: {{ .Values.edgeport.transport.wss.port }}
+      {{- end }}
   log4j2.yaml: |-
     Configuration:
       Appenders:

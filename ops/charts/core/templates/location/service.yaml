@@ -1,12 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: voipnet-routr-location
+  name: {{ .Release.Name }}-routr-location
+  namespace: {{ .Release.Namespace }}  
   labels:
-    app: routr-location
+    app: routr
+    service: location
 spec:
   ports:
   - port: 51902
     targetPort: 51902
   selector:
-    app: routr-location
+    app: routr
+    service: location

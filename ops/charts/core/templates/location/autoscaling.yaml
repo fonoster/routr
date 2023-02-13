@@ -1,0 +1,19 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Release.Name }}-routr-location-hpa
+  namespace: {{ .Release.Namespace }}  
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-routr-location
+  minReplicas: {{ .Values.location.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.location.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.location.autoscaling.targetCPUUtilizationPercentage }}

@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: voipnet-routr-location-config
-  namespace: default
+  name: {{ .Release.Name }}-routr-location-config
+  namespace: {{ .Release.Namespace }}
 data:
   location.yaml: |-
     kind: Location
@@ -13,3 +13,5 @@ data:
       bindAddr: 0.0.0.0:51902
       cache:
         provider: memory
+        # provider: redis
+        # parameters: host={{ .Release.Name }}-redis-master.default,port=6379

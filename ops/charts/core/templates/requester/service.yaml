@@ -1,15 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-routr-dispatcher
+  name: {{ .Release.Name }}-routr-requester
   namespace: {{ .Release.Namespace }}  
   labels:
     app: routr
-    service: dispatcher
+    service: requester
 spec:
   ports:
-  - port: 51901
-    targetPort: 51901
+  - port: 51909
+    targetPort: 51909
   selector:
     app: routr
-    service: dispatcher
+    service: requester

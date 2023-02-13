@@ -3,8 +3,4 @@ name: routr-core
 description: test
 type: application
 version: 0.1.0
-appVersion: 1.16.0
-dependencies:
-- name: postgresql
-  version: 12.1.15
-  repository: https://charts.bitnami.com/bitnami
+appVersion: 2.0.8-alpha.30

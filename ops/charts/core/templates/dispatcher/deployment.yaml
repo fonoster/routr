@@ -1,37 +1,51 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: voipnet-routr-dispatcher
+  name: {{ .Release.Name }}-routr-dispatcher
+  namespace: {{ .Release.Namespace }}  
   labels:
-    app: routr-dispatcher
+    app: routr
+    service: dispatcher
 spec:
-  replicas: 2
   selector:
     matchLabels:
-      app: routr-dispatcher
+      app: routr
+      service: dispatcher
   template:
     metadata:
       labels:
-        app: routr-dispatcher
+        app: routr
+        service: dispatcher
     spec:
+      securityContext:
+        runAsUser: {{ .Values.dispatcher.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.dispatcher.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.dispatcher.securityContext.fsGroup }}
       containers:
-      - name: routr-dispatcher
-        image: fonoster/routr-dispatcher:latest
-        imagePullPolicy: IfNotPresent
-        env:
-          - name: CONFIG_PATH
-            value: /etc/routr/dispatcher.yaml
-          - name: LOGS_LEVEL
-            value: verbose
-          - name: OTEL_EXPORTER_JAEGER_ENDPOINT
-            value: http://jaeger:14268/api/traces            
-        ports:
-          - containerPort: 51901 
-        volumeMounts:
-          - name: config
-            mountPath: /etc/routr/dispatcher.yaml
-            subPath: dispatcher.yaml
+        - name: dispatcher
+          image: "{{ .Values.dispatcher.image.repository }}:{{ .Values.dispatcher.image.tag }}"
+          imagePullPolicy: {{ .Values.dispatcher.image.pullPolicy }}
+          env:
+            - name: CONFIG_PATH
+              value: /etc/routr/dispatcher.yaml
+            - name: LOGS_LEVEL
+              value: {{ .Values.global.routr.logsLevel }}
+            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+              value: {{ .Values.global.routr.otlExporter }}
+          ports:
+            - containerPort: 51901
+          volumeMounts:
+            - name: config
+              mountPath: /etc/routr/dispatcher.yaml
+              subPath: dispatcher.yaml
+          resources:
+            limits:
+              cpu: {{ .Values.dispatcher.resources.limits.cpu }}
+            requests:
+              cpu: {{ .Values.dispatcher.resources.requests.cpu }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.dispatcher.securityContext.allowPrivilegeEscalation }}
       volumes:
         - name: config
           configMap:
-            name: voipnet-routr-dispatcher-config
+            name: {{ .Release.Name }}-routr-dispatcher-config

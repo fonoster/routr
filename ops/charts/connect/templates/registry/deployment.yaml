@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-routr-registry
+  labels:
+    app: routr
+    service: registry
+spec:
+  selector:
+    matchLabels:
+      app: routr
+      service: registry
+  template:
+    metadata:
+      labels:
+        app: routr
+        service: registry
+    spec:
+      securityContext:
+        runAsUser: {{ .Values.registry.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.registry.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.registry.securityContext.fsGroup }}
+      containers:
+        - name: registry
+          image: "{{ .Values.registry.image.repository }}:{{ .Values.registry.image.tag }}"
+          imagePullPolicy: {{ .Values.registry.image.pullPolicy }}
+          env:
+            - name: CONFIG_PATH
+              value: /etc/routr/registry.yaml
+            - name: LOGS_LEVEL
+              value: {{ .Values.global.routr.logsLevel }}
+            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+              value: {{ .Values.global.routr.otlExporter }}
+          ports:
+            - containerPort: 51901
+          volumeMounts:
+            - name: config
+              mountPath: /etc/routr/registry.yaml
+              subPath: registry.yaml
+          resources:
+            limits:
+              cpu: {{ .Values.registry.resources.limits.cpu }}
+            requests:
+              cpu: {{ .Values.registry.resources.requests.cpu }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.registry.securityContext.allowPrivilegeEscalation }}           
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-routr-registry-config
