@@ -3,20 +3,20 @@ kind: Deployment
 metadata:
   name: {{ .Release.Name }}-routr-registry
   labels:
-    app: routr
-    service: registry
+    {{- include ".helm.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app: routr
-      service: registry
+      {{- include ".helm.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
+      {{- with .Values.registry.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/registry/configmaps.yaml") . | sha256sum }}    
       labels:
-        app: routr
-        service: registry
+        {{- include ".helm.selectorLabels" . | nindent 8 }}
     spec:
       securityContext:
         runAsUser: {{ .Values.registry.securityContext.runAsUser }}
@@ -40,10 +40,14 @@ spec:
               mountPath: /etc/routr/registry.yaml
               subPath: registry.yaml
           resources:
+            {{- if .Values.registry.resources.limits }}
             limits:
-              cpu: {{ .Values.registry.resources.limits.cpu }}
+            {{- .Values.registry.resources.limits | toYaml | nindent 12 }}
+            {{- end }}
+            {{- if .Values.registry.resources.requests }}
             requests:
-              cpu: {{ .Values.registry.resources.requests.cpu }}
+            {{- .Values.registry.resources.requests | toYaml | nindent 12 }}
+            {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.registry.securityContext.allowPrivilegeEscalation }}           
       volumes:

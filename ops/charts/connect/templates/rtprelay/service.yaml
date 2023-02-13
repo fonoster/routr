@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-routr-connect
+  name: {{ .Release.Name }}-routr-rtprelay
   namespace: {{ .Release.Namespace }}
-  {{- with .Values.connect.serviceAnnotations }}
+  {{- with .Values.rtprelay.serviceAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
@@ -11,7 +11,7 @@ metadata:
     {{- include ".helm.labels" . | nindent 4 }}
 spec:
   ports:
-  - port: 51904
-    targetPort: 51904
+  - port: 51903
+    targetPort: 51903
   selector:
     {{- include ".helm.selectorLabels" . | nindent 6 }}

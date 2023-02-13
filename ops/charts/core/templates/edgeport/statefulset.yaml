@@ -4,23 +4,23 @@ metadata:
   name: {{ .Release.Name }}-routr-edgeport
   namespace: {{ .Release.Namespace }}
   labels:
-    app: routr
-    service: edgeport
+    {{- include ".helm.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.edgeport.replicas }}
   selector:
     matchLabels:
-      app: routr
-      service: edgeport
+      {{- include ".helm.selectorLabels" . | nindent 6 }}
   serviceName: edgeport
   minReadySeconds: {{ .Values.edgeport.minReadySeconds }}
   template:
     metadata:
       annotations:
+      {{- with .Values.edgeport.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/edgeport/configmaps.yaml") . | sha256sum }}            
       labels:
-        app: routr
-        service: edgeport
+        {{- include ".helm.selectorLabels" . | nindent 8 }}
     spec:
       securityContext:
         runAsUser: {{ .Values.edgeport.securityContext.runAsUser }}
@@ -76,10 +76,14 @@ spec:
             # - mountPath: /etc/routr/letsencrypt
             #   name: letscrypt-certificate
           resources:
+            {{- if .Values.dispatcher.resources.limits }}
             limits:
-              cpu: {{ .Values.edgeport.resources.limits.cpu }}
+            {{- .Values.dispatcher.resources.limits | toYaml | nindent 12 }}
+            {{- end }}
+            {{- if .Values.dispatcher.resources.requests }}
             requests:
-              cpu: {{ .Values.edgeport.resources.requests.cpu }}
+            {{- .Values.dispatcher.resources.requests | toYaml | nindent 12 }}
+            {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.edgeport.securityContext.allowPrivilegeEscalation }}
       volumes:

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-routr-rtprelay
+  namespace: {{ .Release.Namespace }}  
+  labels:
+    {{- include ".helm.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include ".helm.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations: 
+      {{- with .Values.rtprelay.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include ".helm.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        runAsUser: {{ .Values.rtprelay.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.rtprelay.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.rtprelay.securityContext.fsGroup }}
+      containers:
+        - name: rtprelay
+          image: "{{ .Values.rtprelay.image.repository }}:{{ .Values.rtprelay.image.tag }}"
+          imagePullPolicy: {{ .Values.rtprelay.image.pullPolicy }}
+          env:
+            - name: RTPENGINE_HOST
+              value: {{ .Values.rtprelay.rtpeHost }}
+            - name: RTPENGINE_PORT
+              value: {{ .Values.rtprelay.rtpPort | quote}}
+            - name: LOGS_LEVEL
+              value: {{ .Values.global.routr.logsLevel }}
+            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+              value: {{ .Values.global.routr.otlExporter }}
+          ports:
+            - containerPort: 51907
+          resources:
+            {{- if .Values.rtprelay.resources.limits }}
+            limits:
+            {{- .Values.rtprelay.resources.limits | toYaml | nindent 12 }}
+            {{- end }}
+            {{- if .Values.rtprelay.resources.requests }}
+            requests:
+            {{- .Values.rtprelay.resources.requests | toYaml | nindent 12 }}
+            {{- end }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.rtprelay.securityContext.allowPrivilegeEscalation }}

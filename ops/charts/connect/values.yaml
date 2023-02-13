@@ -8,14 +8,39 @@ global:
       password: changeit
 
 postgresql:
+  enabled: true
   auth:
     username: routr
     password: changeit
 
 redis:
+  enabled: true
   architecture: standalone
   auth:
     enabled: false
+
+# Connect Service defaults
+rtprelay:
+  rtpeHost: ""
+  rtpPort: 22222
+  image: 
+    repository: fonoster/routr-rtprelay
+    tag: latest
+    pullPolicy: IfNotPresent
+  podAnnotations: {}
+  serviceAnnotations: {}    
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+    allowPrivilegeEscalation: false
+  resources:
+    limits: {}
+    requests: {}
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 50
 
 # Connect Service defaults
 apiserver:
@@ -23,16 +48,16 @@ apiserver:
     repository: fonoster/routr-pgdata
     tag: latest
     pullPolicy: IfNotPresent
+  podAnnotations: {}
+  serviceAnnotations: {}    
   securityContext:
     runAsUser: 1000
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
   resources:
-    limits:
-      cpu: 300m
-    requests:
-      cpu: 200m
+    limits: {}
+    requests: {}
   autoscaling:
     minReplicas: 1
     maxReplicas: 10
@@ -44,16 +69,16 @@ connect:
     repository: fonoster/routr-connect
     tag: latest
     pullPolicy: IfNotPresent
+  podAnnotations: {}
+  serviceAnnotations: {}    
   securityContext:
     runAsUser: 1000
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
   resources:
-    limits:
-      cpu: 300m
-    requests:
-      cpu: 200m
+    limits: {}
+    requests: {}
   autoscaling:
     minReplicas: 1
     maxReplicas: 10
@@ -72,16 +97,16 @@ registry:
     repository: fonoster/routr-registry
     tag: latest
     pullPolicy: IfNotPresent
+  podAnnotations: {}
+  serviceAnnotations: {}    
   securityContext:
     runAsUser: 1000
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
   resources:
-    limits:
-      cpu: 300m
-    requests:
-      cpu: 200m
+    limits: {}
+    requests: {}
   autoscaling:
     minReplicas: 1
     maxReplicas: 10

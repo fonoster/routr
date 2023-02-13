@@ -6,6 +6,8 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-routr-edgeport-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" . | nindent 4 }}
 data:
   edgeport.yaml: |-
     kind: EdgePort

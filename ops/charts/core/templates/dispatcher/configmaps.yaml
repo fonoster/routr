@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-routr-dispatcher-config
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" . | nindent 4 }}
 data:
   dispatcher.yaml: |-
     kind: MessageDispatcher

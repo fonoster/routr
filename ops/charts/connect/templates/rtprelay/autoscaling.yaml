@@ -1,7 +1,7 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ .Release.Name }}-routr-requester-hpa
+  name: {{ .Release.Name }}-routr-rtprelay-hpa
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include ".helm.labels" . | nindent 4 }}
@@ -9,13 +9,13 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ .Release.Name }}-routr-requester
-  minReplicas: {{ .Values.requester.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.requester.autoscaling.maxReplicas }}
+    name: {{ .Release.Name }}-routr-rtprelay
+  minReplicas: {{ .Values.rtprelay.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.rtprelay.autoscaling.maxReplicas }}
   metrics:
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.requester.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ .Values.rtprelay.autoscaling.targetCPUUtilizationPercentage }}

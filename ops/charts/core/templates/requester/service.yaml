@@ -2,14 +2,16 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}-routr-requester
-  namespace: {{ .Release.Namespace }}  
+  namespace: {{ .Release.Namespace }}
+  {{- with .Values.requester.serviceAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   labels:
-    app: routr
-    service: requester
+    {{- include ".helm.labels" . | nindent 4 }}
 spec:
+  selector:
+    {{- include ".helm.selectorLabels" . | nindent 6 }}
   ports:
   - port: 51909
     targetPort: 51909
-  selector:
-    app: routr
-    service: requester

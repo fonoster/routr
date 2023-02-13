@@ -4,20 +4,20 @@ metadata:
   name: {{ .Release.Name }}-routr-location
   namespace: {{ .Release.Namespace }}  
   labels:
-    app: routr
-    service: location
+    {{- include ".helm.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app: routr
-      service: location
+      {{- include ".helm.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
+      {{- with .Values.location.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/location/configmaps.yaml") . | sha256sum }}      
       labels:
-        app: routr
-        service: location
+        {{- include ".helm.selectorLabels" . | nindent 8 }}
     spec:
       securityContext:
         runAsUser: {{ .Values.location.securityContext.runAsUser }}
@@ -41,10 +41,14 @@ spec:
               mountPath: /etc/routr/location.yaml
               subPath: location.yaml
           resources:
+            {{- if .Values.dispatcher.resources.limits }}
             limits:
-              cpu: {{ .Values.location.resources.limits.cpu }}
+            {{- .Values.dispatcher.resources.limits | toYaml | nindent 12 }}
+            {{- end }}
+            {{- if .Values.dispatcher.resources.requests }}
             requests:
-              cpu: {{ .Values.location.resources.requests.cpu }}
+            {{- .Values.dispatcher.resources.requests | toYaml | nindent 12 }}
+            {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.location.securityContext.allowPrivilegeEscalation }}          
       volumes:

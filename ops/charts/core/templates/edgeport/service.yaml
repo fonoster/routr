@@ -2,13 +2,15 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}-routr-edgeport
-  namespace: {{ .Release.Namespace }}  
+  namespace: {{ .Release.Namespace }}
+  {{- with .Values.edgeport.serviceAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   labels:
-    app: routr
-    service: edgeport
+    {{- include ".helm.labels" . | nindent 4 }}
 spec:
   type: LoadBalancer
-  # externalIPs: {{ .Values.edgeport.externalAddrs }}
   ports:
   {{- if .Values.edgeport.transport.tcp.enabled }}
     - name: siptcp
@@ -41,5 +43,4 @@ spec:
       targetPort: {{ .Values.edgeport.transport.wss.port }}
   {{- end }}   
   selector:
-    app: routr
-    service: edgeport
+    {{- include ".helm.selectorLabels" . | nindent 6 }}

@@ -3,20 +3,20 @@ kind: Deployment
 metadata:
   name: {{ .Release.Name }}-routr-requester
   labels:
-    app: routr
-    service: requester
+    {{- include ".helm.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app: routr
-      service: requester
+      {{- include ".helm.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
+      {{- with .Values.requester.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/requester/configmaps.yaml") . | sha256sum }}      
       labels:
-        app: routr
-        service: requester
+        {{- include ".helm.selectorLabels" . | nindent 8 }}
     spec:
       securityContext:
         runAsUser: {{ .Values.requester.securityContext.runAsUser }}
@@ -38,10 +38,14 @@ spec:
               mountPath: /etc/routr/log4j2.yaml
               subPath: log4j2.yaml
           resources:
+            {{- if .Values.dispatcher.resources.limits }}
             limits:
-              cpu: {{ .Values.requester.resources.limits.cpu }}
+            {{- .Values.dispatcher.resources.limits | toYaml | nindent 12 }}
+            {{- end }}
+            {{- if .Values.dispatcher.resources.requests }}
             requests:
-              cpu: {{ .Values.requester.resources.requests.cpu }}
+            {{- .Values.dispatcher.resources.requests | toYaml | nindent 12 }}
+            {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.requester.securityContext.allowPrivilegeEscalation }}         
       volumes:

@@ -5,10 +5,6 @@ global:
 
 # EdgePort Service defaults
 edgeport:
-  image: 
-    repository: fonoster/routr-edgeport
-    tag: latest
-    pullPolicy: Always
   methods:
     - REGISTER
     - MESSAGE
@@ -16,6 +12,12 @@ edgeport:
     - ACK
     - BYE
     - CANCEL
+  image: 
+    repository: fonoster/routr-edgeport
+    tag: latest
+    pullPolicy: Always
+  podAnnotations: {}
+  serviceAnnotations: {}    
   transport:
     tcp:
       enabled: true
@@ -41,10 +43,8 @@ edgeport:
     fsGroup: 2000
     allowPrivilegeEscalation: false
   resources:
-    limits:
-      cpu: 300m
-    requests:
-      cpu: 200m
+    limits: {}
+    requests: {}
 
 # Dispatcher Service defaults
 dispatcher:
@@ -52,16 +52,16 @@ dispatcher:
     repository: fonoster/routr-dispatcher
     tag: latest
     pullPolicy: IfNotPresent
+  podAnnotations: {}
+  serviceAnnotations: {}    
   securityContext:
     runAsUser: 1000
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
   resources:
-    limits:
-      cpu: 300m
-    requests:
-      cpu: 200m
+    limits: {}
+    requests: {}
   autoscaling:
     minReplicas: 1
     maxReplicas: 10
@@ -77,16 +77,16 @@ location:
     repository: fonoster/routr-location
     tag: latest
     pullPolicy: IfNotPresent
+  podAnnotations: {}
+  serviceAnnotations: {}    
   securityContext:
     runAsUser: 1000
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
   resources:
-    limits:
-      cpu: 300m
-    requests:
-      cpu: 200m
+    limits: {}
+    requests: {}
   autoscaling:
     minReplicas: 1
     maxReplicas: 10
@@ -98,16 +98,16 @@ requester:
     repository: fonoster/routr-requester
     tag: latest
     pullPolicy: IfNotPresent
+  podAnnotations: {}
+  serviceAnnotations: {}    
   securityContext:
     runAsUser: 1000
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
   resources:
-    limits:
-      cpu: 300m
-    requests:
-      cpu: 200m
+    limits: {}
+    requests: {}
   autoscaling:
     minReplicas: 1
     maxReplicas: 10

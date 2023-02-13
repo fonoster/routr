@@ -2,14 +2,16 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}-routr-location
-  namespace: {{ .Release.Namespace }}  
+  namespace: {{ .Release.Namespace }}
+  {{- with .Values.location.serviceAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   labels:
-    app: routr
-    service: location
+    {{- include ".helm.labels" . | nindent 4 }}
 spec:
+  selector:
+    {{- include ".helm.selectorLabels" . | nindent 6 }}
   ports:
   - port: 51902
     targetPort: 51902
-  selector:
-    app: routr
-    service: location
