@@ -14,7 +14,7 @@ data:
     apiVersion: v2draft1
     ref: edge-port-01
     metadata:
-      region: us-east1
+      region: {{ .Values.global.region }}
     spec:
       unknownMethodAction: Discard
       processor:

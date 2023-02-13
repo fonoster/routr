@@ -5,10 +5,12 @@ metadata:
   namespace: {{ .Release.Namespace }}  
   labels:
     {{- include ".helm.labels" . | nindent 4 }}
+    service: apiserver
 spec:
   selector:
     matchLabels:
       {{- include ".helm.selectorLabels" . | nindent 6 }}
+      service: apiserver
   template:
     metadata:
       annotations: 
@@ -17,6 +19,7 @@ spec:
       {{- end }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
+        service: apiserver
     spec:
       securityContext:
         runAsUser: {{ .Values.apiserver.securityContext.runAsUser }}
@@ -30,9 +33,9 @@ spec:
             - name: DATABASE_URL
               value: postgresql://routr:changeit@{{ .Release.Name }}-postgresql.{{ .Release.Namespace }}:5432/routr?schema=public
             - name: LOGS_LEVEL
-              value: {{ .Values.global.routr.logsLevel }}
+              value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
-              value: {{ .Values.global.routr.otlExporter }}
+              value: {{ .Values.global.otlExporter }}
           ports:
             - containerPort: 51907
           resources:

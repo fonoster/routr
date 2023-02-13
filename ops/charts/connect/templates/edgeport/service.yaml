@@ -9,6 +9,7 @@ metadata:
   {{- end }}
   labels:
     {{- include ".helm.labels" . | nindent 4 }}
+    service: edgeport
 spec:
   type: LoadBalancer
   ports:
@@ -41,6 +42,7 @@ spec:
       protocol: TCP
       port: {{ .Values.edgeport.transport.wss.port }}
       targetPort: {{ .Values.edgeport.transport.wss.port }}
-  {{- end }}   
+  {{- end }}
   selector:
-    {{- include ".helm.selectorLabels" . | nindent 6 }}
+    {{- include ".helm.selectorLabels" . | nindent 4 }}
+    service: edgeport

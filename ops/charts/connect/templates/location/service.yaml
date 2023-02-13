@@ -9,9 +9,11 @@ metadata:
   {{- end }}
   labels:
     {{- include ".helm.labels" . | nindent 4 }}
+    service: location
 spec:
   selector:
-    {{- include ".helm.selectorLabels" . | nindent 6 }}
+    {{- include ".helm.selectorLabels" . | nindent 4 }}
+    service: location
   ports:
   - port: 51902
     targetPort: 51902

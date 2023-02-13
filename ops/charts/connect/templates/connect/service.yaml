@@ -9,9 +9,11 @@ metadata:
   {{- end }}
   labels:
     {{- include ".helm.labels" . | nindent 4 }}
+    service: connect
 spec:
   ports:
   - port: 51904
     targetPort: 51904
   selector:
-    {{- include ".helm.selectorLabels" . | nindent 6 }}
+    {{- include ".helm.selectorLabels" . | nindent 4 }}
+    service: connect

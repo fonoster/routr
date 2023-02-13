@@ -5,10 +5,12 @@ metadata:
   namespace: {{ .Release.Namespace }}  
   labels:
     {{- include ".helm.labels" . | nindent 4 }}
+    service: rtprelay
 spec:
   selector:
     matchLabels:
       {{- include ".helm.selectorLabels" . | nindent 6 }}
+      service: rtprelay
   template:
     metadata:
       annotations: 
@@ -17,6 +19,7 @@ spec:
       {{- end }}
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
+        service: rtprelay
     spec:
       securityContext:
         runAsUser: {{ .Values.rtprelay.securityContext.runAsUser }}
@@ -32,9 +35,9 @@ spec:
             - name: RTPENGINE_PORT
               value: {{ .Values.rtprelay.rtpPort | quote}}
             - name: LOGS_LEVEL
-              value: {{ .Values.global.routr.logsLevel }}
+              value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
-              value: {{ .Values.global.routr.otlExporter }}
+              value: {{ .Values.global.otlExporter }}
           ports:
             - containerPort: 51907
           resources:

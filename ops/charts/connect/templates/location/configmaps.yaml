@@ -10,7 +10,7 @@ data:
     kind: Location
     apiVersion: v2draft1
     metadata:
-      region: {{ .Values.location.region }}
+      region: {{ .Values.global.region }}
     spec:
       bindAddr: 0.0.0.0:51902
       cache:

@@ -1,12 +1,9 @@
 dependencies:
-- name: routr-core
-  repository: file://../core
-  version: 0.1.0
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
   version: 12.1.15
 - name: redis
   repository: https://charts.bitnami.com/bitnami
   version: 17.7.3
-digest: sha256:70e093e8ee75deb2ef9cdd26602d1003724ff20bbfb6c4fcf7e0ba1ed9aad9c7
-generated: "2023-02-11T21:45:43.903763-05:00"
+digest: sha256:eb937a34123d186754d22bbae105e1dbd59d5bf787fe4e28a1fd72a60f3cf121
+generated: "2023-02-12T22:37:24.2988-05:00"
