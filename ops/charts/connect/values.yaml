@@ -61,7 +61,14 @@ connect:
 
 # APIServer Service defaults
 registry:
-  image: 
+  registerInterval: 20
+  cache: 
+    provider: memory
+    parameters: ""
+  methods:
+    - INVITE
+    - MESSAGE 
+  image:
     repository: fonoster/routr-registry
     tag: latest
     pullPolicy: IfNotPresent

@@ -8,10 +8,17 @@ data:
     kind: Location
     apiVersion: v2draft1
     metadata:
-      region: us-east1
+      region: {{ .Values.location.region }}
     spec:
       bindAddr: 0.0.0.0:51902
       cache:
+      {{- if eq .Values.location.cache.provider "redis" }}
+        provider: redis
+        {{- if .Values.location.cache.parameters }}
+        parameters: {{ .Values.location.cache.parameters }}
+        {{- else }}
+        parameters: host={{ .Release.Name }}-redis-master.{{ .Release.Namespace }},port=6379
+        {{- end }}
+      {{- else }}  
         provider: memory
-        # provider: redis
-        # parameters: host={{ .Release.Name }}-redis-master.default,port=6379
+      {{- end }}

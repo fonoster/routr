@@ -10,11 +10,23 @@ data:
     spec:
       requesterAddr: {{ .Release.Name }}-routr-requester.{{ .Release.Namespace }}:51909
       apiAddr: {{ .Release.Name }}-routr-apiserver.{{ .Release.Namespace }}:51907
-      registerInterval: 20
+      registerInterval: {{ .Values.registry.registerInterval }}
       cache:
+      {{- if eq .Values.registry.cache.provider "redis" }}
+        provider: redis
+        {{- if .Values.registry.cache.parameters }}
+        parameters: {{ .Values.registry.cache.parameters }}
+        {{- else }}
+        parameters: host={{ .Release.Name }}-redis-master.{{ .Release.Namespace }},port=6379
+        {{- end }}
+      {{- else }}  
         provider: memory
-      methods:
-        - INVITE
-        - MESSAGE
+      {{- end }}
+      {{- if .Values.registry.methods }}
+      methods: 
+      {{- range .Values.registry.methods }}
+        - {{.}}
+      {{- end }}
+      {{- end }}
       edgePorts:
         - address: {{ .Release.Name }}-routr-edgeport.{{ .Release.Namespace }}:5060

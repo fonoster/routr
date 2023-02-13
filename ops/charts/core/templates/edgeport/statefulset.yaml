@@ -16,6 +16,8 @@ spec:
   minReadySeconds: {{ .Values.edgeport.minReadySeconds }}
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/edgeport/configmaps.yaml") . | sha256sum }}            
       labels:
         app: routr
         service: edgeport

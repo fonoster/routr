@@ -13,6 +13,8 @@ spec:
       service: dispatcher
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/dispatcher/configmaps.yaml") . | sha256sum }}        
       labels:
         app: routr
         service: dispatcher

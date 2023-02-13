@@ -13,6 +13,8 @@ spec:
       service: location
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/location/configmaps.yaml") . | sha256sum }}      
       labels:
         app: routr
         service: location

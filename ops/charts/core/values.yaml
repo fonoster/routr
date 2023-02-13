@@ -69,6 +69,10 @@ dispatcher:
 
 # Location Service defaults
 location:
+  region: default
+  cache: 
+    provider: memory
+    parameters: ""
   image: 
     repository: fonoster/routr-location
     tag: latest

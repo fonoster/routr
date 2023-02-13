@@ -12,6 +12,8 @@ spec:
       service: registry
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/registry/configmaps.yaml") . | sha256sum }}    
       labels:
         app: routr
         service: registry
