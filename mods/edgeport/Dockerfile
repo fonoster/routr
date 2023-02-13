@@ -1,6 +1,7 @@
 FROM eclipse-temurin:11-jre-alpine
 
 RUN mkdir -p /opt/routr && apk add --no-cache --update tini sngrep
+
 WORKDIR /opt/routr
 
 COPY ./libs /opt/routr/libs
