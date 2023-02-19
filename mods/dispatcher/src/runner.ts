@@ -19,14 +19,11 @@
  */
 import messageDispatcher from "./service"
 import { getConfig } from "./config/get_config"
-import { Assertions as A } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
+import { CONFIG_PATH } from "./envs"
 
 const logger = getLogger({ service: "dispatcher", filePath: __filename })
-
-A.assertEnvsAreSet(["CONFIG_PATH"])
-
-const result = getConfig(process.env.CONFIG_PATH)
+const result = getConfig(CONFIG_PATH)
 
 if (result._tag === "Right") {
   messageDispatcher(result.right)

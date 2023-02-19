@@ -28,7 +28,7 @@ import { offer, answer, del } from "./client"
 import { CommonErrors as CE } from "@routr/common"
 import { Direction, RTPEFunction } from "./types"
 import { getLogger } from "@fonoster/logger"
-import { RTPENGINE_HOST, RTPENGINE_PORT } from "./envs"
+import { BIND_ADDR, RTPENGINE_HOST, RTPENGINE_PORT } from "./envs"
 import {
   callInvolvesWebRTC,
   getDirectionFromRequest,
@@ -40,7 +40,7 @@ const logger = getLogger({ service: "rtprelay", filePath: __filename })
 const rtpeConfig = { host: RTPENGINE_HOST, port: RTPENGINE_PORT }
 
 new Processor({
-  bindAddr: process.env.BIND_ADDR ?? "0.0.0.0:51903",
+  bindAddr: BIND_ADDR,
   name: "rtprelay-middleware"
 }).listen(async (req: MessageRequest, res: Response) => {
   try {

@@ -16,11 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ObjectProto, ServiceInfo } from "./types"
-import { ServiceDefinitionNotFoundError } from "./errors"
 import * as grpc from "@grpc/grpc-js"
 import * as protoLoader from "@grpc/proto-loader"
+import { ObjectProto, ServiceInfo } from "./types"
+import { ServiceDefinitionNotFoundError } from "./errors"
 import { getLogger } from "@fonoster/logger"
+import { useHealth } from "@fonoster/grpc-health-check"
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const interceptor = require("grpc-interceptors")
 
 const logger = getLogger({ service: "common", filePath: __filename })
 
@@ -76,10 +80,12 @@ export default function createService(serviceInfo: ServiceInfo) {
       name: serviceInfo.name,
       bindAddr: serviceInfo.bindAddr
     })
-    server.start()
+    withHealthChecks.start()
   }
   const credentials = grpc.ServerCredentials.createInsecure()
   const server = new grpc.Server()
   server.addService(serviceInfo.service, serviceInfo.handlers)
-  server.bindAsync(serviceInfo.bindAddr, credentials, cb)
+
+  const withHealthChecks = interceptor.serverProxy(useHealth(server))
+  withHealthChecks.bindAsync(serviceInfo.bindAddr, credentials, cb)
 }

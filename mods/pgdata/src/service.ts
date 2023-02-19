@@ -27,6 +27,10 @@ import { get } from "./api/get"
 import { del } from "./api/delete"
 import { findBy } from "./api/find"
 import { list } from "./api/list"
+import { useHealth } from "@fonoster/grpc-health-check"
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const interceptor = require("grpc-interceptors")
 
 const prisma = new PrismaClient()
 const logger = getLogger({ service: "pgdata", filePath: __filename })
@@ -63,12 +67,10 @@ export default function pgDataService(config: PostgresDataConfig): void {
       list: list(delegate.findMany, k)
     })
   })
+  const credentials = grpc.ServerCredentials.createInsecure()
 
-  server.bindAsync(
-    config.bindAddr,
-    grpc.ServerCredentials.createInsecure(),
-    () => {
-      server.start()
-    }
-  )
+  const withHealthChecks = interceptor.serverProxy(useHealth(server))
+  withHealthChecks.bindAsync(config.bindAddr, credentials, () => {
+    withHealthChecks.start()
+  })
 }

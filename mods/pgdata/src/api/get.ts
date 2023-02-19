@@ -62,7 +62,16 @@ export function get(operation: PrismaOperation, kind: CC.KindWithoutUnknown) {
           },
           null
         )
+        return
       }
+
+      callback(
+        {
+          code: grpc.status.UNKNOWN,
+          message: "unknown database error"
+        },
+        null
+      )
     }
   }
 }

@@ -18,6 +18,8 @@
  */
 package io.routr;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 
@@ -29,6 +31,7 @@ import javax.script.ScriptException;
  * Wrapper class for Routr.
  */
 public class Launcher {
+  private final static Logger LOG = LogManager.getLogger(HealthCheck.class);
   private static final String launchScript =
     "console = { log: print, warn: print, error: print };" +
       "var System = Java.type('java.lang.System');" +
@@ -38,8 +41,17 @@ public class Launcher {
   static public void main(String... args) {
     try {
       new Launcher().launch();
-    } catch (ScriptException ex) {
-      System.out.println("unable to run routr: " + ex.getMessage());
+
+      boolean enableHealthChecks = System.getenv().get("ENABLE_HEALTHCHECKS") != null && !System.getenv().get("ENABLE_HEALTHCHECKS").isEmpty()
+          ? Boolean.parseBoolean(System.getenv().get("ENABLE_HEALTHCHECKS"))
+          : true;
+
+      if (enableHealthChecks) {
+        new HealthCheck(8080).start();
+      }
+    } catch (Exception ex) {
+      LOG.fatal("unable to run edgeport: " + ex.getMessage());
+      System.exit(1);
     }
   }
 

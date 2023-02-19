@@ -18,11 +18,8 @@
  */
 import { Assertions as A } from "@routr/common"
 
-A.assertEnvsAreSet(["RTPENGINE_HOST"])
+A.assertEnvsAreSet(["LOCATION_ADDR", "API_ADDR"])
 
-export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51903"
-export const RTPENGINE_HOST = process.env.RTPENGINE_HOST
-export const RTPENGINE_PORT = parseInt(process.env.RTPENGINE_PORT ?? "22222")
-export const RTPENGINE_TIMEOUT = parseInt(
-  process.env.RTPENGINE_TIMEOUT ?? "5000"
-)
+export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51904"
+export const LOCATION_ADDR = process.env.LOCATION_ADDR
+export const API_ADDR = process.env.API_ADDR

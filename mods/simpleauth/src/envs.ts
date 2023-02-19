@@ -18,11 +18,9 @@
  */
 import { Assertions as A } from "@routr/common"
 
-A.assertEnvsAreSet(["RTPENGINE_HOST"])
+A.assertEnvsAreSet(["PATH_TO_AUTH", "METHODS"])
 
 export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51903"
-export const RTPENGINE_HOST = process.env.RTPENGINE_HOST
-export const RTPENGINE_PORT = parseInt(process.env.RTPENGINE_PORT ?? "22222")
-export const RTPENGINE_TIMEOUT = parseInt(
-  process.env.RTPENGINE_TIMEOUT ?? "5000"
-)
+export const WHITELIST = process.env.WHITELIST?.split(",") ?? []
+export const METHODS = process.env.METHODS?.split(",") ?? []
+export const PATH_TO_AUTH = process.env.PATH_TO_AUTH

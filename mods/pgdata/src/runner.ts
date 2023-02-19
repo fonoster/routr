@@ -21,13 +21,12 @@
 require("./tracer").init("simpleauth")
 import pgDataService from "./service"
 import { getLogger } from "@fonoster/logger"
+import { BIND_ADDR } from "./envs"
 
 const logger = getLogger({ service: "pgdata", filePath: __filename })
 
 try {
-  pgDataService({
-    bindAddr: process.env.BIND_ADDR ?? "0.0.0.0:51907"
-  })
+  pgDataService({ bindAddr: BIND_ADDR })
 } catch (e) {
   logger.error(e)
   process.exit(1)

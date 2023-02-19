@@ -21,6 +21,13 @@ package io.routr.requester;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletHandler;
+
+import io.routr.HealthCheck;
+
 import java.io.IOException;
 
 public class Launcher {
@@ -32,10 +39,16 @@ public class Launcher {
       var bindAddr = System.getenv().get("BIND_ADDR") != null && !System.getenv().get("BIND_ADDR").isEmpty()
           ? System.getenv().get("BIND_ADDR")
           : "0.0.0.0:51909";
+      boolean enableHealthChecks = System.getenv().get("ENABLE_HEALTHCHECKS") != null && !System.getenv().get("ENABLE_HEALTHCHECKS").isEmpty()
+          ? Boolean.parseBoolean(System.getenv().get("ENABLE_HEALTHCHECKS"))
+          : true;
 
-      var requester = new Requester(bindAddr);
-      requester.start();
-    } catch (IOException e) {
+      new Requester(bindAddr).start();
+
+      if (enableHealthChecks) {
+        new HealthCheck(8080).start();
+      }
+    } catch (Exception e) {
       LOG.fatal(e.getMessage());
       System.exit(1);
     }

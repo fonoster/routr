@@ -21,28 +21,23 @@
 require("./tracer").init("simpleauth")
 import simpleAuthProcessor from "./service"
 import { User } from "./types"
-import { Assertions as A } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
+import { BIND_ADDR, METHODS, PATH_TO_AUTH, WHITELIST } from "./envs"
 
 const logger = getLogger({ service: "simpleauth", filePath: __filename })
 
-A.assertEnvsAreSet(["PATH_TO_AUTH", "METHODS"])
-
-const whiteList = process.env.WHITELIST?.split(",") ?? []
-const methods = process.env.METHODS?.split(",") ?? []
-
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const users: User[] = require(process.env.PATH_TO_AUTH)
+  const users: User[] = require(PATH_TO_AUTH)
   simpleAuthProcessor({
-    bindAddr: process.env.BIND_ADDR ?? "0.0.0.0:51903",
     users,
-    whiteList,
-    methods
+    bindAddr: BIND_ADDR,
+    whiteList: WHITELIST,
+    methods: METHODS
   })
 } catch (e) {
   if (e.code === "MODULE_NOT_FOUND") {
-    logger.error(`auth file not found [path = ${process.env.PATH_TO_AUTH}]`)
+    logger.error(`auth file not found [path = ${PATH_TO_AUTH}]`)
   } else {
     logger.error(e)
   }

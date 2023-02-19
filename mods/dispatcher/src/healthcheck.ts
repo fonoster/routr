@@ -16,13 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Assertions as A } from "@routr/common"
+import { HealthCheck } from "@routr/common"
+import { getConfig } from "./config/get_config"
+import { getLogger } from "@fonoster/logger"
+import { CONFIG_PATH } from "./envs"
 
-A.assertEnvsAreSet(["RTPENGINE_HOST"])
+const logger = getLogger({ service: "dispatcher", filePath: __filename })
+const result = getConfig(CONFIG_PATH)
 
-export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51903"
-export const RTPENGINE_HOST = process.env.RTPENGINE_HOST
-export const RTPENGINE_PORT = parseInt(process.env.RTPENGINE_PORT ?? "22222")
-export const RTPENGINE_TIMEOUT = parseInt(
-  process.env.RTPENGINE_TIMEOUT ?? "5000"
-)
+if (result._tag === "Right") {
+  HealthCheck.check(result.right.bindAddr)
+} else {
+  logger.error(result.left)
+}

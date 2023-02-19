@@ -13,9 +13,10 @@
     "postbuild": "cp -a src/protos dist/protos && cp -a src/connect/protos dist/connect/protos"
   },
   "dependencies": {
-    "@fonoster/logger": "0.3.18",
+    "@fonoster/grpc-health-check": "^3.1.2",
+    "@fonoster/logger": "0.3.20",
     "@grpc/grpc-js": "^1.8.4",
-    "@grpc/proto-loader": "^0.6.9",
+    "@grpc/proto-loader": "^0.7.2",
     "@opentelemetry/api": "^1.0.4",
     "@opentelemetry/exporter-jaeger": "^1.0.4",
     "@opentelemetry/instrumentation": "^0.27.0",
@@ -31,7 +32,8 @@
     "pb-util": "^1.0.3",
     "phone": "^3.1.32",
     "toml": "^3.0.0",
-    "validator": "^13.7.0"
+    "validator": "^13.7.0",
+    "grpc-interceptors": "github:fonoster/node-grpc-interceptors"
   },
   "directories": {
     "src": "src",

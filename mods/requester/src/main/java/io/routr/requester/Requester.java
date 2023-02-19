@@ -51,8 +51,7 @@ public class Requester {
         AddressUtil.getPortFromAddress(bindAddr));
 
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      // Use stderr here since the logger may have been reset by its JVM shutdown
-      // hook.
+      // Use stderr here since the logger may have been reset by its JVM shutdown hook.
       LOG.info("*** shutting down Requester gRPC server since JVM is shutting down");
       try {
         Requester.this.stop();

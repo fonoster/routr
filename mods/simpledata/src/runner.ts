@@ -22,6 +22,7 @@ require("./tracer").init("simpleauth")
 import simpleDataService from "./service"
 import { Assertions as A } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
+import { BIND_ADDR, PATH_TO_RESOURCES } from "./envs"
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
 
@@ -29,8 +30,8 @@ A.assertEnvsAreSet(["PATH_TO_RESOURCES"])
 
 try {
   simpleDataService({
-    bindAddr: process.env.BIND_ADDR ?? "0.0.0.0:51907",
-    pathToResources: process.env.PATH_TO_RESOURCES
+    bindAddr: BIND_ADDR,
+    pathToResources: PATH_TO_RESOURCES
   })
 } catch (e) {
   logger.error(e)

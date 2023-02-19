@@ -21,17 +21,27 @@
 require("./tracer").init("dispatcher")
 import registryService from "./service"
 import { getConfig } from "./config/get_config"
-import { Assertions as A } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
+import { CONFIG_PATH, ENABLE_HEALTHCHECKS } from "./envs"
+import express from "express"
+const app = express()
+const healthPort = 8081
 
 const logger = getLogger({ service: "registry", filePath: __filename })
-
-A.assertEnvsAreSet(["CONFIG_PATH"])
-
-const config = getConfig(process.env.CONFIG_PATH)
+const config = getConfig(CONFIG_PATH)
 
 if (config._tag === "Right") {
   registryService(config.right)
 } else {
   logger.error(config.left)
+}
+
+if (ENABLE_HEALTHCHECKS) {
+  app.get("/health", (_, res) => {
+    res.send("OK")
+  })
+
+  app.listen(healthPort, () => {
+    logger.info(`health check endpoint listening on port ${healthPort}`)
+  })
 }

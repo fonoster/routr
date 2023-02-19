@@ -16,13 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Assertions as A } from "@routr/common"
+import { checker } from "@fonoster/grpc-health-check"
 
-A.assertEnvsAreSet(["RTPENGINE_HOST"])
-
-export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51903"
-export const RTPENGINE_HOST = process.env.RTPENGINE_HOST
-export const RTPENGINE_PORT = parseInt(process.env.RTPENGINE_PORT ?? "22222")
-export const RTPENGINE_TIMEOUT = parseInt(
-  process.env.RTPENGINE_TIMEOUT ?? "5000"
-)
+export const check = (address: string) => checker("", address)

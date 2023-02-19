@@ -11,7 +11,8 @@ metadata:
     {{- include ".helm.labels" . | nindent 4 }}
     service: edgeport
 spec:
-  type: LoadBalancer
+  type: {{ .Values.edgeport.serviceType }}
+  externalTrafficPolicy: {{ .Values.edgeport.externalTrafficPolicy }}
   ports:
   {{- if .Values.edgeport.transport.tcp.enabled }}
     - name: siptcp
