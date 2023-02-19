@@ -1,6 +1,6 @@
 {
   "name": "@routr/pgdata",
-  "version": "2.0.8-alpha.30",
+  "version": "2.0.8-alpha.31",
   "description": "Postgres API Server for Routr Connect",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -20,8 +20,8 @@
     "healthcheck_pgdata": "dist/healthcheck.js"
   },
   "dependencies": {
-    "@fonoster/logger": "0.3.20",
     "@fonoster/grpc-health-check": "^3.1.2",
+    "@fonoster/logger": "0.3.20",
     "@grpc/grpc-js": "^1.8.4",
     "@opentelemetry/api": "^1.0.4",
     "@opentelemetry/exporter-jaeger": "^1.0.4",
@@ -32,13 +32,13 @@
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
     "@prisma/client": "^4.8.0",
-    "@routr/common": "^2.0.8-alpha.30",
-    "@routr/processor": "^2.0.8-alpha.30",
+    "@routr/common": "^2.0.8-alpha.31",
+    "@routr/processor": "^2.0.8-alpha.31",
     "google-protobuf": "^3.9.2",
+    "grpc-interceptors": "github:fonoster/node-grpc-interceptors",
     "pb-util": "^1.0.3",
     "phone": "^3.1.32",
-    "validator": "^13.7.0",
-    "grpc-interceptors": "github:fonoster/node-grpc-interceptors"
+    "validator": "^13.7.0"
   },
   "files": [
     "dist"
