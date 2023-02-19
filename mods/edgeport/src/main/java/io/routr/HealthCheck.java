@@ -53,7 +53,7 @@ public class HealthCheck extends HttpServlet {
   }
 
   public void start() throws Exception{
-    LOG.info("starting health check on port " + port + "and endpoint /health");
+    LOG.info("starting health check on port " + port + " and endpoint /health");
     Server server = new Server(port);
     ServletHandler handler = new ServletHandler();
     server.setHandler(handler);

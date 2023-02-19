@@ -125,7 +125,7 @@ edgeport:
   image: 
     repository: fonoster/routr-edgeport
     tag: latest
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
   podAnnotations: {}
   serviceAnnotations: {}
   transport:
