@@ -1,6 +1,6 @@
 {
   "name": "@routr/registry",
-  "version": "2.0.8-alpha.32",
+  "version": "2.0.8-alpha.33",
   "description": "Sends trunks registrations and maintains their bindings",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -35,8 +35,8 @@
     "@opentelemetry/sdk-trace-base": "^1.0.4",
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
-    "@routr/common": "^2.0.8-alpha.32",
-    "@routr/processor": "^2.0.8-alpha.32",
+    "@routr/common": "^2.0.8-alpha.33",
+    "@routr/processor": "^2.0.8-alpha.33",
     "ajv": "^6.12.6",
     "express": "^4.18.2",
     "fp-ts": "^2.11.8",
