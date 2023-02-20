@@ -25,7 +25,7 @@ import { getLogger } from "@fonoster/logger"
 import { CONFIG_PATH, ENABLE_HEALTHCHECKS } from "./envs"
 import express from "express"
 const app = express()
-const healthPort = 8081
+const healthPort = 8080
 
 const logger = getLogger({ service: "registry", filePath: __filename })
 const config = getConfig(CONFIG_PATH)

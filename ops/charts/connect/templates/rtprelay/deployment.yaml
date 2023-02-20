@@ -29,6 +29,14 @@ spec:
         - name: rtprelay
           image: "{{ .Values.rtprelay.image.repository }}:{{ .Values.rtprelay.image.tag }}"
           imagePullPolicy: {{ .Values.rtprelay.image.pullPolicy }}
+          livenessProbe:
+            exec:
+              command: ["healthcheck"]
+            initialDelaySeconds: {{ .Values.rtprelay.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.rtprelay.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.rtprelay.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.rtprelay.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.rtprelay.livenessProbe.timeoutSeconds }}
           env:
             - name: RTPENGINE_HOST
               value: {{ .Values.rtprelay.rtpeHost }}

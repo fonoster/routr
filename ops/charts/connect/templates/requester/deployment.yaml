@@ -29,6 +29,15 @@ spec:
         - name: requester
           image: "{{ .Values.requester.image.repository }}:{{ .Values.requester.image.tag }}"
           imagePullPolicy: {{ .Values.requester.image.pullPolicy }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: {{ .Values.requester.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.requester.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.requester.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.requester.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.requester.livenessProbe.timeoutSeconds }}
           env:
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}

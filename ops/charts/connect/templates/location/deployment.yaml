@@ -30,6 +30,14 @@ spec:
         - name: location
           image: "{{ .Values.location.image.repository }}:{{ .Values.dispatcher.image.tag }}"
           imagePullPolicy: {{ .Values.location.image.pullPolicy }}
+          livenessProbe:
+            exec:
+              command: ["healthcheck"]
+            initialDelaySeconds: {{ .Values.location.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.location.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.location.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.location.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.location.livenessProbe.timeoutSeconds }}
           env:
             - name: CONFIG_PATH
               value: /etc/routr/location.yaml

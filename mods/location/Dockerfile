@@ -16,5 +16,5 @@ RUN apk add --no-cache --update git curl tini nodejs npm python3 make cmake g++ 
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 CMD ["run"]
 
-HEALTHCHECK --start-period=5s --interval=5s --timeout=2s --retries=2 \
+HEALTHCHECK --start-period=5s --interval=5s --timeout=4s --retries=2 \
   CMD [ "healthcheck" ]

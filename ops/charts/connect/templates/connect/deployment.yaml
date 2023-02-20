@@ -29,6 +29,14 @@ spec:
         - name: connect
           image: "{{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}"
           imagePullPolicy: {{ .Values.connect.image.pullPolicy }}
+          livenessProbe:
+            exec:
+              command: ["healthcheck"]
+            initialDelaySeconds: {{ .Values.connect.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.connect.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.connect.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.connect.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.connect.livenessProbe.timeoutSeconds }}          
           env:
             - name: LOCATION_ADDR
               value: {{ .Release.Name }}-routr-location.{{ .Release.Namespace }}:51902

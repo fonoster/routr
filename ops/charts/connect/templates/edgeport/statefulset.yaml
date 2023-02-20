@@ -34,6 +34,15 @@ spec:
         - name: edgeport
           image: "{{ .Values.edgeport.image.repository }}:{{ .Values.edgeport.image.tag }}"
           imagePullPolicy: {{ .Values.edgeport.image.pullPolicy }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: {{ .Values.edgeport.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.edgeport.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.edgeport.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.edgeport.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.edgeport.livenessProbe.timeoutSeconds }}
           env:
             - name: CONFIG_PATH
               value: /etc/routr/edgeport.yaml

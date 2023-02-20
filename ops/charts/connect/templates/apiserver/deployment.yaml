@@ -29,9 +29,17 @@ spec:
         - name: apiserver
           image: "{{ .Values.apiserver.image.repository }}:{{ .Values.apiserver.image.tag }}"
           imagePullPolicy: {{ .Values.apiserver.image.pullPolicy }}
+          livenessProbe:
+            exec:
+              command: ["healthcheck"]
+            initialDelaySeconds: {{ .Values.apiserver.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.apiserver.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.apiserver.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.apiserver.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.apiserver.livenessProbe.timeoutSeconds }}
           env:
             - name: DATABASE_URL
-              value: postgresql://routr:changeit@{{ .Release.Name }}-postgresql.{{ .Release.Namespace }}:5432/routr?schema=public
+              value: postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ .Release.Name }}-postgresql.{{ .Release.Namespace }}:5432/routr?schema=public
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT

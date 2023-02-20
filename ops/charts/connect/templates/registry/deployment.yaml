@@ -29,6 +29,15 @@ spec:
         - name: registry
           image: "{{ .Values.registry.image.repository }}:{{ .Values.registry.image.tag }}"
           imagePullPolicy: {{ .Values.registry.image.pullPolicy }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: {{ .Values.registry.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.registry.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.registry.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.registry.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.registry.livenessProbe.timeoutSeconds }}          
           env:
             - name: CONFIG_PATH
               value: /etc/routr/registry.yaml

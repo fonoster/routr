@@ -30,6 +30,14 @@ spec:
         - name: dispatcher
           image: "{{ .Values.dispatcher.image.repository }}:{{ .Values.dispatcher.image.tag }}"
           imagePullPolicy: {{ .Values.dispatcher.image.pullPolicy }}
+          livenessProbe:
+            exec:
+              command: ["healthcheck"]
+            initialDelaySeconds: {{ .Values.dispatcher.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.dispatcher.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.dispatcher.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.dispatcher.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.dispatcher.livenessProbe.timeoutSeconds }}
           env:
             - name: CONFIG_PATH
               value: /etc/routr/dispatcher.yaml

@@ -34,6 +34,12 @@ rtprelay:
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+    failureThreshold: 2
+    timeoutSeconds: 4    
   resources:
     limits: {}
     requests: {}
@@ -55,6 +61,12 @@ apiserver:
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+    failureThreshold: 2
+    timeoutSeconds: 4
   resources:
     limits: {}
     requests: {}
@@ -76,6 +88,12 @@ connect:
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+    failureThreshold: 2
+    timeoutSeconds: 4    
   resources:
     limits: {}
     requests: {}
@@ -104,6 +122,12 @@ registry:
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+    failureThreshold: 2
+    timeoutSeconds: 4    
   resources:
     limits: {}
     requests: {}
@@ -152,6 +176,12 @@ edgeport:
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
+  livenessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    successThreshold: 1
+    failureThreshold: 2
+    timeoutSeconds: 4    
   resources:
     limits: {}
     requests: {}
@@ -169,6 +199,12 @@ dispatcher:
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+    failureThreshold: 2
+    timeoutSeconds: 4    
   resources:
     limits: {}
     requests: {}
@@ -194,6 +230,12 @@ location:
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+    failureThreshold: 2
+    timeoutSeconds: 4    
   resources:
     limits: {}
     requests: {}
@@ -215,6 +257,12 @@ requester:
     runAsGroup: 3000
     fsGroup: 2000
     allowPrivilegeEscalation: false
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+    failureThreshold: 2
+    timeoutSeconds: 4    
   resources:
     limits: {}
     requests: {}
