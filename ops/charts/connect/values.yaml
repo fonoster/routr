@@ -2,143 +2,248 @@ global:
   region: default
   logsLevel: verbose
   otlExporter: http://jaeger:14268/api/traces
-  postgresql:
-    auth:
-      username: routr
-      password: changeit
 
+# Postgresql Service defaults 
 postgresql:
+  # Whether to enable PostgreSQL
   enabled: true
   auth:
     username: routr
     password: changeit
 
+# Redis Service defaults
 redis:
+  # Whether to enable Redis
   enabled: true
   architecture: standalone
   auth:
     enabled: false
 
-# Connect Service defaults
+# RTPRelay Service defaults
 rtprelay:
+  # RTPEngine host
   rtpeHost: ""
+  # RTPEngine port
   rtpPort: 22222
-  image: 
+  # RTPRelay image configuration
+  image:
+    # RTPRelay image repository
     repository: fonoster/routr-rtprelay
+    # RTPRelay image tag (immutable tags are recommended)
     tag: latest
+    # RTPRelay image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
+  # Pod annotations
   podAnnotations: {}
-  serviceAnnotations: {}    
+  # Service annotations
+  serviceAnnotations: {}
+  # Security context for RTPRelay
   securityContext:
+    # Running as non-root user
     runAsUser: 1000
+    # Running as non-root group
     runAsGroup: 3000
+    # File system group
     fsGroup: 2000
+    # By default, no privilege escalation is allowed
     allowPrivilegeEscalation: false
+  # Liveness probe configuration
   livenessProbe:
+    # Initial delay before starting liveness probe
     initialDelaySeconds: 5
+    # Period between liveness probes
     periodSeconds: 5
+    # Number of successes required to be considered healthy
     successThreshold: 1
+    # Number of failures required to be considered unhealthy
     failureThreshold: 2
-    timeoutSeconds: 4    
+    # Timeout for liveness probe. We default to 4 seconds because the check takes time to warm up
+    timeoutSeconds: 4
+  # Resource limits and requests
   resources:
+    # Resource limits
     limits: {}
+    # Resource requests
     requests: {}
+  # Autoscaling configuration
   autoscaling:
+    # Minimum number of replicas
     minReplicas: 1
+    # Maximum number of replicas
     maxReplicas: 10
+    # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
 
 # Connect Service defaults
 apiserver:
-  image: 
+  # APIServer image configuration
+  image:
+    # APIServer image repository
     repository: fonoster/routr-pgdata
+    # APIServer image tag (immutable tags are recommended)
     tag: latest
+    # APIServer image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
+  # Pod annotations
   podAnnotations: {}
-  serviceAnnotations: {}    
+  # Service annotations
+  serviceAnnotations: {}
+  # Security context for APIServer    
   securityContext:
+    # Running as non-root user
     runAsUser: 1000
+    # Running as non-root group
     runAsGroup: 3000
+    # File system group
     fsGroup: 2000
+    # By default, no privilege escalation is allowed
     allowPrivilegeEscalation: false
+  # Liveness probe configuration
   livenessProbe:
+    # Initial delay before starting liveness probe
     initialDelaySeconds: 5
+    # Period between liveness probes
     periodSeconds: 5
+    # Number of successes required to be considered healthy
     successThreshold: 1
+    # Number of failures required to be considered unhealthy
     failureThreshold: 2
+    # Timeout for liveness probe. We default to 4 seconds because the check takes time to warm up
     timeoutSeconds: 4
+  # Resource limits and requests
   resources:
+    # Resource limits
     limits: {}
+    # Resource requests
     requests: {}
+  # Autoscaling configuration  
   autoscaling:
+    # Minimum number of replicas
     minReplicas: 1
+    # Maximum number of replicas
     maxReplicas: 10
+    # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
 
 # Connect Service defaults
 connect:
-  image: 
+  # Connect image configuration
+  image:
+    # Connect image repository
     repository: fonoster/routr-connect
+    # Connect image tag (immutable tags are recommended)
     tag: latest
+    # Connect image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
+  # Pod annotations
   podAnnotations: {}
-  serviceAnnotations: {}    
+  # Service annotations
+  serviceAnnotations: {}
+  # Security context for Connect    
   securityContext:
+    # Running as non-root user
     runAsUser: 1000
+    # Running as non-root group
     runAsGroup: 3000
+    # File system group
     fsGroup: 2000
+    # By default, no privilege escalation is allowed
     allowPrivilegeEscalation: false
+  # Liveness probe configuration
   livenessProbe:
+    # Initial delay before starting liveness probe
     initialDelaySeconds: 5
+    # Period between liveness probes
     periodSeconds: 5
+    # Number of successes required to be considered healthy
     successThreshold: 1
+    # Number of failures required to be considered unhealthy
     failureThreshold: 2
-    timeoutSeconds: 4    
+    # Timeout for liveness probe. We default to 4 seconds because the check takes time to warm up
+    timeoutSeconds: 4
+  # Resource limits and requests
   resources:
+    # Resource limits
     limits: {}
+    # Resource requests
     requests: {}
+  # Autoscaling configuration
   autoscaling:
+    # Minimum number of replicas
     minReplicas: 1
+    # Maximum number of replicas
     maxReplicas: 10
+    # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
 
 # APIServer Service defaults
 registry:
+  # Registry image configuration
   registerInterval: 20
-  cache: 
+  # Cache configuration
+  cache:
+    # Cache provider. Default to memory
     provider: memory
+    # Cache parameters. Default to empty string
     parameters: ""
+  # Registry image configuration
   methods:
     - INVITE
-    - MESSAGE 
+    - MESSAGE
+  # Registry image configuration
   image:
+    # Registry image repository
     repository: fonoster/routr-registry
+    # Registry image tag (immutable tags are recommended)
     tag: latest
+    # Registry image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
+  # Pod annotations
   podAnnotations: {}
-  serviceAnnotations: {}    
+  # Service annotations
+  serviceAnnotations: {}
+  # Security context for Registry
   securityContext:
+    # Running as non-root user
     runAsUser: 1000
+    # Running as non-root group
     runAsGroup: 3000
+    # File system group
     fsGroup: 2000
+    # By default, no privilege escalation is allowed
     allowPrivilegeEscalation: false
+  # Liveness probe configuration
   livenessProbe:
+    # Initial delay before starting liveness probe
     initialDelaySeconds: 5
+    # Period between liveness probes
     periodSeconds: 5
+    # Number of successes required to be considered healthy
     successThreshold: 1
+    # Number of failures required to be considered unhealthy
     failureThreshold: 2
-    timeoutSeconds: 4    
+    # Timeout for liveness probe.
+    timeoutSeconds: 2
+  # Resource limits and requests
   resources:
+    # Resource limits
     limits: {}
+    # Resource requests
     requests: {}
+  # Autoscaling configuration
   autoscaling:
+    # Minimum number of replicas
     minReplicas: 1
+    # Maximum number of replicas
     maxReplicas: 10
+    # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
 
 # EdgePort Service defaults
 edgeport:
+  # External addresses. Required for edgeport to work
   externalAddrs: []
+  # Acceptable SIP methods
   methods:
     - REGISTER
     - MESSAGE
@@ -146,127 +251,242 @@ edgeport:
     - ACK
     - BYE
     - CANCEL
-  image: 
+  # EdgePort image configuration
+  image:
+    # EdgePort image repository
     repository: fonoster/routr-edgeport
+    # EdgePort image tag (immutable tags are recommended)
     tag: latest
+    # EdgePort image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
+  # Pod annotations
   podAnnotations: {}
+  # Service annotations
   serviceAnnotations: {}
+  # Security context for EdgePort
   transport:
+    # TCP transport configuration
     tcp:
+      # Whether TCP transport is enabled
       enabled: true
+      # TCP port
       port: 5060
+    # UDP transport configuration  
     udp:
+      # Whether UDP transport is enabled
       enabled: true
+      # UDP port
       port: 5060
+    # TLS transport configuration  
     tls:
+      # Whether TLS transport is enabled
       enabled: false
+      # TLS port
       port: 5061
+    # WebSocket transport configuration
     ws:
+      # Whether WebSocket transport is enabled
       enabled: true
+      # WebSocket port
       port: 5062
+    # Secure WebSocket transport configuration
     wss:
+      # Whether Secure WebSocket transport is enabled
       enabled: false
+      # Secure WebSocket port
       port: 5063
+  # Maximum number of replicas
   replicas: 2
+  # Minimun time for the pod to be ready before accepting traffic
   minReadySeconds: 10
+  # Maximun time for the pod to be ready before being killed
   terminationGracePeriodSeconds: 10
+  # Security context for EdgePort
   securityContext:
+    # Running as non-root user
     runAsUser: 1000
+    # Running as non-root group
     runAsGroup: 3000
+    # File system group
     fsGroup: 2000
+    # By default, no privilege escalation is allowed
     allowPrivilegeEscalation: false
+  # Liveness probe configuration
   livenessProbe:
+    # Initial delay before starting liveness probe
     initialDelaySeconds: 10
+    # Period between liveness probes
     periodSeconds: 5
+    # Number of successes required to be considered healthy 
     successThreshold: 1
+    # Number of failures required to be considered unhealthy
     failureThreshold: 2
-    timeoutSeconds: 4    
+    # Timeout for liveness probe.
+    timeoutSeconds: 2
+  # Resource limits and requests
   resources:
+    # Resource limits
     limits: {}
+    # Resource requests
     requests: {}
 
 # Dispatcher Service defaults
 dispatcher:
-  image: 
+  # Dispatcher image configuration
+  image:
+    # Dispatcher image repository
     repository: fonoster/routr-dispatcher
+    # Dispatcher image tag (immutable tags are recommended)
     tag: latest
+    # Dispatcher image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
+  # Pod annotations
   podAnnotations: {}
-  serviceAnnotations: {}    
+  # Service annotations
+  serviceAnnotations: {}
+  # Security context for Dispatcher
   securityContext:
+    # Running as non-root user
     runAsUser: 1000
+    # Running as non-root group
     runAsGroup: 3000
+    # File system group
     fsGroup: 2000
+    # By default, no privilege escalation is allowed
     allowPrivilegeEscalation: false
+  # Liveness probe configuration
   livenessProbe:
+    # Initial delay before starting liveness probe
     initialDelaySeconds: 5
+    # Period between liveness probes
     periodSeconds: 5
+    # Number of successes required to be considered healthy
     successThreshold: 1
+    # Number of failures required to be considered unhealthy
     failureThreshold: 2
-    timeoutSeconds: 4    
+    # Timeout for liveness probe. We default to 4 because the healthcheck commands take a while to execute
+    timeoutSeconds: 4
+  # Resource limits and requests
   resources:
+    # Resource limits
     limits: {}
+    # Resource requests
     requests: {}
+  # Autoscaling configuration
   autoscaling:
+    # Minimum number of replicas
     minReplicas: 1
+    # Maximum number of replicas
     maxReplicas: 10
+    # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
 
 # Location Service defaults
 location:
+  # Region for Location service (reserved for future use)
   region: default
-  cache: 
+  # Location cache configuration
+  cache:
+    # Location cache provider
     provider: memory
+    # Location cache parameters
     parameters: ""
-  image: 
+  # Location image configuration
+  image:
+    # Location image repository
     repository: fonoster/routr-location
+    # Location image tag (immutable tags are recommended)
     tag: latest
+    # Location image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
+  # Pod annotations  
   podAnnotations: {}
-  serviceAnnotations: {}    
+  # Service annotations
+  serviceAnnotations: {}
+  # Security context for Location
   securityContext:
+    # Running as non-root user
     runAsUser: 1000
+    # Running as non-root group
     runAsGroup: 3000
+    # File system group
     fsGroup: 2000
+    # By default, no privilege escalation is allowed
     allowPrivilegeEscalation: false
+  # Liveness probe configuration
   livenessProbe:
+    # Initial delay before starting liveness probe
     initialDelaySeconds: 5
+    # Period between liveness probes
     periodSeconds: 5
+    # Number of successes required to be considered healthy
     successThreshold: 1
+    # Number of failures required to be considered unhealthy
     failureThreshold: 2
-    timeoutSeconds: 4    
+    # Timeout for liveness probe. We default to 4 because the healthcheck commands take a while to execute
+    timeoutSeconds: 4
+  # Resource limits and requests
   resources:
+    # Resource limits
     limits: {}
+    # Resource requests
     requests: {}
+  # Autoscaling configuration
   autoscaling:
+    # Minimum number of replicas
     minReplicas: 1
+    # Maximum number of replicas
     maxReplicas: 10
+    # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
 
 # Requester Service defaults
 requester:
-  image: 
+  # Requester image configuration
+  image:
+    # Requester image repository
     repository: fonoster/routr-requester
+    # Requester image tag (immutable tags are recommended)
     tag: latest
+    # Requester image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
+  # Pod annotations
   podAnnotations: {}
-  serviceAnnotations: {}    
+  # Service annotations
+  serviceAnnotations: {}
+  # Security context for Requester
   securityContext:
+    # Running as non-root user
     runAsUser: 1000
+    # Running as non-root group
     runAsGroup: 3000
+    # File system group
     fsGroup: 2000
+    # By default, no privilege escalation is allowed
     allowPrivilegeEscalation: false
+  # Liveness probe configuration
   livenessProbe:
+    # Initial delay before starting liveness probe
     initialDelaySeconds: 5
+    # Period between liveness probes
     periodSeconds: 5
+    # Number of successes required to be considered healthy
     successThreshold: 1
+    # Number of failures required to be considered unhealthy
     failureThreshold: 2
-    timeoutSeconds: 4    
+    # Timeout for liveness probe.
+    timeoutSeconds: 2
+  # Resource limits and requests 
   resources:
+    # Resource limits
     limits: {}
+    # Resource requests
     requests: {}
+  # Autoscaling configuration
   autoscaling:
+    # Minimum number of replicas
     minReplicas: 1
+    # Maximum number of replicas
     maxReplicas: 10
+    # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
