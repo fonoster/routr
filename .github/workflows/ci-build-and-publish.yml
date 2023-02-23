@@ -1,0 +1,121 @@
+name: 📦 CI - Build, package, and ship to Docker Hub
+
+on:
+  push:
+    paths:
+      - lerna.json
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🎬 Check out Git repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: 🏷️ Get the current version
+        shell: bash
+        id: release
+        run: echo "VERSION=2$(node -e "console.log(require('./lerna.json').version)")" >> $GITHUB_OUTPUT
+
+      - name: 🔐 Login to GitHub Registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      - name: Publish the Edgeport module
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-edgeport
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/edgeport
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+      - name: Publish the Dispatcher module
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-dispatcher
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/dispatcher
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+      - name: Publish the Location module
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-location
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/location
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+      - name: Publish the Connect module
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-connect
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/connect
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+      - name: Publish the Simpledata module
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-simpledata
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/simpledata
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+      - name: Publish the Requester module
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-requester
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/requester
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+      - name: Publish the Registry module
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-registry
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/registry
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+      - name: Publish the Postgres DB module
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-pgdata
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/pgdata
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+      - name: Publish the Echo module
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-echo
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/echo
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+      - name: Publish the RTPrelay module
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-rtprelay
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/rtprelay
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
