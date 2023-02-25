@@ -1,4 +1,4 @@
-name: 📦 CI - Build, package, and ship to Docker Hub
+name: release to docker hub
 
 on:
   push:
