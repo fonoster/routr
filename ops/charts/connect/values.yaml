@@ -74,13 +74,20 @@ rtprelay:
     # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
 
-# Connect Service defaults
+# APIServer Service defaults
 apiserver:
   # APIServer image configuration
   image:
     # APIServer image repository
     repository: fonoster/routr-pgdata
     # APIServer image tag (immutable tags are recommended)
+    tag: latest
+    # APIServer image pull policy default to IfNotPresent
+    pullPolicy: IfNotPresent
+  migrationsImage:
+    # APIServer migrations image repository
+    repository: fonoster/routr-pgdata-migrations
+    # APIServer migrations image tag (immutable tags are recommended)
     tag: latest
     # APIServer image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
@@ -176,7 +183,7 @@ connect:
     # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
 
-# APIServer Service defaults
+# Registry Service defaults
 registry:
   # Registry image configuration
   registerInterval: 20

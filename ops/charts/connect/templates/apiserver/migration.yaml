@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .Release.Name }}-routr-apiserver-migrations
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  containers:
+    - name: migrations
+      image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag }}"
+      imagePullPolicy: {{ .Values.apiserver.migrationsImage.pullPolicy }}
+      env:
+        - name: DATABASE_URL
+          value: postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ .Release.Name }}-postgresql.{{ .Release.Namespace }}:5432/routr?schema=public
+      command: ["npx", "-y", "prisma", "migrate", "deploy"]
+  restartPolicy: Never
+  terminationGracePeriodSeconds: 0
