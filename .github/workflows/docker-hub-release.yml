@@ -39,7 +39,7 @@ jobs:
       - name: Get the current version
         shell: bash
         id: release
-        run: echo "VERSION=2$(node -e "console.log(require('./lerna.json').version)")" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(node -e "console.log(require('./lerna.json').version)")" >> $GITHUB_OUTPUT
 
       - name: Login to GitHub Registry
         uses: docker/login-action@v2
