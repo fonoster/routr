@@ -27,7 +27,7 @@ spec:
         fsGroup: {{ .Values.requester.securityContext.fsGroup }}
       containers:
         - name: requester
-          image: "{{ .Values.requester.image.repository }}:{{ .Values.requester.image.tag }}"
+          image: "{{ .Values.requester.image.repository }}:{{ .Values.requester.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.requester.image.pullPolicy }}
           livenessProbe:
             httpGet:

@@ -27,7 +27,7 @@ spec:
         fsGroup: {{ .Values.apiserver.securityContext.fsGroup }}
       containers:
         - name: apiserver
-          image: "{{ .Values.apiserver.image.repository }}:{{ .Values.apiserver.image.tag }}"
+          image: "{{ .Values.apiserver.image.repository }}:{{ .Values.apiserver.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.apiserver.image.pullPolicy }}
           livenessProbe:
             exec:

@@ -27,7 +27,7 @@ spec:
         fsGroup: {{ .Values.connect.securityContext.fsGroup }}
       containers:
         - name: connect
-          image: "{{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag }}"
+          image: "{{ .Values.connect.image.repository }}:{{ .Values.connect.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.connect.image.pullPolicy }}
           livenessProbe:
             exec:

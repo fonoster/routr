@@ -32,7 +32,7 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.edgeport.terminationGracePeriodSeconds }}
       containers:
         - name: edgeport
-          image: "{{ .Values.edgeport.image.repository }}:{{ .Values.edgeport.image.tag }}"
+          image: "{{ .Values.edgeport.image.repository }}:{{ .Values.edgeport.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.edgeport.image.pullPolicy }}
           livenessProbe:
             httpGet:

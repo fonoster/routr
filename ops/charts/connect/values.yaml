@@ -8,7 +8,9 @@ postgresql:
   # Whether to enable PostgreSQL
   enabled: true
   auth:
+    # Initial username for the database
     username: routr
+    # Initial password for the database
     password: changeit
 
 # Redis Service defaults
@@ -31,7 +33,8 @@ rtprelay:
     # RTPRelay image repository
     repository: fonoster/routr-rtprelay
     # RTPRelay image tag (immutable tags are recommended)
-    tag: latest
+    # Uncomment to overwrite Chart.appVersion
+    # tag: latest
     # RTPRelay image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
   # Pod annotations
@@ -85,7 +88,8 @@ apiserver:
     # APIServer image repository
     repository: fonoster/routr-pgdata
     # APIServer image tag (immutable tags are recommended)
-    tag: latest
+    # Uncomment to overwrite Chart.appVersion
+    # tag: latest
     # APIServer image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
   migrationsEnabled: true
@@ -93,7 +97,8 @@ apiserver:
     # APIServer migrations image repository
     repository: fonoster/routr-pgdata-migrations
     # APIServer migrations image tag (immutable tags are recommended)
-    tag: latest
+    # Uncomment to overwrite Chart.appVersion
+    # tag: latest
     # APIServer image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
   # Pod annotations
@@ -144,7 +149,8 @@ connect:
     # Connect image repository
     repository: fonoster/routr-connect
     # Connect image tag (immutable tags are recommended)
-    tag: latest
+    # Uncomment to overwrite Chart.appVersion
+    # tag: latest
     # Connect image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
   # Pod annotations
@@ -207,7 +213,8 @@ registry:
     # Registry image repository
     repository: fonoster/routr-registry
     # Registry image tag (immutable tags are recommended)
-    tag: latest
+    # Uncomment to overwrite Chart.appVersion
+    # tag: latest
     # Registry image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
   # Pod annotations
@@ -268,7 +275,8 @@ edgeport:
     # EdgePort image repository
     repository: fonoster/routr-edgeport
     # EdgePort image tag (immutable tags are recommended)
-    tag: latest
+      # Uncomment to overwrite Chart.appVersion
+    # tag: latest
     # EdgePort image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
   # Pod annotations
@@ -349,7 +357,8 @@ dispatcher:
     # Dispatcher image repository
     repository: fonoster/routr-dispatcher
     # Dispatcher image tag (immutable tags are recommended)
-    tag: latest
+    # Uncomment to overwrite Chart.appVersion
+    # tag: latest
     # Dispatcher image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
   # Pod annotations
@@ -408,7 +417,8 @@ location:
     # Location image repository
     repository: fonoster/routr-location
     # Location image tag (immutable tags are recommended)
-    tag: latest
+    # Uncomment to overwrite Chart.appVersion
+    # tag: latest
     # Location image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
   # Pod annotations  
@@ -459,7 +469,8 @@ requester:
     # Requester image repository
     repository: fonoster/routr-requester
     # Requester image tag (immutable tags are recommended)
-    tag: latest
+    # Uncomment to overwrite Chart.appVersion
+    # tag: latest
     # Requester image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
   # Pod annotations

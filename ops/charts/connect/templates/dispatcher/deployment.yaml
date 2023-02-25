@@ -28,7 +28,7 @@ spec:
         fsGroup: {{ .Values.dispatcher.securityContext.fsGroup }}
       containers:
         - name: dispatcher
-          image: "{{ .Values.dispatcher.image.repository }}:{{ .Values.dispatcher.image.tag }}"
+          image: "{{ .Values.dispatcher.image.repository }}:{{ .Values.dispatcher.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.dispatcher.image.pullPolicy }}
           livenessProbe:
             exec:

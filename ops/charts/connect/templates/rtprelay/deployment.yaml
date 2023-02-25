@@ -28,7 +28,7 @@ spec:
         fsGroup: {{ .Values.rtprelay.securityContext.fsGroup }}
       containers:
         - name: rtprelay
-          image: "{{ .Values.rtprelay.image.repository }}:{{ .Values.rtprelay.image.tag }}"
+          image: "{{ .Values.rtprelay.image.repository }}:{{ .Values.rtprelay.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.rtprelay.image.pullPolicy }}
           livenessProbe:
             exec:

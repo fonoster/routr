@@ -27,7 +27,7 @@ spec:
         fsGroup: {{ .Values.registry.securityContext.fsGroup }}
       containers:
         - name: registry
-          image: "{{ .Values.registry.image.repository }}:{{ .Values.registry.image.tag }}"
+          image: "{{ .Values.registry.image.repository }}:{{ .Values.registry.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.registry.image.pullPolicy }}
           livenessProbe:
             httpGet:

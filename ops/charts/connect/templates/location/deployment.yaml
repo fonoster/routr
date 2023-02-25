@@ -28,7 +28,7 @@ spec:
         fsGroup: {{ .Values.location.securityContext.fsGroup }}
       containers:
         - name: location
-          image: "{{ .Values.location.image.repository }}:{{ .Values.dispatcher.image.tag }}"
+          image: "{{ .Values.location.image.repository }}:{{ .Values.dispatcher.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.location.image.pullPolicy }}
           livenessProbe:
             exec:

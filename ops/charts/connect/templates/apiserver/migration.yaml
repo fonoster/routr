@@ -10,11 +10,16 @@ metadata:
 spec:
   containers:
     - name: migrations
-      image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag }}"
+      image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag | default .Chart.AppVersion }}"
       imagePullPolicy: {{ .Values.apiserver.migrationsImage.pullPolicy }}
       env:
+        {{- if .Values.apiserver.databaseUrl }}
+        - name: DATABASE_URL
+          value: {{ .Values.apiserver.databaseUrl }}
+        {{- else }}  
         - name: DATABASE_URL
           value: postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ .Release.Name }}-postgresql.{{ .Release.Namespace }}:5432/routr?schema=public
+        {{- end }}
       command: ["npx", "-y", "prisma", "migrate", "deploy"]
   restartPolicy: Never
   terminationGracePeriodSeconds: 0
