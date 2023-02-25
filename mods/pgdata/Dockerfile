@@ -21,3 +21,11 @@ CMD ["run"]
 
 HEALTHCHECK --start-period=5s --interval=5s --timeout=4s --retries=2 \
   CMD [ "healthcheck" ]
+
+##
+## Migrations
+##
+FROM node:16.15.1-alpine3.15 as migrations
+WORKDIR /db
+COPY migrations /db/migrations
+COPY schema.prisma /db
