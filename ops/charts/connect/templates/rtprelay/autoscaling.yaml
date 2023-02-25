@@ -1,3 +1,4 @@
+{{- if eq .Values.rtprelay.enabled true }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -19,3 +20,4 @@ spec:
         target:
           type: Utilization
           averageUtilization: {{ .Values.rtprelay.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

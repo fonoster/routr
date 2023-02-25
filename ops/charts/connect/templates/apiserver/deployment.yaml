@@ -38,8 +38,13 @@ spec:
             failureThreshold: {{ .Values.apiserver.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.apiserver.livenessProbe.timeoutSeconds }}
           env:
+            {{- if .Values.apiserver.databaseUrl }}
+            - name: DATABASE_URL
+              value: {{ .Values.apiserver.databaseUrl }}
+            {{- else }}  
             - name: DATABASE_URL
               value: postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ .Release.Name }}-postgresql.{{ .Release.Namespace }}:5432/routr?schema=public
+            {{- end }}
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT

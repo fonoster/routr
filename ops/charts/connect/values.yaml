@@ -21,6 +21,7 @@ redis:
 
 # RTPRelay Service defaults
 rtprelay:
+  enabled: false
   # RTPEngine host
   rtpeHost: ""
   # RTPEngine port
@@ -76,6 +77,9 @@ rtprelay:
 
 # APIServer Service defaults
 apiserver:
+  # Uncomment the next line if you would like to point to an external postgres db
+  # databaseUrl: postgresql://routr:changeit@dbserver:5432/routr?schema=public
+
   # APIServer image configuration
   image:
     # APIServer image repository
@@ -84,6 +88,7 @@ apiserver:
     tag: latest
     # APIServer image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
+  migrationsEnabled: true
   migrationsImage:
     # APIServer migrations image repository
     repository: fonoster/routr-pgdata-migrations
