@@ -2,7 +2,7 @@ kind: Registry
 apiVersion: v2draft1
 spec:
   requesterAddr: requester:51909
-  apiAddr: simpledata:51907
+  apiAddr: apiserver:51907
   registerInterval: 20
   cache:
     provider: memory

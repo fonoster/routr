@@ -6,6 +6,6 @@
 127.0.0.1 dispatcher
 127.0.0.1 location
 127.0.0.1 connect
-127.0.0.1 simpledata
+127.0.0.1 apiserver
 127.0.0.1 requester
 127.0.0.1 jaeger

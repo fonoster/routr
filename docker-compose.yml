@@ -99,7 +99,7 @@ services:
     build: ./mods/connect
     environment:
       LOCATION_ADDR: location:51902
-      API_ADDR: simpledata:51907
+      API_ADDR: apiserver:51907
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
@@ -108,7 +108,7 @@ services:
       internal:
         ipv4_address: 10.111.221.6
 
-  # Simple data API
+  # Simple APIServer
   apiserver:
     container_name: apiserver
     image: fonoster/routr-simpledata

@@ -50,7 +50,7 @@ simpleDataService({ bindAddr: "0.0.0.0:51907", pathToResources: __dirname + "/..
 connectProcessor({
   bindAddr: "0.0.0.0:51904",
   locationAddr: "location:51902",
-  apiAddr: "simpledata:51907"
+  apiAddr: "apiserver:51907"
 })
 
 edgeport.stdout.on("data", (data: any) => {
