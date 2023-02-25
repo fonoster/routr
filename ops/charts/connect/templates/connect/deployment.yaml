@@ -51,11 +51,11 @@ spec:
           resources:
             {{- if .Values.connect.resources.limits }}
             limits:
-            {{- .Values.connect.resources.limits | toYaml | nindent 12 }}
+            {{- .Values.connect.resources.limits | toYaml | nindent 14 }}
             {{- end }}
             {{- if .Values.connect.resources.requests }}
             requests:
-            {{- .Values.connect.resources.requests | toYaml | nindent 12 }}
+            {{- .Values.connect.resources.requests | toYaml | nindent 14 }}
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.connect.securityContext.allowPrivilegeEscalation }}

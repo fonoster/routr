@@ -37,14 +37,10 @@ spec:
             successThreshold: {{ .Values.apiserver.livenessProbe.successThreshold }}
             failureThreshold: {{ .Values.apiserver.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.apiserver.livenessProbe.timeoutSeconds }}
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-routr-database-url
           env:
-            {{- if .Values.apiserver.databaseUrl }}
-            - name: DATABASE_URL
-              value: {{ .Values.apiserver.databaseUrl }}
-            {{- else }}  
-            - name: DATABASE_URL
-              value: postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ .Release.Name }}-postgresql.{{ .Release.Namespace }}:5432/routr?schema=public
-            {{- end }}
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
@@ -54,11 +50,11 @@ spec:
           resources:
             {{- if .Values.apiserver.resources.limits }}
             limits:
-            {{- .Values.apiserver.resources.limits | toYaml | nindent 12 }}
+            {{- .Values.apiserver.resources.limits | toYaml | nindent 14 }}
             {{- end }}
             {{- if .Values.apiserver.resources.requests }}
             requests:
-            {{- .Values.apiserver.resources.requests | toYaml | nindent 12 }}
+            {{- .Values.apiserver.resources.requests | toYaml | nindent 14 }}
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.apiserver.securityContext.allowPrivilegeEscalation }}

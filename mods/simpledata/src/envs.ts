@@ -18,8 +18,7 @@
  */
 import { Assertions as A } from "@routr/common"
 
-A.assertEnvsAreSet(["CONFIG_PATH"])
+A.assertEnvsAreSet(["PATH_TO_RESOURCES"])
 
-export const CONFIG_PATH = process.env.CONFIG_PATH
 export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51907"
 export const PATH_TO_RESOURCES = process.env.PATH_TO_RESOURCES

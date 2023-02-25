@@ -52,11 +52,11 @@ spec:
           resources:
             {{- if .Values.rtprelay.resources.limits }}
             limits:
-            {{- .Values.rtprelay.resources.limits | toYaml | nindent 12 }}
+            {{- .Values.rtprelay.resources.limits | toYaml | nindent 14 }}
             {{- end }}
             {{- if .Values.rtprelay.resources.requests }}
             requests:
-            {{- .Values.rtprelay.resources.requests | toYaml | nindent 12 }}
+            {{- .Values.rtprelay.resources.requests | toYaml | nindent 14 }}
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.rtprelay.securityContext.allowPrivilegeEscalation }}

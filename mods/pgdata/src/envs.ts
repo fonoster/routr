@@ -16,4 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Assertions as A } from "@routr/common"
+
+A.assertEnvsAreSet(["DATABASE_URL"])
+
 export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51907"

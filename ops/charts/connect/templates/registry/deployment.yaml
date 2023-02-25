@@ -54,11 +54,11 @@ spec:
           resources:
             {{- if .Values.registry.resources.limits }}
             limits:
-            {{- .Values.registry.resources.limits | toYaml | nindent 12 }}
+            {{- .Values.registry.resources.limits | toYaml | nindent 14 }}
             {{- end }}
             {{- if .Values.registry.resources.requests }}
             requests:
-            {{- .Values.registry.resources.requests | toYaml | nindent 12 }}
+            {{- .Values.registry.resources.requests | toYaml | nindent 14 }}
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.registry.securityContext.allowPrivilegeEscalation }}           
