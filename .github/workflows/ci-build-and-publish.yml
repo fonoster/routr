@@ -13,18 +13,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🎬 Check out Git repo
+      - name: Check out Git repo
         uses: actions/checkout@v3
         with:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: 🏷️ Get the current version
+      - name: Setup NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+  
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(node -e "console.log(require('./lerna.json').version)")
+  
+      - name: Build and boostrap with Lerna
+        run: |
+          npm config set unsafe-perm true
+          npm install lerna -g
+          npm install
+          npm run bootstrap
+          npm run build
+
+      - name: Get the current version
         shell: bash
         id: release
         run: echo "VERSION=2$(node -e "console.log(require('./lerna.json').version)")" >> $GITHUB_OUTPUT
 
-      - name: 🔐 Login to GitHub Registry
+      - name: Login to GitHub Registry
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
