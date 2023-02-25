@@ -47,7 +47,7 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-      - name: Publish the Edgeport module
+      - name: Publish the Edgeport image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr-edgeport
@@ -56,7 +56,7 @@ jobs:
           workdir: mods/edgeport
           tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-      - name: Publish the Dispatcher module
+      - name: Publish the Dispatcher image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr-dispatcher
@@ -65,7 +65,7 @@ jobs:
           workdir: mods/dispatcher
           tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-      - name: Publish the Location module
+      - name: Publish the Location image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr-location
@@ -74,7 +74,7 @@ jobs:
           workdir: mods/location
           tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-      - name: Publish the Connect module
+      - name: Publish the Connect image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr-connect
@@ -83,7 +83,7 @@ jobs:
           workdir: mods/connect
           tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-      - name: Publish the Simpledata module
+      - name: Publish the Simpledata image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr-simpledata
@@ -92,7 +92,7 @@ jobs:
           workdir: mods/simpledata
           tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-      - name: Publish the Requester module
+      - name: Publish the Requester image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr-requester
@@ -101,7 +101,7 @@ jobs:
           workdir: mods/requester
           tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-      - name: Publish the Registry module
+      - name: Publish the Registry image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr-registry
@@ -110,7 +110,7 @@ jobs:
           workdir: mods/registry
           tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-      - name: Publish the Postgres DB module
+      - name: Publish the Postgres DB image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr-pgdata
@@ -119,7 +119,17 @@ jobs:
           workdir: mods/pgdata
           tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-      - name: Publish the Echo module
+      - name: Publish the Postgres DB Migrations image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-pgdata-migrations
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/pgdata
+          buildoptions: "--target migrations"
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+      - name: Publish the Echo image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr-echo
@@ -128,7 +138,7 @@ jobs:
           workdir: mods/echo
           tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-      - name: Publish the RTPrelay module
+      - name: Publish the RTPrelay image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr-rtprelay
