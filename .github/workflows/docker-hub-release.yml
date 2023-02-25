@@ -117,6 +117,7 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/pgdata
+          buildoptions: "--target runner"
           tags: "latest,${{ steps.release.outputs.VERSION }}"
 
       - name: Publish the Postgres DB Migrations image

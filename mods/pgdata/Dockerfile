@@ -1,4 +1,7 @@
-FROM alpine:3.15
+##
+## Runner
+##
+FROM alpine:3.15 as runner
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 COPY . /scripts

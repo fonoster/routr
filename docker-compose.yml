@@ -109,8 +109,8 @@ services:
         ipv4_address: 10.111.221.6
 
   # Simple data API
-  simpledata:
-    container_name: simpledata
+  apiserver:
+    container_name: apiserver
     image: fonoster/routr-simpledata
     build: ./mods/simpledata
     environment:
@@ -184,7 +184,7 @@ services:
       - dispatcher
       - registry
       - requester
-      - simpledata
+      - apiserver
       - connect
     environment:
       SCENARIOS: /seet.json
