@@ -50,11 +50,11 @@ Routr's main features are:
 - [x] Server management with the gRPC API
 - [x] NodeSDK
 - [x] Command-Line Tool
-- [ ] Web Application
-- [ ] Endpoint Authentication with JWT (For web phones)
 - [x] RTPEngine Middleware
-- [ ] Support for STIR/SHAKEN 
-- [ ] Helm Chart for  Kubernetes Deployments
+- [x] Helm Chart for  Kubernetes Deployments
+- [ ] Endpoint Authentication with JWT (For web phones)
+- [ ] Support for STIR/SHAKEN
+- [ ] Web Application
 
 To learn more, read the [documentation](https://routr.io/docs). :books:
 
@@ -165,4 +165,4 @@ Find all our supporters [here](https://github.com/sponsors/fonoster)
 
 ## License
 
-Copyright (C) 2022 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/fonoster/blob/master/LICENSE) for details).
+Copyright (C) 2023 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/fonoster/blob/master/LICENSE) for details).
