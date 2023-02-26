@@ -31,8 +31,8 @@ spec:
           image: "{{ .Values.dispatcher.image.repository }}:{{ .Values.dispatcher.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.dispatcher.image.pullPolicy }}
           livenessProbe:
-            exec:
-              command: ["healthcheck"]
+            grpc:
+              port: 51901
             initialDelaySeconds: {{ .Values.dispatcher.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.dispatcher.livenessProbe.periodSeconds }}
             successThreshold: {{ .Values.dispatcher.livenessProbe.successThreshold }}

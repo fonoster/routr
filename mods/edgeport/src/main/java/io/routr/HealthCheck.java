@@ -53,11 +53,11 @@ public class HealthCheck extends HttpServlet {
   }
 
   public void start() throws Exception{
-    LOG.info("starting health check on port " + port + " and endpoint /health");
+    LOG.info("starting health check on port " + port + " and endpoint /healthz");
     Server server = new Server(port);
     ServletHandler handler = new ServletHandler();
     server.setHandler(handler);
-    handler.addServletWithMapping(HealthCheck.class, "/health");
+    handler.addServletWithMapping(HealthCheck.class, "/healthz");
     server.start();
     server.join();
   }

@@ -31,7 +31,7 @@ spec:
           imagePullPolicy: {{ .Values.registry.image.pullPolicy }}
           livenessProbe:
             httpGet:
-              path: /health
+              path: /healthz
               port: 8080
             initialDelaySeconds: {{ .Values.registry.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.registry.livenessProbe.periodSeconds }}
@@ -46,6 +46,7 @@ spec:
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
               value: {{ .Values.global.otlExporter }}
           ports:
+            - containerPort: 8080
             - containerPort: 51901
           volumeMounts:
             - name: config

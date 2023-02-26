@@ -36,7 +36,7 @@ spec:
           imagePullPolicy: {{ .Values.edgeport.image.pullPolicy }}
           livenessProbe:
             httpGet:
-              path: /health
+              path: /healthz
               port: 8080
             initialDelaySeconds: {{ .Values.edgeport.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.edgeport.livenessProbe.periodSeconds }}
@@ -53,6 +53,7 @@ spec:
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
               value: {{ .Values.global.otlExporter }}
           ports:
+            - containerPort: 8080
           {{- if .Values.edgeport.transport.tcp.enabled }}
             - name: siptcp
               protocol: TCP
@@ -88,13 +89,13 @@ spec:
             # - mountPath: /etc/routr/letsencrypt
             #   name: letscrypt-certificate
           resources:
-            {{- if .Values.dispatcher.resources.limits }}
+            {{- if .Values.edgeport.resources.limits }}
             limits:
-            {{- .Values.dispatcher.resources.limits | toYaml | nindent 14 }}
+            {{- .Values.edgeport.resources.limits | toYaml | nindent 14 }}
             {{- end }}
-            {{- if .Values.dispatcher.resources.requests }}
+            {{- if .Values.edgeport.resources.requests }}
             requests:
-            {{- .Values.dispatcher.resources.requests | toYaml | nindent 14 }}
+            {{- .Values.edgeport.resources.requests | toYaml | nindent 14 }}
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.edgeport.securityContext.allowPrivilegeEscalation }}

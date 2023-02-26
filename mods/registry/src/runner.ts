@@ -37,7 +37,7 @@ if (config._tag === "Right") {
 }
 
 if (ENABLE_HEALTHCHECKS) {
-  app.get("/health", (_, res) => {
+  app.get("/healthz", (_, res) => {
     res.send("OK")
   })
 

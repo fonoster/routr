@@ -13,4 +13,4 @@ ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 CMD ["/opt/routr/requester.sh"]
 
 HEALTHCHECK --interval=5s --timeout=2s --retries=2 \
-  CMD ["curl", "--fail", "--silent", "--show-error", "--connect-timeout", "2", "-L", "http://localhost:8080/health"]
+  CMD ["curl", "--fail", "--silent", "--show-error", "--connect-timeout", "2", "-L", "http://localhost:8080/healthz"]
