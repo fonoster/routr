@@ -1,6 +1,6 @@
 {
   "name": "@routr/rtprelay",
-  "version": "2.0.8-alpha.33",
+  "version": "2.0.8-alpha.35",
   "description": "Media Relay for Routr using RTPengine",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
