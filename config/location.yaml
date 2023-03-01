@@ -1,7 +1,7 @@
 kind: Location
 apiVersion: v2draft1
 metadata:
-  region: us-east1
+  region: default
 spec:
   bindAddr: 0.0.0.0:51902
   cache:

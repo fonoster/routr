@@ -44,7 +44,6 @@ export default class Location implements ILocationService {
    * Creates a new Location service. Should fail if any backend has sessionAffinity and round-robin
    *
    * @param {ILocatorStore} store - The store to use for the location service
-   * @param {Map<string, Backend>} backends - The backends to use for the location service
    */
   constructor(store: ILocatorStore) {
     this.store = store

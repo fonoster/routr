@@ -2,7 +2,7 @@ kind: EdgePort
 apiVersion: v2draft1
 ref: edge-port-01
 metadata:
-  region: us-east1
+  region: default
 spec:
   unknownMethodAction: Discard
   processor:
