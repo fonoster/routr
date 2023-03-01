@@ -21,6 +21,7 @@ import sinon from "sinon"
 import sinonChai from "sinon-chai"
 import { request } from "./examples"
 import { Helper as H } from "../src"
+import { Helper as LH } from "../../location/src"
 import { Transport } from "@routr/common"
 
 const expect = chai.expect
@@ -31,7 +32,7 @@ describe("@routr/processor/helper", () => {
   afterEach(() => sandbox.restore())
 
   it("obtains route from request", () => {
-    const route = H.createRouteFromLastMessage(request)
+    const route = LH.createRouteFromLastMessage(request)
     const uri = request.message.requestUri
     expect(route.host).to.equal(uri?.host)
     expect(route.sessionCount).to.equal(-1)

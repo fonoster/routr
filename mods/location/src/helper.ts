@@ -16,8 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, Route, Transport, CommonTypes } from "@routr/common"
+import { MessageRequest, Route, Transport } from "@routr/common"
+import { CommonTypes as CT } from "@routr/common"
 import { Extensions as E, Target as T } from "@routr/processor"
+/* eslint-disable require-jsdoc */
 
 // TODO: Before finalizing this, consider using the old approach of saving the rport
 // and received values (like here:
@@ -25,13 +27,9 @@ import { Extensions as E, Target as T } from "@routr/processor"
 //
 // Also consider: https://github.com/fonoster/routr/blob/ee5d339888344013939d06c734385f17f0cd75c2/mod/registrar/utils.js#L116
 // and https://github.com/fonoster/routr/blob/ee5d339888344013939d06c734385f17f0cd75c2/mod/registrar/utils.js#L131
-export const createRoute = (request: MessageRequest): Route => {
-  const uri = request.message.contact.address.uri
-  const sessionCount = E.getHeaderValue(
-    request,
-    CommonTypes.ExtraHeader.SESSION_COUNT
-  )
-    ? parseInt(E.getHeaderValue(request, CommonTypes.ExtraHeader.SESSION_COUNT))
+function buildRoute(request: MessageRequest, uri: CT.SipURI): Route {
+  const sessionCount = E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT)
+    ? parseInt(E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT))
     : -1
 
   return {
@@ -47,4 +45,28 @@ export const createRoute = (request: MessageRequest): Route => {
     localnets: request.localnets,
     externalAddrs: request.externalAddrs
   }
+}
+
+export function createRoute(request: MessageRequest): Route {
+  const via = request.message.via[0]
+  const uri = {
+    host: via.received || via.host,
+    port: via.rPort !== -1 ? via.rPort : via.port,
+    transportParam: via.transport.toUpperCase() as Transport,
+    user: request.message.contact.address.uri.user
+  }
+
+  return buildRoute(request, uri)
+}
+
+/**
+ * A request traversing a second EdgePort would have updated the requestUri.
+ * Therefore, we are able to re-construct the Route from the request.
+ *
+ * @param {MessageRequest} request - the request
+ * @return {Route} the route
+ */
+export function createRouteFromLastMessage(request: MessageRequest): Route {
+  const uri = request.message.requestUri
+  return buildRoute(request, uri)
 }

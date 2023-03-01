@@ -18,7 +18,7 @@
  */
 import { ConnectProcessorConfig } from "./types"
 import { MessageRequest, Method } from "@routr/common"
-import { LocationClient as Location } from "@routr/location"
+import { LocationClient as Location, Helper as LH } from "@routr/location"
 import { handleRegister, handleRegistry, handleRequest } from "./handlers"
 import Processor, {
   Alterations as A,
@@ -75,7 +75,7 @@ export default function ConnectProcessor(config: ConnectProcessorConfig) {
           break
         case Method.BYE:
         case Method.ACK:
-          res.send(tailor(H.createRouteFromLastMessage(req), req))
+          res.send(tailor(LH.createRouteFromLastMessage(req), req))
           break
         default:
           handleRequest(location, CC.apiClient({ apiAddr: config.apiAddr }))(

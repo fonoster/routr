@@ -29,6 +29,7 @@ import {
 } from "@routr/common"
 import { handleRegister, handleRequest } from "../src/handlers"
 import { Extensions as E, Helper as HE, Response } from "@routr/processor"
+import { Helper as H } from "@routr/location"
 import { createRequest, r1 } from "./examples"
 import { router } from "../src/router"
 import { apiClient, locationAPI } from "./mock_apis"
@@ -87,7 +88,7 @@ describe("@routr/connect", () => {
     )
     const getHeaderValue = sandbox.spy(E, "getHeaderValue")
     const createRouteFromLastMessage = sandbox.spy(
-      HE,
+      H,
       "createRouteFromLastMessage"
     )
     const location = { findRoutes: () => [route] }

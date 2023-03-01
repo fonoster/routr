@@ -18,7 +18,6 @@
  */
 import {
   MessageRequest,
-  Route,
   Transport,
   CommonTypes as CT,
   Helper,
@@ -26,7 +25,6 @@ import {
   Method
 } from "@routr/common"
 import { IpUtils } from "@routr/common"
-import { Extensions as E, Target as T } from "./index"
 
 export const isTypeResponse = (request: MessageRequest): boolean =>
   request.message.messageType === CT.MessageType.RESPONSE
@@ -61,34 +59,6 @@ export const getEdgeInterface = (nets: {
     host,
     port: lp.port,
     transport: lp.transport
-  }
-}
-
-/**
- * A request traversing a second EdgePort would have updated the requestUri.
- * Therefore, we are able to re-construct the Route from the request.
- *
- * @param {MessageRequest} request - the request
- * @return {Route} the route
- */
-export function createRouteFromLastMessage(request: MessageRequest): Route {
-  const uri = request.message.requestUri
-  const sessionCount = E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT)
-    ? parseInt(E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT))
-    : -1
-
-  return {
-    edgePortRef: request.edgePortRef,
-    user: uri.user,
-    host: uri.host,
-    port: uri.port,
-    transport: uri.transportParam?.toUpperCase() as Transport,
-    registeredOn: Date.now(),
-    sessionCount,
-    expires: T.getTargetExpires(request),
-    listeningPoints: request.listeningPoints,
-    localnets: request.localnets,
-    externalAddrs: request.externalAddrs
   }
 }
 

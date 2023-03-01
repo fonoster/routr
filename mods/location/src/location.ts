@@ -63,7 +63,7 @@ export default class Location implements ILocationService {
 
   /** @inheritdoc */
   public async findRoutes(request: FindRoutesRequest): Promise<Route[]> {
-    let routes = await this.store.get(request.callId)
+    let routes = await this.store.get(`${request.aor}:${request.callId}`)
 
     if (routes.length > 0) {
       return routes
@@ -77,7 +77,7 @@ export default class Location implements ILocationService {
 
     if (request.aor.startsWith(AOR_SCHEME.SIP)) {
       // Set call to the last route
-      this.store.put(request.callId, routes[0])
+      this.store.put(`${request.aor}:${request.callId}`, routes[0])
       return routes
     } else if (request.aor.startsWith(AOR_SCHEME.BACKEND)) {
       const { backend } = request
@@ -90,7 +90,7 @@ export default class Location implements ILocationService {
           : [this.next(routes, backend)]
 
       // Next time we will get the route with callId
-      this.store.put(request.callId, r[0])
+      this.store.put(`${request.aor}:${request.callId}`, r[0])
 
       return r
     }

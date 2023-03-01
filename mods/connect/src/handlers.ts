@@ -97,7 +97,7 @@ export const handleRegister = (
 
 // TODO: Needs test
 export const handleRegistry = (req: MessageRequest, res: Response) => {
-  const route = HE.createRouteFromLastMessage(req)
+  const route = H.createRouteFromLastMessage(req)
   res.send(
     pipe(
       req,
@@ -118,7 +118,7 @@ export const handleRequest =
       const req = Environment.ENFORCE_E164 ? enforceE164(request) : request
 
       const route = E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF)
-        ? HE.createRouteFromLastMessage(req)
+        ? H.createRouteFromLastMessage(req)
         : await router(location, apiClient)(req)
 
       if (!route) return res.sendNotFound()
