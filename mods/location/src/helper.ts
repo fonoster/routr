@@ -53,7 +53,7 @@ export function createRoute(request: MessageRequest): Route {
     host: via.received || via.host,
     port: via.rPort !== -1 ? via.rPort : via.port,
     transportParam: via.transport.toUpperCase() as Transport,
-    user: request.message.contact.address.uri.user
+    user: request.message.from.address.uri.user
   }
 
   return buildRoute(request, uri)
