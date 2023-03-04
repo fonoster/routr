@@ -59,7 +59,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
-      - name: Publish the Dispatcher image
+      - name: Publish the image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: fonoster/routr-dispatcher
@@ -68,85 +68,184 @@ jobs:
           workdir: mods/dispatcher
           tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-#       - name: Publish the Location image
-#         uses: elgohr/Publish-Docker-Github-Action@master
-#         with:
-#           name: fonoster/routr-location
-#           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-#           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#           workdir: mods/location
-#           tags: "latest,${{ steps.release.outputs.VERSION }}"
+  publish-location-to-docker-hub:
+    name: Publish Location to Docker Hub
+    
+    runs-on: ubuntu-latest
 
-#       - name: Publish the Connect image
-#         uses: elgohr/Publish-Docker-Github-Action@master
-#         with:
-#           name: fonoster/routr-connect
-#           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-#           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#           workdir: mods/connect
-#           tags: "latest,${{ steps.release.outputs.VERSION }}"
+    needs: [download-artifacts]
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: routr-build
+      - name: Publish the image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-location
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/location
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          
+  publish-connect-to-docker-hub:
+    name: Publish Connect to Docker Hub
+    
+    runs-on: ubuntu-latest
 
-#       - name: Publish the Simpledata image
-#         uses: elgohr/Publish-Docker-Github-Action@master
-#         with:
-#           name: fonoster/routr-simpledata
-#           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-#           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#           workdir: mods/simpledata
-#           tags: "latest,${{ steps.release.outputs.VERSION }}"
+    needs: [download-artifacts]
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: routr-build
+      - name: Publish the image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-connect
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/connect
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          
+  publish-simpledata-to-docker-hub:
+    name: Publish Simpledata to Docker Hub
+    
+    runs-on: ubuntu-latest
 
-#       - name: Publish the Requester image
-#         uses: elgohr/Publish-Docker-Github-Action@master
-#         with:
-#           name: fonoster/routr-requester
-#           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-#           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#           workdir: mods/requester
-#           tags: "latest,${{ steps.release.outputs.VERSION }}"
+    needs: [download-artifacts]
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: routr-build
+      - name: Publish the image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-simpledata
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/simpledata
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-#       - name: Publish the Registry image
-#         uses: elgohr/Publish-Docker-Github-Action@master
-#         with:
-#           name: fonoster/routr-registry
-#           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-#           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#           workdir: mods/registry
-#           tags: "latest,${{ steps.release.outputs.VERSION }}"
+  publish-requester-to-docker-hub:
+    name: Publish Requester to Docker Hub
+    
+    runs-on: ubuntu-latest
 
-#       - name: Publish the Postgres DB image
-#         uses: elgohr/Publish-Docker-Github-Action@master
-#         with:
-#           name: fonoster/routr-pgdata
-#           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-#           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#           workdir: mods/pgdata
-#           buildoptions: "--target runner"
-#           tags: "latest,${{ steps.release.outputs.VERSION }}"
+    needs: [download-artifacts]
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: routr-build
+      - name: Publish the image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-requester
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/requester
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-#       - name: Publish the Postgres DB Migrations image
-#         uses: elgohr/Publish-Docker-Github-Action@master
-#         with:
-#           name: fonoster/routr-pgdata-migrations
-#           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-#           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#           workdir: mods/pgdata
-#           buildoptions: "--target migrations"
-#           tags: "latest,${{ steps.release.outputs.VERSION }}"
+  publish-registry-to-docker-hub:
+    name: Publish Registry to Docker Hub
+    
+    runs-on: ubuntu-latest
 
-#       - name: Publish the Echo image
-#         uses: elgohr/Publish-Docker-Github-Action@master
-#         with:
-#           name: fonoster/routr-echo
-#           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-#           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#           workdir: mods/echo
-#           tags: "latest,${{ steps.release.outputs.VERSION }}"
+    needs: [download-artifacts]
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: routr-build
+      - name: Publish the image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-registry
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/registry
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
 
-#       - name: Publish the RTPrelay image
-#         uses: elgohr/Publish-Docker-Github-Action@master
-#         with:
-#           name: fonoster/routr-rtprelay
-#           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-#           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#           workdir: mods/rtprelay
-#           tags: "latest,${{ steps.release.outputs.VERSION }}"
+  publish-pgdata-to-docker-hub:
+    name: Publish the PGData image
+    
+    runs-on: ubuntu-latest
+
+    needs: [download-artifacts]
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: routr-build
+      - name: Publish the image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-pgdata
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/pgdata
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+  publish-pgdata-migrations-to-docker-hub:
+    name: Publish the Postgres DB Migrations image
+    
+    runs-on: ubuntu-latest
+
+    needs: [download-artifacts]
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: routr-build
+      - name: Publish the image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-pgdata-migrations
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/pgdata
+          buildoptions: "--target migrations"
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+  publish-echo-to-docker-hub:
+    name: Publish the Echo image
+    
+    runs-on: ubuntu-latest
+
+    needs: [download-artifacts]
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: routr-build
+      - name: Publish the image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-echo
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/echo
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
+  publish-rtprelay-to-docker-hub:
+    name: Publish the RTPrelay image
+    
+    runs-on: ubuntu-latest
+
+    needs: [download-artifacts]
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: routr-build
+      - name: Publish the image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: fonoster/routr-rtprelay
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/rtprelay
+          tags: "latest,${{ steps.release.outputs.VERSION }}"
+
