@@ -5,7 +5,7 @@ on:
   workflow_call:
 
 jobs:
-  download-artifacts:
+  download_artifacts:
     name: Download Artifacts
 
     runs-on: ubuntu-latest
@@ -16,24 +16,24 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-
       - name: Download build
         uses: actions/download-artifact@v3
         with:
           name: routr-build
-
       - name: Get the current version
         shell: bash
         id: release
         run: echo "VERSION=$(node -e "console.log(require('./lerna.json').version)")" >> $GITHUB_OUTPUT
+    outputs:
+      version: ${{ steps.release.outputs.VERSION }}
+  
 
-
-  publish-edgeport-to-docker-hub:
+  publish_edgeport_to_docker_hub:
     name: Publish EdgePort to Docker Hub
     
     runs-on: ubuntu-latest
 
-    needs: [download-artifacts]
+    needs: [download_artifacts]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -46,14 +46,14 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/edgeport
-          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
 
-  publish-dispatcher-to-docker-hub:
+  publish_dispatcher_to_docker_hub:
     name: Publish Dispatcher to Docker Hub
     
     runs-on: ubuntu-latest
 
-    needs: [download-artifacts]
+    needs: [download_artifacts]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -66,14 +66,14 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/dispatcher
-          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
 
-  publish-location-to-docker-hub:
+  publish_location_to_docker_hub:
     name: Publish Location to Docker Hub
     
     runs-on: ubuntu-latest
 
-    needs: [download-artifacts]
+    needs: [download_artifacts]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -86,14 +86,14 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/location
-          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
           
-  publish-connect-to-docker-hub:
+  publish_connect_to_docker_hub:
     name: Publish Connect to Docker Hub
     
     runs-on: ubuntu-latest
 
-    needs: [download-artifacts]
+    needs: [download_artifacts]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -106,14 +106,14 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/connect
-          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
           
-  publish-simpledata-to-docker-hub:
+  publish_simpledata_to_docker_hub:
     name: Publish Simpledata to Docker Hub
     
     runs-on: ubuntu-latest
 
-    needs: [download-artifacts]
+    needs: [download_artifacts]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -126,14 +126,14 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/simpledata
-          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
 
-  publish-requester-to-docker-hub:
+  publish_requester_to_docker_hub:
     name: Publish Requester to Docker Hub
     
     runs-on: ubuntu-latest
 
-    needs: [download-artifacts]
+    needs: [download_artifacts]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -146,14 +146,14 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/requester
-          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
 
-  publish-registry-to-docker-hub:
+  publish_registry_to_docker_hub:
     name: Publish Registry to Docker Hub
     
     runs-on: ubuntu-latest
 
-    needs: [download-artifacts]
+    needs: [download_artifacts]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -166,14 +166,14 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/registry
-          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
 
-  publish-pgdata-to-docker-hub:
+  publish_pgdata_to_docker_hub:
     name: Publish the PGData image
     
     runs-on: ubuntu-latest
 
-    needs: [download-artifacts]
+    needs: [download_artifacts]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -186,14 +186,14 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/pgdata
-          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
 
-  publish-pgdata-migrations-to-docker-hub:
+  publish_pgdata_migrations_to_docker_hub:
     name: Publish the Postgres DB Migrations image
     
     runs-on: ubuntu-latest
 
-    needs: [download-artifacts]
+    needs: [download_artifacts]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -207,14 +207,14 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/pgdata
           buildoptions: "--target migrations"
-          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
 
-  publish-echo-to-docker-hub:
+  publish_echo_to_docker_hub:
     name: Publish the Echo image
     
     runs-on: ubuntu-latest
 
-    needs: [download-artifacts]
+    needs: [download_artifacts]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -227,14 +227,14 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/echo
-          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
 
-  publish-rtprelay-to-docker-hub:
+  publish_rtprelay_to_docker_hub:
     name: Publish the RTPrelay image
     
     runs-on: ubuntu-latest
 
-    needs: [download-artifacts]
+    needs: [download_artifacts]
     steps:
       - name: Download build
         uses: actions/download-artifact@v3
@@ -247,5 +247,5 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/rtprelay
-          tags: "latest,${{ steps.release.outputs.VERSION }}"
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
 
