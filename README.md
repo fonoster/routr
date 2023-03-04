@@ -109,7 +109,7 @@ spec:
         value: jsa-shqm-iyo
 ```
 
-The last scenario is one of the many possible scenarios you can accomplish with Routr (v2). Please spend some time getting familiar with the [configuration files](https://github.com/fonoster/routr/blob/v2/CONNECT.md).
+The last scenario is one of the many possible scenarios you can accomplish with Routr (v2). Please spend some time getting familiar with the [configuration files](https://github.com/fonoster/routr/blob/main/CONNECT.md).
 
 ## Deployment
 
@@ -132,7 +132,7 @@ In the `config/resources`, you will find the `domains.yaml` and `agents.yaml` fi
 
 Routr's one-click interactive deployment will familiarize you with the server in development mode.
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/fonoster/routr/tree/v2)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/fonoster/routr)
 
 ### Kubernetes
 
