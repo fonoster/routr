@@ -35,4 +35,5 @@ jobs:
   publish-to-docker-hub:
     name: Publish to Docker Hub
     uses: ./.github/workflows/docker-hub-release.yml
+    secrets: inherit
     needs: [build-and-test]
