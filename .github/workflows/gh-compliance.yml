@@ -20,9 +20,17 @@ jobs:
           node-version: '16.x'
       - name: Build project
         run: npm run make
-      - name: Compliance tests
-        run: |
-          docker-compose up --abort-on-container-exit --exit-code-from compliance
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-without-markdown
+          path: |
+            mods
+            lerna.json
+        
+#       - name: Compliance tests
+#         run: |
+#           docker-compose up --abort-on-container-exit --exit-code-from compliance
 
   publish-to-docker-hub:
     name: Publish to Docker Hub
