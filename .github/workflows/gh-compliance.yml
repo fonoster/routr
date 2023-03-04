@@ -26,5 +26,5 @@ jobs:
 
   publish-to-docker-hub:
     name: Publish to Docker Hub
-    uses: ./.github/workflows/docker-hub-release.yaml
+    uses: ./.github/workflows/docker-hub-release.yml
     needs: [build-and-test]
