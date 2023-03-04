@@ -28,7 +28,7 @@ import {
   Helper
 } from "@routr/common"
 import { handleRegister, handleRequest } from "../src/handlers"
-import { Extensions as E, Helper as HE, Response } from "@routr/processor"
+import { Extensions as E, Response } from "@routr/processor"
 import { Helper as H } from "@routr/location"
 import { createRequest, r1 } from "./examples"
 import { router } from "../src/router"

@@ -21,7 +21,6 @@ import { tailor } from "./tailor"
 import {
   Alterations as A,
   Extensions as E,
-  Helper as HE,
   MessageRequest,
   Response,
   Target as T
