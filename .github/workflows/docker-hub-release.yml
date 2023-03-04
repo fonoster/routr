@@ -39,6 +39,11 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: routr-build
+
       - name: Publish the Edgeport image
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
