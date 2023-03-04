@@ -27,10 +27,9 @@ jobs:
           path: |
             mods
             lerna.json
-        
-#       - name: Compliance tests
-#         run: |
-#           docker-compose up --abort-on-container-exit --exit-code-from compliance
+      - name: Compliance tests
+        run: |
+          docker-compose up --abort-on-container-exit --exit-code-from compliance
 
   publish-to-docker-hub:
     name: Publish to Docker Hub
