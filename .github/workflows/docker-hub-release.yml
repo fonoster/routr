@@ -186,6 +186,7 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/pgdata
+          buildoptions: "--target runner"          
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
 
   publish_pgdata_migrations_to_docker_hub:
