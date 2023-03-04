@@ -1,12 +1,8 @@
 name: publish to docker hub (v2)
 
 on:
-  push:
-    paths:
-      - lerna.json
-    branches:
-      - main
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   build:

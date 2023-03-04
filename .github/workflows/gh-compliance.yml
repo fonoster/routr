@@ -7,7 +7,8 @@ on:
     branches:
     - main
 jobs:
-  build:
+  build-and-test:
+    name: Build and run SIP Connect Compliance Tests
     timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
@@ -22,3 +23,8 @@ jobs:
       - name: Compliance tests
         run: |
           docker-compose up --abort-on-container-exit --exit-code-from compliance
+
+  publish-to-docker-hub:
+    name: Publish to Docker Hub
+    uses: ./.github/workflows/docker-hub-release.yaml
+    needs: [build-and-test]
