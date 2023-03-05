@@ -30,6 +30,8 @@ edgeport:
   podAnnotations: {}
   # Service annotations
   serviceAnnotations: {}
+  # The type for the service
+  serviceType: NodePort 
   # Security context for EdgePort
   transport:
     # TCP transport configuration
@@ -99,14 +101,15 @@ edgeport:
 
 # Dispatcher Service defaults
 dispatcher:
-  # FIXME: The values for processors are currently hardcoded
-  # processors:
-  #   - ref: connect-processor
-  #     addr: ""
-  #     matchFunc: "req => true"
-  #     methods: ["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]
-
-  # Dispatcher image configuration
+  processors:
+      # The name of the processor
+    - ref: connect-processor
+      serviceName: routr-connect
+      # The function used to match requests with this processor
+      matchFunc: "req => true"
+      # Acceptable SIP Methods
+      methods: ["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]
+  middlewares: []
   image:
     # Dispatcher image repository
     repository: fonoster/routr-dispatcher

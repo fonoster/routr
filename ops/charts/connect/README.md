@@ -114,9 +114,17 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | Parameter                                               | Description                                                 | Value                                                              |
 | ------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ |
 | `dispatcher.processors[0].ref`                          | Reference to the Processor                                  | `connect-processor`                                                |
-| `dispatcher.processors[0].addr`                         | Address of the Processor                                    | `{{ .Release.Name }}-routr-connect.{{ .Release.Namespace }}:51904` |
+| `dispatcher.processors[0].servicePrefix`                | Prefix for the service (Defaults to the release name)       | `{{ .Release.Name }}`                                              |
+| `dispatcher.processors[0].serviceName`                  | The name of the service hosting the processor               | `{{ .serviceName }}`                                               |
+| `dispatcher.processors[0].serviceNamespace`             | The namespace for the service (Defaults to the release ns)  | `{{ .Release.Namespace }}`                                         |
 | `dispatcher.processors[0].matchFunc`                    | Routing function                                            | `req => true`                                                      |
 | `dispatcher.processors[0].methods`                      | Acceptable methods                                          | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]`        |
+| `dispatcher.middlewares`                                | Middlewares configuration section                           | `[]`                                                               |
+| `dispatcher.middlewares[*].ref`                         | Reference to the Middleware                                 | `{{ .ref }}`                                                       |
+| `dispatcher.middlewares[*].servicePrefix`               | Prefix for the service (Defaults to the release name)       | `{{ .Release.Name }}`                                              |
+| `dispatcher.middlewares[*].serviceName`                 | The name of the service hosting the middleware              | `{{ .serviceName }}`                                               |
+| `dispatcher.middlewares[*].serviceNamespace`            | The namespace for the service (Defaults to the release ns)  | `{{ .Release.Namespace }}`                                         |
+| `dispatcher.middlewares[*].postProcessor`               | If set to true the middleware will run after the processor  | `{{ .postProcessor }}`                                             |
 | `dispatcher.image.repository`                           | Image repository                                            | `fonoster/routr-dispatcher`                                        |
 | `dispatcher.image.tag`                                  | Image tag                                                   | `2.0.8-alpha.35`                                                   |
 | `dispatcher.image.pullPolicy`                           | Image pull policy                                           | `IfNotPresent`                                                     |

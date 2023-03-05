@@ -13,12 +13,20 @@ data:
     spec:
       bindAddr: 0.0.0.0:51901
       processors:
-        - ref: connect-processor
-          addr: {{ .Release.Name }}-routr-connect.{{ .Release.Namespace }}:51904
-          matchFunc: req => true
+        {{- range .Values.dispatcher.processors }}
+        - ref: {{ .ref }}
+          addr: {{ .servicePrefix | default $.Release.Name }}-{{ .serviceName }}.{{ .serviceNamespace | default $.Release.Namespace }}:51904
+          matchFunc: {{ .matchFunc }}
           methods:
-            - REGISTER
-            - INVITE
-            - ACK
-            - BYE
-            - CANCEL
+          {{- range .methods }}
+            - {{ . }}
+          {{- end }}
+        {{- end }}
+      {{- if .Values.dispatcher.middlewares }}
+      middlewares:
+        {{- range .Values.dispatcher.middlewares }}
+        - ref: {{ .ref }}
+          addr: {{ .servicePrefix | default $.Release.Name }}-{{ .serviceName }}.{{ .serviceNamespace | default $.Release.Namespace }}:51903
+          postProcessor: {{ .postProcessor }}
+        {{- end }}
+      {{- end }}
