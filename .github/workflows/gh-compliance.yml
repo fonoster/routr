@@ -3,9 +3,9 @@ on:
   workflow_dispatch:
   push:
     paths-ignore:
-    - 'docs/**'
+      - "docs/**"
     branches:
-    - main
+      - main
 jobs:
   build-and-test:
     name: Build and run SIP Connect Compliance Tests
@@ -17,7 +17,7 @@ jobs:
       - name: Installing Node
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: "16.x"
       - name: Build project
         run: npm run make
       - name: Archive build artifacts
@@ -30,7 +30,7 @@ jobs:
             !mods/**/node_modules
             !mods/src
             !mods/test
-            !mods/**/dist/*.ts            
+            !mods/**/dist/*.ts
       - name: Compliance tests
         run: |
           docker-compose up --abort-on-container-exit --exit-code-from compliance
