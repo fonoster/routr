@@ -16,7 +16,7 @@ data:
         {{- range .Values.dispatcher.processors }}
         - ref: {{ .ref }}
           addr: {{ .servicePrefix | default $.Release.Name }}-{{ .serviceName }}.{{ .serviceNamespace | default $.Release.Namespace }}:51904
-          matchFunc: {{ .matchFunc }}
+          matchFunc: {{ .matchFunc | quote }}
           methods:
           {{- range .methods }}
             - {{ . }}

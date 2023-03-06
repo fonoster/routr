@@ -31,7 +31,9 @@ edgeport:
   # Service annotations
   serviceAnnotations: {}
   # The type for the service
-  serviceType: NodePort 
+  serviceType: NodePort
+  # TODO: Needs comment
+  externalTrafficPolicy: Cluster
   # Security context for EdgePort
   transport:
     # TCP transport configuration
