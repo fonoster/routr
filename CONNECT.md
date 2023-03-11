@@ -140,13 +140,10 @@ The following JSON is an example of a `Connect Object` that results from process
 ```json
 {
   "headers": [
-    { "name:": "X-Backend-Name", "value": "voice", "action": "add"},
-    { "name:": "X-Backend-Ref", "value": "voice", "action": "add"},
-    { "name:": "X-Webhook-Get", "value": "voice", "action": "add"},
-    { "name:": "X-Webhook-Post", "value": "voice", "action": "add"},
-    { "name:": "X-GRPC-Endpoint", "value": "voice", "action": "add"},
     { "name:": "P-Asserted-Identity", "action": "delete"},
     { "name:": "Remote-Party-ID", "action": "delete"},
+    { "name:": "X-Backend-Name", "value": "voice", "action": "add"},
+    { "name:": "X-Backend-Ref", "value": "voice", "action": "add"}    
   ]
 }
 ```
