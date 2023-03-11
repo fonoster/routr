@@ -190,7 +190,7 @@ Example:
   },
   "spec": {
     "username": "johndoe",
-    "domains": ["domain-01", "domain-02"],
+    "domainRef": "domain-01",
     "credentialsRef": "credentials-01",
     "privacy": "Private",
     "enabled": true
