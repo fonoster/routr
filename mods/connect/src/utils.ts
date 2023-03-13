@@ -24,11 +24,12 @@ import {
   Transport,
   CommonConnect as CC,
   CommonTypes as CT,
-  Method
+  Verifier as V
 } from "@routr/common"
 import { Extensions as E } from "@routr/processor"
 import { RoutingDirection } from "./types"
 import {
+  CONNECT_VERIFIER_ADDR,
   CONNECT_VERIFIER_OPTIONS,
   CONNECT_VERIFIER_PUBLIC_KEY_PATH
 } from "./envs"
@@ -39,11 +40,11 @@ export const isKind = (res: CC.RoutableResourceUnion, kind: CC.Kind) => {
     return true
   } else if (res == null) {
     return false
-  } else if ("domainRef" in res && kind === CC.Kind.AGENT) {
+  } else if ("privacy" in res && kind === CC.Kind.AGENT) {
     return true
   } else if ("telUrl" in res && kind === CC.Kind.NUMBER) {
     return true
-  } else if ("aor" in res && kind === CC.Kind.PEER) {
+  } else if ("username" in res && kind === CC.Kind.PEER) {
     return true
   }
 }
@@ -210,30 +211,21 @@ export const getSIPURI = (uri: { user?: string; host: string }) =>
 export const hasXConnectObjectHeader = (req: MessageRequest) =>
   E.getHeaderValue(req, CT.ExtraHeader.CONNECT_TOKEN)
 
-// TODO: Add support for GRPCVerifier
 export const getVerifierImpl = () => {
-  type AgentPayload = {
-    ref: string
-    domain: string
-    domainRef: string
-    aor: string
-    aorLink: string
-    username: string
-    allowedMethods: Method[]
-  }
-
   if (CONNECT_VERIFIER_PUBLIC_KEY_PATH) {
     const publicKey = fs.readFileSync(CONNECT_VERIFIER_PUBLIC_KEY_PATH, "utf8")
 
     return {
-      verify: async (token: string): Promise<AgentPayload> => {
+      verify: async (token: string): Promise<V.VerifyResponse> => {
         return jwt.verify(
           token,
           publicKey,
           CONNECT_VERIFIER_OPTIONS
-        ) as unknown as AgentPayload
+        ) as unknown as V.VerifyResponse
       }
     }
+  } else if (CONNECT_VERIFIER_ADDR) {
+    return { verify: V.verifier(CONNECT_VERIFIER_ADDR) }
   }
 
   return null

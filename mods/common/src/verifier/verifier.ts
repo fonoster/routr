@@ -17,28 +17,27 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
-import { CommonRequester as CR, CommonErrors as CE } from "@routr/common"
-import { RegistrationRequest, SendMessageResponse } from "./types"
+import { ServiceUnavailableError } from "../errors"
+import { VERIFIER_PROTO } from "./grpc_client"
+import { VerifyResponse } from "./types"
 
-export const sendRegisterMessage = (requesterAddr: string) => {
-  return (
-    request: RegistrationRequest
-  ): Promise<CE.ServiceUnavailableError | SendMessageResponse> => {
-    const client = new CR.REQUESTER_PROTO.v2draft1.Requester(
-      requesterAddr,
+export const verifier = (verifierAddr: string) => {
+  return (token: string): Promise<ServiceUnavailableError | VerifyResponse> => {
+    const client = new VERIFIER_PROTO.Verifier(
+      verifierAddr,
       grpc.credentials.createInsecure()
     )
 
     return new Promise((resolve, reject) => {
       client.sendMessage(
-        request,
-        (err: { code: number }, response: SendMessageResponse) => {
+        { token },
+        (err: { code: number }, response: VerifyResponse) => {
           if (err?.code === 14) {
-            return reject(new CE.ServiceUnavailableError(requesterAddr))
+            return reject(new ServiceUnavailableError(verifierAddr))
           } else if (err) {
             return reject(err)
           }
-          resolve({ trunkRef: request.trunkRef, ...response })
+          resolve(response)
         }
       )
     })

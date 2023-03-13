@@ -33,7 +33,8 @@ import {
   CommonConnect as CC,
   CommonTypes as CT,
   Environment,
-  Method
+  Method,
+  Verifier
 } from "@routr/common"
 import { findResource, getVerifierImpl, hasXConnectObjectHeader } from "./utils"
 import { getLogger } from "@fonoster/logger"
@@ -99,7 +100,9 @@ export const handleRegister = (
       )
 
       try {
-        const payload = await jwtVerifier.verify(connectToken)
+        const payload = (await jwtVerifier.verify(
+          connectToken
+        )) as Verifier.VerifyResponse
 
         if (!payload.allowedMethods.includes(Method.REGISTER)) {
           return res.send(Auth.createForbideenResponse())

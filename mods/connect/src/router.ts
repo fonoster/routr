@@ -23,7 +23,8 @@ import {
   CommonTypes as CT,
   HeaderModifier,
   Route,
-  Method
+  Method,
+  Verifier
 } from "@routr/common"
 import {
   createPAssertedIdentity,
@@ -66,7 +67,13 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
       )
 
       try {
-        const payload = await jwtVerifier.verify(connectToken)
+        if (!jwtVerifier) {
+          return Auth.createServerInternalErrorResponse()
+        }
+
+        const payload = (await jwtVerifier.verify(
+          connectToken
+        )) as Verifier.VerifyResponse
         const domain = await findDomain(apiClient, payload.domain)
 
         if (!payload.allowedMethods.includes(Method.INVITE)) {
