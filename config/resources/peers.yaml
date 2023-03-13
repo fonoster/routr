@@ -8,8 +8,8 @@
     username: asterisk
     credentialsRef: credentials-03
     loadBalancing:
-      withSessionAffinity: true
-      algorithm: least-sessions  
+     withSessionAffinity: true
+     algorithm: least-sessions
 - apiVersion: v2draft1
   kind: Peer
   ref: peer-02

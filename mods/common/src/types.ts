@@ -25,6 +25,8 @@ export type JsonData = Record<
   string | number | boolean | JsonValue | JsonArray | Struct
 >
 
+export const ANONYMOUS = "anonymous"
+
 export enum Method {
   UNKNOWN = "UNKNOWN",
   REGISTER = "REGISTER",
@@ -60,7 +62,8 @@ export enum ExtraHeader {
   EDGEPORT_REF = "X-Edgeport-Ref",
   SESSION_COUNT = "X-Session-Count",
   DOD_NUMBER = "X-DOD-Number",
-  DOD_PRIVACY = "X-DOD-Privacy"
+  DOD_PRIVACY = "X-DOD-Privacy",
+  CONNECT_TOKEN = "X-Connect-Token"
 }
 
 export enum Privacy {

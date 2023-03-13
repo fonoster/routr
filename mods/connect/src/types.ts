@@ -22,6 +22,7 @@ export enum RoutingDirection {
   FROM_PSTN = "from-pstn",
   AGENT_TO_AGENT = "agent-to-agent",
   AGENT_TO_PSTN = "agent-to-pstn",
+  AGENT_TO_PEER = "agent-to-peer",
   // WARNING: This is not supported yet
   PEER_TO_AGENT = "peer-to-agent",
   PEER_TO_PSTN = "peer-to-pstn",

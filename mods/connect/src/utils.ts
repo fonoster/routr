@@ -16,14 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as jwt from "jsonwebtoken"
+import fs from "fs"
 import {
   HeaderModifier,
   MessageRequest,
   Transport,
   CommonConnect as CC,
-  CommonTypes as CT
+  CommonTypes as CT,
+  Method
 } from "@routr/common"
+import { Extensions as E } from "@routr/processor"
 import { RoutingDirection } from "./types"
+import {
+  CONNECT_VERIFIER_OPTIONS,
+  CONNECT_VERIFIER_PUBLIC_KEY_PATH
+} from "./envs"
 
 // OMG, this is so ugly and hacky
 export const isKind = (res: CC.RoutableResourceUnion, kind: CC.Kind) => {
@@ -31,11 +39,11 @@ export const isKind = (res: CC.RoutableResourceUnion, kind: CC.Kind) => {
     return true
   } else if (res == null) {
     return false
-  } else if ("privacy" in res && kind === CC.Kind.AGENT) {
+  } else if ("domainRef" in res && kind === CC.Kind.AGENT) {
     return true
   } else if ("telUrl" in res && kind === CC.Kind.NUMBER) {
     return true
-  } else if ("username" in res && kind === CC.Kind.PEER) {
+  } else if ("aor" in res && kind === CC.Kind.PEER) {
     return true
   }
 }
@@ -116,6 +124,10 @@ export const getRoutingDirection = (
     return RoutingDirection.PEER_TO_AGENT
   }
 
+  if (isKind(caller, CC.Kind.AGENT) && isKind(callee, CC.Kind.PEER)) {
+    return RoutingDirection.AGENT_TO_PEER
+  }
+
   // All we know is that the Number is managed by this instance of Routr
   if (isKind(callee, CC.Kind.NUMBER)) {
     return RoutingDirection.FROM_PSTN
@@ -194,3 +206,35 @@ export const getTrunkURI = (
 
 export const getSIPURI = (uri: { user?: string; host: string }) =>
   uri.user ? `sip:${uri.user}@${uri.host}` : `sip:${uri.host}`
+
+export const hasXConnectObjectHeader = (req: MessageRequest) =>
+  E.getHeaderValue(req, CT.ExtraHeader.CONNECT_TOKEN)
+
+// TODO: Add support for GRPCVerifier
+export const getVerifierImpl = () => {
+  type AgentPayload = {
+    ref: string
+    domain: string
+    domainRef: string
+    aor: string
+    aorLink: string
+    username: string
+    allowedMethods: Method[]
+  }
+
+  if (CONNECT_VERIFIER_PUBLIC_KEY_PATH) {
+    const publicKey = fs.readFileSync(CONNECT_VERIFIER_PUBLIC_KEY_PATH, "utf8")
+
+    return {
+      verify: async (token: string): Promise<AgentPayload> => {
+        return jwt.verify(
+          token,
+          publicKey,
+          CONNECT_VERIFIER_OPTIONS
+        ) as unknown as AgentPayload
+      }
+    }
+  }
+
+  return null
+}

@@ -32,14 +32,20 @@ import {
   Auth,
   CommonConnect as CC,
   CommonTypes as CT,
-  Environment
+  Environment,
+  Method
 } from "@routr/common"
-import { findResource } from "./utils"
+import { findResource, getVerifierImpl, hasXConnectObjectHeader } from "./utils"
+import { getLogger } from "@fonoster/logger"
+
+const logger = getLogger({ service: "connect", filePath: __filename })
 
 const enforceE164 = A.enforceE164(
   Environment.ENFORCE_E164,
   Environment.ENFORCE_E164_WITH_MOBILE_PREFIX
 )
+
+const jwtVerifier = getVerifierImpl()
 
 export const handleRegister = (
   apiClient: CC.APIClient,
@@ -86,10 +92,31 @@ export const handleRegister = (
         route: H.createRoute(request)
       })
       res.sendOk()
-    } else {
-      return res.send(
-        Auth.createUnauthorizedResponse(request.message.requestUri.host)
+    } else if (hasXConnectObjectHeader(request)) {
+      const connectToken = E.getHeaderValue(
+        request,
+        CT.ExtraHeader.CONNECT_TOKEN
       )
+
+      try {
+        const payload = await jwtVerifier.verify(connectToken)
+
+        if (!payload.allowedMethods.includes(Method.REGISTER)) {
+          return res.send(Auth.createForbideenResponse())
+        }
+
+        await location.addRoute({
+          aor: payload.aor,
+          route: H.createRoute(request)
+        })
+      } catch (e) {
+        logger.verbose("unable to validate connect token", {
+          originalError: e.message
+        })
+        res.send(Auth.createForbideenResponse())
+      }
+    } else {
+      res.send(Auth.createUnauthorizedResponse(request.message.requestUri.host))
     }
   }
 }
@@ -145,6 +172,8 @@ export const handleRequest =
         res.send(tailor(route as CT.Route, req))
       }
     } catch (err) {
-      res.sendError(err)
+      res.sendInternalServerError()
+      logger.error(err)
+      // res.sendError(err)
     }
   }

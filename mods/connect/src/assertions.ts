@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*
  * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -17,16 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-require("./tracer").init("dispatcher")
-import connectProcessor from "./service"
-import { Assertions as A } from "@routr/common"
-import { API_ADDR, BIND_ADDR, LOCATION_ADDR } from "./envs"
+import { getLogger } from "@fonoster/logger"
 
-A.assertEnvsAreSet(["LOCATION_ADDR", "API_ADDR"])
+const logger = getLogger({ service: "common", filePath: __filename })
 
-connectProcessor({
-  bindAddr: BIND_ADDR,
-  locationAddr: LOCATION_ADDR,
-  apiAddr: API_ADDR
-})
+export const assertOnlyOneEnvIsSet = (envs: string[]) => {
+  const envsSet = envs.filter((env) => process.env[env] != null)
+  if (envsSet.length > 1) {
+    logger.error(
+      `only one of the following environment variables can be set: ${envs.join(
+        ", "
+      )}.`
+    )
+    process.exit(1)
+  }
+}

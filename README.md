@@ -52,7 +52,7 @@ Routr's main features are:
 - [x] Command-Line Tool
 - [x] RTPEngine Middleware
 - [x] Helm Chart for  Kubernetes Deployments
-- [ ] Endpoint Authentication with JWT (For web phones)
+- [x] Endpoint Authentication with JWT (For web phones)
 - [ ] Support for STIR/SHAKEN
 - [ ] Web Application
 

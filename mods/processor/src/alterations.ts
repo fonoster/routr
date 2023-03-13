@@ -268,12 +268,18 @@ export const decreaseMaxForwards = (request: MessageRequest) => {
   return req
 }
 
-export const fixNatedContact = (request: MessageRequest) => {
+export const fixInvalidContact = (request: MessageRequest) => {
   const req = H.deepCopy(request)
+  const via = req.message.via[0]
+
   if (req.message.contact?.address.uri.host.includes(".invalid")) {
-    req.message.contact.address.uri.host = request.sender.host
-    req.message.contact.address.uri.port = request.sender.port
+    req.message.contact.address.uri.host = via.received || via.host
+    req.message.contact.address.uri.port =
+      via.rPort !== -1 ? via.rPort : via.port
+    req.message.contact.address.uri.transportParam =
+      via.transport.toUpperCase() as Transport
   }
+
   return req
 }
 

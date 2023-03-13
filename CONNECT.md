@@ -1,6 +1,6 @@
 # Routr Connect Processor
 
-### Version 0.1.4 (Draft)
+### Version 0.1.5 (Draft)
 
 <details>
 <summary>Table of Contents</summary>
@@ -42,9 +42,9 @@ The software system will be a Processor that implements the logic to support a s
 | *Processor*      | Feature server that carries the logic for a particular use case                         |
 | *Connect Object* | A JSON Object describing a call session, including authorized actions                   |
 | *SIP Client*     | A SIP Client is any SIP-capable device or software that communicates thru *Routr*       |
-| *SIP Server*     | Also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients to place and terminate calls and process other types of requests                                 |
+| *SIP Server*     | Also known as a SIP Proxy, deals with all the management of SIP requests in a network and is responsible for taking requests from the SIP Clients to place and terminate calls and process other types of requests |
 | *gRPC*           | Is a modern open-source, high-performance Remote Procedure Call (RPC) framework         |
-| *Stakeholder*    | Any person with interest in the project which is not a developer                          |
+| *Stakeholder*    | Any person with interest in the project which is not a developer                        |
 | *Nexthop*        | The next network element within the signaling path of a given request                   |
 | *M.E.L.T*        | M.E.L.T stands for Metrics, Events, Logs, Tracing                                       |
 
@@ -72,15 +72,11 @@ Processing a MESSAGE consist of this basic steps:
   => doProcess(message) and return updated request/response
 ```
 
-The Processor will use a `Username/Password` scheme to authenticate Agents and Peers. On the other hand, a `Username/Password`, `IP Access List`, or a combination of both for inbound calls (Ingress Routing) coming from a Trunk.
-
-It's also a requirement for the Processor to authorize requests. A traditional AAA may do the authorization service, such as a Diameter or Radius server, or by a custom authorization service.
-
-Available actions are:
+To authenticate Agents and Peers, the Processor will implement a `Username/Password` authentication scheme. In contrast, for inbound calls (Ingress Routing) from a Trunk, the Processor will use a combination of `Username/Password` and `IP Access List` or either of the two methods individually. The actions available will correspond to the specific endpoint types as outlined below:
 
 <table>
 <tr>
-<td> Endpoint Type </td> <td> Action </td> <td> Modifiers </td>
+<td> Endpoint Type </td> <td> Available Actions </td>
 </tr>
 <tr>
 <td> 
@@ -95,11 +91,6 @@ Available actions are:
 - Connect to a backend service
 
 </td>
-<td>
-
-`requestURI`, `p-asserted-identity`, `remote-party-id`
-
-</td>
 </tr>
 
 <tr>
@@ -110,11 +101,6 @@ Available actions are:
 </td>
 <td>
 Assert identity over a Number for calls to the PSTN
-</td>
-<td>
-
-`requestURI`, `p-asserted-identity`, `remote-party-id`
-
 </td>
 </tr>
 
@@ -127,42 +113,22 @@ Assert identity over a Number for calls to the PSTN
 <td>
 Forward inbound traffic if its a Number it controls
 </td>
-<td>
-
-`requestURI`, `webhook`
-
-</td>
 </tr>
 </table>
 
-The following JSON is an example of a `Connect Object` that results from processing a message:
+Furthermore, an Agent can utilize the custom header X-Connect-Token to transmit a JWT that contains claims enabling the Agent to execute routing operations like a typical Agent. The JWT payload will consist of values that resemble an Agent configuration, and it will have the following claims:
 
 ```json
 {
-  "headers": [
-    { "name:": "P-Asserted-Identity", "action": "delete"},
-    { "name:": "Remote-Party-ID", "action": "delete"},
-    { "name:": "X-Backend-Name", "value": "voice", "action": "add"},
-    { "name:": "X-Backend-Ref", "value": "voice", "action": "add"}    
-  ]
+  "ref": "agent-01",
+  "aor": "sip:1001@sip.local",
+  "aorLink": "backend:voice",
+  "domain": "sip.local",
+  "domainRef": "domain-01",
+  "allowedMethods": [ "INVITE", "REGISTER"],
+  "privacy": "NONE"
 }
 ```
-
-> A JWT token in the customer header `X-Connect-Token` could bypass the authentication and the need to construct `Connect Object`.
-
-For error response, the `Connect Object` will look like this:
-
-```json
-{
-  "code": 401,
-  "reason": "Unauthorized",
-  "headers": [
-    { "name:": "X-Additional-Header", "value": "With a custom message", "action": "add" }
-  ]
-}
-```
-
-> Headers with action "delete" will be ignored since we are not modifying an existing response but creating a new one.
 
 **Non-functional Requirements**
 

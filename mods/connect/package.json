@@ -31,7 +31,11 @@
     "@opentelemetry/semantic-conventions": "^1.0.4",
     "@routr/common": "^2.0.8-alpha.33",
     "@routr/location": "^2.0.8-alpha.37",
-    "@routr/processor": "^2.0.8-alpha.36"
+    "@routr/processor": "^2.0.8-alpha.36",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.1"
   },
   "files": [
     "dist"

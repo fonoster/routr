@@ -18,29 +18,35 @@
  */
 import { RoutingDirection } from "./types"
 import {
+  Auth,
   CommonConnect as CC,
   CommonTypes as CT,
   HeaderModifier,
-  Route
+  Route,
+  Method
 } from "@routr/common"
 import {
   createPAssertedIdentity,
   createRemotePartyId,
   createTrunkAuthentication,
+  findDomain,
   findNumberByTelUrl,
   findResource,
   getRoutingDirection,
   getSIPURI,
-  getTrunkURI
+  getTrunkURI,
+  getVerifierImpl,
+  hasXConnectObjectHeader
 } from "./utils"
 import { MessageRequest, Target as T, Extensions as E } from "@routr/processor"
-import { NotRoutesFoundForAOR, ILocationService } from "@routr/location"
+import { ILocationService } from "@routr/location"
 import { UnsuportedRoutingError } from "./errors"
 import { getLogger } from "@fonoster/logger"
 import { checkAccess } from "./access"
 import { Backend } from "@routr/location/src/types"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
+const jwtVerifier = getVerifierImpl()
 
 // eslint-disable-next-line require-jsdoc
 export function router(location: ILocationService, apiClient: CC.APIClient) {
@@ -50,12 +56,50 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
     const fromURI = request.message.from.address.uri
     const requestURI = request.message.requestUri
 
-    const caller = await findResource(apiClient, fromURI.host, fromURI.user)
-    const callee = await findResource(
-      apiClient,
-      requestURI.host,
-      requestURI.user
-    )
+    let caller
+    let callee
+
+    if (hasXConnectObjectHeader(request)) {
+      const connectToken = E.getHeaderValue(
+        request,
+        CT.ExtraHeader.CONNECT_TOKEN
+      )
+
+      try {
+        const payload = await jwtVerifier.verify(connectToken)
+        const domain = await findDomain(apiClient, payload.domain)
+
+        if (!payload.allowedMethods.includes(Method.INVITE)) {
+          return Auth.createForbideenResponse()
+        }
+
+        caller = {
+          apiVersion: CC.APIVersion.V2,
+          ref: payload.ref as string,
+          name: request.message.from.address.displayName ?? CT.ANONYMOUS,
+          domain: domain,
+          domainRef: payload.domainRef,
+          username: CT.ANONYMOUS,
+          privacy: E.getHeaderValue(request, "Privacy"),
+          enabled: true
+        } as CC.Agent
+
+        callee = (
+          await apiClient.peers.findBy({
+            fieldName: "aor",
+            fieldValue: payload.aorLink
+          })
+        ).items[0]
+      } catch (e) {
+        logger.verbose("unable to validate connect token", {
+          originalError: e.message
+        })
+        return Auth.createForbideenResponse()
+      }
+    } else {
+      caller = await findResource(apiClient, fromURI.host, fromURI.user)
+      callee = await findResource(apiClient, requestURI.host, requestURI.user)
+    }
 
     const routingDirection = getRoutingDirection(caller, callee)
 
@@ -68,11 +112,13 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
         fromURI: getSIPURI(fromURI),
         requestURI: getSIPURI(requestURI),
         routingDirection
-        // sessionAffinityHeader: callee?.spec.location?.sessionAffinityHeader
       }
     )
 
-    if (request.method === CT.Method.INVITE) {
+    if (
+      !hasXConnectObjectHeader(request) &&
+      request.method === CT.Method.INVITE
+    ) {
       const failedCheck = await checkAccess({
         apiClient,
         request,
@@ -89,6 +135,8 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
     switch (routingDirection) {
       case RoutingDirection.AGENT_TO_AGENT:
         return agentToAgent(location, request)
+      case RoutingDirection.AGENT_TO_PEER:
+        return await agentToPeer(location, callee as CC.Peer, request)
       case RoutingDirection.AGENT_TO_PSTN:
         return await agentToPSTN(request, caller as CC.Agent, requestURI.user)
       case RoutingDirection.FROM_PSTN:
@@ -159,7 +207,7 @@ async function fromPSTN(
   )[0]
 
   if (!route) {
-    throw new NotRoutesFoundForAOR(callee.aorLink)
+    return null
   }
 
   if (!route.headers) route.headers = []
@@ -236,6 +284,27 @@ async function agentToPSTN(
       await createTrunkAuthentication(trunk)
     ]
   }
+}
+
+// eslint-disable-next-line require-jsdoc
+async function agentToPeer(
+  location: ILocationService,
+  callee: CC.Peer,
+  req: MessageRequest
+) {
+  const backend: Backend = {
+    ref: callee.ref,
+    balancingAlgorithm: callee.balancingAlgorithm,
+    withSessionAffinity: callee.withSessionAffinity
+  }
+
+  return (
+    await location.findRoutes({
+      aor: callee.aor,
+      callId: req.ref,
+      backend
+    })
+  )[0]
 }
 
 // eslint-disable-next-line require-jsdoc

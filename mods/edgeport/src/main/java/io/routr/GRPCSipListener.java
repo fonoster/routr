@@ -24,6 +24,7 @@ import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.Route;
+import gov.nist.javax.sip.header.RecordRoute;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.ResponseEventExt;
 import io.grpc.ManagedChannel;
@@ -123,7 +124,7 @@ public class GRPCSipListener implements SipListener {
   }
 
   static Request updateRequest(final Request request, final List<Header> headers) {
-    Request requestOut = (Request) request.clone();
+    var requestOut = (Request) request.clone();
 
     Iterator<String> names = requestOut.getHeaderNames();
     while (names.hasNext()) {
@@ -292,10 +293,11 @@ public class GRPCSipListener implements SipListener {
         res.setContent(response.getMessage().getBody(), (ContentTypeHeader) res.getHeader(ContentTypeHeader.NAME));
       }
 
-      // Removing all the headers of type Via and Contact to avoid duplicates
+      // Removing headers to avoid duplicates
       res.removeHeader(Via.NAME);
       res.removeHeader(Contact.NAME);
       res.removeHeader(Route.NAME);
+      res.removeHeader(RecordRoute.NAME);
 
       for (Header header : headers) {
         // WARNING: Using setHeader causes some headers to be overwritten 
