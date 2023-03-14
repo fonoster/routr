@@ -3,7 +3,7 @@ entries:
   routr:
   - apiVersion: v2
     appVersion: 1.0.0-rc5
-    created: "2021-04-09T16:26:05.450848-04:00"
+    created: "2023-03-14T08:47:41.764199-04:00"
     dependencies:
     - name: redis
       repository: https://charts.bitnami.com/bitnami
@@ -37,7 +37,7 @@ entries:
     version: 0.0.10
   - apiVersion: v2
     appVersion: 1.0.0-rc5
-    created: "2021-04-09T16:26:05.468469-04:00"
+    created: "2023-03-14T08:47:41.769868-04:00"
     dependencies:
     - name: redis
       repository: https://charts.bitnami.com/bitnami
@@ -71,7 +71,7 @@ entries:
     version: 0.0.9
   - apiVersion: v2
     appVersion: 1.0.0-rc5
-    created: "2021-04-09T16:26:05.463448-04:00"
+    created: "2023-03-14T08:47:41.766942-04:00"
     dependencies:
     - name: redis
       repository: https://charts.bitnami.com/bitnami
@@ -103,4 +103,24 @@ entries:
     urls:
     - routr-0.0.8.tgz
     version: 0.0.8
-generated: "2021-04-09T16:26:05.428515-04:00"
+  routr-connect:
+  - apiVersion: v2
+    appVersion: 2.0.8-alpha.38
+    created: "2023-03-14T08:47:41.778222-04:00"
+    dependencies:
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 12.1.15
+    - condition: redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 17.7.3
+    description: Routr Connect Helm Chart
+    digest: b9d36b18b3323ab2afbc30eb53433c1e92068df9e83a52c3fdd3e169c3b688ca
+    name: routr-connect
+    type: application
+    urls:
+    - routr-connect-0.1.1.tgz
+    version: 0.1.1
+generated: "2023-03-14T08:47:41.758572-04:00"
