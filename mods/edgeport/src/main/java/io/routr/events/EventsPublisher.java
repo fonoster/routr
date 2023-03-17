@@ -16,34 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.routr.utils;
+package io.routr.events;
+import java.util.Map;
 
-import gov.nist.javax.sip.clientauthutils.UserCredentials;
-
-class UserCredentialsImpl implements UserCredentials {
-  private final String username;
-  private final String password;
-  private final String host;
-
-  public UserCredentialsImpl(final String username, final String password,
-      final String host) {
-    this.username = username;
-    this.password = password;
-    this.host = host;
-  }
-
-  @Override
-  public String getUserName() {
-    return this.username;
-  }
-
-  @Override
-  public String getPassword() {
-    return this.password;
-  }
-
-  @Override
-  public String getSipDomain() {
-    return this.host;
-  }
+public interface EventsPublisher {
+  void publish(String eventName, Map<String, String> message);
 }

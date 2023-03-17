@@ -29,7 +29,7 @@ public class AccountManagerImpl implements AccountManager {
   private final String host;
 
   public AccountManagerImpl(final String username, final String password,
-                            final String host) {
+      final String host) {
     this.username = username;
     this.password = password;
     this.host = host;

@@ -19,6 +19,7 @@
 package io.routr.headers;
 
 public enum ResponseCode {
+  UNKNOWN(-1),
   TRYING(100),
   RINGING(180),
   CALL_IS_BEING_FORWARDED(181),

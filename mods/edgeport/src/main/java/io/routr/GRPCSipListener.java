@@ -39,6 +39,7 @@ import io.routr.processor.MessageResponse;
 import io.routr.processor.NetInterface;
 import io.routr.processor.ProcessorGrpc;
 import io.routr.utils.AccountManagerImpl;
+import io.routr.events.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -50,7 +51,12 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.io.IOException;
 
 public class GRPCSipListener implements SipListener {
   private final static Logger LOG = LogManager.getLogger(GRPCSipListener.class);
@@ -61,9 +67,11 @@ public class GRPCSipListener implements SipListener {
   private final AddressFactory addressFactory;
   private final HeaderFactory headerFactory;
   private final Map<String, Transaction> activeTransactions = new HashMap<>();
+  private List<EventsPublisher> publishers = new ArrayList<>();
 
   public GRPCSipListener(final SipProvider sipProvider, final Map<String, Object> config,
-      final List<String> externalAddrs, final List<String> localnets) throws PeerUnavailableException {
+      final List<String> externalAddrs, final List<String> localnets)
+      throws IOException, PeerUnavailableException, InterruptedException {
     System.setProperty("serviceName", "edgeport");
     MapProxyObject values = new MapProxyObject(config);
     // MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
@@ -83,7 +91,8 @@ public class GRPCSipListener implements SipListener {
         Enumeration<java.net.NetworkInterface> nets = java.net.NetworkInterface.getNetworkInterfaces();
         for (java.net.NetworkInterface netint : Collections.list(nets)) {
           List<java.net.InterfaceAddress> interfaces = netint.getInterfaceAddresses();
-          localnets.add(interfaces.get(0).getAddress().getHostAddress() + "/" + interfaces.get(0).getNetworkPrefixLength());
+          localnets
+              .add(interfaces.get(0).getAddress().getHostAddress() + "/" + interfaces.get(0).getNetworkPrefixLength());
         }
       } catch (java.net.SocketException e) {
         LOG.error("error getting network interfaces", e);
@@ -121,6 +130,29 @@ public class GRPCSipListener implements SipListener {
     this.messageFactory = SipFactory.getInstance().createMessageFactory();
     this.addressFactory = SipFactory.getInstance().createAddressFactory();
     this.headerFactory = SipFactory.getInstance().createHeaderFactory();
+
+    if (System.getenv("CONSOLE_PUBLISHER_ENABLED") != null
+        && System.getenv("CONSOLE_PUBLISHER_ENABLED").equalsIgnoreCase("true")) {
+      publishers.add(new ConsolePublisher());
+      LOG.info("console publisher enabled");
+    }
+
+    if (System.getenv("NATS_PUBLISHER_ENABLED") != null
+        && System.getenv("NATS_PUBLISHER_ENABLED").equalsIgnoreCase("true")) {
+      String subject = System.getenv("NATS_PUBLISHER_SUBJECT");
+      String natsUrl = System.getenv("NATS_PUBLISHER_URL");
+      if (natsUrl == null) {
+        natsUrl = "nats://localhost:4222";
+      }
+
+      if (subject == null) {
+        subject = "routr";
+      }
+
+      publishers.add(new NatsPublisher(natsUrl, subject));
+
+      LOG.info("nats publisher enabled with subject {} and url {}", subject, natsUrl);
+    }
   }
 
   static Request updateRequest(final Request request, final List<Header> headers) {
@@ -216,10 +248,20 @@ public class GRPCSipListener implements SipListener {
 
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
 
+      boolean isRequest = response.getMessage().hasRequestUri();
+      var method = event.getRequest().getMethod();
+
+      if (isRequest && method.equals(Request.INVITE)) {
+        processCallStartedEvent(response);
+      } else if (isRequest && method.equals(Request.CANCEL)) {
+        processCallEndedEvent(response);
+      }
+
       // Forwarding SIP response to the client
-      if (!response.getMessage().hasRequestUri()) {
+      if (!isRequest) {
         assert serverTransaction != null;
-        this.sendResponse(serverTransaction, response.getMessage().getResponseType(), headers, response.getMessage().getReasonPhrase());
+        this.sendResponse(serverTransaction, response.getMessage().getResponseType(), headers,
+            response.getMessage().getReasonPhrase());
         return;
       }
 
@@ -278,10 +320,15 @@ public class GRPCSipListener implements SipListener {
         return;
       }
 
-      MessageRequest request = this.messageConverter.createMessageRequest(res, null, 
-        (ResponseEventExt) event);
+      MessageRequest request = this.messageConverter.createMessageRequest(res, null,
+          (ResponseEventExt) event);
       MessageResponse response = blockingStub.processMessage(request);
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
+
+      if (hasMethod(res, Request.BYE) ||
+          (hasMethod(res, Request.INVITE) && res.getStatusCode() > 300)) {
+        processCallEndedEvent(response);
+      }
 
       // Update reason phrase
       if (response.getMessage().getReasonPhrase() != null) {
@@ -300,7 +347,7 @@ public class GRPCSipListener implements SipListener {
       res.removeHeader(RecordRoute.NAME);
 
       for (Header header : headers) {
-        // WARNING: Using setHeader causes some headers to be overwritten 
+        // WARNING: Using setHeader causes some headers to be overwritten
         res.addHeader(header);
       }
 
@@ -393,41 +440,37 @@ public class GRPCSipListener implements SipListener {
     }
   }
 
-  private void sendCancel(final ServerTransaction serverTransaction, final Request request, 
+  private void sendCancel(final ServerTransaction serverTransaction, final Request request,
       final List<Header> headers) {
     try {
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
       var originalClientTransaction = (ClientTransaction) this.activeTransactions.get(callId.getCallId() + "_client");
-      var originalServerTransaction = (ServerTransaction) this.activeTransactions.get(callId.getCallId() + "_server");      
+      var originalServerTransaction = (ServerTransaction) this.activeTransactions.get(callId.getCallId() + "_server");
 
       // Let client know we are processing the request
       var cancelResponse = this.messageFactory.createResponse(
-        Response.OK,
-        serverTransaction.getRequest()
-      );
+          Response.OK,
+          serverTransaction.getRequest());
 
       serverTransaction.sendResponse(cancelResponse);
 
       // Send CANCEL request to destination
       var cseq = ((CSeqHeader) originalServerTransaction.getRequest().getHeader(CSeqHeader.NAME)).getSeqNumber();
       var cseqHeader = this.headerFactory.createCSeqHeader(
-        cseq,
-        Request.CANCEL
-      );
+          cseq,
+          Request.CANCEL);
 
       var cancelRequest = originalClientTransaction.createCancel();
       cancelRequest.setHeader(cseqHeader);
       var clientTransaction = this.sipProvider.getNewClientTransaction(
-        cancelRequest
-      );
+          cancelRequest);
 
       clientTransaction.sendRequest();
 
       // Sends 487 (Request terminated) back to client
       var terminatedResponse = this.messageFactory.createResponse(
-        Response.REQUEST_TERMINATED,
-        originalServerTransaction.getRequest()
-      );
+          Response.REQUEST_TERMINATED,
+          originalServerTransaction.getRequest());
 
       originalServerTransaction.sendResponse(terminatedResponse);
     } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -437,16 +480,19 @@ public class GRPCSipListener implements SipListener {
   }
 
   private void sendResponse(final ServerTransaction transaction, final ResponseType type,
-      final List<Header> headers, final String reasonPhrase) throws ParseException, InvalidArgumentException, SipException {
+      final List<Header> headers, final String reasonPhrase)
+      throws ParseException, InvalidArgumentException, SipException {
     Request request = transaction.getRequest();
     Response response = this.messageFactory.createResponse(ResponseCode.valueOf(type.name()).getCode(), request);
-    
+
     if (reasonPhrase != null) {
       response.setReasonPhrase(reasonPhrase);
     }
 
-    for (Header header : headers)
+    for (Header header : headers) {
       response.addHeader(header);
+    }
+
     transaction.sendResponse(response);
 
     var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
@@ -484,5 +530,46 @@ public class GRPCSipListener implements SipListener {
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
       LOG.warn("an exception occurred while handling authentication challenge for callId: {}", callId, e);
     }
+  }
+
+  private void processCallStartedEvent(final MessageResponse response) {
+    var dateTime = ZonedDateTime.now(ZoneOffset.UTC)
+        .truncatedTo(ChronoUnit.MILLIS)
+        .format(DateTimeFormatter.ISO_INSTANT);
+    var callId = response.getMessage().getCallId().getCallId();
+    var from = response.getMessage().getFrom().getAddress().getUri();
+    var to = response.getMessage().getTo().getAddress().getUri();
+    var callStartedEvent = new HashMap<String, String>();
+
+    callStartedEvent.put("callId", callId);
+    callStartedEvent.put("from", "sip:" + from.getUser() + "@" + from.getHost());
+    callStartedEvent.put("to", "sip:" + to.getUser() + "@" + to.getHost());
+    callStartedEvent.put("date", dateTime);
+    callStartedEvent.put("startTime", dateTime);
+    callStartedEvent.putAll(response.getMetadataMap());
+
+    publishEvent(EventTypes.CALL_STARTED.getType(), callStartedEvent);
+  }
+
+  private void processCallEndedEvent(final MessageResponse request) {
+    var dateTime = ZonedDateTime.now(ZoneOffset.UTC)
+        .truncatedTo(ChronoUnit.MILLIS)
+        .format(DateTimeFormatter.ISO_INSTANT);
+    var callId = request.getMessage().getCallId().getCallId();
+    var callEndedEvent = new HashMap<String, String>();
+    callEndedEvent.put("callId", callId);
+    callEndedEvent.put("endTime", dateTime);
+
+    var type = ResponseCode.valueOf(request.getMessage().getResponseType().name());
+    // FIXME: This is a workaround for call ending coming from a CANCEL request
+    int code = type.equals(ResponseCode.UNKNOWN) ? ResponseCode.OK.getCode() : type.getCode();
+    var cause = HangupCauses.get(code);
+    callEndedEvent.put("hangupCause", cause);
+
+    publishEvent(EventTypes.CALL_ENDED.getType(), callEndedEvent);
+  }
+
+  private void publishEvent(String eventName, Map<String, String> message) {
+    publishers.stream().forEach(publisher -> publisher.publish(eventName, message));
   }
 }

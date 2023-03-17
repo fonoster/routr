@@ -27,9 +27,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletHandler;
 
 public class HealthCheck extends HttpServlet {
@@ -38,7 +36,8 @@ public class HealthCheck extends HttpServlet {
   private static final long serialVersionUID = 1L;
   private int port;
 
-  public HealthCheck() {}
+  public HealthCheck() {
+  }
 
   public HealthCheck(int port) {
     this.port = port;
@@ -52,7 +51,7 @@ public class HealthCheck extends HttpServlet {
     response.getWriter().println("{ \"status\": \"OK\"}");
   }
 
-  public void start() throws Exception{
+  public void start() throws Exception {
     LOG.info("starting health check on port " + port + " and endpoint /healthz");
     Server server = new Server(port);
     ServletHandler handler = new ServletHandler();

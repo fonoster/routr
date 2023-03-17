@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ResponseCodeTests {
   @Test
   public void checkCodes() {
+    assertEquals(-1, ResponseCode.valueOf(ResponseType.UNKNOWN.toString()).getCode());
     assertEquals(100, ResponseCode.valueOf(ResponseType.TRYING.toString()).getCode());
     assertEquals(180, ResponseCode.valueOf(ResponseType.RINGING.toString()).getCode());
     assertEquals(181, ResponseCode.valueOf(ResponseType.CALL_IS_BEING_FORWARDED.toString()).getCode());

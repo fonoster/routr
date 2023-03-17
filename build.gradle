@@ -37,6 +37,7 @@ subprojects {
     implementation 'com.github.uber-common:jvm-profiler:master-SNAPSHOT'
     implementation 'org.eclipse.jetty:jetty-server:11.0.13'
     implementation 'org.eclipse.jetty:jetty-servlet:11.0.13'
+    implementation 'io.nats:jnats:2.16.8'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
   }

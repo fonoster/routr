@@ -92,6 +92,7 @@ export interface MessageRequest {
   externalAddrs: string[]
   localnets: string[]
   message: SIPMessage
+  metadata?: Record<string, string>
 }
 
 export interface MessageResponse {

@@ -82,10 +82,11 @@ message MessageRequest {
   repeated string external_addrs = 6;
   repeated string localnets = 7;
   fonoster.routr.sipmessage.v2draft1.SIPMessage message = 8;
-  // .google.protobuf.Struct metadata = 9;
+  map<string, string> metadata = 9;
 }
 
 message MessageResponse {
   NetInterface sender = 1;
   fonoster.routr.sipmessage.v2draft1.SIPMessage message = 2;
+  map<string, string> metadata = 3;
 }

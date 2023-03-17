@@ -14,8 +14,8 @@ public class ClassFinder {
   static public Set<Class> findAllClassesUsingReflections(String packageName) {
     var reflections = new Reflections(packageName, new SubTypesScanner(false));
     return reflections.getSubTypesOf(Object.class)
-      .stream()
-      .collect(Collectors.toSet());
+        .stream()
+        .collect(Collectors.toSet());
   }
 
   static public List<Class<Converter>> findAllConverters() {
