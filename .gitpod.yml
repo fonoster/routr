@@ -13,7 +13,8 @@ tasks:
   - name: Setup & start
     before: >
       sudo sh -c "cat etc/hosts.txt >> /etc/hosts"
-      sudo sh -c "cp etc/routr/domains-cert.jks /etc/routr/domains-cert.jks"
+      sudo sh -c "mkdir -p /etc/routr"
+      sudo sh -c "cp etc/certs/domains-cert.jks /etc/routr/domains-cert.jks"
     init: npm run make
     command: npm start
 
@@ -34,13 +35,6 @@ ports:
     onOpen: ignore
   - port: 5063
     onOpen: ignore
-
-## The 'github' section defines configuration of continuous prebuilds
-## for GitHub repositories when the GitHub application
-## 'https://github.com/apps/gitpod-io' is installed in GitHub and granted
-## permissions to access the repository.
-##
-## Learn more at 'https://www.gitpod.io/docs/prebuilds'
 
 github:
   prebuilds:
