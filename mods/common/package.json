@@ -1,6 +1,6 @@
 {
   "name": "@routr/common",
-  "version": "2.0.8-alpha.43",
+  "version": "2.0.8",
   "description": "Common package",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
