@@ -11,14 +11,11 @@
 # Currently it is set to work from v2 branch.
 tasks:
   - name: Setup & start
-    before: sudo sh -c "cat etc/hosts.txt >> /etc/hosts"
+    before: >
+      sudo sh -c "cat etc/hosts.txt >> /etc/hosts"
+      sudo sh -c "cp etc/routr/domains-cert.jks /etc/routr/domains-cert.jks"
     init: npm run make
     command: npm start
-
-#ports:
-#  - port: 8080 # alternatively configure entire ranges via '8080-8090'
-#    visibility: private # either 'public' or 'private' (default)
-#    onOpen: open-browser # either 'open-browser', 'open-preview' or 'ignore'
 
 ports:
   - port: 51901
@@ -28,8 +25,6 @@ ports:
   - port: 51903
     onOpen: ignore
   - port: 51904
-    onOpen: ignore
-  - port: 52901
     onOpen: ignore
   - port: 5060
     onOpen: ignore
