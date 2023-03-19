@@ -12,8 +12,8 @@
 tasks:
   - name: Setup & start
     before: sudo sh -c "cat etc/hosts.txt >> /etc/hosts && mkdir -p /etc/routr && cp etc/certs/domains-cert.jks /etc/routr/domains-cert.jks"
-    # init: npm run make
-    # command: npm start
+    init: npm run make
+    command: npm start
 
 ports:
   - port: 51901
