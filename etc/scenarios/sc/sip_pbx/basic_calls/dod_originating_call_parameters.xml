@@ -5,7 +5,11 @@
 
   <recv request="INVITE">
     <action>
-      <ereg regexp=".*INVITE sips?:[0-9a-z]+@sip.local.*" search_in="msg" case_indep="true" check_it="true" assign_to="1" />
+      <ereg regexp=".*INVITE sips?:[0-9a-z]+@sip.provider.net.*" search_in="msg" case_indep="true" check_it="true" assign_to="1" />
+      <!--
+        FIXME: According to SIP Connect we should replace the host part in the From and To headers with the host part of the
+        of the Service Provider's.
+      -->
       <ereg regexp=".*sips?:[0-9a-z]+@sip.local.*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="1" />
       <ereg regexp=".*sips?:[0-9a-z]+@sip.local.*" search_in="hdr" header="To" case_indep="true" check_it="true" assign_to="1" />
       <ereg regexp=".*sips?:[0-9a-z]+@[0-9a-z.-;user=phone]+|tel:(\+)[\+0-9]+.*" search_in="hdr" header="P-Asserted-Identity" case_indep="true" check_it="true" assign_to="1" />
