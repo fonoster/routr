@@ -11,7 +11,7 @@
 # Currently it is set to work from v2 branch.
 tasks:
   - name: Setup & start
-    before: sudo cat etc/hosts.txt >> /etc/hosts && mkdir -p /etc/routr && cp etc/certs/domains-cert.jks /etc/routr/domains-cert.jks
+    before: sudo sh -c "cat etc/hosts.txt >> /etc/hosts && mkdir -p /etc/routr && cp etc/certs/domains-cert.jks /etc/routr/domains-cert.jks"
     # init: npm run make
     # command: npm start
 
