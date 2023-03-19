@@ -139,20 +139,45 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
       }
     }
 
+    // We add metadata to the route object so we can use it later to link to an account
     switch (routingDirection) {
-      case RoutingDirection.AGENT_TO_AGENT:
-        return agentToAgent(location, request)
-      case RoutingDirection.AGENT_TO_PEER:
-        return await agentToPeer(location, callee as CC.Peer, request)
-      case RoutingDirection.AGENT_TO_PSTN:
-        return await agentToPSTN(request, caller as CC.Agent, requestURI.user)
-      case RoutingDirection.FROM_PSTN:
-        return await fromPSTN(
+      case RoutingDirection.AGENT_TO_AGENT: {
+        const route = await agentToAgent(location, request)
+        return {
+          ...route,
+          metadata: caller.extended
+        }
+      }
+      case RoutingDirection.AGENT_TO_PEER: {
+        const route = await agentToPeer(location, callee as CC.Peer, request)
+        return {
+          ...route,
+          metadata: caller.extended
+        }
+      }
+      case RoutingDirection.AGENT_TO_PSTN: {
+        const route = await agentToPSTN(
+          request,
+          caller as CC.Agent,
+          requestURI.user
+        )
+        return {
+          ...route,
+          metadata: caller.extended
+        }
+      }
+      case RoutingDirection.FROM_PSTN: {
+        const route = await fromPSTN(
           apiClient,
           location,
           callee as CC.INumber,
           request
         )
+        return {
+          ...route,
+          metadata: callee.extended
+        }
+      }
       case RoutingDirection.PEER_TO_PSTN:
         return await peerToPSTN(apiClient, request)
       default:

@@ -25,7 +25,8 @@ public class HangupCauses {
 
   private static final Map<Integer, String> hangupCauses = new HashMap<>();
 
-  // https://www.voicehost.co.uk/help/sip-error-codes-sip-trunk-troubleshooting
+  // See the link below for reference:
+  //  https://www.voicehost.co.uk/help/sip-error-codes-sip-trunk-troubleshooting
   static {
     hangupCauses.put(200, "NORMAL_CLEARING");
     hangupCauses.put(401, "CALL_REJECTED");

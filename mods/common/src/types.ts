@@ -192,6 +192,7 @@ export interface Route {
   // Reserved for future use
   labels?: Map<string, string>
   headers?: HeaderModifier[]
+  metadata?: Record<string, string>
 }
 
 export enum ResponseType {

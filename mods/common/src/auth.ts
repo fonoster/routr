@@ -82,6 +82,7 @@ export const createUnauthorizedResponse = (
   return {
     message: {
       responseType: ResponseType.UNAUTHORIZED,
+      reasonPhrase: "Unauthorized",
       wwwAuthenticate: {
         scheme: "Digest",
         realm: realm,
@@ -95,26 +96,36 @@ export const createUnauthorizedResponse = (
   }
 }
 
-export const createUnauthorizedResponseWithoutChallenge = () => {
+export const createUnauthorizedResponseWithoutChallenge = (
+  metadata?: Record<string, string>
+) => {
   return {
+    metadata,
     message: {
-      responseType: ResponseType.UNAUTHORIZED
+      responseType: ResponseType.UNAUTHORIZED,
+      reasonPhrase: "Unauthorized"
     }
   }
 }
 
-export const createServerInternalErrorResponse = () => {
+export const createServerInternalErrorResponse = (
+  metadata?: Record<string, string>
+) => {
   return {
+    metadata,
     message: {
-      responseType: ResponseType.SERVER_INTERNAL_ERROR
+      responseType: ResponseType.SERVER_INTERNAL_ERROR,
+      reasonPhrase: "Server Internal Error"
     }
   }
 }
 
-export const createForbideenResponse = () => {
+export const createForbideenResponse = (metadata?: Record<string, string>) => {
   return {
+    metadata,
     message: {
-      responseType: ResponseType.FORBIDDEN
+      responseType: ResponseType.FORBIDDEN,
+      reasonPhrase: "Forbidden"
     }
   }
 }

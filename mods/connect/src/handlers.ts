@@ -146,6 +146,7 @@ export const handleRequest =
     try {
       const req = Environment.ENFORCE_E164 ? enforceE164(request) : request
 
+      // Must get the metadata here before the request is forwarded
       const route = E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF)
         ? H.createRouteFromLastMessage(req)
         : await router(location, apiClient)(req)
@@ -172,11 +173,13 @@ export const handleRequest =
           )
         }
 
+        // TODO: We should add this the Tailor API
+        req.metadata = route.metadata as Record<string, string>
+
         res.send(tailor(route as CT.Route, req))
       }
     } catch (err) {
-      res.sendInternalServerError()
       logger.error(err)
-      // res.sendError(err)
+      res.sendInternalServerError()
     }
   }

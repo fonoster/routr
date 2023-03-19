@@ -74,7 +74,6 @@ public class GRPCSipListener implements SipListener {
       throws IOException, PeerUnavailableException, InterruptedException {
     System.setProperty("serviceName", "edgeport");
     MapProxyObject values = new MapProxyObject(config);
-    // MapProxyObject metadata = (MapProxyObject) values.getMember("metadata");
     MapProxyObject spec = (MapProxyObject) values.getMember("spec");
     MapProxyObject processor = (MapProxyObject) spec.getMember("processor");
     String addr = (String) processor.getMember("addr");
@@ -122,6 +121,7 @@ public class GRPCSipListener implements SipListener {
           .build();
       listeningPoints.add(ni);
     }
+
     messageConverter = new MessageConverter(edgePortRef);
     messageConverter.setExternalAddrs(externalAddrs);
     messageConverter.setLocalnets(localnets);
@@ -557,13 +557,13 @@ public class GRPCSipListener implements SipListener {
         .format(DateTimeFormatter.ISO_INSTANT);
     var callId = request.getMessage().getCallId().getCallId();
     var callEndedEvent = new HashMap<String, String>();
-    callEndedEvent.put("callId", callId);
-    callEndedEvent.put("endTime", dateTime);
-
     var type = ResponseCode.valueOf(request.getMessage().getResponseType().name());
     // FIXME: This is a workaround for call ending coming from a CANCEL request
     int code = type.equals(ResponseCode.UNKNOWN) ? ResponseCode.OK.getCode() : type.getCode();
     var cause = HangupCauses.get(code);
+
+    callEndedEvent.put("callId", callId);
+    callEndedEvent.put("endTime", dateTime);
     callEndedEvent.put("hangupCause", cause);
 
     publishEvent(EventTypes.CALL_ENDED.getType(), callEndedEvent);
