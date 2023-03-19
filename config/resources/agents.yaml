@@ -1,4 +1,4 @@
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Agent
   ref: agent-01
   metadata:
@@ -9,7 +9,7 @@
     credentialsRef: credentials-01
     privacy: Private
 
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Agent
   ref: agent-02
   metadata:

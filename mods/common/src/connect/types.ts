@@ -33,7 +33,7 @@ export enum Kind {
 export type KindWithoutUnknown = Exclude<Kind, Kind.UNKNOWN>
 
 export enum APIVersion {
-  V2DRAFT1 = "v2draft1",
+  v2beta1 = "v2beta1",
   V2 = "v2"
 }
 

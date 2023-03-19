@@ -2,7 +2,7 @@
 CREATE TYPE "Privacy" AS ENUM ('NONE', 'ID');
 
 -- CreateEnum
-CREATE TYPE "api_version" AS ENUM ('v2draft1', 'v2');
+CREATE TYPE "api_version" AS ENUM ('v2beta1', 'v2');
 
 -- CreateEnum
 CREATE TYPE "Transport" AS ENUM ('UDP', 'TCP', 'SCTP', 'TLS', 'WS', 'WSS');

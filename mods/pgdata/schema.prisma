@@ -213,7 +213,7 @@ enum Privacy {
 }
 
 enum APIVersion {
-  v2draft1
+  v2beta1
   v2
 
   @@map("api_version")

@@ -1,4 +1,4 @@
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: AccessControlList
   ref: acl-01
   metadata:

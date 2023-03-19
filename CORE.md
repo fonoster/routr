@@ -172,7 +172,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
 
 ```json
 {
-  "apiVersion": "v2draft1",
+  "apiVersion": "v2beta1",
   "kind": "EdgePort",
   "ref": "edge-port-01",
   "metadata": {
@@ -217,7 +217,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
   "type": "object",
   "properties": {
     "apiVersion": {
-      "enum": ["v2draft1", "v2"]
+      "enum": ["v2beta1", "v2"]
     },
     "kind": {
       "description": "Resouce type",
@@ -434,7 +434,7 @@ Example:
 ```json
 {
   "kind": "MessageDispatcher",
-  "apiVersion": "v2draft1",
+  "apiVersion": "v2beta1",
   "ref": "message-dispatcher",
   "spec": {
     "bindAddr": "0.0.0.0",
@@ -484,7 +484,7 @@ Example:
   "type": "object",
   "properties": {
     "apiVersion": {
-      "enum": ["v2draft1", "v2"]
+      "enum": ["v2beta1", "v2"]
     },
     "kind": {
       "description": "Resouce type",
@@ -559,7 +559,7 @@ The adjacent services of the *Message Dispatcher* are the *EdgePort* and the *Me
 ```proto
 syntax = "proto3";
 
-package fonoster.routr.processor.v2draft1;
+package fonoster.routr.processor.v2beta1;
 
 // Processor service
 service Processor {
@@ -621,7 +621,7 @@ However, the following "base" configuration is recommended as the starting point
 ```json
 {
   "kind": "Processor",
-  "apiVersion": "v2draft1",
+  "apiVersion": "v2beta1",
   "ref": "logging-processor",
   "metadata": {
     "region": "us-east1"
@@ -639,7 +639,7 @@ Adjacent to the *Message Processor* is the *Message Dispatcher*. The communicati
 ```proto
 syntax = "proto3";
 
-package fonoster.routr.processor.v2draft1;
+package fonoster.routr.processor.v2beta1;
 
 // Processor service
 service Processor {
@@ -677,12 +677,12 @@ message Route {
   string user = 1;
   string host = 2;
   string port = 3;
-  fonoster.routr.common.v2draft1.Transport transport = 4;
+  fonoster.routr.common.v2beta1.Transport transport = 4;
   int64 registered_on = 5;
   int32 expires = 6;
   int32 session_count = 7;
   string edge_port_ref = 8;
-  repeated fonoster.routr.processor.v2draft1.NetInterface listening_points = 9;
+  repeated fonoster.routr.processor.v2beta1.NetInterface listening_points = 9;
   repeated string localnets = 10;
   repeated string external_addrs = 11;
   // During route creation, an endpoint can request to add labels than can later be
@@ -722,7 +722,7 @@ Example:
 ```json
 {
   "kind": "Location",
-  "apiVersion": "v2draft1",
+  "apiVersion": "v2beta1",
   "metadata": {
     "region": "us-east1"
   },
@@ -752,7 +752,7 @@ Example:
       "enum": ["Location", "location"]
     },
     "apiVersion": {
-      "enum": ["v2draft1", "v2"]
+      "enum": ["v2beta1", "v2"]
     },
     "metadata": {
       "description": "Resource metadata",
@@ -792,7 +792,7 @@ Example:
 ```proto
 syntax = "proto3";
 
-package fonoster.routr.location.v2draft1;
+package fonoster.routr.location.v2beta1;
 
 service Location {
   rpc AddRoute (AddRouteRequest) returns (Empty) {}

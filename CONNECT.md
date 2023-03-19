@@ -145,7 +145,7 @@ Example:
 
 ```json
 {
-  "apiVersion": "v2draft1",
+  "apiVersion": "v2beta1",
   "kind": "Agent",
   "ref": "agent-01",
   "metadata": {
@@ -167,7 +167,7 @@ Example:
 
 ```json
 {
-  "apiVersion": "v2draft1",
+  "apiVersion": "v2beta1",
   "kind": "Domain",
   "ref": "domain-01",
   "metadata": {
@@ -192,7 +192,7 @@ Example:
 
 ```json
 {
-  "apiVersion": "v2draft1",
+  "apiVersion": "v2beta1",
   "kind": "Trunk",
   "ref": "trunk-01",
   "metadata": {
@@ -230,7 +230,7 @@ Numbers represent virtual numbers that route calls from/to the PSTN via a Trunk.
 
 ```json
 {
-  "apiVersion": "v2draft1",
+  "apiVersion": "v2beta1",
   "kind": "Number",
   "ref": "number-01",
   "metadata": {
@@ -260,7 +260,7 @@ Like Agents, Peers represent SIP endpoints such as Media Servers. Unlike Agents,
 
 ```json
 {
-  "apiVersion": "v2draft1",
+  "apiVersion": "v2beta1",
   "kind": "Peer",
   "ref": "peer-01",
   "metadata": {
@@ -288,7 +288,7 @@ The *Connect Processor* MUST communicate using the following protobuf interface:
 ```proto
 syntax = "proto3";
 
-package fonoster.routr.processor.v2draft1;
+package fonoster.routr.processor.v2beta1;
 
 // Processor service
 service Processor {

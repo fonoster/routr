@@ -24,7 +24,7 @@ export const sendRegisterMessage = (requesterAddr: string) => {
   return (
     request: RegistrationRequest
   ): Promise<CE.ServiceUnavailableError | SendMessageResponse> => {
-    const client = new CR.REQUESTER_PROTO.v2draft1.Requester(
+    const client = new CR.REQUESTER_PROTO.v2beta1.Requester(
       requesterAddr,
       grpc.credentials.createInsecure()
     )

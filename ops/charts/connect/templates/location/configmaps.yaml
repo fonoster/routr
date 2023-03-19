@@ -8,7 +8,7 @@ metadata:
 data:
   location.yaml: |-
     kind: Location
-    apiVersion: v2draft1
+    apiVersion: v2beta1
     metadata:
       region: {{ .Values.global.region }}
     spec:

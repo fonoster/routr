@@ -26,7 +26,7 @@ export const schema = {
       enum: ["Registry", "registry"]
     },
     apiVersion: {
-      enum: ["v2draft1"]
+      enum: ["v2beta1"]
     },
     metadata: {
       description: "Resource metadata",

@@ -8,7 +8,7 @@ metadata:
 data:
   registry.yaml: |-
     kind: Registry
-    apiVersion: v2draft1
+    apiVersion: v2beta1
     spec:
       requesterAddr: {{ .Release.Name }}-routr-requester.{{ .Release.Namespace }}:51909
       apiAddr: {{ .Release.Name }}-routr-apiserver.{{ .Release.Namespace }}:51907

@@ -18,7 +18,7 @@
  */
 syntax = "proto3";
 
-package fonoster.routr.common.v2draft1;
+package fonoster.routr.common.v2beta1;
 
 option java_multiple_files = true;
 option java_package = "io.routr.common";

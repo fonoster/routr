@@ -8,7 +8,7 @@ metadata:
 data:
   dispatcher.yaml: |-
     kind: MessageDispatcher
-    apiVersion: v2draft1
+    apiVersion: v2beta1
     ref: message-dispatcher
     spec:
       bindAddr: 0.0.0.0:51901

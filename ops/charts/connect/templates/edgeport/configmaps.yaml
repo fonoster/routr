@@ -11,7 +11,7 @@ metadata:
 data:
   edgeport.yaml: |-
     kind: EdgePort
-    apiVersion: v2draft1
+    apiVersion: v2beta1
     ref: edge-port-01
     metadata:
       region: {{ .Values.global.region }}

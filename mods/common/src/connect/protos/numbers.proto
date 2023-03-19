@@ -18,7 +18,7 @@
  */
 syntax = "proto3";
 
-package fonoster.routr.connect.numbers.v2draft1;
+package fonoster.routr.connect.numbers.v2beta1;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
@@ -67,7 +67,7 @@ message Number {
   // The date when the Number was last updated
   int32 updated_at = 12;
   // The trunk this number is associated with
-  fonoster.routr.connect.trunks.v2draft1.Trunk trunk = 13;
+  fonoster.routr.connect.trunks.v2beta1.Trunk trunk = 13;
   // The extended attributes of the Number
   .google.protobuf.Struct extended = 14;
 }

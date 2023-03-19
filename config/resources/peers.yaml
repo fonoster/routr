@@ -1,4 +1,4 @@
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Peer
   ref: peer-01
   metadata:
@@ -10,7 +10,7 @@
     loadBalancing:
      withSessionAffinity: true
      algorithm: least-sessions
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Peer
   ref: peer-02
   metadata:

@@ -18,7 +18,7 @@
  */
 syntax = "proto3";
 
-package fonoster.routr.requester.v2draft1;
+package fonoster.routr.requester.v2beta1;
 
 option java_multiple_files = true;
 option java_package = "io.routr.requester";
@@ -37,11 +37,11 @@ service Requester {
 
 message SendMessageRequest {
   string target = 1;
-  fonoster.routr.processor.v2draft1.Method method = 2;
-  fonoster.routr.common.v2draft1.Transport transport = 3;
-  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 4;
+  fonoster.routr.processor.v2beta1.Method method = 2;
+  fonoster.routr.common.v2beta1.Transport transport = 3;
+  fonoster.routr.sipmessage.v2beta1.SIPMessage message = 4;
 }
 
 message SendMessageResponse {
-  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 1;
+  fonoster.routr.sipmessage.v2beta1.SIPMessage message = 1;
 }

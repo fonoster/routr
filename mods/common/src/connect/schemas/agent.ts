@@ -23,7 +23,7 @@ export default {
   type: "object",
   properties: {
     apiVersion: {
-      enum: ["v2draft1", "v2"]
+      enum: ["v2beta1", "v2"]
     },
     kind: {
       enum: ["Agent", "agent"]

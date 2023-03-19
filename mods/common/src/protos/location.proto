@@ -18,7 +18,7 @@
  */
 syntax = "proto3";
 
-package fonoster.routr.location.v2draft1;
+package fonoster.routr.location.v2beta1;
 
 option java_multiple_files = true;
 option java_package = "io.routr.location";
@@ -40,12 +40,12 @@ message Route {
   string user = 1;
   string host = 2;
   string port = 3;
-  fonoster.routr.common.v2draft1.Transport transport = 4;
+  fonoster.routr.common.v2beta1.Transport transport = 4;
   int64 registered_on = 5;
   int32 expires = 6;
   int32 session_count = 7;
   string edge_port_ref = 8;
-  repeated fonoster.routr.processor.v2draft1.NetInterface listening_points = 9;
+  repeated fonoster.routr.processor.v2beta1.NetInterface listening_points = 9;
   repeated string localnets = 10;
   repeated string external_addrs = 11;
   // During route creation, an endpoint can request to add labels than can later be

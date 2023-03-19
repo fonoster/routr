@@ -18,7 +18,7 @@
  */
 syntax = "proto3";
 
-package fonoster.routr.connect.domains.v2draft1;
+package fonoster.routr.connect.domains.v2beta1;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
@@ -48,7 +48,7 @@ message EgressPolicy {
   // Reference to the number to use for egress
   string number_ref = 2;
   // The egress Number
-  fonoster.routr.connect.numbers.v2draft1.Number number = 3;
+  fonoster.routr.connect.numbers.v2beta1.Number number = 3;
 }
 
 // The message for the Domain resource
@@ -66,7 +66,7 @@ message Domain {
   // The date of the last update
   int32 updated_at = 6;
   // The list of IP addresses that are allowed to access the Domain
-  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 7;
+  fonoster.routr.connect.acl.v2beta1.AccessControlList access_control_list = 7;
   // The egress_policy of the Domain
   repeated EgressPolicy egress_policies = 8;
   // The extended attributes of the Domain

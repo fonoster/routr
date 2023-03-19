@@ -21,14 +21,7 @@ package io.routr.requester;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletHandler;
-
 import io.routr.HealthCheck;
-
-import java.io.IOException;
 
 public class Launcher {
   private final static Logger LOG = LogManager.getLogger(Launcher.class);

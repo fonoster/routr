@@ -18,7 +18,7 @@
  */
 syntax = "proto3";
 
-package fonoster.routr.connect.peers.v2draft1;
+package fonoster.routr.connect.peers.v2beta1;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
@@ -76,9 +76,9 @@ message Peer {
   // The date and time when the Peer was last updated
   int32 updated_at = 11;
   // The list of IP addresses that are allowed to access the Peer
-  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 12;
+  fonoster.routr.connect.acl.v2beta1.AccessControlList access_control_list = 12;
   // The credentials of the Peer
-  fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 13;
+  fonoster.routr.connect.credentials.v2beta1.Credentials credentials = 13;
   // The extended attributes of the Peer
   .google.protobuf.Struct extended = 14;
 }

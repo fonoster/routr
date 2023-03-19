@@ -18,7 +18,7 @@
  */
 syntax = "proto3";
 
-package fonoster.routr.connect.trunks.v2draft1;
+package fonoster.routr.connect.trunks.v2beta1;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
@@ -76,11 +76,11 @@ message Trunk {
   // The date and time when the Trunk was last updated
   int32 updated_at = 7;
   // The list of IP addresses that are allowed to access the Trunks
-  fonoster.routr.connect.acl.v2draft1.AccessControlList access_control_list = 8;
+  fonoster.routr.connect.acl.v2beta1.AccessControlList access_control_list = 8;
   // The credentials to use when authenticating with the Trunk
-  fonoster.routr.connect.credentials.v2draft1.Credentials inbound_credentials = 9;
+  fonoster.routr.connect.credentials.v2beta1.Credentials inbound_credentials = 9;
   // The credentials to use when authenticating with the Provider
-  fonoster.routr.connect.credentials.v2draft1.Credentials outbound_credentials = 10;
+  fonoster.routr.connect.credentials.v2beta1.Credentials outbound_credentials = 10;
   // The list of URIs for the Trunk
   repeated TrunkURI uris = 11;
   // The extended attributes of the Trunk

@@ -18,7 +18,7 @@
  */
 syntax = "proto3";
 
-package fonoster.routr.processor.v2draft1;
+package fonoster.routr.processor.v2beta1;
 
 option java_multiple_files = true;
 option java_package = "io.routr.processor";
@@ -69,7 +69,7 @@ enum Method {
 message NetInterface {
   string host = 1;
   int32 port = 2;
-  fonoster.routr.common.v2draft1.Transport transport = 3;
+  fonoster.routr.common.v2beta1.Transport transport = 3;
 }
 
 message MessageRequest {
@@ -81,12 +81,12 @@ message MessageRequest {
   repeated NetInterface listening_points = 5;
   repeated string external_addrs = 6;
   repeated string localnets = 7;
-  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 8;
+  fonoster.routr.sipmessage.v2beta1.SIPMessage message = 8;
   map<string, string> metadata = 9;
 }
 
 message MessageResponse {
   NetInterface sender = 1;
-  fonoster.routr.sipmessage.v2draft1.SIPMessage message = 2;
+  fonoster.routr.sipmessage.v2beta1.SIPMessage message = 2;
   map<string, string> metadata = 3;
 }

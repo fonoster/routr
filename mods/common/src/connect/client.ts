@@ -52,17 +52,17 @@ export function createConnectClient(options: {
 
   switch (options.kind) {
     case Kind.ACL:
-      return new base.acl.v2draft1.ACLService(
+      return new base.acl.v2beta1.ACLService(
         options.apiAddr,
         options.credentials
       )
     case Kind.CREDENTIALS:
-      return new base.credentials.v2draft1.CredentialsService(
+      return new base.credentials.v2beta1.CredentialsService(
         options.apiAddr,
         options.credentials
       )
     default:
-      return new base[options.kind + "s"].v2draft1[
+      return new base[options.kind + "s"].v2beta1[
         toPascaleCase(options.kind) + "s"
       ](options.apiAddr, options.credentials)
   }
@@ -75,10 +75,10 @@ export function createConnectService(kind: KindWithoutUnknown) {
 
   switch (kind) {
     case Kind.ACL:
-      return base.acl.v2draft1.ACLService.service
+      return base.acl.v2beta1.ACLService.service
     case Kind.CREDENTIALS:
-      return base.credentials.v2draft1.CredentialsService.service
+      return base.credentials.v2beta1.CredentialsService.service
     default:
-      return base[kind + "s"].v2draft1[toPascaleCase(kind) + "s"].service
+      return base[kind + "s"].v2beta1[toPascaleCase(kind) + "s"].service
   }
 }

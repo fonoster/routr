@@ -69,7 +69,7 @@ Consider a situation where you want to deploy the server and send all PSTN traff
 First, start by creating a Peer configuration for your Asterisk server similar to the following one:
 
 ```yaml
-apiVersion: v2draft1
+apiVersion: v2beta1
 kind: Peer
 ref: peer-01
 metadata:
@@ -88,7 +88,7 @@ Notice that the loadBalancing section sets the `withSessionAffinity` to true. We
 Next, we need to tell Routr to map all inbound calls from a given Number to the conference room in Asterisk. For that, we use the `aorLink` and `sessionAffinityHeader` on the desired Number. Here is an example: 
 
 ```yaml
-apiVersion: v2draft1
+apiVersion: v2beta1
 kind: Number
 ref: number-01
 metadata:

@@ -1,4 +1,4 @@
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Trunk
   ref: trunk-01
   metadata:
@@ -21,7 +21,7 @@
           weight: 10
           enabled: true
 
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Trunk
   ref: trunk-02
   metadata:
@@ -44,7 +44,7 @@
           weight: 10
           enabled: true
 
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Trunk
   ref: trunk-03
   metadata:

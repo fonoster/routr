@@ -1,4 +1,4 @@
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Number
   ref: number-01
   metadata:
@@ -17,7 +17,7 @@
         - name: X-Room-Id
           value: jsa-shqm-iyo
 
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Number
   ref: number-02
   metadata:
@@ -32,7 +32,7 @@
       telUrl: tel:+19103434434
       aorLink: sip:1001@sip.local
 
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Number
   ref: number-03
   metadata:
@@ -47,7 +47,7 @@
       telUrl: tel:+18295863314
       aorLink: sip:1001@sip.local
 
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Number
   ref: number-04
   metadata:
@@ -62,7 +62,7 @@
       telUrl: tel:+18095863314
       aorLink: backend:voice
 
-- apiVersion: v2draft1
+- apiVersion: v2beta1
   kind: Number
   ref: number-05
   metadata:

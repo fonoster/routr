@@ -36,7 +36,7 @@ const loadOptions = {
   oneofs: true
 }
 // TODO: Get version from the proto or package
-const API_VERSION = "v2draft1"
+const API_VERSION = "v2beta1"
 
 // We currenly don't have a way to obtain the proto type
 export const PROCESSOR_OBJECT_PROTO = getObjectProto({

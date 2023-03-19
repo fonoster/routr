@@ -18,7 +18,7 @@
  */
 syntax = "proto3";
 
-package fonoster.routr.connect.agents.v2draft1;
+package fonoster.routr.connect.agents.v2beta1;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
@@ -65,9 +65,9 @@ message Agent {
   // The updated_at timestamp of the Agent
   int32 updated_at = 8;
   // The domain of the Agent
-  fonoster.routr.connect.domains.v2draft1.Domain domain = 9;
+  fonoster.routr.connect.domains.v2beta1.Domain domain = 9;
   // The credentials of the Agent
-  fonoster.routr.connect.credentials.v2draft1.Credentials credentials = 10;
+  fonoster.routr.connect.credentials.v2beta1.Credentials credentials = 10;
   // The extended attributes of the Agent
   .google.protobuf.Struct extended = 11;  
 }

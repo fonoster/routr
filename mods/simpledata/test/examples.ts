@@ -20,14 +20,14 @@ import { CommonConnect as CC } from "@routr/common"
 
 export const configs: CC.ConnectModel[] = [
   {
-    apiVersion: "v2draft1",
+    apiVersion: "v2beta1",
     ref: "credentials-01",
     name: "my-secret-credential",
     username: "myusername",
     password: "password"
   },
   {
-    apiVersion: "v2draft1",
+    apiVersion: "v2beta1",
     ref: "acl2c77f4",
     name: "Europe ACL",
     deny: ["0.0.0.0/1"],
