@@ -117,14 +117,14 @@ The last scenario is one of the many possible scenarios you can accomplish with 
 
 For a quick demo of Routr, follow the next two steps:
 
-&#10122; Clone the repository and run the server
+1. Clone the repository and run the server
 
 ```
 git clone https://github.com/fonoster/routr
 docker-compose up 
 ```
 
-&#10123; Connect to Routr using Zoiper or another softphone
+2. Connect to Routr using Zoiper or another softphone
 
 In the `config/resources`, you will find the `domains.yaml` and `agents.yaml` files. Those files contain the configuration to run a simple local network with two SIP Agents (John and Jane).
 
@@ -133,6 +133,28 @@ In the `config/resources`, you will find the `domains.yaml` and `agents.yaml` fi
 Routr's one-click interactive deployment will familiarize you with the server in development mode.
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/fonoster/routr)
+
+To connect to your instance, follow these steps:
+
+First, add your public SSH-keys to your Gitpod account by going to [Gitpod account keys](https://gitpod.io/user/keys) and adding your public key.
+
+Next, find your [Gitpod workspace](https://gitpod.io/workspaces) and click on the "More" button. Then, select "Connect via SSH."
+
+Finally, copy the SSH Command and run it in your terminal by pasting it and pressing Enter. The command should look like this:
+
+```bash
+ssh -L 5060:localhost:5060 <workspace-ssh-connection>
+```
+
+Replace <workspace-ssh-connection> with your own workspace SSH connection.
+
+For example, your command might look like this:
+
+```bash
+ssh -L 5060:localhost:5060 fonoster-routr-mn8nsx0d9px@fonoster-routr-mn8nsx0d9px.ssh.ws-us90.gitpod.io
+```
+
+This command forwards traffic from your local port 5060 to your Gitpod workspace's port 5060, allowing you to access your instance.
 
 ### Kubernetes
 
