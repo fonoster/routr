@@ -16,8 +16,7 @@
     "build": "tsc -b tsconfig.json"
   },
   "bin": {
-    "run_connect": "dist/runner.js",
-    "healthcheck_connect": "dist/healthcheck.js"
+    "run_connect": "dist/runner.js"
   },
   "dependencies": {
     "@fonoster/logger": "0.3.20",

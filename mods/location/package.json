@@ -12,8 +12,7 @@
     "build": "tsc -b tsconfig.json"
   },
   "bin": {
-    "run_location": "dist/runner.js",
-    "healthcheck_location": "dist/healthcheck.js"
+    "run_location": "dist/runner.js"
   },
   "directories": {
     "src": "src",

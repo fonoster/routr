@@ -16,8 +16,7 @@
     "build": "tsc -b tsconfig.json"
   },
   "bin": {
-    "run_pgdata": "dist/runner.js",
-    "healthcheck_pgdata": "dist/healthcheck.js"
+    "run_pgdata": "dist/runner.js"
   },
   "dependencies": {
     "@fonoster/grpc-health-check": "^3.1.2",
