@@ -27,16 +27,12 @@ import {
 import { phone } from "phone"
 import { getEdgeInterface } from "./helper"
 
-// Q: Should we deprecate this method since we are not doing strict routing?
-export const updateRequestURI =
+// Forces the requestURI to be the same as the trunk uri.
+// This is a workaround for Twilio.
+export const fixRequestURI =
   (route: Route) =>
   (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
-    if (route.user) {
-      req.message.requestUri.user = route.user
-    } else {
-      req.message.requestUri.user = null
-    }
     req.message.requestUri.host = route.host
     req.message.requestUri.port = route.port
     req.message.requestUri.transportParam = route.transport

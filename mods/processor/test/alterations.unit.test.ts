@@ -38,12 +38,7 @@ describe("@routr/processor/alterations", () => {
   afterEach(() => sandbox.restore())
 
   it("updates the request uri", () => {
-    const r = A.updateRequestURI(route)(request)
-    expect(r)
-      .to.have.property("message")
-      .to.have.property("requestUri")
-      .to.have.property("user")
-      .to.be.equal(route.user)
+    const r = A.fixRequestURI(route)(request)
     expect(r)
       .to.have.property("message")
       .to.have.property("requestUri")
@@ -59,17 +54,6 @@ describe("@routr/processor/alterations", () => {
       .to.have.property("requestUri")
       .to.have.property("transportParam")
       .to.be.equal(route.transport)
-  })
-
-  it("updates the request uri but removes user", () => {
-    const ro = { ...route }
-    delete ro.user
-
-    const r = A.updateRequestURI(ro)(request)
-    expect(r)
-      .to.have.property("message")
-      .to.have.property("requestUri")
-      .to.have.property("user").to.be.null
   })
 
   it("updates the value of the max forwards header", () => {
@@ -169,7 +153,7 @@ describe("@routr/processor/alterations", () => {
   it("pipes alterations and checks the result", () => {
     const result = pipe(
       request,
-      A.updateRequestURI(route),
+      A.fixRequestURI(route),
       A.addSelfVia(route),
       A.decreaseMaxForwards
     )
