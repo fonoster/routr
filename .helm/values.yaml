@@ -49,6 +49,11 @@ certs:
   provided: false
   name: routr-cert
 
+# Azure ApplicationInsights Configuration
+applicationinsights:
+  enabled: false
+  name: routr-applicationinsights
+
 # Routr internal configurations
 routr:
   userAgent: ""
