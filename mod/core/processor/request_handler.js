@@ -37,7 +37,6 @@ const {
   getTargetTransport
 } = require('@routr/core/processor/request_utils')
 const { directionFromRequest } = require('@routr/rtpengine/utils')
-const { RoutingType } = require('@routr/core/routing_type')
 const ObjectId = Java.type('org.bson.types.ObjectId')
 const Response = Java.type('javax.sip.message.Response')
 const ViaHeader = Java.type('javax.sip.header.ViaHeader')
@@ -253,7 +252,9 @@ class RequestHandler {
         const telWithoutPlusFrom = fromURI.getUser().replace('+', '')
         const normalizedTelFrom = phone(`+${telWithoutPlusFrom}`, { validateMobilePrefix: false })
 
-        if (normalizedTelFrom.isValid) {
+        // Workaround for situations where the "phone" library interprets the number as a valid number 
+        // while having letters in it.
+        if (normalizedTelFrom.isValid && !telWithoutPlusFrom.match(/[a-z]/i)) {
           fromURI.setUser(normalizedTelFrom.phoneNumber)
         }
 

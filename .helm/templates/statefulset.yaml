@@ -159,6 +159,12 @@ spec:
           subPath: api-cert.jks
           readOnly: true
         {{- end }}
+        {{- if eq .Values.applicationinsights.enabled true }} 
+        - name: applicationinsights
+          mountPath: /opt/routr/libs/applicationinsights.json
+          subPath: applicationinsights.json
+          readOnly: true
+        {{- end }}
         resources:
           {{- if .Values.resources.limits }}
           limits:
@@ -179,4 +185,9 @@ spec:
       - name: api-cert
         secret:
           secretName: {{ .Values.certs.name }}
+      {{- end }}
+      {{- if eq .Values.applicationinsights.enabled true }}
+      - name: applicationinsights
+        secret:
+          secretName: {{ .Values.applicationinsights.name }}
       {{- end }}
