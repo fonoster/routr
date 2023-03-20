@@ -16,7 +16,7 @@
     "create:jre": "./etc/create-jre.sh",
     "distro:windows": "./distro.sh windows jre-11.0.10_windows-x64_bin.tar.gz",
     "distro:darwin": "./distro.sh osx jre-11.0.9.1_osx-x64_bin.tar.gz",
-    "distro:linux": "./distro.sh linux jre-11.0.15+10_linux-x64_bin.tar.gz"
+    "distro:linux": "./distro.sh linux jre-11.0.18+10_linux-x64_bin.tar.gz"
   },
   "lint-staged": {
     "mod/**/*.js": [
