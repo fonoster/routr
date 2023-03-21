@@ -29,7 +29,7 @@ class Launcher {
               // If it was null the error was reported already, but still need to
               // consider that the object was never created
               registryCtx.eval("js", "reg && reg.registerAll()")
-            } catch (ex: PolyglotException) {
+            } catch (ex: Exception) {
               LOG.fatal(ex.message)
               registryCtx.close()
               exitProcess(1)
@@ -47,7 +47,7 @@ class Launcher {
               // If it was null the error was reported already, but still need to
               // consider that the object was never created
               routeLoaderCtx.eval("js", "loader && loader.loadStaticRoutes()")
-            } catch (ex: PolyglotException) {
+            } catch (ex: Exception) {
               LOG.fatal(ex.message)
               routeLoaderCtx.close()
               exitProcess(1)
