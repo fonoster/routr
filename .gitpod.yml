@@ -14,21 +14,9 @@ tasks:
     command: npm start
 
 ports:
-  - port: 51901
+  - port: 51901-51904
     onOpen: ignore
-  - port: 51902
-    onOpen: ignore
-  - port: 51903
-    onOpen: ignore
-  - port: 51904
-    onOpen: ignore
-  - port: 5060
-    onOpen: ignore
-  - port: 5061
-    onOpen: ignore
-  - port: 5062
-    onOpen: ignore
-  - port: 5063
+  - port: 5060-5063
     onOpen: ignore
 
 github:
