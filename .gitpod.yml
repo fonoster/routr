@@ -7,8 +7,6 @@
 ## dependencies to download and builds to finish when reviewing pull-requests
 ## or hacking on something new.
 ##
-
-# Currently it is set to work from v2 branch.
 tasks:
   - name: Setup & start
     before: sudo sh -c "cat etc/hosts.txt >> /etc/hosts && mkdir -p /etc/routr && cp etc/certs/domains-cert.jks /etc/routr/domains-cert.jks"
