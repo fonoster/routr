@@ -38,6 +38,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the Edgeport image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
@@ -46,6 +48,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/edgeport
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
 
   publish_dispatcher_to_docker_hub:
     name: Publish Dispatcher to Docker Hub
@@ -58,6 +61,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
@@ -66,6 +71,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/dispatcher
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
 
   publish_location_to_docker_hub:
     name: Publish Location to Docker Hub
@@ -78,6 +84,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
@@ -86,6 +94,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/location
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
 
   publish_connect_to_docker_hub:
     name: Publish Connect to Docker Hub
@@ -98,6 +107,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
@@ -106,6 +117,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/connect
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
 
   publish_simpledata_to_docker_hub:
     name: Publish Simpledata to Docker Hub
@@ -118,6 +130,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
@@ -126,6 +140,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/simpledata
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
 
   publish_requester_to_docker_hub:
     name: Publish Requester to Docker Hub
@@ -138,6 +153,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
@@ -146,6 +163,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/requester
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
 
   publish_registry_to_docker_hub:
     name: Publish Registry to Docker Hub
@@ -158,6 +176,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
@@ -166,6 +186,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/registry
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
 
   publish_pgdata_to_docker_hub:
     name: Publish the PGData image
@@ -178,6 +199,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
@@ -187,6 +210,7 @@ jobs:
           workdir: mods/pgdata
           buildoptions: "--target runner"
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
 
   publish_pgdata_migrations_to_docker_hub:
     name: Publish the Postgres DB Migrations image
@@ -199,6 +223,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
@@ -208,6 +234,7 @@ jobs:
           workdir: mods/pgdata
           buildoptions: "--target migrations"
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
 
   publish_echo_to_docker_hub:
     name: Publish the Echo image
@@ -220,6 +247,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
@@ -228,6 +257,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/echo
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
 
   publish_rtprelay_to_docker_hub:
     name: Publish the RTPrelay image
@@ -240,6 +270,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
@@ -248,3 +280,4 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/rtprelay
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
