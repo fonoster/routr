@@ -48,7 +48,8 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/edgeport
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
-          platforms: linux/amd64,linux/arm64
+          # TODO: Replace base image to allow for arm support
+          # platforms: linux/amd64,linux/arm64
 
   publish_dispatcher_to_docker_hub:
     name: Publish Dispatcher to Docker Hub
@@ -163,7 +164,8 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/requester
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
-          platforms: linux/amd64,linux/arm64
+          # TODO: Replace base image to allow for arm support
+          # platforms: linux/amd64,linux/arm64
 
   publish_registry_to_docker_hub:
     name: Publish Registry to Docker Hub
