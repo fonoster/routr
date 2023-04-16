@@ -33,7 +33,7 @@ jobs:
             !mods/**/dist/*.ts
       - name: Compliance tests
         run: |
-          docker-compose up --abort-on-container-exit --exit-code-from compliance
+          docker-compose up --build --abort-on-container-exit --exit-code-from compliance
 
   publish-to-docker-hub:
     name: Publish to Docker Hub
