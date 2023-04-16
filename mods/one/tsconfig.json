@@ -1,0 +1,29 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "references": [
+    {
+      "path": "../dispatcher"
+    },
+    {
+      "path": "../location"
+    },
+    {
+      "path": "../rtprelay"
+    },
+    {
+      "path": "../connect"
+    },
+    {
+      "path": "../pgdata"
+    }
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test"
+  ]
+}

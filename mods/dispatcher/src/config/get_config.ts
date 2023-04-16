@@ -16,12 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as E from "fp-ts/Either"
 import { MessageDispatcherConfig } from "../types"
 import { schema } from "./schema"
-import Ajv from "ajv"
-import * as E from "fp-ts/Either"
 import { ProcessorConfig } from "@routr/common"
 import { Helper as H } from "@routr/common"
+import Ajv from "ajv"
 
 const ajv = new Ajv()
 const validate = ajv.compile(schema)

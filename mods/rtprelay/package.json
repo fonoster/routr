@@ -5,8 +5,8 @@
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
   "license": "MIT",
-  "main": "dist/runner",
-  "types": "dist/runner",
+  "main": "dist/index",
+  "types": "dist/index",
   "directories": {
     "src": "src",
     "test": "test"
@@ -16,8 +16,7 @@
     "build": "tsc -b tsconfig.json"
   },
   "bin": {
-    "run_rtprelay": "dist/runner.js",
-    "healthcheck_rtprelay": "dist/healthcheck.js"
+    "run_rtprelay": "dist/runner.js"
   },
   "dependencies": {
     "@fonoster/logger": "0.3.20",

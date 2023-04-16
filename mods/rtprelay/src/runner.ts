@@ -19,73 +19,8 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("dispatcher")
-import Processor, {
-  Helper as H,
-  MessageRequest,
-  Response
-} from "@routr/processor"
-import { offer, answer, del } from "./client"
-import { CommonErrors as CE } from "@routr/common"
-import { Direction, RTPEFunction } from "./types"
-import { getLogger } from "@fonoster/logger"
+
 import { BIND_ADDR, RTPENGINE_HOST, RTPENGINE_PORT } from "./envs"
-import {
-  callInvolvesWebRTC,
-  getDirectionFromRequest,
-  getDirectionFromResponse,
-  shouldNotHandleRequest
-} from "./utils"
+import rtprelay from "./service"
 
-const logger = getLogger({ service: "rtprelay", filePath: __filename })
-const rtpeConfig = { host: RTPENGINE_HOST, port: RTPENGINE_PORT }
-
-new Processor({
-  bindAddr: BIND_ADDR,
-  name: "rtprelay-middleware"
-}).listen(async (req: MessageRequest, res: Response) => {
-  try {
-    if (shouldNotHandleRequest(req)) {
-      return res.send(req)
-    }
-
-    const direction = H.isTypeResponse(req)
-      ? getDirectionFromResponse(req)
-      : getDirectionFromRequest(req)
-
-    const sendRequest = async (f: RTPEFunction) => {
-      const r = await f(rtpeConfig)(req)
-
-      if (r.result === "error") {
-        throw new CE.BadRequestError(r["error-reason"])
-      }
-
-      if (callInvolvesWebRTC(direction)) {
-        req.message.body = r.sdp
-          ?.replaceAll("a=crypto:", "a=ignore:")
-          .replaceAll("a=sendrecv", "a=sendrecv\na=rtcp-mux")
-      } else {
-        req.message.body = r.sdp
-      }
-
-      return res.send(req)
-    }
-
-    if (H.isInviteOrAckWithSDP(req)) {
-      return await sendRequest(offer)
-    } else if (H.isRinging(req) && direction === Direction.WEB_TO_PHONE) {
-      // Fixme: This was added to prevent the ringing message from being sent to the
-      // caller while the call is being established. This is a temporary fix
-      req.message.body = ""
-      return res.send(req)
-    } else if (H.isOkOrRingingWithSDP(req)) {
-      return await sendRequest(answer)
-    } else if (H.isBye(req)) {
-      return await sendRequest(del)
-    }
-
-    res.send(req)
-  } catch (e) {
-    logger.error(e)
-    res.sendInternalServerError()
-  }
-})
+rtprelay(BIND_ADDR, { host: RTPENGINE_HOST, port: RTPENGINE_PORT })

@@ -33,7 +33,7 @@ import { getLogger } from "@fonoster/logger"
 const logger = getLogger({ service: "connect", filePath: __filename })
 
 // eslint-disable-next-line require-jsdoc
-export default function ConnectProcessor(config: ConnectProcessorConfig) {
+export default function connectProcessor(config: ConnectProcessorConfig) {
   const { bindAddr, locationAddr } = config
   const location = new Location({ addr: locationAddr })
 
