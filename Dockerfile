@@ -7,7 +7,7 @@ COPY mods/one /work
 WORKDIR /work
 
 RUN apk add --no-cache --update git npm curl bash git tini nodejs npm python3 make cmake g++ \
-  && npm install --production
+  && npm install --omit=dev
 
 ##  
 ## Runner
@@ -30,12 +30,13 @@ COPY ./mods/edgeport/libs /service/libs
 COPY ./mods/edgeport/edgeport.sh /service
 COPY ./mods/pgdata/schema.prisma /service
 COPY ./.scripts/generate_certs.sh /service
+COPY config/log4j2.yaml /service/config/log4j2.yaml
 
 RUN chmod +x /service/edgeport.sh
 RUN chmod +x /service/generate_certs.sh
 
 RUN apk add --no-cache --update git tini openjdk11-jre npm nodejs \
-  && mkdir -p /opt/routr \
+  && mkdir -p /etc/routr \
   && mv /service/schema.prisma node_modules/@routr/pgdata/ \
   && cd node_modules/@routr/pgdata/ \
   && npx prisma generate \

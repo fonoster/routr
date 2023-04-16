@@ -25,6 +25,7 @@ import {
   assertNoDuplicatedProto
 } from "./assertions"
 import { EdgePortConfig } from "./types"
+import { EXTERNAL_ADDRS } from "./envs"
 import createListeningPoints from "./create_listening_points"
 import createSipProvider from "./create_sip_provider"
 import createSipStack from "./create_sip_stack"
@@ -51,6 +52,11 @@ export default function edgePort(config: EdgePortConfig) {
 
   const externalAddrs = new ArrayList()
   const localnets = new ArrayList()
+
+  // Addresses from the environment
+  if (EXTERNAL_ADDRS) {
+    EXTERNAL_ADDRS.forEach((addr: string) => externalAddrs.add(addr))
+  }
 
   config.spec.externalAddrs?.forEach((addr: string) => externalAddrs.add(addr))
   config.spec.localnets?.forEach((net: string) => localnets.add(net))

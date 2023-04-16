@@ -79,6 +79,11 @@ public class GRPCSipListener implements SipListener {
     String addr = (String) processor.getMember("addr");
     String bindAddr = (String) spec.getMember("bindAddr");
     String edgePortRef = (String) values.getMember("ref");
+    
+    // Taking processor address from env var if set
+    if (System.getenv("PROCESSOR_ADDR") != null) {
+      addr = System.getenv("PROCESSOR_ADDR");
+    }
 
     // If running in K8s we set the edgeport ref to the pod name
     if (System.getenv("HOSTNAME") != null) {
