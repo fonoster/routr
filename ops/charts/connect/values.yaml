@@ -224,7 +224,7 @@ location:
 # APIServer Service defaults
 apiserver:
   # Uncomment the next line if you would like to point to an external postgresql db
-  # databaseUrl: postgresql://routr:changeit@dbserver:5432/routr?schema=public
+  # databaseUrl: postgresql://routr:changeme@dbserver:5432/routr?schema=public
 
   # APIServer image configuration
   image:
@@ -518,7 +518,7 @@ postgresql:
     # Initial username for the database
     username: routr
     # Initial password for the database
-    password: changeit
+    password: changeme
 
 # Redis Service defaults
 redis:

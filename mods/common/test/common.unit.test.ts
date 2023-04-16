@@ -120,17 +120,17 @@ describe("@routr/common", () => {
       const users = [
         {
           username: "john",
-          secret: "changeit"
+          secret: "changeme"
         },
         {
           username: "1001",
-          secret: "changeit"
+          secret: "changeme"
         }
       ]
 
       expect(getCredentials("1001", users))
         .to.have.property("secret")
-        .to.be.equal("changeit")
+        .to.be.equal("changeme")
     })
 
     it("creates an unauthorized response", () => {

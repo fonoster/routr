@@ -19,7 +19,7 @@
     "redis:up": "docker-compose -f docker-compose.dev.yml up redis -d",
     "db:up": "docker-compose -f docker-compose.dev.yml up postgres adminer -d",
     "db:down": "docker-compose -f docker-compose.dev.yml down",
-    "db:migrate": "npx prisma migrate dev --schema ./mods/pgdata/schema.prisma --name changeit --preview-feature",
+    "db:migrate": "npx prisma migrate dev --schema ./mods/pgdata/schema.prisma --name changeme --preview-feature",
     "generate:certs": "./.scripts/generate_certs.sh && mv domains-cert.jks etc/certs/",
     "transpile": "tsc",
     "make": "npm install && npm run bootstrap && npm run build && npm run setup",

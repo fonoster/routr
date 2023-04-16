@@ -311,7 +311,7 @@ postgresql:
     # Initial username for the database
     username: routr
     # Initial password for the database
-    password: changeit
+    password: changeme
 ```
 
 ### Redis Values

@@ -13,8 +13,8 @@ spec:
         - SSLv3
         - TLSv1.2
       authType: DisabledAll
-    keyStorePassword: changeit
-    trustStorePassword: changeit
+    keyStorePassword: changeme
+    trustStorePassword: changeme
     keyStore: "/etc/routr/domains-cert.jks"
     trustStore: "/etc/routr/domains-cert.jks"
     keyStoreType: pkcs12

@@ -44,9 +44,9 @@ const edgePortConfig: EdgePortConfig = {
     securityContext: {
       debugging: false,
       trustStore: "etc/certs/domains-cert.jks",
-      trustStorePassword: "changeit",
+      trustStorePassword: "changeme",
       keyStore: "etc/certs/domains-cert.jks",
-      keyStorePassword: "changeit",
+      keyStorePassword: "changeme",
       keyStoreType: "jks",
       client: {
         authType: "DisabledAll",
