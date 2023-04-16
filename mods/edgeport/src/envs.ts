@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+declare const System: { getenv: (key: string) => string | undefined }
 
-// Copilot: Create and environment variable call EXTERNAL_ADDRS that reads a command separated list of IP address and it becomes an array of strings.
-
-export const EXTERNAL_ADDRS = process.env.EXTERNAL_ADDRS?.split(",") ?? []
+export const EXTERNAL_ADDRS = System.getenv("EXTERNAL_ADDRS")?.split(",") ?? []
