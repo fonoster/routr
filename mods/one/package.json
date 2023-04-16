@@ -21,6 +21,7 @@
   "dependencies": {
     "@fonoster/logger": "0.3.20",
     "@routr/connect": "^2.0.10",
+    "@routr/common": "^2.0.9",
     "@routr/dispatcher": "^2.0.10",
     "@routr/location": "^2.0.10",
     "@routr/pgdata": "^2.0.10",

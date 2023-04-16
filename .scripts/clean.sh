@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# If one fail all fail
 set -e
 
 ./gradlew clean \ 

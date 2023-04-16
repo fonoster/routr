@@ -19,6 +19,9 @@
     },
     {
       "path": "../pgdata"
+    },
+    {
+      "path": "../common"
     }
   ],
   "exclude": [

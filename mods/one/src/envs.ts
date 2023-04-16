@@ -29,3 +29,5 @@ export const RTPENGINE_HOST = process.env.RTPENGINE_HOST
 export const RTPENGINE_PORT = process.env.RTPENGINE_PORT
   ? parseInt(process.env.RTPENGINE_PORT)
   : 2223
+
+export const DOCKER = process.env.DOCKER ?? false
