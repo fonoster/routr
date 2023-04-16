@@ -1,19 +1,16 @@
-FROM alpine:3.15
+FROM alpine:3.17
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 COPY . /scripts
 WORKDIR /scripts
 
-RUN apk add --no-cache --update git curl tini nodejs npm python3 make cmake g++ \
+RUN apk add --no-cache git tini nodejs npm python3 make cmake g++ \
   && npm pack \
   && npm install -g routr-*.tgz \
-  && link /usr/local/bin/run_registry /usr/local/bin/run \
-  && rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/* \
-  && apk del git python3 make cmake g++
+  && ln -s /usr/local/bin/run_rtprelay /usr/local/bin/run \
+  && apk del git python3 make cmake g++ npm \
+  && rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/*
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 CMD ["run"]
-
-HEALTHCHECK --interval=5s --timeout=2s --retries=2 \
-  CMD ["curl", "--fail", "--silent", "--show-error", "--connect-timeout", "2", "-L", "http://localhost:8080/healthz"]
