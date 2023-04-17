@@ -7,7 +7,7 @@ WORKDIR /scripts
 RUN apk add --no-cache git tini nodejs npm python3 make cmake g++ \
   && npm pack \
   && npm install -g routr-*.tgz \
-  && ln -s /usr/local/bin/run_rtprelay /usr/local/bin/run \
+  && ln -s /usr/local/bin/run_registry /usr/local/bin/run \
   && apk del git python3 make cmake g++ npm \
   && rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/*
 
