@@ -3,15 +3,15 @@
 ##
 FROM node:18-alpine as builder
 
-COPY mods/one /work
 WORKDIR /work
 
-COPY ./mods/pgdata/schema.prisma /work
+COPY mods/one .
+COPY ./mods/pgdata/schema.prisma .
 
 RUN apk add --no-cache --update git tini python3 make cmake g++ \
   && npm install --omit=dev \
-  && mv /work/schema.prisma /work/node_modules/@routr/pgdata/ \
-  && cd /work/node_modules/@routr/pgdata/ \
+  && mv schema.prisma node_modules/@routr/pgdata/ \
+  && cd node_modules/@routr/pgdata/ \
   && npx prisma generate
 
 ##  
@@ -30,18 +30,18 @@ WORKDIR /service
 
 COPY --from=builder /work/dist dist
 COPY --from=builder /work/node_modules node_modules
-COPY --from=builder /work/package.json package.json
-COPY ./mods/edgeport/libs /service/libs
-COPY ./mods/edgeport/edgeport.sh /service
-COPY ./.scripts/generate_certs.sh /service
-COPY config/log4j2.yaml /service/config/log4j2.yaml
+COPY --from=builder /work/package.json .
+COPY ./mods/edgeport/libs libs
+COPY ./mods/edgeport/edgeport.sh .
+COPY ./.scripts/generate_certs.sh .
+COPY config/log4j2.yaml config/log4j2.yaml
 
-RUN chmod +x /service/edgeport.sh /service/generate_certs.sh
+RUN chmod +x edgeport.sh generate_certs.sh
 
-RUN apk add --no-cache --update tini openjdk11-jre \
-  && mkdir -p /etc/routr
-
-RUN addgroup -g ${GID} ${USER} && adduser \
+RUN apk add --no-cache tini openjdk11-jre \
+  && mkdir -p /etc/routr \
+  && addgroup -g ${GID} ${USER} \
+  && adduser \
     --disabled-password \
     --gecos "" \
     --ingroup "$USER" \
