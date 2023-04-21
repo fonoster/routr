@@ -9,14 +9,20 @@ WORKDIR /work
 
 COPY mods/one .
 COPY ./mods/pgdata/schema.prisma .
+COPY ./mods/edgeport/edgeport.sh .
 COPY ./.scripts/custom-jre.sh custom-jre.sh
+COPY ./.scripts/generate-certs.sh .
 
-RUN apk add --no-cache --update git tini python3 make cmake g++ openjdk11-jdk \
+RUN apk add --no-cache --update curl git tini python3 make cmake g++ openjdk11-jdk \
   && sh custom-jre.sh \
   && npm install --omit=dev \
   && mv schema.prisma node_modules/@routr/pgdata/ \
   && cd node_modules/@routr/pgdata/ \
-  && npx prisma generate
+  && npx prisma generate \
+  && cd /work && curl -sf https://gobinaries.com/tj/node-prune | sh \
+  && node-prune
+
+RUN chmod +x edgeport.sh generate-certs.sh
 
 ##  
 ## Runner
@@ -36,9 +42,9 @@ COPY --from=builder /work/dist dist
 COPY --from=builder /work/node_modules node_modules
 COPY --from=builder /work/package.json .
 COPY --from=builder /work/jre jre
+COPY --from=builder /work/generate-certs.sh .
+COPY --from=builder /work/edgeport.sh .
 COPY ./mods/edgeport/libs libs
-COPY ./mods/edgeport/edgeport.sh .
-COPY ./.scripts/generate-certs.sh .
 COPY config/log4j2.yaml config/log4j2.yaml
 
 RUN chmod +x edgeport.sh generate-certs.sh
@@ -53,6 +59,8 @@ RUN apk add --no-cache tini \
     --home ${HOME} \
     --uid "$UID" \
     "$USER"
+
+USER $USER
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]

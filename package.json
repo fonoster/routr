@@ -2,7 +2,7 @@
   "name": "root",
   "private": true,
   "scripts": {
-    "start:all": "cross-env NODE_ENV=dev ENABLE_HEALTHCHECKS=false LOGS_LEVEL=verbose nodemon ./.scripts/runner",
+    "start": "cross-env NODE_ENV=dev ENABLE_HEALTHCHECKS=false LOGS_LEVEL=verbose nodemon ./.scripts/runner",
     "start:one": "./.scripts/one.sh",
     "start:connect": "cross-env NODE_ENV=dev PATH_TO_AUTH=$(pwd)/config/auth.yaml API_ADDR=localhost:51907 LOCATION_ADDR=localhost:51902 LOGS_LEVEL=verbose nodemon mods/connect/src/runner",
     "start:simpleauth": "cross-env NODE_ENV=dev PATH_TO_AUTH=$(pwd)/config/auth.yaml METHODS=MESSAGE LOGS_LEVEL=verbose nodemon mods/simpleauth/src/runner",
