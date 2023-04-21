@@ -44,7 +44,7 @@ if (DOCKER && !fs.existsSync(PATH_TO_CERTS)) {
   logger.info("creating a set of self-signed certs for edgeport", {
     path: PATH_TO_CERTS
   })
-  execSync("sh /service/generate_certs.sh /dev/null 2>&1")
+  execSync("sh /service/generate-certs.sh /dev/null 2>&1")
   execSync("mv domains-cert.jks /etc/routr/")
 }
 

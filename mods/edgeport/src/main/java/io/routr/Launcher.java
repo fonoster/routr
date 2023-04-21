@@ -31,7 +31,7 @@ import javax.script.ScriptException;
  * Wrapper class for Routr.
  */
 public class Launcher {
-  private final static Logger LOG = LogManager.getLogger(HealthCheck.class);
+  private final static Logger LOG = LogManager.getLogger(Launcher.class);
   private static final String launchScript =
     "console = { log: print, warn: print, error: print };" +
       "var System = Java.type('java.lang.System');" +

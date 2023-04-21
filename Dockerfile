@@ -3,12 +3,16 @@
 ##
 FROM node:18-alpine as builder
 
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+
 WORKDIR /work
 
 COPY mods/one .
 COPY ./mods/pgdata/schema.prisma .
+COPY ./.scripts/custom-jre.sh custom-jre.sh
 
-RUN apk add --no-cache --update git tini python3 make cmake g++ \
+RUN apk add --no-cache --update git tini python3 make cmake g++ openjdk11-jdk \
+  && sh custom-jre.sh \
   && npm install --omit=dev \
   && mv schema.prisma node_modules/@routr/pgdata/ \
   && cd node_modules/@routr/pgdata/ \
@@ -22,7 +26,7 @@ FROM node:18-alpine as runner
 ENV USER=fonoster
 ENV GID=5000
 ENV UID=5000
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+ENV JAVA_HOME=/service/jre
 ENV EDGEPORT_RUNNER=/service/edgeport.sh
 ENV DOCKER=true
 
@@ -31,14 +35,15 @@ WORKDIR /service
 COPY --from=builder /work/dist dist
 COPY --from=builder /work/node_modules node_modules
 COPY --from=builder /work/package.json .
+COPY --from=builder /work/jre jre
 COPY ./mods/edgeport/libs libs
 COPY ./mods/edgeport/edgeport.sh .
-COPY ./.scripts/generate_certs.sh .
+COPY ./.scripts/generate-certs.sh .
 COPY config/log4j2.yaml config/log4j2.yaml
 
-RUN chmod +x edgeport.sh generate_certs.sh
+RUN chmod +x edgeport.sh generate-certs.sh
 
-RUN apk add --no-cache tini openjdk11-jre \
+RUN apk add --no-cache tini \
   && mkdir -p /etc/routr \
   && addgroup -g ${GID} ${USER} \
   && adduser \
