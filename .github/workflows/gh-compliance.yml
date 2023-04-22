@@ -17,10 +17,23 @@ jobs:
       - name: Installing Node
         uses: actions/setup-node@v3
         with:
-          node-version: "16.x"
+          node-version: "18.x"
       - name: Build project
         run: npm run make
-      - name: Archive build artifacts
+      - name: Check for next release
+        id: next_release
+        run: echo "::set-output name=release::$(.scripts/next-release.sh)"
+      - name: Publish packages to NPM
+        if: steps.next_release.outputs.release != 'none'
+        run: |
+          echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          npm run publish
+      - name: Archive build artifact
         uses: actions/upload-artifact@v3
         with:
           name: routr-build
@@ -31,8 +44,8 @@ jobs:
             lerna.json
             Dockerfile
             !mods/**/node_modules
-            !mods/src
-            !mods/test
+            !mods/**/src
+            !mods/**/test
             !mods/**/dist/*.ts            
       - name: Compliance tests
         run: |
