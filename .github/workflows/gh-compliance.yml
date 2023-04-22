@@ -1,4 +1,4 @@
-name: sip-connect v1.1
+name: release (v2)
 on:
   workflow_dispatch:
   push:
@@ -35,6 +35,22 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
           npm run publish
+      - name: Create release note
+        id: changelog
+        uses: loopwerk/tag-changelog@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          exclude_types: other,doc,chore
+          config_file: ./tag-changelog-config.js
+      - name: Create draft release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: true
       - name: Archive build artifact
         uses: actions/upload-artifact@v3
         with:
@@ -49,7 +65,7 @@ jobs:
             !mods/**/src
             !mods/**/test
             !mods/**/dist/*.ts            
-      - name: Compliance tests
+      - name: SIP Connect v1.1 Compliance Tests
         run: |
           docker-compose up --build --abort-on-container-exit --exit-code-from compliance
 
