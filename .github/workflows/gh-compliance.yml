@@ -21,10 +21,12 @@ jobs:
       - name: Build project
         run: npm run make
       - name: Check for next release
-        id: next_release
-        run: echo "::set-output name=release::$(.scripts/next-release.sh)"
+        run: |
+          release=$(.scripts/next-release.sh)
+          echo "Next release: $release"
+          echo "RELEASE=$release" >> $GITHUB_ENV
       - name: Publish packages to NPM
-        if: steps.next_release.outputs.release != 'none'
+        if: env.RELEASE != 'none'
         run: |
           echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
           echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
