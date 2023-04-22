@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 import { MessageRequest } from "@routr/common"
+import { ProcessorConfig } from "./types"
 import Processor from "./processor"
 import Response from "./response"
-import { ProcessorConfig } from "./types"
 
 export * as Target from "./target"
 export * as Extensions from "./extensions"
