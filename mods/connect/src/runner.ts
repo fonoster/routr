@@ -19,9 +19,9 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("dispatcher")
-import connectProcessor from "./service"
 import { Assertions as A } from "@routr/common"
 import { API_ADDR, BIND_ADDR, LOCATION_ADDR } from "./envs"
+import connectProcessor from "./service"
 
 A.assertEnvsAreSet(["LOCATION_ADDR", "API_ADDR"])
 
