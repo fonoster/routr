@@ -40,7 +40,7 @@
     "prepare": "husky install",
     "hostile:load": "sudo hostile load etc/hosts.txt",
     "hostile:unload": "sudo hostile unload etc/hosts.txt",
-    "publish": "lerna publish",
+    "publish:ci": "lerna publish --dist-tag next $(./.scripts/next-release.sh)",
     "publish:prerelease": "lerna publish prerelease --dist-tag next",
     "publish:frompackages": "lerna publish from-package",
     "typecheck": "tsc --noEmit"
