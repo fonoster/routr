@@ -79,6 +79,9 @@ public class Launcher {
       .allowHostAccess(HostAccess.ALL)
       .allowCreateThread(true)
       .option("js.nashorn-compat", "true")
+      // The workaround to prevent error "TypeError: (intermediate value).from is not a function" 
+      // Can be found here https://github.com/oracle/graaljs/issues/545 
+      .option("js.ecmascript-version", "2017")
       .allowExperimentalOptions(true)
       .allowIO(true)
       .allowAllAccess(true).build();
