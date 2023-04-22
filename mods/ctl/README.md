@@ -20,7 +20,7 @@ $ npm install -g @routr/ctl
 $ rctl COMMAND
 running command...
 $ rctl (--version)
-@routr/ctl/2.0.9 darwin-x64 node-v16.18.1
+@routr/ctl/2.0.13 darwin-x64 node-v16.16.0
 $ rctl --help [COMMAND]
 USAGE
   $ rctl COMMAND
@@ -770,7 +770,7 @@ EXAMPLES
   $ rctl plugins
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.3.2/src/commands/plugins/index.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/index.ts)_
 
 ## `rctl plugins:install PLUGIN...`
 
