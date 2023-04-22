@@ -2,7 +2,8 @@
 
 set -e
 
-base_version=$(jq -r '.version' lerna.json)
+git fetch --tags
+
 latest_tag_timestamp=$(git tag -l --sort=-version:refname | head -n1 | xargs git rev-list --timestamp --max-count=1 | awk '{print $1}')
 commit_messages=$(git log --pretty=format:"%s" --since="@$latest_tag_timestamp")
 release_type="none"
