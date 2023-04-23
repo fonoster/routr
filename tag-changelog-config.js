@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 module.exports = {
   types: [
     { types: ["feat", "feature"], label: "🎉 New Features" },
@@ -33,8 +34,13 @@ module.exports = {
 
   excludeTypes: ["other"],
 
+  capitalizeFirstLetter: function (string) {
+    return string.charAt(0).toUpperCase() + string.slice(1)
+  },
+
   renderTypeSection: function (label, commits) {
-    let text = `\n## ${label}\n`
+    const capitalizedLabel = this.capitalizeFirstLetter(label)
+    let text = `\n## ${capitalizedLabel}\n`
 
     commits.forEach((commit) => {
       text += `- ${commit.subject}\n`
