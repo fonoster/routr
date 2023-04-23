@@ -41,6 +41,10 @@ jobs:
           git checkout package-lock.json
 
           npm run publish
+      - name: Get Lerna version
+        run: |
+          lerna_version=$(node -p "require('./lerna.json').version")
+          echo "LERNA_VERSION=$lerna_version" >> $GITHUB_ENV
       - name: Create release note
         if: env.RELEASE != 'none'
         id: changelog
@@ -55,8 +59,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: v${{ env.LERNA_VERSION }}
+          release_name: Release v${{ env.LERNA_VERSION }}
           body: ${{ steps.changelog.outputs.changelog }}
           draft: true
       - name: Archive build artifact
