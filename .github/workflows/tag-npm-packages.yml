@@ -2,7 +2,7 @@ name: tag latest npm packages
 on:
   release:
     types:
-      - created
+      - released
 jobs:
   tag-latest:
     runs-on: ubuntu-latest
