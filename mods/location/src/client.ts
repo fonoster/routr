@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as grpc from "@grpc/grpc-js"
 import {
   AddRouteRequest,
   FindRoutesRequest,
@@ -23,7 +24,6 @@ import {
   RemoveRoutesRequest
 } from "./types"
 import { LOCATION_OBJECT_PROTO, Route, CommonErrors as CE } from "@routr/common"
-import * as grpc from "@grpc/grpc-js"
 
 type RequestType = AddRouteRequest | FindRoutesRequest | RemoveRoutesRequest
 
