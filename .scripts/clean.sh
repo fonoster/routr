@@ -2,7 +2,6 @@
 
 set -e
 
-./gradlew clean \ 
 rimraf **/*/tsconfig.tsbuildinfo \
 rimraf **/*/dist 
 rimraf **/*/node_modules
