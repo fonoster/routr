@@ -42,6 +42,7 @@ jobs:
 
           npm run publish
       - name: Create release note
+        if: env.RELEASE != 'none'
         id: changelog
         uses: loopwerk/tag-changelog@v1
         with:
@@ -49,6 +50,7 @@ jobs:
           exclude_types: other,doc,chore
           config_file: ./tag-changelog-config.js
       - name: Create draft release
+        if: env.RELEASE != 'none'
         uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
