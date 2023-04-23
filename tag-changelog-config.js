@@ -38,11 +38,11 @@ module.exports = {
   },
 
   renderTypeSection: function (label, commits) {
-    const capitalizedLabel = this.capitalizeFirstLetter(label)
-    let text = `\n## ${capitalizedLabel}\n`
+    let text = `\n## ${label}\n`
 
     commits.forEach((commit) => {
-      text += `- ${commit.subject}\n`
+      const capitalizedSubject = this.capitalizeFirstLetter(commit.subject)
+      text += `- ${capitalizedSubject}\n`
     })
 
     return text
