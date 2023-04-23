@@ -4,8 +4,9 @@ set -e
 
 git fetch --tags
 
-latest_tag_timestamp=$(git tag -l --sort=-version:refname | head -n1 | xargs git rev-list --timestamp --max-count=1 | awk '{print $1}')
-commit_messages=$(git log --pretty=format:"%s" --since="@$latest_tag_timestamp")
+latest_tag=$(git describe --tags --abbrev=0)
+latest_tag_timestamp=$(git rev-list -n 1 $latest_tag | xargs git show -s --format="%ct")
+commit_messages=$(git log --pretty=format:"%s" $latest_tag..HEAD)
 release_type="none"
 
 while IFS= read -r line; do
