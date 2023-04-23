@@ -36,6 +36,9 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
+          # This prevents lerna from failing due to a change in package-lock.json files
+          git checkout .
+
           npm run publish
       - name: Create release note
         id: changelog
