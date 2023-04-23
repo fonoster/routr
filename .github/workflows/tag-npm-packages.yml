@@ -1,0 +1,30 @@
+name: tag latest npm packages
+on:
+  release:
+    types:
+      - created
+jobs:
+  tag-latest:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 18
+    - name: Get list of packages
+      run: |
+        echo "PACKAGES=$(npx lerna list --json)" >> $GITHUB_ENV
+    - name: Tag latest npm packages
+      env:
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: |
+        echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+        PACKAGE_DATA="${PACKAGES}"
+        PACKAGE_COUNT=$(echo "$PACKAGE_DATA" | jq length)
+        for i in $(seq 0 $(($PACKAGE_COUNT-1))); do
+          PACKAGE=$(echo "$PACKAGE_DATA" | jq -r ".[$i].name")
+          VERSION=$(echo "$PACKAGE_DATA" | jq -r ".[$i].version")
+          npm dist-tag add "$PACKAGE@$VERSION" latest
+        done
