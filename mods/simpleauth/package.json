@@ -16,8 +16,7 @@
     "build": "tsc -b tsconfig.json"
   },
   "bin": {
-    "run_simpleauth": "dist/runner.js",
-    "healthcheck_simpleauth": "dist/healthcheck.js"
+    "run_simpleauth": "dist/runner.js"
   },
   "dependencies": {
     "@fonoster/logger": "0.3.20",
