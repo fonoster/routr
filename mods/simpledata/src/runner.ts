@@ -19,10 +19,10 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("simpleauth")
-import simpleDataService from "./service"
 import { Assertions as A } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
 import { BIND_ADDR, PATH_TO_RESOURCES } from "./envs"
+import simpleDataService from "./service"
 
 const logger = getLogger({ service: "simpledata", filePath: __filename })
 
