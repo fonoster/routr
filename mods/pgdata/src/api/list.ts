@@ -22,7 +22,7 @@ import { JsonObject, struct } from "pb-util"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
 import { PrismaListOperation } from "../types"
 import { getManager } from "../mappers/utils"
-import { PrismaClientInitializationError } from "@prisma/client/runtime"
+import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
 
 export function list(
   operation: PrismaListOperation,

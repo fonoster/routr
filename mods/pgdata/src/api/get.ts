@@ -26,7 +26,7 @@ import {
 } from "@routr/common"
 import { PrismaOperation } from "../types"
 import { getManager } from "../mappers/utils"
-import { PrismaClientInitializationError } from "@prisma/client/runtime"
+import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
 
 export function get(operation: PrismaOperation, kind: CC.KindWithoutUnknown) {
   return async (call: CT.GrpcCall, callback: CT.GrpcCallback) => {

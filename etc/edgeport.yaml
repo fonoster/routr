@@ -1,0 +1,38 @@
+kind: EdgePort
+apiVersion: v2beta1
+ref: default
+metadata:
+  region: default
+spec:
+  unknownMethodAction: Discard
+  processor:
+    addr: placeholder
+  securityContext:
+    client:
+      protocols:
+        - SSLv3
+        - TLSv1.2
+      authType: DisabledAll
+    keyStorePassword: changeme
+    trustStorePassword: changeme
+    keyStore: "/etc/routr/domains-cert.jks"
+    trustStore: "/etc/routr/domains-cert.jks"
+    keyStoreType: pkcs12
+  methods:
+    - REGISTER
+    - MESSAGE
+    - INVITE
+    - ACK
+    - BYE
+    - CANCEL
+  transport:
+    - protocol: tcp
+      port: 5060
+    - protocol: udp
+      port: 5060
+    - protocol: tls
+      port: 5061
+    - protocol: ws 
+      port: 5062
+    - protocol: wss
+      port: 5063

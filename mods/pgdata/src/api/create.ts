@@ -26,7 +26,7 @@ import {
 } from "@routr/common"
 import { PrismaCreateOperation } from "../types"
 import { getManager } from "../mappers/utils"
-import { PrismaClientInitializationError } from "@prisma/client/runtime"
+import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
 
 export function create(
   operation: PrismaCreateOperation,

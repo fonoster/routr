@@ -18,7 +18,7 @@
  */
 /* eslint-disable require-jsdoc */
 import * as grpc from "@grpc/grpc-js"
-import { PrismaClientInitializationError } from "@prisma/client/runtime"
+import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
 import { CommonTypes as CT, CommonErrors as CE } from "@routr/common"
 import { PrismaOperation } from "../types"
 
