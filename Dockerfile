@@ -10,6 +10,7 @@ WORKDIR /work
 COPY mods/one .
 COPY ./mods/pgdata/schema.prisma .
 COPY ./mods/edgeport/edgeport.sh .
+COPY ./etc/edgeport.yaml .
 COPY ./.scripts/custom-jre.sh custom-jre.sh
 COPY ./.scripts/generate-certs.sh .
 
@@ -44,6 +45,7 @@ COPY --from=builder /work/package.json .
 COPY --from=builder /work/jre jre
 COPY --from=builder /work/generate-certs.sh .
 COPY --from=builder /work/edgeport.sh .
+COPY --from=builder /work/edgeport.yaml config/edgeport.yaml
 COPY ./mods/edgeport/libs libs
 COPY config/log4j2.yaml config/log4j2.yaml
 
@@ -58,7 +60,10 @@ RUN apk add --no-cache tini \
     --ingroup "$USER" \
     --home ${HOME} \
     --uid "$UID" \
-    "$USER"
+    "$USER" \
+  && ln -s ${JAVA_HOME}/bin/keytool /usr/local/bin/keytool \
+  && chown -R ${USER}:${USER} /service \
+  && chown -R ${USER}:${USER} /etc/routr
 
 USER $USER
 

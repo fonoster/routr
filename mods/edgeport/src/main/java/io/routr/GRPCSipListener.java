@@ -105,7 +105,7 @@ public class GRPCSipListener implements SipListener {
 
     LOG.info("starting edgeport ref = {} at {}", edgePortRef, bindAddr);
     LOG.info("localnets list [{}]", String.join(",", localnets));
-    LOG.info("external ips list [{}]", String.join(",", externalAddrs));
+    LOG.info("external hosts list [{}]", String.join(",", externalAddrs));
 
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
         .usePlaintext()
