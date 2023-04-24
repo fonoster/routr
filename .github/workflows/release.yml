@@ -73,6 +73,7 @@ jobs:
             config
             lerna.json
             Dockerfile
+            etc/edgeport.yaml
             !mods/**/node_modules
             !mods/**/src
             !mods/**/test
