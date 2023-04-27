@@ -6,7 +6,7 @@ metadata:
 spec:
   unknownMethodAction: Discard
   processor:
-    addr: placeholder
+    addr: localhost:51901
   securityContext:
     client:
       protocols:
