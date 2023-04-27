@@ -6,3 +6,4 @@
 /tmp
 node_modules
 oclif.manifest.json
+!bin
