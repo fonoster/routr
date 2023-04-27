@@ -21,7 +21,6 @@ import { Assertions as A } from "@routr/common"
 A.assertEnvsAreSet(["RTPENGINE_HOST", "DATABASE_URL"])
 
 export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51904"
-export const PROCESSOR_ADDR = process.env.PROCESSOR_ADDR ?? "localhost:51901"
 
 export const EDGEPORT_RUNNER =
   process.env.EDGEPORT_RUNNER ?? "/opt/routr/edgeport.sh"
