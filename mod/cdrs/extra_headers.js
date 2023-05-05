@@ -9,7 +9,7 @@ module.exports = request => {
   const extraHeaders = []
   while (names.hasNext()) {
     const name = names.next()
-    if (name.startsWith('X-')) {
+    if (name.toLowerCase().startsWith('x-')) {
       extraHeaders.push({ name, value: request.getHeader(name).value })
     }
   }
