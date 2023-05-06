@@ -107,9 +107,7 @@ class CDRSManager {
     let terminationCode = -1
 
     if (response) {
-      // Mapping response SIP reject to ISDN reject
-      terminationCode =
-        response.getStatusCode() === 603 ? 21 : response.getStatusCode()
+      terminationCode = response.getStatusCode()
     } else if (isMethod(request, [Request.CANCEL])) {
       terminationCode = 16
     } else if (request.getHeader('X-Asterisk-HangupCauseCode')?.value) {

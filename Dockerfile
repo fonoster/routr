@@ -1,9 +1,9 @@
-FROM --platform=linux/amd64 debian:buster
+FROM --platform=linux/amd64 debian:buster-slim
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 ENV TINI_VERSION v0.19.0
 ENV LANG C.UTF-8
-ARG VERSION=1.2.7
+ARG VERSION=1.2.8
 
 RUN mkdir -p /opt/routr
 WORKDIR /opt/routr
