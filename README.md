@@ -158,7 +158,34 @@ This command forwards traffic from your local port 5060 to your Gitpod workspace
 
 ### Kubernetes
 
-Deploying Routr in Kubernetes is coming soon.
+Routr can be installed in Kubernetes using Helm. The following instructions assume that you have a Kubernetes cluster up and running. If you don’t have one, you can use Minikube or Docker Desktop to create a local cluster.
+
+First, add the Helm repository:
+
+```bash
+helm repo add routr https://routr.io/charts
+helm repo update
+```
+
+Then, create a namespace for Routr:
+
+```bash
+kubectl create namespace sipnet
+```
+
+Next, install Routr with the following command:
+
+```bash
+helm install sipnet routr/routr-connect --namespace sipnet
+```
+
+Finally, wait a few minutes for the pods to start. You can check the status of the pods with the following command:
+
+```bash
+kubectl get pods -n sipnet
+```
+
+You should see a list of pods and their status. If you see the status Runnning, then you are ready to go.
 
 ## Bugs and Feedback
 
