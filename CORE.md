@@ -603,7 +603,7 @@ Interface Pseudocode:
   => doProcess(message) and return updated request/response
 ```
 
-> The default gRPC port at the Message Processor is SHOULD be `51901`.
+> The default gRPC port at the Message Processor SHOULD be `51901`.
 
 **Non-functional Requirements**
 
