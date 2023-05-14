@@ -31,11 +31,11 @@ export const schema = {
       type: "string"
     },
     ref: {
-      description: "EdgePort reference",
+      description: "Dispatcher reference",
       type: "string"
     },
     spec: {
-      description: "Operations spec for EdgePort",
+      description: "Operations spec for the Dispatcher",
       type: "object",
       properties: {
         bindAddr: {

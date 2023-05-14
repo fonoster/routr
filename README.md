@@ -187,6 +187,8 @@ kubectl get pods -n sipnet
 
 You should see a list of pods and their status. If you see the status Runnning, then you are ready to go.
 
+For a more detailed explanation please refer to the chart's [readme](https://github.com/fonoster/routr/blob/main/ops/charts/connect/README.md).
+
 ## Bugs and Feedback
 
 For bugs, questions, and discussions, please use the [Github Issues](https://github.com/fonoster/routr/issues)

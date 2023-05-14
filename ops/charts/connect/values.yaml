@@ -1,4 +1,5 @@
 global:
+  # Reserved for future use
   region: default
   logsLevel: info
   otlExporter: http://jaeger:14268/api/traces
