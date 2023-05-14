@@ -11,6 +11,8 @@ RUN apk add --no-cache git tini nodejs npm python3 make cmake g++ \
   && apk del git python3 make cmake g++ npm \
   && rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/*
 
+ENV CONFIG_PATH=/etc/routr/location.yaml
+
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 CMD ["run"]

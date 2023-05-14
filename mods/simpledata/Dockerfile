@@ -11,6 +11,8 @@ RUN apk add --no-cache git curl tini nodejs npm python3 make cmake g++ \
   && apk del git curl python3 make cmake g++ npm \
   && rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/*
 
+ENV PATH_TO_RESOURCES=/etc/routr/resources
+
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 CMD ["run"]

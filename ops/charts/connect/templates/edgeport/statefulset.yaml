@@ -44,10 +44,6 @@ spec:
             failureThreshold: {{ .Values.edgeport.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.edgeport.livenessProbe.timeoutSeconds }}
           env:
-            - name: CONFIG_PATH
-              value: /etc/routr/edgeport.yaml
-            - name: LOG4J2
-              value: /etc/routr/log4j2.yaml
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT

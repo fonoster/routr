@@ -8,8 +8,6 @@ services:
     image: fonoster/routr-edgeport
     build: ./mods/edgeport
     environment:
-      CONFIG_PATH: /etc/routr/edgeport.yaml
-      LOG4J2: /etc/routr/log4j2.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     ports:
@@ -36,8 +34,6 @@ services:
     image: fonoster/routr-edgeport
     build: ./mods/edgeport
     environment:
-      CONFIG_PATH: /etc/routr/edgeport.yaml
-      LOG4J2: /etc/routr/log4j2.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     ports:
@@ -64,7 +60,6 @@ services:
     image: fonoster/routr-dispatcher
     build: ./mods/dispatcher
     environment:
-      CONFIG_PATH: /etc/routr/dispatcher.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
@@ -81,7 +76,6 @@ services:
     image: fonoster/routr-location
     build: ./mods/location
     environment:
-      CONFIG_PATH: /etc/routr/location.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
@@ -114,7 +108,6 @@ services:
     image: fonoster/routr-simpledata
     build: ./mods/simpledata
     environment:
-      PATH_TO_RESOURCES: /etc/routr/resources
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
@@ -131,7 +124,6 @@ services:
     image: fonoster/routr-requester
     build: ./mods/requester
     environment:
-      LOG4J2: /etc/routr/log4j2.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
@@ -148,7 +140,6 @@ services:
     image: fonoster/routr-registry
     build: ./mods/registry
     environment:
-      CONFIG_PATH: /etc/routr/registry.yaml
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:

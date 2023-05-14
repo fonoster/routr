@@ -9,6 +9,8 @@ COPY ./requester.sh /opt/routr
 
 RUN chmod +x /opt/routr/requester.sh
 
+ENV LOG4J2=/etc/routr/log4j2.yaml
+
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 CMD ["/opt/routr/requester.sh"]

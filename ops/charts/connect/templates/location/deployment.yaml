@@ -39,8 +39,6 @@ spec:
             failureThreshold: {{ .Values.location.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.location.livenessProbe.timeoutSeconds }}
           env:
-            - name: CONFIG_PATH
-              value: /etc/routr/location.yaml
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
