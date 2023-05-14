@@ -32,7 +32,7 @@ spec:
           imagePullPolicy: {{ .Values.rtprelay.image.pullPolicy }}
           livenessProbe:
             grpc:
-              port: 51907
+              port: 51903
             initialDelaySeconds: {{ .Values.rtprelay.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.rtprelay.livenessProbe.periodSeconds }}
             successThreshold: {{ .Values.rtprelay.livenessProbe.successThreshold }}
@@ -48,7 +48,7 @@ spec:
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
               value: {{ .Values.global.otlExporter }}
           ports:
-            - containerPort: 51907
+            - containerPort: 51903
           resources:
             {{- if .Values.rtprelay.resources.limits }}
             limits:
