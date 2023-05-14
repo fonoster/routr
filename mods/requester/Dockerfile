@@ -6,6 +6,7 @@ WORKDIR /opt/routr
 
 COPY ./libs /opt/routr/libs
 COPY ./requester.sh /opt/routr
+COPY ./etc/log4j2.yaml /etc/routr/log4j2.yaml
 
 RUN chmod +x /opt/routr/requester.sh
 

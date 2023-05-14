@@ -17,7 +17,6 @@ services:
       - 5062:5062
       - 5063:5063
     volumes:
-      - ./config/log4j2.yaml:/etc/routr/log4j2.yaml
       - ./config/edgeport.yaml:/etc/routr/edgeport.yaml
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
     networks:
@@ -43,7 +42,6 @@ services:
       - 6062:6062
       - 6063:6063
     volumes:
-      - ./config/log4j2.yaml:/etc/routr/log4j2.yaml
       - ./config/edgeport.alt.yaml:/etc/routr/edgeport.yaml
       - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
     networks:
@@ -128,8 +126,6 @@ services:
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51909
-    volumes:
-      - ./config/log4j2.yaml:/etc/routr/log4j2.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.9
