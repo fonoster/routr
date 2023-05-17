@@ -1,5 +1,11 @@
 name: tag latest npm packages
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to run the workflow on'     
+        required: true
+        default: 'main'
   release:
     types:
       - released
@@ -7,12 +13,14 @@ jobs:
   tag-latest:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: 18
+        node-version: 18    
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.inputs.branch }}
     - name: Get list of packages
       id: get-packages
       run: |
