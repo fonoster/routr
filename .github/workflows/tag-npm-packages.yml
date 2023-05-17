@@ -22,16 +22,14 @@ jobs:
       with:
         ref: ${{ github.event.inputs.branch }}
     - name: Get list of packages
-      id: get-packages
       run: |
-        PACKAGES=$(npx lerna list --json)
-        echo "PACKAGES=$(echo "$PACKAGES" | base64)" >> $GITHUB_ENV
+        npx lerna list --json > pckg-list.json
     - name: Tag latest npm packages
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
         echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
-        PACKAGE_DATA=$(echo "$PACKAGES" | base64 --decode)
+        PACKAGE_DATA=$(cat pckg-list.json)
         PACKAGE_COUNT=$(echo "$PACKAGE_DATA" | jq length)
         for i in $(seq 0 $(($PACKAGE_COUNT-1))); do
           PACKAGE=$(echo "$PACKAGE_DATA" | jq -r ".[$i].name")
