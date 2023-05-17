@@ -14,14 +14,16 @@ jobs:
       with:
         node-version: 18
     - name: Get list of packages
+      id: get-packages
       run: |
-        echo "PACKAGES=$(npx lerna list --json)" >> $GITHUB_ENV
+        PACKAGES=$(npx lerna list --json)
+        echo "PACKAGES=$(echo "$PACKAGES" | base64)" >> $GITHUB_ENV
     - name: Tag latest npm packages
       env:
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
         echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
-        PACKAGE_DATA="${PACKAGES}"
+        PACKAGE_DATA=$(echo "$PACKAGES" | base64 --decode)
         PACKAGE_COUNT=$(echo "$PACKAGE_DATA" | jq length)
         for i in $(seq 0 $(($PACKAGE_COUNT-1))); do
           PACKAGE=$(echo "$PACKAGE_DATA" | jq -r ".[$i].name")
