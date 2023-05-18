@@ -74,10 +74,10 @@ Diagram generated with: https://arthursonzogni.com/Diagon/#GraphDAG
 Raw Diagram:
  EdgePort 001 -> Message Dispatcher
  EdgePort 002 -> Message Dispatcher
- Message Dispatcher -> SCAIP Processor
+ Message Dispatcher -> IM Processor
  Message Dispatcher -> Connect Processor
  Message Dispatcher -> Twilio Processor
- SCAIP Processor -> Data APIs & External Services
+ IM Processor -> Data APIs & External Services
 -->
 
 ```none
@@ -88,7 +88,7 @@ Raw Diagram:
 │Message Dispatcher                    │               
 └┬────────────────┬───────────────────┬┘               
 ┌▽──────────────┐┌▽─────────────────┐┌▽───────────────┐
-│SCAIP Processor││Connect Processor ││Twilio Processor│
+│IM Processor   ││Connect Processor ││Twilio Processor│
 └┬──────────────┘└──────────────────┘└────────────────┘
 ┌▽────────────────────────────┐                        
 │Data APIs & External Services│                        
@@ -450,8 +450,8 @@ Example:
     ],
     "processors": [
       {
-        "ref": "scaip-essense",
-        "addr": "scaipessense:51903",
+        "ref": "im-processor",
+        "addr": "instant-messaging:51902",
         "methods": [
           "MESSAGE"
         ],
@@ -459,7 +459,7 @@ Example:
       },
       {
         "ref": "connect-processor",
-        "addr": "connect:51903",
+        "addr": "connect:51902",
         "methods": [
           "REGISTER",
           "MESSAGE",
