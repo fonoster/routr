@@ -451,7 +451,7 @@ Example:
     "processors": [
       {
         "ref": "im-processor",
-        "addr": "instant-messaging:51902",
+        "addr": "instant-messaging:51904",
         "methods": [
           "MESSAGE"
         ],
@@ -459,7 +459,7 @@ Example:
       },
       {
         "ref": "connect-processor",
-        "addr": "connect:51902",
+        "addr": "connect:51904",
         "methods": [
           "REGISTER",
           "MESSAGE",
