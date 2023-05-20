@@ -3,33 +3,24 @@
 <a href="https://gitpod.io/#https://github.com/fonoster/routr"> <img src="https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod" alt="Contribute with Gitpod" />
 </a> [![Discord](https://img.shields.io/discord/1016419835455996076?color=5865F2&label=Discord&logo=discord&logoColor=white)](https://discord.gg/mpWSRUhG7e) <a href="https://github.com/fonoster/fonoster/blob/main/CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/Code%20of%20Conduct-v1.0-ff69b4.svg?color=%2347b96d" alt="Code Of Conduct"></a> ![GitHub](https://img.shields.io/github/license/fonoster/fonoster?color=%2347b96d) ![Twitter Follow](https://img.shields.io/twitter/follow/fonoster?style=social)
 
+## Table of Content
+
+* [About](#about)
+* [Features](#features)
+* [Community](#community)
+* [Example Configuration](#example-configuration)
+* [Deployment](#deployment)
+    * [Docker](#instant-server-deployment-with-docker-and-compose)
+    * [Kubernetes](#kubernetes)  
+    * [Gitpod](#deploying-in-development-mode-with-gitpod)
+* [Documentation](https://routr.io/docs/introduction/overview)
+* [Sponsors](#sponsors)
+* [Contributing](#contributing)
+* [License](#license)
+
+## About
+
 Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators.
-
-## Community
-
-We are building Routr in the open. The best to communicate with us via [GitHub Discussions.](https://github.com/fonoster/fonoster/discussions)
-
----
-
-<p align="center">
-  <sup>Special Announcement:</sup>
-  <br>
-  <a href="https://discord.gg/mpWSRUhG7e">
-    <img width="70px" src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/625e5fcef7ab80b8c1fe559e_Discord-Logo-Color.png">
-  </a>
-  <br>
-  <sub><b>We now have a Discord Channel</b></sub>
-  <br>
-  <sub>There we plan to discuss roadmaps, feature requests, and more<br><a href="https://discord.gg/mpWSRUhG7e">Join us today</a></sub>
-</p>
-
----
-
-**Twitter:** [@fonoster](https://twitter.com/fonoster)
-
-**Issue tracker:** Use the GitHub issue tracker to file bugs and features request. If you need support, please start a [Discussion](https://github.com/fonoster/routr/discussions) rather than filing a GitHub issue.
-
-> Please do not ask individual project members for support. Use the channels above instead, where the whole community can help you and benefit from the solutions provided. Please contact us for Commercial Support if you need more than community support.
 
 ## Features
 
@@ -57,6 +48,26 @@ Routr's main features are:
 - [ ] Web Application
 
 To learn more, read the [documentation](https://routr.io/docs). :books:
+
+## Community
+
+We are building Routr in the open. The best to communicate with us via [GitHub Discussions.](https://github.com/fonoster/fonoster/discussions)
+
+---
+
+<p align="center">
+  <sup>Special Announcement:</sup>
+  <br>
+  <a href="https://discord.gg/mpWSRUhG7e">
+    <img width="70px" src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/625e5fcef7ab80b8c1fe559e_Discord-Logo-Color.png">
+  </a>
+  <br>
+  <sub><b>We now have a Discord Channel</b></sub>
+  <br>
+  <sub>There we plan to discuss roadmaps, feature requests, and more<br><a href="https://discord.gg/mpWSRUhG7e">Join us today</a></sub>
+</p>
+
+---
 
 ## Give a Star! ⭐
 
@@ -128,34 +139,6 @@ docker-compose up
 
 In the `config/resources`, you will find the `domains.yaml` and `agents.yaml` files. Those files contain the configuration to run a simple local network with two SIP Agents (John and Jane).
 
-### Deploying in development mode with Gitpod
-
-Routr's one-click interactive deployment will familiarize you with the server in development mode.
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/fonoster/routr)
-
-To connect to your instance, follow these steps:
-
-First, add your public SSH-keys to your Gitpod account by going to [Gitpod account keys](https://gitpod.io/user/keys) and adding your public key.
-
-Next, find your [Gitpod workspace](https://gitpod.io/workspaces) and click on the "More" button. Then, select "Connect via SSH."
-
-Finally, copy the SSH Command and run it in your terminal by pasting it and pressing Enter. The command should look like this:
-
-```bash
-ssh -L 5060:localhost:5060 <workspace-ssh-connection>
-```
-
-Replace <workspace-ssh-connection> with your own workspace SSH connection.
-
-For example, your command might look like this:
-
-```bash
-ssh -L 5060:localhost:5060 fonoster-routr-mn8nsx0d9px@fonoster-routr-mn8nsx0d9px.ssh.ws-us90.gitpod.io
-```
-
-This command forwards traffic from your local port 5060 to your Gitpod workspace's port 5060, allowing you to access your instance.
-
 ### Kubernetes
 
 Routr can be installed in Kubernetes using Helm. The following instructions assume that you have a Kubernetes cluster up and running. If you don’t have one, you can use Minikube or Docker Desktop to create a local cluster.
@@ -189,6 +172,34 @@ You should see a list of pods and their status. If you see the status Runnning, 
 
 For a more detailed explanation please refer to the chart's [readme](https://github.com/fonoster/routr/blob/main/ops/charts/connect/README.md).
 
+### Deploying in development mode with Gitpod
+
+Routr's one-click interactive deployment will familiarize you with the server in development mode.
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/fonoster/routr)
+
+To connect to your instance, follow these steps:
+
+First, add your public SSH-keys to your Gitpod account by going to [Gitpod account keys](https://gitpod.io/user/keys) and adding your public key.
+
+Next, find your [Gitpod workspace](https://gitpod.io/workspaces) and click on the "More" button. Then, select "Connect via SSH."
+
+Finally, copy the SSH Command and run it in your terminal by pasting it and pressing Enter. The command should look like this:
+
+```bash
+ssh -L 5060:localhost:5060 <workspace-ssh-connection>
+```
+
+Replace <workspace-ssh-connection> with your own workspace SSH connection.
+
+For example, your command might look like this:
+
+```bash
+ssh -L 5060:localhost:5060 fonoster-routr-mn8nsx0d9px@fonoster-routr-mn8nsx0d9px.ssh.ws-us90.gitpod.io
+```
+
+This command forwards traffic from your local port 5060 to your Gitpod workspace's port 5060, allowing you to access your instance.
+
 ## Bugs and Feedback
 
 For bugs, questions, and discussions, please use the [Github Issues](https://github.com/fonoster/routr/issues)
@@ -200,7 +211,7 @@ For contributing, please see the following links:
  - [Contribution Documents](https://github.com/fonoster/fonoster/blob/master/CONTRIBUTING.md)
  - [Contributors](https://github.com/fonoster/routr/contributors)
 
-**Sponsors**
+## Sponsors
 
 We're glad to be supported by respected companies and individuals from several industries.
 
