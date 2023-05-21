@@ -1,9 +1,112 @@
 apiVersion: v1
 entries:
+  routr:
+  - apiVersion: v2
+    appVersion: 1.0.0-rc5
+    created: "2023-05-14T20:31:34.721913042Z"
+    dependencies:
+    - name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 10.6.18
+    description: Next-generation SIP Server
+    digest: 5e71e7a7f67234ea45d2470ccc536b7b723f45cd8c67b824995f2e76023f613a
+    icon: https://routr.io/site_assets/images/avatar.png
+    keywords:
+    - routr
+    - sip
+    - voip
+    - webrtc
+    - ims
+    - proxy
+    - registrar
+    - asterisk
+    - kamailio
+    - freepbx
+    - yate
+    - freeswitch
+    - fusionpbx
+    - server
+    maintainers:
+    - name: psanders
+    name: routr
+    sources:
+    - https://github.com/fonoster/routr
+    type: application
+    urls:
+    - routr-0.0.10.tgz
+    version: 0.0.10
+  - apiVersion: v2
+    appVersion: 1.0.0-rc5
+    created: "2023-05-14T20:31:34.72932244Z"
+    dependencies:
+    - name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 10.6.18
+    description: Next-generation SIP Server
+    digest: 8d27a64017fbbb5fdc3d2960a99f78ba897f160aea0caac772e95829fb11ea05
+    icon: https://routr.io/site_assets/images/avatar.png
+    keywords:
+    - routr
+    - sip
+    - voip
+    - webrtc
+    - ims
+    - proxy
+    - registrar
+    - asterisk
+    - kamailio
+    - freepbx
+    - yate
+    - freeswitch
+    - fusionpbx
+    - server
+    maintainers:
+    - name: psanders
+    name: routr
+    sources:
+    - https://github.com/fonoster/routr
+    type: application
+    urls:
+    - routr-0.0.9.tgz
+    version: 0.0.9
+  - apiVersion: v2
+    appVersion: 1.0.0-rc5
+    created: "2023-05-14T20:31:34.726026096Z"
+    dependencies:
+    - name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 10.6.18
+    description: Next-generation SIP Server
+    digest: a734ebb8c5fc13537de434f388e2757f179e8f4717eff6e9e815fcd429f72942
+    icon: https://routr.io/site_assets/images/avatar.png
+    keywords:
+    - routr
+    - sip
+    - voip
+    - webrtc
+    - ims
+    - proxy
+    - registrar
+    - asterisk
+    - kamailio
+    - freepbx
+    - yate
+    - freeswitch
+    - fusionpbx
+    - server
+    maintainers:
+    - name: psanders
+    name: routr
+    sources:
+    - https://github.com/fonoster/routr
+    type: application
+    urls:
+    - routr-0.0.8.tgz
+    version: 0.0.8
   routr-connect:
   - apiVersion: v2
-    appVersion: 2.0.28
-    created: "2023-05-21T22:31:12.406844633Z"
+    appVersion: 2.0.24
+    created: "2023-05-14T20:31:34.756780404Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -14,10 +117,29 @@ entries:
       repository: https://charts.bitnami.com/bitnami
       version: 17.7.3
     description: Routr Connect Helm Chart
-    digest: bdbd01c2e8182c820e0a4fca103fad146e9aa3e5d44c5e8b88164cc775215afd
+    digest: c25b94a6b94e537fe523854eee91a21813f024b34b1947f828429664890ba954
     name: routr-connect
     type: application
     urls:
-    - routr-connect-0.1.4.tgz
-    version: 0.1.4
-generated: "2023-05-21T22:31:12.390521804Z"
+    - routr-connect-0.1.3.tgz
+    version: 0.1.3
+  - apiVersion: v2
+    appVersion: 2.0.8-alpha.38
+    created: "2023-05-14T20:31:34.741154797Z"
+    dependencies:
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 12.1.15
+    - condition: redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 17.7.3
+    description: Routr Connect Helm Chart
+    digest: b9d36b18b3323ab2afbc30eb53433c1e92068df9e83a52c3fdd3e169c3b688ca
+    name: routr-connect
+    type: application
+    urls:
+    - routr-connect-0.1.1.tgz
+    version: 0.1.1
+generated: "2023-05-14T20:31:34.717794187Z"
