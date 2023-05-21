@@ -1,6 +1,6 @@
 {
   "name": "@routr/one",
-  "version": "2.0.27",
+  "version": "2.0.28",
   "description": "Bundle server with everything needed to run Routr Connect",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
