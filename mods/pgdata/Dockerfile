@@ -28,3 +28,5 @@ FROM node:16.15.1-alpine3.15 as migrations
 WORKDIR /db
 COPY migrations /db/migrations
 COPY schema.prisma /db
+
+CMD ["npx", "-y", "prisma", "migrate", "deploy"]
