@@ -27,7 +27,7 @@ jobs:
       - name: Package charts
         run: |
           helm package ops/charts/connect -d .charts
-          helm repo index .charts
+          helm repo index .charts --merge .charts/index.yaml
       - name: Build sources
         run: mkdir -p public && mv .charts public/charts
       - name: Deploy
