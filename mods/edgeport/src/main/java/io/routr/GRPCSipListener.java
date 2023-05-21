@@ -292,10 +292,10 @@ public class GRPCSipListener implements SipListener {
 
       if (e instanceof StatusRuntimeException) {
         var description = ((StatusRuntimeException) e).getStatus().getDescription();
-        LOG.warn("an exception occurred while processing request with callId: {}, status description: {}", callId,
+        LOG.debug("an exception occurred while processing request with callId: {}, status description: {}", callId,
             description, e);
       } else {
-        LOG.warn("an exception occurred while processing callId: {}", callId, e);
+        LOG.debug("an exception occurred while processing callId: {}", callId, e);
       }
     }
   }
@@ -316,7 +316,7 @@ public class GRPCSipListener implements SipListener {
         if (accountManager == null) {
           var req = event.getClientTransaction().getRequest();
           var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
-          LOG.warn("an exception occurred while processing response with callId: {}", callId);
+          LOG.debug("an exception occurred while processing response with callId: {}", callId);
           return;
         }
 
@@ -374,7 +374,7 @@ public class GRPCSipListener implements SipListener {
     } catch (SipException | InvalidArgumentException | ParseException e) {
       var req = event.getClientTransaction().getRequest();
       var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
-      LOG.warn("an exception occurred while processing response with callId: {}", callId, e);
+      LOG.debug("an exception occurred while processing response with callId: {}", callId, e);
     }
   }
 
@@ -424,7 +424,7 @@ public class GRPCSipListener implements SipListener {
           try {
             cSeq.setSeqNumber(cSeq.getSeqNumber() + 1);
           } catch (InvalidArgumentException e) {
-            LOG.warn("an exception occurred while processing callId: {}", callId, e);
+            LOG.debug("an exception occurred while processing callId: {}", callId, e);
           }
         }
         this.sipProvider.sendRequest(requestOut);
@@ -441,7 +441,7 @@ public class GRPCSipListener implements SipListener {
       this.activeTransactions.put(callId.getCallId() + "_server", serverTransaction);
     } catch (SipException e) {
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
-      LOG.warn("an exception occurred while sending request with callId: {}", callId, e);
+      LOG.debug("an exception occurred while sending request with callId: {}", callId, e);
     }
   }
 
@@ -480,7 +480,7 @@ public class GRPCSipListener implements SipListener {
       originalServerTransaction.sendResponse(terminatedResponse);
     } catch (SipException | InvalidArgumentException | ParseException e) {
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
-      LOG.warn("an exception occurred while sending a CANCEL request for callId: {}", callId, e);
+      LOG.debug("an exception occurred while sending a CANCEL request for callId: {}", callId, e);
     }
   }
 
@@ -533,7 +533,7 @@ public class GRPCSipListener implements SipListener {
     } catch (NullPointerException | SipException e) {
       var request = event.getClientTransaction().getRequest();
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
-      LOG.warn("an exception occurred while handling authentication challenge for callId: {}", callId, e);
+      LOG.debug("an exception occurred while handling authentication challenge for callId: {}", callId, e);
     }
   }
 
