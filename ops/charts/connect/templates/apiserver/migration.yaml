@@ -15,7 +15,6 @@ spec:
       envFrom:
         - secretRef:
             name: {{ .Release.Name }}-routr-database-url
-      command: ["npx", "-y", "prisma", "migrate", "deploy"]
   restartPolicy: Never
   terminationGracePeriodSeconds: 0
 {{- end }}
