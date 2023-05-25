@@ -5,11 +5,10 @@
 
 Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators.
 
-
 ## Table of Content
 
-* [Features](#features)
 * [Community](#community)
+* [Features](#features)
 * [Example Configuration](#example-configuration)
 * [Deployment](#deployment)
     * [Docker](#instant-server-deployment-with-docker-and-compose)
@@ -19,6 +18,26 @@ Routr is a lightweight sip proxy, location server, and registrar that provides a
 * [Sponsors](#sponsors)
 * [Contributing](#contributing)
 * [License](#license)
+
+## Community
+
+We are building Routr in the open. The best to communicate with us via [GitHub Discussions.](https://github.com/fonoster/fonoster/discussions)
+
+---
+
+<p align="center">
+  <sup>Special Announcement:</sup>
+  <br>
+  <a href="https://discord.gg/mpWSRUhG7e">
+    <img width="70px" src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/625e5fcef7ab80b8c1fe559e_Discord-Logo-Color.png">
+  </a>
+  <br>
+  <sub><b>We now have a Discord Channel</b></sub>
+  <br>
+  <sub>There we plan to discuss roadmaps, feature requests, and more<br><a href="https://discord.gg/mpWSRUhG7e">Join us today</a></sub>
+</p>
+
+---
 
 ## Features
 
@@ -57,26 +76,6 @@ This handbook is designed to provide a detailed understanding of the innovative 
 Get the eBook.
 
 * [Programmable, cloud ready, open source](https://fonoster.gumroad.com/l/the-future-of-programmable-sip-servers)
-
-## Community
-
-We are building Routr in the open. The best to communicate with us via [GitHub Discussions.](https://github.com/fonoster/fonoster/discussions)
-
----
-
-<p align="center">
-  <sup>Special Announcement:</sup>
-  <br>
-  <a href="https://discord.gg/mpWSRUhG7e">
-    <img width="70px" src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/625e5fcef7ab80b8c1fe559e_Discord-Logo-Color.png">
-  </a>
-  <br>
-  <sub><b>We now have a Discord Channel</b></sub>
-  <br>
-  <sub>There we plan to discuss roadmaps, feature requests, and more<br><a href="https://discord.gg/mpWSRUhG7e">Join us today</a></sub>
-</p>
-
----
 
 ## Give a Star! ⭐
 
