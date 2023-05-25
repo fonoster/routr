@@ -47,6 +47,17 @@ Routr's main features are:
 
 To learn more, read the [documentation](https://routr.io/docs). :books:
 
+## The official handbook
+
+<a href="https://fonoster.gumroad.com/l/the-future-of-programmable-sip-servers">
+<img src="https://raw.githubusercontent.com/psanders/psanders/master/book.png" width="25%"></a>
+
+This handbook is designed to provide a detailed understanding of the innovative features, challenges, and opportunities that Routr presents in the realm of programmable SIP Servers.
+
+Get the eBook.
+
+* [Programmable, cloud ready, open source](https://fonoster.gumroad.com/l/the-future-of-programmable-sip-servers)
+
 ## Community
 
 We are building Routr in the open. The best to communicate with us via [GitHub Discussions.](https://github.com/fonoster/fonoster/discussions)
