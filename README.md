@@ -69,7 +69,7 @@ To learn more, read the [documentation](https://routr.io/docs). :books:
 ## The official handbook
 
 <a href="https://fonoster.gumroad.com/l/the-future-of-programmable-sip-servers">
-<img src="https://raw.githubusercontent.com/psanders/psanders/master/book.png" width="25%"></a>
+<img src="https://raw.githubusercontent.com/psanders/psanders/master/book.png" width="300px"></a>
 
 This handbook is designed to provide a detailed understanding of the innovative features, challenges, and opportunities that Routr presents in the realm of programmable SIP Servers.
 
