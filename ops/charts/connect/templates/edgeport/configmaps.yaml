@@ -12,7 +12,7 @@ data:
   edgeport.yaml: |-
     kind: EdgePort
     apiVersion: v2beta1
-    ref: edge-port-01
+    ref: edgeport-01
     metadata:
       region: {{ .Values.global.region }}
     spec:

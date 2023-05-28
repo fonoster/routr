@@ -21,7 +21,7 @@ import { MessageType } from "@routr/common/dist/types"
 
 export const response: MessageRequest = {
   ref: "AynhXaFtbdXwHrUEzt_rUQ..",
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   method: Method.REGISTER,
   externalAddrs: ["200.22.21.42"],
   localnets: ["127.0.0.1/8", "10.100.42.127/24", "10.100.43.128/31"],
