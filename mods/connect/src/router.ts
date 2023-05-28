@@ -286,12 +286,15 @@ async function agentToPSTN(
     )
   }
 
+  const via = req.message.via[0]
   const uri = getTrunkURI(trunk)
 
   return {
     user: uri.user,
     host: uri.host,
     port: uri.port,
+    advertisedHost: via.host,
+    advertisedPort: via.port,
     transport: uri.transport?.toUpperCase() as CT.Transport,
     edgePortRef: req.edgePortRef,
     listeningPoints: req.listeningPoints,
@@ -357,12 +360,15 @@ async function peerToPSTN(
     throw new Error(`no trunk associated with Number ref: ${number.ref}`)
   }
 
+  const via = req.message.via[0]
   const uri = getTrunkURI(number.trunk)
 
   return {
     user: uri.user,
     host: uri.host,
     port: uri.port,
+    advertisedHost: via.host,
+    advertisedPort: via.port,
     transport: uri.transport,
     edgePortRef: req.edgePortRef,
     listeningPoints: req.listeningPoints,

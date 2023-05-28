@@ -147,11 +147,18 @@ export const addSelfRecordRoute =
       externalAddrs: request.externalAddrs,
       endpointIntf: request.sender
     })
+
+    const target = {
+      host: route.advertisedHost,
+      port: route.advertisedPort,
+      transport: route.transport
+    }
+
     const targetIntf = getEdgeInterface({
       listeningPoints: request.listeningPoints,
       localnets: request.localnets,
       externalAddrs: request.externalAddrs,
-      endpointIntf: route
+      endpointIntf: target
     })
 
     const originRoute: CommonTypes.RecordRoute = {

@@ -28,6 +28,7 @@ import { Extensions as E, Target as T } from "@routr/processor"
 // Also consider: https://github.com/fonoster/routr/blob/ee5d339888344013939d06c734385f17f0cd75c2/mod/registrar/utils.js#L116
 // and https://github.com/fonoster/routr/blob/ee5d339888344013939d06c734385f17f0cd75c2/mod/registrar/utils.js#L131
 function buildRoute(request: MessageRequest, uri: CT.SipURI): Route {
+  const via = request.message.via[0]
   const sessionCount = E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT)
     ? parseInt(E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT))
     : -1
@@ -37,6 +38,8 @@ function buildRoute(request: MessageRequest, uri: CT.SipURI): Route {
     user: uri.user,
     host: uri.host,
     port: uri.port,
+    advertisedHost: via.host,
+    advertisedPort: via.port,
     transport: uri.transportParam?.toUpperCase() as Transport,
     registeredOn: Date.now(),
     sessionCount,

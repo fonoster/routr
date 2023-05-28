@@ -30,11 +30,13 @@ export const route: Route = {
   user: "1001",
   host: "127.0.0.1",
   port: 5060,
+  advertisedHost: "127.0.0.1",
+  advertisedPort: 5060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   listeningPoints: [
     {
       host: "0.0.0.0",
@@ -61,11 +63,13 @@ export const routeOnAnotherEdgePort: Route = {
   user: "1001",
   host: "127.0.0.1",
   port: 5060,
+  advertisedHost: "127.0.0.0",
+  advertisedPort: 5060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: "edge-port-02",
+  edgePortRef: "edgeport-02",
   listeningPoints: [
     {
       host: "0.0.0.0",
@@ -79,7 +83,7 @@ export const routeOnAnotherEdgePort: Route = {
 
 export const request: MessageRequest = {
   ref: "AynhXaFtbdXwHrUEzt_rUQ..",
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   method: Method.REGISTER,
   externalAddrs: ["200.22.21.42"],
   localnets: ["127.0.0.1/8", "10.100.42.127/24", "10.100.43.128/31"],

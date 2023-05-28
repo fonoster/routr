@@ -174,6 +174,8 @@ export interface Route {
   user: string
   host: string
   port: number
+  advertisedHost: string
+  advertisedPort: number
   transport: Transport
   registeredOn?: number
   /**

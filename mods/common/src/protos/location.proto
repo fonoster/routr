@@ -40,6 +40,8 @@ message Route {
   string user = 1;
   string host = 2;
   string port = 3;
+  string advertised_host = 13;
+  string advertised_port = 14;
   fonoster.routr.common.v2beta1.Transport transport = 4;
   int64 registered_on = 5;
   int32 expires = 6;

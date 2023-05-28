@@ -22,11 +22,13 @@ export const simpleRoute01: Route = {
   user: "1001",
   host: "127.0.0.1",
   port: 6060,
+  advertisedHost: "127.0.0.1",
+  advertisedPort: 6060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -43,11 +45,13 @@ export const simpleRoute02: Route = {
   user: "1001",
   host: "127.0.0.1",
   port: 6061,
+  advertisedHost: "127.0.0.1",
+  advertisedPort: 6061,
   transport: Transport.UDP,
   registeredOn: Date.now(),
   sessionCount: -1,
   expires: 600,
-  edgePortRef: "edge-port-02",
+  edgePortRef: "edgeport-02",
   listeningPoints: [
     {
       host: "proxy",
@@ -64,11 +68,13 @@ export const voiceBackendRoute01: Route = {
   user: "voice01",
   host: "192.168.1.2",
   port: 5060,
+  advertisedHost: "192.168.1.2",
+  advertisedPort: 5060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: 50,
   expires: 600,
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -85,11 +91,13 @@ export const voiceBackendRoute02: Route = {
   user: "voice02",
   host: "192.168.1.3",
   port: 5060,
+  advertisedHost: "192.168.1.3",
+  advertisedPort: 5060,
   transport: Transport.UDP,
   registeredOn: Date.now(),
   sessionCount: 200,
   expires: 600,
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -105,11 +113,13 @@ export const voiceBackendRoute03: Route = {
   user: "voice03",
   host: "192.168.1.4",
   port: 5060,
+  advertisedHost: "192.168.1.4",
+  advertisedPort: 5060,
   transport: Transport.UDP,
   registeredOn: Date.now(),
   sessionCount: 150,
   expires: 600,
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -125,11 +135,13 @@ export const voiceBackendRoute04: Route = {
   user: "voice04",
   host: "192.168.1.5",
   port: 5060,
+  advertisedHost: "192.168.1.5",
+  advertisedPort: 5060,
   transport: Transport.UDP,
   registeredOn: Date.now(),
   sessionCount: 201,
   expires: 600,
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -145,11 +157,13 @@ export const voiceBackendRoute05: Route = {
   user: "voice05",
   host: "192.168.1.6",
   port: 5060,
+  advertisedHost: "192.168.1.6",
+  advertisedPort: 5060,
   transport: Transport.UDP,
   registeredOn: Date.now(),
   sessionCount: 3,
   expires: 600,
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -165,11 +179,13 @@ export const conferenceBackendRoute01: Route = {
   user: "conference01",
   host: "conference.local",
   port: 5060,
+  advertisedHost: "conference.local",
+  advertisedPort: 5060,
   transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: 20,
   expires: 600,
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -185,11 +201,13 @@ export const conferenceBackendRoute02: Route = {
   user: "conference02",
   host: "conference.local",
   port: 5061,
+  advertisedHost: "conference.local",
+  advertisedPort: 5061,
   transport: Transport.TCP,
   registeredOn: Date.now(),
   sessionCount: 50,
   expires: 600,
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   listeningPoints: [
     {
       host: "proxy",
@@ -205,11 +223,13 @@ export const conferenceWithExpiredRoute: Route = {
   user: "conference03",
   host: "conference.remote",
   port: 5060,
+  advertisedHost: "conference.remote",
+  advertisedPort: 5060,
   transport: Transport.TCP,
   registeredOn: 1647054012869,
   sessionCount: 10,
   expires: 10,
-  edgePortRef: "edge-port-01",
+  edgePortRef: "edgeport-01",
   listeningPoints: [
     {
       host: "proxy",
