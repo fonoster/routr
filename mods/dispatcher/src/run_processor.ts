@@ -37,7 +37,7 @@ export async function runProcessor(
 ): Promise<MessageRequest> {
   const currentSpan = ot.trace.getSpan(ot.context.active())
   // Display traceid in the terminal
-  logger.verbose(`traceid: ${currentSpan?.spanContext().traceId}`)
+  logger.silly(`traceid: ${currentSpan?.spanContext().traceId}`)
 
   const { connections, processors, request } = params
 
