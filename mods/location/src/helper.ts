@@ -71,5 +71,9 @@ export function createRoute(request: MessageRequest): Route {
  */
 export function createRouteFromLastMessage(request: MessageRequest): Route {
   const uri = request.message.requestUri
+  const via = request.message.via[0]
+  // WARNING: Temporary to avoid defaulting to UDP
+  // Please see SipURIConverter.java for more details
+  uri.transportParam = via.transport.toUpperCase() as Transport
   return buildRoute(request, uri)
 }

@@ -37,6 +37,7 @@ public class SipURIConverter {
     if (uri.getUser() != null) builder.setUser(uri.getUser());
     if (uri.getHost() != null) builder.setHost(uri.getHost());
     if (uri.getUserPassword() != null) builder.setUserPassword(uri.getUserPassword());
+    // TODO: Set transport explicitly to avoid routing issues when client doesn't set it
     if (uri.getTransportParam() != null) builder.setTransportParam(uri.getTransportParam());
     if (uri.getMethodParam() != null) builder.setMethodParam(uri.getMethodParam());
     if (uri.getUserParam() != null) builder.setUserParam(uri.getUserParam());
