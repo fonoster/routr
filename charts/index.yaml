@@ -2,8 +2,8 @@ apiVersion: v1
 entries:
   routr-connect:
   - apiVersion: v2
-    appVersion: 2.0.28
-    created: "2023-05-28T23:13:16.542557337Z"
+    appVersion: 2.0.32
+    created: "2023-05-29T15:30:31.905277077Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -14,10 +14,10 @@ entries:
       repository: https://charts.bitnami.com/bitnami
       version: 17.7.3
     description: Routr Connect Helm Chart
-    digest: 4cd44a7cc6493716bbd54a0515fa0fa485b0ea8eb6370253e4ac6ee4680c027f
+    digest: a8d7640b836702a6c10de035177e20658e901e097fe66383a2f379abc496ef0f
     name: routr-connect
     type: application
     urls:
-    - routr-connect-0.1.4.tgz
-    version: 0.1.4
-generated: "2023-05-28T23:13:16.530986076Z"
+    - routr-connect-0.1.5.tgz
+    version: 0.1.5
+generated: "2023-05-29T15:30:31.890098704Z"
