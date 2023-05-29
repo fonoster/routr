@@ -42,7 +42,7 @@ module.exports = {
 
     commits.forEach((commit) => {
       const capitalizedSubject = this.capitalizeFirstLetter(commit.subject)
-      text += `- ${capitalizedSubject} ${commit.sha.slice(0, 6)}\n`
+      text += `- ${capitalizedSubject} ${commit.sha.slice(0, 7)}\n`
     })
 
     return text
