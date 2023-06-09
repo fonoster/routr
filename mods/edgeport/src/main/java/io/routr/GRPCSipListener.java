@@ -271,7 +271,8 @@ public class GRPCSipListener implements SipListener {
       }
 
       var requestUriDTO = response.getMessage().getRequestUri();
-      var sipURI = this.addressFactory.createSipURI(requestUriDTO.getUser(), requestUriDTO.getHost());
+      var userPart = requestUriDTO.getUser().isEmpty() ? null : requestUriDTO.getUser();
+      var sipURI = this.addressFactory.createSipURI(userPart, requestUriDTO.getHost());
       sipURI.setPort(requestUriDTO.getPort());
 
       req.setRequestURI(sipURI);

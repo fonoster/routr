@@ -43,9 +43,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ConverterTests {
+  private final static Logger LOG = LogManager.getLogger(Launcher.class);
 
   @Test
   public void testPassingConfig() {
@@ -130,10 +134,12 @@ public class ConverterTests {
   public void testSipURIConverterWithNull() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     AddressFactory factory = SipFactory.getInstance().createAddressFactory();
 
-    SipURI uri = (SipURI) factory.createAddress("sip:sip.local").getURI();
+    SipURI uri = (SipURI) factory.createURI("sip:sip.local");
     SipURIConverter converter = new SipURIConverter();
     io.routr.message.SipURI dto = converter.fromObject(uri);
     SipURI objectFromDto = converter.fromDTO(dto);
+
+    assertEquals(objectFromDto.getUser(), uri.getUser());
     assertNull(objectFromDto.getUser());
   }
 

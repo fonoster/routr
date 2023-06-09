@@ -53,15 +53,14 @@ public class SipURIConverter {
     SipURI uri;
 
     if(dto.getBncParam()) {
-      uri = (SipURI) factory.createAddress("sip:" + dto.getHost() + ";bnc").getURI();
+      uri = (SipURI) factory.createURI("sip:" + dto.getHost() + ";bnc");
     } else {
-      uri = (SipURI) factory.createAddress("sip:" + dto.getHost()).getURI();
+      uri = (SipURI) factory.createURI("sip:" + dto.getHost());
     }
 
     // TODO: Consider generating an error if the User is present in combination with the bnc flag
     if (!dto.getUser().isEmpty()) uri.setUser(dto.getUser());
     if (!dto.getUserParam().isEmpty()) uri.setUserParam(dto.getUserParam());
-    if (!dto.getUserPassword().isEmpty()) uri.setUserPassword(dto.getUserPassword());
     if (!dto.getUserPassword().isEmpty()) uri.setUserPassword(dto.getUserPassword());
     if (dto.getLrParam()) uri.setLrParam();
     if (!dto.getHost().isEmpty()) uri.setHost(dto.getHost());
