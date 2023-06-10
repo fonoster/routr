@@ -65,5 +65,6 @@ export const rtprelayConfig = {
 }
 
 export const apiServerConfig: PostgresDataConfig = {
-  bindAddr: "0.0.0.0:51907"
+  bindAddr: "0.0.0.0:51907",
+  externalServerBindAddr: "0.0.0.0:51908"
 }

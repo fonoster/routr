@@ -20,13 +20,16 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("simpleauth")
 import { getLogger } from "@fonoster/logger"
-import { BIND_ADDR } from "./envs"
+import { BIND_ADDR, EXTERNAL_SERVER_BIND_ADDR } from "./envs"
 import pgDataService from "./service"
 
 const logger = getLogger({ service: "pgdata", filePath: __filename })
 
 try {
-  pgDataService({ bindAddr: BIND_ADDR })
+  pgDataService({
+    bindAddr: BIND_ADDR,
+    externalServerBindAddr: EXTERNAL_SERVER_BIND_ADDR
+  })
 } catch (e) {
   logger.error(e)
   process.exit(1)

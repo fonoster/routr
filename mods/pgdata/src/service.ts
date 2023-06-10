@@ -28,6 +28,14 @@ import { del } from "./api/delete"
 import { findBy } from "./api/find"
 import { list } from "./api/list"
 import { useHealth } from "@fonoster/grpc-health-check"
+import {
+  TLS_ON,
+  SERVER_CERT,
+  SERVER_KEY,
+  CACERT,
+  VERIFY_CLIENT_CERT
+} from "./envs"
+import fs from "fs"
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const interceptor = require("grpc-interceptors")
@@ -43,7 +51,8 @@ const logger = getLogger({ service: "pgdata", filePath: __filename })
 export default function pgDataService(config: PostgresDataConfig): void {
   const { bindAddr } = config
   logger.info("starting routr service", { bindAddr, name: "pgdata" })
-  const server = new grpc.Server()
+  const internalServer = new grpc.Server()
+  const externalServer = new grpc.Server()
 
   const kinds = [
     CC.Kind.AGENT,
@@ -58,19 +67,58 @@ export default function pgDataService(config: PostgresDataConfig): void {
   kinds.forEach((kind) => {
     const k = kind.toLowerCase() as CC.KindWithoutUnknown
     const delegate = prisma[kind as DBDelegate]
-    server.addService(CC.createConnectService(k), {
+    const funcs = {
       create: create(delegate.create, k),
       get: get(delegate.findUnique, k),
       findBy: findBy(delegate.findMany, k),
       delete: del(delegate.delete),
       update: update(delegate.update, k),
       list: list(delegate.findMany, k)
-    })
+    }
+
+    internalServer.addService(CC.createConnectService(k), funcs)
+    externalServer.addService(CC.createConnectService(k), funcs)
   })
   const credentials = grpc.ServerCredentials.createInsecure()
 
-  const withHealthChecks = interceptor.serverProxy(useHealth(server))
+  const withHealthChecks = interceptor.serverProxy(useHealth(internalServer))
   withHealthChecks.bindAsync(config.bindAddr, credentials, () => {
+    logger.info("internal server started", { bindAddr: config.bindAddr })
     withHealthChecks.start()
   })
+
+  if (TLS_ON) {
+    const cacert = VERIFY_CLIENT_CERT ? fs.readFileSync(CACERT) : null
+    const cert = fs.readFileSync(SERVER_CERT)
+    const key = fs.readFileSync(SERVER_KEY)
+    const externalCredentials = grpc.ServerCredentials.createSsl(
+      // By default the server does not ask for the client's certificate.
+      cacert,
+      [
+        {
+          cert_chain: cert,
+          private_key: key
+        }
+      ],
+      VERIFY_CLIENT_CERT
+    )
+    externalServer.bindAsync(
+      config.externalServerBindAddr,
+      externalCredentials,
+      () => {
+        logger.info("external server started", {
+          externalServerBindAddr: config.externalServerBindAddr
+        })
+        externalServer.start()
+      }
+    )
+  } else {
+    externalServer.bindAsync(config.externalServerBindAddr, credentials, () => {
+      logger.info("secure connection disabled")
+      logger.info("external server started", {
+        externalServerBindAddr: config.externalServerBindAddr
+      })
+      externalServer.start()
+    })
+  }
 }

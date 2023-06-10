@@ -21,6 +21,7 @@ import { JsonObject } from "pb-util/build"
 
 export interface PostgresDataConfig {
   bindAddr: string
+  externalServerBindAddr: string
 }
 
 export type DBDelegate =
