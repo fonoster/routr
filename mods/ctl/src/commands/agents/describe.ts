@@ -36,9 +36,9 @@ export default class DescribeCommand extends BaseCommand {
 
   async run() {
     const { args, flags } = await this.parse(DescribeCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
 
-    const api = new SDK.Agents({ endpoint, insecure })
+    const api = new SDK.Agents({ endpoint, insecure, cacert })
 
     try {
       const agent = await api.getAgent(args.ref)

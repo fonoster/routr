@@ -35,9 +35,9 @@ export default class DescribeCommand extends BaseCommand {
 
   async run() {
     const { args, flags } = await this.parse(DescribeCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
 
-    const api = new SDK.ACL({ endpoint, insecure })
+    const api = new SDK.ACL({ endpoint, insecure, cacert })
 
     try {
       const acl = await api.getACL(args.ref)

@@ -39,7 +39,7 @@ Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
   async run(): Promise<void> {
     const { flags } = await this.parse(CreateCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
 
     this.log("This utility will help you create a new set of Credentials.")
     this.log("Press ^C at any time to quit.")
@@ -81,7 +81,7 @@ Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
     } else {
       try {
         CliUx.ux.action.start(`Creating Credentials ${answers.name}`)
-        const api = new SDK.Credentials({ endpoint, insecure })
+        const api = new SDK.Credentials({ endpoint, insecure, cacert })
         const credentials = await api.createCredentials(answers)
 
         await CliUx.ux.wait(1000)

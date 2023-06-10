@@ -43,21 +43,24 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
   async run(): Promise<void> {
     const { flags } = await this.parse(CreateAgentCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
 
     try {
       // TODO: Fix hardcoded pageSize
-      const domains = await new SDK.Domains({ endpoint, insecure }).listDomains(
-        {
-          pageSize: 25,
-          pageToken: ""
-        }
-      )
+      const domains = await new SDK.Domains({
+        endpoint,
+        insecure,
+        cacert
+      }).listDomains({
+        pageSize: 25,
+        pageToken: ""
+      })
 
       // TODO: Fix hardcoded pageSize
       const credentials = await new SDK.Credentials({
         endpoint,
-        insecure
+        insecure,
+        cacert
       }).listCredentials({
         pageSize: 25,
         pageToken: ""
@@ -142,7 +145,7 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         this.warn("Aborted")
       } else {
         CliUx.ux.action.start(`Creating Agent ${answers.name}`)
-        const api = new SDK.Agents({ endpoint, insecure })
+        const api = new SDK.Agents({ endpoint, insecure, cacert })
         const agent = await api.createAgent(answers)
 
         await CliUx.ux.wait(1000)

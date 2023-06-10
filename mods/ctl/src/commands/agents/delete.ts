@@ -31,9 +31,9 @@ Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 
   async run() {
     const { flags } = await this.parse(DeleteAgentCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
     await super.deleteResource(
-      new SDK.Agents({ endpoint, insecure }),
+      new SDK.Agents({ endpoint, insecure, cacert }),
       "deleteAgent"
     )
   }

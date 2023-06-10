@@ -40,7 +40,7 @@ Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
   async run(): Promise<void> {
     const { flags } = await this.parse(CreateCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
 
     try {
       this.log("This utility will help you create a new ACL")
@@ -81,7 +81,7 @@ Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         this.warn("Aborted")
       } else {
         CliUx.ux.action.start(`Creating ACL ${answers.name}`)
-        const api = new SDK.ACL({ endpoint, insecure })
+        const api = new SDK.ACL({ endpoint, insecure, cacert })
         const acl = await api.createACL(answers)
 
         await CliUx.ux.wait(1000)

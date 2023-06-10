@@ -55,14 +55,14 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
-    const { endpoint, insecure } = flags
-    const api = new SDK.Trunks({ endpoint, insecure })
+    const { endpoint, insecure, cacert } = flags
+    const api = new SDK.Trunks({ endpoint, insecure, cacert })
 
     try {
       const trunkFromDB = await api.getTrunk(args.ref)
 
       // TODO: Add support for pagination
-      const acls = await new SDK.ACL({ endpoint, insecure }).listACLs({
+      const acls = await new SDK.ACL({ endpoint, insecure, cacert }).listACLs({
         pageSize: 25,
         pageToken: ""
       })
@@ -76,7 +76,8 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
       const credentials = await new SDK.Credentials({
         endpoint,
-        insecure
+        insecure,
+        cacert
       }).listCredentials({
         pageSize: 25,
         pageToken: ""

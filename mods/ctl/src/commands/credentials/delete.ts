@@ -31,9 +31,9 @@ Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 
   async run() {
     const { flags } = await this.parse(DeleteCrendentialsCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
     await super.deleteResource(
-      new SDK.Credentials({ endpoint, insecure }),
+      new SDK.Credentials({ endpoint, insecure, cacert }),
       "deleteCredentials"
     )
   }

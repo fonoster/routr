@@ -21,6 +21,7 @@ export interface ClientOptions {
   insecure?: boolean
   username?: string
   password?: string
+  cacert?: string
 }
 
 // The base type to omit from BaseConnectModel

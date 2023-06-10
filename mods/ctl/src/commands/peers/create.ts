@@ -45,11 +45,15 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
   async run(): Promise<void> {
     const { flags } = await this.parse(CreateCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
 
     try {
       // TODO: Fix hardcoded pageSize
-      const acls = await new SDK.ACL({ endpoint, insecure }).listACLs({
+      const acls = await new SDK.ACL({
+        endpoint,
+        insecure,
+        cacert
+      }).listACLs({
         pageSize: 25,
         pageToken: ""
       })
@@ -57,7 +61,8 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       // TODO: Fix hardcoded pageSize
       const credentials = await new SDK.Credentials({
         endpoint,
-        insecure
+        insecure,
+        cacert
       }).listCredentials({
         pageSize: 25,
         pageToken: ""
@@ -154,7 +159,7 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         this.warn("Aborted")
       } else {
         CliUx.ux.action.start(`Creating Peer ${answers.name}`)
-        const api = new SDK.Peers({ endpoint, insecure })
+        const api = new SDK.Peers({ endpoint, insecure, cacert })
 
         const peer = await api.createPeer(answers)
 

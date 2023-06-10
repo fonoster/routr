@@ -47,14 +47,14 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
 
     try {
-      const api = new SDK.Domains({ endpoint, insecure })
+      const api = new SDK.Domains({ endpoint, insecure, cacert })
       const domainFromDB = await api.getDomain(args.ref)
 
       // TODO: Fix hardcoded pageSize
-      const acls = await new SDK.ACL({ endpoint, insecure }).listACLs({
+      const acls = await new SDK.ACL({ endpoint, insecure, cacert }).listACLs({
         pageSize: 25,
         pageToken: ""
       })
@@ -67,12 +67,14 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
       })
 
       // TODO: Fix hardcoded pageSize
-      const numbers = await new SDK.Numbers({ endpoint, insecure }).listNumbers(
-        {
-          pageSize: 25,
-          pageToken: ""
-        }
-      )
+      const numbers = await new SDK.Numbers({
+        endpoint,
+        insecure,
+        cacert
+      }).listNumbers({
+        pageSize: 25,
+        pageToken: ""
+      })
 
       const numberChoices = numbers.items.map((number: CC.INumber) => {
         return {

@@ -26,10 +26,14 @@ export abstract class BaseCommand extends Command {
       description: "allow insecure connections to the routr server",
       default: false
     }),
+    cacert: Flags.string({
+      char: "c",
+      description: "path to the CA certificate to verify the server"
+    }),
     endpoint: Flags.string({
       char: "e",
       description: "endpoint to connect to the routr server",
-      default: "localhost:51907"
+      default: "localhost:51908"
     })
   }
 }

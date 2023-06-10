@@ -43,8 +43,8 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
-    const { endpoint, insecure } = flags
-    const api = new SDK.ACL({ endpoint, insecure })
+    const { endpoint, insecure, cacert } = flags
+    const api = new SDK.ACL({ endpoint, insecure, cacert })
 
     try {
       const aclFromDB = await api.getACL(args.ref)

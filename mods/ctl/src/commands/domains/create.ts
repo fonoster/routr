@@ -40,11 +40,11 @@ Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
   async run(): Promise<void> {
     const { flags } = await this.parse(CreateCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
 
     try {
       // TODO: Fix hardcoded pageSize
-      const acls = await new SDK.ACL({ endpoint, insecure }).listACLs({
+      const acls = await new SDK.ACL({ endpoint, insecure, cacert }).listACLs({
         pageSize: 25,
         pageToken: ""
       })
@@ -57,12 +57,14 @@ Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       })
 
       // TODO: Fix hardcoded pageSize
-      const numbers = await new SDK.Numbers({ endpoint, insecure }).listNumbers(
-        {
-          pageSize: 25,
-          pageToken: ""
-        }
-      )
+      const numbers = await new SDK.Numbers({
+        endpoint,
+        insecure,
+        cacert
+      }).listNumbers({
+        pageSize: 25,
+        pageToken: ""
+      })
 
       const numberChoices = numbers.items.map((number: CC.INumber) => {
         return {
@@ -154,7 +156,7 @@ Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         this.warn("Aborted")
       } else {
         CliUx.ux.action.start(`Creating Domain ${group1.name}`)
-        const api = new SDK.Domains({ endpoint, insecure })
+        const api = new SDK.Domains({ endpoint, insecure, cacert })
         const domains = await api.createDomain({
           ...group1,
           egressPolicies

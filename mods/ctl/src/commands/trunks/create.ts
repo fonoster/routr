@@ -48,11 +48,11 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
   async run(): Promise<void> {
     const { flags } = await this.parse(CreateTrunkCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
 
     try {
       // TODO: Add support for pagination
-      const acls = await new SDK.ACL({ endpoint, insecure }).listACLs({
+      const acls = await new SDK.ACL({ endpoint, insecure, cacert }).listACLs({
         pageSize: 25,
         pageToken: ""
       })
@@ -66,7 +66,8 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
       const credentials = await new SDK.Credentials({
         endpoint,
-        insecure
+        insecure,
+        cacert
       }).listCredentials({
         pageSize: 25,
         pageToken: ""
@@ -208,7 +209,7 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         this.warn("Aborted")
       } else {
         CliUx.ux.action.start(`Creating Trunk ${group1.name}`)
-        const api = new SDK.Trunks({ endpoint, insecure })
+        const api = new SDK.Trunks({ endpoint, insecure, cacert })
         const trunk = await api.createTrunk({
           ...group1,
           uris

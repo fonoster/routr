@@ -46,10 +46,10 @@ Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
-    const { endpoint, insecure } = flags
+    const { endpoint, insecure, cacert } = flags
 
     try {
-      const api = new SDK.Credentials({ endpoint, insecure })
+      const api = new SDK.Credentials({ endpoint, insecure, cacert })
       const credentialsFromDB = await api.getCredentials(args.ref)
 
       this.log(

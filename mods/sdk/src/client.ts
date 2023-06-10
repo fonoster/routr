@@ -19,9 +19,10 @@
 /* eslint-disable require-jsdoc */
 import * as grpc from "@grpc/grpc-js"
 import { Metadata } from "@grpc/grpc-js"
-import { CommonConnect as CC } from "@routr/common"
+import { CommonConnect as CC, Assertions as A } from "@routr/common"
 import { APIClient as ConnectClient } from "@routr/common/src/connect"
 import { ClientOptions } from "./types"
+import fs from "fs"
 
 export abstract class APIClient {
   client: ConnectClient
@@ -37,10 +38,18 @@ export abstract class APIClient {
       )
     }
 
+    if (options.cacert) {
+      A.assertFileExist(options.cacert)
+    }
+
+    const cacert = fs.existsSync(options.cacert)
+      ? fs.readFileSync(options.cacert)
+      : null
+
     const credentials =
       process.env.ALLOW_INSECURE === "true" || options.insecure === true
         ? grpc.credentials.createInsecure()
-        : grpc.credentials.createSsl()
+        : grpc.credentials.createSsl(cacert)
 
     this.client = CC.apiClient({
       apiAddr: options.endpoint,
