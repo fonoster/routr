@@ -21,6 +21,6 @@ import { Assertions as A } from "@routr/common"
 A.assertEnvsAreSet(["PATH_TO_AUTH", "METHODS"])
 
 export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51903"
-export const WHITELIST = process.env.WHITELIST?.split(",") ?? []
+export const ALLOWLIST = process.env.ALLOWLIST?.split(",") ?? []
 export const METHODS = process.env.METHODS?.split(",") ?? []
 export const PATH_TO_AUTH = process.env.PATH_TO_AUTH

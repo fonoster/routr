@@ -21,7 +21,7 @@
 require("./tracer").init("simpleauth")
 import { User } from "./types"
 import { getLogger } from "@fonoster/logger"
-import { BIND_ADDR, METHODS, PATH_TO_AUTH, WHITELIST } from "./envs"
+import { BIND_ADDR, METHODS, PATH_TO_AUTH, ALLOWLIST } from "./envs"
 import simpleAuthProcessor from "./service"
 
 const logger = getLogger({ service: "simpleauth", filePath: __filename })
@@ -32,7 +32,7 @@ try {
   simpleAuthProcessor({
     users,
     bindAddr: BIND_ADDR,
-    whiteList: WHITELIST,
+    allowlist: ALLOWLIST,
     methods: METHODS
   })
 } catch (e) {

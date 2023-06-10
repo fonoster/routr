@@ -97,7 +97,7 @@ export const checkAccessFromPSTN = async (
     return Auth.createForbideenResponse()
   }
 
-  // Verify that the IP is whitelisted which means getting the access control list for the trunk
+  // Verify that the IP is allowlist which means getting the access control list for the trunk
   if (trunk.accessControlList) {
     try {
       const allow = trunk.accessControlList.allow.filter((net: string) => {

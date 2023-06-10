@@ -139,7 +139,6 @@ export const handleRegistry = (req: MessageRequest, res: Response) => {
   )
 }
 
-// TODO: If request has X-Connect-Token then validate the JWT value and continue
 export const handleRequest =
   (location: ILocationService, apiClient?: CC.APIClient) =>
   async (request: MessageRequest, res: Response) => {

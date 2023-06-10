@@ -27,20 +27,20 @@ const logger = getLogger({ service: "simpledata", filePath: __filename })
 
 /**
  * A simple authentication middleware that authenticates users based on a list of users
- * or whitelisted endpoints paths.
+ * or allowlist endpoints paths.
  *
  * @param {MiddlewareConfig} config - configuration for the middleware
  * @param {string} config.bindAddr - address to bind to
  * @param {User[]} config.users - list of users
- * @param {string[]} config.whiteList - list of path that required no authentication
+ * @param {string[]} config.allowlist - list of path that required no authentication
  */
 export default function simpleAuthMiddleware(config: {
   bindAddr: string
   users: User[]
-  whiteList: string[]
+  allowlist: string[]
   methods: string[]
 }) {
-  const { bindAddr, users, whiteList, methods } = config
+  const { bindAddr, users, allowlist, methods } = config
 
   new Processor({ bindAddr, name: "simpleauth" }).listen(
     (req: MessageRequest, res: Response) => {
@@ -63,7 +63,7 @@ export default function simpleAuthMiddleware(config: {
         return res.send(req)
       }
 
-      if (whiteList.includes(req.message.from.address.uri.user)) {
+      if (allowlist.includes(req.message.from.address.uri.user)) {
         span.addEvent(
           `authenticated ${req.message.from.address.uri.user} from whitelist`
         )
