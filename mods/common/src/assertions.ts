@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import { getLogger } from "@fonoster/logger"
+import fs from "fs"
 
 const logger = getLogger({ service: "common", filePath: __filename })
 
@@ -34,4 +35,15 @@ export function assertEnvsAreSet(variables: string[]) {
       process.exit(1)
     }
   })
+}
+
+/**
+ * Function that asserts that the given file exists.
+ * @param {string} file file to check
+ */
+export function assertFileExist(file: string) {
+  if (!fs.existsSync(file)) {
+    logger.error(`the file ${file} does not exist`)
+    process.exit(1)
+  }
 }
