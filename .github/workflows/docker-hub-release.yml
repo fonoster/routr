@@ -229,7 +229,8 @@ jobs:
           name: fonoster/routr-pgdata
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          workdir: mods/pgdata
+          context: .
+          dockerfile: mods/pgdata/Dockerfile
           buildoptions: "--target runner"
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
           platforms: linux/amd64,linux/arm64

@@ -4,8 +4,14 @@
 FROM alpine:3.17 as runner
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
-COPY . /scripts
 WORKDIR /scripts
+
+ENV PATH_TO_CERTS=/etc/routr/certs
+ENV TLS_ON=true
+ENV VERIFY_CLIENT_CERT=false
+
+COPY .scripts/generate-certs.sh .
+COPY mods/pgdata .
 
 RUN apk add --no-cache git tini nodejs npm python3 make cmake g++ \
   && npm pack \
@@ -15,18 +21,21 @@ RUN apk add --no-cache git tini nodejs npm python3 make cmake g++ \
   && npx prisma generate \
   && ln -s /usr/local/bin/run_pgdata /usr/local/bin/run \
   && apk del git python3 make cmake g++ npm \
-  && rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/*
+  && rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/* \
+  && chmod +x ./scripts/generate-certs.sh
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
-CMD ["run"]
+CMD ["sh", "-c", "set -e && ./generate-certs.sh $PATH_TO_CERTS && run"]
 
 ##
 ## Migrations
 ##
 FROM node:16.15.1-alpine3.15 as migrations
+
 WORKDIR /db
-COPY migrations /db/migrations
-COPY schema.prisma /db
+
+COPY mods/pgdata/migrations migrations
+COPY mods/pgdata/schema.prisma .
 
 CMD ["npx", "-y", "prisma", "migrate", "deploy"]
