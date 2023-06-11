@@ -22,7 +22,7 @@ RUN apk add --no-cache git tini nodejs npm python3 make cmake g++ \
   && ln -s /usr/local/bin/run_pgdata /usr/local/bin/run \
   && apk del git python3 make cmake g++ npm \
   && rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/* \
-  && chmod +x ./scripts/generate-certs.sh
+  && chmod +x generate-certs.sh
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
