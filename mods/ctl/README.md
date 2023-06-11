@@ -19,7 +19,7 @@ $ npm install -g @routr/ctl
 $ rctl COMMAND
 running command...
 $ rctl (--version)
-@routr/ctl/2.0.31 linux-x64 node-v18.16.0
+@routr/ctl/2.1.0 linux-x64 node-v18.16.0
 $ rctl --help [COMMAND]
 USAGE
   $ rctl COMMAND
@@ -80,10 +80,11 @@ Creates a new ACL
 
 ```
 USAGE
-  $ rctl acl create [-i] [-e <value>]
+  $ rctl acl create [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -100,10 +101,11 @@ Deletes an Access Control List
 
 ```
 USAGE
-  $ rctl acl delete [REF] [-i] [-e <value>]
+  $ rctl acl delete [REF] [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -120,13 +122,14 @@ shows details of an ACL
 
 ```
 USAGE
-  $ rctl acl describe [REF] [-i] [-e <value>]
+  $ rctl acl describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to the ACL
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -139,13 +142,14 @@ Shows a list of paginated ACLs or a single ACL if a ref is provided
 
 ```
 USAGE
-  $ rctl acl get [REF] [-i] [-e <value>] [-s <value>] [-x]
+  $ rctl acl get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to an ACL
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
   -s, --size=<value>      [default: 50] the number of items to return
   -x, --extended          extended output format
@@ -165,13 +169,14 @@ Updates an existing ACL
 
 ```
 USAGE
-  $ rctl acl update [REF] [-i] [-e <value>]
+  $ rctl acl update [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an ACL
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -188,10 +193,11 @@ Creates a new Agent
 
 ```
 USAGE
-  $ rctl agents create [-i] [-e <value>]
+  $ rctl agents create [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -208,10 +214,11 @@ Deletes an Agent
 
 ```
 USAGE
-  $ rctl agents delete [REF] [-i] [-e <value>]
+  $ rctl agents delete [REF] [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -228,13 +235,14 @@ shows details of an Agent
 
 ```
 USAGE
-  $ rctl agents describe [REF] [-i] [-e <value>]
+  $ rctl agents describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to the Agent
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -247,13 +255,14 @@ Shows a list of paginated Agents or a single Agent if ref is provided
 
 ```
 USAGE
-  $ rctl agents get [REF] [-i] [-e <value>] [-s <value>] [-x]
+  $ rctl agents get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  Optional Agents reference
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
   -s, --size=<value>      [default: 50] The number of items to return
   -x, --extended          extended output format
@@ -273,13 +282,14 @@ Updates an existing Agent
 
 ```
 USAGE
-  $ rctl agents update [REF] [-i] [-e <value>]
+  $ rctl agents update [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Agent
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -325,10 +335,11 @@ Creates a new set of Credentials
 
 ```
 USAGE
-  $ rctl credentials create [-i] [-e <value>]
+  $ rctl credentials create [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -345,10 +356,11 @@ Deletes a set of Credentials
 
 ```
 USAGE
-  $ rctl credentials delete [REF] [-i] [-e <value>]
+  $ rctl credentials delete [REF] [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -365,13 +377,14 @@ shows details for a set of Credentials
 
 ```
 USAGE
-  $ rctl credentials describe [REF] [-i] [-e <value>]
+  $ rctl credentials describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to the set of Credentials
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -384,13 +397,14 @@ Shows a list of paginated Credentials or a single set if ref is provided
 
 ```
 USAGE
-  $ rctl credentials get [REF] [-i] [-e <value>] [-s <value>] [-x]
+  $ rctl credentials get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to a set of Credentials
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
   -s, --size=<value>      [default: 50] the number of items to return
   -x, --extended          extended output format
@@ -410,13 +424,14 @@ Updates an existing set of Credentials
 
 ```
 USAGE
-  $ rctl credentials update [REF] [-i] [-e <value>]
+  $ rctl credentials update [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing set of Credentials
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -433,10 +448,11 @@ Creates a new set Domain
 
 ```
 USAGE
-  $ rctl domains create [-i] [-e <value>]
+  $ rctl domains create [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -453,10 +469,11 @@ Deletes a Domain
 
 ```
 USAGE
-  $ rctl domains delete [REF] [-i] [-e <value>]
+  $ rctl domains delete [REF] [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -473,13 +490,14 @@ show details of a Domain
 
 ```
 USAGE
-  $ rctl domains describe [REF] [-i] [-e <value>]
+  $ rctl domains describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to the Domain
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -492,13 +510,14 @@ Shows a list of paginated Domains or a single Domain if ref is provided
 
 ```
 USAGE
-  $ rctl domains get [REF] [-i] [-e <value>] [-s <value>] [-x]
+  $ rctl domains get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to a Domain
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
   -s, --size=<value>      [default: 50] the number of items to return
   -x, --extended          extended output format
@@ -518,13 +537,14 @@ Updates an existing Domain
 
 ```
 USAGE
-  $ rctl domains update [REF] [-i] [-e <value>]
+  $ rctl domains update [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Domain
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -541,10 +561,11 @@ Creates a new Number
 
 ```
 USAGE
-  $ rctl numbers create [-i] [-e <value>]
+  $ rctl numbers create [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -561,10 +582,11 @@ Deletes a Number
 
 ```
 USAGE
-  $ rctl numbers delete [REF] [-i] [-e <value>]
+  $ rctl numbers delete [REF] [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -581,13 +603,14 @@ shows details for a Number
 
 ```
 USAGE
-  $ rctl numbers describe [REF] [-i] [-e <value>]
+  $ rctl numbers describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to the Number
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -600,13 +623,14 @@ Shows a list of paginated Numbers or a single Number if ref is provided
 
 ```
 USAGE
-  $ rctl numbers get [REF] [-i] [-e <value>] [-s <value>] [-x]
+  $ rctl numbers get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to a Number
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
   -s, --size=<value>      [default: 50] the number of items to return
   -x, --extended          extended output format
@@ -626,13 +650,14 @@ Updates an existing set of Credentials
 
 ```
 USAGE
-  $ rctl numbers update [REF] [-i] [-e <value>]
+  $ rctl numbers update [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Number
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -649,10 +674,11 @@ Creates a new Peer
 
 ```
 USAGE
-  $ rctl peers create [-i] [-e <value>]
+  $ rctl peers create [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -669,10 +695,11 @@ Deletes a Peer
 
 ```
 USAGE
-  $ rctl peers delete [REF] [-i] [-e <value>]
+  $ rctl peers delete [REF] [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -689,13 +716,14 @@ shows details for a Peer
 
 ```
 USAGE
-  $ rctl peers describe [REF] [-i] [-e <value>]
+  $ rctl peers describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to the Peer
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -708,13 +736,14 @@ Shows a list of paginated Peers or a single Peer if ref is provided
 
 ```
 USAGE
-  $ rctl peers get [REF] [-i] [-e <value>] [-s <value>] [-x]
+  $ rctl peers get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to a Peer
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
   -s, --size=<value>      [default: 50] the number of items to return
   -x, --extended          extended output format
@@ -734,13 +763,14 @@ Updates an existing Peer
 
 ```
 USAGE
-  $ rctl peers update [REF] [-i] [-e <value>]
+  $ rctl peers update [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Peer
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -990,10 +1020,11 @@ Creates a new Trunk
 
 ```
 USAGE
-  $ rctl trunks create [-i] [-e <value>]
+  $ rctl trunks create [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -1010,10 +1041,11 @@ Deletes a Trunk
 
 ```
 USAGE
-  $ rctl trunks delete [REF] [-i] [-e <value>]
+  $ rctl trunks delete [REF] [-i] [-c <value>] [-e <value>]
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -1030,13 +1062,14 @@ shows details for a Trunk
 
 ```
 USAGE
-  $ rctl trunks describe [REF] [-i] [-e <value>]
+  $ rctl trunks describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to the Trunk
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
@@ -1049,13 +1082,14 @@ Shows a list of paginated Trunks or a single Trunk if ref is provided
 
 ```
 USAGE
-  $ rctl trunks get [REF] [-i] [-e <value>] [-s <value>] [-x]
+  $ rctl trunks get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
   REF  optional reference to a Trunk
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
   -s, --size=<value>      [default: 50] the number of items to return
   -x, --extended          extended output format
@@ -1075,13 +1109,14 @@ Updates an existing Trunk
 
 ```
 USAGE
-  $ rctl trunks update [REF] [-i] [-e <value>]
+  $ rctl trunks update [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Trunk
 
 FLAGS
-  -e, --endpoint=<value>  [default: localhost:51907] endpoint to connect to the routr server
+  -c, --cacert=<value>    path to the CA certificate to verify the server
+  -e, --endpoint=<value>  [default: localhost:51908] endpoint to connect to the routr server
   -i, --insecure          allow insecure connections to the routr server
 
 DESCRIPTION
