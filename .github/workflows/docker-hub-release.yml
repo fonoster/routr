@@ -65,7 +65,8 @@ jobs:
           name: fonoster/routr-edgeport
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          workdir: mods/edgeport
+          context: .
+          dockerfile: mods/edgeport/Dockerfile
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
           # TODO: Replace base image to allow for arm support
           # platforms: linux/amd64,linux/arm64

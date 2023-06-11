@@ -6,7 +6,9 @@ services:
   edgeport01:
     container_name: edgeport01
     image: fonoster/routr-edgeport
-    build: ./mods/edgeport
+    build:
+      context: .
+      dockerfile: ./mods/edgeport/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
@@ -31,7 +33,9 @@ services:
   edgeport02:
     container_name: edgeport02
     image: fonoster/routr-edgeport
-    build: ./mods/edgeport
+    build:
+      context: .
+      dockerfile: ./mods/edgeport/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
