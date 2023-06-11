@@ -1,27 +1,17 @@
 #!/bin/bash
 
-set -e
+basepath=${1:-"."}  # if $1 is not passed, use current directory
 
-storePassword="changeme"
-alias="yourAlias"
-keyalg="RSA"
-keysize=2048
-validity=365
-dname="CN=example.com, OU=Example Org Unit, O=Example Org, L=City, ST=State, C=Country"
-ext="san=dns:localhost,ip:127.0.0.1"
+mkdir -p $basepath
 
-# Create keystore and generate self-signed certificate
-keytool -genkeypair -alias "$alias" -keyalg "$keyalg" -keysize "$keysize" -validity "$validity" \
- -dname "$dname" -keystore keystore.jks -storetype PKCS12 -storepass "$storePassword" -keypass "$storePassword" \
- -ext "$ext"
+echo "Generating certificates in $basepath..."
 
-# Export the certificate from keystore
-keytool -exportcert -alias "$alias" -keystore keystore.jks -storepass "$storePassword" -file server.crt
+openssl genrsa -out $basepath/ca.key 2048
+openssl req -new -x509 -key $basepath/ca.key -out $basepath/ca.crt -subj "/CN=My Test CA"
+openssl genrsa -out $basepath/server.key 2048
+openssl req -new -key $basepath/server.key -out $basepath/server.csr -subj "/CN=localhost"
+openssl x509 -req -in $basepath/server.csr -CA $basepath/ca.crt -CAkey $basepath/ca.key -CAcreateserial -out $basepath/server.crt
 
-# Create truststore and import the certificate
-keytool -importcert -alias "$alias" -file server.crt -keystore domains-cert.jks -storetype PKCS12 -storepass "$storePassword" -noprompt
+rm $basepath/server.csr
 
-# Clean up
-rm server.crt keystore.jks
-
-echo "certificates have been successfully created."
+echo "Done."

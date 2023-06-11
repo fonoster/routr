@@ -18,7 +18,7 @@ services:
       - 5063:5063
     volumes:
       - ./config/edgeport.yaml:/etc/routr/edgeport.yaml
-      - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
+      - ./etc/certs/signaling.p12:/etc/routr/certs/signaling.p12
     networks:
       public:
         ipv4_address: 10.111.220.2
@@ -43,7 +43,7 @@ services:
       - 6063:6063
     volumes:
       - ./config/edgeport.alt.yaml:/etc/routr/edgeport.yaml
-      - ./etc/certs/domains-cert.jks:/etc/routr/domains-cert.jks
+      - ./etc/certs/signaling.p12:/etc/routr/certs/signaling.p12
     networks:
       public:
         ipv4_address: 10.111.220.3

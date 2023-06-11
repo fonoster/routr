@@ -9,7 +9,7 @@
 ##
 tasks:
   - name: Setup & start
-    before: sudo sh -c "cat etc/hosts.txt >> /etc/hosts && mkdir -p /etc/routr && cp etc/certs/domains-cert.jks /etc/routr/domains-cert.jks"
+    before: sudo sh -c "cat etc/hosts.txt >> /etc/hosts && mkdir -p /etc/routr && cp etc/certs/signaling.p12 /etc/routr/certs/signaling.p12"
     init: npm run make
     command: npm start
 

@@ -9,10 +9,7 @@ WORKDIR /work
 
 COPY mods/one .
 COPY ./mods/pgdata/schema.prisma .
-COPY ./mods/edgeport/edgeport.sh .
-COPY ./etc/edgeport.yaml .
-COPY ./.scripts/custom-jre.sh custom-jre.sh
-COPY ./.scripts/generate-certs.sh .
+COPY ./.scripts/custom-jre.sh .
 
 RUN apk add --no-cache --update curl git tini python3 make cmake g++ openjdk11-jdk \
   && sh custom-jre.sh \
@@ -23,36 +20,39 @@ RUN apk add --no-cache --update curl git tini python3 make cmake g++ openjdk11-j
   && cd /work && curl -sf https://gobinaries.com/tj/node-prune | sh \
   && node-prune
 
-RUN chmod +x edgeport.sh generate-certs.sh
-
 ##  
 ## Runner
 ##
 FROM node:18-alpine as runner
 
+ARG PKCS_PASSWORD=changeme
+ARG PATH_TO_CERTS=/etc/routr/certs
+
+ENV PKCS_PASSWORD=$PKCS_PASSWORD
+ENV PATH_TO_CERTS=$PATH_TO_CERTS
 ENV USER=fonoster
 ENV GID=5000
 ENV UID=5000
 ENV JAVA_HOME=/service/jre
 ENV EDGEPORT_RUNNER=/service/edgeport.sh
-ENV DOCKER=true
 
 WORKDIR /service
 
+COPY ./mods/edgeport/edgeport.sh .
+COPY ./etc/edgeport.yaml config/edgeport.yaml
+COPY ./.scripts/convert-to-p12.sh .
+COPY ./.scripts/generate-certs.sh .
 COPY --from=builder /work/dist dist
 COPY --from=builder /work/node_modules node_modules
 COPY --from=builder /work/package.json .
 COPY --from=builder /work/jre jre
-COPY --from=builder /work/generate-certs.sh .
-COPY --from=builder /work/edgeport.sh .
-COPY --from=builder /work/edgeport.yaml config/edgeport.yaml
 COPY ./mods/edgeport/libs libs
 COPY config/log4j2.yaml config/log4j2.yaml
 
-RUN chmod +x edgeport.sh generate-certs.sh
+RUN chmod +x edgeport.sh convert-to-p12.sh
 
-RUN apk add --no-cache tini \
-  && mkdir -p /etc/routr \
+RUN apk add --no-cache tini openssl \
+  && mkdir -p ${PATH_TO_CERTS} \
   && addgroup -g ${GID} ${USER} \
   && adduser \
     --disabled-password \
@@ -61,7 +61,6 @@ RUN apk add --no-cache tini \
     --home ${HOME} \
     --uid "$UID" \
     "$USER" \
-  && ln -s ${JAVA_HOME}/bin/keytool /usr/local/bin/keytool \
   && chown -R ${USER}:${USER} /service \
   && chown -R ${USER}:${USER} /etc/routr
 
@@ -69,4 +68,4 @@ USER $USER
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
-CMD ["node", "./dist/runner"]
+CMD ["sh", "-c", "set -e && ./convert-to-p12.sh $PATH_TO_CERTS $PKCS_PASSWORD && node ./dist/runner"]

@@ -15,8 +15,8 @@ spec:
       authType: DisabledAll
     keyStorePassword: changeme
     trustStorePassword: changeme
-    keyStore: "/etc/routr/domains-cert.jks"
-    trustStore: "/etc/routr/domains-cert.jks"
+    keyStore: "/etc/routr/certs/signaling.p12"
+    trustStore: "/etc/routr/certs/signaling.p12"
     keyStoreType: pkcs12
   externalAddrs:
     - 10.111.220.2

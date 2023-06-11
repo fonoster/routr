@@ -18,13 +18,13 @@
  * limitations under the License.
  */
 import { getLogger } from "@fonoster/logger"
-import { spawn, execSync } from "child_process"
+import { spawn } from "child_process"
 import { connectProcessor } from "@routr/connect"
 import { messageDispatcher } from "@routr/dispatcher"
 import { locationService } from "@routr/location"
 import { pgDataService as apiserver } from "@routr/pgdata"
 import { rtprelay } from "@routr/rtprelay"
-import { DOCKER, EDGEPORT_RUNNER } from "./envs"
+import { EDGEPORT_RUNNER } from "./envs"
 import {
   connectConfig,
   dispatcherConfig,
@@ -32,21 +32,10 @@ import {
   apiServerConfig,
   rtprelayConfig
 } from "./configs"
-import fs from "fs"
 
 const logger = getLogger({ service: "one", filePath: __filename })
 
 logger.info("routr v2 // one distribution")
-
-const PATH_TO_CERTS = "/etc/routr/domains-cert.jks"
-
-if (DOCKER && !fs.existsSync(PATH_TO_CERTS)) {
-  logger.info("creating a set of self-signed certs for edgeport", {
-    path: PATH_TO_CERTS
-  })
-  execSync("sh /service/generate-certs.sh /dev/null 2>&1")
-  execSync("mv domains-cert.jks /etc/routr/")
-}
 
 messageDispatcher(dispatcherConfig)
 connectProcessor(connectConfig)

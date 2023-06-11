@@ -43,11 +43,11 @@ const edgePortConfig: EdgePortConfig = {
     // TODO: Add this to the Spec documentation
     securityContext: {
       debugging: false,
-      trustStore: "etc/certs/domains-cert.jks",
+      trustStore: "etc/certs/signaling.p12",
       trustStorePassword: "changeme",
-      keyStore: "etc/certs/domains-cert.jks",
+      keyStore: "etc/certs/signaling.p12",
       keyStorePassword: "changeme",
-      keyStoreType: "jks",
+      keyStoreType: "pkcs12",
       client: {
         authType: "DisabledAll",
         protocols: ["SSLv3", "TLSv1.2", "TLSv1.1", "TLSv1"]
