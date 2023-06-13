@@ -79,16 +79,10 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `edgeport.externalAddrs`                              | The set of addresses at the edge of the network required to correctly route SIP messages                      | `[]`                                                        |
 | `edgeport.methods`                                    | Acceptable SIP methods. Methods not in the list will be treated according with `edgeport.unknownMethodAction` | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]` |
 | `edgeport.unknownMethodAction`                        | Action upon receiving an unsupported SIP method (Reserved for future use)                                     | `Discard`                                                   |
-| `edgeport.transport.tcp.enabled`                      | TCP transport configuration                                                                                   | `true`                                                      |
-| `edgeport.transport.tcp.port`                         | TCP transport configuration                                                                                   | `5060`                                                      |
-| `edgeport.transport.udp.enabled`                      | UDP transport configuration                                                                                   | `true`                                                      |
-| `edgeport.transport.udp.por`                          | UDP transport configuration                                                                                   | `5060`                                                      |
-| `edgeport.transport.tls.enabled`                      | TLS transport configuration                                                                                   | `false`                                                     |
-| `edgeport.transport.tls.por`                          | TLS transport configuration                                                                                   | `5061`                                                      |
-| `edgeport.transport.ws.enabled`                       | WS transport configuration                                                                                    | `true`                                                      |
-| `edgeport.transport.ws.port`                          | WS transport configuration                                                                                    | `5062`                                                      |
-| `edgeport.transport.wss.enabled`                      | WSS transport configuration                                                                                   | `false`                                                     |
-| `edgeport.transport.wss.port`                         | WSS transport configuration                                                                                   | `5063`                                                      |
+| `edgeport.transport`                                  | Transport configuration section                                                                               |                                                             |
+| `edgeport.transport[*].protocol`                      | Acceptable transport                                                                                          | `TCP`, `UDP`, `TLS`, `WS`, `WSS`                            |
+| `edgeport.transport[*].bindAddr`                      | Ipv4 interface to accept requests on                                                                          |                                                             |
+| `edgeport.transport[*].port`                          | Port to listen on                                                                                             |                                                             |
 | `edgeport.image.repository`                           | Image repository                                                                                              | `fonoster/routr-edgeport`                                   |
 | `edgeport.image.tag`                                  | Image tag                                                                                                     | `2.0.8-alpha.35`                                            |
 | `edgeport.image.pullPolicy`                           | Image pull policy                                                                                             | `IfNotPresent`                                              |
@@ -113,12 +107,13 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 | Parameter                                               | Description                                                 | Value                                                              |
 | ------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ |
-| `dispatcher.processors[0].ref`                          | Reference to the Processor                                  | `connect-processor`                                                |
-| `dispatcher.processors[0].servicePrefix`                | Prefix for the service (Defaults to the release name)       | `{{ .Release.Name }}`                                              |
-| `dispatcher.processors[0].serviceName`                  | The name of the service hosting the processor               | `{{ .serviceName }}`                                               |
-| `dispatcher.processors[0].serviceNamespace`             | The namespace for the service (Defaults to the release ns)  | `{{ .Release.Namespace }}`                                         |
-| `dispatcher.processors[0].matchFunc`                    | Routing function                                            | `req => true`                                                      |
-| `dispatcher.processors[0].methods`                      | Acceptable methods                                          | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]`        |
+| `dispatcher.processors`                                 | Processors configuration section                            |                                                                    |                    
+| `dispatcher.processors[*].ref`                          | Reference to the Processor                                  | `connect-processor`                                                |
+| `dispatcher.processors[*].servicePrefix`                | Prefix for the service (Defaults to the release name)       | `{{ .Release.Name }}`                                              |
+| `dispatcher.processors[*].serviceName`                  | The name of the service hosting the processor               | `{{ .serviceName }}`                                               |
+| `dispatcher.processors[*].serviceNamespace`             | The namespace for the service (Defaults to the release ns)  | `{{ .Release.Namespace }}`                                         |
+| `dispatcher.processors[*].matchFunc`                    | Routing function                                            | `req => true`                                                      |
+| `dispatcher.processors[*].methods`                      | Acceptable methods                                          | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]`        |
 | `dispatcher.middlewares`                                | Middlewares configuration section                           | `[]`                                                               |
 | `dispatcher.middlewares[*].ref`                         | Reference to the Middleware                                 | `{{ .ref }}`                                                       |
 | `dispatcher.middlewares[*].servicePrefix`               | Prefix for the service (Defaults to the release name)       | `{{ .Release.Name }}`                                              |
@@ -156,7 +151,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `location.image.pullPolicy`                           | Image pull policy                                           | `IfNotPresent`            |
 | `location.podAnnotations`                             | Pod annotations                                             | `{}`                      |
 | `location.serviceAnnotations`                         | Service annotations                                         | `{}`                      |
-| `location.resources                                   | Resource quotas`                                            | `{}`                      |
+| `location.resources`                                  | Resource quotas                                             | `{}`                      |
 | `location.autoscaling.minReplicas`                    | Minimum number of replicas                                  | `1`                       |
 | `location.autoscaling.maxReplicas`                    | Maximum number of replicas                                  | `10`                      |
 | `location.autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization percentage                           | `50`                      |
