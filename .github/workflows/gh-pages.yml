@@ -6,7 +6,7 @@ on:
     - 'docs/**'
     - '.charts/**'
     branches:
-    - main
+    - v1
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
