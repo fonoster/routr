@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-4.4.0">
     
     
       
@@ -1669,16 +1669,16 @@
 <p>We need a keystore (.jks) to properly handling the certificates. The following steps create a valid keystore file using a self-signed method or using the free <a href="https://letsencrypt.org/">Let's Encrypt service</a>.</p>
 <h3 id="creating-a-self-signed-certificate">Creating a self-signed Certificate<a class="headerlink" href="#creating-a-self-signed-certificate" title="Permanent link">&para;</a></h3>
 <p>Perhaps the easiest way to create a valid certificate for Routr is using a self-signed certificate. To generate the certificate change into <code>etc/certs</code> in your Routr installation and run the following script:</p>
-<div class="highlight"><pre><span></span><code>keytool -genkey -keyalg RSA <span class="se">\</span>
- -noprompt <span class="se">\</span>
- -alias routr <span class="se">\</span>
- -keystore domains-cert.jks <span class="se">\</span>
- -storepass changeit <span class="se">\</span>
- -keypass changeit <span class="se">\</span>
- -validity <span class="m">365</span> <span class="se">\</span>
- -keysize <span class="m">2048</span> <span class="se">\</span>
- -dname <span class="s2">&quot;CN=sip.ocean.com, OU=OSS, O=Your Company Inc, L=Sanford, ST=NC, C=US&quot;</span> <span class="se">\</span>
- -ext <span class="nv">SAN</span><span class="o">=</span>dns:sip.ocean.com,dns:localhost,ip:127.0.0.1
+<div class="highlight"><pre><span></span><code>keytool<span class="w"> </span>-genkey<span class="w"> </span>-keyalg<span class="w"> </span>RSA<span class="w"> </span><span class="se">\</span>
+<span class="w"> </span>-noprompt<span class="w"> </span><span class="se">\</span>
+<span class="w"> </span>-alias<span class="w"> </span>routr<span class="w"> </span><span class="se">\</span>
+<span class="w"> </span>-keystore<span class="w"> </span>domains-cert.jks<span class="w"> </span><span class="se">\</span>
+<span class="w"> </span>-storepass<span class="w"> </span>changeit<span class="w"> </span><span class="se">\</span>
+<span class="w"> </span>-keypass<span class="w"> </span>changeit<span class="w"> </span><span class="se">\</span>
+<span class="w"> </span>-validity<span class="w"> </span><span class="m">365</span><span class="w"> </span><span class="se">\</span>
+<span class="w"> </span>-keysize<span class="w"> </span><span class="m">2048</span><span class="w"> </span><span class="se">\</span>
+<span class="w"> </span>-dname<span class="w"> </span><span class="s2">&quot;CN=sip.ocean.com, OU=OSS, O=Your Company Inc, L=Sanford, ST=NC, C=US&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w"> </span>-ext<span class="w"> </span><span class="nv">SAN</span><span class="o">=</span>dns:sip.ocean.com,dns:localhost,ip:127.0.0.1
 </code></pre></div>
 <p>Remember to adjust the values to match your project's information.</p>
 <blockquote>
@@ -1687,15 +1687,15 @@
 <h3 id="creating-a-certificate-using-lets-encrypt">Creating a Certificate using Let's Encrypt<a class="headerlink" href="#creating-a-certificate-using-lets-encrypt" title="Permanent link">&para;</a></h3>
 <p>The recommended way to create a valid certificate for Routr is using the free service <a href="https://letsencrypt.org">Let's Encrypt</a>. Please go to <a href="https://letsencrypt.org/">https://letsencrypt.org/</a> for details on how to install the required tooling. To generate the certificate, use the following steps:</p>
 <p>&#10122; Create keys</p>
-<div class="highlight"><pre><span></span><code>certbot certonly --standalone -d sip.ocean.com --email admin@sip.ocean.com
+<div class="highlight"><pre><span></span><code>certbot<span class="w"> </span>certonly<span class="w"> </span>--standalone<span class="w"> </span>-d<span class="w"> </span>sip.ocean.com<span class="w"> </span>--email<span class="w"> </span>admin@sip.ocean.com
 </code></pre></div>
 <p>Change to the directory where we created the certificates(generally at /etc/letsencrypt/live/sip.ocean.com).</p>
 <p>&#10123; Create a PKCS12 file containing full chain and private key</p>
-<div class="highlight"><pre><span></span><code>openssl pkcs12 -export -in fullchain.pem -inkey privkey.pem -out pkcs.p12 -name domains-cert.jks
+<div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>pkcs12<span class="w"> </span>-export<span class="w"> </span>-in<span class="w"> </span>fullchain.pem<span class="w"> </span>-inkey<span class="w"> </span>privkey.pem<span class="w"> </span>-out<span class="w"> </span>pkcs.p12<span class="w"> </span>-name<span class="w"> </span>domains-cert.jks
 </code></pre></div>
 <p>Please make a note of the password since you need it in the next step.</p>
 <p>&#10124; Convert PKCS12 to Keystore</p>
-<div class="highlight"><pre><span></span><code>keytool -importkeystore -srckeystore keystore.pkcs12 -srcstoretype PKCS12 -destkeystore domains-cert.jks
+<div class="highlight"><pre><span></span><code>keytool<span class="w"> </span>-importkeystore<span class="w"> </span>-srckeystore<span class="w"> </span>keystore.pkcs12<span class="w"> </span>-srcstoretype<span class="w"> </span>PKCS12<span class="w"> </span>-destkeystore<span class="w"> </span>domains-cert.jks
 </code></pre></div>
 <h2 id="installing-the-certificate-in-routr">Installing the Certificate in Routr<a class="headerlink" href="#installing-the-certificate-in-routr" title="Permanent link">&para;</a></h2>
 <p>To enable secure signaling in Routr, copy your certificate in <code>etc/certs</code> and edit the file <code>config/config.yml</code> to look like this:</p>
@@ -1840,7 +1840,7 @@ spec:
     
       <script src="../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.4.2",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.4.3",url:{base:"../.."}})</script>
       
     
   </body>

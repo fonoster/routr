@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-4.4.0">
     
     
       
@@ -1965,27 +1965,27 @@ To bind a transport protocol to a specific IP address, you can use the <code>spe
 correct path for any given traffic. The <code>spec.externAddr</code> is typically the Internet
 facing IP address. The <code>spec.localnets</code> is an array with valid CIDR, IP/Mask, or single IP values.
 Here is quick example:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">externAddr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">172.220.231.23</span><span class="w"></span>
-<span class="w">  </span><span class="nt">localnets</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">172.17.0.2/16</span><span class="p p-Indicator">]</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">externAddr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">172.220.231.23</span>
+<span class="w">  </span><span class="nt">localnets</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">172.17.0.2/16</span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <h2 id="access-control-list">Access Control List<a class="headerlink" href="#access-control-list" title="Permanent link">&para;</a></h2>
 <p>The Access Control List(ACL) provides with a security mechanism to disable network
 access from unwanted sources. ACL rules exist at general or Domain level. Here is an example,
 blocking all traffic except from IP address <code>192.168.0.1</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">accessControlList</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="nt">deny</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.0.0.0/1</span><span class="p p-Indicator">]</span><span class="w">        </span><span class="c1"># Deny all</span><span class="w"></span>
-<span class="w">    </span><span class="nt">allow</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">192.168.0.1/31</span><span class="p p-Indicator">]</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">accessControlList</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">deny</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.0.0.0/1</span><span class="p p-Indicator">]</span><span class="w">        </span><span class="c1"># Deny all</span>
+<span class="w">    </span><span class="nt">allow</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">192.168.0.1/31</span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <h2 id="basic-example">Basic Example<a class="headerlink" href="#basic-example" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1beta1</span><span class="w"></span>
-<span class="nt">spec</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">transport</span><span class="p">:</span><span class="w"></span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tcp</span><span class="w"></span>
-<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5060</span><span class="w"></span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">udp</span><span class="w"></span>
-<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5060</span><span class="w"></span>
+<div class="highlight"><pre><span></span><code><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1beta1</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">transport</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tcp</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5060</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">udp</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5060</span>
 </code></pre></div>
                 
                   
@@ -2101,7 +2101,7 @@ blocking all traffic except from IP address <code>192.168.0.1</code>.</p>
     
       <script src="../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.4.2",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.4.3",url:{base:"../.."}})</script>
       
     
   </body>

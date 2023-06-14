@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="/assets/images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-4.4.0">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-4.4.0">
     
     
       
@@ -1536,16 +1536,16 @@
                 
                 <p>By default, Routr installs a certificate that only allows for connections using the <code>localhost</code> or <code>127.0.0.1</code>. To use <code>rctl</code> tool from a remote host, you must generate a certificate that accepts connections to the desired domain name or IP and then update the <code>spec.restService</code> section of the <code>config.yml</code>.</p>
 <p>Here is an example using a self-signed certificate(usually enough).</p>
-<div class="highlight"><pre><span></span><code>keytool -genkey -keyalg RSA <span class="se">\</span>
--noprompt <span class="se">\</span>
--alias routr <span class="se">\</span>
--keystore api-cert.jks <span class="se">\</span>
--storepass changeit <span class="se">\</span>
--keypass changeit <span class="se">\</span>
--validity <span class="m">365</span> <span class="se">\</span>
--keysize <span class="m">2048</span> <span class="se">\</span>
--dname <span class="s2">&quot;CN=domain.com, OU=OSS, O=Your Company Inc, L=Sanford, ST=NC, C=US&quot;</span> <span class="se">\</span>
--ext <span class="nv">SAN</span><span class="o">=</span>dns:your.domain.com,dns:localhost,ip:127.0.0.1
+<div class="highlight"><pre><span></span><code>keytool<span class="w"> </span>-genkey<span class="w"> </span>-keyalg<span class="w"> </span>RSA<span class="w"> </span><span class="se">\</span>
+-noprompt<span class="w"> </span><span class="se">\</span>
+-alias<span class="w"> </span>routr<span class="w"> </span><span class="se">\</span>
+-keystore<span class="w"> </span>api-cert.jks<span class="w"> </span><span class="se">\</span>
+-storepass<span class="w"> </span>changeit<span class="w"> </span><span class="se">\</span>
+-keypass<span class="w"> </span>changeit<span class="w"> </span><span class="se">\</span>
+-validity<span class="w"> </span><span class="m">365</span><span class="w"> </span><span class="se">\</span>
+-keysize<span class="w"> </span><span class="m">2048</span><span class="w"> </span><span class="se">\</span>
+-dname<span class="w"> </span><span class="s2">&quot;CN=domain.com, OU=OSS, O=Your Company Inc, L=Sanford, ST=NC, C=US&quot;</span><span class="w"> </span><span class="se">\</span>
+-ext<span class="w"> </span><span class="nv">SAN</span><span class="o">=</span>dns:your.domain.com,dns:localhost,ip:127.0.0.1
 </code></pre></div>
 <blockquote>
 <p>Remember to place the certificate in the <code>etc/certs</code> folder</p>
@@ -1664,7 +1664,7 @@
     
       <script src="../../../assets/javascripts/application.245445c6.js"></script>
       
-      <script>app.initialize({version:"1.4.2",url:{base:"../../.."}})</script>
+      <script>app.initialize({version:"1.4.3",url:{base:"../../.."}})</script>
       
     
   </body>
