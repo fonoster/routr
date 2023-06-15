@@ -1,137 +1,770 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-71722942-3"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'UA-71722942-3');
-  </script>
+<html>
+  <head>
+    <!-- Basic Page Info -->
+    <meta charset="UTF-8" />
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#FFF" />
+    <!-- Title -->
+    <title>routr.</title>
+    <!-- Site favicon -->
+    <link rel="shortcut icon" href="./assets/images/favicon.ico" />
+    <!-- Mobile Specific Metas -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
 
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
-  <title>The Next-generation SIP Server</title>
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
 
-  <link rel="shortcut icon" href="/site_assets/images/favicon.ico">
-  <!-- CSS  -->
-  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="/site_assets/css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection"/>
-  <link href="/site_assets/css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
-</head>
-<body>
-  <nav class="white" role="navigation">
-    <div class="nav-wrapper container">
-      <a id="logo-container" href="#" class="brand-logo">
-        <img src="site_assets//images/logo.png" height="40" style="margin-top: 12px"/>
-      </a>
-      <ul class="right hide-on-med-and-down">
-        <li><a class="blue-grey-text text-darken-4" href="/docs/introduction/overview/">Documentation</a></li>
-        <li><a class="blue-grey-text text-darken-4" href="/docs/introduction/community">Community</a></li>
-        <li><a class="blue-grey-text text-darken-4" href="https://github.com/fonoster/routr/issues">Bugtracker</a></li>
-        <li><a class="blue-grey-text text-darken-4" href="https://github.com/orgs/fonoster/discussions">GitHub Discussions</a></li>
-      </ul>
+    <!-- CSS -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="site-assets/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="site-assets/css/swiper-bundle.min.css"
+    />
 
-      <ul id="nav-mobile" class="sidenav">
-        <li><a class="blue-grey-text text-darken-4" href="/docs/introduction/overview/">Documentation</a></li>
-        <li><a class="blue-grey-text text-darken-4" href="/docs/introduction/community">Community</a></li>
-        <li><a class="blue-grey-text text-darken-4" href="https://github.com/fonoster/routr/issues">Bugtracker</a></li>
-        <li><a class="blue-grey-text text-darken-4" href="https://github.com/orgs/fonoster/discussions">GitHub Discussions</a></li>
-      </ul>
-      <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons blue-grey-text darken-4">menu</i></a>
-    </div>
-  </nav>
-  <div class="section no-pad-bot" id="index-banner" style="background-color: #33383d">
-    <div class="container">
-      <br><br>
-      <h1 class="header center white-text">Next-generation SIP Server</h1>
-      <div class="row center">
-        <h5 class="header col s12 light white-text">
-          Lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators.
-        </h5>
-      </div>
-      <div class="row center">
-        <a href="/docs/introduction/overview/" id="download-button" class="btn-large waves-effect waves-light green lighten-2">Get Started</a>
-      </div>
-      <br><br>
+    <link rel="stylesheet" type="text/css" href="site-assets/css/style.css" />
+    <link rel="stylesheet" type="text/css" href="site-assets/css/media.css" />
+  </head>
 
-    </div>
-  </div>
+  <body>
+    <!-- header-starts -->
+    <div class="header-wrap">
+      <header>
+        <div class="container">
+          <div class="content">
+            <div class="left">
+              <div class="logo">
+                <a
+                  href="https://routr.io"
+                  class="focus-outline"
+                  target="_blank"
+                >
+                  <img
+                    src="site-assets/images/icons/logo.svg"
+                    alt="logo"
+                    class="svg"
+                  />
+                </a>
+              </div>
+            </div>
 
-  <div class="container">
-    <div class="section">
+            <div class="right">
+              <div class="nav-links">
+                <ul class="links">
+                  <li>
+                    <a
+                      href="/docs/introduction/overview"
+                      target="_blank"
+                      class="focus-outline"
+                    >
+                      <div class="icon">
+                        <img
+                          src="site-assets/images/icons/new-tab.svg"
+                          class="svg"
+                        />
+                      </div>
+                      Documentation</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="/docs/introduction/community"
+                      target="_blank"
+                      class="focus-outline"
+                    >
+                      <div class="icon">
+                        <img
+                          src="site-assets/images/icons/new-tab.svg"
+                          class="svg"
+                        />
+                      </div>
+                      community</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                      href="https://github.com/fonoster/routr/issues"
+                      target="_blank"
+                      class="focus-outline"
+                    >
+                      <div class="icon">
+                        <img
+                          src="site-assets/images/icons/new-tab.svg"
+                          class="svg"
+                        />
+                      </div>
+                      bug tracker</a
+                    >
+                  </li>
+                </ul>
+              </div>
+              <div class="btn-wrap header-btn">
+                <a
+                  href="https://github.com/fonoster/routr"
+                  target="_blank"
+                  class="btn btn-primary focus-outline"
+                >
+                  <div class="icon">
+                    <img
+                      src="site-assets/images/icons/github-icon.png"
+                      alt="github-icon"
+                    />
+                  </div>
+                  <svg
+                    width="21"
+                    height="19"
+                    viewBox="0 0 21 19"
+                    fill="currentColor"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M10.2706 13.39L6.52753 15.66L7.51307 11.38L4.20804 8.5L8.56829 8.13L10.2706 4.09L11.9729 8.13L16.3331 8.5L13.0281 11.38L14.0136 15.66M20.2255 7.24L13.0679 6.63L10.2706 0L7.47325 6.63L0.315674 7.24L5.7411 11.97L4.11845 19L10.2706 15.27L16.4227 19L14.7901 11.97L20.2255 7.24Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  1.1k</a
+                >
+              </div>
+            </div>
 
-      <!--   Icon Section   -->
-      <div class="row">
-        <div class="col s12 m4">
-          <div class="icon-block">
-            <h2 class="center blue-grey-text"><i class="material-icons">battery_charging_full</i></h2>
-            <h5 class="center">Batteries Included</h5>
-            <p>Routr ships with all the tools necessary to deploy your VoIP network. A command-line is included to control the server remotely. You can also control the server using the RESTful API or the GUI from the comfort of the web browser.</p>
+            <div class="menu-btn">
+              <button
+                class="menu focus-outline"
+                onclick="this.classList.toggle('opened');this.setAttribute('aria-expanded', this.classList.contains('opened'))"
+                aria-label="Main Menu"
+              >
+                <svg width="25" height="25" viewBox="0 0 100 100">
+                  <path
+                    class="line line1"
+                    d="M 20,29.000046 H 80.000231 C 80.000231,29.000046 94.498839,28.817352 94.532987,66.711331 94.543142,77.980673 90.966081,81.670246 85.259173,81.668997 79.552261,81.667751 75.000211,74.999942 75.000211,74.999942 L 25.000021,25.000058"
+                  />
+                  <path class="line line2" d="M 20,50 H 80" />
+                  <path
+                    class="line line3"
+                    d="M 20,70.999954 H 80.000231 C 80.000231,70.999954 94.498839,71.182648 94.532987,33.288669 94.543142,22.019327 90.966081,18.329754 85.259173,18.331003 79.552261,18.332249 75.000211,25.000058 75.000211,25.000058 L 25.000021,74.999942"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div class="sticky-btn header-btn">
+              <a
+                href="https://github.com/fonoster/routr"
+                target="_blank"
+                class="btn btn-primary focus-outline"
+              >
+                <div class="icon">
+                  <img
+                    src="site-assets/images/icons/github-icon.png"
+                    alt="github-icon"
+                  />
+                </div>
+                <svg
+                  width="21"
+                  height="19"
+                  viewBox="0 0 21 19"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10.2706 13.39L6.52753 15.66L7.51307 11.38L4.20804 8.5L8.56829 8.13L10.2706 4.09L11.9729 8.13L16.3331 8.5L13.0281 11.38L14.0136 15.66M20.2255 7.24L13.0679 6.63L10.2706 0L7.47325 6.63L0.315674 7.24L5.7411 11.97L4.11845 19L10.2706 15.27L16.4227 19L14.7901 11.97L20.2255 7.24Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                1.1k</a
+              >
+            </div>
           </div>
         </div>
-
-        <div class="col s12 m4">
-          <div class="icon-block">
-            <h2 class="center blue-grey-text"><i class="material-icons">cloud</i></h2>
-            <h5 class="center">Cloud Ready</h5>
-            <p>Our team maintains a docker image that contains the server, and all the necessary tools to deploy Routr in few seconds. The image is periodically tested agains the most common cloud providers. Our goal is to make Routr a cloud first-class citizen.</p>
-          </div>
-        </div>
-        <div class="col s12 m4">
-          <div class="icon-block">
-            <h2 class="center blue-grey-text"><i class="material-icons">settings</i></h2>
-            <h5 class="center">Easy to Work with</h5>
-            <p>We have provided detailed documentation as well as specific code examples to help new users get started. We are also always open to feedback and can answer any questions a user may have about Routr.</p>
-          </div>
-        </div>
-      </div>
+      </header>
     </div>
-    <br><br>
-  </div>
+    <!-- header-ends -->
 
-  <footer class="page-footer grey darken-4 light">
-    <div class="container">
-      <div class="row">
-        <div class="col l6 s12">
-          <h5 class="white-text light">Fonoster OSS</h5>
-          <p class="grey-text text-lighten-4">
-            We use Open Source in many projects, and we think that giving back to the community it's the right thing to do. We are committed to share what we have learn from years of research.
-          </p>
-        </div>
-        <div class="col l3 s12 ">
-          <h5 class="white-text">Useful Links</h5>
-          <ul>
-            <li><a class="white-text" href="/docs">Documentation</a></li>
-            <li><a class="white-text" href="https://github.com/fonoster/routr/issues">Bug Report</a></li>
-          </ul>
-        </div>
-        <div class="col l3 s12">
-          <h5 class="white-text">Community</h5>
-          <ul>
-            <li><a class="white-text" href="https://github.com/fonoster/routr">Github</a></li>
-            <li><a class="white-text" href="https://gitter.im/fonoster/routr">Gitter</a></li>
-            <li><a class="white-text" href="https://discord.com/invite/mpWSRUhG7e">Discord</a></li>
-            <li><a class="white-text" href="https://github.com/orgs/fonoster/discussions">GitHub Discussions</a></li>
-            <li><a class="white-text" href="https://www.reddit.com/r/routr">Reddit</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="footer-copyright">
+    <!-- banner-starts -->
+    <div class="banner-wrap alt-desc">
       <div class="container">
-        Copyright © 2023 Fonoster Inc
+        <div class="content">
+          <div class="box">
+            <div class="upper">
+              <h1 class="h1 title">
+                The future of programmable SIP servers<span
+                  style="color: #5fcfce"
+                  >.</span
+                >
+              </h1>
+              <p class="desc">
+                Unleash the potential of our cloud-native server, running on
+                <span><a href="https://kubernetes.io" class="btn-link">Kubernetes</a></span
+                >, <span><a href="https://www.docker.com" class="btn-link">Docker</a></span
+                >, and <span><a href="https://www.gitpod.io" class="btn-link">Gitpod</a></span
+                >.
+              </p>
+            </div>
+            <div class="lower d-md-block d-none">
+              <p class="sub-desc small">
+                Lightweight sip proxy, location server, and registrar that
+                provides a reliable and scalable SIP infrastructure for
+                telephony carriers, communication service providers, and
+                integrators.
+              </p>
+              <div class="btn-wrap">
+                <a href="/docs/introduction/overview" class="btn btn-primary">Documentation</a>
+                <a href="https://discord.gg/4QWgSz4hTC" class="btn-arrow">
+                  Join the community
+                  <div class="icon">
+                    <img
+                      src="site-assets/images/icons/btn-arrow.svg"
+                      alt="btn-arrow"
+                      class="svg"
+                    />
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </footer>
+    <!-- banner-ends -->
 
+    <!-- alt-desc-starts -->
+    <div class="alt-desc alt-mobile lower d-md-none d-block">
+      <p class="sub-desc small">
+        Lightweight sip proxy, location server, and registrar that provides a
+        reliable and scalable SIP infrastructure for telephony carriers,
+        communication service providers, and integrators.
+      </p>
+      <div class="btn-wrap">
+        <a href="/docs/introduction/overview" class="btn btn-primary">Documentation</a>
+        <a href="https://discord.gg/4QWgSz4hTC" class="btn-arrow">
+          Join the community
+          <div class="icon">
+            <img
+              src="site-assets/images/icons/btn-arrow.svg"
+              alt="btn-arrow"
+              class="svg"
+            />
+          </div>
+        </a>
+      </div>
+    </div>
+    <!-- alt-desc-ends -->
 
-  <!--  Scripts-->
-  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-  <script src="/site_assets/js/materialize.js"></script>
-  <script src="/site_assets/js/init.js"></script>
+    <!-- pattern-bg-starts -->
+    <div class="pattern-bg-wrap">
+      <div class="container">
+        <!-- sponsers-sec-starts -->
+        <div class="sponsers-sec-wrap">
+          <div class="content">
+            <p class="accent">sponsors</p>
+            <h2 class="h2 title">
+              Proudly supported by our esteemed sponsors.
+            </h2>
+          </div>
+          <ul class="sponsers-list">
+            <li>
+              <div class="logo">
+                <img
+                  src="site-assets/images/sponser-logo-one.png"
+                  alt="sponser-logo"
+                  width="155"
+                  height="40"
+                />
+              </div>
+              <p class="small desc">
+                Building the open source alternative to Twilio
+              </p>
 
+              <div class="btn-wrap">
+                <a href="https://fonoster.com" class="btn-arrow"
+                  >Learn More
+                  <div class="icon">
+                    <img
+                      src="site-assets/images/icons/btn-arrow.svg"
+                      alt="btn-arrow"
+                      class="svg"
+                    /></div
+                ></a>
+              </div>
+            </li>
+
+            <li>
+              <div class="logo">
+                <img
+                  src="site-assets/images/sponser-logo-two.png"
+                  alt="sponser-logo"
+                  width="155"
+                  height="40"
+                />
+              </div>
+              <p class="small desc">
+                Welfare technology that develops products and services with the
+                individual in focus.
+              </p>
+
+              <div class="btn-wrap">
+                <a href="https://camanio.com" class="btn-arrow"
+                  >Learn More
+                  <div class="icon">
+                    <img
+                      src="site-assets/images/icons/btn-arrow.svg"
+                      alt="btn-arrow"
+                      class="svg"
+                    /></div
+                ></a>
+              </div>
+            </li>
+
+            <li>
+              <div class="logo">
+                <img
+                  src="site-assets/images/sponser-logo-three.png"
+                  alt="sponser-logo"
+                  width="155"
+                  height="40"
+                />
+              </div>
+              <p class="small desc">
+                Join our group of sponsors in shaping the future of technology.
+              </p>
+
+              <div class="btn-wrap">
+                <a href="https://form.typeform.com/to/toOg8kmD" class="btn-arrow"
+                  >Become a sponsor
+                  <div class="icon">
+                    <img
+                      src="site-assets/images/icons/btn-arrow.svg"
+                      alt="btn-arrow"
+                      class="svg"
+                    /></div
+                ></a>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <!-- sponsers-sec-ends -->
+
+        <!-- capabilities-sec-starts -->
+        <div class="capabilities-sec-wrap">
+          <div class="content">
+            <p class="accent">capabilities</p>
+            <h2 class="h2 title">
+              The SDKs and tooling to deploy VoIP networks, faster.
+            </h2>
+            <p class="desc large">
+              Routr provides all the tools required to deploy your VoIP network,
+              including a command-line for remote server control. It can also be
+              controlled via a RESTful API or a web-based GUI.
+            </p>
+          </div>
+
+          <div class="code-section">
+            <div class="left">
+              <div class="img-box">
+                <img
+                  src="site-assets/images/code-img.png"
+                  alt="code-img"
+                  width="670"
+                  height="434"
+                />
+                <div class="btn-wrap">
+                  <a href="https://gitpod.io/#https://github.com/fonoster/routr" target="_blank" class="btn-icon btn-primary">
+                    <div class="icon">
+                      <img
+                        src="site-assets/images/icons/new-tab.svg"
+                        alt="new-tab"
+                        class="svg"
+                      />
+                    </div>
+                    See it live</a
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="right">
+              <ul class="feature-list">
+                <li>
+                  <div class="icon">
+                    <img
+                      src="site-assets/images/icons/feature-icon-one.svg"
+                      alt="feature-icon"
+                      class="svg"
+                    />
+                  </div>
+                  <div class="inner">
+                    <h3 class="h3 title">Batteries included!</h3>
+                    <p class="small">
+                      Routr includes all tools for deploying your VoIP network.
+                      It offers remote server control via command-line, RESTful
+                      API, or a user-friendly GUI in your web browser.
+                    </p>
+                  </div>
+                </li>
+
+                <li>
+                  <div class="icon">
+                    <img
+                      src="site-assets/images/icons/feature-icon-two.svg"
+                      alt="feature-icon"
+                      class="svg"
+                    />
+                  </div>
+                  <div class="inner">
+                    <h3 class="h3 title">Cloud-ready</h3>
+                    <p class="small">
+                      Our Docker image includes the server, deployment tools,
+                      and is regularly tested with popular cloud providers,
+                      enabling effortless deployment of Routr in seconds.
+                    </p>
+                  </div>
+                </li>
+
+                <li>
+                  <div class="icon">
+                    <img
+                      src="site-assets/images/icons/feature-icon-one.svg"
+                      alt="feature-icon"
+                      class="svg"
+                    />
+                  </div>
+                  <div class="inner">
+                    <h3 class="h3 title">Easy to partner with</h3>
+                    <p class="small">
+                      We offer detailed documentation and code examples to help
+                      new users get started with Routr. We welcome feedback and
+                      are available to answer any user questions.
+                    </p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <!-- capabilities-sec-ends -->
+      </div>
+    </div>
+    <!-- pattern-bg-ends -->
+
+    <!-- testimonials-sec-starts -->
+    <div class="testimonials-sec-wrap">
+      <div class="img-wrap">
+        <img
+          src="site-assets/images/testimonial-img.png"
+          alt="testimonial-img"
+          width="1920"
+          height="545"
+        />
+      </div>
+      <div class="img-wrap-mobile d-block d-md-none">
+        <img
+          src="site-assets/images/testimonial-img-mobile.png"
+          alt="testimonial-img-mobile"
+        />
+      </div>
+      <div class="container">
+        <div class="content">
+          <div class="title-section">
+            <p class="accent">testimonials</p>
+            <h2 class="h2 title">What our people are saying about us.</h2>
+            <div class="btn-wrap">
+              <a href="https://form.typeform.com/to/F2Kjm4uh" class="btn-arrow">
+                Provide a Testimonial
+                <div class="icon">
+                  <img
+                    src="site-assets/images/icons/btn-arrow.svg"
+                    alt="btn-arrow"
+                    class="svg"
+                  />
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonials-slider-wrap">
+        <div class="testimonials-slider swiper-slider">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide">
+              <div class="card">
+                <div class="inner">
+                  <div class="icon">
+                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
+                  </div>
+                  <div class="content">
+                    <p class="small text">
+                      I came across Routr, which seems to be the one and only
+                      cloud-first Kubernetes-ready SIP server on the planet!
+                    </p>
+                    <p class="accent author">Jessie wadman, camanio ab</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="swiper-slide">
+              <div class="card">
+                <div class="inner">
+                  <div class="icon">
+                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
+                  </div>
+                  <div class="content">
+                    <p class="small text">
+                      Awesome and one of the best open-source software in 2023.
+                    </p>
+                    <p class="accent author">no-championship-s368, reddit</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="swiper-slide">
+              <div class="card">
+                <div class="inner">
+                  <div class="icon">
+                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
+                  </div>
+                  <div class="content">
+                    <p class="small text">
+                      I came across Routr, which seems to be the one and only
+                      cloud-first Kubernetes-ready SIP server on the planet!
+                    </p>
+                    <p class="accent author">Jessie wadman, camanio ab</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="swiper-slide">
+              <div class="card">
+                <div class="inner">
+                  <div class="icon">
+                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
+                  </div>
+                  <div class="content">
+                    <p class="small text">
+                      Awesome and one of the best open-source software in 2023.
+                    </p>
+                    <p class="accent author">no-championship-s368, reddit</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="swiper-slide">
+              <div class="card">
+                <div class="inner">
+                  <div class="icon">
+                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
+                  </div>
+                  <div class="content">
+                    <p class="small text">
+                      Awesome and one of the best open-source software in 2023.
+                    </p>
+                    <p class="accent author">no-championship-s368, reddit</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="swiper-slide">
+              <div class="card">
+                <div class="inner">
+                  <div class="icon">
+                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
+                  </div>
+                  <div class="content">
+                    <p class="small text">
+                      I came across Routr, which seems to be the one and only
+                      cloud-first Kubernetes-ready SIP server on the planet!
+                    </p>
+                    <p class="accent author">Jessie wadman, camanio ab</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="swiper-slide">
+              <div class="card">
+                <div class="inner">
+                  <div class="icon">
+                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
+                  </div>
+                  <div class="content">
+                    <p class="small text">
+                      Awesome and one of the best open-source software in 2023.
+                    </p>
+                    <p class="accent author">no-championship-s368, reddit</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- testimonials-sec-ends -->
+
+    <!-- community-sec-starts -->
+    <div class="community-sec-wrap">
+      <div class="container">
+        <div class="content">
+          <div class="title-section">
+            <p class="accent">community</p>
+            <h2 class="h2 title">
+              Join our amazing community of contributors.
+            </h2>
+          </div>
+          <div class="row list">
+            <div class="col-md-6">
+              <div class="box">
+                <div class="img-box">
+                  <img
+                    src="site-assets/images/community-img-one.png"
+                    alt="community-img"
+                    width="440"
+                    height="298"
+                  />
+                </div>
+
+                <div class="title body-bold">GitHub Discussions</div>
+                <p class="small desc">
+                  Have a question, idea, or update? Join our collaborative forum
+                  for the community of open source super stars.
+                </p>
+                <div class="btn-wrap">
+                  <a href="https://github.com/fonoster/routr/discussions" class="btn btn-primary btn-alt">View on GitHub</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="box">
+                <div class="img-box">
+                  <img
+                    src="site-assets/images/community-img-two.png"
+                    alt="community-img"
+                    width="440"
+                    height="298"
+                  />
+                </div>
+
+                <div class="title body-bold">Discord Community</div>
+                <p class="small desc">
+                  Supported by our growing community of advocates, contributors,
+                  and heroes.
+                  <br />
+                </p>
+                <div class="btn-wrap">
+                  <a href="https://discord.gg/4QWgSz4hTC" class="btn btn-primary btn-alt"
+                    >Join the Community</a
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- community-sec-ends -->
+
+    <!-- footer-starts -->
+    <footer class="footer-wrap">
+      <div class="container">
+        <div class="content">
+          <div class="box">
+            <div class="left">
+              <p class="accent footer-title">fonoster oss</p>
+              <p class="small desc">
+                We use Open Source in many projects, and we think that giving
+                back to the community it's the right thing to do. We are
+                committed to share what we have learn from years of research.
+              </p>
+            </div>
+            <div class="right">
+              <div class="col">
+                <p class="accent footer-title">useful links</p>
+                <ul class="footer-links">
+                  <li>
+                    <a href="/docs/introduction/overview" class="btn-link">Documentation</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/fonoster/routr/issues" class="btn-link">Bug Tracker</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="col">
+                <p class="accent footer-title">community</p>
+                <ul class="social-icons">
+                  <li>
+                    <a href="https://twitter.com/fonoster">
+                      <img
+                        src="site-assets/images/icons/twitter.svg"
+                        alt="twitter"
+                        class="svg"
+                      />
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://discord.gg/4QWgSz4hTC">
+                      <img
+                        src="site-assets/images/icons/discord.svg"
+                        alt="discord"
+                        class="svg"
+                      />
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/fonoster/routr">
+                      <img
+                        src="site-assets/images/icons/github.svg"
+                        alt="github"
+                        class="svg"
+                      />
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://www.reddit.com/r/routr">
+                      <img
+                        src="site-assets/images/icons/reddit.svg"
+                        alt="reddit"
+                        class="svg"
+                      />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="copyright text-center">
+            <div class="inner">
+              <p class="accent">© 2023, Fonoster. All Rights Reserved.</p>
+              <p class="small desc">Veteran Owned and Operated</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!-- footer-ends -->
+
+    <script src="site-assets/js/jquery.min.js"></script>
+    <script src="site-assets/js/popper.min.js"></script>
+    <script src="site-assets/js/bootstrap.min.js"></script>
+    <script src="site-assets/js/swiper-bundle.min.js"></script>
+    <!-- Custom JS File -->
+    <script src="site-assets/js/setting.js"></script>
   </body>
 </html>
