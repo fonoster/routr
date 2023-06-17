@@ -44,7 +44,9 @@
     "publish": "lerna publish --yes --no-git-reset --dist-tag next $(./.scripts/next-release.sh) --message \"chore(release): publish %s [skip ci]\"",
     "publish:prerelease": "lerna publish prerelease --dist-tag next",
     "publish:frompackages": "lerna publish from-package",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "helm:package": "helm package ops/charts/connect -d .charts",
+    "helm:index": "helm repo index .charts --merge .charts/index.yaml"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
