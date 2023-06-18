@@ -1,5 +1,3 @@
-# Routr (v2)
-
 <div align="center">
   <p align="center">
     <a href="https://turnly.app" target="_blank" rel="noopener">
