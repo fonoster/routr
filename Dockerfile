@@ -27,6 +27,7 @@ FROM node:18-alpine as runner
 
 ARG PKCS_PASSWORD=changeme
 
+# TODO: Normalize GID and UID across all images
 ENV PKCS_PASSWORD=$PKCS_PASSWORD
 ENV PATH_TO_CERTS=/etc/routr/certs
 ENV USER=fonoster

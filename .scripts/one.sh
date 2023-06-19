@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 cross-env NODE_ENV=dev \
   DATABASE_URL=postgresql://routr:changeme@localhost:5432/routr?schema=public \

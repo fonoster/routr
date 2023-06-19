@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 basepath=${1:-"."}  # if $1 is not passed, use current directory
 

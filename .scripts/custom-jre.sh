@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 [ -z "$JAVA_HOME" ] && {
   echo "Could not find a runtime environment. Please setup the JAVA_HOME environment variable"
