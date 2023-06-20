@@ -8,6 +8,17 @@ metadata:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": hook-succeeded
 spec:
+  initContainers:
+    - name: wait-for-database
+      image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag | default .Chart.AppVersion }}"
+      imagePullPolicy: {{ .Values.apiserver.migrationsImage.pullPolicy }}
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          until pg_isready -h {{ .Release.Name }}-postgresql.{{ .Release.Namespace }} -p 5432 -U {{ .Values.postgresql.auth.username }} >/dev/null 2>&1; do
+            echo "Waiting for the database..."
+            sleep 2
+          done
   containers:
     - name: migrations
       image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag | default .Chart.AppVersion }}"

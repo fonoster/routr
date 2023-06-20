@@ -25,6 +25,17 @@ spec:
         runAsUser: {{ .Values.apiserver.securityContext.runAsUser }}
         runAsGroup: {{ .Values.apiserver.securityContext.runAsGroup }}
         fsGroup: {{ .Values.apiserver.securityContext.fsGroup }}
+      initContainers:
+        - name: wait-for-database
+          image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.apiserver.migrationsImage.pullPolicy }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              until pg_isready -h {{ .Release.Name }}-postgresql.{{ .Release.Namespace }} -p 5432 -U {{ .Values.postgresql.auth.username }} >/dev/null 2>&1; do
+                echo "Waiting for the database..."
+                sleep 2
+              done
       containers:
         - name: apiserver
           image: "{{ .Values.apiserver.image.repository }}:{{ .Values.apiserver.image.tag | default .Chart.AppVersion }}"
@@ -47,6 +58,8 @@ spec:
               value: {{ .Values.global.otlExporter }}
           ports:
             - containerPort: 51907
+            # External port for the API server
+            - containerPort: 51908
           resources:
             {{- if .Values.apiserver.resources.limits }}
             limits:
