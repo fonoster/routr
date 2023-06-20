@@ -8,6 +8,7 @@ metadata:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": hook-succeeded
 spec:
+  {{- if .Values.postgresql.enabled }}
   initContainers:
     - name: wait-for-database
       image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag | default .Chart.AppVersion }}"
@@ -19,6 +20,7 @@ spec:
             echo "Waiting for the database..."
             sleep 2
           done
+  {{- end }}
   containers:
     - name: migrations
       image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag | default .Chart.AppVersion }}"
