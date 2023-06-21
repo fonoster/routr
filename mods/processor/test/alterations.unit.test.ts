@@ -185,4 +185,13 @@ describe("@routr/processor/alterations", () => {
     expect(r.message.to.address.uri.user).to.be.equal("+46721895538")
     expect(r.message.requestUri.user).to.be.equal("+46721895538")
   })
+
+  it("adds the via header using the route headers to calculate the egress interface", () => {
+    const req = A.addSelfViaUsingTheRouteHeaders(request)
+    expect(req).to.have.property("message")
+    expect(req.message.via).to.be.lengthOf(3)
+    expect(req.message.via[0].host).to.be.equal("10.100.42.128")
+    expect(req.message.via[0].port).to.be.equal(5060)
+    expect(req.message.via[0].transport).to.be.equal(Transport.TCP)
+  })
 })

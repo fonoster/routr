@@ -11,8 +11,8 @@ services:
     # Uncomment the following line for production
     # network_mode: host
     environment:
-      # Uncomment and updated with your host IP
-      # PUBLIC_IP: <YOUR_HOST_IP>
+      # Set DOCKER_HOST_ADDRESS to an IP address that is reachable to the SIP clients
+      PUBLIC_IP: ${DOCKER_HOST_ADDRESS}
       PORT_MIN: 10000
       PORT_MAX: 10020
       LOG_LEVEL: 8

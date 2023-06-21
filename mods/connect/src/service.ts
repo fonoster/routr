@@ -18,7 +18,7 @@
  */
 import { ConnectProcessorConfig } from "./types"
 import { MessageRequest, Method } from "@routr/common"
-import { LocationClient as Location, Helper as LH } from "@routr/location"
+import { LocationClient as Location } from "@routr/location"
 import { handleRegister, handleRegistry, handleRequest } from "./handlers"
 import Processor, {
   Alterations as A,
@@ -27,7 +27,7 @@ import Processor, {
   Response
 } from "@routr/processor"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
-import { tailor } from "./tailor"
+import { pipe } from "fp-ts/function"
 import { getLogger } from "@fonoster/logger"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
@@ -50,7 +50,7 @@ export default function connectProcessor(config: ConnectProcessorConfig) {
       })
       logger.silly(JSON.stringify(req, null, " "))
 
-      // Check if is response and simply forwards to endpoint
+      // If it is a response simply forwards to uac
       if (H.isTypeResponse(req)) {
         // Remove the proxy via before forwarding response
         return res.send(A.removeTopVia(req))
@@ -75,7 +75,16 @@ export default function connectProcessor(config: ConnectProcessorConfig) {
           break
         case Method.BYE:
         case Method.ACK:
-          res.send(tailor(LH.createRouteFromLastMessage(req), req))
+          res.send(
+            pipe(
+              req,
+              A.decreaseMaxForwards,
+              // The order of the following alterations is important
+              // since addSelfViaUsingTheRouteHeaders uses the route headers
+              A.addSelfViaUsingTheRouteHeaders,
+              A.removeSelfRoutes
+            )
+          )
           break
         default:
           handleRequest(location, CC.apiClient({ apiAddr: config.apiAddr }))(

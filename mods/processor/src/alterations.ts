@@ -22,7 +22,8 @@ import {
   MessageRequest,
   Route,
   CommonTypes,
-  Transport
+  Transport,
+  NetInterface
 } from "@routr/common"
 import { phone } from "phone"
 import { getEdgeInterface } from "./helper"
@@ -62,6 +63,38 @@ export const addSelfVia =
 
     return req
   }
+
+export const addSelfViaUsingTheRouteHeaders = (
+  request: MessageRequest
+): MessageRequest => {
+  const req = H.deepCopy(request)
+  const routes = request.message.route
+
+  // WARNING: Perhaps we should use the request uri as the target if no route is found
+  if (routes.length === 0) {
+    return req
+  }
+
+  // If there is only one route, then we use it as the egress interface
+  const egressRouteHeader = routes.length === 1 ? routes[0] : routes[1]
+  const targetIntf = {
+    host: egressRouteHeader.address.uri.host,
+    port: egressRouteHeader.address.uri.port,
+    transport:
+      (egressRouteHeader.address.uri.transportParam?.toUpperCase() as Transport) ||
+      Transport.UDP
+  } as NetInterface
+
+  req.message.via = [
+    {
+      ...targetIntf,
+      rPortFlag: true
+    },
+    ...req.message.via
+  ]
+
+  return req
+}
 
 export const addRouteToNextHop =
   (route: Route) =>
