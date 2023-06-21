@@ -56,6 +56,8 @@ spec:
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
               value: {{ .Values.global.otlExporter }}
+            - name: TLS_ON
+              value: "{{ .Values.apiserver.tlsOn }}"
           ports:
             - containerPort: 51907
             # External port for the API server
