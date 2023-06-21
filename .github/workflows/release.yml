@@ -1,6 +1,11 @@
 name: release (v2)
 on:
   workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip compliance tests'
+        required: false
+        default: 'false'
   push:
     paths-ignore:
       - "docs/**"
@@ -79,6 +84,7 @@ jobs:
             !mods/**/test
             !mods/**/dist/*.ts
       - name: SIP Connect v1.1 Compliance Tests
+        if: github.event.inputs.skip_tests == 'false'
         run: |
           docker-compose up --build --abort-on-container-exit --exit-code-from compliance
 
