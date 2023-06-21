@@ -5,7 +5,10 @@ on:
       skip_tests:
         description: 'Skip compliance tests'
         required: false
-        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
   push:
     paths-ignore:
       - "docs/**"
