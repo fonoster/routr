@@ -13,6 +13,7 @@
       [last_To:]
       [last_Call-ID:]
       [last_CSeq:]
+      [last_Record-Route:]
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Content-Length: 0
     ]]>
@@ -28,6 +29,7 @@
       [last_To:][peer_tag_param]
       [last_Call-ID:]
       [last_CSeq:]
+      [last_Record-Route:]
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Content-Length: 0
     ]]>

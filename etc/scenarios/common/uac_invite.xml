@@ -82,7 +82,7 @@
 
   <recv response="183" optional="true" />
 
-  <recv response="200">
+  <recv response="200" rrs="true">
     <action>
       <ereg regexp=".*(sips?:[0-9a-z]+@[0-9a-z\.:]+[0-9a-z=;]+).*" search_in="hdr" header="Contact" case_indep="true" check_it="true" assign_to="1,remoteURI" />
       <ereg regexp="2 INVITE" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
@@ -96,6 +96,7 @@
       [last_Via]
       [last_From]
       [last_To]
+      [routes]
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Call-ID: [call_id]
       CSeq: 2 ACK
@@ -112,6 +113,7 @@
       Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
       [last_From]
       [last_To]
+      [routes]
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Call-ID: [call_id]
       CSeq: 1 BYE

@@ -19,6 +19,7 @@
       [last_To:]
       [last_Call-ID:]
       [last_CSeq:]
+      [last_Record-Route:]
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Content-Length: 0
     ]]>
@@ -32,6 +33,7 @@
       [last_To:]
       [last_Call-ID:]
       [last_CSeq:]
+      [last_Record-Route:]
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Content-Type: application/sdp
       Content-Length: [len]

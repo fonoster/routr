@@ -94,7 +94,7 @@
 		]]>
   </send>
 
-  <recv response="200">
+  <recv response="200" rrs="true">
     <action>
       <ereg regexp="2 CANCEL" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
     </action>
@@ -112,6 +112,7 @@
       [last_Via]
       [last_From]
       [last_To]
+      [routes]
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Call-ID: [call_id]
       CSeq: 1 ACK
