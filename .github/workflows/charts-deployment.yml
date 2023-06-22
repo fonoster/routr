@@ -14,6 +14,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout routr repo
+        uses: actions/checkout@v3
+        with:
+          path: routr
+          ref: gh-pages
+      - name: Save charts directory
+        run: |
+          mkdir -p /tmp/charts
+          cp -a routr/charts/* /tmp/charts
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
@@ -26,10 +35,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Package charts
         run: |
-          helm package ops/charts/connect -d .charts
-          helm repo index .charts --merge .charts/index.yaml
+          mv /tmp/charts charts
+          helm package ops/charts/connect -d charts
+          helm repo index charts --merge charts/index.yaml
       - name: Build sources
-        run: mkdir -p public && mv .charts public/charts
+        run: mkdir -p public && mv charts public/charts
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
