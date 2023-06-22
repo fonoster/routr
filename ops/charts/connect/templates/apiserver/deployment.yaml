@@ -25,6 +25,7 @@ spec:
         runAsUser: {{ .Values.apiserver.securityContext.runAsUser }}
         runAsGroup: {{ .Values.apiserver.securityContext.runAsGroup }}
         fsGroup: {{ .Values.apiserver.securityContext.fsGroup }}
+      {{- if .Values.postgresql.enabled }}
       initContainers:
         - name: wait-for-database
           image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag | default .Chart.AppVersion }}"
@@ -36,6 +37,7 @@ spec:
                 echo "Waiting for the database..."
                 sleep 2
               done
+      {{- end }}
       containers:
         - name: apiserver
           image: "{{ .Values.apiserver.image.repository }}:{{ .Values.apiserver.image.tag | default .Chart.AppVersion }}"
