@@ -50,7 +50,7 @@ export const dispatcherConfig: MessageDispatcherConfig = {
 
 export const connectConfig: ConnectProcessorConfig = {
   bindAddr: "0.0.0.0:51904",
-  locationAddr: "location:51902",
+  locationAddr: "localhost:51902",
   apiAddr: "localhost:51907"
 }
 
