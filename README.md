@@ -70,7 +70,7 @@ Routr's main features are:
 - [ ] Support for STIR/SHAKEN
 - [ ] Web Application
 
-To learn more, read the [documentation](https://routr.io/docs). :books:
+To learn more, read the [documentation](https://routr.io/docs/introduction/overview) :books:
 
 ## The official handbook
 
