@@ -220,7 +220,7 @@ The configuration for the *EdgePort* could be represented as JSON or YAML format
       "enum": ["v2beta1", "v2"]
     },
     "kind": {
-      "description": "Resouce type",
+      "description": "Resource type",
       "type": "string"
     },
     "ref": {
@@ -487,7 +487,7 @@ Example:
       "enum": ["v2beta1", "v2"]
     },
     "kind": {
-      "description": "Resouce type",
+      "description": "Resource type",
       "type": "string"
     },
     "ref": {
@@ -568,7 +568,7 @@ service Processor {
 }
 ```
 
-The *Message Dispatcher* expects that *Message Procesor(s)* have the same interface.
+The *Message Dispatcher* expects that *Message Processor(s)* have the same interface.
 
 **Test Criteria**
 
@@ -687,7 +687,7 @@ message Route {
   repeated string external_addrs = 11;
   // During route creation, an endpoint can request to add labels than can later be
   // used as selectors. For example, a Softphone can add a label `priority=1` to indicate
-  // that it is the prefered endpoint for the given AOR.
+  // that it is the preferred endpoint for the given AOR.
   map<string, string> labels = 12;
 }
 ```

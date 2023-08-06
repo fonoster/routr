@@ -91,13 +91,13 @@ describe("@routr/dispatcher", () => {
       expect(hasMethod(config1, messageRequest2)).to.be.equal(false)
     })
 
-    it("matches incomming request as a REGISTER", () => {
+    it("matches incoming request as a REGISTER", () => {
       expect(findProcessor([config1, config2])(messageRequest))
         .to.be.have.property("ref")
         .to.be.equal("processor-ref1")
     })
 
-    it("matches incomming request as an INVITE", () => {
+    it("matches incoming request as an INVITE", () => {
       const messageRequest2 = { ...messageRequest }
       messageRequest2.method = Method.INVITE
       expect(findProcessor([config1, config2])(messageRequest2))
@@ -105,7 +105,7 @@ describe("@routr/dispatcher", () => {
         .to.be.equal("processor-ref2")
     })
 
-    it("matches incomming request as an MESSAGE", () => {
+    it("matches incoming request as an MESSAGE", () => {
       const messageRequest2 = { ...messageRequest }
       messageRequest2.method = Method.MESSAGE
       expect(findProcessor([config1, config2, config3])(messageRequest2))

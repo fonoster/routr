@@ -42,7 +42,7 @@ const logger = getLogger({ service: "registry", filePath: __filename })
 const DEFAULT_REGISTRATION_INTERVAL = 60
 
 // TODO:
-//  - We need to filter quarentine trunks from final list of trunks
+//  - We need to filter quarantine trunks from final list of trunks
 
 /**
  * Loops through all the services and register them with the registry.

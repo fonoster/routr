@@ -3,7 +3,7 @@ version: "3"
 services:
 
   # RTPEngine requires of network mode "host" to work properly. However, this option doesn't work on OSX.
-  # For developement, we are openining a few port to the host machine. For production, you must use 
+  # For development, we are opening a few ports to the host machine. For production, you must use 
   # the network_mode: host which works on Linux.
   rtpengine:
     image: fonoster/rtpengine:latest
