@@ -69,9 +69,9 @@ edgeport:
       port: 5063
   # Maximum number of replicas
   replicas: 2
-  # Minimun time for the pod to be ready before accepting traffic
+  # Minimum time for the pod to be ready before accepting traffic
   minReadySeconds: 10
-  # Maximun time for the pod to be ready before being killed
+  # Maximum time for the pod to be ready before being killed
   terminationGracePeriodSeconds: 10
   # Security context for EdgePort
   securityContext:

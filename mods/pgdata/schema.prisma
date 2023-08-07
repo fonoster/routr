@@ -9,13 +9,13 @@ datasource db {
 
 // Types and Lengths
 //  - Friendly names have a length is 60
-//  - Username length is 60 (Minimun for validation is 4)
+//  - Username length is 60 (Minimum for validation is 4)
 //  - Domain URI length is 255
 //  - AOR length is 323 (Accounts for 255 character domain URI, 60 character username, longer schema size (backend:))
 //  - Tel URL length is 15 (Max length of a phone number is 15 digits)
 //  - Password length is 255
 //  - ACL deny and allow length are 18 (Max size of IP post CIDR mask)
-//  - Contact address length is 20 (Max size of IP address pluse port and colon)
+//  - Contact address length is 20 (Max size of IP address plus port and colon)
 
 model Agent {
   apiVersion     APIVersion @map("api_version")

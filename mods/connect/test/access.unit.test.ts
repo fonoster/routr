@@ -123,7 +123,7 @@ describe("@routr/connect/access", () => {
     const result = await checkAccessFromPSTN(apiClient, req, callee as INumber)
 
     // Assert
-    // It fails because the response in the authorization header doen't match the one from the API
+    // It fails because the response in the authorization header doesn't match the one from the API
     expect(result)
       .to.be.have.property("message")
       .to.have.property("responseType", ResponseType.UNAUTHORIZED)

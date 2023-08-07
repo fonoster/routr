@@ -74,7 +74,7 @@ export default function loadResources(
     })
   })
 
-  // Referencial check
+  // Referential check
   checkReferences(all)
 
   // Convert to Resource

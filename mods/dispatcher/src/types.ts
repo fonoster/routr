@@ -42,7 +42,7 @@ export type CallbackErrors =
 
 export type ProcessorCallback = (
   err: CallbackErrors,
-  reponse?: MessageRequest
+  response?: MessageRequest
 ) => void
 
 export interface RunProcessorParams {

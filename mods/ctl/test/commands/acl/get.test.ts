@@ -43,7 +43,7 @@ describe("@routr/ctl/acl/get", () => {
       expect(ctx.stdout).to.contain("Name")
       expect(ctx.stdout).to.contain("Deny List")
       expect(ctx.stdout).to.contain("Allow List")
-      // Visually check that the output is correct; This currenty does not work
+      // Visually check that the output is correct; This currently does not work
       // expect(ctx.stdout).to.contain("80181ca6-d4aa-4575-9375-8f72b07d9949")
       expect(ctx.stdout).to.contain("PSTN Provider US-CA")
       expect(ctx.stdout).to.contain("0.0.0.0/0")

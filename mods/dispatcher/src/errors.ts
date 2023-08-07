@@ -19,7 +19,7 @@
 import * as grpc from "@grpc/grpc-js"
 
 /**
- * Thrown when no backened matches the request.
+ * Thrown when no backend matches the request.
  */
 export class NotMatchingProcessorFound extends Error {
   code: grpc.status

@@ -96,7 +96,7 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         },
         {
           name: "aor",
-          message: "Adress of Record",
+          message: "Address of Record",
           type: "input",
           validate: aorValidator
         },

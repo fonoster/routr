@@ -23,7 +23,7 @@ export const schema = {
   type: "object",
   properties: {
     kind: {
-      description: "Resouce type",
+      description: "Resource type",
       type: "string"
     },
     apiVersion: {

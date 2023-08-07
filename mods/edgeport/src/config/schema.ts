@@ -23,7 +23,7 @@ export const schema = {
   type: "object",
   properties: {
     kind: {
-      description: "Resouce type",
+      description: "Resource type",
       type: "string"
     },
     apiVersion: {
@@ -78,7 +78,7 @@ export const schema = {
           uniqueItems: true
         },
         unknownMethodAction: {
-          description: "What to do if an incomming request type is not allowed",
+          description: "What to do if an incoming request type is not allowed",
           enum: ["Discard", "Respond"]
         },
         transport: {

@@ -82,7 +82,7 @@ export default class Location implements ILocationService {
     } else if (request.aor.startsWith(AOR_SCHEME.BACKEND)) {
       const { backend } = request
 
-      // If it has not affinity sesssion then get next
+      // If it has not affinity session then get next
       const r =
         // Falls back to round-robin if no session affinity ref is provided
         backend.withSessionAffinity && request.sessionAffinityRef
