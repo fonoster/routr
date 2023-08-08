@@ -87,71 +87,107 @@ Get the eBook.
 
 If you like this project or plan to use it in the future, please give it a star. Thanks 🙏
 
-## Example configuration
-
-Consider a situation where you want to deploy the server and send all PSTN traffic to a conference room in Asterisk. For such a scenario, you must configure a Peer to present your feature server and a Number to route calls from the PSTN.
-
-First, start by creating a Peer configuration for your Asterisk server similar to the following one:
-
-```yaml
-apiVersion: v2beta1
-kind: Peer
-ref: peer-01
-metadata:
-  name: Asterisk (Media Server)
-spec:
-  aor: backend:conference
-  username: asterisk
-  credentialsRef: credentials-01
-  loadBalancing:
-    withSessionAffinity: true
-    algorithm: least-sessions
-```
-
-Notice that the loadBalancing section sets the `withSessionAffinity` to true. We need session affinity to ensure that all calls related to the conference arrive on the same Asterisk server. Every Asterisk server that registers using the `asterisk` username will be grouped under the `backend:conference` Address of Record (AOR). 
-
-Next, we need to tell Routr to map all inbound calls from a given Number to the conference room in Asterisk. For that, we use the `aorLink` and `sessionAffinityHeader` on the desired Number. Here is an example: 
-
-```yaml
-apiVersion: v2beta1
-kind: Number
-ref: number-01
-metadata:
-  name: "(706)604-1487"
-  geoInfo:
-    city: Columbus, GA
-    country: USA
-    countryISOCode: US
-spec:
-  trunkRef: trunk-01
-  location:
-    telUrl: tel:+17066041487
-    aorLink: backend:conference
-    sessionAffinityHeader: X-Room-Id
-    extraHeaders:
-      # Appends the X-Room-Id header to all inbound calls
-      - name: X-Room-Id
-        value: jsa-shqm-iyo
-```
-
-The last scenario is one of the many possible scenarios you can accomplish with Routr (v2). Please spend some time getting familiar with the [configuration files](https://github.com/fonoster/routr/blob/main/CONNECT.md).
-
 ## Deployment
 
-### Instant Server deployment with Docker and Compose
+### Instant server deployment with Docker and Compose
 
-For a quick demo of Routr, follow the next two steps:
+First, create a directory named "routr". Navigate into the new folder, and then copy the content below:
 
-1. Clone the repository and run the server
+Filename: _docker-compose.yml_
 
+```yaml
+version: "3"
+services:
+  routr:
+    image: fonoster/routr-one:latest
+    environment:
+      EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+      RTPENGINE_HOST: rtpengine
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/routr 
+      TLS_ON: false
+    depends_on:
+      - postgres
+    ports:
+      - 51908:51908
+      - 5060:5060/udp
+
+  rtpengine:
+    image: fonoster/rtpengine:latest
+    ports:
+      - 22222:22222/udp
+      - 10000-10100:10000-10100/udp
+    environment:
+      PUBLIC_IP: ${DOCKER_HOST_ADDRESS} 
+      PORT_MIN: 10000
+      PORT_MAX: 10100
+
+  postgres:
+    image: postgres:14.1-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: UTC
+      PGTZ: UTC
+    expose: 
+      - 5432 
+    volumes:
+      - shared:/var/lib/postgresql/data
+
+  postgres_init:
+    image: fonoster/routr-pgdata-migrations:latest
+    restart: "no"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/routr
+
+volumes:
+  shared:
 ```
-git clone https://github.com/fonoster/routr
-docker-compose up 
+
+Then, start the serve with:
+
+```bash
+# Be sure to replace with your IP address
+DOCKER_HOST_ADDRESS=192.168.1.3 docker-compose up
 ```
 
-2. Connect to Routr using Zoiper or another softphone
+Wait a few seconds for the containers to initialize. Afterward, you can verify the status of the containers using:
 
-In the `config/resources`, you will find the `domains.yaml` and `agents.yaml` files. Those files contain the configuration to run a simple local network with two SIP Agents (John and Jane).
+```bash
+docker ps -a --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}'
+```
+
+You should see a list of containers and their status. Your output should look like the
+one below:
+
+```bash
+CONTAINER ID  IMAGE                                     STATUS
+814883465dc7  fonoster/routr-pgdata-migrations:latest   Exited (0) ...
+6c63fd573768  fonoster/routr-one:latest                 Up About a minute
+d32f139db25d  postgres:14.1-alpine                      Up About a minute
+51c80164c2e9  fonoster/rtpengine:latest                 Up About a minute
+```
+
+If the status of your services is "Up," then you are ready to go.
+
+Finally, install the command-line tool and start building your SIP Network.
+
+You can install the tool with npm as follows:
+
+```bash
+npm install --location=global @routr/ctl
+```
+
+And here is an example of creating a SIP Domain:
+
+```bash
+rctl domains create --insecure
+```
+
+> The --insecure flag is required as we did not set up the TLS settings.
+
+For additional examples, refer to tge command-line [documentation.](https://www.npmjs.com/package/@routr/ctl)
 
 ### Kubernetes
 
@@ -213,6 +249,55 @@ ssh -L 5060:localhost:5060 fonoster-routr-mn8nsx0d9px@fonoster-routr-mn8nsx0d9px
 ```
 
 This command forwards traffic from your local port 5060 to your Gitpod workspace's port 5060, allowing you to access your instance.
+
+## Example configuration
+
+Consider a situation where you want to deploy the server and send all PSTN traffic to a conference room in Asterisk. For such a scenario, you must configure a Peer to present your feature server and a Number to route calls from the PSTN.
+
+First, start by creating a Peer configuration for your Asterisk server similar to the following one:
+
+```yaml
+apiVersion: v2beta1
+kind: Peer
+ref: peer-01
+metadata:
+  name: Asterisk (Media Server)
+spec:
+  aor: backend:conference
+  username: asterisk
+  credentialsRef: credentials-01
+  loadBalancing:
+    withSessionAffinity: true
+    algorithm: least-sessions
+```
+
+Notice that the loadBalancing section sets the `withSessionAffinity` to true. We need session affinity to ensure that all calls related to the conference arrive on the same Asterisk server. Every Asterisk server that registers using the `asterisk` username will be grouped under the `backend:conference` Address of Record (AOR). 
+
+Next, we need to tell Routr to map all inbound calls from a given Number to the conference room in Asterisk. For that, we use the `aorLink` and `sessionAffinityHeader` on the desired Number. Here is an example: 
+
+```yaml
+apiVersion: v2beta1
+kind: Number
+ref: number-01
+metadata:
+  name: "(706)604-1487"
+  geoInfo:
+    city: Columbus, GA
+    country: USA
+    countryISOCode: US
+spec:
+  trunkRef: trunk-01
+  location:
+    telUrl: tel:+17066041487
+    aorLink: backend:conference
+    sessionAffinityHeader: X-Room-Id
+    extraHeaders:
+      # Appends the X-Room-Id header to all inbound calls
+      - name: X-Room-Id
+        value: jsa-shqm-iyo
+```
+
+The last scenario is one of the many possible scenarios you can accomplish with Routr (v2). Please spend some time getting familiar with the [configuration files](https://github.com/fonoster/routr/blob/main/CONNECT.md).
 
 ## Bugs and Feedback
 
