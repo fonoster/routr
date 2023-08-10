@@ -50,7 +50,7 @@ We are building Routr in the open. The best to communicate with us via [GitHub D
 Routr's main features are:
 
 - [x] Common SIP Server functions; Proxy, Registrar, Location Service
-- [x] Programmable Routing
+- [x] Programmable routing
 - [x] Load balancing strategies against Media Servers like Asterisk and FreeSWITCH
 - [x] Session Affinity 
 - [x] Multi-Tenant/Multi-Domain with Domain level Access Control List
@@ -77,15 +77,15 @@ To learn more, read the [documentation](https://routr.io/docs/introduction/overv
 <a href="https://fonoster.gumroad.com/l/the-future-of-programmable-sip-servers">
 <img src="https://raw.githubusercontent.com/psanders/psanders/master/book.png" width="300px"></a>
 
-This handbook is designed to provide a detailed understanding of the innovative features, challenges, and opportunities that Routr presents in the realm of programmable SIP Servers.
+This handbook offers a detailed information about of the innovative features, challenges, and opportunities associated with using Routr.
 
 Get the eBook.
 
-* [Programmable, cloud ready, open source](https://fonoster.gumroad.com/l/the-future-of-programmable-sip-servers)
+* [Programmable, cloud-ready, open source](https://fonoster.gumroad.com/l/the-future-of-programmable-sip-servers)
 
 ## Give a Star! ⭐
 
-If you like this project or plan to use it in the future, please give it a star. Thanks 🙏
+If you want to support this project, please give it a star. Thanks 🙏
 
 ## Deployment
 
@@ -145,7 +145,7 @@ volumes:
   shared:
 ```
 
-Then, start the serve with:
+Then, start the server with:
 
 ```bash
 # Be sure to replace with your IP address
@@ -169,7 +169,7 @@ d32f139db25d  postgres:14.1-alpine                      Up About a minute
 51c80164c2e9  fonoster/rtpengine:latest                 Up About a minute
 ```
 
-If the status of your services is "Up," then you are ready to go.
+If the status of your services is "Up," you are ready to go.
 
 Finally, install the command-line tool and start building your SIP Network.
 
@@ -187,11 +187,13 @@ rctl domains create --insecure
 
 > The --insecure flag is required as we did not set up the TLS settings.
 
-For additional examples, refer to tge command-line [documentation.](https://www.npmjs.com/package/@routr/ctl)
+For additional examples, refer to the command line [documentation.](https://www.npmjs.com/package/@routr/ctl)
 
 ### Kubernetes
 
-Routr can be installed in Kubernetes using Helm. The following instructions assume that you have a Kubernetes cluster up and running. If you don’t have one, you can use Minikube or Docker Desktop to create a local cluster.
+Routr can be installed in Kubernetes using Helm. The following instructions assume that you have a Kubernetes cluster up and running. 
+
+> You can use Minikube or Docker Desktop to create a local Kubernetes cluster.
 
 First, add the Helm repository:
 
@@ -218,9 +220,9 @@ Finally, wait a few minutes for the pods to start. You can check the status of t
 kubectl get pods -n sipnet
 ```
 
-You should see a list of pods and their status. If you see the status Running, then you are ready to go.
+You should see a list of pods and their status. If the status is Running, then you are ready to go.
 
-For a more detailed explanation please refer to the chart's [readme](https://github.com/fonoster/routr/blob/main/ops/charts/connect/README.md).
+For more details, please refer to the chart's [README](https://github.com/fonoster/routr/blob/main/ops/charts/connect/README.md).
 
 ### Deploying in development mode with Gitpod
 
@@ -230,7 +232,7 @@ Routr's one-click interactive deployment will familiarize you with the server in
 
 To connect to your instance, follow these steps:
 
-First, add your public SSH-keys to your Gitpod account by going to [Gitpod account keys](https://gitpod.io/user/keys) and adding your public key.
+First, add your public SSH keys to your Gitpod account by going to [Gitpod account keys](https://gitpod.io/user/keys) and adding your public key.
 
 Next, find your [Gitpod workspace](https://gitpod.io/workspaces) and click on the "More" button. Then, select "Connect via SSH."
 
@@ -252,7 +254,7 @@ This command forwards traffic from your local port 5060 to your Gitpod workspace
 
 ## Example configuration
 
-Consider a situation where you want to deploy the server and send all PSTN traffic to a conference room in Asterisk. For such a scenario, you must configure a Peer to present your feature server and a Number to route calls from the PSTN.
+Consider a situation where you want to deploy the server and send all PSTN traffic to a conference room within Asterisk. For such a scenario, you must configure a Peer to present your feature server and a Number to route calls from the PSTN.
 
 First, start by creating a Peer configuration for your Asterisk server similar to the following one:
 
@@ -271,9 +273,9 @@ spec:
     algorithm: least-sessions
 ```
 
-Notice that the loadBalancing section sets the `withSessionAffinity` to true. We need session affinity to ensure that all calls related to the conference arrive on the same Asterisk server. Every Asterisk server that registers using the `asterisk` username will be grouped under the `backend:conference` Address of Record (AOR). 
+Notice that the loadBalancing section sets the `withSessionAffinity` to true. We need session affinity to ensure that all calls related to the conference arrive on the same Asterisk server. Every Asterisk server that registers with the asterisk username will join the `backend:conference` Address of Record (AOR).
 
-Next, we need to tell Routr to map all inbound calls from a given Number to the conference room in Asterisk. For that, we use the `aorLink` and `sessionAffinityHeader` on the desired Number. Here is an example: 
+Next, instruct Routr to map all inbound calls from a specific number to the conference room in Asterisk by setting the `aorLink` and `sessionAffinityHeader` parameters for the desired number. Here's an example:
 
 ```yaml
 apiVersion: v2beta1
