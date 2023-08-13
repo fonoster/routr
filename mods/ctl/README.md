@@ -19,7 +19,7 @@ $ npm install -g @routr/ctl
 $ rctl COMMAND
 running command...
 $ rctl (--version)
-@routr/ctl/2.1.0 linux-x64 node-v18.16.0
+@routr/ctl/2.1.7 linux-x64 node-v18.17.0
 $ rctl --help [COMMAND]
 USAGE
   $ rctl COMMAND
@@ -95,6 +95,8 @@ EXAMPLES
   Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
+_See code: [dist/commands/acl/create.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/acl/create.ts)_
+
 ## `rctl acl delete [REF]`
 
 Deletes an Access Control List
@@ -116,6 +118,8 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+_See code: [dist/commands/acl/delete.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/acl/delete.ts)_
+
 ## `rctl acl describe [REF]`
 
 shows details of an ACL
@@ -135,6 +139,8 @@ FLAGS
 DESCRIPTION
   shows details of an ACL
 ```
+
+_See code: [dist/commands/acl/describe.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/acl/describe.ts)_
 
 ## `rctl acl get [REF]`
 
@@ -163,6 +169,8 @@ EXAMPLES
   9e7a88f0-8390-42f5-a2cb-689583ba9f4f Local Network ACL 0.0.0.0/0 10.0.0.28
 ```
 
+_See code: [dist/commands/acl/get.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/acl/get.ts)_
+
 ## `rctl acl update REF`
 
 Updates an existing ACL
@@ -187,6 +195,8 @@ EXAMPLES
   Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
+_See code: [dist/commands/acl/update.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/acl/update.ts)_
+
 ## `rctl agents create`
 
 Creates a new Agent
@@ -207,6 +217,8 @@ EXAMPLES
   $ rctl agents create
   Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
+
+_See code: [dist/commands/agents/create.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/agents/create.ts)_
 
 ## `rctl agents delete [REF]`
 
@@ -229,6 +241,8 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+_See code: [dist/commands/agents/delete.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/agents/delete.ts)_
+
 ## `rctl agents describe [REF]`
 
 shows details of an Agent
@@ -248,6 +262,8 @@ FLAGS
 DESCRIPTION
   shows details of an Agent
 ```
+
+_See code: [dist/commands/agents/describe.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/agents/describe.ts)_
 
 ## `rctl agents get [REF]`
 
@@ -276,6 +292,8 @@ EXAMPLES
   d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local PRIVATE Yes
 ```
 
+_See code: [dist/commands/agents/get.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/agents/get.ts)_
+
 ## `rctl agents update REF`
 
 Updates an existing Agent
@@ -299,6 +317,8 @@ EXAMPLES
   $ rctl agents update
   Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
+
+_See code: [dist/commands/agents/update.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/agents/update.ts)_
 
 ## `rctl autocomplete [SHELL]`
 
@@ -350,6 +370,8 @@ EXAMPLES
   Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
+_See code: [dist/commands/credentials/create.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/credentials/create.ts)_
+
 ## `rctl credentials delete [REF]`
 
 Deletes a set of Credentials
@@ -371,6 +393,8 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+_See code: [dist/commands/credentials/delete.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/credentials/delete.ts)_
+
 ## `rctl credentials describe [REF]`
 
 shows details for a set of Credentials
@@ -390,6 +414,8 @@ FLAGS
 DESCRIPTION
   shows details for a set of Credentials
 ```
+
+_See code: [dist/commands/credentials/describe.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/credentials/describe.ts)_
 
 ## `rctl credentials get [REF]`
 
@@ -418,6 +444,8 @@ EXAMPLES
   80181ca6-d4aa-4575-9375-8f72b07d6666 Europe ACL 0.0.0.0/0 10.0.0.25
 ```
 
+_See code: [dist/commands/credentials/get.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/credentials/get.ts)_
+
 ## `rctl credentials update REF`
 
 Updates an existing set of Credentials
@@ -442,6 +470,8 @@ EXAMPLES
   Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
+_See code: [dist/commands/credentials/update.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/credentials/update.ts)_
+
 ## `rctl domains create`
 
 Creates a new set Domain
@@ -462,6 +492,8 @@ EXAMPLES
   $ rctl domains create
   Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
+
+_See code: [dist/commands/domains/create.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/domains/create.ts)_
 
 ## `rctl domains delete [REF]`
 
@@ -484,6 +516,8 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+_See code: [dist/commands/domains/delete.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/domains/delete.ts)_
+
 ## `rctl domains describe [REF]`
 
 show details of a Domain
@@ -503,6 +537,8 @@ FLAGS
 DESCRIPTION
   show details of a Domain
 ```
+
+_See code: [dist/commands/domains/describe.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/domains/describe.ts)_
 
 ## `rctl domains get [REF]`
 
@@ -531,6 +567,8 @@ EXAMPLES
   ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
 ```
 
+_See code: [dist/commands/domains/get.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/domains/get.ts)_
+
 ## `rctl domains update REF`
 
 Updates an existing Domain
@@ -555,6 +593,8 @@ EXAMPLES
   Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
+_See code: [dist/commands/domains/update.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/domains/update.ts)_
+
 ## `rctl numbers create`
 
 Creates a new Number
@@ -575,6 +615,8 @@ EXAMPLES
   $ rctl numbers create
   Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
 ```
+
+_See code: [dist/commands/numbers/create.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/numbers/create.ts)_
 
 ## `rctl numbers delete [REF]`
 
@@ -597,6 +639,8 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+_See code: [dist/commands/numbers/delete.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/numbers/delete.ts)_
+
 ## `rctl numbers describe [REF]`
 
 shows details for a Number
@@ -616,6 +660,8 @@ FLAGS
 DESCRIPTION
   shows details for a Number
 ```
+
+_See code: [dist/commands/numbers/describe.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/numbers/describe.ts)_
 
 ## `rctl numbers get [REF]`
 
@@ -644,6 +690,8 @@ EXAMPLES
   a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@sip.local Cameron, USA (US)
 ```
 
+_See code: [dist/commands/numbers/get.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/numbers/get.ts)_
+
 ## `rctl numbers update REF`
 
 Updates an existing set of Credentials
@@ -668,6 +716,8 @@ EXAMPLES
   Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
+_See code: [dist/commands/numbers/update.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/numbers/update.ts)_
+
 ## `rctl peers create`
 
 Creates a new Peer
@@ -688,6 +738,8 @@ EXAMPLES
   $ rctl peers create
   Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
+
+_See code: [dist/commands/peers/create.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/peers/create.ts)_
 
 ## `rctl peers delete [REF]`
 
@@ -710,6 +762,8 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+_See code: [dist/commands/peers/delete.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/peers/delete.ts)_
+
 ## `rctl peers describe [REF]`
 
 shows details for a Peer
@@ -729,6 +783,8 @@ FLAGS
 DESCRIPTION
   shows details for a Peer
 ```
+
+_See code: [dist/commands/peers/describe.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/peers/describe.ts)_
 
 ## `rctl peers get [REF]`
 
@@ -757,6 +813,8 @@ EXAMPLES
   6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference backend:conference ROUND_ROBIN         Yes
 ```
 
+_See code: [dist/commands/peers/get.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/peers/get.ts)_
+
 ## `rctl peers update REF`
 
 Updates an existing Peer
@@ -780,6 +838,8 @@ EXAMPLES
   $ rctl peers update
   Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
+
+_See code: [dist/commands/peers/update.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/peers/update.ts)_
 
 ## `rctl plugins`
 
@@ -864,6 +924,8 @@ EXAMPLES
   $ rctl plugins:inspect myplugin
 ```
 
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/inspect.ts)_
+
 ## `rctl plugins:install PLUGIN...`
 
 Installs a plugin into the CLI.
@@ -902,6 +964,8 @@ EXAMPLES
   $ rctl plugins:install someuser/someplugin
 ```
 
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/install.ts)_
+
 ## `rctl plugins:link PLUGIN`
 
 Links a plugin into the CLI for development.
@@ -929,28 +993,7 @@ EXAMPLES
   $ rctl plugins:link myplugin
 ```
 
-## `rctl plugins:uninstall PLUGIN...`
-
-Removes a plugin from the CLI.
-
-```
-USAGE
-  $ rctl plugins:uninstall PLUGIN...
-
-ARGUMENTS
-  PLUGIN  plugin to uninstall
-
-FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
-
-DESCRIPTION
-  Removes a plugin from the CLI.
-
-ALIASES
-  $ rctl plugins unlink
-  $ rctl plugins remove
-```
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/link.ts)_
 
 ## `rctl plugins:uninstall PLUGIN...`
 
@@ -974,6 +1017,31 @@ ALIASES
   $ rctl plugins unlink
   $ rctl plugins remove
 ```
+
+## `rctl plugins:uninstall PLUGIN...`
+
+Removes a plugin from the CLI.
+
+```
+USAGE
+  $ rctl plugins:uninstall PLUGIN...
+
+ARGUMENTS
+  PLUGIN  plugin to uninstall
+
+FLAGS
+  -h, --help     Show CLI help.
+  -v, --verbose
+
+DESCRIPTION
+  Removes a plugin from the CLI.
+
+ALIASES
+  $ rctl plugins unlink
+  $ rctl plugins remove
+```
+
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/uninstall.ts)_
 
 ## `rctl plugins:uninstall PLUGIN...`
 
@@ -1014,6 +1082,8 @@ DESCRIPTION
   Update installed plugins.
 ```
 
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/update.ts)_
+
 ## `rctl trunks create`
 
 Creates a new Trunk
@@ -1034,6 +1104,8 @@ EXAMPLES
   $ rctl trunks create
   Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
+
+_See code: [dist/commands/trunks/create.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/trunks/create.ts)_
 
 ## `rctl trunks delete [REF]`
 
@@ -1056,6 +1128,8 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
+_See code: [dist/commands/trunks/delete.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/trunks/delete.ts)_
+
 ## `rctl trunks describe [REF]`
 
 shows details for a Trunk
@@ -1075,6 +1149,8 @@ FLAGS
 DESCRIPTION
   shows details for a Trunk
 ```
+
+_See code: [dist/commands/trunks/describe.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/trunks/describe.ts)_
 
 ## `rctl trunks get [REF]`
 
@@ -1103,6 +1179,8 @@ EXAMPLES
   8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local  sip.t01.provider.net
 ```
 
+_See code: [dist/commands/trunks/get.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/trunks/get.ts)_
+
 ## `rctl trunks update REF`
 
 Updates an existing Trunk
@@ -1126,4 +1204,6 @@ EXAMPLES
   $ rctl trunks update
   Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
+
+_See code: [dist/commands/trunks/update.ts](https://github.com/fonoster/routr/blob/v2.1.7/dist/commands/trunks/update.ts)_
 <!-- commandsstop -->
