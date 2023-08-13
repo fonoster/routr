@@ -44,6 +44,11 @@ spec:
             failureThreshold: {{ .Values.edgeport.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.edgeport.livenessProbe.timeoutSeconds }}
           env:
+            - name: PKCS12_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-routr-edgeport-pkcs12-password
+                  key: password
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
@@ -76,14 +81,12 @@ spec:
               containerPort: {{ .Values.edgeport.transport.wss.port }}
           {{- end }}
           volumeMounts:
-            - name: config
+            - name: log4j2
               mountPath: /etc/routr/log4j2.yaml
               subPath: log4j2.yaml
             - name: config
               mountPath: /etc/routr/edgeport.yaml
               subPath: edgeport.yaml
-            # - mountPath: /etc/routr/letsencrypt
-            #   name: letscrypt-certificate
           resources:
             {{- if .Values.edgeport.resources.limits }}
             limits:
@@ -97,8 +100,8 @@ spec:
             allowPrivilegeEscalation: {{ .Values.edgeport.securityContext.allowPrivilegeEscalation }}
       volumes:
         - name: config
+          secret:
+            secretName: {{ .Release.Name }}-routr-edgeport-config
+        - name: log4j2
           configMap:
-            name:  {{ .Release.Name }}-routr-edgeport-config
-        # - name: letscrypt-certificate
-        #   secret:
-        #     secretName: {{ .Release.Name }}-routr-letsencrypt
+            name: {{ .Release.Name }}-routr-edgeport-log4j2

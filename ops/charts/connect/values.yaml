@@ -6,6 +6,9 @@ global:
 
 # EdgePort Service defaults
 edgeport:
+  # Set a password for the JAIN SIP security context
+  # The password will be securely stored in a k8s secret
+  pkcs12Password: changeme
   # External addresses. Required for edgeport to work
   externalAddrs: []
   # Acceptable SIP methods
@@ -224,7 +227,7 @@ location:
 
 # APIServer Service defaults
 apiserver:
-  # Uncomment the next line if you would like to point to an external postgresql db
+  # Uncomment the next line if you want to point to an external postgresql db
   # databaseUrl: postgresql://routr:changeme@dbserver:5432/routr?schema=public
 
   # Set to false if you want to disable TLS for the APIServer (Not recommended)
