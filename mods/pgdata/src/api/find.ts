@@ -33,7 +33,14 @@ export function findBy(
       const request = { [call.request.fieldName]: call.request.fieldValue }
       const Manager = getManager(kind)
 
-      // WARNING: This function currently doesn't work for boolean or enum fields
+      // WARNING: As of Prisma 4.15.0, we can't pass string equivalents of booleans due to its internals.
+      // Previously, this was feasible. This workaround is temporary until find a better solution.
+      if (call.request.fieldValue === "true") {
+        request[call.request.fieldName] = true
+      } else if (call.request.fieldValue === "false") {
+        request[call.request.fieldName] = false
+      }
+
       const items = (await operation({
         where: request,
         include: Manager.includeFields()
