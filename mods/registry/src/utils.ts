@@ -46,7 +46,7 @@ export async function findTrunks(apiClient: CC.APIClient) {
   return (
     await apiClient.trunks.findBy({
       fieldName: "sendRegister",
-      fieldValue: "true"
+      fieldValue: true
     })
   ).items
 }

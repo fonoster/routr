@@ -30,7 +30,7 @@
     "@opentelemetry/sdk-trace-base": "^1.0.4",
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
-    "@prisma/client": "^4.8.0",
+    "@prisma/client": "^4.16.2",
     "@routr/common": "^2.1.0",
     "@routr/processor": "^2.1.6",
     "google-protobuf": "^3.9.2",
@@ -55,7 +55,7 @@
   "devDependencies": {
     "@types/google-protobuf": "^3.15.6",
     "@types/validator": "^13.7.10",
-    "prisma": "^4.8.0"
+    "prisma": "^4.16.2"
   },
   "gitHead": "1841d2d8d51bebfdc3af7e81435064e81b176449"
 }
