@@ -33,8 +33,8 @@ export function findBy(
       const request = { [call.request.fieldName]: call.request.fieldValue }
       const Manager = getManager(kind)
 
-      // WARNING: The "operation" method does not support boolean values. We need to convert
-      // them from strings to true/false. This is a workaround until Prisma supports boolean
+      // WARNING: As of Prisma 4.15.0, we can't pass string equivalents of booleans due to its internals.
+      // Previously, this was feasible. This workaround is temporary until find a better solution.
       if (call.request.fieldValue === "true") {
         request[call.request.fieldName] = true
       } else if (call.request.fieldValue === "false") {
