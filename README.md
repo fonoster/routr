@@ -15,11 +15,12 @@ Routr is a lightweight sip proxy, location server, and registrar that provides a
 
 * [Community](#community)
 * [Features](#features)
-* [Example Configuration](#example-configuration)
+* [The official handbook](#the-official-handbook)
 * [Deployment](#deployment)
     * [Docker](#instant-server-deployment-with-docker-and-compose)
     * [Kubernetes](#kubernetes)  
     * [Gitpod](#deploying-in-development-mode-with-gitpod)
+* [Example Configuration](#example-configuration)
 * [Documentation](https://routr.io/docs/introduction/overview)
 * [Sponsors](#sponsors)
 * [Contributing](#contributing)
