@@ -1,74 +1,12 @@
-{{- $name := .Values.edgeport.methods | required ".Values.edgeport.methods is required." -}}
-
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-routr-edgeport-config
+  name: {{ .Release.Name }}-routr-edgeport-log4j2
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include ".helm.labels" . | nindent 4 }}
 data:
-  edgeport.yaml: |-
-    kind: EdgePort
-    apiVersion: v2beta1
-    ref: edgeport-01
-    metadata:
-      region: {{ .Values.global.region }}
-    spec:
-      unknownMethodAction: Discard
-      processor:
-        addr: {{ .Release.Name }}-routr-dispatcher.{{ .Release.Namespace }}:51901  
-      # securityContext:
-      #   client:
-      #     protocols:
-      #       - SSLv3
-      #       - TLSv1.2
-      #     authType: DisabledAll
-      #   keyStorePassword: changeme
-      #   trustStorePassword: changeme
-      #   keyStore: "/etc/routr/certs/signaling.p12"
-      #   trustStore: "/etc/routr/certs/signaling.p12"
-      #   keyStoreType: pkcs12
-      {{- if .Values.edgeport.externalAddrs }}
-      externalAddrs: 
-      {{- range .Values.edgeport.externalAddrs }}
-        - {{.}}
-      {{- end }}
-      {{- end }}
-      {{- if .Values.edgeport.localnets }}
-      localnets: 
-      {{- range .Values.edgeport.localnets }}
-        - {{.}}
-      {{- end }}
-      {{- end }}
-      {{- if .Values.edgeport.methods }}
-      methods: 
-      {{- range .Values.edgeport.methods }}
-        - {{.}}
-      {{- end }}
-      {{- end }}
-      transport:
-      {{- if .Values.edgeport.transport.tcp.enabled }}
-        - protocol: tcp
-          port: {{ .Values.edgeport.transport.tcp.port }}
-      {{- end }}
-      {{- if .Values.edgeport.transport.udp.enabled }}
-        - protocol: udp
-          port: {{ .Values.edgeport.transport.udp.port }}
-      {{- end }}
-      {{- if .Values.edgeport.transport.tls.enabled }}
-        - protocol: tls
-          port: {{ .Values.edgeport.transport.tls.port }}
-      {{- end }}      
-      {{- if .Values.edgeport.transport.ws.enabled }}
-        - protocol: ws
-          port: {{ .Values.edgeport.transport.ws.port }}
-      {{- end }}
-      {{- if .Values.edgeport.transport.wss.enabled }}
-        - protocol: wss
-          port: {{ .Values.edgeport.transport.wss.port }}
-      {{- end }}
   log4j2.yaml: |-
     Configuration:
       Appenders:
