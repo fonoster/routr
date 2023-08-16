@@ -232,6 +232,8 @@ apiserver:
 
   # Set to false if you want to disable TLS for the APIServer (Not recommended)
   tlsOn: true
+  # When set to true the APIServer will require client certificates
+  verifyClientCert: false
   # APIServer image configuration
   image:
     # APIServer image repository

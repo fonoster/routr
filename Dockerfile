@@ -35,7 +35,8 @@ ENV PKCS_PASSWORD=$PKCS_PASSWORD \
   UID=5000 \
   JAVA_HOME=/service/jre \
   EDGEPORT_RUNNER=/service/edgeport.sh \
-  TLS_ON=true
+  TLS_ON=true \
+  VERIFY_CLIENT_CERT=false
 
 WORKDIR /service
 

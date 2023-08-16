@@ -91,8 +91,9 @@ export default function pgDataService(config: PostgresDataConfig): void {
     const cacert = VERIFY_CLIENT_CERT ? fs.readFileSync(CACERT) : null
     const cert = fs.readFileSync(SERVER_CERT)
     const key = fs.readFileSync(SERVER_KEY)
+
     const externalCredentials = grpc.ServerCredentials.createSsl(
-      // By default the server does not ask for the client's certificate.
+      // Root CA certificates for validating client certificates
       cacert,
       [
         {

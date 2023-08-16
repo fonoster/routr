@@ -60,6 +60,8 @@ spec:
               value: {{ .Values.global.otlExporter }}
             - name: TLS_ON
               value: "{{ .Values.apiserver.tlsOn }}"
+            - name: VERIFY_CLIENT_CERT
+              value: "{{ .Values.apiserver.verifyClientCert }}"
           ports:
             - containerPort: 51907
             # External port for the API server

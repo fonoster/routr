@@ -178,6 +178,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.migrationsImage.tag`                        | Image tag                                                   | `2.0.8-alpha.35`                   |
 | `apiserver.migrationsImage.pullPolicy`                 | Image pull policy                                           | `IfNotPresent`                     |
 | `apiserver.tlsOn`                                      | Enables TLS for the APIServer                               | `true`                             |
+| `apiserver.verifyClientCert`                           | To verify the client's certificate during authentication    | `false`                             |
 | `apiserver.podAnnotations`                             | Pod annotations                                             | `{}`                               |
 | `apiserver.serviceAnnotations`                         | Service annotations                                         | `{}`                               |
 | `apiserver.resources`                                  | Resource quotas                                             | `{}`                               |
