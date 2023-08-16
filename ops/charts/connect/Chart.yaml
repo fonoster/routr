@@ -3,7 +3,7 @@ name: routr-connect
 description: Routr Connect Helm Chart
 type: application
 version: 0.1.8
-appVersion: 2.1.8
+appVersion: 2.1.9
 dependencies:
   - name: postgresql
     version: 12.1.15
