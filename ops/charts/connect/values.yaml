@@ -2,7 +2,8 @@ global:
   # Reserved for future use
   region: default
   logsLevel: info
-  otlExporter: http://jaeger:14268/api/traces
+  # Uncomment and point to valid URL to enable tracing
+  # otlExporter: http://jaeger:14268/api/traces
 
 # EdgePort Service defaults
 edgeport:
@@ -36,7 +37,7 @@ edgeport:
   serviceAnnotations: {}
   # The type for the service
   serviceType: NodePort
-  # TODO: Needs comment
+  # Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints
   externalTrafficPolicy: Cluster
   # Security context for EdgePort
   transport:

@@ -26,9 +26,10 @@ import { BIND_ADDR } from "./envs"
 
 const logger = getLogger({ service: "echo", filePath: __filename })
 
-new Processor({ bindAddr: BIND_ADDR, name: "echo" })
-  .listen((req: MessageRequest, res: Response) => {
+new Processor({ bindAddr: BIND_ADDR, name: "echo" }).listen(
+  (req: MessageRequest, res: Response) => {
     logger.verbose("got new request: ")
     logger.verbose(JSON.stringify(req, null, " "))
     res.sendOk()
-  })
+  }
+)
