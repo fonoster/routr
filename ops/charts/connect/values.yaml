@@ -165,6 +165,8 @@ dispatcher:
     maxReplicas: 10
     # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
+    # Target memory utilization percentage
+    targetMemoryUtilizationPercentage: 70
 
 # Location Service defaults
 location:
@@ -225,6 +227,8 @@ location:
     maxReplicas: 10
     # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
+    # Target memory utilization percentage
+    targetMemoryUtilizationPercentage: 70
 
 # APIServer Service defaults
 apiserver:
@@ -293,6 +297,8 @@ apiserver:
     maxReplicas: 10
     # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
+    # Target memory utilization percentage
+    targetMemoryUtilizationPercentage: 70
 
 # Connect Service defaults
 connect:
@@ -345,6 +351,8 @@ connect:
     maxReplicas: 10
     # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
+    # Target memory utilization percentage
+    targetMemoryUtilizationPercentage: 70
 
 # Registry Service defaults
 registry:
@@ -409,6 +417,8 @@ registry:
     maxReplicas: 10
     # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
+    # Target memory utilization percentage
+    targetMemoryUtilizationPercentage: 70
 
 # Requester Service defaults
 requester:
@@ -461,6 +471,8 @@ requester:
     maxReplicas: 10
     # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
+    # Target memory utilization percentage
+    targetMemoryUtilizationPercentage: 70
 
 # RTPRelay Service defaults
 rtprelay:
@@ -518,6 +530,8 @@ rtprelay:
     maxReplicas: 10
     # Target CPU utilization percentage
     targetCPUUtilizationPercentage: 50
+    # Target memory utilization percentage
+    targetMemoryUtilizationPercentage: 70
 
 # Postgresql Service defaults 
 postgresql:

@@ -115,125 +115,125 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 ### Dispatcher parameters
 
-| Parameter                                               | Description                                                   | Value                                                       |
-| ------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
-| `dispatcher.processors`                                 | Processors configuration section                              |                                                             |                    
-| `dispatcher.processors[*].ref`                          | Reference to the Processor                                    | `connect-processor`                                         |
-| `dispatcher.processors[*].servicePrefix`                | Prefix for the service (Defaults to the release name)         | `{{ .Release.Name }}`                                       |
-| `dispatcher.processors[*].serviceName`                  | The name of the service hosting the processor                 | `{{ .serviceName }}`                                        |
-| `dispatcher.processors[*].serviceNamespace`             | The namespace for the service (Defaults to the release ns)    | `{{ .Release.Namespace }}`                                  |
-| `dispatcher.processors[*].matchFunc`                    | Routing function                                              | `req => true`                                               |
-| `dispatcher.processors[*].methods`                      | Acceptable methods                                            | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]` |
-| `dispatcher.middlewares`                                | Middlewares configuration section                             | `[]`                                                        |
-| `dispatcher.middlewares[*].ref`                         | Reference to the Middleware                                   | `{{ .ref }}`                                                |
-| `dispatcher.middlewares[*].servicePrefix`               | Prefix for the service (Defaults to the release name)         | `{{ .Release.Name }}`                                       |
-| `dispatcher.middlewares[*].serviceName`                 | The name of the service hosting the middleware                | `{{ .serviceName }}`                                        |
-| `dispatcher.middlewares[*].serviceNamespace`            | The namespace for the service (Defaults to the release ns)    | `{{ .Release.Namespace }}`                                  |
-| `dispatcher.middlewares[*].postProcessor`               | If set to true the middleware will run after the processor    | `{{ .postProcessor }}`                                      |
-| `dispatcher.image.repository`                           | Image repository                                              | `fonoster/routr-dispatcher`                                 |
-| `dispatcher.image.tag`                                  | Image tag                                                     | `{{ .Chart.AppVersion }}`                                   |
-| `dispatcher.image.pullPolicy`                           | Image pull policy                                             | `IfNotPresent`                                              |
-| `dispatcher.podAnnotations`                             | Pod annotations                                               | `{}`                                                        |
-| `dispatcher.serviceAnnotations`                         | Service annotations                                           | `{}`                                                        |
-| `dispatcher.resources`                                  | Resource quotas                                               | `{}`                                                        |
-| `dispatcher.autoscaling.minReplicas`                    | Minimum number of replicas                                    | `1`                                                         |
-| `dispatcher.autoscaling.maxReplicas`                    | Maximum number of replicas                                    | `10`                                                        |
-| `dispatcher.autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization percentage                             | `50`                                                        |
-| `dispatcher.securityContext.runAsUser`                  | Running as a non-root user                                    | `1000`                                                      |
-| `dispatcher.securityContext.runAsGroup`                 | Running as non-root group                                     | `3000`                                                      |
-| `dispatcher.securityContext.fsGroup`                    | File system group                                             | `2000`                                                      |
-| `dispatcher.securityContext.allowPrivilegeEscalation`   | By default, no privilege escalation is allowed                | `false`                                                     |
-| `dispatcher.livenessProbe.initialDelaySeconds`          | Initial delay in seconds before starting the liveness probe   | `5`                                                         |
-| `dispatcher.livenessProbe.periodSeconds`                | Period between liveness probes                                | `5`                                                         |
-| `dispatcher.livenessProbe.successThreshold`             | Number of successes required to be considered healthy         | `1`                                                         |
-| `dispatcher.livenessProbe.failureThreshold`             | Number of failures required to be considered unhealthy        | `2`                                                         |
-| `dispatcher.livenessProbe.timeoutSeconds`               | Timeout in seconds for liveness probe                         | `1`                                                         |
-| `dispatcher.resources.requests`                         | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                                                        |
-| `dispatcher.resources.limits`                           | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                                                        |
+| Parameter                                                  | Description                                                   | Value                                                       |
+| ---------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
+| `dispatcher.processors`                                    | Processors configuration section                              |                                                             |                    
+| `dispatcher.processors[*].ref`                             | Reference to the Processor                                    | `connect-processor`                                         |
+| `dispatcher.processors[*].servicePrefix`                   | Prefix for the service (Defaults to the release name)         | `{{ .Release.Name }}`                                       |
+| `dispatcher.processors[*].serviceName`                     | The name of the service hosting the processor                 | `{{ .serviceName }}`                                        |
+| `dispatcher.processors[*].serviceNamespace`                | The namespace for the service (Defaults to the release ns)    | `{{ .Release.Namespace }}`                                  |
+| `dispatcher.processors[*].matchFunc`                       | Routing function                                              | `req => true`                                               |
+| `dispatcher.processors[*].methods`                         | Acceptable methods                                            | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]` |
+| `dispatcher.middlewares`                                   | Middlewares configuration section                             | `[]`                                                        |
+| `dispatcher.middlewares[*].ref`                            | Reference to the Middleware                                   | `{{ .ref }}`                                                |
+| `dispatcher.middlewares[*].servicePrefix`                  | Prefix for the service (Defaults to the release name)         | `{{ .Release.Name }}`                                       |
+| `dispatcher.middlewares[*].serviceName`                    | The name of the service hosting the middleware                | `{{ .serviceName }}`                                        |
+| `dispatcher.middlewares[*].serviceNamespace`               | The namespace for the service (Defaults to the release ns)    | `{{ .Release.Namespace }}`                                  |
+| `dispatcher.middlewares[*].postProcessor`                  | If set to true the middleware will run after the processor    | `{{ .postProcessor }}`                                      |
+| `dispatcher.image.repository`                              | Image repository                                              | `fonoster/routr-dispatcher`                                 |
+| `dispatcher.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}`                                   |
+| `dispatcher.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`                                              |
+| `dispatcher.podAnnotations`                                | Pod annotations                                               | `{}`                                                        |
+| `dispatcher.serviceAnnotations`                            | Service annotations                                           | `{}`                                                        |
+| `dispatcher.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                                                         |
+| `dispatcher.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                                                        |
+| `dispatcher.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                                                        |
+| `dispatcher.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                                                        |
+| `dispatcher.securityContext.runAsUser`                     | Running as a non-root user                                    | `1000`                                                      |
+| `dispatcher.securityContext.runAsGroup`                    | Running as non-root group                                     | `3000`                                                      |
+| `dispatcher.securityContext.fsGroup`                       | File system group                                             | `2000`                                                      |
+| `dispatcher.securityContext.allowPrivilegeEscalation`      | By default, no privilege escalation is allowed                | `false`                                                     |
+| `dispatcher.livenessProbe.initialDelaySeconds`             | Initial delay in seconds before starting the liveness probe   | `5`                                                         |
+| `dispatcher.livenessProbe.periodSeconds`                   | Period between liveness probes                                | `5`                                                         |
+| `dispatcher.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                                                         |
+| `dispatcher.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                                                         |
+| `dispatcher.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                                                         |
+| `dispatcher.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                                                        |
+| `dispatcher.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                                                        |
 
 ### Location parameters
 
-| Parameter                                             | Description                                                   | Value                     |
-| ----------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
-| `location.region`                                     | Region for Location service (reserved for future use)         | `default`                 |
-| `location.cache.provider`                             | Cache Provider (supports for `redis` and `memory` )           | `redis`                   |
-| `location.cache.parameters`                           | Cache Parameters                                              | `""`                      |
-| `location.image.repository`                           | Image repository                                              | `fonoster/routr-location` |
-| `location.image.tag`                                  | Image tag                                                     | `{{ .Chart.AppVersion }}` |
-| `location.image.pullPolicy`                           | Image pull policy                                             | `IfNotPresent`            |
-| `location.podAnnotations`                             | Pod annotations                                               | `{}`                      |
-| `location.serviceAnnotations`                         | Service annotations                                           | `{}`                      |
-| `location.resources`                                  | Resource quotas                                               | `{}`                      |
-| `location.autoscaling.minReplicas`                    | Minimum number of replicas                                    | `1`                       |
-| `location.autoscaling.maxReplicas`                    | Maximum number of replicas                                    | `10`                      |
-| `location.autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization percentage                             | `50`                      |
-| `location.securityContext.runAsUser`                  | Running as a non-root user                                    | `1000`                    |
-| `location.securityContext.runAsGroup`                 | Running as non-root group                                     | `3000`                    |
-| `location.securityContext.fsGroup`                    | File system group                                             | `2000`                    |
-| `location.securityContext.allowPrivilegeEscalation`   | By default, no privilege escalation is allowed                | `false`                   |
-| `location.livenessProbe.initialDelaySeconds`          | Initial delay in seconds before starting the liveness probe   | `5`                       |
-| `location.livenessProbe.periodSeconds`                | Period between liveness probes                                | `5`                       |
-| `location.livenessProbe.successThreshold`             | Number of successes required to be considered healthy         | `1`                       |
-| `location.livenessProbe.failureThreshold`             | Number of failures required to be considered unhealthy        | `2`                       |
-| `location.livenessProbe.timeoutSeconds`               | Timeout in seconds for liveness probe                         | `1`                       |
-| `location.resources.requests`                         | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
-| `location.resources.limits`                           | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
+| Parameter                                                | Description                                                   | Value                     |
+| -------------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
+| `location.region`                                        | Region for Location service (reserved for future use)         | `default`                 |
+| `location.cache.provider`                                | Cache Provider (supports for `redis` and `memory` )           | `redis`                   |
+| `location.cache.parameters`                              | Cache Parameters                                              | `""`                      |
+| `location.image.repository`                              | Image repository                                              | `fonoster/routr-location` |
+| `location.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}` |
+| `location.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
+| `location.podAnnotations`                                | Pod annotations                                               | `{}`                      |
+| `location.serviceAnnotations`                            | Service annotations                                           | `{}`                      |
+| `location.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                       |
+| `location.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                      |
+| `location.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                      |
+| `location.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                      |
+| `location.securityContext.runAsUser`                     | Running as a non-root user                                    | `1000`                    |
+| `location.securityContext.runAsGroup`                    | Running as non-root group                                     | `3000`                    |
+| `location.securityContext.fsGroup`                       | File system group                                             | `2000`                    |
+| `location.securityContext.allowPrivilegeEscalation`      | By default, no privilege escalation is allowed                | `false`                   |
+| `location.livenessProbe.initialDelaySeconds`             | Initial delay in seconds before starting the liveness probe   | `5`                       |
+| `location.livenessProbe.periodSeconds`                   | Period between liveness probes                                | `5`                       |
+| `location.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                       |
+| `location.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                       |
+| `location.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                       |
+| `location.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
+| `location.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
 
 ### APIServer parameters
 
-| Parameter                                              | Description                                                   | Value                               |
-| ------------------------------------------------------ | ------------------------------------------------------------- | ----------------------------------- |
-| `apiserver.image.repository`                           | Image repository                                              | `fonoster/routr-pgdata`             |
-| `apiserver.image.tag`                                  | Image tag                                                     | `{{ .Chart.AppVersion }}`           |
-| `apiserver.image.pullPolicy`                           | Image pull policy                                             | `IfNotPresent`                      |
-| `apiserver.migrationsEnabled`                          | Enables database migrations                                   | `true`                              |
-| `apiserver.migrationsImage.repository`                 | Image repository                                              | `fonoster/routr-pgdata-migrations`  |
-| `apiserver.migrationsImage.tag`                        | Image tag                                                     | `{{ .Chart.AppVersion }}`           |
-| `apiserver.migrationsImage.pullPolicy`                 | Image pull policy                                             | `IfNotPresent`                      |
-| `apiserver.tlsOn`                                      | Enables TLS for the APIServer                                 | `true`                              |
-| `apiserver.verifyClientCert`                           | To verify the client's certificate during authentication      | `false`                             |
-| `apiserver.podAnnotations`                             | Pod annotations                                               | `{}`                                |
-| `apiserver.serviceAnnotations`                         | Service annotations                                           | `{}`                                |
-| `apiserver.resources`                                  | Resource quotas                                               | `{}`                                |
-| `apiserver.autoscaling.miniReplicas`                   | Minimum number of replicas                                    | `1`                                 |
-| `apiserver.autoscaling.maxReplicas`                    | Maximum number of replicas                                    | `10`                                |
-| `apiserver.autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization percentage                             | `50`                                |
-| `apiserver.securityContext.runAsUser`                  | Running as a non-root user                                    | `1000`                              |
-| `apiserver.securityContext.runAsGroup`                 | Running as non-root group                                     | `3000`                              |
-| `apiserver.securityContext.fsGroup`                    | File system group                                             | `2000`                              |
-| `apiserver.securityContext.allowPrivilegeEscalation`   | By default, no privilege escalation is allowed                | `false`                             |
-| `apiserver.livenessProbe.initialDelaySeconds`          | Initial delay in seconds before starting the liveness probe   | `5`                                 |
-| `apiserver.livenessProbe.periodSeconds`                | Period between liveness probes                                | `5`                                 |
-| `apiserver.livenessProbe.successThreshold`             | Number of successes required to be considered healthy         | `1`                                 |
-| `apiserver.livenessProbe.failureThreshold`             | Number of failures required to be considered unhealthy        | `2`                                 |
-| `apiserver.livenessProbe.timeoutSeconds`               | Timeout in seconds for liveness probe                         | `1`                                 |
-| `apiserver.resources.requests`                         | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                                |
-| `apiserver.resources.limits`                           | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                                |
+| Parameter                                                 | Description                                                   | Value                               |
+| --------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------- |
+| `apiserver.image.repository`                              | Image repository                                              | `fonoster/routr-pgdata`             |
+| `apiserver.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}`           |
+| `apiserver.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`                      |
+| `apiserver.migrationsEnabled`                             | Enables database migrations                                   | `true`                              |
+| `apiserver.migrationsImage.repository`                    | Image repository                                              | `fonoster/routr-pgdata-migrations`  |
+| `apiserver.migrationsImage.tag`                           | Image tag                                                     | `{{ .Chart.AppVersion }}`           |
+| `apiserver.migrationsImage.pullPolicy`                    | Image pull policy                                             | `IfNotPresent`                      |
+| `apiserver.tlsOn`                                         | Enables TLS for the APIServer                                 | `true`                              |
+| `apiserver.verifyClientCert`                              | To verify the client's certificate during authentication      | `false`                             |
+| `apiserver.podAnnotations`                                | Pod annotations                                               | `{}`                                |
+| `apiserver.serviceAnnotations`                            | Service annotations                                           | `{}`                                |
+| `apiserver.autoscaling.miniReplicas`                      | Minimum number of replicas                                    | `1`                                 |
+| `apiserver.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                                |
+| `apiserver.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                                |
+| `apiserver.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                                |
+| `apiserver.securityContext.runAsUser`                     | Running as a non-root user                                    | `1000`                              |
+| `apiserver.securityContext.runAsGroup`                    | Running as non-root group                                     | `3000`                              |
+| `apiserver.securityContext.fsGroup`                       | File system group                                             | `2000`                              |
+| `apiserver.securityContext.allowPrivilegeEscalation`      | By default, no privilege escalation is allowed                | `false`                             |
+| `apiserver.livenessProbe.initialDelaySeconds`             | Initial delay in seconds before starting the liveness probe   | `5`                                 |
+| `apiserver.livenessProbe.periodSeconds`                   | Period between liveness probes                                | `5`                                 |
+| `apiserver.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                                 |
+| `apiserver.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                                 |
+| `apiserver.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                                 |
+| `apiserver.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                                |
+| `apiserver.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                                |
 
 ### Connect Processor parameters
 
-| Parameter                                            | Description                                                   | Value                    |
-| ---------------------------------------------------- | ------------------------------------------------------------- | ------------------------ |
-| `connect.image.repository`                           | Image repository                                              | `fonoster/routr-connect` |
-| `connect.image.tag`                                  | Image tag                                                     | `{{ .Chart.AppVersion }}`|
-| `connect.image.pullPolicy`                           | Image pull policy                                             | `IfNotPresent`           |
-| `connect.podAnnotations`                             | Pod annotations                                               | `{}`                     |
-| `connect.serviceAnnotations`                         | Service annotations                                           | `{}`                     |
-| `connect.resources`                                  | Resource quotas                                               | `{}`                     |
-| `connect.autoscaling.miniReplicas`                   | Minimum number of replicas                                    | `1`                      |
-| `connect.autoscaling.maxReplicas`                    | Maximum number of replicas                                    | `10`                     |
-| `connect.autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization percentage                             | `50`                     |
-| `connect.securityContext.runAsUser`                  | Running as a non-root user                                    | `1000`                   |
-| `connect.securityContext.runAsGroup`                 | Running as non-root group                                     | `3000`                   |
-| `connect.securityContext.fsGroup`                    | File system group                                             | `2000`                   |
-| `connect.securityContext.allowPrivilegeEscalation`   | By default, no privilege escalation is allowed                | `false`                  |
-| `connect.livenessProbe.initialDelaySeconds`          | Initial delay in seconds before starting the liveness probe   | `5`                      |
-| `connect.livenessProbe.periodSeconds`                | Period between liveness probes                                | `5`                      |
-| `connect.livenessProbe.successThreshold`             | Number of successes required to be considered healthy         | `1`                      |
-| `connect.livenessProbe.failureThreshold`             | Number of failures required to be considered unhealthy        | `2`                      |
-| `connect.livenessProbe.timeoutSeconds`               | Timeout in seconds for liveness probe                         | `1`                      |
-| `connect.resources.requests`                         | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                     |
-| `connect.resources.limits`                           | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                     |
+| Parameter                                               | Description                                                   | Value                    |
+| ------------------------------------------------------- | ------------------------------------------------------------- | ------------------------ |
+| `connect.image.repository`                              | Image repository                                              | `fonoster/routr-connect` |
+| `connect.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}`|
+| `connect.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`           |
+| `connect.podAnnotations`                                | Pod annotations                                               | `{}`                     |
+| `connect.serviceAnnotations`                            | Service annotations                                           | `{}`                     |
+| `connect.autoscaling.miniReplicas`                      | Minimum number of replicas                                    | `1`                      |
+| `connect.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                     |
+| `connect.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                     |
+| `connect.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                     |
+| `connect.securityContext.runAsUser`                     | Running as a non-root user                                    | `1000`                   |
+| `connect.securityContext.runAsGroup`                    | Running as non-root group                                     | `3000`                   |
+| `connect.securityContext.fsGroup`                       | File system group                                             | `2000`                   |
+| `connect.securityContext.allowPrivilegeEscalation`      | By default, no privilege escalation is allowed                | `false`                  |
+| `connect.livenessProbe.initialDelaySeconds`             | Initial delay in seconds before starting the liveness probe   | `5`                      |
+| `connect.livenessProbe.periodSeconds`                   | Period between liveness probes                                | `5`                      |
+| `connect.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                      |
+| `connect.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                      |
+| `connect.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                      |
+| `connect.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                     |
+| `connect.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                     |
 
 ### Registry parameters
 
@@ -248,10 +248,6 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `registry.image.pullPolicy`                           | Image pull policy                                             | `IfNotPresent`            |
 | `registry.podAnnotations`                             | Pod annotations                                               | `{}`                      |
 | `registry.serviceAnnotations`                         | Service annotations                                           | `{}`                      |
-| `registry.resources`                                  | Resource quotas                                               | `{}`                      |
-| `registry.autoscaling.minReplicas`                    | Minimum number of replicas                                    | `1`                       |
-| `registry.autoscaling.maxReplicas`                    | Maximum number of replicas                                    | `10`                      |
-| `registry.autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization percentage                             | `50`                      |
 | `registry.securityContext.runAsUser`                  | Running as a non-root user                                    | `1000`                    |
 | `registry.securityContext.runAsGroup`                 | Running as non-root group                                     | `3000`                    |
 | `registry.securityContext.fsGroup`                    | File system group                                             | `2000`                    |
@@ -266,56 +262,56 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 ### Requester parameters
 
-| Parameter                                              | Description                                                   | Value                      |
-| ------------------------------------------------------ | ------------------------------------------------------------- | -------------------------- |
-| `requester.image.repository`                           | Image repository                                              | `fonoster/routr-requester` |
-| `requester.image.tag`                                  | Image tag                                                     | `{{ .Chart.AppVersion }}`  |
-| `requester.image.pullPolicy`                           | Image pull policy                                             | `IfNotPresent`             |
-| `requester.podAnnotations`                             | Pod annotations                                               | `{}`                       |
-| `requester.serviceAnnotations`                         | Service annotations                                           | `{}`                       |
-| `requester.resources`                                  | Resource quotas                                               | `{}`                       |
-| `requester.autoscaling.miniReplicas`                   | Minimum number of replicas                                    | `1`                        |
-| `requester.autoscaling.maxReplicas`                    | Maximum number of replicas                                    | `10`                       |
-| `requester.autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization percentage                             | `50`                       |
-| `requester.securityContext.runAsUser`                  | Running as a non-root user                                    | `1000`                     |
-| `requester.securityContext.runAsGroup`                 | Running as non-root group                                     | `3000`                     |
-| `requester.securityContext.fsGroup`                    | File system group                                             | `2000`                     |
-| `requester.securityContext.allowPrivilegeEscalation`   | By default, no privilege escalation is allowed                | `false`                    |
-| `requester.livenessProbe.initialDelaySeconds`          | Initial delay in seconds before starting the liveness probe   | `10`                       |
-| `requester.livenessProbe.periodSeconds`                | Period between liveness probes                                | `5`                        |
-| `requester.livenessProbe.successThreshold`             | Number of successes required to be considered healthy         | `1`                        |
-| `requester.livenessProbe.failureThreshold`             | Number of failures required to be considered unhealthy        | `2`                        |
-| `requester.livenessProbe.timeoutSeconds`               | Timeout in seconds for liveness probe                         | `1`                        |
-| `requester.resources.requests`                         | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                       |
-| `requester.resources.limits`                           | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                       |
+| Parameter                                                 | Description                                                   | Value                      |
+| --------------------------------------------------------- | ------------------------------------------------------------- | -------------------------- |
+| `requester.image.repository`                              | Image repository                                              | `fonoster/routr-requester` |
+| `requester.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}`  |
+| `requester.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`             |
+| `requester.podAnnotations`                                | Pod annotations                                               | `{}`                       |
+| `requester.serviceAnnotations`                            | Service annotations                                           | `{}`                       |
+| `requester.autoscaling.miniReplicas`                      | Minimum number of replicas                                    | `1`                        |
+| `requester.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                       |
+| `requester.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                       |
+| `requester.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                       |
+| `requester.securityContext.runAsUser`                     | Running as a non-root user                                    | `1000`                     |
+| `requester.securityContext.runAsGroup`                    | Running as non-root group                                     | `3000`                     |
+| `requester.securityContext.fsGroup`                       | File system group                                             | `2000`                     |
+| `requester.securityContext.allowPrivilegeEscalation`      | By default, no privilege escalation is allowed                | `false`                    |
+| `requester.livenessProbe.initialDelaySeconds`             | Initial delay in seconds before starting the liveness probe   | `10`                       |
+| `requester.livenessProbe.periodSeconds`                   | Period between liveness probes                                | `5`                        |
+| `requester.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                        |
+| `requester.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                        |
+| `requester.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                        |
+| `requester.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                       |
+| `requester.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                       |
 
 ### RTPRelay parameters
 
-| Parameter                                             | Description                                                   | Value                     |
-| ----------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
-| `rtprelay.enabled`                                    | Enables the rtprelay Pod                                      | `false`                   |
-| `rtprelay.rtpeHost`                                   | RTPEngine host                                                | `""`                      |
-| `rtprelay.rtpePort`                                   | RTPEngine admin port                                          | `22222`                   |
-| `rtprelay.image.repository`                           | Image repository                                              | `fonoster/routr-rtprelay` |
-| `rtprelay.image.tag`                                  | Image tag                                                     | `{{ .Chart.AppVersion }}` |
-| `rtprelay.image.pullPolicy`                           | Image pull policy                                             | `IfNotPresent`            |
-| `rtprelay.podAnnotations`                             | Pod annotations                                               | `{}`                      |
-| `rtprelay.serviceAnnotations`                         | Service annotations                                           | `{}`                      |
-| `rtprelay.resources`                                  | Resource quotas                                               | `{}`                      |
-| `rtprelay.autoscaling.miniReplicas`                   | Minimum number of replicas                                    | `1`                       |
-| `rtprelay.autoscaling.maxReplicas`                    | Maximum number of replicas                                    | `10`                      |
-| `rtprelay.autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization percentage                             | `50`                      |
-| `rtprelay.securityContext.runAsUser`                  | Running as a non-root user                                    | `1000`                    |
-| `rtprelay.securityContext.runAsGroup`                 | Running as non-root group                                     | `3000`                    |
-| `rtprelay.securityContext.fsGroup`                    | File system group                                             | `2000`                    |
-| `rtprelay.securityContext.allowPrivilegeEscalation`   | By default, no privilege escalation is allowed                | `false`                   |
-| `rtprelay.livenessProbe.initialDelaySeconds`          | Initial delay in seconds before starting the liveness probe   | `10`                      |
-| `rtprelay.livenessProbe.periodSeconds`                | Period between liveness probes                                | `5`                       |
-| `rtprelay.livenessProbe.successThreshold`             | Number of successes required to be considered healthy         | `1`                       |
-| `rtprelay.livenessProbe.failureThreshold`             | Number of failures required to be considered unhealthy        | `2`                       |
-| `rtprelay.livenessProbe.timeoutSeconds`               | Timeout in seconds for liveness probe                         | `1`                       |
-| `rtprelay.resources.requests`                         | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
-| `rtprelay.resources.limits`                           | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
+| Parameter                                                | Description                                                   | Value                     |
+| -------------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
+| `rtprelay.enabled`                                       | Enables the rtprelay Pod                                      | `false`                   |
+| `rtprelay.rtpeHost`                                      | RTPEngine host                                                | `""`                      |
+| `rtprelay.rtpePort`                                      | RTPEngine admin port                                          | `22222`                   |
+| `rtprelay.image.repository`                              | Image repository                                              | `fonoster/routr-rtprelay` |
+| `rtprelay.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}` |
+| `rtprelay.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
+| `rtprelay.podAnnotations`                                | Pod annotations                                               | `{}`                      |
+| `rtprelay.serviceAnnotations`                            | Service annotations                                           | `{}`                      |
+| `rtprelay.autoscaling.miniReplicas`                      | Minimum number of replicas                                    | `1`                       |
+| `rtprelay.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                      |
+| `rtprelay.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                      |
+| `rtprelay.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                      |
+| `rtprelay.securityContext.runAsUser`                     | Running as a non-root user                                    | `1000`                    |
+| `rtprelay.securityContext.runAsGroup`                    | Running as non-root group                                     | `3000`                    |
+| `rtprelay.securityContext.fsGroup`                       | File system group                                             | `2000`                    |
+| `rtprelay.securityContext.allowPrivilegeEscalation`      | By default, no privilege escalation is allowed                | `false`                   |
+| `rtprelay.livenessProbe.initialDelaySeconds`             | Initial delay in seconds before starting the liveness probe   | `10`                      |
+| `rtprelay.livenessProbe.periodSeconds`                   | Period between liveness probes                                | `5`                       |
+| `rtprelay.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                       |
+| `rtprelay.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                       |
+| `rtprelay.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                       |
+| `rtprelay.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
+| `rtprelay.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
 
 ### Postgres Values
 

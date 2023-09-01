@@ -14,10 +14,20 @@ spec:
   minReplicas: {{ .Values.rtprelay.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.rtprelay.autoscaling.maxReplicas }}
   metrics:
+    {{- if .Values.rtprelay.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
           averageUtilization: {{ .Values.rtprelay.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.rtprelay.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.rtprelay.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
 {{- end }}

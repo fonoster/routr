@@ -13,9 +13,19 @@ spec:
   minReplicas: {{ .Values.apiserver.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.apiserver.autoscaling.maxReplicas }}
   metrics:
+    {{- if .Values.apiserver.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
           averageUtilization: {{ .Values.apiserver.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.apiserver.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.apiserver.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
