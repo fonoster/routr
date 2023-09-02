@@ -19,6 +19,7 @@
 package io.routr.requester;
 
 import javax.sip.*;
+import javax.sip.header.*;
 import javax.sip.address.AddressFactory;
 import javax.sip.header.Header;
 import javax.sip.header.HeaderFactory;
@@ -58,12 +59,18 @@ final public class RequestSender {
 
     var transport = request.getTransport().toString().toLowerCase();
 
-    var req = this.messageFactory.createRequest(
+    var requestStr = !request.getMessage().getRequestUri().getUser().isEmpty() ?
         String.format("%s sip:%s@%s;transport=%s SIP/2.0\r\n\r\n",
             request.getMethod(),
-            request.getMessage().getFrom().getAddress().getUri().getUser(),
+            request.getMessage().getRequestUri().getUser(),
             request.getTarget(),
-            transport));
+            transport) :
+        String.format("%s sip:%s;transport=%s SIP/2.0\r\n\r\n",
+            request.getMethod(),
+            request.getTarget(),
+            transport);
+
+    var req = this.messageFactory.createRequest(requestStr);
 
     var lp = this.sipProvider.getListeningPoint(transport);
     var viaHeader = this.headerFactory.createViaHeader(
@@ -89,6 +96,11 @@ final public class RequestSender {
     headers.add(contactHeader);
     headers.add(viaHeader);
     headers.forEach(req::addHeader);
+
+    if (!request.getMessage().getBody().isEmpty()) {
+      assert req.getHeader(ContentTypeHeader.NAME) != null;
+      req.setContent(request.getMessage().getBody(), (ContentTypeHeader) req.getHeader(ContentTypeHeader.NAME));
+    }
 
     LOG.debug("sending request: \n{}", req.toString());
 
