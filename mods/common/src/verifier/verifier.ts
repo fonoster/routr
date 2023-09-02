@@ -32,7 +32,7 @@ export const verifier = (verifierAddr: string) => {
       client.sendMessage(
         { token },
         (err: { code: number }, response: VerifyResponse) => {
-          if (err?.code === 14) {
+          if (err?.code === grpc.status.UNAVAILABLE) {
             return reject(new ServiceUnavailableError(verifierAddr))
           } else if (err) {
             return reject(err)

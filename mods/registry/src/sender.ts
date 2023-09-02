@@ -33,7 +33,7 @@ export const sendRegisterMessage = (requesterAddr: string) => {
       client.sendMessage(
         request,
         (err: { code: number }, response: SendMessageResponse) => {
-          if (err?.code === 14) {
+          if (err?.code === grpc.status.UNAVAILABLE) {
             return reject(new CE.ServiceUnavailableError(requesterAddr))
           } else if (err) {
             return reject(err)

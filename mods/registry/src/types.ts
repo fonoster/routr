@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { Method, Transport } from "@routr/common"
-import { SIPMessage } from "@routr/common/src/types"
+import { CommonTypes } from "@routr/common"
 
 export const DEFAULT_MAX_FORWARDS = 70
 export const DEFAULT_EXPIRES = 600
@@ -55,12 +55,12 @@ export interface RegistrationRequest {
   user: string
   method: Method
   transport: Transport
-  message: SIPMessage
+  message: CommonTypes.SIPMessage
 }
 
 export interface SendMessageResponse {
   trunkRef: string
-  message: SIPMessage
+  message: CommonTypes.SIPMessage
 }
 
 export interface RedisStoreConfig {
