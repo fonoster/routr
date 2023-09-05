@@ -90,7 +90,7 @@ Creates a new AccessControlList on Routr.
 | request.name | <code>string</code> | Name of the ACL |
 | request.allow | <code>Array.&lt;string&gt;</code> | List of IP addresses or CIDR blocks to allow |
 | request.deny | <code>Array.&lt;string&gt;</code> | List of IP addresses or CIDR blocks to deny |
-| request.extended | <code>JsonObject</code> | Optional extended attributes |
+| request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  
 ```js
@@ -118,7 +118,7 @@ Updates an already existing AccessControlList on Routr.
 | request.name | <code>string</code> | Name of the ACL |
 | request.allow | <code>Array.&lt;string&gt;</code> | List of IP addresses or CIDR blocks to allow |
 | request.deny | <code>Array.&lt;string&gt;</code> | List of IP addresses or CIDR blocks to deny |
-| request.extended | <code>JsonObject</code> | Optional extended attributes |
+| request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  
 ```js
@@ -261,11 +261,11 @@ Creates a new Agent on Routr.
 | request | <code>CreateAgentRequest</code> | The request to create an Agent |
 | request.name | <code>string</code> | Name of the Agent |
 | request.username | <code>string</code> | Username of the Agent |
-| request.privacy | <code>Privacy</code> | Privacy of the Agent (e.g. Privacy.PRIVATE) |
+| request.privacy | <code>Privacy</code> | Privacy of the Agent (e.g., Privacy.PRIVATE) |
 | request.domainRef | <code>string</code> | Domain reference of the Domain the Agent belongs to |
 | request.credentialsRef | <code>string</code> | Credentials reference of the Credentials for the Agent |
 | request.enabled | <code>boolean</code> | Whether the Agent is enabled or not (for future use) |
-| request.extended | <code>JsonObject</code> | Optional extended attributes |
+| request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  
 ```js
@@ -297,11 +297,11 @@ Updates an already existing Agent on Routr.
 | --- | --- | --- |
 | request | <code>UpdateAgentRequest</code> | Partial with the fields to update |
 | request.name | <code>string</code> | Name of the Agent |
-| request.privacy | <code>Privacy</code> | Privacy of the Agent (e.g. Privacy.PRIVATE) |
+| request.privacy | <code>Privacy</code> | Privacy of the Agent (e.g., Privacy.PRIVATE) |
 | request.domainRef | <code>string</code> | Domain reference of the Domain the Agent belongs to |
 | request.credentialsRef | <code>string</code> | Credentials reference of the Credentials for the Agent |
 | request.enabled | <code>boolean</code> | Whether the Agent is enabled or not (for future use) |
-| request.extended | <code>JsonObject</code> | Optional extended attributes |
+| request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  
 ```js
@@ -443,7 +443,7 @@ Creates a new Credentials on Routr.
 | request.name | <code>string</code> | The friendly name of the Credentials |
 | request.username | <code>string</code> | Username of the Credentials |
 | request.password | <code>string</code> | Password of the Credentials |
-| request.extended | <code>JsonObject</code> | Optional extended attributes |
+| request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  
 ```js
@@ -474,7 +474,7 @@ Updates an already existing Credentials on Routr.
 | request.name | <code>string</code> | The friendly name of the Credentials |
 | request.username | <code>string</code> | Username of the Credentials |
 | request.password | <code>string</code> | Password of the Credentials |
-| request.extended | <code>JsonObject</code> | Optional extended attributes |
+| request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  
 ```js
@@ -803,11 +803,12 @@ Creates a new Number on Routr.
 | --- | --- | --- |
 | request | <code>CreateNumberRequest</code> | The request to create an Number |
 | request.name | <code>string</code> | Name of the Number |
-| request.telUrl | <code>string</code> | The number URI to be used (e.g. te:+1234567890) |
-| request.aorLink | <code>string</code> | The AOR link to be used (e.g. sip:1001@sip.local) |
+| request.telUrl | <code>string</code> | The number URI to be used (e.g., te:+1234567890) |
+| request.aorLink | <code>string</code> | The AOR link to be used (e.g., sip:1001@sip.local) |
 | request.city | <code>string</code> | The city where the number is located |
 | request.country | <code>string</code> | The country where the number is located |
 | request.countryISOCode | <code>string</code> | The country ISO code where the number is located |
+| request.extraHeaders | <code>Array.&lt;Object&gt;</code> | Extra headers to be used (e.g., [{name: "X-Room-Id", value: "abc-us-123"}]) |
 | request.trunkRef | <code>string</code> | The Trunk reference to be used |
 | request.sessionAffinityHeader | <code>string</code> | Optional session affinity header |
 | request.extended | <code>string</code> | Optional extended attributes |
@@ -848,7 +849,8 @@ Updates an already existing Number on Routr.
 | --- | --- | --- |
 | request | <code>UpdateNumberRequest</code> | Partial with the fields to update |
 | request.name | <code>string</code> | Name of the Number |
-| request.aorLink | <code>string</code> | The AOR link to be used (e.g. sip:1001@sip.local) |
+| request.aorLink | <code>string</code> | The AOR link to be used (e.g., sip:1001@sip.local) |
+| request.extraHeaders | <code>Array.&lt;Object&gt;</code> | Extra headers to be used (e.g., [{name: "X-Room-Id", value: "abc-us-123"}]) |
 | request.trunkRef | <code>string</code> | The Trunk reference to be used |
 | request.sessionAffinityHeader | <code>string</code> | Optional session affinity header |
 | request.extended | <code>string</code> | Optional extended attributes |
@@ -1003,7 +1005,7 @@ Creates a new Peer on Routr.
 | request.balancingAlgorithm | <code>LoadBalancingAlgorithm</code> | Optional balancing algorithm for the Peer (defaults to "round-robin") |
 | request.withSessionAffinity | <code>boolean</code> | Whether the Peer has session affinity or not (defaults to false) |
 | request.enabled | <code>boolean</code> | Whether the Peer is enabled or not (for future use) |
-| request.extended | <code>JsonObject</code> | Optional extended attributes |
+| request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  
 ```js
@@ -1045,7 +1047,7 @@ Updates an already existing Peer on Routr.
 | request.balancingAlgorithm | <code>LoadBalancingAlgorithm</code> | Optional balancing algorithm for the Peer (defaults to "round-robin") |
 | request.withSessionAffinity | <code>boolean</code> | Whether the Peer has session affinity or not (defaults to false) |
 | request.enabled | <code>boolean</code> | Whether the Peer is enabled or not (for future use) |
-| request.extended | <code>JsonObject</code> | Optional extended attributes |
+| request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  
 ```js
@@ -1242,7 +1244,7 @@ Updates an already existing Trunk on Routr.
 | request.inboundCredentialsRef | <code>string</code> | The reference of the inbound credentials |
 | request.outboundCredentialsRef | <code>string</code> | The reference of the outbound credentials |
 | request.uris | <code>Array.&lt;TrunkURI&gt;</code> | The outbound URIs of the Trunk |
-| request.extended | <code>JsonObject</code> | Optional extended attributes |
+| request.extended | <code>Object</code> | Optional extended attributes |
 
 **Example**  
 ```js
