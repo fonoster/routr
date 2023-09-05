@@ -69,7 +69,7 @@ export class Credentials extends APIClient {
    * @param {string} request.name - The friendly name of the Credentials
    * @param {string} request.username - Username of the Credentials
    * @param {string} request.password - Password of the Credentials
-   * @param {JsonObject} request.extended - Optional extended attributes
+   * @param {Object} request.extended - Optional extended attributes
    * @return {Promise<CreateCredentialsResponse>} The newly created Credentials
    * @throws if request is null
    * @example
@@ -100,7 +100,7 @@ export class Credentials extends APIClient {
    * @param {string} request.name - The friendly name of the Credentials
    * @param {string} request.username - Username of the Credentials
    * @param {string} request.password - Password of the Credentials
-   * @param {JsonObject} request.extended - Optional extended attributes
+   * @param {Object} request.extended - Optional extended attributes
    * @return {Promise<UpdateCredentialsResponse>} The updated Credentials
    * @example
    *

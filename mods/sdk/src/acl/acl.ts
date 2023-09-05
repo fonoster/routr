@@ -66,7 +66,7 @@ export class ACL extends APIClient {
    * @param {string} request.name - Name of the ACL
    * @param {string[]} request.allow - List of IP addresses or CIDR blocks to allow
    * @param {string[]} request.deny - List of IP addresses or CIDR blocks to deny
-   * @param {JsonObject} request.extended - Optional extended attributes
+   * @param {Object} request.extended - Optional extended attributes
    * @return {Promise<CreateACLResponse>} The newly created AccessControlList
    * @throws if request is null
    * @example
@@ -92,7 +92,7 @@ export class ACL extends APIClient {
    * @param {string} request.name - Name of the ACL
    * @param {string[]} request.allow - List of IP addresses or CIDR blocks to allow
    * @param {string[]} request.deny - List of IP addresses or CIDR blocks to deny
-   * @param {JsonObject} request.extended - Optional extended attributes
+   * @param {Object} request.extended - Optional extended attributes
    * @return {Promise<UpdateACLResponse>} The AccessControlList
    * @example
    *

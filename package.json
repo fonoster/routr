@@ -46,7 +46,8 @@
     "publish:frompackages": "lerna publish from-package",
     "typecheck": "tsc --noEmit",
     "helm:package": "helm package ops/charts/connect -d .charts",
-    "helm:index": "helm repo index .charts --merge .charts/index.yaml"
+    "helm:index": "helm repo index .charts --merge .charts/index.yaml",
+    "gen:readme": "lerna run gen:readme"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
@@ -72,6 +73,7 @@
     "esm": "^3.2.25",
     "hostile": "^1.3.3",
     "husky": "^5.2.0",
+    "jsdoc-to-markdown": "^8.0.0",
     "jvm-npm": "^0.1.1",
     "lerna": "^6.1.0",
     "mocha": "^9.2.2",
@@ -79,6 +81,7 @@
     "nyc": "^15.1.0",
     "path": "^0.12.7",
     "prettier": "^2.6.2",
+    "prisma": "^5.2.0",
     "rimraf": "^3.0.2",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.5.0",
@@ -90,6 +93,7 @@
   },
   "dependencies": {
     "@fonoster/logger": "0.3.20",
+    "@prisma/client": "^5.2.0",
     "funfix": "^7.0.1",
     "pb-util": "^1.0.3"
   },

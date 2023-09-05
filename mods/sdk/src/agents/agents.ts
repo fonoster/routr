@@ -71,11 +71,11 @@ export class Agents extends APIClient {
    * @param {CreateAgentRequest} request - The request to create an Agent
    * @param {string} request.name - Name of the Agent
    * @param {string} request.username - Username of the Agent
-   * @param {Privacy} request.privacy - Privacy of the Agent (e.g. Privacy.PRIVATE)
+   * @param {Privacy} request.privacy - Privacy of the Agent (e.g., Privacy.PRIVATE)
    * @param {string} request.domainRef - Domain reference of the Domain the Agent belongs to
    * @param {string} request.credentialsRef - Credentials reference of the Credentials for the Agent
    * @param {boolean} request.enabled - Whether the Agent is enabled or not (for future use)
-   * @param {JsonObject} request.extended - Optional extended attributes
+   * @param {Object} request.extended - Optional extended attributes
    * @return {Promise<CreateAgentResponse>} The newly created Agent
    * @throws if request is null
    * @example
@@ -105,11 +105,11 @@ export class Agents extends APIClient {
    *
    * @param {UpdateAgentRequest} request - Partial with the fields to update
    * @param {string} request.name - Name of the Agent
-   * @param {Privacy} request.privacy - Privacy of the Agent (e.g. Privacy.PRIVATE)
+   * @param {Privacy} request.privacy - Privacy of the Agent (e.g., Privacy.PRIVATE)
    * @param {string} request.domainRef - Domain reference of the Domain the Agent belongs to
    * @param {string} request.credentialsRef - Credentials reference of the Credentials for the Agent
    * @param {boolean} request.enabled - Whether the Agent is enabled or not (for future use)
-   * @param {JsonObject} request.extended - Optional extended attributes
+   * @param {Object} request.extended - Optional extended attributes
    * @return {Promise<UpdateAgentResponse>} The updated Agent
    * @example
    *

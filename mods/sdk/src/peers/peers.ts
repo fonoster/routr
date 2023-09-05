@@ -80,7 +80,7 @@ export class Peers extends APIClient {
    * @param {LoadBalancingAlgorithm} request.balancingAlgorithm - Optional balancing algorithm for the Peer (defaults to "round-robin")
    * @param {boolean} request.withSessionAffinity - Whether the Peer has session affinity or not (defaults to false)
    * @param {boolean} request.enabled - Whether the Peer is enabled or not (for future use)
-   * @param {JsonObject} request.extended - Optional extended attributes
+   * @param {Object} request.extended - Optional extended attributes
    * @return {Promise<CreatePeerResponse>} The newly created Peer
    * @throws if request is null
    * @example
@@ -120,7 +120,7 @@ export class Peers extends APIClient {
    * @param {LoadBalancingAlgorithm} request.balancingAlgorithm - Optional balancing algorithm for the Peer (defaults to "round-robin")
    * @param {boolean} request.withSessionAffinity - Whether the Peer has session affinity or not (defaults to false)
    * @param {boolean} request.enabled - Whether the Peer is enabled or not (for future use)
-   * @param {JsonObject} request.extended - Optional extended attributes
+   * @param {Object} request.extended - Optional extended attributes
    * @return {Promise<UpdatePeerResponse>} The updated Peer
    * @example
    *

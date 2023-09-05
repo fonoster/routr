@@ -123,7 +123,7 @@ export class Trunks extends APIClient {
    * @param {string} request.inboundCredentialsRef - The reference of the inbound credentials
    * @param {string} request.outboundCredentialsRef - The reference of the outbound credentials
    * @param {TrunkURI[]} request.uris - The outbound URIs of the Trunk
-   * @param {JsonObject} request.extended - Optional extended attributes
+   * @param {Object} request.extended - Optional extended attributes
    * @return {Promise<UpdateTrunkResponse>} The updated Trunk
    * @example
    *
