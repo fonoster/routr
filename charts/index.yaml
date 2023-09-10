@@ -3,7 +3,7 @@ entries:
   routr:
   - apiVersion: v2
     appVersion: 1.0.0-rc5
-    created: "2023-09-01T16:13:53.408494087Z"
+    created: "2023-09-10T23:48:38.41612693Z"
     dependencies:
     - name: redis
       repository: https://charts.bitnami.com/bitnami
@@ -37,7 +37,7 @@ entries:
     version: 0.0.10
   - apiVersion: v2
     appVersion: 1.0.0-rc5
-    created: "2023-09-01T16:13:53.417364395Z"
+    created: "2023-09-10T23:48:38.429754896Z"
     dependencies:
     - name: redis
       repository: https://charts.bitnami.com/bitnami
@@ -71,7 +71,7 @@ entries:
     version: 0.0.9
   - apiVersion: v2
     appVersion: 1.0.0-rc5
-    created: "2023-09-01T16:13:53.412797133Z"
+    created: "2023-09-10T23:48:38.425923249Z"
     dependencies:
     - name: redis
       repository: https://charts.bitnami.com/bitnami
@@ -106,7 +106,7 @@ entries:
   routr-connect:
   - apiVersion: v2
     appVersion: 2.1.9
-    created: "2023-09-01T16:13:53.566237818Z"
+    created: "2023-09-10T23:48:38.548397139Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -117,7 +117,7 @@ entries:
       repository: https://charts.bitnami.com/bitnami
       version: 17.7.3
     description: Routr Connect Helm Chart
-    digest: dce90f6587682665e8f73b53b7d6e266150c131fe4c65b42b94767e691658d17
+    digest: eba8ccd92165db90e63c307f40e3c62cf4a18049fd2402d72dc388ee24aeda90
     name: routr-connect
     type: application
     urls:
@@ -125,7 +125,7 @@ entries:
     version: 0.1.9
   - apiVersion: v2
     appVersion: 2.1.9
-    created: "2023-09-01T16:13:53.547617352Z"
+    created: "2023-09-10T23:48:38.536519295Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -144,7 +144,7 @@ entries:
     version: 0.1.8
   - apiVersion: v2
     appVersion: 2.1.5
-    created: "2023-09-01T16:13:53.531579334Z"
+    created: "2023-09-10T23:48:38.52464635Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -163,7 +163,7 @@ entries:
     version: 0.1.7
   - apiVersion: v2
     appVersion: 2.1.3
-    created: "2023-09-01T16:13:53.516773386Z"
+    created: "2023-09-10T23:48:38.511703993Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -182,7 +182,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: 2.1.2
-    created: "2023-09-01T16:13:53.500731868Z"
+    created: "2023-09-10T23:48:38.499208041Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -201,7 +201,7 @@ entries:
     version: 0.1.5
   - apiVersion: v2
     appVersion: 2.0.28
-    created: "2023-09-01T16:13:53.485347187Z"
+    created: "2023-09-10T23:48:38.481547926Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -220,7 +220,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: 2.0.24
-    created: "2023-09-01T16:13:53.468268609Z"
+    created: "2023-09-10T23:48:38.469873084Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -239,7 +239,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: 2.0.24
-    created: "2023-09-01T16:13:53.453079639Z"
+    created: "2023-09-10T23:48:38.455450308Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -258,7 +258,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 2.0.8-alpha.38
-    created: "2023-09-01T16:13:53.436638898Z"
+    created: "2023-09-10T23:48:38.442380249Z"
     dependencies:
     - condition: postgresql.enabled
       name: postgresql
@@ -275,4 +275,4 @@ entries:
     urls:
     - routr-connect-0.1.1.tgz
     version: 0.1.1
-generated: "2023-09-01T16:13:53.4017304Z"
+generated: "2023-09-10T23:48:38.412463386Z"
