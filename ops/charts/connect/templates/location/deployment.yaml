@@ -28,7 +28,7 @@ spec:
         fsGroup: {{ .Values.location.securityContext.fsGroup }}
       containers:
         - name: location
-          image: "{{ .Values.location.image.repository }}:{{ .Values.dispatcher.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.location.image.repository }}:{{ .Values.location.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.location.image.pullPolicy }}
           livenessProbe:
             grpc:
@@ -50,13 +50,13 @@ spec:
               mountPath: /etc/routr/location.yaml
               subPath: location.yaml
           resources:
-            {{- if .Values.dispatcher.resources.limits }}
+            {{- if .Values.location.resources.limits }}
             limits:
-            {{- .Values.dispatcher.resources.limits | toYaml | nindent 14 }}
+            {{- .Values.location.resources.limits | toYaml | nindent 14 }}
             {{- end }}
-            {{- if .Values.dispatcher.resources.requests }}
+            {{- if .Values.location.resources.requests }}
             requests:
-            {{- .Values.dispatcher.resources.requests | toYaml | nindent 14 }}
+            {{- .Values.location.resources.requests | toYaml | nindent 14 }}
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.location.securityContext.allowPrivilegeEscalation }}          

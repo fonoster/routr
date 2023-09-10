@@ -51,13 +51,13 @@ spec:
               mountPath: /etc/routr/log4j2.yaml
               subPath: log4j2.yaml
           resources:
-            {{- if .Values.dispatcher.resources.limits }}
+            {{- if .Values.requester.resources.limits }}
             limits:
-            {{- .Values.dispatcher.resources.limits | toYaml | nindent 14 }}
+            {{- .Values.requester.resources.limits | toYaml | nindent 14 }}
             {{- end }}
-            {{- if .Values.dispatcher.resources.requests }}
+            {{- if .Values.requester.resources.requests }}
             requests:
-            {{- .Values.dispatcher.resources.requests | toYaml | nindent 14 }}
+            {{- .Values.requester.resources.requests | toYaml | nindent 14 }}
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.requester.securityContext.allowPrivilegeEscalation }}         
