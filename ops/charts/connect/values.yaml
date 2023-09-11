@@ -12,6 +12,9 @@ edgeport:
   pkcs12Password: changeme
   # External addresses. Required for edgeport to work
   externalAddrs: []
+  # By default, it loads the local networks as reported by the operating system
+  # Use this in combination with externalAddrs for correct address advertisement
+  # localnets: []
   # Acceptable SIP methods
   methods:
     - REGISTER
