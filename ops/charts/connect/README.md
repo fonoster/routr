@@ -67,11 +67,11 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 ### Global parameters
 
-| Parameter          | Description                                      | Value     |
-| ------------------ | ------------------------------------------------ | --------- |
-| global.region      | Region for the cluster (reserved for future use) | `default` |
-| global.logsLevel   | Global logs level recommending only for testing  | `info`    |
-| global.otlExporter | OpenTelemetry exporter URL                       |           |
+| Parameter            | Description                                      | Value     |
+| -------------------- | ------------------------------------------------ | --------- |
+| `global.region`      | Region for the cluster (reserved for future use) | `default` |
+| `global.logsLevel`   | Global logs level recommending only for testing  | `info`    |
+| `global.otlExporter` | OpenTelemetry exporter URL                       |           |
 
 ### Edgeport parameters
 
