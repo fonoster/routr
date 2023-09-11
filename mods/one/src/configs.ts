@@ -39,13 +39,7 @@ export const dispatcherConfig: MessageDispatcherConfig = {
       ]
     }
   ],
-  middlewares: [
-    {
-      ref: "rtprelay-middleware",
-      addr: "localhost:51903",
-      postProcessor: true
-    }
-  ]
+  middlewares: []
 }
 
 export const connectConfig: ConnectProcessorConfig = {

@@ -18,7 +18,7 @@
  */
 import { Assertions as A } from "@routr/common"
 
-A.assertEnvsAreSet(["RTPENGINE_HOST", "DATABASE_URL"])
+A.assertEnvsAreSet(["DATABASE_URL"])
 
 export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51904"
 

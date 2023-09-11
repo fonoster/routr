@@ -69,4 +69,4 @@ USER $USER
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
-CMD ["sh", "-c", "set -e && ./convert-to-p12.sh $PATH_TO_CERTS $PKCS_PASSWORD && node ./dist/runner"]
+CMD ["set -e && ./convert-to-p12.sh $PATH_TO_CERTS $PKCS_PASSWORD && node ./dist/runner"]

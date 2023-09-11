@@ -23,8 +23,7 @@ import { connectProcessor } from "@routr/connect"
 import { messageDispatcher } from "@routr/dispatcher"
 import { locationService } from "@routr/location"
 import { pgDataService as apiserver } from "@routr/pgdata"
-import { rtprelay } from "@routr/rtprelay"
-import { EDGEPORT_RUNNER } from "./envs"
+import { EDGEPORT_RUNNER, RTPENGINE_HOST } from "./envs"
 import {
   connectConfig,
   dispatcherConfig,
@@ -37,11 +36,24 @@ const logger = getLogger({ service: "one", filePath: __filename })
 
 logger.info("routr v2 // one distribution")
 
+if (RTPENGINE_HOST) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { rtprelay } = require("@routr/rtprelay")
+
+  rtprelay("0.0.0.0:51903", rtprelayConfig)
+
+  // Add rtprelay middleware
+  dispatcherConfig.middlewares.push({
+    ref: "rtprelay-middleware",
+    addr: "localhost:51903",
+    postProcessor: true
+  })
+}
+
 messageDispatcher(dispatcherConfig)
 connectProcessor(connectConfig)
 locationService(locationConfig)
 apiserver(apiServerConfig)
-rtprelay("0.0.0.0:51903", rtprelayConfig)
 
 const edgeportProcess = spawn(EDGEPORT_RUNNER)
 

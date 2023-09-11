@@ -103,7 +103,6 @@ services:
     image: fonoster/routr-one:latest
     environment:
       EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
-      RTPENGINE_HOST: rtpengine
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/routr 
       TLS_ON: false
     depends_on:
@@ -111,16 +110,6 @@ services:
     ports:
       - 51908:51908
       - 5060:5060/udp
-
-  rtpengine:
-    image: fonoster/rtpengine:latest
-    ports:
-      - 22222:22222/udp
-      - 10000-10100:10000-10100/udp
-    environment:
-      PUBLIC_IP: ${DOCKER_HOST_ADDRESS} 
-      PORT_MIN: 10000
-      PORT_MAX: 10100
 
   postgres:
     image: postgres:14.1-alpine
@@ -167,7 +156,6 @@ CONTAINER ID  IMAGE                                     STATUS
 814883465dc7  fonoster/routr-pgdata-migrations:latest   Exited (0) ...
 6c63fd573768  fonoster/routr-one:latest                 Up About a minute
 d32f139db25d  postgres:14.1-alpine                      Up About a minute
-51c80164c2e9  fonoster/rtpengine:latest                 Up About a minute
 ```
 
 If the status of your services is "Up," you are ready to go.
