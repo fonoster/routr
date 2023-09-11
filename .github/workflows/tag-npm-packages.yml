@@ -1,4 +1,5 @@
 name: tag latest npm packages
+
 on:
   workflow_dispatch:
     inputs:
@@ -9,6 +10,7 @@ on:
   release:
     types:
       - released
+
 jobs:
   tag-latest:
     runs-on: ubuntu-latest

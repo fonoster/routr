@@ -1,4 +1,5 @@
 name: release (v2)
+
 on:
   workflow_dispatch:
     inputs:
@@ -9,11 +10,7 @@ on:
         options:
           - 'false'
           - 'true'
-  push:
-    paths-ignore:
-      - "docs/**"
-    branches:
-      - main
+
 jobs:
   build-and-test:
     name: Build and run SIP Connect Compliance Tests
@@ -60,7 +57,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           exclude_types: other,doc,chore
-          config_file: ./tag-changelog-config.js
+          config_file: ./.scripts/tag-changelog-config.js
       - name: Create draft release
         if: env.RELEASE != 'none'
         uses: actions/create-release@latest
