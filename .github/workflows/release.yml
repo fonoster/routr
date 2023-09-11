@@ -86,6 +86,7 @@ jobs:
             !mods/**/src
             !mods/**/test
             !mods/**/dist/*.ts
+      # This step is only executed for workflow_dispatch events with skip_tests = false
       - name: SIP Connect v1.1 Compliance Tests
         if: github.event.inputs.skip_tests == 'false'
         run: |
