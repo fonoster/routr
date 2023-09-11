@@ -81,7 +81,7 @@
     "nyc": "^15.1.0",
     "path": "^0.12.7",
     "prettier": "^2.6.2",
-    "prisma": "^5.2.0",
+    "prisma": "^4.16.2",
     "rimraf": "^3.0.2",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.5.0",
@@ -93,7 +93,7 @@
   },
   "dependencies": {
     "@fonoster/logger": "0.3.20",
-    "@prisma/client": "^5.2.0",
+    "@prisma/client": "^4.16.2",
     "funfix": "^7.0.1",
     "pb-util": "^1.0.3"
   },
