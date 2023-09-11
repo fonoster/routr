@@ -2,7 +2,7 @@ apiVersion: v2
 name: routr-connect
 description: Routr Connect Helm Chart
 type: application
-version: 0.1.10
+version: 0.1.11
 appVersion: 2.1.11
 dependencies:
   - name: postgresql

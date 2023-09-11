@@ -20,7 +20,8 @@ spec:
       {{- with .Values.edgeport.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/edgeport/configmaps.yaml") . | sha256sum }}            
+        checksum/config: {{ include (print $.Template.BasePath "/edgeport/configmaps.yaml") . | sha256sum }}
+        checksum/secrets: {{ include (print $.Template.BasePath "/edgeport/secrets.yaml") . | sha256sum }}          
       labels:
         {{- include ".helm.selectorLabels" . | nindent 8 }}
         service: edgeport
