@@ -104,8 +104,6 @@ services:
     image: fonoster/routr-one:latest
     environment:
       EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
-    depends_on:
-      - postgres
     ports:
       - 51908:51908
       - 5060:5060/udp
