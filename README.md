@@ -170,19 +170,19 @@ helm repo update
 Then, create a namespace for Routr:
 
 ```bash
-kubectl create namespace sipnet
+kubectl create namespace routr
 ```
 
 Next, install Routr with the following command:
 
 ```bash
-helm install sipnet routr/routr-connect --namespace sipnet
+helm install my-release routr/routr-connect --namespace routr
 ```
 
 Finally, wait a few minutes for the pods to start. You can check the status of the pods with the following command:
 
 ```bash
-kubectl get pods -n sipnet
+kubectl get pods -n routr
 ```
 
 You should see a list of pods and their status. If the status is Running, then you are ready to go.
