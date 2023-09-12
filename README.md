@@ -98,38 +98,19 @@ Filename: _docker-compose.yml_
 
 ```yaml
 version: "3"
+
 services:
   routr:
     image: fonoster/routr-one:latest
     environment:
       EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/routr 
-      TLS_ON: false
     depends_on:
       - postgres
     ports:
       - 51908:51908
       - 5060:5060/udp
-
-  postgres:
-    image: postgres:14.1-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      TZ: UTC
-      PGTZ: UTC
-    expose: 
-      - 5432 
     volumes:
       - shared:/var/lib/postgresql/data
-
-  postgres_init:
-    image: fonoster/routr-pgdata-migrations:latest
-    restart: "no"
-    depends_on:
-      - postgres
-    environment:
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/routr
 
 volumes:
   shared:
@@ -148,14 +129,11 @@ Wait a few seconds for the containers to initialize. Afterward, you can verify t
 docker ps -a --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}'
 ```
 
-You should see a list of containers and their status. Your output should look like the
-one below:
+You should see a container with the status "Up." It should look like the one below:
 
 ```bash
 CONTAINER ID  IMAGE                                     STATUS
-814883465dc7  fonoster/routr-pgdata-migrations:latest   Exited (0) ...
 6c63fd573768  fonoster/routr-one:latest                 Up About a minute
-d32f139db25d  postgres:14.1-alpine                      Up About a minute
 ```
 
 If the status of your services is "Up," you are ready to go.

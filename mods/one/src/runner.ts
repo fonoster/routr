@@ -34,7 +34,7 @@ import {
 
 const logger = getLogger({ service: "one", filePath: __filename })
 
-logger.info("routr v2 // one distribution")
+logger.info("routr v2 // all in one distribution")
 
 if (RTPENGINE_HOST) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
