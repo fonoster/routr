@@ -68,7 +68,7 @@ jobs:
           release_name: Release v${{ env.LERNA_VERSION }}
           body: ${{ steps.changelog.outputs.changelog }}
           draft: true
-      - name: Archive build artifact
+      - name: Upload build artifact
         uses: actions/upload-artifact@v3
         with:
           name: routr-build
