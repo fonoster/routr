@@ -61,7 +61,7 @@ RUN apk add --no-cache tini openssl postgresql postgresql-client su-exec \
   && chmod +x edgeport.sh convert-to-p12.sh init-postgres.sh \
   && chmod 2777 /run/postgresql \
   && export DATABASE_URL=$DATABASE_URL && su -m postgres -c "/service/init-postgres.sh" \
-  && rm -rf /var/cache/apk/* /tmp/* /services/migrations /services/schema.prisma /services/init-postgres.sh \
+  && rm -rf /var/cache/apk/* /tmp/* /services/migrations /services/schema.prisma /services/init-postgres.sh
 
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 CMD sh -c "su-exec postgres pg_ctl start -D /var/lib/postgresql/data && \
