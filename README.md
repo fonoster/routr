@@ -11,16 +11,18 @@
 
 Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators.
 
-## Table of Content
+## Table of content
 
 * [Community](#community)
+* [Should you try Routr?](#should-you-try-routr)
 * [Features](#features)
 * [The official handbook](#the-official-handbook)
 * [Deployment](#deployment)
     * [Docker](#instant-server-deployment-with-docker-and-compose)
     * [Kubernetes](#kubernetes)  
     * [Gitpod](#deploying-in-development-mode-with-gitpod)
-* [Example Configuration](#example-configuration)
+* [Getting started with the CTL](#getting-started-with-the-ctl)
+* [First steps with the NodeSDK](#first-steps-with-the-nodesdk)
 * [Documentation](https://routr.io/docs/introduction/overview)
 * [Sponsors](#sponsors)
 * [Contributing](#contributing)
@@ -45,6 +47,20 @@ We are building Routr in the open. The best to communicate with us via [GitHub D
 </p>
 
 ---
+
+## Should you try Routr?
+
+> I came across Routr, which seems to be the one and only cloud-first Kubernetes-ready SIP server on the planet!
+> 
+> [Jessie Wadman](https://www.jessiewadman.se/), Cloud Architect @ Camanio AB
+
+> Awesome and one of the best open-source software in 2023.
+> 
+> [no-championship-s368](https://www.reddit.com/r/linux/comments/11xdvo5/routr_v2_the_future_of_programmable_sip_servers/), Check conversation @ Reddit
+
+> I think this project has a great promise to become a transformative technology.
+> 
+> [jbwill36](https://github.com/orgs/fonoster/discussions/209), Check conversation @ GitHub
 
 ## Features
 
@@ -84,7 +100,7 @@ Get the eBook.
 
 * [Programmable, cloud-ready, open source](https://fonoster.gumroad.com/l/the-future-of-programmable-sip-servers)
 
-## Give a Star! ⭐
+## Give a star! ⭐
 
 If you want to support this project, please give it a star. Thanks 🙏
 
@@ -121,6 +137,17 @@ Then, start the server with:
 DOCKER_HOST_ADDRESS=192.168.1.3 docker-compose up
 ```
 
+Alternatively, you can use the following command:
+
+```bash
+# Be sure to replace with your IP address
+docker run --name routr \
+  -p 51908:51908 \
+  -p 5060:5060/udp \
+  -e EXTERNAL_ADDRS=192.168.1.3 \
+  fonoster/routr-one:latest
+```
+
 Wait a few seconds for the containers to initialize. Afterward, you can verify the status of the containers using:
 
 ```bash
@@ -135,24 +162,6 @@ CONTAINER ID  IMAGE                                     STATUS
 ```
 
 If the status of your services is "Up," you are ready to go.
-
-Finally, install the command-line tool and start building your SIP Network.
-
-You can install the tool with npm as follows:
-
-```bash
-npm install --location=global @routr/ctl
-```
-
-And here is an example of creating a SIP Domain:
-
-```bash
-rctl domains create --insecure
-```
-
-> The --insecure flag is required as we did not set up the TLS settings.
-
-For additional examples, refer to the command line [documentation.](https://www.npmjs.com/package/@routr/ctl)
 
 ### Kubernetes
 
@@ -217,56 +226,93 @@ ssh -L 5060:localhost:5060 fonoster-routr-mn8nsx0d9px@fonoster-routr-mn8nsx0d9px
 
 This command forwards traffic from your local port 5060 to your Gitpod workspace's port 5060, allowing you to access your instance.
 
-## Example configuration
+## Getting started with the CTL
 
-Consider a situation where you want to deploy the server and send all PSTN traffic to a conference room within Asterisk. For such a scenario, you must configure a Peer to present your feature server and a Number to route calls from the PSTN.
+Regadles of the deployment method, you can use the command-line tool to manage your server.
 
-First, start by creating a Peer configuration for your Asterisk server similar to the following one:
+To install the command-line tool, run the following command:
 
-```yaml
-apiVersion: v2beta1
-kind: Peer
-ref: peer-01
-metadata:
-  name: Asterisk (Media Server)
-spec:
-  aor: backend:conference
-  username: asterisk
-  credentialsRef: credentials-01
-  loadBalancing:
-    withSessionAffinity: true
-    algorithm: least-sessions
+```bash
+npm install --location=global @routr/ctl
 ```
 
-Notice that the loadBalancing section sets the `withSessionAffinity` to true. We need session affinity to ensure that all calls related to the conference arrive on the same Asterisk server. Every Asterisk server that registers with the asterisk username will join the `backend:conference` Address of Record (AOR).
+We are using the flag `--location=global` to tell npm to install the command-line tool globally. If you don't have npm installed, you can follow the instructions here: https://nodejs.org/en/download/.
 
-Next, instruct Routr to map all inbound calls from a specific number to the conference room in Asterisk by setting the `aorLink` and `sessionAffinityHeader` parameters for the desired number. Here's an example:
+Here is an example of how to create a domain:
 
-```yaml
-apiVersion: v2beta1
-kind: Number
-ref: number-01
-metadata:
-  name: "(706)604-1487"
-  geoInfo:
-    city: Columbus, GA
-    country: USA
-    countryISOCode: US
-spec:
-  trunkRef: trunk-01
-  location:
-    telUrl: tel:+17066041487
-    aorLink: backend:conference
-    sessionAffinityHeader: X-Room-Id
-    extraHeaders:
-      # Appends the X-Room-Id header to all inbound calls
-      - name: X-Room-Id
-        value: jsa-shqm-iyo
+```bash
+rctl domains create --insecure
 ```
 
-The last scenario is one of the many possible scenarios you can accomplish with Routr (v2). Please spend some time getting familiar with the [configuration files](https://github.com/fonoster/routr/blob/main/CONNECT.md).
+The `--insecure` flag, in the last example, is required because no certificate was provided to secure the API. 
 
-## Bugs and Feedback
+Follow the prompts to create the domain.
+
+The output should look like this:
+
+```bash
+This utility will help you create a new Domain.
+Press ^C at any time to quit.
+? Friendly Name Local Domain
+? SIP URI sip.local
+? IP Access Control List None
+? Ready? Yes
+Creating Domain Local Domain... a27e9fb2-a71a-4cf3-9b1d-dccf373f9777
+```
+
+For additional examples, refer to the command line [documentation.](https://www.npmjs.com/package/@routr/ctl)
+
+## First steps with the NodeSDK
+
+To begin using the Node.js SDK, first make sure you have Node and NPM installed. Then, start by creating a new project and installing the Routr Connect SDK.
+
+```bash
+mkdir my-project
+cd my-project
+npm init -y
+```
+
+Next, install the SDK:
+
+```bash
+npm install --save @routr/connect
+```
+
+Now, create a new file called `index.js`` and add the following code:
+
+```javascript
+const SDK = require("@routr/sdk");
+
+const domains = new SDK.Domains();
+const request = {
+  name: "Local domain",
+  domainUri: "sip.local",
+  accessControlListRef: "4671371b-ff5d-48b1-aabe-d3c5ca5317a3", 
+  egressPolicies: [{
+    rule: ".*",
+    numberRef: "4671371b-ff5d-48b1-aabe-d3c5ca5317a3"
+  }],
+  extended: {
+    "key": "value"
+  } 
+};
+
+domains.createDomain(request) 
+  .then(console.log)
+  .catch(console.error); // an error occurred
+```
+
+> In the example above, we assume that the ACL and Number already exist.
+
+Now, go ahead and run the code:
+
+```bash
+node index.js
+```
+
+For complete documentation, please visit the npm page for `@routr/sdk` at https://www.npmjs.com/package/@routr/sdk
+
+## Bugs and feedback
 
 For bugs, questions, and discussions, please use the [Github Issues](https://github.com/fonoster/routr/issues)
 
