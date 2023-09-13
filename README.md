@@ -275,7 +275,7 @@ npm init -y
 Next, install the SDK:
 
 ```bash
-npm install --save @routr/connect
+npm install --save @routr/sdk
 ```
 
 Now, create a new file called `index.js`` and add the following code:
