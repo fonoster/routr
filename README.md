@@ -284,6 +284,7 @@ Now, create a new file called `index.js`` and add the following code:
 const SDK = require("@routr/sdk");
 
 const domains = new SDK.Domains();
+
 const request = {
   name: "Local domain",
   domainUri: "sip.local",
