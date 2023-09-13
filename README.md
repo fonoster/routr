@@ -278,7 +278,7 @@ Next, install the SDK:
 npm install --save @routr/sdk
 ```
 
-Now, create a new file called `index.js`` and add the following code:
+Now, create a new file called `index.js` and add the following code:
 
 ```javascript
 const SDK = require("@routr/sdk");
