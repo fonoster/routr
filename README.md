@@ -1,7 +1,7 @@
 <div align="center">
   <p align="center">
     <a href="https://turnly.app" target="_blank" rel="noopener">
-      <img src="https://raw.githubusercontent.com/fonoster/routr/main/banner.png" />
+      <img src="https://raw.githubusercontent.com/fonoster/routr/main/etc/assets/banner.png" />
     </a>
   </p>
 </div>
