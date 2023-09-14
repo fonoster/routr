@@ -3,10 +3,10 @@ ctl
 
 Command-Line for Routr server
 
-[![oclif](https://img.shields.io/badge/cli-rctl-brightgreen.svg)](https://oclif.io)
-[![Version](https://img.shields.io/npm/v/oclif-hello-world.svg)](https://npmjs.org/package/oclif-hello-world)
-[![Downloads/week](https://img.shields.io/npm/dw/oclif-hello-world.svg)](https://npmjs.org/package/oclif-hello-world)
-[![License](https://img.shields.io/npm/l/oclif-hello-world.svg)](https://github.com/oclif/hello-world/blob/main/package.json)
+[![routr](https://img.shields.io/badge/routr-ctl-brightgreen.svg)](https://routr.io)
+[![Version](https://img.shields.io/npm/v/@routr/ctl.svg)](https://npmjs.org/package/@routr/ctl)
+[![Downloads/week](https://img.shields.io/npm/dw/@routr/ctl.svg)](https://npmjs.org/package/@routr/ctl)
+[![License](https://img.shields.io/npm/l/@routr/ctl.svg)](https://github.com/fonoster/routr/blob/main/package.json)
 
 <!-- toc -->
 * [Usage](#usage)
