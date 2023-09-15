@@ -3,11 +3,15 @@ FROM eclipse-temurin:11-jre-alpine
 ARG PKCS12_PASSWORD=changeme
 ARG PATH_TO_CERTS=/etc/routr/certs
 ARG PATH_TO_LOGS=/opt/routr/logs
+ARG CA_CERT_SUBJECT="/CN=Self Signed CA"
+ARG SERVER_CERT_SUBJECT="/CN=localhost"
 
 ENV PKCS12_PASSWORD=$PKCS12_PASSWORD \
   PATH_TO_CERTS=$PATH_TO_CERTS \
   PATH_TO_LOGS=$PATH_TO_LOGS \
   CONFIG_PATH=/etc/routr/edgeport.yaml \
+  CA_CERT_SUBJECT=$CA_CERT_SUBJECT \
+  SERVER_CERT_SUBJECT=$SERVER_CERT_SUBJECT \
   LOG4J2=/etc/routr/log4j2.yaml
 
 WORKDIR /opt/routr

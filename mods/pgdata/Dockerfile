@@ -4,8 +4,12 @@
 FROM alpine:3.17 as runner
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
+ARG CA_CERT_SUBJECT="/CN=Self Signed CA"
+ARG SERVER_CERT_SUBJECT="/CN=localhost"
 ENV PATH_TO_CERTS=/etc/routr/certs \
   TLS_ON=true \
+  CA_CERT_SUBJECT=$CA_CERT_SUBJECT \
+  SERVER_CERT_SUBJECT=$SERVER_CERT_SUBJECT \
   VERIFY_CLIENT_CERT=false
 
 WORKDIR /scripts
