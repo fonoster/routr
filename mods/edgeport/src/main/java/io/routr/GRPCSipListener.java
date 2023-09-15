@@ -95,12 +95,26 @@ public class GRPCSipListener implements SipListener {
         Enumeration<java.net.NetworkInterface> nets = java.net.NetworkInterface.getNetworkInterfaces();
         for (java.net.NetworkInterface netint : Collections.list(nets)) {
           List<java.net.InterfaceAddress> interfaces = netint.getInterfaceAddresses();
+          
+          var host = interfaces.get(0).getAddress().getHostAddress();
+
+          if (System.getenv("IGNORE_LOOPBACK_FROM_LOCALNETS") != null
+              && System.getenv("IGNORE_LOOPBACK_FROM_LOCALNETS").equalsIgnoreCase("true")
+              && host.startsWith("127.0.0.1")) {
+            continue;
+          }
+
           localnets
               .add(interfaces.get(0).getAddress().getHostAddress() + "/" + interfaces.get(0).getNetworkPrefixLength());
         }
       } catch (java.net.SocketException e) {
         LOG.error("error getting network interfaces", e);
       }
+    }
+
+    // We give externalAddrs a default value if not set
+    if (externalAddrs.isEmpty()) {
+      var localnet = localnets.get(0);
     }
 
     LOG.info("starting edgeport ref = {} at {}", edgePortRef, bindAddr);

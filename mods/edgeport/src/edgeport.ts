@@ -25,7 +25,7 @@ import {
   assertNoDuplicatedProto
 } from "./assertions"
 import { EdgePortConfig } from "./types"
-import { EXTERNAL_ADDRS } from "./envs"
+import { EXTERNAL_ADDRS, LOCALNETS } from "./envs"
 import createListeningPoints from "./create_listening_points"
 import createSipProvider from "./create_sip_provider"
 import createSipStack from "./create_sip_stack"
@@ -53,13 +53,19 @@ export default function edgePort(config: EdgePortConfig) {
   const externalAddrs = new ArrayList()
   const localnets = new ArrayList()
 
-  // Addresses from the environment
-  if (EXTERNAL_ADDRS) {
+  if (EXTERNAL_ADDRS.length > 0) {
     EXTERNAL_ADDRS.forEach((addr: string) => externalAddrs.add(addr))
+  } else {
+    config.spec.externalAddrs?.forEach((addr: string) =>
+      externalAddrs.add(addr)
+    )
   }
 
-  config.spec.externalAddrs?.forEach((addr: string) => externalAddrs.add(addr))
-  config.spec.localnets?.forEach((net: string) => localnets.add(net))
+  if (LOCALNETS.length > 0) {
+    LOCALNETS.forEach((net: string) => localnets.add(net))
+  } else {
+    config.spec.localnets?.forEach((net: string) => localnets.add(net))
+  }
 
   sipProvider.addSipListener(
     new GRPCSipListener(sipProvider, config, externalAddrs, localnets)

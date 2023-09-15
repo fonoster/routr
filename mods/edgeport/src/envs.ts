@@ -19,3 +19,4 @@
 declare const System: { getenv: (key: string) => string | undefined }
 
 export const EXTERNAL_ADDRS = System.getenv("EXTERNAL_ADDRS")?.split(",") ?? []
+export const LOCALNETS = System.getenv("LOCALNETS")?.split(",") ?? []
