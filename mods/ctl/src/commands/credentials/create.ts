@@ -87,7 +87,6 @@ Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(credentials.ref)
       } catch (e) {
-        CliUx.ux.action.stop()
         if (e.code === grpc.status.ALREADY_EXISTS) {
           throw new CLIError("This Credentials already exist")
         } else {

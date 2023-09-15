@@ -140,7 +140,6 @@ Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
         CliUx.ux.action.stop(number.ref)
       }
     } catch (e) {
-      CliUx.ux.action.stop()
       throw new CLIError(e.message)
     }
   }

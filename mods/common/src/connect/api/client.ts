@@ -19,7 +19,7 @@
 /* eslint-disable require-jsdoc */
 import * as grpc from "@grpc/grpc-js"
 import { JsonObject, struct } from "pb-util"
-import { ServiceUnavailableError } from "../../errors"
+import { ClientConnectionError } from "../../errors"
 import { createConnectClient } from "../client"
 import { Kind } from "../types"
 import {
@@ -35,9 +35,9 @@ import {
 
 type GrpcError = { code: number }
 
-function fire(err: GrpcError, apiAddr: string) {
+function fire(err: GrpcError, apiAddr: string, isSecure: boolean) {
   if (err.code === grpc.status.UNAVAILABLE) {
-    return new ServiceUnavailableError(apiAddr)
+    return new ClientConnectionError(apiAddr, isSecure)
   }
   return err
 }
@@ -66,11 +66,15 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
     })
   }
 
+  const clientCredentials = credentials ?? grpc.credentials.createInsecure()
+
   const client = createConnectClient({
     kind,
     apiAddr,
-    credentials: credentials ?? grpc.credentials.createInsecure()
+    credentials: clientCredentials
   })
+
+  const isSecure = clientCredentials._isSecure()
 
   return {
     create: <R extends { extended?: JsonObject }>(request: JsonObject) =>
@@ -83,7 +87,7 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
 
         client.create(request, meta, (err: GrpcError, response: R) => {
           if (err) {
-            return reject(fire(err, apiAddr))
+            return reject(fire(err, apiAddr, isSecure))
           }
 
           if (response.extended) {
@@ -104,7 +108,7 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
 
         client.update(request, meta, (err: GrpcError, response: R) => {
           if (err) {
-            return reject(fire(err, apiAddr))
+            return reject(fire(err, apiAddr, isSecure))
           }
 
           if (response.extended) {
@@ -119,7 +123,7 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
       new Promise<R>((resolve, reject) => {
         client.get({ ref }, meta, (err: GrpcError, response: R) => {
           if (err) {
-            return reject(fire(err, apiAddr))
+            return reject(fire(err, apiAddr, isSecure))
           }
 
           if (response.extended) {
@@ -137,7 +141,7 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
           meta,
           (err: GrpcError, response: ListResponse<R>) => {
             if (err) {
-              return reject(fire(err, apiAddr))
+              return reject(fire(err, apiAddr, isSecure))
             }
 
             response.items.forEach((item: { extended?: JsonObject }) => {
@@ -161,7 +165,7 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
           meta,
           (err: GrpcError, response: FindByResponse<R>) => {
             if (err) {
-              return reject(fire(err, apiAddr))
+              return reject(fire(err, apiAddr, isSecure))
             }
 
             response.items.forEach((item: { extended?: JsonObject }) => {
@@ -178,7 +182,7 @@ export function serviceAPI<R>(options: ServiceAPIOptions): ServiceAPI<R> {
     del: (ref: string) =>
       new Promise((resolve, reject) => {
         client.delete({ ref }, meta, (err: GrpcError) =>
-          err ? reject(fire(err, apiAddr)) : resolve()
+          err ? reject(fire(err, apiAddr, isSecure)) : resolve()
         )
       })
   }

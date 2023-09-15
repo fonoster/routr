@@ -218,7 +218,6 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         CliUx.ux.action.stop(trunk.ref)
       }
     } catch (e) {
-      CliUx.ux.action.stop()
       if (e.code === grpc.status.ALREADY_EXISTS) {
         throw new CLIError("This Trunk already exist")
       } else {

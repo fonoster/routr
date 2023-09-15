@@ -54,6 +54,22 @@ export class ServiceUnavailableError extends Error {
 }
 
 /**
+ * Error thrown if the client cannot connect to the service.
+ */
+export class ClientConnectionError extends Error {
+  /**
+   * Constructs a new ClientConnectionError error.
+   * @param {string} address - The address of the service.
+   * @param {boolean} isSecure - Whether the connection is secure.
+   */
+  constructor(address: string, isSecure: boolean) {
+    super(
+      `cannot connect to service [service address = ${address}, tlsOn = ${isSecure}]`
+    )
+  }
+}
+
+/**
  * Thrown for unimplemented handlers.
  */
 export class UnimplementedError extends Error {

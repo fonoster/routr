@@ -153,7 +153,6 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
         CliUx.ux.action.stop(number.ref)
       }
     } catch (e) {
-      CliUx.ux.action.stop()
       if (e.code === grpc.status.ALREADY_EXISTS) {
         throw new CLIError("This Number already exist")
       } else {
