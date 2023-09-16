@@ -319,6 +319,18 @@ export const fixInvalidContact = (request: MessageRequest) => {
   return req
 }
 
+export const overwriteContactWithSenderInfo = (request: MessageRequest) => {
+  const req = H.deepCopy(request)
+
+  if (req.message.contact) {
+    req.message.contact.address.uri.host = req.sender.host
+    req.message.contact.address.uri.port = req.sender.port
+    req.message.contact.address.uri.transportParam = req.sender.transport
+  }
+
+  return req
+}
+
 // Will do the best effort to normalize from/to/requestUri users as e164 values
 export const enforceE164 =
   (enforceE164: boolean, validateMobilePrefix: boolean) =>

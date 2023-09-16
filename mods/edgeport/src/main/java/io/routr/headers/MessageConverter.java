@@ -209,7 +209,14 @@ public class MessageConverter {
 
     Response response = event.getResponse();
     ViaHeader via = (ViaHeader) response.getHeader(ViaHeader.NAME);
-    return MessageConverter.getSenderFromVia(via);
+
+    // See the link for additional parameters:
+    //  http://javadox.com/javax.sip/jain-sip-ri/1.2.247/android/gov/nist/javax/sip/ResponseEventExt.html
+    return NetInterface.newBuilder()
+      .setHost(event.getRemoteIpAddress())
+      .setPort(event.getRemotePort())
+      .setTransport(Transport.valueOf(via.getTransport().toUpperCase()))
+      .build();
   }
 
   static public NetInterface getSenderFromVia(final ViaHeader via) {

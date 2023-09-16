@@ -52,8 +52,11 @@ export default function connectProcessor(config: ConnectProcessorConfig) {
 
       // If it is a response simply forwards to uac
       if (H.isTypeResponse(req)) {
-        // Remove the proxy via before forwarding response
-        return res.send(A.removeTopVia(req))
+        // Remove the proxy and overwrite the contact with the sender info
+        // NOTE: We should consider making the overwriteContactWithSenderInfo at the endpoint level
+        return res.send(
+          pipe(req, A.overwriteContactWithSenderInfo, A.removeTopVia)
+        )
       }
 
       switch (req.method) {
