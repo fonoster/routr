@@ -141,7 +141,7 @@ Alternatively, you can use the following command:
 
 ```bash
 # Be sure to replace with your IP address
-docker run --name routr \
+docker run \
   -p 51908:51908 \
   -p 5060:5060/udp \
   -e EXTERNAL_ADDRS=192.168.1.3 \
