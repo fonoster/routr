@@ -192,43 +192,24 @@ public class MessageConverter {
     return headers;
   }
 
-  static public NetInterface getSenderFromRequest(final RequestEventExt event) {
-    if (event == null) {
-      return NetInterface.newBuilder().build();
-    }
+  static private NetInterface buildNetInterface(String ipAddress, int port, ViaHeader via) {
+    return NetInterface.newBuilder()
+      .setHost(ipAddress)
+      .setPort(port)
+      .setTransport(Transport.valueOf(via.getTransport().toUpperCase()))
+      .build();
+  }
 
+  static private NetInterface getSenderFromRequest(final RequestEventExt event) {
     Request request = event.getRequest();
     ViaHeader via = (ViaHeader) request.getHeader(ViaHeader.NAME);
-    return MessageConverter.getSenderFromVia(via);
+    return buildNetInterface(event.getRemoteIpAddress(), event.getRemotePort(), via);
   }
 
-  static public NetInterface getSenderFromResponse(final ResponseEventExt event) {
-    if (event == null) {
-      return NetInterface.newBuilder().build();
-    }
-
+  static private NetInterface getSenderFromResponse(final ResponseEventExt event) {
     Response response = event.getResponse();
     ViaHeader via = (ViaHeader) response.getHeader(ViaHeader.NAME);
-
-    // See the link for additional parameters:
-    //  http://javadox.com/javax.sip/jain-sip-ri/1.2.247/android/gov/nist/javax/sip/ResponseEventExt.html
-    return NetInterface.newBuilder()
-      .setHost(event.getRemoteIpAddress())
-      .setPort(event.getRemotePort())
-      .setTransport(Transport.valueOf(via.getTransport().toUpperCase()))
-      .build();
-  }
-
-  static public NetInterface getSenderFromVia(final ViaHeader via) {
-    if (via == null) {
-      return NetInterface.newBuilder().build();
-    }
-
-    return NetInterface.newBuilder()
-      .setHost(via.getHost())
-      .setPort(via.getPort())
-      .setTransport(Transport.valueOf(via.getTransport().toUpperCase()))
-      .build();
+    return buildNetInterface(event.getRemoteIpAddress(), event.getRemotePort(), via);
   }
 
   static private Converter getConverterByHeader(Class<?> clasz) {
