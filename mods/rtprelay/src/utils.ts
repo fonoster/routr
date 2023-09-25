@@ -27,7 +27,8 @@ export function getDirectionFromResponse(request: MessageRequest) {
   return getDirection(srcTransport, dstTransport)
 }
 
-// Will be able to determine the direction with Request-URI and Route header
+// Will should be able to determine the direction with Request-URI and Route header
+// WARNING: Seems like a duplicated code
 export function getDirectionFromRequest(request: MessageRequest) {
   const srcTransport = request.sender.transport
   const dstTransport = request.message.via[0].transport
