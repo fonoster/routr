@@ -97,7 +97,7 @@ Raw Diagram:
 
 The SIP Server "Routr" has three main components and one cooperating service. The first component, the EdgePort, is
 responsible for accepting SIP Messages, parsing them into protobuf, and sending them to the Message Dispatcher. After a
-SIP Message is processed, and the EdgePort will forward the SIP Message to the next hop.
+SIP Message is processed, the EdgePort will forward the SIP Message to the next hop.
 
 The job of *Message Dispatcher* is to accept SIP Messages encapsulated as protobuf from the EdgePort, and route the
 SIP Message to and from the Message Processor.
