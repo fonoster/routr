@@ -23,6 +23,7 @@ Routr is a lightweight sip proxy, location server, and registrar that provides a
     * [Gitpod](#deploying-in-development-mode-with-gitpod)
 * [Getting started with the CTL](#getting-started-with-the-ctl)
 * [First steps with the NodeSDK](#first-steps-with-the-nodesdk)
+* [Custom Processors and Middleware](#building-custom-processors-and-middleware)
 * [Documentation](https://routr.io/docs/introduction/overview)
 * [Sponsors](#sponsors)
 * [Contributing](#contributing)
@@ -312,6 +313,40 @@ node index.js
 ```
 
 For complete documentation, please visit the npm page for `@routr/sdk` at https://www.npmjs.com/package/@routr/sdk
+
+## Building custom Processors and Middleware
+
+One of Routr's most significant advantages is that it is highly extensible. It enables you to create new Processors and Middleware to extend the functionality of your server.
+
+Processors and Middleware services are responsible for modifying the SIP messages as they pass through the server. However, while both share the same interface, they serve different purposes.
+
+Processors hold feature logic; Middlewares addresses cross-cutting concerns like authentication, authorization, rate limiting, etc.
+
+The simplest possible Processor looks like this:
+
+```javascript
+const Processor = require("@routr/processor").default
+const { MessageRequest, Response } = require("@routr/processor")
+
+new Processor({ bindAddr: "0.0.0.0:51904", name: "echo" }).listen(
+  (req: MessageRequest, res: Response) => {
+    console.log("got new request: ")
+    console.log(JSON.stringify(req, null, " "))
+    res.sendOk()
+  }
+)
+```
+
+The previous example is for a Processor that waits for a SIP message and then sends a 200 OK response. You can find the complete code [here](https://github.com/fonoster/routr/tree/main/mods/echo).
+
+In addition to the previous example, you can check the following modules:
+
+- [RTPRelay Middleware](https://github.com/fonoster/routr/tree/main/mods/rtprelay)
+- [Simple Auth Middleware](https://github.com/fonoster/routr/tree/main/mods/simpleauth)
+- [Processor Template](https://github.com/fonoster/nodejs-processor/tree/main)
+- [Connect Processor](https://github.com/fonoster/routr/tree/main/mods/connect)
+
+For more information about building Processors and Middleware, please refer to the [documentation.](https://routr.io)
 
 ## Bugs and feedback
 
