@@ -622,7 +622,7 @@ However, the following "base" configuration is recommended as the starting point
 {
   "kind": "Processor",
   "apiVersion": "v2beta1",
-  "ref": "logging-processor",
+  "ref": "connect-processor",
   "metadata": {
     "region": "us-east1"
   },
