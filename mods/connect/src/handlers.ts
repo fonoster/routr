@@ -112,6 +112,7 @@ export const handleRegister = (
           aor: payload.aor,
           route: H.createRoute(request)
         })
+        res.sendOk()
       } catch (e) {
         logger.verbose("unable to validate connect token", {
           originalError: e.message
