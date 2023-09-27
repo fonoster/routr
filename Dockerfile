@@ -15,7 +15,9 @@ RUN apk add --no-cache --update curl git tini python3 make cmake g++ openjdk11-j
   && npm install --omit=dev \
   && mv schema.prisma node_modules/@routr/pgdata/ \
   && cd node_modules/@routr/pgdata/ && npx prisma generate \
-  && cd /work && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune
+  && cd /work && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune \
+  && curl -L -o heplify https://github.com/sipcapture/heplify/releases/download/v1.65.10/heplify \
+  && chmod +x heplify
 
 ##  
 ## Runner
@@ -53,6 +55,7 @@ COPY --from=builder /work/dist dist
 COPY --from=builder /work/node_modules node_modules
 COPY --from=builder /work/package.json .
 COPY --from=builder /work/jre jre
+COPY --from=builder /work/heplify /usr/local/bin/
 COPY .scripts/init-postgres.sh .
 COPY mods/pgdata/schema.prisma .
 COPY mods/pgdata/migrations migrations
@@ -71,4 +74,7 @@ RUN apk add --no-cache tini openssl postgresql postgresql-client su-exec \
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 CMD sh -c "su-exec postgres pg_ctl start -D /var/lib/postgresql/data && \
            su-exec $USER ./convert-to-p12.sh $PATH_TO_CERTS $PKCS_PASSWORD && \
+           if [ -n \"$HEPLIFY_OPTIONS\" ]; then \
+             heplify $HEPLIFY_OPTIONS; \
+           fi && \
            DATABASE_URL=$DATABASE_URL su-exec $USER node ./dist/runner"
