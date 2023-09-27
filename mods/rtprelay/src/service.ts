@@ -29,7 +29,6 @@ import { CommonErrors as CE } from "@routr/common"
 import { Direction, RTPEFunction } from "./types"
 import { getLogger } from "@fonoster/logger"
 import {
-  callInvolvesWebRTC,
   getDirectionFromRequest,
   getDirectionFromResponse,
   shouldNotHandleRequest
@@ -67,13 +66,7 @@ export default function rtprelay(
           throw new CE.BadRequestError(r["error-reason"])
         }
 
-        if (callInvolvesWebRTC(direction)) {
-          req.message.body = r.sdp
-            ?.replaceAll("a=crypto:", "a=ignore:")
-            .replaceAll("a=sendrecv", "a=sendrecv\na=rtcp-mux")
-        } else {
-          req.message.body = r.sdp
-        }
+        req.message.body = r.sdp
 
         return res.send(req)
       }
