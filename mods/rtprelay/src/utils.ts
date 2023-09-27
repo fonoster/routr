@@ -60,14 +60,14 @@ export function getRTPEParamsByDirection(dir: Direction) {
       return {
         ICE: "force",
         SDES: "off",
-        flags: "trust-address replace-origin replace-session-connection"
+        flags: ["trust-address", "replace-origin", "replace-session-connection"]
       }
     case Direction.WEB_TO_PHONE:
       return {
         "transport-protocol": "RTP/AVP",
         "rtcp-mux": "demux",
         ICE: "remove",
-        flags: "trust-address replace-origin replace-session-connection"
+        flags: ["trust-address", "replace-origin", "replace-session-connection"]
       }
     case Direction.PHONE_TO_WEB:
       return {
@@ -75,15 +75,19 @@ export function getRTPEParamsByDirection(dir: Direction) {
         "rtcp-mux": "required",
         ICE: "force",
         SDES: "off",
-        flags:
-          "trust-address replace-origin replace-session-connection generate-mid"
+        flags: [
+          "trust-address",
+          "replace-origin",
+          "replace-session-connection",
+          "generate-mid"
+        ]
       }
     case Direction.PHONE_TO_PHONE:
       return {
         "transport-protocol": "RTP/AVP",
         "rtcp-mux": "demux",
         ICE: "remove",
-        flags: "trust-address replace-origin replace-session-connection"
+        flags: ["trust-address", "replace-origin", "replace-session-connection"]
       }
   }
 }
