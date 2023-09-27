@@ -29,8 +29,8 @@ export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
     A.removeSelfRoutes,
     A.removeXEdgePortRef,
     // NOTE: We should consider making the overwriteContactWithSenderInfo an Agent/Peer level alteration
-    A.overwriteContactWithSenderInfo,
-    // A.fixInvalidContact,
+    // A.overwriteContactWithSenderInfo,
+    A.fixInvalidContact,
     A.fixRequestURI(route),
     A.addSelfVia(route),
     A.applyXHeaders(route),

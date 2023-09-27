@@ -201,15 +201,31 @@ public class MessageConverter {
   }
 
   static private NetInterface getSenderFromRequest(final RequestEventExt event) {
+    if (event == null) {
+      return NetInterface.newBuilder().build();
+    }
+
     Request request = event.getRequest();
     ViaHeader via = (ViaHeader) request.getHeader(ViaHeader.NAME);
-    return buildNetInterface(event.getRemoteIpAddress(), event.getRemotePort(), via);
+    return MessageConverter.getSenderFromVia(via);
   }
 
   static private NetInterface getSenderFromResponse(final ResponseEventExt event) {
     Response response = event.getResponse();
     ViaHeader via = (ViaHeader) response.getHeader(ViaHeader.NAME);
     return buildNetInterface(event.getRemoteIpAddress(), event.getRemotePort(), via);
+  }
+
+  static private NetInterface getSenderFromVia(final ViaHeader via) {
+    if (via == null) {
+      return NetInterface.newBuilder().build();
+    }
+
+    return NetInterface.newBuilder()
+      .setHost(via.getHost())
+      .setPort(via.getPort())
+      .setTransport(Transport.valueOf(via.getTransport().toUpperCase()))
+      .build();
   }
 
   static private Converter getConverterByHeader(Class<?> clasz) {
