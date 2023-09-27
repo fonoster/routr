@@ -37,8 +37,7 @@ export function offer(config: RTPEConfig) {
       ...sdpModifiers,
       sdp: request.message.body,
       "call-id": request.message.callId.callId,
-      "from-tag": request.message.from.tag,
-      "to-tag": request.message.to.tag
+      "from-tag": request.message.from.tag
     })
   }
 }

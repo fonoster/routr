@@ -50,7 +50,7 @@ message Route {
   repeated fonoster.routr.processor.v2beta1.NetInterface listening_points = 9;
   repeated string localnets = 10;
   repeated string external_addrs = 11;
-  // During route creation, an endpoint can request to add labels than can later be
+  // During route creation, an endpoint can request to add labels that can later be
   // used as selectors. For example, a Softphone can add a label `priority=1` to indicate
   // that it is the preferred endpoint for the given AOR.
   map<string, string> labels = 12;
