@@ -1,6 +1,6 @@
 {
   "name": "@routr/sdk",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "The Routr SDK for Node.js",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -27,7 +27,7 @@
     "@opentelemetry/sdk-trace-base": "^1.0.4",
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
-    "@routr/common": "^2.2.0",
+    "@routr/common": "^2.3.0",
     "google-protobuf": "^3.9.2",
     "pb-util": "^1.0.3"
   },
