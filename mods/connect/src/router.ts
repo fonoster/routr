@@ -143,17 +143,17 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
     switch (routingDirection) {
       case RoutingDirection.AGENT_TO_AGENT: {
         const route = await agentToAgent(location, request)
-        return {
+        return route ? {
           ...route,
           metadata: caller.extended
-        }
+        } : null
       }
       case RoutingDirection.AGENT_TO_PEER: {
         const route = await agentToPeer(location, callee as CC.Peer, request)
-        return {
+        return route ? {
           ...route,
           metadata: caller.extended
-        }
+        } : null
       }
       case RoutingDirection.AGENT_TO_PSTN: {
         const route = await agentToPSTN(
@@ -161,10 +161,10 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
           caller as CC.Agent,
           requestURI.user
         )
-        return {
+        return route? {
           ...route,
           metadata: caller.extended
-        }
+        } : null
       }
       case RoutingDirection.FROM_PSTN: {
         const route = await fromPSTN(
@@ -173,10 +173,10 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
           callee as CC.INumber,
           request
         )
-        return {
+        return route ? {
           ...route,
           metadata: callee.extended
-        }
+        } : null
       }
       case RoutingDirection.PEER_TO_PSTN:
         return await peerToPSTN(apiClient, request)
