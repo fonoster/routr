@@ -84,7 +84,8 @@ export const schema = {
           },
           required: ["address"]
         }
-      }
+      },
+      required: ["requesterAddr", "apiAddr", "edgePorts"]
     }
   },
   required: ["kind", "spec", "apiVersion"]
