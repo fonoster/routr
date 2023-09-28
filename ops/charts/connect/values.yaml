@@ -24,7 +24,7 @@ edgeport:
     - BYE
     - CANCEL
   # Uncomment to enable experimental support for the HEP protocol
-  # hepLifyOptions: "-hs homerserver:9060"
+  # heplifyOptions: "-hs homerserver:9060"
   # Reserved for future use
   unknownMethodAction: Discard
   # EdgePort image configuration
