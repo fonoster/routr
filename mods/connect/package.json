@@ -1,6 +1,6 @@
 {
   "name": "@routr/connect",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Default processor",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
