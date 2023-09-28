@@ -75,6 +75,6 @@ ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 CMD sh -c "su-exec postgres pg_ctl start -D /var/lib/postgresql/data && \
            su-exec $USER ./convert-to-p12.sh $PATH_TO_CERTS $PKCS_PASSWORD && \
            if [ -n \"$HEPLIFY_OPTIONS\" ]; then \
-             heplify $HEPLIFY_OPTIONS; \
+             heplify $HEPLIFY_OPTIONS & \
            fi && \
            DATABASE_URL=$DATABASE_URL su-exec $USER node ./dist/runner"

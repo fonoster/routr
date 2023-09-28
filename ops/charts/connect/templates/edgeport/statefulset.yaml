@@ -54,6 +54,8 @@ spec:
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
               value: {{ .Values.global.otlExporter }}
+            - name: HEPLIFY_OPTIONS
+              value: {{ .Values.edgeport.heplifyOptions }}
           ports:
             - containerPort: 8080
           {{- if .Values.edgeport.transport.tcp.enabled }}
