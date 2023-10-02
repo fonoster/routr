@@ -99,6 +99,20 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
             fieldValue: payload.aorLink
           })
         ).items[0]
+
+        // Experimental support for Ephemeral Agents when calling agent-to-agent
+        if (!callee) {
+          callee = {
+            apiVersion: CC.APIVersion.V2,
+            ref: CT.ANONYMOUS,
+            name: CT.ANONYMOUS,
+            domain: domain,
+            domainRef: payload.domainRef,
+            username: CT.ANONYMOUS,
+            privacy: E.getHeaderValue(request, "Privacy"),
+            enabled: true
+          } as CC.Agent
+        }
       } catch (e) {
         logger.verbose("unable to validate connect token", {
           originalError: e.message

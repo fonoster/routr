@@ -17,35 +17,28 @@
  * limitations under the License.
  */
 import { Helper as H } from "@routr/location"
-import { tailor } from "./tailor"
 import {
-  Alterations as A,
   Extensions as E,
   MessageRequest,
   Response,
   Target as T
 } from "@routr/processor"
-import { pipe } from "fp-ts/function"
-import { router } from "./router"
 import { ILocationService } from "@routr/location"
 import {
   Auth,
   CommonConnect as CC,
   CommonTypes as CT,
-  Environment,
   Method,
   Verifier
 } from "@routr/common"
-import { findResource, getVerifierImpl, hasXConnectObjectHeader } from "./utils"
+import {
+  findResource,
+  getVerifierImpl,
+  hasXConnectObjectHeader
+} from "../utils"
 import { getLogger } from "@fonoster/logger"
-import { RoutingDirection } from "./types"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
-
-const enforceE164 = A.enforceE164(
-  Environment.ENFORCE_E164,
-  Environment.ENFORCE_E164_WITH_MOBILE_PREFIX
-)
 
 const jwtVerifier = getVerifierImpl()
 
@@ -127,74 +120,3 @@ export const handleRegister = (
     }
   }
 }
-
-// TODO: Needs test
-export const handleRegistry = (req: MessageRequest, res: Response) => {
-  const route = H.createRouteFromLastMessage(req)
-  res.send(
-    pipe(
-      req,
-      A.addSelfVia(route),
-      A.decreaseMaxForwards,
-      A.removeAuthorization,
-      A.removeSelfRoutes,
-      A.removeXEdgePortRef
-    )
-  )
-}
-
-export const handleRequest =
-  (location: ILocationService, apiClient?: CC.APIClient) =>
-  async (request: MessageRequest, res: Response) => {
-    try {
-      const req = Environment.ENFORCE_E164 ? enforceE164(request) : request
-      let route
-
-      if (E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF)) {
-        route = H.createRouteFromLastMessage(req)
-      } else {
-        const routerResult = await router(location, apiClient)(req)
-
-        if (
-          !routerResult.route &&
-          routerResult.direction === RoutingDirection.AGENT_TO_PSTN
-        ) {
-          return res.sendNotFound()
-        }
-        if (!routerResult.route) {
-          return res.sendTemporaryUnavailable()
-        }
-
-        route = routerResult.route as CT.Route
-      }
-
-      // If route is not type Route then return
-      if (!("listeningPoints" in route)) {
-        return res.send(route as Record<string, unknown>)
-      } else {
-        // Forward request to peer edgeport
-        if (req.edgePortRef !== route.edgePortRef) {
-          return res.send(
-            pipe(
-              req,
-              A.addSelfVia(route as CT.Route),
-              A.addSelfRecordRoute(route as CT.Route),
-              // The order of the routes is important
-              A.addRouteToPeerEdgePort(route as CT.Route),
-              A.addRouteToNextHop(route as CT.Route),
-              A.addXEdgePortRef,
-              A.decreaseMaxForwards
-            )
-          )
-        }
-
-        // TODO: We should add this the Tailor API
-        req.metadata = route.metadata as Record<string, string>
-
-        res.send(tailor(route as CT.Route, req))
-      }
-    } catch (err) {
-      logger.error(err)
-      res.sendInternalServerError()
-    }
-  }

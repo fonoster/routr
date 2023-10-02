@@ -27,7 +27,7 @@ import {
   CommonTypes,
   Helper
 } from "@routr/common"
-import { handleRegister, handleRequest } from "../src/handlers"
+import { handleRegister } from "../src/handlers/register"
 import { Extensions as E, Response } from "@routr/processor"
 import { Helper as H } from "@routr/location"
 import { createRequest, r1 } from "./examples"
@@ -35,6 +35,7 @@ import { router } from "../src/router"
 import { apiClient, locationAPI } from "./mock_apis"
 import { findResource } from "../src/utils"
 import { ILocationService } from "@routr/location"
+import { handleRequest } from "../src/handlers/request"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -66,7 +67,8 @@ describe("@routr/connect", () => {
     }
     const addRoute = sandbox.spy(location, "addRoute")
     const response = {
-      sendRegisterOk: (t: MessageRequest) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      sendRegisterOk: (_: MessageRequest) => {
         expect(addRoute).to.have.been.calledOnce
         done()
       }

@@ -19,7 +19,6 @@
 import { ConnectProcessorConfig } from "./types"
 import { MessageRequest, Method } from "@routr/common"
 import { LocationClient as Location } from "@routr/location"
-import { handleRegister, handleRegistry, handleRequest } from "./handlers"
 import Processor, {
   Alterations as A,
   Helper as H,
@@ -29,6 +28,9 @@ import Processor, {
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { pipe } from "fp-ts/function"
 import { getLogger } from "@fonoster/logger"
+import { handleRequest } from "./handlers/request"
+import { handleRegistry } from "./handlers/registry"
+import { handleRegister } from "./handlers/register"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 
