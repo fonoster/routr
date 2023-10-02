@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import {
-  AuthChallengeRequest,
   AuthChallengeResponse,
   ResponseType
 } from "./types"
@@ -33,19 +32,6 @@ const decToHex = (dec: number) =>
 
 export const generateNonce = (algorithm: string = DEFAULT_ALGORITHM) =>
   md5hex(`${new Date().getTime()}${Math.random()}`, algorithm)
-
-export const buildAuthChallenge = (request: AuthChallengeRequest) => {
-  const { realm, scheme, algorithm, qop, opaque, stale } = request
-  return {
-    realm,
-    scheme,
-    algorithm,
-    qop,
-    opaque,
-    stale,
-    nonce: generateNonce(algorithm)
-  }
-}
 
 export const calculateAuthResponse = (
   res: AuthChallengeResponse,

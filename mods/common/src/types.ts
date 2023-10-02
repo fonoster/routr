@@ -131,17 +131,6 @@ export interface ObjectProto {
   version: string
 }
 
-export interface AuthChallengeRequest {
-  realm: string
-  domain: string
-  opaque: string
-  stale: boolean
-  nonce: string
-  scheme: AuthorizationScheme
-  algorithm: AuthorizationAlgorithm
-  qop: Qop
-}
-
 export interface AuthChallengeResponse {
   realm: string
   domain: string
