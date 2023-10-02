@@ -1,0 +1,33 @@
+{{- if .Values.edgeport.transport.udp.enabled }}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-routr-edgeport-udp
+  namespace: {{ .Release.Namespace }}
+  {{- with .Values.edgeport.serviceAnnotationsUDP }}
+  annotations:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include ".helm.labels" . | nindent 4 }}
+    service: edgeport-udp
+spec:
+  type: {{ .Values.edgeport.serviceTypeUDP }}
+  externalTrafficPolicy: {{ .Values.edgeport.externalTrafficPolicyUDP }}
+  ports:
+  - name: sipudp
+    protocol: UDP
+    port: {{ .Values.edgeport.transport.udp.port | default 5060 }}
+    targetPort: {{ .Values.edgeport.transport.udp.port | default 5060 }}
+  {{- if .Values.edgeport.udpHealthCheck }}
+  - name: healthz
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  {{- end }}
+  selector:
+    {{- include ".helm.selectorLabels" . | nindent 4 }}
+    service: edgeport
+
+{{- end }}

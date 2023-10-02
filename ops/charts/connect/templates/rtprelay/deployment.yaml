@@ -1,4 +1,5 @@
 {{- if eq .Values.rtprelay.enabled true }}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -60,4 +61,5 @@ spec:
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: {{ .Values.rtprelay.securityContext.allowPrivilegeEscalation }}
+
 {{- end }}

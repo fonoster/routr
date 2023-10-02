@@ -38,18 +38,26 @@ edgeport:
     pullPolicy: IfNotPresent
   # Pod annotations
   podAnnotations: {}
-  # Service annotations
-  serviceAnnotations: {}
-  # The type for the service
-  serviceType: NodePort
-  # Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints
-  externalTrafficPolicy: Cluster
+  # Service annotations for TCP
+  serviceAnnotationsTCP: {}
+  # Service annotations for UDP
+  serviceAnnotationsUDP: {}
+  # The type for the service (TCP)
+  serviceTypeTCP: NodePort
+  # The type for the service (UDP)
+  serviceTypeUDP: NodePort
+  # Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints (UDP)
+  externalTrafficPolicyUDP: Cluster
+  # Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints (TCP)
+  externalTrafficPolicyTCP: Cluster
+  # Enable health checks for the UDP service
+  udpHealthCheck: false
   # Security context for EdgePort
   transport:
     # TCP transport configuration
     tcp:
       # Whether TCP transport is enabled
-      enabled: true
+      enabled: false
       # TCP port
       port: 5060
     # UDP transport configuration  
@@ -67,7 +75,7 @@ edgeport:
     # WebSocket transport configuration
     ws:
       # Whether WebSocket transport is enabled
-      enabled: true
+      enabled: false
       # WebSocket port
       port: 5062
     # Secure WebSocket transport configuration

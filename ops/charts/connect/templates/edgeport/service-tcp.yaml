@@ -1,0 +1,47 @@
+{{- if or .Values.edgeport.transport.tcp.enabled .Values.edgeport.transport.tls.enabled .Values.edgeport.transport.ws.enabled .Values.edgeport.transport.wss.enabled }}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-routr-edgeport-tcp
+  namespace: {{ .Release.Namespace }}
+  {{- with .Values.edgeport.serviceAnnotationsTCP }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include ".helm.labels" . | nindent 4 }}
+    service: edgeport-tcp
+spec:
+  type: {{ .Values.edgeport.serviceTypeTCP }}
+  externalTrafficPolicy: {{ .Values.edgeport.externalTrafficPolicyTCP }}
+  ports:
+  {{- if .Values.edgeport.transport.tcp.enabled }}
+    - name: siptcp
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.tcp.port | default 5060 }}
+      targetPort: {{ .Values.edgeport.transport.tcp.port | default 5060 }}
+  {{- end }}
+  {{- if .Values.edgeport.transport.tls.enabled }}
+    - name: siptls
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.tls.port | default 5061 }}
+      targetPort: {{ .Values.edgeport.transport.tls.port | default 5061 }}
+  {{- end }}      
+  {{- if .Values.edgeport.transport.ws.enabled }}
+    - name: sipws
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.ws.port | default 5062 }}
+      targetPort: {{ .Values.edgeport.transport.ws.port | default 5062 }}
+  {{- end }}
+  {{- if .Values.edgeport.transport.wss.enabled }}
+    - name: sipwss
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.wss.port | default 5063 }}
+      targetPort: {{ .Values.edgeport.transport.wss.port | default 5063 }}
+  {{- end }}
+  selector:
+    {{- include ".helm.selectorLabels" . | nindent 4 }}
+    service: edgeport
+
+{{- end }}

@@ -1,4 +1,5 @@
 {{- if eq .Values.apiserver.migrationsEnabled true }}
+
 apiVersion: v1
 kind: Pod
 metadata:
@@ -30,4 +31,5 @@ spec:
             name: {{ .Release.Name }}-routr-database-url
   restartPolicy: Never
   terminationGracePeriodSeconds: 0
+
 {{- end }}

@@ -1,4 +1,5 @@
 {{- if eq .Values.rtprelay.enabled true }}
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -16,4 +17,5 @@ spec:
     targetPort: 51903
   selector:
     {{- include ".helm.selectorLabels" . | nindent 6 }}
+
 {{- end }}

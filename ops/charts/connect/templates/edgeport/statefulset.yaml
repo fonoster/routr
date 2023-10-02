@@ -61,27 +61,27 @@ spec:
           {{- if .Values.edgeport.transport.tcp.enabled }}
             - name: siptcp
               protocol: TCP
-              containerPort: {{ .Values.edgeport.transport.tcp.port }}
+              containerPort: {{ .Values.edgeport.transport.tcp.port | default 5060 }}
           {{- end }}
           {{- if .Values.edgeport.transport.udp.enabled }}
             - name: sipudp
               protocol: UDP
-              containerPort: {{ .Values.edgeport.transport.udp.port }}
+              containerPort: {{ .Values.edgeport.transport.udp.port | default 5060 }}
           {{- end }}
           {{- if .Values.edgeport.transport.tls.enabled }}
             - name: siptls
               protocol: TCP
-              containerPort: {{ .Values.edgeport.transport.tls.port }}
+              containerPort: {{ .Values.edgeport.transport.tls.port | default 5061 }}
           {{- end }}      
           {{- if .Values.edgeport.transport.ws.enabled }}
             - name: sipws
               protocol: TCP
-              containerPort: {{ .Values.edgeport.transport.ws.port }}
+              containerPort: {{ .Values.edgeport.transport.ws.port | default 5062 }}
           {{- end }}
           {{- if .Values.edgeport.transport.wss.enabled }}
             - name: sipwss
               protocol: TCP
-              containerPort: {{ .Values.edgeport.transport.wss.port }}
+              containerPort: {{ .Values.edgeport.transport.wss.port | default 5063 }}
           {{- end }}
           volumeMounts:
             - name: log4j2
