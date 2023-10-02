@@ -61,7 +61,7 @@ export default class Response {
 
   /**
    * Sends a register ok response.
-   * 
+   *
    * @param {MessageRequest} request - The request message.
    * @param {object[]} extraHeaders - Optional extra headers to be sent.
    */
