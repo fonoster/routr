@@ -60,6 +60,24 @@ export default class Response {
   }
 
   /**
+   * Sends a register ok response.
+   * 
+   * @param {MessageRequest} request - The request message.
+   * @param {object[]} extraHeaders - Optional extra headers to be sent.
+   */
+  sendRegisterOk(
+    request: MessageRequest,
+    extraHeaders?: Array<{ name: string; value: string }>
+  ) {
+    this.callback(null, {
+      message: {
+        ...buildResponse({ code: CT.ResponseType.OK, extraHeaders }).message,
+        contact: request.message.contact
+      }
+    })
+  }
+
+  /**
    * Sends a method not allowed response.
    */
   sendMethodNotAllowed() {

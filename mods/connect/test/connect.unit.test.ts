@@ -66,7 +66,7 @@ describe("@routr/connect", () => {
     }
     const addRoute = sandbox.spy(location, "addRoute")
     const response = {
-      sendOk: () => {
+      sendRegisterOk: (t: MessageRequest) => {
         expect(addRoute).to.have.been.calledOnce
         done()
       }

@@ -93,7 +93,8 @@ export const handleRegister = (
         aor: "aor" in peerOrAgent ? peerOrAgent.aor : T.getTargetAOR(request),
         route: H.createRoute(request)
       })
-      res.sendOk()
+
+      res.sendRegisterOk(request)
     } else if (hasXConnectObjectHeader(request)) {
       const connectToken = E.getHeaderValue(
         request,
@@ -113,7 +114,8 @@ export const handleRegister = (
           aor: payload.aor,
           route: H.createRoute(request)
         })
-        res.sendOk()
+
+        res.sendRegisterOk(request)
       } catch (e) {
         logger.verbose("unable to validate connect token", {
           originalError: e.message
