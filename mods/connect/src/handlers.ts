@@ -38,6 +38,7 @@ import {
 } from "@routr/common"
 import { findResource, getVerifierImpl, hasXConnectObjectHeader } from "./utils"
 import { getLogger } from "@fonoster/logger"
+import { RoutingDirection } from "./types"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 
@@ -145,13 +146,25 @@ export const handleRequest =
   async (request: MessageRequest, res: Response) => {
     try {
       const req = Environment.ENFORCE_E164 ? enforceE164(request) : request
+      let route
 
-      // Must get the metadata here before the request is forwarded
-      const route = E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF)
-        ? H.createRouteFromLastMessage(req)
-        : await router(location, apiClient)(req)
+      if (E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF)) {
+        route = H.createRouteFromLastMessage(req)
+      } else {
+        const routerResult = await router(location, apiClient)(req)
 
-      if (!route) return res.sendNotFound()
+        if (
+          !routerResult.route &&
+          routerResult.direction === RoutingDirection.AGENT_TO_PSTN
+        ) {
+          return res.sendNotFound()
+        }
+        if (!routerResult.route) {
+          return res.sendTemporaryUnavailable()
+        }
+
+        route = routerResult.route as CT.Route
+      }
 
       // If route is not type Route then return
       if (!("listeningPoints" in route)) {

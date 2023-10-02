@@ -86,6 +86,19 @@ export default class Response {
   }
 
   /**
+   * Sends a temporary unavailable response.
+   */
+  sendTemporaryUnavailable() {
+    this.callback(
+      null,
+      buildResponse({
+        code: CT.ResponseType.TEMPORARILY_UNAVAILABLE,
+        reasonPhrase: "Temporarily Unavailable"
+      })
+    )
+  }
+
+  /**
    * Sends a not implemented response.
    */
   sendNotImplemented() {

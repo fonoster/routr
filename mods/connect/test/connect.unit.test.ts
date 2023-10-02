@@ -113,12 +113,12 @@ describe("@routr/connect", () => {
       toDomain: "sip.local",
       toUser: "1002"
     })
-    const route = await router(locationAPI, apiClient)(req)
+    const result = await router(locationAPI, apiClient)(req)
 
-    expect(route).to.be.not.null
-    expect(route).to.have.property("user", r1.user)
-    expect(route).to.have.property("host", r1.host)
-    expect(route).to.not.have.property("headers")
+    expect(result.route).to.be.not.null
+    expect(result.route).to.have.property("user", r1.user)
+    expect(result.route).to.have.property("host", r1.host)
+    expect(result.route).to.not.have.property("headers")
   })
 
   it("handles a request from agent to pstn", async () => {
@@ -128,14 +128,17 @@ describe("@routr/connect", () => {
       toUser: "17853178070",
       toDomain: "sip.local"
     })
-    const route = await router(locationAPI, apiClient)(req)
+    const result = await router(locationAPI, apiClient)(req)
 
-    expect(route).to.be.not.null
-    expect(route).to.have.property("user", "pbx-1")
-    expect(route).to.have.property("host", "sip.provider.net")
-    expect(route).to.have.property("port", 7060)
-    expect(route).to.have.property("transport", Transport.UDP)
-    expect(route).to.have.property("headers").to.be.an("array").lengthOf(5)
+    expect(result.route).to.be.not.null
+    expect(result.route).to.have.property("user", "pbx-1")
+    expect(result.route).to.have.property("host", "sip.provider.net")
+    expect(result.route).to.have.property("port", 7060)
+    expect(result.route).to.have.property("transport", Transport.UDP)
+    expect(result.route)
+      .to.have.property("headers")
+      .to.be.an("array")
+      .lengthOf(5)
   })
 
   it("handles a request from pstn to agent or peer", async () => {
@@ -146,13 +149,17 @@ describe("@routr/connect", () => {
       toDomain: "newyork1.voip.ms",
       requestUriHost: "trunk01.acme.com"
     })
-    const route = await router(locationAPI, apiClient)(req)
-    expect(route).to.be.not.null
-    expect(route).to.have.property("user", r1.user)
-    expect(route).to.have.property("host", r1.host)
-    expect(route).to.have.property("port", r1.port)
-    expect(route).to.have.property("transport", r1.transport)
-    expect(route).to.have.property("headers").to.be.an("array").lengthOf(1)
+    const result = await router(locationAPI, apiClient)(req)
+
+    expect(result.route).to.be.not.null
+    expect(result.route).to.have.property("user", r1.user)
+    expect(result.route).to.have.property("host", r1.host)
+    expect(result.route).to.have.property("port", r1.port)
+    expect(result.route).to.have.property("transport", r1.transport)
+    expect(result.route)
+      .to.have.property("headers")
+      .to.be.an("array")
+      .lengthOf(1)
   })
 
   it("handles a request from peer to pstn", async () => {
@@ -167,10 +174,13 @@ describe("@routr/connect", () => {
     reqWithUpdatedAuth.message.authorization.response =
       "09f30fe20face5e168ca7dafcbf154c0"
 
-    const route = await router(locationAPI, apiClient)(reqWithUpdatedAuth)
+    const result = await router(locationAPI, apiClient)(reqWithUpdatedAuth)
 
-    expect(route).to.be.not.null
-    expect(route).to.have.property("headers").to.be.an("array").lengthOf(5)
+    expect(result.route).to.be.not.null
+    expect(result.route)
+      .to.have.property("headers")
+      .to.be.an("array")
+      .lengthOf(5)
   })
 
   it("gets resource by domainUri and userpart", async () => {

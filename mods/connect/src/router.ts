@@ -53,7 +53,9 @@ const jwtVerifier = getVerifierImpl()
 export function router(location: ILocationService, apiClient: CC.APIClient) {
   return async (
     request: MessageRequest
-  ): Promise<Route | Record<string, unknown>> => {
+  ): Promise<
+    { route: Route; direction: RoutingDirection } | Record<string, unknown>
+  > => {
     const fromURI = request.message.from.address.uri
     const requestURI = request.message.requestUri
 
@@ -139,25 +141,29 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
       }
     }
 
+    const result = (
+      direction: RoutingDirection,
+      route: Route,
+      extended: any
+    ) => {
+      return {
+        direction,
+        route: {
+          ...route,
+          metadata: extended
+        }
+      }
+    }
+
     // We add metadata to the route object so we can use it later to link to an account
     switch (routingDirection) {
       case RoutingDirection.AGENT_TO_AGENT: {
         const route = await agentToAgent(location, request)
-        return route
-          ? {
-              ...route,
-              metadata: caller.extended
-            }
-          : null
+        return result(routingDirection, route, caller.extended)
       }
       case RoutingDirection.AGENT_TO_PEER: {
         const route = await agentToPeer(location, callee as CC.Peer, request)
-        return route
-          ? {
-              ...route,
-              metadata: caller.extended
-            }
-          : null
+        return result(routingDirection, route, caller.extended)
       }
       case RoutingDirection.AGENT_TO_PSTN: {
         const route = await agentToPSTN(
@@ -165,12 +171,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
           caller as CC.Agent,
           requestURI.user
         )
-        return route
-          ? {
-              ...route,
-              metadata: caller.extended
-            }
-          : null
+        return result(routingDirection, route, caller.extended)
       }
       case RoutingDirection.FROM_PSTN: {
         const route = await fromPSTN(
@@ -179,15 +180,14 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
           callee as CC.INumber,
           request
         )
-        return route
-          ? {
-              ...route,
-              metadata: callee.extended
-            }
-          : null
+        return result(routingDirection, route, callee.extended)
       }
       case RoutingDirection.PEER_TO_PSTN:
-        return await peerToPSTN(apiClient, request)
+        return result(
+          routingDirection,
+          await peerToPSTN(apiClient, request),
+          callee?.extended
+        )
       default:
         throw new UnsuportedRoutingError(routingDirection)
     }

@@ -16,10 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  AuthChallengeResponse,
-  ResponseType
-} from "./types"
+import { AuthChallengeResponse, ResponseType } from "./types"
 import crypto from "crypto"
 
 const DEFAULT_ALGORITHM = "MD5"
