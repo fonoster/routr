@@ -25,7 +25,7 @@ import org.apache.logging.log4j.Logger;
 public class ConsolePublisher implements EventsPublisher {
   private final static Logger LOG = LogManager.getLogger(ConsolePublisher.class);
 
-  public void publish(String eventName, Map<String, String> message) {
+  public void publish(String eventName, Map<String, Object> message) {
     LOG.info("event: " + eventName + " message: " + message);
   }
 }

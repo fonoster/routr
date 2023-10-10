@@ -34,6 +34,8 @@ import io.routr.common.Transport;
 import io.routr.headers.MessageConverter;
 import io.routr.headers.ResponseCode;
 import io.routr.message.ResponseType;
+import io.routr.message.SIPMessage;
+import io.routr.message.Extension;
 import io.routr.processor.MessageRequest;
 import io.routr.processor.MessageResponse;
 import io.routr.processor.NetInterface;
@@ -270,10 +272,18 @@ public class GRPCSipListener implements SipListener {
       boolean isRequest = response.getMessage().hasRequestUri();
       var method = event.getRequest().getMethod();
 
+      // WARNING: The Expires always returns zero. Should check if this is a bug
       if (isRequest && method.equals(Request.INVITE)) {
         processCallStartedEvent(response);
       } else if (isRequest && method.equals(Request.CANCEL)) {
         processCallEndedEvent(response);
+      } else if (!isRequest && method.equals(Request.REGISTER) 
+        && response.getMessage().getResponseType().equals(ResponseType.OK)
+        && ((ExpiresHeader) req.getHeader(ExpiresHeader.NAME)).getExpires() > 0) {
+        var expires = ((ExpiresHeader)req.getHeader(ExpiresHeader.NAME)).getExpires();
+        // WARNING: The Expires from the MessageRequest always returns zero. 
+        // Should check if this is a bug.
+        processRegistrationEvent(request, expires);
       }
 
       // Forwarding SIP response to the client
@@ -348,7 +358,7 @@ public class GRPCSipListener implements SipListener {
       if (hasMethod(res, Request.BYE) ||
           (hasMethod(res, Request.INVITE) && res.getStatusCode() > 300)) {
         processCallEndedEvent(response);
-      }
+      } 
 
       // Update reason phrase
       if (response.getMessage().getReasonPhrase() != null) {
@@ -553,43 +563,75 @@ public class GRPCSipListener implements SipListener {
   }
 
   private void processCallStartedEvent(final MessageResponse response) {
-    var dateTime = ZonedDateTime.now(ZoneOffset.UTC)
+    var startTime = ZonedDateTime.now(ZoneOffset.UTC)
         .truncatedTo(ChronoUnit.MILLIS)
         .format(DateTimeFormatter.ISO_INSTANT);
     var callId = response.getMessage().getCallId().getCallId();
     var from = response.getMessage().getFrom().getAddress().getUri();
     var to = response.getMessage().getTo().getAddress().getUri();
-    var callStartedEvent = new HashMap<String, String>();
+    var callStartedEvent = new HashMap<String, Object>();
 
     callStartedEvent.put("callId", callId);
     callStartedEvent.put("from", "sip:" + from.getUser() + "@" + from.getHost());
     callStartedEvent.put("to", "sip:" + to.getUser() + "@" + to.getHost());
-    callStartedEvent.put("date", dateTime);
-    callStartedEvent.put("startTime", dateTime);
+    callStartedEvent.put("startTime", startTime);
+    callStartedEvent.put("extraHeaders", getExtraHeaders(response.getMessage()));
     callStartedEvent.putAll(response.getMetadataMap());
 
     publishEvent(EventTypes.CALL_STARTED.getType(), callStartedEvent);
   }
 
   private void processCallEndedEvent(final MessageResponse request) {
-    var dateTime = ZonedDateTime.now(ZoneOffset.UTC)
+    var endTime = ZonedDateTime.now(ZoneOffset.UTC)
         .truncatedTo(ChronoUnit.MILLIS)
         .format(DateTimeFormatter.ISO_INSTANT);
     var callId = request.getMessage().getCallId().getCallId();
-    var callEndedEvent = new HashMap<String, String>();
+    var callEndedEvent = new HashMap<String, Object>();
     var type = ResponseCode.valueOf(request.getMessage().getResponseType().name());
     // FIXME: This is a workaround for call ending coming from a CANCEL request
     int code = type.equals(ResponseCode.UNKNOWN) ? ResponseCode.OK.getCode() : type.getCode();
     var cause = HangupCauses.get(code);
 
     callEndedEvent.put("callId", callId);
-    callEndedEvent.put("endTime", dateTime);
+    callEndedEvent.put("endTime", endTime);
     callEndedEvent.put("hangupCause", cause);
+    callEndedEvent.put("extraHeaders", getExtraHeaders(request.getMessage()));
 
     publishEvent(EventTypes.CALL_ENDED.getType(), callEndedEvent);
   }
 
-  private void publishEvent(String eventName, Map<String, String> message) {
+  private void processRegistrationEvent(final MessageRequest request, final int expires) {
+    var registeredAt = ZonedDateTime.now(ZoneOffset.UTC)
+        .truncatedTo(ChronoUnit.MILLIS)
+        .format(DateTimeFormatter.ISO_INSTANT);
+    var callId = request.getMessage().getCallId().getCallId();
+    var uri = request.getMessage().getFrom().getAddress().getUri();
+    var registrationEvent = new HashMap<String, Object>();
+
+    registrationEvent.put("aor", "sip:" + uri.getUser() + "@" + uri.getHost());
+    registrationEvent.put("registeredAt", registeredAt);
+    registrationEvent.put("expires", expires);
+    registrationEvent.put("extraHeaders", getExtraHeaders(request.getMessage()));
+
+    publishEvent(EventTypes.ENDPOINT_REGISTERED.getType(), registrationEvent);
+  }
+
+  private HashMap<String, String> getExtraHeaders(final SIPMessage message) {
+    var extraHeaders = new HashMap<String, String>();
+    List<Extension> extensions = message.getExtensionsList();
+
+    for (Extension extension : extensions) {
+      String name = extension.getName();
+      if (name.toLowerCase().startsWith("x-")) {
+        String value = extension.getValue();
+        extraHeaders.put(name, value);
+      }
+    }
+
+    return extraHeaders;
+  }
+
+  private void publishEvent(String eventName, Map<String, Object> message) {
     publishers.stream().forEach(publisher -> publisher.publish(eventName, message));
   }
 }

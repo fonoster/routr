@@ -20,5 +20,5 @@ package io.routr.events;
 import java.util.Map;
 
 public interface EventsPublisher {
-  void publish(String eventName, Map<String, String> message);
+  void publish(String eventName, Map<String, Object> message);
 }

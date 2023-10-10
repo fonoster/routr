@@ -41,13 +41,13 @@ public class NatsPublisher implements EventsPublisher {
     this.subject = subject;
   }
 
-  public void publish(String eventName, Map<String, String> message) {
+  public void publish(String eventName, Map<String, Object> message) {
     try {
       ObjectMapper mapper = new ObjectMapper();
       String messageAsJson = mapper.writeValueAsString(message);
       this.connection.publish(this.subject + "." + eventName, messageAsJson.getBytes());
     } catch(JsonProcessingException e) {
-      LOG.error("error publishing event: " + e.getMessage());
+        LOG.error("error publishing event: " + e.getMessage());
     }
   }
 
