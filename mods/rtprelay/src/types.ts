@@ -2,7 +2,7 @@ import { MessageRequest } from "@routr/common"
 
 /*
  * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
- * http://github.com/fonoster
+ * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
  *
