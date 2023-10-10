@@ -1,6 +1,6 @@
 /*
  * Copyright (C) <%= YEAR %> by Fonoster Inc (https://fonoster.com)
- * http://github.com/fonoster
+ * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
  *

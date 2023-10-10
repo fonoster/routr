@@ -2,9 +2,9 @@
  * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
- * This file is part of Routr
+ * This file is part of Routr.
  *
- * Licensed under the MIT License (the "License")
+ * Licensed under the MIT License (the "License");
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
@@ -155,19 +155,19 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
       }
     }
 
-    const result = (
-      direction: RoutingDirection,
-      route: Route,
-      extended: any
-    ) => {
-      return {
-        direction,
-        route: {
-          ...route,
-          metadata: extended
-        }
-      }
-    }
+    const result = (direction: RoutingDirection, route: Route, extended: any) =>
+      route
+        ? {
+            direction,
+            route: {
+              ...route,
+              metadata: extended
+            }
+          }
+        : {
+            direction,
+            route: null
+          }
 
     // We add metadata to the route object so we can use it later to link to an account
     switch (routingDirection) {
