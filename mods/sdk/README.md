@@ -20,7 +20,7 @@ $ npm install --save @routr/sdk
 <!-- usagestop -->
 # APIs
 <!-- apis -->
-* [`Access Control List`](#ACL)
+* [`Access Control List`](#acl--apiclient)
 * [`Agents`](#Agents)
 * [`Credentials`](#Credentials)
 * [`Domains`](#Domains)
