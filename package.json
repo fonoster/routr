@@ -64,7 +64,7 @@
     "typecheck": "tsc --noEmit",
     "helm:package": "helm package ops/charts/connect -d .charts",
     "helm:index": "helm repo index .charts --merge .charts/index.yaml",
-    "gen:readme": "lerna run gen:readme"
+    "generate:readme": "lerna run generate:readme"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.3",
