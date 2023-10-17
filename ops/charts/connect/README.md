@@ -187,34 +187,37 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 ### APIServer parameters
 
-| Parameter                                                 | Description                                                   | Value                               |
-| --------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------- |
-| `apiserver.image.repository`                              | Image repository                                              | `fonoster/routr-pgdata`             |
-| `apiserver.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}`           |
-| `apiserver.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`                      |
-| `apiserver.migrationsEnabled`                             | Enables database migrations                                   | `true`                              |
-| `apiserver.migrationsImage.repository`                    | Image repository                                              | `fonoster/routr-pgdata-migrations`  |
-| `apiserver.migrationsImage.tag`                           | Image tag                                                     | `{{ .Chart.AppVersion }}`           |
-| `apiserver.migrationsImage.pullPolicy`                    | Image pull policy                                             | `IfNotPresent`                      |
-| `apiserver.tlsOn`                                         | Enables TLS for the APIServer                                 | `true`                              |
-| `apiserver.verifyClientCert`                              | To verify the client's certificate during authentication      | `false`                             |
-| `apiserver.podAnnotations`                                | Pod annotations                                               | `{}`                                |
-| `apiserver.serviceAnnotations`                            | Service annotations                                           | `{}`                                |
-| `apiserver.autoscaling.miniReplicas`                      | Minimum number of replicas                                    | `1`                                 |
-| `apiserver.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                                |
-| `apiserver.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                                |
-| `apiserver.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                                |
-| `apiserver.securityContext.runAsUser`                     | Running as a non-root user                                    | `1000`                              |
-| `apiserver.securityContext.runAsGroup`                    | Running as non-root group                                     | `3000`                              |
-| `apiserver.securityContext.fsGroup`                       | File system group                                             | `2000`                              |
-| `apiserver.securityContext.allowPrivilegeEscalation`      | By default, no privilege escalation is allowed                | `false`                             |
-| `apiserver.livenessProbe.initialDelaySeconds`             | Initial delay in seconds before starting the liveness probe   | `5`                                 |
-| `apiserver.livenessProbe.periodSeconds`                   | Period between liveness probes                                | `5`                                 |
-| `apiserver.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                                 |
-| `apiserver.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                                 |
-| `apiserver.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                                 |
-| `apiserver.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                                |
-| `apiserver.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                                |
+| Parameter                                                     | Description                                                                                   | Value                              |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `apiserver.image.repository`                                  | Image repository                                                                              | `fonoster/routr-pgdata`            |
+| `apiserver.image.tag`                                         | Image tag                                                                                     | `{{ .Chart.AppVersion }}`          |
+| `apiserver.image.pullPolicy`                                  | Image pull policy                                                                             | `IfNotPresent`                     |
+| `apiserver.migrationsEnabled`                                 | Enables database migrations                                                                   | `true`                             |
+| `apiserver.migrationsImage.repository`                        | Image repository                                                                              | `fonoster/routr-pgdata-migrations` |
+| `apiserver.migrationsImage.tag`                               | Image tag                                                                                     | `{{ .Chart.AppVersion }}`          |
+| `apiserver.migrationsImage.pullPolicy`                        | Image pull policy                                                                             | `IfNotPresent`                     |
+| `apiserver.tlsOn`                                             | Enables TLS for the APIServer                                                                 | `true`                             |
+| `apiserver.verifyClientCert`                                  | To verify the client's certificate during authentication                                      | `false`                            |
+| `apiserver.podAnnotations`                                    | Pod annotations                                                                               | `{}`                               |
+| `apiserver.serviceAnnotations`                                | Service annotations                                                                           | `{}`                               |
+| `apiserver.autoscaling.miniReplicas`                          | Minimum number of replicas                                                                    | `1`                                |
+| `apiserver.autoscaling.maxReplicas`                           | Maximum number of replicas                                                                    | `10`                               |
+| `apiserver.autoscaling.targetCPUUtilizationPercentage`        | Target CPU utilization percentage                                                             | `50`                               |
+| `apiserver.autoscaling.targetMemoryUtilizationPercentage`     | Target Memory utilization percentage                                                          | `70`                               |
+| `apiserver.securityContext.runAsUser`                         | Running as a non-root user                                                                    | `1000`                             |
+| `apiserver.securityContext.runAsGroup`                        | Running as non-root group                                                                     | `3000`                             |
+| `apiserver.securityContext.fsGroup`                           | File system group                                                                             | `2000`                             |
+| `apiserver.securityContext.allowPrivilegeEscalation`          | By default, no privilege escalation is allowed                                                | `false`                            |
+| `apiserver.livenessProbe.initialDelaySeconds`                 | Initial delay in seconds before starting the liveness probe                                   | `5`                                |
+| `apiserver.livenessProbe.periodSeconds`                       | Period between liveness probes                                                                | `5`                                |
+| `apiserver.livenessProbe.successThreshold`                    | Number of successes required to be considered healthy                                         | `1`                                |
+| `apiserver.livenessProbe.failureThreshold`                    | Number of failures required to be considered unhealthy                                        | `2`                                |
+| `apiserver.livenessProbe.timeoutSeconds`                      | Timeout in seconds for liveness probe                                                         | `1`                                |
+| `apiserver.resources.requests`                                | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`)                                 | `{}`                               |
+| `apiserver.resources.limits`                                  | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)                                   | `{}`                               |
+| `apiserver.initContainers.waitForDatabase.resources.limits`   | Resource limits for `wait-for-db` initContainer (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                               |
+| `apiserver.initContainers.waitForDatabase.resources.requests` | Resource requests for `wait-for-db` initContainer (e.g. `{"memory": "512Mi", "cpu": "200m"}`) | `{}`                               |
+
 
 ### Connect Processor parameters
 
