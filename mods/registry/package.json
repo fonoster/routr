@@ -1,6 +1,6 @@
 {
   "name": "@routr/registry",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "Sends trunks registrations and maintains their bindings",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",

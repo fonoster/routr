@@ -20,12 +20,11 @@
 import * as grpc from "@grpc/grpc-js"
 import { Metadata } from "@grpc/grpc-js"
 import { CommonConnect as CC, Assertions as A } from "@routr/common"
-import { APIClient as ConnectClient } from "@routr/common/src/connect"
 import { ClientOptions } from "./types"
 import fs from "fs"
 
 export abstract class APIClient {
-  client: ConnectClient
+  client: CC.APIClient
   constructor(options: ClientOptions) {
     const metadata = new Metadata()
 

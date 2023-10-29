@@ -44,7 +44,7 @@ import { ILocationService } from "@routr/location"
 import { UnsuportedRoutingError } from "./errors"
 import { getLogger } from "@fonoster/logger"
 import { checkAccess } from "./access"
-import { Backend } from "@routr/location/src/types"
+import { Backend } from "@routr/location"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 const jwtVerifier = getVerifierImpl()
