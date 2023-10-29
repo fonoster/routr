@@ -38,7 +38,7 @@ import {
 import fs from "fs"
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const interceptor = require("grpc-interceptors")
+const interceptor = require("@fonoster/grpc-interceptors")
 
 const prisma = new PrismaClient()
 const logger = getLogger({ service: "pgdata", filePath: __filename })

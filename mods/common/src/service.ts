@@ -24,7 +24,7 @@ import { getLogger } from "@fonoster/logger"
 import { useHealth } from "@fonoster/grpc-health-check"
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const interceptor = require("grpc-interceptors")
+const interceptor = require("@fonoster/grpc-interceptors")
 
 const logger = getLogger({ service: "common", filePath: __filename })
 
