@@ -247,7 +247,6 @@ location:
 apiserver:
   # Uncomment the next line if you want to point to an external postgresql db
   # databaseUrl: postgresql://routr:changeme@dbserver:5432/routr?schema=public
-
   # Set to false if you want to disable TLS for the APIServer (Not recommended)
   tlsOn: true
   # When set to true the APIServer will require client certificates
@@ -261,15 +260,21 @@ apiserver:
     # tag: latest
     # APIServer image pull policy default to IfNotPresent
     pullPolicy: IfNotPresent
-  migrationsEnabled: true
-  migrationsImage:
-    # APIServer migrations image repository
-    repository: fonoster/routr-pgdata-migrations
-    # APIServer migrations image tag (immutable tags are recommended)
-    # Uncomment to overwrite Chart.appVersion
-    # tag: latest
-    # APIServer image pull policy default to IfNotPresent
-    pullPolicy: IfNotPresent
+  migrations:
+    enabled: true
+    image:
+      # APIServer migrations image repository
+      repository: fonoster/routr-pgdata-migrations
+      # APIServer migrations image tag (immutable tags are recommended)
+      # Uncomment to overwrite Chart.appVersion
+      # tag: latest
+      # APIServer image pull policy default to IfNotPresent
+      pullPolicy: IfNotPresent
+    resources:
+      # Resource limits
+      limits: {}
+      # Resource requests
+      requests: {}
   # Pod annotations
   podAnnotations: {}
   # Service annotations
