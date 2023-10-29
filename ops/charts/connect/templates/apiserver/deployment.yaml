@@ -28,8 +28,17 @@ spec:
       {{- if .Values.postgresql.enabled }}
       initContainers:
         - name: wait-for-database
-          image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.apiserver.migrationsImage.pullPolicy }}
+          image: "{{ .Values.apiserver.migrations.image.repository }}:{{ .Values.apiserver.migrations.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.apiserver.migrations.image.pullPolicy }}
+          resources:
+            {{- if .Values.apiserver.migrations.resources.requests  }}
+            requests:
+            {{- .Values.apiserver.migrations.resources.requests | toYaml | nindent 14 }}
+            {{- end }}
+            {{- if .Values.apiserver.migrations.resources.limits }}
+            limits:
+            {{- .Values.apiserver.migrations.resources.limits | toYaml | nindent 14 }}
+            {{- end }}
           command: ["/bin/sh", "-c"]
           args:
             - |
