@@ -1,4 +1,4 @@
-{{- if eq .Values.apiserver.migrationsEnabled true }}
+{{- if eq .Values.apiserver.migrations.enabled true }}
 
 apiVersion: v1
 kind: Pod
@@ -12,8 +12,8 @@ spec:
   {{- if .Values.postgresql.enabled }}
   initContainers:
     - name: wait-for-database
-      image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag | default .Chart.AppVersion }}"
-      imagePullPolicy: {{ .Values.apiserver.migrationsImage.pullPolicy }}
+      image: "{{ .Values.apiserver.migrations.image.repository }}:{{ .Values.apiserver.migrations.image.tag | default .Chart.AppVersion }}"
+      imagePullPolicy: {{ .Values.apiserver.migrations.image.pullPolicy }}
       command: ["/bin/sh", "-c"]
       args:
         - |
@@ -24,8 +24,8 @@ spec:
   {{- end }}
   containers:
     - name: migrations
-      image: "{{ .Values.apiserver.migrationsImage.repository }}:{{ .Values.apiserver.migrationsImage.tag | default .Chart.AppVersion }}"
-      imagePullPolicy: {{ .Values.apiserver.migrationsImage.pullPolicy }}
+      image: "{{ .Values.apiserver.migrations.image.repository }}:{{ .Values.apiserver.migrations.image.tag | default .Chart.AppVersion }}"
+      imagePullPolicy: {{ .Values.apiserver.migrations.image.pullPolicy }}
       envFrom:
         - secretRef:
             name: {{ .Release.Name }}-routr-database-url
