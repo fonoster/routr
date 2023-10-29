@@ -1,6 +1,6 @@
 {
   "name": "@routr/edgeport",
-  "version": "2.4.1",
+  "version": "2.4.3",
   "description": "SIP endpoint at the edge of the network",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -29,7 +29,7 @@
     "url": "https://github.com/fonoster/routr/issues"
   },
   "dependencies": {
-    "@routr/common": "^2.4.1",
+    "@routr/common": "^2.4.3",
     "ajv": "^6.12.6",
     "fp-ts": "^2.11.8",
     "js-yaml": "^4.1.0",
