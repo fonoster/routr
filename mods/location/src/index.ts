@@ -24,6 +24,7 @@ import LocationClient from "./client"
 export * as Helper from "./helper"
 export * as Utils from "./utils"
 export * from "./errors"
+export * from "./types"
 
 export { LocationClient, ILocationService, getConfig }
 export { LocationConfig, CacheProvider, locationService }

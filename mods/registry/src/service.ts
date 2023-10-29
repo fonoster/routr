@@ -35,7 +35,6 @@ import {
   CommonTypes as CT
 } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
-import { SIPMessage } from "@routr/common/src/types"
 
 const logger = getLogger({ service: "registry", filePath: __filename })
 
@@ -98,7 +97,7 @@ export default function registryService(config: RegistryConfig) {
         return
       }
 
-      const message = result.value.message as SIPMessage
+      const message = result.value.message as CT.SIPMessage
 
       // Makes sure we send register before the last register expires
       const retentionTime =

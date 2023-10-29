@@ -18,7 +18,7 @@
  */
 import { ProcessorGPRCConnection } from "./types"
 import { ProcessorConfig, PROCESSOR_OBJECT_PROTO } from "@routr/common"
-import { MiddlewareConfig } from "@routr/common/src/types"
+import { CommonTypes } from "@routr/common"
 import * as grpc from "@grpc/grpc-js"
 
 /**
@@ -29,7 +29,7 @@ import * as grpc from "@grpc/grpc-js"
  * @return {ProcessorGPRCConnection}
  */
 export default function connectToBackend(
-  processors: ProcessorConfig[] | MiddlewareConfig[]
+  processors: ProcessorConfig[] | CommonTypes.MiddlewareConfig[]
 ): Map<string, ProcessorGPRCConnection> {
   const procs = processors ? [...processors] : []
   const connections = new Map<string, ProcessorGPRCConnection>()
