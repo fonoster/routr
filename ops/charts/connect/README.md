@@ -75,55 +75,55 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 ### Edgeport parameters
 
-| Parameter                                             | Description                                                                                                   | Value                                                       |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `edgeport.externalAddrs`                              | The set of addresses at the edge of the network required to correctly route SIP messages                      | `[]`                                                        |
-| `edgeport.localnets`                                  | The set of local networks that are considered "local" (Defaults to the local networks as reported by the OS)  |                                                             |
-| `edgeport.methods`                                    | Acceptable SIP methods. Methods not in the list will be treated according with `edgeport.unknownMethodAction` | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]` |
-| `edgeport.unknownMethodAction`                        | Action upon receiving an unsupported SIP method (Reserved for future use)                                     | `Discard`                                                   |
-| `edgeport.heplifyOptions`                             | If set, the server will send SIP messages to Homer (e.g. `homerserver:9060`)                                  | `""`                                                        |
-| `edgeport.pkcs12Password`                             | The password for JAIN SIP security context (Please change the password for production environments)           | `changeme`                                                  |
-| `edgeport.transport`                                  | Transport configuration section                                                                               |                                                             |
-| `edgeport.transport.tcp.enabled`                      | Enable or disable the TCP transport                                                                           | `false`                                                     |
-| `edgeport.transport.tcp.port`                         | Port to listen on                                                                                             | `5060`                                                      |
-| `edgeport.transport.udp.enabled`                      | Enable or disable the UDP transport                                                                           | `true`                                                      |
-| `edgeport.transport.udp.port`                         | Port to listen on                                                                                             | `5060`                                                      |
-| `edgeport.transport.tls.enabled`                      | Enable or disable the TLS transport                                                                           | `false`                                                     |
-| `edgeport.transport.tls.port`                         | Port to listen on                                                                                             | `5061`                                                      |
-| `edgeport.transport.ws.enabled`                       | Enable or disable the WS transport                                                                            | `false`                                                     |
-| `edgeport.transport.ws.port`                          | Port to listen on                                                                                             | `5062`                                                      |
-| `edgeport.transport.wss.enabled`                      | Enable or disable the WSS transport                                                                           | `false`                                                     |
-| `edgeport.transport.wss.port`                         | Port to listen on                                                                                             | `5063`                                                      |
-| `edgeport.udpHealthCheck`                             | Enable or disable the UDP health check                                                                        | `false`                                                     |
-| `edgeport.image.repository`                           | Image repository                                                                                              | `fonoster/routr-edgeport`                                   |
-| `edgeport.image.tag`                                  | Image tag                                                                                                     | `{{ .Chart.AppVersion }}`                                   |
-| `edgeport.image.pullPolicy`                           | Image pull policy                                                                                             | `IfNotPresent`                                              |
-| `edgeport.podAnnotations`                             | Pod annotations                                                                                               | `{}`                                                        |
-| `edgeport.serviceAnnotationsTCP`                      | Service annotations for TCP protocols                                                                         | `{}`                                                        |
-| `edgeport.serviceAnnotationsUDP`                      | Service annotations for UDP protocols                                                                         | `{}`                                                        |
-| `edgeport.replicas`                                   | Maximum number of replicas                                                                                    | `2`                                                         |
-| `edgeport.securityContext.runAsUser`                  | Running as a non-root user                                                                                    | `1000`                                                      |
-| `edgeport.securityContext.runAsGroup`                 | Running as non-root group                                                                                     | `3000`                                                      |
-| `edgeport.securityContext.fsGroup`                    | File system group                                                                                             | `2000`                                                      |
-| `edgeport.securityContext.allowPrivilegeEscalation`   | By default, no privilege escalation is allowed                                                                | `false`                                                     |
-| `edgeport.livenessProbe.initialDelaySeconds`          | Initial delay in seconds before starting the liveness probe                                                   | `10`                                                        |
-| `edgeport.livenessProbe.periodSeconds`                | Period between liveness probes                                                                                | `5`                                                         |
-| `edgeport.livenessProbe.successThreshold`             | Number of successes required to be considered healthy                                                         | `1`                                                         |
-| `edgeport.livenessProbe.failureThreshold`             | Number of failures required to be considered unhealthy                                                        | `2`                                                         |
-| `edgeport.livenessProbe.timeoutSeconds`               | Timeout in seconds for liveness probe                                                                         | `1`                                                         |
-| `edgeport.externalTrafficPolicyTCP`                   | Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints (TCP)       | `Cluster`                                                   |
-| `edgeport.externalTrafficPolicyUDP`                   | Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints (UDP)       | `Cluster`                                                   |
-| `edgeport.serviceTypeTCP`                             | The type for the service for TCP                                                                              | `NodePort`                                                  |
-| `edgeport.serviceTypeUDP`                             | The type for the service for UDP                                                                              | `NodePort`                                                  |
-| `edgeport.terminationGracePeriodSeconds`              | Maximum time for the pod to be ready before being killed                                                      | `10`                                                        |
-| `edgeport.resources.requests`                         | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`)                                                 | `{}`                                                        |
-| `edgeport.resources.limits`                           | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)                                                   | `{}`                                                        |
+| Parameter                                           | Description                                                                                                   | Value                                                       |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `edgeport.externalAddrs`                            | The set of addresses at the edge of the network required to correctly route SIP messages                      | `[]`                                                        |
+| `edgeport.localnets`                                | The set of local networks that are considered "local" (Defaults to the local networks as reported by the OS)  |                                                             |
+| `edgeport.methods`                                  | Acceptable SIP methods. Methods not in the list will be treated according with `edgeport.unknownMethodAction` | `["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]` |
+| `edgeport.unknownMethodAction`                      | Action upon receiving an unsupported SIP method (Reserved for future use)                                     | `Discard`                                                   |
+| `edgeport.heplifyOptions`                           | If set, the server will send SIP messages to Homer (e.g. `homerserver:9060`)                                  | `""`                                                        |
+| `edgeport.pkcs12Password`                           | The password for JAIN SIP security context (Please change the password for production environments)           | `changeme`                                                  |
+| `edgeport.transport`                                | Transport configuration section                                                                               |                                                             |
+| `edgeport.transport.tcp.enabled`                    | Enable or disable the TCP transport                                                                           | `false`                                                     |
+| `edgeport.transport.tcp.port`                       | Port to listen on                                                                                             | `5060`                                                      |
+| `edgeport.transport.udp.enabled`                    | Enable or disable the UDP transport                                                                           | `true`                                                      |
+| `edgeport.transport.udp.port`                       | Port to listen on                                                                                             | `5060`                                                      |
+| `edgeport.transport.tls.enabled`                    | Enable or disable the TLS transport                                                                           | `false`                                                     |
+| `edgeport.transport.tls.port`                       | Port to listen on                                                                                             | `5061`                                                      |
+| `edgeport.transport.ws.enabled`                     | Enable or disable the WS transport                                                                            | `false`                                                     |
+| `edgeport.transport.ws.port`                        | Port to listen on                                                                                             | `5062`                                                      |
+| `edgeport.transport.wss.enabled`                    | Enable or disable the WSS transport                                                                           | `false`                                                     |
+| `edgeport.transport.wss.port`                       | Port to listen on                                                                                             | `5063`                                                      |
+| `edgeport.udpHealthCheck`                           | Enable or disable the UDP health check                                                                        | `false`                                                     |
+| `edgeport.image.repository`                         | Image repository                                                                                              | `fonoster/routr-edgeport`                                   |
+| `edgeport.image.tag`                                | Image tag                                                                                                     | `{{ .Chart.AppVersion }}`                                   |
+| `edgeport.image.pullPolicy`                         | Image pull policy                                                                                             | `IfNotPresent`                                              |
+| `edgeport.podAnnotations`                           | Pod annotations                                                                                               | `{}`                                                        |
+| `edgeport.serviceAnnotationsTCP`                    | Service annotations for TCP protocols                                                                         | `{}`                                                        |
+| `edgeport.serviceAnnotationsUDP`                    | Service annotations for UDP protocols                                                                         | `{}`                                                        |
+| `edgeport.replicas`                                 | Maximum number of replicas                                                                                    | `2`                                                         |
+| `edgeport.securityContext.runAsUser`                | Running as a non-root user                                                                                    | `1000`                                                      |
+| `edgeport.securityContext.runAsGroup`               | Running as non-root group                                                                                     | `3000`                                                      |
+| `edgeport.securityContext.fsGroup`                  | File system group                                                                                             | `2000`                                                      |
+| `edgeport.securityContext.allowPrivilegeEscalation` | By default, no privilege escalation is allowed                                                                | `false`                                                     |
+| `edgeport.livenessProbe.initialDelaySeconds`        | Initial delay in seconds before starting the liveness probe                                                   | `10`                                                        |
+| `edgeport.livenessProbe.periodSeconds`              | Period between liveness probes                                                                                | `5`                                                         |
+| `edgeport.livenessProbe.successThreshold`           | Number of successes required to be considered healthy                                                         | `1`                                                         |
+| `edgeport.livenessProbe.failureThreshold`           | Number of failures required to be considered unhealthy                                                        | `2`                                                         |
+| `edgeport.livenessProbe.timeoutSeconds`             | Timeout in seconds for liveness probe                                                                         | `1`                                                         |
+| `edgeport.externalTrafficPolicyTCP`                 | Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints (TCP)       | `Cluster`                                                   |
+| `edgeport.externalTrafficPolicyUDP`                 | Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints (UDP)       | `Cluster`                                                   |
+| `edgeport.serviceTypeTCP`                           | The type for the service for TCP                                                                              | `NodePort`                                                  |
+| `edgeport.serviceTypeUDP`                           | The type for the service for UDP                                                                              | `NodePort`                                                  |
+| `edgeport.terminationGracePeriodSeconds`            | Maximum time for the pod to be ready before being killed                                                      | `10`                                                        |
+| `edgeport.resources.requests`                       | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`)                                                 | `{}`                                                        |
+| `edgeport.resources.limits`                         | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)                                                   | `{}`                                                        |
 
 ### Dispatcher parameters
 
 | Parameter                                                  | Description                                                   | Value                                                       |
 | ---------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
-| `dispatcher.processors`                                    | Processors configuration section                              |                                                             |                    
+| `dispatcher.processors`                                    | Processors configuration section                              |                                                             |
 | `dispatcher.processors[*].ref`                             | Reference to the Processor                                    | `connect-processor`                                         |
 | `dispatcher.processors[*].servicePrefix`                   | Prefix for the service (Defaults to the release name)         | `{{ .Release.Name }}`                                       |
 | `dispatcher.processors[*].serviceName`                     | The name of the service hosting the processor                 | `{{ .serviceName }}`                                        |
@@ -187,87 +187,86 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 ### APIServer parameters
 
-| Parameter                                                     | Description                                                                                   | Value                              |
-| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------- |
-| `apiserver.image.repository`                                  | Image repository                                                                              | `fonoster/routr-pgdata`            |
-| `apiserver.image.tag`                                         | Image tag                                                                                     | `{{ .Chart.AppVersion }}`          |
-| `apiserver.image.pullPolicy`                                  | Image pull policy                                                                             | `IfNotPresent`                     |
-| `apiserver.migrationsEnabled`                                 | Enables database migrations                                                                   | `true`                             |
-| `apiserver.migrationsImage.repository`                        | Image repository                                                                              | `fonoster/routr-pgdata-migrations` |
-| `apiserver.migrationsImage.tag`                               | Image tag                                                                                     | `{{ .Chart.AppVersion }}`          |
-| `apiserver.migrationsImage.pullPolicy`                        | Image pull policy                                                                             | `IfNotPresent`                     |
-| `apiserver.tlsOn`                                             | Enables TLS for the APIServer                                                                 | `true`                             |
-| `apiserver.verifyClientCert`                                  | To verify the client's certificate during authentication                                      | `false`                            |
-| `apiserver.podAnnotations`                                    | Pod annotations                                                                               | `{}`                               |
-| `apiserver.serviceAnnotations`                                | Service annotations                                                                           | `{}`                               |
-| `apiserver.autoscaling.miniReplicas`                          | Minimum number of replicas                                                                    | `1`                                |
-| `apiserver.autoscaling.maxReplicas`                           | Maximum number of replicas                                                                    | `10`                               |
-| `apiserver.autoscaling.targetCPUUtilizationPercentage`        | Target CPU utilization percentage                                                             | `50`                               |
-| `apiserver.autoscaling.targetMemoryUtilizationPercentage`     | Target Memory utilization percentage                                                          | `70`                               |
-| `apiserver.securityContext.runAsUser`                         | Running as a non-root user                                                                    | `1000`                             |
-| `apiserver.securityContext.runAsGroup`                        | Running as non-root group                                                                     | `3000`                             |
-| `apiserver.securityContext.fsGroup`                           | File system group                                                                             | `2000`                             |
-| `apiserver.securityContext.allowPrivilegeEscalation`          | By default, no privilege escalation is allowed                                                | `false`                            |
-| `apiserver.livenessProbe.initialDelaySeconds`                 | Initial delay in seconds before starting the liveness probe                                   | `5`                                |
-| `apiserver.livenessProbe.periodSeconds`                       | Period between liveness probes                                                                | `5`                                |
-| `apiserver.livenessProbe.successThreshold`                    | Number of successes required to be considered healthy                                         | `1`                                |
-| `apiserver.livenessProbe.failureThreshold`                    | Number of failures required to be considered unhealthy                                        | `2`                                |
-| `apiserver.livenessProbe.timeoutSeconds`                      | Timeout in seconds for liveness probe                                                         | `1`                                |
-| `apiserver.resources.requests`                                | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`)                                 | `{}`                               |
-| `apiserver.resources.limits`                                  | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)                                   | `{}`                               |
-| `apiserver.initContainers.waitForDatabase.resources.limits`   | Resource limits for `wait-for-db` initContainer (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                               |
-| `apiserver.initContainers.waitForDatabase.resources.requests` | Resource requests for `wait-for-db` initContainer (e.g. `{"memory": "512Mi", "cpu": "200m"}`) | `{}`                               |
-
+| Parameter                                                 | Description                                                             | Value                              |
+| --------------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------- |
+| `apiserver.image.repository`                              | Image repository                                                        | `fonoster/routr-pgdata`            |
+| `apiserver.image.tag`                                     | Image tag                                                               | `{{ .Chart.AppVersion }}`          |
+| `apiserver.image.pullPolicy`                              | Image pull policy                                                       | `IfNotPresent`                     |
+| `apiserver.migrations.enabled`                            | Enables database migrations                                             | `true`                             |
+| `apiserver.migrations.image.repository`                   | Migration image repository                                              | `fonoster/routr-pgdata-migrations` |
+| `apiserver.migrations.image.tag`                          | Migration image tag                                                     | `{{ .Chart.AppVersion }}`          |
+| `apiserver.migrations.image.pullPolicy`                   | Migration image pull policy                                             | `IfNotPresent`                     |
+| `apiserver.migrations.resources.limits`                   | Migration resource limits (e.g. `{"memory": "256Mi", "cpu": "100m"}`)   | `{}`                               |
+| `apiserver.migrations.resources.requests`                 | Migration resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                               |
+| `apiserver.tlsOn`                                         | Enables TLS for the APIServer                                           | `true`                             |
+| `apiserver.verifyClientCert`                              | To verify the client's certificate during authentication                | `false`                            |
+| `apiserver.podAnnotations`                                | Pod annotations                                                         | `{}`                               |
+| `apiserver.serviceAnnotations`                            | Service annotations                                                     | `{}`                               |
+| `apiserver.autoscaling.miniReplicas`                      | Minimum number of replicas                                              | `1`                                |
+| `apiserver.autoscaling.maxReplicas`                       | Maximum number of replicas                                              | `10`                               |
+| `apiserver.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                                       | `50`                               |
+| `apiserver.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                                    | `70`                               |
+| `apiserver.securityContext.runAsUser`                     | Running as a non-root user                                              | `1000`                             |
+| `apiserver.securityContext.runAsGroup`                    | Running as non-root group                                               | `3000`                             |
+| `apiserver.securityContext.fsGroup`                       | File system group                                                       | `2000`                             |
+| `apiserver.securityContext.allowPrivilegeEscalation`      | By default, no privilege escalation is allowed                          | `false`                            |
+| `apiserver.livenessProbe.initialDelaySeconds`             | Initial delay in seconds before starting the liveness probe             | `5`                                |
+| `apiserver.livenessProbe.periodSeconds`                   | Period between liveness probes                                          | `5`                                |
+| `apiserver.livenessProbe.successThreshold`                | Number of successes required to be considered healthy                   | `1`                                |
+| `apiserver.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy                  | `2`                                |
+| `apiserver.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                                   | `1`                                |
+| `apiserver.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`)           | `{}`                               |
+| `apiserver.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)             | `{}`                               |
 
 ### Connect Processor parameters
 
-| Parameter                                               | Description                                                   | Value                    |
-| ------------------------------------------------------- | ------------------------------------------------------------- | ------------------------ |
-| `connect.image.repository`                              | Image repository                                              | `fonoster/routr-connect` |
-| `connect.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}`|
-| `connect.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`           |
-| `connect.podAnnotations`                                | Pod annotations                                               | `{}`                     |
-| `connect.serviceAnnotations`                            | Service annotations                                           | `{}`                     |
-| `connect.autoscaling.miniReplicas`                      | Minimum number of replicas                                    | `1`                      |
-| `connect.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                     |
-| `connect.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                     |
-| `connect.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                     |
-| `connect.securityContext.runAsUser`                     | Running as a non-root user                                    | `1000`                   |
-| `connect.securityContext.runAsGroup`                    | Running as non-root group                                     | `3000`                   |
-| `connect.securityContext.fsGroup`                       | File system group                                             | `2000`                   |
-| `connect.securityContext.allowPrivilegeEscalation`      | By default, no privilege escalation is allowed                | `false`                  |
-| `connect.livenessProbe.initialDelaySeconds`             | Initial delay in seconds before starting the liveness probe   | `5`                      |
-| `connect.livenessProbe.periodSeconds`                   | Period between liveness probes                                | `5`                      |
-| `connect.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                      |
-| `connect.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                      |
-| `connect.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                      |
-| `connect.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                     |
-| `connect.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                     |
+| Parameter                                               | Description                                                   | Value                     |
+| ------------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
+| `connect.image.repository`                              | Image repository                                              | `fonoster/routr-connect`  |
+| `connect.image.tag`                                     | Image tag                                                     | `{{ .Chart.AppVersion }}` |
+| `connect.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
+| `connect.podAnnotations`                                | Pod annotations                                               | `{}`                      |
+| `connect.serviceAnnotations`                            | Service annotations                                           | `{}`                      |
+| `connect.autoscaling.miniReplicas`                      | Minimum number of replicas                                    | `1`                       |
+| `connect.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                      |
+| `connect.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                      |
+| `connect.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                      |
+| `connect.securityContext.runAsUser`                     | Running as a non-root user                                    | `1000`                    |
+| `connect.securityContext.runAsGroup`                    | Running as non-root group                                     | `3000`                    |
+| `connect.securityContext.fsGroup`                       | File system group                                             | `2000`                    |
+| `connect.securityContext.allowPrivilegeEscalation`      | By default, no privilege escalation is allowed                | `false`                   |
+| `connect.livenessProbe.initialDelaySeconds`             | Initial delay in seconds before starting the liveness probe   | `5`                       |
+| `connect.livenessProbe.periodSeconds`                   | Period between liveness probes                                | `5`                       |
+| `connect.livenessProbe.successThreshold`                | Number of successes required to be considered healthy         | `1`                       |
+| `connect.livenessProbe.failureThreshold`                | Number of failures required to be considered unhealthy        | `2`                       |
+| `connect.livenessProbe.timeoutSeconds`                  | Timeout in seconds for liveness probe                         | `1`                       |
+| `connect.resources.requests`                            | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
+| `connect.resources.limits`                              | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
 
 ### Registry parameters
 
-| Parameter                                             | Description                                                   | Value                     |
-| ----------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
-| `registry.registerInterval`                           | Registration interval in seconds                              | `20`                      |
-| `registry.methods`                                    | Registration methods for the Allow header                     | `["INVITE", "MESSAGE"]`   |
-| `registry.cache.provider`                             | Cache Provider (supports for `redis` and `memory` )           | `redis`                   |
-| `registry.cache.parameters`                           | Cache Parameters                                              | `""`                      |
-| `registry.image.repository`                           | Image repository                                              | `fonoster/routr-registry` |
-| `registry.image.tag`                                  | Image tag                                                     | `{{ .Chart.AppVersion }}` |
-| `registry.image.pullPolicy`                           | Image pull policy                                             | `IfNotPresent`            |
-| `registry.podAnnotations`                             | Pod annotations                                               | `{}`                      |
-| `registry.serviceAnnotations`                         | Service annotations                                           | `{}`                      |
-| `registry.securityContext.runAsUser`                  | Running as a non-root user                                    | `1000`                    |
-| `registry.securityContext.runAsGroup`                 | Running as non-root group                                     | `3000`                    |
-| `registry.securityContext.fsGroup`                    | File system group                                             | `2000`                    |
-| `registry.securityContext.allowPrivilegeEscalation`   | By default, no privilege escalation is allowed                | `false`                   |
-| `registry.livenessProbe.initialDelaySeconds`          | Initial delay in seconds before starting the liveness probe   | `5`                       |
-| `registry.livenessProbe.periodSeconds`                | Period between liveness probes                                | `5`                       |
-| `registry.livenessProbe.successThreshold`             | Number of successes required to be considered healthy         | `1`                       |
-| `registry.livenessProbe.failureThreshold`             | Number of failures required to be considered unhealthy        | `2`                       |
-| `registry.livenessProbe.timeoutSeconds`               | Timeout in seconds for liveness probe                         | `1`                       |
-| `registry.resources.requests`                         | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
-| `registry.resources.limits`                           | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
+| Parameter                                           | Description                                                   | Value                     |
+| --------------------------------------------------- | ------------------------------------------------------------- | ------------------------- |
+| `registry.registerInterval`                         | Registration interval in seconds                              | `20`                      |
+| `registry.methods`                                  | Registration methods for the Allow header                     | `["INVITE", "MESSAGE"]`   |
+| `registry.cache.provider`                           | Cache Provider (supports for `redis` and `memory` )           | `redis`                   |
+| `registry.cache.parameters`                         | Cache Parameters                                              | `""`                      |
+| `registry.image.repository`                         | Image repository                                              | `fonoster/routr-registry` |
+| `registry.image.tag`                                | Image tag                                                     | `{{ .Chart.AppVersion }}` |
+| `registry.image.pullPolicy`                         | Image pull policy                                             | `IfNotPresent`            |
+| `registry.podAnnotations`                           | Pod annotations                                               | `{}`                      |
+| `registry.serviceAnnotations`                       | Service annotations                                           | `{}`                      |
+| `registry.securityContext.runAsUser`                | Running as a non-root user                                    | `1000`                    |
+| `registry.securityContext.runAsGroup`               | Running as non-root group                                     | `3000`                    |
+| `registry.securityContext.fsGroup`                  | File system group                                             | `2000`                    |
+| `registry.securityContext.allowPrivilegeEscalation` | By default, no privilege escalation is allowed                | `false`                   |
+| `registry.livenessProbe.initialDelaySeconds`        | Initial delay in seconds before starting the liveness probe   | `5`                       |
+| `registry.livenessProbe.periodSeconds`              | Period between liveness probes                                | `5`                       |
+| `registry.livenessProbe.successThreshold`           | Number of successes required to be considered healthy         | `1`                       |
+| `registry.livenessProbe.failureThreshold`           | Number of failures required to be considered unhealthy        | `2`                       |
+| `registry.livenessProbe.timeoutSeconds`             | Timeout in seconds for liveness probe                         | `1`                       |
+| `registry.resources.requests`                       | Resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                      |
+| `registry.resources.limits`                         | Resource limits (e.g. `{"memory": "512Mi", "cpu": "200m"}`)   | `{}`                      |
 
 ### Requester parameters
 
