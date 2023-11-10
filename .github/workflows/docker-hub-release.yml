@@ -141,7 +141,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
 
   publish_simpledata_to_docker_hub:
-    name: Publish Simpledata to Docker Hub
+    name: Publish SimpleData to Docker Hub
 
     runs-on: ubuntu-latest
 
@@ -160,6 +160,29 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           workdir: mods/simpledata
+          tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
+
+  publish_simpleauth_to_docker_hub:
+    name: Publish SimpleAuth to Docker Hub
+
+    runs-on: ubuntu-latest
+
+    needs: [download_artifacts]
+    steps:
+      - name: Download build
+        uses: actions/download-artifact@v3
+        with:
+          name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Publish the image
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: fonoster/routr-simpleauth
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          workdir: mods/simpleauth
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
           platforms: linux/amd64,linux/arm64
 
