@@ -31,15 +31,15 @@ jobs:
         node-version: "18.x"
     - name: Build and populate out directory
       run: |
+        # Create out directories
+        mkdir -p out/charts out/site-assets
+
         # Build docs
         cd docs
         npm install
         npm run build
         cp -a build/* ../out/
         cd ..
-
-        # Create out directories
-        mkdir -p out/charts out/site-assets
 
         # Charts directory
         cp -a /tmp/charts/* out/charts
