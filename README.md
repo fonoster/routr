@@ -31,7 +31,7 @@ Routr is a lightweight sip proxy, location server, and registrar that provides a
 
 ## Community
 
-We are building Routr in the open. The best to communicate with us via [GitHub Discussions.](https://github.com/fonoster/fonoster/discussions)
+We are building Routr in the open. The best to communicate with us is via [GitHub Discussions.](https://github.com/fonoster/routr/discussions)
 
 ---
 

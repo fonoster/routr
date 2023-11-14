@@ -3,7 +3,7 @@
 We are developing Routr in the open. These are the channels we use for communication and contribution:
 
 - [Discord community](https://discord.com/invite/mpWSRUhG7e)
-- [GitHub discussions](https://github.com/orgs/fonoster/discussions)
+- [GitHub discussions](https://github.com/fonoster/routr/discussions)
 
 **Twitter:** [@Fonoster](https://twitter.com/fonoster)
 
@@ -15,7 +15,7 @@ We are developing Routr in the open. These are the channels we use for communica
 
 We welcome community contributions! Please see the [CONTRIBUTING.md](https://github.com/fonoster/routr/blob/main/CONTRIBUTING.md) file in the Routr repository for instructions on submitting changes. If you plan on making more elaborate or controversial changes, please discuss them on Discord or GitHub Discussions before sending a pull request.
 
-Development: [GitHub Discussions](https://github.com/orgs/fonoster/discussions) – for discussions around Routr development
+Development: [GitHub Discussions](https://github.com/fonoster/routr/discussions) – for discussions around Routr development
 
 ## Developer Summits
 
