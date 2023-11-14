@@ -1,0 +1,101 @@
+{
+  "tutorialSidebar": [
+    "welcome",
+    {
+      "type": "category",
+      "label": "Introduction",
+      "collapsible": true,
+      "collapsed": true,
+      "items": [
+        "introduction/overview",
+        "introduction/installation",
+        "introduction/comparison",
+        "introduction/community",
+        "introduction/roadmap",
+        "introduction/faq",
+        "introduction/glossary",
+        "introduction/media",
+        "introduction/performance-tests/user-location",
+        "introduction/test-plan"
+      ]
+    },
+    "concepts",
+    {
+      "type": "category",
+      "label": "Administration",
+      "items": [
+        "administration/cli/cheatsheet",
+        "administration/cli/installation",
+        "administration/cli/remote-access",
+        "administration/webconsole"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Configuration",
+      "items": [
+        "configuration/agents",
+        "configuration/domains",
+        "configuration/gateways",
+        "configuration/general",
+        "configuration/numbers",
+        "configuration/peers",
+        "configuration/users"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Guides",
+      "items": [
+        "guides/basic-setup",
+        "guides/routr-as-asterisk-frontend",
+        "guides/running-on-kubernetes",
+        "guides/running-with-docker-or-compose",
+        "guides/securing-the-signaling-path"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "API Docs",
+      "items": [
+        "api/overview",
+        "api/agents/create",
+        "api/agents/delete",
+        "api/agents/get",
+        "api/agents/list",
+        "api/agents/update",
+        "api/config/get",
+        "api/config/update",
+        "api/domains/create",
+        "api/domains/delete",
+        "api/domains/get",
+        "api/domains/list",
+        "api/domains/update",
+        "api/gateways/create",
+        "api/gateways/delete",
+        "api/gateways/get",
+        "api/gateways/list",
+        "api/gateways/update",
+        "api/location/create",
+        "api/location/delete",
+        "api/location/list",
+        "api/numbers/create",
+        "api/numbers/delete",
+        "api/numbers/get",
+        "api/numbers/list",
+        "api/numbers/update",
+        "api/peers/create",
+        "api/peers/delete",
+        "api/peers/get",
+        "api/peers/list",
+        "api/peers/update",
+        "api/registry",
+        "api/status/get",
+        "api/status/update",
+        "api/sys/info",
+        "api/sys/logs",
+        "api/token"
+      ]
+    }
+  ]
+}

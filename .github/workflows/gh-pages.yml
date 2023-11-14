@@ -1,0 +1,56 @@
+name: publish to gh pages
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'docs/**'
+      - 'site/**'
+    branches:
+      - main
+
+jobs:
+  build_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout routr repo
+      uses: actions/checkout@v3
+      with:
+        repository: fonoster/routr
+        path: routr
+        ref: gh-pages
+    - name: Save charts directory
+      run: |
+        mkdir -p /tmp/charts
+        cp -a routr/charts/* /tmp/charts
+    - name: Checkout current repo
+      uses: actions/checkout@v3
+    - name: Installing Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: "18.x"
+    - name: Build and populate out directory
+      run: |
+        # Build docs
+        cd docs
+        npm install
+        npm run build
+        cp -a build/* ../out/
+        cd ..
+
+        # Create out directories
+        mkdir -p out/charts out/site-assets
+
+        # Charts directory
+        cp -a /tmp/charts/* out/charts
+
+        # Website assets
+        cp -a site/assets/* out/site-assets
+        cp site/index.html out/
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./out
+        publish_branch: gh-pages
+        cname: routr.io
