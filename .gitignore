@@ -19,7 +19,6 @@ libs
 *.ipr
 mod/vendor
 jre
-site
 .env
 logs
 bin
