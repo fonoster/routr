@@ -25,7 +25,7 @@ Routr is a lightweight sip proxy, location server, and registrar that provides a
 * [Getting started with the CTL](#getting-started-with-the-ctl)
 * [First steps with the NodeSDK](#first-steps-with-the-nodesdk)
 * [Custom Processors and Middleware](#building-custom-processors-and-middleware)
-* [Documentation](https://routr.io/docs/introduction/overview)
+* [Documentation](https://routr.io)
 * [Sponsors](#sponsors)
 * [Contributing](#contributing)
 * [License](#license)
@@ -95,7 +95,7 @@ Routr's main features are:
 - [ ] Support for STIR/SHAKEN
 - [ ] Web Application
 
-To learn more, read the [documentation](https://routr.io/docs/introduction/overview) :books:
+To learn more, read the [documentation](https://routr.io) :books:
 
 ## The official handbook
 
