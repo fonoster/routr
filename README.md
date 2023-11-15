@@ -15,6 +15,7 @@ Routr is a lightweight sip proxy, location server, and registrar that provides a
 
 * [Community](#community)
 * [Should you try Routr?](#should-you-try-routr)
+* [Contact us](#contact-us)
 * [Features](#features)
 * [The official handbook](#the-official-handbook)
 * [Deployment](#deployment)
@@ -62,6 +63,12 @@ We are building Routr in the open. The best to communicate with us is via [GitHu
 > I think this project has a great promise to become a transformative technology.
 > 
 > [jbwill36](https://github.com/orgs/fonoster/discussions/209), Check conversation @ GitHub
+
+## Contact us
+
+Meet our sales team for any commercial inquiries.
+
+<a href="https://cal.com/psanders"><img src="https://cal.com/book-with-cal-dark.svg" alt="Book us with Cal.com"></a>
 
 ## Features
 
