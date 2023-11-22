@@ -278,9 +278,12 @@ public class GRPCSipListener implements SipListener {
       } else if (isRequest && method.equals(Request.CANCEL)) {
         processCallEndedEvent(response);
       } else if (!isRequest && method.equals(Request.REGISTER) 
-        && response.getMessage().getResponseType().equals(ResponseType.OK)
-        && ((ExpiresHeader) req.getHeader(ExpiresHeader.NAME)).getExpires() > 0) {
-        var expires = ((ExpiresHeader)req.getHeader(ExpiresHeader.NAME)).getExpires();
+        && response.getMessage().getResponseType().equals(ResponseType.OK)) {
+
+        var expires = req.getHeader(ExpiresHeader.NAME) != null
+          ? ((ExpiresHeader)req.getHeader(ExpiresHeader.NAME)).getExpires()
+          : 0;
+
         // WARNING: The Expires from the MessageRequest always returns zero. 
         // Should check if this is a bug.
         processRegistrationEvent(request, expires);
