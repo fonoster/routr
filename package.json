@@ -2,22 +2,7 @@
   "name": "root",
   "private": true,
   "workspaces": [
-    "mods/common",
-    "mods/edgeport",
-    "mods/connect",
-    "mods/ctl",
-    "mods/location",
-    "mods/pgdata",
-    "mods/processor",
-    "mods/registry",
-    "mods/requester",
-    "mods/rtprelay",
-    "mods/simpledata",
-    "mods/simpleauth",
-    "mods/dispatcher",
-    "mods/echo",
-    "mods/sdk",
-    "mods/one"
+    "mods/*"
   ],
   "scripts": {
     "start": "cross-env NODE_ENV=dev ENABLE_HEALTHCHECKS=false LOGS_LEVEL=verbose nodemon ./.scripts/runner",
