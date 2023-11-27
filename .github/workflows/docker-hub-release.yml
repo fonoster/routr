@@ -45,6 +45,7 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
+          platforms: linux/amd64,linux/arm64
 
   publish_edgeport_to_docker_hub:
     name: Publish EdgePort to Docker Hub
