@@ -38,6 +38,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: routr-build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Publish the Routr One image
         uses: elgohr/Publish-Docker-Github-Action@v5
         with:
