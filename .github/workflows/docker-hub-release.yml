@@ -204,7 +204,8 @@ jobs:
           name: fonoster/routr-requester
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          workdir: mods/requester
+          workdir: .
+          dockerfile: mods/requester/Dockerfile
           tags: "latest,${{ needs.download_artifacts.outputs.VERSION }}"
           platforms: linux/amd64,linux/arm64
 
