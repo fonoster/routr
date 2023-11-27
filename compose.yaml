@@ -122,7 +122,9 @@ services:
   requester:
     container_name: requester
     image: fonoster/routr-requester
-    build: ./mods/requester
+    build:
+      context: .
+      dockerfile: ./mods/requester/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
