@@ -1,4 +1,21 @@
-FROM eclipse-temurin:11-jre-alpine
+##
+## Build and pack the service
+##
+FROM alpine:3.18 as builder
+LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
+
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+WORKDIR /work
+
+COPY .scripts/custom-jre.sh .
+
+RUN apk add --no-cache --update openjdk11-jdk \
+  && sh custom-jre.sh
+
+##  
+## Runner
+##
+FROM alpine:3.18 as runner 
 
 ARG PKCS12_PASSWORD=changeme
 ARG PATH_TO_CERTS=/etc/routr/certs
@@ -13,10 +30,12 @@ ENV PKCS12_PASSWORD=$PKCS12_PASSWORD \
   CA_CERT_SUBJECT=$CA_CERT_SUBJECT \
   SERVER_CERT_SUBJECT=$SERVER_CERT_SUBJECT \
   IGNORE_LOOPBACK_FROM_LOCALNETS=true \
-  LOG4J2=/etc/routr/log4j2.yaml
+  LOG4J2=/etc/routr/log4j2.yaml \
+  JAVA_HOME=/opt/routr/jre 
 
 WORKDIR /opt/routr
 
+COPY --from=builder /work/jre jre
 COPY mods/edgeport/libs /opt/routr/libs
 COPY mods/edgeport/edgeport.sh .
 COPY mods/edgeport/etc/log4j2.yaml /etc/routr/log4j2.yaml
