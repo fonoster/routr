@@ -1,6 +1,6 @@
 {
   "name": "@routr/simpledata",
-  "version": "2.4.3",
+  "version": "2.6.0",
   "description": "Files-based API Server for Routr Connect",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -30,8 +30,8 @@
     "@opentelemetry/sdk-trace-base": "^1.0.4",
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
-    "@routr/common": "^2.4.3",
-    "@routr/processor": "^2.4.3",
+    "@routr/common": "^2.6.0",
+    "@routr/processor": "^2.6.0",
     "google-protobuf": "^3.9.2",
     "jsonpath": "^1.1.1",
     "pb-util": "^1.0.3"
