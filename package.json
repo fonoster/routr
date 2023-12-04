@@ -18,6 +18,7 @@
     "start:edgeport": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./mods/edgeport/edgeport.sh",
     "start:requester": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./mods/requester/requester.sh",
     "start:rtprelay": "cross-env  NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/rtprelay/src/runner",
+    "start:docs": "cd docs && npm start",
     "rtpengine:up": "docker-compose -f docker-compose.dev.yml up rtpengine -d",
     "redis:up": "docker-compose -f docker-compose.dev.yml up redis -d",
     "db:up": "docker-compose -f docker-compose.dev.yml up postgres adminer -d",

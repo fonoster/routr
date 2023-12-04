@@ -2,7 +2,7 @@
 
 We are developing Routr in the open. These are the channels we use for communication and contribution:
 
-- [Discord community](https://discord.com/invite/mpWSRUhG7e)
+- [Discord community](https://discord.com/invite/4QWgSz4hTC)
 - [GitHub discussions](https://github.com/fonoster/routr/discussions)
 
 **Twitter:** [@Fonoster](https://twitter.com/fonoster)
