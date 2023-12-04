@@ -26,6 +26,8 @@ Routr is a lightweight sip proxy, location server, and registrar that provides a
 * [First steps with the NodeSDK](#first-steps-with-the-nodesdk)
 * [Custom Processors and Middleware](#building-custom-processors-and-middleware)
 * [Documentation](https://routr.io)
+* [Contact us](#contact-us)
+* [Bugs and feedback](#bugs-and-feedback)
 * [Sponsors](#sponsors)
 * [Contributing](#contributing)
 * [License](#license)
@@ -354,6 +356,12 @@ In addition to the previous example, you can check the following modules:
 - [Connect Processor](https://github.com/fonoster/routr/tree/main/mods/connect)
 
 For more information about building Processors and Middleware, please refer to the [documentation.](https://routr.io)
+
+## Contact us
+
+Meet our sales team for any commercial inquiries.
+
+<a href="https://cal.com/psanders"><img src="https://cal.com/book-with-cal-dark.svg" alt="Book us with Cal.com"></a>
 
 ## Bugs and feedback
 
