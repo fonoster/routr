@@ -85,7 +85,7 @@ const config = {
         appId: "VLT67PBOP0",
         apiKey: "ac3a064eec614a9ade617bafd5de55de",
         indexName: "routr",
-        contextualSearch: true
+        contextualSearch: false
       },
       image: "img/docusaurus-social-card.jpg",
       navbar: {
