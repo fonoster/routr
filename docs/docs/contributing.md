@@ -1,13 +1,13 @@
-# Contributing guide
+# Contributing Guide
 
 * [New Contributor Guide](#contributing-guide)
-  * [Ways to contribute](#ways-to-contribute)
-  * [Find an issue](#find-an-issue)
-  * [Ask for help](#ask-for-help)
-  * [Pull request lifecycle](#pull-request-lifecycle)
-  * [Development environment setup](#development-environment-setup)
-  * [Sign your commits](#sign-your-commits)
-  * [Pull request checklist](#pull-request-checklist)
+  * [Ways to Contribute](#ways-to-contribute)
+  * [Find an Issue](#find-an-issue)
+  * [Ask for Help](#ask-for-help)
+  * [Pull Request Lifecycle](#pull-request-lifecycle)
+  * [Development Environment Setup](#development-environment-setup)
+  * [Sign your Commits](#sign-your-commits)
+  * [Pull Request Checklist](#pull-request-checklist)
 
 Welcome! We are glad that you want to contribute to our project! 💖
 
@@ -19,7 +19,7 @@ As you get started, you are in the best position to give us feedback on areas of
 
 If anything doesn't make sense, or doesn't work when you run it, please open a bug report and let us know!
 
-## Ways to contribute
+## Ways to Contribute
 
 We welcome many different types of contributions including:
 
@@ -37,7 +37,7 @@ We welcome many different types of contributions including:
 Not everything happens through a GitHub pull request. Please come to our [meetings](https://discord.gg/4QWgSz4hTC) or [contact us](https://discord.gg/4QWgSz4hTC) and let's discuss how we can work
 together. 
 
-### Come to meetings
+### Come to Meetings
 
 Absolutely everyone is welcome to come to any of our meetings. You never need an invite to join us. In fact, we want you to join us, even if you don’t have anything you feel like you want to contribute. Just being there is enough!
 
@@ -45,7 +45,7 @@ You can find out more about our meetings [here](https://discord.gg/4QWgSz4hTC). 
 
 Over time, we hope that you feel comfortable voicing your opinions, giving feedback on others' ideas, and even sharing your own ideas, and experiences.
 
-## Find an issue
+## Find an Issue
 
 We have good first issues for new contributors and help wanted issues suitable for any contributor. [good first issue](https://github.com/fonoster/routr/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) has extra information to help you make your first contribution. [help wanted](https://github.com/fonoster/routr/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) are issues suitable for someone who isn't a core maintainer and is good to move onto after your first pull request.
 
@@ -53,7 +53,7 @@ Sometimes there won’t be any issues with these labels. That’s ok! There is l
 
 Once you see an issue that you'd like to work on, please post a comment saying that you want to work on it. Something like "I want to work on this" is fine.
 
-## Ask for help
+## Ask for Help
 
 The best way to reach us with a question when contributing is to ask on:
 
@@ -61,7 +61,7 @@ The best way to reach us with a question when contributing is to ask on:
 * The [Discord](https://discord.gg/4QWgSz4hTC) community
 * Our [GitHub Discussions](https://github.com/fonoster/routr/discussions)
 
-## Pull request lifecycle
+## Pull Request Lifecycle
 
 Before you start, ensure no one else is working on the same issue. If a related pull request exists, consider offering your assistance there. If you don't receive a response within a reasonable timeframe, you can proceed with your own pull request.
 
@@ -77,11 +77,11 @@ Depending on the project’s roadmap and priorities, you might also be asked to:
 - Delay the integration of your pull request to align with future releases
 - Close your current pull request and, if needed, open a new one with revised changes
 
-## Development environment setup
+## Development Environment Setup
 
 See our [Development environment setup](https://routr.io/docs/2.0.0/development/introduction) guide to get started locally or using Gitpod.
 
-## Sign your commits
+## Sign your Commits
 
 ### DCO
 
@@ -107,7 +107,7 @@ If you forgot to do this and have not yet pushed your changes to the remote repo
 git commit --amend -s
 ``` 
 
-## Pull request checklist
+## Pull Request Checklist
 
 When you submit your pull request, or you push new commits to it, our automated systems will run some checks on your new code. We require that your pull request passes these checks, but we also have more criteria than just that before we can accept and merge it. We recommend that you check the following things locally before you submit your code:
 
