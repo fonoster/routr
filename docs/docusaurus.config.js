@@ -83,7 +83,7 @@ const config = {
     ({
       algolia: {
         appId: "VLT67PBOP0",
-        apiKey: "ea0145d0e224a1ec1f72c15660809d3e",
+        apiKey: "ac3a064eec614a9ade617bafd5de55de",
         indexName: "routr",
         contextualSearch: true
       },

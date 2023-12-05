@@ -69,3 +69,12 @@
 .navbar-sidebar__back  {
   background-color: #0d3231;
 }
+
+p a {
+  color: var(--ifm-link-color);
+  text-decoration: underline;
+}
+
+p a:hover {
+  color: var(--ifm-color-secondary);
+}
