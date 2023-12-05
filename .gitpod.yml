@@ -18,13 +18,3 @@ ports:
     onOpen: ignore
   - port: 5060-5063
     onOpen: ignore
-
-github:
-  prebuilds:
-    master: true
-    branches: true
-    pullRequests: true
-    pullRequestsFromForks: true
-    addCheck: true
-    addComment: false
-    addBadge: true
