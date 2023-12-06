@@ -16,5 +16,12 @@ tasks:
 ports:
   - port: 51901-51904
     onOpen: ignore
-  - port: 5060-5063
+  - port: 5060
+    onOpen: ignore
+  - port: 5061
+    onOpen: ignore
+  - port: 5062
+    onOpen: ignore
+    visibility: public
+  - port: 5063
     onOpen: ignore
