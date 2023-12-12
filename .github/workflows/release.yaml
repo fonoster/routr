@@ -55,14 +55,14 @@ jobs:
         id: changelog
         uses: loopwerk/tag-changelog@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.DEPLOY_KEY }}
           exclude_types: other,doc,chore
           config_file: ./.scripts/tag-changelog-config.js
       - name: Create draft release
         if: env.RELEASE != 'none'
         uses: actions/create-release@latest
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
         with:
           tag_name: v${{ env.LERNA_VERSION }}
           release_name: Release v${{ env.LERNA_VERSION }}
