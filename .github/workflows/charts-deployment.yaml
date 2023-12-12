@@ -1,4 +1,4 @@
-name: publish charts to github pages (v2)
+name: publish charts to github pages
 
 on:
   workflow_dispatch:

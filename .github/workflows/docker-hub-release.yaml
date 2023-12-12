@@ -1,4 +1,4 @@
-name: publish to docker hub (v2)
+name: publish to docker hub
 
 on:
   workflow_dispatch:
