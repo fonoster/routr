@@ -165,8 +165,7 @@ describe("@routr/processor/alterations", () => {
       from: "17853178071",
       to: "46721895538"
     })
-    const enforceE164 = A.enforceE164(true, false)
-    const r = enforceE164(req)
+    const r = A.enforceE164(true, false)(req)
     expect(r).to.have.property("message")
     expect(r.message.from.address.uri.user).to.be.equal("+17853178071")
     expect(r.message.to.address.uri.user).to.be.equal("+46721895538")
@@ -178,8 +177,7 @@ describe("@routr/processor/alterations", () => {
       from: "1001",
       to: "46721895538"
     })
-    const enforceE164 = A.enforceE164(true, false)
-    const r = enforceE164(req)
+    const r = A.enforceE164(true, false)(req)
     expect(r).to.have.property("message")
     expect(r.message.from.address.uri.user).to.be.equal("1001")
     expect(r.message.to.address.uri.user).to.be.equal("+46721895538")

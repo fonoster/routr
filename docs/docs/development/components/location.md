@@ -17,14 +17,14 @@ apiVersion: v2beta1
 kind: Peer
 ref: peer-01
 metadata:
-name: Asterisk (Media Server)
+  name: Asterisk (Media Server)
 spec:
-aor: backend:conference
-username: asterisk
-credentialsRef: credentials-01
-loadBalancing:
-  withSessionAffinity: true
-  algorithm: least-sessions
+  aor: backend:conference
+  username: asterisk
+  credentialsRef: credentials-01
+  loadBalancing:
+    withSessionAffinity: true
+    algorithm: least-sessions
 ```
 
 Notice that the load balancing section sets the `withSessionAffinity` to `true`. We need session affinity to ensure that all calls related to the conference arrive on the same Asterisk server. 
