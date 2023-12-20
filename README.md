@@ -53,6 +53,10 @@ We are building Routr in the open. The best to communicate with us is via [GitHu
 
 ## Should you try Routr?
 
+> Routr's architecture and design is fantastic. A breath of fresh air. Being Docker and Kubernetes ready is a huge win over a more traditional SIP server setup.
+>
+> [Phil Jones](https://www.linkedin.com/in/phil-jones-4346884a/), VP of Web Architecture at VQ Communications
+
 > I came across Routr, which seems to be the one and only cloud-first Kubernetes-ready SIP server on the planet!
 > 
 > [Jessie Wadman](https://www.jessiewadman.se/), Cloud Architect @ Camanio AB
