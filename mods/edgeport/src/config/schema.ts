@@ -85,20 +85,20 @@ export const schema = {
           description: "Acceptable Transport Protocols",
           type: "array",
           items: {
-            type: "object"
-          },
-          properties: {
-            protocol: {
-              type: "string"
+            type: "object",
+            properties: {
+              protocol: {
+                type: "string"
+              },
+              bindAddr: {
+                type: "string"
+              },
+              port: {
+                type: "integer"
+              }
             },
-            bindAddr: {
-              type: "string"
-            },
-            port: {
-              type: "integer"
-            }
-          },
-          required: ["port", "protocol"]
+            required: ["port", "protocol"]
+          }
         },
         processor: {
           description: "Adjacent service for message routing",

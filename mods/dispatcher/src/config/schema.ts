@@ -46,20 +46,20 @@ export const schema = {
           description: "Middleware Processors",
           type: "array",
           items: {
-            type: "object"
-          },
-          properties: {
-            ref: {
-              type: "string"
+            type: "object",
+            properties: {
+              ref: {
+                type: "string"
+              },
+              addr: {
+                type: "string"
+              },
+              postProcessor: {
+                type: "boolean"
+              }
             },
-            addr: {
-              type: "string"
-            },
-            postProcessor: {
-              type: "boolean"
-            }
-          },
-          required: ["ref", "addr"]
+            required: ["ref", "addr"]
+          }
         },
         processors: {
           description: "Message Processors",
