@@ -19,8 +19,8 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: any
 import * as yaml from "js-yaml"
-import { JsonObject } from "pb-util/build"
 import * as toml from "toml"
+import { JsonObject } from "pb-util/build"
 
 const JFile = Java.type("java.io.File")
 const Files = Java.type("java.nio.file.Files")
@@ -63,14 +63,14 @@ export const readConfigFile = (path: string): JsonObject => {
   try {
     return yaml.load(content) as JsonObject
   } catch (e) {
-    // Ignore
+    // no-op
   }
 
   // Experimental TOML support
   try {
     return toml.parse(content)
   } catch (e) {
-    // Ignore
+    // no-op
   }
 
   try {

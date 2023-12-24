@@ -19,13 +19,13 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: any
 
+import { EXTERNAL_ADDRS, LOCALNETS } from "./envs"
 import {
   assertHasSecurityContext,
   assertNoDuplicatedPort,
   assertNoDuplicatedProto
 } from "./assertions"
 import { EdgePortConfig } from "./types"
-import { EXTERNAL_ADDRS, LOCALNETS } from "./envs"
 import createListeningPoints from "./create_listening_points"
 import createSipProvider from "./create_sip_provider"
 import createSipStack from "./create_sip_stack"

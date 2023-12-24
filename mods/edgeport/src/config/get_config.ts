@@ -18,10 +18,10 @@
  */
 import * as J from "fp-ts/Json"
 import * as E from "fp-ts/Either"
-import Ajv from "ajv"
 import { pipe } from "fp-ts/function"
 import { schema } from "./schema"
 import { readConfigFile } from "./fs"
+import Ajv from "ajv"
 
 const ajv = new Ajv()
 const validate = ajv.compile(schema)
