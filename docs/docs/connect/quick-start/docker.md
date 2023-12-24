@@ -6,7 +6,7 @@ sidebar_position: 1
 
 First, create a directory named "routr". Navigate into the new folder, and then copy the content below:
 
-Filename: _docker-compose.yml_
+Filename: _compose.yaml_
 
 ```yaml
 version: "3"

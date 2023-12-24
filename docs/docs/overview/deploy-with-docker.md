@@ -10,7 +10,7 @@ You will need Docker and Docker Compose installed on your machine as a prerequis
 
 First, create a directory named "routr". Navigate into the new folder, and then copy the content below:
 
-Filename: docker-compose.yml
+Filename: compose.yaml
 
 ```yaml
 version: "3"

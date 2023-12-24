@@ -6,7 +6,7 @@ Let’s say you want to use SIP.js to make and receive calls. In that case, you 
 
 Note that this is only needed if you are using a mix of WebRTC and legacy SIP clients. If you are exclusively using WebRTC clients, then you can skip this step.
 
-To enable WebRTC interoperability, you will need to update your docker-compose.yml file to include the `RTPENGINE_HOST` environment variable. Here is an example:
+To enable WebRTC interoperability, you will need to update your compose.yaml file to include the `RTPENGINE_HOST` environment variable. Here is an example:
 
 ```yaml
 version: "3"

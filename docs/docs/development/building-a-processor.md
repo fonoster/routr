@@ -343,7 +343,7 @@ The previous command will create a new folder called `my-processor` with the fol
 ├── LICENSE
 ├── README.md
 ├── commitlint.config.js
-├── docker-compose.yml
+├── compose.yaml
 ├── package-lock.json
 ├── package.json
 ├── src
