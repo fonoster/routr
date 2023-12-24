@@ -31,22 +31,20 @@ import javax.script.ScriptException;
  * Wrapper class for Routr.
  */
 public class Launcher {
-  private final static Logger LOG = LogManager.getLogger(Launcher.class);
-  private static final String launchScript =
+  private static final Logger LOG = LogManager.getLogger(Launcher.class);
+  private static final String LAUNCH_SCRIPT =
     "console = { log: print, warn: print, error: print };" +
       "var System = Java.type('java.lang.System');" +
       "load(System.getenv('HOME') + '/libs/jvm-npm.js');" +
       "load(System.getenv('HOME') + '/libs/edgeport.bundle.js')";
 
-  static public void main(String... args) {
+  public static void main(String... args) {
     try {
       new Launcher().launch();
 
-      boolean enableHealthChecks = System.getenv().get("ENABLE_HEALTHCHECKS") != null && !System.getenv().get("ENABLE_HEALTHCHECKS").isEmpty()
-          ? Boolean.parseBoolean(System.getenv().get("ENABLE_HEALTHCHECKS"))
-          : true;
+      String healthCheckEnv = System.getenv("ENABLE_HEALTHCHECKS");
 
-      if (enableHealthChecks) {
+      if (Boolean.parseBoolean(healthCheckEnv)) {
         new HealthCheck(8080).start();
       }
     } catch (Exception ex) {
@@ -69,7 +67,7 @@ public class Launcher {
 
   public void launchWithNashorn() throws ScriptException {
     ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-    engine.eval(launchScript);
+    engine.eval(LAUNCH_SCRIPT);
   }
 
   public void launchWithGraalJS() {
@@ -86,6 +84,6 @@ public class Launcher {
       .allowIO(true)
       .allowAllAccess(true).build();
 
-    polyglot.eval("js", launchScript);
+    polyglot.eval("js", LAUNCH_SCRIPT);
   }
 }

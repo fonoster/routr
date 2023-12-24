@@ -31,7 +31,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;
 
 public class HealthCheck extends HttpServlet {
-  private final static Logger LOG = LogManager.getLogger(HealthCheck.class);
+  private static final Logger LOG = LogManager.getLogger(HealthCheck.class);
 
   private static final long serialVersionUID = 1L;
   private int port;

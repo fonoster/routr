@@ -19,7 +19,9 @@
 package io.routr.requester;
 import java.util.Properties;
 
-final public class SIPStackProperties {
+public final class SIPStackProperties {
+
+  private SIPStackProperties() {}
 
   static Properties createProperties() {
     var properties = new Properties();

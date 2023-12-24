@@ -25,6 +25,7 @@ import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.header.RecordRoute;
+import gov.nist.javax.sip.header.WWWAuthenticate;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.ResponseEventExt;
 import io.grpc.ManagedChannel;
@@ -61,7 +62,7 @@ import java.util.*;
 import java.io.IOException;
 
 public class GRPCSipListener implements SipListener {
-  private final static Logger LOG = LogManager.getLogger(GRPCSipListener.class);
+  private static final Logger LOG = LogManager.getLogger(GRPCSipListener.class);
   private final ProcessorGrpc.ProcessorBlockingStub blockingStub;
   private final MessageConverter messageConverter;
   private final SipProvider sipProvider;
@@ -81,15 +82,17 @@ public class GRPCSipListener implements SipListener {
     String addr = (String) processor.getMember("addr");
     String bindAddr = (String) spec.getMember("bindAddr");
     String edgePortRef = (String) values.getMember("ref");
-    
-    // Taking processor address from env var if set
-    if (System.getenv("PROCESSOR_ADDR") != null) {
-      addr = System.getenv("PROCESSOR_ADDR");
+
+    String processorAddrEnv = System.getenv("PROCESSOR_ADDR");
+    String ignoreLoopbackEnv = System.getenv("IGNORE_LOOPBACK_FROM_LOCALNETS");
+    String hostnameEnv = System.getenv("HOSTNAME");
+
+    if (processorAddrEnv != null) {
+      addr = processorAddrEnv;
     }
 
-    // If running in K8s we set the edgeport ref to the pod name
-    if (System.getenv("HOSTNAME") != null) {
-      edgePortRef = System.getenv("HOSTNAME");
+    if (hostnameEnv != null) {
+      edgePortRef = hostnameEnv;
     }
 
     if (localnets.isEmpty()) {
@@ -100,9 +103,7 @@ public class GRPCSipListener implements SipListener {
           
           var host = interfaces.get(0).getAddress().getHostAddress();
 
-          if (System.getenv("IGNORE_LOOPBACK_FROM_LOCALNETS") != null
-              && System.getenv("IGNORE_LOOPBACK_FROM_LOCALNETS").equalsIgnoreCase("true")
-              && host.startsWith("127.0.0.1")) {
+          if (Boolean.parseBoolean(ignoreLoopbackEnv) && host.startsWith("127.0.0.1")) {
             continue;
           }
 
@@ -112,11 +113,6 @@ public class GRPCSipListener implements SipListener {
       } catch (java.net.SocketException e) {
         LOG.error("error getting network interfaces", e);
       }
-    }
-
-    // We give externalAddrs a default value if not set
-    if (externalAddrs.isEmpty()) {
-      var localnet = localnets.get(0);
     }
 
     LOG.info("starting edgeport ref = {} at {}", edgePortRef, bindAddr);
@@ -152,16 +148,19 @@ public class GRPCSipListener implements SipListener {
     this.addressFactory = SipFactory.getInstance().createAddressFactory();
     this.headerFactory = SipFactory.getInstance().createHeaderFactory();
 
-    if (System.getenv("CONSOLE_PUBLISHER_ENABLED") != null
-        && System.getenv("CONSOLE_PUBLISHER_ENABLED").equalsIgnoreCase("true")) {
+    String consolePublisherEnabledEnv = System.getenv("CONSOLE_PUBLISHER_ENABLED");
+    String natPublisherEnabledEnv = System.getenv("NATS_PUBLISHER_ENABLED");
+    String natsPublisherSubjectEnv = System.getenv("NATS_PUBLISHER_SUBJECT");
+    String natsPublisherUrlEnv = System.getenv("NATS_PUBLISHER_URL");
+
+    if (Boolean.parseBoolean(consolePublisherEnabledEnv)) {
       publishers.add(new ConsolePublisher());
       LOG.info("console publisher enabled");
     }
 
-    if (System.getenv("NATS_PUBLISHER_ENABLED") != null
-        && System.getenv("NATS_PUBLISHER_ENABLED").equalsIgnoreCase("true")) {
-      String subject = System.getenv("NATS_PUBLISHER_SUBJECT");
-      String natsUrl = System.getenv("NATS_PUBLISHER_URL");
+    if (Boolean.parseBoolean(natPublisherEnabledEnv)) {
+      String subject = natsPublisherSubjectEnv;
+      String natsUrl = natsPublisherUrlEnv;
       if (natsUrl == null) {
         natsUrl = "nats://localhost:4222";
       }
@@ -341,16 +340,16 @@ public class GRPCSipListener implements SipListener {
       if (isTransactional && authenticationRequired(res)) {
         var accountManager = (AccountManager) event.getClientTransaction().getApplicationData();
 
-        if (accountManager == null) {
+        if (accountManager != null) {
           var req = event.getClientTransaction().getRequest();
           var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
-          LOG.debug("an exception occurred while processing response with callId: {}", callId);
+
+          LOG.debug("authenticating on behalf of callId: {}", callId);
+
+          var sipStack = (SipStackExt) this.sipProvider.getSipStack();
+          handleAuthChallenge(sipStack, event, accountManager);
           return;
         }
-
-        var sipStack = (SipStackExt) this.sipProvider.getSipStack();
-        handleAuthChallenge(sipStack, event, accountManager);
-        return;
       }
 
       MessageRequest request = this.messageConverter.createMessageRequest(res, null,
@@ -378,6 +377,7 @@ public class GRPCSipListener implements SipListener {
       res.removeHeader(Contact.NAME);
       res.removeHeader(Route.NAME);
       res.removeHeader(RecordRoute.NAME);
+      res.removeHeader(WWWAuthenticateHeader.NAME);
 
       for (Header header : headers) {
         // WARNING: Using setHeader causes some headers to be overwritten
@@ -431,11 +431,11 @@ public class GRPCSipListener implements SipListener {
   }
 
   public void processDialogTerminated(final DialogTerminatedEvent event) {
-    // TODO: Remove terminated dialogs
+    // no-op
   }
 
   public void processIOException(final IOExceptionEvent event) {
-    // TODO: Remove failed transactions
+    // no-op
   }
 
   private void sendRequest(final ServerTransaction serverTransaction, final Request request,

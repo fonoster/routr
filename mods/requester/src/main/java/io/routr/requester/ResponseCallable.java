@@ -32,7 +32,6 @@ public class ResponseCallable implements Callable<SIPMessage> {
   @SuppressWarnings("BusyWait")
   @Override
   public SIPMessage call() throws Exception {
-    // TODO: Check is this is a good way to do this
     while (this.value == null) {
       Thread.sleep(500);
     }

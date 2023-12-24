@@ -29,7 +29,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 
 public class Requester {
-  private final static Logger LOG = LogManager.getLogger(Requester.class);
+  private static final Logger LOG = LogManager.getLogger(Requester.class);
   private final Server server;
   private final RequesterService requesterService;
   private final RequestSender requestSender;

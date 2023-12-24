@@ -24,9 +24,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class SIPProviderBuilder {
-  private final static Logger LOG = LogManager.getLogger(SIPProviderBuilder.class);
+  private static final Logger LOG = LogManager.getLogger(SIPProviderBuilder.class);
 
-  static public SipProvider createSipProvider(final RequesterService requesterService, final String bindAddr)
+  private SIPProviderBuilder() {}
+
+  public static SipProvider createSipProvider(final RequesterService requesterService, final String bindAddr)
       throws PeerUnavailableException, TransportNotSupportedException, InvalidArgumentException,
       ObjectInUseException, TransportAlreadySupportedException {
 

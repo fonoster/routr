@@ -18,7 +18,9 @@
  */
 package io.routr.requester;
 
-final public class AddressUtil {
+public final class AddressUtil {
+
+  private AddressUtil() {}
 
   public static String getHostFromAddress(final String address) {
     if (address.split(":").length != 2) {

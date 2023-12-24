@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 public class MessageConverter {
-  private final static Logger LOG = LogManager.getLogger(MessageConverter.class);
+  private static final Logger LOG = LogManager.getLogger(MessageConverter.class);
   private final String edgePortRef;
   private List<NetInterface> listeningPoints;
   private List<String> externalAddrs;
@@ -58,7 +58,7 @@ public class MessageConverter {
     this.edgePortRef = edgePortRef;
   }
 
-  static public SIPMessage convertToMessageDTO(final Message message) {
+  public static SIPMessage convertToMessageDTO(final Message message) {
     Builder sipMessageBuilder = SIPMessage.newBuilder();
 
     if (message instanceof Request) {
@@ -106,7 +106,7 @@ public class MessageConverter {
     return sipMessageBuilder.build();
   }
 
-  static public List<Header> createHeadersFromMessage(final SIPMessage message)
+  public static List<Header> createHeadersFromMessage(final SIPMessage message)
     throws InvalidArgumentException, PeerUnavailableException, ParseException {
     List<Header> headers = new ArrayList<>();
 
@@ -192,7 +192,7 @@ public class MessageConverter {
     return headers;
   }
 
-  static private NetInterface buildNetInterface(String ipAddress, int port, ViaHeader via) {
+  private static NetInterface buildNetInterface(String ipAddress, int port, ViaHeader via) {
     return NetInterface.newBuilder()
       .setHost(ipAddress)
       .setPort(port)
@@ -200,7 +200,7 @@ public class MessageConverter {
       .build();
   }
 
-  static private NetInterface getSenderFromRequest(final RequestEventExt event) {
+  private static NetInterface getSenderFromRequest(final RequestEventExt event) {
     if (event == null) {
       return NetInterface.newBuilder().build();
     }
@@ -210,13 +210,13 @@ public class MessageConverter {
     return MessageConverter.getSenderFromVia(via);
   }
 
-  static private NetInterface getSenderFromResponse(final ResponseEventExt event) {
+  private static NetInterface getSenderFromResponse(final ResponseEventExt event) {
     Response response = event.getResponse();
     ViaHeader via = (ViaHeader) response.getHeader(ViaHeader.NAME);
     return buildNetInterface(event.getRemoteIpAddress(), event.getRemotePort(), via);
   }
 
-  static private NetInterface getSenderFromVia(final ViaHeader via) {
+  private static NetInterface getSenderFromVia(final ViaHeader via) {
     if (via == null) {
       return NetInterface.newBuilder().build();
     }
@@ -228,7 +228,7 @@ public class MessageConverter {
       .build();
   }
 
-  static private Converter getConverterByHeader(Class<?> clasz) {
+  private static Converter getConverterByHeader(Class<?> clasz) {
     Class<Converter> converter = ClassFinder.findConverterByHeaderClass(clasz);
     if (converter != null) {
       try {

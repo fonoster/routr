@@ -49,8 +49,6 @@ import org.apache.logging.log4j.Logger;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ConverterTests {
-  private final static Logger LOG = LogManager.getLogger(Launcher.class);
-
   @Test
   public void testPassingConfig() {
     Context polyglot = Context
@@ -362,7 +360,6 @@ public class ConverterTests {
     AddressFactory addrFactory = SipFactory.getInstance().createAddressFactory();
 
     header.setRealm("sip.local");
-    // header.setDomain("sip.remote");
     header.setNonce("1111");
     header.setCNonce("4321");
     header.setNonceCount(1);
@@ -446,7 +443,6 @@ public class ConverterTests {
     // That means that we have to implement a converter for ALL repeatable headers.
     assertEquals(message.getExtensions(2).getValue(), "INVITE");
 
-    // assertEquals(message.getRequestUri().getUser(), null);
     assertEquals(message.getRequestUri().getHost(), "sip.local");
     assertEquals(message.getRequestUri().getTransportParam(), "tcp");
   }

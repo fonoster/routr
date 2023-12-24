@@ -30,8 +30,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.routr.headers.MessageConverter;
 
-final public class RequestSender {
-  private final static Logger LOG = LogManager.getLogger(RequestSender.class);
+public final class RequestSender {
+  private static final Logger LOG = LogManager.getLogger(RequestSender.class);
   private MessageFactory messageFactory;
   private HeaderFactory headerFactory;
   private SipProvider sipProvider;
@@ -80,12 +80,6 @@ final public class RequestSender {
         null);
     viaHeader.setRPort();
 
-    // WARNING: Consider making the use of bnc configurable
-    // var contactAddress = this.addressFactory.createAddress(String.format("sip:%s@%s:%s;transport=%s;bnc",
-    //     request.getMessage().getFrom().getAddress().getUri().getUser(),
-    //     lp.getIPAddress(),
-    //     lp.getPort(),
-    //     transport));
     var contactAddress = this.addressFactory.createAddress(String.format("sip:%s:%s;transport=%s;bnc",
       lp.getIPAddress(),
       lp.getPort(),

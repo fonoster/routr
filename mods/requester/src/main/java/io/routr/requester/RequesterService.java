@@ -36,7 +36,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class RequesterService extends RequesterGrpc.RequesterImplBase implements javax.sip.SipListener {
-  private final static Logger LOG = LogManager.getLogger(RequesterService.class);
+  private static final Logger LOG = LogManager.getLogger(RequesterService.class);
   private final Requester requester;
   private final ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
   private final Map<String, ResponseCallable> responseMap;

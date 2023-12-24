@@ -24,21 +24,21 @@ import org.apache.logging.log4j.Logger;
 import io.routr.HealthCheck;
 
 public class Launcher {
-  private final static Logger LOG = LogManager.getLogger(Launcher.class);
+  private static final Logger LOG = LogManager.getLogger(Launcher.class);
 
-  static public void main(String... args) {
+  public static void main(String... args) {
     System.setProperty("serviceName", "requester");
     try {
-      var bindAddr = System.getenv().get("BIND_ADDR") != null && !System.getenv().get("BIND_ADDR").isEmpty()
-          ? System.getenv().get("BIND_ADDR")
-          : "0.0.0.0:51909";
-      boolean enableHealthChecks = System.getenv().get("ENABLE_HEALTHCHECKS") != null && !System.getenv().get("ENABLE_HEALTHCHECKS").isEmpty()
-          ? Boolean.parseBoolean(System.getenv().get("ENABLE_HEALTHCHECKS"))
-          : true;
+      String bindAddrEnv = System.getenv("BIND_ADDR");
+      String bindAddr = bindAddrEnv == null || bindAddrEnv.isEmpty()
+          ? "0.0.0.0:51909"
+          : bindAddrEnv;
 
       new Requester(bindAddr).start();
 
-      if (enableHealthChecks) {
+      String healthCheckEnv = System.getenv("ENABLE_HEALTHCHECKS");
+
+      if (Boolean.parseBoolean(healthCheckEnv)) {
         new HealthCheck(8080).start();
       }
     } catch (Exception e) {

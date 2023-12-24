@@ -42,7 +42,8 @@ ENV PKCS_PASSWORD=$PKCS_PASSWORD \
   CA_CERT_SUBJECT=$CA_CERT_SUBJECT \
   SERVER_CERT_SUBJECT=$SERVER_CERT_SUBJECT \
   DATABASE_URL=postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/routr \
-  IGNORE_LOOPBACK_FROM_LOCALNETS=true
+  IGNORE_LOOPBACK_FROM_LOCALNETS=true \
+  LOG4J2=/etc/routr/log4j2.yaml
 
 WORKDIR /service
 
@@ -64,20 +65,20 @@ COPY mods/pgdata/migrations migrations
 RUN apk add --no-cache nodejs npm tini openssl postgresql postgresql-client su-exec \
   && mkdir -p ${PATH_TO_CERTS} /var/lib/postgresql/data /run/postgresql /root/.npm \
   && addgroup -g ${GID} ${USER} \
-  && adduser --disabled-password --gecos "" --ingroup "$USER" --home ${HOME} --uid "$UID" "$USER" \
+  && adduser --disabled-password --gecos "" --ingroup ${USER} --home ${HOME} --uid ${UID} ${USER} \
   && chown -R ${USER}:${USER} /service /etc/routr \
   && chown -R postgres:postgres /var/lib/postgresql/data /run/postgresql /root/.npm \
   && chmod +x edgeport.sh convert-to-p12.sh init-postgres.sh \
   && chmod 2777 /run/postgresql \
-  && export DATABASE_URL=$DATABASE_URL && su -m postgres -c "/service/init-postgres.sh" \
+  && export DATABASE_URL=${DATABASE_URL} && su -m postgres -c "/service/init-postgres.sh" \
   && rm -rf /var/cache/apk/* /tmp/* /services/migrations /services/schema.prisma /services/init-postgres.sh \
   && rm -rf /root/.npm /root/.config /root/.cache /root/.local \
   && apk del npm postgresql-client
 
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 CMD sh -c "su-exec postgres pg_ctl start -D /var/lib/postgresql/data && \
-           su-exec $USER ./convert-to-p12.sh $PATH_TO_CERTS $PKCS_PASSWORD && \
-           if [ -n \"$HEPLIFY_OPTIONS\" ]; then \
-             heplify $HEPLIFY_OPTIONS & \
-           fi && \
-           DATABASE_URL=$DATABASE_URL su-exec $USER node ./dist/runner"
+  su-exec $USER ./convert-to-p12.sh $PATH_TO_CERTS $PKCS_PASSWORD && \
+  if [ -n \"$HEPLIFY_OPTIONS\" ]; then \
+  heplify $HEPLIFY_OPTIONS & \
+  fi && \
+  DATABASE_URL=$DATABASE_URL su-exec $USER node ./dist/runner"

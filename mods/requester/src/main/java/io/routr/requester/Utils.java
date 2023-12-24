@@ -22,7 +22,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Random;
 
-final public class Utils {
+public final class Utils {
+
+  private Utils() {}
 
   // @Deprecated
   public static int generatePort(int min, int max) {
