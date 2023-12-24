@@ -28,7 +28,11 @@ ports:
     onOpen: ignore
   - name: SIP UDP/TCP
     description: SIP signaling ports for UDP/TCP
-    port: 5060-5061
+    port: 5060
+    onOpen: ignore
+  - name: SIP TLS
+    description: SIP signaling ports for TLS
+    port: 5061
     onOpen: ignore
   - name: SIP WS
     description: SIP signaling ports for Websocket
@@ -41,7 +45,11 @@ ports:
     onOpen: ignore
   - name: Exra SIP UDP/TCP
     description: Extra SIP signaling ports for UDP/TCP
-    port: 6060-6061
+    port: 6060
+    onOpen: ignore
+  - name: Exra SIP TLS
+    description: Extra SIP signaling ports for TLS
+    port: 6061
     onOpen: ignore
   - name: Extra SIP WS
     description: Extra SIP signaling ports for Websocket
