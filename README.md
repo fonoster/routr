@@ -373,6 +373,62 @@ For contributing, please see the following links:
 
 <!--contributors:start-->
 
+<table>
+<tr>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/psanders>
+            <img src=https://avatars.githubusercontent.com/u/539774?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Pedro Sanders/>
+            <br />
+            <sub style="font-size:14px"><b>Pedro Sanders</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/Hannarong98>
+            <img src=https://avatars.githubusercontent.com/u/42358864?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Hannarong Klinjan/>
+            <br />
+            <sub style="font-size:14px"><b>Hannarong Klinjan</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/efraa>
+            <img src=https://avatars.githubusercontent.com/u/40646537?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Efrain Peralta/>
+            <br />
+            <sub style="font-size:14px"><b>Efrain Peralta</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/vitalyster>
+            <img src=https://avatars.githubusercontent.com/u/1052407?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=vitalyster/>
+            <br />
+            <sub style="font-size:14px"><b>vitalyster</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/kanimaru>
+            <img src=https://avatars.githubusercontent.com/u/1733697?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Kani/>
+            <br />
+            <sub style="font-size:14px"><b>Kani</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/BROWT190>
+            <img src=https://avatars.githubusercontent.com/u/141766680?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=BROWT190/>
+            <br />
+            <sub style="font-size:14px"><b>BROWT190</b></sub>
+        </a>
+    </td>
+</tr>
+<tr>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/luzpaz>
+            <img src=https://avatars.githubusercontent.com/u/4140247?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=luzpaz/>
+            <br />
+            <sub style="font-size:14px"><b>luzpaz</b></sub>
+        </a>
+    </td>
+</tr>
+</table>
+
 ## Sponsors
 
 We're glad to be supported by respected companies and individuals from several industries.
