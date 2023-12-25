@@ -368,8 +368,10 @@ For bugs, questions, and discussions, please use the [Github Issues](https://git
 
 For contributing, please see the following links:
 
- - [Contribution Documents](https://github.com/fonoster/fonoster/blob/master/CONTRIBUTING.md)
+ - [Contribution Documents](https://github.com/fonoster/routr/blob/master/CONTRIBUTING.md)
  - [Contributors](https://github.com/fonoster/routr/contributors)
+
+<!--contributors:start-->
 
 ## Sponsors
 
