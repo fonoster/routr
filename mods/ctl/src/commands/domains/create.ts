@@ -76,6 +76,10 @@ Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       this.log("This utility will help you create a new Domain.")
       this.log("Press ^C at any time to quit.")
 
+      if (numberChoices.length === 0) {
+        this.warn("Egress rules unavailable due to 0 configured numbers.")
+      }
+
       const group1 = await inquirer.prompt([
         {
           name: "name",

@@ -87,6 +87,10 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
       this.log("Press ^C at any time to quit.")
       this.warn("Adding Egress Policies will delete existing ones.")
 
+      if (numberChoices.length === 0) {
+        this.warn("Egress rules unavailable due to 0 configured numbers.")
+      }
+
       const group1 = await inquirer.prompt([
         {
           name: "name",
