@@ -56,10 +56,10 @@ export default function loadResources(
   const all: CC.UserConfig[] = []
   const files = readdirSync(resourcesPath)
 
-  files.forEach((file: string) => {
+  files?.forEach((file: string) => {
     const resources = H.readConfigFile(`${resourcesPath}/${file}`)
 
-    resources.forEach((resource: CC.UserConfig) => {
+    resources?.forEach((resource: CC.UserConfig) => {
       resource.kind = resource.kind.toLowerCase() as CC.KindWithoutUnknown
 
       // Assert the reference has no spaces

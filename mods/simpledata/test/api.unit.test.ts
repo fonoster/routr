@@ -100,5 +100,25 @@ describe("@routr/simpledata/api", () => {
       findBy(configs)(call, callback)
       expect(callbackSpy).to.have.been.calledOnce
     })
+
+    it("returns an empty array since the resource doesn't exist", (done) => {
+      const call = {
+        request: {
+          fieldName: "ref",
+          fieldValue: "credentials-01xxxx"
+        }
+      }
+      const callback = (err: Error, res: unknown) => {
+        expect(err).to.be.null
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        expect((res as any).items)
+          .to.be.an("array")
+          .to.be.lengthOf(0)
+        done()
+      }
+      const callbackSpy = sandbox.spy(callback)
+      findBy([])(call, callback)
+      expect(callbackSpy).to.have.been.calledOnce
+    })
   })
 })

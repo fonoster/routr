@@ -16,7 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as grpc from "@grpc/grpc-js"
 import * as jwt from "jsonwebtoken"
+import {
+  CONNECT_VERIFIER_ADDR,
+  CONNECT_VERIFIER_OPTIONS,
+  CONNECT_VERIFIER_PUBLIC_KEY_PATH
+} from "./envs"
 import fs from "fs"
 import {
   HeaderModifier,
@@ -28,11 +34,6 @@ import {
 } from "@routr/common"
 import { Extensions as E } from "@routr/processor"
 import { RoutingDirection } from "./types"
-import {
-  CONNECT_VERIFIER_ADDR,
-  CONNECT_VERIFIER_OPTIONS,
-  CONNECT_VERIFIER_PUBLIC_KEY_PATH
-} from "./envs"
 
 // OMG, this is so ugly and hacky
 export const isKind = (res: CC.RoutableResourceUnion, kind: CC.Kind) => {
@@ -78,35 +79,41 @@ export const findResource = async (
   domainUri: string,
   userpart: string
 ): Promise<CC.RoutableResourceUnion> => {
-  const domain = await findDomain(apiClient, domainUri)
+  try {
+    const domain = await findDomain(apiClient, domainUri)
 
-  // First, try to find a number
-  const number = await findNumberByTelUrl(apiClient, `tel:${userpart}`)
+    // First, try to find a number
+    const number = await findNumberByTelUrl(apiClient, `tel:${userpart}`)
 
-  if (number != null) return number
+    if (number != null) return number
 
-  // Next, try to find an agent
-  const agent = (
-    await apiClient.agents.findBy({
-      fieldName: "username",
-      fieldValue: userpart
-    })
-  ).items[0]
+    // Next, try to find an agent
+    const agent = (
+      await apiClient.agents.findBy({
+        fieldName: "username",
+        fieldValue: userpart
+      })
+    ).items[0]
 
-  if (agent && agent.domain.ref != domain?.ref) {
-    // Not in the same domain
-    return null
+    if (agent && agent.domain.ref != domain?.ref) {
+      // Not in the same domain
+      return null
+    }
+
+    if (agent != null) return agent
+
+    // Next, try to find a peer
+    return (
+      await apiClient.peers.findBy({
+        fieldName: "username",
+        fieldValue: userpart
+      })
+    ).items[0]
+  } catch (err) {
+    if (err.code === grpc.status.NOT_FOUND) {
+      return null
+    }
   }
-
-  if (agent != null) return agent
-
-  // Next, try to find a peer
-  return (
-    await apiClient.peers.findBy({
-      fieldName: "username",
-      fieldValue: userpart
-    })
-  ).items[0]
 }
 
 export const getRoutingDirection = (

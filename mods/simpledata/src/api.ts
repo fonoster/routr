@@ -17,9 +17,12 @@
  * limitations under the License.
  */
 import { JsonObject, struct } from "pb-util"
-import { CommonTypes as CT } from "@routr/common"
-import { CommonConnect as CC, CommonErrors as CE } from "@routr/common"
-import { Helper as H } from "@routr/common"
+import {
+  CommonTypes as CT,
+  CommonConnect as CC,
+  CommonErrors as CE,
+  Helper as H
+} from "@routr/common"
 
 /**
  * Enclosure with method to obtain a resource by reference.
@@ -60,10 +63,6 @@ export function get(resources: CC.ConnectModel[]) {
  */
 export function findBy(resources: CC.ConnectModel[]) {
   return (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
-    if (resources.length === 0) {
-      return callback(new CE.ResourceNotFoundError(""), null)
-    }
-
     const { request } = call
     const queryResult = resources.filter(
       (r) =>

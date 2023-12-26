@@ -16,14 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Helper as H } from "@routr/location"
+import { Helper as H, ILocationService } from "@routr/location"
 import {
   Extensions as E,
   MessageRequest,
   Response,
   Target as T
 } from "@routr/processor"
-import { ILocationService } from "@routr/location"
 import {
   Auth,
   CommonConnect as CC,
