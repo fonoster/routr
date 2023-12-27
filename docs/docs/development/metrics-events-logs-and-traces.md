@@ -3,5 +3,5 @@
 Comin soon.
 
 <!---
-Remember to cover PCAPs, sngrep, wireshark, OpenTelemetry, NATs, and HEP
+Remember to cover PCAPs, sngrep, wireshark, OpenTelemetry, NATS, and HEP
 -->

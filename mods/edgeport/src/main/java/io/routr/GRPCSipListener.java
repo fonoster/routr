@@ -169,7 +169,7 @@ public class GRPCSipListener implements SipListener {
         subject = "routr";
       }
 
-      publishers.add(new NatsPublisher(natsUrl, subject));
+      publishers.add(new NATSPublisher(natsUrl, subject));
 
       LOG.info("nats publisher enabled with subject {} and url {}", subject, natsUrl);
     }
@@ -310,7 +310,7 @@ public class GRPCSipListener implements SipListener {
 
       if (req.getMethod().equals(Request.CANCEL)) {
         assert serverTransaction != null;
-        this.sendCancel(serverTransaction, req, headers);
+        this.sendCancel(serverTransaction, req);
         return;
       }
       this.sendRequest(serverTransaction, req, headers);
@@ -473,8 +473,7 @@ public class GRPCSipListener implements SipListener {
     }
   }
 
-  private void sendCancel(final ServerTransaction serverTransaction, final Request request,
-      final List<Header> headers) {
+  private void sendCancel(final ServerTransaction serverTransaction, final Request request) {
     try {
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
       var originalClientTransaction = (ClientTransaction) this.activeTransactions.get(callId.getCallId() + "_client");
@@ -591,7 +590,7 @@ public class GRPCSipListener implements SipListener {
     var callId = request.getMessage().getCallId().getCallId();
     var callEndedEvent = new HashMap<String, Object>();
     var type = ResponseCode.valueOf(request.getMessage().getResponseType().name());
-    // FIXME: This is a workaround for call ending coming from a CANCEL request
+
     int code = type.equals(ResponseCode.UNKNOWN) ? ResponseCode.OK.getCode() : type.getCode();
     var cause = HangupCauses.get(code);
 
@@ -607,7 +606,6 @@ public class GRPCSipListener implements SipListener {
     var registeredAt = ZonedDateTime.now(ZoneOffset.UTC)
         .truncatedTo(ChronoUnit.MILLIS)
         .format(DateTimeFormatter.ISO_INSTANT);
-    var callId = request.getMessage().getCallId().getCallId();
     var uri = request.getMessage().getFrom().getAddress().getUri();
     var registrationEvent = new HashMap<String, Object>();
 
