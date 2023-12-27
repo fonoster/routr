@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 /*
  * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -28,7 +29,6 @@ import {
   Trunk
 } from "./types"
 
-// eslint-disable-next-line require-jsdoc
 export function getUnregisteredTrunks(store: IRegistryStore) {
   return async (trunks: Trunk[]): Promise<Trunk[]> => {
     const registryEntries = await store.list()
@@ -41,7 +41,6 @@ export function getUnregisteredTrunks(store: IRegistryStore) {
   }
 }
 
-// eslint-disable-next-line require-jsdoc
 export async function findTrunks(apiClient: CC.APIClient) {
   return (
     await apiClient.trunks.findBy({
