@@ -19,11 +19,12 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("dispatcher")
+import { CONFIG_PATH, ENABLE_HEALTHCHECKS } from "./envs"
 import registryService from "./service"
 import { getConfig } from "./config/get_config"
 import { getLogger } from "@fonoster/logger"
-import { CONFIG_PATH, ENABLE_HEALTHCHECKS } from "./envs"
 import express from "express"
+
 const app = express()
 const healthPort = 8080
 
