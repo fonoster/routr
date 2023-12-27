@@ -30,12 +30,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class NatsPublisher implements EventsPublisher {
-  private static final Logger LOG = LogManager.getLogger(NatsPublisher.class);
+public class NATSPublisher implements EventsPublisher {
+  private static final Logger LOG = LogManager.getLogger(NATSPublisher.class);
   private Connection connection;
   private String subject;
 
-  public NatsPublisher(final String addr, final String subject) throws IOException, InterruptedException{
+  public NATSPublisher(final String addr, final String subject) throws IOException, InterruptedException{
     Options options = new Options.Builder().server(addr).build();
     this.connection = Nats.connect(options);
     this.subject = subject;
