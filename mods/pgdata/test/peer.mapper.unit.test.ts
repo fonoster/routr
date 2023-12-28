@@ -75,7 +75,7 @@ describe("@routr/pgdata/mappers/peer", () => {
       credentialsRef: "credentials-01",
       name: "Asterisk Media Server",
       username: "asterisk",
-      aor: "backend:voice",
+      aor: "sip:voice@sip.local",
       contactAddr: "192.168.1.3",
       balancingAlgorithm: "ROUND_ROBIN" as LoadBalancingAlgorithm,
       withSessionAffinity: false,
@@ -317,72 +317,6 @@ describe("@routr/pgdata/mappers/peer", () => {
       )
       expect(createUpdate).to.throw(
         "the aor schema must start with `backend:` or `sip:`"
-      )
-    })
-
-    it("when aor schema is backend: but defined no balancing algorithm", () => {
-      // Arrange
-      const peer = {
-        apiVersion: "v2",
-        ref: "peer-01",
-        credentialsRef: "credentials-01",
-        accessControlListRef: "acl-01",
-        name: "Asterisk Media Server",
-        username: "asterisk",
-        aor: "backend:aor-01",
-        contactAddr: "192.168.1.12:5060",
-        enabled: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
-        extended: {
-          test: "test"
-        }
-      }
-
-      // Act
-      const createResult = () => new PeerManager(peer).validOrThrowCreate()
-      const createUpdate = () => new PeerManager(peer).validOrThrowUpdate()
-
-      // Assert
-      expect(createResult).to.throw(
-        "when the aor schema is `backend:`, the balancing algorithm is required"
-      )
-      expect(createUpdate).to.throw(
-        "when the aor schema is `backend:`, the balancing algorithm is required"
-      )
-    })
-
-    it("when aor schema is sip: balancing algorithm is not allowed", () => {
-      // Arrange
-      const peer = {
-        apiVersion: "v2",
-        ref: "peer-01",
-        credentialsRef: "credentials-01",
-        accessControlListRef: "acl-01",
-        name: "Asterisk Media Server",
-        username: "asterisk",
-        aor: "sip:1001@sip.local",
-        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
-        withSessionAffinity: false,
-        contactAddr: "192.168.1.12:5060",
-        enabled: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
-        extended: {
-          test: "test"
-        }
-      }
-
-      // Act
-      const createResult = () => new PeerManager(peer).validOrThrowCreate()
-      const createUpdate = () => new PeerManager(peer).validOrThrowUpdate()
-
-      // Assert
-      expect(createResult).to.throw(
-        "when the aor schema is `sip:`, the balancing algorithm is not allowed"
-      )
-      expect(createUpdate).to.throw(
-        "when the aor schema is `sip:`, the balancing algorithm is not allowed"
       )
     })
   })

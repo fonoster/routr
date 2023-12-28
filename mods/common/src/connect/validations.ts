@@ -18,7 +18,6 @@
  */
 import * as Validator from "validator"
 import { BadRequestError } from "../errors"
-import { LoadBalancingAlgorithm } from "../types"
 import { phone } from "phone"
 
 export const hasReference = (ref: string) =>
