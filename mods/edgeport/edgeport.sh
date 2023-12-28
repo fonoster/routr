@@ -8,7 +8,6 @@ export HOME="$(cd "$(dirname "$0")"; pwd)"
 # TODO: Look into performance impact of not having runtime compilation context
 export JAVA_OPTS="-Dlog4j.configurationFile=${LOG4J2} \
   -Dpolyglot.engine.WarnInterpreterOnly=false \
-  -XX:CMSInitiatingOccupancyFraction=80 \
   -Dsun.rmi.dgc.client.gcInterval=3600000 \
   -Djava.net.preferIPv4Stack=true"
 

@@ -61,6 +61,10 @@ edgeportProcess.stdout.on("data", (data) => {
   process.stdout.write(`${data}`)
 })
 
+edgeportProcess.stderr.on("data", (data) => {
+  process.stderr.write(`${data}`)
+})
+
 edgeportProcess.on("error", (err) => {
   logger.error(`failed to spawn edgeport process: ${err}`)
   process.exit(1)

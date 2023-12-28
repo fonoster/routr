@@ -19,5 +19,5 @@ echo ""
 $JAVA_HOME/bin/jlink -c --no-man-pages --no-header-files -G \
   --module-path $TARGET_HOME/jmods/ \
   --add-modules \
-  java.base,java.management,java.naming,java.sql,java.instrument,jdk.crypto.cryptoki,jdk.scripting.nashorn,jdk.unsupported,jdk.management.agent,jdk.unsupported.desktop,jdk.crypto.ec,java.security.jgss,jdk.jartool \
+  java.base,java.management,java.naming,java.sql,java.instrument,jdk.crypto.cryptoki,jdk.unsupported,jdk.management.agent,jdk.unsupported.desktop,jdk.crypto.ec,java.security.jgss,jdk.jartool,java.scripting \
   --output jre
