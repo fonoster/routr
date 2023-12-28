@@ -1,7 +1,7 @@
 ##
 ## Runner
 ##
-FROM alpine:3.18 as runner
+FROM alpine:3.19 as runner
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 ARG CA_CERT_SUBJECT="/CN=Self Signed CA"
