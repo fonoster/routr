@@ -122,8 +122,7 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           name: "withSessionAffinity",
           message: "Enable Session Affinity?",
           type: "confirm",
-          default: false,
-          when: (answers) => answers.aor.startsWith("backend:")
+          default: false
         },
         {
           name: "balancingAlgorithm",
@@ -139,8 +138,7 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
             }
           ],
           type: "list",
-          default: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
-          when: (answers) => answers.aor.startsWith("backend:")
+          default: CT.LoadBalancingAlgorithm.ROUND_ROBIN
         },
         {
           name: "enabled",

@@ -11,7 +11,7 @@
     trunkRef: trunk-01
     location:
       telUrl: tel:+17066041487
-      aorLink: backend:conference
+      aorLink: sip:conference@sip.local
       sessionAffinityHeader: X-Room-Id
       extraHeaders:
         - name: X-Room-Id
@@ -60,7 +60,7 @@
     trunkRef: trunk-03
     location:
       telUrl: tel:+18095863314
-      aorLink: backend:voice
+      aorLink: sip:voice@sip.local
 
 - apiVersion: v2beta1
   kind: Number
@@ -75,4 +75,4 @@
     trunkRef: trunk-01
     location:
       telUrl: tel:+14045551212
-      aorLink: backend:voice
+      aorLink: sip:voice@sip.local

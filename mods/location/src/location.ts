@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 /*
  * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -19,7 +20,6 @@
 import { UnsupportedSchema } from "./errors"
 import {
   AddRouteRequest,
-  Backend,
   FindRoutesRequest,
   ILocationService,
   ILocatorStore,
@@ -63,38 +63,53 @@ export default class Location implements ILocationService {
 
   /** @inheritdoc */
   public async findRoutes(request: FindRoutesRequest): Promise<Route[]> {
-    let routes = await this.store.get(`${request.aor}:${request.callId}`)
+    const formatLabels = (labelsMap: Map<string, string>) => {
+      return Array.from(labelsMap)
+        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .map(([key, value]) => `${key}=${value}`)
+        .join(";")
+    }
 
-    if (routes.length > 0) {
+    const labelString = request.labels ? formatLabels(request.labels) : null
+    const storeKeyWithLabels = labelString
+      ? `${request.aor}:${request.callId}:${labelString}`
+      : `${request.aor}:${request.callId}`
+
+    let routes = await this.store.get(storeKeyWithLabels)
+
+    if (routes && routes.length > 0) {
       return routes
     }
 
-    routes = request.labels
-      ? (await this.store.get(request.aor)).filter(
+    if (labelString) {
+      const storeKey = `${request.aor}:${request.callId}:${labelString}`
+      routes = await this.store.get(storeKey)
+
+      if (!routes || routes.length === 0) {
+        routes = (await this.store.get(request.aor)).filter(
           filterOnlyMatchingLabels(request.labels)
         )
-      : (await this.store.get(request.aor)) ?? []
+      }
+    } else {
+      routes = (await this.store.get(request.aor)) ?? []
+    }
 
-    if (request.aor.startsWith(AOR_SCHEME.SIP)) {
-      // Set call to the last route
+    const { backend } = request
+
+    if (!backend) {
       this.store.put(`${request.aor}:${request.callId}`, routes[0])
       return routes
-    } else if (request.aor.startsWith(AOR_SCHEME.BACKEND)) {
-      const { backend } = request
-
-      // If it has not affinity session then get next
-      const r =
-        // Falls back to round-robin if no session affinity ref is provided
-        backend.withSessionAffinity && request.sessionAffinityRef
-          ? [await this.nextWithAffinity(routes, request.sessionAffinityRef)]
-          : [this.next(routes, backend)]
-
-      // Next time we will get the route with callId
-      this.store.put(`${request.aor}:${request.callId}`, r[0])
-
-      return r
     }
-    throw new UnsupportedSchema(request.aor)
+
+    // If it has no affinity session then get next
+    const r =
+      backend?.withSessionAffinity && request.sessionAffinityRef
+        ? [await this.nextWithAffinity(routes, request.sessionAffinityRef)]
+        : [this.next(routes, request)]
+
+    this.store.put(storeKeyWithLabels, r[0])
+
+    return r
   }
 
   /** @inheritdoc */
@@ -102,44 +117,42 @@ export default class Location implements ILocationService {
     return this.store.delete(request.aor)
   }
 
-  // eslint-disable-next-line require-jsdoc
-  private next(routes: Array<Route>, backend: Backend): Route {
+  private next(routes: Array<Route>, request: FindRoutesRequest): Route {
+    const { backend } = request
+    const ref = backend?.ref || request.aor
     if (
-      backend.balancingAlgorithm === CT.LoadBalancingAlgorithm.LEAST_SESSIONS
+      backend?.balancingAlgorithm === CT.LoadBalancingAlgorithm.LEAST_SESSIONS
     ) {
       return routes.sort((r1, r2) => r1.sessionCount - r2.sessionCount)[0]
     }
 
     // Continues using round-robin
-    const nextPosition =
-      this.rrCount.get(`${AOR_SCHEME.BACKEND}${backend.ref}`) ?? 0
-
+    const nextPosition = this.rrCount.get(ref) ?? 0
     const result = routes[nextPosition]
 
     if (nextPosition >= routes.length - 1) {
       // Restarting round-robin counter
-      this.rrCount.set(`${AOR_SCHEME.BACKEND}${backend.ref}`, 0)
+      this.rrCount.set(ref, 0)
     } else {
-      this.rrCount.set(`${AOR_SCHEME.BACKEND}${backend.ref}`, nextPosition + 1)
+      this.rrCount.set(ref, nextPosition + 1)
     }
 
     return result
   }
 
   // Backend with session affinity does not support round-robin
-  // eslint-disable-next-line require-jsdoc
   private async nextWithAffinity(
     routes: Array<Route>,
-    sessionAffinityHeader: string
+    sessionAffinityRef: string
   ): Promise<Route> {
-    const route = await this.store.get(sessionAffinityHeader)
+    const route = await this.store.get(sessionAffinityRef)
 
     if (route.length > 0) {
       return route[0]
     }
 
     const r = routes.sort((r1, r2) => r1.sessionCount - r2.sessionCount)[0]
-    this.store.put(sessionAffinityHeader, r)
+    this.store.put(sessionAffinityRef, r)
 
     return r
   }

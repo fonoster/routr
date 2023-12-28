@@ -32,7 +32,7 @@ export default class GetCommand extends BaseCommand {
   static examples = [
     `<%= config.bin %> <%= command.id %>
 Ref                                  Name                Username   AOR                Balancing Algorithm Session Affinity 
-6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference backend:conference ROUND_ROBIN         Yes 
+6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local ROUND_ROBIN         Yes 
 `
   ]
 

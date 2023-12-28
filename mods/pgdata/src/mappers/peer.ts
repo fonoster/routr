@@ -52,10 +52,6 @@ export class PeerManager extends EntityManager {
     CC.hasAOROrThrow(this.peer.aor)
     CC.isValidAOROrThrow(this.peer.aor)
     CC.isValidContactAddressOrThrow(this.peer.contactAddr)
-    CC.isValidBalancingAlgorithmOrThrow(
-      this.peer.aor,
-      this.peer.balancingAlgorithm
-    )
   }
 
   validOrThrowUpdate() {
@@ -64,10 +60,6 @@ export class PeerManager extends EntityManager {
     CC.isValidUsernameOrThrow(this.peer.username)
     CC.isValidAOROrThrow(this.peer.aor)
     CC.isValidContactAddressOrThrow(this.peer.contactAddr)
-    CC.isValidBalancingAlgorithmOrThrow(
-      this.peer.aor,
-      this.peer.balancingAlgorithm
-    )
   }
 
   mapToPrisma(): PeerPrismaModel {

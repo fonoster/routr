@@ -236,16 +236,15 @@ async function fromPSTN(
   const sessionAffinityRef = E.getHeaderValue(req, callee.sessionAffinityHeader)
   let backend: Backend
 
-  if (callee.aorLink.startsWith("backend:")) {
-    const peer = (
-      await apiClient.peers.findBy({
-        fieldName: "aor",
-        fieldValue: callee.aorLink
-      })
-    ).items[0]
+  const peer = (
+    await apiClient.peers.findBy({
+      fieldName: "aor",
+      fieldValue: callee.aorLink
+    })
+  ).items[0]
 
+  if (peer) {
     backend = {
-      ref: peer.ref,
       balancingAlgorithm: peer.balancingAlgorithm,
       withSessionAffinity: peer.withSessionAffinity
     }
@@ -350,7 +349,6 @@ async function agentToPeer(
   req: MessageRequest
 ) {
   const backend: Backend = {
-    ref: callee.ref,
     balancingAlgorithm: callee.balancingAlgorithm,
     withSessionAffinity: callee.withSessionAffinity
   }

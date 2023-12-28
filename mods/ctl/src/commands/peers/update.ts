@@ -126,8 +126,7 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "withSessionAffinity",
           message: "Enable Session Affinity?",
           type: "confirm",
-          default: peerFromDB.withSessionAffinity,
-          when: (answers) => answers.aor.startsWith("backend:")
+          default: peerFromDB.withSessionAffinity
         },
         {
           name: "balancingAlgorithm",
@@ -143,8 +142,7 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
             }
           ],
           type: "list",
-          default: peerFromDB.balancingAlgorithm,
-          when: (answers) => answers.aor.startsWith("backend:")
+          default: peerFromDB.balancingAlgorithm
         },
         {
           name: "enabled",

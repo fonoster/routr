@@ -59,49 +59,46 @@ describe("@routr/location", () => {
       labels: labels2
     }
 
-    expect((await locator.findRoutes(findRoutesRequest1)).length).to.be.equal(2)
-    expect((await locator.findRoutes(findRoutesRequest1))[0])
-      .to.have.property("user")
-      .to.be.equal("1001")
+    const result1 = await locator.findRoutes(findRoutesRequest1)
+    const result2 = await locator.findRoutes(findRoutesRequest2)
+    const result3 = await locator.findRoutes(findRoutesRequest3)
 
-    expect((await locator.findRoutes(findRoutesRequest2)).length).to.be.equal(1)
-    expect((await locator.findRoutes(findRoutesRequest2))[0])
-      .to.have.property("user")
-      .to.be.equal("1001")
-
-    expect((await locator.findRoutes(findRoutesRequest3)).length).to.be.equal(0)
+    expect(result1.length).to.be.equal(2)
+    expect(result1[0]).to.have.property("user").to.be.equal("1001")
+    expect(result2.length).to.be.equal(1)
+    expect(result2[0]).to.have.property("user").to.be.equal("1001")
+    expect(result3.length).to.be.equal(0)
   })
 
   it("find next backend using least-sessions", async () => {
     const locator = new Locator(new MemoryStore())
     locator.addRoute({
-      aor: "backend:voice_ls",
+      aor: "sip:voice_ls@sip.local",
       route: Routes.voiceBackendRoute01
     })
     locator.addRoute({
-      aor: "backend:voice_ls",
+      aor: "sip:voice_ls@sip.local",
       route: Routes.voiceBackendRoute02
     })
     locator.addRoute({
-      aor: "backend:voice_ls",
+      aor: "sip:voice_ls@sip.local",
       route: Routes.voiceBackendRoute03
     })
     locator.addRoute({
-      aor: "backend:voice_ls",
+      aor: "sip:voice_ls@sip.local",
       route: Routes.voiceBackendRoute04
     })
     locator.addRoute({
-      aor: "backend:voice_ls",
+      aor: "sip:voice_ls@sip.local",
       route: Routes.voiceBackendRoute05
     })
 
     const findRoutesRequest1: FindRoutesRequest = {
       callId: "3848276298220188511",
-      aor: "backend:voice_ls",
+      aor: "sip:voice_ls@sip.local",
       backend: {
         withSessionAffinity: true,
-        balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS,
-        ref: "voice_ls"
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS
       }
     }
 
@@ -113,87 +110,80 @@ describe("@routr/location", () => {
   it("find next backend using round-robin", async () => {
     const locator = new Locator(new MemoryStore())
     locator.addRoute({
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       route: Routes.voiceBackendRoute05
     })
     locator.addRoute({
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       route: Routes.voiceBackendRoute04
     })
     locator.addRoute({
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       route: Routes.voiceBackendRoute03
     })
     locator.addRoute({
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       route: Routes.voiceBackendRoute02
     })
     locator.addRoute({
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       route: Routes.voiceBackendRoute01
     })
 
     const findRoutesRequest1 = {
       callId: "01",
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       backend: {
         withSessionAffinity: false,
-        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
-        ref: "voice_rr"
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN
       }
     }
     const findRoutesRequest2 = {
       callId: "02",
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       backend: {
         withSessionAffinity: false,
-        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
-        ref: "voice_rr"
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN
       }
     }
     const findRoutesRequest3 = {
       callId: "03",
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       backend: {
         withSessionAffinity: false,
-        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
-        ref: "voice_rr"
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN
       }
     }
     const findRoutesRequest4 = {
       callId: "04",
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       backend: {
         withSessionAffinity: false,
-        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
-        ref: "voice_rr"
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN
       }
     }
     const findRoutesRequest5 = {
       callId: "05",
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       backend: {
         withSessionAffinity: false,
-        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
-        ref: "voice_rr"
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN
       }
     }
     const findRoutesRequest6 = {
       callId: "06",
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       backend: {
         withSessionAffinity: false,
-        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
-        ref: "voice_rr"
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN
       }
     }
     const findRoutesRequest7 = {
       callId: "07",
-      aor: "backend:voice_rr",
+      aor: "sip:voice_rr@sip.local",
       backend: {
         withSessionAffinity: false,
-        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
-        ref: "voice_rr"
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN
       }
     }
 
@@ -228,37 +218,35 @@ describe("@routr/location", () => {
   it("find next backend with session affinity enabled", async () => {
     const locator = new Locator(new MemoryStore())
     locator.addRoute({
-      aor: "backend:conference",
+      aor: "sip:conference@sip.local",
       route: Routes.conferenceWithExpiredRoute
     })
     locator.addRoute({
-      aor: "backend:conference",
+      aor: "sip:conference@sip.local",
       route: Routes.conferenceBackendRoute02
     })
     locator.addRoute({
-      aor: "backend:conference",
+      aor: "sip:conference@sip.local",
       route: Routes.conferenceBackendRoute01
     })
 
     const findRoutesRequest1 = {
       callId: "3848276298220188511",
-      aor: "backend:conference",
+      aor: "sip:conference@sip.local",
       sessionAffinityRef: "any-session-affinity-ref",
       backend: {
         withSessionAffinity: true,
-        balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS,
-        ref: "conference"
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS
       }
     }
 
     const findRoutesRequest2 = {
       callId: "any-call-id",
-      aor: "backend:conference",
+      aor: "sip:conference@sip.local",
       sessionAffinityRef: "any-session-affinity-ref",
       backend: {
         withSessionAffinity: true,
-        balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS,
-        ref: "conference"
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS
       }
     }
 

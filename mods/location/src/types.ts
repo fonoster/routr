@@ -53,7 +53,8 @@ export interface RemoveRoutesRequest {
 }
 
 export interface Backend {
-  ref: string
+  // Keep this for backward compatibility
+  ref?: string
   balancingAlgorithm: CT.LoadBalancingAlgorithm
   withSessionAffinity: boolean
 }

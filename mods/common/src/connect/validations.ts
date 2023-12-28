@@ -204,25 +204,6 @@ export const isValidInboundUri = (inboundUri: string) => {
   return true
 }
 
-export const isValidBalancingAlgorithm = (
-  aor: string,
-  algorithm: LoadBalancingAlgorithm
-) => {
-  if (aor.startsWith("backend:")) {
-    if (!algorithm || algorithm === LoadBalancingAlgorithm.UNSPECIFIED) {
-      return new BadRequestError(
-        "when the aor schema is `backend:`, the balancing algorithm is required"
-      )
-    }
-  } else {
-    if (algorithm && algorithm !== LoadBalancingAlgorithm.UNSPECIFIED) {
-      return new BadRequestError(
-        "when the aor schema is `sip:`, the balancing algorithm is not allowed"
-      )
-    }
-  }
-}
-
 export const isValidPort = (port: string) => {
   if (port) {
     if (!Validator.default.isPort(port)) {

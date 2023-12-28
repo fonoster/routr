@@ -38,7 +38,6 @@ import {
   hasValidHeaders,
   isValidAOR,
   isValidAORLink,
-  isValidBalancingAlgorithm,
   isValidContactAddress,
   isValidDomainUri,
   isValidE164,
@@ -69,16 +68,6 @@ export const hasValidHeadersOrThrow = (
   headers: { name: string; value: string }[]
 ) => {
   const E = hasValidHeaders(headers)
-  if (E instanceof BadRequestError) {
-    throw E
-  }
-}
-
-export const isValidBalancingAlgorithmOrThrow = (
-  aor: string,
-  algorithm: LoadBalancingAlgorithm
-) => {
-  const E = isValidBalancingAlgorithm(aor, algorithm)
   if (E instanceof BadRequestError) {
     throw E
   }
