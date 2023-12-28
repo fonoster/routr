@@ -54,23 +54,6 @@ public class Launcher {
   }
 
   public void launch() throws ScriptException {
-    String engine = System.getenv("JS_ENGINE");
-
-    if (engine != null && engine.equals("graal.js")) {
-      launchWithGraalJS();
-    } else if (engine != null && engine.equals("nashorn")) {
-      launchWithNashorn();
-    } else {
-      launchWithGraalJS();
-    }
-  }
-
-  public void launchWithNashorn() throws ScriptException {
-    ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-    engine.eval(LAUNCH_SCRIPT);
-  }
-
-  public void launchWithGraalJS() {
     Context polyglot = Context
       .newBuilder()
       .allowExperimentalOptions(true)
