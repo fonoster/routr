@@ -258,6 +258,28 @@ describe("@routr/location", () => {
       .to.be.equal("conference01")
   })
 
+  it("find next backend using deprecated 'backend:' schema", async () => {
+    const locator = new Locator(new MemoryStore())
+    locator.addRoute({
+      aor: "backend:voice_ls",
+      route: Routes.voiceBackendRoute01
+    })
+
+    const findRoutesRequest1 = {
+      callId: "3848276298220188511",
+      aor: "backend:voice_ls",
+      backend: {
+        withSessionAffinity: true,
+        balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS,
+        ref: "voice_ls"
+      }
+    }
+
+    expect((await locator.findRoutes(findRoutesRequest1))[0])
+      .to.be.have.property("user")
+      .to.be.equal("voice01")
+  })
+
   it("gets configuration from file", (done) => {
     const result = getConfig(__dirname + "/../../../config/location.yaml")
     if (result._tag === "Right") {
