@@ -1,6 +1,6 @@
 # Routr Specification
 
-### Version 0.1.4 (Draft)
+### Version 0.1.5 (Draft)
 
 <details>
 <summary>Table of Contents</summary>
@@ -700,13 +700,15 @@ The following functions are MUST have for an implementation of a *Location Servi
 - *Accept gRPC Requests* - Accept gRPC Requests
 - *Find Routes* - Find all the routes to an endpoint
 - *Filtering Labels* - MUST be able to store endpoints using labels (for filtering)
-- *Backend or Endpoint* - MUST allow AOR the "sip:" and "backend:" schemes
+- *Backend or Endpoint* - MUST allow AOR the "sip:" and "backend:" schemes ("backend:" is deprecated since v0.1.5)
 - *Balancing Algorithm* - Implements `round-robin` and `least-sessions`
 - *Session Affinity* - Implements session base affinity
 - *Cache* - Caching must be done via "providers" that are easily replaceable (e.g.: `Memory`, `Redis`, etc.)
 - *Health Check* - MUST have a mechanism to identify the health of the service
 - *M.E.L.T* - Must be capable of collecting and sending M.E.L.T to external systems
 - *Service Port* - The default gRPC port at the Location Service SHOULD be `51902`
+
+> Since SPEC v0.1.5 using "backend:" scheme is deprecated. The Location Service will continue to support it for backward compatibility.
 
 **Non-functional Requirements**
 

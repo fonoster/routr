@@ -125,7 +125,7 @@ ref: peer-01
 metadata:
   name: Asterisk (Media Server)
 spec:
-  aor: backend:conference
+  aor: sip:conference@sip.local
   username: asterisk
   credentialsRef: credentials-01
   loadBalancing:
@@ -135,7 +135,7 @@ spec:
 
 Notice that the load balancing section sets the `withSessionAffinity` to `true`. We need session affinity to ensure that all calls related to the conference arrive on the same Asterisk server. 
 
-Every Asterisk server that registers using the `asterisk` username will join the same group under the `backend:conference` Address of Record (AOR).
+Every Asterisk server that registers using the `asterisk` username will join the same group under the `sip:conference@sip.local` Address of Record (AOR).
 
 ## Middlewares
 
