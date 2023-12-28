@@ -18,7 +18,10 @@
  * limitations under the License.
  */
 import { CommonConnect as CC } from "@routr/common"
+import { getLogger } from "@fonoster/logger"
 import { findByRef } from "./find"
+
+const logger = getLogger({ service: "simpledata", filePath: __filename })
 
 export function peersLoader(
   config: CC.UserConfig,
@@ -28,6 +31,13 @@ export function peersLoader(
     throw new Error("invalid resource type `Peer`")
 
   const peer = CC.mapToPeer(config)
+
+  if (peer.aor.startsWith("backend:")) {
+    logger.warn(
+      "'backend:' prefix to be removed in upcoming updates. please use 'sip:' for compatibility."
+    )
+  }
+
   peer.credentials = findByRef(
     config.spec.credentialsRef,
     list

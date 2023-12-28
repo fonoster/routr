@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import { BadRequestError } from "../errors"
-import { LoadBalancingAlgorithm } from "../types"
 import { TrunkURI } from "./types"
 import {
   hasACLRules,
