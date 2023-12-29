@@ -87,6 +87,8 @@ export class PeerManager extends EntityManager {
       updatedAt: this.peer.updatedAt
         ? new Date(this.peer.updatedAt * 1000)
         : undefined,
+      maxContacts: this.peer.maxContacts,
+      expires: this.peer.expires,
       extended: this.peer.extended || {}
     }
   }
@@ -110,6 +112,8 @@ export class PeerManager extends EntityManager {
           accessControlList: ACLManager.mapToDto(peer.accessControlList),
           createdAt: peer.createdAt.getTime() / 1000,
           updatedAt: peer.updatedAt.getTime() / 1000,
+          maxContacts: peer.maxContacts,
+          expires: peer.expires,
           extended: peer.extended as JsonObject
         }
       : undefined

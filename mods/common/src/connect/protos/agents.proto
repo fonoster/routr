@@ -64,6 +64,10 @@ message Agent {
   int32 created_at = 7;
   // The updated_at timestamp of the Agent
   int32 updated_at = 8;
+  // The maximum number of contacts that can be created for this Agent
+  int32 max_contacts = 12;
+  // Value to override the expires requested by the Agent
+  int32 expires = 13;  
   // The domain of the Agent
   fonoster.routr.connect.domains.v2beta1.Domain domain = 9;
   // The credentials of the Agent
@@ -86,8 +90,12 @@ message CreateAgentRequest {
   string domain_ref = 5;
   // Reference to the Credentials of the Agent
   string credentials_ref = 6;
+  // The maximum number of contacts that can be created for this Agent
+  int32 max_contacts = 8;
+  // Value to override the expires requested by the Agent
+  int32 expires = 9;
   // The extended attributes of the Agent
-  .google.protobuf.Struct extended = 7;  
+  .google.protobuf.Struct extended = 7;
 }
 
 // The request message for the Agents.Update method
@@ -104,6 +112,10 @@ message UpdateAgentRequest {
   string domain_ref = 5;
   // Reference to the Credentials of the Agent
   string credentials_ref = 6;
+  // The maximum number of contacts that can be created for this Agent
+  int32 max_contacts = 8;
+  // Value to override the expires requested by the Agent
+  int32 expires = 9;
   // The extended attributes of the Agent
   .google.protobuf.Struct extended = 7;
 }

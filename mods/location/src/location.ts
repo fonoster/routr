@@ -18,6 +18,7 @@
  * limitations under the License.
  */
 import { UnsupportedSchema } from "./errors"
+import { CommonErrors as CE } from "@routr/common"
 import {
   AddRouteRequest,
   FindRoutesRequest,
@@ -51,14 +52,33 @@ export default class Location implements ILocationService {
   }
 
   /** @inheritdoc */
-  public addRoute(request: AddRouteRequest): Promise<void> {
+  public async addRoute(request: AddRouteRequest): Promise<void> {
     if (
       !request.aor.startsWith(AOR_SCHEME.SIP) &&
       !request.aor.startsWith(AOR_SCHEME.BACKEND)
     ) {
       throw new UnsupportedSchema(request.aor)
     }
-    return this.store.put(request.aor, request.route)
+
+    const existingRoutes = await this.store.get(request.aor)
+    const routeExists = existingRoutes.some(
+      (route) =>
+        route.user === request.route.user &&
+        route.host === request.route.host &&
+        route.port === request.route.port &&
+        route.transport === request.route.transport
+    )
+
+    if (
+      !routeExists &&
+      request.maxContacts !== undefined &&
+      existingRoutes.length >= request.maxContacts
+    ) {
+      throw new CE.BadRequestError(
+        `exceeds maximum of ${request.maxContacts} allowed contacts`
+      )
+    }
+    return await this.store.put(request.aor, request.route)
   }
 
   /** @inheritdoc */

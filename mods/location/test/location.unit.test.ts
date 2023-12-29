@@ -41,8 +41,14 @@ describe("@routr/location", () => {
       ["region", "us-east01"]
     ])
 
-    locator.addRoute({ aor: "sip:1001@sip.local", route: Routes.simpleRoute01 })
-    locator.addRoute({ aor: "sip:1001@sip.local", route: Routes.simpleRoute02 })
+    await locator.addRoute({
+      aor: "sip:1001@sip.local",
+      route: Routes.simpleRoute01
+    })
+    await locator.addRoute({
+      aor: "sip:1001@sip.local",
+      route: Routes.simpleRoute02
+    })
 
     const findRoutesRequest1 = {
       callId: "3848276298220188511",
@@ -72,23 +78,23 @@ describe("@routr/location", () => {
 
   it("find next backend using least-sessions", async () => {
     const locator = new Locator(new MemoryStore())
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice_ls@sip.local",
       route: Routes.voiceBackendRoute01
     })
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice_ls@sip.local",
       route: Routes.voiceBackendRoute02
     })
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice_ls@sip.local",
       route: Routes.voiceBackendRoute03
     })
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice_ls@sip.local",
       route: Routes.voiceBackendRoute04
     })
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice_ls@sip.local",
       route: Routes.voiceBackendRoute05
     })
@@ -109,23 +115,23 @@ describe("@routr/location", () => {
 
   it("find next backend using round-robin", async () => {
     const locator = new Locator(new MemoryStore())
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice_rr@sip.local",
       route: Routes.voiceBackendRoute05
     })
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice_rr@sip.local",
       route: Routes.voiceBackendRoute04
     })
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice_rr@sip.local",
       route: Routes.voiceBackendRoute03
     })
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice_rr@sip.local",
       route: Routes.voiceBackendRoute02
     })
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice_rr@sip.local",
       route: Routes.voiceBackendRoute01
     })
@@ -217,15 +223,15 @@ describe("@routr/location", () => {
 
   it("find next backend with session affinity enabled", async () => {
     const locator = new Locator(new MemoryStore())
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:conference@sip.local",
       route: Routes.conferenceWithExpiredRoute
     })
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:conference@sip.local",
       route: Routes.conferenceBackendRoute02
     })
-    locator.addRoute({
+    await locator.addRoute({
       aor: "sip:conference@sip.local",
       route: Routes.conferenceBackendRoute01
     })
@@ -258,9 +264,89 @@ describe("@routr/location", () => {
       .to.be.equal("conference01")
   })
 
+  it("checks if maxContacts has been reached (passing a different route)", async () => {
+    const locator = new Locator(new MemoryStore())
+    await await locator.addRoute({
+      aor: "sip:voice@sip.local",
+      route: Routes.voiceBackendRoute01,
+      maxContacts: 1
+    })
+
+    try {
+      await await locator.addRoute({
+        aor: "sip:voice@sip.local",
+        route: Routes.voiceBackendRoute02,
+        maxContacts: 1
+      })
+      throw new Error("Test failed - no error thrown")
+    } catch (error) {
+      expect(error.message).to.equal("exceeds maximum of 1 allowed contacts")
+    }
+  })
+
+  it("checks if maxContacts has been reached (passing the same route)", async () => {
+    const locator = new Locator(new MemoryStore())
+    await await locator.addRoute({
+      aor: "sip:voice@sip.local",
+      route: Routes.voiceBackendRoute01,
+      maxContacts: 1
+    })
+
+    // It should not throw an error since it is the same route
+    await await locator.addRoute({
+      aor: "sip:voice@sip.local",
+      route: Routes.voiceBackendRoute01,
+      maxContacts: 1
+    })
+
+    try {
+      await await locator.addRoute({
+        aor: "sip:voice@sip.local",
+        route: Routes.voiceBackendRoute02,
+        maxContacts: 1
+      })
+      throw new Error("Test failed - no error thrown")
+    } catch (error) {
+      expect(error.message).to.equal("exceeds maximum of 1 allowed contacts")
+    }
+  })
+
+  it("checks if maxContacts has been reached (combining routes)", async () => {
+    const locator = new Locator(new MemoryStore())
+    await await locator.addRoute({
+      aor: "sip:voice@sip.local",
+      route: Routes.voiceBackendRoute01,
+      maxContacts: 2
+    })
+
+    await await locator.addRoute({
+      aor: "sip:voice@sip.local",
+      route: Routes.voiceBackendRoute01,
+      maxContacts: 2
+    })
+
+    // It should not throw an error since two of the routes are the same
+    await await locator.addRoute({
+      aor: "sip:voice@sip.local",
+      route: Routes.voiceBackendRoute02,
+      maxContacts: 2
+    })
+
+    try {
+      await await locator.addRoute({
+        aor: "sip:voice@sip.local",
+        route: Routes.voiceBackendRoute03,
+        maxContacts: 1
+      })
+      throw new Error("Test failed - no error thrown")
+    } catch (error) {
+      expect(error.message).to.equal("exceeds maximum of 1 allowed contacts")
+    }
+  })
+
   it("find next backend using deprecated 'backend:' schema", async () => {
     const locator = new Locator(new MemoryStore())
-    locator.addRoute({
+    await locator.addRoute({
       aor: "backend:voice_ls",
       route: Routes.voiceBackendRoute01
     })

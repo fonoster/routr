@@ -91,6 +91,16 @@ export default {
             }
           }
         },
+        maxContacts: {
+          description:
+            "The maximum number of contacts acceptable for this Peer",
+          type: "integer"
+        },
+        expires: {
+          description:
+            "Time, in seconds, to override the expires requested by the Peer",
+          type: "integer"
+        },
         enabled: {
           description: "Whether the Peer is enabled",
           type: "boolean"

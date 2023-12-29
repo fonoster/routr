@@ -48,6 +48,8 @@ describe("@routr/pgdata/mappers/peer", () => {
       enabled: true,
       createdAt: new Date().getTime() / 1000,
       updatedAt: new Date().getTime() / 1000,
+      maxContacts: 1,
+      expires: 3600,
       extended: {
         test: "test"
       }
@@ -92,6 +94,8 @@ describe("@routr/pgdata/mappers/peer", () => {
           test: "test"
         }
       },
+      maxContacts: 1,
+      expires: 3600,
       accessControlListRef: "acl-01",
       accessControlList: {
         apiVersion: "v2" as APIVersion,

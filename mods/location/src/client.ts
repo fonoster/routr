@@ -67,9 +67,10 @@ export default class Location implements ILocationService {
    * @param {AddRouteRequest} request - Add route request
    * @param {string} request.aor - AOR of the route
    * @param {Route} request.route - Route to add
+   * @param {number} request.maxContacts - Max number of contacts to accept
    * @return {Promise<void>}
    */
-  public addRoute(request: AddRouteRequest): Promise<void> {
+  public async addRoute(request: AddRouteRequest): Promise<void> {
     return container(
       this,
       request,
@@ -84,7 +85,7 @@ export default class Location implements ILocationService {
    * @param {string} request.aor - AOR of the route
    * @param {Map<string, string>} request.labels - Optional Route labels (reserved for future use)
    * @param {object} request.backend - Optional Route backend (reserved for future use)
-   * @return {Promise<void>}
+   * @return {Promise<Route[]>}
    */
   public async findRoutes(request: FindRoutesRequest): Promise<Route[]> {
     return (
@@ -101,7 +102,7 @@ export default class Location implements ILocationService {
    * @param {string} request.aor - AOR of the route
    * @return {Promise<void>}
    */
-  public removeRoutes(request: RemoveRoutesRequest): Promise<void> {
+  public async removeRoutes(request: RemoveRoutesRequest): Promise<void> {
     return container(
       this,
       request,

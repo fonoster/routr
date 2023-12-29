@@ -36,6 +36,8 @@ export function mapToAgent(config: AgentConfig): Agent {
     privacy: config.spec.privacy ?? Privacy.NONE,
     enabled: config.spec.enabled as boolean,
     domainRef: config.spec.domainRef,
-    credentialsRef: config.spec.credentialsRef
+    credentialsRef: config.spec.credentialsRef,
+    maxContacts: config.spec.maxContacts,
+    expires: config.spec.expires
   }
 }

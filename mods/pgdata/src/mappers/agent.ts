@@ -87,6 +87,8 @@ export class AgentManager extends EntityManager {
       updatedAt: this.agent.updatedAt
         ? new Date(this.agent.updatedAt * 1000)
         : undefined,
+      maxContacts: this.agent.maxContacts,
+      expires: this.agent.expires,
       extended: this.agent.extended || {}
     }
   }
@@ -104,6 +106,8 @@ export class AgentManager extends EntityManager {
           credentialsRef: agent.credentialsRef,
           domain: DomainManager.mapToDto(agent.domain),
           credentials: CredentialsManager.mapToDto(agent.credentials),
+          maxContacts: agent.maxContacts,
+          expires: agent.expires,
           extended: (agent.extended || {}) as JsonObject,
           createdAt: agent.createdAt.getTime() / 1000,
           updatedAt: agent.updatedAt.getTime() / 1000

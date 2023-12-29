@@ -25,6 +25,8 @@ model Agent {
   name           String     @db.VarChar(60)
   username       String     @unique @db.VarChar(60)
   privacy        Privacy    @default(NONE)
+  maxContacts    Int        @map("max_contacts")
+  expires        Int
   enabled        Boolean    @default(true)
   createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -50,6 +52,8 @@ model Peer {
   contactAddr          String?                 @map("contact_addr") @db.VarChar(20)
   balancingAlgorithm   LoadBalancingAlgorithm? @map("balancing_algorithm")
   withSessionAffinity  Boolean                 @default(false) @map("with_session_affinity")
+  maxContacts          Int                     @map("max_contacts")
+  expires              Int
   enabled              Boolean                 @default(true)
   createdAt            DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt            DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)

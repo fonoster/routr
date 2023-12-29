@@ -51,11 +51,11 @@ export const handleRegister = (
       const auth = { ...request.message.authorization }
       auth.method = request.method
       const fromURI = request.message.from.address.uri
-      const peerOrAgent = await findResource(
+      const peerOrAgent = (await findResource(
         apiClient,
         fromURI.host,
         fromURI.user
-      )
+      )) as any
 
       if (!peerOrAgent) {
         return res.send(Auth.createForbideenResponse())
@@ -80,10 +80,10 @@ export const handleRegister = (
         )
       }
 
-      // TODO: Needs test
       await location.addRoute({
         aor: "aor" in peerOrAgent ? peerOrAgent.aor : T.getTargetAOR(request),
-        route: H.createRoute(request)
+        route: H.createRoute(request),
+        maxContacts: peerOrAgent.maxContacts
       })
 
       res.sendRegisterOk(request)

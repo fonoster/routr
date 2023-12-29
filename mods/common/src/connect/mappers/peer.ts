@@ -42,6 +42,8 @@ export function mapToPeer(config: PeerConfig): Peer {
     balancingAlgorithm: normalizeAlgorithm(
       config.spec.loadBalancing?.algorithm
     ),
-    withSessionAffinity: config.spec.loadBalancing?.withSessionAffinity
+    withSessionAffinity: config.spec.loadBalancing?.withSessionAffinity,
+    maxContacts: config.spec.maxContacts,
+    expires: config.spec.expires
   }
 }

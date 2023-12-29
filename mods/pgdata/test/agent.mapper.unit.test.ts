@@ -46,6 +46,8 @@ describe("@routr/pgdata/mappers/agent", () => {
       extended: {
         test: "test"
       },
+      maxContacts: 1,
+      expires: 3600,
       createdAt: new Date().getTime() / 1000,
       updatedAt: new Date().getTime() / 1000
     }
@@ -85,6 +87,8 @@ describe("@routr/pgdata/mappers/agent", () => {
       },
       createdAt: new Date(),
       updatedAt: new Date(),
+      maxContacts: 1,
+      expires: 3600,
       domain: {
         apiVersion: "v2" as APIVersion,
         ref: "domain-01",
