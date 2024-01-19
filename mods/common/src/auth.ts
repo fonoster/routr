@@ -91,6 +91,7 @@ export const createUnauthorizedResponseWithoutChallenge = (
   }
 }
 
+// FIXME: Doesn't belong in Auth module
 export const createServerInternalErrorResponse = (
   metadata?: Record<string, string>
 ) => {
@@ -103,6 +104,7 @@ export const createServerInternalErrorResponse = (
   }
 }
 
+// FIXME: Doesn't belong in Auth module
 export const createForbideenResponse = (metadata?: Record<string, string>) => {
   return {
     metadata,

@@ -143,6 +143,21 @@ export default class Response {
   }
 
   /**
+   * Sends a forbidden response.
+   *
+   * @param {string} message - Optional message to be sent.
+   */
+  sendForbidden(message?: string) {
+    this.callback(
+      null,
+      buildResponse({
+        code: CT.ResponseType.FORBIDDEN,
+        reasonPhrase: message || "Forbidden"
+      })
+    )
+  }
+
+  /**
    * Sends a response with a SIP Message.
    *
    * @param {MessageRequest} message - The request message. Accepts MessageRequest or a Record.

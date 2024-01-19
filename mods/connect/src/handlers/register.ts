@@ -80,13 +80,19 @@ export const handleRegister = (
         )
       }
 
-      await location.addRoute({
-        aor: "aor" in peerOrAgent ? peerOrAgent.aor : T.getTargetAOR(request),
-        route: H.createRoute(request),
-        maxContacts: peerOrAgent.maxContacts
-      })
-
-      res.sendRegisterOk(request)
+      try {
+        await location.addRoute({
+          aor: "aor" in peerOrAgent ? peerOrAgent.aor : T.getTargetAOR(request),
+          route: H.createRoute(request),
+          maxContacts: peerOrAgent.maxContacts
+        })
+        res.sendRegisterOk(request)
+      } catch (e) {
+        // TODO: If it is a bad request then we should downgrade to verbose
+        logger.error(e)
+        // TODO: Check if forbidden error
+        res.sendForbidden(e.details)
+      }
     } else if (hasXConnectObjectHeader(request)) {
       const connectToken = E.getHeaderValue(
         request,

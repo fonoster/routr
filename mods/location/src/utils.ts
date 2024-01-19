@@ -66,11 +66,12 @@ export const getServiceInfo = (
           const routes = await locator.findRoutes(
             call.request as FindRoutesRequest
           )
-          if (routes.length === 0)
+
+          if (routes.length === 0) {
             throw new NotRoutesFoundForAOR(call.request.aor)
-          callback(null, {
-            routes: routes
-          })
+          }
+
+          callback(null, { routes })
         } catch (e) {
           callback(e, null)
         }

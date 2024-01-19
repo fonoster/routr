@@ -32,6 +32,8 @@ const container = (self: Location, request: RequestType, name: string) => {
     self.location[name](request, (err: { code: number }, response: unknown) => {
       if (err?.code === grpc.status.UNAVAILABLE) {
         return reject(new CE.ServiceUnavailableError(self.config.addr))
+      } else if (err?.code) {
+        return reject(err)
       }
       resolve(response)
     })
