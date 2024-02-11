@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -16,10 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, Route, Transport } from "@routr/common"
-import { CommonTypes as CT } from "@routr/common"
-import { Extensions as E, Target as T } from "@routr/processor"
 /* eslint-disable require-jsdoc */
+import {
+  MessageRequest,
+  Route,
+  Transport,
+  CommonTypes as CT
+} from "@routr/common"
+import { Extensions as E, Target as T } from "@routr/processor"
 
 // TODO: Before finalizing this, consider using the old approach of saving the rport
 // and received values (like here:

@@ -1,6 +1,5 @@
-/* eslint-disable require-jsdoc */
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -17,8 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable require-jsdoc */
 import { UnsupportedSchema } from "./errors"
-import { CommonErrors as CE } from "@routr/common"
+import { Route, CommonTypes as CT, CommonErrors as CE } from "@routr/common"
 import {
   AddRouteRequest,
   FindRoutesRequest,
@@ -26,7 +26,6 @@ import {
   ILocatorStore,
   RemoveRoutesRequest
 } from "./types"
-import { Route, CommonTypes as CT } from "@routr/common"
 import { filterOnlyMatchingLabels } from "./utils"
 
 enum AOR_SCHEME {

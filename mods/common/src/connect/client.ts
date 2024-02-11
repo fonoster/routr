@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -18,9 +18,9 @@
  */
 /* eslint-disable require-jsdoc */
 import * as grpc from "@grpc/grpc-js"
-import protoLoader = require("@grpc/proto-loader")
 import { toPascalCase } from "../helper"
 import { Kind, KindWithoutUnknown } from "./types"
+import protoLoader = require("@grpc/proto-loader")
 
 const protoOptions = {
   keepCase: false,

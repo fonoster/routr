@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/fonoster
  *
  * This file is part of Fonoster
@@ -22,7 +22,7 @@ import { BaseCommand } from "./base"
 import { CLIError } from "@oclif/core/lib/errors"
 
 export default abstract class DeleteCommand extends BaseCommand {
-  static args = [{ name: "ref" }]
+  static readonly args = [{ name: "ref" }]
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async deleteResource(API: any, funcName: string) {

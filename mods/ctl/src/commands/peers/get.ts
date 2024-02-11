@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -26,17 +26,17 @@ import { CLIError } from "@oclif/core/lib/errors"
 import { CommandError } from "@oclif/core/lib/interfaces"
 
 export default class GetCommand extends BaseCommand {
-  static description =
+  static readonly description =
     "Shows a list of paginated Peers or a single Peer if ref is provided"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Ref                                  Name                Username   AOR                Balancing Algorithm Session Affinity 
 6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local ROUND_ROBIN         Yes 
 `
   ]
 
-  static flags = {
+  static readonly flags = {
     size: Flags.integer({
       char: "s",
       description: "the number of items to return",

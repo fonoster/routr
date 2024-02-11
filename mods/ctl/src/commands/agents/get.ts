@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -27,17 +27,17 @@ import { CommandError } from "@oclif/core/lib/interfaces"
 import { CommonTypes as CT } from "@routr/common"
 
 export default class GetAgentsCommand extends BaseCommand {
-  static description =
+  static readonly description =
     "Shows a list of paginated Agents or a single Agent if ref is provided"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Ref                                  Name     Username Domain    Privacy Enabled
 d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local PRIVATE Yes
 `
   ]
 
-  static flags = {
+  static readonly flags = {
     size: Flags.integer({
       char: "s",
       description: "The number of items to return",

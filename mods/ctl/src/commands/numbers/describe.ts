@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -24,8 +24,8 @@ import SDK from "@routr/sdk"
 import moment from "moment"
 
 export default class DescribeCommand extends BaseCommand {
-  static description = "shows details for a Number"
-  static args = [
+  static readonly description = "shows details for a Number"
+  static readonly args = [
     {
       name: "ref",
       required: false,

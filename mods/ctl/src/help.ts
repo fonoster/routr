@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -17,10 +17,8 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-// import { Help } from "@oclif/plugin-help"
-
-import { Help } from "@oclif/core"
 import * as figlet from "figlet"
+import { Help } from "@oclif/core"
 
 export default class MyHelpClass extends Help {
   protected async showRootHelp() {

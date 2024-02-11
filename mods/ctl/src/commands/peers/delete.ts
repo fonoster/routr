@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -21,9 +21,9 @@ import DeleteCommand from "../../delete"
 import SDK from "@routr/sdk"
 
 export default class DeletePeerCommand extends DeleteCommand {
-  static description = "Deletes a Peer"
+  static readonly description = "Deletes a Peer"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 `

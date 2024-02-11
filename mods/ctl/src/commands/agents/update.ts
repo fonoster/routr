@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -29,15 +29,15 @@ import SDK from "@routr/sdk"
 import inquirer from "inquirer"
 
 export default class UpdateCommand extends BaseCommand {
-  static description = "Updates an existing Agent"
+  static readonly description = "Updates an existing Agent"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
 `
   ]
 
-  static args = [
+  static readonly args = [
     {
       name: "ref",
       required: true,

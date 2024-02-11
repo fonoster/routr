@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -30,9 +30,9 @@ import SDK from "@routr/sdk"
 import inquirer from "inquirer"
 
 export default class CreateCommand extends BaseCommand {
-  static description = "Creates a new ACL"
+  static readonly description = "Creates a new ACL"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 `
