@@ -72,7 +72,7 @@ export function getRTPEParamsByDirection(dir: Direction) {
     case Direction.PHONE_TO_WEB:
       return {
         "transport-protocol": "UDP/TLS/RTP/SAVPF",
-        "rtcp-mux": "required",
+        "rtcp-mux": "require",
         ICE: "force",
         SDES: "off",
         flags: [
