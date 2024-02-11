@@ -60,7 +60,7 @@ export default class Location implements ILocationService {
     }
 
     const existingRoutes = await this.store.get(request.aor)
-    const routeExists = existingRoutes.some(
+    const routeAlreadyExists = existingRoutes.some(
       (route) =>
         route.user === request.route.user &&
         route.host === request.route.host &&
@@ -69,15 +69,15 @@ export default class Location implements ILocationService {
     )
 
     if (
-      !routeExists &&
-      request.maxContacts !== undefined &&
+      !routeAlreadyExists &&
+      request.maxContacts !== -1 &&
       existingRoutes.length >= request.maxContacts
     ) {
       throw new CE.BadRequestError(
         `exceeds maximum of ${request.maxContacts} allowed contacts`
       )
     }
-    return await this.store.put(request.aor, request.route)
+    return this.store.put(request.aor, request.route)
   }
 
   /** @inheritdoc */

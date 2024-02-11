@@ -43,11 +43,13 @@ describe("@routr/location", () => {
 
     await locator.addRoute({
       aor: "sip:1001@sip.local",
-      route: Routes.simpleRoute01
+      route: Routes.simpleRoute01,
+      maxContacts: -1
     })
     await locator.addRoute({
       aor: "sip:1001@sip.local",
-      route: Routes.simpleRoute02
+      route: Routes.simpleRoute02,
+      maxContacts: -1
     })
 
     const findRoutesRequest1 = {
@@ -80,23 +82,28 @@ describe("@routr/location", () => {
     const locator = new Locator(new MemoryStore())
     await locator.addRoute({
       aor: "sip:voice_ls@sip.local",
-      route: Routes.voiceBackendRoute01
+      route: Routes.voiceBackendRoute01,
+      maxContacts: -1
     })
     await locator.addRoute({
       aor: "sip:voice_ls@sip.local",
-      route: Routes.voiceBackendRoute02
+      route: Routes.voiceBackendRoute02,
+      maxContacts: -1
     })
     await locator.addRoute({
       aor: "sip:voice_ls@sip.local",
-      route: Routes.voiceBackendRoute03
+      route: Routes.voiceBackendRoute03,
+      maxContacts: -1
     })
     await locator.addRoute({
       aor: "sip:voice_ls@sip.local",
-      route: Routes.voiceBackendRoute04
+      route: Routes.voiceBackendRoute04,
+      maxContacts: -1
     })
     await locator.addRoute({
       aor: "sip:voice_ls@sip.local",
-      route: Routes.voiceBackendRoute05
+      route: Routes.voiceBackendRoute05,
+      maxContacts: -1
     })
 
     const findRoutesRequest1: FindRoutesRequest = {
@@ -117,23 +124,28 @@ describe("@routr/location", () => {
     const locator = new Locator(new MemoryStore())
     await locator.addRoute({
       aor: "sip:voice_rr@sip.local",
-      route: Routes.voiceBackendRoute05
+      route: Routes.voiceBackendRoute05,
+      maxContacts: -1
     })
     await locator.addRoute({
       aor: "sip:voice_rr@sip.local",
-      route: Routes.voiceBackendRoute04
+      route: Routes.voiceBackendRoute04,
+      maxContacts: -1
     })
     await locator.addRoute({
       aor: "sip:voice_rr@sip.local",
-      route: Routes.voiceBackendRoute03
+      route: Routes.voiceBackendRoute03,
+      maxContacts: -1
     })
     await locator.addRoute({
       aor: "sip:voice_rr@sip.local",
-      route: Routes.voiceBackendRoute02
+      route: Routes.voiceBackendRoute02,
+      maxContacts: -1
     })
     await locator.addRoute({
       aor: "sip:voice_rr@sip.local",
-      route: Routes.voiceBackendRoute01
+      route: Routes.voiceBackendRoute01,
+      maxContacts: -1
     })
 
     const findRoutesRequest1 = {
@@ -225,15 +237,18 @@ describe("@routr/location", () => {
     const locator = new Locator(new MemoryStore())
     await locator.addRoute({
       aor: "sip:conference@sip.local",
-      route: Routes.conferenceWithExpiredRoute
+      route: Routes.conferenceWithExpiredRoute,
+      maxContacts: -1
     })
     await locator.addRoute({
       aor: "sip:conference@sip.local",
-      route: Routes.conferenceBackendRoute02
+      route: Routes.conferenceBackendRoute02,
+      maxContacts: -1
     })
     await locator.addRoute({
       aor: "sip:conference@sip.local",
-      route: Routes.conferenceBackendRoute01
+      route: Routes.conferenceBackendRoute01,
+      maxContacts: -1
     })
 
     const findRoutesRequest1 = {
@@ -266,14 +281,14 @@ describe("@routr/location", () => {
 
   it("checks if maxContacts has been reached (passing a different route)", async () => {
     const locator = new Locator(new MemoryStore())
-    await await locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice@sip.local",
       route: Routes.voiceBackendRoute01,
       maxContacts: 1
     })
 
     try {
-      await await locator.addRoute({
+      await locator.addRoute({
         aor: "sip:voice@sip.local",
         route: Routes.voiceBackendRoute02,
         maxContacts: 1
@@ -286,21 +301,21 @@ describe("@routr/location", () => {
 
   it("checks if maxContacts has been reached (passing the same route)", async () => {
     const locator = new Locator(new MemoryStore())
-    await await locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice@sip.local",
       route: Routes.voiceBackendRoute01,
       maxContacts: 1
     })
 
     // It should not throw an error since it is the same route
-    await await locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice@sip.local",
       route: Routes.voiceBackendRoute01,
       maxContacts: 1
     })
 
     try {
-      await await locator.addRoute({
+      await locator.addRoute({
         aor: "sip:voice@sip.local",
         route: Routes.voiceBackendRoute02,
         maxContacts: 1
@@ -313,27 +328,27 @@ describe("@routr/location", () => {
 
   it("checks if maxContacts has been reached (combining routes)", async () => {
     const locator = new Locator(new MemoryStore())
-    await await locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice@sip.local",
       route: Routes.voiceBackendRoute01,
       maxContacts: 2
     })
 
-    await await locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice@sip.local",
       route: Routes.voiceBackendRoute01,
       maxContacts: 2
     })
 
     // It should not throw an error since two of the routes are the same
-    await await locator.addRoute({
+    await locator.addRoute({
       aor: "sip:voice@sip.local",
       route: Routes.voiceBackendRoute02,
       maxContacts: 2
     })
 
     try {
-      await await locator.addRoute({
+      await locator.addRoute({
         aor: "sip:voice@sip.local",
         route: Routes.voiceBackendRoute03,
         maxContacts: 1
@@ -348,7 +363,8 @@ describe("@routr/location", () => {
     const locator = new Locator(new MemoryStore())
     await locator.addRoute({
       aor: "backend:voice_ls",
-      route: Routes.voiceBackendRoute01
+      route: Routes.voiceBackendRoute01,
+      maxContacts: 1
     })
 
     const findRoutesRequest1 = {

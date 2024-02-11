@@ -33,7 +33,7 @@ export interface ILocatorStore {
 export interface AddRouteRequest {
   aor: string
   route: Route
-  maxContacts?: number
+  maxContacts: number
 }
 
 export interface FindRoutesRequest {

@@ -25,5 +25,6 @@ export interface VerifyResponse {
   aor: string
   aorLink: string
   username: string
+  maxContacts: number
   allowedMethods: Method[]
 }

@@ -149,6 +149,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         enabled: true,
         domainRef: "domain-01",
         credentialsRef: "credentials-01",
+        maxContacts: -1,
         extended: {
           test: "test"
         },
@@ -176,6 +177,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         enabled: true,
         domainRef: "domain-01",
         credentialsRef: "credentials-01",
+        maxContacts: -1,
         extended: {
           test: "test"
         },
@@ -207,6 +209,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         enabled: true,
         domainRef: "domain-01",
         credentialsRef: "credentials-01",
+        maxContacts: -1,
         extended: {
           test: "test"
         },
@@ -232,6 +235,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         enabled: true,
         domainRef: "domain-01",
         credentialsRef: "credentials-01",
+        maxContacts: -1,
         extended: {
           test: "test"
         },
@@ -257,6 +261,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         enabled: true,
         domainRef: "domain-01",
         credentialsRef: "credentials-01",
+        maxContacts: -1,
         extended: {
           test: "test"
         },

@@ -138,6 +138,7 @@ describe("@routr/pgdata/mappers/peer", () => {
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
         enabled: true,
+        maxContacts: -1,
         createdAt: new Date().getTime() / 1000,
         updatedAt: new Date().getTime() / 1000,
         extended: {
@@ -168,6 +169,7 @@ describe("@routr/pgdata/mappers/peer", () => {
         enabled: true,
         createdAt: new Date().getTime() / 1000,
         updatedAt: new Date().getTime() / 1000,
+        maxContacts: -1,
         extended: {
           test: "test"
         }
@@ -197,6 +199,7 @@ describe("@routr/pgdata/mappers/peer", () => {
         username: "asterisk",
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
+        maxContacts: -1,
         enabled: true,
         createdAt: new Date().getTime() / 1000,
         updatedAt: new Date().getTime() / 1000,
@@ -223,6 +226,7 @@ describe("@routr/pgdata/mappers/peer", () => {
         username: "",
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
+        maxContacts: -1,
         enabled: true,
         createdAt: new Date().getTime() / 1000,
         updatedAt: new Date().getTime() / 1000,
@@ -249,6 +253,7 @@ describe("@routr/pgdata/mappers/peer", () => {
         username: "asterisk space",
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
+        maxContacts: -1,
         enabled: true,
         createdAt: new Date().getTime() / 1000,
         updatedAt: new Date().getTime() / 1000,
@@ -277,6 +282,7 @@ describe("@routr/pgdata/mappers/peer", () => {
         username: "asterisk",
         aor: "",
         contactAddr: "192.168.1.12",
+        maxContacts: -1,
         enabled: true,
         createdAt: new Date().getTime() / 1000,
         updatedAt: new Date().getTime() / 1000,
@@ -303,6 +309,7 @@ describe("@routr/pgdata/mappers/peer", () => {
         username: "asterisk",
         aor: "backendx:aor-01",
         contactAddr: "192.168.1.12:5060",
+        maxContacts: -1,
         enabled: true,
         createdAt: new Date().getTime() / 1000,
         updatedAt: new Date().getTime() / 1000,

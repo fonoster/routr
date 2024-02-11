@@ -70,7 +70,7 @@ export interface Agent extends BaseConnectModel {
   enabled: boolean
   domainRef?: string
   domain?: Domain
-  maxContacts?: number
+  maxContacts: number
   expires?: number
   credentialsRef?: string
   credentials?: Credentials
@@ -126,7 +126,7 @@ export interface Peer extends BaseConnectModel {
   accessControlList?: AccessControlList
   credentialsRef?: string
   credentials?: Credentials
-  maxContacts?: number
+  maxContacts: number
   expires?: number
   balancingAlgorithm?: LoadBalancingAlgorithm
   withSessionAffinity?: boolean

@@ -74,7 +74,7 @@ export default function rtprelay(
       if (H.isInviteOrAckWithSDP(req)) {
         return await sendRequest(offer)
       } else if (H.isRinging(req) && direction === Direction.WEB_TO_PHONE) {
-        // Fixme: This was added to prevent the ringing message from being sent to the
+        // FIXME: This was added to prevent the ringing message from being sent to the
         // caller while the call is being established. This is a temporary fix
         req.message.body = ""
         return res.send(req)

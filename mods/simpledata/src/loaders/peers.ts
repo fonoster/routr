@@ -43,5 +43,8 @@ export function peersLoader(
     list
   ) as CC.Credentials
 
+  // maxContacts -1 means no limit
+  peer.maxContacts = peer.maxContacts || -1
+
   return peer
 }

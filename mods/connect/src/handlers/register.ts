@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as grpc from "@grpc/grpc-js"
 import { Helper as H, ILocationService } from "@routr/location"
 import {
   Extensions as E,
@@ -88,10 +89,14 @@ export const handleRegister = (
         })
         res.sendRegisterOk(request)
       } catch (e) {
-        // TODO: If it is a bad request then we should downgrade to verbose
+        if (e.code === grpc.status.INVALID_ARGUMENT) {
+          const details = (e as unknown as { details: string }).details
+          res.sendForbidden(details)
+          logger.verbose(details)
+          return
+        }
         logger.error(e)
-        // TODO: Check if forbidden error
-        res.sendForbidden(e.details)
+        res.sendInternalServerError()
       }
     } else if (hasXConnectObjectHeader(request)) {
       const connectToken = E.getHeaderValue(
@@ -110,7 +115,8 @@ export const handleRegister = (
 
         await location.addRoute({
           aor: payload.aor,
-          route: H.createRoute(request)
+          route: H.createRoute(request),
+          maxContacts: payload.maxContacts || -1
         })
 
         res.sendRegisterOk(request)
