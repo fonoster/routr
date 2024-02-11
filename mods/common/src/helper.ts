@@ -108,10 +108,10 @@ export const readConfigFile = (path: string): Record<string, any> => {
   }
 }
 
-export const toPascaleCase = (str: string) => {
+export const toPascalCase = (str: string): string => {
   return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
-      return index === 0 ? word.toUpperCase() : word.toUpperCase()
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => {
+      return word.toUpperCase()
     })
     .replace(/\s+/g, "")
 }

@@ -40,11 +40,10 @@ import {
   hasXConnectObjectHeader
 } from "./utils"
 import { MessageRequest, Target as T, Extensions as E } from "@routr/processor"
-import { ILocationService } from "@routr/location"
+import { ILocationService, Backend } from "@routr/location"
 import { UnsuportedRoutingError } from "./errors"
 import { getLogger } from "@fonoster/logger"
 import { checkAccess } from "./access"
-import { Backend } from "@routr/location"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 const jwtVerifier = getVerifierImpl()
@@ -84,7 +83,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
 
         caller = {
           apiVersion: CC.APIVersion.V2,
-          ref: payload.ref as string,
+          ref: payload.ref,
           name: request.message.from.address.displayName ?? CT.ANONYMOUS,
           domain: domain,
           domainRef: payload.domainRef,
@@ -155,7 +154,11 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
       }
     }
 
-    const result = (direction: RoutingDirection, route: Route, extended: any) =>
+    const result = (
+      direction: RoutingDirection,
+      route: Route,
+      extended: Record<string, unknown>
+    ) =>
       route
         ? {
             direction,

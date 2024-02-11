@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 /*
  * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -18,10 +19,8 @@
  */
 import { JsonObject } from "pb-util/build"
 
-/* eslint-disable require-jsdoc */
 export abstract class EntityManager {
-  static includeFields: () => JsonObject
+  static readonly includeFields: () => JsonObject
   abstract validOrThrowCreate(): void
   abstract validOrThrowUpdate(): void
-  // abstract mapToPrisma<T>(): T
 }

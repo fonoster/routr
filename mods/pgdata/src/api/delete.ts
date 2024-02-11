@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 /*
  * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -16,13 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable require-jsdoc */
 import * as grpc from "@grpc/grpc-js"
 import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
 import { CommonTypes as CT, CommonErrors as CE } from "@routr/common"
 import { PrismaOperation } from "../types"
 
-// TODO: Fix the error handling. We should return the error
 export function del(operation: PrismaOperation) {
   return async (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (!call.request.ref) {

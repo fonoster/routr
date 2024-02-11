@@ -55,7 +55,7 @@ export const handleRegister = (
         apiClient,
         fromURI.host,
         fromURI.user
-      )) as any
+      )) as CC.Peer | CC.Agent
 
       if (!peerOrAgent) {
         return res.send(Auth.createForbideenResponse())
