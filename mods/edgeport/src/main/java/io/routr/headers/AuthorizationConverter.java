@@ -56,10 +56,11 @@ public class AuthorizationConverter implements Converter<Authorization, io.routr
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     AddressFactory addrFactory = SipFactory.getInstance().createAddressFactory();
     Authorization header = (Authorization) factory.createAuthorizationHeader(dto.getScheme());
-    header.setNonceCount(dto.getNonceCount());
+
     header.setRealm(dto.getRealm());
     header.setOpaque(dto.getOpaque());
 
+    if (dto.getNonceCount() > -1) header.setNonceCount(dto.getNonceCount());
     if (!dto.getNonce().isEmpty()) header.setNonce(dto.getNonce());
     if (!dto.getCNonce().isEmpty()) header.setCNonce(dto.getCNonce());
     if (!dto.getAlgorithm().isEmpty()) header.setAlgorithm(dto.getAlgorithm());

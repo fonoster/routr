@@ -16,7 +16,7 @@
       [last_Call-ID:]
       [last_CSeq:]
       Contact: <sip:[local_ip]:[local_port];transport=[transport]>
-      WWW-Authenticate: Digest realm="sip.provider.net", nonce="47ebe028cda119c35d4877b383027d28da013815"
+      WWW-Authenticate: Digest realm="sip.provider.net", nonce="47ebe028cda119c35d4877b383027d28da013815", algorithm=MD5
       Content-Length: [len]
     ]]>
   </send>

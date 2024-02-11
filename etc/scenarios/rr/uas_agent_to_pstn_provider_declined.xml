@@ -16,7 +16,7 @@
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Content-Length: 0
       Server: SIP Gateway
-      WWW-Authenticate: Digest realm="provider", nonce="d6b6b6b6"
+      WWW-Authenticate: Digest realm="provider", nonce="d6b6b6b6", algorithm=MD5
     ]]>
   </send>
 

@@ -21,7 +21,7 @@ Routr is a lightweight sip proxy, location server, and registrar that provides a
 * [Deployment](#deployment)
     * [Docker](#instant-server-deployment-with-docker-and-compose)
     * [Kubernetes](#kubernetes)  
-    * [Gitpod](#deploying-in-development-mode-with-gitpod)
+    * [Gitpod](#development-mode-with-gitpod)
 * [Getting started with the CTL](#getting-started-with-the-ctl)
 * [First steps with the NodeSDK](#first-steps-with-the-nodesdk)
 * [Custom Processors and Middleware](#building-custom-processors-and-middleware)
@@ -211,7 +211,7 @@ You should see a list of pods and their status. If the status is Running, then y
 
 For more details, please refer to the chart's [README](https://github.com/fonoster/routr/blob/main/ops/charts/connect/README.md).
 
-### Deploying in development mode with Gitpod
+### Development mode with Gitpod
 
 Routr's one-click interactive deployment will familiarize you with the server in development mode.
 
@@ -445,4 +445,4 @@ Find all our supporters [here](https://github.com/sponsors/fonoster)
 
 ## License
 
-Copyright (C) 2023 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/fonoster/blob/master/LICENSE) for details).
+Copyright (C) 2024 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/fonoster/blob/master/LICENSE) for details).

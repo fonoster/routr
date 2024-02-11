@@ -1,6 +1,6 @@
 {
   "name": "@routr/simpledata",
-  "version": "2.6.2",
+  "version": "2.6.3",
   "description": "Files-based API Server for Routr Connect",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
