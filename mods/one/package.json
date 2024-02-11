@@ -1,6 +1,6 @@
 {
   "name": "@routr/one",
-  "version": "2.6.3",
+  "version": "2.6.4",
   "description": "Bundle server with everything needed to run Routr Connect",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -25,7 +25,7 @@
     "@routr/dispatcher": "^2.6.2",
     "@routr/location": "^2.6.2",
     "@routr/pgdata": "^2.6.2",
-    "@routr/rtprelay": "^2.6.2"
+    "@routr/rtprelay": "^2.6.4"
   },
   "files": [
     "dist"
