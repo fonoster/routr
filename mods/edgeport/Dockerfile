@@ -4,12 +4,12 @@
 FROM alpine:3.19 AS builder
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 WORKDIR /work
 
 COPY .scripts/custom-jre.sh .
 
-RUN apk add --no-cache --update openjdk11-jdk \
+RUN apk add --no-cache --update g++ openjdk17-jdk \
   && sh custom-jre.sh
 
 ##  
