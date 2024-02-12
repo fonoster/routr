@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -29,7 +29,7 @@ export const expiredFilter = (r: Route) =>
   r.expires - (Date.now() - r.registeredOn) / 1000 > 0
 
 export const duplicateFilter = (r1: Route, r2: Route) =>
-  !(r1.host === r2.host && r1.port === r2.port)
+  !(r1.host === r2.host && r1.port === r2.port && r1.transport === r2.transport)
 
 export const mergeKeyValue = (map: Map<string, string>) =>
   Array.from(map).map((l) => l[0] + l[1])
@@ -53,9 +53,9 @@ export const getServiceInfo = (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     service: (LOCATION_OBJECT_PROTO as any).Location.service,
     handlers: {
-      addRoute: (call: CT.GrpcCall, callback) => {
+      addRoute: async (call: CT.GrpcCall, callback) => {
         try {
-          locator.addRoute(call.request as AddRouteRequest)
+          await locator.addRoute(call.request as AddRouteRequest)
           callback(null, {})
         } catch (e) {
           callback(e, null)
@@ -66,11 +66,12 @@ export const getServiceInfo = (
           const routes = await locator.findRoutes(
             call.request as FindRoutesRequest
           )
-          if (routes.length === 0)
+
+          if (routes.length === 0) {
             throw new NotRoutesFoundForAOR(call.request.aor)
-          callback(null, {
-            routes: routes
-          })
+          }
+
+          callback(null, { routes })
         } catch (e) {
           callback(e, null)
         }

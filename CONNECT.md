@@ -122,7 +122,7 @@ Furthermore, an Agent can utilize the custom header X-Connect-Token to transmit 
 {
   "ref": "agent-01",
   "aor": "sip:1001@sip.local",
-  "aorLink": "backend:voice",
+  "aorLink": "sip:voice@sip.local",
   "domain": "sip.local",
   "domainRef": "domain-01",
   "allowedMethods": [ "INVITE", "REGISTER"],
@@ -245,7 +245,7 @@ Numbers represent virtual numbers that route calls from/to the PSTN via a Trunk.
     "trunkRef": "trunk-01",
     "location": {
       "telUrl": "tel:+17066041487",
-      "aorLink": "backend:conference",
+      "aorLink": "sip:conference@sip.local",
       "sessionAffinityHeader": "X-Room-Id",
       "extraHeaders": [{
         "name": "X-Room-Id",
@@ -268,7 +268,7 @@ Like Agents, Peers represent SIP endpoints such as Media Servers. Unlike Agents,
   },
   "spec": {
     "username": "asterisk",
-    "aor": "backend:conference",
+    "aor": "sip:conference@sip.local",
     "contactAddr": "192.168.1.2:6060",
     "credentialsRef": "credentials-01",
     "loadBalancing": {

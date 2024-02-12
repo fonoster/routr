@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -59,6 +59,7 @@ export * as Tracer from "./tracer"
 export * as Assertions from "./assertions"
 export * as CommonConnect from "./connect"
 export * as CommonRequester from "./requester"
+export * as CommonResponse from "./response"
 export * as CommonTypes from "./types"
 export * as CommonErrors from "./errors"
 export * as ConnectSchemas from "./connect/schemas"

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -46,6 +46,8 @@ describe("@routr/pgdata/mappers/agent", () => {
       extended: {
         test: "test"
       },
+      maxContacts: 1,
+      expires: 3600,
       createdAt: new Date().getTime() / 1000,
       updatedAt: new Date().getTime() / 1000
     }
@@ -85,6 +87,8 @@ describe("@routr/pgdata/mappers/agent", () => {
       },
       createdAt: new Date(),
       updatedAt: new Date(),
+      maxContacts: 1,
+      expires: 3600,
       domain: {
         apiVersion: "v2" as APIVersion,
         ref: "domain-01",
@@ -145,6 +149,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         enabled: true,
         domainRef: "domain-01",
         credentialsRef: "credentials-01",
+        maxContacts: -1,
         extended: {
           test: "test"
         },
@@ -172,6 +177,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         enabled: true,
         domainRef: "domain-01",
         credentialsRef: "credentials-01",
+        maxContacts: -1,
         extended: {
           test: "test"
         },
@@ -203,6 +209,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         enabled: true,
         domainRef: "domain-01",
         credentialsRef: "credentials-01",
+        maxContacts: -1,
         extended: {
           test: "test"
         },
@@ -228,6 +235,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         enabled: true,
         domainRef: "domain-01",
         credentialsRef: "credentials-01",
+        maxContacts: -1,
         extended: {
           test: "test"
         },
@@ -253,6 +261,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         enabled: true,
         domainRef: "domain-01",
         credentialsRef: "credentials-01",
+        maxContacts: -1,
         extended: {
           test: "test"
         },

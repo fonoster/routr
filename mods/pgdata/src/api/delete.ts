@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -22,7 +22,6 @@ import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
 import { CommonTypes as CT, CommonErrors as CE } from "@routr/common"
 import { PrismaOperation } from "../types"
 
-// TODO: Fix the error handling. We should return the error
 export function del(operation: PrismaOperation) {
   return async (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (!call.request.ref) {

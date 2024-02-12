@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -25,5 +25,6 @@ export interface VerifyResponse {
   aor: string
   aorLink: string
   username: string
+  maxContacts: number
   allowedMethods: Method[]
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -26,17 +26,17 @@ import { CLIError } from "@oclif/core/lib/errors"
 import { CommandError } from "@oclif/core/lib/interfaces"
 
 export default class GetTrunksCommand extends BaseCommand {
-  static description =
+  static readonly description =
     "Shows a list of paginated Trunks or a single Trunk if ref is provided"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Ref                                  Name   Inbound SIP URI 
 8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local  sip.t01.provider.net
 `
   ]
 
-  static flags = {
+  static readonly flags = {
     size: Flags.integer({
       char: "s",
       description: "the number of items to return",

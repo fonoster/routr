@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -26,17 +26,17 @@ import { CLIError } from "@oclif/core/lib/errors"
 import { CommandError } from "@oclif/core/lib/interfaces"
 
 export default class GetDomainsCommand extends BaseCommand {
-  static description =
+  static readonly description =
     "Shows a list of paginated Domains or a single Domain if ref is provided"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Ref                                  Name         URI            
 ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
 `
   ]
 
-  static flags = {
+  static readonly flags = {
     size: Flags.integer({
       char: "s",
       description: "the number of items to return",

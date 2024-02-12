@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -18,9 +18,9 @@
  */
 import { RoutingDirection } from "./types"
 import {
-  Auth,
   CommonConnect as CC,
   CommonTypes as CT,
+  CommonResponse as CR,
   HeaderModifier,
   Route,
   Method,
@@ -40,11 +40,10 @@ import {
   hasXConnectObjectHeader
 } from "./utils"
 import { MessageRequest, Target as T, Extensions as E } from "@routr/processor"
-import { ILocationService } from "@routr/location"
+import { ILocationService, Backend } from "@routr/location"
 import { UnsuportedRoutingError } from "./errors"
 import { getLogger } from "@fonoster/logger"
 import { checkAccess } from "./access"
-import { Backend } from "@routr/location"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 const jwtVerifier = getVerifierImpl()
@@ -70,7 +69,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
 
       try {
         if (!jwtVerifier) {
-          return Auth.createServerInternalErrorResponse()
+          return CR.createServerInternalErrorResponse()
         }
 
         const payload = (await jwtVerifier.verify(
@@ -79,12 +78,12 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
         const domain = await findDomain(apiClient, payload.domain)
 
         if (!payload.allowedMethods.includes(Method.INVITE)) {
-          return Auth.createForbideenResponse()
+          return CR.createForbideenResponse()
         }
 
         caller = {
           apiVersion: CC.APIVersion.V2,
-          ref: payload.ref as string,
+          ref: payload.ref,
           name: request.message.from.address.displayName ?? CT.ANONYMOUS,
           domain: domain,
           domainRef: payload.domainRef,
@@ -117,7 +116,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
         logger.verbose("unable to validate connect token", {
           originalError: e.message
         })
-        return Auth.createForbideenResponse()
+        return CR.createForbideenResponse()
       }
     } else {
       caller = await findResource(apiClient, fromURI.host, fromURI.user)
@@ -155,7 +154,11 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
       }
     }
 
-    const result = (direction: RoutingDirection, route: Route, extended: any) =>
+    const result = (
+      direction: RoutingDirection,
+      route: Route,
+      extended: Record<string, unknown>
+    ) =>
       route
         ? {
             direction,
@@ -236,16 +239,15 @@ async function fromPSTN(
   const sessionAffinityRef = E.getHeaderValue(req, callee.sessionAffinityHeader)
   let backend: Backend
 
-  if (callee.aorLink.startsWith("backend:")) {
-    const peer = (
-      await apiClient.peers.findBy({
-        fieldName: "aor",
-        fieldValue: callee.aorLink
-      })
-    ).items[0]
+  const peer = (
+    await apiClient.peers.findBy({
+      fieldName: "aor",
+      fieldValue: callee.aorLink
+    })
+  ).items[0]
 
+  if (peer) {
     backend = {
-      ref: peer.ref,
       balancingAlgorithm: peer.balancingAlgorithm,
       withSessionAffinity: peer.withSessionAffinity
     }
@@ -350,7 +352,6 @@ async function agentToPeer(
   req: MessageRequest
 ) {
   const backend: Backend = {
-    ref: callee.ref,
     balancingAlgorithm: callee.balancingAlgorithm,
     withSessionAffinity: callee.withSessionAffinity
   }

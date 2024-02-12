@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -21,13 +21,12 @@ import { LoadBalancingAlgorithm } from "../../types"
 import { PeerConfig } from "../config"
 import { schemaValidators } from "../schemas"
 import { Peer, Kind } from "../types"
-import { assertValidAorSchema, assertValidSchema } from "./assertions"
+import { assertValidSchema } from "./assertions"
 
 const valid = schemaValidators.get(Kind.PEER)
 
 export function mapToPeer(config: PeerConfig): Peer {
   assertValidSchema(config, valid)
-  assertValidAorSchema(config)
   const normalizeAlgorithm = (algorithm: string) =>
     algorithm?.replace(/-/g, "_").toUpperCase() as LoadBalancingAlgorithm
 
@@ -43,6 +42,8 @@ export function mapToPeer(config: PeerConfig): Peer {
     balancingAlgorithm: normalizeAlgorithm(
       config.spec.loadBalancing?.algorithm
     ),
-    withSessionAffinity: config.spec.loadBalancing?.withSessionAffinity
+    withSessionAffinity: config.spec.loadBalancing?.withSessionAffinity,
+    maxContacts: config.spec.maxContacts,
+    expires: config.spec.expires
   }
 }

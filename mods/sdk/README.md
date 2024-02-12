@@ -966,7 +966,7 @@ const peers = new SDK.Peers()
 const request = {
   name: "Asterisk Conference Server",
   username: "conference",
-  aor: "backend:conference",
+  aor: "sip:conference@sip.local",
   contactAddr: "10.0.0.1:5060",
   accessControlListRef: "4671371b-ff5d-48b1-aabe-d3c5ca5317a3",
   credentialsRef: "4671371b-ff5d-48b1-aabe-d3c5ca5317a3",
@@ -1012,7 +1012,7 @@ Creates a new Peer on Routr.
 const request = {
   name: "Asterisk Conference Server",
   username: "conference",
-  aor: "backend:conference",
+  aor: "sip:conference@sip.local",
   contactAddr: "10.0.0.1:5060",
   accessControlListRef: "4671371b-ff5d-48b1-aabe-d3c5ca5317a3",
   credentialsRef: "4671371b-ff5d-48b1-aabe-d3c5ca5317a3",

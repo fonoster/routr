@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -16,12 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable require-jsdoc */
 import { JsonObject } from "pb-util/build"
 
-/* eslint-disable require-jsdoc */
 export abstract class EntityManager {
-  static includeFields: () => JsonObject
+  static readonly includeFields: () => JsonObject
   abstract validOrThrowCreate(): void
   abstract validOrThrowUpdate(): void
-  // abstract mapToPrisma<T>(): T
 }

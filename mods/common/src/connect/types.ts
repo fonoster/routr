@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -70,6 +70,8 @@ export interface Agent extends BaseConnectModel {
   enabled: boolean
   domainRef?: string
   domain?: Domain
+  maxContacts: number
+  expires?: number
   credentialsRef?: string
   credentials?: Credentials
 }
@@ -124,6 +126,8 @@ export interface Peer extends BaseConnectModel {
   accessControlList?: AccessControlList
   credentialsRef?: string
   credentials?: Credentials
+  maxContacts: number
+  expires?: number
   balancingAlgorithm?: LoadBalancingAlgorithm
   withSessionAffinity?: boolean
 }

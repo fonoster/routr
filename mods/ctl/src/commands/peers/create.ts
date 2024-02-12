@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -35,9 +35,9 @@ import {
 } from "../../validators"
 
 export default class CreateCommand extends BaseCommand {
-  static description = "Creates a new Peer"
+  static readonly description = "Creates a new Peer"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 `
@@ -107,6 +107,11 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           validate: contactAddrValidator
         },
         {
+          name: "maxContacts",
+          message: "Max Contacts",
+          type: "input"
+        },
+        {
           name: "accessControlListRef",
           message: "IP Access Control List",
           choices: [{ name: "None", value: undefined }, ...aclList],
@@ -122,8 +127,7 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           name: "withSessionAffinity",
           message: "Enable Session Affinity?",
           type: "confirm",
-          default: false,
-          when: (answers) => answers.aor.startsWith("backend:")
+          default: false
         },
         {
           name: "balancingAlgorithm",
@@ -139,8 +143,7 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
             }
           ],
           type: "list",
-          default: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
-          when: (answers) => answers.aor.startsWith("backend:")
+          default: CT.LoadBalancingAlgorithm.ROUND_ROBIN
         },
         {
           name: "enabled",

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -33,15 +33,15 @@ import SDK from "@routr/sdk"
 import inquirer from "inquirer"
 
 export default class UpdatePeerCommand extends BaseCommand {
-  static description = "Updates an existing Peer"
+  static readonly description = "Updates an existing Peer"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
 `
   ]
 
-  static args = [
+  static readonly args = [
     {
       name: "ref",
       required: true,
@@ -109,6 +109,12 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
           validate: contactAddrValidator
         },
         {
+          name: "maxContacts",
+          message: "Max Contacts",
+          type: "input",
+          default: peerFromDB.maxContacts === -1 ? "" : peerFromDB.maxContacts
+        },
+        {
           name: "accessControlListRef",
           message: "IP Access Control List",
           choices: [{ name: "None", value: undefined }, ...aclList],
@@ -126,8 +132,7 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "withSessionAffinity",
           message: "Enable Session Affinity?",
           type: "confirm",
-          default: peerFromDB.withSessionAffinity,
-          when: (answers) => answers.aor.startsWith("backend:")
+          default: peerFromDB.withSessionAffinity
         },
         {
           name: "balancingAlgorithm",
@@ -143,8 +148,7 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
             }
           ],
           type: "list",
-          default: peerFromDB.balancingAlgorithm,
-          when: (answers) => answers.aor.startsWith("backend:")
+          default: peerFromDB.balancingAlgorithm
         },
         {
           name: "enabled",

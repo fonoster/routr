@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -107,6 +107,11 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           message: "Credentials Name",
           type: "list",
           choices: [{ name: "None", value: undefined }, ...credentialsList]
+        },
+        {
+          name: "maxContacts",
+          message: "Max Contacts",
+          type: "input"
         },
         {
           name: "privacy",

@@ -157,7 +157,7 @@ Filename: `numbers.yaml`
     trunkRef: trunk-01
     location:
       telUrl: tel:+17066041487
-      aorLink: backend:conference
+      aorLink: sip:conference@sip.local
       sessionAffinityHeader: X-Room-Id
       extraHeaders:
         - name: X-Room-Id
@@ -251,7 +251,7 @@ Filename: `peers.yaml`
   metadata:
     name: Asterisk (Media Server)
   spec:
-    aor: backend:conference
+    aor: sip:conference@sip.local
     username: asterisk
     credentialsRef: credentials-03
     loadBalancing:

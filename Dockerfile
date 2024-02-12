@@ -1,17 +1,17 @@
 ##
 ## Build and pack the service
 ##
-FROM alpine:3.18 as builder
+FROM alpine:3.19 as builder
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 WORKDIR /work
 
 COPY mods/one .
 COPY mods/pgdata/schema.prisma .
 COPY .scripts/custom-jre.sh .
 
-RUN apk add --no-cache --update npm nodejs curl git tini python3 make cmake g++ openjdk11-jdk \
+RUN apk add --no-cache --update npm nodejs curl git tini python3 make cmake g++ openjdk17-jdk \
   && sh custom-jre.sh \
   && npm install --omit=dev \
   && mv schema.prisma node_modules/@routr/pgdata/ \
@@ -23,7 +23,7 @@ RUN apk add --no-cache --update npm nodejs curl git tini python3 make cmake g++ 
 ##  
 ## Runner
 ##
-FROM alpine:3.18 as runner
+FROM alpine:3.19 as runner
 
 ARG PKCS_PASSWORD=changeme
 ARG POSTGRES_USER=postgres
@@ -42,8 +42,7 @@ ENV PKCS_PASSWORD=$PKCS_PASSWORD \
   CA_CERT_SUBJECT=$CA_CERT_SUBJECT \
   SERVER_CERT_SUBJECT=$SERVER_CERT_SUBJECT \
   DATABASE_URL=postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/routr \
-  IGNORE_LOOPBACK_FROM_LOCALNETS=true \
-  LOG4J2=/etc/routr/log4j2.yaml
+  IGNORE_LOOPBACK_FROM_LOCALNETS=true
 
 WORKDIR /service
 

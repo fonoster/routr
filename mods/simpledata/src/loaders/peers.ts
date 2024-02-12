@@ -1,6 +1,5 @@
-/* eslint-disable require-jsdoc */
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -17,8 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable require-jsdoc */
 import { CommonConnect as CC } from "@routr/common"
+import { getLogger } from "@fonoster/logger"
 import { findByRef } from "./find"
+
+const logger = getLogger({ service: "simpledata", filePath: __filename })
 
 export function peersLoader(
   config: CC.UserConfig,
@@ -28,10 +31,20 @@ export function peersLoader(
     throw new Error("invalid resource type `Peer`")
 
   const peer = CC.mapToPeer(config)
+
+  if (peer.aor.startsWith("backend:")) {
+    logger.warn(
+      "'backend:' prefix to be removed in upcoming updates. please use 'sip:' for compatibility."
+    )
+  }
+
   peer.credentials = findByRef(
     config.spec.credentialsRef,
     list
   ) as CC.Credentials
+
+  // maxContacts -1 means no limit
+  peer.maxContacts = peer.maxContacts || -1
 
   return peer
 }

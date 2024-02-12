@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as grpc from "@grpc/grpc-js"
 import { Helper as H, ILocationService } from "@routr/location"
 import {
   Extensions as E,
@@ -27,6 +28,7 @@ import {
   Auth,
   CommonConnect as CC,
   CommonTypes as CT,
+  CommonResponse as CR,
   Method,
   Verifier
 } from "@routr/common"
@@ -51,14 +53,14 @@ export const handleRegister = (
       const auth = { ...request.message.authorization }
       auth.method = request.method
       const fromURI = request.message.from.address.uri
-      const peerOrAgent = await findResource(
+      const peerOrAgent = (await findResource(
         apiClient,
         fromURI.host,
         fromURI.user
-      )
+      )) as CC.Peer | CC.Agent
 
       if (!peerOrAgent) {
-        return res.send(Auth.createForbideenResponse())
+        return res.send(CR.createForbideenResponse())
       }
 
       const credentials = (
@@ -76,17 +78,27 @@ export const handleRegister = (
 
       if (calcRes !== auth.response) {
         return res.send(
-          Auth.createUnauthorizedResponse(request.message.requestUri.host)
+          CR.createUnauthorizedResponse(request.message.requestUri.host)
         )
       }
 
-      // TODO: Needs test
-      await location.addRoute({
-        aor: "aor" in peerOrAgent ? peerOrAgent.aor : T.getTargetAOR(request),
-        route: H.createRoute(request)
-      })
-
-      res.sendRegisterOk(request)
+      try {
+        await location.addRoute({
+          aor: "aor" in peerOrAgent ? peerOrAgent.aor : T.getTargetAOR(request),
+          route: H.createRoute(request),
+          maxContacts: peerOrAgent.maxContacts
+        })
+        res.sendRegisterOk(request)
+      } catch (e) {
+        if (e.code === grpc.status.INVALID_ARGUMENT) {
+          const details = (e as unknown as { details: string }).details
+          res.sendForbidden(details)
+          logger.verbose(details)
+          return
+        }
+        logger.error(e)
+        res.sendInternalServerError()
+      }
     } else if (hasXConnectObjectHeader(request)) {
       const connectToken = E.getHeaderValue(
         request,
@@ -99,12 +111,13 @@ export const handleRegister = (
         )) as Verifier.VerifyResponse
 
         if (!payload.allowedMethods.includes(Method.REGISTER)) {
-          return res.send(Auth.createForbideenResponse())
+          return res.send(CR.createForbideenResponse())
         }
 
         await location.addRoute({
           aor: payload.aor,
-          route: H.createRoute(request)
+          route: H.createRoute(request),
+          maxContacts: payload.maxContacts || -1
         })
 
         res.sendRegisterOk(request)
@@ -112,10 +125,10 @@ export const handleRegister = (
         logger.verbose("unable to validate connect token", {
           originalError: e.message
         })
-        res.send(Auth.createForbideenResponse())
+        res.send(CR.createForbideenResponse())
       }
     } else {
-      res.send(Auth.createUnauthorizedResponse(request.message.requestUri.host))
+      res.send(CR.createUnauthorizedResponse(request.message.requestUri.host))
     }
   }
 }

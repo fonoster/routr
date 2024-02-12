@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -28,15 +28,15 @@ import inquirer from "inquirer"
 import { nameValidator, usernameValidator } from "../../validators"
 
 export default class UpdateCommand extends BaseCommand {
-  static description = "Updates an existing set of Credentials"
+  static readonly description = "Updates an existing set of Credentials"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
 `
   ]
 
-  static args = [
+  static readonly args = [
     {
       name: "ref",
       required: true,

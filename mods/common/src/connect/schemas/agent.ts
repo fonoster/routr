@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -62,6 +62,16 @@ export default {
         credentialsRef: {
           description: "The credential the Agent uses to authenticate",
           type: "string"
+        },
+        maxContacts: {
+          description:
+            "The maximum number of contacts acceptable for this Agent",
+          type: "integer"
+        },
+        expires: {
+          description:
+            "Time, in seconds, to override the expires requested by the Agent",
+          type: "integer"
         },
         enabled: {
           description: "Whether the Agent is enabled (reserved for future use)",

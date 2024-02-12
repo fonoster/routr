@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -33,6 +33,7 @@ export interface ILocatorStore {
 export interface AddRouteRequest {
   aor: string
   route: Route
+  maxContacts: number
 }
 
 export interface FindRoutesRequest {
@@ -53,7 +54,8 @@ export interface RemoveRoutesRequest {
 }
 
 export interface Backend {
-  ref: string
+  // Keep this for backward compatibility
+  ref?: string
   balancingAlgorithm: CT.LoadBalancingAlgorithm
   withSessionAffinity: boolean
 }

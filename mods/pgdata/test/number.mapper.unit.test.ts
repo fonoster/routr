@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -39,7 +39,7 @@ describe("@routr/pgdata/mappers/number", () => {
       trunkRef: "trunk-01",
       name: "(785)317-8070",
       telUrl: "tel:+17853178070",
-      aorLink: "backend:aor-01",
+      aorLink: "sip:aor-01@sip.local",
       city: "Durham",
       country: "United States",
       countryIsoCode: "US",
@@ -189,7 +189,7 @@ describe("@routr/pgdata/mappers/number", () => {
         trunkRef: "trunk-01",
         name: "",
         telUrl: "tel:+17853178070",
-        aorLink: "backend:aor-01",
+        aorLink: "sip:aor-01@sip.local",
         city: "Durham",
         country: "United States",
         countryIsoCode: "US",
@@ -224,7 +224,7 @@ describe("@routr/pgdata/mappers/number", () => {
         trunkRef: "trunk-01",
         name: "a".repeat(65),
         telUrl: "tel:+17853178070",
-        aorLink: "backend:aor-01",
+        aorLink: "sip:aor-01@sip.local",
         city: "Durham",
         country: "United States",
         countryIsoCode: "US",
@@ -263,7 +263,7 @@ describe("@routr/pgdata/mappers/number", () => {
         trunkRef: "trunk-01",
         name: "(785)317-8070",
         telUrl: "tel:+17853178070",
-        aorLink: "backend:aor-01",
+        aorLink: "sip:aor-01@sip.local",
         city: "Durham",
         country: "United States",
         countryIsoCode: "US",
@@ -296,7 +296,7 @@ describe("@routr/pgdata/mappers/number", () => {
         trunkRef: "trunk-01",
         name: "(785)317-8070",
         telUrl: "",
-        aorLink: "backend:aor-01",
+        aorLink: "sip:aor-01@sip.local",
         city: "Durham",
         country: "United States",
         countryIsoCode: "US",
@@ -328,7 +328,7 @@ describe("@routr/pgdata/mappers/number", () => {
         trunkRef: "trunk-01",
         name: "(785)317-8070",
         telUrl: "tel:+17853178070",
-        aorLink: "backend:aor-01",
+        aorLink: "sip:aor-01@sip.local",
         city: "Durham",
         country: "United States",
         countryIsoCode: "US",

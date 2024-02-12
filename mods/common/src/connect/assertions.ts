@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import { BadRequestError } from "../errors"
-import { LoadBalancingAlgorithm } from "../types"
 import { TrunkURI } from "./types"
 import {
   hasACLRules,
@@ -38,7 +37,6 @@ import {
   hasValidHeaders,
   isValidAOR,
   isValidAORLink,
-  isValidBalancingAlgorithm,
   isValidContactAddress,
   isValidDomainUri,
   isValidE164,
@@ -69,16 +67,6 @@ export const hasValidHeadersOrThrow = (
   headers: { name: string; value: string }[]
 ) => {
   const E = hasValidHeaders(headers)
-  if (E instanceof BadRequestError) {
-    throw E
-  }
-}
-
-export const isValidBalancingAlgorithmOrThrow = (
-  aor: string,
-  algorithm: LoadBalancingAlgorithm
-) => {
-  const E = isValidBalancingAlgorithm(aor, algorithm)
   if (E instanceof BadRequestError) {
     throw E
   }

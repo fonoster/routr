@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -60,6 +60,7 @@ message AddRouteRequest {
   // Address of record for the endpoint or trunk
   string aor = 1;
   Route route = 2;
+  int32 max_contacts = 3;
 }
 
 message FindRoutesRequest {

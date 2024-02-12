@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -42,6 +42,8 @@ export interface AgentConfig extends ConfigBase {
     domainRef: string
     credentialsRef: string
     privacy: Privacy
+    maxContacts?: number
+    expires?: number
     enabled: boolean
   }
 }
@@ -54,6 +56,8 @@ export interface PeerConfig extends ConfigBase {
     credentialsRef?: string
     contactAddr?: string
     enabled?: boolean
+    maxContacts?: number
+    expires?: number
     loadBalancing?: {
       algorithm: LoadBalancingAlgorithm
       withSessionAffinity: boolean

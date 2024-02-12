@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -85,7 +85,7 @@ export default function registryService(config: RegistryConfig) {
     const results = await Promise.allSettled(registryInvocations)
 
     results?.forEach(async (result) => {
-      logger.verbose("processing registration result", { result })
+      logger.silly("processing registration result", { result })
 
       if (result.status === "rejected") {
         logger.error("request rejected", result.reason)

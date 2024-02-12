@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -31,36 +31,36 @@ describe("@routr/location/redis_store", () => {
 
   it("puts value in a collection", async () => {
     const store = new RedisStore()
-    store.put("backend:voice", Routes.voiceBackendRoute01)
-    store.put("backend:voice", Routes.voiceBackendRoute02)
-    store.put("backend:voice", Routes.voiceBackendRoute02)
-    store.put("backend:conference", Routes.conferenceBackendRoute01)
-    store.put("backend:conference", Routes.conferenceBackendRoute01)
-    expect((await store.get("backend:voice")).length).to.be.equal(2)
-    expect((await store.get("backend:conference")).length).to.be.equal(1)
-    expect((await store.get("backend:voice"))[0])
+    store.put("sip:voice@sip.local", Routes.voiceBackendRoute01)
+    store.put("sip:voice@sip.local", Routes.voiceBackendRoute02)
+    store.put("sip:voice@sip.local", Routes.voiceBackendRoute02)
+    store.put("sip:conference@sip.local", Routes.conferenceBackendRoute01)
+    store.put("sip:conference@sip.local", Routes.conferenceBackendRoute01)
+    expect((await store.get("sip:voice@sip.local")).length).to.be.equal(2)
+    expect((await store.get("sip:conference@sip.local")).length).to.be.equal(1)
+    expect((await store.get("sip:voice@sip.local"))[0])
       .to.be.have.property("user")
       .to.be.equal("voice02")
   })
 
   it("test removing all routes for an aor", async () => {
     const store = new RedisStore()
-    await store.delete("backend:voice")
-    store.put("backend:voice", Routes.voiceBackendRoute01)
-    store.put("backend:voice", Routes.voiceBackendRoute02)
-    store.put("backend:voice", Routes.voiceBackendRoute02)
-    await store.delete("backend:voice")
-    expect(await store.get("backend:voice")).to.be.empty
+    await store.delete("sip:voice@sip.local")
+    store.put("sip:voice@sip.local", Routes.voiceBackendRoute01)
+    store.put("sip:voice@sip.local", Routes.voiceBackendRoute02)
+    store.put("sip:voice@sip.local", Routes.voiceBackendRoute02)
+    await store.delete("sip:voice@sip.local")
+    expect(await store.get("sip:voice@sip.local")).to.be.empty
   })
 
   it("sets an expire route and clean the collection", async () => {
     const store = new RedisStore()
-    await store.delete("backend:voice")
-    await store.delete("backend:conference")
-    store.put("backend:voice", Routes.voiceBackendRoute01)
-    store.put("backend:voice", Routes.voiceBackendRoute02)
-    store.put("backend:voice", Routes.voiceBackendRoute02)
-    store.put("backend:conference", Routes.conferenceBackendRoute01)
-    expect((await store.get("backend:conference")).length).to.be.equal(1)
+    await store.delete("sip:voice@sip.local")
+    await store.delete("sip:conference@sip.local")
+    store.put("sip:voice@sip.local", Routes.voiceBackendRoute01)
+    store.put("sip:voice@sip.local", Routes.voiceBackendRoute02)
+    store.put("sip:voice@sip.local", Routes.voiceBackendRoute02)
+    store.put("sip:conference@sip.local", Routes.conferenceBackendRoute01)
+    expect((await store.get("sip:conference@sip.local")).length).to.be.equal(1)
   })
 })

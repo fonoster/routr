@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -39,9 +39,9 @@ import SDK from "@routr/sdk"
 import inquirer from "inquirer"
 
 export default class CreateNumberCommand extends BaseCommand {
-  static description = "Creates a new Number"
+  static readonly description = "Creates a new Number"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
 `

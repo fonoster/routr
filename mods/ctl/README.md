@@ -809,8 +809,8 @@ DESCRIPTION
 
 EXAMPLES
   $ rctl peers get
-  Ref                                  Name                Username   AOR                Balancing Algorithm Session Affinity 
-  6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference backend:conference ROUND_ROBIN         Yes
+  Ref                                  Name                Username   AOR                      Balancing Algorithm Session Affinity 
+  6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local ROUND_ROBIN         Yes
 ```
 
 _See code: [src/commands/peers/get.ts](https://github.com/fonoster/routr/blob/v2.6.4/mods/ctl/src/commands/peers/get.ts)_

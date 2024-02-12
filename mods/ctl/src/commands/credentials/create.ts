@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -29,9 +29,9 @@ import inquirer from "inquirer"
 import { nameValidator, usernameValidator } from "../../validators"
 
 export default class CreateCommand extends BaseCommand {
-  static description = "Creates a new set of Credentials"
+  static readonly description = "Creates a new set of Credentials"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 `

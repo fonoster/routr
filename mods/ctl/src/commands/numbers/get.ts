@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster
  *
  * This file is part of Routr.
@@ -27,17 +27,17 @@ import { CommandError } from "@oclif/core/lib/interfaces"
 import { JsonObject } from "pb-util/build"
 
 export default class GetNumbersCommand extends BaseCommand {
-  static description =
+  static readonly description =
     "Shows a list of paginated Numbers or a single Number if ref is provided"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Ref                                  Name           Telephony URL      AOR Link           Geo              
 a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@sip.local Cameron, USA (US)
 `
   ]
 
-  static flags = {
+  static readonly flags = {
     size: Flags.integer({
       char: "s",
       description: "the number of items to return",

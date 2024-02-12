@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -90,6 +90,16 @@ export default {
               type: "boolean"
             }
           }
+        },
+        maxContacts: {
+          description:
+            "The maximum number of contacts acceptable for this Peer",
+          type: "integer"
+        },
+        expires: {
+          description:
+            "Time, in seconds, to override the expires requested by the Peer",
+          type: "integer"
         },
         enabled: {
           description: "Whether the Peer is enabled",

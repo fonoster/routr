@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -59,6 +59,10 @@ const edgeportProcess = spawn(EDGEPORT_RUNNER)
 
 edgeportProcess.stdout.on("data", (data) => {
   process.stdout.write(`${data}`)
+})
+
+edgeportProcess.stderr.on("data", (data) => {
+  process.stderr.write(`${data}`)
 })
 
 edgeportProcess.on("error", (err) => {

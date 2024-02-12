@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -22,7 +22,8 @@ import sinonChai from "sinon-chai"
 import { getObjectProto } from "../src/service"
 import { addressCount, getLocalnetIp, isLocalnet } from "../src/ip_utils"
 import { getRedisUrlFromConfig } from "../src/redis"
-import { createUnauthorizedResponse, getCredentials } from "../src/auth"
+import { getCredentials } from "../src/auth"
+import { createUnauthorizedResponse } from "../src/response"
 import { ResponseType } from "../src/types"
 
 const expect = chai.expect

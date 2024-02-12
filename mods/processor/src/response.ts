@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -138,6 +138,21 @@ export default class Response {
       buildResponse({
         code: CT.ResponseType.SERVER_INTERNAL_ERROR,
         reasonPhrase: "Internal Server Error"
+      })
+    )
+  }
+
+  /**
+   * Sends a forbidden response.
+   *
+   * @param {string} message - Optional message to be sent.
+   */
+  sendForbidden(message?: string) {
+    this.callback(
+      null,
+      buildResponse({
+        code: CT.ResponseType.FORBIDDEN,
+        reasonPhrase: message || "Forbidden"
       })
     )
   }

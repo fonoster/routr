@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr
@@ -16,16 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AuthChallengeResponse, ResponseType } from "./types"
+import { AuthChallengeResponse } from "./types"
 import crypto from "crypto"
 
-const DEFAULT_ALGORITHM = "MD5"
+export const DEFAULT_ALGORITHM = "MD5"
 
 const md5hex = (str: string, algorithm = DEFAULT_ALGORITHM) =>
   crypto.createHash(algorithm).update(str).digest("hex")
 
-const decToHex = (dec: number) =>
-  (dec + Math.pow(16, 8)).toString(16).substr(-8)
+const decToHex = (dec: number) => (dec + Math.pow(16, 8)).toString(16).slice(-8)
 
 export const generateNonce = (algorithm: string = DEFAULT_ALGORITHM) =>
   md5hex(`${new Date().getTime()}${Math.random()}`, algorithm)
@@ -54,61 +53,3 @@ export const getCredentials = (
   username: string,
   users: { username: string; secret: string }[]
 ) => users.find((user) => user.username === username)
-
-export const createUnauthorizedResponse = (
-  realm: string,
-  params: {
-    qop: string
-    algorithm: string
-  } = { qop: "auth", algorithm: DEFAULT_ALGORITHM }
-) => {
-  return {
-    message: {
-      responseType: ResponseType.UNAUTHORIZED,
-      reasonPhrase: "Unauthorized",
-      wwwAuthenticate: {
-        scheme: "Digest",
-        realm: realm,
-        qop: params.qop,
-        opaque: "",
-        stale: false,
-        nonce: generateNonce(),
-        algorithm: params.algorithm
-      }
-    }
-  }
-}
-
-export const createUnauthorizedResponseWithoutChallenge = (
-  metadata?: Record<string, string>
-) => {
-  return {
-    metadata,
-    message: {
-      responseType: ResponseType.UNAUTHORIZED,
-      reasonPhrase: "Unauthorized"
-    }
-  }
-}
-
-export const createServerInternalErrorResponse = (
-  metadata?: Record<string, string>
-) => {
-  return {
-    metadata,
-    message: {
-      responseType: ResponseType.SERVER_INTERNAL_ERROR,
-      reasonPhrase: "Server Internal Error"
-    }
-  }
-}
-
-export const createForbideenResponse = (metadata?: Record<string, string>) => {
-  return {
-    metadata,
-    message: {
-      responseType: ResponseType.FORBIDDEN,
-      reasonPhrase: "Forbidden"
-    }
-  }
-}

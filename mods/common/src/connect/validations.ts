@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 by Fonoster Inc (https://fonoster.com)
+ * Copyright (C) 2024 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
  *
  * This file is part of Routr.
@@ -18,7 +18,6 @@
  */
 import * as Validator from "validator"
 import { BadRequestError } from "../errors"
-import { LoadBalancingAlgorithm } from "../types"
 import { phone } from "phone"
 
 export const hasReference = (ref: string) =>
@@ -202,25 +201,6 @@ export const isValidInboundUri = (inboundUri: string) => {
     )
   }
   return true
-}
-
-export const isValidBalancingAlgorithm = (
-  aor: string,
-  algorithm: LoadBalancingAlgorithm
-) => {
-  if (aor.startsWith("backend:")) {
-    if (!algorithm || algorithm === LoadBalancingAlgorithm.UNSPECIFIED) {
-      return new BadRequestError(
-        "when the aor schema is `backend:`, the balancing algorithm is required"
-      )
-    }
-  } else {
-    if (algorithm && algorithm !== LoadBalancingAlgorithm.UNSPECIFIED) {
-      return new BadRequestError(
-        "when the aor schema is `sip:`, the balancing algorithm is not allowed"
-      )
-    }
-  }
 }
 
 export const isValidPort = (port: string) => {
