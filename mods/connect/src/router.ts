@@ -18,9 +18,9 @@
  */
 import { RoutingDirection } from "./types"
 import {
-  Auth,
   CommonConnect as CC,
   CommonTypes as CT,
+  CommonResponse as CR,
   HeaderModifier,
   Route,
   Method,
@@ -69,7 +69,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
 
       try {
         if (!jwtVerifier) {
-          return Auth.createServerInternalErrorResponse()
+          return CR.createServerInternalErrorResponse()
         }
 
         const payload = (await jwtVerifier.verify(
@@ -78,7 +78,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
         const domain = await findDomain(apiClient, payload.domain)
 
         if (!payload.allowedMethods.includes(Method.INVITE)) {
-          return Auth.createForbideenResponse()
+          return CR.createForbideenResponse()
         }
 
         caller = {
@@ -116,7 +116,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
         logger.verbose("unable to validate connect token", {
           originalError: e.message
         })
-        return Auth.createForbideenResponse()
+        return CR.createForbideenResponse()
       }
     } else {
       caller = await findResource(apiClient, fromURI.host, fromURI.user)

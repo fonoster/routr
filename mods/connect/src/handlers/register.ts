@@ -28,6 +28,7 @@ import {
   Auth,
   CommonConnect as CC,
   CommonTypes as CT,
+  CommonResponse as CR,
   Method,
   Verifier
 } from "@routr/common"
@@ -59,7 +60,7 @@ export const handleRegister = (
       )) as CC.Peer | CC.Agent
 
       if (!peerOrAgent) {
-        return res.send(Auth.createForbideenResponse())
+        return res.send(CR.createForbideenResponse())
       }
 
       const credentials = (
@@ -77,7 +78,7 @@ export const handleRegister = (
 
       if (calcRes !== auth.response) {
         return res.send(
-          Auth.createUnauthorizedResponse(request.message.requestUri.host)
+          CR.createUnauthorizedResponse(request.message.requestUri.host)
         )
       }
 
@@ -110,7 +111,7 @@ export const handleRegister = (
         )) as Verifier.VerifyResponse
 
         if (!payload.allowedMethods.includes(Method.REGISTER)) {
-          return res.send(Auth.createForbideenResponse())
+          return res.send(CR.createForbideenResponse())
         }
 
         await location.addRoute({
@@ -124,10 +125,10 @@ export const handleRegister = (
         logger.verbose("unable to validate connect token", {
           originalError: e.message
         })
-        res.send(Auth.createForbideenResponse())
+        res.send(CR.createForbideenResponse())
       }
     } else {
-      res.send(Auth.createUnauthorizedResponse(request.message.requestUri.host))
+      res.send(CR.createUnauthorizedResponse(request.message.requestUri.host))
     }
   }
 }

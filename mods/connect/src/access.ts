@@ -22,6 +22,7 @@ import {
   MessageRequest,
   CommonTypes as CT,
   CommonConnect as CC,
+  CommonResponse as CR,
   IpUtils
 } from "@routr/common"
 import { RoutingDirection } from "./types"
@@ -40,11 +41,11 @@ export const checkAccess = async (accessRequest: {
     case RoutingDirection.PEER_TO_PSTN:
     case RoutingDirection.AGENT_TO_AGENT:
     case RoutingDirection.AGENT_TO_PSTN:
-      return checkAgentOrPeerAccess(request, caller as CC.RoutableResourceUnion)
+      return checkAgentOrPeerAccess(request, caller)
     case RoutingDirection.FROM_PSTN:
       return checkAccessFromPSTN(apiClient, request, callee as CC.INumber)
     case RoutingDirection.UNKNOWN:
-      return Auth.createForbideenResponse()
+      return CR.createForbideenResponse()
   }
 }
 
@@ -68,10 +69,10 @@ export const checkAgentOrPeerAccess = async (
     )
 
     if (calcRes !== auth.response) {
-      return Auth.createUnauthorizedResponse(request.message.requestUri.host)
+      return CR.createUnauthorizedResponse(request.message.requestUri.host)
     }
   } else {
-    return Auth.createUnauthorizedResponse(request.message.requestUri.host)
+    return CR.createUnauthorizedResponse(request.message.requestUri.host)
   }
 }
 
@@ -90,11 +91,11 @@ export const checkAccessFromPSTN = async (
 
   // If the Trunk or Number doesn't exist reject the call
   if (!callee || !trunk) {
-    return Auth.createForbideenResponse()
+    return CR.createForbideenResponse()
   }
 
   if (callee.trunk.ref !== trunk.ref) {
-    return Auth.createForbideenResponse()
+    return CR.createForbideenResponse()
   }
 
   // Verify that the IP is allowlist which means getting the access control list for the trunk
@@ -105,11 +106,11 @@ export const checkAccessFromPSTN = async (
       })[0]
 
       if (!allow) {
-        return Auth.createUnauthorizedResponseWithoutChallenge()
+        return CR.createUnauthorizedResponseWithoutChallenge()
       }
     } catch (e) {
       logger.error(e)
-      return Auth.createServerInternalErrorResponse()
+      return CR.createServerInternalErrorResponse()
     }
   }
 
@@ -130,10 +131,10 @@ export const checkAccessFromPSTN = async (
       )
 
       if (calcRes !== auth.response) {
-        return Auth.createUnauthorizedResponse(request.message.requestUri.host)
+        return CR.createUnauthorizedResponse(request.message.requestUri.host)
       }
     } else {
-      return Auth.createUnauthorizedResponse(request.message.requestUri.host)
+      return CR.createUnauthorizedResponse(request.message.requestUri.host)
     }
   }
 }

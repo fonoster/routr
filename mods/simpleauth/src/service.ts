@@ -19,7 +19,12 @@
  */
 import opentelemetry from "@opentelemetry/api"
 import Processor, { Response } from "@routr/processor"
-import { MessageRequest, Auth, CommonTypes as CT } from "@routr/common"
+import {
+  MessageRequest,
+  Auth,
+  CommonTypes as CT,
+  CommonResponse as CR
+} from "@routr/common"
 import { User } from "./types"
 import { getLogger } from "@fonoster/logger"
 
@@ -86,7 +91,7 @@ export default function simpleAuthMiddleware(config: {
           )
           span.end()
           return res.send(
-            Auth.createUnauthorizedResponse(req.message.requestUri.host)
+            CR.createUnauthorizedResponse(req.message.requestUri.host)
           )
         }
       } else {
@@ -95,7 +100,7 @@ export default function simpleAuthMiddleware(config: {
         )
         span.end()
         return res.send(
-          Auth.createUnauthorizedResponse(req.message.requestUri.host)
+          CR.createUnauthorizedResponse(req.message.requestUri.host)
         )
       }
       // Forward request to next middleware
