@@ -1,7 +1,7 @@
 ##
 ## Runner
 ##
-FROM alpine:3.19 as runner
+FROM alpine:3.19 AS runner
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 ARG CA_CERT_SUBJECT="/CN=Self Signed CA"
@@ -27,9 +27,9 @@ RUN chmod +x /generate-certs.sh \
   && npx prisma generate \
   && ln -s /usr/local/bin/run_pgdata /usr/local/bin/run \
   && apk del git python3 make cmake g++ npm \
-  && mkdir -p $PATH_TO_CERTS \
-  && chown -R 1000:3000 $PATH_TO_CERTS \
-  && chmod 700 $PATH_TO_CERTS \
+  && mkdir -p ${PATH_TO_CERTS} \
+  && chown -R 1000:3000 ${PATH_TO_CERTS} \
+  && chmod 700 ${PATH_TO_CERTS} \
   && rm -rf /scripts /var/cache/apk/* /tmp/* /var/tmp/* 
 
 USER 1000:3000
@@ -41,7 +41,7 @@ CMD ["sh", "-c", "set -e && /generate-certs.sh $PATH_TO_CERTS && run"]
 ##
 ## Migrations
 ##
-FROM node:16.15.1-alpine3.15 as migrations
+FROM node:18-alpine3.19 AS migrations
 
 WORKDIR /db
 

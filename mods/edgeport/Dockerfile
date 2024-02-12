@@ -1,21 +1,21 @@
 ##
 ## Build and pack the service
 ##
-FROM alpine:3.19 as builder
+FROM alpine:3.19 AS builder
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
 WORKDIR /work
 
 COPY .scripts/custom-jre.sh .
 
-RUN apk add --no-cache --update openjdk11-jdk \
+RUN apk add --no-cache --update g++ openjdk17-jdk \
   && sh custom-jre.sh
 
 ##  
 ## Runner
 ##
-FROM alpine:3.19 as runner 
+FROM alpine:3.19 AS runner 
 
 ARG PKCS12_PASSWORD=changeme
 ARG PATH_TO_CERTS=/etc/routr/certs
@@ -48,9 +48,9 @@ RUN apk add --no-cache tini openssl curl \
   && curl -L -o heplify https://github.com/sipcapture/heplify/releases/download/v1.65.10/heplify \
   && chmod +x heplify \
   && chmod +x edgeport.sh convert-to-p12.sh generate-certs.sh \
-  && mkdir -p $PATH_TO_CERTS $PATH_TO_LOGS \
-  && chown -R 1000:3000 $PATH_TO_CERTS $PATH_TO_LOGS \
-  && chmod 700 $PATH_TO_CERTS $PATH_TO_LOGS \
+  && mkdir -p ${PATH_TO_CERTS} ${PATH_TO_LOGS} \
+  && chown -R 1000:3000 ${PATH_TO_CERTS} ${PATH_TO_LOGS} \
+  && chmod 700 ${PATH_TO_CERTS} ${PATH_TO_LOGS} \
   && apk del curl
 
 USER 1000:3000
