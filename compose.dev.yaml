@@ -1,4 +1,99 @@
 services:
+  edgeport01:
+    container_name: edgeport01
+    user: root
+    build:
+      context: .
+      dockerfile: ./mods/edgeport/Dockerfile
+    environment:
+      LOGS_LEVEL: verbose
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    networks:
+      public:
+        ipv4_address: 10.111.220.2
+      internal:
+        ipv4_address: 10.111.221.2
+        aliases:
+          - sip01.edgeport.net
+
+  edgeport02:
+    container_name: edgeport02
+    user: root
+    build:
+      context: .
+      dockerfile: ./mods/edgeport/Dockerfile
+    environment:
+      LOGS_LEVEL: verbose
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    networks:
+      public:
+        ipv4_address: 10.111.220.3
+      internal:
+        ipv4_address: 10.111.221.3
+        aliases:
+          - sip02.edgeport.net
+
+  dispatcher:
+    container_name: dispatcher
+    build: ./mods/dispatcher
+    environment:
+      LOGS_LEVEL: verbose
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    networks:
+      internal:
+        ipv4_address: 10.111.221.4
+
+  location:
+    container_name: location
+    build: ./mods/location
+    environment:
+      LOGS_LEVEL: verbose
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    networks:
+      internal:
+        ipv4_address: 10.111.221.5
+
+  connect:
+    container_name: connect
+    build: ./mods/connect
+    environment:
+      LOGS_LEVEL: verbose
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    networks:
+      internal:
+        ipv4_address: 10.111.221.6
+
+  apiserver:
+    container_name: apiserver
+    build: ./mods/simpledata
+    environment:
+      LOGS_LEVEL: verbose
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    networks:
+      internal:
+        ipv4_address: 10.111.221.8
+
+  requester:
+    container_name: requester
+    build:
+      context: .
+      dockerfile: ./mods/requester/Dockerfile
+    environment:
+      LOGS_LEVEL: verbose
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    networks:
+      internal:
+        ipv4_address: 10.111.221.9
+
+  registry:
+    container_name: registry
+    build: ./mods/registry
+    environment:
+      LOGS_LEVEL: verbose
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    networks:
+      internal:
+        ipv4_address: 10.111.221.10
 
   # RTPEngine requires of network mode "host" to work properly. However, this option doesn't work on OSX.
   # For development, we are opening a few ports to the host machine. For production, you must use 
@@ -45,6 +140,58 @@ services:
     ports:
       - 8080:8080
 
+  # Tracing monitoring
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:1.30.0
+    ports:
+      - 16686:16686
+      - 14268:14268
+      - 14250:14250
+    networks:
+      internal:
+        ipv4_address: 10.111.221.12
+
+  #
+  # SIP End to End Test (SEET) compliance test for SIPConnect v1.1 support
+  # docker-compose up --abort-on-container-exit --exit-code-from compliance
+  #
+  compliance:
+    container_name: compliance
+    image: fonoster/seet
+    depends_on:
+      - edgeport01
+      - edgeport02
+      - dispatcher
+      - registry
+      - requester
+      - apiserver
+      - connect
+    environment:
+      SCENARIOS: /seet.json
+    ports:
+      - 7060:7060/udp
+    volumes:
+      - ./etc/seet.json/:/seet.json
+      - ./etc/scenarios:/scenarios
+    networks:
+      internal:
+        ipv4_address: 10.111.221.22
+        aliases:
+          - sip.provider.net
+
 volumes:
   db:
     driver: local
+
+networks:
+  public:
+    driver: "bridge"
+    ipam:
+      config:
+        - subnet: 10.111.220.0/24
+  internal:
+    driver: "bridge"
+    ipam:
+      config:
+        - subnet: 10.111.221.0/24

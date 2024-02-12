@@ -1,17 +1,9 @@
 version: "3"
 
 services:
-
   # Main EdgePort server
   edgeport01:
-    container_name: edgeport01
     image: fonoster/routr-edgeport
-    build:
-      context: .
-      dockerfile: ./mods/edgeport/Dockerfile
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     ports:
       - 5060:5060
       - 5060:5060/udp
@@ -20,24 +12,10 @@ services:
       - 5063:5063
     volumes:
       - ./config/edgeport.yaml:/etc/routr/edgeport.yaml
-    networks:
-      public:
-        ipv4_address: 10.111.220.2
-      internal:
-        ipv4_address: 10.111.221.2
-        aliases:
-          - sip01.edgeport.net
 
   # Secondary EdgePort server
   edgeport02:
-    container_name: edgeport02
     image: fonoster/routr-edgeport
-    build:
-      context: .
-      dockerfile: ./mods/edgeport/Dockerfile
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     ports:
       - 6060:6060
       - 6060:6060/udp
@@ -46,158 +24,51 @@ services:
       - 6063:6063
     volumes:
       - ./config/edgeport.alt.yaml:/etc/routr/edgeport.yaml
-    networks:
-      public:
-        ipv4_address: 10.111.220.3
-      internal:
-        ipv4_address: 10.111.221.3
-        aliases:
-          - sip02.edgeport.net
 
   # Takes care of routing traffic from the EdgePort servers
   dispatcher:
-    container_name: dispatcher
     image: fonoster/routr-dispatcher
-    build: ./mods/dispatcher
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51901
     volumes:
       - ./config/dispatcher.yaml:/etc/routr/dispatcher.yaml
-    networks:
-      internal:
-        ipv4_address: 10.111.221.4
 
   # Store the location to all SIP endpoints in the network
   location:
-    container_name: location
     image: fonoster/routr-location
-    build: ./mods/location
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51902
     volumes:
       - ./config/location.yaml:/etc/routr/location.yaml
-    networks:
-      internal:
-        ipv4_address: 10.111.221.5
 
   # Connect processor
   connect:
-    container_name: connect
     image: fonoster/routr-connect
     build: ./mods/connect
     environment:
       LOCATION_ADDR: location:51902
       API_ADDR: apiserver:51907
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51904
-    networks:
-      internal:
-        ipv4_address: 10.111.221.6
 
   # Simple APIServer
   apiserver:
-    container_name: apiserver
     image: fonoster/routr-simpledata
-    build: ./mods/simpledata
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51907
     volumes:
       - ./config/resources:/etc/routr/resources
-    networks:
-      internal:
-        ipv4_address: 10.111.221.8
 
   # Takes gRPC requests and sends them to an EdgePort
   requester:
-    container_name: requester
     image: fonoster/routr-requester
-    build:
-      context: .
-      dockerfile: ./mods/requester/Dockerfile
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51909
-    networks:
-      internal:
-        ipv4_address: 10.111.221.9
 
   # Sends registration request on behalf of trunks
   registry:
-    container_name: registry
     image: fonoster/routr-registry
-    build: ./mods/registry
-    environment:
-      LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
     expose:
       - 51910
     volumes:
       - ./config/registry.yaml:/etc/routr/registry.yaml
-    networks:
-      internal:
-        ipv4_address: 10.111.221.10
-
-  # Tracing monitoring
-  jaeger:
-    container_name: jaeger
-    image: jaegertracing/all-in-one:1.30.0
-    ports:
-      - 16686:16686
-      - 14268:14268
-      - 14250:14250
-    networks:
-      internal:
-        ipv4_address: 10.111.221.12
-
-  #
-  # SIP End to End Test (SEET) compliance test for SIPConnect v1.1 support
-  # docker-compose up --abort-on-container-exit --exit-code-from compliance
-  #
-  compliance:
-    container_name: compliance
-    image: fonoster/seet
-    depends_on:
-      - edgeport01
-      - edgeport02
-      - dispatcher
-      - registry
-      - requester
-      - apiserver
-      - connect
-    environment:
-      SCENARIOS: /seet.json
-    ports:
-      - 7060:7060/udp
-    volumes:
-      - ./etc/seet.json/:/seet.json
-      - ./etc/scenarios:/scenarios
-    networks:
-      internal:
-        ipv4_address: 10.111.221.22
-        aliases:
-          - sip.provider.net
-
-networks:
-  public:
-    driver: "bridge"
-    ipam:
-      config:
-        - subnet: 10.111.220.0/24
-  internal:
-    driver: "bridge"
-    ipam:
-      config:
-        - subnet: 10.111.221.0/24
