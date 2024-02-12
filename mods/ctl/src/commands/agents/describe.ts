@@ -49,6 +49,7 @@ export default class DescribeCommand extends BaseCommand {
         Name: agent.name,
         Username: agent.username,
         Domain: agent.domain?.domainUri || "None",
+        "Max Contacts": agent.maxContacts,
         Privacy: capitalize(agent.privacy),
         Credentials: agent.credentials
           ? {

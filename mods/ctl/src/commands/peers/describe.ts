@@ -50,6 +50,7 @@ export default class DescribeCommand extends BaseCommand {
         "Balancing Algorithm": peer.balancingAlgorithm,
         "Session Affinity?": peer.withSessionAffinity ? "Yes" : "No",
         "Contact Address": peer.contactAddr,
+        "Max Contacts": peer.maxContacts,
         Enabled: peer.enabled ? "Yes" : "No",
         "Access Control List": peer.accessControlList
           ? {

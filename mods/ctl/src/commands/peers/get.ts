@@ -31,8 +31,8 @@ export default class GetCommand extends BaseCommand {
 
   static readonly examples = [
     `<%= config.bin %> <%= command.id %>
-Ref                                  Name                Username   AOR                Balancing Algorithm Session Affinity 
-6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local ROUND_ROBIN         Yes 
+Ref                                  Name                Username   AOR                      Max Contacts   Balancing Algorithm Session Affinity 
+6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local 1              ROUND_ROBIN         Yes 
 `
   ]
 
@@ -81,6 +81,11 @@ Ref                                  Name                Username   AOR         
           },
           aor: {
             header: "AOR"
+          },
+          maxContacts: {
+            header: "Max Contacts",
+            get: (row: { maxContacts: number }) =>
+              row.maxContacts === -1 ? "" : row.maxContacts
           },
           enabled: {
             header: "Enabled",

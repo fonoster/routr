@@ -109,6 +109,12 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
           validate: contactAddrValidator
         },
         {
+          name: "maxContacts",
+          message: "Max Contacts",
+          type: "input",
+          default: peerFromDB.maxContacts === -1 ? "" : peerFromDB.maxContacts
+        },
+        {
           name: "accessControlListRef",
           message: "IP Access Control List",
           choices: [{ name: "None", value: undefined }, ...aclList],

@@ -32,8 +32,8 @@ export default class GetAgentsCommand extends BaseCommand {
 
   static readonly examples = [
     `<%= config.bin %> <%= command.id %>
-Ref                                  Name     Username Domain    Privacy Enabled
-d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local PRIVATE Yes
+Ref                                  Name     Username Domain    Max Contacts   Privacy Enabled
+d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1              PRIVATE Yes
 `
   ]
 
@@ -83,6 +83,11 @@ d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local PRIVATE Yes
           domain: {
             header: "Domain",
             get: (row: { domain: CC.Domain }) => row.domain?.domainUri || "None"
+          },
+          maxContacts: {
+            header: "Max Contacts",
+            get: (row: { maxContacts: number }) =>
+              row.maxContacts === -1 ? "" : row.maxContacts
           },
           privacy: {
             header: "Privacy",

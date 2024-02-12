@@ -108,6 +108,12 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
           default: agentFromDB.credentialsRef
         },
         {
+          name: "maxContacts",
+          message: "Max Contacts",
+          type: "input",
+          default: agentFromDB.maxContacts === -1 ? "" : agentFromDB.maxContacts
+        },
+        {
           name: "privacy",
           message: "Privacy",
           type: "list",

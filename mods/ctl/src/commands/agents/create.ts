@@ -109,6 +109,11 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           choices: [{ name: "None", value: undefined }, ...credentialsList]
         },
         {
+          name: "maxContacts",
+          message: "Max Contacts",
+          type: "input"
+        },
+        {
           name: "privacy",
           message: "Privacy",
           type: "list",
