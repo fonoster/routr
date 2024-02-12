@@ -1,7 +1,7 @@
 ##
 ## Build and pack the service
 ##
-FROM alpine:3.19 as builder
+FROM alpine:3.19 AS builder
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
@@ -15,7 +15,7 @@ RUN apk add --no-cache --update openjdk11-jdk \
 ##  
 ## Runner
 ##
-FROM alpine:3.19 as runner 
+FROM alpine:3.19 AS runner 
 
 RUN mkdir -p /opt/routr && apk add --no-cache tini
 WORKDIR /opt/routr

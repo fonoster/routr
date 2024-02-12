@@ -1,5 +1,3 @@
-version: "3"
-
 services:
 
   # RTPEngine requires of network mode "host" to work properly. However, this option doesn't work on OSX.
