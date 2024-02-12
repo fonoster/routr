@@ -21,7 +21,7 @@
     "start:docs": "cd docs && npm start",
     "start:deps": "docker-compose -f compose.dev.yaml up rtpengine redis postgres adminer -d",
     "stop:deps": "docker-compose -f compose.dev.yaml down rtpengine redis postgres adminer",
-    "db:migrate": "npx prisma migrate dev --schema ./mods/pgdata/schema.prisma --name changeme --preview-feature",
+    "db:migrate": "npx prisma migrate dev --schema ./mods/pgdata/schema.prisma --name changeme",
     "generate:certs": "./.scripts/generate-certs.sh",
     "convert:certs": "./.scripts/convert-to-p12.sh && mv signaling.p12 etc/certs/",
     "transpile": "tsc",
@@ -82,7 +82,7 @@
     "nyc": "^15.1.0",
     "path": "^0.12.7",
     "prettier": "^2.6.2",
-    "prisma": "^4.16.2",
+    "prisma": "^5.9.1",
     "rimraf": "^3.0.2",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.5.0",
@@ -94,7 +94,7 @@
   },
   "dependencies": {
     "@fonoster/logger": "0.3.20",
-    "@prisma/client": "^4.16.2",
+    "@prisma/client": "^5.9.1",
     "funfix": "^7.0.1",
     "pb-util": "^1.0.3"
   },

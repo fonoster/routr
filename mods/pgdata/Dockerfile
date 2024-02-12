@@ -45,7 +45,7 @@ FROM node:18-alpine3.19 AS migrations
 
 WORKDIR /db
 
-RUN npm install --location=global prisma@4.16.2 \
+RUN npm install --location=global prisma@5.9.1 \
   && apk add --no-cache postgresql-client
 
 COPY mods/pgdata/migrations migrations
