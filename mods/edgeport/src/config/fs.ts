@@ -46,12 +46,12 @@ export const isFile = (path: string) => new JFile(path).isFile()
  * Reads a file and returns a JSON object or throws an error.
  * The file must be a valid JSON, YAML, or TOML file.
  *
- * @param {string} path - The path to the file.
- * @return {object} The JSON object.
- * @throws {Error} If the file is not a valid JSON, YAML, or TOML file.
- * @throws {Error} If the file does not exist.
- * @throws {Error} If the file is not readable.
- * @throws {Error} If the file is empty.
+ * @param {string} path - The path to the file
+ * @return {object} The JSON object
+ * @throws {Error} If the file is not a valid JSON, YAML, or TOML file
+ * @throws {Error} If the file does not exist
+ * @throws {Error} If the file is not readable
+ * @throws {Error} If the file is empty
  */
 export const readConfigFile = (path: string): JsonObject => {
   if (!exists(path) || !isFile(path)) {
