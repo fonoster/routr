@@ -52,6 +52,11 @@ export default function getServerProperties(
   properties.setProperty("gov.nist.javax.sip.MAX_MESSAGE_SIZE", "1048576")
   properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true")
 
+  properties.setProperty(
+    "gov.nist.javax.sip.DELIVER_UNSOLICITED_NOTIFY",
+    "true"
+  )
+
   // Default host
   properties.setProperty("javax.sip.IP_ADDRESS", config.spec.bindAddr)
 
