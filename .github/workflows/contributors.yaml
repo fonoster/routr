@@ -1,4 +1,5 @@
 name: add contributors
+
 on:
   workflow_dispatch:
   push:
@@ -9,7 +10,7 @@ jobs:
   add-contributors:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: BobAnkh/add-contributors@master
       with:
         CONTRIBUTOR: "<!--contributors:start-->"

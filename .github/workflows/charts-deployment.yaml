@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout routr repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: routr
           ref: gh-pages
@@ -24,7 +24,7 @@ jobs:
           mkdir -p /tmp/charts
           cp -a routr/charts/* /tmp/charts
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
           fetch-depth: 0
