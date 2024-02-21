@@ -46,7 +46,7 @@ We are building Routr in the open. The best to communicate with us is via [GitHu
   <br>
   <sub><b>We now have a Discord Channel</b></sub>
   <br>
-  <sub>There we plan to discuss roadmaps, feature requests, and more<br><a href="https://discord.gg/mpWSRUhG7e">Join us today</a></sub>
+  <sub>There we plan to discuss roadmaps, feature requests, and more<br><a href="https://discord.com/invite/4QWgSz4hTC">Join us today</a></sub>
 </p>
 
 ---
