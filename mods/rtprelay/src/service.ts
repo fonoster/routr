@@ -37,7 +37,7 @@ import {
 const logger = getLogger({ service: "rtprelay", filePath: __filename })
 
 /**
- * Creates a new rtp service.
+ * Creates a new rtprelay service.
  *
  * @param {string} bindAddr - The address to bind to.
  * @param {object} rtpeConfig - The address of the rtpengine server.
