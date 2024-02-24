@@ -104,9 +104,9 @@ export default class Response {
   }
 
   /**
-   * Sends a temporary unavailable response.
+   * Sends a temporarily unavailable response.
    */
-  sendTemporaryUnavailable() {
+  sendTemporarilyUnavailable() {
     this.callback(
       null,
       buildResponse({

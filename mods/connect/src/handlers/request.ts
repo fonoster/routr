@@ -62,7 +62,7 @@ export const handleRequest =
         } else if (!route && direction === RoutingDirection.AGENT_TO_PSTN) {
           return res.sendNotFound()
         } else if (!routerResult.route) {
-          return res.sendTemporaryUnavailable()
+          return res.sendTemporarilyUnavailable()
         }
       }
 
