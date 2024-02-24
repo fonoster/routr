@@ -30,6 +30,7 @@ import inquirer from "inquirer"
 import {
   aorValidator,
   contactAddrValidator,
+  maxContactsValidator,
   nameValidator,
   usernameValidator
 } from "../../validators"
@@ -109,7 +110,8 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         {
           name: "maxContacts",
           message: "Max Contacts",
-          type: "input"
+          type: "input",
+          validate: maxContactsValidator
         },
         {
           name: "accessControlListRef",
@@ -163,6 +165,10 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       } else {
         CliUx.ux.action.start(`Creating Peer ${answers.name}`)
         const api = new SDK.Peers({ endpoint, insecure, cacert })
+
+        answers.maxContacts = answers.maxContacts
+          ? parseInt(answers.maxContacts)
+          : -1
 
         const peer = await api.createPeer(answers)
 

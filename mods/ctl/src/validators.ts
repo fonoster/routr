@@ -200,3 +200,10 @@ export function domainUriValidator(value: string) {
 
   return true
 }
+
+export function maxContactsValidator(value: string) {
+  if (!value) return true
+  if (isNaN(Number(value))) return "maxContacts must be a number"
+  if (Number(value) < 0) return "maxContacts must be 0 or greater"
+  return true
+}

@@ -22,7 +22,11 @@ import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
-import { nameValidator, usernameValidator } from "../../validators"
+import {
+  nameValidator,
+  usernameValidator,
+  maxContactsValidator
+} from "../../validators"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -111,7 +115,8 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         {
           name: "maxContacts",
           message: "Max Contacts",
-          type: "input"
+          type: "input",
+          validate: maxContactsValidator
         },
         {
           name: "privacy",
@@ -151,6 +156,11 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       } else {
         CliUx.ux.action.start(`Creating Agent ${answers.name}`)
         const api = new SDK.Agents({ endpoint, insecure, cacert })
+
+        answers.maxContacts = answers.maxContacts
+          ? parseInt(answers.maxContacts)
+          : -1
+
         const agent = await api.createAgent(answers)
 
         await CliUx.ux.wait(1000)

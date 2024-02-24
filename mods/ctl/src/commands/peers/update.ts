@@ -24,6 +24,7 @@ import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import {
   aorValidator,
   contactAddrValidator,
+  maxContactsValidator,
   nameValidator
 } from "../../validators"
 import SDK from "@routr/sdk"
@@ -112,7 +113,8 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "maxContacts",
           message: "Max Contacts",
           type: "input",
-          default: peerFromDB.maxContacts === -1 ? "" : peerFromDB.maxContacts
+          default: peerFromDB.maxContacts === -1 ? "" : peerFromDB.maxContacts,
+          validate: maxContactsValidator
         },
         {
           name: "accessControlListRef",
@@ -168,6 +170,11 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
         this.warn("Aborted")
       } else {
         CliUx.ux.action.start(`Updating Peer ${answers.name}`)
+
+        answers.maxContacts = answers.maxContacts
+          ? parseInt(answers.maxContacts)
+          : -1
+
         const acl = await api.updatePeer(answers)
         await CliUx.ux.wait(1000)
         CliUx.ux.action.stop(acl.ref)

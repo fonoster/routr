@@ -21,7 +21,7 @@ import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
-import { nameValidator } from "../../validators"
+import { maxContactsValidator, nameValidator } from "../../validators"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -111,7 +111,9 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "maxContacts",
           message: "Max Contacts",
           type: "input",
-          default: agentFromDB.maxContacts === -1 ? "" : agentFromDB.maxContacts
+          default:
+            agentFromDB.maxContacts === -1 ? "" : agentFromDB.maxContacts,
+          validate: maxContactsValidator
         },
         {
           name: "privacy",
@@ -147,6 +149,10 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
         CT.Privacy[answers.privacy.toUpperCase() as keyof typeof CT.Privacy]
 
       answers.ref = args.ref
+
+      answers.maxContacts = answers.maxContacts
+        ? parseInt(answers.maxContacts)
+        : -1
 
       if (!answers.confirm) {
         this.warn("Aborted")
