@@ -193,12 +193,8 @@ describe("@routr/pgdata/mappers/credentials", () => {
         new CredentialsManager(credentials).validOrThrowUpdate()
 
       // Assert
-      expect(createResult).to.throw(
-        "the username must be a lowercase, alphanumeric, and without spaces"
-      )
-      expect(updateResult).to.throw(
-        "the username must be a lowercase, alphanumeric, and without spaces"
-      )
+      expect(createResult).to.throw("the username must not contain spaces")
+      expect(updateResult).to.throw("the username must not contain spaces")
     })
 
     it("when request is missing the password", () => {

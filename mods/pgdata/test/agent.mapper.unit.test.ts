@@ -273,9 +273,7 @@ describe("@routr/pgdata/mappers/agent", () => {
       const result = () => new AgentManager(agent).validOrThrowCreate()
 
       // Assert
-      expect(result).to.throw(
-        "the username must be a lowercase, alphanumeric, and without spaces"
-      )
+      expect(result).to.throw("the username must not contain spaces")
     })
   })
 })

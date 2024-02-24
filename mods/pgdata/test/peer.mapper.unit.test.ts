@@ -266,9 +266,7 @@ describe("@routr/pgdata/mappers/peer", () => {
       const result = () => new PeerManager(peer).validOrThrowCreate()
 
       // Assert
-      expect(result).to.throw(
-        "the username must be a lowercase, alphanumeric, and without spaces"
-      )
+      expect(result).to.throw("the username must not contain spaces")
     })
 
     it("when the request is missing the aor", () => {

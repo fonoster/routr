@@ -38,14 +38,8 @@ export const hasUsername = (username: string) =>
   username ? true : new BadRequestError("the username is required")
 
 export const isValidUsername = (username: string) => {
-  if (
-    username &&
-    (!Validator.default.isAlphanumeric(username) ||
-      !Validator.default.isLowercase(username))
-  ) {
-    return new BadRequestError(
-      "the username must be a lowercase, alphanumeric, and without spaces"
-    )
+  if (username?.includes(" ")) {
+    return new BadRequestError("the username must not contain spaces")
   }
   return true
 }
