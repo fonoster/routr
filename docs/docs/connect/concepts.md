@@ -130,7 +130,7 @@ This routing type allows any Agent to call a Peer. Because the Agent is going "o
   "ref": "agent-01",
   "domainRef": "domain-01",
   "aor": "sip:1001@sip.local",
-  "aorLink": "asterisk@default",
+  "aorLink": "sip:asterisk@default",
   "domain": "sip.local",
   "privacy": "NONE",
   "allowedMethods": ["INVITE", "REGISTER"]
