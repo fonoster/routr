@@ -18,14 +18,16 @@
  */
 /* eslint-disable require-jsdoc */
 import { Command } from "@oclif/core"
-import { CommonConnect as CC } from "@routr/common"
+import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
 // (node:75345) [ERR_REQUIRE_ESM] Error Plugin: @routr/ctl [ERR_REQUIRE_ESM]: require() of ES Module
 import inquirer from "inquirer"
 
-export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+export function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+}
 
 export const stringToACL = (aclRule: string) =>
   aclRule.split(",").map((rule: string) => rule.trim())
@@ -143,4 +145,12 @@ export function stringToHeaders(headers: string) {
       const [name, value] = header.split(":")
       return { name, value }
     })
+}
+
+export function getTextForBalancingAlgorithm(
+  balancingAlgorithm: CT.LoadBalancingAlgorithm
+): string {
+  return balancingAlgorithm === CT.LoadBalancingAlgorithm.ROUND_ROBIN
+    ? "Round Robin"
+    : "Least Connections"
 }

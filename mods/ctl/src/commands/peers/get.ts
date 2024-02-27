@@ -20,8 +20,12 @@
 import * as grpc from "@grpc/grpc-js"
 import { CliUx, Command, Flags } from "@oclif/core"
 import { BaseCommand } from "../../base"
-import { showPaginatedList, ShowTable } from "../../utils"
-import { CommonConnect as CC } from "@routr/common"
+import {
+  getTextForBalancingAlgorithm,
+  showPaginatedList,
+  ShowTable
+} from "../../utils"
+import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommandError } from "@oclif/core/lib/interfaces"
 
@@ -32,7 +36,7 @@ export default class GetCommand extends BaseCommand {
   static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Ref                                  Name                Username   AOR                      Max Contacts   Balancing Algorithm Session Affinity 
-6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local 1              ROUND_ROBIN         Yes 
+6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local 1              Round Robin         Yes 
 `
   ]
 
@@ -86,6 +90,13 @@ Ref                                  Name                Username   AOR         
             header: "Max Contacts",
             get: (row: { maxContacts: number }) =>
               row.maxContacts === -1 ? "" : row.maxContacts
+          },
+          balancingAlgorithm: {
+            header: "Balancing Algorithm",
+            get: (row: { balancingAlgorithm: string }) =>
+              getTextForBalancingAlgorithm(
+                row.balancingAlgorithm as CT.LoadBalancingAlgorithm
+              )
           },
           enabled: {
             header: "Enabled",

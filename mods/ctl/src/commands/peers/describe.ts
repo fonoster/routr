@@ -20,6 +20,7 @@
 import { BaseCommand } from "../../base"
 import { CLIError } from "@oclif/core/lib/errors"
 import { render } from "prettyjson"
+import { getTextForBalancingAlgorithm } from "../../utils"
 import SDK from "@routr/sdk"
 import moment from "moment"
 
@@ -47,10 +48,12 @@ export default class DescribeCommand extends BaseCommand {
         Name: peer.name,
         Username: peer.username,
         AOR: peer.aor,
-        "Balancing Algorithm": peer.balancingAlgorithm,
+        "Balancing Algorithm": getTextForBalancingAlgorithm(
+          peer.balancingAlgorithm
+        ),
         "Session Affinity?": peer.withSessionAffinity ? "Yes" : "No",
         "Contact Address": peer.contactAddr,
-        "Max Contacts": peer.maxContacts,
+        "Max Contacts": peer.maxContacts === -1 ? "" : peer.maxContacts,
         Enabled: peer.enabled ? "Yes" : "No",
         "Access Control List": peer.accessControlList
           ? {
