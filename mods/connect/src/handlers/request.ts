@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as grpc from "@grpc/grpc-js"
 import { Helper as H } from "@routr/location"
 import { tailor } from "../tailor"
 import {
@@ -87,6 +88,9 @@ export const handleRequest =
 
       res.send(tailor(route as CT.Route, req))
     } catch (err) {
+      if (err.code === grpc.status.NOT_FOUND) {
+        return res.sendTemporarilyUnavailable()
+      }
       logger.error(err)
       res.sendInternalServerError()
     }

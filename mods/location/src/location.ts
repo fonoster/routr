@@ -126,9 +126,12 @@ export default class Location implements ILocationService {
         ? [await this.nextWithAffinity(routes, request.sessionAffinityRef)]
         : [this.next(routes, request)]
 
-    this.store.put(storeKeyWithLabels, r[0])
+    if (r.length > 0 && r[0]) {
+      this.store.put(storeKeyWithLabels, r[0])
+      return r
+    }
 
-    return r
+    return []
   }
 
   /** @inheritdoc */
@@ -139,6 +142,7 @@ export default class Location implements ILocationService {
   private next(routes: Array<Route>, request: FindRoutesRequest): Route {
     const { backend } = request
     const ref = backend?.ref || request.aor
+
     if (
       backend?.balancingAlgorithm === CT.LoadBalancingAlgorithm.LEAST_SESSIONS
     ) {
