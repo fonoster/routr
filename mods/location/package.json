@@ -1,6 +1,6 @@
 {
   "name": "@routr/location",
-  "version": "2.7.3",
+  "version": "2.7.4",
   "description": "Creates and maintains a list of routes to all registered endpoints",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",

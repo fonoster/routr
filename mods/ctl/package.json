@@ -1,6 +1,6 @@
 {
   "name": "@routr/ctl",
-  "version": "2.7.3",
+  "version": "2.7.4",
   "description": "Routr Command-Line Tool",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "bin": {
