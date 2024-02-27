@@ -32,15 +32,17 @@ export function trunksLoader(
   const trunk = CC.mapToTrunk(config)
 
   trunk.inboundCredentials = findByRef(
-    inbound.credentialsRef,
+    inbound?.credentialsRef,
     list
   ) as CC.Credentials
+
   trunk.outboundCredentials = findByRef(
-    outbound.credentialsRef,
+    outbound?.credentialsRef,
     list
   ) as CC.Credentials
+
   trunk.accessControlList = findByRef(
-    inbound.accessControlListRef,
+    inbound?.accessControlListRef,
     list
   ) as CC.AccessControlList
 

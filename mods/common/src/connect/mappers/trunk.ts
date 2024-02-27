@@ -32,7 +32,7 @@ export function mapToTrunk(config: TrunkConfig): Trunk {
     apiVersion: config.apiVersion,
     ref: config.ref,
     name: config.metadata.name,
-    sendRegister: config.spec.outbound.sendRegister,
+    sendRegister: config.spec.outbound?.sendRegister,
     inboundUri: config.spec.inbound?.uri,
     inboundCredentialsRef: config.spec.inbound?.credentialsRef,
     outboundCredentialsRef: config.spec.outbound?.credentialsRef,
