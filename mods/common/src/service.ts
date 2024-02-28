@@ -80,7 +80,6 @@ export default function createService(serviceInfo: ServiceInfo) {
       name: serviceInfo.name,
       bindAddr: serviceInfo.bindAddr
     })
-    withHealthChecks.start()
   }
   const credentials = grpc.ServerCredentials.createInsecure()
   const server = new grpc.Server()
