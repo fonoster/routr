@@ -37,6 +37,9 @@ import SDK from "@routr/sdk"
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
 // (node:75345) [ERR_REQUIRE_ESM] Error Plugin: @routr/ctl [ERR_REQUIRE_ESM]: require() of ES Module
 import inquirer from "inquirer"
+import inquirerPrompt from "inquirer-autocomplete-prompt"
+
+inquirer.registerPrompt("autocomplete", inquirerPrompt)
 
 export default class CreateNumberCommand extends BaseCommand {
   static readonly description = "Creates a new Number"
