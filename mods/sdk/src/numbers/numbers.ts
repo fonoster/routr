@@ -81,7 +81,7 @@ export class Numbers extends APIClient {
    * @param {string} request.city - The city where the number is located
    * @param {string} request.country - The country where the number is located
    * @param {string} request.countryISOCode - The country ISO code where the number is located
-   * @param {Object[]} request.extraHeaders - Extra headers to be used (e.g., [{name: "X-Room-Id", value: "abc-us-123"}])
+   * @param {JsonObject[]} request.extraHeaders - Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}])
    * @param {string} request.trunkRef - The Trunk reference to be used
    * @param {string} request.sessionAffinityHeader - Optional session affinity header
    * @param {string} request.extended - Optional extended attributes
@@ -126,7 +126,7 @@ export class Numbers extends APIClient {
    * @param {UpdateNumberRequest} request - Partial with the fields to update
    * @param {string} request.name - Name of the Number
    * @param {string} request.aorLink - The AOR link to be used (e.g., sip:1001@sip.local)
-   * @param {Object[]} request.extraHeaders - Extra headers to be used (e.g., [{name: "X-Room-Id", value: "abc-us-123"}])
+   * @param {JsonObject[]} request.extraHeaders - Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}])
    * @param {string} request.trunkRef - The Trunk reference to be used
    * @param {string} request.sessionAffinityHeader - Optional session affinity header
    * @param {string} request.extended - Optional extended attributes

@@ -808,7 +808,7 @@ Creates a new Number on Routr.
 | request.city | <code>string</code> | The city where the number is located |
 | request.country | <code>string</code> | The country where the number is located |
 | request.countryISOCode | <code>string</code> | The country ISO code where the number is located |
-| request.extraHeaders | <code>Array.&lt;Object&gt;</code> | Extra headers to be used (e.g., [{name: "X-Room-Id", value: "abc-us-123"}]) |
+| request.extraHeaders | <code>Array.&lt;JsonObject&gt;</code> | Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]) |
 | request.trunkRef | <code>string</code> | The Trunk reference to be used |
 | request.sessionAffinityHeader | <code>string</code> | Optional session affinity header |
 | request.extended | <code>string</code> | Optional extended attributes |
@@ -850,7 +850,7 @@ Updates an already existing Number on Routr.
 | request | <code>UpdateNumberRequest</code> | Partial with the fields to update |
 | request.name | <code>string</code> | Name of the Number |
 | request.aorLink | <code>string</code> | The AOR link to be used (e.g., sip:1001@sip.local) |
-| request.extraHeaders | <code>Array.&lt;Object&gt;</code> | Extra headers to be used (e.g., [{name: "X-Room-Id", value: "abc-us-123"}]) |
+| request.extraHeaders | <code>Array.&lt;JsonObject&gt;</code> | Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]) |
 | request.trunkRef | <code>string</code> | The Trunk reference to be used |
 | request.sessionAffinityHeader | <code>string</code> | Optional session affinity header |
 | request.extended | <code>string</code> | Optional extended attributes |
