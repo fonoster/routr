@@ -32,4 +32,4 @@ Our vision for a Next-generation SIP Server can be summarized as follows:
 * Offer the tooling and APIs for easy extensibility
 * Great documentation
 
-If you want to support the initiative, please [join the discussion](https://routr.io/docs/2.0.0/community).
+If you want to support the initiative, please [join the discussion](https://routr.io/docs/community).

@@ -21,7 +21,7 @@ Build and Deploy to a DigitalOcean droplet
 [![do-btn-blue](https://user-images.githubusercontent.com/51996/58146107-50512580-7c1a-11e9-8ec9-e032ba387c2a.png)](https://github.com/fonoster/routr/tree/master/.digitalocean/README.md)
 
 ## Docker
-[Deploy with docker compose](https://routr.io/docs/guides/running-with-docker-or-compose/)
+[Deploy with docker compose](../guides/running-with-docker-or-compose.md)
 
 [![Docker logo](https://d207aa93qlcgug.cloudfront.net/1.95.5.qa/img/nav/docker-logo-loggedout.png)](https://hub.docker.com/r/fonoster/routr/)
 

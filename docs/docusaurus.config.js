@@ -78,6 +78,32 @@ const config = {
     ]
   ],
 
+  plugins: [
+    [
+      "@docusaurus/plugin-client-redirects",
+      {
+        redirects: [
+          {
+            to: "/docs/2.0.0/overview/introduction",
+            from: ["/docs/overview/introduction", "/docs"]
+          },
+          {
+            to: "/docs/2.0.0/contributing",
+            from: ["/docs/contributing"]
+          },
+          {
+            to: "/docs/2.0.0/community",
+            from: ["/docs/community"]
+          },
+          {
+            to: "/docs/2.0.0/development/introduction",
+            from: ["/docs/development/introduction"]
+          }
+        ]
+      }
+    ]
+  ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({

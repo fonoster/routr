@@ -79,7 +79,7 @@ Depending on the project’s roadmap and priorities, you might also be asked to:
 
 ## Development Environment Setup
 
-See our [Development environment setup](https://routr.io/docs/2.0.0/development/introduction) guide to get started locally or using Gitpod.
+See our [Development environment setup](https://routr.io/docs/development/introduction) guide to get started locally or using Gitpod.
 
 ## Sign your Commits
 

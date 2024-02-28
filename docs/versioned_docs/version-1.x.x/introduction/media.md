@@ -11,4 +11,4 @@ The following selection of resources is particularly useful to get started with 
 
 ## Tutorials
 
-- [Instructions and example a basic setup of Routr](https://routr.io/docs/guides/basic-setup/)
+- [Instructions and example a basic setup of Routr](../guides/basic-setup.md)
