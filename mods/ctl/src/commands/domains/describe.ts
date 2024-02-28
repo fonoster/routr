@@ -60,7 +60,8 @@ export default class DescribeCommand extends BaseCommand {
             ? domain.egressPolicies.map((p) => {
                 return {
                   Rule: p.rule,
-                  "Number Ref": p.numberRef
+                  "Number Ref": p.numberRef,
+                  "Tel URL": p.number.telUrl
                 }
               })
             : "None",

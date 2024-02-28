@@ -50,9 +50,10 @@ const logger = getLogger({ service: "pgdata", filePath: __filename })
  */
 export default function pgDataService(config: PostgresDataConfig): void {
   const { bindAddr } = config
-  logger.info("starting routr service", { bindAddr, name: "pgdata" })
   const internalServer = new grpc.Server()
   const externalServer = new grpc.Server()
+
+  logger.info("starting routr service", { bindAddr, name: "pgdata" })
 
   const kinds = [
     CC.Kind.AGENT,
@@ -79,9 +80,10 @@ export default function pgDataService(config: PostgresDataConfig): void {
     internalServer.addService(CC.createConnectService(k), funcs)
     externalServer.addService(CC.createConnectService(k), funcs)
   })
-  const credentials = grpc.ServerCredentials.createInsecure()
 
+  const credentials = grpc.ServerCredentials.createInsecure()
   const withHealthChecks = interceptor.serverProxy(useHealth(internalServer))
+
   withHealthChecks.bindAsync(config.bindAddr, credentials, () => {
     logger.info("internal server started", { bindAddr: config.bindAddr })
     withHealthChecks.start()

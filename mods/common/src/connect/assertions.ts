@@ -46,6 +46,7 @@ import {
   isValidPort,
   isValidPriority,
   isValidSessionAffinityHeader,
+  isValidTelUrl,
   isValidUsername,
   isValidWeight
 } from "./validations"
@@ -105,6 +106,9 @@ export const isValidDomainUriOrThrow = (domainUri: string) =>
 
 export const hasTelUrlOrThrow = (telUrl: string) =>
   validOrThrow(hasTelUrl, telUrl)
+
+export const isValidTelUrlOrThrow = (telUrl: string) =>
+  validOrThrow(isValidTelUrl, telUrl)
 
 export const isValidSessionAffinityHeaderOrThrow = (
   sessionAffinityHeader: string

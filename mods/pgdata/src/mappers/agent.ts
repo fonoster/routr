@@ -34,7 +34,11 @@ type AgentWithDomainAndCredentials = Prisma.AgentGetPayload<{
     domain: {
       include: {
         accessControlList: true
-        egressPolicies: true
+        egressPolicies: {
+          include: {
+            number: true
+          }
+        }
       }
     }
     credentials: true

@@ -57,16 +57,17 @@ export class NumberManager extends EntityManager {
   }
 
   validOrThrowCreate() {
+    CC.hasTelUrlOrThrow(this.number.telUrl)
+    CC.isValidTelUrlOrThrow(this.number.telUrl)
     if (Environment.ENFORCE_E164) {
       CC.isValidE164OrThrow(
-        this.number.telUrl,
+        this.number.telUrl.split("tel:")[1],
         this.number.countryIsoCode,
         Environment.ENFORCE_E164_WITH_MOBILE_PREFIX
       )
     }
     CC.hasNameOrThrow(this.number.name)
     CC.isValidNameOrThrow(this.number.name)
-    CC.hasTelUrlOrThrow(this.number.telUrl)
     CC.isValidAORLinkOrThrow(this.number.aorLink)
     CC.hasCityOrThrow(this.number.city)
     CC.hasCountryOrThrow(this.number.country)
@@ -115,6 +116,30 @@ export class NumberManager extends EntityManager {
           name: number.name,
           trunkRef: number.trunkRef,
           trunk: TrunkManager.mapToDto(number.trunk),
+          telUrl: number.telUrl,
+          aorLink: number.aorLink,
+          city: number.city,
+          country: number.country,
+          countryIsoCode: number.countryISOCode,
+          sessionAffinityHeader: number.sessionAffinityHeader,
+          extraHeaders: number.extraHeaders as {
+            name: string
+            value: string
+          }[],
+          extended: number.extended as JsonObject,
+          createdAt: number.createdAt.getTime() / 1000,
+          updatedAt: number.updatedAt.getTime() / 1000
+        }
+      : undefined
+  }
+
+  static mapToDtoWithoutTrunk(number: NumberPrismaModel): CC.INumber {
+    return number
+      ? {
+          apiVersion: number.apiVersion,
+          ref: number.ref,
+          name: number.name,
+          trunkRef: number.trunkRef,
           telUrl: number.telUrl,
           aorLink: number.aorLink,
           city: number.city,

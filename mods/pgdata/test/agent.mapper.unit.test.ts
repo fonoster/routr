@@ -66,7 +66,11 @@ describe("@routr/pgdata/mappers/agent", () => {
         domain: {
           include: {
             accessControlList: true
-            egressPolicies: true
+            egressPolicies: {
+              include: {
+                number: true
+              }
+            }
           }
         }
         credentials: true

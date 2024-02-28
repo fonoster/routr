@@ -85,7 +85,7 @@ ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
               egressPolicies: { rule: string; number: CC.INumber }[]
             }) =>
               row.egressPolicies
-                .map((p) => `${p.rule}/${p.number.telUrl.split("tel:")[1]}`)
+                .map((p) => `${p.rule} / ${p.number.telUrl}`)
                 .join(", "),
             extended: true
           }

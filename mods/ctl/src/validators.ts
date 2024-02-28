@@ -113,10 +113,10 @@ export function aorLinkValidator(value: string) {
 }
 
 export function telUrlValidator(value: string) {
-  const hasTelUrl = CC.hasTelUrl(value)
+  const isValidTelURL = CC.isValidTelUrl(value)
 
-  if (hasTelUrl instanceof Error) {
-    return hasTelUrl.message
+  if (isValidTelURL instanceof Error) {
+    return isValidTelURL.message
   }
 
   return true

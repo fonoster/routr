@@ -27,11 +27,16 @@ import { CommonConnect as CC } from "@routr/common"
 import { JsonObject } from "pb-util/build"
 import { ACLManager } from "./acl"
 import { EntityManager } from "./manager"
+import { NumberManager } from "./number"
 
 type DomainWithACL = Prisma.DomainGetPayload<{
   include: {
     accessControlList: true
-    egressPolicies: true
+    egressPolicies: {
+      include: {
+        number: true
+      }
+    }
   }
 }>
 
@@ -44,7 +49,11 @@ export class DomainManager extends EntityManager {
   static includeFields(): JsonObject {
     return {
       accessControlList: true,
-      egressPolicies: true
+      egressPolicies: {
+        include: {
+          number: true
+        }
+      }
     }
   }
 
@@ -93,6 +102,11 @@ export class DomainManager extends EntityManager {
           ...domain,
           accessControlListRef: domain.accessControlList?.ref,
           accessControlList: ACLManager.mapToDto(domain.accessControlList),
+          egressPolicies: domain.egressPolicies.map((policy) => ({
+            rule: policy.rule,
+            numberRef: policy.numberRef,
+            number: NumberManager.mapToDtoWithoutTrunk(policy.number)
+          })),
           extended: domain.extended as JsonObject,
           createdAt: domain.createdAt.getTime() / 1000,
           updatedAt: domain.updatedAt.getTime() / 1000

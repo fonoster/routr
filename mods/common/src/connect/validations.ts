@@ -61,6 +61,12 @@ export const isValidDomainUri = (domainUri: string) => {
 export const hasTelUrl = (telUrl: string) =>
   telUrl ? true : new BadRequestError("the telUrl is required")
 
+export const isValidTelUrl = (telUrl: string) => {
+  return telUrl.startsWith("tel:")
+    ? true
+    : new BadRequestError("the telUrl must start with `tel:`")
+}
+
 // Supports alphanumeric, underscore, and dash (cannot end with dash)
 const isValidAlphanumeric = (value: string) => {
   if (value.endsWith("-")) {

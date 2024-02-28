@@ -117,7 +117,7 @@ model Number {
   apiVersion            APIVersion @map("api_version")
   ref                   String     @id @default(uuid())
   trunkRef              String?    @map("trunk_ref")
-  telUrl                String     @unique @map("tel_url") @db.VarChar(15)
+  telUrl                String     @unique @map("tel_url") @db.VarChar(60) // length to accommodate non-standard numbering systems
   name                  String     @db.VarChar(60)
   aorLink               String?    @map("aor_link") @db.VarChar(323)
   city                  String     @default("Unknown") @db.VarChar(60)

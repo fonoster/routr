@@ -60,7 +60,11 @@ describe("@routr/pgdata/mappers/domain", () => {
     type DomainWithACL = Prisma.DomainGetPayload<{
       include: {
         accessControlList: true
-        egressPolicies: true
+        egressPolicies: {
+          include: {
+            number: true
+          }
+        }
       }
     }>
 
