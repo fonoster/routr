@@ -16,7 +16,7 @@ This method does not receive any parameters.
 
 **Request body**
 
-A file containing a [Peer](/configuration/peers) resource in `json` format.
+A file containing a [Peer](../../configuration/peers.md) resource in `json` format.
 
 **Response**
 

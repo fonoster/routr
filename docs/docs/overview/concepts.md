@@ -155,7 +155,7 @@ Processors and Middlewares differ in that you execute Middlewares in a chain, ma
 
 ## Processors
 
-Processors are a way to extend the functionality of Routr, and implementors can add custom logic to the system. Processors are implemented as a gRPC service and use the [Alterations API](/docs/overview/concepts#alterations) to modify SIP messages.
+Processors are a way to extend the functionality of Routr, and implementors can add custom logic to the system. Processors are implemented as a gRPC service and use the [Alterations API](#alterations) to modify SIP messages.
 
 The simplest possible Processor is the "Echo Processor," which returns the SIP Message to the EdgePort. The following example shows how to create an Echo Processor using Node.js.
 

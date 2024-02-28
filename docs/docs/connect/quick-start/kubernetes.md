@@ -37,4 +37,4 @@ You should see a list of pods and their status. If the status is Running, then y
 
 For more details, please refer to the chart's [README](https://github.com/fonoster/routr/blob/main/ops/charts/connect/README.md).
 
-Please see the [Command-Line Tools](/docs/cli) section for detauls on how to interact with Routr Connect via the CLI.
+Please see the [Command-Line Tools](../command-line/overview.md) section for detauls on how to interact with Routr Connect via the CLI.

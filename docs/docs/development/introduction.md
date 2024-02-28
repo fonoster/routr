@@ -17,7 +17,7 @@ The only requirements to build and run Routr are Java and NodeJS. However, we re
 - [Helm](https://helm.sh/): Helm helps us to deploy Routr in Kubernetes
 - [Kubernetes](https://kubernetes.io/): Kubernetes is the platform where we deploy Routr for large scale deployments
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/): Kubectl is the command-line tool for Kubernetes
-- [sngrep](link): A tool for monitoring SIP traffic (You could use Wireshark as well)
-- [grpcurl](link): A command-line tool for interacting with gRPC servers
+- [sngrep](https://github.com/irontec/sngrep): A tool for monitoring SIP traffic (You could use Wireshark as well)
+- [grpcurl](https://github.com/fullstorydev/grpcurl): A command-line tool for interacting with gRPC servers
 
 If you don't have a Kubernetes cluster, you can use [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) or Docker Desktop with Kubernetes enabled.

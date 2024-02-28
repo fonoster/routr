@@ -60,4 +60,4 @@ rctl plugins install mycommand
 
 To see your new command in action, you run the command with the `--help` flag and follow the instructions.
 
-With this example, you see how straightforward it is to create a new command. You can use the same pattern to create commands for Routr Connect and even utilize the [Node.js SDK](/docs/2.0.0/connect/nodesdk/sdk) to interact with the server.
+With this example, you see how straightforward it is to create a new command. You can use the same pattern to create commands for Routr Connect and even utilize the [Node.js SDK](../connect/nodesdk/overview.md) to interact with the server.

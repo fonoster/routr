@@ -26,7 +26,7 @@ The `pgdata` has the following environment variables available for configuration
 - `ENFORCE_E164` - Enables E164 validation for Numbers. Default to `false`
 - `ENFORCE_E164_WITH_MOBILE_PREFIX` - Enables E164 validation for Numbers with mobile prefixes. Default to `false`
 
-For details about connecting to the `pgdata` to manage the data, see the [CTL](../ctl/README.md) and [SDK](../sdk/README.md) documentation.
+For details about connecting to the `pgdata` to manage the data, see the [CTL](../../connect/command-line/overview.md) and [SDK](../../connect//nodesdk/overview.md) documentation.
 
 **simpledata**
 

@@ -25,7 +25,7 @@ was deactivated. The network configuration used during the test is depicted in t
 
 ### Software
 
-As load generator (UAC side) it was used [SIPp docker](URL) image.
+As load generator (UAC side) it was used SIPp.
 
 All used SIP-related software was configured to use TCP as the transport protocol for SIP.
 

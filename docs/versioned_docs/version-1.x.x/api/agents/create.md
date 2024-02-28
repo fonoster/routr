@@ -17,7 +17,7 @@ This method does not receive any parameters.
 
 **Request body**
 
-A file containing an [Agent](/configuration/agents) resource in `json` format.
+A file containing an [Agent](../../configuration/agents.md) resource in `json` format.
 
 **Response**
 

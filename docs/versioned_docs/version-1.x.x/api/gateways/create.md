@@ -16,7 +16,7 @@ This method does not receive any parameters.
 
 **Request body**
 
-A file containing a [Gateway](/configuration/gateways) resource in `json` format.
+A file containing a [Gateway](../../configuration/gateways.md) resource in `json` format.
 
 **Response**
 

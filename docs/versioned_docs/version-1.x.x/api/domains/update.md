@@ -16,7 +16,7 @@ This method does not receive any parameters.
 
 **Request body**
 
-A file containing a [Domain](/docs/configuration/domains) resource in `json` format.
+A file containing a [Domain](../../configuration/domains.md) resource in `json` format.
 
 **Response**
 

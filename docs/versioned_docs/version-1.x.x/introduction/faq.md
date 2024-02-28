@@ -2,7 +2,7 @@
 
 ### What is Routr?
 
-Routr is an open-source SIP Server and tooling to deploy VoIP networks. See the [overview](/docs/introduction/overview).
+Routr is an open-source SIP Server and tooling to deploy VoIP networks. See the [overview](../introduction/overview.md).
 
 ### What dependencies does Routr have?
 
@@ -11,7 +11,7 @@ you might need to use Redis depending in the complexity of your requirements.
 
 ### How does Routr compare with other SIP servers
 
-See the [comparison page](/docs/introduction/comparison).
+See the [comparison page](../introduction/comparison.md).
 
 ### What language is used to develop Routr?
 

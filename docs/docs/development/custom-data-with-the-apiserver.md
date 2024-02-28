@@ -32,7 +32,7 @@ agents.createAgent(request)
   .catch(console.error); // an error occurred
 ```
 
-For additional examples of how to store custom data, see the [Node SDK](/docs/2.0.0/connect/nodesdk/sdk) and search for "extended."
+For additional examples of how to store custom data, see the [Node SDK](../connect/nodesdk/overview.md) and search for "extended."
 
 ## How to retrieve custom data
 

@@ -1,6 +1,6 @@
 # Building a Processor
 
-Processors are how we extend the signaling functionality of Routr. Processors are where we can add new SIP headers, modify existing ones, add endpoints to the Location Service, etc. Processors are implemented as gRPC services and use the [Alterations API](/docs/overview/concepts#alterations) to modify SIP messages. A Processor is the last stop for a SIP message before it is sent out to the network.
+Processors are how we extend the signaling functionality of Routr. Processors are where we can add new SIP headers, modify existing ones, add endpoints to the Location Service, etc. Processors are implemented as gRPC services and use the [Alterations API](../overview/concepts.md#alterations) to modify SIP messages. A Processor is the last stop for a SIP message before it is sent out to the network.
 
 Here is a non-exhaustive list of things you can do with a Processor:
 

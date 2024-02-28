@@ -12,7 +12,7 @@ This document is a step-by-step guide on VoIP setup at home or the office. For c
     - [Creating the Agents](#creating-the-agents)
 - [Configuring the SIP devices](#configuring-the-sip-devices)
 - [Making calls](#making-calls)
-- [What's Next](whats-next)
+- [What's Next](#whats-next)
 
 ## Requirements
 

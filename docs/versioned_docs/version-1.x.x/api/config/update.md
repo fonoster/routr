@@ -16,7 +16,7 @@ This method does not receive any parameters.
 
 **Request body**
 
-A file containing the [servers' configuration](/api/config/general) in `json` format.
+A file containing the [servers' configuration](../../configuration/general.md) in `json` format.
 
 **Response**
 

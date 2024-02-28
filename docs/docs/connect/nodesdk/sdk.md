@@ -1,7 +1,7 @@
 # SDK
 
 <!-- toc -->
-* [Installation](#installation)
+* [Installation](./sdk.md#installation)
 * [APIs](#apis)
 <!-- tocstop -->
 # Installation
