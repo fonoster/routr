@@ -44,7 +44,7 @@ COPY .scripts/generate-certs.sh .
 
 # TODO: We need to find a way to avoid hardcoding the user and group ids
 # and still be able to run the container as a non-root user
-RUN apk add --no-cache tini openssl curl \
+RUN apk add --no-cache tini openssl curl sed \
   && curl -L -o heplify https://github.com/sipcapture/heplify/releases/download/v1.65.10/heplify \
   && chmod +x heplify \
   && chmod +x edgeport.sh convert-to-p12.sh generate-certs.sh \
@@ -59,6 +59,8 @@ USER 1000:3000
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 CMD ["sh", "-c", "set -e && \
   ./convert-to-p12.sh $PATH_TO_CERTS $PKCS12_PASSWORD && \
+  sed -i 's|keyStorePassword: .*|keyStorePassword: ${PKCS_PASSWORD}|g' config/edgeport.yaml && \
+  sed -i 's|trustStorePassword: .*|trustStorePassword: ${PKCS_PASSWORD}|g' config/edgeport.yaml && \
   if [ -n \"$HEPLIFY_OPTIONS\" ]; then \
     ./heplify $HEPLIFY_OPTIONS & \
   fi && \

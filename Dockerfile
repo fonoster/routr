@@ -61,7 +61,7 @@ COPY .scripts/init-postgres.sh .
 COPY mods/pgdata/schema.prisma .
 COPY mods/pgdata/migrations migrations
 
-RUN apk add --no-cache nodejs npm tini openssl postgresql postgresql-client su-exec \
+RUN apk add --no-cache nodejs npm tini openssl postgresql postgresql-client su-exec sed \
   && mkdir -p ${PATH_TO_CERTS} /var/lib/postgresql/data /run/postgresql /root/.npm \
   && addgroup -g ${GID} ${USER} \
   && adduser --disabled-password --gecos "" --ingroup ${USER} --home ${HOME} --uid ${UID} ${USER} \
@@ -80,4 +80,6 @@ CMD sh -c "su-exec postgres pg_ctl start -D /var/lib/postgresql/data --options='
   if [ -n \"$HEPLIFY_OPTIONS\" ]; then \
     heplify $HEPLIFY_OPTIONS & \
   fi && \
+  sed -i 's|keyStorePassword: .*|keyStorePassword: ${PKCS_PASSWORD}|g' config/edgeport.yaml && \
+  sed -i 's|trustStorePassword: .*|trustStorePassword: ${PKCS_PASSWORD}|g' config/edgeport.yaml && \
   DATABASE_URL=$DATABASE_URL su-exec $USER node ./dist/runner"
