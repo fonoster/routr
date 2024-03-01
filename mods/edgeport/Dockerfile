@@ -57,10 +57,11 @@ USER 1000:3000
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
+
 CMD ["sh", "-c", "set -e && \
   ./convert-to-p12.sh $PATH_TO_CERTS $PKCS12_PASSWORD && \
-  sed -i 's|keyStorePassword: .*|keyStorePassword: ${PKCS_PASSWORD}|g' config/edgeport.yaml && \
-  sed -i 's|trustStorePassword: .*|trustStorePassword: ${PKCS_PASSWORD}|g' config/edgeport.yaml && \
+  sed -i 's|keyStorePassword: .*|keyStorePassword: ${PKCS12_PASSWORD}|g' config/edgeport.yaml && \
+  sed -i 's|trustStorePassword: .*|trustStorePassword: ${PKCS12_PASSWORD}|g' config/edgeport.yaml && \
   if [ -n \"$HEPLIFY_OPTIONS\" ]; then \
     ./heplify $HEPLIFY_OPTIONS & \
   fi && \

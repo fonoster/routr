@@ -25,12 +25,13 @@ RUN apk add --no-cache --update npm nodejs curl git tini python3 make cmake g++ 
 ##
 FROM alpine:3.19 AS runner
 
-ARG PKCS_PASSWORD=changeme
+ARG PKCS12_PASSWORD=changeme
 ARG POSTGRES_USER=postgres
 ARG POSTGRES_PASSWORD=postgres
 ARG CA_CERT_SUBJECT="/CN=Self Signed CA"
 ARG SERVER_CERT_SUBJECT="/CN=localhost"
-ENV PKCS_PASSWORD=$PKCS_PASSWORD \
+
+ENV PKCS12_PASSWORD=$PKCS12_PASSWORD \
   PATH_TO_CERTS=/etc/routr/certs \
   USER=fonoster \
   GID=5000 \
@@ -71,15 +72,16 @@ RUN apk add --no-cache nodejs npm tini openssl postgresql postgresql-client su-e
   && chmod 2777 /run/postgresql \
   && export DATABASE_URL=${DATABASE_URL} && su -m postgres -c "/service/init-postgres.sh" \
   && rm -rf /var/cache/apk/* /tmp/* /services/migrations /services/schema.prisma /services/init-postgres.sh \
-  && rm -rf /root/.npm /root/.config /root/.cache /root/.local \
+  && /root/.npm /root/.config /root/.cache /root/.local \
   && apk del npm postgresql-client
 
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
+
 CMD sh -c "su-exec postgres pg_ctl start -D /var/lib/postgresql/data --options='-h 0.0.0.0' && \
-  su-exec $USER ./convert-to-p12.sh $PATH_TO_CERTS $PKCS_PASSWORD && \
+  su-exec $USER ./convert-to-p12.sh $PATH_TO_CERTS $PKCS12_PASSWORD && \
   if [ -n \"$HEPLIFY_OPTIONS\" ]; then \
     heplify $HEPLIFY_OPTIONS & \
   fi && \
-  sed -i 's|keyStorePassword: .*|keyStorePassword: ${PKCS_PASSWORD}|g' config/edgeport.yaml && \
-  sed -i 's|trustStorePassword: .*|trustStorePassword: ${PKCS_PASSWORD}|g' config/edgeport.yaml && \
+  sed -i 's|keyStorePassword: .*|keyStorePassword: ${PKCS12_PASSWORD}|g' config/edgeport.yaml && \
+  sed -i 's|trustStorePassword: .*|trustStorePassword: ${PKCS12_PASSWORD}|g' config/edgeport.yaml && \
   DATABASE_URL=$DATABASE_URL su-exec $USER node ./dist/runner"
