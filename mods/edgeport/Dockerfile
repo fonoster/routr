@@ -59,9 +59,10 @@ USER 1000:3000
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 
 CMD ["sh", "-c", "set -e && \
+  # Hotfix: Skipped until we find a way to avoid the error "resource busy" when running with compose
+  # sed -i 's|keyStorePassword: .*|keyStorePassword: ${PKCS12_PASSWORD}|g' ${CONFIG_PATH} && \
+  # sed -i 's|trustStorePassword: .*|trustStorePassword: ${PKCS12_PASSWORD}|g' ${CONFIG_PATH} && \
   ./convert-to-p12.sh $PATH_TO_CERTS $PKCS12_PASSWORD && \
-  sed -i 's|keyStorePassword: .*|keyStorePassword: ${PKCS12_PASSWORD}|g' config/edgeport.yaml && \
-  sed -i 's|trustStorePassword: .*|trustStorePassword: ${PKCS12_PASSWORD}|g' config/edgeport.yaml && \
   if [ -n \"$HEPLIFY_OPTIONS\" ]; then \
     ./heplify $HEPLIFY_OPTIONS & \
   fi && \

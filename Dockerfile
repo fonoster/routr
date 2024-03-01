@@ -72,7 +72,7 @@ RUN apk add --no-cache nodejs npm tini openssl postgresql postgresql-client su-e
   && chmod 2777 /run/postgresql \
   && export DATABASE_URL=${DATABASE_URL} && su -m postgres -c "/service/init-postgres.sh" \
   && rm -rf /var/cache/apk/* /tmp/* /services/migrations /services/schema.prisma /services/init-postgres.sh \
-  && /root/.npm /root/.config /root/.cache /root/.local \
+  && rm -rf /root/.npm /root/.config /root/.cache /root/.local \
   && apk del npm postgresql-client
 
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
