@@ -56,6 +56,8 @@ spec:
               value: {{ .Values.global.otlExporter }}
             - name: HEPLIFY_OPTIONS
               value: {{ .Values.edgeport.heplifyOptions }}
+            - name: ENABLE_HEALTHCHECKS
+              value: "true"
           ports:
             - containerPort: 8080
           {{- if .Values.edgeport.transport.tcp.enabled }}

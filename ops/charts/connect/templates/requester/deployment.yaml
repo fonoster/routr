@@ -43,6 +43,8 @@ spec:
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
               value: {{ .Values.global.otlExporter }}
+            - name: ENABLE_HEALTHCHECKS
+              value: "true"
           ports:
             - containerPort: 8080
             - containerPort: 51909
