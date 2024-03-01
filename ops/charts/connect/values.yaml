@@ -188,8 +188,8 @@ location:
   # Location cache configuration
   cache:
     # Location cache provider
-    provider: memory
-    # Location cache parameters
+    provider: redis
+    # Location cache parameters (see configmap for defaults)
     parameters: ""
   # Location image configuration
   image:
@@ -379,7 +379,7 @@ registry:
   # Cache configuration
   cache:
     # Cache provider. Default to memory
-    provider: memory
+    provider: redis
     # Cache parameters. Default to empty string
     parameters: ""
   # Registry image configuration
