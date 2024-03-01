@@ -102,7 +102,7 @@ export class DomainManager extends EntityManager {
           ...domain,
           accessControlListRef: domain.accessControlList?.ref,
           accessControlList: ACLManager.mapToDto(domain.accessControlList),
-          egressPolicies: domain.egressPolicies.map((policy) => ({
+          egressPolicies: domain.egressPolicies?.map((policy) => ({
             rule: policy.rule,
             numberRef: policy.numberRef,
             number: NumberManager.mapToDtoWithoutTrunk(policy.number)

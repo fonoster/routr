@@ -21,10 +21,9 @@ import * as grpc from "@grpc/grpc-js"
 import { CliUx, Command, Flags } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { capitalize, showPaginatedList, ShowTable } from "../../utils"
-import { CommonConnect as CC } from "@routr/common"
+import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { CLIError } from "@oclif/core/lib/errors"
 import { CommandError } from "@oclif/core/lib/interfaces"
-import { CommonTypes as CT } from "@routr/common"
 
 export default class GetAgentsCommand extends BaseCommand {
   static readonly description =
