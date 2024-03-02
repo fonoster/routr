@@ -120,24 +120,24 @@ Raw Diagram:
 -->
 
 ```none
- ┌──────────┐  ┌────────┐ ┌──────────────────┐
- │SIP Client│  │EdgePort│ │Message Dispatcher│
- └────┬─────┘  └───┬────┘ └──────┬───────────┘
-      │            │             │        
-      │SIP request │             │        
-      │───────────>│             │        
-      │            │             │        
-      │            │gRPC request │        
-      │            │────────────>│        
-      │            │             │        
-      │            │gRPC response│        
-      │            │<────────────│        
-      │            │             │        
-      │SIP response│             │        
-      │<───────────│             │        
- ┌────┴─────┐  ┌───┴────┐ ┌──────┴───────────┐
- │SIP Client│  │EdgePort│ │Message Dispatcher│
- └──────────┘  └────────┘ └──────────────────┘
+┌──────────┐  ┌────────┐ ┌──────────────────┐
+│SIP Client│  │EdgePort│ │Message Dispatcher│
+└────┬─────┘  └───┬────┘ └──────┬───────────┘
+    │            │             │        
+    │SIP request │             │        
+    │───────────>│             │        
+    │            │             │        
+    │            │gRPC request │        
+    │            │────────────>│        
+    │            │             │        
+    │            │gRPC response│        
+    │            │<────────────│        
+    │            │             │        
+    │SIP response│             │        
+    │<───────────│             │        
+┌────┴─────┐  ┌───┴────┐ ┌──────┴───────────┐
+│SIP Client│  │EdgePort│ │Message Dispatcher│
+└──────────┘  └────────┘ └──────────────────┘
 ```
 
 **Brief Description**
@@ -379,24 +379,24 @@ deploying to Kubernetes:
 ### Message Dispatcher
 
 ```none
- ┌────────┐ ┌──────────────────┐             ┌─────────────────┐
- │EdgePort│ │Message Dispatcher│             │Message Processor│
- └───┬────┘ └──────┬───────────┘             └────────┬────────┘
-     │             │                                  │         
-     │gRPC request │                                  │         
-     │────────────>│                                  │         
-     │             │                                  │         
-     │             │findProcessor() & forwardMessage()│         
-     │             │─────────────────────────────────>│         
-     │             │                                  │         
-     │             │        Processed Message         │         
-     │             │<─────────────────────────────────│         
-     │             │                                  │         
-     │gRPC response│                                  │         
-     │<────────────│                                  │         
- ┌───┴────┐ ┌──────┴───────────┐             ┌────────┴────────┐
- │EdgePort│ │Message Dispatcher│             │Message Processor│
- └────────┘ └──────────────────┘             └─────────────────┘
+┌────────┐ ┌──────────────────┐             ┌─────────────────┐
+│EdgePort│ │Message Dispatcher│             │Message Processor│
+└───┬────┘ └──────┬───────────┘             └────────┬────────┘
+    │             │                                  │         
+    │gRPC request │                                  │         
+    │────────────>│                                  │         
+    │             │                                  │         
+    │             │findProcessor() & forwardMessage()│         
+    │             │─────────────────────────────────>│         
+    │             │                                  │         
+    │             │        Processed Message         │         
+    │             │<─────────────────────────────────│         
+    │             │                                  │         
+    │gRPC response│                                  │         
+    │<────────────│                                  │         
+┌───┴────┐ ┌──────┴───────────┐             ┌────────┴────────┐
+│EdgePort│ │Message Dispatcher│             │Message Processor│
+└────────┘ └──────────────────┘             └─────────────────┘
 ```
 
 **Brief Description**

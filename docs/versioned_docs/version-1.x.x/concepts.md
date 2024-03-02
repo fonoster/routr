@@ -109,7 +109,7 @@ Please examine the following example:
       countryISOCode: US
   spec:
     location:
-      telUri: 'tel:17066041487'
+      telUrl: 'tel:17066041487'
       aorLink: 'sip:john@sip.local' # This is the sip uri of an agent that is expected to be logged in
 ```
 
