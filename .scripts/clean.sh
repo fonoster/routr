@@ -2,6 +2,7 @@
 
 set -e
 
+rimraf **/logs
 rimraf **/*/tsconfig.tsbuildinfo
 rimraf **/*/dist 
 rimraf **/*/node_modules

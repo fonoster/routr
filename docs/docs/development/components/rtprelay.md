@@ -107,6 +107,6 @@ One easy way to interact with the RTPRelay for testing and development is to use
 grpcurl -plaintext \
   -import-path /path/to/protos \
   -proto processor.proto  -d '{...}' \
-  localhost:51901 \
+  localhost:51903 \
   fonoster.routr.processor.v2beta1.Processor/ProcessMessage
 ```
