@@ -66,7 +66,7 @@ export default function simpleDataService(config: SimpleDataConfig): void {
     config.bindAddr,
     grpc.ServerCredentials.createInsecure(),
     () => {
-      server.start()
+      // noop
     }
   )
 }

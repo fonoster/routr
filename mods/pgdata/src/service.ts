@@ -86,7 +86,6 @@ export default function pgDataService(config: PostgresDataConfig): void {
 
   withHealthChecks.bindAsync(config.bindAddr, credentials, () => {
     logger.info("internal server started", { bindAddr: config.bindAddr })
-    withHealthChecks.start()
   })
 
   if (TLS_ON) {
@@ -112,7 +111,6 @@ export default function pgDataService(config: PostgresDataConfig): void {
         logger.info("external server started", {
           externalServerBindAddr: config.externalServerBindAddr
         })
-        externalServer.start()
       }
     )
   } else {
@@ -121,7 +119,6 @@ export default function pgDataService(config: PostgresDataConfig): void {
       logger.info("external server started", {
         externalServerBindAddr: config.externalServerBindAddr
       })
-      externalServer.start()
     })
   }
 }

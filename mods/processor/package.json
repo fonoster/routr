@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@fonoster/logger": "0.3.20",
-    "@grpc/grpc-js": "^1.9.12",
-    "@grpc/proto-loader": "^0.7.2",
+    "@grpc/grpc-js": "~1.10.1",
+    "@grpc/proto-loader": "~0.7.10",
     "@opentelemetry/api": "^1.0.4",
     "@opentelemetry/exporter-jaeger": "^1.0.4",
     "@opentelemetry/instrumentation": "^0.27.0",
