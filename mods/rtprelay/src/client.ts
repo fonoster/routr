@@ -29,7 +29,15 @@ import {
 const Client = require("rtpengine-client").Client
 const rtpe = new Client({ timeout: RTPENGINE_TIMEOUT })
 
-export function offer(config: RTPEConfig) {
+export function query(config: RTPEConfig) {
+  return async (request: MessageRequest): Promise<RTPEFunctionResult> => {
+    return await rtpe.query(config, {
+      "call-id": request.message.callId.callId
+    })
+  }
+}
+
+export function offer(config: RTPEConfig, invertTags = false) {
   return async (request: MessageRequest): Promise<RTPEFunctionResult> => {
     const direction = getDirectionFromRequest(request)
     const sdpModifiers = getRTPEParamsByDirection(direction)
@@ -37,12 +45,12 @@ export function offer(config: RTPEConfig) {
       ...sdpModifiers,
       sdp: request.message.body,
       "call-id": request.message.callId.callId,
-      "from-tag": request.message.from.tag
+      "from-tag": invertTags ? request.message.to.tag : request.message.from.tag
     })
   }
 }
 
-export function answer(config: RTPEConfig) {
+export function answer(config: RTPEConfig, invertTags = false) {
   return async (request: MessageRequest): Promise<RTPEFunctionResult> => {
     const direction = getDirectionFromResponse(request)
     const sdpModifiers = getRTPEParamsByDirection(direction)
@@ -50,8 +58,10 @@ export function answer(config: RTPEConfig) {
       ...sdpModifiers,
       sdp: request.message.body,
       "call-id": request.message.callId.callId,
-      "from-tag": request.message.from.tag,
-      "to-tag": request.message.to.tag
+      "from-tag": invertTags
+        ? request.message.to.tag
+        : request.message.from.tag,
+      "to-tag": invertTags ? request.message.from.tag : request.message.to.tag
     })
   }
 }

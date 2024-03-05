@@ -54,5 +54,6 @@ export type RTPEFunctionResult =
   | { result: "error"; "error-reason": string }
 
 export type RTPEFunction = (
-  config: RTPEConfig
+  config: RTPEConfig,
+  invertTags?: boolean
 ) => (req: MessageRequest) => Promise<RTPEFunctionResult>

@@ -74,10 +74,17 @@ export const isRinging = (request: MessageRequest) =>
 export const isWebRTC = (transport: Transport) =>
   transport === Transport.WS || transport === Transport.WSS
 
+export const isInviteWithSDP = (request: MessageRequest) =>
+  isTypeRequest(request) && hasSDP(request) && request.method === Method.INVITE
+
+export const isAckWithSDP = (request: MessageRequest) =>
+  isTypeRequest(request) && hasSDP(request) && request.method === Method.ACK
+
 export const isInviteOrAckWithSDP = (request: MessageRequest) =>
-  isTypeRequest(request) &&
-  hasSDP(request) &&
-  (request.method === Method.INVITE || request.method === Method.ACK)
+  isInviteWithSDP(request) || isAckWithSDP(request)
+
+export const isResponseWithSDP = (request: MessageRequest) =>
+  isTypeResponse(request) && hasSDP(request)
 
 export const isOkOrRingingWithSDP = (request: MessageRequest) =>
   isTypeResponse(request) &&
