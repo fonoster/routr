@@ -43,7 +43,7 @@ spec:
             - name: RTPENGINE_HOST
               value: {{ .Values.rtprelay.rtpeHost }}
             - name: RTPENGINE_PORT
-              value: {{ .Values.rtprelay.rtpPort | quote}}
+              value: {{ .Values.rtprelay.rtpePort | quote}}
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
