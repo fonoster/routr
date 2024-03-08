@@ -123,7 +123,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 | Parameter                                                  | Description                                                   | Value                                                       |
 | ---------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
-| `dispatcher.processors`                                    | Processors configuration section                              |                                                             |
+| `dispatcher.processors`                                    | Processors configuration section                              | `[]`                                                        |
 | `dispatcher.processors[*].ref`                             | Reference to the Processor                                    | `connect-processor`                                         |
 | `dispatcher.processors[*].servicePrefix`                   | Prefix for the service (Defaults to the release name)         | `{{ .Release.Name }}`                                       |
 | `dispatcher.processors[*].serviceName`                     | The name of the service hosting the processor                 | `{{ .serviceName }}`                                        |
