@@ -202,7 +202,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.verifyClientCert`                              | To verify the client's certificate during authentication                | `false`                            |
 | `apiserver.podAnnotations`                                | Pod annotations                                                         | `{}`                               |
 | `apiserver.serviceAnnotations`                            | Service annotations                                                     | `{}`                               |
-| `apiserver.autoscaling.miniReplicas`                      | Minimum number of replicas                                              | `1`                                |
+| `apiserver.autoscaling.minReplicas`                       | Minimum number of replicas                                              | `1`                                |
 | `apiserver.autoscaling.maxReplicas`                       | Maximum number of replicas                                              | `10`                               |
 | `apiserver.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                                       | `50`                               |
 | `apiserver.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                                    | `70`                               |
@@ -227,7 +227,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `connect.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
 | `connect.podAnnotations`                                | Pod annotations                                               | `{}`                      |
 | `connect.serviceAnnotations`                            | Service annotations                                           | `{}`                      |
-| `connect.autoscaling.miniReplicas`                      | Minimum number of replicas                                    | `1`                       |
+| `connect.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                       |
 | `connect.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                      |
 | `connect.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                      |
 | `connect.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                      |
@@ -277,7 +277,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `requester.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`             |
 | `requester.podAnnotations`                                | Pod annotations                                               | `{}`                       |
 | `requester.serviceAnnotations`                            | Service annotations                                           | `{}`                       |
-| `requester.autoscaling.miniReplicas`                      | Minimum number of replicas                                    | `1`                        |
+| `requester.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                        |
 | `requester.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                       |
 | `requester.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                       |
 | `requester.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                       |
@@ -305,7 +305,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `rtprelay.image.pullPolicy`                              | Image pull policy                                             | `IfNotPresent`            |
 | `rtprelay.podAnnotations`                                | Pod annotations                                               | `{}`                      |
 | `rtprelay.serviceAnnotations`                            | Service annotations                                           | `{}`                      |
-| `rtprelay.autoscaling.miniReplicas`                      | Minimum number of replicas                                    | `1`                       |
+| `rtprelay.autoscaling.minReplicas`                       | Minimum number of replicas                                    | `1`                       |
 | `rtprelay.autoscaling.maxReplicas`                       | Maximum number of replicas                                    | `10`                      |
 | `rtprelay.autoscaling.targetCPUUtilizationPercentage`    | Target CPU utilization percentage                             | `50`                      |
 | `rtprelay.autoscaling.targetMemoryUtilizationPercentage` | Target Memory utilization percentage                          | `70`                      |
@@ -362,11 +362,11 @@ Specify each parameter using the --set key=value[, key=value] argument to helm i
 ```bash
 $ helm install --wait my-release \
   --set global.logLevel=debug \
-  routr/routr
+  routr/routr-connect
 ```
 
 Alternatively, you can provide a YAML file that specifies the above parameters' values while installing the chart. For example:
 
 ```bash
-$ helm install --wait my-release -f values.yaml routr/routr
+$ helm install --wait my-release -f values.yaml routr/routr-connect
 ```
