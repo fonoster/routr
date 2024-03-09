@@ -749,6 +749,7 @@
     "transportMode": "u1",
     "target": "sip01.edgeport.net:5060",
     "domain": "sip.local",
+    "enabled": false,
     "userAgents": [
       {
         "mode": "uas",
