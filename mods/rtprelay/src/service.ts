@@ -24,7 +24,7 @@ import Processor, {
   MessageRequest,
   Response
 } from "@routr/processor"
-import { offer, answer, del } from "./client"
+import { offer, answer, del, query } from "./client"
 import { CommonErrors as CE } from "@routr/common"
 import { Direction, RTPEFunction } from "./types"
 import { getLogger } from "@fonoster/logger"
@@ -59,8 +59,8 @@ export default function rtprelay(
         ? getDirectionFromResponse(req)
         : getDirectionFromRequest(req)
 
-      const sendRequest = async (f: RTPEFunction) => {
-        const r = await f(rtpeConfig)(req)
+      const sendRequest = async (f: RTPEFunction, invertTags = false) => {
+        const r = await f(rtpeConfig, invertTags)(req)
 
         if (r.result === "error") {
           throw new CE.BadRequestError(r["error-reason"])
@@ -71,14 +71,26 @@ export default function rtprelay(
         return res.send(req)
       }
 
-      if (H.isInviteOrAckWithSDP(req)) {
+      const queryResponse = await query(rtpeConfig)(req)
+      const isNewCall = queryResponse.result === "error"
+
+      logger.verbose("request", {
+        direction,
+        isNewCall,
+        type: H.isTypeRequest(req) ? req.method : req.message.responseType
+      })
+
+      if (H.isInviteWithSDP(req)) {
         return await sendRequest(offer)
+      } else if (H.isAckWithSDP(req)) {
+        return await sendRequest(answer, true)
       } else if (H.isRinging(req) && direction === Direction.WEB_TO_PHONE) {
         // FIXME: This was added to prevent the ringing message from being sent to the
         // caller while the call is being established. This is a temporary fix
         req.message.body = ""
-        return res.send(req)
-      } else if (H.isOkOrRingingWithSDP(req)) {
+      } else if (H.isResponseWithSDP(req) && isNewCall) {
+        return await sendRequest(offer, true)
+      } else if (H.isResponseWithSDP(req)) {
         return await sendRequest(answer)
       } else if (H.isBye(req)) {
         return await sendRequest(del)

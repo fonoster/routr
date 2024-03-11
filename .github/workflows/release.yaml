@@ -22,10 +22,10 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
-      - name: Installing Node
-        uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: "18.x"
+          node-version: "20.x"
       - name: Build project
         run: npm run make
       - name: Check for next release
@@ -69,7 +69,7 @@ jobs:
           body: ${{ steps.changelog.outputs.changelog }}
           draft: true
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: routr-build
           path: |

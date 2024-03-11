@@ -178,6 +178,7 @@ export const createRemotePartyId = (
   }
 }
 
+// Q: Why is this a promise?
 export const createTrunkAuthentication = async (
   trunk: CC.Trunk
 ): Promise<HeaderModifier> => {

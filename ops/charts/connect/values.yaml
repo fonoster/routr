@@ -498,7 +498,7 @@ rtprelay:
   # RTPEngine host
   rtpeHost: ""
   # RTPEngine port
-  rtpPort: 22222
+  rtpePort: 22222
   # RTPRelay image configuration
   image:
     # RTPRelay image repository
