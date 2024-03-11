@@ -38,7 +38,11 @@ export enum Method {
   ACK = "ACK",
   BYE = "BYE",
   CANCEL = "CANCEL",
-  OPTIONS = "OPTIONS"
+  OPTIONS = "OPTIONS",
+  INFO = "INFO",
+  REFER = "REFER",
+  UPDATE = "UPDATE",
+  PRACK = "PRACK"
 }
 
 export enum Transport {
