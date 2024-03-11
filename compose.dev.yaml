@@ -2,7 +2,6 @@
 services:
   edgeport01:
     container_name: edgeport01
-    user: root
     build:
       context: .
       dockerfile: ./mods/edgeport/Dockerfile
@@ -19,7 +18,6 @@ services:
 
   edgeport02:
     container_name: edgeport02
-    user: root
     build:
       context: .
       dockerfile: ./mods/edgeport/Dockerfile
