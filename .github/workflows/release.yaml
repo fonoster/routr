@@ -69,7 +69,7 @@ jobs:
           body: ${{ steps.changelog.outputs.changelog }}
           draft: true
       - name: Upload build artifact
-        uses: actions/-artifact@v4
+        uses: actions/upload-artifact@v4
         with:
           name: routr-build
           path: |
