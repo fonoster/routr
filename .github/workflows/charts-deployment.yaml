@@ -29,10 +29,9 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: Set up Helm
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4.1.0
         with:
           version: latest
-          token: ${{ secrets.DEPLOY_KEY }}
       - name: Package charts
         run: |
           mv /tmp/charts charts
