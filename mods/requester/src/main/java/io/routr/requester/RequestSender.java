@@ -105,5 +105,4 @@ public final class RequestSender {
       LOG.warn("an exception occurred while sending request callId: {}", request.getMessage().getCallId().getCallId(), e);
     }
   }
-
 }

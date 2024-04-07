@@ -426,12 +426,15 @@ public class ConverterTests {
 
     assertEquals(message.getCallId().getCallId(), "call001");
     assertEquals(message.getContentLength().getContentLength(), 11);
-    assertEquals(message.getExtensionsCount(), 4);
+    assertEquals(message.getExtensionsCount(), 5);
     assertEquals(message.getExtensions(0).getName(), "X-Custom-Header-01");
     assertEquals(message.getExtensions(0).getValue(), "my custom header 01");
     assertEquals(message.getExtensions(1).getName(), "X-Custom-Header-02");
     assertEquals(message.getExtensions(1).getValue(), "my custom header 02");
     assertEquals(message.getExtensions(2).getName(), "Allow");
+    assertEquals(message.getExtensions(2).getValue(), "INVITE");
+    assertEquals(message.getExtensions(3).getName(), "Allow");
+    assertEquals(message.getExtensions(3).getValue(), "BYE");
 
     // ? Why 1 and not 0?
     assertEquals(message.getViaList().get(1).getBranch(), via1.getBranch());
@@ -521,9 +524,10 @@ public class ConverterTests {
       viaListOut.add(viaIteratorOut.next());
     }
 
-    assertEquals(10, headers.size());
+    assertEquals(11, headers.size());
 
     Iterator<String> names = (Iterator<String>) request.getHeaderNames();
+
     while (names.hasNext()) {
       String n = names.next();
 

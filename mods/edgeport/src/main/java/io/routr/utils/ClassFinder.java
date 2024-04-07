@@ -11,14 +11,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ClassFinder {
-  static public Set<Class> findAllClassesUsingReflections(String packageName) {
+  public static Set<Class> findAllClassesUsingReflections(String packageName) {
     var reflections = new Reflections(packageName, new SubTypesScanner(false));
     return reflections.getSubTypesOf(Object.class)
         .stream()
         .collect(Collectors.toSet());
   }
 
-  static public List<Class<Converter>> findAllConverters() {
+  public static List<Class<Converter>> findAllConverters() {
     var classes = findAllClassesUsingReflections("io.routr.headers").iterator();
     var converters = new ArrayList();
 
@@ -31,7 +31,7 @@ public class ClassFinder {
     return converters;
   }
 
-  static public Class<Converter> findConverterByHeaderClass(Class<?> clasz) {
+  public static Class<Converter> findConverterByHeaderClass(Class<?> clasz) {
     for (Class<Converter> converter : findAllConverters()) {
       ProtoMapping mapping = converter.getAnnotation(ProtoMapping.class);
       if (mapping.header().equals(clasz))
