@@ -179,6 +179,7 @@ public class GRPCSipListener implements SipListener {
     var requestOut = (Request) request.clone();
 
     Iterator<String> names = requestOut.getHeaderNames();
+
     while (names.hasNext()) {
       String n = names.next();
       // WARN: Perhaps we should compute this value
@@ -188,18 +189,13 @@ public class GRPCSipListener implements SipListener {
     }
 
     for (Header header : headers) {
-      // Ignore special header
-      if (header.getName().equalsIgnoreCase("x-gateway-auth")) {
+      // Ignore special header that is used for authentication and Content-Length
+      if (header.getName().equalsIgnoreCase(ContentLength.NAME) 
+        || header.getName().equalsIgnoreCase("x-gateway-auth")) {
         continue;
       }
 
-      String s = header.getName();
-      if (s.equals(FromHeader.NAME) || s.equals(ToHeader.NAME) && s.equals(CallIdHeader.NAME)
-          && s.equals(CSeqHeader.NAME)) {
-        requestOut.setHeader(header);
-      } else {
-        requestOut.addHeader(header);
-      }
+      requestOut.addHeader(header);
     }
 
     return requestOut;
