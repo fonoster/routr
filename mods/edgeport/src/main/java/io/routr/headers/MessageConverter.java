@@ -87,8 +87,15 @@ public class MessageConverter {
       ProtoMapping mapping = converter.getClass().getAnnotation(ProtoMapping.class);
       FieldDescriptor descriptor = SIPMessage.getDescriptor().findFieldByName(fieldName);
 
-      // Takes care of headers that might appear more than once
-      if (mapping.repeatable()) {
+      // Takes care of headers that might appear more than once and are custom
+      if (mapping.repeatable() && mapping.extension()) {
+        ListIterator<Header> headers = (ListIterator<Header>) message.getHeaders(header.getName());
+        while (headers.hasNext()) {
+          Header currentHeader = headers.next();
+          FieldDescriptor extDescriptor = SIPMessage.getDescriptor().findFieldByName(mapping.field());
+          sipMessageBuilder.addRepeatedField(extDescriptor, converter.fromHeader(currentHeader));
+        }
+      } else if (mapping.repeatable()) {
         ListIterator<Header> headers = (ListIterator<Header>) message.getHeaders(header.getName());
         while (headers.hasNext()) {
           Header currentHeader = headers.next();

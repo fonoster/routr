@@ -26,7 +26,7 @@ import javax.sip.header.Header;
 import javax.sip.header.HeaderFactory;
 import java.text.ParseException;
 
-@ProtoMapping(header = ExtensionHeader.class, field = "extensions", repeatable = false, extension = true)
+@ProtoMapping(header = ExtensionHeader.class, field = "extensions", repeatable = true, extension = true)
 public class ExtensionConverter implements Converter<Header, io.routr.message.Extension> {
   @Override
   public io.routr.message.Extension fromHeader(Header header) {
