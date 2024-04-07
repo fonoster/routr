@@ -15,6 +15,8 @@ services:
         ipv4_address: 10.111.221.2
         aliases:
           - sip01.edgeport.net
+    volumes:
+      - ./config/log4j2.yaml:/etc/routr/log4j2.yaml
 
   edgeport02:
     container_name: edgeport02
@@ -31,6 +33,8 @@ services:
         ipv4_address: 10.111.221.3
         aliases:
           - sip02.edgeport.net
+    volumes:
+      - ./config/log4j2.yaml:/etc/routr/log4j2.yaml
 
   dispatcher:
     container_name: dispatcher

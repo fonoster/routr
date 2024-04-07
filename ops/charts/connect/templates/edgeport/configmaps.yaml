@@ -29,7 +29,7 @@ data:
       Loggers:
         Logger:
           - name: io.routr
-            level: debug
+            level: info
             AppenderRef:
               - ref: Console
               - ref: LogToRollingFile

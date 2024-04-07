@@ -50,7 +50,7 @@ WORKDIR /service
 COPY mods/edgeport/edgeport.sh .
 COPY mods/edgeport/libs libs
 COPY etc/edgeport.yaml config/edgeport.yaml
-COPY config/log4j2.yaml config/log4j2.yaml
+COPY config/log4j2.yaml mods/edgeport/etc/log4j2.yaml
 COPY .scripts/convert-to-p12.sh .
 COPY .scripts/generate-certs.sh .
 COPY --from=builder /work/dist dist
