@@ -19,7 +19,7 @@ $ npm install -g @routr/ctl
 $ rctl COMMAND
 running command...
 $ rctl (--version)
-@routr/ctl/2.11.2 linux-x64 node-v20.12.2
+@routr/ctl/2.11.2 darwin-arm64 node-v20.11.1
 $ rctl --help [COMMAND]
 USAGE
   $ rctl COMMAND
