@@ -1,6 +1,6 @@
 {
   "name": "@routr/ctl",
-  "version": "2.11.1",
+  "version": "2.11.2",
   "description": "Routr Command-Line Tool",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "bin": {
@@ -25,8 +25,8 @@
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.1.12",
     "@oclif/plugin-warn-if-update-available": "^2.0.19",
-    "@routr/common": "^2.11.1",
-    "@routr/sdk": "^2.11.1",
+    "@routr/common": "^2.11.2",
+    "@routr/sdk": "^2.11.2",
     "figlet": "^1.5.2",
     "fuzzy-search": "^3.2.1",
     "inquirer": "^8.2.6",
