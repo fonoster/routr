@@ -43,7 +43,7 @@
     "hostile:load": "sudo hostile load etc/hosts.txt",
     "hostile:unload": "sudo hostile unload etc/hosts.txt",
     "publish": "lerna publish --yes --no-git-reset --dist-tag next $(./.scripts/next-release.sh) --message \"chore(release): publish %s [skip ci]\"",
-    "publish:prerelease": "lerna publish prerelease --dist-tag next",
+    "publish:prerelease": "lerna publish prerelease --no-private --dist-tag next",
     "publish:frompackages": "lerna publish from-package",
     "typecheck": "tsc --noEmit",
     "helm:package": "helm package ops/charts/connect -d .charts",
