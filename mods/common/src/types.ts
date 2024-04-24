@@ -306,7 +306,7 @@ export interface SipURI {
   user?: string
   host: string
   port?: number
-  transportParam: Transport
+  transportParam?: Transport
   mAddrParam?: string
   userParam?: string
   ttlParam?: number

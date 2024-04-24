@@ -55,7 +55,11 @@ export default class Response {
   sendOk(extraHeaders?: Array<{ name: string; value: string }>) {
     this.callback(
       null,
-      buildResponse({ code: CT.ResponseType.OK, extraHeaders })
+      buildResponse({
+        code: CT.ResponseType.OK,
+        extraHeaders,
+        reasonPhrase: "OK"
+      })
     )
   }
 
