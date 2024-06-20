@@ -59,7 +59,7 @@ export function getRTPEParamsByDirection(dir: Direction) {
     case Direction.WEB_TO_WEB:
       return {
         ICE: "force",
-        SDES: "off",
+        SDES: ["off"],
         flags: ["trust-address", "replace-origin", "replace-session-connection"]
       }
     case Direction.WEB_TO_PHONE:
@@ -74,7 +74,7 @@ export function getRTPEParamsByDirection(dir: Direction) {
         "transport-protocol": "UDP/TLS/RTP/SAVPF",
         "rtcp-mux": "require",
         ICE: "force",
-        SDES: "off",
+        SDES: ["off"],
         flags: [
           "trust-address",
           "replace-origin",
