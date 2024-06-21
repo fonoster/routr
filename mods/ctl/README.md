@@ -19,7 +19,7 @@ $ npm install -g @routr/ctl
 $ rctl COMMAND
 running command...
 $ rctl (--version)
-@routr/ctl/2.11.2 darwin-arm64 node-v20.11.1
+@routr/ctl/2.11.3 linux-x64 node-v20.14.0
 $ rctl --help [COMMAND]
 USAGE
   $ rctl COMMAND
@@ -95,7 +95,7 @@ EXAMPLES
   Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/acl/create.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/acl/create.ts)_
+_See code: [src/commands/acl/create.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/acl/create.ts)_
 
 ## `rctl acl delete [REF]`
 
@@ -118,7 +118,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/acl/delete.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/acl/delete.ts)_
+_See code: [src/commands/acl/delete.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/acl/delete.ts)_
 
 ## `rctl acl describe [REF]`
 
@@ -140,7 +140,7 @@ DESCRIPTION
   shows details of an ACL
 ```
 
-_See code: [src/commands/acl/describe.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/acl/describe.ts)_
+_See code: [src/commands/acl/describe.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/acl/describe.ts)_
 
 ## `rctl acl get [REF]`
 
@@ -169,7 +169,7 @@ EXAMPLES
   9e7a88f0-8390-42f5-a2cb-689583ba9f4f Local Network ACL 0.0.0.0/0 10.0.0.28
 ```
 
-_See code: [src/commands/acl/get.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/acl/get.ts)_
+_See code: [src/commands/acl/get.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/acl/get.ts)_
 
 ## `rctl acl update REF`
 
@@ -195,7 +195,7 @@ EXAMPLES
   Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/acl/update.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/acl/update.ts)_
+_See code: [src/commands/acl/update.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/acl/update.ts)_
 
 ## `rctl agents create`
 
@@ -218,7 +218,7 @@ EXAMPLES
   Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/agents/create.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/agents/create.ts)_
+_See code: [src/commands/agents/create.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/agents/create.ts)_
 
 ## `rctl agents delete [REF]`
 
@@ -241,7 +241,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/agents/delete.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/agents/delete.ts)_
+_See code: [src/commands/agents/delete.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/agents/delete.ts)_
 
 ## `rctl agents describe [REF]`
 
@@ -263,7 +263,7 @@ DESCRIPTION
   shows details of an Agent
 ```
 
-_See code: [src/commands/agents/describe.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/agents/describe.ts)_
+_See code: [src/commands/agents/describe.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/agents/describe.ts)_
 
 ## `rctl agents get [REF]`
 
@@ -292,7 +292,7 @@ EXAMPLES
   d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1              PRIVATE Yes
 ```
 
-_See code: [src/commands/agents/get.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/agents/get.ts)_
+_See code: [src/commands/agents/get.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/agents/get.ts)_
 
 ## `rctl agents update REF`
 
@@ -318,7 +318,7 @@ EXAMPLES
   Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/agents/update.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/agents/update.ts)_
+_See code: [src/commands/agents/update.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/agents/update.ts)_
 
 ## `rctl autocomplete [SHELL]`
 
@@ -370,7 +370,7 @@ EXAMPLES
   Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/credentials/create.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/credentials/create.ts)_
+_See code: [src/commands/credentials/create.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/credentials/create.ts)_
 
 ## `rctl credentials delete [REF]`
 
@@ -393,7 +393,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/credentials/delete.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/credentials/delete.ts)_
+_See code: [src/commands/credentials/delete.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/credentials/delete.ts)_
 
 ## `rctl credentials describe [REF]`
 
@@ -415,7 +415,7 @@ DESCRIPTION
   shows details for a set of Credentials
 ```
 
-_See code: [src/commands/credentials/describe.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/credentials/describe.ts)_
+_See code: [src/commands/credentials/describe.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/credentials/describe.ts)_
 
 ## `rctl credentials get [REF]`
 
@@ -444,7 +444,7 @@ EXAMPLES
   80181ca6-d4aa-4575-9375-8f72b07d6666 Europe ACL 0.0.0.0/0 10.0.0.25
 ```
 
-_See code: [src/commands/credentials/get.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/credentials/get.ts)_
+_See code: [src/commands/credentials/get.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/credentials/get.ts)_
 
 ## `rctl credentials update REF`
 
@@ -470,7 +470,7 @@ EXAMPLES
   Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/credentials/update.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/credentials/update.ts)_
+_See code: [src/commands/credentials/update.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/credentials/update.ts)_
 
 ## `rctl domains create`
 
@@ -493,7 +493,7 @@ EXAMPLES
   Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/domains/create.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/domains/create.ts)_
+_See code: [src/commands/domains/create.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/domains/create.ts)_
 
 ## `rctl domains delete [REF]`
 
@@ -516,7 +516,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/domains/delete.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/domains/delete.ts)_
+_See code: [src/commands/domains/delete.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/domains/delete.ts)_
 
 ## `rctl domains describe [REF]`
 
@@ -538,7 +538,7 @@ DESCRIPTION
   show details of a Domain
 ```
 
-_See code: [src/commands/domains/describe.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/domains/describe.ts)_
+_See code: [src/commands/domains/describe.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/domains/describe.ts)_
 
 ## `rctl domains get [REF]`
 
@@ -567,7 +567,7 @@ EXAMPLES
   ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
 ```
 
-_See code: [src/commands/domains/get.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/domains/get.ts)_
+_See code: [src/commands/domains/get.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/domains/get.ts)_
 
 ## `rctl domains update REF`
 
@@ -593,7 +593,7 @@ EXAMPLES
   Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/domains/update.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/domains/update.ts)_
+_See code: [src/commands/domains/update.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/domains/update.ts)_
 
 ## `rctl numbers create`
 
@@ -616,7 +616,7 @@ EXAMPLES
   Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
 ```
 
-_See code: [src/commands/numbers/create.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/numbers/create.ts)_
+_See code: [src/commands/numbers/create.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/numbers/create.ts)_
 
 ## `rctl numbers delete [REF]`
 
@@ -639,7 +639,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/numbers/delete.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/numbers/delete.ts)_
+_See code: [src/commands/numbers/delete.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/numbers/delete.ts)_
 
 ## `rctl numbers describe [REF]`
 
@@ -661,7 +661,7 @@ DESCRIPTION
   shows details for a Number
 ```
 
-_See code: [src/commands/numbers/describe.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/numbers/describe.ts)_
+_See code: [src/commands/numbers/describe.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/numbers/describe.ts)_
 
 ## `rctl numbers get [REF]`
 
@@ -690,7 +690,7 @@ EXAMPLES
   a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@sip.local Cameron, USA (US)
 ```
 
-_See code: [src/commands/numbers/get.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/numbers/get.ts)_
+_See code: [src/commands/numbers/get.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/numbers/get.ts)_
 
 ## `rctl numbers update REF`
 
@@ -716,7 +716,7 @@ EXAMPLES
   Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/numbers/update.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/numbers/update.ts)_
+_See code: [src/commands/numbers/update.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/numbers/update.ts)_
 
 ## `rctl peers create`
 
@@ -739,7 +739,7 @@ EXAMPLES
   Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/peers/create.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/peers/create.ts)_
+_See code: [src/commands/peers/create.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/peers/create.ts)_
 
 ## `rctl peers delete [REF]`
 
@@ -762,7 +762,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/peers/delete.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/peers/delete.ts)_
+_See code: [src/commands/peers/delete.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/peers/delete.ts)_
 
 ## `rctl peers describe [REF]`
 
@@ -784,7 +784,7 @@ DESCRIPTION
   shows details for a Peer
 ```
 
-_See code: [src/commands/peers/describe.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/peers/describe.ts)_
+_See code: [src/commands/peers/describe.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/peers/describe.ts)_
 
 ## `rctl peers get [REF]`
 
@@ -813,7 +813,7 @@ EXAMPLES
   6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local 1              Round Robin         Yes
 ```
 
-_See code: [src/commands/peers/get.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/peers/get.ts)_
+_See code: [src/commands/peers/get.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/peers/get.ts)_
 
 ## `rctl peers update REF`
 
@@ -839,7 +839,7 @@ EXAMPLES
   Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/peers/update.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/peers/update.ts)_
+_See code: [src/commands/peers/update.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/peers/update.ts)_
 
 ## `rctl plugins`
 
@@ -1105,7 +1105,7 @@ EXAMPLES
   Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/trunks/create.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/trunks/create.ts)_
+_See code: [src/commands/trunks/create.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/trunks/create.ts)_
 
 ## `rctl trunks delete [REF]`
 
@@ -1128,7 +1128,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/trunks/delete.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/trunks/delete.ts)_
+_See code: [src/commands/trunks/delete.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/trunks/delete.ts)_
 
 ## `rctl trunks describe [REF]`
 
@@ -1150,7 +1150,7 @@ DESCRIPTION
   shows details for a Trunk
 ```
 
-_See code: [src/commands/trunks/describe.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/trunks/describe.ts)_
+_See code: [src/commands/trunks/describe.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/trunks/describe.ts)_
 
 ## `rctl trunks get [REF]`
 
@@ -1179,7 +1179,7 @@ EXAMPLES
   8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local  sip.t01.provider.net
 ```
 
-_See code: [src/commands/trunks/get.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/trunks/get.ts)_
+_See code: [src/commands/trunks/get.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/trunks/get.ts)_
 
 ## `rctl trunks update REF`
 
@@ -1205,5 +1205,5 @@ EXAMPLES
   Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/trunks/update.ts](https://github.com/fonoster/routr/blob/v2.11.2/mods/ctl/src/commands/trunks/update.ts)_
+_See code: [src/commands/trunks/update.ts](https://github.com/fonoster/routr/blob/v2.11.3/mods/ctl/src/commands/trunks/update.ts)_
 <!-- commandsstop -->
