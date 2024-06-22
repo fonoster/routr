@@ -1,6 +1,6 @@
 {
   "name": "@routr/sdk",
-  "version": "2.11.3",
+  "version": "2.11.4",
   "description": "The Routr SDK for Node.js",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
