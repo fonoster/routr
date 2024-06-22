@@ -73,7 +73,7 @@ export class Domains extends APIClient {
    * @param {string} request.name - Name of the Domain
    * @param {string} request.domainUri - The FQDN of the Domain
    * @param {string} request.accessControlListRef - The reference to the AccessControlList for the Domain
-   * @param {CC.EgressPolicy[]} request.egressPolicies - The list of EgressPolicies for the Domain
+   * @param {EgressPolicy[]} request.egressPolicies - The list of EgressPolicies for the Domain
    * @param {string} request.extended - Optional extended attributes
    * @return {Promise<CreateDomainResponse>} The newly created Domain
    * @throws if request is null
@@ -108,7 +108,7 @@ export class Domains extends APIClient {
    * @param {UpdateDomainRequest} request - Partial with the fields to update
    * @param {string} request.name - Name of the Domain
    * @param {string} request.accessControlListRef - The reference to the AccessControlList for the Domain
-   * @param {CC.EgressPolicy[]} request.egressPolicies - The list of EgressPolicies for the Domain
+   * @param {EgressPolicy[]} request.egressPolicies - The list of EgressPolicies for the Domain
    * @param {string} request.extended - Optional extended attributes
    * @return {Promise<UpdateDomainResponse>} The updated Domain
    * @example

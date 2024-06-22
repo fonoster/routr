@@ -87,8 +87,9 @@ jobs:
       - name: SIP Connect v1.1 Compliance Tests
         if: github.event.inputs.skip_tests == 'false'
         run: |
-          docker-compose -f compose.yaml -f compose.dev.yaml up --build --abort-on-container-exit --exit-code-from compliance
-
+          docker-compose -f compose.yaml -f compose.dev.yaml up \
+            compliance edgeport01 edgeport02 dispatcher registry requester apiserver connect location \
+            --build --abort-on-container-exit --exit-code-from compliance
   publish-to-docker-hub:
     name: Publish to Docker Hub
     uses: ./.github/workflows/docker-hub-release.yaml
