@@ -84,19 +84,19 @@ const config = {
       {
         redirects: [
           {
-            to: "/docs/2.0.0/overview/introduction",
+            to: "/docs/2.11.5/overview/introduction",
             from: ["/docs/overview/introduction", "/docs"]
           },
           {
-            to: "/docs/2.0.0/contributing",
+            to: "/docs/2.11.5/contributing",
             from: ["/docs/contributing"]
           },
           {
-            to: "/docs/2.0.0/community",
+            to: "/docs/2.11.5/community",
             from: ["/docs/community"]
           },
           {
-            to: "/docs/2.0.0/development/introduction",
+            to: "/docs/2.11.5/development/introduction",
             from: ["/docs/development/introduction"]
           }
         ]
