@@ -277,7 +277,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
 
       // Assert
       expect(createResult).to.throw(
-        "the inbound URI must be a valid FQDN (e.g. sip.example.com)"
+        "the inbound URI must be a valid FQDN or IP address (e.g., sip.example.com or 47.132.130.31)"
       )
     })
   })

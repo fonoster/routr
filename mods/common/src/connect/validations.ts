@@ -177,13 +177,14 @@ export const hasValidACLRules = (acl: {
   deny: string[]
   allow: string[]
 }): true | BadRequestError => {
-  const deny = isValidACLRule(acl?.deny) as true | BadRequestError
+  const deny = isValidACLRule(acl?.deny)
 
   if (deny instanceof BadRequestError) {
     return deny
   }
 
-  const allow = isValidACLRule(acl?.allow) as true | BadRequestError
+  const allow = isValidACLRule(acl?.allow)
+
   if (allow instanceof BadRequestError) {
     return allow
   }
@@ -195,9 +196,13 @@ export const hasInboundUri = (inboundUri: string) =>
   inboundUri ? true : new BadRequestError("the inboundUri is required")
 
 export const isValidInboundUri = (inboundUri: string) => {
-  if (inboundUri && !Validator.default.isFQDN(inboundUri)) {
+  if (
+    inboundUri &&
+    !Validator.default.isFQDN(inboundUri) &&
+    !Validator.default.isIP(inboundUri)
+  ) {
     return new BadRequestError(
-      "the inbound URI must be a valid FQDN (e.g. sip.example.com)"
+      "the inbound URI must be a valid FQDN or IP address (e.g., sip.example.com or 47.132.130.31)"
     )
   }
   return true
