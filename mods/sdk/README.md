@@ -772,7 +772,7 @@ const request = {
   aorLink: "sip:100@sip.local",
   city: "San Francisco",
   country: "United States",
-  countryISOCode: "US",
+  countryIsoCode: "US",
   sessionAffinityHeader: "X-Room-Id"
   extraHeaders: [{
     name: "X-Room-Id",
@@ -807,7 +807,7 @@ Creates a new Number on Routr.
 | request.aorLink | <code>string</code> | The AOR link to be used (e.g., sip:1001@sip.local) |
 | request.city | <code>string</code> | The city where the number is located |
 | request.country | <code>string</code> | The country where the number is located |
-| request.countryISOCode | <code>string</code> | The country ISO code where the number is located |
+| request.countryIsoCode | <code>string</code> | The country ISO code where the number is located |
 | request.extraHeaders | <code>Array.&lt;JsonObject&gt;</code> | Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]) |
 | request.trunkRef | <code>string</code> | The Trunk reference to be used |
 | request.sessionAffinityHeader | <code>string</code> | Optional session affinity header |
@@ -822,7 +822,7 @@ const request = {
   aorLink: "sip:100@sip.local",
   city: "San Francisco",
   country: "United States",
-  countryISOCode: "US",
+  countryIsoCode: "US",
   sessionAffinityHeader: "X-Room-Id"
   extraHeaders: [{
     name: "X-Room-Id",
