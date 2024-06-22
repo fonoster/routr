@@ -125,7 +125,7 @@ Numbers are used to route calls from and to the PSTN. The Numbers configuration 
 | `metadata.name`                           | A friendly name for the Number             | Yes      |
 | `metadata.geoInfo.city`                   | The city where the Number is located       | No       |
 | `metadata.geoInfo.country`                | The country where the Number is located    | No       |
-| `metadata.geoInfo.countryIsoCode`         | The ISO code of the country                | No       |
+| `metadata.geoInfo.countryISOCode`         | The ISO code of the country                | No       |
 | `spec.trunkRef`                           | Reference to the Trunk                     | Yes      |
 | `spec.location.telUrl`                    | The tel URL of the Number                  | Yes      |
 | `spec.location.aorLink`                   | The Address of Record (AOR) of the Number  | Yes      |
@@ -152,7 +152,7 @@ Filename: `numbers.yaml`
     geoInfo:
       city: Columbus, GA
       country: USA
-      countryIsoCode: US
+      countryISOCode: US
   spec:
     trunkRef: trunk-01
     location:

@@ -85,7 +85,7 @@ The `egressPolicies` section of the Domain resource handles the routing. The exa
     geoInfo:
       city: Durham, NC
       country: USA
-      countryIsoCode: US
+      countryISOCode: US
   spec:
     trunkRef: trunk-01
     location:
@@ -107,7 +107,7 @@ The `from-pstn` routing type outlines how a call from the PSTN connects to an Ag
     geoInfo:
       city: Durham, NC
       country: USA
-      countryIsoCode: US
+      countryISOCode: US
   spec:
     trunkRef: trunk-01
     location:
