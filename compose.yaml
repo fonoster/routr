@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   # Main EdgePort server
   edgeport01:

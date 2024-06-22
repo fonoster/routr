@@ -161,7 +161,7 @@ services:
   #
   compliance:
     container_name: compliance
-    image: fonoster/seet:1.2.0
+    image: fonoster/seet:1.1.1
     depends_on:
       - edgeport01
       - edgeport02
