@@ -180,6 +180,8 @@ services:
     networks:
       internal:
         ipv4_address: 10.111.221.22
+      public:
+        ipv4_address: 10.111.220.22
         aliases:
           - sip.provider.net
 
