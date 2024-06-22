@@ -3,13 +3,13 @@ name: release
 on:
   workflow_dispatch:
     inputs:
-      skip_tests:
-        description: 'Skip compliance tests'
+      with_tests:
+        description: 'Run compliance tests'
         required: false
         type: choice
         options:
-          - 'false'
           - 'true'
+          - 'false'
 
 jobs:
   build-and-test:
@@ -83,13 +83,14 @@ jobs:
             !mods/**/src
             !mods/**/test
             !mods/**/dist/*.ts
-      # This step is only executed for workflow_dispatch events with skip_tests = false
+      # This step is only executed for workflow_dispatch events with with_tests = true
       - name: SIP Connect v1.1 Compliance Tests
-        if: github.event.inputs.skip_tests == 'false'
+        if: github.event.inputs.with_tests == 'true'
         run: |
-          docker-compose -f compose.yaml -f compose.dev.yaml up \
-            compliance edgeport01 edgeport02 dispatcher registry requester apiserver connect location \
-            --build --abort-on-container-exit --exit-code-from compliance
+         docker-compose -f compose.yaml -f compose.dev.yaml up \
+            --build --abort-on-container-exit --exit-code-from compliance \
+            compliance edgeport01 edgeport02 dispatcher registry requester apiserver connect location
+
   publish-to-docker-hub:
     name: Publish to Docker Hub
     uses: ./.github/workflows/docker-hub-release.yaml
