@@ -619,7 +619,7 @@ Creates a new Domain on Routr.
 | request.name | <code>string</code> | Name of the Domain |
 | request.domainUri | <code>string</code> | The FQDN of the Domain |
 | request.accessControlListRef | <code>string</code> | The reference to the AccessControlList for the Domain |
-| request.egressPolicies | <code>Array.&lt;CC.EgressPolicy&gt;</code> | The list of EgressPolicies for the Domain |
+| request.egressPolicies | <code>Array.&lt;EgressPolicy&gt;</code> | The list of EgressPolicies for the Domain |
 | request.extended | <code>string</code> | Optional extended attributes |
 
 **Example**  
@@ -654,7 +654,7 @@ Updates an already existing Domain on Routr.
 | request | <code>UpdateDomainRequest</code> | Partial with the fields to update |
 | request.name | <code>string</code> | Name of the Domain |
 | request.accessControlListRef | <code>string</code> | The reference to the AccessControlList for the Domain |
-| request.egressPolicies | <code>Array.&lt;CC.EgressPolicy&gt;</code> | The list of EgressPolicies for the Domain |
+| request.egressPolicies | <code>Array.&lt;EgressPolicy&gt;</code> | The list of EgressPolicies for the Domain |
 | request.extended | <code>string</code> | Optional extended attributes |
 
 **Example**  
