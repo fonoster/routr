@@ -93,7 +93,7 @@
     "webpack-cli": "^4.10.0"
   },
   "dependencies": {
-    "@fonoster/logger": "0.3.20",
+    "@fonoster/logger": "0.6.0",
     "@prisma/client": "^5.9.1",
     "funfix": "^7.0.1",
     "pb-util": "^1.0.3"

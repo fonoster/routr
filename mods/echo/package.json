@@ -19,7 +19,7 @@
     "run_echo": "dist/runner.js"
   },
   "dependencies": {
-    "@fonoster/logger": "0.3.20",
+    "@fonoster/logger": "0.6.0",
     "@opentelemetry/api": "^1.0.4",
     "@opentelemetry/exporter-jaeger": "^1.0.4",
     "@opentelemetry/instrumentation": "^0.27.0",

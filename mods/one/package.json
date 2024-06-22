@@ -19,7 +19,7 @@
     "run_echo": "dist/runner.js"
   },
   "dependencies": {
-    "@fonoster/logger": "0.3.20",
+    "@fonoster/logger": "0.6.0",
     "@routr/common": "^2.11.5",
     "@routr/connect": "^2.11.5",
     "@routr/dispatcher": "^2.11.5",
