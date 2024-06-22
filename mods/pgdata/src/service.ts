@@ -27,7 +27,6 @@ import { get } from "./api/get"
 import { del } from "./api/delete"
 import { findBy } from "./api/find"
 import { list } from "./api/list"
-import { useHealth } from "@fonoster/grpc-health-check"
 import {
   TLS_ON,
   SERVER_CERT,
@@ -36,9 +35,8 @@ import {
   VERIFY_CLIENT_CERT
 } from "./envs"
 import fs from "fs"
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const interceptor = require("@fonoster/grpc-interceptors")
+import { HealthImplementation } from "grpc-health-check"
+import { GRPC_SERVING_STATUS, statusMap } from "@fonoster/common"
 
 const prisma = new PrismaClient()
 const logger = getLogger({ service: "pgdata", filePath: __filename })
@@ -50,6 +48,7 @@ const logger = getLogger({ service: "pgdata", filePath: __filename })
  */
 export default function pgDataService(config: PostgresDataConfig): void {
   const { bindAddr } = config
+  const healthImpl = new HealthImplementation(statusMap)
   const internalServer = new grpc.Server()
   const externalServer = new grpc.Server()
 
@@ -82,9 +81,11 @@ export default function pgDataService(config: PostgresDataConfig): void {
   })
 
   const credentials = grpc.ServerCredentials.createInsecure()
-  const withHealthChecks = interceptor.serverProxy(useHealth(internalServer))
 
-  withHealthChecks.bindAsync(config.bindAddr, credentials, () => {
+  // Add the health check service to the server
+  healthImpl.addToServer(internalServer)
+
+  internalServer.bindAsync(config.bindAddr, credentials, () => {
     logger.info("internal server started", { bindAddr: config.bindAddr })
   })
 
@@ -115,6 +116,7 @@ export default function pgDataService(config: PostgresDataConfig): void {
     )
   } else {
     externalServer.bindAsync(config.externalServerBindAddr, credentials, () => {
+      healthImpl.setStatus("", GRPC_SERVING_STATUS)
       logger.info("secure connection disabled")
       logger.info("external server started", {
         externalServerBindAddr: config.externalServerBindAddr

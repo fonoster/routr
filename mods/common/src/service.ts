@@ -21,10 +21,8 @@ import * as protoLoader from "@grpc/proto-loader"
 import { ObjectProto, ServiceInfo } from "./types"
 import { ServiceDefinitionNotFoundError } from "./errors"
 import { getLogger } from "@fonoster/logger"
-import { useHealth } from "@fonoster/grpc-health-check"
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const interceptor = require("@fonoster/grpc-interceptors")
+import { HealthImplementation } from "grpc-health-check"
+import { GRPC_SERVING_STATUS, statusMap } from "@fonoster/common"
 
 const logger = getLogger({ service: "common", filePath: __filename })
 
@@ -76,6 +74,7 @@ export function getObjectProto<A>(
  */
 export default function createService(serviceInfo: ServiceInfo) {
   const cb = () => {
+    healthImpl.setStatus("", GRPC_SERVING_STATUS)
     logger.info("starting routr service", {
       name: serviceInfo.name,
       bindAddr: serviceInfo.bindAddr
@@ -85,6 +84,10 @@ export default function createService(serviceInfo: ServiceInfo) {
   const server = new grpc.Server()
   server.addService(serviceInfo.service, serviceInfo.handlers)
 
-  const withHealthChecks = interceptor.serverProxy(useHealth(server))
-  withHealthChecks.bindAsync(serviceInfo.bindAddr, credentials, cb)
+  const healthImpl = new HealthImplementation(statusMap)
+
+  // Add the health check service to the server
+  healthImpl.addToServer(server)
+
+  server.bindAsync(serviceInfo.bindAddr, credentials, cb)
 }

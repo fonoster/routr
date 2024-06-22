@@ -83,9 +83,8 @@ Example output:
 [nodemon] watching path(s): mods/**/*
 [nodemon] watching extensions: ts
 [nodemon] starting `ts-node mods/location/src/runner.ts`
-2023-09-05 12:41:38.733 [verbose]: (grpc-health-check) /node_modules/@fonoster/grpc-health-check/dist/add-health-to-server.js added healthcheck service {}
-2023-09-05 12:41:38.735 [info]: (location) /mods/location/src/service.ts using memory as cache provider {}
-2023-09-05 12:41:38.739 [info]: (common) /mods/common/dist/service.js starting routr service {"name":"location","bindAddr":"0.0.0.0:51902"}
+2023-09-05 12:41:38.735 [info]: (location) using memory as cache provider {}
+2023-09-05 12:41:38.739 [info]: (common) starting routr service {"name":"location","bindAddr":"0.0.0.0:51902"}
 ```
 
 Please see the `scripts` section of [package.json](https://github.com/fonoster/routr/blob/main/package.json) for a complete list of available commands.
