@@ -251,6 +251,9 @@ apiserver:
   tlsOn: true
   # When set to true the APIServer will require client certificates
   verifyClientCert: false
+  # Uncomment the next line if you want to enable field level encryption
+  # Create a new encryption key with cloack (https://cloack.47ng.com)
+  # cloakEncryptionKey: k1.aesgcm256...
   # APIServer image configuration
   image:
     # APIServer image repository

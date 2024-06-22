@@ -25,11 +25,7 @@ import {
 } from "@routr/common"
 import { PrismaUpdateOperation } from "../types"
 import { getManager } from "../mappers/utils"
-import { PrismaClient } from "@prisma/client"
-
-// TODO: The entire function should be wrapped in a transaction
-// TODO: We should reuse the prisma client
-const prisma = new PrismaClient()
+import { prisma } from "../db"
 
 export function update(
   operation: PrismaUpdateOperation,

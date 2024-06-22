@@ -37,8 +37,8 @@ import {
 import fs from "fs"
 import { HealthImplementation } from "grpc-health-check"
 import { GRPC_SERVING_STATUS, statusMap } from "@fonoster/common"
+import { prisma } from "./db"
 
-const prisma = new PrismaClient()
 const logger = getLogger({ service: "pgdata", filePath: __filename })
 
 /**

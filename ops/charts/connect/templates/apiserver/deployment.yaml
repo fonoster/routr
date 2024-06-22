@@ -71,6 +71,8 @@ spec:
               value: "{{ .Values.apiserver.tlsOn }}"
             - name: VERIFY_CLIENT_CERT
               value: "{{ .Values.apiserver.verifyClientCert }}"
+            - name: CLOAK_ENCRYPTION_KEY
+              value: "{{ .Values.apiserver.cloakEncryptionKey }}"
           ports:
             - containerPort: 51907
             # External port for the API server

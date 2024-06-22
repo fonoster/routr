@@ -37,6 +37,7 @@
     "grpc-health-check": "^2.0.2",
     "pb-util": "^1.0.3",
     "phone": "^3.1.32",
+    "prisma-field-encryption": "^1.5.2",
     "validator": "^13.7.0"
   },
   "files": [

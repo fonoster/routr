@@ -200,6 +200,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | `apiserver.migrations.resources.requests`                 | Migration resource requests (e.g. `{"memory": "256Mi", "cpu": "100m"}`) | `{}`                               |
 | `apiserver.tlsOn`                                         | Enables TLS for the APIServer                                           | `true`                             |
 | `apiserver.verifyClientCert`                              | To verify the client's certificate during authentication                | `false`                            |
+| `apiserver.cloakEncryptionKey`                            | Cloak encryption key                                                    | `""`                               |
 | `apiserver.podAnnotations`                                | Pod annotations                                                         | `{}`                               |
 | `apiserver.serviceAnnotations`                            | Service annotations                                                     | `{}`                               |
 | `apiserver.autoscaling.minReplicas`                       | Minimum number of replicas                                              | `1`                                |

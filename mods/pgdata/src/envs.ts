@@ -30,6 +30,7 @@ export const SERVER_KEY =
 export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51907"
 export const EXTERNAL_SERVER_BIND_ADDR =
   process.env.EXTERNAL_SERVER_BIND_ADDR ?? "0.0.0.0:51908"
+export const CLOAK_ENCRYPTION_KEY = process.env.CLOAK_ENCRYPTION_KEY
 
 if (TLS_ON) {
   if (VERIFY_CLIENT_CERT) {
