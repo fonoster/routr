@@ -93,7 +93,7 @@ export interface NumberConfig extends Omit<ConfigBase, "metadata"> {
     geoInfo: {
       city: string
       country: string
-      countryISOCode: string
+      countryIsoCode: string
     }
   }
   spec: {

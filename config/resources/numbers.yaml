@@ -6,7 +6,7 @@
     geoInfo:
       city: Columbus, GA
       country: USA
-      countryISOCode: US
+      countryIsoCode: US
   spec:
     trunkRef: trunk-01
     location:
@@ -25,7 +25,7 @@
     geoInfo:
       city: Durham, NC
       country: USA
-      countryISOCode: US
+      countryIsoCode: US
   spec:
     trunkRef: trunk-01
     location:
@@ -40,7 +40,7 @@
     geoInfo:
       city: Durham, NC
       country: USA
-      countryISOCode: US
+      countryIsoCode: US
   spec:
     trunkRef: trunk-02
     location:
@@ -55,7 +55,7 @@
     geoInfo:
       city: Mobile Network
       country: USA
-      countryISOCode: US
+      countryIsoCode: US
   spec:
     trunkRef: trunk-03
     location:
@@ -70,7 +70,7 @@
     geoInfo:
       city: Unknown
       country: USA
-      countryISOCode: US
+      countryIsoCode: US
   spec:
     trunkRef: trunk-01
     location:

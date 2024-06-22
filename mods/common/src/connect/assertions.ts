@@ -24,7 +24,7 @@ import {
   hasAORLink,
   hasCity,
   hasCountry,
-  hasCountryISOCode,
+  hasCountryIsoCode,
   hasDomainUri,
   hasHost,
   hasInboundUri,
@@ -119,8 +119,8 @@ export const hasCityOrThrow = (city: string) => validOrThrow(hasCity, city)
 export const hasCountryOrThrow = (country: string) =>
   validOrThrow(hasCountry, country)
 
-export const hasCountryISOCodeOrThrow = (countryIsoCode: string) =>
-  validOrThrow(hasCountryISOCode, countryIsoCode)
+export const hasCountryIsoCodeOrThrow = (countryIsoCode: string) =>
+  validOrThrow(hasCountryIsoCode, countryIsoCode)
 
 export const hasInboundUriOrThrow = (inboundUri: string) =>
   validOrThrow(hasInboundUri, inboundUri)
@@ -143,10 +143,10 @@ export const isValidContactAddressOrThrow = (contactAddress: string) =>
 
 export const isValidE164OrThrow = (
   e164Number: string,
-  countryISOCode: string,
+  countryIsoCode: string,
   validateMobilePrefix: boolean
 ) => {
-  const R = isValidE164(e164Number, countryISOCode, validateMobilePrefix)
+  const R = isValidE164(e164Number, countryIsoCode, validateMobilePrefix)
   if (R instanceof BadRequestError) {
     throw R
   }

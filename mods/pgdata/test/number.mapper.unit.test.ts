@@ -62,9 +62,9 @@ describe("@routr/pgdata/mappers/number", () => {
 
     // Assert
     expect(result)
-      .excluding(["createdAt", "updatedAt", "countryISOCode", "countryIsoCode"])
+      .excluding(["createdAt", "updatedAt", "countryIsoCode", "countryIsoCode"])
       .to.deep.equal(number)
-    expect(result).to.have.property("countryISOCode", number.countryIsoCode)
+    expect(result).to.have.property("countryIsoCode", number.countryIsoCode)
   })
 
   it("takes a prisma model and converts it to dto object", () => {
@@ -91,7 +91,7 @@ describe("@routr/pgdata/mappers/number", () => {
       aorLink: "aor-01",
       city: "Durham",
       country: "United States",
-      countryISOCode: "US",
+      countryIsoCode: "US",
       sessionAffinityHeader: "x-session-affinity",
       extraHeaders: [{ name: "x-test", value: "test" }],
       extended: {
@@ -170,14 +170,9 @@ describe("@routr/pgdata/mappers/number", () => {
 
     // Assert
     expect(result)
-      .excludingEvery([
-        "createdAt",
-        "updatedAt",
-        "countryISOCode",
-        "countryIsoCode"
-      ])
+      .excludingEvery(["createdAt", "updatedAt", "countryIsoCode"])
       .to.deep.equal(number)
-    expect(result).to.have.property("countryIsoCode", number.countryISOCode)
+    expect(result).to.have.property("countryIsoCode", number.countryIsoCode)
   })
 
   describe("throws errors", () => {

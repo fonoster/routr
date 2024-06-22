@@ -1,6 +1,6 @@
 # Routr Connect Processor
 
-### Version 0.1.5 (Draft)
+### Version 0.1.6 (Draft)
 
 <details>
 <summary>Table of Contents</summary>
@@ -238,7 +238,7 @@ Numbers represent virtual numbers that route calls from/to the PSTN via a Trunk.
     "geoInfo": {
       "city": "Columbus, GA",
       "country": "USA",
-      "countryISOCode": "US"
+      "countryIsoCode": "US"
     }
   },
   "spec": {

@@ -45,7 +45,7 @@ import {
  *   aorLink: "sip:100@sip.local",
  *   city: "San Francisco",
  *   country: "United States",
- *   countryISOCode: "US",
+ *   countryIsoCode: "US",
  *   sessionAffinityHeader: "X-Room-Id"
  *   extraHeaders: [{
  *     name: "X-Room-Id",
@@ -80,7 +80,7 @@ export class Numbers extends APIClient {
    * @param {string} request.aorLink - The AOR link to be used (e.g., sip:1001@sip.local)
    * @param {string} request.city - The city where the number is located
    * @param {string} request.country - The country where the number is located
-   * @param {string} request.countryISOCode - The country ISO code where the number is located
+   * @param {string} request.countryIsoCode - The country ISO code where the number is located
    * @param {JsonObject[]} request.extraHeaders - Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}])
    * @param {string} request.trunkRef - The Trunk reference to be used
    * @param {string} request.sessionAffinityHeader - Optional session affinity header
@@ -96,7 +96,7 @@ export class Numbers extends APIClient {
    *   aorLink: "sip:100@sip.local",
    *   city: "San Francisco",
    *   country: "United States",
-   *   countryISOCode: "US",
+   *   countryIsoCode: "US",
    *   sessionAffinityHeader: "X-Room-Id"
    *   extraHeaders: [{
    *     name: "X-Room-Id",
@@ -114,10 +114,7 @@ export class Numbers extends APIClient {
   async createNumber(
     request: CreateNumberRequest
   ): Promise<CreateNumberResponse> {
-    return this.client.numbers.create({
-      ...request,
-      countryIsoCode: request.countryISOCode
-    })
+    return this.client.numbers.create(request)
   }
 
   /**

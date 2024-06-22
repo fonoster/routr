@@ -144,8 +144,8 @@ export const hasCity = (city: string) =>
 export const hasCountry = (country: string) =>
   country ? true : new BadRequestError("the country is required")
 
-export const hasCountryISOCode = (countryIsoCode: string) =>
-  countryIsoCode ? true : new BadRequestError("the countryISOCode is required")
+export const hasCountryIsoCode = (countryIsoCode: string) =>
+  countryIsoCode ? true : new BadRequestError("the countryIsoCode is required")
 
 export const hasACLRules = (acl: { deny: string[]; allow: string[] }) => {
   if (
@@ -272,11 +272,11 @@ export const isValidWeight = (weight: string) => {
 
 export const isValidE164 = (
   e164Number: string,
-  countryISOCode: string,
+  countryIsoCode: string,
   validateMobilePrefix = false
 ) => {
   const result = phone(e164Number, {
-    country: countryISOCode,
+    country: countryIsoCode,
     validateMobilePrefix
   })
 

@@ -71,7 +71,7 @@ export class NumberManager extends EntityManager {
     CC.isValidAORLinkOrThrow(this.number.aorLink)
     CC.hasCityOrThrow(this.number.city)
     CC.hasCountryOrThrow(this.number.country)
-    CC.hasCountryISOCodeOrThrow(this.number.countryIsoCode)
+    CC.hasCountryIsoCodeOrThrow(this.number.countryIsoCode)
     CC.hasValidHeadersOrThrow(this.number.extraHeaders)
     CC.isValidSessionAffinityHeaderOrThrow(this.number.sessionAffinityHeader)
   }
@@ -95,7 +95,7 @@ export class NumberManager extends EntityManager {
       aorLink: this.number.aorLink || null,
       city: this.number.city || undefined,
       country: this.number.country,
-      countryISOCode: this.number.countryIsoCode,
+      countryIsoCode: this.number.countryIsoCode,
       sessionAffinityHeader: this.number.sessionAffinityHeader || null,
       extraHeaders: this.number.extraHeaders || null,
       createdAt: this.number.createdAt
@@ -120,7 +120,7 @@ export class NumberManager extends EntityManager {
           aorLink: number.aorLink,
           city: number.city,
           country: number.country,
-          countryIsoCode: number.countryISOCode,
+          countryIsoCode: number.countryIsoCode,
           sessionAffinityHeader: number.sessionAffinityHeader,
           extraHeaders: number.extraHeaders as {
             name: string
@@ -144,7 +144,7 @@ export class NumberManager extends EntityManager {
           aorLink: number.aorLink,
           city: number.city,
           country: number.country,
-          countryIsoCode: number.countryISOCode,
+          countryIsoCode: number.countryIsoCode,
           sessionAffinityHeader: number.sessionAffinityHeader,
           extraHeaders: number.extraHeaders as {
             name: string

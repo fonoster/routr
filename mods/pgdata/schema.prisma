@@ -122,7 +122,7 @@ model Number {
   aorLink               String?    @map("aor_link") @db.VarChar(323)
   city                  String     @default("Unknown") @db.VarChar(60)
   country               String     @db.VarChar(60)
-  countryISOCode        String     @map("country_iso_code") @db.VarChar(2)
+  countryIsoCode        String     @map("country_iso_code") @db.VarChar(2)
   sessionAffinityHeader String?    @map("session_affinity_header") @db.VarChar(60)
   extraHeaders          Json?      @map("extra_headers")
   createdAt             DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)

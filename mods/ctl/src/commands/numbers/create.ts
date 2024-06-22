@@ -116,7 +116,7 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
         },
         {
           type: "autocomplete",
-          name: "countryISOCode",
+          name: "countryIsoCode",
           message: "Select a Country",
           source: (_: unknown, input: string) => searcher.search(input)
         },
@@ -143,7 +143,7 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
       answers.extraHeaders = stringToHeaders(answers.extraHeaders)
 
       answers.country = countries.find(
-        (country) => country.value === answers.countryISOCode
+        (country) => country.value === answers.countryIsoCode
       ).name
 
       if (!answers.confirm) {

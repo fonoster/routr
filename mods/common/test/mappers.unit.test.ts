@@ -164,7 +164,7 @@ describe("@routr/common/connect/mappers", () => {
         geoInfo: {
           country: "United States",
           city: "San Francisco",
-          countryISOCode: "US"
+          countryIsoCode: "US"
         }
       },
       spec: {
@@ -192,7 +192,7 @@ describe("@routr/common/connect/mappers", () => {
     expect(number).to.have.property("city", numberConfig.metadata.geoInfo.city)
     expect(number).to.have.property(
       "countryIsoCode",
-      numberConfig.metadata.geoInfo.countryISOCode
+      numberConfig.metadata.geoInfo.countryIsoCode
     )
     expect(number).to.have.property("trunkRef", numberConfig.spec.trunkRef)
     expect(number).to.have.property(
