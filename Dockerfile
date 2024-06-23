@@ -1,5 +1,5 @@
 ##
-## Build and pack the service
+# Build and pack the service
 ##
 FROM alpine:3.19 AS builder
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
@@ -21,7 +21,7 @@ RUN apk add --no-cache --update npm nodejs curl git tini python3 make cmake g++ 
   && chmod +x heplify
 
 ##  
-## Runner
+#  Runner
 ##
 FROM alpine:3.19 AS runner
 
@@ -30,6 +30,8 @@ ARG POSTGRES_USER=postgres
 ARG POSTGRES_PASSWORD=postgres
 ARG CA_CERT_SUBJECT="/CN=Self Signed CA"
 ARG SERVER_CERT_SUBJECT="/CN=localhost"
+ARG PRISMA_VERSION=5.9.1
+ARG DATABASE_URL=postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/routr
 
 ENV PKCS12_PASSWORD=$PKCS12_PASSWORD \
   PATH_TO_CERTS=/etc/routr/certs \
@@ -42,8 +44,10 @@ ENV PKCS12_PASSWORD=$PKCS12_PASSWORD \
   VERIFY_CLIENT_CERT=false \
   CA_CERT_SUBJECT=$CA_CERT_SUBJECT \
   SERVER_CERT_SUBJECT=$SERVER_CERT_SUBJECT \
-  DATABASE_URL=postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/routr \
-  IGNORE_LOOPBACK_FROM_LOCALNETS=true
+  DATABASE_URL=$DATABASE_URL \
+  IGNORE_LOOPBACK_FROM_LOCALNETS=true \
+  PRISMA_VERSION=$PRISMA_VERSION \
+  START_LOCAL_DB=true
 
 WORKDIR /service
 
@@ -71,19 +75,21 @@ RUN apk add --no-cache nodejs npm tini openssl postgresql postgresql-client su-e
   && chmod +x edgeport.sh convert-to-p12.sh init-postgres.sh \
   && chmod 2777 /run/postgresql \
   && setcap 'CAP_NET_RAW+eip' /usr/bin/sngrep \
-  && export DATABASE_URL=${DATABASE_URL} && su -m postgres -c "/service/init-postgres.sh" \
-  && rm -rf /var/cache/apk/* /tmp/* /services/migrations /services/schema.prisma /services/init-postgres.sh \
+  && rm -rf /var/cache/apk/* /tmp/* /services/init-postgres.sh \
   && rm -rf /root/.npm /root/.config /root/.cache /root/.local \
-  && apk del npm postgresql-client libcap
+  && apk del postgresql-client libcap
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 
-CMD sh -c "su-exec postgres pg_ctl start -D /var/lib/postgresql/data --options='-h 0.0.0.0' && \
+CMD sh -c "if [ \"$START_LOCAL_DB\" = \"true\" ]; then \
+    su-exec postgres pg_ctl start -D /var/lib/postgresql/data --options='-h 0.0.0.0'; \
+  fi && \
+  DATABASE_URL=${DATABASE_URL} npx prisma@${PRISMA_VERSION} migrate deploy --schema=/service/schema.prisma && \
   su-exec $USER ./convert-to-p12.sh $PATH_TO_CERTS $PKCS12_PASSWORD && \
   if [ -n \"$HEPLIFY_OPTIONS\" ]; then \
     heplify $HEPLIFY_OPTIONS & \
   fi && \
   sed -i 's|keyStorePassword: .*|keyStorePassword: ${PKCS12_PASSWORD}|g' config/edgeport.yaml && \
   sed -i 's|trustStorePassword: .*|trustStorePassword: ${PKCS12_PASSWORD}|g' config/edgeport.yaml && \
-  DATABASE_URL=$DATABASE_URL su-exec $USER node ./dist/runner"
+  su-exec $USER node ./dist/runner"

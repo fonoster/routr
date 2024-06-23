@@ -31,7 +31,7 @@ ENV PKCS12_PASSWORD=$PKCS12_PASSWORD \
   SERVER_CERT_SUBJECT=$SERVER_CERT_SUBJECT \
   IGNORE_LOOPBACK_FROM_LOCALNETS=true \
   LOG4J2=/etc/routr/log4j2.yaml \
-  JAVA_HOME=/opt/routr/jre 
+  JAVA_HOME=/opt/routr/jre
 
 WORKDIR /opt/routr
 
