@@ -1,6 +1,6 @@
 {
   "name": "@routr/simpleauth",
-  "version": "2.11.5",
+  "version": "2.12.0",
   "description": "This middleware delegates authentication to an external service",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -29,8 +29,8 @@
     "@opentelemetry/sdk-trace-base": "^1.0.4",
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
-    "@routr/common": "^2.11.5",
-    "@routr/processor": "^2.11.5",
+    "@routr/common": "^2.12.0",
+    "@routr/processor": "^2.12.0",
     "google-protobuf": "^3.9.2"
   },
   "files": [
