@@ -17,8 +17,11 @@
  * limitations under the License.
  */
 import { ProcessorGPRCConnection } from "./types"
-import { ProcessorConfig, PROCESSOR_OBJECT_PROTO } from "@routr/common"
-import { CommonTypes } from "@routr/common"
+import {
+  ProcessorConfig,
+  PROCESSOR_OBJECT_PROTO,
+  CommonTypes
+} from "@routr/common"
 import * as grpc from "@grpc/grpc-js"
 
 /**
