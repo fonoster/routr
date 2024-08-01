@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import { APIVersion, Prisma } from "@prisma/client"
+import { CommonConnect as CC } from "@routr/common"
 import { DomainManager } from "../src/mappers/domain"
 import chai from "chai"
 import sinon from "sinon"
@@ -34,7 +35,7 @@ describe("@routr/pgdata/mappers/domain", () => {
   it("takes a dto object and converts it to prisma model", () => {
     // Arrange
     const domain = {
-      apiVersion: "v2",
+      apiVersion: CC.APIVersion.V2,
       ref: "domain-01",
       name: "Local Domain",
       accessControlListRef: "acl-01",
@@ -42,8 +43,8 @@ describe("@routr/pgdata/mappers/domain", () => {
       extended: {
         test: "test"
       },
-      createdAt: new Date().getTime() / 1000,
-      updatedAt: new Date().getTime() / 1000
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
 
     // Act
@@ -69,7 +70,7 @@ describe("@routr/pgdata/mappers/domain", () => {
     }>
 
     const domain: DomainWithACL = {
-      apiVersion: "v2" as APIVersion,
+      apiVersion: CC.APIVersion.V2,
       ref: "domain-01",
       name: "Local Domain",
       accessControlListRef: "acl-01",
@@ -80,7 +81,7 @@ describe("@routr/pgdata/mappers/domain", () => {
         test: "test"
       },
       accessControlList: {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "acl-01",
         name: "test",
         allow: ["192.168.1.2/31"],
@@ -107,7 +108,7 @@ describe("@routr/pgdata/mappers/domain", () => {
     it("when the friendly name is not provided for domain creation", () => {
       // Arrange
       const domain = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "domain-01",
         name: "",
         accessControlListRef: "acl-01",
@@ -115,8 +116,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -131,7 +132,7 @@ describe("@routr/pgdata/mappers/domain", () => {
     it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const domain = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "domain-01",
         name: "a".repeat(65),
         accessControlListRef: "acl-01",
@@ -139,8 +140,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -159,7 +160,7 @@ describe("@routr/pgdata/mappers/domain", () => {
     it("when the reference is not provided for an update operation", () => {
       // Arrange
       const domain = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "",
         name: "Local Domain",
         accessControlListRef: "acl-01",
@@ -167,8 +168,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -181,7 +182,7 @@ describe("@routr/pgdata/mappers/domain", () => {
     it("when domainUri is not a valid FQDN", () => {
       // Arrange
       const domain = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "domain-01",
         name: "Local Domain",
         accessControlListRef: "acl-01",
@@ -189,8 +190,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act

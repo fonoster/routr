@@ -47,6 +47,8 @@ export function mapToTrunk(config: TrunkConfig): Trunk {
         weight: entry.weight,
         priority: entry.priority
       }
-    })
+    }),
+    createdAt: new Date(),
+    updatedAt: new Date()
   }
 }

@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import { APIVersion } from "@prisma/client"
+import { CommonConnect as CC } from "@routr/common"
 import { ACLManager } from "../src/mappers/acl"
 import chai from "chai"
 import sinon from "sinon"
@@ -34,13 +35,13 @@ describe("@routr/pgdata/mappers/acl", () => {
   it("takes a dto object and converts it to prisma model", () => {
     // Arrange
     const acl = {
-      apiVersion: "v2",
+      apiVersion: CC.APIVersion.V2,
       ref: "acl-01",
       name: "Local Network ACL",
       allow: ["192.168.1.3/31"],
       deny: ["0.0.0.0/1"],
-      createdAt: new Date().getTime() / 1000,
-      updatedAt: new Date().getTime() / 1000,
+      createdAt: new Date(),
+      updatedAt: new Date(),
       extended: {
         test: "test"
       }
@@ -56,7 +57,7 @@ describe("@routr/pgdata/mappers/acl", () => {
   it("takes a prisma model and converts it to dto object", () => {
     // Arrange
     const acl = {
-      apiVersion: "v2" as APIVersion,
+      apiVersion: CC.APIVersion.V2,
       ref: "acl-01",
       name: "Local Network ACL",
       allow: ["192.168.1.3/31"],
@@ -79,14 +80,16 @@ describe("@routr/pgdata/mappers/acl", () => {
     it("when the friendly name is not provided for create operations", () => {
       // Arrange
       const acl = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "acl-01",
         name: "",
         allow: ["192.168.1.3/31"],
         deny: ["0.0.0.0/1"],
         extended: {
           test: "test"
-        }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -101,14 +104,16 @@ describe("@routr/pgdata/mappers/acl", () => {
     it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const acl = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "acl-01",
         name: "a".repeat(65),
         allow: ["192.168.1.3/31"],
         deny: ["0.0.0.0/1"],
         extended: {
           test: "test"
-        }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -127,14 +132,16 @@ describe("@routr/pgdata/mappers/acl", () => {
     it("when the reference is not provided for an update operation", () => {
       // Arrange
       const acl = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "",
         name: "Local Network ACL",
         allow: ["192.168.1.3/31"],
         deny: ["0.0.0.0/1"],
         extended: {
           test: "test"
-        }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -147,14 +154,16 @@ describe("@routr/pgdata/mappers/acl", () => {
     it("when it finds an invalid allow or deny rule", () => {
       // Arrange
       const acl = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "acl-01",
         name: "Local Network ACL",
         allow: ["19x.168.1.3/31"],
         deny: ["0.0.0.0/1"],
         extended: {
           test: "test"
-        }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -169,14 +178,16 @@ describe("@routr/pgdata/mappers/acl", () => {
     it("when missing deny or allow values", () => {
       // Arrange
       const acl = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "acl-01",
         name: "test",
         allow: [] as string[],
         deny: ["0.0.0.0/1"],
         extended: {
           test: "test"
-        }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act

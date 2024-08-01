@@ -18,7 +18,7 @@
  */
 /* eslint-disable require-jsdoc */
 import { CommonConnect as CC } from "@routr/common"
-import { stringToACL, stringToHeaders } from "./utils"
+import { stringToAcl, stringToHeaders } from "./utils"
 
 export function nameValidator(value: string) {
   const hasName = CC.hasName(value)
@@ -34,9 +34,9 @@ export function nameValidator(value: string) {
 }
 
 export function aclRuleValidator(value: string) {
-  const hasValidACLRules = CC.isValidACLRule(stringToACL(value))
+  const hasValidACLRules = CC.isValidACLRule(stringToAcl(value))
 
-  if (stringToACL(value).length === 0) {
+  if (stringToAcl(value).length === 0) {
     return "acl rules are required"
   } else if (hasValidACLRules instanceof Error) {
     return hasValidACLRules.message

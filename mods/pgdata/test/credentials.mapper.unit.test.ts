@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import { APIVersion } from "@prisma/client"
+import { CommonConnect as CC } from "@routr/common"
 import { CredentialsManager } from "../src/mappers/credentials"
 import chai from "chai"
 import sinon from "sinon"
@@ -34,13 +35,13 @@ describe("@routr/pgdata/mappers/credentials", () => {
   it("takes a dto object and converts it to prisma model", () => {
     // Arrange
     const credentials = {
-      apiVersion: "v2",
+      apiVersion: CC.APIVersion.V2,
       ref: "credentials-01",
       name: "Global Credentials",
       username: "1001",
       password: "1234",
-      createdAt: new Date().getTime() / 1000,
-      updatedAt: new Date().getTime() / 1000,
+      createdAt: new Date(),
+      updatedAt: new Date(),
       extended: {
         test: "test"
       }
@@ -58,7 +59,7 @@ describe("@routr/pgdata/mappers/credentials", () => {
   it("takes a prisma model and converts it to dto object", () => {
     // Arrange
     const credentials = {
-      apiVersion: "v2" as APIVersion,
+      apiVersion: CC.APIVersion.V2,
       ref: "credentials-01",
       name: "Global Credentials",
       username: "1001",
@@ -83,14 +84,16 @@ describe("@routr/pgdata/mappers/credentials", () => {
     it("when the friendly name is not provided for credentials creation", () => {
       // Arrange
       const credentials = {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "credentials-01",
         name: "",
         username: "1001",
         password: "1234",
         extended: {
           test: "test"
-        }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -106,14 +109,16 @@ describe("@routr/pgdata/mappers/credentials", () => {
     it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const credentials = {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2BETA1,
         ref: "credentials-01",
         name: "a".repeat(65),
         username: "1001",
         password: "1234",
         extended: {
           test: "test"
-        }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -134,14 +139,16 @@ describe("@routr/pgdata/mappers/credentials", () => {
     it("when the reference is not provided for an update operation", () => {
       // Arrange
       const credentials = {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "",
         name: "Global Credentials",
         username: "1001",
         password: "1234",
         extended: {
           test: "test"
-        }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -155,14 +162,16 @@ describe("@routr/pgdata/mappers/credentials", () => {
     it("when request is missing the username", () => {
       // Arrange
       const credentials = {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "credentials-01",
         name: "Global Credentials",
         username: "",
         password: "1234",
         extended: {
           test: "test"
-        }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -176,14 +185,16 @@ describe("@routr/pgdata/mappers/credentials", () => {
     it("when the username is non-alphanumeric or has spaces", () => {
       // Arrange
       const credentials = {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "credentials-01",
         name: "Global Credentials",
         username: "1001 #",
         password: "1234",
         extended: {
           test: "test"
-        }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -200,14 +211,16 @@ describe("@routr/pgdata/mappers/credentials", () => {
     it("when request is missing the password", () => {
       // Arrange
       const credentials = {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "credentials-01",
         name: "Global Credentials",
         username: "1234",
         password: "",
         extended: {
           test: "test"
-        }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act

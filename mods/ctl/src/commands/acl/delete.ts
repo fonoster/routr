@@ -21,9 +21,9 @@ import DeleteCommand from "../../delete"
 import SDK from "@routr/sdk"
 
 export default class CreateCommand extends DeleteCommand {
-  static description = "Deletes an Access Control List"
+  static readonly description = "Deletes an Access Control List"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 `
@@ -34,7 +34,7 @@ Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
     const { endpoint, insecure, cacert } = flags
 
     await super.deleteResource(
-      new SDK.ACL({ endpoint, insecure, cacert }),
+      new SDK.Acls({ endpoint, insecure, cacert }),
       "deleteACL"
     )
   }

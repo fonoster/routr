@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIVersion, LoadBalancingAlgorithm, Prisma } from "@prisma/client"
-import { CommonTypes as CT } from "@routr/common"
+import { LoadBalancingAlgorithm, Prisma } from "@prisma/client"
+import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
 import { PeerManager } from "../src/mappers/peer"
 import chai from "chai"
 import sinon from "sinon"
@@ -35,7 +35,7 @@ describe("@routr/pgdata/mappers/peer", () => {
   it("takes a dto object and converts it to prisma model", () => {
     // Arrange
     const peer = {
-      apiVersion: "v2",
+      apiVersion: CC.APIVersion.V2,
       ref: "peer-01",
       credentialsRef: "credentials-01",
       accessControlListRef: "acl-01",
@@ -46,8 +46,8 @@ describe("@routr/pgdata/mappers/peer", () => {
       balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
       withSessionAffinity: false,
       enabled: true,
-      createdAt: new Date().getTime() / 1000,
-      updatedAt: new Date().getTime() / 1000,
+      createdAt: new Date(),
+      updatedAt: new Date(),
       maxContacts: 1,
       expires: 3600,
       extended: {
@@ -72,7 +72,7 @@ describe("@routr/pgdata/mappers/peer", () => {
     }>
 
     const peer: PeerWithDomainAndCredentials = {
-      apiVersion: "v2" as APIVersion,
+      apiVersion: CC.APIVersion.V2,
       ref: "peer-01",
       credentialsRef: "credentials-01",
       name: "Asterisk Media Server",
@@ -83,7 +83,7 @@ describe("@routr/pgdata/mappers/peer", () => {
       withSessionAffinity: false,
       enabled: true,
       credentials: {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         name: "test",
         ref: "credentials-01",
         username: "asterisk",
@@ -98,7 +98,7 @@ describe("@routr/pgdata/mappers/peer", () => {
       expires: 3600,
       accessControlListRef: "acl-01",
       accessControlList: {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "acl-01",
         name: "test",
         allow: ["0.0.0.1/16"],
@@ -129,7 +129,7 @@ describe("@routr/pgdata/mappers/peer", () => {
     it("when the friendly name is not provided for peer creation", () => {
       // Arrange
       const peer = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "peer-01",
         credentialsRef: "credentials-01",
         accessControlListRef: "acl-01",
@@ -139,8 +139,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12",
         enabled: true,
         maxContacts: -1,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -158,7 +158,7 @@ describe("@routr/pgdata/mappers/peer", () => {
     it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const peer = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "peer-01",
         credentialsRef: "credentials-01",
         accessControlListRef: "acl-01",
@@ -167,8 +167,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
         enabled: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         maxContacts: -1,
         extended: {
           test: "test"
@@ -191,7 +191,7 @@ describe("@routr/pgdata/mappers/peer", () => {
     it("when the reference is not provided for an update operation", () => {
       // Arrange
       const peer = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "",
         credentialsRef: "credentials-01",
         accessControlListRef: "acl-01",
@@ -201,8 +201,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12",
         maxContacts: -1,
         enabled: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -218,7 +218,7 @@ describe("@routr/pgdata/mappers/peer", () => {
     it("when the request is missing the username", () => {
       // Arrange
       const peer = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "peer-01",
         credentialsRef: "credentials-01",
         accessControlListRef: "acl-01",
@@ -228,8 +228,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12",
         maxContacts: -1,
         enabled: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -245,7 +245,7 @@ describe("@routr/pgdata/mappers/peer", () => {
     it("when the username is not alphanumeric or has spaces", () => {
       // Arrange
       const peer = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "peer-01",
         credentialsRef: "credentials-01",
         accessControlListRef: "acl-01",
@@ -255,8 +255,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12",
         maxContacts: -1,
         enabled: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -272,7 +272,7 @@ describe("@routr/pgdata/mappers/peer", () => {
     it("when the request is missing the aor", () => {
       // Arrange
       const peer = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "peer-01",
         credentialsRef: "credentials-01",
         accessControlListRef: "acl-01",
@@ -282,8 +282,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12",
         maxContacts: -1,
         enabled: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }
@@ -299,7 +299,7 @@ describe("@routr/pgdata/mappers/peer", () => {
     it("when the aor doesn't start with backend: or sip:", () => {
       // Arrange
       const peer = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "peer-01",
         credentialsRef: "credentials-01",
         accessControlListRef: "acl-01",
@@ -309,8 +309,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12:5060",
         maxContacts: -1,
         enabled: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         extended: {
           test: "test"
         }

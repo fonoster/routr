@@ -34,10 +34,12 @@ export function mapToAgent(config: AgentConfig): Agent {
     name: config.metadata.name,
     username: config.spec.username,
     privacy: config.spec.privacy ?? Privacy.NONE,
-    enabled: config.spec.enabled as boolean,
+    enabled: config.spec.enabled,
     domainRef: config.spec.domainRef,
     credentialsRef: config.spec.credentialsRef,
     maxContacts: config.spec.maxContacts,
-    expires: config.spec.expires
+    expires: config.spec.expires,
+    createdAt: new Date(),
+    updatedAt: new Date()
   }
 }

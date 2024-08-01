@@ -52,12 +52,12 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
     try {
       // TODO: Add support for pagination
-      const acls = await new SDK.ACL({ endpoint, insecure, cacert }).listACLs({
+      const acls = await new SDK.Acls({ endpoint, insecure, cacert }).listAcls({
         pageSize: 25,
         pageToken: ""
       })
 
-      const aclChoices = acls.items.map((acl) => {
+      const aclChoices = acls.items.map((acl: CC.AccessControlList) => {
         return {
           name: acl.name,
           value: acl.ref
@@ -73,12 +73,14 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         pageToken: ""
       })
 
-      const credentialsChoice = credentials.items.map((acl) => {
-        return {
-          name: acl.name,
-          value: acl.ref
+      const credentialsChoice = credentials.items.map(
+        (credentials: CC.Credentials) => {
+          return {
+            name: credentials.name,
+            value: credentials.ref
+          }
         }
-      })
+      )
 
       this.log("This utility will help you create a new Trunk.")
       this.log("Press ^C at any time to quit.")

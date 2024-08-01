@@ -17,4 +17,4 @@
  * limitations under the License.
  */
 export * from "./acl"
-export { ACL as default } from "./acl"
+export { Acls as default } from "./acl"

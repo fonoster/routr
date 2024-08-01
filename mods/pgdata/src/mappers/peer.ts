@@ -23,6 +23,7 @@ import { JsonObject } from "pb-util/build"
 import { ACLManager } from "./acl"
 import { CredentialsManager } from "./credentials"
 import { EntityManager } from "./manager"
+import { JsonValue } from "@prisma/client/runtime/library"
 
 type PeerWithDomainAndCredentials = Prisma.PeerGetPayload<{
   include: {
@@ -55,7 +56,7 @@ export class PeerManager extends EntityManager {
   }
 
   validOrThrowUpdate() {
-    CC.hasRefenceOrThrow(this.peer.ref)
+    CC.hasReferenceOrThrow(this.peer.ref)
     CC.isValidNameOrThrow(this.peer.name)
     CC.isValidUsernameOrThrow(this.peer.username)
     CC.isValidAOROrThrow(this.peer.aor)
@@ -70,50 +71,26 @@ export class PeerManager extends EntityManager {
 
     return {
       // TODO: Set a default value for apiVersion
+      ...this.peer,
       apiVersion: "v2" as APIVersion,
-      ref: this.peer.ref,
-      name: this.peer.name,
-      username: this.peer.username,
-      aor: this.peer.aor,
-      contactAddr: this.peer.contactAddr,
       balancingAlgorithm: normalizeAlgorithm(this.peer.balancingAlgorithm),
       withSessionAffinity: this.peer.withSessionAffinity,
-      enabled: this.peer.enabled,
       credentialsRef: this.peer.credentialsRef || null,
       accessControlListRef: this.peer.accessControlListRef || null,
-      createdAt: this.peer.createdAt
-        ? new Date(this.peer.createdAt * 1000)
-        : undefined,
-      updatedAt: this.peer.updatedAt
-        ? new Date(this.peer.updatedAt * 1000)
-        : undefined,
-      maxContacts: this.peer.maxContacts,
       expires: this.peer.expires,
-      extended: this.peer.extended || {}
+      extended: (this.peer.extended as JsonValue) || {}
     }
   }
 
   static mapToDto(peer: PeerWithDomainAndCredentials): CC.Peer {
     return peer
       ? {
-          apiVersion: peer.apiVersion,
-          ref: peer.ref,
-          name: peer.name,
-          username: peer.username,
-          aor: peer.aor,
-          contactAddr: peer.contactAddr,
+          ...peer,
+          apiVersion: peer.apiVersion as CC.APIVersion,
           balancingAlgorithm:
             peer.balancingAlgorithm as CT.LoadBalancingAlgorithm,
-          withSessionAffinity: peer.withSessionAffinity,
-          enabled: peer.enabled,
-          credentialsRef: peer.credentialsRef,
           credentials: CredentialsManager.mapToDto(peer.credentials),
-          accessControlListRef: peer.accessControlListRef,
           accessControlList: ACLManager.mapToDto(peer.accessControlList),
-          createdAt: peer.createdAt.getTime() / 1000,
-          updatedAt: peer.updatedAt.getTime() / 1000,
-          maxContacts: peer.maxContacts,
-          expires: peer.expires,
           extended: peer.extended as JsonObject
         }
       : undefined

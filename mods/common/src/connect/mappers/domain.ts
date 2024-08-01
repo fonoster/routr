@@ -33,6 +33,8 @@ export function mapToDomain(config: DomainConfig): Domain {
     name: config.metadata.name,
     domainUri: config.spec.context.domainUri,
     accessControlListRef: config.spec.accessControlListRef,
-    egressPolicies: config.spec.context.egressPolicies
+    egressPolicies: config.spec.context.egressPolicies,
+    createdAt: new Date(),
+    updatedAt: new Date()
   }
 }

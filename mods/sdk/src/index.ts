@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ACL from "./acl"
+import Acls from "./acls"
 import Agents from "./agents"
 import Domains from "./domains"
 import Credentials from "./credentials"
@@ -25,7 +25,7 @@ import Numbers from "./numbers"
 import Trunks from "./trunks"
 
 const SDK = {
-  ACL,
+  Acls,
   Agents,
   Domains,
   Numbers,

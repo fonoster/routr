@@ -59,8 +59,8 @@ export default class DescribeCommand extends BaseCommand {
           : "None",
         Enabled: agent.enabled ? "Yes" : "No",
         Extended: agent.extended,
-        Created: moment(new Date(agent.createdAt * 1000)).toISOString(),
-        Updated: moment(new Date(agent.updatedAt * 1000)).toISOString()
+        Created: moment(agent.createdAt).toISOString(),
+        Updated: moment(agent.updatedAt).toISOString()
       }
 
       this.log(render(jsonObj, { noColor: true }))

@@ -75,8 +75,8 @@ export default class DescribeCommand extends BaseCommand {
             .join(",") || "None",
         "Send Register": trunk.sendRegister,
         Extended: trunk.extended,
-        Created: moment(new Date(trunk.createdAt * 1000)).toISOString(),
-        Updated: moment(new Date(trunk.updatedAt * 1000)).toISOString()
+        Created: moment(trunk.createdAt).toISOString(),
+        Updated: moment(trunk.createdAt).toISOString()
       }
 
       this.log(render(jsonObj, { noColor: true }))

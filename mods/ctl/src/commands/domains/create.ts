@@ -44,7 +44,7 @@ Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
     try {
       // TODO: Fix hardcoded pageSize
-      const acls = await new SDK.ACL({ endpoint, insecure, cacert }).listACLs({
+      const acls = await new SDK.Acls({ endpoint, insecure, cacert }).listAcls({
         pageSize: 25,
         pageToken: ""
       })

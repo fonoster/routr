@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import { APIVersion, Prisma, Transport } from "@prisma/client"
+import { CommonConnect as CC } from "@routr/common"
 import { NumberManager } from "../src/mappers/number"
 import chai from "chai"
 import sinon from "sinon"
@@ -34,7 +35,7 @@ describe("@routr/pgdata/mappers/number", () => {
   it("takes a dto object and converts it to prisma model", () => {
     // Arrange
     const number = {
-      apiVersion: "v2",
+      apiVersion: CC.APIVersion.V2,
       ref: "number-01",
       trunkRef: "trunk-01",
       name: "(785)317-8070",
@@ -53,8 +54,8 @@ describe("@routr/pgdata/mappers/number", () => {
       extended: {
         test: "test"
       },
-      createdAt: new Date().getTime() / 1000,
-      updatedAt: new Date().getTime() / 1000
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
 
     // Act
@@ -83,7 +84,7 @@ describe("@routr/pgdata/mappers/number", () => {
     }>
 
     const number: NumberWithTrunk = {
-      apiVersion: "v2" as APIVersion,
+      apiVersion: CC.APIVersion.V2,
       ref: "number-01",
       trunkRef: "trunk-01",
       name: "(785)317-8070",
@@ -100,7 +101,7 @@ describe("@routr/pgdata/mappers/number", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       trunk: {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "trunk-01",
         name: "Global Trunk",
         accessControlListRef: "acl-01",
@@ -108,7 +109,7 @@ describe("@routr/pgdata/mappers/number", () => {
         inboundUri: "sip:sip.local",
         inboundCredentialsRef: "inbound-01",
         inboundCredentials: {
-          apiVersion: "v2" as APIVersion,
+          apiVersion: CC.APIVersion.V2,
           ref: "inbound-01",
           name: "test",
           username: "test",
@@ -121,7 +122,7 @@ describe("@routr/pgdata/mappers/number", () => {
         },
         outboundCredentialsRef: "outbound-01",
         outboundCredentials: {
-          apiVersion: "v2" as APIVersion,
+          apiVersion: CC.APIVersion.V2,
           ref: "outbound-01",
           name: "test",
           username: "test",
@@ -133,7 +134,7 @@ describe("@routr/pgdata/mappers/number", () => {
           }
         },
         accessControlList: {
-          apiVersion: "v2" as APIVersion,
+          apiVersion: CC.APIVersion.V2,
           ref: "acl-01",
           name: "test",
           allow: ["0.0.0.1/1"],
@@ -179,7 +180,7 @@ describe("@routr/pgdata/mappers/number", () => {
     it("when the friendly name is not provided for create operations", () => {
       // Arrange
       const number = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "number-01",
         trunkRef: "trunk-01",
         name: "",
@@ -198,8 +199,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -214,7 +215,7 @@ describe("@routr/pgdata/mappers/number", () => {
     it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const number = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "number-01",
         trunkRef: "trunk-01",
         name: "a".repeat(65),
@@ -233,8 +234,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -253,7 +254,7 @@ describe("@routr/pgdata/mappers/number", () => {
     it("when the reference is not provided for an update operation", () => {
       // Arrange
       const number = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "",
         trunkRef: "trunk-01",
         name: "(785)317-8070",
@@ -272,8 +273,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
 
       // Act
@@ -286,7 +287,7 @@ describe("@routr/pgdata/mappers/number", () => {
     it("when the request is missing the telUrl", () => {
       // Arrange
       const number = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "number-01",
         trunkRef: "trunk-01",
         name: "(785)317-8070",
@@ -305,8 +306,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
       // Act
       const result = () => new NumberManager(number).validOrThrowCreate()
@@ -318,7 +319,7 @@ describe("@routr/pgdata/mappers/number", () => {
     it("when sessionAffinityHeader is not alphanumeric or has spaces", () => {
       // Arrange
       const number = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "number-01",
         trunkRef: "trunk-01",
         name: "(785)317-8070",
@@ -337,8 +338,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
       // Act
       const createResult = () => new NumberManager(number).validOrThrowCreate()
@@ -356,7 +357,7 @@ describe("@routr/pgdata/mappers/number", () => {
     it("when aor link doesn't start with backend: or sip:", () => {
       // Arrange
       const number = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "number-01",
         trunkRef: "trunk-01",
         name: "(785)317-8070",
@@ -375,8 +376,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
       // Act
       const createResult = () => new NumberManager(number).validOrThrowCreate()

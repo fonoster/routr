@@ -58,8 +58,8 @@ export default class DescribeCommand extends BaseCommand {
           ? number.extraHeaders.join(",")
           : "None",
         Extended: number.extended,
-        Created: moment(new Date(number.createdAt * 1000)).toISOString(),
-        Updated: moment(new Date(number.updatedAt * 1000)).toISOString()
+        Created: moment(number.createdAt).toISOString(),
+        Updated: moment(number.updatedAt).toISOString()
       }
 
       this.log(render(jsonObj, { noColor: true }))
