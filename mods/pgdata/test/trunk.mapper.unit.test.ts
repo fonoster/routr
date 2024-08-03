@@ -18,7 +18,7 @@
  */
 import { TrunkManager } from "../src/mappers/trunk"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
-import { APIVersion, Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client"
 import chai from "chai"
 import sinon from "sinon"
 import chaiExclude from "chai-exclude"

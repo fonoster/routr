@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIVersion, Privacy as PrismaPrivacy, Prisma } from "@prisma/client"
+import { Privacy as PrismaPrivacy, Prisma } from "@prisma/client"
 import { CommonConnect as CC } from "@routr/common"
 import { Privacy } from "@routr/common/src/types"
 import { AgentManager } from "../src/mappers/agent"

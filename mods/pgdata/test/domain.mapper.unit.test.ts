@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIVersion, Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client"
 import { CommonConnect as CC } from "@routr/common"
 import { DomainManager } from "../src/mappers/domain"
 import chai from "chai"

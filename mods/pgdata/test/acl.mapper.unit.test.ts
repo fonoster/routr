@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIVersion } from "@prisma/client"
 import { CommonConnect as CC } from "@routr/common"
 import { ACLManager } from "../src/mappers/acl"
 import chai from "chai"
