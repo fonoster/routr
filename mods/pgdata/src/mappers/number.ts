@@ -89,10 +89,9 @@ export class NumberManager extends EntityManager {
       // TODO: Set a default value for apiVersion
       ...this.number,
       apiVersion: "v2" as APIVersion,
-      trunkRef: this.number.trunkRef || null,
-      aorLink: this.number.aorLink || null,
-      sessionAffinityHeader: this.number.sessionAffinityHeader || null,
-      extraHeaders: this.number.extraHeaders || null,
+      trunkRef: this.number.trunkRef,
+      sessionAffinityHeader: this.number.sessionAffinityHeader,
+      extraHeaders: this.number.extraHeaders,
       extended: this.number.extended as JsonValue
     }
   }
