@@ -78,7 +78,7 @@ export class TrunkManager extends EntityManager {
       accessControlListRef: this.trunk.accessControlListRef || null,
       inboundCredentialsRef: this.trunk.inboundCredentialsRef || null,
       outboundCredentialsRef: this.trunk.outboundCredentialsRef || null,
-      extended: (this.trunk.extended as JsonValue) || {},
+      extended: this.trunk.extended as JsonValue,
       uris: {
         create: this.trunk.uris
       }

@@ -91,10 +91,9 @@ export class NumberManager extends EntityManager {
       apiVersion: "v2" as APIVersion,
       trunkRef: this.number.trunkRef || null,
       aorLink: this.number.aorLink || null,
-      city: this.number.city || undefined,
       sessionAffinityHeader: this.number.sessionAffinityHeader || null,
       extraHeaders: this.number.extraHeaders || null,
-      extended: (this.number.extended as JsonValue) || {}
+      extended: this.number.extended as JsonValue
     }
   }
 

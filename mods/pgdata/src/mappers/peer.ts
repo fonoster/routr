@@ -77,8 +77,8 @@ export class PeerManager extends EntityManager {
       withSessionAffinity: this.peer.withSessionAffinity,
       credentialsRef: this.peer.credentialsRef || null,
       accessControlListRef: this.peer.accessControlListRef || null,
-      expires: this.peer.expires,
-      extended: (this.peer.extended as JsonValue) || {}
+      expires: this.peer.expires || 0,
+      extended: this.peer.extended as JsonValue
     }
   }
 

@@ -83,8 +83,8 @@ export class AgentManager extends EntityManager {
       privacy: (this.agent.privacy as Privacy) ?? Privacy.NONE,
       domainRef: this.agent.domainRef || null,
       credentialsRef: this.agent.credentialsRef || null,
-      expires: this.agent.expires,
-      extended: (this.agent.extended as JsonValue) || {}
+      expires: this.agent.expires || 0,
+      extended: this.agent.extended as JsonValue
     }
   }
 

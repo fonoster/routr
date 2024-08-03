@@ -20,7 +20,6 @@ import * as grpc from "@grpc/grpc-js"
 import { DBDelegate, PostgresDataConfig } from "./types"
 import { CommonConnect as CC } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
-import { PrismaClient } from "@prisma/client"
 import { create } from "./api/create"
 import { update } from "./api/update"
 import { get } from "./api/get"
@@ -42,7 +41,7 @@ import { prisma } from "./db"
 const logger = getLogger({ service: "pgdata", filePath: __filename })
 
 /**
- * Starts a new posgres data service.
+ * Starts a new postgres data service.
  *
  * @param {PostgresDataConfig} config - the configuration of the service
  */

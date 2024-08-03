@@ -146,7 +146,7 @@ export const applyXHeaders =
   (route: Route) =>
   (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
-    if (route.headers && route.headers.length > 0) {
+    if (route.headers?.length > 0) {
       const headersToRemove = route.headers
         .filter(
           (h: HeaderModifier) =>

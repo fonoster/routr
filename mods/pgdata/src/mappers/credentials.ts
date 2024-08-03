@@ -55,8 +55,7 @@ export class CredentialsManager extends EntityManager {
       // TODO: Set a default value for apiVersion
       ...this.credentials,
       apiVersion: "v2" as APIVersion,
-      password: this.credentials.password || undefined,
-      extended: (this.credentials.extended as JsonValue) || {}
+      extended: this.credentials.extended as JsonValue
     }
   }
 

@@ -48,14 +48,9 @@ export class ACLManager extends EntityManager {
   mapToPrisma(): ACLPrismaModel {
     return {
       // TODO: Create a default value for apiVersion
+      ...this.acl,
       apiVersion: "v2" as APIVersion,
-      ref: this.acl.ref,
-      name: this.acl.name,
-      allow: this.acl.allow,
-      deny: this.acl.deny,
-      createdAt: this.acl.createdAt,
-      updatedAt: this.acl.updatedAt,
-      extended: (this.acl.extended as JsonValue) || {}
+      extended: this.acl.extended as JsonValue
     }
   }
 
@@ -64,8 +59,6 @@ export class ACLManager extends EntityManager {
       ? {
           ...acl,
           apiVersion: acl.apiVersion as CC.APIVersion,
-          createdAt: acl.createdAt,
-          updatedAt: acl.updatedAt,
           extended: acl.extended as JsonObject
         }
       : undefined

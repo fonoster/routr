@@ -86,8 +86,8 @@ export interface INumber extends BaseConnectModel {
   city: string
   country: string
   countryIsoCode: string
-  sessionAffinityHeader: string
-  extraHeaders: { name: string; value: string }[]
+  sessionAffinityHeader?: string
+  extraHeaders?: { name: string; value: string }[]
   trunkRef?: string
   trunk?: Trunk
 }

@@ -79,7 +79,7 @@ export class DomainManager extends EntityManager {
       ...this.domain,
       apiVersion: "v2" as APIVersion,
       accessControlListRef: this.domain.accessControlListRef || null,
-      extended: (this.domain.extended as JsonValue) || {},
+      extended: this.domain.extended as JsonValue,
       egressPolicies: {
         create: this.domain.egressPolicies?.map((policy) => ({
           rule: policy.rule,
