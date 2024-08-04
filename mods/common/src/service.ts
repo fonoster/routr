@@ -26,11 +26,11 @@ import { GRPC_SERVING_STATUS, statusMap } from "@fonoster/common"
 
 const logger = getLogger({ service: "common", filePath: __filename })
 
-const loadOptions = {
+export const protoLoadOptions = {
   keepCase: false,
   longs: String,
   enums: String,
-  defaults: false,
+  defaults: true,
   oneofs: true
 }
 // TODO: Get version from the proto or package
@@ -58,7 +58,7 @@ export const LOCATION_OBJECT_PROTO = getObjectProto({
 export function getObjectProto<A>(
   objectProto: ObjectProto
 ): A | ServiceDefinitionNotFoundError {
-  const definitions = protoLoader.loadSync(objectProto.path, loadOptions)
+  const definitions = protoLoader.loadSync(objectProto.path, protoLoadOptions)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const objProto = (grpc.loadPackageDefinition(definitions) as any)?.fonoster
     ?.routr[objectProto.name]
