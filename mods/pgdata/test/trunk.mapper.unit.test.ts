@@ -43,8 +43,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
       inboundCredentialsRef: "credentials-01",
       outboundCredentialsRef: "credentials-01",
       sendRegister: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
       extended: {
         test: "test"
       }
@@ -156,8 +156,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -183,8 +183,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -214,8 +214,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -240,8 +240,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -265,8 +265,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }

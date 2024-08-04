@@ -33,7 +33,7 @@ export function mapToACL(config: AccessControlListConfig): AccessControlList {
     name: config.metadata.name,
     allow: config.spec.accessControlList?.allow ?? [],
     deny: config.spec.accessControlList?.deny ?? [],
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: new Date().getTime(),
+    updatedAt: new Date().getTime()
   }
 }

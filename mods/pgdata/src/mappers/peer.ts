@@ -19,7 +19,6 @@
 /* eslint-disable require-jsdoc */
 import { Peer as PeerPrismaModel, APIVersion, Prisma } from "@prisma/client"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { ACLManager } from "./acl"
 import { CredentialsManager } from "./credentials"
 import { EntityManager } from "./manager"
@@ -38,7 +37,7 @@ export class PeerManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return {
       accessControlList: true,
       credentials: true
@@ -78,6 +77,8 @@ export class PeerManager extends EntityManager {
       credentialsRef: this.peer.credentialsRef || null,
       accessControlListRef: this.peer.accessControlListRef || null,
       expires: this.peer.expires || 0,
+      createdAt: undefined,
+      updatedAt: undefined,
       extended: this.peer.extended as JsonValue
     }
   }
@@ -91,7 +92,9 @@ export class PeerManager extends EntityManager {
             peer.balancingAlgorithm as CT.LoadBalancingAlgorithm,
           credentials: CredentialsManager.mapToDto(peer.credentials),
           accessControlList: ACLManager.mapToDto(peer.accessControlList),
-          extended: peer.extended as JsonObject
+          createdAt: peer.createdAt.getTime() / 1000,
+          updatedAt: peer.updatedAt.getTime() / 1000,
+          extended: peer.extended as Record<string, unknown>
         }
       : undefined
   }

@@ -19,7 +19,6 @@
 /* eslint-disable require-jsdoc */
 import { Number as NumberPrismaModel, APIVersion, Prisma } from "@prisma/client"
 import { CommonConnect as CC, Environment } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { EntityManager } from "./manager"
 import { TrunkManager } from "./trunk"
 import { JsonValue } from "@prisma/client/runtime/library"
@@ -43,7 +42,7 @@ export class NumberManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return {
       trunk: {
         include: {
@@ -92,6 +91,8 @@ export class NumberManager extends EntityManager {
       trunkRef: this.number.trunkRef,
       sessionAffinityHeader: this.number.sessionAffinityHeader,
       extraHeaders: this.number.extraHeaders,
+      createdAt: undefined,
+      updatedAt: undefined,
       extended: this.number.extended as JsonValue
     }
   }
@@ -106,7 +107,9 @@ export class NumberManager extends EntityManager {
             name: string
             value: string
           }[],
-          extended: number.extended as JsonObject
+          createdAt: number.createdAt.getTime() / 1000,
+          updatedAt: number.updatedAt.getTime() / 1000,
+          extended: number.extended as Record<string, unknown>
         }
       : undefined
   }
@@ -120,7 +123,9 @@ export class NumberManager extends EntityManager {
             name: string
             value: string
           }[],
-          extended: number.extended as JsonObject
+          createdAt: number.createdAt.getTime() / 1000,
+          updatedAt: number.updatedAt.getTime() / 1000,
+          extended: number.extended as Record<string, unknown>
         }
       : undefined
   }

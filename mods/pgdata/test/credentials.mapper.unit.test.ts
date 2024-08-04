@@ -39,8 +39,8 @@ describe("@routr/pgdata/mappers/credentials", () => {
       name: "Global Credentials",
       username: "1001",
       password: "1234",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
       extended: {
         test: "test"
       }
@@ -91,8 +91,8 @@ describe("@routr/pgdata/mappers/credentials", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -116,8 +116,8 @@ describe("@routr/pgdata/mappers/credentials", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -146,8 +146,8 @@ describe("@routr/pgdata/mappers/credentials", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -169,8 +169,8 @@ describe("@routr/pgdata/mappers/credentials", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -192,8 +192,8 @@ describe("@routr/pgdata/mappers/credentials", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -218,8 +218,8 @@ describe("@routr/pgdata/mappers/credentials", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act

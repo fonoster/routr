@@ -19,7 +19,6 @@
 /* eslint-disable require-jsdoc */
 import { AccessControlList as ACLPrismaModel, APIVersion } from "@prisma/client"
 import { CommonConnect as CC } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { EntityManager } from "./manager"
 import { JsonValue } from "@prisma/client/runtime/library"
 
@@ -28,7 +27,7 @@ export class ACLManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return null
   }
 
@@ -50,6 +49,8 @@ export class ACLManager extends EntityManager {
       // TODO: Create a default value for apiVersion
       ...this.acl,
       apiVersion: "v2" as APIVersion,
+      createdAt: undefined,
+      updatedAt: undefined,
       extended: this.acl.extended as JsonValue
     }
   }
@@ -59,7 +60,9 @@ export class ACLManager extends EntityManager {
       ? {
           ...acl,
           apiVersion: acl.apiVersion as CC.APIVersion,
-          extended: acl.extended as JsonObject
+          createdAt: acl.createdAt.getTime() / 1000,
+          updatedAt: acl.updatedAt.getTime() / 1000,
+          extended: acl.extended as Record<string, unknown>
         }
       : undefined
   }

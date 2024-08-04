@@ -24,7 +24,6 @@ import {
   EgressPolicy
 } from "@prisma/client"
 import { CommonConnect as CC } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { ACLManager } from "./acl"
 import { EntityManager } from "./manager"
 import { NumberManager } from "./number"
@@ -47,7 +46,7 @@ export class DomainManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return {
       accessControlList: true,
       egressPolicies: {
@@ -85,7 +84,9 @@ export class DomainManager extends EntityManager {
           rule: policy.rule,
           numberRef: policy.numberRef
         }))
-      }
+      },
+      createdAt: undefined,
+      updatedAt: undefined
     }
   }
 
@@ -101,7 +102,9 @@ export class DomainManager extends EntityManager {
             numberRef: policy.numberRef,
             number: NumberManager.mapToDtoWithoutTrunk(policy.number)
           })),
-          extended: domain.extended as JsonObject
+          createdAt: domain.createdAt.getTime() / 1000,
+          updatedAt: domain.updatedAt.getTime() / 1000,
+          extended: domain.extended as Record<string, unknown>
         }
       : undefined
   }

@@ -34,7 +34,7 @@ export function mapToDomain(config: DomainConfig): Domain {
     domainUri: config.spec.context.domainUri,
     accessControlListRef: config.spec.accessControlListRef,
     egressPolicies: config.spec.context.egressPolicies,
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: new Date().getTime(),
+    updatedAt: new Date().getTime()
   }
 }

@@ -40,8 +40,8 @@ export interface BaseConnectModel {
   apiVersion: APIVersion
   ref: string
   name: string
-  createdAt: Date
-  updatedAt: Date
+  createdAt: number
+  updatedAt: number
   extended?: Record<string, unknown>
 }
 

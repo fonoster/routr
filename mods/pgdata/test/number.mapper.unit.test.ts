@@ -54,8 +54,8 @@ describe("@routr/pgdata/mappers/number", () => {
       extended: {
         test: "test"
       },
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime()
     }
 
     // Act
@@ -199,8 +199,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -234,8 +234,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -273,8 +273,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -306,8 +306,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
       // Act
       const result = () => new NumberManager(number).validOrThrowCreate()
@@ -338,8 +338,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
       // Act
       const createResult = () => new NumberManager(number).validOrThrowCreate()
@@ -376,8 +376,8 @@ describe("@routr/pgdata/mappers/number", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
       // Act
       const createResult = () => new NumberManager(number).validOrThrowCreate()

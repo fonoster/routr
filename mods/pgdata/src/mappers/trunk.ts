@@ -24,7 +24,6 @@ import {
   TrunkURI
 } from "@prisma/client"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { ACLManager } from "./acl"
 import { CredentialsManager } from "./credentials"
 import { EntityManager } from "./manager"
@@ -45,7 +44,7 @@ export class TrunkManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return {
       accessControlList: true,
       inboundCredentials: true,
@@ -78,10 +77,12 @@ export class TrunkManager extends EntityManager {
       accessControlListRef: this.trunk.accessControlListRef || null,
       inboundCredentialsRef: this.trunk.inboundCredentialsRef || null,
       outboundCredentialsRef: this.trunk.outboundCredentialsRef || null,
-      extended: this.trunk.extended as JsonValue,
       uris: {
         create: this.trunk.uris
-      }
+      },
+      extended: this.trunk.extended as JsonValue,
+      createdAt: undefined,
+      updatedAt: undefined
     }
   }
 
@@ -100,13 +101,15 @@ export class TrunkManager extends EntityManager {
           outboundCredentials: CredentialsManager.mapToDto(
             trunk.outboundCredentials
           ),
-          extended: trunk.extended as JsonObject,
           uris: trunk.uris.map((uri) => {
             return {
               ...uri,
               transport: uri.transport.toUpperCase() as CT.Transport
             }
-          })
+          }),
+          createdAt: trunk.createdAt.getTime() / 1000,
+          updatedAt: trunk.updatedAt.getTime() / 1000,
+          extended: trunk.extended as Record<string, unknown>
         }
       : undefined
   }

@@ -33,7 +33,7 @@ export function mapToCredentials(config: CredentialsConfig): Credentials {
     name: config.metadata.name,
     username: config.spec.credentials.username,
     password: config.spec.credentials.password,
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: new Date().getTime(),
+    updatedAt: new Date().getTime()
   }
 }

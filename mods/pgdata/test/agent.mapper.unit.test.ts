@@ -38,7 +38,7 @@ describe("@routr/pgdata/mappers/agent", () => {
     const agent = {
       apiVersion: CC.APIVersion.V2,
       ref: "agent-01",
-      name: "Jhon Doe",
+      name: "John Doe",
       username: "1001",
       privacy: Privacy.PRIVATE,
       enabled: true,
@@ -49,8 +49,8 @@ describe("@routr/pgdata/mappers/agent", () => {
       },
       maxContacts: 1,
       expires: 3600,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime()
     }
 
     // Act
@@ -81,7 +81,7 @@ describe("@routr/pgdata/mappers/agent", () => {
     const agent: AgentWithDomainAndCredentials = {
       apiVersion: CC.APIVersion.V2,
       ref: "agent-01",
-      name: "Jhon Doe",
+      name: "John Doe",
       username: "1001",
       privacy: PrismaPrivacy.PRIVATE,
       enabled: true,
@@ -158,8 +158,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -186,8 +186,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -208,7 +208,7 @@ describe("@routr/pgdata/mappers/agent", () => {
       const agent = {
         apiVersion: CC.APIVersion.V2,
         ref: "",
-        name: "Jhon Doe",
+        name: "John Doe",
         username: "1001",
         privacy: Privacy.PRIVATE,
         enabled: true,
@@ -218,8 +218,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -234,7 +234,7 @@ describe("@routr/pgdata/mappers/agent", () => {
       const agent = {
         apiVersion: CC.APIVersion.V2,
         ref: "agent-01",
-        name: "Jhon Doe",
+        name: "John Doe",
         username: "",
         privacy: Privacy.PRIVATE,
         enabled: true,
@@ -244,8 +244,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -260,7 +260,7 @@ describe("@routr/pgdata/mappers/agent", () => {
       const agent = {
         apiVersion: CC.APIVersion.V2,
         ref: "agent-01",
-        name: "Jhon Doe",
+        name: "John Doe",
         username: "1 0 0 1",
         privacy: Privacy.PRIVATE,
         enabled: true,
@@ -270,8 +270,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act

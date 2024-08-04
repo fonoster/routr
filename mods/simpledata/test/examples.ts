@@ -25,8 +25,8 @@ export const configs: CC.ConnectModel[] = [
     name: "my-secret-credential",
     username: "myusername",
     password: "password",
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: new Date().getTime() / 1000,
+    updatedAt: new Date().getTime() / 1000
   },
   {
     apiVersion: CC.APIVersion.V2BETA1,
@@ -34,7 +34,7 @@ export const configs: CC.ConnectModel[] = [
     name: "Europe ACL",
     deny: ["0.0.0.0/1"],
     allow: ["192.168.0.1/31"],
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: new Date().getTime() / 1000,
+    updatedAt: new Date().getTime() / 1000
   }
 ]

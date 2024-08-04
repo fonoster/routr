@@ -45,7 +45,7 @@ export function mapToPeer(config: PeerConfig): Peer {
     withSessionAffinity: config.spec.loadBalancing?.withSessionAffinity,
     maxContacts: config.spec.maxContacts,
     expires: config.spec.expires,
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: new Date().getTime(),
+    updatedAt: new Date().getTime()
   }
 }

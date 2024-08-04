@@ -24,7 +24,6 @@ import {
   Privacy
 } from "@prisma/client"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { CredentialsManager } from "./credentials"
 import { DomainManager } from "./domain"
 import { EntityManager } from "./manager"
@@ -52,7 +51,7 @@ export class AgentManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return {
       domain: {
         include: {
@@ -84,6 +83,8 @@ export class AgentManager extends EntityManager {
       domainRef: this.agent.domainRef || null,
       credentialsRef: this.agent.credentialsRef || null,
       expires: this.agent.expires || 0,
+      createdAt: undefined,
+      updatedAt: undefined,
       extended: this.agent.extended as JsonValue
     }
   }
@@ -96,7 +97,9 @@ export class AgentManager extends EntityManager {
           privacy: agent.privacy as CT.Privacy,
           domain: DomainManager.mapToDto(agent.domain),
           credentials: CredentialsManager.mapToDto(agent.credentials),
-          extended: (agent.extended || {}) as Record<string, unknown>
+          createdAt: agent.createdAt.getTime() / 1000,
+          updatedAt: agent.updatedAt.getTime() / 1000,
+          extended: agent.extended as Record<string, unknown>
         }
       : undefined
   }

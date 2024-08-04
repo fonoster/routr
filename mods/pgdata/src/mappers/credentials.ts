@@ -22,7 +22,6 @@ import {
   APIVersion
 } from "@prisma/client"
 import { CommonConnect as CC } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { EntityManager } from "./manager"
 import { JsonValue } from "@prisma/client/runtime/library"
 
@@ -32,7 +31,7 @@ export class CredentialsManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return null
   }
 
@@ -55,6 +54,8 @@ export class CredentialsManager extends EntityManager {
       // TODO: Set a default value for apiVersion
       ...this.credentials,
       apiVersion: "v2" as APIVersion,
+      createdAt: undefined,
+      updatedAt: undefined,
       extended: this.credentials.extended as JsonValue
     }
   }
@@ -64,7 +65,9 @@ export class CredentialsManager extends EntityManager {
       ? {
           ...credentials,
           apiVersion: credentials.apiVersion as CC.APIVersion,
-          extended: credentials.extended as JsonObject
+          createdAt: credentials.createdAt.getTime() / 1000,
+          updatedAt: credentials.updatedAt.getTime() / 1000,
+          extended: credentials.extended as Record<string, unknown>
         }
       : undefined
   }

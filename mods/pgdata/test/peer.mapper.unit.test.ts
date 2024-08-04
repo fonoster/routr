@@ -46,8 +46,8 @@ describe("@routr/pgdata/mappers/peer", () => {
       balancingAlgorithm: CT.LoadBalancingAlgorithm.ROUND_ROBIN,
       withSessionAffinity: false,
       enabled: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
       maxContacts: 1,
       expires: 3600,
       extended: {
@@ -139,8 +139,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12",
         enabled: true,
         maxContacts: -1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -167,8 +167,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         aor: "sip:1001@sip.local",
         contactAddr: "192.168.1.12",
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         maxContacts: -1,
         extended: {
           test: "test"
@@ -201,8 +201,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12",
         maxContacts: -1,
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -228,8 +228,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12",
         maxContacts: -1,
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -255,8 +255,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12",
         maxContacts: -1,
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -282,8 +282,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12",
         maxContacts: -1,
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -309,8 +309,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         contactAddr: "192.168.1.12:5060",
         maxContacts: -1,
         enabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }

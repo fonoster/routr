@@ -39,8 +39,8 @@ describe("@routr/pgdata/mappers/acl", () => {
       name: "Local Network ACL",
       allow: ["192.168.1.3/31"],
       deny: ["0.0.0.0/1"],
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
       extended: {
         test: "test"
       }
@@ -87,8 +87,8 @@ describe("@routr/pgdata/mappers/acl", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -111,8 +111,8 @@ describe("@routr/pgdata/mappers/acl", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -139,8 +139,8 @@ describe("@routr/pgdata/mappers/acl", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -161,8 +161,8 @@ describe("@routr/pgdata/mappers/acl", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -185,8 +185,8 @@ describe("@routr/pgdata/mappers/acl", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act

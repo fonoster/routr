@@ -43,8 +43,8 @@ describe("@routr/pgdata/mappers/domain", () => {
       extended: {
         test: "test"
       },
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime()
     }
 
     // Act
@@ -116,8 +116,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -140,8 +140,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -168,8 +168,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -190,8 +190,8 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act

@@ -39,7 +39,7 @@ export function mapToAgent(config: AgentConfig): Agent {
     credentialsRef: config.spec.credentialsRef,
     maxContacts: config.spec.maxContacts,
     expires: config.spec.expires,
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: new Date().getTime(),
+    updatedAt: new Date().getTime()
   }
 }

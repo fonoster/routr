@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import { CommonConnect as CC } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 
 export interface PostgresDataConfig {
   bindAddr: string
@@ -32,14 +31,14 @@ export type PrismaOperation = (request: {
   where: {
     ref: string
   }
-  include?: JsonObject
+  include?: Record<string, unknown>
 }) => unknown
 
 export type PrismaFindByOperation = (request: {
   where: {
     [key: string]: boolean | string | number
   }
-  include?: JsonObject
+  include?: Record<string, unknown>
 }) => unknown
 
 export type PrismaListOperation = (request: {
@@ -48,13 +47,13 @@ export type PrismaListOperation = (request: {
   cursor: {
     ref: string
   }
-  orderBy: JsonObject
-  include?: JsonObject
+  orderBy: Record<string, unknown>
+  include?: Record<string, unknown>
 }) => unknown
 
 export type PrismaCreateOperation = (request: {
   data: any
-  include?: JsonObject
+  include?: Record<string, unknown>
 }) => unknown
 
 export type PrismaUpdateOperation = (request: {
@@ -62,5 +61,5 @@ export type PrismaUpdateOperation = (request: {
     ref: string
   }
   data: unknown
-  include?: JsonObject
+  include?: Record<string, unknown>
 }) => unknown

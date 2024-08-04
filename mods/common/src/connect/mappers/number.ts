@@ -42,7 +42,7 @@ export function mapToNumber(config: NumberConfig): INumber {
     sessionAffinityHeader: location.sessionAffinityHeader,
     extraHeaders: location.extraHeaders,
     trunkRef: config.spec.trunkRef,
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: new Date().getTime(),
+    updatedAt: new Date().getTime()
   }
 }
