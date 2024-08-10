@@ -60,7 +60,7 @@ export const handleRegister = (
       )) as CC.Peer | CC.Agent
 
       if (!peerOrAgent) {
-        return res.send(CR.createForbideenResponse())
+        return res.send(CR.createForbiddenResponse())
       }
 
       const credentials = (
@@ -111,7 +111,7 @@ export const handleRegister = (
         )) as Verifier.VerifyResponse
 
         if (!payload.allowedMethods.includes(Method.REGISTER)) {
-          return res.send(CR.createForbideenResponse())
+          return res.send(CR.createForbiddenResponse())
         }
 
         await location.addRoute({
@@ -125,7 +125,7 @@ export const handleRegister = (
         logger.verbose("unable to validate connect token", {
           originalError: e.message
         })
-        res.send(CR.createForbideenResponse())
+        res.send(CR.createForbiddenResponse())
       }
     } else {
       res.send(CR.createUnauthorizedResponse(request.message.requestUri.host))
