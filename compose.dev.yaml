@@ -157,8 +157,7 @@ services:
   #
   # SIP End to End Test (SEET) compliance test for SIPConnect v1.1 support
   # docker compose -f compose.yaml -f compose.dev.yaml up \
-  #  --build --abort-on-container-exit --exit-code-from compliance \
-  #   compliance edgeport01 edgeport02 dispatcher registry requester apiserver connect location
+  #  --build --abort-on-container-exit --exit-code-from compliance compliance
   #
   compliance:
     container_name: compliance
