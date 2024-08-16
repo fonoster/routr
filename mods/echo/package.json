@@ -1,6 +1,6 @@
 {
   "name": "@routr/echo",
-  "version": "2.13.2",
+  "version": "2.13.4",
   "description": "Dummy implementation of a Processor service",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -28,8 +28,8 @@
     "@opentelemetry/sdk-trace-base": "^1.0.4",
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
-    "@routr/common": "^2.13.2",
-    "@routr/processor": "^2.13.2"
+    "@routr/common": "^2.13.4",
+    "@routr/processor": "^2.13.4"
   },
   "files": [
     "dist"
