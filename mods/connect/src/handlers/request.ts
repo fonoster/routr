@@ -72,6 +72,8 @@ export const handleRequest =
           action: CT.HeaderModifierAction.ADD
         }
 
+        if (!route.headers) route.headers = []
+
         route.headers.push(p)
       }
 
