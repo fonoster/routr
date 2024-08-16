@@ -24,5 +24,7 @@ export interface ClientOptions {
   cacert?: string
 }
 
+export type Flatten<T> = { [K in keyof T]: T[K] }
+
 // The base type to omit from BaseConnectModel
 export type CreateBaseOmit = "ref" | "apiVersion" | "createdAt" | "updatedAt"

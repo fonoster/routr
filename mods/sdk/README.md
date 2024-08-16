@@ -20,7 +20,7 @@ $ npm install --save @routr/sdk
 <!-- usagestop -->
 # APIs
 <!-- apis -->
-* [`Access Control List`](#acl--apiclient)
+* [`Acls`](#acl--apiclient)
 * [`Agents`](#agents--apiclient)
 * [`Credentials`](#credentials--apiclient)
 * [`Domains`](#domains--apiclient)
@@ -29,9 +29,9 @@ $ npm install --save @routr/sdk
 * [`Trunks`](#trunks--apiclient)
 
 
-<a name="ACL"></a>
+<a name="Acls"></a>
 
-## ACL ⇐ <code>APIClient</code>
+## Acls ⇐ <code>APIClient</code>
 Use Routr ACL, a capability of Routr SIP Proxy, to create, update, get
 and delete Access Control Lists. The ACL API requires of a running Routr deployment.
 
@@ -39,18 +39,18 @@ and delete Access Control Lists. The ACL API requires of a running Routr deploym
 **Extends**: <code>APIClient</code>  
 **See**: module:core:APIClient  
 
-* [ACL](#ACL) ⇐ <code>APIClient</code>
-    * [new ACL(options)](#new_ACL_new)
-    * [.createACL(request)](#ACL+createACL) ⇒ <code>Promise.&lt;CreateACLResponse&gt;</code>
-    * [.updateACL(request)](#ACL+updateACL) ⇒ <code>Promise.&lt;UpdateACLResponse&gt;</code>
-    * [.getACL(ref)](#ACL+getACL) ⇒ <code>Promise.&lt;GetACLResponse&gt;</code>
-    * [.deleteACL(ref)](#ACL+deleteACL) ⇒ <code>Promise.&lt;void&gt;</code>
-    * [.listACLs(request)](#ACL+listACLs) ⇒ <code>Promise.&lt;ListACLResponse&gt;</code>
+* [Acls](#Acls) ⇐ <code>APIClient</code>
+    * [new Acls(options)](#new_Acls_new)
+    * [.createAcl(request)](#Acls+createAcl) ⇒ <code>Promise.&lt;CreateAclResponse&gt;</code>
+    * [.updateAcl(request)](#Acls+updateAcl) ⇒ <code>Promise.&lt;UpdateAclResponse&gt;</code>
+    * [.getAcl(ref)](#Acls+getAcl) ⇒ <code>Promise.&lt;GetAclResponse&gt;</code>
+    * [.deleteAcl(ref)](#Acls+deleteAcl) ⇒ <code>Promise.&lt;void&gt;</code>
+    * [.listAcls(request)](#Acls+listAcls) ⇒ <code>Promise.&lt;ListAclResponse&gt;</code>
 
-<a name="new_ACL_new"></a>
+<a name="new_Acls_new"></a>
 
-### new ACL(options)
-Constructs a new ACL API object.
+### new Acls(options)
+Constructs a new API object.
 
 
 | Param | Type | Description |
@@ -60,7 +60,7 @@ Constructs a new ACL API object.
 **Example**  
 ```js
 const SDK = require("@routr/sdk")
-const acl = new SDK.ACL()
+const acl = new SDK.Acls()
 
 const request = {
   name: "Peer network",
@@ -68,17 +68,17 @@ const request = {
   deny: "0.0.0.0/0"
 }
 
-acl.createACL(request)
+acl.createAcl(request)
   .then(console.log)
   .catch(console.error)   // an error occurred
 ```
-<a name="ACL+createACL"></a>
+<a name="Acls+createAcl"></a>
 
-### acL.createACL(request) ⇒ <code>Promise.&lt;CreateACLResponse&gt;</code>
+### acls.createAcl(request) ⇒ <code>Promise.&lt;CreateAclResponse&gt;</code>
 Creates a new AccessControlList on Routr.
 
-**Kind**: instance method of [<code>ACL</code>](#ACL)  
-**Returns**: <code>Promise.&lt;CreateACLResponse&gt;</code> - The newly created AccessControlList  
+**Kind**: instance method of [<code>Acls</code>](#Acls)  
+**Returns**: <code>Promise.&lt;CreateAclResponse&gt;</code> - The newly created AccessControlList  
 **Throws**:
 
 - if request is null
@@ -86,7 +86,7 @@ Creates a new AccessControlList on Routr.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| request | <code>CreateACLRequest</code> | The request to create an ACL |
+| request | <code>CreateAclRequest</code> | The request to create an ACL |
 | request.name | <code>string</code> | Name of the ACL |
 | request.allow | <code>Array.&lt;string&gt;</code> | List of IP addresses or CIDR blocks to allow |
 | request.deny | <code>Array.&lt;string&gt;</code> | List of IP addresses or CIDR blocks to deny |
@@ -100,21 +100,21 @@ const request = {
   deny: "0.0.0.0/0"
 }
 
-acl.createACL(request)
+acl.createAcl(request)
   .then(console.log)
   .catch(console.error)   // an error occurred
 ```
-<a name="ACL+updateACL"></a>
+<a name="Acls+updateAcl"></a>
 
-### acL.updateACL(request) ⇒ <code>Promise.&lt;UpdateACLResponse&gt;</code>
+### acls.updateAcl(request) ⇒ <code>Promise.&lt;UpdateAclResponse&gt;</code>
 Updates an already existing AccessControlList on Routr.
 
-**Kind**: instance method of [<code>ACL</code>](#ACL)  
-**Returns**: <code>Promise.&lt;UpdateACLResponse&gt;</code> - The AccessControlList  
+**Kind**: instance method of [<code>Acls</code>](#Acls)  
+**Returns**: <code>Promise.&lt;UpdateAclResponse&gt;</code> - The AccessControlList  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| request | <code>UpdateACLRequest</code> | Partial with the fields to update |
+| request | <code>UpdateAclRequest</code> | Partial with the fields to update |
 | request.name | <code>string</code> | Name of the ACL |
 | request.allow | <code>Array.&lt;string&gt;</code> | List of IP addresses or CIDR blocks to allow |
 | request.deny | <code>Array.&lt;string&gt;</code> | List of IP addresses or CIDR blocks to deny |
@@ -127,17 +127,17 @@ const request = {
   name: "Peer network updated",
 }
 
-acl.updateACL(request)
+acl.updateAcl(request)
   .then(console.log)
   .catch(console.error)   // an error occurred
 ```
-<a name="ACL+getACL"></a>
+<a name="Acls+getAcl"></a>
 
-### acL.getACL(ref) ⇒ <code>Promise.&lt;GetACLResponse&gt;</code>
+### acls.getAcl(ref) ⇒ <code>Promise.&lt;GetAclResponse&gt;</code>
 Gets an AccessControlList from Routr.
 
-**Kind**: instance method of [<code>ACL</code>](#ACL)  
-**Returns**: <code>Promise.&lt;GetACLResponse&gt;</code> - The AccessControlList  
+**Kind**: instance method of [<code>Acls</code>](#Acls)  
+**Returns**: <code>Promise.&lt;GetAclResponse&gt;</code> - The AccessControlList  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -147,16 +147,16 @@ Gets an AccessControlList from Routr.
 ```js
 const ref = "4671371b-ff5d-48b1-aabe-d3c5ca5317a3"
 
-acl.getACL(ref)
+acl.getAcl(ref)
   .then(console.log)
   .catch(console.error)   // an error occurred
 ```
-<a name="ACL+deleteACL"></a>
+<a name="Acls+deleteAcl"></a>
 
-### acL.deleteACL(ref) ⇒ <code>Promise.&lt;void&gt;</code>
+### acls.deleteAcl(ref) ⇒ <code>Promise.&lt;void&gt;</code>
 Deletes an AccessControlList from Routr.
 
-**Kind**: instance method of [<code>ACL</code>](#ACL)  
+**Kind**: instance method of [<code>Acls</code>](#Acls)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -166,21 +166,21 @@ Deletes an AccessControlList from Routr.
 ```js
 const ref = "4671371b-ff5d-48b1-aabe-d3c5ca5317a3"
 
-acl.deleteACL(ref)
+acl.deleteAcl(ref)
   .then(console.log)
   .catch(console.error)   // an error occurred
 ```
-<a name="ACL+listACLs"></a>
+<a name="Acls+listAcls"></a>
 
-### acL.listACLs(request) ⇒ <code>Promise.&lt;ListACLResponse&gt;</code>
+### acls.listAcls(request) ⇒ <code>Promise.&lt;ListAclResponse&gt;</code>
 Lists all AccessControlLists from Routr with pagination.
 
-**Kind**: instance method of [<code>ACL</code>](#ACL)  
-**Returns**: <code>Promise.&lt;ListACLResponse&gt;</code> - The list of AccessControlLists  
+**Kind**: instance method of [<code>Acls</code>](#Acls)  
+**Returns**: <code>Promise.&lt;ListAclResponse&gt;</code> - The list of AccessControlLists  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| request | <code>ListACLRequest</code> | The request to list ACLs |
+| request | <code>ListAclRequest</code> | The request to list ACLs |
 | request.pageSize | <code>number</code> | The number of ACLs to return |
 | request.pageToken | <code>string</code> | The page token to use for pagination |
 
@@ -190,7 +190,7 @@ const request = {
  pageSize: 10
 }
 
-acl.listACLs(request)
+acl.listAcls(request)
   .then(console.log)
   .catch(console.error)   // an error occurred
 ```
@@ -808,7 +808,7 @@ Creates a new Number on Routr.
 | request.city | <code>string</code> | The city where the number is located |
 | request.country | <code>string</code> | The country where the number is located |
 | request.countryIsoCode | <code>string</code> | The country ISO code where the number is located |
-| request.extraHeaders | <code>Array.&lt;JsonObject&gt;</code> | Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]) |
+|  | <code>Array.&lt;{name: string, value: string}&gt;</code> | Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]) |
 | request.trunkRef | <code>string</code> | The Trunk reference to be used |
 | request.sessionAffinityHeader | <code>string</code> | Optional session affinity header |
 | request.extended | <code>string</code> | Optional extended attributes |
@@ -850,7 +850,7 @@ Updates an already existing Number on Routr.
 | request | <code>UpdateNumberRequest</code> | Partial with the fields to update |
 | request.name | <code>string</code> | Name of the Number |
 | request.aorLink | <code>string</code> | The AOR link to be used (e.g., sip:1001@sip.local) |
-| request.extraHeaders | <code>Array.&lt;JsonObject&gt;</code> | Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]) |
+| request.extraHeaders | <code>Array.&lt;{name: string, value: string}&gt;</code> | Extra headers to be used (e.g., [\{name: "X-Room-Id", value: "abc-us-123"\}]) |
 | request.trunkRef | <code>string</code> | The Trunk reference to be used |
 | request.sessionAffinityHeader | <code>string</code> | Optional session affinity header |
 | request.extended | <code>string</code> | Optional extended attributes |

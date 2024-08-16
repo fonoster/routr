@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { CommonConnect as CC } from "@routr/common"
-import { CreateBaseOmit } from "../types"
+import { CreateBaseOmit, Flatten } from "../types"
 
 export type CreateTrunkRequest = Omit<
   CC.Trunk,
@@ -27,14 +27,16 @@ export type CreateTrunkRequest = Omit<
   | "outboundCredentials"
 >
 
-export type CreateTrunkResponse = CC.Trunk
+export type CreateTrunkResponse = Flatten<CC.Trunk>
 
-export type UpdateTrunkRequest = { ref: string } & Partial<CreateTrunkRequest>
+export type UpdateTrunkRequest = Flatten<
+  { ref: string } & Partial<CreateTrunkRequest>
+>
 
-export type UpdateTrunkResponse = CC.Trunk
+export type UpdateTrunkResponse = Flatten<CC.Trunk>
 
-export type ListTrunkRequest = CC.ListRequest
+export type ListTrunkRequest = Flatten<CC.ListRequest>
 
-export type ListTrunkResponse = CC.ListResponse<CC.Trunk>
+export type ListTrunkResponse = Flatten<CC.ListResponse<CC.Trunk>>
 
-export type GetTrunkResponse = CC.Trunk
+export type GetTrunkResponse = Flatten<CC.Trunk>

@@ -17,10 +17,8 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import { JsonObject } from "pb-util/build"
-
 export abstract class EntityManager {
-  static readonly includeFields: () => JsonObject
+  static readonly includeFields: () => Record<string, unknown>
   abstract validOrThrowCreate(): void
   abstract validOrThrowUpdate(): void
 }

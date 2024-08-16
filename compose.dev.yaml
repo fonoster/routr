@@ -156,12 +156,12 @@ services:
 
   #
   # SIP End to End Test (SEET) compliance test for SIPConnect v1.1 support
-  # docker-compose -f compose.yaml -f compose.dev.yaml up \
-  #   --abort-on-container-exit --exit-code-from compliance
+  # docker compose -f compose.yaml -f compose.dev.yaml up \
+  #  --build --abort-on-container-exit --exit-code-from compliance compliance
   #
   compliance:
     container_name: compliance
-    image: fonoster/seet:1.1.1
+    image: fonoster/seet:1.2.0
     depends_on:
       - edgeport01
       - edgeport02
@@ -170,6 +170,7 @@ services:
       - requester
       - apiserver
       - connect
+      - location
     environment:
       SCENARIOS: /seet.json
     ports:

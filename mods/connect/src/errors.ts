@@ -41,7 +41,7 @@ export class ServiceUnavailableError extends Error {
 /**
  * Throw when the route is not supported.
  */
-export class UnsuportedRoutingError extends Error {
+export class UnsupportedRoutingError extends Error {
   code: number
 
   /**

@@ -26,6 +26,6 @@ public class ConsolePublisher implements EventsPublisher {
   private static final Logger LOG = LogManager.getLogger(ConsolePublisher.class);
 
   public void publish(String eventName, Map<String, Object> message) {
-    LOG.info("event: " + eventName + " message: " + message);
+    LOG.debug("event: " + eventName + " message: " + message);
   }
 }

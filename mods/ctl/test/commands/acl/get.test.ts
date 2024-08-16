@@ -19,9 +19,9 @@
 import { expect, test } from "@oclif/test"
 import SDK from "@routr/sdk"
 
-describe("@routr/ctl/acl/get", () => {
+describe("@routr/ctl/acls/get", () => {
   test
-    .stub(SDK.ACL.prototype, "listACLs", () => {
+    .stub(SDK.Acls.prototype, "listACLs", () => {
       return {
         items: [
           {

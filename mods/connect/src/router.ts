@@ -34,14 +34,14 @@ import {
   findNumberByTelUrl,
   findResource,
   getRoutingDirection,
-  getSIPURI,
+  getSipUri,
   getTrunkURI,
   getVerifierImpl,
   hasXConnectObjectHeader
 } from "./utils"
 import { MessageRequest, Target as T, Extensions as E } from "@routr/processor"
 import { ILocationService, Backend } from "@routr/location"
-import { UnsuportedRoutingError } from "./errors"
+import { UnsupportedRoutingError } from "./errors"
 import { getLogger } from "@fonoster/logger"
 import { checkAccess } from "./access"
 
@@ -78,7 +78,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
         const domain = await findDomain(apiClient, payload.domain)
 
         if (!payload.allowedMethods.includes(Method.INVITE)) {
-          return CR.createForbideenResponse()
+          return CR.createForbiddenResponse()
         }
 
         caller = {
@@ -116,7 +116,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
         logger.verbose("unable to validate connect token", {
           originalError: e.message
         })
-        return CR.createForbideenResponse()
+        return CR.createForbiddenResponse()
       }
     } else {
       caller = await findResource(apiClient, fromURI.host, fromURI.user)
@@ -127,12 +127,12 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
 
     logger.verbose(
       "routing request from: " +
-        getSIPURI(fromURI) +
+        getSipUri(fromURI) +
         ", to: " +
-        getSIPURI(requestURI),
+        getSipUri(requestURI),
       {
-        fromURI: getSIPURI(fromURI),
-        requestURI: getSIPURI(requestURI),
+        fromURI: getSipUri(fromURI),
+        requestURI: getSipUri(requestURI),
         routingDirection
       }
     )
@@ -206,7 +206,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
           callee?.extended
         )
       default:
-        throw new UnsuportedRoutingError(routingDirection)
+        throw new UnsupportedRoutingError(routingDirection)
     }
   }
 }

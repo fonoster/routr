@@ -18,11 +18,10 @@
  */
 /* eslint-disable require-jsdoc */
 import { Number as NumberPrismaModel, APIVersion, Prisma } from "@prisma/client"
-import { CommonConnect as CC } from "@routr/common"
-import { JsonObject } from "pb-util/build"
+import { CommonConnect as CC, Environment } from "@routr/common"
 import { EntityManager } from "./manager"
 import { TrunkManager } from "./trunk"
-import { Environment } from "@routr/common"
+import { JsonValue } from "@prisma/client/runtime/library"
 
 type NumberWithTrunk = Prisma.NumberGetPayload<{
   include: {
@@ -43,7 +42,7 @@ export class NumberManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return {
       trunk: {
         include: {
@@ -77,7 +76,7 @@ export class NumberManager extends EntityManager {
   }
 
   validOrThrowUpdate() {
-    CC.hasRefenceOrThrow(this.number.ref)
+    CC.hasReferenceOrThrow(this.number.ref)
     CC.isValidNameOrThrow(this.number.name)
     CC.isValidAORLinkOrThrow(this.number.aorLink)
     CC.hasValidHeadersOrThrow(this.number.extraHeaders)
@@ -87,48 +86,30 @@ export class NumberManager extends EntityManager {
   mapToPrisma(): NumberPrismaModel {
     return {
       // TODO: Set a default value for apiVersion
+      ...this.number,
       apiVersion: "v2" as APIVersion,
-      ref: this.number.ref,
-      name: this.number.name,
-      trunkRef: this.number.trunkRef || null,
-      telUrl: this.number.telUrl,
-      aorLink: this.number.aorLink || null,
-      city: this.number.city || undefined,
-      country: this.number.country,
-      countryIsoCode: this.number.countryIsoCode,
-      sessionAffinityHeader: this.number.sessionAffinityHeader || null,
-      extraHeaders: this.number.extraHeaders || null,
-      createdAt: this.number.createdAt
-        ? new Date(this.number.createdAt * 1000)
-        : undefined,
-      updatedAt: this.number.updatedAt
-        ? new Date(this.number.updatedAt * 1000)
-        : undefined,
-      extended: this.number.extended || {}
+      trunkRef: this.number.trunkRef,
+      sessionAffinityHeader: this.number.sessionAffinityHeader,
+      extraHeaders: this.number.extraHeaders,
+      createdAt: undefined,
+      updatedAt: undefined,
+      extended: this.number.extended as JsonValue
     }
   }
 
   static mapToDto(number: NumberWithTrunk): CC.INumber {
     return number
       ? {
-          apiVersion: number.apiVersion,
-          ref: number.ref,
-          name: number.name,
-          trunkRef: number.trunkRef,
+          ...number,
+          apiVersion: number.apiVersion as CC.APIVersion,
           trunk: TrunkManager.mapToDto(number.trunk),
-          telUrl: number.telUrl,
-          aorLink: number.aorLink,
-          city: number.city,
-          country: number.country,
-          countryIsoCode: number.countryIsoCode,
-          sessionAffinityHeader: number.sessionAffinityHeader,
           extraHeaders: number.extraHeaders as {
             name: string
             value: string
           }[],
-          extended: number.extended as JsonObject,
           createdAt: number.createdAt.getTime() / 1000,
-          updatedAt: number.updatedAt.getTime() / 1000
+          updatedAt: number.updatedAt.getTime() / 1000,
+          extended: number.extended as Record<string, unknown>
         }
       : undefined
   }
@@ -136,23 +117,15 @@ export class NumberManager extends EntityManager {
   static mapToDtoWithoutTrunk(number: NumberPrismaModel): CC.INumber {
     return number
       ? {
-          apiVersion: number.apiVersion,
-          ref: number.ref,
-          name: number.name,
-          trunkRef: number.trunkRef,
-          telUrl: number.telUrl,
-          aorLink: number.aorLink,
-          city: number.city,
-          country: number.country,
-          countryIsoCode: number.countryIsoCode,
-          sessionAffinityHeader: number.sessionAffinityHeader,
+          ...number,
+          apiVersion: number.apiVersion as CC.APIVersion,
           extraHeaders: number.extraHeaders as {
             name: string
             value: string
           }[],
-          extended: number.extended as JsonObject,
           createdAt: number.createdAt.getTime() / 1000,
-          updatedAt: number.updatedAt.getTime() / 1000
+          updatedAt: number.updatedAt.getTime() / 1000,
+          extended: number.extended as Record<string, unknown>
         }
       : undefined
   }

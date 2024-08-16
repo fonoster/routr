@@ -67,7 +67,7 @@ export const createServerInternalErrorResponse = (
   }
 }
 
-export const createForbideenResponse = (metadata?: Record<string, string>) => {
+export const createForbiddenResponse = (metadata?: Record<string, string>) => {
   return {
     metadata,
     message: {

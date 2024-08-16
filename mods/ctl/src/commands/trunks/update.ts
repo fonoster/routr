@@ -62,12 +62,12 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
       const trunkFromDB = await api.getTrunk(args.ref)
 
       // TODO: Add support for pagination
-      const acls = await new SDK.ACL({ endpoint, insecure, cacert }).listACLs({
+      const acls = await new SDK.Acls({ endpoint, insecure, cacert }).listAcls({
         pageSize: 25,
         pageToken: ""
       })
 
-      const aclChoices = acls.items.map((acl) => {
+      const aclChoices = acls.items.map((acl: CC.AccessControlList) => {
         return {
           name: acl.name,
           value: acl.ref
@@ -83,12 +83,14 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
         pageToken: ""
       })
 
-      const credentialsChoice = credentials.items.map((acl) => {
-        return {
-          name: acl.name,
-          value: acl.ref
+      const credentialsChoice = credentials.items.map(
+        (creds: CC.Credentials) => {
+          return {
+            name: creds.name,
+            value: creds.ref
+          }
         }
-      })
+      )
 
       this.log("This utility will help you update an existing Trunk.")
       this.log("Press ^C at any time to quit.")

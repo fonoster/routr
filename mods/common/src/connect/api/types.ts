@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
-import { JsonObject } from "pb-util/build"
 import {
   AccessControlList,
   Agent,
@@ -71,7 +70,7 @@ export type APIClient = {
   numbers: ServiceAPI<INumber>
 }
 
-export type ServiceAPI<R extends { extended?: JsonObject }> = {
+export type ServiceAPI<R extends { extended?: Record<string, unknown> }> = {
   create: (request: unknown) => Promise<R>
   update: (request: unknown) => Promise<R>
   get: (ref: string) => Promise<R>

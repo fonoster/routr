@@ -213,7 +213,7 @@ export const getTrunkURI = (
   }
 }
 
-export const getSIPURI = (uri: { user?: string; host: string }) =>
+export const getSipUri = (uri: { user?: string; host: string }) =>
   uri.user ? `sip:${uri.user}@${uri.host}` : `sip:${uri.host}`
 
 export const hasXConnectObjectHeader = (req: MessageRequest) =>

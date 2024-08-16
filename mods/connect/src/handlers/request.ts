@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
-import { Helper as H } from "@routr/location"
 import { tailor } from "../tailor"
 import {
   Alterations as A,
@@ -27,11 +26,12 @@ import {
 } from "@routr/processor"
 import { pipe } from "fp-ts/function"
 import { router } from "../router"
-import { ILocationService } from "@routr/location"
+import { ILocationService, Helper as H } from "@routr/location"
 import {
   CommonConnect as CC,
   CommonTypes as CT,
-  Environment
+  Environment,
+  HeaderModifier
 } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
 import { RoutingDirection } from "./../types"
@@ -54,17 +54,27 @@ export const handleRequest =
         route = H.createRouteFromLastMessage(req)
       } else {
         const routerResult = await router(location, apiClient)(req)
-        const direction = routerResult.direction
+        const direction = routerResult.direction as RoutingDirection
         route = routerResult.route as CT.Route
 
         // If direction is not present result is an error response
         if (!("direction" in routerResult)) {
-          return res.send(routerResult as Record<string, unknown>)
+          return res.send(routerResult)
         } else if (!route && direction === RoutingDirection.AGENT_TO_PSTN) {
           return res.sendNotFound()
         } else if (!routerResult.route) {
           return res.sendTemporarilyUnavailable()
         }
+
+        const p: HeaderModifier = {
+          name: CT.ExtraHeader.CALL_DIRECTION,
+          value: direction,
+          action: CT.HeaderModifierAction.ADD
+        }
+
+        if (!route.headers) route.headers = []
+
+        route.headers.push(p)
       }
 
       // Forward request to peer edgeport
@@ -72,11 +82,11 @@ export const handleRequest =
         return res.send(
           pipe(
             req,
-            A.addSelfVia(route as CT.Route),
-            A.addSelfRecordRoute(route as CT.Route),
+            A.addSelfVia(route),
+            A.addSelfRecordRoute(route),
             // The order of the routes is important
-            A.addRouteToPeerEdgePort(route as CT.Route),
-            A.addRouteToNextHop(route as CT.Route),
+            A.addRouteToPeerEdgePort(route),
+            A.addRouteToNextHop(route),
             A.addXEdgePortRef,
             A.decreaseMaxForwards
           )
@@ -84,9 +94,9 @@ export const handleRequest =
       }
 
       // TODO: We should add this the Tailor API
-      req.metadata = route.metadata as Record<string, string>
+      req.metadata = route.metadata
 
-      res.send(tailor(route as CT.Route, req))
+      res.send(tailor(route, req))
     } catch (err) {
       if (err.code === grpc.status.NOT_FOUND) {
         return res.sendTemporarilyUnavailable()

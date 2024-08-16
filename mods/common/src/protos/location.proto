@@ -65,13 +65,13 @@ message AddRouteRequest {
 
 message FindRoutesRequest {
   message Backend {
-    enum Algoritm {
+    enum Algorithm {
       ROUND_ROBIN = 0;
       LEAST_SESSIONS = 1;
     }
     string ref = 1;
     bool with_session_affinity = 2;
-    Algoritm algorithm = 3;
+    Algorithm algorithm = 3;
   }
   string call_id = 1;
   string aor = 2;

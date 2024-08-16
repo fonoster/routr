@@ -47,8 +47,8 @@ export default class DescribeCommand extends BaseCommand {
         Name: credentials.name,
         Username: credentials.username,
         Extended: credentials.extended,
-        Created: moment(new Date(credentials.createdAt * 1000)).toISOString(),
-        Updated: moment(new Date(credentials.updatedAt * 1000)).toISOString()
+        Created: moment(credentials.createdAt).toISOString(),
+        Updated: moment(credentials.updatedAt).toISOString()
       }
 
       this.log(render(jsonObj, { noColor: true }))

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
-<scenario name="RR.Tst.Plan.1.1.2.UAC">
+<scenario name="RR.Tst.Plan.1.5.1.UAC">
 
   <Global variables="requestURI,from,to" />
 
@@ -87,7 +87,8 @@
     </action>
   </recv>
 
-  <!-- The stack is not generating routes for the following command -->
+  <!-- WARNING: This step is failing due to a bug in the connect processor which
+        overwrites the contact header with the peer EdgePort. -->
   <send>
     <![CDATA[
       ACK [$remoteURI] SIP/2.0

@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 import { LoadBalancingAlgorithm, Privacy, Transport } from "../types"
-import { Kind } from "./types"
+import { APIVersion, Kind } from "./types"
 
 export interface ConfigBase {
-  apiVersion: string
+  apiVersion: APIVersion
   ref: string
   metadata: { name: string }
 }

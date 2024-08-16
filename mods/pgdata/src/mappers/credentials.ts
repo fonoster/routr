@@ -22,8 +22,8 @@ import {
   APIVersion
 } from "@prisma/client"
 import { CommonConnect as CC } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { EntityManager } from "./manager"
+import { JsonValue } from "@prisma/client/runtime/library"
 
 // Needs testing
 export class CredentialsManager extends EntityManager {
@@ -31,7 +31,7 @@ export class CredentialsManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return null
   }
 
@@ -44,7 +44,7 @@ export class CredentialsManager extends EntityManager {
   }
 
   validOrThrowUpdate() {
-    CC.hasRefenceOrThrow(this.credentials.ref)
+    CC.hasReferenceOrThrow(this.credentials.ref)
     CC.isValidNameOrThrow(this.credentials.name)
     CC.isValidUsernameOrThrow(this.credentials.username)
   }
@@ -52,32 +52,22 @@ export class CredentialsManager extends EntityManager {
   mapToPrisma(): CredentialsPrismaModel {
     return {
       // TODO: Set a default value for apiVersion
+      ...this.credentials,
       apiVersion: "v2" as APIVersion,
-      ref: this.credentials.ref,
-      name: this.credentials.name,
-      username: this.credentials.username,
-      password: this.credentials.password || undefined,
-      createdAt: this.credentials.createdAt
-        ? new Date(this.credentials.createdAt * 1000)
-        : undefined,
-      updatedAt: this.credentials.updatedAt
-        ? new Date(this.credentials.updatedAt * 1000)
-        : undefined,
-      extended: this.credentials.extended || {}
+      createdAt: undefined,
+      updatedAt: undefined,
+      extended: this.credentials.extended as JsonValue
     }
   }
 
   static mapToDto(credentials: CredentialsPrismaModel): CC.Credentials {
     return credentials
       ? {
-          apiVersion: credentials.apiVersion,
-          ref: credentials.ref,
-          name: credentials.name,
-          username: credentials.username,
-          password: credentials.password,
+          ...credentials,
+          apiVersion: credentials.apiVersion as CC.APIVersion,
           createdAt: credentials.createdAt.getTime() / 1000,
           updatedAt: credentials.updatedAt.getTime() / 1000,
-          extended: credentials.extended as JsonObject
+          extended: credentials.extended as Record<string, unknown>
         }
       : undefined
   }

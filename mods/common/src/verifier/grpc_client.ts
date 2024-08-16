@@ -18,16 +18,11 @@
  */
 import * as grpc from "@grpc/grpc-js"
 import protoLoader = require("@grpc/proto-loader")
+import { protoLoadOptions } from "../service"
 
 const packageDefinition = protoLoader.loadSync(
   __dirname + "/../protos/verifier.proto",
-  {
-    keepCase: false,
-    longs: String,
-    enums: String,
-    defaults: true,
-    oneofs: true
-  }
+  protoLoadOptions
 )
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

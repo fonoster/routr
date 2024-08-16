@@ -18,7 +18,7 @@
  */
 import { TrunkManager } from "../src/mappers/trunk"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
-import { APIVersion, Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client"
 import chai from "chai"
 import sinon from "sinon"
 import chaiExclude from "chai-exclude"
@@ -35,7 +35,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
   it("takes a dto object and converts it to prisma model", () => {
     // Arrange
     const trunk = {
-      apiVersion: "v2",
+      apiVersion: CC.APIVersion.V2,
       ref: "trunk-01",
       name: "Global Trunk",
       accessControlListRef: "acl-01",
@@ -43,8 +43,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
       inboundCredentialsRef: "credentials-01",
       outboundCredentialsRef: "credentials-01",
       sendRegister: true,
-      createdAt: new Date().getTime() / 1000,
-      updatedAt: new Date().getTime() / 1000,
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
       extended: {
         test: "test"
       }
@@ -71,7 +71,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
     }>
 
     const trunk: TrunkWithEagerLoading = {
-      apiVersion: "v2" as APIVersion,
+      apiVersion: CC.APIVersion.V2,
       ref: "trunk-01",
       name: "Global Trunk",
       accessControlListRef: "acl-01",
@@ -85,7 +85,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
         test: "test"
       },
       accessControlList: {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "acl-01",
         name: "Global ACL",
         allow: [""],
@@ -97,7 +97,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
         }
       },
       inboundCredentials: {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "credentials-01",
         name: "test",
         username: "trunk01",
@@ -109,7 +109,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
         }
       },
       outboundCredentials: {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "credentials-01",
         name: "test",
         username: "trunk01",
@@ -148,7 +148,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
     it("when the friendly name is not provided for trunk creation", () => {
       // Arrange
       const trunk: Omit<CC.Trunk, "uris"> = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "trunk-01",
         name: "",
         accessControlListRef: "acl-01",
@@ -156,8 +156,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -175,7 +175,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
     it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const trunk: Omit<CC.Trunk, "uris"> = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "trunk-01",
         name: "a".repeat(65),
         accessControlListRef: "acl-01",
@@ -183,8 +183,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -206,7 +206,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
     it("when the reference is not provided for an update operation", () => {
       // Arrange
       const trunk: Omit<CC.Trunk, "uris"> = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "",
         name: "Global Trunk",
         accessControlListRef: "acl-01",
@@ -214,8 +214,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -232,7 +232,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
     it("when the request is missing the inboundUri", () => {
       // Arrange
       const trunk: CC.Trunk = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "trunk-01",
         name: "Global Trunk",
         accessControlListRef: "acl-01",
@@ -240,8 +240,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }
@@ -257,7 +257,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
     it("when inboundUri is not a FQDN", () => {
       // Arrange
       const trunk: Omit<CC.Trunk, "uris"> = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "trunk-01",
         name: "Global Trunk",
         accessControlListRef: "acl-01",
@@ -265,8 +265,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
         inboundCredentialsRef: "credentials-01",
         outboundCredentialsRef: "credentials-01",
         sendRegister: true,
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000,
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
         extended: {
           test: "test"
         }

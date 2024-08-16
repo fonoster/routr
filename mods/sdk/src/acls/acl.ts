@@ -19,13 +19,13 @@
 import { APIClient } from "../client"
 import { ClientOptions } from "../types"
 import {
-  CreateACLRequest,
-  CreateACLResponse,
-  GetACLResponse,
-  ListACLRequest,
-  ListACLResponse,
-  UpdateACLRequest,
-  UpdateACLResponse
+  CreateAclRequest,
+  CreateAclResponse,
+  GetAclResponse,
+  ListAclRequest,
+  ListAclResponse,
+  UpdateAclRequest,
+  UpdateAclResponse
 } from "./types"
 
 /**
@@ -36,7 +36,7 @@ import {
  * @example
  *
  * const SDK = require("@routr/sdk")
- * const acl = new SDK.ACL()
+ * const acl = new SDK.Acls()
  *
  * const request = {
  *   name: "Peer network",
@@ -44,13 +44,13 @@ import {
  *   deny: "0.0.0.0/0"
  * }
  *
- * acl.createACL(request)
+ * acl.createAcl(request)
  *   .then(console.log)
  *   .catch(console.error)   // an error occurred
  */
-export class ACL extends APIClient {
+export class Acls extends APIClient {
   /**
-   * Constructs a new ACL API object.
+   * Constructs a new API object.
    *
    * @param {ClientOptions} options - Options to indicate the objects endpoint
    * @see module:core:APIClient
@@ -62,12 +62,12 @@ export class ACL extends APIClient {
   /**
    * Creates a new AccessControlList on Routr.
    *
-   * @param {CreateACLRequest} request - The request to create an ACL
+   * @param {CreateAclRequest} request - The request to create an ACL
    * @param {string} request.name - Name of the ACL
    * @param {string[]} request.allow - List of IP addresses or CIDR blocks to allow
    * @param {string[]} request.deny - List of IP addresses or CIDR blocks to deny
    * @param {Object} request.extended - Optional extended attributes
-   * @return {Promise<CreateACLResponse>} The newly created AccessControlList
+   * @return {Promise<CreateAclResponse>} The newly created AccessControlList
    * @throws if request is null
    * @example
    *
@@ -77,23 +77,23 @@ export class ACL extends APIClient {
    *   deny: "0.0.0.0/0"
    * }
    *
-   * acl.createACL(request)
+   * acl.createAcl(request)
    *   .then(console.log)
    *   .catch(console.error)   // an error occurred
    */
-  async createACL(request: CreateACLRequest): Promise<CreateACLResponse> {
-    return this.client.acl.create(request)
+  async createAcl(request: CreateAclRequest): Promise<CreateAclResponse> {
+    return await this.client.acl.create(request)
   }
 
   /**
    * Updates an already existing AccessControlList on Routr.
    *
-   * @param {UpdateACLRequest} request - Partial with the fields to update
+   * @param {UpdateAclRequest} request - Partial with the fields to update
    * @param {string} request.name - Name of the ACL
    * @param {string[]} request.allow - List of IP addresses or CIDR blocks to allow
    * @param {string[]} request.deny - List of IP addresses or CIDR blocks to deny
    * @param {Object} request.extended - Optional extended attributes
-   * @return {Promise<UpdateACLResponse>} The AccessControlList
+   * @return {Promise<UpdateAclResponse>} The AccessControlList
    * @example
    *
    * const request = {
@@ -101,11 +101,11 @@ export class ACL extends APIClient {
    *   name: "Peer network updated",
    * }
    *
-   * acl.updateACL(request)
+   * acl.updateAcl(request)
    *   .then(console.log)
    *   .catch(console.error)   // an error occurred
    */
-  async updateACL(request: UpdateACLRequest): Promise<UpdateACLResponse> {
+  async updateAcl(request: UpdateAclRequest): Promise<UpdateAclResponse> {
     return this.client.acl.update(request)
   }
 
@@ -113,17 +113,17 @@ export class ACL extends APIClient {
    * Gets an AccessControlList from Routr.
    *
    * @param {string} ref - The ACL reference
-   * @return {Promise<GetACLResponse>} The AccessControlList
+   * @return {Promise<GetAclResponse>} The AccessControlList
    * @example
    *
    * const ref = "4671371b-ff5d-48b1-aabe-d3c5ca5317a3"
    *
-   * acl.getACL(ref)
+   * acl.getAcl(ref)
    *   .then(console.log)
    *   .catch(console.error)   // an error occurred
    */
-  async getACL(ref: string): Promise<GetACLResponse> {
-    return this.client.acl.get(ref)
+  async getAcl(ref: string): Promise<GetAclResponse> {
+    return await this.client.acl.get(ref)
   }
 
   /**
@@ -135,32 +135,32 @@ export class ACL extends APIClient {
    *
    * const ref = "4671371b-ff5d-48b1-aabe-d3c5ca5317a3"
    *
-   * acl.deleteACL(ref)
+   * acl.deleteAcl(ref)
    *   .then(console.log)
    *   .catch(console.error)   // an error occurred
    */
-  async deleteACL(ref: string): Promise<void> {
+  async deleteAcl(ref: string): Promise<void> {
     return this.client.acl.del(ref)
   }
 
   /**
    * Lists all AccessControlLists from Routr with pagination.
    *
-   * @param {ListACLRequest} request - The request to list ACLs
+   * @param {ListAclRequest} request - The request to list ACLs
    * @param {number} request.pageSize - The number of ACLs to return
    * @param {string} request.pageToken - The page token to use for pagination
-   * @return {Promise<ListACLResponse>} The list of AccessControlLists
+   * @return {Promise<ListAclResponse>} The list of AccessControlLists
    * @example
    *
    * const request = {
    *  pageSize: 10
    * }
    *
-   * acl.listACLs(request)
+   * acl.listAcls(request)
    *   .then(console.log)
    *   .catch(console.error)   // an error occurred
    */
-  async listACLs(request: ListACLRequest): Promise<ListACLResponse> {
+  async listAcls(request: ListAclRequest): Promise<ListAclResponse> {
     return this.client.acl.list(request)
   }
 }

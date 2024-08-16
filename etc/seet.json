@@ -83,7 +83,7 @@
   },
   {
     "name": "=== Registering sip.provider.net for 1200 seconds to prevent collisions ===",
-    "description": "Hack to prevent trunk from sending additional REGISTER meesages.",
+    "description": "Hack to prevent trunk from sending additional REGISTER messages.",
     "transportMode": "u1",
     "userAgents": [
       {
@@ -607,7 +607,7 @@
     ]
   },
   {
-    "name": "RR.Tst.Plan.1.4.1: Sending a SIP Message to a Peer with Load Balacing in Round Robin Mode",
+    "name": "RR.Tst.Plan.1.4.1: Sending a SIP Message to a Peer with Load Balancing in Round Robin Mode",
     "description": "This test verifies that Routr correctly routes a SIP message to a Peer with load balancing in Round Robin Mode",
     "transportMode": "u1",
     "target": "sip01.edgeport.net:5060",
@@ -674,8 +674,8 @@
     ]
   },
   {
-    "name": "RR.Tst.Plan.1.4.2: Sending a SIP Message to a Peer with Load Balacing using Least-Sessions Mode",
-    "description": "Unsupported scenario. Please enable and visualy inspect the signaling!",
+    "name": "RR.Tst.Plan.1.4.2: Sending a SIP Message to a Peer with Load Balancing using Least-Sessions Mode",
+    "description": "Unsupported scenario. Please enable and visually inspect the signaling!",
     "transportMode": "u1",
     "target": "sip01.edgeport.net:5060",
     "enabled": false,

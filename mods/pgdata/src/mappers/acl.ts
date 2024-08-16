@@ -19,15 +19,15 @@
 /* eslint-disable require-jsdoc */
 import { AccessControlList as ACLPrismaModel, APIVersion } from "@prisma/client"
 import { CommonConnect as CC } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { EntityManager } from "./manager"
+import { JsonValue } from "@prisma/client/runtime/library"
 
 export class ACLManager extends EntityManager {
   constructor(private acl: CC.AccessControlList) {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return null
   }
 
@@ -39,7 +39,7 @@ export class ACLManager extends EntityManager {
   }
 
   validOrThrowUpdate() {
-    CC.hasRefenceOrThrow(this.acl.ref)
+    CC.hasReferenceOrThrow(this.acl.ref)
     CC.isValidNameOrThrow(this.acl.name)
     CC.hasValidACLRulesOrThrow(this.acl)
   }
@@ -47,18 +47,11 @@ export class ACLManager extends EntityManager {
   mapToPrisma(): ACLPrismaModel {
     return {
       // TODO: Create a default value for apiVersion
+      ...this.acl,
       apiVersion: "v2" as APIVersion,
-      ref: this.acl.ref,
-      name: this.acl.name,
-      allow: this.acl.allow,
-      deny: this.acl.deny,
-      createdAt: this.acl.createdAt
-        ? new Date(this.acl.createdAt * 1000)
-        : undefined,
-      updatedAt: this.acl.updatedAt
-        ? new Date(this.acl.updatedAt * 1000)
-        : undefined,
-      extended: this.acl.extended || {}
+      createdAt: undefined,
+      updatedAt: undefined,
+      extended: this.acl.extended as JsonValue
     }
   }
 
@@ -66,9 +59,10 @@ export class ACLManager extends EntityManager {
     return acl
       ? {
           ...acl,
+          apiVersion: acl.apiVersion as CC.APIVersion,
           createdAt: acl.createdAt.getTime() / 1000,
           updatedAt: acl.updatedAt.getTime() / 1000,
-          extended: acl.extended as JsonObject
+          extended: acl.extended as Record<string, unknown>
         }
       : undefined
   }

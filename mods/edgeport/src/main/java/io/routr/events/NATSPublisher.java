@@ -45,6 +45,7 @@ public class NATSPublisher implements EventsPublisher {
     try {
       ObjectMapper mapper = new ObjectMapper();
       String messageAsJson = mapper.writeValueAsString(message);
+      LOG.debug("event: " + eventName + " message: " + messageAsJson);
       this.connection.publish(this.subject + "." + eventName, messageAsJson.getBytes());
     } catch(JsonProcessingException e) {
         LOG.error("error publishing event: " + e.getMessage());

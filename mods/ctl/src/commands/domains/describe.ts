@@ -66,8 +66,8 @@ export default class DescribeCommand extends BaseCommand {
               })
             : "None",
         Extended: domain.extended,
-        Created: moment(new Date(domain.createdAt * 1000)).toISOString(),
-        Updated: moment(new Date(domain.updatedAt * 1000)).toISOString()
+        Created: moment(domain.createdAt).toISOString(),
+        Updated: moment(domain.updatedAt).toISOString()
       }
 
       this.log(render(jsonObj, { noColor: true }))

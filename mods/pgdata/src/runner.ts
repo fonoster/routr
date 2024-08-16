@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-require("./tracer").init("simpleauth")
+require("./tracer").init("pgdata")
 import { getLogger } from "@fonoster/logger"
 import { BIND_ADDR, EXTERNAL_SERVER_BIND_ADDR } from "./envs"
 import pgDataService from "./service"

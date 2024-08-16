@@ -67,7 +67,8 @@ export enum ExtraHeader {
   SESSION_COUNT = "X-Session-Count",
   DOD_NUMBER = "X-DOD-Number",
   DOD_PRIVACY = "X-DOD-Privacy",
-  CONNECT_TOKEN = "X-Connect-Token"
+  CONNECT_TOKEN = "X-Connect-Token",
+  CALL_DIRECTION = "X-Call-Direction"
 }
 
 export enum Privacy {

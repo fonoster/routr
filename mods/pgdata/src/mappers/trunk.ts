@@ -24,10 +24,10 @@ import {
   TrunkURI
 } from "@prisma/client"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { ACLManager } from "./acl"
 import { CredentialsManager } from "./credentials"
 import { EntityManager } from "./manager"
+import { JsonValue } from "@prisma/client/runtime/library"
 
 type TrunkWithEagerLoading = Prisma.TrunkGetPayload<{
   include: {
@@ -44,7 +44,7 @@ export class TrunkManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return {
       accessControlList: true,
       inboundCredentials: true,
@@ -62,7 +62,7 @@ export class TrunkManager extends EntityManager {
   }
 
   validOrThrowUpdate() {
-    CC.hasRefenceOrThrow(this.trunk.ref)
+    CC.hasReferenceOrThrow(this.trunk.ref)
     CC.isValidNameOrThrow(this.trunk.name)
     CC.isValidInboundUriOrThrow(this.trunk.inboundUri)
   }
@@ -72,44 +72,25 @@ export class TrunkManager extends EntityManager {
   } {
     return {
       // TODO: Set a default value for apiVersion
+      ...this.trunk,
       apiVersion: "v2" as APIVersion,
-      ref: this.trunk.ref,
-      name: this.trunk.name,
       accessControlListRef: this.trunk.accessControlListRef || null,
-      inboundUri: this.trunk.inboundUri,
       inboundCredentialsRef: this.trunk.inboundCredentialsRef || null,
       outboundCredentialsRef: this.trunk.outboundCredentialsRef || null,
-      sendRegister: this.trunk.sendRegister,
-      createdAt: this.trunk.createdAt
-        ? new Date(this.trunk.createdAt * 1000)
-        : undefined,
-      updatedAt: this.trunk.updatedAt
-        ? new Date(this.trunk.updatedAt * 1000)
-        : undefined,
-      extended: this.trunk.extended || {},
       uris: {
-        create: this.trunk.uris?.map((uri) => {
-          return {
-            host: uri.host,
-            port: uri.port,
-            transport: uri.transport,
-            user: uri.user,
-            weight: uri.weight,
-            priority: uri.priority,
-            enabled: uri.enabled
-          }
-        })
-      }
+        create: this.trunk.uris
+      },
+      extended: this.trunk.extended as JsonValue,
+      createdAt: undefined,
+      updatedAt: undefined
     }
   }
 
   static mapToDto(trunk: TrunkWithEagerLoading): CC.Trunk {
     return trunk
       ? {
-          apiVersion: trunk.apiVersion,
-          ref: trunk.ref,
-          name: trunk.name,
-          inboundUri: trunk.inboundUri,
+          ...trunk,
+          apiVersion: trunk.apiVersion as CC.APIVersion,
           accessControlListRef: trunk.accessControlList?.ref,
           inboundCredentialsRef: trunk.inboundCredentials?.ref,
           outboundCredentialsRef: trunk.outboundCredentials?.ref,
@@ -120,23 +101,15 @@ export class TrunkManager extends EntityManager {
           outboundCredentials: CredentialsManager.mapToDto(
             trunk.outboundCredentials
           ),
-          extended: trunk.extended as JsonObject,
-          sendRegister: trunk.sendRegister,
           uris: trunk.uris.map((uri) => {
             return {
-              ref: uri.ref,
-              trunkRef: uri.trunkRef,
-              host: uri.host,
-              port: uri.port,
-              transport: uri.transport.toUpperCase() as CT.Transport,
-              user: uri.user,
-              weight: uri.weight,
-              priority: uri.priority,
-              enabled: uri.enabled
+              ...uri,
+              transport: uri.transport.toUpperCase() as CT.Transport
             }
           }),
           createdAt: trunk.createdAt.getTime() / 1000,
-          updatedAt: trunk.updatedAt.getTime() / 1000
+          updatedAt: trunk.updatedAt.getTime() / 1000,
+          extended: trunk.extended as Record<string, unknown>
         }
       : undefined
   }

@@ -45,7 +45,7 @@ export const checkAccess = async (accessRequest: {
     case RoutingDirection.FROM_PSTN:
       return checkAccessFromPSTN(apiClient, request, callee as CC.INumber)
     case RoutingDirection.UNKNOWN:
-      return CR.createForbideenResponse()
+      return CR.createForbiddenResponse()
   }
 }
 
@@ -91,11 +91,11 @@ export const checkAccessFromPSTN = async (
 
   // If the Trunk or Number doesn't exist reject the call
   if (!callee || !trunk) {
-    return CR.createForbideenResponse()
+    return CR.createForbiddenResponse()
   }
 
   if (callee.trunk.ref !== trunk.ref) {
-    return CR.createForbideenResponse()
+    return CR.createForbiddenResponse()
   }
 
   // Verify that the IP is allowlist which means getting the access control list for the trunk

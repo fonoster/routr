@@ -17,18 +17,20 @@
  * limitations under the License.
  */
 import { CommonConnect as CC } from "@routr/common"
-import { CreateBaseOmit } from "../types"
+import { CreateBaseOmit, Flatten } from "../types"
 
-export type CreateACLRequest = Omit<CC.AccessControlList, CreateBaseOmit>
+export type CreateAclRequest = Omit<CC.AccessControlList, CreateBaseOmit>
 
-export type CreateACLResponse = CC.AccessControlList
+export type CreateAclResponse = Flatten<CC.AccessControlList>
 
-export type UpdateACLRequest = { ref: string } & Partial<CreateACLRequest>
+export type UpdateAclRequest = Flatten<
+  { ref: string } & Partial<CreateAclRequest>
+>
 
-export type UpdateACLResponse = CC.AccessControlList
+export type UpdateAclResponse = Flatten<CC.AccessControlList>
 
-export type ListACLRequest = CC.ListRequest
+export type ListAclRequest = Flatten<CC.ListRequest>
 
-export type ListACLResponse = CC.ListResponse<CC.AccessControlList>
+export type ListAclResponse = Flatten<CC.ListResponse<CC.AccessControlList>>
 
-export type GetACLResponse = CC.AccessControlList
+export type GetAclResponse = Flatten<CC.AccessControlList>

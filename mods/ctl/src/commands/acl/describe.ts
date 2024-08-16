@@ -37,10 +37,10 @@ export default class DescribeCommand extends BaseCommand {
     const { args, flags } = await this.parse(DescribeCommand)
     const { endpoint, insecure, cacert } = flags
 
-    const api = new SDK.ACL({ endpoint, insecure, cacert })
+    const api = new SDK.Acls({ endpoint, insecure, cacert })
 
     try {
-      const acl = await api.getACL(args.ref)
+      const acl = await api.getAcl(args.ref)
 
       const jsonObj = {
         Ref: acl.ref,
@@ -49,8 +49,8 @@ export default class DescribeCommand extends BaseCommand {
         Deny: acl.deny.join(","),
         Allow: acl.allow.join(","),
         Extended: acl.extended,
-        Created: moment(new Date(acl.createdAt * 1000)).toISOString(),
-        Updated: moment(new Date(acl.updatedAt * 1000)).toISOString()
+        Created: moment(acl.createdAt).toISOString(),
+        Updated: moment(acl.updatedAt).toISOString()
       }
 
       this.log(render(jsonObj, { noColor: true }))

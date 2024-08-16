@@ -16,7 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIVersion, Privacy as PrismaPrivacy, Prisma } from "@prisma/client"
+import { Privacy as PrismaPrivacy, Prisma } from "@prisma/client"
+import { CommonConnect as CC } from "@routr/common"
 import { Privacy } from "@routr/common/src/types"
 import { AgentManager } from "../src/mappers/agent"
 import chai from "chai"
@@ -35,9 +36,9 @@ describe("@routr/pgdata/mappers/agent", () => {
   it("takes a dto object and converts it to prisma model", () => {
     // Arrange
     const agent = {
-      apiVersion: "v2",
+      apiVersion: CC.APIVersion.V2,
       ref: "agent-01",
-      name: "Jhon Doe",
+      name: "John Doe",
       username: "1001",
       privacy: Privacy.PRIVATE,
       enabled: true,
@@ -48,8 +49,8 @@ describe("@routr/pgdata/mappers/agent", () => {
       },
       maxContacts: 1,
       expires: 3600,
-      createdAt: new Date().getTime() / 1000,
-      updatedAt: new Date().getTime() / 1000
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime()
     }
 
     // Act
@@ -78,9 +79,9 @@ describe("@routr/pgdata/mappers/agent", () => {
     }>
 
     const agent: AgentWithDomainAndCredentials = {
-      apiVersion: "v2" as APIVersion,
+      apiVersion: CC.APIVersion.V2,
       ref: "agent-01",
-      name: "Jhon Doe",
+      name: "John Doe",
       username: "1001",
       privacy: PrismaPrivacy.PRIVATE,
       enabled: true,
@@ -94,13 +95,13 @@ describe("@routr/pgdata/mappers/agent", () => {
       maxContacts: 1,
       expires: 3600,
       domain: {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "domain-01",
         name: "test",
         domainUri: "test",
         accessControlListRef: "acl-01",
         accessControlList: {
-          apiVersion: "v2" as APIVersion,
+          apiVersion: CC.APIVersion.V2,
           ref: "acl-01",
           name: "test",
           allow: ["0.0.0.0/1"],
@@ -119,7 +120,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         updatedAt: new Date()
       },
       credentials: {
-        apiVersion: "v2" as APIVersion,
+        apiVersion: CC.APIVersion.V2,
         ref: "credentials-01",
         name: "test",
         username: "1001",
@@ -145,7 +146,7 @@ describe("@routr/pgdata/mappers/agent", () => {
     it("when the friendly name is not provided for agent creation", () => {
       // Arrange
       const agent = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "agent-01",
         name: "",
         username: "1001",
@@ -157,8 +158,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -173,7 +174,7 @@ describe("@routr/pgdata/mappers/agent", () => {
     it("when the friendly name has more than 60 characters", () => {
       // Arrange
       const agent = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "agent-01",
         name: "a".repeat(65),
         username: "1001",
@@ -185,8 +186,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -205,9 +206,9 @@ describe("@routr/pgdata/mappers/agent", () => {
     it("when the reference is not provided for an update operation", () => {
       // Arrange
       const agent = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "",
-        name: "Jhon Doe",
+        name: "John Doe",
         username: "1001",
         privacy: Privacy.PRIVATE,
         enabled: true,
@@ -217,8 +218,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -231,9 +232,9 @@ describe("@routr/pgdata/mappers/agent", () => {
     it("when username is not present", () => {
       // Arrange
       const agent = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "agent-01",
-        name: "Jhon Doe",
+        name: "John Doe",
         username: "",
         privacy: Privacy.PRIVATE,
         enabled: true,
@@ -243,8 +244,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act
@@ -257,9 +258,9 @@ describe("@routr/pgdata/mappers/agent", () => {
     it("when username is not alphanumeric without spaces", () => {
       // Arrange
       const agent = {
-        apiVersion: "v2",
+        apiVersion: CC.APIVersion.V2,
         ref: "agent-01",
-        name: "Jhon Doe",
+        name: "John Doe",
         username: "1 0 0 1",
         privacy: Privacy.PRIVATE,
         enabled: true,
@@ -269,8 +270,8 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
-        createdAt: new Date().getTime() / 1000,
-        updatedAt: new Date().getTime() / 1000
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime()
       }
 
       // Act

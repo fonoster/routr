@@ -21,14 +21,7 @@ import * as grpc from "@grpc/grpc-js"
 import { toPascalCase } from "../helper"
 import { Kind, KindWithoutUnknown } from "./types"
 import protoLoader = require("@grpc/proto-loader")
-
-const protoOptions = {
-  keepCase: false,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true
-}
+import { protoLoadOptions } from "../service"
 
 function getProtoPath(kind: Kind): string {
   switch (kind) {
@@ -46,7 +39,7 @@ export function createConnectClient(options: {
   credentials: grpc.ChannelCredentials
   apiAddr: string
 }) {
-  const def = protoLoader.loadSync(getProtoPath(options.kind), protoOptions)
+  const def = protoLoader.loadSync(getProtoPath(options.kind), protoLoadOptions)
   const descriptor = grpc.loadPackageDefinition(def) as any
   const base = descriptor.fonoster.routr.connect
 
@@ -69,7 +62,12 @@ export function createConnectClient(options: {
 }
 
 export function createConnectService(kind: KindWithoutUnknown) {
-  const def = protoLoader.loadSync(getProtoPath(kind), protoOptions)
+  // Here we set defaults to simplify partial updates
+  const actualProtoOptions = {
+    ...protoLoadOptions,
+    defaults: false
+  }
+  const def = protoLoader.loadSync(getProtoPath(kind), actualProtoOptions)
   const descriptor = grpc.loadPackageDefinition(def) as any
   const base = descriptor.fonoster.routr.connect
 

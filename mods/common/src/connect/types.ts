@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { JsonObject } from "pb-util/build"
 import { LoadBalancingAlgorithm, Privacy, Transport } from "../types"
 
 export enum Kind {
@@ -33,17 +32,17 @@ export enum Kind {
 export type KindWithoutUnknown = Exclude<Kind, Kind.UNKNOWN>
 
 export enum APIVersion {
-  v2beta1 = "v2beta1",
+  V2BETA1 = "v2beta1",
   V2 = "v2"
 }
 
 export interface BaseConnectModel {
-  apiVersion: string
+  apiVersion: APIVersion
   ref: string
   name: string
-  createdAt?: number
-  updatedAt?: number
-  extended?: JsonObject
+  createdAt: number
+  updatedAt: number
+  extended?: Record<string, unknown>
 }
 
 export interface AccessControlList extends BaseConnectModel {
@@ -87,8 +86,8 @@ export interface INumber extends BaseConnectModel {
   city: string
   country: string
   countryIsoCode: string
-  sessionAffinityHeader: string
-  extraHeaders: { name: string; value: string }[]
+  sessionAffinityHeader?: string
+  extraHeaders?: { name: string; value: string }[]
   trunkRef?: string
   trunk?: Trunk
 }

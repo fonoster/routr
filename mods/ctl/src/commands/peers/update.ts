@@ -59,7 +59,7 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
       const peerFromDB = await api.getPeer(args.ref)
 
       // TODO: Fix hardcoded pageSize
-      const acls = await new SDK.ACL({ endpoint, insecure, cacert }).listACLs({
+      const acls = await new SDK.Acls({ endpoint, insecure, cacert }).listAcls({
         pageSize: 25,
         pageToken: ""
       })

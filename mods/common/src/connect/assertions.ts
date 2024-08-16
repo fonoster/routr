@@ -81,7 +81,7 @@ export const hasValidACLRulesOrThrow = (acl: {
   allow: string[]
 }) => validOrThrow(hasValidACLRules, acl)
 
-export const hasRefenceOrThrow = (ref: string) =>
+export const hasReferenceOrThrow = (ref: string) =>
   validOrThrow(hasReference, ref)
 
 export const hasNameOrThrow = (name: string) => validOrThrow(hasName, name)

@@ -44,7 +44,7 @@ export function update(
 
       manager.validOrThrowUpdate()
 
-      if (kind === CC.Kind.DOMAIN) {
+      if (kind === CC.Kind.DOMAIN && request.egressPolicy) {
         await prisma.egressPolicy.deleteMany({
           where: {
             domainRef: request.ref
@@ -52,7 +52,7 @@ export function update(
         })
       }
 
-      if (kind === CC.Kind.TRUNK) {
+      if (kind === CC.Kind.TRUNK && request.uris) {
         await prisma.trunkURI.deleteMany({
           where: {
             trunkRef: request.ref

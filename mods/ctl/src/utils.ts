@@ -29,11 +29,11 @@ export function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
 }
 
-export const stringToACL = (aclRule: string) =>
+export const stringToAcl = (aclRule: string) =>
   aclRule.split(",").map((rule: string) => rule.trim())
 
 type APIName =
-  | "ACL"
+  | "Acls"
   | "Credentials"
   | "Domains"
   | "Agents"
@@ -55,7 +55,7 @@ function getFunctionMapping(kind: CC.Kind): {
 } {
   switch (kind) {
     case CC.Kind.ACL:
-      return { api: "ACL", get: "getACL", list: "listACLs" }
+      return { api: "Acls", get: "getAcl", list: "listAcls" }
     case CC.Kind.CREDENTIALS:
       return {
         api: "Credentials",

@@ -20,17 +20,17 @@
 import DeleteCommand from "../../delete"
 import SDK from "@routr/sdk"
 
-export default class DeleteCrendentialsCommand extends DeleteCommand {
-  static description = "Deletes a set of Credentials"
+export default class DeleteCredentialsCommand extends DeleteCommand {
+  static readonly description = "Deletes a set of Credentials"
 
-  static examples = [
+  static readonly examples = [
     `<%= config.bin %> <%= command.id %>
 Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 `
   ]
 
   async run() {
-    const { flags } = await this.parse(DeleteCrendentialsCommand)
+    const { flags } = await this.parse(DeleteCredentialsCommand)
     const { endpoint, insecure, cacert } = flags
     await super.deleteResource(
       new SDK.Credentials({ endpoint, insecure, cacert }),

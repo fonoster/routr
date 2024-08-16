@@ -24,10 +24,10 @@ import {
   EgressPolicy
 } from "@prisma/client"
 import { CommonConnect as CC } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { ACLManager } from "./acl"
 import { EntityManager } from "./manager"
 import { NumberManager } from "./number"
+import { JsonValue } from "@prisma/client/runtime/library"
 
 type DomainWithACL = Prisma.DomainGetPayload<{
   include: {
@@ -46,7 +46,7 @@ export class DomainManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return {
       accessControlList: true,
       egressPolicies: {
@@ -64,7 +64,7 @@ export class DomainManager extends EntityManager {
   }
 
   validOrThrowUpdate() {
-    CC.hasRefenceOrThrow(this.domain.ref)
+    CC.hasReferenceOrThrow(this.domain.ref)
     CC.isValidNameOrThrow(this.domain.name)
   }
 
@@ -75,24 +75,18 @@ export class DomainManager extends EntityManager {
   } {
     return {
       // TODO: Set a default value for apiVersion
+      ...this.domain,
       apiVersion: "v2" as APIVersion,
-      ref: this.domain.ref,
-      name: this.domain.name,
       accessControlListRef: this.domain.accessControlListRef || null,
-      domainUri: this.domain.domainUri,
-      extended: this.domain.extended || {},
-      createdAt: this.domain.createdAt
-        ? new Date(this.domain.createdAt * 1000)
-        : undefined,
-      updatedAt: this.domain.updatedAt
-        ? new Date(this.domain.updatedAt * 1000)
-        : undefined,
+      extended: this.domain.extended as JsonValue,
       egressPolicies: {
         create: this.domain.egressPolicies?.map((policy) => ({
           rule: policy.rule,
           numberRef: policy.numberRef
         }))
-      }
+      },
+      createdAt: undefined,
+      updatedAt: undefined
     }
   }
 
@@ -100,6 +94,7 @@ export class DomainManager extends EntityManager {
     return domain
       ? {
           ...domain,
+          apiVersion: domain.apiVersion as CC.APIVersion,
           accessControlListRef: domain.accessControlList?.ref,
           accessControlList: ACLManager.mapToDto(domain.accessControlList),
           egressPolicies: domain.egressPolicies?.map((policy) => ({
@@ -107,9 +102,9 @@ export class DomainManager extends EntityManager {
             numberRef: policy.numberRef,
             number: NumberManager.mapToDtoWithoutTrunk(policy.number)
           })),
-          extended: domain.extended as JsonObject,
           createdAt: domain.createdAt.getTime() / 1000,
-          updatedAt: domain.updatedAt.getTime() / 1000
+          updatedAt: domain.updatedAt.getTime() / 1000,
+          extended: domain.extended as Record<string, unknown>
         }
       : undefined
   }

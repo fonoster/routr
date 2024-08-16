@@ -24,10 +24,10 @@ import {
   Privacy
 } from "@prisma/client"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
-import { JsonObject } from "pb-util/build"
 import { CredentialsManager } from "./credentials"
 import { DomainManager } from "./domain"
 import { EntityManager } from "./manager"
+import { JsonValue } from "@prisma/client/runtime/library"
 
 type AgentWithDomainAndCredentials = Prisma.AgentGetPayload<{
   include: {
@@ -51,7 +51,7 @@ export class AgentManager extends EntityManager {
     super()
   }
 
-  static includeFields(): JsonObject {
+  static includeFields(): Record<string, unknown> {
     return {
       domain: {
         include: {
@@ -70,51 +70,36 @@ export class AgentManager extends EntityManager {
   }
 
   validOrThrowUpdate() {
-    CC.hasRefenceOrThrow(this.agent.ref)
+    CC.hasReferenceOrThrow(this.agent.ref)
     CC.isValidNameOrThrow(this.agent.name)
   }
 
   mapToPrisma(): AgentPrismaModel {
     return {
       // TODO: Set a default value for apiVersion
+      ...this.agent,
       apiVersion: "v2" as APIVersion,
-      ref: this.agent.ref,
-      name: this.agent.name,
-      username: this.agent.username,
       privacy: (this.agent.privacy as Privacy) ?? Privacy.NONE,
-      enabled: this.agent.enabled,
       domainRef: this.agent.domainRef || null,
       credentialsRef: this.agent.credentialsRef || null,
-      createdAt: this.agent.createdAt
-        ? new Date(this.agent.createdAt * 1000)
-        : undefined,
-      updatedAt: this.agent.updatedAt
-        ? new Date(this.agent.updatedAt * 1000)
-        : undefined,
-      maxContacts: this.agent.maxContacts,
-      expires: this.agent.expires,
-      extended: this.agent.extended || {}
+      expires: this.agent.expires || 0,
+      createdAt: undefined,
+      updatedAt: undefined,
+      extended: this.agent.extended as JsonValue
     }
   }
 
   static mapToDto(agent: AgentWithDomainAndCredentials): CC.Agent {
     return agent
       ? {
-          apiVersion: agent.apiVersion,
-          ref: agent.ref,
-          name: agent.name,
-          username: agent.username,
+          ...agent,
+          apiVersion: agent.apiVersion as CC.APIVersion,
           privacy: agent.privacy as CT.Privacy,
-          enabled: agent.enabled,
-          domainRef: agent.domainRef,
-          credentialsRef: agent.credentialsRef,
           domain: DomainManager.mapToDto(agent.domain),
           credentials: CredentialsManager.mapToDto(agent.credentials),
-          maxContacts: agent.maxContacts,
-          expires: agent.expires,
-          extended: (agent.extended || {}) as JsonObject,
           createdAt: agent.createdAt.getTime() / 1000,
-          updatedAt: agent.updatedAt.getTime() / 1000
+          updatedAt: agent.updatedAt.getTime() / 1000,
+          extended: agent.extended as Record<string, unknown>
         }
       : undefined
   }

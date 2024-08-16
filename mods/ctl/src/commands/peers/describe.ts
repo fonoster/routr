@@ -70,8 +70,8 @@ export default class DescribeCommand extends BaseCommand {
             }
           : "None",
         Extended: peer.extended,
-        Created: moment(new Date(peer.createdAt * 1000)).toISOString(),
-        Updated: moment(new Date(peer.updatedAt * 1000)).toISOString()
+        Created: moment(peer.createdAt).toISOString(),
+        Updated: moment(peer.updatedAt).toISOString()
       }
 
       this.log(render(jsonObj, { noColor: true }))

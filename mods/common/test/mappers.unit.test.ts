@@ -39,6 +39,7 @@ import {
 } from "../src/connect/config"
 import { mapToAgent } from "../src/connect/mappers/agent"
 import { Privacy, Transport } from "../src/types"
+import { APIVersion } from "../src/connect/types"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -51,7 +52,7 @@ describe("@routr/common/connect/mappers", () => {
     // Arrange
     const agentConfig: AgentConfig = {
       kind: Kind.AGENT,
-      apiVersion: "v2beta1",
+      apiVersion: APIVersion.V2BETA1,
       ref: "agent-1",
       metadata: {
         name: "John Doe"
@@ -86,7 +87,7 @@ describe("@routr/common/connect/mappers", () => {
     // Arrange
     const peerConfig: PeerConfig = {
       kind: Kind.PEER,
-      apiVersion: "v2beta1",
+      apiVersion: APIVersion.V2BETA1,
       ref: "peer-1",
       metadata: {
         name: "peer-1"
@@ -118,7 +119,7 @@ describe("@routr/common/connect/mappers", () => {
     // Arrange
     const domainConfig: DomainConfig = {
       kind: Kind.DOMAIN,
-      apiVersion: "v2beta1",
+      apiVersion: APIVersion.V2BETA1,
       ref: "domain-1",
       metadata: {
         name: "domain-1"
@@ -157,7 +158,7 @@ describe("@routr/common/connect/mappers", () => {
     // Arrange
     const numberConfig: NumberConfig = {
       kind: Kind.NUMBER,
-      apiVersion: "v2beta1",
+      apiVersion: APIVersion.V2BETA1,
       ref: "number-1",
       metadata: {
         name: "number-1",
@@ -209,7 +210,7 @@ describe("@routr/common/connect/mappers", () => {
     // Arrange
     const trunkConfig: TrunkConfig = {
       kind: Kind.TRUNK,
-      apiVersion: "v2beta1",
+      apiVersion: APIVersion.V2BETA1,
       ref: "trunk-1",
       metadata: {
         name: "trunk-1"
@@ -298,7 +299,7 @@ describe("@routr/common/connect/mappers", () => {
     // Arrange
     const aclConfig: AccessControlListConfig = {
       kind: Kind.ACL,
-      apiVersion: "v2beta1",
+      apiVersion: APIVersion.V2BETA1,
       ref: "acl-1",
       metadata: {
         name: "local access"
@@ -329,7 +330,7 @@ describe("@routr/common/connect/mappers", () => {
     // Arrange
     const credentialsConfig: CredentialsConfig = {
       kind: Kind.CREDENTIALS,
-      apiVersion: "v2beta1",
+      apiVersion: APIVersion.V2BETA1,
       ref: "credentials-1",
       metadata: {
         name: "credentials-1"

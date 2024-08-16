@@ -96,7 +96,9 @@ export const isValidHeader = (header: string) => {
     : true
 }
 
-export const hasValidHeaders = (headers: { name: string; value: string }[]) => {
+export const hasValidHeaders = (
+  headers: { name: string; value: string }[] = []
+) => {
   // eslint-disable-next-line no-loops/no-loops
   for (const header of headers) {
     const E = isValidHeader(header.name) as true | BadRequestError
@@ -159,7 +161,7 @@ export const hasACLRules = (acl: { deny: string[]; allow: string[] }) => {
   return true
 }
 
-export const isValidACLRule = (rules: string[]) => {
+export const isValidACLRule = (rules: string[] = []) => {
   // eslint-disable-next-line no-loops/no-loops
   for (const cidr of rules) {
     if (
