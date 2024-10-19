@@ -4,7 +4,7 @@ LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 COPY . /scripts
 WORKDIR /scripts
 
-RUN apk add --no-cache git curl tini nodejs npm python3 make cmake g++ \
+RUN apk add --no-cache cmake curl g++ git make nodejs npm python3 tini \
   && npm pack \
   && npm install -g routr-*.tgz \
   && ln -s /usr/local/bin/run_echo /usr/local/bin/run \

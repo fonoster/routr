@@ -84,7 +84,7 @@ RUN apk add --no-cache libcap nodejs npm openssl postgresql sed sngrep su-exec t
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 
-CMD sh -c "if [ \"$START_INTERNAL_DB\" = \"true\" ]; then \
+CMD ["sh", "-c", "if [ \"$START_INTERNAL_DB\" = \"true\" ]; then \
     su-exec postgres /service/init-postgres.sh; \
     su-exec postgres pg_ctl start -D /var/lib/postgresql/data --options='-h 0.0.0.0'; \
   fi && \
@@ -95,4 +95,4 @@ CMD sh -c "if [ \"$START_INTERNAL_DB\" = \"true\" ]; then \
   fi && \
   sed -i 's|keyStorePassword: .*|keyStorePassword: ${PKCS12_PASSWORD}|g' config/edgeport.yaml && \
   sed -i 's|trustStorePassword: .*|trustStorePassword: ${PKCS12_PASSWORD}|g' config/edgeport.yaml && \
-  su-exec $USER node ./dist/runner"
+  su-exec $USER node ./dist/runner"]

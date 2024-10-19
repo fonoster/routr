@@ -19,7 +19,7 @@ COPY mods/pgdata .
 
 # Todo: We need to normalize user id and group id across all images
 RUN chmod +x /generate-certs.sh \
-  && apk add --no-cache openssl git tini nodejs npm python3 make cmake g++ \
+  && apk add --no-cache cmake g++ git make nodejs npm openssl python3 tini \
   && npm pack \
   && npm install -g routr-*.tgz \
   && cp schema.prisma /usr/local/lib/node_modules/@routr/pgdata/ \
