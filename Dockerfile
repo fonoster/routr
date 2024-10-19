@@ -83,6 +83,7 @@ RUN apk add --no-cache nodejs npm tini openssl postgresql postgresql-client su-e
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 
 CMD sh -c "if [ \"$START_LOCAL_DB\" = \"true\" ]; then \
+    su-exec postgres /service/init-postgres.sh; \
     su-exec postgres pg_ctl start -D /var/lib/postgresql/data --options='-h 0.0.0.0'; \
   fi && \
   DATABASE_URL=${DATABASE_URL} npx prisma@${PRISMA_VERSION} migrate deploy --schema=/service/schema.prisma && \
