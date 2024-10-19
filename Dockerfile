@@ -67,7 +67,7 @@ COPY .scripts/init-postgres.sh .
 COPY mods/pgdata/schema.prisma .
 COPY mods/pgdata/migrations migrations
 
-RUN apk add --no-cache libcap nodejs npm openssl postgresql postgresql-client sed sngrep su-exec tini \
+RUN apk add --no-cache libcap nodejs npm openssl postgresql sed sngrep su-exec tini \
   && npm install -g prisma@${PRISMA_VERSION} \
   && mkdir -p ${PATH_TO_CERTS} /var/lib/postgresql/data /run/postgresql /root/.npm \
   && addgroup -g ${GID} ${USER} \
@@ -77,9 +77,9 @@ RUN apk add --no-cache libcap nodejs npm openssl postgresql postgresql-client se
   && chmod +x edgeport.sh convert-to-p12.sh init-postgres.sh \
   && chmod 2777 /run/postgresql \
   && setcap 'CAP_NET_RAW+eip' /usr/bin/sngrep \
-  && rm -rf /var/cache/apk/* /tmp/* /services/init-postgres.sh \
+  && rm -rf /var/cache/apk/* /tmp/* \
   && rm -rf /root/.npm /root/.config /root/.cache /root/.local \
-  && apk del postgresql-client libcap
+  && apk del libcap
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
