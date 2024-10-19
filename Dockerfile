@@ -11,14 +11,15 @@ COPY mods/one .
 COPY mods/pgdata/schema.prisma .
 COPY .scripts/custom-jre.sh .
 
-RUN apk add --no-cache --update npm nodejs curl git tini python3 make cmake g++ openjdk17-jdk \
+RUN apk add --no-cache --update cmake curl g++ git make nodejs npm openjdk17-jdk python3 tini \
   && sh custom-jre.sh \
   && npm install --omit=dev \
   && mv schema.prisma node_modules/@routr/pgdata/ \
   && cd node_modules/@routr/pgdata/ && npx prisma generate \
-  && cd /work && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune \
-  && curl -L -o heplify https://github.com/sipcapture/heplify/releases/download/v1.65.10/heplify \
-  && chmod +x heplify
+  && cd /work && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune 
+
+ADD https://github.com/sipcapture/heplify/releases/download/v1.65.10/heplify /work/heplify
+RUN chmod +x heplify
 
 ##  
 #  Runner
@@ -66,7 +67,7 @@ COPY .scripts/init-postgres.sh .
 COPY mods/pgdata/schema.prisma .
 COPY mods/pgdata/migrations migrations
 
-RUN apk add --no-cache nodejs npm tini openssl postgresql postgresql-client su-exec sed sngrep libcap \
+RUN apk add --no-cache libcap nodejs npm openssl postgresql postgresql-client sed sngrep su-exec tini \
   && mkdir -p ${PATH_TO_CERTS} /var/lib/postgresql/data /run/postgresql /root/.npm \
   && addgroup -g ${GID} ${USER} \
   && adduser --disabled-password --gecos "" --ingroup ${USER} --home ${HOME} --uid ${UID} ${USER} \
