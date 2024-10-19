@@ -11,14 +11,15 @@ COPY mods/one .
 COPY mods/pgdata/schema.prisma .
 COPY .scripts/custom-jre.sh .
 
-RUN apk add --no-cache --update npm nodejs curl git tini python3 make cmake g++ openjdk17-jdk \
+RUN apk add --no-cache --update cmake curl g++ git make nodejs npm openjdk17-jdk python3 tini \
   && sh custom-jre.sh \
   && npm install --omit=dev \
   && mv schema.prisma node_modules/@routr/pgdata/ \
   && cd node_modules/@routr/pgdata/ && npx prisma generate \
-  && cd /work && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune \
-  && curl -L -o heplify https://github.com/sipcapture/heplify/releases/download/v1.65.10/heplify \
-  && chmod +x heplify
+  && cd /work && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune 
+
+ADD https://github.com/sipcapture/heplify/releases/download/v1.65.10/heplify /work/heplify
+RUN chmod +x heplify
 
 ##  
 #  Runner
@@ -47,7 +48,7 @@ ENV PKCS12_PASSWORD=$PKCS12_PASSWORD \
   DATABASE_URL=$DATABASE_URL \
   IGNORE_LOOPBACK_FROM_LOCALNETS=true \
   PRISMA_VERSION=$PRISMA_VERSION \
-  START_LOCAL_DB=true
+  START_INTERNAL_DB=true
 
 WORKDIR /service
 
@@ -66,7 +67,8 @@ COPY .scripts/init-postgres.sh .
 COPY mods/pgdata/schema.prisma .
 COPY mods/pgdata/migrations migrations
 
-RUN apk add --no-cache nodejs npm tini openssl postgresql postgresql-client su-exec sed sngrep libcap \
+RUN apk add --no-cache libcap nodejs npm openssl postgresql sed sngrep su-exec tini \
+  && npm install -g prisma@${PRISMA_VERSION} \
   && mkdir -p ${PATH_TO_CERTS} /var/lib/postgresql/data /run/postgresql /root/.npm \
   && addgroup -g ${GID} ${USER} \
   && adduser --disabled-password --gecos "" --ingroup ${USER} --home ${HOME} --uid ${UID} ${USER} \
@@ -75,14 +77,15 @@ RUN apk add --no-cache nodejs npm tini openssl postgresql postgresql-client su-e
   && chmod +x edgeport.sh convert-to-p12.sh init-postgres.sh \
   && chmod 2777 /run/postgresql \
   && setcap 'CAP_NET_RAW+eip' /usr/bin/sngrep \
-  && rm -rf /var/cache/apk/* /tmp/* /services/init-postgres.sh \
+  && rm -rf /var/cache/apk/* /tmp/* \
   && rm -rf /root/.npm /root/.config /root/.cache /root/.local \
-  && apk del postgresql-client libcap
+  && apk del libcap
 
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 
-CMD sh -c "if [ \"$START_LOCAL_DB\" = \"true\" ]; then \
+CMD sh -c "if [ \"$START_INTERNAL_DB\" = \"true\" ]; then \
+    su-exec postgres /service/init-postgres.sh; \
     su-exec postgres pg_ctl start -D /var/lib/postgresql/data --options='-h 0.0.0.0'; \
   fi && \
   DATABASE_URL=${DATABASE_URL} npx prisma@${PRISMA_VERSION} migrate deploy --schema=/service/schema.prisma && \
