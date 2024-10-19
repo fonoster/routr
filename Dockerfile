@@ -68,6 +68,7 @@ COPY mods/pgdata/schema.prisma .
 COPY mods/pgdata/migrations migrations
 
 RUN apk add --no-cache libcap nodejs npm openssl postgresql postgresql-client sed sngrep su-exec tini \
+  && npm install -g prisma@${PRISMA_VERSION} \
   && mkdir -p ${PATH_TO_CERTS} /var/lib/postgresql/data /run/postgresql /root/.npm \
   && addgroup -g ${GID} ${USER} \
   && adduser --disabled-password --gecos "" --ingroup ${USER} --home ${HOME} --uid ${UID} ${USER} \
