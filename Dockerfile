@@ -48,7 +48,7 @@ ENV PKCS12_PASSWORD=$PKCS12_PASSWORD \
   DATABASE_URL=$DATABASE_URL \
   IGNORE_LOOPBACK_FROM_LOCALNETS=true \
   PRISMA_VERSION=$PRISMA_VERSION \
-  START_LOCAL_DB=true
+  START_INTERNAL_DB=true
 
 WORKDIR /service
 
@@ -83,7 +83,7 @@ RUN apk add --no-cache libcap nodejs npm openssl postgresql postgresql-client se
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 
-CMD sh -c "if [ \"$START_LOCAL_DB\" = \"true\" ]; then \
+CMD sh -c "if [ \"$START_INTERNAL_DB\" = \"true\" ]; then \
     su-exec postgres /service/init-postgres.sh; \
     su-exec postgres pg_ctl start -D /var/lib/postgresql/data --options='-h 0.0.0.0'; \
   fi && \
