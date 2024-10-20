@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 basepath=${1:-"."}  # if $1 is not passed, use current directory
 
 mkdir -p $basepath

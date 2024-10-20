@@ -28,6 +28,7 @@ bin
 .project
 ${sys:DATA}
 *.log
+.certs
 
 # User-specific stuff:
 .idea/workspace.xml
