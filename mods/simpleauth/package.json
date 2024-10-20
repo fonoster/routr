@@ -1,6 +1,6 @@
 {
   "name": "@routr/simpleauth",
-  "version": "2.13.5",
+  "version": "2.13.6",
   "description": "This middleware delegates authentication to an external service",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",

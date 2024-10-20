@@ -1,6 +1,6 @@
 {
   "name": "@routr/pgdata",
-  "version": "2.13.5",
+  "version": "2.13.6",
   "description": "Postgres API Server for Routr Connect",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
