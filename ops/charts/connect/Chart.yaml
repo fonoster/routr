@@ -2,14 +2,14 @@ apiVersion: v2
 name: routr-connect
 description: Routr Connect Helm Chart
 type: application
-version: 0.4.2
-appVersion: 2.9.0
+version: 0.4.1
+appVersion: 2.13.6
 dependencies:
   - name: postgresql
-    version: 12.1.15
+    version: 16.2.2
     repository: https://charts.bitnami.com/bitnami
     condition: postgresql.enabled
   - name: redis
-    version: 17.7.3
+    version: 20.3.0
     repository: https://charts.bitnami.com/bitnami
     condition: redis.enabled

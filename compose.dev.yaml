@@ -117,13 +117,15 @@ services:
       - 10000-10020:10000-10020/udp
 
   redis:
-    image: redis:7.0.8-alpine
+    image: bitnami/redis:7.4.1
     restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: yes
     ports:
       - 6379:6379
 
   postgres:
-    image: postgres:14.1-alpine
+    image: bitnami/postgresql:17.2.0
     restart: always
     environment:
       POSTGRES_USER: postgres
