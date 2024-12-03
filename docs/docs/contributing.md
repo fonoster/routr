@@ -39,9 +39,9 @@ together.
 
 ### Come to Meetings
 
-Absolutely everyone is welcome to come to any of our meetings. You never need an invite to join us. In fact, we want you to join us, even if you don’t have anything you feel like you want to contribute. Just being there is enough!
+Absolutely everyone is welcome to come to any of our meetings. You never need an invite to join us. In fact, we want you to join us, even if you don't have anything you feel like you want to contribute. Just being there is enough!
 
-You can find out more about our meetings [here](https://discord.gg/4QWgSz4hTC). You don’t have to turn on your video. The first time you come, introducing yourself is more than enough.
+You can find out more about our meetings [here](https://discord.gg/4QWgSz4hTC). You don't have to turn on your video. The first time you come, introducing yourself is more than enough.
 
 Over time, we hope that you feel comfortable voicing your opinions, giving feedback on others' ideas, and even sharing your own ideas, and experiences.
 
@@ -49,7 +49,7 @@ Over time, we hope that you feel comfortable voicing your opinions, giving feedb
 
 We have good first issues for new contributors and help wanted issues suitable for any contributor. [good first issue](https://github.com/fonoster/routr/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) has extra information to help you make your first contribution. [help wanted](https://github.com/fonoster/routr/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) are issues suitable for someone who isn't a core maintainer and is good to move onto after your first pull request.
 
-Sometimes there won’t be any issues with these labels. That’s ok! There is likely still something for you to work on. If you want to contribute but you don’t know where to start or can't find a suitable issue, you can reach out to us via  [Discord](https://discord.gg/4QWgSz4hTC) or [GitHub Discussions](https://github.com/fonoster/routr/discussions) and we will help you find something.
+Sometimes there won't be any issues with these labels. That's ok! There is likely still something for you to work on. If you want to contribute but you don't know where to start or can't find a suitable issue, you can reach out to us via  [Discord](https://discord.gg/4QWgSz4hTC) or [GitHub Discussions](https://github.com/fonoster/routr/discussions) and we will help you find something.
 
 Once you see an issue that you'd like to work on, please post a comment saying that you want to work on it. Something like "I want to work on this" is fine.
 
@@ -72,7 +72,7 @@ After you've submitted your pull request, it enters the review stage. During thi
 - Changes in your implementation approach
 - Dividing your pull request into smaller, more manageable parts
 
-Depending on the project’s roadmap and priorities, you might also be asked to:
+Depending on the project's roadmap and priorities, you might also be asked to:
 
 - Delay the integration of your pull request to align with future releases
 - Close your current pull request and, if needed, open a new one with revised changes
