@@ -65,7 +65,7 @@ const config = {
           },
           sidebarPath: require.resolve("./sidebars.js"),
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/fonoster/routr-website/edit/main"
+          editUrl: "https://github.com/fonoster/routr/edit/main/docs/docs"
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css")
