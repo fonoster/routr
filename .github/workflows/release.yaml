@@ -10,6 +10,14 @@ on:
         options:
           - 'true'
           - 'false'
+      use_branch_name:
+        description: 'Use branch name instead of lerna version'
+        required: false
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+        default: 'false'
 
 jobs:
   build-and-test:
@@ -46,10 +54,14 @@ jobs:
           git checkout package-lock.json
 
           npm run publish
-      - name: Get Lerna version
+      - name: Get version for release
         run: |
-          lerna_version=$(node -p "require('./lerna.json').version")
-          echo "LERNA_VERSION=$lerna_version" >> $GITHUB_ENV
+          if [[ "${{ github.event.inputs.use_branch_name }}" == "true" ]]; then
+            echo "LERNA_VERSION=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          else
+            lerna_version=$(node -p "require('./lerna.json').version")
+            echo "LERNA_VERSION=$lerna_version" >> $GITHUB_ENV
+          fi
       - name: Create release note
         if: env.RELEASE != 'none'
         id: changelog
@@ -94,5 +106,7 @@ jobs:
   publish-to-docker-hub:
     name: Publish to Docker Hub
     uses: ./.github/workflows/docker-hub-release.yaml
+    with:
+      use_branch_name: ${{ github.event.inputs.use_branch_name }}
     secrets: inherit
     needs: [build-and-test]

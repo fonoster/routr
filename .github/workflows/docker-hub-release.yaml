@@ -3,6 +3,11 @@ name: publish to docker hub
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      use_branch_name:
+        required: false
+        type: string
+        default: 'false'
 
 jobs:
   download_artifacts:
@@ -20,10 +25,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: routr-build
-      - name: Get the current version
+      - name: Get the version
         shell: bash
         id: release
-        run: echo "VERSION=$(node -e "console.log(require('./lerna.json').version)")" >> $GITHUB_OUTPUT
+        run: |
+          if [[ "${{ inputs.use_branch_name }}" == "true" ]]; then
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            SAFE_NAME=$(echo "$BRANCH_NAME" | tr '/' '-')
+            echo "VERSION=$SAFE_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=$(node -e "console.log(require('./lerna.json').version)")" >> $GITHUB_OUTPUT
+          fi
     outputs:
       version: ${{ steps.release.outputs.VERSION }}
 
