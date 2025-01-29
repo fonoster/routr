@@ -31,7 +31,7 @@ import { PrismaClientInitializationError } from "@prisma/client/runtime/library"
 export function get(operation: PrismaOperation, kind: CC.KindWithoutUnknown) {
   return async (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     if (!call.request.ref) {
-      return callback(new CE.BadRequestError("parameter ref is required"), null)
+      return callback(new CE.BadRequestError("Parameter ref is required"), null)
     }
 
     const Manager = getManager(kind)
@@ -58,7 +58,7 @@ export function get(operation: PrismaOperation, kind: CC.KindWithoutUnknown) {
         callback(
           {
             code: grpc.status.UNAVAILABLE,
-            message: "database is not available"
+            message: "Service unavailable"
           },
           null
         )
@@ -68,7 +68,7 @@ export function get(operation: PrismaOperation, kind: CC.KindWithoutUnknown) {
       callback(
         {
           code: grpc.status.UNKNOWN,
-          message: "unknown database error"
+          message: "Unknown error"
         },
         null
       )

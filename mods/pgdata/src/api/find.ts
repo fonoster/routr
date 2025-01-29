@@ -60,7 +60,7 @@ export function findBy(
         callback(
           {
             code: grpc.status.UNAVAILABLE,
-            message: "database is not available"
+            message: "Service unavailable"
           },
           null
         )

@@ -81,7 +81,7 @@ export function update(
       } else if (e.code === "P2003") {
         callback(
           new CE.BadRequestError(
-            "dependent entity doesn't exist for: " + e.meta.field_name
+            "Dependent resource doesn't exist for: " + e.meta.field_name
           ),
           null
         )

@@ -42,7 +42,7 @@ type DomainWithACL = Prisma.DomainGetPayload<{
 
 // Needs testing
 export class DomainManager extends EntityManager {
-  constructor(private domain: CC.Domain) {
+  constructor(private readonly domain: CC.Domain) {
     super()
   }
 

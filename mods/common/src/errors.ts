@@ -29,7 +29,7 @@ export class ServiceDefinitionNotFoundError extends Error {
    * @param {string} version - The version of the service definition.
    */
   constructor(name: string, version: string) {
-    super(`service definition for ${name}/${version} not found`)
+    super(`Service definition for ${name}/${version} not found`)
     // Set the prototype explicitly.
     Object.setPrototypeOf(this, ServiceDefinitionNotFoundError.prototype)
   }
@@ -47,7 +47,7 @@ export class ServiceUnavailableError extends Error {
    * @param {string} address - The address of the service.
    */
   constructor(address: string) {
-    super(`service unavailable [service address = ${address}]`)
+    super(`Service unavailable [service address = ${address}]`)
     this.code = grpc.status.UNAVAILABLE
     Object.setPrototypeOf(this, ServiceUnavailableError.prototype)
   }
@@ -64,7 +64,7 @@ export class ClientConnectionError extends Error {
    */
   constructor(address: string, isSecure: boolean) {
     super(
-      `cannot connect to service [service address = ${address}, tlsOn = ${isSecure}]`
+      `Cannot connect to service [service address = ${address}, tlsOn = ${isSecure}]`
     )
   }
 }
@@ -80,7 +80,7 @@ export class UnimplementedError extends Error {
    */
   constructor() {
     super(
-      "this operation is not supported/enabled in this data api implementation."
+      "This operation is not supported/enabled in this data api implementation."
     )
     this.code = grpc.status.UNIMPLEMENTED
     Object.setPrototypeOf(this, UnimplementedError.prototype)
@@ -99,9 +99,27 @@ export class ResourceNotFoundError extends Error {
    * @param {string} ref - the reference of the resource
    */
   constructor(ref: string) {
-    super(`resource not found: ${ref}`)
+    super(`Resource not found: ${ref}`)
     this.code = grpc.status.NOT_FOUND
     Object.setPrototypeOf(this, ResourceNotFoundError.prototype)
+  }
+}
+
+/**
+ * Thrown if the resource already exists.
+ */
+export class ResourceAlreadyExistsError extends Error {
+  code: number
+
+  /**
+   * Creates an instance of ResourceAlreadyExistsError.
+   *
+   * @param {string} message - message with the error to be thrown.
+   */
+  constructor(message?: string) {
+    super(message ?? "Resource already exists")
+    this.code = grpc.status.ALREADY_EXISTS
+    Object.setPrototypeOf(this, ResourceAlreadyExistsError.prototype)
   }
 }
 
@@ -117,7 +135,7 @@ export class BadRequestError extends Error {
    * @param {string} message - optional message with the error. Defaults to "bad request."
    */
   constructor(message?: string) {
-    super(message ?? "bad request")
+    super(message ?? "Bad request")
     this.code = grpc.status.INVALID_ARGUMENT
     Object.setPrototypeOf(this, BadRequestError.prototype)
   }

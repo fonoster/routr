@@ -50,7 +50,7 @@ describe("@routr/common", () => {
     // Introduce a typo
     objectProto2.name = "processo"
     expect(getObjectProto(objectProto2).toString()).to.include(
-      "service definition for processo/v2beta1 not found"
+      "Service definition for processo/v2beta1 not found"
     )
   })
 

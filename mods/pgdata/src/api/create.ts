@@ -60,22 +60,22 @@ export function create(
         callback(
           {
             code: grpc.status.UNAVAILABLE,
-            message: "database is not available"
+            message: "Service unavailable"
           },
           null
         )
         return
       } else if (e.code === "P2002") {
         callback(
-          new CE.BadRequestError(
-            "entity already exist for field: " + e.meta.target[0]
+          new CE.ResourceAlreadyExistsError(
+            "Resource already exist for field: " + e.meta.target[0]
           ),
           null
         )
       } else if (e.code === "P2003") {
         callback(
           new CE.BadRequestError(
-            "dependent entity doesn't exist for: " + e.meta.field_name
+            "Dependent resource doesn't exist for: " + e.meta.field_name
           ),
           null
         )

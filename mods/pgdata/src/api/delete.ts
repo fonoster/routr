@@ -39,7 +39,7 @@ export function del(operation: PrismaOperation) {
         callback(
           {
             code: grpc.status.UNAVAILABLE,
-            message: "database is not available"
+            message: "Service unavailable"
           },
           null
         )

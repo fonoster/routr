@@ -47,7 +47,7 @@ type AgentWithDomainAndCredentials = Prisma.AgentGetPayload<{
 
 // Needs testing
 export class AgentManager extends EntityManager {
-  constructor(private agent: CC.Agent) {
+  constructor(private readonly agent: CC.Agent) {
     super()
   }
 

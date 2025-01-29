@@ -27,7 +27,7 @@ import { JsonValue } from "@prisma/client/runtime/library"
 
 // Needs testing
 export class CredentialsManager extends EntityManager {
-  constructor(private credentials: CC.Credentials) {
+  constructor(private readonly credentials: CC.Credentials) {
     super()
   }
 
