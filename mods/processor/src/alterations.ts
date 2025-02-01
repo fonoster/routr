@@ -96,6 +96,32 @@ export const addSelfViaUsingTheRouteHeaders = (
   return req
 }
 
+// Experimental
+export const addSelfViaUsingExternalAddrs = (
+  request: MessageRequest
+): MessageRequest => {
+  const req = H.deepCopy(request)
+
+  const targetIntf = getEdgeInterface({
+    ...request,
+    endpointIntf: {
+      host: request.message.requestUri.host,
+      port: request.message.requestUri.port,
+      transport: request.message.requestUri.transportParam
+    }
+  })
+
+  req.message.via = [
+    {
+      ...targetIntf,
+      rPortFlag: true
+    },
+    ...req.message.via
+  ]
+
+  return req
+}
+
 export const addRouteToNextHop =
   (route: Route) =>
   (request: MessageRequest): MessageRequest => {

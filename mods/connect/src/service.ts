@@ -57,7 +57,8 @@ export default function connectProcessor(config: ConnectProcessorConfig) {
         // Remove the proxy and overwrite the contact with the sender info
         return res.send(
           // NOTE: We should consider making the overwriteContactWithSenderInfo an Agent/Peer level alteration
-          pipe(req, A.overwriteContactWithSenderInfo, A.removeTopVia)
+          // pipe(req, A.overwriteContactWithSenderInfo, A.removeTopVia)
+          pipe(req, A.removeTopVia)
         )
       }
 
@@ -84,9 +85,7 @@ export default function connectProcessor(config: ConnectProcessorConfig) {
             pipe(
               req,
               A.decreaseMaxForwards,
-              // The order of the following alterations is important
-              // since addSelfViaUsingTheRouteHeaders uses the route headers
-              A.addSelfViaUsingTheRouteHeaders,
+              A.addSelfViaUsingExternalAddrs,
               A.removeSelfRoutes
             )
           )
