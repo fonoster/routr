@@ -45,7 +45,7 @@
     "@types/node": "^18.11.9",
     "@types/prettyjson": "^0.0.30",
     "chai": "^4",
-    "mocha": "^9.2.2",
+    "mocha": "^11.1.0",
     "oclif": "^3.16.0",
     "shx": "^0.3.3",
     "ts-node": "^10.9.1",
