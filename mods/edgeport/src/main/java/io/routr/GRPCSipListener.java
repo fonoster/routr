@@ -441,16 +441,16 @@ public class GRPCSipListener implements SipListener {
       var callId = (CallIdHeader) requestOut.getHeader(CallIdHeader.NAME);
       // Does not need a transaction
       if (requestOut.getMethod().equals(Request.ACK)) {
-        var transaction = this.activeTransactions.get(callId.getCallId() + "_client");
-        // If appData is set increase the CSeq for the Ack request
-        if (transaction != null && transaction.getApplicationData() != null) {
-          var cSeq = (CSeqHeader) requestOut.getHeader(CSeqHeader.NAME);
-          try {
-            cSeq.setSeqNumber(cSeq.getSeqNumber() + 1);
-          } catch (InvalidArgumentException e) {
-            LOG.debug("an exception occurred while processing callId: {}", callId, e);
-          }
-        }
+        // var transaction = this.activeTransactions.get(callId.getCallId() + "_client");
+        // // If appData is set increase the CSeq for the Ack request
+        // if (transaction != null && transaction.getApplicationData() != null) {
+        //   var cSeq = (CSeqHeader) requestOut.getHeader(CSeqHeader.NAME);
+        //   try {
+        //     cSeq.setSeqNumber(cSeq.getSeqNumber() + 1);
+        //   } catch (InvalidArgumentException e) {
+        //     LOG.debug("an exception occurred while processing callId: {}", callId, e);
+        //   }
+        // }
         this.sipProvider.sendRequest(requestOut);
         return;
       }
