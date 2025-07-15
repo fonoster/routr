@@ -1,7 +1,7 @@
 ##
 # Build and pack the service
 ##
-FROM alpine:3.19 AS builder
+FROM alpine:3.22 AS builder
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
@@ -24,14 +24,13 @@ RUN chmod +x heplify
 ##  
 #  Runner
 ##
-FROM alpine:3.19 AS runner
+FROM alpine:3.22 AS runner
 
 ARG PKCS12_PASSWORD="changeme"
 ARG POSTGRES_USER="postgres"
 ARG POSTGRES_PASSWORD="postgres"
 ARG CA_CERT_SUBJECT="/CN=Self Signed CA"
 ARG SERVER_CERT_SUBJECT="/CN=localhost"
-ARG PRISMA_VERSION="5.9.1"
 ARG DATABASE_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/routr"
 
 ENV PKCS12_PASSWORD=$PKCS12_PASSWORD \
@@ -47,7 +46,6 @@ ENV PKCS12_PASSWORD=$PKCS12_PASSWORD \
   SERVER_CERT_SUBJECT=$SERVER_CERT_SUBJECT \
   DATABASE_URL=$DATABASE_URL \
   IGNORE_LOOPBACK_FROM_LOCALNETS=true \
-  PRISMA_VERSION=$PRISMA_VERSION \
   START_INTERNAL_DB=true \
   LOG4J2="/etc/routr/log4j2.yaml"
 
@@ -69,7 +67,7 @@ COPY --from=builder /work/jre jre
 COPY --from=builder /work/heplify /usr/local/bin/
 
 RUN apk add --no-cache libcap nodejs npm openssl postgresql sed sngrep su-exec tini \
-  && npm install -g prisma@${PRISMA_VERSION} \
+  && npm install -g prisma@latest \
   && mkdir -p ${PATH_TO_CERTS} /var/lib/postgresql/data /run/postgresql /root/.npm \
   && addgroup -g ${GID} ${USER} \
   && adduser --disabled-password --gecos "" --ingroup ${USER} --home ${HOME} --uid ${UID} ${USER} \

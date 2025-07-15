@@ -1,7 +1,7 @@
 ##
 ## Build and pack the service
 ##
-FROM alpine:3.19 AS builder
+FROM alpine:3.22 AS builder
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
@@ -15,7 +15,7 @@ RUN apk add --no-cache --update g++ openjdk17-jdk \
 ##  
 ## Runner
 ##
-FROM alpine:3.19 AS runner 
+FROM alpine:3.22 AS runner 
 
 ARG PKCS12_PASSWORD="changeme"
 ARG PATH_TO_CERTS="/etc/routr/certs"
