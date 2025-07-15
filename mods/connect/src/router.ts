@@ -81,7 +81,7 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
           return CR.createForbiddenResponse()
         }
 
-        const { ref, domainRef } =  payload;
+        const { ref, domainRef } = payload
 
         caller = {
           apiVersion: CC.APIVersion.V2,
