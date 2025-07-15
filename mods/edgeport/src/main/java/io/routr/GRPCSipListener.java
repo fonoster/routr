@@ -430,8 +430,57 @@ public class GRPCSipListener implements SipListener {
     // no-op
   }
 
+  @Override
   public void processIOException(final IOExceptionEvent event) {
-    // no-op
+    String transport = event.getTransport();
+    String host = event.getHost();
+    int port = event.getPort();
+    LOG.warn("transport error on {}:{} via {}; cleaning up related transactions.", host, port, transport);
+
+    // Find and remove all transactions associated with this transport, host, port combo
+    List<String> toRemove = new ArrayList<>();
+    List<Transaction> removedTransactions = new ArrayList<>();
+    for (Map.Entry<String, Transaction> entry : activeTransactions.entrySet()) {
+      Transaction tx = entry.getValue();
+      if (tx != null && tx.getRequest() != null) {
+        ViaHeader via = (ViaHeader) tx.getRequest().getHeader(ViaHeader.NAME);
+        if (via != null &&
+            transport.equalsIgnoreCase(via.getTransport()) &&
+            host.equals(via.getHost()) &&
+            port == via.getPort()) {
+          toRemove.add(entry.getKey());
+          removedTransactions.add(tx);
+        }
+      }
+    }
+
+    for (int i = 0; i < toRemove.size(); i++) {
+      String key = toRemove.get(i);
+      Transaction tx = removedTransactions.get(i);
+      activeTransactions.remove(key);
+      LOG.info("removed transaction {} due to transport error on {}:{} via {}", key, host, port, transport);
+      // Fire call-ended event if possible
+      try {
+        Request req = tx.getRequest();
+        if (req != null) {
+          // Create a minimal MessageResponse to pass to processCallEndedEvent
+          // Use the callId from the request
+          CallIdHeader callIdHeader = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
+          if (callIdHeader != null) {
+            // Build a dummy MessageResponse with UNKNOWN cause
+            io.routr.message.CallID callId = io.routr.message.CallID.newBuilder().setCallId(callIdHeader.getCallId()).build();
+            io.routr.message.SIPMessage sipMsg = io.routr.message.SIPMessage.newBuilder().setCallId(callId).build();
+            MessageResponse dummyResponse = MessageResponse.newBuilder().setMessage(sipMsg).build();
+            processCallEndedEvent(dummyResponse);
+          }
+        }
+      } catch (Exception e) {
+        LOG.warn("failed to fire call-ended event for transaction {}: {}", key, e.getMessage());
+      }
+    }
+    if (toRemove.isEmpty()) {
+      LOG.info("no active transactions matched the transport error on {}:{} via {}", host, port, transport);
+    }
   }
 
   private void sendRequest(final ServerTransaction serverTransaction, final Request request,

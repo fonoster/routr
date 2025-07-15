@@ -81,12 +81,14 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
           return CR.createForbiddenResponse()
         }
 
+        const { ref, domainRef } =  payload;
+
         caller = {
           apiVersion: CC.APIVersion.V2,
-          ref: payload.ref,
+          ref,
           name: request.message.from.address.displayName ?? CT.ANONYMOUS,
-          domain: domain,
-          domainRef: payload.domainRef,
+          domain,
+          domainRef,
           username: CT.ANONYMOUS,
           privacy: E.getHeaderValue(request, "Privacy"),
           enabled: true
