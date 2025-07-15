@@ -1,6 +1,6 @@
 {
   "name": "@routr/connect",
-  "version": "2.13.9",
+  "version": "2.13.10",
   "description": "Default processor",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -28,9 +28,9 @@
     "@opentelemetry/sdk-trace-base": "^1.0.4",
     "@opentelemetry/sdk-trace-node": "^1.0.4",
     "@opentelemetry/semantic-conventions": "^1.0.4",
-    "@routr/common": "^2.13.7",
-    "@routr/location": "^2.13.9",
-    "@routr/processor": "^2.13.9",
+    "@routr/common": "^2.13.10",
+    "@routr/location": "^2.13.10",
+    "@routr/processor": "^2.13.10",
     "jsonwebtoken": "^9.0.0"
   },
   "devDependencies": {
