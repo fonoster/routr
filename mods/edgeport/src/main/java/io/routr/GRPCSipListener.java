@@ -430,7 +430,6 @@ public class GRPCSipListener implements SipListener {
     // no-op
   }
 
-  @Override
   public void processIOException(final IOExceptionEvent event) {
     String transport = event.getTransport();
     String host = event.getHost();
