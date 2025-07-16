@@ -18,7 +18,7 @@ RUN apk add --no-cache --update cmake curl g++ git make nodejs npm openjdk17-jdk
   && cd node_modules/@routr/pgdata/ && npx prisma generate \
   && cd /work && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune 
 
-ADD https://github.com/sipcapture/heplify/releases/download/v1.65.10/heplify /work/heplify
+ADD https://github.com/sipcapture/heplify/releases/download/v1.67.0/heplify /work/heplify
 RUN chmod +x heplify
 
 ##  
