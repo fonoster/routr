@@ -411,14 +411,21 @@ For contributing, please see the following links:
         </a>
     </td>
     <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/rafasc>
+            <img src=https://avatars.githubusercontent.com/u/1923789?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=rafasc/>
+            <br />
+            <sub style="font-size:14px"><b>rafasc</b></sub>
+        </a>
+    </td>
+</tr>
+<tr>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
         <a href=https://github.com/SemiConscious>
             <img src=https://avatars.githubusercontent.com/u/1754942?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=SemiConscious/>
             <br />
             <sub style="font-size:14px"><b>SemiConscious</b></sub>
         </a>
     </td>
-</tr>
-<tr>
     <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
         <a href=https://github.com/BROWT190>
             <img src=https://avatars.githubusercontent.com/u/141766680?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Timmy/>
