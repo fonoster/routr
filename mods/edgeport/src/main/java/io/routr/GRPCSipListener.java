@@ -59,6 +59,11 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.io.IOException;
 
 public class GRPCSipListener implements SipListener {
@@ -390,10 +395,10 @@ public class GRPCSipListener implements SipListener {
           res.setHeader(originalCSeq);
           originalServerTransaction.sendResponse(res);
         } else if (res.getHeader(ViaHeader.NAME) != null) {
-          this.sipProvider.sendResponse(res);
+          sendResponseWithTimeout(this.sipProvider, res, "sipProvider");
         }
       } else if (res.getHeader(ViaHeader.NAME) != null) {
-        this.sipProvider.sendResponse(res);
+        sendResponseWithTimeout(this.sipProvider, res, "sipProvider");
       }
     } catch (SipException | InvalidArgumentException | ParseException e) {
       var req = event.getClientTransaction().getRequest();
@@ -678,5 +683,28 @@ public class GRPCSipListener implements SipListener {
 
   private void publishEvent(String eventName, Map<String, Object> message) {
     publishers.stream().forEach(publisher -> publisher.publish(eventName, message));
+  }
+
+  private void sendResponseWithTimeout(SipProvider sipProvider, Response response, String context) {
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    Future<?> future = executor.submit(() -> {
+      try {
+        sipProvider.sendResponse(response);
+      } catch (Exception e) {
+        LOG.error("Exception sending SIP response via " + context, e);
+      }
+    });
+
+    try {
+      future.get(5, TimeUnit.SECONDS);
+      LOG.debug("Response sent via " + context + " successfully");
+    } catch (TimeoutException e) {
+      LOG.warn("sendResponse() timed out via " + context + " — client likely disconnected");
+      future.cancel(true);
+    } catch (Exception e) {
+      LOG.error("Exception during sendResponse execution via " + context, e);
+    } finally {
+      executor.shutdown();
+    }
   }
 }
