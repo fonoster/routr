@@ -28,22 +28,25 @@ import { NetInterface, Transport } from "./types"
  * @return {object} The deep copy of the source object.
  */
 export const deepCopy = <T>(source: T): T => {
-  return Array.isArray(source)
-    ? source.map((item) => deepCopy(item))
-    : source instanceof Date
-    ? new Date(source.getTime())
-    : source && typeof source === "object"
-    ? Object.getOwnPropertyNames(source).reduce((o, prop) => {
-        Object.defineProperty(
-          o,
-          prop,
-          Object.getOwnPropertyDescriptor(source, prop)
-        )
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        o[prop] = deepCopy((source as { [key: string]: any })[prop])
-        return o
-      }, Object.create(Object.getPrototypeOf(source)))
-    : (source as T)
+  if (Array.isArray(source)) {
+    // Type assertion: we know the output is T if input is T
+    return source.map((item) => deepCopy(item)) as unknown as T
+  } else if (source instanceof Date) {
+    return new Date(source.getTime()) as unknown as T
+  } else if (source && typeof source === "object") {
+    return Object.getOwnPropertyNames(source).reduce((o, prop) => {
+      Object.defineProperty(
+        o,
+        prop,
+        Object.getOwnPropertyDescriptor(source, prop)
+      )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      o[prop] = deepCopy((source as { [key: string]: any })[prop])
+      return o
+    }, Object.create(Object.getPrototypeOf(source)))
+  } else {
+    return source as T
+  }
 }
 
 /**

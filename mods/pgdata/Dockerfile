@@ -1,7 +1,7 @@
 ##
 ## Runner
 ##
-FROM alpine:3.19 AS runner
+FROM alpine:3.22 AS runner
 LABEL maintainer="Pedro Sanders <psanders@fonoster.com>"
 
 ARG CA_CERT_SUBJECT="/CN=Self Signed CA"
@@ -45,7 +45,7 @@ FROM node:18-alpine3.19 AS migrations
 
 WORKDIR /db
 
-RUN npm install --location=global prisma@5.9.1 \
+RUN npm install --location=global prisma@latest \
   && apk add --no-cache postgresql-client
 
 COPY mods/pgdata/migrations migrations

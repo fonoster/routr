@@ -1,6 +1,6 @@
 {
   "name": "@routr/requester",
-  "version": "2.13.5",
+  "version": "2.13.12",
   "description": "SIP requests as an API",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",

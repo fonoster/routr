@@ -59,6 +59,11 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.io.IOException;
 
 public class GRPCSipListener implements SipListener {
@@ -390,10 +395,10 @@ public class GRPCSipListener implements SipListener {
           res.setHeader(originalCSeq);
           originalServerTransaction.sendResponse(res);
         } else if (res.getHeader(ViaHeader.NAME) != null) {
-          this.sipProvider.sendResponse(res);
+          sendResponseWithTimeout(this.sipProvider, res, "sipProvider");
         }
       } else if (res.getHeader(ViaHeader.NAME) != null) {
-        this.sipProvider.sendResponse(res);
+        sendResponseWithTimeout(this.sipProvider, res, "sipProvider");
       }
     } catch (SipException | InvalidArgumentException | ParseException e) {
       var req = event.getClientTransaction().getRequest();
@@ -431,7 +436,55 @@ public class GRPCSipListener implements SipListener {
   }
 
   public void processIOException(final IOExceptionEvent event) {
-    // no-op
+    String transport = event.getTransport();
+    String host = event.getHost();
+    int port = event.getPort();
+    LOG.warn("transport error on {}:{} via {}; cleaning up related transactions.", host, port, transport);
+
+    // Find and remove all transactions associated with this transport, host, port combo
+    List<String> toRemove = new ArrayList<>();
+    List<Transaction> removedTransactions = new ArrayList<>();
+    for (Map.Entry<String, Transaction> entry : activeTransactions.entrySet()) {
+      Transaction tx = entry.getValue();
+      if (tx != null && tx.getRequest() != null) {
+        ViaHeader via = (ViaHeader) tx.getRequest().getHeader(ViaHeader.NAME);
+        if (via != null &&
+            transport.equalsIgnoreCase(via.getTransport()) &&
+            host.equals(via.getHost()) &&
+            port == via.getPort()) {
+          toRemove.add(entry.getKey());
+          removedTransactions.add(tx);
+        }
+      }
+    }
+
+    for (int i = 0; i < toRemove.size(); i++) {
+      String key = toRemove.get(i);
+      Transaction tx = removedTransactions.get(i);
+      activeTransactions.remove(key);
+      LOG.info("removed transaction {} due to transport error on {}:{} via {}", key, host, port, transport);
+      // Fire call-ended event if possible
+      try {
+        Request req = tx.getRequest();
+        if (req != null) {
+          // Create a minimal MessageResponse to pass to processCallEndedEvent
+          // Use the callId from the request
+          CallIdHeader callIdHeader = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
+          if (callIdHeader != null) {
+            // Build a dummy MessageResponse with UNKNOWN cause
+            io.routr.message.CallID callId = io.routr.message.CallID.newBuilder().setCallId(callIdHeader.getCallId()).build();
+            io.routr.message.SIPMessage sipMsg = io.routr.message.SIPMessage.newBuilder().setCallId(callId).build();
+            MessageResponse dummyResponse = MessageResponse.newBuilder().setMessage(sipMsg).build();
+            processCallEndedEvent(dummyResponse);
+          }
+        }
+      } catch (Exception e) {
+        LOG.warn("failed to fire call-ended event for transaction {}: {}", key, e.getMessage());
+      }
+    }
+    if (toRemove.isEmpty()) {
+      LOG.info("no active transactions matched the transport error on {}:{} via {}", host, port, transport);
+    }
   }
 
   private void sendRequest(final ServerTransaction serverTransaction, final Request request,
@@ -630,5 +683,28 @@ public class GRPCSipListener implements SipListener {
 
   private void publishEvent(String eventName, Map<String, Object> message) {
     publishers.stream().forEach(publisher -> publisher.publish(eventName, message));
+  }
+
+  private void sendResponseWithTimeout(SipProvider sipProvider, Response response, String context) {
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    Future<?> future = executor.submit(() -> {
+      try {
+        sipProvider.sendResponse(response);
+      } catch (Exception e) {
+        LOG.error("Exception sending SIP response via " + context, e);
+      }
+    });
+
+    try {
+      future.get(5, TimeUnit.SECONDS);
+      LOG.debug("Response sent via " + context + " successfully");
+    } catch (TimeoutException e) {
+      LOG.warn("sendResponse() timed out via " + context + " — client likely disconnected");
+      future.cancel(true);
+    } catch (Exception e) {
+      LOG.error("Exception during sendResponse execution via " + context, e);
+    } finally {
+      executor.shutdown();
+    }
   }
 }
