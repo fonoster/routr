@@ -16,6 +16,7 @@ spec:
   - port: 51903
     targetPort: 51903
   selector:
-    {{- include ".helm.selectorLabels" . | nindent 6 }}
+    {{- include ".helm.selectorLabels" . | nindent 4 }}
+    service: rtprelay
 
 {{- end }}
