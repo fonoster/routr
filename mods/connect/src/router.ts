@@ -303,6 +303,12 @@ async function agentToPSTN(
     }
   )
 
+  if (!policy) {
+    throw new Error(
+      `no egress policy matching number "${calleeNumber}" in Domain ref: ${agent.domain.ref}`
+    )
+  }
+
   const trunk = policy.number?.trunk
 
   if (!trunk) {

@@ -26,6 +26,7 @@ import {
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import { CredentialsManager } from "./credentials"
 import { DomainManager } from "./domain"
+import { NumberManager } from "./number"
 import { EntityManager } from "./manager"
 import { JsonValue } from "@prisma/client/runtime/library"
 
@@ -55,7 +56,14 @@ export class AgentManager extends EntityManager {
     return {
       domain: {
         include: {
-          accessControlList: true
+          accessControlList: true,
+          egressPolicies: {
+            include: {
+              number: {
+                include: NumberManager.includeFields()
+              }
+            }
+          }
         }
       },
       credentials: true
