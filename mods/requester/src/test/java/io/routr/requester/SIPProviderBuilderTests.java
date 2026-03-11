@@ -19,15 +19,27 @@
 package io.routr.requester;
 
 import org.junit.jupiter.api.Test;
+
 import javax.sip.*;
+import java.io.IOException;
+import java.net.ServerSocket;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SIPProviderBuilderTests {
 
+  private static int findFreePort() throws IOException {
+    try (ServerSocket socket = new ServerSocket(0)) {
+      return socket.getLocalPort();
+    }
+  }
+
   @Test
-  public void testCreateSipProvider() throws PeerUnavailableException, TransportNotSupportedException, InvalidArgumentException,
-  ObjectInUseException, TransportAlreadySupportedException {
-    SipProvider provider = SIPProviderBuilder.createSipProvider(null, "localhost:5060");
+  public void testCreateSipProvider() throws Exception {
+    // Use a dynamically chosen free port so the test does not fail with BindException when 5060 is in use.
+    // JAIN SIP does not accept port 0.
+    int port = findFreePort();
+    SipProvider provider = SIPProviderBuilder.createSipProvider(null, "localhost:" + port);
     assertNotNull(provider);
     assertEquals(2, provider.getListeningPoints().length);
     assertEquals("tcp", provider.getListeningPoint("tcp").getTransport().toLowerCase());

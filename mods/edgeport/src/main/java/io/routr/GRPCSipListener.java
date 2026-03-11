@@ -60,6 +60,7 @@ public class GRPCSipListener implements SipListener {
   private final TransactionManager transactionManager;
   private final EventProcessor eventProcessor;
   private final AuthenticationHandler authenticationHandler;
+  private final boolean stripSessionProgressSdp;
 
   public GRPCSipListener(final SipProvider sipProvider, final Map<String, Object> config,
       final List<String> externalAddrs, final List<String> localnets)
@@ -75,6 +76,8 @@ public class GRPCSipListener implements SipListener {
     String processorAddrEnv = System.getenv("PROCESSOR_ADDR");
     String ignoreLoopbackEnv = System.getenv("IGNORE_LOOPBACK_FROM_LOCALNETS");
     String hostnameEnv = System.getenv("HOSTNAME");
+    String stripSessionProgressSdpEnv = System.getenv("STRIP_SESSION_PROGRESS_SDP");
+    this.stripSessionProgressSdp = Boolean.parseBoolean(stripSessionProgressSdpEnv);
 
     if (processorAddrEnv != null) {
       addr = processorAddrEnv;
@@ -274,6 +277,12 @@ public class GRPCSipListener implements SipListener {
 
       if (ResponseHelper.isStackJob(res)) {
         return;
+      }
+
+      if (stripSessionProgressSdp
+          && ResponseHelper.hasCodes(res, Response.SESSION_PROGRESS)) {
+        res.removeContent();
+        res.removeHeader(ContentTypeHeader.NAME);
       }
 
       var isTransactional = ResponseHelper.isTransactional(event, res);
