@@ -35,9 +35,12 @@ export default function getServerProperties(
   const properties = new Properties()
   properties.setProperty("javax.sip.STACK_NAME", "routr")
   properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "OFF")
+  // io.routr.sip.SafeNioMessageProcessorFactory swaps WSS processors so they
+  // produce a patched channel whose onNewSocket() does not recurse into
+  // sendMessage(). See SafeNioTlsWebSocketMessageChannel for full context.
   properties.setProperty(
     "gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY",
-    "gov.nist.javax.sip.stack.NioMessageProcessorFactory"
+    "io.routr.sip.SafeNioMessageProcessorFactory"
   )
   properties.setProperty(
     "gov.nist.javax.sip.PATCH_SIP_WEBSOCKETS_HEADERS",
