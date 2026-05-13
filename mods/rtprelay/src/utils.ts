@@ -65,22 +65,20 @@ export function getRTPEParamsByDirection(dir: Direction) {
     case Direction.WEB_TO_PHONE:
       return {
         "transport-protocol": "RTP/AVP",
-        "rtcp-mux": "demux",
+        DTLS: "off",
         ICE: "remove",
-        flags: ["trust-address", "replace-origin", "replace-session-connection"]
+        "rtcp-mux": ["demux"],
+        replace: ["origin", "session-connection"],
+        flags: ["trust-address", "SDES-no"]
       }
     case Direction.PHONE_TO_WEB:
       return {
         "transport-protocol": "UDP/TLS/RTP/SAVPF",
-        "rtcp-mux": "require",
         ICE: "force",
-        SDES: ["off"],
-        flags: [
-          "trust-address",
-          "replace-origin",
-          "replace-session-connection",
-          "generate-mid"
-        ]
+        DTLS: "passive",
+        "rtcp-mux": ["require"],
+        replace: ["origin", "session-connection"],
+        flags: ["SDES-no", "generate mid", "strip-extmap"]
       }
     case Direction.PHONE_TO_PHONE:
       return {
