@@ -201,12 +201,13 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
         )
         return result(routingDirection, route, callee.extended)
       }
-      case RoutingDirection.PEER_TO_PSTN:
-        return result(
-          routingDirection,
-          await peerToPSTN(apiClient, request),
-          callee?.extended
-        )
+      case RoutingDirection.PEER_TO_PSTN: {
+        const routeOrResponse = await peerToPSTN(apiClient, request)
+        // An error response (e.g. Bad Request, Not Found) is returned as-is
+        return "message" in routeOrResponse
+          ? routeOrResponse
+          : result(routingDirection, routeOrResponse as Route, callee?.extended)
+      }
       default:
         throw new UnsupportedRoutingError(routingDirection)
     }
@@ -377,13 +378,20 @@ async function agentToPeer(
 async function peerToPSTN(
   apiClient: CC.APIClient,
   req: MessageRequest
-): Promise<Route> {
+): Promise<Route | Record<string, unknown>> {
   const numberTel = E.getHeaderValue(req, CT.ExtraHeader.DOD_NUMBER)
   const privacy = E.getHeaderValue(req, CT.ExtraHeader.DOD_PRIVACY)
+
+  if (!numberTel) {
+    return CR.createBadRequestResponse(
+      `Missing or empty '${CT.ExtraHeader.DOD_NUMBER}' header required for peer-to-pstn routing`
+    )
+  }
+
   const number = await findNumberByTelUrl(apiClient, `tel:${numberTel}`)
 
   if (!number) {
-    throw new Error(`no Number found for tel: ${numberTel}`)
+    return CR.createNotFoundResponse(`No Number found for tel:${numberTel}`)
   }
 
   if (!number.trunk) {
