@@ -202,10 +202,7 @@ describe("@routr/connect", () => {
     expect(result).to.not.have.property("direction")
     expect(result)
       .to.have.property("message")
-      .to.have.property(
-        "responseType",
-        CommonTypes.ResponseType.BAD_REQUEST
-      )
+      .to.have.property("responseType", CommonTypes.ResponseType.BAD_REQUEST)
   })
 
   it("returns Not Found when the X-Dod-Number resource does not exist", async () => {
