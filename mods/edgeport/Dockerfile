@@ -43,7 +43,7 @@ COPY .scripts/convert-to-p12.sh .
 COPY .scripts/generate-certs.sh .
 
 RUN apk add --no-cache curl libcap openssl sed sngrep tini \
-  && curl -L -o heplify https://github.com/sipcapture/heplify/releases/download/v1.65.10/heplify \
+  && curl -fL -o heplify https://github.com/sipcapture/heplify/releases/download/v1.67.1/heplify \
   && chmod +x heplify \
   && chmod +x edgeport.sh convert-to-p12.sh generate-certs.sh \
   && mkdir -p ${PATH_TO_CERTS} ${PATH_TO_LOGS} \
