@@ -185,6 +185,46 @@ describe("@routr/connect", () => {
       .lengthOf(5)
   })
 
+  it("returns Bad Request when X-Dod-Number is missing for peer to pstn", async () => {
+    const req = createRequest({
+      fromUser: "asterisk",
+      fromDomain: "unknown.com",
+      toUser: "+17853178070",
+      toDomain: "unknown.com"
+      // dodNumber intentionally omitted
+    })
+    const reqWithUpdatedAuth = Helper.deepCopy(req)
+    reqWithUpdatedAuth.message.authorization.response =
+      "09f30fe20face5e168ca7dafcbf154c0"
+
+    const result = await router(locationAPI, apiClient)(reqWithUpdatedAuth)
+
+    expect(result).to.not.have.property("direction")
+    expect(result)
+      .to.have.property("message")
+      .to.have.property("responseType", CommonTypes.ResponseType.BAD_REQUEST)
+  })
+
+  it("returns Not Found when the X-Dod-Number resource does not exist", async () => {
+    const req = createRequest({
+      fromUser: "asterisk",
+      fromDomain: "unknown.com",
+      toUser: "+17853178070",
+      toDomain: "unknown.com",
+      dodNumber: "+10000000000"
+    })
+    const reqWithUpdatedAuth = Helper.deepCopy(req)
+    reqWithUpdatedAuth.message.authorization.response =
+      "09f30fe20face5e168ca7dafcbf154c0"
+
+    const result = await router(locationAPI, apiClient)(reqWithUpdatedAuth)
+
+    expect(result).to.not.have.property("direction")
+    expect(result)
+      .to.have.property("message")
+      .to.have.property("responseType", CommonTypes.ResponseType.NOT_FOUND)
+  })
+
   it("gets resource by domainUri and userpart", async () => {
     const r1 = await findResource(apiClient, "sip.local", "1001")
     // Domain with xxx reference does not exist

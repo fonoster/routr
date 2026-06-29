@@ -76,3 +76,29 @@ export const createForbiddenResponse = (metadata?: Record<string, string>) => {
     }
   }
 }
+
+export const createBadRequestResponse = (
+  reasonPhrase = "Bad Request",
+  metadata?: Record<string, string>
+) => {
+  return {
+    metadata,
+    message: {
+      responseType: ResponseType.BAD_REQUEST,
+      reasonPhrase
+    }
+  }
+}
+
+export const createNotFoundResponse = (
+  reasonPhrase = "Not Found",
+  metadata?: Record<string, string>
+) => {
+  return {
+    metadata,
+    message: {
+      responseType: ResponseType.NOT_FOUND,
+      reasonPhrase
+    }
+  }
+}
