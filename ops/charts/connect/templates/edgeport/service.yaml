@@ -1,0 +1,42 @@
+# In-cluster Services for the EdgePort.
+#
+# The LoadBalancer Services (service-udp.yaml and service-tcp.yaml) are split by
+# protocol because some cloud load balancers can't mix UDP and TCP on one Service.
+# In-cluster Services don't have that limit, so these two list every enabled
+# transport behind one name.
+#
+# The headless Service governs the StatefulSet. The ClusterIP Service gives the
+# Registry a stable address for outbound REGISTERs, which a headless Service can't,
+# since its name resolves straight to pod IPs that change when a pod restarts.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-routr-edgeport-headless
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" . | nindent 4 }}
+    service: edgeport
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    {{- include ".helm.edgeportPorts" (dict "ctx" . "transports" (list "udp" "tcp" "tls" "ws" "wss")) | trim | nindent 4 }}
+  selector:
+    {{- include ".helm.selectorLabels" . | nindent 4 }}
+    service: edgeport
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-routr-edgeport
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" . | nindent 4 }}
+    service: edgeport
+spec:
+  type: ClusterIP
+  ports:
+    {{- include ".helm.edgeportPorts" (dict "ctx" . "transports" (list "udp" "tcp" "tls" "ws" "wss")) | trim | nindent 4 }}
+  selector:
+    {{- include ".helm.selectorLabels" . | nindent 4 }}
+    service: edgeport

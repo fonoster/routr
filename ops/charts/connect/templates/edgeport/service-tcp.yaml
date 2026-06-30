@@ -16,30 +16,7 @@ spec:
   type: {{ .Values.edgeport.serviceTypeTCP }}
   externalTrafficPolicy: {{ .Values.edgeport.externalTrafficPolicyTCP }}
   ports:
-  {{- if .Values.edgeport.transport.tcp.enabled }}
-    - name: siptcp
-      protocol: TCP
-      port: {{ .Values.edgeport.transport.tcp.port | default 5060 }}
-      targetPort: {{ .Values.edgeport.transport.tcp.port | default 5060 }}
-  {{- end }}
-  {{- if .Values.edgeport.transport.tls.enabled }}
-    - name: siptls
-      protocol: TCP
-      port: {{ .Values.edgeport.transport.tls.port | default 5061 }}
-      targetPort: {{ .Values.edgeport.transport.tls.port | default 5061 }}
-  {{- end }}      
-  {{- if .Values.edgeport.transport.ws.enabled }}
-    - name: sipws
-      protocol: TCP
-      port: {{ .Values.edgeport.transport.ws.port | default 5062 }}
-      targetPort: {{ .Values.edgeport.transport.ws.port | default 5062 }}
-  {{- end }}
-  {{- if .Values.edgeport.transport.wss.enabled }}
-    - name: sipwss
-      protocol: TCP
-      port: {{ .Values.edgeport.transport.wss.port | default 5063 }}
-      targetPort: {{ .Values.edgeport.transport.wss.port | default 5063 }}
-  {{- end }}
+    {{- include ".helm.edgeportPorts" (dict "ctx" . "transports" (list "tcp" "tls" "ws" "wss")) | trim | nindent 4 }}
   selector:
     {{- include ".helm.selectorLabels" . | nindent 4 }}
     service: edgeport
