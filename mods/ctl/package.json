@@ -20,13 +20,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@oclif/core": "^1.24.0",
-    "@oclif/plugin-autocomplete": "^1.3.10",
-    "@oclif/plugin-help": "^5",
-    "@oclif/plugin-plugins": "^2.1.12",
-    "@oclif/plugin-warn-if-update-available": "^2.0.19",
+    "@oclif/core": "^4.8.1",
+    "@oclif/plugin-autocomplete": "^3.2.0",
+    "@oclif/plugin-plugins": "^5.4.0",
+    "@oclif/plugin-warn-if-update-available": "^3.1.28",
     "@routr/common": "^2.15.0",
     "@routr/sdk": "^2.15.0",
+    "cliui": "^8.0.1",
     "figlet": "^1.9.4",
     "fuzzy-search": "^3.2.1",
     "inquirer": "^8.2.7",
@@ -35,7 +35,7 @@
     "prettyjson": "^1.2.5"
   },
   "devDependencies": {
-    "@oclif/test": "^2.2.20",
+    "@oclif/test": "^4.1.3",
     "@types/chai": "^4.2.11",
     "@types/figlet": "^1.7.0",
     "@types/fuzzy-search": "^2.1.2",
@@ -46,7 +46,7 @@
     "@types/prettyjson": "^0.0.30",
     "chai": "^4",
     "mocha": "^9.2.2",
-    "oclif": "^3.16.0",
+    "oclif": "^4.17.46",
     "shx": "^0.3.3",
     "ts-node": "^10.9.1",
     "tslib": "^2.4.1",
@@ -73,7 +73,7 @@
     "build": "shx rm -rf dist && tsc -b --force",
     "postpack": "shx rm -f oclif.manifest.json",
     "prepack": "yarn build && oclif manifest && oclif readme",
-    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "test": "mocha --forbid-only \"test/**/*.unit.test.ts\"",
     "version": "oclif readme && git add README.md"
   },
   "engines": {

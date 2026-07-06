@@ -17,23 +17,7 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import { Command, Flags } from "@oclif/core"
 
-export abstract class BaseCommand extends Command {
-  static readonly baseFlags = {
-    insecure: Flags.boolean({
-      char: "i",
-      description: "allow insecure connections to the routr server",
-      default: false
-    }),
-    cacert: Flags.string({
-      char: "c",
-      description: "path to the CA certificate to verify the server"
-    }),
-    endpoint: Flags.string({
-      char: "e",
-      description: "endpoint to connect to the routr server",
-      default: "localhost:51908"
-    })
-  }
-}
+// Replacement for the removed `CliUx.ux.wait`; used to let spinners settle.
+export const wait = (ms = 1000): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms))

@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import { Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import * as grpc from "@grpc/grpc-js"
-import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import { CommonConnect as CC } from "@routr/common"
 import { domainUriValidator, nameValidator } from "../../validators"
 import SDK from "@routr/sdk"
@@ -159,20 +159,20 @@ Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       if (!group3.confirm) {
         this.warn("Aborted")
       } else {
-        CliUx.ux.action.start(`Creating Domain ${group1.name}`)
+        ux.action.start(`Creating Domain ${group1.name}`)
         const api = new SDK.Domains({ endpoint, insecure, cacert })
         const domains = await api.createDomain({
           ...group1,
           egressPolicies
         })
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(domains.ref)
+        await wait(1000)
+        ux.action.stop(domains.ref)
       }
     } catch (e) {
       if (e.code === grpc.status.ALREADY_EXISTS) {
-        throw new CLIError("This Domain already exist")
+        throw new Errors.CLIError("This Domain already exist")
       } else {
-        throw new CLIError(e.message)
+        throw new Errors.CLIError(e.message)
       }
     }
   }

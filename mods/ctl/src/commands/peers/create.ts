@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import { Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import * as grpc from "@grpc/grpc-js"
-import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import { CommonConnect as CC, CommonTypes as CT } from "@routr/common"
 import SDK from "@routr/sdk"
 
@@ -163,7 +163,7 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       if (!answers.confirm) {
         this.warn("Aborted")
       } else {
-        CliUx.ux.action.start(`Creating Peer ${answers.name}`)
+        ux.action.start(`Creating Peer ${answers.name}`)
         const api = new SDK.Peers({ endpoint, insecure, cacert })
 
         answers.maxContacts = answers.maxContacts
@@ -172,14 +172,14 @@ Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
         const peer = await api.createPeer(answers)
 
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(peer.ref)
+        await wait(1000)
+        ux.action.stop(peer.ref)
       }
     } catch (e) {
       if (e.code === grpc.status.ALREADY_EXISTS) {
-        throw new CLIError("This Peer already exist")
+        throw new Errors.CLIError("This Peer already exist")
       } else {
-        throw new CLIError(e.message)
+        throw new Errors.CLIError(e.message)
       }
     }
   }
