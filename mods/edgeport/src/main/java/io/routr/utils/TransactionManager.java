@@ -35,6 +35,40 @@ public class TransactionManager {
   private final Map<String, Transaction> activeTransactions = new HashMap<>();
 
   /**
+   * Per-dialog CSeq offset accrued from proxy-initiated authentication retries (see
+   * AuthenticationHandler#handleAuthChallenge). Digest auth requires the UAC to
+   * increment CSeq on a challenged retry (RFC 3261 §22.2); when routr authenticates on
+   * the caller's behalf, it does that increment on the downstream leg alone, and the
+   * caller's own request stream never learns about it. Recorded here so every request
+   * forwarded afterward on this dialog — not just the ACK that immediately follows —
+   * can be shifted to match what the downstream side now expects.
+   */
+  private final Map<String, Integer> cseqOffsets = new HashMap<>();
+
+  /**
+   * Records that a dialog was silently re-authenticated, so its CSeq offset from the
+   * caller's numbering grows by one. Safe to call more than once for the same call:
+   * a dialog challenged again later (e.g. a re-INVITE) accrues a further +1, matching
+   * each additional increment JAIN-SIP applies on that leg.
+   *
+   * @param callId The call ID
+   */
+  public void recordAuthenticated(String callId) {
+    cseqOffsets.merge(callId, 1, Integer::sum);
+  }
+
+  /**
+   * Gets the accrued CSeq offset for a call, or 0 if it was never silently
+   * re-authenticated.
+   *
+   * @param callId The call ID
+   * @return The offset to add to that dialog's CSeq before forwarding a request
+   */
+  public int getCseqOffset(String callId) {
+    return cseqOffsets.getOrDefault(callId, 0);
+  }
+
+  /**
    * Stores a client and server transaction pair for a call.
    * 
    * @param callId The call ID
@@ -75,6 +109,7 @@ public class TransactionManager {
   public void removeTransactions(String callId) {
     activeTransactions.remove(callId + "_client");
     activeTransactions.remove(callId + "_server");
+    cseqOffsets.remove(callId);
   }
 
   /**

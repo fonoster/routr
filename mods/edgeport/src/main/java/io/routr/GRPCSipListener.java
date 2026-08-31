@@ -300,6 +300,9 @@ public class GRPCSipListener implements SipListener {
           if (newClientTransaction != null) {
             // Update activeTransactions with the new authenticated transaction
             transactionManager.updateClientTransaction(callId.getCallId(), newClientTransaction);
+            // The retry above incremented this dialog's CSeq on this leg alone; every
+            // later request forwarded on it must carry the same offset (see sendRequest).
+            transactionManager.recordAuthenticated(callId.getCallId());
           }
           return;
         }
@@ -435,24 +438,29 @@ public class GRPCSipListener implements SipListener {
     try {
       Request requestOut = RequestUpdater.updateRequest(request, headers);
       var callId = (CallIdHeader) requestOut.getHeader(CallIdHeader.NAME);
-      
+
       // Check if this is a WebSocket/WSS connection to prevent recursive loop
       boolean isWebSocket = TransportDetector.isWebSocketTransport(requestOut);
-      
+
+      // A proxy-initiated authentication retry on this dialog silently incremented
+      // CSeq on the downstream leg alone (see AuthenticationHandler#handleAuthChallenge
+      // and TransactionManager#recordAuthenticated); every request forwarded afterward
+      // must carry the same offset or the downstream side sees a CSeq it has already
+      // processed and rejects it — previously this was applied to the ACK that follows
+      // the retried INVITE, but no other in-dialog request (chiefly BYE), which left
+      // the call unable to be torn down and billing for time after the caller hung up.
+      int cseqOffset = transactionManager.getCseqOffset(callId.getCallId());
+      if (cseqOffset > 0) {
+        var cSeq = (CSeqHeader) requestOut.getHeader(CSeqHeader.NAME);
+        try {
+          cSeq.setSeqNumber(cSeq.getSeqNumber() + cseqOffset);
+        } catch (InvalidArgumentException e) {
+          LOG.debug("an exception occurred while applying the CSeq offset for callId: {}", callId, e);
+        }
+      }
+
       // Does not need a transaction
       if (requestOut.getMethod().equals(Request.ACK)) {
-        var transaction = transactionManager.getClientTransaction(callId.getCallId());
-        // If appData is set increase the CSeq for the Ack request
-        // This handles the case when proxy authenticates on behalf of caller
-        // After authentication, the INVITE CSeq is incremented, so ACK CSeq must also be incremented
-        if (transaction != null && transaction.getApplicationData() != null) {
-          var cSeq = (CSeqHeader) requestOut.getHeader(CSeqHeader.NAME);
-          try {
-            cSeq.setSeqNumber(cSeq.getSeqNumber() + 1);
-          } catch (InvalidArgumentException e) {
-            LOG.debug("an exception occurred while processing callId: {}", callId, e);
-          }
-        }
         SipMessageSender.sendRequest(this.sipProvider, requestOut, isWebSocket);
         return;
       }
