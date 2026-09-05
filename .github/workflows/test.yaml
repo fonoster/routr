@@ -1,0 +1,90 @@
+name: test
+
+# Runs the suites that gate a change. Until this workflow existed nothing ran on a pull
+# request, and the only enforcement was the (bypassable) .husky/pre-commit hook.
+#
+# Deliberately NOT gated here:
+#   - the @routr/ctl suite      -> its one test fails on oclif command discovery when run
+#                                  from the monorepo root ("command acl:get not found"),
+#                                  and the root glob below never matched it anyway
+#   - npm run test:integration  -> needs a live Redis
+#   - npm run test:graaljs      -> needs a GraalVM JAVA_HOME plus the jars from npm run setup
+#   - the SEET compliance suite -> needs the full compose stack; see release.yaml
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+# A newer push to the same branch makes an in-flight run obsolete.
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit tests, typecheck and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: npm
+
+      # npm ci, not npm install: the tree must match package-lock.json exactly. An
+      # npm install here silently drifts @oclif/core past the pinned 1.26.2, which
+      # breaks the @routr/ctl build with ~119 type errors.
+      - name: Install dependencies
+        run: npm ci
+
+      # The workspaces resolve to dist/ (@routr/common's main is dist/index) and there
+      # are no tsconfig path mappings back to src, so the suite needs a build first.
+      - name: Generate Prisma client
+        run: npm run generate --workspace=@routr/pgdata
+
+      - name: Build workspaces
+        run: npx lerna run build
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # The lint script carries --fix, which mutates the tree; CI must only report.
+      - name: Lint
+        run: npx eslint mods --ext .ts
+
+  java:
+    name: EdgePort and Requester tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Pinned to 17 on purpose: Mockito 5.1.1 cannot read Java 21 class files, and on a
+      # 21 JDK 20 of the 55 tests fail with ByteBuddy IllegalArgumentException rather
+      # than any real assertion failure.
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Java tests
+        run: ./gradlew test
+
+      - name: Upload test report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-test-report
+          path: mods/*/build/reports/tests/test
