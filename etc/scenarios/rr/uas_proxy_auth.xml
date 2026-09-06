@@ -67,9 +67,8 @@
     </action>
   </recv>
 
-  <!-- The caller sends "1 BYE"; the proxy-auth retry on this leg accrued a +1 CSeq
-       offset, so the forwarded BYE must arrive here as "2 BYE". The caller's own 200 OK
-       still echoes "1 BYE" (asserted in common/uac_invite.xml). -->
+  <!-- Caller sends "1 BYE"; the proxy-auth retry accrued a +1 offset on this leg. The
+       caller's own 200 OK still echoes "1 BYE" (see common/uac_invite.xml). -->
   <recv request="BYE">
     <action>
       <ereg regexp="2 BYE" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />

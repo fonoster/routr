@@ -351,12 +351,8 @@ public class GRPCSipListener implements SipListener {
           SipMessageSender.sendResponse(sipProvider, res, isWebSocket);
         }
       } else if (res.getHeader(ViaHeader.NAME) != null) {
-        // ResponseHelper#isTransactional only covers INVITE/MESSAGE/REGISTER, so an
-        // in-dialog BYE lands here and never reaches the CSeq restoration above. That
-        // was harmless while requests were forwarded untouched, but sendRequest now
-        // shifts them by this dialog's proxy-auth offset, and a response must echo the
-        // CSeq the caller actually sent (RFC 3261 §8.2.6.2). Undo the shift so the
-        // caller sees its own numbering back.
+        // BYE lands here (isTransactional covers only INVITE/MESSAGE/REGISTER) and so
+        // misses the CSeq restoration above. RFC 3261 §8.2.6.2: echo the caller's CSeq.
         restoreCallerCSeq(res);
 
         // For non-transactional responses, we need to check the Via header from the response
@@ -397,22 +393,16 @@ public class GRPCSipListener implements SipListener {
       var request = transaction.getRequest();
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
       if (callId != null) {
-        // Only release what this transaction still holds. A dialog's INVITE and its
-        // later BYE share one call ID, so clearing every slot here used to discard the
-        // BYE's server transaction while it was still in flight, leaving the response
-        // leg unable to restore the caller's original CSeq.
+        // Slots are keyed by call ID, which a dialog's INVITE and later BYE share, so
+        // release only what this transaction still holds.
         transactionManager.removeTransaction(callId.getCallId(), transaction);
       }
     }
   }
 
   /**
-   * Reverses the proxy-auth CSeq offset on a response before it goes back to the caller.
-   *
-   * sendRequest adds this dialog's offset to every request it forwards downstream, so the
-   * far end answers with the shifted number. The caller never saw that shift and would
-   * reject or mis-correlate a response whose CSeq does not match the request it sent.
-   * No-op for dialogs that were never silently re-authenticated.
+   * Reverses the proxy-auth CSeq offset sendRequest applied, so the caller sees the
+   * numbering it sent. No-op for dialogs never silently re-authenticated.
    *
    * @param res The response about to be sent back toward the caller
    */

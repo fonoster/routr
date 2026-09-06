@@ -101,11 +101,8 @@ public class TransactionManagerTest {
 
   @Test
   public void testTerminatingOneTransactionLeavesTheOtherLegInFlight() {
-    // Reproduces the response-leg regression: a dialog's INVITE and its later BYE share
-    // one call ID, so tearing down every slot when the INVITE terminated also discarded
-    // the BYE's server transaction. GRPCSipListener needs that server transaction to put
-    // the caller's original CSeq back on the 200 OK (RFC 3261 §8.2.6.2); without it the
-    // caller sent "1 BYE" and got "2 BYE" back.
+    // Reproduces the response-leg regression: the INVITE terminating used to discard the
+    // BYE's still-in-flight server transaction, which the response path needs.
     var manager = new TransactionManager();
     var inviteClientTx = mock(ClientTransaction.class);
     var byeServerTx = mock(ServerTransaction.class);

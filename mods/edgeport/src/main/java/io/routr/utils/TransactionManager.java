@@ -115,15 +115,9 @@ public class TransactionManager {
   /**
    * Removes only the slots still occupied by the transaction that just terminated.
    *
-   * A dialog reuses one call ID across several transactions (INVITE, then BYE), and the
-   * slots here are keyed by call ID alone, so clearing them wholesale when any one
-   * transaction ends also discards a different transaction that is still in flight.
-   * That is what broke the BYE's response leg: the INVITE terminating dropped the BYE's
-   * server transaction, and without it GRPCSipListener could no longer restore the
-   * caller's original CSeq on the 200 OK (RFC 3261 §8.2.6.2).
-   *
-   * The CSeq offset is dialog-scoped, so it is only released once neither slot for this
-   * call is occupied any more.
+   * Slots are keyed by call ID, which a dialog reuses across transactions, so clearing
+   * them wholesale discards a sibling that is still in flight. The CSeq offset is
+   * dialog-scoped and released only once neither slot is occupied.
    *
    * @param callId The call ID
    * @param terminated The transaction that reached the terminated state
