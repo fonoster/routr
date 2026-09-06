@@ -150,6 +150,33 @@ describe("@routr/processor/alterations", () => {
     expect(E.getHeaderValue(r, "user-agent")).to.be.null
   })
 
+  it("removes the canonical X-Edgeport-Ref extension", () => {
+    const withHeader = A.addXEdgePortRef(request)
+    expect(E.getHeaderValue(withHeader, CT.ExtraHeader.EDGEPORT_REF)).to.equal(
+      request.edgePortRef
+    )
+
+    const cleaned = A.removeXEdgePortRef(withHeader)
+    expect(E.getHeaderValue(cleaned, CT.ExtraHeader.EDGEPORT_REF)).to.be.null
+    expect(cleaned.message.extensions.find((ext) => ext.name === "CSeq")).to
+      .exist
+  })
+
+  it("strips X-Edgeport-Ref regardless of header-name case", () => {
+    const req = {
+      ...request,
+      message: {
+        ...request.message,
+        extensions: [
+          ...request.message.extensions,
+          { name: "x-edgeport-ref", value: "edgeport-01" }
+        ]
+      }
+    }
+    const cleaned = A.removeXEdgePortRef(req)
+    expect(E.getHeaderValue(cleaned, CT.ExtraHeader.EDGEPORT_REF)).to.be.null
+  })
+
   it("pipes alterations and checks the result", () => {
     const result = pipe(
       request,

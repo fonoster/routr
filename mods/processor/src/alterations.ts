@@ -281,7 +281,8 @@ export const removeXEdgePortRef = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
   req.message.extensions = req.message.extensions.filter(
     (ext: CommonTypes.Extension) =>
-      ext.name.toLowerCase() !== CommonTypes.ExtraHeader.EDGEPORT_REF
+      ext.name.toLowerCase() !==
+      CommonTypes.ExtraHeader.EDGEPORT_REF.toLowerCase()
   )
   return req
 }
