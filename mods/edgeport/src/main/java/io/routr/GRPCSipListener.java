@@ -351,6 +351,14 @@ public class GRPCSipListener implements SipListener {
           SipMessageSender.sendResponse(sipProvider, res, isWebSocket);
         }
       } else if (res.getHeader(ViaHeader.NAME) != null) {
+        // ResponseHelper#isTransactional only covers INVITE/MESSAGE/REGISTER, so an
+        // in-dialog BYE lands here and never reaches the CSeq restoration above. That
+        // was harmless while requests were forwarded untouched, but sendRequest now
+        // shifts them by this dialog's proxy-auth offset, and a response must echo the
+        // CSeq the caller actually sent (RFC 3261 §8.2.6.2). Undo the shift so the
+        // caller sees its own numbering back.
+        restoreCallerCSeq(res);
+
         // For non-transactional responses, we need to check the Via header from the response
         // Since we don't have the original request, we'll use a conservative approach
         boolean isWebSocket = false;
@@ -389,8 +397,42 @@ public class GRPCSipListener implements SipListener {
       var request = transaction.getRequest();
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
       if (callId != null) {
-        transactionManager.removeTransactions(callId.getCallId());
+        // Only release what this transaction still holds. A dialog's INVITE and its
+        // later BYE share one call ID, so clearing every slot here used to discard the
+        // BYE's server transaction while it was still in flight, leaving the response
+        // leg unable to restore the caller's original CSeq.
+        transactionManager.removeTransaction(callId.getCallId(), transaction);
       }
+    }
+  }
+
+  /**
+   * Reverses the proxy-auth CSeq offset on a response before it goes back to the caller.
+   *
+   * sendRequest adds this dialog's offset to every request it forwards downstream, so the
+   * far end answers with the shifted number. The caller never saw that shift and would
+   * reject or mis-correlate a response whose CSeq does not match the request it sent.
+   * No-op for dialogs that were never silently re-authenticated.
+   *
+   * @param res The response about to be sent back toward the caller
+   */
+  private void restoreCallerCSeq(final Response res) {
+    var callId = (CallIdHeader) res.getHeader(CallIdHeader.NAME);
+    var cSeq = (CSeqHeader) res.getHeader(CSeqHeader.NAME);
+
+    if (callId == null || cSeq == null) {
+      return;
+    }
+
+    int offset = transactionManager.getCseqOffset(callId.getCallId());
+    if (offset <= 0) {
+      return;
+    }
+
+    try {
+      cSeq.setSeqNumber(cSeq.getSeqNumber() - offset);
+    } catch (InvalidArgumentException e) {
+      LOG.debug("an exception occurred while restoring the CSeq for callId: {}", callId, e);
     }
   }
 

@@ -20,7 +20,11 @@ package io.routr.utils;
 
 import org.junit.jupiter.api.Test;
 
+import javax.sip.ClientTransaction;
+import javax.sip.ServerTransaction;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 /**
  * Covers the per-dialog CSeq offset added to track proxy-initiated authentication
@@ -93,5 +97,75 @@ public class TransactionManagerTest {
     manager.removeTransactions("call-2");
 
     assertEquals(1, manager.getCseqOffset("call-1"));
+  }
+
+  @Test
+  public void testTerminatingOneTransactionLeavesTheOtherLegInFlight() {
+    // Reproduces the response-leg regression: a dialog's INVITE and its later BYE share
+    // one call ID, so tearing down every slot when the INVITE terminated also discarded
+    // the BYE's server transaction. GRPCSipListener needs that server transaction to put
+    // the caller's original CSeq back on the 200 OK (RFC 3261 §8.2.6.2); without it the
+    // caller sent "1 BYE" and got "2 BYE" back.
+    var manager = new TransactionManager();
+    var inviteClientTx = mock(ClientTransaction.class);
+    var byeServerTx = mock(ServerTransaction.class);
+    manager.putTransactions("call-1", inviteClientTx, byeServerTx);
+
+    manager.removeTransaction("call-1", inviteClientTx);
+
+    assertNull(manager.getClientTransaction("call-1"));
+    assertSame(byeServerTx, manager.getServerTransaction("call-1"));
+  }
+
+  @Test
+  public void testOffsetSurvivesWhileAnotherTransactionOnTheDialogIsStillInFlight() {
+    var manager = new TransactionManager();
+    var inviteClientTx = mock(ClientTransaction.class);
+    var byeServerTx = mock(ServerTransaction.class);
+    manager.putTransactions("call-1", inviteClientTx, byeServerTx);
+    manager.recordAuthenticated("call-1");
+
+    manager.removeTransaction("call-1", inviteClientTx);
+
+    assertEquals(1, manager.getCseqOffset("call-1"));
+  }
+
+  @Test
+  public void testOffsetIsReleasedOnceTheDialogHasNoTransactionsLeft() {
+    var manager = new TransactionManager();
+    var clientTx = mock(ClientTransaction.class);
+    var serverTx = mock(ServerTransaction.class);
+    manager.putTransactions("call-1", clientTx, serverTx);
+    manager.recordAuthenticated("call-1");
+
+    manager.removeTransaction("call-1", clientTx);
+    manager.removeTransaction("call-1", serverTx);
+
+    assertEquals(0, manager.getCseqOffset("call-1"));
+  }
+
+  @Test
+  public void testRemoveTransactionIgnoresATransactionItDoesNotHold() {
+    var manager = new TransactionManager();
+    var heldTx = mock(ClientTransaction.class);
+    var strayTx = mock(ClientTransaction.class);
+    manager.putTransactions("call-1", heldTx, null);
+    manager.recordAuthenticated("call-1");
+
+    manager.removeTransaction("call-1", strayTx);
+
+    assertSame(heldTx, manager.getClientTransaction("call-1"));
+    assertEquals(1, manager.getCseqOffset("call-1"));
+  }
+
+  @Test
+  public void testRemoveTransactionToleratesANullTransaction() {
+    var manager = new TransactionManager();
+    var clientTx = mock(ClientTransaction.class);
+    manager.putTransactions("call-1", clientTx, null);
+
+    manager.removeTransaction("call-1", null);
+
+    assertSame(clientTx, manager.getClientTransaction("call-1"));
   }
 }

@@ -103,13 +103,48 @@ public class TransactionManager {
 
   /**
    * Removes transactions for a call.
-   * 
+   *
    * @param callId The call ID
    */
   public void removeTransactions(String callId) {
     activeTransactions.remove(callId + "_client");
     activeTransactions.remove(callId + "_server");
     cseqOffsets.remove(callId);
+  }
+
+  /**
+   * Removes only the slots still occupied by the transaction that just terminated.
+   *
+   * A dialog reuses one call ID across several transactions (INVITE, then BYE), and the
+   * slots here are keyed by call ID alone, so clearing them wholesale when any one
+   * transaction ends also discards a different transaction that is still in flight.
+   * That is what broke the BYE's response leg: the INVITE terminating dropped the BYE's
+   * server transaction, and without it GRPCSipListener could no longer restore the
+   * caller's original CSeq on the 200 OK (RFC 3261 §8.2.6.2).
+   *
+   * The CSeq offset is dialog-scoped, so it is only released once neither slot for this
+   * call is occupied any more.
+   *
+   * @param callId The call ID
+   * @param terminated The transaction that reached the terminated state
+   */
+  public void removeTransaction(String callId, Transaction terminated) {
+    if (terminated == null) {
+      return;
+    }
+
+    if (activeTransactions.get(callId + "_client") == terminated) {
+      activeTransactions.remove(callId + "_client");
+    }
+
+    if (activeTransactions.get(callId + "_server") == terminated) {
+      activeTransactions.remove(callId + "_server");
+    }
+
+    if (!activeTransactions.containsKey(callId + "_client")
+        && !activeTransactions.containsKey(callId + "_server")) {
+      cseqOffsets.remove(callId);
+    }
   }
 
   /**
