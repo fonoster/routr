@@ -434,6 +434,13 @@ For contributing, please see the following links:
         </a>
     </td>
     <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/vikas-prasad-cx>
+            <img src=https://avatars.githubusercontent.com/u/254159906?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Vikas Prasad/>
+            <br />
+            <sub style="font-size:14px"><b>Vikas Prasad</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
         <a href=https://github.com/luzpaz>
             <img src=https://avatars.githubusercontent.com/u/4140247?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=luzpaz/>
             <br />
