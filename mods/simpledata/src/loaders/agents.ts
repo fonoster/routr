@@ -34,8 +34,8 @@ export function agentsLoader(
     list
   ) as CC.Credentials
 
-  // maxContacts -1 means no limit
-  agent.maxContacts = agent.maxContacts || -1
+  // maxContacts -1 means no limit; 0 is a hard limit (no contacts)
+  agent.maxContacts = agent.maxContacts ?? -1
 
   return agent
 }

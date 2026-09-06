@@ -279,6 +279,21 @@ describe("@routr/location", () => {
       .to.be.equal("conference01")
   })
 
+  it("rejects the first new route when maxContacts is zero", async () => {
+    const locator = new Locator(new MemoryStore())
+
+    try {
+      await locator.addRoute({
+        aor: "sip:voice@sip.local",
+        route: Routes.voiceBackendRoute01,
+        maxContacts: 0
+      })
+      throw new Error("Test failed - no error thrown")
+    } catch (error) {
+      expect(error.message).to.equal("exceeds maximum of 0 allowed contacts")
+    }
+  })
+
   it("checks if maxContacts has been reached (passing a different route)", async () => {
     const locator = new Locator(new MemoryStore())
     await locator.addRoute({
