@@ -56,6 +56,46 @@ describe("@routr/processor/alterations", () => {
       .to.be.equal(route.transport)
   })
 
+  // The original dialed identifier (e.g. a PSTN DID) as it arrives in the
+  // Request-URI before fixRequestURI runs.
+  const dialedNumber = "17853178070"
+  const requestWithDialedNumber = {
+    ...request,
+    message: {
+      ...request.message,
+      requestUri: { ...request.message.requestUri, user: dialedNumber }
+    }
+  }
+
+  it("rewrites the request uri user with the route user for a registered route", () => {
+    const r = A.fixRequestURI(route)(requestWithDialedNumber)
+    expect(r)
+      .to.have.property("message")
+      .to.have.property("requestUri")
+      .to.have.property("user")
+      .to.be.equal(route.user)
+  })
+
+  it("keeps the original request uri user when route.user is falsy (outbound trunk)", () => {
+    const r = A.fixRequestURI({ ...route, user: "" })(requestWithDialedNumber)
+    expect(r)
+      .to.have.property("message")
+      .to.have.property("requestUri")
+      .to.have.property("user")
+      .to.be.equal(dialedNumber)
+  })
+
+  it("keeps the original request uri user when the route is not registered", () => {
+    const r = A.fixRequestURI({ ...route, registeredOn: undefined })(
+      requestWithDialedNumber
+    )
+    expect(r)
+      .to.have.property("message")
+      .to.have.property("requestUri")
+      .to.have.property("user")
+      .to.be.equal(dialedNumber)
+  })
+
   it("updates the value of the max forwards header", () => {
     const r = A.decreaseMaxForwards(request)
     expect(r)
