@@ -27,10 +27,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 /**
- * Covers the per-dialog CSeq offset added to track proxy-initiated authentication
- * retries (see GRPCSipListener#sendRequest). Deliberately no SIP-stack mocking: this
- * state is plain call-id -> counter bookkeeping, independent of the transaction
- * objects the rest of TransactionManager stores.
+ * Covers the per-dialog CSeq offset and per-call+method original CSeq recordings used
+ * to track proxy-initiated authentication retries (see GRPCSipListener#sendRequest and
+ * #restoreCallerCSeq). Deliberately no SIP-stack mocking where avoidable: this state is
+ * plain call-id -> value bookkeeping, independent of the transaction objects the rest
+ * of TransactionManager stores.
  */
 public class TransactionManagerTest {
 
@@ -74,27 +75,11 @@ public class TransactionManagerTest {
   }
 
   @Test
-  public void testRemoveTransactionsClearsTheOffsetSoItCannotLeak() {
-    // TransactionManager is long-lived for the process, so a call-id whose offset is
-    // never cleared on dialog end would accumulate forever. removeTransactions is
-    // already the hook GRPCSipListener calls on timeout/transaction-terminated; the
-    // offset must be cleared there rather than needing a separate cleanup call site.
-    var manager = new TransactionManager();
-    manager.putTransactions("call-1", null, null);
-    manager.recordAuthenticated("call-1");
-
-    manager.removeTransactions("call-1");
-
-    assertEquals(0, manager.getCseqOffset("call-1"));
-    assertNull(manager.getClientTransaction("call-1"));
-  }
-
-  @Test
-  public void testRemoveTransactionsOnAnUnrelatedCallDoesNotClearThisOne() {
+  public void testRemoveDialogOnAnUnrelatedCallDoesNotClearThisOne() {
     var manager = new TransactionManager();
     manager.recordAuthenticated("call-1");
 
-    manager.removeTransactions("call-2");
+    manager.removeDialog("call-2");
 
     assertEquals(1, manager.getCseqOffset("call-1"));
   }
@@ -128,7 +113,10 @@ public class TransactionManagerTest {
   }
 
   @Test
-  public void testOffsetIsReleasedOnceTheDialogHasNoTransactionsLeft() {
+  public void testOffsetOutlivesEveryTransactionOnTheDialog() {
+    // The INVITE transactions terminate seconds after answer, but the BYE that still
+    // needs the offset can arrive minutes later — and its response needs the offset
+    // subtracted back off again. Releasing on an empty slot count drops it mid-call.
     var manager = new TransactionManager();
     var clientTx = mock(ClientTransaction.class);
     var serverTx = mock(ServerTransaction.class);
@@ -138,7 +126,30 @@ public class TransactionManagerTest {
     manager.removeTransaction("call-1", clientTx);
     manager.removeTransaction("call-1", serverTx);
 
+    assertEquals(1, manager.getCseqOffset("call-1"));
+  }
+
+  @Test
+  public void testRemoveDialogReleasesTheOffset() {
+    var manager = new TransactionManager();
+    manager.recordAuthenticated("call-1");
+
+    manager.removeDialog("call-1");
+
     assertEquals(0, manager.getCseqOffset("call-1"));
+  }
+
+  @Test
+  public void testAReleasedDialogDoesNotAccrueOntoItsOldOffset() {
+    // A leaked offset is not just wasted memory: the next dialog on that call ID
+    // accrues on top of it and every request gets shifted by too much.
+    var manager = new TransactionManager();
+    manager.recordAuthenticated("call-1");
+    manager.removeDialog("call-1");
+
+    manager.recordAuthenticated("call-1");
+
+    assertEquals(1, manager.getCseqOffset("call-1"));
   }
 
   @Test
@@ -164,5 +175,66 @@ public class TransactionManagerTest {
     manager.removeTransaction("call-1", null);
 
     assertSame(clientTx, manager.getClientTransaction("call-1"));
+  }
+
+  @Test
+  public void testOriginalCseqDefaultsToMinusOneForAnUnknownCall() {
+    var manager = new TransactionManager();
+
+    assertEquals(-1, manager.getOriginalCSeq("call-1", "BYE"));
+  }
+
+  @Test
+  public void testRecordedOriginalCseqIsRetrievedByCallAndMethod() {
+    var manager = new TransactionManager();
+
+    manager.recordOriginalCSeq("call-1", "BYE", 1);
+
+    assertEquals(1, manager.getOriginalCSeq("call-1", "BYE"));
+  }
+
+  @Test
+  public void testOriginalCseqIsTrackedIndependentlyPerMethod() {
+    // A dialog has separate CSeq spaces per in-flight request, e.g. an INVITE and a
+    // BYE racing each other, so one method's recording must not shadow another's.
+    var manager = new TransactionManager();
+
+    manager.recordOriginalCSeq("call-1", "INVITE", 4);
+    manager.recordOriginalCSeq("call-1", "BYE", 1);
+
+    assertEquals(4, manager.getOriginalCSeq("call-1", "INVITE"));
+    assertEquals(1, manager.getOriginalCSeq("call-1", "BYE"));
+  }
+
+  @Test
+  public void testRemoveOriginalCseqClearsIt() {
+    var manager = new TransactionManager();
+    manager.recordOriginalCSeq("call-1", "BYE", 1);
+
+    manager.removeOriginalCSeq("call-1", "BYE");
+
+    assertEquals(-1, manager.getOriginalCSeq("call-1", "BYE"));
+  }
+
+  @Test
+  public void testRemoveDialogClearsTheOriginalCseqForEveryMethodOnThatCall() {
+    var manager = new TransactionManager();
+    manager.recordOriginalCSeq("call-1", "INVITE", 4);
+    manager.recordOriginalCSeq("call-1", "BYE", 1);
+
+    manager.removeDialog("call-1");
+
+    assertEquals(-1, manager.getOriginalCSeq("call-1", "INVITE"));
+    assertEquals(-1, manager.getOriginalCSeq("call-1", "BYE"));
+  }
+
+  @Test
+  public void testRemoveDialogOnAnUnrelatedCallDoesNotClearTheOriginalCseq() {
+    var manager = new TransactionManager();
+    manager.recordOriginalCSeq("call-1", "BYE", 1);
+
+    manager.removeDialog("call-2");
+
+    assertEquals(1, manager.getOriginalCSeq("call-1", "BYE"));
   }
 }
