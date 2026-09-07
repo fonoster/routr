@@ -564,8 +564,20 @@ public class GRPCSipListener implements SipListener {
   private void sendCancel(final ServerTransaction serverTransaction, final Request request) {
     try {
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+      if (callId == null) {
+        return;
+      }
+
       var originalClientTransaction = transactionManager.getClientTransaction(callId.getCallId());
       var originalServerTransaction = transactionManager.getServerTransaction(callId.getCallId());
+
+      // A CANCEL for a call we no longer hold: unknown Call-ID, or one racing the final
+      // response that freed these slots. Dereferencing them here would throw an NPE,
+      // which the catch below does not cover, onto the JAIN-SIP stack thread.
+      if (originalClientTransaction == null || originalServerTransaction == null) {
+        LOG.debug("no transaction to cancel for callId: {}", callId);
+        return;
+      }
 
       // Check if this is a WebSocket/WSS connection to prevent recursive loop
       boolean isWebSocket = TransportDetector.isWebSocketTransport(request);
@@ -577,14 +589,11 @@ public class GRPCSipListener implements SipListener {
 
       SipMessageSender.sendResponse(serverTransaction, cancelResponse, isWebSocket);
 
-      // Send CANCEL request to destination
-      var cseq = ((CSeqHeader) originalServerTransaction.getRequest().getHeader(CSeqHeader.NAME)).getSeqNumber();
-      var cseqHeader = this.headerFactory.createCSeqHeader(
-          cseq,
-          Request.CANCEL);
-
+      // Send CANCEL request to destination. createCancel copies CSeq from the INVITE on
+      // this leg, which is what RFC 3261 section 9.1 requires them to match on. Do not
+      // overwrite it with the caller's number: a proxy-auth retry shifts this leg past
+      // the caller's numbering, and the far end answers 481 to a CANCEL that disagrees.
       var cancelRequest = originalClientTransaction.createCancel();
-      cancelRequest.setHeader(cseqHeader);
       var clientTransaction = this.sipProvider.getNewClientTransaction(
           cancelRequest);
 

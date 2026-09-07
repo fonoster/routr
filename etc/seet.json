@@ -478,6 +478,48 @@
     ]
   },
   {
+    "name": "RR.Tst.Plan.1.1.5: Verification of CANCEL CSeq when Proxy authenticates on behalf of caller",
+    "description": "This test case verifies that the CSeq in the CANCEL matches the CSeq in the INVITE it cancels when the Proxy has re-authenticated on the caller's behalf.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_proxy_auth_caller_cancel.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_caller_cancel.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:17853178070@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:17853178070@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "RR.Tst.Plan.1.2.1: Call Declined by Service Provider in Agent to PSTN routing",
     "description": "This test verifies that Routr correctly routes a declined response from the Service Provider",
     "transportMode": "u1",
