@@ -34,6 +34,9 @@ export const fixRequestURI =
   (route: Route) =>
   (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
+    if (route.registeredOn && route.user) {
+      req.message.requestUri.user = route.user
+    }
     req.message.requestUri.host = route.host
     req.message.requestUri.port = route.port
     req.message.requestUri.transportParam = route.transport
