@@ -300,6 +300,9 @@ public class GRPCSipListener implements SipListener {
           if (newClientTransaction != null) {
             // Update activeTransactions with the new authenticated transaction
             transactionManager.updateClientTransaction(callId.getCallId(), newClientTransaction);
+            // The retry above incremented this dialog's CSeq on this leg alone; every
+            // later request forwarded on it must carry the same offset (see sendRequest).
+            transactionManager.recordAuthenticated(callId.getCallId());
           }
           return;
         }
@@ -345,9 +348,16 @@ public class GRPCSipListener implements SipListener {
           res.setHeader(originalCSeq);
           SipMessageSender.sendResponse(originalServerTransaction, res, isWebSocket);
         } else if (res.getHeader(ViaHeader.NAME) != null) {
+          // No server transaction left to copy the caller's CSeq from, so fall back
+          // to the recorded original the same way the non-transactional branch does.
+          restoreCallerCSeq(res);
           SipMessageSender.sendResponse(sipProvider, res, isWebSocket);
         }
       } else if (res.getHeader(ViaHeader.NAME) != null) {
+        // BYE lands here (isTransactional covers only INVITE/MESSAGE/REGISTER) and so
+        // misses the CSeq restoration above. RFC 3261 §8.2.6.2: echo the caller's CSeq.
+        restoreCallerCSeq(res);
+
         // For non-transactional responses, we need to check the Via header from the response
         // Since we don't have the original request, we'll use a conservative approach
         boolean isWebSocket = false;
@@ -358,10 +368,37 @@ public class GRPCSipListener implements SipListener {
         }
         SipMessageSender.sendResponse(sipProvider, res, isWebSocket);
       }
+
+      releaseDialogIfEnded(res);
     } catch (SipException | InvalidArgumentException | ParseException e) {
       var req = event.getClientTransaction().getRequest();
       var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
       LOG.debug("an exception occurred while processing response with callId: {}", callId, e);
+    }
+  }
+
+  /**
+   * Drops a dialog's CSeq bookkeeping once the dialog is provably over.
+   *
+   * processDialogTerminated never fires for these dialogs, so depending on it leaks one
+   * cseqOffsets entry per proxy-authenticated call for the life of the process. An
+   * answered BYE or a failed INVITE both mean nothing further will be forwarded on this
+   * call. Runs after the response is sent: restoring its CSeq needs the state released
+   * here.
+   *
+   * @param res The response just relayed toward the caller
+   */
+  private void releaseDialogIfEnded(final Response res) {
+    if (res.getStatusCode() < 200) {
+      return;
+    }
+
+    var ended = ResponseHelper.hasMethod(res, Request.BYE)
+        || (ResponseHelper.hasMethod(res, Request.INVITE) && res.getStatusCode() >= 300);
+    var callId = (CallIdHeader) res.getHeader(CallIdHeader.NAME);
+
+    if (ended && callId != null) {
+      transactionManager.removeDialog(callId.getCallId());
     }
   }
 
@@ -373,7 +410,8 @@ public class GRPCSipListener implements SipListener {
       var request = transaction.getRequest();
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
       if (callId != null) {
-        transactionManager.removeTransactions(callId.getCallId());
+        // Same sibling-in-flight caveat as processTransactionTerminated below.
+        transactionManager.removeTransaction(callId.getCallId(), transaction);
       }
     }
   }
@@ -386,13 +424,57 @@ public class GRPCSipListener implements SipListener {
       var request = transaction.getRequest();
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
       if (callId != null) {
-        transactionManager.removeTransactions(callId.getCallId());
+        // Slots are keyed by call ID, which a dialog's INVITE and later BYE share, so
+        // release only what this transaction still holds.
+        transactionManager.removeTransaction(callId.getCallId(), transaction);
       }
     }
   }
 
+  /**
+   * Puts the caller's own CSeq back on a response whose request sendRequest had shifted
+   * by the dialog's proxy-auth offset.
+   *
+   * Looks up the number sendRequest recorded rather than deriving it (by subtracting
+   * the offset, or by copying from the server transaction): both alternatives depend
+   * on shared state whose lifetime races response handling once the call runs long
+   * enough. No-op unless a matching call+method was recorded.
+   *
+   * @param res The response about to be sent back toward the caller
+   */
+  private void restoreCallerCSeq(final Response res) {
+    var callId = (CallIdHeader) res.getHeader(CallIdHeader.NAME);
+    var cSeq = (CSeqHeader) res.getHeader(CSeqHeader.NAME);
+
+    if (callId == null || cSeq == null) {
+      return;
+    }
+
+    var originalSeqNumber = transactionManager.getOriginalCSeq(callId.getCallId(), cSeq.getMethod());
+    if (originalSeqNumber < 0) {
+      return;
+    }
+
+    try {
+      cSeq.setSeqNumber(originalSeqNumber);
+    } catch (InvalidArgumentException e) {
+      LOG.debug("an exception occurred while restoring the CSeq for callId: {}", callId, e);
+    }
+
+    // Final response: nothing else will consume this recording, so drop it now
+    // rather than waiting for dialog teardown.
+    if (res.getStatusCode() >= 200) {
+      transactionManager.removeOriginalCSeq(callId.getCallId(), cSeq.getMethod());
+    }
+  }
+
   public void processDialogTerminated(final DialogTerminatedEvent event) {
-    // no-op
+    // Belt and braces: observed never to fire for proxied dialogs, which is why
+    // releaseDialogIfEnded exists. Harmless if a future stack version does fire it.
+    var dialog = event.getDialog();
+    if (dialog != null && dialog.getCallId() != null) {
+      transactionManager.removeDialog(dialog.getCallId().getCallId());
+    }
   }
 
   public void processIOException(final IOExceptionEvent event) {
@@ -435,24 +517,33 @@ public class GRPCSipListener implements SipListener {
     try {
       Request requestOut = RequestUpdater.updateRequest(request, headers);
       var callId = (CallIdHeader) requestOut.getHeader(CallIdHeader.NAME);
-      
+
       // Check if this is a WebSocket/WSS connection to prevent recursive loop
       boolean isWebSocket = TransportDetector.isWebSocketTransport(requestOut);
-      
+
+      // A proxy-initiated authentication retry on this dialog silently incremented
+      // CSeq on the downstream leg alone (see AuthenticationHandler#handleAuthChallenge
+      // and TransactionManager#recordAuthenticated); every request forwarded afterward
+      // must carry the same offset or the downstream side sees a CSeq it has already
+      // processed and rejects it — previously this was applied to the ACK that follows
+      // the retried INVITE, but no other in-dialog request (chiefly BYE), which left
+      // the call unable to be torn down and billing for time after the caller hung up.
+      int cseqOffset = transactionManager.getCseqOffset(callId.getCallId());
+      if (cseqOffset > 0) {
+        var cSeq = (CSeqHeader) requestOut.getHeader(CSeqHeader.NAME);
+        try {
+          // Capture the caller's number before shifting it so the response can be
+          // restored later regardless of how long the offset/transaction bookkeeping
+          // this call also relies on survives (see restoreCallerCSeq).
+          transactionManager.recordOriginalCSeq(callId.getCallId(), cSeq.getMethod(), cSeq.getSeqNumber());
+          cSeq.setSeqNumber(cSeq.getSeqNumber() + cseqOffset);
+        } catch (InvalidArgumentException e) {
+          LOG.debug("an exception occurred while applying the CSeq offset for callId: {}", callId, e);
+        }
+      }
+
       // Does not need a transaction
       if (requestOut.getMethod().equals(Request.ACK)) {
-        var transaction = transactionManager.getClientTransaction(callId.getCallId());
-        // If appData is set increase the CSeq for the Ack request
-        // This handles the case when proxy authenticates on behalf of caller
-        // After authentication, the INVITE CSeq is incremented, so ACK CSeq must also be incremented
-        if (transaction != null && transaction.getApplicationData() != null) {
-          var cSeq = (CSeqHeader) requestOut.getHeader(CSeqHeader.NAME);
-          try {
-            cSeq.setSeqNumber(cSeq.getSeqNumber() + 1);
-          } catch (InvalidArgumentException e) {
-            LOG.debug("an exception occurred while processing callId: {}", callId, e);
-          }
-        }
         SipMessageSender.sendRequest(this.sipProvider, requestOut, isWebSocket);
         return;
       }

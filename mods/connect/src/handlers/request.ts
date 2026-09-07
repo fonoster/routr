@@ -50,7 +50,21 @@ export const handleRequest =
       const req = Environment.ENFORCE_E164 ? enforceE164(request) : request
       let route
 
-      if (E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF)) {
+      // A CANCEL must follow the exact path its INVITE took (RFC 3261 §9.1) — it is
+      // never a new call to route. edgeport already forwards it correctly, straight
+      // from the INVITE's own client transaction (GRPCSipListener#sendCancel), which
+      // does not use the route this handler computes for CANCEL at all; it only needs
+      // a non-error response to reach that logic. Routing it fresh through
+      // peerToPSTN/agentToPSTN re-applies checks meant for a NEW call — chiefly
+      // peerToPSTN's required X-DOD-Number header, which Asterisk's CANCEL does not
+      // carry (only the original INVITE does) — and rejects it with a 400 that never
+      // reaches edgeport's already-correct CANCEL handling. The result: the CANCEL is
+      // silently dropped, the call keeps ringing, and if the callee answers a moment
+      // later they connect into a line the caller has already abandoned.
+      if (
+        E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF) ||
+        req.method === CT.Method.CANCEL
+      ) {
         route = H.createRouteFromLastMessage(req)
       } else {
         const routerResult = await router(location, apiClient)(req)

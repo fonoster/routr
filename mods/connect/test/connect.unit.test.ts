@@ -22,6 +22,7 @@ import sinonChai from "sinon-chai"
 import { request, route } from "@routr/processor/test/examples"
 import {
   MessageRequest,
+  Method,
   Route,
   Transport,
   CommonTypes,
@@ -106,6 +107,65 @@ describe("@routr/connect", () => {
     expect(getHeaderValue).to.have.been.calledTwice
     expect(createRouteFromLastMessage).to.have.been.calledOnce
     expect(findRoutes).to.not.have.been.called
+  })
+
+  it("routes a CANCEL via the last-message fast path, without EDGEPORT_REF", async () => {
+    // A CANCEL must follow the exact path its INVITE took (RFC 3261 §9.1). It should
+    // never be routed as a new call, whether or not it happens to carry EDGEPORT_REF —
+    // Asterisk sends it directly, so it never does.
+    const req = { ...request, method: Method.CANCEL }
+    const createRouteFromLastMessage = sandbox.spy(
+      H,
+      "createRouteFromLastMessage"
+    )
+    const location = { findRoutes: () => [route] }
+    const findRoutes = sandbox.spy(location, "findRoutes")
+    const response = {
+      send: () => {
+        // noop
+      }
+    } as unknown as Response
+
+    await handleRequest(location as unknown as ILocationService)(req, response)
+
+    expect(createRouteFromLastMessage).to.have.been.calledOnce
+    expect(findRoutes).to.not.have.been.called
+  })
+
+  it("REGRESSION: a peer-to-pstn CANCEL with no X-Dod-Number is not rejected", async () => {
+    // Reproduces the 2026-08-30 incident: Asterisk's CANCEL for a peer-to-pstn call
+    // carries no X-Dod-Number — only the INVITE does — so routing it as a fresh call
+    // hit peerToPSTN's required-header check and came back 400. The CANCEL was
+    // dropped, the call kept ringing, and answering a moment later connected into a
+    // line the caller had already abandoned. The equivalent INVITE is legitimately
+    // rejected by the existing "returns Bad Request..." test below; this asserts the
+    // CANCEL is not, because it must never reach that check at all.
+    const req: MessageRequest = {
+      ...createRequest({
+        fromUser: "asterisk",
+        fromDomain: "unknown.com",
+        toUser: "+17853178070",
+        toDomain: "unknown.com"
+        // dodNumber intentionally omitted, as on Asterisk's real CANCEL
+      }),
+      method: Method.CANCEL
+    }
+    let sent: unknown
+    const response = {
+      send: (message: unknown) => {
+        sent = message
+      }
+    } as unknown as Response
+
+    await handleRequest(locationAPI, apiClient)(req, response)
+
+    // A rejection comes back as { message: { responseType, reasonPhrase } }
+    // (createBadRequestResponse); a forwarded CANCEL is a full MessageRequest, whose
+    // .message is the SIP message itself and carries no responseType at all.
+    expect(sent).to.have.property("message")
+    expect(
+      (sent as { message: { responseType?: string } }).message
+    ).to.not.have.property("responseType")
   })
 
   it("handles a request from agent to agent in the same domain", async () => {
