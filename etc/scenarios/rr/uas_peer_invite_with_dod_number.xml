@@ -41,9 +41,16 @@
     ]]>
   </send>
 
+  <!-- The caller's authenticated INVITE goes out downstream as "2 INVITE" and is not
+       challenged again on this leg, so its ACK is "2 ACK" (RFC 3261 section 13.2.2.4:
+       the ACK for a 2xx carries the INVITE's CSeq). This asserted "3 ACK" until routr
+       2.15.1: edgeport used to add a blind +1 to any forwarded ACK whose transaction
+       carried gateway credentials, whether or not a 401 ever came back. That was fixed
+       to key the offset off an actual challenge (RR.Tst.Plan.1.1.1 / 1.1.5 cover the
+       case where the offset does apply). -->
   <recv request="ACK">
     <action>
-      <ereg regexp="3 ACK" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
+      <ereg regexp="2 ACK" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
     </action>
   </recv>
 
