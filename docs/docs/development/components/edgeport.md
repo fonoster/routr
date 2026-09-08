@@ -126,6 +126,7 @@ The EdgePort provides the following environment variables as a convenient way to
 - `PROCESSOR_ADDR` - Overwrites the `spec.processor.addr` property
 - `HOSTNAME` - Overwrites the `ref` property. If running in K8s, `ref` will be set to the pod's hostname.
 - `IGNORE_LOOPBACK_FROM_LOCALNETS` - If set to `true`, the EdgePort will ignore the loopback address from the `localnets` property. In Docker deployments, this is set to `true` by default.
+- `STRIP_SESSION_PROGRESS_SDP` - If set to `true`, the EdgePort removes the SDP body (and the `Content-Type` header) from every `183 Session Progress` response before forwarding it. Intended for WebRTC-to-PSTN deployments bridged through RTPEngine, where the early-media answer in a `183` is not rewritten for the browser and causes the WebRTC client to reject the call (e.g. Chrome's `SDP without DTLS fingerprint`). Note that this also suppresses legitimate early media for the caller (network ringback, pre-answer announcements, IVR prompts); post-answer media on the `200 OK` is unaffected. Defaults to `false`.
 - `CONSOLE_PUBLISHER_ENABLED` - If set to `true`, the EdgePort will publish SIP messages to the console publisher. Useful for debugging purposes. 
 - `NATS_PUBLISHER_ENABLED` - If set to `true`, the EdgePort will publish SIP messages to the NATS publisher.
 - `NATS_PUBLISHER_SUBJECT` - Overwrites the default subject the NATS publisher uses. The default subject is `routr`.
