@@ -99,18 +99,39 @@ jobs:
   compliance:
     name: SIP Connect v1.1 compliance (SEET)
     runs-on: ubuntu-latest
-    # The suite itself runs ~8 min; the rest is the compose build. Keep some headroom
-    # over release.yaml's 20 so a slow runner reports the SEET failure rather than a
-    # bare timeout.
-    timeout-minutes: 30
+    # npm run make ~5 min + compose build ~6 min + settle + the suite itself ~8 min.
+    # Headroom over that so a slow runner reports the SEET failure, not a bare timeout.
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Same sequence release.yaml uses: build every image from the local context
-      # (compose.dev.yaml overrides each service with a build:) so the run tests this
-      # commit, bring the stack up, give edgeport's JVM and the data services time to
-      # settle, then run the compliance container on its own and take its exit code.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: npm
+
+      # gradle build copyRuntimeLibs (run by npm run setup) needs a JDK. Pinned to 17
+      # for the same reason the java job is.
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      # compose.dev.yaml builds edgeport/requester from mods/*/libs, which are
+      # .gitignored and produced by the gradle side of the build. Without this the
+      # compose build fails at `COPY mods/edgeport/libs` with "not found". Same step
+      # release.yaml runs before its compliance step.
+      - name: Build project
+        run: npm run make
+
+      # Build every image from the local context (compose.dev.yaml overrides each
+      # service with a build:) so the run tests this commit, bring the stack up, give
+      # edgeport's JVM and the data services time to settle, then run the compliance
+      # container on its own and take its exit code.
       - name: Bring up the stack
         run: |
           docker compose -f compose.yaml -f compose.dev.yaml up --build -d
