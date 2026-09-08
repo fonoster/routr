@@ -9,13 +9,20 @@ name: test
 #                                  and the root glob below never matched it anyway
 #   - npm run test:integration  -> needs a live Redis
 #   - npm run test:graaljs      -> needs a GraalVM JAVA_HOME plus the jars from npm run setup
-#   - the SEET compliance suite -> needs the full compose stack; see release.yaml
+#
+# The SEET compliance suite runs in the `compliance` job below. It stands up the full
+# compose stack and drives it with SIPp, so it is slower and heavier than the other
+# jobs; it used to run only at release time (release.yaml), which meant a routing or
+# CSeq regression was not caught until a release was already half-published.
 
 on:
   pull_request:
   push:
     branches:
       - main
+  # Lets a branch's compliance run be kicked off (or re-run) by hand, e.g.
+  #   gh workflow run test.yaml --ref <branch>
+  workflow_dispatch:
 
 # A newer push to the same branch makes an in-flight run obsolete.
 concurrency:
@@ -88,3 +95,63 @@ jobs:
         with:
           name: java-test-report
           path: mods/*/build/reports/tests/test
+
+  compliance:
+    name: SIP Connect v1.1 compliance (SEET)
+    runs-on: ubuntu-latest
+    # The suite itself runs ~8 min; the rest is the compose build. Keep some headroom
+    # over release.yaml's 20 so a slow runner reports the SEET failure rather than a
+    # bare timeout.
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Same sequence release.yaml uses: build every image from the local context
+      # (compose.dev.yaml overrides each service with a build:) so the run tests this
+      # commit, bring the stack up, give edgeport's JVM and the data services time to
+      # settle, then run the compliance container on its own and take its exit code.
+      - name: Bring up the stack
+        run: |
+          docker compose -f compose.yaml -f compose.dev.yaml up --build -d
+          sleep 60
+          docker compose -f compose.yaml -f compose.dev.yaml ps
+
+      - name: Run the compliance suite
+        run: >
+          docker compose -f compose.yaml -f compose.dev.yaml up
+          --abort-on-container-exit --exit-code-from compliance compliance
+
+      # SEET only prints "UAS failed. See logs for more details" on a failure; the SIPp
+      # message/error traces it means are written to / inside the compliance container,
+      # which has exited but not been removed. Pull them out so a failing run can be
+      # diagnosed from the artifact instead of a local repro (SIP timing does not
+      # survive running the amd64 stack under emulation on a dev machine).
+      - name: Collect SIPp traces
+        if: failure()
+        run: |
+          mkdir -p compliance-traces/rootfs
+          cid=$(docker compose -f compose.yaml -f compose.dev.yaml ps -aq compliance)
+          docker cp "$cid:/." compliance-traces/rootfs/ 2>/dev/null || true
+          find compliance-traces/rootfs -maxdepth 1 \
+            \( -name '*_messages.log' -o -name '*_errors.log' \) \
+            -exec mv {} compliance-traces/ \; 2>/dev/null || true
+          rm -rf compliance-traces/rootfs
+          ls -l compliance-traces || true
+          docker compose -f compose.yaml -f compose.dev.yaml logs --no-color --tail 400 \
+            > compliance-traces/compose-services.log 2>&1 || true
+
+      - name: Upload compliance traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-traces
+          path: |
+            compliance-traces/*_messages.log
+            compliance-traces/*_errors.log
+            compliance-traces/compose-services.log
+          if-no-files-found: warn
+
+      - name: Tear down the stack
+        if: always()
+        run: docker compose -f compose.yaml -f compose.dev.yaml down -v
