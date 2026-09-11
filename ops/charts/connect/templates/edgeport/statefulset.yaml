@@ -12,7 +12,7 @@ spec:
     matchLabels:
       {{- include ".helm.selectorLabels" . | nindent 6 }}
       service: edgeport
-  serviceName: edgeport
+  serviceName: {{ .Release.Name }}-routr-edgeport
   minReadySeconds: {{ .Values.edgeport.minReadySeconds }}
   template:
     metadata:

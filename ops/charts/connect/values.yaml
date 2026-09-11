@@ -554,10 +554,13 @@ rtprelay:
     # Target memory utilization percentage
     targetMemoryUtilizationPercentage: 70
 
-# Postgresql Service defaults 
+# Postgresql Service defaults
 postgresql:
   # Whether to enable PostgreSQL
   enabled: true
+  image:
+    # Bitnami sunset docker.io/bitnami; legacy tags live under bitnamilegacy (see #317)
+    repository: bitnamilegacy/postgresql
   auth:
     # Initial username for the database
     username: routr
@@ -569,5 +572,8 @@ redis:
   # Whether to enable Redis
   enabled: true
   architecture: standalone
+  image:
+    # Bitnami sunset docker.io/bitnami; legacy tags live under bitnamilegacy (see #317)
+    repository: bitnamilegacy/redis
   auth:
     enabled: false

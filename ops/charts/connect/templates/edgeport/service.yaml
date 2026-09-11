@@ -1,0 +1,55 @@
+# Internal service for the EdgePort (in-cluster traffic only).
+#
+# Unlike the per-protocol LoadBalancer services (service-udp.yaml / service-tcp.yaml)
+# which exist to satisfy cloud load-balancers that cannot mix UDP and TCP on a single
+# external service, this is a headless ClusterIP service used for in-cluster traffic
+# only -- e.g. the Registry sending outbound REGISTERs through the EdgePort. ClusterIP
+# services are not subject to that load-balancer limitation, so this exposes every
+# enabled transport behind a single, transport-agnostic address regardless of how the
+# external services are split. It also backs the EdgePort StatefulSet as its governing
+# service.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-routr-edgeport
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" . | nindent 4 }}
+    service: edgeport
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  {{- if .Values.edgeport.transport.udp.enabled }}
+    - name: sipudp
+      protocol: UDP
+      port: {{ .Values.edgeport.transport.udp.port | default 5060 }}
+      targetPort: {{ .Values.edgeport.transport.udp.port | default 5060 }}
+  {{- end }}
+  {{- if .Values.edgeport.transport.tcp.enabled }}
+    - name: siptcp
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.tcp.port | default 5060 }}
+      targetPort: {{ .Values.edgeport.transport.tcp.port | default 5060 }}
+  {{- end }}
+  {{- if .Values.edgeport.transport.tls.enabled }}
+    - name: siptls
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.tls.port | default 5061 }}
+      targetPort: {{ .Values.edgeport.transport.tls.port | default 5061 }}
+  {{- end }}
+  {{- if .Values.edgeport.transport.ws.enabled }}
+    - name: sipws
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.ws.port | default 5062 }}
+      targetPort: {{ .Values.edgeport.transport.ws.port | default 5062 }}
+  {{- end }}
+  {{- if .Values.edgeport.transport.wss.enabled }}
+    - name: sipwss
+      protocol: TCP
+      port: {{ .Values.edgeport.transport.wss.port | default 5063 }}
+      targetPort: {{ .Values.edgeport.transport.wss.port | default 5063 }}
+  {{- end }}
+  selector:
+    {{- include ".helm.selectorLabels" . | nindent 4 }}
+    service: edgeport

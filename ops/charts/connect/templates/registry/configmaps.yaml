@@ -31,4 +31,8 @@ data:
       {{- end }}
       {{- end }}
       edgePorts:
+        # Internal headless EdgePort service (see edgeport/service.yaml). The transport
+        # used for outbound REGISTERs is trunk-driven, so this single address must be
+        # transport-agnostic; the port is hardcoded to the standard SIP port (5060),
+        # which both UDP and TCP listen on by default.
         - address: {{ .Release.Name }}-routr-edgeport.{{ .Release.Namespace }}:5060
