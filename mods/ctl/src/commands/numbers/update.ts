@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import { CliUx } from "@oclif/core"
+import { Args, Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import {
   aorLinkValidator,
   headersValidator,
@@ -43,13 +43,12 @@ Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
 `
   ]
 
-  static readonly args = [
-    {
-      name: "ref",
+  static readonly args = {
+    ref: Args.string({
       required: true,
       description: "reference to an existing Number"
-    }
-  ]
+    })
+  }
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
@@ -134,13 +133,13 @@ Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
       if (!answers.confirm) {
         this.warn("Aborted")
       } else {
-        CliUx.ux.action.start(`Updating Number ${answers.name}`)
+        ux.action.start(`Updating Number ${answers.name}`)
         const number = await api.updateNumber(answers)
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(number.ref)
+        await wait(1000)
+        ux.action.stop(number.ref)
       }
     } catch (e) {
-      throw new CLIError(e.message)
+      throw new Errors.CLIError(e.message)
     }
   }
 }

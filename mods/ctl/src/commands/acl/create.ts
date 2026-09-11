@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import { Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import * as grpc from "@grpc/grpc-js"
-import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import { aclRuleValidator, nameValidator } from "../../validators"
 import { stringToAcl } from "../../utils"
 import SDK from "@routr/sdk"
@@ -80,18 +80,18 @@ Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       if (!answers.confirm) {
         this.warn("Aborted")
       } else {
-        CliUx.ux.action.start(`Creating ACL ${answers.name}`)
+        ux.action.start(`Creating ACL ${answers.name}`)
         const api = new SDK.Acls({ endpoint, insecure, cacert })
         const acl = await api.createAcl(answers)
 
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(acl.ref)
+        await wait(1000)
+        ux.action.stop(acl.ref)
       }
     } catch (e) {
       if (e.code === grpc.status.ALREADY_EXISTS) {
-        throw new CLIError("This ACL already exist")
+        throw new Errors.CLIError("This ACL already exist")
       } else {
-        throw new CLIError(e.message)
+        throw new Errors.CLIError(e.message)
       }
     }
   }

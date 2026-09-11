@@ -17,28 +17,32 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import { CliUx } from "@oclif/core"
+import { Args, Errors, ux } from "@oclif/core"
 import { BaseCommand } from "./base"
-import { CLIError } from "@oclif/core/lib/errors"
+import { wait } from "./lib/wait"
 
 export default abstract class DeleteCommand extends BaseCommand {
-  static readonly args = [{ name: "ref" }]
+  static readonly args = {
+    ref: Args.string({ required: false })
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async deleteResource(API: any, funcName: string) {
     const { args } = await this.parse(DeleteCommand)
     if (!args.ref) {
-      CliUx.ux.action.stop()
-      throw new CLIError("You must provide a resource ref before continuing")
+      ux.action.stop()
+      throw new Errors.CLIError(
+        "You must provide a resource ref before continuing"
+      )
     }
 
-    CliUx.ux.action.start(`Deleting item ${args.ref}`)
+    ux.action.start(`Deleting item ${args.ref}`)
     try {
       await API[funcName](args.ref)
-      await CliUx.ux.wait(1000)
-      CliUx.ux.action.stop("Done")
+      await wait(1000)
+      ux.action.stop("Done")
     } catch (e) {
-      throw new CLIError(e.message)
+      throw new Errors.CLIError(e.message)
     }
   }
 

@@ -17,13 +17,12 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import { Args, Command, Errors, Flags, Interfaces } from "@oclif/core"
+import { printTable } from "../../lib/table"
 import * as grpc from "@grpc/grpc-js"
-import { CliUx, Command, Flags } from "@oclif/core"
 import { BaseCommand } from "../../base"
 import { showPaginatedList, ShowTable } from "../../utils"
 import { CommonConnect as CC } from "@routr/common"
-import { CLIError } from "@oclif/core/lib/errors"
-import { CommandError } from "@oclif/core/lib/interfaces"
 import { JsonObject } from "pb-util/build"
 
 export default class GetNumbersCommand extends BaseCommand {
@@ -49,13 +48,12 @@ a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@
     })
   }
 
-  static args = [
-    {
-      name: "ref",
+  static args = {
+    ref: Args.string({
       required: false,
       description: "optional reference to a Number"
-    }
-  ]
+    })
+  }
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(GetNumbersCommand)
@@ -67,7 +65,7 @@ a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@
       flags: Record<string, unknown>
     }) => {
       const { showHeader, data, self, flags } = request
-      CliUx.ux.table(
+      printTable(
         data,
         {
           ref: {
@@ -111,14 +109,16 @@ a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@
     })
   }
 
-  async catch(error: { code: number; message: string } | CommandError) {
+  async catch(
+    error: { code: number; message: string } | Interfaces.CommandError
+  ) {
     // To be handled globally
     if ("code" in error && error.code === grpc.status.NOT_FOUND) {
       const { args } = await this.parse(GetNumbersCommand)
-      throw new CLIError(
+      throw new Errors.CLIError(
         "the Number you are looking for does not exist: " + args.ref
       )
     }
-    throw new CLIError(error.message)
+    throw new Errors.CLIError(error.message)
   }
 }
