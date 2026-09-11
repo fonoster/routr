@@ -23,7 +23,12 @@ import {
   CommonTypes as CT
 } from "@routr/common"
 import { NotRoutesFoundForAOR } from "./errors"
-import { AddRouteRequest, FindRoutesRequest, ILocationService } from "./types"
+import {
+  AddRouteRequest,
+  FindRoutesRequest,
+  ILocationService,
+  RemoveRoutesRequest
+} from "./types"
 
 export const expiredFilter = (r: Route) =>
   r.expires - (Date.now() - r.registeredOn) / 1000 > 0
@@ -78,9 +83,8 @@ export const getServiceInfo = (
       },
       removeRoutes: async (call: CT.GrpcCall, callback) => {
         try {
-          callback(null, {
-            routes: await locator.findRoutes(call.request as FindRoutesRequest)
-          })
+          await locator.removeRoutes(call.request as RemoveRoutesRequest)
+          callback(null, {})
         } catch (e) {
           callback(e, null)
         }
