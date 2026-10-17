@@ -54,6 +54,10 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      # EdgePort runs this bundle in GraalJS without BigInt; a dependency that uses it breaks startup
+      - name: Check the EdgePort bundle for GraalJS
+        run: npm run transpile && npx webpack --config webpack.config.js --mode none && npm run check:bundle
+
       - name: Typecheck
         run: npm run typecheck
 
