@@ -18,6 +18,14 @@ on:
           - 'true'
           - 'false'
         default: 'false'
+      tag_latest:
+        description: 'Only move the npm latest tag to the version on this branch'
+        required: false
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+        default: 'false'
   # Publishing the draft GitHub release moves the npm `latest` tag. It lives in this workflow
   # because npm trusts only this file to publish and tag the @routr packages.
   release:
@@ -27,7 +35,7 @@ on:
 jobs:
   build-and-test:
     name: Build and run SIP Connect Compliance Tests
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.tag_latest != 'true'
     timeout-minutes: 20
     runs-on: ubuntu-latest
     # id-token lets npm verify this run (trusted publishing), so no npm token is stored
@@ -64,7 +72,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout package-lock.json
 
-          npm run publish
+          npm run release
           # Publishes any version already in package.json that npm doesn't have yet, such as
           # one whose release was tagged but failed to publish. Does nothing otherwise.
           npx lerna publish from-package --yes --dist-tag next
@@ -133,7 +141,7 @@ jobs:
 
   tag-latest:
     name: Tag the released npm packages as latest
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' || github.event.inputs.tag_latest == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -142,7 +150,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.release.tag_name || github.ref }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
