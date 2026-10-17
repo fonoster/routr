@@ -73,9 +73,11 @@ jobs:
           git checkout package-lock.json
 
           npm run release
-          # Publishes any version already in package.json that npm doesn't have yet, such as
-          # one whose release was tagged but failed to publish. Does nothing otherwise.
-          npx lerna publish from-package --yes --dist-tag next
+      # Runs on every release, even with no new commits: publishes any version already in
+      # package.json that npm doesn't have yet, such as one whose release run failed partway.
+      # Does nothing otherwise.
+      - name: Publish versions missing from NPM
+        run: npx lerna publish from-package --yes --dist-tag next
       - name: Get version for release
         run: |
           if [[ "${{ github.event.inputs.use_branch_name }}" == "true" ]]; then
