@@ -17,6 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+require("./tracer").init("one")
 import { getLogger } from "@fonoster/logger"
 import { spawn } from "child_process"
 import { connectProcessor } from "@routr/connect"

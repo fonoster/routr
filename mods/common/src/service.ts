@@ -21,10 +21,14 @@ import * as protoLoader from "@grpc/proto-loader"
 import { ObjectProto, ServiceInfo } from "./types"
 import { ServiceDefinitionNotFoundError } from "./errors"
 import { getLogger } from "@fonoster/logger"
-import { HealthImplementation } from "grpc-health-check"
-import { GRPC_SERVING_STATUS, statusMap } from "@fonoster/common"
+import { HealthImplementation, ServingStatusMap } from "grpc-health-check"
 
 const logger = getLogger({ service: "common", filePath: __filename })
+
+export const GRPC_SERVING_STATUS = "SERVING"
+
+// By convention, the empty string represents the entire server
+export const statusMap: ServingStatusMap = { "": "NOT_SERVING" }
 
 export const protoLoadOptions = {
   keepCase: false,

@@ -16,35 +16,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { registerInstrumentations } from "@opentelemetry/instrumentation"
-import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
-import { Resource } from "@opentelemetry/resources"
-import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions"
-import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base"
-import { JaegerExporter } from "@opentelemetry/exporter-jaeger"
-import { GrpcInstrumentation } from "@opentelemetry/instrumentation-grpc"
-import opentelemetry from "@opentelemetry/api"
-
-/**
- * This function registers the instrumentations for the service.
- *
- * @param {string} serviceName - The name of the service.
- * @return {Tracer} The tracer object.
- */
-export function init(serviceName: string) {
-  const provider = new NodeTracerProvider({
-    resource: new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: serviceName
-    })
-  })
-
-  const exporter = new JaegerExporter()
-  provider.addSpanProcessor(new SimpleSpanProcessor(exporter))
-  provider.register()
-
-  registerInstrumentations({
-    instrumentations: [new GrpcInstrumentation()]
-  })
-
-  return opentelemetry.trace.getTracer("routr-tracer")
-}
+// The shared tracer, imported on its own so @grpc/grpc-js is not loaded before it.
+export { init } from "@routr/common/dist/tracer"

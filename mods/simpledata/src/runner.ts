@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-require("./tracer").init("simpleauth")
+require("./tracer").init("simpledata")
 import { Assertions as A } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
 import { BIND_ADDR, PATH_TO_RESOURCES } from "./envs"

@@ -18,7 +18,11 @@
  */
 import * as grpc from "@grpc/grpc-js"
 import { DBDelegate, PostgresDataConfig } from "./types"
-import { CommonConnect as CC } from "@routr/common"
+import {
+  CommonConnect as CC,
+  GRPC_SERVING_STATUS,
+  statusMap
+} from "@routr/common"
 import { getLogger } from "@fonoster/logger"
 import { create } from "./api/create"
 import { update } from "./api/update"
@@ -35,7 +39,6 @@ import {
 } from "./envs"
 import fs from "fs"
 import { HealthImplementation } from "grpc-health-check"
-import { GRPC_SERVING_STATUS, statusMap } from "@fonoster/common"
 import { prisma } from "./db"
 
 const logger = getLogger({ service: "pgdata", filePath: __filename })

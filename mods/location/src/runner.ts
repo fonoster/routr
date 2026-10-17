@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-require("./tracer").init("dispatcher")
+require("./tracer").init("location")
 import { getConfig } from "./config/get_config"
 import { Assertions as A } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
