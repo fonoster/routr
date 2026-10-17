@@ -1,6 +1,6 @@
 {
   "name": "@routr/sdk",
-  "version": "2.15.2",
+  "version": "2.15.3",
   "description": "The Routr SDK for Node.js",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -19,7 +19,7 @@
   "dependencies": {
     "@fonoster/logger": "0.6.0",
     "@grpc/grpc-js": "~1.14.6",
-    "@routr/common": "^2.15.2",
+    "@routr/common": "^2.15.3",
     "google-protobuf": "^3.21.4",
     "pb-util": "^1.0.3"
   },
