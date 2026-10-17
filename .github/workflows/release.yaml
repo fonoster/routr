@@ -18,12 +18,22 @@ on:
           - 'true'
           - 'false'
         default: 'false'
+  # Publishing the draft GitHub release moves the npm `latest` tag. It lives in this workflow
+  # because npm trusts only this file to publish and tag the @routr packages.
+  release:
+    types:
+      - released
 
 jobs:
   build-and-test:
     name: Build and run SIP Connect Compliance Tests
+    if: github.event_name == 'workflow_dispatch'
     timeout-minutes: 20
     runs-on: ubuntu-latest
+    # id-token lets npm verify this run (trusted publishing), so no npm token is stored
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,6 +46,8 @@ jobs:
           node-version: "22.x"
           registry-url: "https://registry.npmjs.org"
           scope: "@routr"
+      - name: Install an npm with trusted publishing
+        run: npm install -g npm@^11.10.0
       - name: Build project
         run: npm run make
       - name: Check for next release
@@ -45,8 +57,6 @@ jobs:
           echo "RELEASE=$release" >> $GITHUB_ENV
       - name: Publish packages to NPM
         if: env.RELEASE != 'none'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           echo "GITHUB_TOKEN=${{ secrets.GH_PAT }}" >> $GITHUB_ENV
 
@@ -117,3 +127,30 @@ jobs:
       use_branch_name: ${{ github.event.inputs.use_branch_name }}
     secrets: inherit
     needs: [build-and-test]
+
+  tag-latest:
+    name: Tag the released npm packages as latest
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          registry-url: "https://registry.npmjs.org"
+          scope: "@routr"
+      - name: Install an npm with trusted publishing
+        run: npm install -g npm@^11.10.0
+      - name: Tag latest npm packages
+        run: |
+          for pkg in mods/*/package.json; do
+            if [ "$(jq -r '.private // false' "$pkg")" = "true" ]; then continue; fi
+            npm dist-tag add "$(jq -r '.name' "$pkg")@$(jq -r '.version' "$pkg")" latest
+          done
