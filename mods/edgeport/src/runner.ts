@@ -19,7 +19,6 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const System: any
 
-// require("./tracer").init("dispatcher")
 import { getConfig } from "./config/get_config"
 import { EdgePortConfig } from "./types"
 import edgePortService from "./edgeport"

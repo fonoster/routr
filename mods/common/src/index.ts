@@ -18,6 +18,8 @@
  */
 import createService, {
   getObjectProto,
+  GRPC_SERVING_STATUS,
+  statusMap,
   LOCATION_OBJECT_PROTO,
   PROCESSOR_OBJECT_PROTO
 } from "./service"
@@ -48,7 +50,9 @@ export {
   ObjectProto,
   ServiceInfo,
   PROCESSOR_OBJECT_PROTO,
-  LOCATION_OBJECT_PROTO
+  LOCATION_OBJECT_PROTO,
+  GRPC_SERVING_STATUS,
+  statusMap
 }
 
 export * as Auth from "./auth"

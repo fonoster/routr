@@ -110,5 +110,8 @@
     "exclude": [
       "**/*.js"
     ]
+  },
+  "overrides": {
+    "underscore": "^1.13.8"
   }
 }

@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-require("./tracer").init("dispatcher")
+require("./tracer").init("registry")
 import { CONFIG_PATH, ENABLE_HEALTHCHECKS } from "./envs"
 import registryService from "./service"
 import { getConfig } from "./config/get_config"
