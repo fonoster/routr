@@ -54,3 +54,22 @@ export const UNTRUSTED_HEADERS_TO_STRIP =
         .map((h) => h.trim())
         .filter((h) => h.length > 0)
     : DEFAULT_UNTRUSTED_HEADERS_TO_STRIP
+
+const parseList = (value?: string): string[] =>
+  (value ?? "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter((v) => v.length > 0)
+
+// Peer EdgePorts allowed to forward requests with X-Edgeport-Ref. Such a request
+// skips routing and access checks (its route is rebuilt from the message), so it
+// is only honored when the packet comes from an address in
+// TRUSTED_EDGEPORT_ADDRESSES (IPs or CIDRs, matched against the top Via's
+// "received" value, or its host when "received" is absent). TRUSTED_EDGEPORTS
+// optionally narrows which X-Edgeport-Ref values are accepted. The defaults trust
+// no peer EdgePort, which is right for single-EdgePort deployments: the header is
+// removed and the request is routed normally.
+export const TRUSTED_EDGEPORTS = parseList(process.env.TRUSTED_EDGEPORTS)
+export const TRUSTED_EDGEPORT_ADDRESSES = parseList(
+  process.env.TRUSTED_EDGEPORT_ADDRESSES
+)

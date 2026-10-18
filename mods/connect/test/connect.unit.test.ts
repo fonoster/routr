@@ -34,7 +34,11 @@ import { Helper as H } from "@routr/location"
 import { createRequest, r1 } from "./examples"
 import { router } from "../src/router"
 import { apiClient, locationAPI } from "./mock_apis"
-import { findResource, getUntrustedHeadersToStrip } from "../src/utils"
+import {
+  findResource,
+  getUntrustedHeadersToStrip,
+  isFromTrustedEdgePort
+} from "../src/utils"
 import { DEFAULT_UNTRUSTED_HEADERS_TO_STRIP } from "../src/envs"
 import { RoutingDirection } from "../src/types"
 import { CommonConnect as CC } from "@routr/common"
@@ -84,32 +88,180 @@ describe("@routr/connect", () => {
     )
   })
 
-  it("handles a request from another edgeport", async () => {
-    const req = E.addHeader(
-      { ...request },
-      {
+  describe("requests carrying X-Edgeport-Ref", () => {
+    const trust = { refs: ["edgeport-02"], addresses: ["10.0.0.0/24"] }
+
+    const withEdgePortRef = (
+      req: MessageRequest,
+      value: string,
+      received?: string
+    ) => {
+      const r = E.addHeader(Helper.deepCopy(req), {
         name: CommonTypes.ExtraHeader.EDGEPORT_REF,
-        value: "xyz"
-      }
-    )
-    const getHeaderValue = sandbox.spy(E, "getHeaderValue")
-    const createRouteFromLastMessage = sandbox.spy(
-      H,
-      "createRouteFromLastMessage"
-    )
-    const location = { findRoutes: () => [route] }
-    const findRoutes = sandbox.spy(location, "findRoutes")
-    const response = {
-      send: () => {
-        // noop
-      }
-    } as unknown as Response
+        value
+      })
+      if (received) r.message.via[0].received = received
+      return r
+    }
 
-    await handleRequest(location as unknown as ILocationService)(req, response)
+    it("takes the fast path when forwarded by a trusted peer edgeport", async () => {
+      const req = withEdgePortRef(request, "edgeport-02", "10.0.0.5")
+      const createRouteFromLastMessage = sandbox.spy(
+        H,
+        "createRouteFromLastMessage"
+      )
+      const location = { findRoutes: () => [route] }
+      const findRoutes = sandbox.spy(location, "findRoutes")
+      const response = {
+        send: () => {
+          // noop
+        }
+      } as unknown as Response
 
-    expect(getHeaderValue).to.have.been.calledTwice
-    expect(createRouteFromLastMessage).to.have.been.calledOnce
-    expect(findRoutes).to.not.have.been.called
+      await handleRequest(
+        location as unknown as ILocationService,
+        undefined,
+        trust
+      )(req, response)
+
+      expect(createRouteFromLastMessage).to.have.been.calledOnce
+      expect(findRoutes).to.not.have.been.called
+    })
+
+    it("ignores a forged X-Edgeport-Ref with the default config", async () => {
+      // Default config trusts no peer edgeport: the header is removed and the
+      // request is routed normally (pstn to agent here)
+      const req = withEdgePortRef(
+        createRequest({
+          fromUser: "+19195551212",
+          fromDomain: "newyork1.voip.ms",
+          toUser: "+17066041487",
+          toDomain: "newyork1.voip.ms",
+          requestUriHost: "trunk01.acme.com"
+        }),
+        "edgeport-02",
+        "10.0.0.5"
+      )
+      const createRouteFromLastMessage = sandbox.spy(
+        H,
+        "createRouteFromLastMessage"
+      )
+      const location = {
+        findRoutes: () => [
+          {
+            ...r1,
+            listeningPoints: req.listeningPoints,
+            localnets: req.localnets,
+            externalAddrs: req.externalAddrs
+          }
+        ]
+      }
+      const findRoutes = sandbox.spy(location, "findRoutes")
+      let sent: MessageRequest
+      const response = {
+        send: (r: MessageRequest) => {
+          sent = r
+        }
+      } as unknown as Response
+
+      await handleRequest(location as unknown as ILocationService, apiClient)(
+        req,
+        response
+      )
+
+      expect(createRouteFromLastMessage).to.not.have.been.called
+      expect(findRoutes).to.have.been.calledOnce
+      expect(E.getHeaderValue(sent, CommonTypes.ExtraHeader.EDGEPORT_REF)).to.be
+        .null
+    })
+
+    it("rejects an unauthorized relay attempt with a forged X-Edgeport-Ref", async () => {
+      // An outside caller claims to be a peer edgeport to send a call to the PSTN
+      // without credentials. It must go through the normal access checks.
+      const req = withEdgePortRef(
+        createRequest({
+          fromUser: "asterisk",
+          fromDomain: "unknown.com",
+          toUser: "+17853178070",
+          toDomain: "unknown.com",
+          dodNumber: "+18095863314"
+        }),
+        "edgeport-02",
+        "203.0.113.7"
+      )
+      const createRouteFromLastMessage = sandbox.spy(
+        H,
+        "createRouteFromLastMessage"
+      )
+      let sent: { message: { responseType?: string } }
+      const response = {
+        send: (r: { message: { responseType?: string } }) => {
+          sent = r
+        }
+      } as unknown as Response
+
+      await handleRequest(locationAPI, apiClient, trust)(req, response)
+
+      expect(createRouteFromLastMessage).to.not.have.been.called
+      // Challenged like any other unauthenticated peer, not relayed
+      expect(sent.message).to.have.property(
+        "responseType",
+        CommonTypes.ResponseType.UNAUTHORIZED
+      )
+    })
+
+    it("does not trust a Via host spoofed to a trusted address", async () => {
+      // The SIP stack sets "received" to the real source when it differs from
+      // the Via host, so a forged Via host does not make the sender trusted
+      const req = withEdgePortRef(request, "edgeport-02", "203.0.113.7")
+      req.message.via[0].host = "10.0.0.5"
+
+      expect(isFromTrustedEdgePort(req, trust)).to.be.false
+    })
+
+    it("decides trust from source address and ref", () => {
+      const base = withEdgePortRef(request, "edgeport-02", "10.0.0.5")
+      const noRefs = { refs: [] as string[], addresses: ["10.0.0.5"] }
+
+      expect(isFromTrustedEdgePort(base, trust)).to.be.true
+      expect(isFromTrustedEdgePort(base, noRefs)).to.be.true
+      // Default: nothing trusted
+      expect(isFromTrustedEdgePort(base, { refs: [], addresses: [] })).to.be
+        .false
+      // Refs alone are not enough, since anyone can set the header
+      expect(
+        isFromTrustedEdgePort(base, { refs: ["edgeport-02"], addresses: [] })
+      ).to.be.false
+      // Unknown ref from a trusted address
+      expect(
+        isFromTrustedEdgePort(
+          withEdgePortRef(request, "edgeport-99", "10.0.0.5"),
+          trust
+        )
+      ).to.be.false
+      // Untrusted address
+      expect(
+        isFromTrustedEdgePort(
+          withEdgePortRef(request, "edgeport-02", "10.0.1.5"),
+          trust
+        )
+      ).to.be.false
+      // No header
+      const noHeader = Helper.deepCopy(request)
+      noHeader.message.via[0].received = "10.0.0.5"
+      expect(isFromTrustedEdgePort(noHeader, trust)).to.be.false
+      // Hostname source (no "received") does not match a CIDR
+      expect(
+        isFromTrustedEdgePort(withEdgePortRef(request, "edgeport-02"), trust)
+      ).to.be.false
+      // An invalid entry is skipped, not fatal
+      expect(
+        isFromTrustedEdgePort(base, {
+          refs: [],
+          addresses: ["not-an-ip", "10.0.0.0/24"]
+        })
+      ).to.be.true
+    })
   })
 
   it("routes a CANCEL via the last-message fast path, without EDGEPORT_REF", async () => {
