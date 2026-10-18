@@ -140,7 +140,8 @@ describe("@routr/connect", () => {
           requestUriHost: "trunk01.acme.com"
         }),
         "edgeport-02",
-        "10.0.0.5"
+        // Inside trunk01's access control list, so the call is let through
+        "127.0.0.1"
       )
       const createRouteFromLastMessage = sandbox.spy(
         H,

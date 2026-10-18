@@ -142,6 +142,10 @@ When the Processor adds a header to a request (for example, a Number's `extraHea
 
 For Peer-to-PSTN routing, if the Number selected by `X-DOD-Number` has `extended.accessKeyId`, the request MUST carry a matching `X-Access-Key-Id` header or be rejected with Forbidden (403). Numbers without `extended.accessKeyId` are unaffected.
 
+**Trunk Access Control Lists**
+
+When a call from the PSTN arrives on a Trunk with an access control list, the Processor MUST check the request's source address against the list's `allow` entries and reject the call if none matches. The source address is the top Via's `received` value, or its host when `received` is absent (RFC 3261 §18.2.1); the Via host alone is set by the sender and MUST NOT be trusted when `received` is present.
+
 **Non-functional Requirements**
 
 The following requirements are essential to have for an implementation of a *Connect Processor*:
