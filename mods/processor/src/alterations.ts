@@ -187,9 +187,14 @@ export const applyXHeaders =
         (h: HeaderModifier) => h.action === CommonTypes.HeaderModifierAction.ADD
       )
 
+      // An added header replaces any copy already in the request (case-insensitive),
+      // so a caller-supplied value can never sit next to the one Routr adds.
+      const headersToReplace = headersToAdd.map((h) => h.name.toLowerCase())
+
       req.message.extensions = req.message.extensions.filter(
         (h: CommonTypes.Extension) =>
-          !headersToRemove.includes(h.name.toLowerCase())
+          !headersToRemove.includes(h.name.toLowerCase()) &&
+          !headersToReplace.includes(h.name.toLowerCase())
       )
 
       headersToAdd.forEach((h: HeaderModifier) => {
@@ -289,6 +294,19 @@ export const removeXEdgePortRef = (request: MessageRequest): MessageRequest => {
   )
   return req
 }
+
+// Removes every extension whose name matches one of the given names (case-insensitive)
+export const removeHeaders =
+  (names: string[]) =>
+  (request: MessageRequest): MessageRequest => {
+    if (!names || names.length === 0) return request
+    const req = H.deepCopy(request)
+    const toRemove = names.map((n) => n.toLowerCase())
+    req.message.extensions = req.message.extensions.filter(
+      (ext: CommonTypes.Extension) => !toRemove.includes(ext.name.toLowerCase())
+    )
+    return req
+  }
 
 export const removeAuthorization = (
   request: MessageRequest

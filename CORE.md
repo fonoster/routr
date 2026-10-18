@@ -603,6 +603,8 @@ Interface Pseudocode:
   => doProcess(message) and return updated request/response
 ```
 
+A processor that adds headers to a request (via a Route's `headers` with action `ADD`) replaces any existing copy of each header in the request (matched case-insensitively), so a caller-supplied value never sits next to the one Routr adds. Headers with action `REMOVE` are removed first.
+
 > The default gRPC port at the Message Processor SHOULD be `51901`.
 
 **Non-functional Requirements**
