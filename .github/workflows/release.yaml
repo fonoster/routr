@@ -77,7 +77,11 @@ jobs:
       # package.json that npm doesn't have yet, such as one whose release run failed partway.
       # Does nothing otherwise.
       - name: Publish versions missing from NPM
-        run: npx lerna publish from-package --yes --dist-tag next
+        run: |
+          # The normal publish leaves gitHead edits in package.json files; from-package refuses a
+          # dirty tree, and those edits are not meant to be committed.
+          git checkout -- .
+          npx lerna publish from-package --yes --dist-tag next
       - name: Get version for release
         run: |
           if [[ "${{ github.event.inputs.use_branch_name }}" == "true" ]]; then
