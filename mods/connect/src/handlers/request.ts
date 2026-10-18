@@ -35,6 +35,8 @@ import {
 } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
 import { RoutingDirection } from "./../types"
+import { getUntrustedHeadersToStrip, hasXConnectObjectHeader } from "../utils"
+import { UNTRUSTED_HEADERS_TO_STRIP } from "../envs"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 
@@ -47,7 +49,7 @@ export const handleRequest =
   (location: ILocationService, apiClient?: CC.APIClient) =>
   async (request: MessageRequest, res: Response) => {
     try {
-      const req = Environment.ENFORCE_E164 ? enforceE164(request) : request
+      let req = Environment.ENFORCE_E164 ? enforceE164(request) : request
       let route
 
       // A CANCEL must follow the exact path its INVITE took (RFC 3261 §9.1) — it is
@@ -79,6 +81,16 @@ export const handleRequest =
         } else if (!routerResult.route) {
           return res.sendTemporarilyUnavailable()
         }
+
+        // Remove platform headers a caller from an untrusted source (e.g., the
+        // PSTN) could have spoofed. Routr re-adds its own values afterwards.
+        req = A.removeHeaders(
+          getUntrustedHeadersToStrip(
+            direction,
+            !!hasXConnectObjectHeader(req),
+            UNTRUSTED_HEADERS_TO_STRIP
+          )
+        )(req)
 
         const p: HeaderModifier = {
           name: CT.ExtraHeader.CALL_DIRECTION,

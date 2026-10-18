@@ -34,7 +34,10 @@ import { Helper as H } from "@routr/location"
 import { createRequest, r1 } from "./examples"
 import { router } from "../src/router"
 import { apiClient, locationAPI } from "./mock_apis"
-import { findResource } from "../src/utils"
+import { findResource, getUntrustedHeadersToStrip } from "../src/utils"
+import { DEFAULT_UNTRUSTED_HEADERS_TO_STRIP } from "../src/envs"
+import { RoutingDirection } from "../src/types"
+import { CommonConnect as CC } from "@routr/common"
 import { ILocationService } from "@routr/location"
 import { handleRequest } from "../src/handlers/request"
 
@@ -283,6 +286,177 @@ describe("@routr/connect", () => {
     expect(result)
       .to.have.property("message")
       .to.have.property("responseType", CommonTypes.ResponseType.NOT_FOUND)
+  })
+
+  it("strips spoofed platform headers from a pstn request", async () => {
+    const req = createRequest({
+      fromUser: "+19195551212",
+      fromDomain: "newyork1.voip.ms",
+      toUser: "+17066041487",
+      toDomain: "newyork1.voip.ms",
+      requestUriHost: "trunk01.acme.com"
+    })
+    req.message.extensions.push(
+      { name: "X-App-Ref", value: "someone-elses-app" },
+      { name: "x-access-key-id", value: "WO-victim" },
+      { name: "X-Call-Direction", value: "peer-to-pstn" },
+      { name: "X-Is-Api-Originated-Type", value: "true" }
+    )
+    let sent: MessageRequest
+    const response = {
+      send: (r: MessageRequest) => {
+        sent = r
+      }
+    } as unknown as Response
+
+    const location = {
+      findRoutes: () => [
+        {
+          ...r1,
+          listeningPoints: req.listeningPoints,
+          localnets: req.localnets,
+          externalAddrs: req.externalAddrs
+        }
+      ]
+    } as unknown as ILocationService
+
+    await handleRequest(location, apiClient)(req, response)
+
+    expect(E.getHeaderValue(sent, "X-App-Ref")).to.be.null
+    expect(E.getHeaderValue(sent, "X-Access-Key-Id")).to.be.null
+    expect(E.getHeaderValue(sent, "X-Is-Api-Originated-Type")).to.be.null
+    // Routr's own X-Call-Direction replaces the spoofed one
+    const directions = sent.message.extensions.filter(
+      (ext: CommonTypes.Extension) =>
+        ext.name.toLowerCase() === "x-call-direction"
+    )
+    expect(directions).to.be.lengthOf(1)
+    expect(directions[0].value).to.equal(RoutingDirection.FROM_PSTN)
+    // Unrelated headers are untouched
+    expect(E.getHeaderValue(sent, "User-Agent")).to.not.be.null
+  })
+
+  it("keeps platform headers from an authenticated peer", async () => {
+    const req = createRequest({
+      fromUser: "asterisk",
+      fromDomain: "unknown.com",
+      toUser: "+17853178070",
+      toDomain: "unknown.com",
+      dodNumber: "+18095863314"
+    })
+    req.message.authorization.response = "09f30fe20face5e168ca7dafcbf154c0"
+    req.message.extensions.push(
+      { name: "X-App-Ref", value: "app-01" },
+      { name: "X-Access-Key-Id", value: "WO00000000" }
+    )
+    let sent: MessageRequest
+    const response = {
+      send: (r: MessageRequest) => {
+        sent = r
+      }
+    } as unknown as Response
+
+    await handleRequest(locationAPI, apiClient)(req, response)
+
+    expect(E.getHeaderValue(sent, "X-App-Ref")).to.equal("app-01")
+    expect(E.getHeaderValue(sent, "X-Access-Key-Id")).to.equal("WO00000000")
+    expect(E.getHeaderValue(sent, CommonTypes.ExtraHeader.DOD_NUMBER)).to.equal(
+      "+18095863314"
+    )
+  })
+
+  it("selects which headers to strip by source", () => {
+    const headers = DEFAULT_UNTRUSTED_HEADERS_TO_STRIP
+    expect(
+      getUntrustedHeadersToStrip(RoutingDirection.FROM_PSTN, false, headers)
+    ).to.deep.equal(headers)
+    expect(
+      getUntrustedHeadersToStrip(RoutingDirection.PEER_TO_PSTN, false, headers)
+    ).to.be.empty
+    expect(
+      getUntrustedHeadersToStrip(RoutingDirection.AGENT_TO_PEER, false, headers)
+    ).to.be.empty
+
+    // A verified Connect Token keeps the client's X-App-Ref, nothing else
+    const withToken = getUntrustedHeadersToStrip(
+      RoutingDirection.AGENT_TO_PEER,
+      true,
+      headers
+    )
+    expect(withToken).to.not.include("X-App-Ref")
+    expect(withToken).to.include("X-Access-Key-Id")
+    expect(withToken).to.include("X-Edgeport-Ref")
+    expect(withToken).to.have.lengthOf(headers.length - 1)
+  })
+
+  describe("peer to pstn with a Number bound to an access key", () => {
+    const boundApiClient = (accessKeyId: string): CC.APIClient => ({
+      ...apiClient,
+      numbers: {
+        ...apiClient.numbers,
+        findBy: async (r: CC.FindByRequest) => {
+          const res = await apiClient.numbers.findBy(r)
+          return {
+            ...res,
+            items: res.items.map((n: CC.INumber) => ({
+              ...n,
+              extended: { accessKeyId }
+            }))
+          }
+        }
+      } as CC.ServiceAPI<CC.INumber>
+    })
+
+    const peerRequest = (accessKeyId?: string) => {
+      const req = createRequest({
+        fromUser: "asterisk",
+        fromDomain: "unknown.com",
+        toUser: "+17853178070",
+        toDomain: "unknown.com",
+        dodNumber: "+18095863314"
+      })
+      req.message.authorization.response = "09f30fe20face5e168ca7dafcbf154c0"
+      if (accessKeyId) {
+        req.message.extensions.push({
+          name: CommonTypes.ExtraHeader.ACCESS_KEY_ID,
+          value: accessKeyId
+        })
+      }
+      return req
+    }
+
+    it("routes when X-Access-Key-Id matches the Number's", async () => {
+      const result = await router(
+        locationAPI,
+        boundApiClient("WO00000000")
+      )(peerRequest("WO00000000"))
+      expect(result).to.have.property(
+        "direction",
+        RoutingDirection.PEER_TO_PSTN
+      )
+      expect(result.route).to.be.not.null
+    })
+
+    it("returns Forbidden when X-Access-Key-Id does not match", async () => {
+      const result = await router(
+        locationAPI,
+        boundApiClient("WO00000000")
+      )(peerRequest("WO-other"))
+      expect(result).to.not.have.property("direction")
+      expect(result)
+        .to.have.property("message")
+        .to.have.property("responseType", CommonTypes.ResponseType.FORBIDDEN)
+    })
+
+    it("returns Forbidden when X-Access-Key-Id is missing", async () => {
+      const result = await router(
+        locationAPI,
+        boundApiClient("WO00000000")
+      )(peerRequest())
+      expect(result)
+        .to.have.property("message")
+        .to.have.property("responseType", CommonTypes.ResponseType.FORBIDDEN)
+    })
   })
 
   it("gets resource by domainUri and userpart", async () => {

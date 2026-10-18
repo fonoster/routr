@@ -238,3 +238,37 @@ export const getVerifierImpl = () => {
 
   return null
 }
+
+/**
+ * Returns the headers that must be removed from a request before it is forwarded.
+ *
+ * Requests from authenticated Agents and Peers are trusted and keep their headers.
+ * Requests from the PSTN, and requests authorized only by a Connect Token, are not:
+ * the platform headers in `headers` are removed so a caller can't spoof them.
+ * A client using a verified Connect Token keeps its X-App-Ref.
+ *
+ * @param {RoutingDirection} direction - The routing direction of the request
+ * @param {boolean} withConnectToken - Whether the request carried a verified X-Connect-Token
+ * @param {string[]} headers - The headers to strip from untrusted requests
+ * @return {string[]} The headers to remove
+ */
+export const getUntrustedHeadersToStrip = (
+  direction: RoutingDirection,
+  withConnectToken: boolean,
+  headers: string[]
+): string[] => {
+  if (withConnectToken) {
+    return headers.filter(
+      (h) => h.toLowerCase() !== CT.ExtraHeader.APP_REF.toLowerCase()
+    )
+  }
+
+  if (
+    direction === RoutingDirection.FROM_PSTN ||
+    direction === RoutingDirection.UNKNOWN
+  ) {
+    return headers
+  }
+
+  return []
+}
