@@ -217,6 +217,68 @@ describe("@routr/processor/alterations", () => {
     expect(E.getHeaderValue(cleaned, CT.ExtraHeader.EDGEPORT_REF)).to.be.null
   })
 
+  it("replaces (not appends) a caller-supplied copy of an added header", () => {
+    const req = {
+      ...request,
+      message: {
+        ...request.message,
+        extensions: [
+          ...request.message.extensions,
+          { name: "x-room-id", value: "spoofed" }
+        ]
+      }
+    }
+    const r = A.applyXHeaders({
+      ...route,
+      headers: [
+        {
+          name: "X-Room-Id",
+          value: "jsa-shqm-iyo",
+          action: CT.HeaderModifierAction.ADD
+        }
+      ]
+    })(req)
+    const copies = r.message.extensions.filter(
+      (ext) => ext.name.toLowerCase() === "x-room-id"
+    )
+    expect(copies).to.be.lengthOf(1)
+    expect(copies[0].value).to.equal("jsa-shqm-iyo")
+  })
+
+  it("keeps every copy Routr itself adds under the same name", () => {
+    const r = A.applyXHeaders({
+      ...route,
+      headers: [
+        { name: "X-Tag", value: "a", action: CT.HeaderModifierAction.ADD },
+        { name: "X-Tag", value: "b", action: CT.HeaderModifierAction.ADD }
+      ]
+    })(request)
+    const values = r.message.extensions
+      .filter((ext) => ext.name === "X-Tag")
+      .map((ext) => ext.value)
+    expect(values).to.deep.equal(["a", "b"])
+  })
+
+  it("removes a list of headers regardless of header-name case", () => {
+    const req = {
+      ...request,
+      message: {
+        ...request.message,
+        extensions: [
+          ...request.message.extensions,
+          { name: "x-app-ref", value: "app-01" },
+          { name: "X-ACCESS-KEY-ID", value: "WO00000000" }
+        ]
+      }
+    }
+    const r = A.removeHeaders(["X-App-Ref", "X-Access-Key-Id"])(req)
+    expect(E.getHeaderValue(r, "X-App-Ref")).to.be.null
+    expect(E.getHeaderValue(r, "X-Access-Key-Id")).to.be.null
+    expect(r.message.extensions.find((ext) => ext.name === "CSeq")).to.exist
+    // An empty list is a no-op
+    expect(A.removeHeaders([])(req)).to.equal(req)
+  })
+
   it("pipes alterations and checks the result", () => {
     const result = pipe(
       request,

@@ -26,6 +26,7 @@ import {
   IpUtils
 } from "@routr/common"
 import { RoutingDirection } from "./types"
+import { getSourceAddress } from "./utils"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 
@@ -99,11 +100,17 @@ export const checkAccessFromPSTN = async (
   }
 
   // Verify that the IP is allowlist which means getting the access control list for the trunk
+  // The source is the top Via's "received" value (set by the SIP stack when the
+  // packet came from another address), not request.sender.host, which is copied
+  // from the Via host and can be forged.
   if (trunk.accessControlList) {
     try {
-      const allow = trunk.accessControlList.allow.filter((net: string) => {
-        return IpUtils.hasIp(net, request.sender.host)
-      })[0]
+      const source = getSourceAddress(request)
+      const allow =
+        source &&
+        trunk.accessControlList.allow.filter((net: string) => {
+          return IpUtils.hasIp(net, source)
+        })[0]
 
       if (!allow) {
         return CR.createUnauthorizedResponseWithoutChallenge()

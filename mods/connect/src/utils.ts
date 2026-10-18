@@ -30,6 +30,7 @@ import {
   Transport,
   CommonConnect as CC,
   CommonTypes as CT,
+  IpUtils,
   Verifier as V
 } from "@routr/common"
 import { Extensions as E } from "@routr/processor"
@@ -237,4 +238,92 @@ export const getVerifierImpl = () => {
   }
 
   return null
+}
+
+/**
+ * Returns the headers that must be removed from a request before it is forwarded.
+ *
+ * Requests from authenticated Agents and Peers are trusted and keep their headers.
+ * Requests from the PSTN, and requests authorized only by a Connect Token, are not:
+ * the platform headers in `headers` are removed so a caller can't spoof them.
+ * A client using a verified Connect Token keeps its X-App-Ref.
+ *
+ * @param {RoutingDirection} direction - The routing direction of the request
+ * @param {boolean} withConnectToken - Whether the request carried a verified X-Connect-Token
+ * @param {string[]} headers - The headers to strip from untrusted requests
+ * @return {string[]} The headers to remove
+ */
+export const getUntrustedHeadersToStrip = (
+  direction: RoutingDirection,
+  withConnectToken: boolean,
+  headers: string[]
+): string[] => {
+  if (withConnectToken) {
+    return headers.filter(
+      (h) => h.toLowerCase() !== CT.ExtraHeader.APP_REF.toLowerCase()
+    )
+  }
+
+  if (
+    direction === RoutingDirection.FROM_PSTN ||
+    direction === RoutingDirection.UNKNOWN
+  ) {
+    return headers
+  }
+
+  return []
+}
+
+export interface EdgePortTrust {
+  // Accepted X-Edgeport-Ref values. Empty means any ref from a trusted address.
+  refs: string[]
+  // IPs or CIDRs of the peer EdgePorts. Empty means no peer EdgePort is trusted.
+  addresses: string[]
+}
+
+/**
+ * Returns the address the request came from: the top Via's "received" value,
+ * which the SIP stack sets when the packet's source differs from the Via host
+ * (RFC 3261 §18.2.1), or the Via host otherwise.
+ *
+ * @param {MessageRequest} request - The request
+ * @return {string | undefined} The source address
+ */
+export const getSourceAddress = (
+  request: MessageRequest
+): string | undefined => {
+  const via = request.message?.via?.[0]
+  return via?.received || via?.host
+}
+
+/**
+ * Tells whether a request carrying X-Edgeport-Ref was forwarded by a trusted peer
+ * EdgePort. Only such a request may take the last-message fast path, which skips
+ * routing and access checks. The header value alone proves nothing (anyone can
+ * set it), so the request's source address must be in `trust.addresses`; when
+ * `trust.refs` is not empty, the header value must also be one of them.
+ *
+ * @param {MessageRequest} request - The request
+ * @param {EdgePortTrust} trust - The trusted peer EdgePorts
+ * @return {boolean} true if the request comes from a trusted peer EdgePort
+ */
+export const isFromTrustedEdgePort = (
+  request: MessageRequest,
+  trust: EdgePortTrust
+): boolean => {
+  const ref = E.getHeaderValue(request, CT.ExtraHeader.EDGEPORT_REF)
+  if (!ref || trust.addresses.length === 0) return false
+  if (trust.refs.length > 0 && !trust.refs.includes(ref)) return false
+
+  const addr = getSourceAddress(request)
+  if (!addr) return false
+
+  return trust.addresses.some((net) => {
+    try {
+      return IpUtils.hasIp(net, addr)
+    } catch (e) {
+      // Invalid net, or a source that is not an IP address
+      return false
+    }
+  })
 }
