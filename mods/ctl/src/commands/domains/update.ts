@@ -103,7 +103,7 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "accessControlListRef",
           message: "IP Access Control List",
           type: "list",
-          choices: [{ name: "None", value: undefined }, ...aclChoices],
+          choices: [{ name: "None", value: "" }, ...aclChoices],
           default: domainFromDB.accessControlListRef
         },
         {

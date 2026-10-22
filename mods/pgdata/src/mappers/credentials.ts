@@ -45,7 +45,9 @@ export class CredentialsManager extends EntityManager {
 
   validOrThrowUpdate() {
     CC.hasReferenceOrThrow(this.credentials.ref)
-    CC.isValidNameOrThrow(this.credentials.name)
+    // Updates are partial, so only validate the name when it is sent
+    if (this.credentials.name !== undefined)
+      CC.isValidNameOrThrow(this.credentials.name)
     CC.isValidUsernameOrThrow(this.credentials.username)
   }
 

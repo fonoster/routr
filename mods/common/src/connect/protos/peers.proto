@@ -120,25 +120,25 @@ message UpdatePeerRequest {
   // The unique identifier of the Peer
   string ref = 1;
   // The name of the Peer
-  string name = 2;
+  optional string name = 2;
   // The address of record of the Peer
-  string aor = 3;
+  optional string aor = 3;
   // The contact address of the Peer
-  string contact_addr = 4;
+  optional string contact_addr = 4;
   // The load balancing algorithm of the Peer
-  LoadBalancingAlgorithm balancing_algorithm = 5;
+  optional LoadBalancingAlgorithm balancing_algorithm = 5;
   // The session affinity of the Peer
-  bool with_session_affinity = 6;
+  optional bool with_session_affinity = 6;
   // Reference to the ACL of the Peer
-  string access_control_list_ref = 7;
+  optional string access_control_list_ref = 7;
   // Reference to the Credentials of the Peer
-  string credentials_ref = 8;
+  optional string credentials_ref = 8;
   // The status of the Peer
-  bool enabled = 9;
+  optional bool enabled = 9;
   // The maximum number of contacts that can be created for this Peer
-  int32 max_contacts = 11;
+  optional int32 max_contacts = 11;
   // Value to override the expires requested by the Peer
-  int32 expires = 12;
+  optional int32 expires = 12;
   // The extended attributes of the Peer
   .google.protobuf.Struct extended = 10;
 }

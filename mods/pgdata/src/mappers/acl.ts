@@ -40,7 +40,8 @@ export class ACLManager extends EntityManager {
 
   validOrThrowUpdate() {
     CC.hasReferenceOrThrow(this.acl.ref)
-    CC.isValidNameOrThrow(this.acl.name)
+    // Updates are partial, so only validate the name when it is sent
+    if (this.acl.name !== undefined) CC.isValidNameOrThrow(this.acl.name)
     CC.hasValidACLRulesOrThrow(this.acl)
   }
 
