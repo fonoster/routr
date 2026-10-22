@@ -77,7 +77,8 @@ export class NumberManager extends EntityManager {
 
   validOrThrowUpdate() {
     CC.hasReferenceOrThrow(this.number.ref)
-    CC.isValidNameOrThrow(this.number.name)
+    // Updates are partial, so only validate the name when it is sent
+    if (this.number.name !== undefined) CC.isValidNameOrThrow(this.number.name)
     CC.isValidAORLinkOrThrow(this.number.aorLink)
     CC.hasValidHeadersOrThrow(this.number.extraHeaders)
     CC.isValidSessionAffinityHeaderOrThrow(this.number.sessionAffinityHeader)
@@ -88,7 +89,7 @@ export class NumberManager extends EntityManager {
       // TODO: Set a default value for apiVersion
       ...this.number,
       apiVersion: "v2" as APIVersion,
-      trunkRef: this.number.trunkRef,
+      trunkRef: this.number.trunkRef || null,
       sessionAffinityHeader: this.number.sessionAffinityHeader,
       extraHeaders: this.number.extraHeaders,
       createdAt: undefined,

@@ -74,7 +74,7 @@ message UpdateACLRequest {
   // The ACL reference
   string ref = 1;
   // A friendly name for the ACL
-  string name = 2;
+  optional string name = 2;
   // The list of allowed IP addresses
   repeated string allow = 3;
   // The list of denied IP addresses

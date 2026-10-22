@@ -109,15 +109,15 @@ message UpdateNumberRequest {
   // The unique identifier of the Number
   string ref = 1;
   // The name of the Number
-  string name = 2;
+  optional string name = 2;
   // The aor_link of the Number
-  string aor_link = 4;
+  optional string aor_link = 4;
   // The header to use for session affinity
-  string session_affinity_header = 8;
+  optional string session_affinity_header = 8;
   // Extra headers to send to the trunk
   repeated ExtraHeader extra_headers = 9;
   // Reference to the trunk this number is associated with
-  string trunk_ref = 10;
+  optional string trunk_ref = 10;
   // The extended attributes of the Number
   .google.protobuf.Struct extended = 11;
 }

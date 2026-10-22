@@ -96,6 +96,18 @@ Every client has the same five methods, named after its resource.
 | `delete<Resource>(ref)` | The resource `ref`. | `void`. |
 | `list<Resources>(request)` | `pageSize` and `pageToken`. | One page of resources. |
 
+### Update request
+
+Updates are partial. Routr changes only the fields you send and keeps the rest.
+
+- To clear a reference such as `accessControlListRef`, send it as an empty string.
+- To turn a flag off, send `false`.
+- A list field such as `egressPolicies`, `uris`, `allow`, or `extraHeaders` is replaced as a whole when you send a non-empty list. An empty list keeps the stored one.
+
+<Note>
+  You can't empty a list through an update. Protobuf doesn't tell an empty list apart from a list you left out.
+</Note>
+
 ### List request and response
 
 <ParamField path="pageSize" type="number" required>

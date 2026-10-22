@@ -26,6 +26,7 @@ import {
 import { PrismaUpdateOperation } from "../types"
 import { getManager } from "../mappers/utils"
 import { prisma } from "../db"
+import { isPresent, pickPresentFields, stripPresenceMarkers } from "./partial"
 
 export function update(
   operation: PrismaUpdateOperation,
@@ -33,7 +34,7 @@ export function update(
 ) {
   return async (call: CT.GrpcCall, callback: CT.GrpcCallback) => {
     try {
-      const { request } = call
+      const request = stripPresenceMarkers(call.request)
 
       if (request.extended) {
         request.extended = struct.decode(request.extended)
@@ -44,7 +45,8 @@ export function update(
 
       manager.validOrThrowUpdate()
 
-      if (kind === CC.Kind.DOMAIN && request.egressPolicies) {
+      // A non-empty list replaces the stored one; an empty list keeps it
+      if (kind === CC.Kind.DOMAIN && isPresent(request.egressPolicies)) {
         await prisma.egressPolicy.deleteMany({
           where: {
             domainRef: request.ref
@@ -52,7 +54,7 @@ export function update(
         })
       }
 
-      if (kind === CC.Kind.TRUNK && request.uris) {
+      if (kind === CC.Kind.TRUNK && isPresent(request.uris)) {
         await prisma.trunkURI.deleteMany({
           where: {
             trunkRef: request.ref
@@ -64,7 +66,7 @@ export function update(
         where: {
           ref: request.ref
         },
-        data: manager.mapToPrisma(),
+        data: pickPresentFields(request, manager.mapToPrisma()),
         include: Manager.includeFields()
       })) as { extended: unknown }
 

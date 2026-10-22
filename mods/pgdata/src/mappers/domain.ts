@@ -65,7 +65,8 @@ export class DomainManager extends EntityManager {
 
   validOrThrowUpdate() {
     CC.hasReferenceOrThrow(this.domain.ref)
-    CC.isValidNameOrThrow(this.domain.name)
+    // Updates are partial, so only validate the name when it is sent
+    if (this.domain.name !== undefined) CC.isValidNameOrThrow(this.domain.name)
   }
 
   mapToPrisma(): DomainPrismaModel & {

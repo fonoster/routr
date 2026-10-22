@@ -56,7 +56,8 @@ export class PeerManager extends EntityManager {
 
   validOrThrowUpdate() {
     CC.hasReferenceOrThrow(this.peer.ref)
-    CC.isValidNameOrThrow(this.peer.name)
+    // Updates are partial, so only validate the name when it is sent
+    if (this.peer.name !== undefined) CC.isValidNameOrThrow(this.peer.name)
     CC.isValidUsernameOrThrow(this.peer.username)
     CC.isValidAOROrThrow(this.peer.aor)
     CC.isValidContactAddressOrThrow(this.peer.contactAddr)

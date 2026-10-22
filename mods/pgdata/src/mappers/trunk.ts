@@ -63,7 +63,8 @@ export class TrunkManager extends EntityManager {
 
   validOrThrowUpdate() {
     CC.hasReferenceOrThrow(this.trunk.ref)
-    CC.isValidNameOrThrow(this.trunk.name)
+    // Updates are partial, so only validate the name when it is sent
+    if (this.trunk.name !== undefined) CC.isValidNameOrThrow(this.trunk.name)
     CC.isValidInboundUriOrThrow(this.trunk.inboundUri)
   }
 
