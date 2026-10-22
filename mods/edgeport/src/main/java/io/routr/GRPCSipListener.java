@@ -189,6 +189,11 @@ public class GRPCSipListener implements SipListener {
       }
     }
 
+    if (serverTransaction != null && requiresKnownDialog(req) && !isKnownDialog(req)) {
+      rejectUnknownDialog(serverTransaction, req);
+      return;
+    }
+
     try {
       MessageRequest request = this.messageConverter.createMessageRequest(req, (RequestEventExt) event, null);
       MessageResponse response = blockingStub.processMessage(request);
@@ -313,10 +318,15 @@ public class GRPCSipListener implements SipListener {
       MessageResponse response = blockingStub.processMessage(request);
       List<Header> headers = MessageConverter.createHeadersFromMessage(response.getMessage());
 
+      // A failed re-INVITE leaves the call up (RFC 3261 section 14.1), so only the
+      // failure of the INVITE that created the dialog ends it.
+      var isReInvite = isTransactional && ResponseHelper.hasMethod(res, Request.INVITE)
+          && hasToTag(event.getClientTransaction().getRequest());
+
       if (ResponseHelper.hasMethod(res, Request.BYE) ||
-          (ResponseHelper.hasMethod(res, Request.INVITE) && res.getStatusCode() > 300)) {
+          (ResponseHelper.hasMethod(res, Request.INVITE) && res.getStatusCode() > 300 && !isReInvite)) {
         eventProcessor.processCallEndedEvent(response);
-      } 
+      }
 
       // Update reason phrase
       if (response.getMessage().getReasonPhrase() != null) {
@@ -369,11 +379,70 @@ public class GRPCSipListener implements SipListener {
         SipMessageSender.sendResponse(sipProvider, res, isWebSocket);
       }
 
-      releaseDialogIfEnded(res);
+      recordDialogIfEstablished(res);
+      releaseDialogIfEnded(res, isReInvite);
     } catch (SipException | InvalidArgumentException | ParseException e) {
       var req = event.getClientTransaction().getRequest();
       var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
       LOG.debug("an exception occurred while processing response with callId: {}", callId, e);
+    }
+  }
+
+  /**
+   * Whether a request may only be forwarded on a dialog this EdgePort proxied.
+   *
+   * A request with a To tag belongs to a dialog (RFC 3261 section 12.2). In-dialog
+   * requests are forwarded by their Route set with no routing or access checks, which
+   * is right for BYE and ACK but would let an INVITE or REFER with a forged To tag
+   * reach a trunk unauthenticated. So those two are gated on the dialog being known,
+   * a local policy a proxy may apply (section 16.6); every other method stays
+   * unchecked so a call can still be torn down after a restart has emptied the table.
+   *
+   * @param request The request just received
+   * @return true for an INVITE or REFER carrying a To tag
+   */
+  static boolean requiresKnownDialog(final Request request) {
+    var method = request.getMethod();
+    return (Request.INVITE.equals(method) || Request.REFER.equals(method)) && hasToTag(request);
+  }
+
+  static boolean hasToTag(final Request request) {
+    var to = (ToHeader) request.getHeader(ToHeader.NAME);
+    return to != null && to.getTag() != null;
+  }
+
+  private boolean isKnownDialog(final Request request) {
+    var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+    return callId != null && transactionManager.hasDialog(callId.getCallId());
+  }
+
+  /**
+   * Answers 481 Call/Transaction Does Not Exist to an in-dialog INVITE or REFER for a
+   * dialog this EdgePort did not proxy, without consulting the processor. 481 is the
+   * code a UAS gives an unknown dialog (RFC 3261 section 12.2.2), so the sender learns
+   * exactly what was wrong; refusing it at all is local policy (section 16.6).
+   */
+  private void rejectUnknownDialog(final ServerTransaction serverTransaction, final Request request) {
+    var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+    LOG.warn("rejecting in-dialog {} for a dialog this edgeport did not proxy, callId: {}",
+        request.getMethod(), callId != null ? callId.getCallId() : "unknown");
+    try {
+      var response = this.messageFactory.createResponse(Response.CALL_OR_TRANSACTION_DOES_NOT_EXIST, request);
+      SipMessageSender.sendResponse(serverTransaction, response, TransportDetector.isWebSocketTransport(request));
+    } catch (ParseException | SipException | InvalidArgumentException e) {
+      LOG.debug("an exception occurred while rejecting an unknown dialog, callId: {}", callId, e);
+    }
+  }
+
+  /**
+   * Records the dialog once the INVITE that created it is answered with a 2xx. A 2xx
+   * to a re-INVITE records it again, which is harmless.
+   */
+  private void recordDialogIfEstablished(final Response res) {
+    var callId = (CallIdHeader) res.getHeader(CallIdHeader.NAME);
+    if (callId != null && ResponseHelper.hasMethod(res, Request.INVITE)
+        && res.getStatusCode() >= 200 && res.getStatusCode() < 300) {
+      transactionManager.recordDialog(callId.getCallId());
     }
   }
 
@@ -388,13 +457,13 @@ public class GRPCSipListener implements SipListener {
    *
    * @param res The response just relayed toward the caller
    */
-  private void releaseDialogIfEnded(final Response res) {
+  private void releaseDialogIfEnded(final Response res, final boolean isReInvite) {
     if (res.getStatusCode() < 200) {
       return;
     }
 
     var ended = ResponseHelper.hasMethod(res, Request.BYE)
-        || (ResponseHelper.hasMethod(res, Request.INVITE) && res.getStatusCode() >= 300);
+        || (ResponseHelper.hasMethod(res, Request.INVITE) && res.getStatusCode() >= 300 && !isReInvite);
     var callId = (CallIdHeader) res.getHeader(CallIdHeader.NAME);
 
     if (ended && callId != null) {
