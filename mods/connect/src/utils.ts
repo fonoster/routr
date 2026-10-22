@@ -217,6 +217,21 @@ export const getTrunkURI = (
 export const getSipUri = (uri: { user?: string; host: string }) =>
   uri.user ? `sip:${uri.user}@${uri.host}` : `sip:${uri.host}`
 
+/**
+ * Whether a request belongs to an existing dialog: RFC 3261 section 12.2, a request
+ * inside a dialog carries the To tag the dialog was established with. Such a request is
+ * forwarded along the dialog's route set and is never routed as a new call, which
+ * would send a hold or transfer re-INVITE to the PSTN trunk and answer the provider's
+ * re-INVITE with 500 (Routr v1 fixed the same bug in issue #58). The EdgePort refuses
+ * an in-dialog INVITE or REFER for a dialog it did not proxy, so forwarding here does
+ * not bypass access checks for a forged To tag.
+ *
+ * @param {MessageRequest} req - The request
+ * @return {boolean} true when the To header carries a tag
+ */
+export const isInDialog = (req: MessageRequest): boolean =>
+  !!req.message.to?.tag
+
 export const hasXConnectObjectHeader = (req: MessageRequest) =>
   E.getHeaderValue(req, CT.ExtraHeader.CONNECT_TOKEN)
 
