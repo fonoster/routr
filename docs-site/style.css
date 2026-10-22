@@ -1,27 +1,27 @@
-/* Routr docs: match routr.io (site/assets/css/style.css and designs/website.pen). Tokens are copied, not imported. */
+/* Routr docs: Fonoster docs stylesheet with the Routr teal accent (routr.io). Tokens are copied, not imported. */
 @import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap");
 
 :root {
-  --rt-accent: #5fcfce;
-  --rt-on-accent: #001a1a;
-  --rt-accent-text: #1f8f8e;
-  --rt-border: #cde3e8;
-  --rt-hl-border: rgba(0, 0, 0, 0.22);
-  --rt-surface: #f0fdff;
-  --rt-text-1: #0d3231;
-  --rt-text-2: #555555;
-  --rt-text-3: #6b6b6b;
-  --rt-mono: "Roboto Mono", ui-monospace, monospace;
+  --fn-accent: #5fcfce;
+  --fn-on-accent: #001a1a;
+  --fn-accent-text: #1f8f8e;
+  --fn-border: #e8e8e8;
+  --fn-hl-border: rgba(0, 0, 0, 0.22);
+  --fn-surface: #f4f4f4;
+  --fn-text-1: #252525;
+  --fn-text-2: #555555;
+  --fn-text-3: #6b6b6b;
+  --fn-mono: "Roboto Mono", ui-monospace, monospace;
 }
 
 :root.dark {
-  --rt-accent-text: #5fcfce;
-  --rt-border: #0b3d3d;
-  --rt-hl-border: rgba(255, 255, 255, 0.32);
-  --rt-surface: #062828;
-  --rt-text-1: #ffffff;
-  --rt-text-2: #cde3e8;
-  --rt-text-3: #c2c2c2;
+  --fn-accent-text: #5fcfce;
+  --fn-border: #333333;
+  --fn-hl-border: rgba(255, 255, 255, 0.32);
+  --fn-surface: #202020;
+  --fn-text-1: #ffffff;
+  --fn-text-2: #e8e8e8;
+  --fn-text-3: #c2c2c2;
 }
 
 /* Type: semibold headings with the site's tight tracking. */
@@ -40,12 +40,12 @@
 }
 #content-area p,
 #content-area li {
-  color: var(--rt-text-2);
+  color: var(--fn-text-2);
 }
 
 /* The eyebrow above the page title reads like the site's mono eyebrow. */
 .eyebrow {
-  font-family: var(--rt-mono);
+  font-family: var(--fn-mono);
   font-weight: 500;
   font-size: 12px;
   letter-spacing: 0.12em;
@@ -56,10 +56,10 @@
 code,
 pre,
 kbd {
-  font-family: var(--rt-mono) !important;
+  font-family: var(--fn-mono) !important;
 }
 #content-area :not(pre) > code {
-  border: 1px solid var(--rt-border);
+  border: 1px solid var(--fn-border);
   border-radius: 6px;
   padding: 1px 6px;
 }
@@ -74,7 +74,7 @@ kbd {
   border-radius: 10px;
 }
 #content-area a.card:hover {
-  border-color: var(--rt-hl-border);
+  border-color: var(--fn-hl-border);
 }
 
 /* Navbar button: the site's primary button (accent fill, dark text, 10px radius). */
@@ -83,10 +83,10 @@ kbd {
   border-radius: 10px;
 }
 #topbar-cta-button a > span:first-child {
-  background: var(--rt-accent) !important;
+  background: var(--fn-accent) !important;
 }
 #topbar-cta-button a span,
 #topbar-cta-button a svg {
-  color: var(--rt-on-accent) !important;
+  color: var(--fn-on-accent) !important;
   font-weight: 600;
 }

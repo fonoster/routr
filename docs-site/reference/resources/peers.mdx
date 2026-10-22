@@ -31,7 +31,7 @@ The API response also includes `accessControlList` and `credentials`, the object
 - `username` is required and can't contain spaces. In YAML it must be 4 to 60 characters. In pgdata it must be unique across Peers.
 - `aor` must start with `sip:` or `backend:`. The `backend:` prefix is deprecated; simpledata logs a warning and you should use `sip:`. Up to 323 characters.
 - `contactAddr` must be a valid FQDN or IP address. Up to 20 characters.
-- `least-sessions` needs each instance to report its active session count in the `X-Session-Count` header of its REGISTER. See [SIP headers](/reference/sip-headers).
+- `least-sessions` needs the Location Service to run on Redis. It also needs each instance to report its active session count in the `X-Session-Count` header of its REGISTER. See [SIP headers](/reference/sip-headers).
 - Session affinity applies to calls from the PSTN to a Number whose `aorLink` is this Peer's `aor`. The affinity value comes from the header named in the Number's `sessionAffinityHeader`.
 
 <Note>

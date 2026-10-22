@@ -1,0 +1,103 @@
+---
+title: "Trunk resource"
+sidebarTitle: "Trunks"
+description: "Every field of the Trunk resource, in YAML and API form, for operators who connect Routr Connect to a SIP provider for PSTN calls."
+---
+
+A Trunk is a connection to a SIP provider. It defines how the provider reaches Routr (inbound) and how Routr reaches the provider (outbound).
+
+## Fields
+
+| YAML field | API / SDK field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- | --- |
+| `metadata.name` | `name` | `string` | Yes | - | Friendly name. Up to 60 characters. |
+| `metadata.region` | - | `string` | No | - | Reserved for future use. Not loaded. |
+| `spec.inbound.uri` | `inboundUri` | `string` | Yes | - | Host the provider sends calls to, as an FQDN or IP address. Connect matches it against the Request-URI host of calls from the PSTN. |
+| `spec.inbound.accessControlListRef` | `accessControlListRef` | `string` | No | - | `ref` of an [ACL](/reference/resources/acl). Calls from the PSTN must come from an address in its `allow` list. |
+| `spec.inbound.credentialsRef` | `inboundCredentialsRef` | `string` | No | - | `ref` of [Credentials](/reference/resources/credentials) the provider must authenticate with on inbound calls. |
+| `spec.outbound.sendRegister` | `sendRegister` | `boolean` | No | `false` | Register with the provider. The Registry service sends the REGISTER requests. |
+| `spec.outbound.credentialsRef` | `outboundCredentialsRef` | `string` | No | - | `ref` of Credentials Routr uses to authenticate with the provider. |
+| `spec.outbound.uris` | `uris` | `array` | Yes in YAML when `outbound` is set | - | Outbound URIs of the provider. |
+| `spec.outbound.uris[].uri.host` | `uris[].host` | `string` | Yes | - | Provider host, as an FQDN or IP address. Up to 255 characters. |
+| `spec.outbound.uris[].uri.port` | `uris[].port` | `integer` | Yes | `5060` when unset | Provider port. Up to 65535. |
+| `spec.outbound.uris[].uri.transport` | `uris[].transport` | enum | Yes | `UDP` when unset | `UDP`, `TCP`, `TLS`, `SCTP`, `WS`, or `WSS`. YAML also accepts lowercase. |
+| `spec.outbound.uris[].uri.user` | `uris[].user` | `string` | No | - | User part of the outbound URI. Up to 60 characters. |
+| `spec.outbound.uris[].weight` | `uris[].weight` | `integer` | No | - | 1 to 65535. Reserved for future use. |
+| `spec.outbound.uris[].priority` | `uris[].priority` | `integer` | No | - | 0 to 65535. Reserved for future use. |
+| `spec.outbound.uris[].enabled` | `uris[].enabled` | `boolean` | No | `true` (pgdata) | Reserved for future use. |
+| - | `extended` | `object` | No | - | Custom attributes. API only. |
+
+The API response also includes `accessControlList`, `inboundCredentials`, and `outboundCredentials`, the objects the refs point to.
+
+## Constraints
+
+- `name` is required and must be 1 to 60 characters.
+- `inboundUri` is required, must be an FQDN or IP address, and must be unique across Trunks in pgdata.
+- Each outbound URI needs a valid `host`. `port`, when set, must be a valid port.
+- Connect sends outbound calls to the first entry in `uris`. A Trunk with no `uris` can't carry outbound calls.
+- For a call from the PSTN to be accepted, the Request-URI host must match a Trunk's `inboundUri`, and the dialed Number must belong to that Trunk.
+- Connect checks only the ACL `allow` list, against the top Via `received` address (or the Via host when `received` is absent).
+- On outbound calls, Connect passes the outbound credentials to EdgePort in the `X-Gateway-Auth` header, so EdgePort can answer the provider's authentication challenge. EdgePort removes the header before it sends the request.
+
+## YAML example
+
+The following Trunk accepts calls at `trunk01.acme.com` and sends calls to `sip.provider.net`.
+
+```yaml
+- apiVersion: v2beta1
+  kind: Trunk
+  ref: trunk-01
+  metadata:
+    name: Provider trunk
+  spec:
+    inbound:
+      uri: trunk01.acme.com
+      accessControlListRef: acl-01
+    outbound:
+      sendRegister: true
+      credentialsRef: credentials-04
+      uris:
+        - uri:
+            user: pbx-1
+            host: sip.provider.net
+            port: 5060
+            transport: udp
+          priority: 10
+          weight: 10
+          enabled: true
+```
+
+## rctl equivalent
+
+Run the interactive create command and answer the prompts. `rctl` offers `UDP`, `TCP`, and `TLS` as transports.
+
+```bash
+rctl trunks create
+```
+
+See [`rctl trunks`](/reference/rctl#trunks) for the prompts and the other actions.
+
+## SDK equivalent
+
+The following call creates the same Trunk through the API.
+
+```typescript
+await new SDK.Trunks({ endpoint: "localhost:51908", insecure: true }).createTrunk({
+  name: "Provider trunk",
+  inboundUri: "trunk01.acme.com",
+  accessControlListRef: "<acl-ref>",
+  sendRegister: true,
+  outboundCredentialsRef: "<credentials-ref>",
+  uris: [
+    {
+      host: "sip.provider.net",
+      port: 5060,
+      transport: CT.Transport.UDP,
+      user: "pbx-1",
+      weight: 10,
+      priority: 10,
+      enabled: true
+    }
+  ]
+})
+```

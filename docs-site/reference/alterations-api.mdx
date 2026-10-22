@@ -1,0 +1,334 @@
+---
+title: "Alterations API reference"
+sidebarTitle: "Alterations API"
+description: "Every alteration and header helper exported by @routr/processor, for developers who build Processors that rewrite SIP requests before EdgePort sends them."
+---
+
+Alterations are small functions that take a `MessageRequest` and return a changed copy. A Processor chains them to prepare a request for its next hop: add Via and Record-Route headers, point the Request-URI at the target, add or remove headers. Each alteration deep-copies the request, so the input is never mutated.
+
+Some alterations take the request directly. Others are curried: you call them with a `Route` (or other arguments) first, and they return a function of the request.
+
+## Import
+
+`@routr/processor` exports the alterations as `Alterations` and the header helpers as `Extensions`. The built-in Connect processor composes them with `pipe` from `fp-ts`.
+
+```typescript
+import { Alterations as A, Extensions as E, MessageRequest } from "@routr/processor"
+import { Route, CommonTypes as CT } from "@routr/common"
+import { pipe } from "fp-ts/function"
+```
+
+The following function is the chain Connect applies to a request routed to its final target (`mods/connect/src/tailor.ts`).
+
+```typescript
+export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
+  pipe(
+    req,
+    A.decreaseMaxForwards,
+    A.removeAuthorization,
+    A.removeSelfRoutes,
+    A.removeXEdgePortRef,
+    A.fixInvalidContact,
+    A.fixRequestURI(route),
+    A.addSelfVia(route),
+    A.applyXHeaders(route),
+    A.addSelfRecordRoute(route),
+    A.addRouteToNextHop(route)
+  )
+```
+
+The `Route` argument is usually the result of a Location Service lookup. Its relevant fields are `user`, `host`, `port`, `transport`, `advertisedHost`, `advertisedPort`, `edgePortRef`, `listeningPoints`, `localnets`, `externalAddrs`, `registeredOn`, and `headers`.
+
+## Summary
+
+| Function | Signature | Changes |
+| --- | --- | --- |
+| [`fixRequestURI`](#fixrequesturi) | `(route) => (request) => request` | Request-URI |
+| [`addSelfVia`](#addselfvia) | `(route) => (request) => request` | Via |
+| [`addSelfViaUsingTheRouteHeaders`](#addselfviausingtherouteheaders) | `(request) => request` | Via |
+| [`addSelfViaUsingExternalAddrs`](#addselfviausingexternaladdrs) | `(request) => request` | Via |
+| [`removeTopVia`](#removetopvia) | `(request) => request` | Via |
+| [`addRouteToNextHop`](#addroutetonexthop) | `(route) => (request) => request` | Route |
+| [`addRouteToPeerEdgePort`](#addroutetopeeredgeport) | `(route) => (request) => request` | Route |
+| [`removeSelfRoutes`](#removeselfroutes) | `(request) => request` | Route |
+| [`addSelfRecordRoute`](#addselfrecordroute) | `(route) => (request) => request` | Record-Route |
+| [`applyXHeaders`](#applyxheaders) | `(route) => (request) => request` | Extension headers |
+| [`addXEdgePortRef`](#addxedgeportref) | `(request) => request` | `X-Edgeport-Ref` |
+| [`removeXEdgePortRef`](#removexedgeportref) | `(request) => request` | `X-Edgeport-Ref` |
+| [`removeHeaders`](#removeheaders) | `(names: string[]) => (request) => request` | Extension headers |
+| [`removeAuthorization`](#removeauthorization) | `(request) => request` | Authorization |
+| [`decreaseMaxForwards`](#decreasemaxforwards) | `(request) => request` | Max-Forwards |
+| [`fixInvalidContact`](#fixinvalidcontact) | `(request) => request` | Contact |
+| [`overwriteContactWithSenderInfo`](#overwritecontactwithsenderinfo) | `(request) => request` | Contact |
+| [`enforceE164`](#enforcee164) | `(enforce: boolean, validateMobilePrefix: boolean) => (request) => request` | From, To, Request-URI users |
+
+## Request-URI
+
+### fixRequestURI
+
+```typescript
+fixRequestURI(route: Route): (request: MessageRequest) => MessageRequest
+```
+
+Sets the Request-URI host, port, and transport parameter to the route's `host`, `port`, and `transport`. When the route came from a registration (`registeredOn` is set) and has a `user`, it also sets the Request-URI user.
+
+```typescript
+const out = A.fixRequestURI(route)(request)
+```
+
+## Via
+
+### addSelfVia
+
+```typescript
+addSelfVia(route: Route): (request: MessageRequest) => MessageRequest
+```
+
+Adds a Via header for this EdgePort at the top of the list, with the `rport` flag. It picks the EdgePort interface that faces the route's target. When the route lives on the same EdgePort as the request, it uses the route's network data; otherwise it uses the request's.
+
+```typescript
+const out = A.addSelfVia(route)(request)
+```
+
+### addSelfViaUsingTheRouteHeaders
+
+```typescript
+addSelfViaUsingTheRouteHeaders(request: MessageRequest): MessageRequest
+```
+
+Adds a top Via built from the request's Route headers: the only Route header, or the second one when there are several. The transport defaults to UDP. Returns the request unchanged when it has no Route headers.
+
+```typescript
+const out = A.addSelfViaUsingTheRouteHeaders(request)
+```
+
+### addSelfViaUsingExternalAddrs
+
+```typescript
+addSelfViaUsingExternalAddrs(request: MessageRequest): MessageRequest
+```
+
+Experimental. Adds a top Via for the EdgePort interface that faces the Request-URI, taking external addresses into account. Connect uses it for `BYE` and `ACK`.
+
+```typescript
+const out = A.addSelfViaUsingExternalAddrs(request)
+```
+
+### removeTopVia
+
+```typescript
+removeTopVia(request: MessageRequest): MessageRequest
+```
+
+Removes the first Via header. Connect uses it on responses before it forwards them.
+
+```typescript
+const out = A.removeTopVia(response)
+```
+
+## Route
+
+### addRouteToNextHop
+
+```typescript
+addRouteToNextHop(route: Route): (request: MessageRequest) => MessageRequest
+```
+
+Adds a loose Route header (`lr`) for the route's `host`, `port`, and `transport` at the top of the list. Does nothing when the Request-URI host already equals the route host.
+
+```typescript
+const out = A.addRouteToNextHop(route)(request)
+```
+
+### addRouteToPeerEdgePort
+
+```typescript
+addRouteToPeerEdgePort(route: Route): (request: MessageRequest) => MessageRequest
+```
+
+Adds a loose Route header that points to the EdgePort holding the target's connection, using the route's `listeningPoints`, `localnets`, and `externalAddrs`. Use it with `addXEdgePortRef` when the target is connected to another EdgePort. See [EdgePort cooperation](/concepts/edgeport-cooperation).
+
+```typescript
+const out = pipe(
+  request,
+  A.addSelfVia(route),
+  A.addSelfRecordRoute(route),
+  A.addRouteToPeerEdgePort(route),
+  A.addRouteToNextHop(route),
+  A.addXEdgePortRef,
+  A.decreaseMaxForwards
+)
+```
+
+### removeSelfRoutes
+
+```typescript
+removeSelfRoutes(request: MessageRequest): MessageRequest
+```
+
+Removes Route headers that point to this EdgePort: those whose host is one of the EdgePort's local network IPs or external addresses and whose port is the EdgePort's listening port for that transport.
+
+```typescript
+const out = A.removeSelfRoutes(request)
+```
+
+## Record-Route
+
+### addSelfRecordRoute
+
+```typescript
+addSelfRecordRoute(route: Route): (request: MessageRequest) => MessageRequest
+```
+
+Adds a Record-Route header for this EdgePort so later requests in the dialog pass through it. When the interface the request arrived on differs from the one that faces the target (by host, port, or transport), it adds two Record-Route headers, both with `r2=on`.
+
+```typescript
+const out = A.addSelfRecordRoute(route)(request)
+```
+
+## Headers
+
+### applyXHeaders
+
+```typescript
+applyXHeaders(route: Route): (request: MessageRequest) => MessageRequest
+```
+
+Applies the route's `headers` list of header modifiers. Each modifier has a `name`, an optional `value`, and an `action` of `HeaderModifierAction.ADD` or `HeaderModifierAction.REMOVE`. It removes every header named in a `REMOVE` modifier. For each `ADD`, it removes any existing header with that name and adds the new value. Names are matched case-insensitively.
+
+```typescript
+route.headers = [
+  { name: "X-Room-Id", value: "abc-us-123", action: CT.HeaderModifierAction.ADD },
+  { name: "X-Debug", action: CT.HeaderModifierAction.REMOVE }
+]
+const out = A.applyXHeaders(route)(request)
+```
+
+### addXEdgePortRef
+
+```typescript
+addXEdgePortRef(request: MessageRequest): MessageRequest
+```
+
+Adds an `X-Edgeport-Ref` header with the request's `edgePortRef` at the top of the extension headers. The receiving EdgePort uses it to tell the request came from a peer EdgePort. See [SIP headers](/reference/sip-headers).
+
+```typescript
+const out = A.addXEdgePortRef(request)
+```
+
+### removeXEdgePortRef
+
+```typescript
+removeXEdgePortRef(request: MessageRequest): MessageRequest
+```
+
+Removes every `X-Edgeport-Ref` header, matched case-insensitively.
+
+```typescript
+const out = A.removeXEdgePortRef(request)
+```
+
+### removeHeaders
+
+```typescript
+removeHeaders(names: string[]): (request: MessageRequest) => MessageRequest
+```
+
+Removes every extension header whose name is in `names`, matched case-insensitively. Returns the request unchanged when `names` is empty.
+
+```typescript
+const out = A.removeHeaders(["X-Call-Direction", "X-DOD-Number"])(request)
+```
+
+### removeAuthorization
+
+```typescript
+removeAuthorization(request: MessageRequest): MessageRequest
+```
+
+Deletes the Authorization header, so the caller's credentials aren't forwarded.
+
+```typescript
+const out = A.removeAuthorization(request)
+```
+
+### decreaseMaxForwards
+
+```typescript
+decreaseMaxForwards(request: MessageRequest): MessageRequest
+```
+
+Subtracts one from Max-Forwards, when the header is present.
+
+```typescript
+const out = A.decreaseMaxForwards(request)
+```
+
+## Contact
+
+### fixInvalidContact
+
+```typescript
+fixInvalidContact(request: MessageRequest): MessageRequest
+```
+
+When the Contact host contains `.invalid`, as WebRTC clients often send, replaces it with the top Via's `received` value (or host), the `rport` value (or port), and the Via transport.
+
+```typescript
+const out = A.fixInvalidContact(request)
+```
+
+### overwriteContactWithSenderInfo
+
+```typescript
+overwriteContactWithSenderInfo(request: MessageRequest): MessageRequest
+```
+
+Sets the Contact host, port, and transport to the request's `sender` values, when a Contact header is present. Connect does not apply it by default.
+
+```typescript
+const out = A.overwriteContactWithSenderInfo(request)
+```
+
+## Numbers
+
+### enforceE164
+
+```typescript
+enforceE164(enforce: boolean, validateMobilePrefix: boolean): (request: MessageRequest) => MessageRequest
+```
+
+When `enforce` is `true`, tries to rewrite the From, To, and Request-URI users as E.164 numbers (with a leading `+`). It replaces a value only when it parses as a valid number. `validateMobilePrefix` applies to the To and Request-URI users; the From user is always checked with mobile prefix validation. Returns the request unchanged when `enforce` is `false`.
+
+```typescript
+const out = A.enforceE164(true, false)(request)
+```
+
+## Header helpers (Extensions)
+
+`Extensions` holds helpers that read and change extension headers. Unlike alterations, they take the header data as a second argument. `getHeaderValue` matches names case-insensitively; the others match the exact name.
+
+| Function | Signature | Description |
+| --- | --- | --- |
+| `getHeaderValue` | `(request, name: string) => string \| null` | Returns the first header value with that name, or `null`. |
+| `addHeader` | `(request, header: { name, value }) => request` | Appends a header. |
+| `updateHeader` | `(request, header: { name, value }) => request` | Replaces the value of headers with that name. |
+| `removeHeader` | `(request, name: string) => request` | Removes headers with that name. |
+
+The following snippet reads a header and adds another.
+
+```typescript
+const roomId = E.getHeaderValue(request, "X-Room-Id")
+const out = E.addHeader(request, { name: "X-Room", value: roomId ?? "lobby" })
+```
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Build a processor" icon="gears" href="/guides/build-a-processor">
+    Write a Processor that uses these alterations.
+  </Card>
+  <Card title="Message flow" icon="arrow-right-arrow-left" href="/concepts/message-flow">
+    Where Processors and alterations fit in a request's path.
+  </Card>
+</CardGroup>

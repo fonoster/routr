@@ -11,10 +11,10 @@
   "background": {
     "color": {
       "light": "#FFFFFF",
-      "dark": "#001A1A"
+      "dark": "#181818"
     }
   },
-  "favicon": "/favicon.ico",
+  "favicon": "/favicon.svg",
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg",

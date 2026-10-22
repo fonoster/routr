@@ -1,0 +1,191 @@
+---
+title: "SIP headers reference"
+sidebarTitle: "SIP headers"
+description: "The X- headers Routr reads, adds, and strips, for developers and operators who integrate PBXs, providers, and clients with Routr Connect."
+---
+
+Routr uses a set of extension headers to pass routing data between its own services and to and from your endpoints. This page lists each one: who sets it, who reads it, its value format, and whether Connect strips it from untrusted sources. Header names are case-insensitive.
+
+## Summary
+
+| Header | Set by | Read by | Stripped from untrusted sources |
+| --- | --- | --- | --- |
+| [`X-Edgeport-Ref`](#x-edgeport-ref) | Connect | Connect | Yes |
+| [`X-Connect-Token`](#x-connect-token) | Client | Connect | No |
+| [`X-Call-Direction`](#x-call-direction) | Connect | Your endpoints | Yes |
+| [`X-DOD-Number`](#x-dod-number) | Peer | Connect | Yes |
+| [`X-DOD-Privacy`](#x-dod-privacy) | Peer | Connect | Yes |
+| [`X-Access-Key-Id`](#x-access-key-id) | Peer | Connect | Yes |
+| [`X-Gateway-Auth`](#x-gateway-auth) | Connect, Registry | EdgePort, Connect | Yes |
+| [`X-Session-Count`](#x-session-count) | Peer | Location Service | Yes |
+| [Session affinity header](#session-affinity-header) | Caller or provider | Connect | No, unless you add it |
+| [`X-App-Ref`, `X-Call-Ref`, `X-Is-Api-Originated-Type`, `X-Request-Uri`](#platform-headers) | Platform | Not read by Routr | Yes |
+
+## Untrusted sources
+
+Before it forwards a routed request, Connect removes platform headers that a caller could have forged. Routr then adds its own values.
+
+| Request | Headers removed |
+| --- | --- |
+| From the PSTN (`from-pstn`), or with an unknown routing direction | Every header in the strip list. |
+| Authorized by a verified `X-Connect-Token` | Every header in the strip list except `X-App-Ref`. |
+| From an authenticated Agent or Peer | None. |
+
+The default strip list is:
+
+```text
+X-App-Ref, X-Call-Ref, X-Call-Direction, X-DOD-Number, X-DOD-Privacy,
+X-Access-Key-Id, X-Is-Api-Originated-Type, X-Edgeport-Ref, X-Gateway-Auth,
+X-Request-Uri, X-Session-Count
+```
+
+Set `UNTRUSTED_HEADERS_TO_STRIP` on the Connect processor to a comma-separated list to replace it. Set it to an empty string to turn stripping off.
+
+## X-Edgeport-Ref
+
+Marks a request that one EdgePort forwards to another. See [EdgePort cooperation](/concepts/edgeport-cooperation).
+
+| | |
+| --- | --- |
+| Set by | Connect, with the [`addXEdgePortRef`](/reference/alterations-api#addxedgeportref) alteration, when the target's connection lives on a different EdgePort than the one that received the request. Connect also adds a Route header to that EdgePort. |
+| Read by | Connect, on the receiving EdgePort's request. |
+| Value | The `edgePortRef` of the EdgePort that received the original request, such as `edgeport-01`. |
+| Stripped | Yes. Connect also removes it before delivering the request to its final target. |
+
+A request with this header skips routing and access checks: Connect rebuilds its route from the message. Connect honors the header only when the request comes from a trusted peer EdgePort:
+
+- `TRUSTED_EDGEPORT_ADDRESSES`: comma-separated IPs or CIDRs of peer EdgePorts. Connect matches it against the top Via `received` value, or the Via host when `received` is absent. Empty (the default) trusts no peer EdgePort.
+- `TRUSTED_EDGEPORTS`: optional comma-separated list of accepted header values. Empty accepts any value from a trusted address.
+
+From any other source, Connect logs a warning, removes the header, and routes the request normally.
+
+<Warning>
+  In a deployment with more than one EdgePort, set `TRUSTED_EDGEPORT_ADDRESSES` on the Connect processor. Without it, requests forwarded between EdgePorts are routed again from scratch instead of taking the fast path.
+</Warning>
+
+## X-Connect-Token
+
+Carries a JWT that authorizes a client without SIP digest credentials, such as a browser-based ephemeral Agent.
+
+| | |
+| --- | --- |
+| Set by | The client, on REGISTER and INVITE. |
+| Read by | Connect. |
+| Value | A signed JWT. Its claims include `ref`, `domainRef`, `aor`, `aorLink`, `domain`, `privacy`, `allowedMethods`, and optionally `maxContacts`. |
+| Stripped | No. |
+
+Connect verifies the token with the public key at `CONNECT_VERIFIER_PUBLIC_KEY_PATH` or with the verifier service at `CONNECT_VERIFIER_ADDR`. Set only one of them. A REGISTER needs `REGISTER` in `allowedMethods`, and an INVITE needs `INVITE`; otherwise Connect answers `403 Forbidden`. Requests with a valid token skip the digest access check.
+
+## X-Call-Direction
+
+Tells the next hop how Connect routed the call.
+
+| | |
+| --- | --- |
+| Set by | Connect, on every request it routes. An existing copy is replaced. |
+| Read by | Your endpoints, such as a PBX or an application server. Routr doesn't read it. |
+| Value | `from-pstn`, `agent-to-agent`, `agent-to-pstn`, `agent-to-peer`, or `peer-to-pstn`. |
+| Stripped | Yes. |
+
+## X-DOD-Number
+
+Picks the Number a Peer calls the PSTN from (direct outward dialing).
+
+| | |
+| --- | --- |
+| Set by | A Peer, on INVITEs to the PSTN. |
+| Read by | Connect, for `peer-to-pstn` routing. |
+| Value | The Number's `telUrl` without the `tel:` prefix, such as `+17853178070`. |
+| Stripped | Yes. |
+
+Connect looks up the Number with `telUrl` equal to `tel:<value>` and sends the call through its Trunk. A missing or empty header gets `400 Bad Request`. An unknown number gets `404 Not Found`.
+
+## X-DOD-Privacy
+
+Requests caller ID privacy on a `peer-to-pstn` call.
+
+| | |
+| --- | --- |
+| Set by | A Peer, on INVITEs to the PSTN. |
+| Read by | Connect, for `peer-to-pstn` routing. |
+| Value | A privacy setting. Connect removes any `Privacy` header and adds its own based on this value. |
+| Stripped | Yes. |
+
+## X-Access-Key-Id
+
+Binds a Number to a tenant, so only that tenant's Peers can call from it.
+
+| | |
+| --- | --- |
+| Set by | A Peer, on INVITEs to the PSTN. |
+| Read by | Connect, for `peer-to-pstn` routing. |
+| Value | An access key ID string. |
+| Stripped | Yes. |
+
+When the Number selected by `X-DOD-Number` has `extended.accessKeyId`, the request must carry the same value in this header. Otherwise Connect answers `403 Forbidden`.
+
+## X-Gateway-Auth
+
+Carries a Trunk's outbound credentials from Routr's services to EdgePort.
+
+| | |
+| --- | --- |
+| Set by | Connect, on `agent-to-pstn` and `peer-to-pstn` calls. The Registry service, on REGISTER requests to Trunks with `sendRegister`. |
+| Read by | EdgePort, which uses the credentials to answer the provider's `401` or `407` challenge. Connect, which handles a REGISTER that carries it as an outbound registration and forwards it. |
+| Value | `base64(username:password)` of the Trunk's outbound Credentials. |
+| Stripped | Yes. EdgePort never sends this header on the wire. |
+
+## X-Session-Count
+
+Reports how busy a Peer instance is, for the `least-sessions` algorithm.
+
+| | |
+| --- | --- |
+| Set by | Each Peer instance, on its REGISTER requests. |
+| Read by | The Location Service, which stores it with the instance's route. |
+| Value | An integer: the number of active sessions. |
+| Stripped | Yes, from untrusted sources. |
+
+When the header is absent, the Location Service stores `-1`. See [Load balancing](/concepts/load-balancing).
+
+## Session affinity header
+
+Keeps related calls on the same Peer instance. The header name is not fixed: you choose it per Number.
+
+| | |
+| --- | --- |
+| Set by | The caller or provider, on INVITEs to a Number. |
+| Read by | Connect, for `from-pstn` routing. |
+| Value | Any string. Calls with the same value go to the same instance. |
+| Stripped | No, unless you add its name to `UNTRUSTED_HEADERS_TO_STRIP`. |
+
+Set the name in the Number's `sessionAffinityHeader`, such as `X-Room-Id`. Affinity applies when the Number's `aorLink` is a Peer with `withSessionAffinity` enabled. See [Numbers](/reference/resources/numbers) and [Peers](/reference/resources/peers).
+
+## Number extra headers
+
+The headers in a Number's `extraHeaders` list are added by Connect to `from-pstn` calls it routes to the Number's `aorLink`. Names and values are your choice.
+
+## Platform headers
+
+`X-App-Ref`, `X-Call-Ref`, `X-Is-Api-Originated-Type`, and `X-Request-Uri` are reserved for platforms built on Routr, such as Fonoster. Routr doesn't read them. Connect strips them from untrusted sources so a caller can't forge them. A client with a verified `X-Connect-Token` keeps its `X-App-Ref`.
+
+## Standard headers Routr adds
+
+On `agent-to-pstn` and `peer-to-pstn` calls, Connect also sets these standard headers toward the provider.
+
+| Header | Value |
+| --- | --- |
+| `Privacy` | `id` or `none`. Any existing `Privacy` header is removed first. |
+| `P-Asserted-Identity` | `"<display name>" <sip:<number>@<trunk host>;user=phone>`, using the selected Number. |
+| `Remote-Party-ID` | `<sip:<number>@<trunk host>>;screen=yes;party=calling`, using the selected Number. |
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Alterations API" icon="code" href="/reference/alterations-api">
+    Functions that add and remove these headers.
+  </Card>
+  <Card title="Secure the server" icon="shield" href="/guides/secure-the-server">
+    Lock down signaling and the API server.
+  </Card>
+</CardGroup>
