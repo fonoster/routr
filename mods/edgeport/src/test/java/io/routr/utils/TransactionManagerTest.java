@@ -237,4 +237,20 @@ public class TransactionManagerTest {
 
     assertEquals(1, manager.getOriginalCSeq("call-1", "BYE"));
   }
+
+  @Test
+  public void testAnUnknownCallIsNotAProxiedDialog() {
+    var manager = new TransactionManager();
+    assertFalse(manager.hasDialog("call-1"));
+  }
+
+  @Test
+  public void testRecordDialogMakesTheCallKnownUntilTheDialogIsReleased() {
+    var manager = new TransactionManager();
+    manager.recordDialog("call-1");
+    assertTrue(manager.hasDialog("call-1"));
+    assertFalse(manager.hasDialog("call-2"));
+    manager.removeDialog("call-1");
+    assertFalse(manager.hasDialog("call-1"));
+  }
 }

@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -60,6 +61,43 @@ public class TransactionManager {
    * separate CSeq spaces per in-flight request (e.g. an INVITE and a BYE at once).
    */
   private final Map<String, Long> originalCseqNumbers = new ConcurrentHashMap<>();
+
+  /**
+   * Call IDs of the dialogs this EdgePort proxied: recorded when the INVITE that
+   * created the dialog is answered with a 2xx, released with the rest of the dialog's
+   * state in {@link #removeDialog(String)}.
+   *
+   * In-dialog requests are forwarded by their Route set without routing or access
+   * checks, which is right for BYE and ACK but would let an INVITE or REFER carrying a
+   * forged To tag reach a trunk unauthenticated. Those two methods are therefore only
+   * forwarded on dialogs recorded here; an unknown one is refused with 481. This is
+   * local policy, which RFC 3261 section 16.6 lets a proxy apply; 481 is the code a UAS
+   * gives an unknown dialog (section 12.2.2) and tells the sender what was wrong. The
+   * state is per EdgePort by design: a dialog's requests return to the EdgePort that
+   * Record-Routed it. It dies with the process, which is acceptable: after a restart
+   * those two methods get 481 on calls from before it, every other method is still
+   * forwarded, so those calls can still be torn down.
+   */
+  private final Set<String> proxiedDialogs = ConcurrentHashMap.newKeySet();
+
+  /**
+   * Records that this EdgePort proxied the dialog identified by the call ID.
+   *
+   * @param callId The call ID
+   */
+  public void recordDialog(String callId) {
+    proxiedDialogs.add(callId);
+  }
+
+  /**
+   * Whether this EdgePort proxied the dialog identified by the call ID.
+   *
+   * @param callId The call ID
+   * @return true if the dialog was recorded and has not ended
+   */
+  public boolean hasDialog(String callId) {
+    return proxiedDialogs.contains(callId);
+  }
 
   /**
    * Records that a dialog was silently re-authenticated, so its CSeq offset from the
@@ -187,6 +225,7 @@ public class TransactionManager {
    * @param callId The call ID
    */
   public void removeDialog(String callId) {
+    proxiedDialogs.remove(callId);
     cseqOffsets.remove(callId);
     originalCseqNumbers.keySet().removeIf(key -> key.startsWith(callId + "_"));
   }

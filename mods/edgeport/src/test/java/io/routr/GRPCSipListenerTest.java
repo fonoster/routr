@@ -341,5 +341,25 @@ public class GRPCSipListenerTest {
     assertEquals("NORMAL_CLEARING", HangupCauses.get(487));
     assertEquals("UNKNOWN", HangupCauses.get(999)); // Unknown code
   }
-}
 
+  private Request requestWithToTag(String method, String tag) {
+    Request req = mock(Request.class);
+    ToHeader to = mock(ToHeader.class);
+    when(req.getMethod()).thenReturn(method);
+    when(req.getHeader(ToHeader.NAME)).thenReturn(to);
+    when(to.getTag()).thenReturn(tag);
+    return req;
+  }
+
+  @Test
+  public void testOnlyAnInDialogInviteOrReferRequiresAKnownDialog() {
+    assertTrue(GRPCSipListener.requiresKnownDialog(requestWithToTag(Request.INVITE, "abc")));
+    assertTrue(GRPCSipListener.requiresKnownDialog(requestWithToTag(Request.REFER, "abc")));
+    // An initial INVITE carries no To tag and goes through routing as before
+    assertFalse(GRPCSipListener.requiresKnownDialog(requestWithToTag(Request.INVITE, null)));
+    // BYE, ACK and the rest stay forwardable after a restart emptied the table
+    assertFalse(GRPCSipListener.requiresKnownDialog(requestWithToTag(Request.BYE, "abc")));
+    assertFalse(GRPCSipListener.requiresKnownDialog(requestWithToTag(Request.ACK, "abc")));
+    assertFalse(GRPCSipListener.requiresKnownDialog(requestWithToTag(Request.UPDATE, "abc")));
+  }
+}

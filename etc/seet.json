@@ -828,5 +828,51 @@
         ]
       }
     ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.6.1: In-dialog INVITE for a dialog Routr did not proxy is answered 481",
+    "description": "This test verifies that an INVITE carrying a To tag for an unknown dialog gets 481 (RFC 3261 12.2.2) instead of being forwarded to the trunk unauthenticated.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_forged_in_dialog_request.xml",
+        "variables": [
+          {
+            "name": "method",
+            "value": "INVITE"
+          },
+          {
+            "name": "requestURI",
+            "value": "sip:+12225553000@sip.provider.net;user=phone"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.6.2: In-dialog REFER for a dialog Routr did not proxy is answered 481",
+    "description": "This test verifies that an REFER carrying a To tag for an unknown dialog gets 481 (RFC 3261 12.2.2) instead of being forwarded to the trunk unauthenticated.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_forged_in_dialog_request.xml",
+        "variables": [
+          {
+            "name": "method",
+            "value": "REFER"
+          },
+          {
+            "name": "requestURI",
+            "value": "sip:+12225553000@sip.provider.net;user=phone"
+          }
+        ]
+      }
+    ]
   }
 ]
