@@ -129,7 +129,7 @@ jobs:
       - name: Build project
         run: npm run make
 
-      # Same sequence as release.yaml: build every image from this checkout, let
+      # Build every image from this checkout, let
       # edgeport's JVM and the data services settle, then run the compliance container
       # on its own and take its exit code.
       - name: Bring up the stack
@@ -145,7 +145,7 @@ jobs:
 
       # SEET only prints "UAS failed. See logs for more details". The SIPp traces it
       # means are written to / in the compliance container, which has exited but is
-      # not removed. Same collection as release.yaml.
+      # not removed.
       - name: Collect SIPp traces
         if: failure()
         run: |

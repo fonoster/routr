@@ -3,13 +3,6 @@ name: release
 on:
   workflow_dispatch:
     inputs:
-      with_tests:
-        description: 'Run compliance tests'
-        required: false
-        type: choice
-        options:
-          - 'true'
-          - 'false'
       use_branch_name:
         description: 'Use branch name instead of lerna version'
         required: false
@@ -34,7 +27,7 @@ on:
 
 jobs:
   build-and-test:
-    name: Build and run SIP Connect Compliance Tests
+    name: Build and publish
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.tag_latest != 'true'
     timeout-minutes: 20
     runs-on: ubuntu-latest
@@ -124,42 +117,6 @@ jobs:
             !mods/**/src
             !mods/**/test
             !mods/**/dist/*.ts
-      # This step is only executed for workflow_dispatch events with with_tests = true
-      - name: SIP Connect v1.1 Compliance Tests
-        if: github.event.inputs.with_tests == 'true'
-        run: |
-          docker compose -f compose.yaml -f compose.dev.yaml up --build -d && \
-          sleep 60 && \
-          docker compose -f compose.yaml -f compose.dev.yaml ps && \
-          docker compose -f compose.yaml -f compose.dev.yaml up --abort-on-container-exit --exit-code-from compliance compliance
-      # SEET only prints "UAS failed. See logs for more details". The SIPp traces it
-      # means are written to / in the compliance container (the image has no WORKDIR
-      # and `seet` does not cd), one <scenario>_<pid>_errors.log and _messages.log per
-      # user agent. The container has exited but is not removed, so stream its
-      # filesystem out and keep just those files, plus the services' logs.
-      - name: Collect SIPp traces
-        if: failure() && github.event.inputs.with_tests == 'true'
-        run: |
-          mkdir -p compliance-traces
-          cid=$(docker compose -f compose.yaml -f compose.dev.yaml ps -aq compliance)
-          docker export -o compliance-traces/fs.tar "$cid"
-          tar -tf compliance-traces/fs.tar | grep -E '^(\./)?[^/]+_(errors|messages)\.log$' \
-            | xargs tar -xf compliance-traces/fs.tar -C compliance-traces || true
-          rm -f compliance-traces/fs.tar
-          docker compose -f compose.yaml -f compose.dev.yaml logs --no-color --tail 400 \
-            > compliance-traces/compose-services.log 2>&1 || true
-          ls -l compliance-traces
-      - name: Upload compliance traces
-        if: failure() && github.event.inputs.with_tests == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: compliance-traces
-          path: compliance-traces
-          if-no-files-found: warn
-      - name: Cleanup services
-        if: always() && github.event.inputs.with_tests == 'true'
-        run: |
-          docker compose -f compose.yaml -f compose.dev.yaml down
 
   publish-to-docker-hub:
     name: Publish to Docker Hub
