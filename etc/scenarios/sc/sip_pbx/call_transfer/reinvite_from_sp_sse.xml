@@ -14,9 +14,12 @@
     <action>
       <!-- The agent's Contact is the remote target for requests we send on this dialog -->
       <ereg regexp=".*&lt;(sips?:[^&gt;]+)&gt;.*" search_in="hdr" header="Contact" case_indep="true" check_it="true" assign_to="1,agentContact" />
+      <!-- The caller's tag becomes the To tag of requests we send on this dialog.
+           SIPp's [peer_tag_param] is not populated for a UAS, so capture it ourselves. -->
+      <ereg regexp=".*;tag=([^;&gt; ]+).*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="3,callerTag" />
     </action>
   </recv>
-  <Reference variables="1" />
+  <Reference variables="1,3" />
 
   <send>
     <![CDATA[
@@ -66,7 +69,7 @@
       Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
       [routes]
       From: <sip:17853178070@sip.provider.net;user=phone>;tag=[call_number]
-      To: "John Doe" <sip:1001@sip.local>[peer_tag_param]
+      To: "John Doe" <sip:1001@sip.local>;tag=[$callerTag]
       Call-ID: [call_id]
       CSeq: 1 INVITE
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
@@ -99,7 +102,7 @@
       Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
       [routes]
       From: <sip:17853178070@sip.provider.net;user=phone>;tag=[call_number]
-      To: "John Doe" <sip:1001@sip.local>[peer_tag_param]
+      To: "John Doe" <sip:1001@sip.local>;tag=[$callerTag]
       Call-ID: [call_id]
       CSeq: 1 ACK
       Max-Forwards: 70
