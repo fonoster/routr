@@ -101,6 +101,20 @@ jobs:
           release_name: Release v${{ env.LERNA_VERSION }}
           body: ${{ steps.changelog.outputs.changelog }}
           draft: true
+      # The chart installs the image tag that matches its appVersion, so a release that
+      # does not move it leaves helm users on the previous Routr. The push below lands on
+      # main with the PAT, which lets charts-deployment.yaml fire and publish the chart.
+      - name: Point the Helm chart at this release
+        if: env.RELEASE != 'none' && github.ref == 'refs/heads/main'
+        run: |
+          .scripts/bump-chart.sh "$LERNA_VERSION"
+          if git diff --quiet -- ops/charts/connect/Chart.yaml; then
+            echo "chart unchanged"
+          else
+            git add ops/charts/connect/Chart.yaml
+            git commit -m "chore(charts): routr $LERNA_VERSION"
+            git push origin HEAD:main
+          fi
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
