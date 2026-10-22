@@ -17676,8 +17676,8 @@
     {
       "type": "frame",
       "id": "Eazgc",
-      "x": 7481,
-      "y": 1332,
+      "x": 5206,
+      "y": 0,
       "name": "Share Image (1200x630)",
       "theme": {
         "mode": "dark"
@@ -18465,8 +18465,8 @@
     {
       "type": "frame",
       "id": "EkAaI",
-      "x": 8841,
-      "y": 1332,
+      "x": 6566,
+      "y": 0,
       "name": "404 / Desktop",
       "theme": {
         "mode": "dark"
