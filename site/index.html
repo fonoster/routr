@@ -1,6 +1,7 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en" data-theme="dark">
   <head>
+    <meta charset="utf-8" />
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-JX93S6PKN4"></script>
     <script>
@@ -10,770 +11,531 @@
 
       gtag('config', 'G-JX93S6PKN4');
     </script>
-    <!-- Basic Page Info -->
-    <meta charset="UTF-8" />
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#FFF" />
-    <!-- Title -->
-    <title>A SIP server by Fonoster</title>
-    <!-- Site favicon -->
-    <link rel="shortcut icon" href="site-assets/images/favicon.ico" />
-    <!-- Mobile Specific Metas -->
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1"
-    />
-
-    <!-- Google Font -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Routr · The SIP server built for the cloud</title>
+    <meta name="description" content="Routr is a lightweight SIP proxy, location server, and registrar. Programmable, Kubernetes-ready, and the signaling engine behind Fonoster." />
+    <meta name="theme-color" content="#181818" />
+    <link rel="canonical" href="https://routr.io/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Routr" />
+    <meta property="og:title" content="Routr · The SIP server built for the cloud" />
+    <meta property="og:description" content="A lightweight SIP proxy, location server, and registrar. Programmable, Kubernetes-ready, open source." />
+    <meta property="og:url" content="https://routr.io/" />
+    <meta property="og:image" content="https://routr.io/assets/img/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The SIP server built for the cloud — Routr" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@fonoster" />
+    <link rel="icon" href="assets/img/favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-
-    <!-- CSS -->
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="site-assets/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="site-assets/css/swiper-bundle.min.css"
-    />
-
-    <link rel="stylesheet" type="text/css" href="site-assets/css/style.css" />
-    <link rel="stylesheet" type="text/css" href="site-assets/css/media.css" />
+    <link rel="stylesheet" href="assets/css/v1.css" />
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem("routr.theme") === "light" ? "light" : "dark";
+      } catch (e) {}
+    </script>
   </head>
-
-  <body>
-    <!-- header-starts -->
-    <div class="header-wrap">
-      <header>
-        <div class="container">
-          <div class="content">
-            <div class="left">
-              <div class="logo">
-                <a
-                  href="https://routr.io"
-                  class="focus-outline"
-                  target="_blank"
-                >
-                  <img
-                    src="site-assets/images/icons/logo.svg"
-                    alt="logo"
-                    class="svg"
-                  />
-                </a>
-              </div>
-            </div>
-
-            <div class="right">
-              <div class="nav-links">
-                <ul class="links">
-                  <li>
-                    <a
-                      href="/docs"
-                      target="_blank"
-                      class="focus-outline"
-                    >
-                      <div class="icon">
-                        <img
-                          src="site-assets/images/icons/new-tab.svg"
-                          class="svg"
-                        />
-                      </div>
-                      Documentation</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      href="/docs/community"
-                      target="_blank"
-                      class="focus-outline"
-                    >
-                      <div class="icon">
-                        <img
-                          src="site-assets/images/icons/new-tab.svg"
-                          class="svg"
-                        />
-                      </div>
-                      community</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      href="https://github.com/fonoster/routr/issues"
-                      target="_blank"
-                      class="focus-outline"
-                    >
-                      <div class="icon">
-                        <img
-                          src="site-assets/images/icons/new-tab.svg"
-                          class="svg"
-                        />
-                      </div>
-                      bug tracker</a
-                    >
-                  </li>
-                </ul>
-              </div>
-              <div class="btn-wrap header-btn">
-                <a
-                  href="https://github.com/fonoster/routr"
-                  target="_blank"
-                  class="btn btn-primary focus-outline"
-                >
-                  <div class="icon">
-                    <img
-                      src="site-assets/images/icons/github-icon.png"
-                      alt="github-icon"
-                    />
-                  </div>
-                  <svg
-                    width="21"
-                    height="19"
-                    viewBox="0 0 21 19"
-                    fill="currentColor"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M10.2706 13.39L6.52753 15.66L7.51307 11.38L4.20804 8.5L8.56829 8.13L10.2706 4.09L11.9729 8.13L16.3331 8.5L13.0281 11.38L14.0136 15.66M20.2255 7.24L13.0679 6.63L10.2706 0L7.47325 6.63L0.315674 7.24L5.7411 11.97L4.11845 19L10.2706 15.27L16.4227 19L14.7901 11.97L20.2255 7.24Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  1.4k</a
-                >
-              </div>
-            </div>
-
-            <div class="menu-btn">
-              <button
-                class="menu focus-outline"
-                onclick="this.classList.toggle('opened');this.setAttribute('aria-expanded', this.classList.contains('opened'))"
-                aria-label="Main Menu"
-              >
-                <svg width="25" height="25" viewBox="0 0 100 100">
-                  <path
-                    class="line line1"
-                    d="M 20,29.000046 H 80.000231 C 80.000231,29.000046 94.498839,28.817352 94.532987,66.711331 94.543142,77.980673 90.966081,81.670246 85.259173,81.668997 79.552261,81.667751 75.000211,74.999942 75.000211,74.999942 L 25.000021,25.000058"
-                  />
-                  <path class="line line2" d="M 20,50 H 80" />
-                  <path
-                    class="line line3"
-                    d="M 20,70.999954 H 80.000231 C 80.000231,70.999954 94.498839,71.182648 94.532987,33.288669 94.543142,22.019327 90.966081,18.329754 85.259173,18.331003 79.552261,18.332249 75.000211,25.000058 75.000211,25.000058 L 25.000021,74.999942"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div class="sticky-btn header-btn">
-              <a
-                href="https://github.com/fonoster/routr"
-                target="_blank"
-                class="btn btn-primary focus-outline"
-              >
-                <div class="icon">
-                  <img
-                    src="site-assets/images/icons/github-icon.png"
-                    alt="github-icon"
-                  />
-                </div>
-                <svg
-                  width="21"
-                  height="19"
-                  viewBox="0 0 21 19"
-                  fill="currentColor"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M10.2706 13.39L6.52753 15.66L7.51307 11.38L4.20804 8.5L8.56829 8.13L10.2706 4.09L11.9729 8.13L16.3331 8.5L13.0281 11.38L14.0136 15.66M20.2255 7.24L13.0679 6.63L10.2706 0L7.47325 6.63L0.315674 7.24L5.7411 11.97L4.11845 19L10.2706 15.27L16.4227 19L14.7901 11.97L20.2255 7.24Z"
-                    fill="currentColor"
-                  />
-                </svg>
-                1.4k</a
-              >
-            </div>
-          </div>
-        </div>
-      </header>
-    </div>
-    <!-- header-ends -->
-
-    <!-- banner-starts -->
-    <div class="banner-wrap alt-desc">
-      <div class="container">
-        <div class="content">
-          <div class="box">
-            <div class="upper">
-              <h1 class="h1 title">
-                The future of programmable SIP servers<span
-                  style="color: #5fcfce"
-                  >.</span
-                >
-              </h1>
-              <p class="desc">
-                Unleash the potential of our cloud-native server, running on
-                <span><a href="https://www.docker.com" class="btn-link">Docker</a></span
-                >, and <span><a href="https://kubernetes.io" class="btn-link">Kubernetes</a></span
-                >.
-              </p>
-            </div>
-            <div class="lower d-md-block d-none">
-              <p class="sub-desc small">
-                Lightweight sip proxy, location server, and registrar that
-                provides a reliable and scalable SIP infrastructure for
-                telephony carriers, communication service providers, and
-                integrators.
-              </p>
-              <div class="btn-wrap">
-                <a href="/docs" class="btn btn-primary">Documentation</a>
-                <a href="https://discord.gg/4QWgSz4hTC" class="btn-arrow">
-                  Join the community
-                  <div class="icon">
-                    <img
-                      src="site-assets/images/icons/btn-arrow.svg"
-                      alt="btn-arrow"
-                      class="svg"
-                    />
-                  </div>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- banner-ends -->
-
-    <!-- alt-desc-starts -->
-    <div class="alt-desc alt-mobile lower d-md-none d-block">
-      <p class="sub-desc small">
-        Lightweight sip proxy, location server, and registrar that provides a
-        reliable and scalable SIP infrastructure for telephony carriers,
-        communication service providers, and integrators.
-      </p>
-      <div class="btn-wrap">
-        <a href="/docs" class="btn btn-primary">Documentation</a>
-        <a href="https://discord.gg/4QWgSz4hTC" class="btn-arrow">
-          Join the community
-          <div class="icon">
-            <img
-              src="site-assets/images/icons/btn-arrow.svg"
-              alt="btn-arrow"
-              class="svg"
-            />
-          </div>
+  <body data-page="home" data-icons="assets/img/icons.svg">
+    <script src="assets/js/notice.js"></script>
+    <header class="nav" data-nav>
+      <div class="container nav__in">
+        <a class="logo" href="./" aria-label="Routr">
+          <svg viewBox="0 0 106 28" aria-hidden="true">
+            <path class="logo__text" d="M6.58346 9.30769C7.35345 8.1282 8.31594 7.20513 9.47094 6.53846C10.6259 5.84615 11.9093 5.5 13.3209 5.5V12.4615H11.5114C9.86877 12.4615 8.63678 12.8205 7.81545 13.5385C6.99412 14.2308 6.58346 15.4615 6.58346 17.2308V27.1923H0V5.73077H6.58346V9.30769Z" />
+            <path class="logo__text" fill-rule="evenodd" d="M26.2466 27.5C24.1419 27.5 22.2426 27.0513 20.5486 26.1538C18.8803 25.2564 17.5585 23.9744 16.5832 22.3077C15.6335 20.641 15.1587 18.6923 15.1587 16.4615C15.1587 14.2564 15.6463 12.3205 16.6217 10.6538C17.597 8.96154 18.9316 7.66667 20.6256 6.76923C22.3196 5.87179 24.2189 5.42308 26.3236 5.42308C28.4282 5.42308 30.3276 5.87179 32.0216 6.76923C33.7155 7.66667 35.0502 8.96154 36.0255 10.6538C37.0009 12.3205 37.4885 14.2564 37.4885 16.4615C37.4885 18.6667 36.988 20.6154 35.987 22.3077C35.0117 23.9744 33.6642 25.2564 31.9446 26.1538C30.2506 27.0513 28.3512 27.5 26.2466 27.5ZM26.2466 21.8077C27.5043 21.8077 28.5694 21.3462 29.4421 20.4231C30.3404 19.5 30.7896 18.1795 30.7896 16.4615C30.7896 14.7436 30.3532 13.4231 29.4806 12.5C28.6336 11.5769 27.5813 11.1154 26.3236 11.1154C25.0403 11.1154 23.9751 11.5769 23.1281 12.5C22.2811 13.3974 21.8576 14.7179 21.8576 16.4615C21.8576 18.1795 22.2683 19.5 23.0896 20.4231C23.9366 21.3462 24.9889 21.8077 26.2466 21.8077Z" />
+            <path class="logo__text" d="M62.1945 5.73077V27.1923H55.6111V24.2692C54.9437 25.218 54.0326 25.9872 52.8776 26.5769C51.7483 27.141 50.4906 27.4231 49.1046 27.4231C47.462 27.4231 46.0118 27.0641 44.7541 26.3462C43.4965 25.6026 42.5212 24.5385 41.8282 23.1538C41.1352 21.7692 40.7887 20.141 40.7887 18.2692V5.73077H47.3336V17.3846C47.3336 18.8205 47.7058 19.9359 48.4501 20.7308C49.1944 21.5256 50.1954 21.9231 51.4531 21.9231C52.7364 21.9231 53.7502 21.5256 54.4946 20.7308C55.2389 19.9359 55.6111 18.8205 55.6111 17.3846V5.73077H62.1945Z" />
+            <path class="logo__text" d="M78.8968 21.6154V27.1923H75.5473C73.1603 27.1923 71.2995 26.6154 69.9649 25.4615C68.6302 24.2821 67.9629 22.3718 67.9629 19.7308V11.1923H65.3449V5.73077H67.9629V0.5H74.5463V5.73077H78.8583V11.1923H74.5463V19.8077C74.5463 20.4487 74.7003 20.9103 75.0083 21.1923C75.3163 21.4744 75.8296 21.6154 76.5483 21.6154H78.8968Z" />
+            <path class="logo__text" d="M89.1473 9.30769C89.9173 8.1282 90.8798 7.20513 92.0348 6.53846C93.1898 5.84615 94.4731 5.5 95.8848 5.5V12.4615H94.0753C92.4327 12.4615 91.2007 12.8205 90.3793 13.5385C89.558 14.2308 89.1473 15.4615 89.1473 17.2308V27.1923H82.5639V5.73077H89.1473V9.30769Z" />
+            <path class="logo__dot" d="M102.112 27.5C100.957 27.5 100.007 27.1667 99.2626 26.5C98.5439 25.8077 98.1846 24.9615 98.1846 23.9615C98.1846 22.9359 98.5439 22.0769 99.2626 21.3846C100.007 20.6923 100.957 20.3462 102.112 20.3462C103.241 20.3462 104.165 20.6923 104.884 21.3846C105.628 22.0769 106 22.9359 106 23.9615C106 24.9615 105.628 25.8077 104.884 26.5C104.165 27.1667 103.241 27.5 102.112 27.5Z" />
+          </svg>
         </a>
-      </div>
-    </div>
-    <!-- alt-desc-ends -->
-
-    <!-- pattern-bg-starts -->
-    <div class="pattern-bg-wrap">
-      <div class="container">
-        <!-- sponsers-sec-starts -->
-        <div class="sponsers-sec-wrap">
-          <div class="content">
-            <p class="accent">sponsors</p>
-            <h2 class="h2 title">
-              Proudly supported by our esteemed sponsors.
-            </h2>
-          </div>
-          <ul class="sponsers-list">
-            <li>
-              <div class="logo">
-                <img
-                  src="site-assets/images/sponser-logo-one.png"
-                  alt="sponser-logo"
-                  width="155"
-                  height="40"
-                />
-              </div>
-              <p class="small desc">
-                Building the open source alternative to Twilio
-              </p>
-
-              <div class="btn-wrap">
-                <a href="https://fonoster.com" class="btn-arrow"
-                  >Learn More
-                  <div class="icon">
-                    <img
-                      src="site-assets/images/icons/btn-arrow.svg"
-                      alt="btn-arrow"
-                      class="svg"
-                    /></div
-                ></a>
-              </div>
-            </li>
-
-            <li>
-              <div class="logo">
-                <img
-                  src="site-assets/images/sponser-logo-two.png"
-                  alt="sponser-logo"
-                  width="155"
-                  height="40"
-                />
-              </div>
-              <p class="small desc">
-                Welfare technology that develops products and services with the
-                individual in focus.
-              </p>
-
-              <div class="btn-wrap">
-                <a href="https://camanio.com" class="btn-arrow"
-                  >Learn More
-                  <div class="icon">
-                    <img
-                      src="site-assets/images/icons/btn-arrow.svg"
-                      alt="btn-arrow"
-                      class="svg"
-                    /></div
-                ></a>
-              </div>
-            </li>
-
-            <li>
-              <div class="logo">
-                <img
-                  src="site-assets/images/sponser-logo-three.png"
-                  alt="sponser-logo"
-                  width="155"
-                  height="40"
-                />
-              </div>
-              <p class="small desc">
-                Join our group of sponsors in shaping the future of technology.
-              </p>
-
-              <div class="btn-wrap">
-                <a href="https://form.typeform.com/to/toOg8kmD" class="btn-arrow"
-                  >Become a sponsor
-                  <div class="icon">
-                    <img
-                      src="site-assets/images/icons/btn-arrow.svg"
-                      alt="btn-arrow"
-                      class="svg"
-                    /></div
-                ></a>
-              </div>
-            </li>
-          </ul>
+        <nav class="nav__links" aria-label="Main">
+          <a href="#architecture">Architecture</a>
+          <a href="#connect">Connect</a>
+          <a href="/docs">Docs</a>
+          <a href="#community">Community</a>
+        </nav>
+        <div class="nav__actions">
+          <a class="gh-chip" href="https://github.com/fonoster/routr" aria-label="Routr on GitHub">
+            <svg class="icon i-github" aria-hidden="true"><use href="assets/img/icons.svg#i-github"></use></svg>
+            <svg class="icon i-star" aria-hidden="true"><use href="assets/img/icons.svg#i-star"></use></svg>
+            <span data-stars>1.7K</span>
+          </a>
+          <a class="btn btn--primary btn--sm" href="/docs">Get started</a>
+          <button class="nav__menu" type="button" aria-expanded="false" aria-controls="sheet" aria-label="Menu" data-menu>
+            <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-menu"></use></svg>
+          </button>
         </div>
-        <!-- sponsers-sec-ends -->
+      </div>
+      <div class="sheet" id="sheet" hidden>
+        <a href="#architecture">Architecture</a>
+        <a href="#connect">Connect</a>
+        <a href="/docs">Docs</a>
+        <a href="#community">Community</a>
+        <a class="btn btn--primary" href="/docs">Get started</a>
+      </div>
+    </header>
 
-        <!-- capabilities-sec-starts -->
-        <div class="capabilities-sec-wrap">
-          <div class="content">
-            <p class="accent">capabilities</p>
-            <h2 class="h2 title">
-              The SDKs and tooling to deploy VoIP networks, faster.
-            </h2>
-            <p class="desc large">
-              Routr provides all the tools required to deploy your VoIP network,
-              including a command-line for remote server control. It can also be
-              controlled via a RESTful API or a web-based GUI.
-            </p>
+    <main>
+      <!-- Hero -->
+      <section class="hero" data-loop>
+        <div class="atmos" aria-hidden="true">
+          <div class="dots"><i class="dots__wave"></i></div>
+        </div>
+        <div class="container hero__in">
+          <div class="hero__copy">
+            <a class="badge" href="#fonoster" data-reveal>
+              <span class="badge__dot"></span>
+              <span>The signaling engine behind Fonoster</span>
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-arrow-right"></use></svg>
+            </a>
+            <h1 class="t-display" data-reveal style="--i: 1">The SIP server<br />built for the cloud.</h1>
+            <p class="t-lead" data-reveal style="--i: 2">A lightweight SIP proxy, location server, and registrar.</p>
+            <div class="ctas" data-reveal style="--i: 3">
+              <a class="btn btn--primary" href="/docs">Get started</a>
+              <a class="btn btn--secondary" href="https://github.com/fonoster/routr">
+                <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-github"></use></svg>
+                View on GitHub
+              </a>
+            </div>
           </div>
 
-          <div class="code-section">
-            <div class="left">
-              <div class="img-box">
-                <img
-                  src="site-assets/images/code-img.png"
-                  alt="code-img"
-                  width="670"
-                  height="434"
-                />
-                <div class="btn-wrap">
-                  <a href="https://gitpod.io/#https://github.com/fonoster/routr" target="_blank" class="btn-icon btn-primary">
-                    <div class="icon">
-                      <img
-                        src="site-assets/images/icons/new-tab.svg"
-                        alt="new-tab"
-                        class="svg"
-                      />
-                    </div>
-                    See it live</a
-                  >
-                </div>
+          <div class="trace" data-reveal style="--i: 2" data-trace aria-label="A SIP INVITE traced through Routr">
+            <div class="trace__glow" aria-hidden="true"></div>
+            <div class="board">
+              <div class="window__bar"><i></i><i></i><i></i>sip trace · INVITE<span class="hide-m"> from 1001@sip.local</span></div>
+              <div class="trace__path" aria-hidden="true">
+                <span class="chip-node" data-node="softphone">Softphone</span><i class="chip-link"></i>
+                <span class="chip-node" data-node="edgeport">EdgePort</span><i class="chip-link"></i>
+                <span class="chip-node" data-node="dispatcher">Dispatcher</span><i class="chip-link"></i>
+                <span class="chip-node" data-node="connect">Connect</span><i class="chip-link"></i>
+                <span class="chip-node" data-node="trunk">Trunk</span>
+              </div>
+              <div class="log trace__log">
+                <div class="log__row" data-node="edgeport"><span class="log__t">00.004</span><span class="log__dir log__dir--in">→</span><b>INVITE</b><span> sip:+19103434434@sip.local SIP/2.0</span></div>
+                <div class="log__row" data-node="dispatcher"><span class="log__t">00.006</span><span class="log__dir">·</span><b>edgeport-01</b><span> → dispatcher  (gRPC)</span></div>
+                <div class="log__row" data-node="connect"><span class="log__t">00.007</span><span class="log__dir">·</span><b>match</b><span> req => true  → connect</span></div>
+                <div class="log__row" data-node="trunk"><span class="log__t">00.011</span><span class="log__dir">·</span><b>egress</b><span> domain-01 › number-01 › trunk-01</span></div>
+                <div class="log__row"><span class="log__t">00.013</span><span class="log__dir">←</span><b>100 Trying</b></div>
+                <div class="log__row"><span class="log__t">00.412</span><span class="log__dir">←</span><b>180 Ringing</b></div>
+                <div class="log__row ok"><span class="log__t">04.120</span><span class="log__dir">←</span><b>200 OK</b><span>   session established</span></div>
               </div>
             </div>
-            <div class="right">
-              <ul class="feature-list">
-                <li>
-                  <div class="icon">
-                    <img
-                      src="site-assets/images/icons/feature-icon-one.svg"
-                      alt="feature-icon"
-                      class="svg"
-                    />
-                  </div>
-                  <div class="inner">
-                    <h3 class="h3 title">Batteries included!</h3>
-                    <p class="small">
-                      Routr includes all tools for deploying your VoIP network.
-                      It offers remote server control via command-line, RESTful
-                      API, or a user-friendly GUI in your web browser.
-                    </p>
-                  </div>
-                </li>
+          </div>
+        </div>
+      </section>
 
-                <li>
-                  <div class="icon">
-                    <img
-                      src="site-assets/images/icons/feature-icon-two.svg"
-                      alt="feature-icon"
-                      class="svg"
-                    />
-                  </div>
-                  <div class="inner">
-                    <h3 class="h3 title">Cloud-ready</h3>
-                    <p class="small">
-                      Our Docker image includes the server, deployment tools,
-                      and is regularly tested with popular cloud providers,
-                      enabling effortless deployment of Routr in seconds.
-                    </p>
-                  </div>
-                </li>
+      <!-- Numbers -->
+      <section class="numbers" aria-label="Routr in numbers">
+        <div class="container numbers__grid">
+          <div class="num" data-reveal>
+            <span class="num__value" data-odo>1.7K</span>
+            <p class="num__label">GitHub stars</p>
+          </div>
+          <div class="num" data-reveal style="--i: 1">
+            <span class="num__value" data-odo>750K+</span>
+            <p class="num__label">Docker pulls</p>
+          </div>
+          <div class="num" data-reveal style="--i: 2">
+            <span class="num__value" data-odo>80+</span>
+            <p class="num__label">releases shipped</p>
+          </div>
+          <div class="num" data-reveal style="--i: 3">
+            <span class="num__value" data-odo>2017</span>
+            <p class="num__label">building since</p>
+          </div>
+        </div>
+      </section>
 
-                <li>
-                  <div class="icon">
-                    <img
-                      src="site-assets/images/icons/feature-icon-one.svg"
-                      alt="feature-icon"
-                      class="svg"
-                    />
-                  </div>
-                  <div class="inner">
-                    <h3 class="h3 title">Easy to partner with</h3>
-                    <p class="small">
-                      We offer detailed documentation and code examples to help
-                      new users get started with Routr. We welcome feedback and
-                      are available to answer any user questions.
-                    </p>
-                  </div>
-                </li>
+      <!-- The engine behind Fonoster -->
+      <section class="section" id="fonoster">
+        <div class="container">
+          <div class="sec-head">
+            <span class="eyebrow" data-reveal><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-cloud"></use></svg>Proven in production</span>
+            <h2 class="t-h2" data-reveal style="--i: 1">The engine behind Fonoster.</h2>
+            <p class="t-sub" data-reveal style="--i: 2">Every call on Fonoster Cloud is signaled by Routr.</p>
+          </div>
+          <div class="engine__row">
+            <div class="ecard" data-reveal>
+              <img class="fonoster-logo fonoster-logo--dark" src="assets/img/fonoster-dark.png" alt="Fonoster" width="124" height="32" />
+              <img class="fonoster-logo fonoster-logo--light" src="assets/img/fonoster-light.svg" alt="Fonoster" width="124" height="32" />
+              <p class="ecard__line">Fonoster builds AI that answers the phone. Every call goes through Routr.</p>
+              <div class="chips"><span>fonoster/routr-one:2.15.4</span><span>helm · routr-connect</span></div>
+              <a class="arrow-link" href="https://fonoster.com/">
+                <span>See how Fonoster uses it</span>
+                <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-arrow-right"></use></svg>
+              </a>
+            </div>
+            <div class="ecard ecard--side" data-reveal style="--i: 1">
+              <h3 class="ecard__title">Scales your media servers</h3>
+              <p class="ecard__text">Sits in front of Asterisk and FreeSWITCH and spreads calls across them. Not a replacement.</p>
+              <ul class="list">
+                <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-building-2"></use></svg>Carriers and CPaaS platforms</li>
+                <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-phone"></use></svg>Office and home phone systems</li>
+                <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-megaphone"></use></svg>Intercom and paging networks</li>
+                <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-server"></use></svg>Asterisk and FreeSWITCH clusters</li>
               </ul>
             </div>
           </div>
         </div>
-        <!-- capabilities-sec-ends -->
-      </div>
-    </div>
-    <!-- pattern-bg-ends -->
+      </section>
 
-    <!-- testimonials-sec-starts -->
-    <div class="testimonials-sec-wrap">
-      <div class="img-wrap">
-        <img
-          src="site-assets/images/testimonial-img.png"
-          alt="testimonial-img"
-          width="1920"
-          height="545"
-        />
-      </div>
-      <div class="img-wrap-mobile d-block d-md-none">
-        <img
-          src="site-assets/images/testimonial-img-mobile.png"
-          alt="testimonial-img-mobile"
-        />
-      </div>
-      <div class="container">
-        <div class="content">
-          <div class="title-section">
-            <p class="accent">testimonials</p>
-            <h2 class="h2 title">What our people are saying about us.</h2>
-            <div class="btn-wrap">
-              <a href="https://form.typeform.com/to/F2Kjm4uh" class="btn-arrow">
-                Provide a Testimonial
-                <div class="icon">
-                  <img
-                    src="site-assets/images/icons/btn-arrow.svg"
-                    alt="btn-arrow"
-                    class="svg"
-                  />
-                </div>
-              </a>
+      <!-- Architecture -->
+      <section class="section arch pipe" id="architecture" data-loop style="padding-top: 0">
+        <div class="container">
+          <div class="sec-head">
+            <span class="eyebrow" data-reveal><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-grid-2x2"></use></svg>Architecture</span>
+            <h2 class="t-h2" data-reveal style="--i: 1">Small services. One SIP server.</h2>
+            <p class="t-sub" data-reveal style="--i: 2">Small services over gRPC. Replace or scale any of them.</p>
+          </div>
+          <div class="pipe__flow" data-reveal style="--i: 2">
+            <div class="step" style="--i: 0">
+              <div class="step__icon"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-phone"></use></svg></div>
+              <div>
+                <div class="step__name">Endpoints</div>
+                <div class="step__vendors"><span class="show-d">Softphones · Phones<br />Media servers<br />Carriers</span><span class="show-m">Phones · Media servers · Carriers</span></div>
+              </div>
+            </div>
+            <div class="plink" style="--i: 1" aria-hidden="true"><i></i></div>
+            <div class="step" style="--i: 1">
+              <div class="step__icon"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-network"></use></svg></div>
+              <div>
+                <div class="step__name">EdgePort</div>
+                <div class="step__vendors"><span class="show-d">UDP · TCP · TLS<br />WS · WSS</span><span class="show-m">UDP · TCP · TLS · WS · WSS</span></div>
+              </div>
+            </div>
+            <div class="plink" style="--i: 2" aria-hidden="true"><i></i></div>
+            <div class="step" style="--i: 2">
+              <div class="step__icon"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-git-fork"></use></svg></div>
+              <div>
+                <div class="step__name">Dispatcher</div>
+                <div class="step__vendors"><span class="show-d">matchFunc:<br />req => true</span><span class="show-m">matchFunc: req => true</span></div>
+              </div>
+            </div>
+            <div class="plink" style="--i: 3" aria-hidden="true"><i></i></div>
+            <div class="step" style="--i: 3">
+              <div class="step__icon"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-layers"></use></svg></div>
+              <div>
+                <div class="step__name">Middlewares</div>
+                <div class="step__vendors"><span class="show-d">RTPRelay · Auth<br />Metrics · CDRs</span><span class="show-m">RTPRelay · Auth · Metrics</span></div>
+              </div>
+            </div>
+            <div class="plink" style="--i: 4" aria-hidden="true"><i></i></div>
+            <div class="step" style="--i: 4">
+              <div class="step__icon"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-cpu"></use></svg></div>
+              <div>
+                <div class="step__name">Processor</div>
+                <div class="step__vendors"><span class="show-d">Connect, or<br />one you write</span><span class="show-m">Connect, or one you write</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="services" data-reveal>
+            <span class="services__label">Cooperating services</span>
+            <span class="svc"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-map-pin"></use></svg>Location Service</span>
+            <span class="svc"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-database"></use></svg>API Server</span>
+            <span class="svc"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-refresh-cw"></use></svg>Registry &amp; Requester</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Routr Connect -->
+      <section class="band" id="connect">
+        <div class="container section split">
+          <div class="split__copy" data-reveal>
+            <span class="eyebrow"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-cable"></use></svg>Routr Connect</span>
+            <h2 class="t-h2">Your SIP network, as resources.</h2>
+            <p class="t-sub">The built-in Processor for SIP Connect 1.1. Describe your network as resources; Routr does the routing.</p>
+            <a class="arrow-link" href="/docs">
+              <span>Learn more about Connect</span>
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-arrow-right"></use></svg>
+            </a>
+          </div>
+          <div class="window" data-reveal style="--i: 1">
+            <div class="window__bar"><i></i><i></i><i></i>number.yaml</div>
+            <pre class="code show-d"><code><span class="l"><span class="k">apiVersion</span>: <span class="v">v2beta1</span></span><span
+class="l"><span class="k">kind</span>: <span class="v">Number</span></span><span
+class="l"><span class="k">ref</span>: <span class="v">number-01</span></span><span
+class="l"><span class="k">metadata</span>:</span><span
+class="l">  <span class="k">name</span>: <span class="v">"(910) 343-4434"</span></span><span
+class="l">  <span class="k">geoInfo</span>:</span><span
+class="l">    <span class="k">city</span>: <span class="v">Durham, NC</span></span><span
+class="l">    <span class="k">country</span>: <span class="v">USA</span></span><span
+class="l"><span class="k">spec</span>:</span><span
+class="l">  <span class="k">trunkRef</span>: <span class="v">trunk-01</span></span><span
+class="l">  <span class="k">location</span>:</span><span
+class="l">    <span class="k">telUrl</span>: <span class="v">tel:+19103434434</span></span><span
+class="l">    <span class="k">aorLink</span>: <span class="v">sip:conference@sip.local</span></span><span
+class="l">    <span class="k">sessionAffinityHeader</span>: <span class="v">X-Room-Id</span></span><span
+class="l">    <span class="c"># calls to this number land on one media server</span></span></code></pre>
+            <pre class="code show-m"><code><span class="l"><span class="k">apiVersion</span>: <span class="v">v2beta1</span></span><span
+class="l"><span class="k">kind</span>: <span class="v">Number</span></span><span
+class="l"><span class="k">ref</span>: <span class="v">number-01</span></span><span
+class="l"><span class="k">metadata</span>:</span><span
+class="l">  <span class="k">name</span>: <span class="v">"(910) 343-4434"</span></span><span
+class="l"><span class="k">spec</span>:</span><span
+class="l">  <span class="k">trunkRef</span>: <span class="v">trunk-01</span></span><span
+class="l">  <span class="k">location</span>:</span><span
+class="l">    <span class="k">telUrl</span>: <span class="v">tel:+19103434434</span></span><span
+class="l">    <span class="k">aorLink</span>: <span class="v">sip:conf@sip.local</span></span><span
+class="l">    <span class="k">sessionAffinityHeader</span>:</span><span
+class="l">      <span class="v">X-Room-Id</span></span></code></pre>
+            <div class="term">
+              <div class="term__line">
+                <span class="term__prompt">$</span>
+                <span><span data-type="rctl numbers create -f number.yaml">rctl numbers create -f number.yaml</span><span class="caret" aria-hidden="true"></span></span>
+              </div>
+              <div class="term__out" data-type-out>✔ number-01 created</div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="testimonials-slider-wrap">
-        <div class="testimonials-slider swiper-slider">
-          <div class="swiper-wrapper">
-            <div class="swiper-slide">
-              <div class="card">
-                <div class="inner">
-                  <div class="icon">
-                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
-                  </div>
-                  <div class="content">
-                    <p class="small text">
-                      Routr's architecture and design is fantastic. A breath of fresh air. 
-                      Being Docker and Kubernetes ready is a huge win over a more traditional SIP server setup.
-                    </p>
-                    <p class="accent author">Phil Jones, VQ Comms</p>
-                  </div>
-                </div>
-              </div>
+      <!-- Scale -->
+      <section class="section" id="scale">
+        <div class="container">
+          <div class="sec-head">
+            <span class="eyebrow" data-reveal><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-maximize-2"></use></svg>Scale</span>
+            <h2 class="t-h2" data-reveal style="--i: 1">Stateful at the edge.<br />Stateless everywhere else.</h2>
+            <p class="t-sub" data-reveal style="--i: 2">Only EdgePorts hold state. The Location Service knows which EdgePort each endpoint is on, so a call can land on any of them and still arrive.</p>
+          </div>
+          <div class="board hop" data-reveal data-hop aria-label="An INVITE that lands on one EdgePort and is delivered through another">
+            <div class="hop__path" aria-hidden="true">
+              <span class="chip-node" data-node="1001">1001<small>caller</small></span><i class="chip-link"></i>
+              <span class="chip-node is-fixed" data-node="edgeport-01">edgeport-01<small>holds 1001's connection</small></span><i class="chip-link"></i>
+              <span class="chip-node" data-node="dispatcher">dispatcher<small>stateless</small></span><i class="chip-link"></i>
+              <span class="chip-node" data-node="connect">connect<small>stateless</small></span><i class="chip-link"></i>
+              <span class="chip-node is-fixed" data-node="edgeport-02">edgeport-02<small>holds 1002's connection</small></span><i class="chip-link"></i>
+              <span class="chip-node" data-node="1002">1002<small>callee</small></span>
             </div>
-
-            <div class="swiper-slide">
-              <div class="card">
-                <div class="inner">
-                  <div class="icon">
-                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
-                  </div>
-                  <div class="content">
-                    <p class="small text">
-                      I came across Routr, which seems to be the one and only
-                      cloud-first Kubernetes-ready SIP server on the planet!
-                    </p>
-                    <p class="accent author">Jessie wadman, camanio ab</p>
-                  </div>
-                </div>
-              </div>
+            <div class="log">
+              <div class="log__row" data-node="edgeport-01"><span class="log__t">00.000</span><span class="log__hop">1001 → edgeport-01</span><span>INVITE sip:1002@sip.local</span></div>
+              <div class="log__row" data-node="dispatcher"><span class="log__t">00.002</span><span class="log__hop">edgeport-01 → dispatcher</span><span>SIP becomes protobuf; the EdgePort keeps the transaction</span></div>
+              <div class="log__row" data-node="connect"><span class="log__t">00.003</span><span class="log__hop">dispatcher → connect</span><span>stateless: match req => true, forward</span></div>
+              <div class="log__row"><span class="log__t">00.005</span><span class="log__hop">connect</span><span>location lookup on redis: 1002 is registered on edgeport-02</span></div>
+              <div class="log__row"><span class="log__t">00.006</span><span class="log__hop">connect</span><span>adds Route: edgeport-02 and X-EdgePort-Ref: edgeport-01</span></div>
+              <div class="log__row" data-node="edgeport-02"><span class="log__t">00.008</span><span class="log__hop">edgeport-01 → edgeport-02</span><span>hands the INVITE to the EdgePort that holds 1002</span></div>
+              <div class="log__row ok" data-node="1002"><span class="log__t">00.010</span><span class="log__hop">edgeport-02 → 1002</span><span>delivered on the existing connection</span></div>
             </div>
-
-            <div class="swiper-slide">
-              <div class="card">
-                <div class="inner">
-                  <div class="icon">
-                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
-                  </div>
-                  <div class="content">
-                    <p class="small text">
-                      Awesome and one of the best open-source software in 2023.
-                    </p>
-                    <p class="accent author">no-championship-s368, reddit</p>
-                  </div>
-                </div>
-              </div>
+          </div>
+          <div class="cards-3">
+            <div class="card" data-reveal>
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-network"></use></svg>
+              <h3 class="card__title">Across EdgePorts</h3>
+              <p class="card__line">Any EdgePort takes any call and hands it to the one that holds the target.</p>
             </div>
-
-            <div class="swiper-slide">
-              <div class="card">
-                <div class="inner">
-                  <div class="icon">
-                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
-                  </div>
-                  <div class="content">
-                    <p class="small text">
-                      I think this project has a great promise to become a transformative technology.
-                    </p>
-                    <p class="accent author">jbwill36, github</p>
-                  </div>
-                </div>
-              </div>
+            <div class="card" data-reveal style="--i: 1">
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-shuffle"></use></svg>
+              <h3 class="card__title">Across media servers</h3>
+              <p class="card__line">A Peer groups Asterisk or FreeSWITCH behind one address: round-robin, least-sessions, session affinity.</p>
             </div>
-
-            <div class="swiper-slide">
-              <div class="card">
-                <div class="inner">
-                  <div class="icon">
-                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
-                  </div>
-                  <div class="content">
-                    <p class="small text">
-                      I came across Routr, which seems to be the one and only
-                      cloud-first Kubernetes-ready SIP server on the planet!
-                    </p>
-                    <p class="accent author">Jessie wadman, camanio ab</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="swiper-slide">
-              <div class="card">
-                <div class="inner">
-                  <div class="icon">
-                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
-                  </div>
-                  <div class="content">
-                    <p class="small text">
-                      Awesome and one of the best open-source software in 2023.
-                    </p>
-                    <p class="accent author">no-championship-s368, reddit</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="swiper-slide">
-              <div class="card">
-                <div class="inner">
-                  <div class="icon">
-                    <img src="site-assets/images/icons/quote.svg" alt="quote" />
-                  </div>
-                  <div class="content">
-                    <p class="small text">
-                      I think this project has a great promise to become a transformative technology.
-                    </p>
-                    <p class="accent author">jbwill36, github</p>
-                  </div>
-                </div>
-              </div>
+            <div class="card" data-reveal style="--i: 2">
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-copy"></use></svg>
+              <h3 class="card__title">Across services</h3>
+              <p class="card__line">Stateless replicas behind a Kubernetes service. Location shared on Redis.</p>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    <!-- testimonials-sec-ends -->
+      </section>
 
-    <!-- community-sec-starts -->
-    <div class="community-sec-wrap">
-      <div class="container">
-        <div class="content">
-          <div class="title-section">
-            <p class="accent">community</p>
-            <h2 class="h2 title">
-              Join our amazing community of contributors.
-            </h2>
+      <!-- Resilience -->
+      <section class="band" id="resilience">
+        <div class="container section split">
+          <div class="split__copy" data-reveal>
+            <span class="eyebrow"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-shield-check"></use></svg>Resilience</span>
+            <h2 class="t-h2">No single point of failure.</h2>
+            <p class="t-sub">Every service is its own pod. Lose an EdgePort, the others keep taking calls. Lose a Processor, the Dispatcher routes around it.</p>
+            <ul class="points">
+              <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-check"></use></svg>EdgePorts: stateful, scaled out, any one can take a call</li>
+              <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-check"></use></svg>Dispatcher, Processors, Middlewares: stateless replicas</li>
+              <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-check"></use></svg>Location Service: shared table on Redis</li>
+              <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-check"></use></svg>API Server: Postgres, backed up like any database</li>
+            </ul>
           </div>
-          <div class="row list">
-            <div class="col-md-6">
-              <div class="box">
-                <div class="img-box">
-                  <img
-                    src="site-assets/images/community-img-one.png"
-                    alt="community-img"
-                    width="440"
-                    height="298"
-                  />
-                </div>
-
-                <div class="title body-bold">GitHub Discussions</div>
-                <p class="small desc">
-                  Have a question, idea, or update? Join our collaborative forum
-                  for the community of open source super stars.
-                </p>
-                <div class="btn-wrap">
-                  <a href="https://github.com/fonoster/routr/discussions" class="btn btn-primary btn-alt">View on GitHub</a>
-                </div>
-              </div>
+          <div class="board fail" data-reveal style="--i: 1" data-failover aria-label="One EdgePort fails and the cluster keeps serving calls">
+            <div class="fail__head"><span>routr · us-east1</span><span class="status">healthy</span></div>
+            <div class="fail__stats">
+              <div class="stat"><span class="stat__v" data-stat="calls">1,240</span><span class="stat__l">active calls</span></div>
+              <div class="stat"><span class="stat__v ok" data-stat="refused">0</span><span class="stat__l">new calls refused</span></div>
+              <div class="stat"><span class="stat__v" data-stat="up">3 / 3</span><span class="stat__l">edgeports up</span></div>
+              <div class="stat"><span class="stat__v" data-stat="restart">—</span><span class="stat__l">pod restart</span></div>
             </div>
-
-            <div class="col-md-6">
-              <div class="box">
-                <div class="img-box">
-                  <img
-                    src="site-assets/images/community-img-two.png"
-                    alt="community-img"
-                    width="440"
-                    height="298"
-                  />
-                </div>
-
-                <div class="title body-bold">Discord Community</div>
-                <p class="small desc">
-                  Supported by our growing community of advocates, contributors,
-                  and heroes.
-                  <br />
-                </p>
-                <div class="btn-wrap">
-                  <a href="https://discord.gg/4QWgSz4hTC" class="btn btn-primary btn-alt"
-                    >Join the Community</a
-                  >
-                </div>
-              </div>
+            <div class="fail__rows">
+              <div class="frow frow--hi"><span class="frow__name">edgeport</span><span class="frow__dots"><i></i><i data-down></i><i></i></span><span class="frow__note">new calls land on 01 and 03</span></div>
+              <div class="frow"><span class="frow__name">dispatcher</span><span class="frow__dots"><i></i><i></i></span><span class="frow__note">stateless</span></div>
+              <div class="frow"><span class="frow__name">connect</span><span class="frow__dots"><i></i><i></i><i></i></span><span class="frow__note">stateless</span></div>
+              <div class="frow"><span class="frow__name">location</span><span class="frow__dots"><i></i><i></i></span><span class="frow__note">redis · shared table</span></div>
+              <div class="frow"><span class="frow__name">apiserver</span><span class="frow__dots"><i></i><i></i></span><span class="frow__note">postgres · primary + standby</span></div>
+            </div>
+            <div class="log fail__events">
+              <div class="log__row bad"><span class="log__t">10:42:03</span><span class="log__hop">edgeport-02</span><span>OOMKilled · pod terminated</span></div>
+              <div class="log__row"><span class="log__t">10:42:03</span><span class="log__hop">location</span><span>edgeport-02 contacts expire · clients re-register on 01 and 03</span></div>
+              <div class="log__row"><span class="log__t">10:42:04</span><span class="log__hop">edgeport-01</span><span>new calls landing · nothing refused</span></div>
+              <div class="log__row ok"><span class="log__t">10:42:05</span><span class="log__hop">edgeport-02</span><span>new pod Running · back in rotation</span></div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    <!-- community-sec-ends -->
+      </section>
 
-    <!-- footer-starts -->
-    <footer class="footer-wrap">
-      <div class="container">
-        <div class="content">
-          <div class="box">
-            <div class="left">
-              <p class="accent footer-title">fonoster oss</p>
-              <p class="small desc">
-                We use Open Source in many projects, and we think that giving
-                back to the community it's the right thing to do. We are
-                committed to share what we have learn from years of research.
-              </p>
-            </div>
-            <div class="right">
-              <div class="col">
-                <p class="accent footer-title">useful links</p>
-                <ul class="footer-links">
-                  <li>
-                    <a href="/docs" class="btn-link">Documentation</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/fonoster/routr/issues" class="btn-link">Bug Tracker</a>
-                  </li>
-                </ul>
+      <!-- Programmable -->
+      <section class="section" id="programmable">
+        <div class="container split split--rev">
+          <div class="split__copy" data-reveal>
+            <span class="eyebrow"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-code"></use></svg>Programmable</span>
+            <h2 class="t-h2">Extend it in any language.</h2>
+            <p class="t-sub">Processors and Middlewares are gRPC services. Write one in Node, Go, or Java and swap it in.</p>
+            <a class="arrow-link" href="/docs">
+              <span>Build a Processor</span>
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-arrow-right"></use></svg>
+            </a>
+          </div>
+          <div class="window" data-reveal style="--i: 1">
+            <div class="window__bar"><i></i><i></i><i></i>processor.ts</div>
+            <pre class="code show-d"><code><span class="l"><span class="k">import</span> <span class="i">Processor, { Response }</span> <span class="k">from</span> <span class="v">"@routr/processor"</span></span><span
+class="l"> </span><span
+class="l"><span class="k">const</span> <span class="i">processor = </span><span class="k">new</span> <span class="i">Processor({ bindAddr: </span><span class="v">"0.0.0.0:51904"</span><span class="i">, name: </span><span class="v">"echo"</span><span class="i"> })</span></span><span
+class="l"> </span><span
+class="l"><span class="i">processor.listen((req, res) => {</span></span><span
+class="l">  <span class="c">// every INVITE, REGISTER, and BYE lands here</span></span><span
+class="l">  <span class="i">logger.verbose(req.message.method)</span></span><span
+class="l">  <span class="i">res.sendOk()</span></span><span
+class="l"><span class="i">})</span></span></code></pre>
+            <pre class="code show-m"><code><span class="l"><span class="k">import</span> <span class="i">Processor</span></span><span
+class="l">  <span class="k">from</span> <span class="v">"@routr/processor"</span></span><span
+class="l"> </span><span
+class="l"><span class="k">new</span> <span class="i">Processor({ bindAddr: </span><span class="v">":51904"</span><span class="i"> })</span></span><span
+class="l">  <span class="i">.listen((req, res) => {</span></span><span
+class="l">    <span class="c">// INVITE, REGISTER, BYE…</span></span><span
+class="l">    <span class="i">logger.verbose(req.method)</span></span><span
+class="l">    <span class="i">res.sendOk()</span></span><span
+class="l">  <span class="i">})</span></span></code></pre>
+            <div class="term">
+              <div class="term__line">
+                <span class="term__prompt">$</span>
+                <span><span data-type="npm run start:echo">npm run start:echo</span><span class="caret" aria-hidden="true"></span></span>
               </div>
-              <div class="col">
-                <p class="accent footer-title">community</p>
-                <ul class="social-icons">
-                  <li>
-                    <a href="https://twitter.com/fonoster">
-                      <img
-                        src="site-assets/images/icons/twitter.svg"
-                        alt="twitter"
-                        class="svg"
-                      />
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://discord.gg/4QWgSz4hTC">
-                      <img
-                        src="site-assets/images/icons/discord.svg"
-                        alt="discord"
-                        class="svg"
-                      />
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/fonoster/routr">
-                      <img
-                        src="site-assets/images/icons/github.svg"
-                        alt="github"
-                        class="svg"
-                      />
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://www.reddit.com/r/routr">
-                      <img
-                        src="site-assets/images/icons/reddit.svg"
-                        alt="reddit"
-                        class="svg"
-                      />
-                    </a>
-                  </li>
-                </ul>
-              </div>
+              <div class="term__out" data-type-out>echo listening on 0.0.0.0:51904</div>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div class="copyright text-center">
-            <div class="inner">
-              <p class="accent">© 2026, Fonoster. All Rights Reserved.</p>
-              <p class="small desc">Veteran Owned and Operated</p>
-            </div>
+      <!-- Deploy -->
+      <section class="section" id="deploy" style="padding-top: 0">
+        <div class="container">
+          <h2 class="t-h2" data-reveal>Deploy anywhere.</h2>
+          <div class="deploy__grid">
+            <a class="dcard dcard--hi" href="/docs" data-reveal>
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-package"></use></svg>
+              <span class="dcard__name">Docker</span>
+              <span class="dcard__line">One container, Postgres included.</span>
+              <span class="arrow-link mono">docker compose up<svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-arrow-right"></use></svg></span>
+            </a>
+            <a class="dcard" href="https://routr.io/charts" data-reveal style="--i: 1">
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-server"></use></svg>
+              <span class="dcard__name">Kubernetes</span>
+              <span class="dcard__line">Helm chart. Every service autoscales.</span>
+              <span class="arrow-link mono">helm install routr routr/routr-connect<svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-arrow-right"></use></svg></span>
+            </a>
+            <a class="dcard" href="https://github.com/fonoster/routr" data-reveal style="--i: 2">
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-code"></use></svg>
+              <span class="dcard__name">Dev Containers</span>
+              <span class="dcard__line">The whole stack, for contributors.</span>
+              <span class="arrow-link"><span>Open in VS Code</span><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-arrow-right"></use></svg></span>
+            </a>
           </div>
+        </div>
+      </section>
+
+      <!-- Community -->
+      <section class="section" id="community" style="padding-top: 0">
+        <div class="container">
+          <div class="sec-head">
+            <span class="eyebrow" data-reveal><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-users"></use></svg>Community</span>
+            <h2 class="t-h2" data-reveal style="--i: 1">Built in the open.</h2>
+            <p class="t-sub" data-reveal style="--i: 2">MIT licensed, built on GitHub. Questions and ideas go to Discussions and Discord.</p>
+          </div>
+          <div class="quotes">
+            <blockquote class="quote" data-reveal>
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-quote"></use></svg>
+              <p>Routr's architecture and design is fantastic. A breath of fresh air. Being Docker and Kubernetes ready is a huge win over a more traditional SIP server setup.</p>
+              <footer class="quote__who"><b>Phil Jones</b><span>VP of Web Architecture, VQ Communications</span></footer>
+            </blockquote>
+            <blockquote class="quote" data-reveal style="--i: 1">
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-quote"></use></svg>
+              <p>I came across Routr, which seems to be the one and only cloud-first Kubernetes-ready SIP server on the planet!</p>
+              <footer class="quote__who"><b>Jessie Wadman</b><span>Cloud Architect, Camanio AB</span></footer>
+            </blockquote>
+            <blockquote class="quote" data-reveal style="--i: 2">
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-quote"></use></svg>
+              <p>I think this project has a great promise to become a transformative technology.</p>
+              <footer class="quote__who"><b>jbwill36</b><span>GitHub Discussions</span></footer>
+            </blockquote>
+          </div>
+          <div class="links-2">
+            <a class="dcard" href="https://github.com/fonoster/routr/discussions" data-reveal>
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-github"></use></svg>
+              <span class="dcard__name">GitHub Discussions</span>
+              <span class="dcard__line">Roadmap and help from the team.</span>
+              <span class="arrow-link"><span>Open Discussions</span><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-arrow-right"></use></svg></span>
+            </a>
+            <a class="dcard" href="https://discord.com/invite/4QWgSz4hTC" data-reveal style="--i: 1">
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-message-circle"></use></svg>
+              <span class="dcard__name">Discord</span>
+              <span class="dcard__line">Chat with people running Routr.</span>
+              <span class="arrow-link"><span>Join the server</span><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-arrow-right"></use></svg></span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Final CTA -->
+      <section class="final" data-loop>
+        <div class="atmos atmos--bottom" aria-hidden="true">
+          <div class="dots"><i class="dots__wave"></i></div>
+        </div>
+        <div class="container final__in">
+          <h2 class="t-h1" data-reveal>Your SIP network,<br />up in one command.</h2>
+          <div class="ctas" data-reveal style="--i: 1">
+            <a class="btn btn--primary" href="/docs">Get started</a>
+            <a class="btn btn--secondary" href="https://github.com/fonoster/routr">
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-github"></use></svg>
+              View on GitHub
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__in">
+        <span class="footer__copy">© 2026 Fonoster Inc.</span>
+        <nav class="footer__links" aria-label="Footer">
+          <a href="/docs">Docs</a>
+          <a href="https://github.com/fonoster/routr">GitHub</a>
+          <a href="https://discord.com/invite/4QWgSz4hTC">Discord</a>
+          <a href="https://x.com/fonoster">X</a>
+          <a href="https://fonoster.com/">Fonoster</a>
+        </nav>
+        <div class="prefs">
+          <label class="prefs__item">
+            <svg class="icon" aria-hidden="true" data-theme-icon><use href="assets/img/icons.svg#i-moon"></use></svg>
+            <span class="sr-only">Theme</span>
+            <select data-pref="theme">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+            <svg class="icon chev" aria-hidden="true"><use href="assets/img/icons.svg#i-chevron-down"></use></svg>
+          </label>
         </div>
       </div>
     </footer>
-    <!-- footer-ends -->
 
-    <script src="site-assets/js/jquery.min.js"></script>
-    <script src="site-assets/js/popper.min.js"></script>
-    <script src="site-assets/js/bootstrap.min.js"></script>
-    <script src="site-assets/js/swiper-bundle.min.js"></script>
-    <!-- Custom JS File -->
-    <script src="site-assets/js/setting.js"></script>
+    <script src="assets/js/v1.js"></script>
   </body>
 </html>
