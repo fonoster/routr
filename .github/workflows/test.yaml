@@ -9,13 +9,21 @@ name: test
 #                                  and the root glob below never matched it anyway
 #   - npm run test:integration  -> needs a live Redis
 #   - npm run test:graaljs      -> needs a GraalVM JAVA_HOME plus the jars from npm run setup
-#   - the SEET compliance suite -> needs the full compose stack; see release.yaml
+#
+# The SEET compliance suite (SIP Connect v1.1) runs in the `compliance` job below. It
+# stands up the full compose stack and drives it with SIPp, so it is the slow job.
+# Caveat: the Node service images (mods/*/Dockerfile) `npm pack` the module and
+# `npm install -g` the tarball, which pulls @routr/common, @routr/processor and
+# @routr/location from the npm registry, not from this checkout. A change to one of
+# those packages reaches this job only through the edgeport/requester webpack bundle.
 
 on:
   pull_request:
   push:
     branches:
       - main
+  # Re-run a branch by hand: gh workflow run test.yaml --ref <branch>
+  workflow_dispatch:
 
 # A newer push to the same branch makes an in-flight run obsolete.
 concurrency:
@@ -92,3 +100,73 @@ jobs:
         with:
           name: java-test-report
           path: mods/*/build/reports/tests/test
+
+  compliance:
+    name: SIP Connect v1.1 compliance (SEET)
+    runs-on: ubuntu-latest
+    # npm run make + compose build + settle + the suite is about 20 min on a normal runner.
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: npm
+
+      # npm run setup runs gradle, which needs a JDK. Pinned to 17 like the java job.
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      # The edgeport/requester images copy mods/*/libs (gitignored; built by gradle and
+      # webpack) and the Node images npm pack dist/, so the whole project is built first.
+      - name: Build project
+        run: npm run make
+
+      # Same sequence as release.yaml: build every image from this checkout, let
+      # edgeport's JVM and the data services settle, then run the compliance container
+      # on its own and take its exit code.
+      - name: Bring up the stack
+        run: |
+          docker compose -f compose.yaml -f compose.dev.yaml up --build -d
+          sleep 60
+          docker compose -f compose.yaml -f compose.dev.yaml ps
+
+      - name: Run the compliance suite
+        run: >
+          docker compose -f compose.yaml -f compose.dev.yaml up
+          --abort-on-container-exit --exit-code-from compliance compliance
+
+      # SEET only prints "UAS failed. See logs for more details". The SIPp traces it
+      # means are written to / in the compliance container, which has exited but is
+      # not removed. Same collection as release.yaml.
+      - name: Collect SIPp traces
+        if: failure()
+        run: |
+          mkdir -p compliance-traces
+          cid=$(docker compose -f compose.yaml -f compose.dev.yaml ps -aq compliance)
+          docker export -o compliance-traces/fs.tar "$cid"
+          tar -tf compliance-traces/fs.tar | grep -E '^(\./)?[^/]+_(errors|messages)\.log$' \
+            | xargs tar -xf compliance-traces/fs.tar -C compliance-traces || true
+          rm -f compliance-traces/fs.tar
+          docker compose -f compose.yaml -f compose.dev.yaml logs --no-color --tail 400 \
+            > compliance-traces/compose-services.log 2>&1 || true
+          ls -l compliance-traces
+
+      - name: Upload compliance traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-traces
+          path: compliance-traces
+          if-no-files-found: warn
+
+      - name: Tear down the stack
+        if: always()
+        run: docker compose -f compose.yaml -f compose.dev.yaml down -v
