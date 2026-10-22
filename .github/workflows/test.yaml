@@ -19,9 +19,14 @@ name: test
 
 on:
   pull_request:
+    # The chart is not exercised by any job here; charts-deployment.yaml publishes it.
+    paths-ignore:
+      - "ops/**"
   push:
     branches:
       - main
+    paths-ignore:
+      - "ops/**"
   # Re-run a branch by hand: gh workflow run test.yaml --ref <branch>
   workflow_dispatch:
 
