@@ -149,8 +149,8 @@ is live.
 
 - [ ] Point `docs.routr.io` (CNAME) at Mintlify and add the custom domain in the Mintlify dashboard.
 - [ ] Connect the Mintlify GitHub app to `fonoster/routr` with `docs-site/` as the docs root.
-- [ ] Ship the stub script and the workflow change; verify 10 random old URLs land on the new page.
-- [ ] Fill `redirects` in `docs.json` from the shared map.
+- [x] Stub script shipped (`.scripts/docs-redirect-stubs.js` + `docs-redirects.json`); the Pages workflow runs it only once `https://docs.routr.io/introduction` answers. After go-live, run the workflow and verify 10 random old URLs land on the new page.
+- [x] `redirects` in `docs.json` generated from the shared map (unversioned, `/docs/...` and `/docs/2.11.5/...` sources).
 - [ ] Update links in `README.md`, `mods/*/README.md`, `ops/charts/connect/README.md` and the
       website to docs.routr.io.
 - [ ] Update the Algolia crawler (or drop it; Mintlify has search).

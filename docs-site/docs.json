@@ -243,7 +243,592 @@
       "vscode"
     ]
   },
-  "redirects": [],
+  "redirects": [
+    {
+      "source": "/overview/introduction",
+      "destination": "/introduction"
+    },
+    {
+      "source": "/docs/2.11.5/overview/introduction",
+      "destination": "/introduction"
+    },
+    {
+      "source": "/docs/overview/introduction",
+      "destination": "/introduction"
+    },
+    {
+      "source": "/overview/architecture",
+      "destination": "/concepts/architecture"
+    },
+    {
+      "source": "/docs/2.11.5/overview/architecture",
+      "destination": "/concepts/architecture"
+    },
+    {
+      "source": "/docs/overview/architecture",
+      "destination": "/concepts/architecture"
+    },
+    {
+      "source": "/overview/concepts",
+      "destination": "/concepts/architecture"
+    },
+    {
+      "source": "/docs/2.11.5/overview/concepts",
+      "destination": "/concepts/architecture"
+    },
+    {
+      "source": "/docs/overview/concepts",
+      "destination": "/concepts/architecture"
+    },
+    {
+      "source": "/overview/deploy-with-docker",
+      "destination": "/guides/deploy-with-docker"
+    },
+    {
+      "source": "/docs/2.11.5/overview/deploy-with-docker",
+      "destination": "/guides/deploy-with-docker"
+    },
+    {
+      "source": "/docs/overview/deploy-with-docker",
+      "destination": "/guides/deploy-with-docker"
+    },
+    {
+      "source": "/development/introduction",
+      "destination": "/guides/run-from-source"
+    },
+    {
+      "source": "/docs/2.11.5/development/introduction",
+      "destination": "/guides/run-from-source"
+    },
+    {
+      "source": "/docs/development/introduction",
+      "destination": "/guides/run-from-source"
+    },
+    {
+      "source": "/development/quick-start",
+      "destination": "/guides/run-from-source"
+    },
+    {
+      "source": "/docs/2.11.5/development/quick-start",
+      "destination": "/guides/run-from-source"
+    },
+    {
+      "source": "/docs/development/quick-start",
+      "destination": "/guides/run-from-source"
+    },
+    {
+      "source": "/development/development-mode-with-gitpod",
+      "destination": "/guides/develop-with-gitpod"
+    },
+    {
+      "source": "/docs/2.11.5/development/development-mode-with-gitpod",
+      "destination": "/guides/develop-with-gitpod"
+    },
+    {
+      "source": "/docs/development/development-mode-with-gitpod",
+      "destination": "/guides/develop-with-gitpod"
+    },
+    {
+      "source": "/development/components/overview",
+      "destination": "/concepts/architecture"
+    },
+    {
+      "source": "/docs/2.11.5/development/components/overview",
+      "destination": "/concepts/architecture"
+    },
+    {
+      "source": "/docs/development/components/overview",
+      "destination": "/concepts/architecture"
+    },
+    {
+      "source": "/development/components/edgeport",
+      "destination": "/reference/components/edgeport"
+    },
+    {
+      "source": "/docs/2.11.5/development/components/edgeport",
+      "destination": "/reference/components/edgeport"
+    },
+    {
+      "source": "/docs/development/components/edgeport",
+      "destination": "/reference/components/edgeport"
+    },
+    {
+      "source": "/development/components/dispatcher",
+      "destination": "/reference/components/dispatcher"
+    },
+    {
+      "source": "/docs/2.11.5/development/components/dispatcher",
+      "destination": "/reference/components/dispatcher"
+    },
+    {
+      "source": "/docs/development/components/dispatcher",
+      "destination": "/reference/components/dispatcher"
+    },
+    {
+      "source": "/development/components/location",
+      "destination": "/reference/components/location"
+    },
+    {
+      "source": "/docs/2.11.5/development/components/location",
+      "destination": "/reference/components/location"
+    },
+    {
+      "source": "/docs/development/components/location",
+      "destination": "/reference/components/location"
+    },
+    {
+      "source": "/development/components/registry",
+      "destination": "/reference/components/registry"
+    },
+    {
+      "source": "/docs/2.11.5/development/components/registry",
+      "destination": "/reference/components/registry"
+    },
+    {
+      "source": "/docs/development/components/registry",
+      "destination": "/reference/components/registry"
+    },
+    {
+      "source": "/development/components/requester",
+      "destination": "/reference/components/requester"
+    },
+    {
+      "source": "/docs/2.11.5/development/components/requester",
+      "destination": "/reference/components/requester"
+    },
+    {
+      "source": "/docs/development/components/requester",
+      "destination": "/reference/components/requester"
+    },
+    {
+      "source": "/development/components/rtprelay",
+      "destination": "/reference/components/rtprelay"
+    },
+    {
+      "source": "/docs/2.11.5/development/components/rtprelay",
+      "destination": "/reference/components/rtprelay"
+    },
+    {
+      "source": "/docs/development/components/rtprelay",
+      "destination": "/reference/components/rtprelay"
+    },
+    {
+      "source": "/development/components/apiserver",
+      "destination": "/reference/components/apiserver"
+    },
+    {
+      "source": "/docs/2.11.5/development/components/apiserver",
+      "destination": "/reference/components/apiserver"
+    },
+    {
+      "source": "/docs/development/components/apiserver",
+      "destination": "/reference/components/apiserver"
+    },
+    {
+      "source": "/development/components/simpleauth",
+      "destination": "/reference/components/simpleauth"
+    },
+    {
+      "source": "/docs/2.11.5/development/components/simpleauth",
+      "destination": "/reference/components/simpleauth"
+    },
+    {
+      "source": "/docs/development/components/simpleauth",
+      "destination": "/reference/components/simpleauth"
+    },
+    {
+      "source": "/development/alterations/overview",
+      "destination": "/reference/alterations-api"
+    },
+    {
+      "source": "/docs/2.11.5/development/alterations/overview",
+      "destination": "/reference/alterations-api"
+    },
+    {
+      "source": "/docs/development/alterations/overview",
+      "destination": "/reference/alterations-api"
+    },
+    {
+      "source": "/development/alterations/methods",
+      "destination": "/reference/alterations-api"
+    },
+    {
+      "source": "/docs/2.11.5/development/alterations/methods",
+      "destination": "/reference/alterations-api"
+    },
+    {
+      "source": "/docs/development/alterations/methods",
+      "destination": "/reference/alterations-api"
+    },
+    {
+      "source": "/development/building-a-processor",
+      "destination": "/guides/build-a-processor"
+    },
+    {
+      "source": "/docs/2.11.5/development/building-a-processor",
+      "destination": "/guides/build-a-processor"
+    },
+    {
+      "source": "/docs/development/building-a-processor",
+      "destination": "/guides/build-a-processor"
+    },
+    {
+      "source": "/development/building-a-middleware",
+      "destination": "/guides/build-a-middleware"
+    },
+    {
+      "source": "/docs/2.11.5/development/building-a-middleware",
+      "destination": "/guides/build-a-middleware"
+    },
+    {
+      "source": "/docs/development/building-a-middleware",
+      "destination": "/guides/build-a-middleware"
+    },
+    {
+      "source": "/development/custom-data-with-the-apiserver",
+      "destination": "/guides/custom-data-with-the-apiserver"
+    },
+    {
+      "source": "/docs/2.11.5/development/custom-data-with-the-apiserver",
+      "destination": "/guides/custom-data-with-the-apiserver"
+    },
+    {
+      "source": "/docs/development/custom-data-with-the-apiserver",
+      "destination": "/guides/custom-data-with-the-apiserver"
+    },
+    {
+      "source": "/development/extending-the-ctl",
+      "destination": "/guides/extend-rctl"
+    },
+    {
+      "source": "/docs/2.11.5/development/extending-the-ctl",
+      "destination": "/guides/extend-rctl"
+    },
+    {
+      "source": "/docs/development/extending-the-ctl",
+      "destination": "/guides/extend-rctl"
+    },
+    {
+      "source": "/development/testing-with-seet",
+      "destination": "/guides/run-from-source"
+    },
+    {
+      "source": "/docs/2.11.5/development/testing-with-seet",
+      "destination": "/guides/run-from-source"
+    },
+    {
+      "source": "/docs/development/testing-with-seet",
+      "destination": "/guides/run-from-source"
+    },
+    {
+      "source": "/development/metrics-events-logs-and-traces",
+      "destination": "/tutorials/call-events-with-nats"
+    },
+    {
+      "source": "/docs/2.11.5/development/metrics-events-logs-and-traces",
+      "destination": "/tutorials/call-events-with-nats"
+    },
+    {
+      "source": "/docs/development/metrics-events-logs-and-traces",
+      "destination": "/tutorials/call-events-with-nats"
+    },
+    {
+      "source": "/development/building-a-chat-application",
+      "destination": "/guides/build-a-processor"
+    },
+    {
+      "source": "/docs/2.11.5/development/building-a-chat-application",
+      "destination": "/guides/build-a-processor"
+    },
+    {
+      "source": "/docs/development/building-a-chat-application",
+      "destination": "/guides/build-a-processor"
+    },
+    {
+      "source": "/development/building-a-scaip-processor",
+      "destination": "/guides/build-a-processor"
+    },
+    {
+      "source": "/docs/2.11.5/development/building-a-scaip-processor",
+      "destination": "/guides/build-a-processor"
+    },
+    {
+      "source": "/docs/development/building-a-scaip-processor",
+      "destination": "/guides/build-a-processor"
+    },
+    {
+      "source": "/development/orchestration-with-docker",
+      "destination": "/guides/deploy-with-docker"
+    },
+    {
+      "source": "/docs/2.11.5/development/orchestration-with-docker",
+      "destination": "/guides/deploy-with-docker"
+    },
+    {
+      "source": "/docs/development/orchestration-with-docker",
+      "destination": "/guides/deploy-with-docker"
+    },
+    {
+      "source": "/development/orchestration-with-kubernetes",
+      "destination": "/guides/deploy-on-kubernetes"
+    },
+    {
+      "source": "/docs/2.11.5/development/orchestration-with-kubernetes",
+      "destination": "/guides/deploy-on-kubernetes"
+    },
+    {
+      "source": "/docs/development/orchestration-with-kubernetes",
+      "destination": "/guides/deploy-on-kubernetes"
+    },
+    {
+      "source": "/connect/introduction",
+      "destination": "/concepts/connect-mode"
+    },
+    {
+      "source": "/docs/2.11.5/connect/introduction",
+      "destination": "/concepts/connect-mode"
+    },
+    {
+      "source": "/docs/connect/introduction",
+      "destination": "/concepts/connect-mode"
+    },
+    {
+      "source": "/connect/concepts",
+      "destination": "/concepts/routing"
+    },
+    {
+      "source": "/docs/2.11.5/connect/concepts",
+      "destination": "/concepts/routing"
+    },
+    {
+      "source": "/docs/connect/concepts",
+      "destination": "/concepts/routing"
+    },
+    {
+      "source": "/connect/quick-start/docker",
+      "destination": "/quickstart"
+    },
+    {
+      "source": "/docs/2.11.5/connect/quick-start/docker",
+      "destination": "/quickstart"
+    },
+    {
+      "source": "/docs/connect/quick-start/docker",
+      "destination": "/quickstart"
+    },
+    {
+      "source": "/connect/quick-start/kubernetes",
+      "destination": "/quickstart-kubernetes"
+    },
+    {
+      "source": "/docs/2.11.5/connect/quick-start/kubernetes",
+      "destination": "/quickstart-kubernetes"
+    },
+    {
+      "source": "/docs/connect/quick-start/kubernetes",
+      "destination": "/quickstart-kubernetes"
+    },
+    {
+      "source": "/connect/command-line/overview",
+      "destination": "/guides/manage-resources-with-rctl"
+    },
+    {
+      "source": "/docs/2.11.5/connect/command-line/overview",
+      "destination": "/guides/manage-resources-with-rctl"
+    },
+    {
+      "source": "/docs/connect/command-line/overview",
+      "destination": "/guides/manage-resources-with-rctl"
+    },
+    {
+      "source": "/connect/command-line/ctl",
+      "destination": "/reference/rctl"
+    },
+    {
+      "source": "/docs/2.11.5/connect/command-line/ctl",
+      "destination": "/reference/rctl"
+    },
+    {
+      "source": "/docs/connect/command-line/ctl",
+      "destination": "/reference/rctl"
+    },
+    {
+      "source": "/connect/nodesdk/overview",
+      "destination": "/guides/manage-resources-with-the-sdk"
+    },
+    {
+      "source": "/docs/2.11.5/connect/nodesdk/overview",
+      "destination": "/guides/manage-resources-with-the-sdk"
+    },
+    {
+      "source": "/docs/connect/nodesdk/overview",
+      "destination": "/guides/manage-resources-with-the-sdk"
+    },
+    {
+      "source": "/connect/nodesdk/sdk",
+      "destination": "/reference/sdk"
+    },
+    {
+      "source": "/docs/2.11.5/connect/nodesdk/sdk",
+      "destination": "/reference/sdk"
+    },
+    {
+      "source": "/docs/connect/nodesdk/sdk",
+      "destination": "/reference/sdk"
+    },
+    {
+      "source": "/connect/home-or-office-setup",
+      "destination": "/guides/home-or-office-setup"
+    },
+    {
+      "source": "/docs/2.11.5/connect/home-or-office-setup",
+      "destination": "/guides/home-or-office-setup"
+    },
+    {
+      "source": "/docs/connect/home-or-office-setup",
+      "destination": "/guides/home-or-office-setup"
+    },
+    {
+      "source": "/connect/webrtc-support",
+      "destination": "/guides/enable-webrtc"
+    },
+    {
+      "source": "/docs/2.11.5/connect/webrtc-support",
+      "destination": "/guides/enable-webrtc"
+    },
+    {
+      "source": "/docs/connect/webrtc-support",
+      "destination": "/guides/enable-webrtc"
+    },
+    {
+      "source": "/connect/securing-the-server",
+      "destination": "/guides/secure-the-server"
+    },
+    {
+      "source": "/docs/2.11.5/connect/securing-the-server",
+      "destination": "/guides/secure-the-server"
+    },
+    {
+      "source": "/docs/connect/securing-the-server",
+      "destination": "/guides/secure-the-server"
+    },
+    {
+      "source": "/connect/sending-call-events-to-nats",
+      "destination": "/tutorials/call-events-with-nats"
+    },
+    {
+      "source": "/docs/2.11.5/connect/sending-call-events-to-nats",
+      "destination": "/tutorials/call-events-with-nats"
+    },
+    {
+      "source": "/docs/connect/sending-call-events-to-nats",
+      "destination": "/tutorials/call-events-with-nats"
+    },
+    {
+      "source": "/tutorials/load-balancing-asterisk-with-routr",
+      "destination": "/tutorials/load-balancing-asterisk"
+    },
+    {
+      "source": "/docs/2.11.5/tutorials/load-balancing-asterisk-with-routr",
+      "destination": "/tutorials/load-balancing-asterisk"
+    },
+    {
+      "source": "/docs/tutorials/load-balancing-asterisk-with-routr",
+      "destination": "/tutorials/load-balancing-asterisk"
+    },
+    {
+      "source": "/tutorials/intercom-system-with-routr-and-kubernetes",
+      "destination": "/tutorials/intercom-on-kubernetes"
+    },
+    {
+      "source": "/docs/2.11.5/tutorials/intercom-system-with-routr-and-kubernetes",
+      "destination": "/tutorials/intercom-on-kubernetes"
+    },
+    {
+      "source": "/docs/tutorials/intercom-system-with-routr-and-kubernetes",
+      "destination": "/tutorials/intercom-on-kubernetes"
+    },
+    {
+      "source": "/tutorials/deploying-to-civo-with-helm",
+      "destination": "/tutorials/deploy-to-civo-with-helm"
+    },
+    {
+      "source": "/docs/2.11.5/tutorials/deploying-to-civo-with-helm",
+      "destination": "/tutorials/deploy-to-civo-with-helm"
+    },
+    {
+      "source": "/docs/tutorials/deploying-to-civo-with-helm",
+      "destination": "/tutorials/deploy-to-civo-with-helm"
+    },
+    {
+      "source": "/tutorials/ephemeral-agents-in-the-browser",
+      "destination": "/tutorials/ephemeral-agents-in-the-browser"
+    },
+    {
+      "source": "/docs/2.11.5/tutorials/ephemeral-agents-in-the-browser",
+      "destination": "/tutorials/ephemeral-agents-in-the-browser"
+    },
+    {
+      "source": "/docs/tutorials/ephemeral-agents-in-the-browser",
+      "destination": "/tutorials/ephemeral-agents-in-the-browser"
+    },
+    {
+      "source": "/community",
+      "destination": "/community"
+    },
+    {
+      "source": "/docs/2.11.5/community",
+      "destination": "/community"
+    },
+    {
+      "source": "/docs/community",
+      "destination": "/community"
+    },
+    {
+      "source": "/contributing",
+      "destination": "/contributing"
+    },
+    {
+      "source": "/docs/2.11.5/contributing",
+      "destination": "/contributing"
+    },
+    {
+      "source": "/docs/contributing",
+      "destination": "/contributing"
+    },
+    {
+      "source": "/faqs",
+      "destination": "/faqs"
+    },
+    {
+      "source": "/docs/2.11.5/faqs",
+      "destination": "/faqs"
+    },
+    {
+      "source": "/docs/faqs",
+      "destination": "/faqs"
+    },
+    {
+      "source": "/changelog",
+      "destination": "/changelog"
+    },
+    {
+      "source": "/docs/2.11.5/changelog",
+      "destination": "/changelog"
+    },
+    {
+      "source": "/docs/changelog",
+      "destination": "/changelog"
+    },
+    {
+      "source": "/docs",
+      "destination": "/introduction"
+    },
+    {
+      "source": "/docs/2.11.5",
+      "destination": "/introduction"
+    }
+  ],
   "footer": {
     "socials": {
       "x": "https://x.com/fonoster",
