@@ -335,6 +335,13 @@ For contributing, please see the following links:
         </a>
     </td>
     <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/vikas-prasad-cx>
+            <img src=https://avatars.githubusercontent.com/u/254159906?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Vikas Prasad/>
+            <br />
+            <sub style="font-size:14px"><b>Vikas Prasad</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
         <a href=https://github.com/vitalyster>
             <img src=https://avatars.githubusercontent.com/u/1052407?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=vitalyster/>
             <br />
@@ -353,13 +360,6 @@ For contributing, please see the following links:
             <img src=https://avatars.githubusercontent.com/u/1923789?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=rafasc/>
             <br />
             <sub style="font-size:14px"><b>rafasc</b></sub>
-        </a>
-    </td>
-    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
-        <a href=https://github.com/vikas-prasad-cx>
-            <img src=https://avatars.githubusercontent.com/u/254159906?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Vikas Prasad/>
-            <br />
-            <sub style="font-size:14px"><b>Vikas Prasad</b></sub>
         </a>
     </td>
 </tr>
