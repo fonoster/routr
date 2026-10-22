@@ -838,12 +838,8 @@
     "userAgents": [
       {
         "mode": "uac",
-        "scenarioFile": "scenarios/rr/uac_forged_in_dialog_request.xml",
+        "scenarioFile": "scenarios/rr/uac_forged_in_dialog_invite.xml",
         "variables": [
-          {
-            "name": "method",
-            "value": "INVITE"
-          },
           {
             "name": "requestURI",
             "value": "sip:+12225553000@sip.provider.net;user=phone"
@@ -861,12 +857,8 @@
     "userAgents": [
       {
         "mode": "uac",
-        "scenarioFile": "scenarios/rr/uac_forged_in_dialog_request.xml",
+        "scenarioFile": "scenarios/rr/uac_forged_in_dialog_refer.xml",
         "variables": [
-          {
-            "name": "method",
-            "value": "REFER"
-          },
           {
             "name": "requestURI",
             "value": "sip:+12225553000@sip.provider.net;user=phone"

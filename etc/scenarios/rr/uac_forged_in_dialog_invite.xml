@@ -2,27 +2,27 @@
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
 <!--
-  Sends a request that claims to be inside a dialog (a To tag is present) for a
+  Sends a INVITE that claims to be inside a dialog (a To tag is present) for a
   call this EdgePort never proxied, with a Request-URI at the trunk. In-dialog
   requests are forwarded by their Route set with no routing or access checks, so
   without the dialog check this would reach the trunk unauthenticated. Routr
   refuses it with 481, the code a UAS gives an unknown dialog (RFC 3261 12.2.2),
   as a local policy a proxy may apply (RFC 3261 16.6).
 -->
-<scenario name="Forged in-dialog request">
+<scenario name="Forged in-dialog INVITE">
 
-  <Global variables="method,requestURI" />
+  <Global variables="requestURI" />
 
   <send>
     <![CDATA[
-      [$method] [$requestURI];transport=[transport] SIP/2.0
+      INVITE [$requestURI];transport=[transport] SIP/2.0
       Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
       Max-Forwards: 70
       From: "Forger" <sip:1001@sip.local>;tag=[call_number]
       To: <[$requestURI]>;tag=forged-[call_number]
       Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
       Call-ID: [call_id]
-      CSeq: 2 [$method]
+      CSeq: 2 INVITE
       Content-Length: 0
     ]]>
   </send>
