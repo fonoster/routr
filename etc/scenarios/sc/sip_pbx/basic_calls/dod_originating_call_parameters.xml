@@ -12,7 +12,12 @@
       -->
       <ereg regexp=".*sips?:[0-9a-z]+@sip.local.*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="1" />
       <ereg regexp=".*sips?:[0-9a-z]+@sip.local.*" search_in="hdr" header="To" case_indep="true" check_it="true" assign_to="1" />
-      <ereg regexp=".*sips?:[0-9a-z]+@[0-9a-z.-;user=phone]+|tel:(\+)[\+0-9]+.*" search_in="hdr" header="P-Asserted-Identity" case_indep="true" check_it="true" assign_to="1" />
+      <!--
+        SIP Connect 1.1 section 9: the asserted identity is a SIP URI carrying a global E.164 number
+        with a leading "+" and the user=phone parameter, e.g. sip:+16132581234@example.com;user=phone.
+        The host is the Service Provider's domain in Registration mode. A display name may precede it.
+      -->
+      <ereg regexp=".*<sips?:\+[0-9]+@[0-9a-z.-]+(:[0-9]+)?;user=phone>.*" search_in="hdr" header="P-Asserted-Identity" case_indep="true" check_it="true" assign_to="1" />
     </action>
   </recv>
 
