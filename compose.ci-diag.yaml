@@ -1,5 +1,6 @@
-# TEMPORARY, CI diagnostic for the forged in-dialog scenarios. Reruns them inside the
-# same compliance container after the suite, with SIPp's exit code and stderr visible.
+# TEMPORARY, CI diagnostic for the forged in-dialog scenarios. After the suite, runs the
+# same SIPp command the way SEET does (node execSync from /) and SEET itself on just
+# those two tests, inside the same container.
 services:
   compliance:
     entrypoint: ["sh", "-c"]
@@ -7,18 +8,18 @@ services:
       - |
         seet; rc=$$?
         echo "=== DIAG: suite exit $$rc"
-        echo "=== DIAG: processes still alive"; ps -o pid,ppid,stat,args
-        echo "=== DIAG: udp sockets"; cat /proc/net/udp | awk 'NR>1{print $$2}' | while read a; do printf '%d\n' 0x$${a#*:}; done | sort -n | tr '\n' ' '; echo
-        echo "=== DIAG: files in /"; ls -l / | grep -i "forged\|log"
-        cd /tmp
-        for m in invite refer; do
-          for port in 5998 6998; do
-            sipp sip01.edgeport.net:5060 -p $$port -m 1 -d 1 -t u1 -trace_err -trace_msg -timeout 30000 -sf /scenarios/rr/uac_forged_in_dialog_$$m.xml -set requestURI "sip:+12225553000@sip.provider.net;user=phone" > sipp_$${m}_$${port}.out 2>&1
-            echo "=== DIAG: sipp $$m on port $$port exit $$?"
-            tail -15 sipp_$${m}_$${port}.out
-            cat /tmp/uac_forged_in_dialog_$${m}_*_errors.log 2>/dev/null
-            grep -E "^(INVITE|REFER|SIP/2.0)" /tmp/uac_forged_in_dialog_$${m}_*_messages.log 2>/dev/null
-            rm -f /tmp/uac_forged_in_dialog_$${m}_*.log
-          done
-        done
+        cd /
+        CMD='sipp sip01.edgeport.net:5060 -p 5998 -m 1 -d 1 -t u1 -trace_err -trace_msg -timeout 30000 -sf scenarios/rr/uac_forged_in_dialog_invite.xml -set requestURI "sip:+12225553000@sip.provider.net;user=phone"'
+        echo "=== DIAG: execSync from / like SEET"
+        node -e '
+          const { execSync } = require("child_process");
+          try { const out = execSync(process.argv[1], { timeout: 30000, stdio: "pipe" }); console.log("ok, stdout tail:", out.toString().slice(-200)); }
+          catch (e) { console.log("status", e.status, "signal", e.signal); console.log("stderr:", String(e.stderr)); console.log("stdout tail:", String(e.stdout).slice(-400)); }
+        ' "$$CMD"
+        ls -l /uac_forged_in_dialog_invite_*; cat /uac_forged_in_dialog_invite_*_errors.log 2>/dev/null; rm -f /uac_forged_in_dialog_invite_*.log
+        echo "=== DIAG: plain sh from / "
+        sh -c "$$CMD" > /tmp/plain.out 2>&1; echo "exit $$?"; tail -4 /tmp/plain.out; ls -l /uac_forged_in_dialog_invite_*; rm -f /uac_forged_in_dialog_invite_*.log
+        echo "=== DIAG: seet on the two forged tests only"
+        node -e 'const t=require("/seet.json").filter(x=>x.name.includes("did not proxy")); require("fs").writeFileSync("/seet-forged.json", JSON.stringify(t));'
+        SCENARIOS=/seet-forged.json seet 2>&1 | tail -40
         exit $$rc
