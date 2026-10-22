@@ -1,0 +1,24 @@
+# TEMPORARY, CI diagnostic for the forged in-dialog scenarios. Reruns them inside the
+# same compliance container after the suite, with SIPp's exit code and stderr visible.
+services:
+  compliance:
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        seet; rc=$?
+        echo "=== DIAG: suite exit $rc"
+        echo "=== DIAG: processes still alive"; ps -o pid,ppid,stat,args
+        echo "=== DIAG: udp sockets"; cat /proc/net/udp | awk 'NR>1{print $2}' | while read a; do printf '%d\n' 0x${a#*:}; done | sort -n | tr '\n' ' '; echo
+        echo "=== DIAG: files in /"; ls -l / | grep -i "forged\|log"
+        cd /tmp
+        for m in invite refer; do
+          for port in 5998 6998; do
+            sipp sip01.edgeport.net:5060 -p $port -m 1 -d 1 -t u1 -trace_err -trace_msg -timeout 30000 -sf /scenarios/rr/uac_forged_in_dialog_$m.xml -set requestURI "sip:+12225553000@sip.provider.net;user=phone" > sipp_${m}_${port}.out 2>&1
+            echo "=== DIAG: sipp $m on port $port exit $?"
+            tail -15 sipp_${m}_${port}.out
+            cat /tmp/uac_forged_in_dialog_${m}_*_errors.log 2>/dev/null
+            grep -E "^(INVITE|REFER|SIP/2.0)" /tmp/uac_forged_in_dialog_${m}_*_messages.log 2>/dev/null
+            rm -f /tmp/uac_forged_in_dialog_${m}_*.log
+          done
+        done
+        exit $rc
