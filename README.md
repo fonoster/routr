@@ -1,7 +1,6 @@
 <a href="https://routr.io"><img src="./assets/banner.svg" alt="Routr: the SIP server built for the cloud. A lightweight SIP proxy, location server, and registrar." width="100%"></a>
 
-<a href="https://gitpod.io/#https://github.com/fonoster/routr"> <img src="https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod" alt="Contribute with Gitpod" />
-</a> [![Sponsor this](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&link=https://github.com/sponsors/fonoster)](https://github.com/sponsors/fonoster) [![Discord](https://img.shields.io/discord/1016419835455996076?color=5865F2&label=Discord&logo=discord&logoColor=white)](https://discord.com/invite/4QWgSz4hTC) ![GitHub](https://img.shields.io/github/license/fonoster/routr?color=%2347b96d) ![Twitter Follow](https://img.shields.io/twitter/follow/fonoster?style=social)
+[![Sponsor this](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&link=https://github.com/sponsors/fonoster)](https://github.com/sponsors/fonoster) [![Discord](https://img.shields.io/discord/1016419835455996076?color=5865F2&label=Discord&logo=discord&logoColor=white)](https://discord.com/invite/4QWgSz4hTC) ![GitHub](https://img.shields.io/github/license/fonoster/routr?color=%2347b96d) ![Twitter Follow](https://img.shields.io/twitter/follow/fonoster?style=social)
 
 Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators.
 
@@ -15,7 +14,6 @@ Routr is a lightweight sip proxy, location server, and registrar that provides a
 * [Deployment](#deployment)
     * [Docker](#instant-server-deployment-with-docker-and-compose)
     * [Kubernetes](#kubernetes)  
-    * [Gitpod](#development-mode-with-gitpod)
 * [Getting started with the CTL](#getting-started-with-the-ctl)
 * [First steps with the NodeSDK](#first-steps-with-the-nodesdk)
 * [Custom Processors and Middleware](#building-custom-processors-and-middleware)
@@ -27,23 +25,7 @@ Routr is a lightweight sip proxy, location server, and registrar that provides a
 
 ## Community
 
-We are building Routr in the open. The best to communicate with us is via [GitHub Discussions.](https://github.com/fonoster/routr/discussions)
-
----
-
-<p align="center">
-  <sup>Special Announcement:</sup>
-  <br>
-  <a href="https://discord.gg/mpWSRUhG7e">
-    <img width="70px" src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/625e5fcef7ab80b8c1fe559e_Discord-Logo-Color.png">
-  </a>
-  <br>
-  <sub><b>We now have a Discord Channel</b></sub>
-  <br>
-  <sub>There we plan to discuss roadmaps, feature requests, and more<br><a href="https://discord.com/invite/4QWgSz4hTC">Join us today</a></sub>
-</p>
-
----
+We are building Routr in the open. The best to communicate with us is via [GitHub Discussions.](https://github.com/fonoster/routr/discussions) You can also join our [Discord server](https://discord.com/invite/4QWgSz4hTC) to discuss roadmaps, feature requests, and more.
 
 ## Should you try Routr?
 
@@ -120,8 +102,6 @@ First, create a directory named "routr". Navigate into the new folder, and then 
 Filename: _compose.yaml_
 
 ```yaml
-version: "3"
-
 services:
   routr:
     image: fonoster/routr-one:latest
@@ -141,7 +121,7 @@ Then, start the server with:
 
 ```bash
 # Be sure to replace with your IP address
-DOCKER_HOST_ADDRESS=192.168.1.3 docker-compose up
+DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up
 ```
 
 Alternatively, you can use the following command:
@@ -205,37 +185,9 @@ You should see a list of pods and their status. If the status is Running, then y
 
 For more details, please refer to the chart's [README](https://github.com/fonoster/routr/blob/main/ops/charts/connect/README.md).
 
-### Development mode with Gitpod
-
-Routr's one-click interactive deployment will familiarize you with the server in development mode.
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/fonoster/routr)
-
-To connect to your instance, follow these steps:
-
-First, add your public SSH keys to your Gitpod account by going to [Gitpod account keys](https://gitpod.io/user/keys) and adding your public key.
-
-Next, find your [Gitpod workspace](https://gitpod.io/workspaces) and click on the "More" button. Then, select "Connect via SSH."
-
-Finally, copy the SSH Command and run it in your terminal by pasting it and pressing Enter. The command should look like this:
-
-```bash
-ssh -L 5060:localhost:5060 <workspace-ssh-connection>
-```
-
-Replace <workspace-ssh-connection> with your own workspace SSH connection.
-
-For example, your command might look like this:
-
-```bash
-ssh -L 5060:localhost:5060 fonoster-routr-mn8nsx0d9px@fonoster-routr-mn8nsx0d9px.ssh.ws-us90.gitpod.io
-```
-
-This command forwards traffic from your local port 5060 to your Gitpod workspace's port 5060, allowing you to access your instance.
-
 ## Getting started with the CTL
 
-Regadles of the deployment method, you can use the command-line tool to manage your server.
+Regardless of the deployment method, you can use the command-line tool to manage your server.
 
 To install the command-line tool, run the following command:
 
@@ -332,10 +284,9 @@ The simplest possible Processor looks like this:
 
 ```javascript
 const Processor = require("@routr/processor").default
-const { MessageRequest, Response } = require("@routr/processor")
 
 new Processor({ bindAddr: "0.0.0.0:51904", name: "echo" }).listen(
-  (req: MessageRequest, res: Response) => {
+  (req, res) => {
     console.log("got new request: ")
     console.log(JSON.stringify(req, null, " "))
     res.sendOk()
@@ -458,4 +409,4 @@ Find all our supporters [here](https://github.com/sponsors/fonoster)
 
 ## License
 
-Copyright (C) 2024 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](https://github.com/fonoster/fonoster/blob/master/LICENSE) for details).
+Copyright (C) 2026 by [Fonoster Inc](https://fonoster.com). MIT License (see [LICENSE](./LICENSE) for details).
