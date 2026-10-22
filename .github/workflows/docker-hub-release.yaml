@@ -56,25 +56,25 @@ jobs:
             context: .
             dockerfile: mods/edgeport/Dockerfile
           - image: routr-dispatcher
-            context: mods/dispatcher
+            context: .
             dockerfile: mods/dispatcher/Dockerfile
           - image: routr-location
-            context: mods/location
+            context: .
             dockerfile: mods/location/Dockerfile
           - image: routr-connect
-            context: mods/connect
+            context: .
             dockerfile: mods/connect/Dockerfile
           - image: routr-simpledata
-            context: mods/simpledata
+            context: .
             dockerfile: mods/simpledata/Dockerfile
           - image: routr-simpleauth
-            context: mods/simpleauth
+            context: .
             dockerfile: mods/simpleauth/Dockerfile
           - image: routr-requester
             context: .
             dockerfile: mods/requester/Dockerfile
           - image: routr-registry
-            context: mods/registry
+            context: .
             dockerfile: mods/registry/Dockerfile
           - image: routr-pgdata
             context: .
@@ -85,10 +85,10 @@ jobs:
             dockerfile: mods/pgdata/Dockerfile
             buildoptions: "--target migrations"
           - image: routr-echo
-            context: mods/echo
+            context: .
             dockerfile: mods/echo/Dockerfile
           - image: routr-rtprelay
-            context: mods/rtprelay
+            context: .
             dockerfile: mods/rtprelay/Dockerfile
 
     steps:

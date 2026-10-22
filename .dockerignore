@@ -1,0 +1,10 @@
+# Keeps the repo-root build context small: the service Dockerfiles copy only
+# mods/*/package.json, mods/*/dist, mods/*/libs and a few scripts.
+.git
+.claude
+node_modules
+**/node_modules
+docs
+docs-site
+site
+designs
