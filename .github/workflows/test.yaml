@@ -140,14 +140,14 @@ jobs:
 
       - name: Run the compliance suite
         run: >
-          docker compose -f compose.yaml -f compose.dev.yaml -f compose.ci-diag.yaml up
+          docker compose -f compose.yaml -f compose.dev.yaml up
           --abort-on-container-exit --exit-code-from compliance compliance
 
       # SEET only prints "UAS failed. See logs for more details". The SIPp traces it
       # means are written to / in the compliance container, which has exited but is
       # not removed.
       - name: Collect SIPp traces
-        if: always()
+        if: failure()
         run: |
           mkdir -p compliance-traces
           cid=$(docker compose -f compose.yaml -f compose.dev.yaml ps -aq compliance)
@@ -160,7 +160,7 @@ jobs:
           ls -l compliance-traces
 
       - name: Upload compliance traces
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: compliance-traces
