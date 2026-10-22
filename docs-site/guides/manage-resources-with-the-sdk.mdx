@@ -1,0 +1,169 @@
+---
+title: "Manage resources with the Node.js SDK"
+sidebarTitle: "Manage with the SDK"
+description: "For developers automating Routr: install @routr/sdk, configure the client for TLS or insecure connections, create and list Agents, and handle API errors."
+---
+
+Use `@routr/sdk` to create, read, update, and delete Connect resources from Node.js code. It is the same library `rctl` uses, and it talks to the API Server over gRPC on port `51908`.
+
+## Prerequisites
+
+- Node.js and npm.
+- A running Routr server with a database-backed API Server, such as routr-one or the Helm chart.
+- An existing Domain and Credentials for the Agent you create. You can create them with the SDK or with [rctl](/guides/manage-resources-with-rctl).
+
+## Create an Agent
+
+<Steps>
+  <Step title="Install the SDK">
+    Create a project and add the SDK as a dependency.
+
+    ```bash
+    mkdir my-project && cd my-project
+    npm init -y
+    npm install --save @routr/sdk
+    ```
+  </Step>
+  <Step title="Configure a client">
+    The SDK exposes one client class per resource: `Acls`, `Agents`, `Credentials`, `Domains`, `Numbers`, `Peers`, and `Trunks`. Each constructor takes the same options object.
+
+    | Option | Required | Description |
+    | --- | --- | --- |
+    | `endpoint` | Yes | Address of the API Server, for example `localhost:51908`. |
+    | `insecure` | No | Set to `true` to connect without TLS. |
+    | `cacert` | No | Path to the CA certificate that signed the server's certificate. The file must exist. |
+    | `username`, `password` | No | Sent as HTTP Basic credentials in the `authorization` metadata of every call. |
+
+    Setting the environment variable `ALLOW_INSECURE=true` has the same effect as `insecure: true`.
+
+    The following snippet creates an Agents client for a local server running without TLS.
+
+    ```javascript index.js
+    const SDK = require("@routr/sdk").default
+
+    const agents = new SDK.Agents({
+      endpoint: "localhost:51908",
+      insecure: true
+    })
+    ```
+
+    For a server with TLS and a self-signed certificate, pass the CA instead of `insecure`.
+
+    ```javascript
+    const agents = new SDK.Agents({
+      endpoint: "localhost:51908",
+      cacert: "./ca.crt"
+    })
+    ```
+
+    <Note>
+    The package's main export is a default export. In TypeScript or ES modules, use `import SDK from "@routr/sdk"`. In CommonJS, read `.default` as shown.
+    </Note>
+  </Step>
+  <Step title="Create the Agent">
+    Add the following code to `index.js`. It creates an Agent in an existing Domain with existing Credentials, then prints the stored resource. Replace the refs with your own.
+
+    ```javascript index.js
+    const SDK = require("@routr/sdk").default
+
+    const agents = new SDK.Agents({
+      endpoint: "localhost:51908",
+      insecure: true
+    })
+
+    async function main() {
+      const agent = await agents.createAgent({
+        name: "John Doe",
+        username: "1001",
+        domainRef: "a27e9fb2-a71a-4cf3-9b1d-dccf373f9777",
+        credentialsRef: "8814fc24-2328-43af-82d4-f5347fe4521b",
+        privacy: "NONE",
+        enabled: true,
+        maxContacts: -1,
+        extended: { externalId: "crm-42" }
+      })
+
+      console.log(agent.ref)
+    }
+
+    main().catch(console.error)
+    ```
+
+    `name` and `username` are required. `privacy` accepts `NONE` or `ID`, and `maxContacts: -1` means no limit. Use `extended` for your own metadata, such as an ID from another system.
+  </Step>
+  <Step title="Run it">
+    Run the script.
+
+    ```bash
+    node index.js
+    ```
+
+    <Check>The script prints the new Agent's `ref`. `rctl agents get --insecure` lists the Agent.</Check>
+  </Step>
+</Steps>
+
+## Read, update, and delete
+
+Every client has the same five methods, named after its resource. For Agents they are `createAgent`, `getAgent`, `listAgents`, `updateAgent`, and `deleteAgent`. The following snippet lists Agents one page at a time, renames one, and deletes it.
+
+```javascript
+const page = await agents.listAgents({ pageSize: 25, pageToken: "" })
+page.items.forEach((a) => console.log(a.ref, a.username))
+// Pass page.nextPageToken to fetch the next page
+
+await agents.updateAgent({ ref: page.items[0].ref, name: "John D." })
+await agents.deleteAgent(page.items[0].ref)
+```
+
+`updateAgent` takes the `ref` plus only the fields to change. An Agent's `username` can't be updated.
+
+## Handle errors
+
+Failed calls reject with a gRPC error. Check `code` against the gRPC status codes from `@grpc/grpc-js`.
+
+```javascript
+const grpc = require("@grpc/grpc-js")
+
+try {
+  await agents.createAgent({ name: "John Doe", username: "1001" })
+} catch (e) {
+  switch (e.code) {
+    case grpc.status.ALREADY_EXISTS:
+      console.error("An Agent with this username already exists")
+      break
+    case grpc.status.INVALID_ARGUMENT:
+      console.error("Invalid request:", e.message)
+      break
+    case grpc.status.NOT_FOUND:
+      console.error("Resource not found")
+      break
+    case grpc.status.UNAVAILABLE:
+      console.error("The API Server or its database is unavailable")
+      break
+    default:
+      throw e
+  }
+}
+```
+
+| Code | When it happens |
+| --- | --- |
+| `ALREADY_EXISTS` | A unique field, such as a username, is already in use. |
+| `INVALID_ARGUMENT` | A required field is missing or invalid, or a referenced resource (such as `domainRef`) doesn't exist. |
+| `NOT_FOUND` | The `ref` passed to `get`, `update`, or `delete` doesn't exist. |
+| `UNAVAILABLE` | The API Server can't be reached or can't reach its database. A TLS mismatch also surfaces here. |
+
+## Other languages
+
+The SDK wraps the API Server's gRPC interface. To use another language, generate a client from the protobuf files in [`mods/common/src/connect/protos`](https://github.com/fonoster/routr/tree/main/mods/common/src/connect/protos).
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="SDK reference" icon="code" href="/reference/sdk">
+    Every client, method, and request field.
+  </Card>
+  <Card title="Connect resources" icon="book" href="/reference/resources/overview">
+    What each resource represents.
+  </Card>
+</CardGroup>

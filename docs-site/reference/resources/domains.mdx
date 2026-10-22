@@ -1,0 +1,79 @@
+---
+title: "Domain resource"
+sidebarTitle: "Domains"
+description: "Every field of the Domain resource, in YAML and API form, for operators who group Agents and set outbound calling rules in Routr Connect."
+---
+
+A Domain is a SIP domain, such as `sip.local`, that groups Agents and holds the egress policies that let them call the PSTN.
+
+## Fields
+
+| YAML field | API / SDK field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- | --- |
+| `metadata.name` | `name` | `string` | Yes | - | Friendly name. Up to 60 characters. |
+| `spec.context.domainUri` | `domainUri` | `string` | Yes | - | The domain, as a fully qualified domain name. Agents use it as the host of their address. Can't be changed after create. |
+| `spec.accessControlListRef` | `accessControlListRef` | `string` | No | - | `ref` of an [ACL](/reference/resources/acl) attached to the Domain. |
+| `spec.context.egressPolicies` | `egressPolicies` | `array` | No | - | Rules that pick a Number for outbound PSTN calls. |
+| `spec.context.egressPolicies[].rule` | `egressPolicies[].rule` | `string` | Yes | - | Regular expression tested against the dialed number. |
+| `spec.context.egressPolicies[].numberRef` | `egressPolicies[].numberRef` | `string` | Yes | - | `ref` of the [Number](/reference/resources/numbers) to call from when the rule matches. Its Trunk carries the call. |
+| - | `extended` | `object` | No | - | Custom attributes. API only. |
+
+The API response also includes `accessControlList` and, in each egress policy, `number`: the objects the refs point to.
+
+## Constraints
+
+- `name` is required and must be 1 to 60 characters.
+- `domainUri` must be a valid FQDN, up to 255 characters, and unique across Domains in pgdata.
+- When an Agent dials a number that isn't another Agent, Connect tests the egress policies in order and uses the first whose `rule` matches. If none match, the call fails.
+- An egress policy's Number must have a `trunkRef`.
+- Deleting a Domain deletes its egress policies. Agents that pointed to it keep existing with no Domain.
+
+<Warning>
+  In YAML, `accessControlListRef` goes directly under `spec`, not under `spec.context`. The loader reads `spec.accessControlListRef`.
+</Warning>
+
+<Note>
+  The Connect processor does not check a Domain's ACL when it routes calls. The only ACL it enforces is the one on a Trunk, for calls from the PSTN.
+</Note>
+
+## YAML example
+
+The following Domain sends every outbound call through Number `number-01`.
+
+```yaml
+- apiVersion: v2beta1
+  kind: Domain
+  ref: domain-01
+  metadata:
+    name: Local Domain
+  spec:
+    accessControlListRef: acl-01
+    context:
+      domainUri: sip.local
+      egressPolicies:
+        - rule: ".*"
+          numberRef: number-01
+```
+
+## rctl equivalent
+
+Run the interactive create command and answer the prompts. The egress rule prompts appear only when at least one Number exists.
+
+```bash
+rctl domains create
+```
+
+See [`rctl domains`](/reference/rctl#domains) for the prompts and the other actions.
+
+## SDK equivalent
+
+The following call creates the same Domain through the API.
+
+```typescript
+await new SDK.Domains({ endpoint: "localhost:51908", insecure: true }).createDomain({
+  name: "Local Domain",
+  domainUri: "sip.local",
+  accessControlListRef: "<acl-ref>",
+  egressPolicies: [{ rule: ".*", numberRef: "<number-ref>" }]
+})
+```

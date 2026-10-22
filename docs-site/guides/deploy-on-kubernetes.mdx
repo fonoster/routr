@@ -1,0 +1,181 @@
+---
+title: "Deploy on Kubernetes with Helm"
+sidebarTitle: "Deploy on Kubernetes"
+description: "For operators running Kubernetes: install the routr-connect Helm chart, set the values that matter, and upgrade or remove the release."
+---
+
+Install Routr Connect on a Kubernetes cluster with the `routr/routr-connect` chart. The chart runs each component as its own workload and installs PostgreSQL and Redis as dependencies.
+
+## Prerequisites
+
+- A Kubernetes cluster (v1.25.4 or later) with a persistent volume provisioner. Minikube or Docker Desktop work for local testing.
+- Helm v3.11.1 or later and `kubectl`.
+- The address SIP clients use to reach the cluster: a node IP, a load balancer IP, or a DNS name.
+
+## Install the chart
+
+<Steps>
+  <Step title="Add the Helm repository">
+    Add the Routr chart repository and refresh your local cache.
+
+    ```bash
+    helm repo add routr https://routr.io/charts
+    helm repo update
+    ```
+  </Step>
+  <Step title="Create a namespace">
+    Use a dedicated namespace to keep upgrades and cleanup simple.
+
+    ```bash
+    kubectl create namespace sipnet
+    ```
+  </Step>
+  <Step title="Write a values file">
+    Create a `values.yaml` file. At minimum, set `edgeport.externalAddrs` so the EdgePort advertises an address clients can reach.
+
+    ```yaml values.yaml
+    edgeport:
+      # Address SIP clients use to reach the EdgePort
+      externalAddrs: [192.168.1.3]
+
+    apiserver:
+      # Only for local testing. Leave TLS on in production.
+      tlsOn: false
+    ```
+
+    See [Choose key values](#choose-key-values) for the settings you are most likely to change.
+  </Step>
+  <Step title="Install the release">
+    Install the chart with the release name `sipnet`.
+
+    ```bash
+    helm install sipnet routr/routr-connect --namespace sipnet -f values.yaml
+    ```
+
+    The output looks similar to this:
+
+    ```text
+    NAME: sipnet
+    LAST DEPLOYED: Sun May 21 17:47:48 2023
+    NAMESPACE: sipnet
+    STATUS: deployed
+    REVISION: 1
+    TEST SUITE: None
+    ```
+  </Step>
+  <Step title="Wait for the pods">
+    List the pods and wait until they are all running. The first start takes a few minutes while PostgreSQL initializes and migrations run.
+
+    ```bash
+    kubectl get pods -n sipnet
+    ```
+
+    <Check>When every pod shows `Running`, the release is ready. The migrations pod runs as a post-install hook and is removed when it succeeds.</Check>
+  </Step>
+  <Step title="Reach the API Server">
+    The API Server isn't exposed outside the cluster. Forward its external port to your machine.
+
+    ```bash
+    kubectl -n sipnet port-forward svc/sipnet-routr-apiserver 51908
+    ```
+
+    In another terminal, create a Domain with [rctl](/guides/manage-resources-with-rctl). Use `--insecure` only because `apiserver.tlsOn` is `false` in this example.
+
+    ```bash
+    rctl domains create --insecure
+    ```
+  </Step>
+</Steps>
+
+## Choose key values
+
+Pass values with `-f values.yaml` or `--set key=value`. These are the ones most deployments touch. For every parameter and its default, see [Helm values](/reference/helm-values).
+
+| Value | Default | When to change it |
+| --- | --- | --- |
+| `edgeport.externalAddrs` | `[]` | Always. The addresses advertised to SIP clients. |
+| `edgeport.localnets` | OS-reported networks | When the pod networks aren't detected correctly. Use with `externalAddrs`. |
+| `edgeport.serviceTypeUDP` | `NodePort` | Set to `LoadBalancer` on a cloud provider to get an external IP for UDP. |
+| `edgeport.serviceTypeTCP` | `NodePort` | Same as above for TCP, TLS, WS, and WSS. |
+| `edgeport.transport.<protocol>.enabled` | only `udp` is `true` | Enable `tcp`, `tls`, `ws`, or `wss`. Ports default to `5060`, `5061`, `5062`, and `5063`. |
+| `edgeport.replicas` | `2` | Number of EdgePort pods. |
+| `edgeport.pkcs12Password` | `changeme` | Change it in production. It protects the signaling keystore. |
+| `apiserver.tlsOn` | `true` | Keep `true` in production. See [Secure the server](/guides/secure-the-server). |
+| `apiserver.databaseUrl` | bundled PostgreSQL | Point to an external PostgreSQL database. |
+| `postgresql.enabled` | `true` | Set to `false` when you use an external database. |
+| `postgresql.auth.username` / `password` | `routr` / `changeme` | Change the credentials of the bundled database. |
+| `location.cache.provider` | `redis` | `redis` or `memory`. See [Scale the Location Service with Redis](/guides/scale-with-redis). |
+| `redis.enabled` | `true` | Set to `false` if you run your own Redis and set `location.cache.parameters`. |
+| `rtprelay.enabled` | `false` | Enable for WebRTC. See [Enable WebRTC clients](/guides/enable-webrtc). |
+
+The following example exposes UDP and TCP through cloud load balancers and uses an external database.
+
+```yaml values.yaml
+edgeport:
+  externalAddrs: [sip.example.com]
+  serviceTypeUDP: LoadBalancer
+  serviceTypeTCP: LoadBalancer
+  transport:
+    tcp:
+      enabled: true
+
+apiserver:
+  databaseUrl: postgresql://routr:secret@dbserver:5432/routr?schema=public
+
+postgresql:
+  enabled: false
+```
+
+<Note>
+Every EdgePort replica can receive any request. When a request lands on an EdgePort that doesn't hold the callee's connection, Routr forwards it to the EdgePort that does. See [EdgePort cooperation](/concepts/edgeport-cooperation).
+</Note>
+
+## Upgrade the release
+
+Refresh the repository and apply the new chart version with the same values file. The chart runs database migrations in a post-upgrade hook.
+
+```bash
+helm repo update
+helm upgrade sipnet routr/routr-connect --namespace sipnet -f values.yaml
+```
+
+Check the [changelog](/changelog) before upgrading across major versions. When an EdgePort pod restarts, the clients connected to it register again.
+
+## Uninstall the release
+
+Remove the release and its Kubernetes objects.
+
+```bash
+helm uninstall sipnet --namespace sipnet
+```
+
+Helm keeps the persistent volume claims, so your database survives. To delete them as well, remove the PVCs for the release.
+
+```bash
+kubectl delete pvc -l release=sipnet -n sipnet
+```
+
+<Warning>Deleting the PVCs deletes the PostgreSQL data. Back it up first.</Warning>
+
+## Troubleshooting
+
+- **Clients register but calls have no audio or replies are lost.** `edgeport.externalAddrs` doesn't match the address clients use.
+- **No external IP for SIP.** With the default `NodePort` service type, clients must use a node IP and the assigned node port. Use `LoadBalancer` on cloud providers.
+- **`rctl` can't connect.** Check that the port-forward is still running and that you match the TLS mode: `--insecure` when `apiserver.tlsOn` is `false`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Helm values" icon="list" href="/reference/helm-values">
+    Every chart parameter and its default.
+  </Card>
+  <Card title="Deploy to Civo with Helm" icon="cloud" href="/tutorials/deploy-to-civo-with-helm">
+    A full walkthrough on a managed cluster.
+  </Card>
+  <Card title="Scale with Redis" icon="database" href="/guides/scale-with-redis">
+    Share registrations across Location Service replicas.
+  </Card>
+  <Card title="Deployment topologies" icon="sitemap" href="/concepts/deployment-topologies">
+    How the components fit together on Kubernetes.
+  </Card>
+</CardGroup>

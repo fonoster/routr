@@ -1,0 +1,161 @@
+---
+title: "Run Routr from source"
+sidebarTitle: "Run from source"
+description: "For contributors and processor authors: build Routr from the repository, run all services or a single one locally, and run the test suites."
+---
+
+Build Routr from a clone of the repository, start its services on your machine with live reload, and run the tests.
+
+## Prerequisites
+
+- **Node.js 22** (CI uses `22.x`). [nvm](https://github.com/nvm-sh/nvm) makes switching versions easy.
+- **JDK 17**, with `JAVA_HOME` set. EdgePort and Requester are Java services. CI pins 17 because the Java tests fail on JDK 21.
+- **Docker** with Compose, for the optional dependencies (PostgreSQL, Redis, RTPEngine).
+- **OpenSSL**, to create the development TLS keystore.
+- Optional: [sngrep](https://github.com/irontec/sngrep) to watch SIP traffic and [grpcurl](https://github.com/fullstorydev/grpcurl) to call the gRPC services.
+
+<Tip>
+  If you'd rather not install anything, [develop with Gitpod](/guides/develop-with-gitpod) instead.
+</Tip>
+
+## Build and start
+
+<Steps>
+  <Step title="Clone and build">
+    Clone the repository, point `JAVA_HOME` at your JDK, and build everything. `npm run make` installs dependencies, builds the Node.js workspaces, and builds the Java services with Gradle:
+
+    ```bash
+    git clone https://github.com/fonoster/routr
+    cd routr
+    export JAVA_HOME=/path/to/jdk-17
+    npm run make
+    ```
+  </Step>
+
+  <Step title="Map the service hostnames">
+    The development configs in `config/` address services by name (`dispatcher:51901`, `location:51902`, `apiserver:51907`). Add those names to `/etc/hosts` from `etc/hosts.txt`:
+
+    ```bash
+    npm run hostile:load
+    ```
+
+    The command uses `sudo`. Undo it later with `npm run hostile:unload`.
+  </Step>
+
+  <Step title="Create the TLS keystore">
+    `config/edgeport.yaml` enables TLS and WSS and reads its keystore from `/etc/routr/certs/signaling.p12` with the password `changeme`. Generate a self-signed keystore and copy it there:
+
+    ```bash
+    npm run generate:certs
+    ./.scripts/convert-to-p12.sh .certs
+    sudo mkdir -p /etc/routr/certs
+    sudo cp .certs/signaling.p12 /etc/routr/certs/signaling.p12
+    ```
+  </Step>
+
+  <Step title="Start the services">
+    Start the Connect distribution in one process:
+
+    ```bash
+    npm start
+    ```
+
+    This runs two EdgePorts (`config/edgeport.yaml` on port `5060`, `config/edgeport.alt.yaml` on port `6060`), the Message Dispatcher, Location Service, Registry, Requester, the Connect processor, and the API Server with the YAML backend (`simpledata`, reading `config/resources`). Nodemon restarts the Node.js services when you edit their source. EdgePort and Requester are Java: rebuild them with `npm run build:java` and restart.
+
+    <Check>
+      The log shows `routr v2 // connect distribution` followed by a `starting routr service` line for each Node.js service.
+    </Check>
+  </Step>
+</Steps>
+
+Register a softphone against `sip.local` on port `5060` with one of the Agents in `config/resources/agents.yaml` to try it.
+
+## Run a single service
+
+Each component has its own script, so you can run only what you work on, each in its own terminal. For example, to work on the Location Service with an EdgePort:
+
+```bash
+npm run start:edgeport
+npm run start:location
+```
+
+| Script | Starts | Config |
+| --- | --- | --- |
+| `start:edgeport` | EdgePort (Java) | `config/edgeport.yaml` |
+| `start:dispatcher` | Message Dispatcher | `config/dispatcher.yaml` |
+| `start:location` | Location Service | `config/location.yaml` |
+| `start:registry` | Registry | `config/registry.yaml` |
+| `start:requester` | Requester (Java) | |
+| `start:connect` | Connect processor | `API_ADDR=localhost:51907`, `LOCATION_ADDR=localhost:51902` |
+| `start:simpledata` | API Server, YAML backend | `config/resources` |
+| `start:pgdata` | API Server, PostgreSQL backend | needs `DATABASE_URL` |
+| `start:simpleauth` | SimpleAuth middleware | `config/auth.yaml`, `METHODS=MESSAGE` |
+| `start:rtprelay` | RTPRelay middleware | needs RTPEngine |
+| `start:echo` | Echo processor (answers `200 OK` to everything) | |
+| `start:one` | All-in-one distribution with `pgdata` | needs PostgreSQL |
+
+See the `scripts` section of [`package.json`](https://github.com/fonoster/routr/blob/main/package.json) for the full list.
+
+## Start the dependencies
+
+PostgreSQL, Redis, and RTPEngine only matter when you use `pgdata`, the Redis cache, or RTPRelay. Start them, plus Adminer on port `8080`, with Docker Compose:
+
+```bash
+npm run start:deps
+```
+
+This runs `compose.dev.yaml` with Postgres on `5432` (user and password `postgres`), Redis on `6379`, and RTPEngine on `22222/udp`. Before you start `start:one` or `start:pgdata`, apply the database migrations:
+
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/routr?schema=public" npm run db:migrate
+```
+
+Stop the dependencies with `npm run stop:deps`.
+
+<Note>
+  RTPEngine needs `DOCKER_HOST_ADDRESS` set to an IP your SIP clients can reach. On macOS, Compose can't use host networking, so the file publishes media ports `10000-10020/udp` instead.
+</Note>
+
+## Run the tests
+
+Run the same checks as CI before you open a pull request:
+
+```bash
+npm test             # Node.js unit tests (mods/*/test/*.unit.test.ts)
+npm run test:java    # EdgePort and Requester tests (JDK 17)
+npm run typecheck
+npx eslint mods --ext .ts
+```
+
+`npm test` runs against the built workspaces, so run `npm run make` (or `npx lerna run build`) after pulling. `npm run lint` also lints, but it applies `--fix` and rewrites files.
+
+To run the SIP Connect compliance scenarios (SEET) against containers built from your tree:
+
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml up \
+  --build --abort-on-container-exit --exit-code-from compliance compliance
+```
+
+## Pitfalls
+
+- **`Could not find a runtime environment`**: `JAVA_HOME` isn't set in the shell that runs the script.
+- **Connection errors to `location` or `apiserver`**: the hostnames aren't mapped. Run `npm run hostile:load`.
+- **Build errors in `@routr/ctl` after `npm install`**: use `npm ci` so the dependency tree matches `package-lock.json`.
+- **Start fresh**: `npm run clean` removes `node_modules`, `dist`, and Gradle outputs.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Build a processor" icon="microchip" href="/guides/build-a-processor">
+    Plug your own processor into the local Dispatcher.
+  </Card>
+  <Card title="Contributing" icon="code-pull-request" href="/contributing">
+    Commit conventions and the pull request checklist.
+  </Card>
+  <Card title="Develop with Gitpod" icon="cloud" href="/guides/develop-with-gitpod">
+    The same setup in a browser workspace.
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
+    How the services fit together.
+  </Card>
+</CardGroup>

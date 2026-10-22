@@ -1,0 +1,48 @@
+---
+title: "Requester"
+description: "Reference for the Requester: its image, ports, environment variables, and gRPC contract."
+---
+
+The Requester accepts SIP requests over gRPC and sends them as SIP to an EdgePort. Today, the [Registry Service](/reference/components/registry) uses it to send outbound `REGISTER` requests. It is written in Java and has no configuration file.
+
+## Docker image
+
+`fonoster/routr-requester`
+
+## Ports
+
+| Port | Protocol | Purpose |
+| --- | --- | --- |
+| `51909` (port of `BIND_ADDR`) | gRPC | `Requester` service |
+| Random free port | SIP over UDP and TCP | Local listening point used to send requests and receive responses |
+| `8080` | HTTP | Health check at `/healthz`, only when `ENABLE_HEALTHCHECKS=true` |
+
+## Environment variables
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `BIND_ADDR` | `0.0.0.0:51909` | gRPC address. Only the port is used; the server listens on all interfaces |
+| `ENABLE_HEALTHCHECKS` | `false` | `true` starts the HTTP health check on port `8080` |
+| `LOG4J2` | `/etc/routr/log4j2.yaml` (image) | Path to the Log4j2 configuration |
+| `JAVA_HOME` | `/opt/routr/jre` (image) | Java runtime used by `requester.sh` |
+
+## gRPC contract
+
+| Service | Method | Request | Response |
+| --- | --- | --- | --- |
+| `fonoster.routr.requester.v2beta1.Requester` | `SendMessage` | `SendMessageRequest` (`target`, `method`, `transport`, `message`) | `SendMessageResponse` (`message`) |
+
+`target` is the host and port used to build the Request-URI. For registrations, it is the Trunk's address, and the `message` carries a Route header to the EdgePort. See [requester.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/requester.proto).
+
+## Minimal example
+
+This command runs the Requester on the default port.
+
+```bash
+docker run -it -p 51909:51909 fonoster/routr-requester
+```
+
+## Notes
+
+- The Requester binds its SIP listening point to the container's local IP and a free port, so the EdgePort must be able to reach the Requester directly.
+- `routr-one` does not include the Requester.

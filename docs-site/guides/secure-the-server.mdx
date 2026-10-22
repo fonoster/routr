@@ -1,0 +1,152 @@
+---
+title: "Secure the server"
+description: "For operators exposing Routr beyond a test network: turn on TLS for the API Server and SIP signaling, install certificates, and connect clients over TLS."
+---
+
+Encrypt the two channels that carry credentials: the API Server (port `51908`, used by `rctl` and the SDK) and SIP signaling (TLS on `5061`, WSS on `5063`). This guide uses the `fonoster/routr-one` image. Notes for split deployments and Kubernetes follow at the end.
+
+<Note>
+TLS protects signaling only. Routr is not a media server and doesn't encrypt RTP. Media encryption, if any, is negotiated between the endpoints.
+</Note>
+
+## Prerequisites
+
+- A running routr-one container. See [Deploy with Docker](/guides/deploy-with-docker).
+- OpenSSL, if you generate your own certificates.
+- A DNS name for the server if you use certificates from a public CA.
+
+## How Routr uses certificates
+
+Both services read certificates from `/etc/routr/certs` inside the container.
+
+| File | Used by | Purpose |
+| --- | --- | --- |
+| `server.crt` | API Server, EdgePort | Server certificate. |
+| `server.key` | API Server, EdgePort | Private key for `server.crt`. |
+| `ca.crt` | API Server, EdgePort | Optional. Appended to build the full chain, and used to verify client certificates when `VERIFY_CLIENT_CERT=true`. |
+| `signaling.p12` | EdgePort | PKCS#12 keystore built at startup from the files above. |
+
+At startup, the container converts `server.crt` and `server.key` into `signaling.p12`, protected by `PKCS12_PASSWORD`. If `server.crt` or `server.key` is missing, the container generates a self-signed pair first.
+
+## Secure the server
+
+<Steps>
+  <Step title="Get a certificate">
+    Use a certificate from a trusted CA (for example, Let's Encrypt) for production. Browsers and many softphones reject self-signed certificates.
+
+    For development, generate a CA and a server certificate signed by it. Set the `CN` to the host name clients use.
+
+    ```bash
+    openssl genrsa -out ca.key 2048
+    openssl req -new -x509 -key ca.key -out ca.crt -subj "/CN=My Test CA"
+    openssl genrsa -out server.key 2048
+    openssl req -new -key server.key -out server.csr -subj "/CN=localhost"
+    openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt
+    ```
+
+    <Tip>
+    In a clone of the Routr repository, `npm run generate:certs` runs the same commands and writes the files to `.certs/`.
+    </Tip>
+  </Step>
+  <Step title="Mount the certificates and turn on TLS">
+    Mount the files individually into `/etc/routr/certs`, set `TLS_ON` to enable TLS on the API Server, and publish the TLS ports. The following `compose.yaml` shows the full service.
+
+    ```yaml compose.yaml
+    services:
+      routr:
+        image: fonoster/routr-one:latest
+        environment:
+          EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+          TLS_ON: "true"
+          PKCS12_PASSWORD: ${PKCS12_PASSWORD}
+        ports:
+          - 51908:51908
+          - 5060:5060/udp
+          - 5061:5061
+          - 5063:5063
+        volumes:
+          - shared:/var/lib/postgresql/data
+          - ./server.crt:/etc/routr/certs/server.crt
+          - ./server.key:/etc/routr/certs/server.key
+          - ./ca.crt:/etc/routr/certs/ca.crt
+
+    volumes:
+      shared:
+    ```
+
+    Mount files, not the whole directory. The container writes `signaling.p12` into `/etc/routr/certs` and needs that directory to stay writable. Leave out the `ca.crt` line if your CA bundle is already in `server.crt`.
+  </Step>
+  <Step title="Restart the server">
+    Recreate the container so it rebuilds the keystore.
+
+    ```bash
+    DOCKER_HOST_ADDRESS=192.168.1.3 PKCS12_PASSWORD=use-a-strong-password docker compose up -d
+    ```
+  </Step>
+  <Step title="Verify SIP over TLS">
+    Open a TLS connection to the signaling port. Replace the address with your server's.
+
+    ```bash
+    openssl s_client -connect 192.168.1.3:5061
+    ```
+
+    <Check>The output shows your certificate chain and a completed handshake.</Check>
+  </Step>
+  <Step title="Connect rctl over TLS">
+    Drop the `--insecure` flag. With a self-signed certificate, pass your CA with `--cacert`. With a certificate from a trusted CA, no flag is needed. The host in `--endpoint` must match the certificate's `CN`.
+
+    ```bash
+    rctl domains get --endpoint localhost:51908 --cacert ./ca.crt
+    ```
+
+    The SDK takes the same settings through the `cacert` option. See [Manage resources with the Node.js SDK](/guides/manage-resources-with-the-sdk).
+  </Step>
+</Steps>
+
+## Configure a softphone for TLS
+
+Point the softphone's outbound proxy at port `5061` with `transport=tls`. The exact field name depends on the softphone. In Blink Pro, open the account, choose **Advanced** > **SIP Signaling**, and set **Primary Proxy** to `<host>:5061;transport=tls`.
+
+<img
+  className="rounded-xl"
+  src="/images/secure-the-server/blinkpro_tls_config.png"
+  alt="Blink Pro account settings with Primary Proxy set to 10.5.138.210:5061;transport=tls and registration succeeded over TLS"
+/>
+
+When registration succeeds over TLS, Blink Pro shows a padlock next to the account.
+
+<img
+  className="rounded-xl"
+  src="/images/secure-the-server/blinkpro_tls_secured.png"
+  alt="Blink Pro main window with a green padlock next to the account john@sip.ocean.com"
+/>
+
+## Require client certificates (optional)
+
+To make the API Server accept only clients with a certificate signed by your CA, mount `ca.crt` and set `VERIFY_CLIENT_CERT` to `"true"`. Clients must then present a certificate on every connection.
+
+## Other deployments
+
+- **Split Docker deployment.** The `fonoster/routr-edgeport` image builds `signaling.p12` from `/etc/routr/certs/server.crt` and `server.key` at startup, the same way routr-one does. Point `spec.securityContext` in `edgeport.yaml` at the keystore. To build a keystore by hand, run `.scripts/convert-to-p12.sh <cert-dir> <password>` from the repository; `npm run convert:certs` runs it and moves the result to `etc/certs/`.
+- **Kubernetes.** `apiserver.tlsOn` defaults to `true` and `edgeport.transport.tls.enabled` turns on SIP over TLS. Change `edgeport.pkcs12Password` from its default. The chart has no value for mounting your own certificate, so the containers generate self-signed certificates at startup. See [Helm values](/reference/helm-values).
+
+<Warning>
+The `fonoster/routr-pgdata` image regenerates `server.crt` and `server.key` every time it starts. Certificates you mount at those paths in that image are overwritten or, if mounted read-only, make the container fail to start.
+</Warning>
+
+## Troubleshooting
+
+- **`rctl` reports a certificate error.** The endpoint host doesn't match the certificate's `CN`, or you used a self-signed certificate without `--cacert`.
+- **Browsers refuse the WSS connection.** Use a certificate from a trusted CA. See [Enable WebRTC clients](/guides/enable-webrtc).
+- **The EdgePort fails to load the keystore.** `PKCS12_PASSWORD` must be the same value the keystore was built with. Recreate the container after changing it.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Environment variables" icon="sliders" href="/reference/environment-variables">
+    `TLS_ON`, `VERIFY_CLIENT_CERT`, and the certificate paths.
+  </Card>
+  <Card title="EdgePort reference" icon="server" href="/reference/components/edgeport">
+    Transports and the security context.
+  </Card>
+</CardGroup>

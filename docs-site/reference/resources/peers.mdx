@@ -1,0 +1,85 @@
+---
+title: "Peer resource"
+sidebarTitle: "Peers"
+description: "Every field of the Peer resource, in YAML and API form, for operators who connect PBXs and media servers to Routr Connect and load balance them."
+---
+
+A Peer is a trusted SIP service, such as Asterisk or FreeSWITCH, that registers with Routr under an Address of Record (AOR). Several instances can register under the same AOR, and Routr load balances calls across them.
+
+## Fields
+
+| YAML field | API / SDK field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- | --- |
+| `metadata.name` | `name` | `string` | Yes | - | Friendly name. Up to 60 characters. |
+| `spec.username` | `username` | `string` | Yes | - | SIP username the Peer registers with. Can't be changed after create. |
+| `spec.aor` | `aor` | `string` | Yes | - | Address of Record that the Peer's instances register under, such as `sip:conference@sip.local`. Numbers and Agents route to the Peer through this value. |
+| `spec.contactAddr` | `contactAddr` | `string` | No | - | Contact address of the Peer: a host or IP address. |
+| `spec.credentialsRef` | `credentialsRef` | `string` | No | - | `ref` of the [Credentials](/reference/resources/credentials) used to authenticate the Peer. |
+| `spec.accessControlListRef` | `accessControlListRef` | `string` | No | - | `ref` of an [ACL](/reference/resources/acl). Reserved for future use. |
+| `spec.loadBalancing.algorithm` | `balancingAlgorithm` | enum | No | - | YAML: `round-robin` or `least-sessions`. API: `ROUND_ROBIN` or `LEAST_SESSIONS`. |
+| `spec.loadBalancing.withSessionAffinity` | `withSessionAffinity` | `boolean` | No | `false` | Send every request with the same affinity value to the same instance. |
+| `spec.maxContacts` | `maxContacts` | `integer` | No | `-1` | Maximum number of registered instances. `-1` means no limit; `0` accepts none. |
+| `spec.expires` | `expires` | `integer` | No | `0` (pgdata) | Value, in seconds, to override the expires requested by the Peer. |
+| `spec.enabled` | `enabled` | `boolean` | No | `true` (pgdata) | Whether the Peer is enabled. |
+| - | `extended` | `object` | No | - | Custom attributes. API only. |
+
+The API response also includes `accessControlList` and `credentials`, the objects the refs point to.
+
+## Constraints
+
+- `name` is required and must be 1 to 60 characters.
+- `username` is required and can't contain spaces. In YAML it must be 4 to 60 characters. In pgdata it must be unique across Peers.
+- `aor` must start with `sip:` or `backend:`. The `backend:` prefix is deprecated; simpledata logs a warning and you should use `sip:`. Up to 323 characters.
+- `contactAddr` must be a valid FQDN or IP address. Up to 20 characters.
+- `least-sessions` needs each instance to report its active session count in the `X-Session-Count` header of its REGISTER. See [SIP headers](/reference/sip-headers).
+- Session affinity applies to calls from the PSTN to a Number whose `aorLink` is this Peer's `aor`. The affinity value comes from the header named in the Number's `sessionAffinityHeader`.
+
+<Note>
+  In YAML, simpledata does not load `spec.accessControlListRef` for Peers. Through the API, pgdata stores it.
+</Note>
+
+## YAML example
+
+The following Peer balances calls across Asterisk instances that register as `asterisk`.
+
+```yaml
+- apiVersion: v2beta1
+  kind: Peer
+  ref: peer-01
+  metadata:
+    name: Asterisk (Media Server)
+  spec:
+    aor: sip:conference@sip.local
+    username: asterisk
+    credentialsRef: credentials-03
+    loadBalancing:
+      withSessionAffinity: true
+      algorithm: least-sessions
+```
+
+## rctl equivalent
+
+Run the interactive create command and answer the prompts.
+
+```bash
+rctl peers create
+```
+
+See [`rctl peers`](/reference/rctl#peers) for the prompts and the other actions.
+
+## SDK equivalent
+
+The following call creates the same Peer through the API.
+
+```typescript
+await new SDK.Peers({ endpoint: "localhost:51908", insecure: true }).createPeer({
+  name: "Asterisk (Media Server)",
+  username: "asterisk",
+  aor: "sip:conference@sip.local",
+  credentialsRef: "<credentials-ref>",
+  balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS,
+  withSessionAffinity: true
+})
+```
+
+For how the algorithms choose an instance, see [Load balancing](/concepts/load-balancing).

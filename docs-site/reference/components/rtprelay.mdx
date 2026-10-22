@@ -1,0 +1,65 @@
+---
+title: "RTPRelay"
+description: "Reference for the RTPRelay middleware: its image, port, environment variables, and gRPC contract."
+---
+
+RTPRelay is a middleware that drives RTPEngine over the ng protocol. It rewrites the SDP of calls so RTPEngine relays the media, which bridges WebRTC clients and SIP clients and helps clients that cannot exchange media directly. It has no configuration file.
+
+## Docker image
+
+`fonoster/routr-rtprelay`
+
+## Ports
+
+| Port | Protocol | Purpose |
+| --- | --- | --- |
+| `51903` (set by `BIND_ADDR`) | gRPC | `Processor` service, used as a middleware by the Dispatcher |
+
+## Environment variables
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `RTPENGINE_HOST` | | RTPEngine host or IP. Required |
+| `RTPENGINE_PORT` | `22222` | RTPEngine ng control port |
+| `RTPENGINE_TIMEOUT` | `5000` | Timeout for RTPEngine requests, in milliseconds |
+| `BIND_ADDR` | `0.0.0.0:51903` | Address to listen on |
+| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
+| `OTEL_SERVICE_NAME` | `rtprelay` | Service name reported in traces |
+| `OTEL_SDK_DISABLED` | | `true` turns tracing off |
+
+## gRPC contract
+
+| Service | Method | Request | Response |
+| --- | --- | --- | --- |
+| `fonoster.routr.processor.v2beta1.Processor` | `ProcessMessage` | `MessageRequest` | `MessageResponse` |
+
+RTPRelay acts on INVITE and ACK with SDP, `180 Ringing`, `200 OK` with SDP, and BYE. It passes every other message through unchanged. See [processor.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/processor.proto).
+
+## Minimal example
+
+This command runs RTPRelay against an RTPEngine instance.
+
+```bash
+docker run -it \
+  -e RTPENGINE_HOST=rtpengine \
+  -p 51903:51903 \
+  fonoster/routr-rtprelay
+```
+
+This Dispatcher fragment registers RTPRelay as a post-processor middleware.
+
+```yaml
+spec:
+  middlewares:
+    - ref: rtprelay-middleware
+      addr: rtprelay:51903
+      postProcessor: true
+```
+
+## Notes
+
+- RTPRelay does nothing until you add it to the Dispatcher's `spec.middlewares`.
+- In `routr-one`, setting `RTPENGINE_HOST` starts RTPRelay and adds it as a post-processor middleware automatically.
+- RTPRelay controls media relaying only. Routr is not a media server, and RTPEngine is a separate service you run.

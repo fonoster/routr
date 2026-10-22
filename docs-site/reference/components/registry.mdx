@@ -1,0 +1,96 @@
+---
+title: "Registry Service"
+sidebarTitle: "Registry"
+description: "Reference for the Registry Service: its image, health port, configuration file, environment variables, and the gRPC calls it makes."
+---
+
+The Registry Service sends outbound `REGISTER` requests on behalf of Trunks that have `sendRegister` set to `true`. On each interval, it asks the API Server for those Trunks and sends a registration for each one through the [Requester](/reference/components/requester), which hands it to an EdgePort.
+
+## Docker image
+
+`fonoster/routr-registry`
+
+The image reads its configuration from `/etc/routr/registry.yaml` (`CONFIG_PATH`).
+
+## Ports
+
+| Port | Protocol | Purpose |
+| --- | --- | --- |
+| `8080` | HTTP | Health check at `/healthz`, unless `ENABLE_HEALTHCHECKS=false` |
+
+The Registry Service does not serve gRPC. It is a client of the API Server and the Requester.
+
+## Configuration file
+
+The Registry Service reads a YAML or JSON file and validates it against a JSON schema at startup.
+
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `kind` | string | Yes | | `Registry` or `registry` |
+| `apiVersion` | string | Yes | | `v2beta1` |
+| `metadata` | object | No | | Resource metadata |
+| `spec.requesterAddr` | string | Yes | | Requester address, for example `requester:51909` |
+| `spec.apiAddr` | string | Yes | | API Server address, for example `apiserver:51907` |
+| `spec.registerInterval` | number | No | `60` | Seconds between registration rounds |
+| `spec.cache.provider` | string | Yes, when `spec.cache` is set | `memory` | `memory` or `redis` |
+| `spec.cache.parameters` | string | No | `host=localhost,port=6379` with `redis` | Comma-separated `key=value` pairs: `host`, `port`, `username`, `password`, `secure` |
+| `spec.methods` | string[] | No | | SIP methods advertised in the `Allow` header of the `REGISTER` |
+| `spec.edgePorts` | object[] | Yes | | EdgePorts used to send registrations |
+| `spec.edgePorts[*].address` | string | Yes | | EdgePort SIP address, for example `sip01.edgeport.net:5060` |
+| `spec.edgePorts[*].region` | string | No | | EdgePort region (reserved for future use) |
+
+## Environment variables
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `CONFIG_PATH` | `/etc/routr/registry.yaml` (image) | Path to the configuration file. Required |
+| `ENABLE_HEALTHCHECKS` | `true` | `false` turns off the HTTP health check on port `8080` |
+| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
+| `OTEL_SERVICE_NAME` | `registry` | Service name reported in traces |
+| `OTEL_SDK_DISABLED` | | `true` turns tracing off |
+
+## gRPC contract
+
+The Registry Service calls these methods.
+
+| Service | Method | Purpose |
+| --- | --- | --- |
+| `fonoster.routr.connect.trunks.v2beta1.Trunks` | `FindBy` | Finds Trunks with `sendRegister` set to `true` |
+| `fonoster.routr.requester.v2beta1.Requester` | `SendMessage` | Sends each `REGISTER` through an EdgePort |
+
+See [trunks.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/connect/protos/trunks.proto) and [requester.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/requester.proto).
+
+## Minimal example
+
+This configuration registers Trunks every 60 seconds through one EdgePort.
+
+```yaml
+kind: Registry
+apiVersion: v2beta1
+spec:
+  requesterAddr: requester:51909
+  apiAddr: apiserver:51907
+  registerInterval: 60
+  cache:
+    provider: memory
+  edgePorts:
+    - address: edgeport01:5060
+```
+
+This command runs the Registry Service with that file.
+
+```bash
+docker run -it \
+  -v $(pwd)/registry.yaml:/etc/routr/registry.yaml \
+  fonoster/routr-registry
+```
+
+## Notes
+
+- Registrations always go through the first entry in `spec.edgePorts`.
+- Each Trunk registers to its first outbound URI, with the Trunk's outbound credentials.
+- Each `REGISTER` asks for an expiration of 600 seconds. On each round, the service skips Trunks that already have an entry in its cache.
+- The `redis` cache provider keeps registration state outside the process, so several Registry instances can share it.
+- `routr-one` does not include the Registry Service or the Requester.

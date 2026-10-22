@@ -1,0 +1,128 @@
+---
+title: "EdgePort"
+description: "Reference for the EdgePort: its image, ports, configuration file, environment variables, and gRPC contract."
+---
+
+The EdgePort is the SIP entry point of Routr. It holds SIP connections and transactions, converts each SIP message to a protobuf `MessageRequest`, sends it to the Message Dispatcher (or straight to a Processor), and sends the resulting SIP message to the next hop. It is the only stateful Routr service, and it is written in Java.
+
+## Docker image
+
+`fonoster/routr-edgeport`
+
+The image reads its configuration from `/etc/routr/edgeport.yaml` (`CONFIG_PATH`). On start, it converts the certificates in `/etc/routr/certs` to the PKCS12 keystore `signaling.p12`. If `server.crt` or `server.key` is missing, it generates self-signed certificates first.
+
+## Ports
+
+| Port | Protocol | Purpose |
+| --- | --- | --- |
+| Set by `spec.transport[*].port` | UDP, TCP, TLS, WS, WSS | SIP signaling. Common values: `5060` (UDP and TCP), `5061` (TLS), `5062` (WS), `5063` (WSS) |
+| `8080` | HTTP | Health check at `/healthz`, only when `ENABLE_HEALTHCHECKS=true` |
+
+## Configuration file
+
+The EdgePort reads a YAML or JSON file and validates it against a JSON schema at startup.
+
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `kind` | string | Yes | | Resource type. Use `EdgePort` |
+| `apiVersion` | string | Yes | | `v2beta1` or `v2` |
+| `ref` | string | Yes | | EdgePort reference. `HOSTNAME` overrides it when set |
+| `metadata.region` | string | No | | Region where the EdgePort operates (reserved for future use) |
+| `spec.bindAddr` | string | No | `0.0.0.0` | IPv4 interface to accept requests on |
+| `spec.externalAddrs` | string[] | No | `[]` | External addresses of the EdgePort (IPs or hostnames). `EXTERNAL_ADDRS` overrides it |
+| `spec.localnets` | string[] | No | Networks reported by the OS | Networks considered local, in CIDR form. `LOCALNETS` overrides it |
+| `spec.methods` | string[] | Yes | | Acceptable SIP methods |
+| `spec.unknownMethodAction` | string | No | | `Discard` or `Respond` (reserved for future use) |
+| `spec.transport` | object[] | Yes | | Listening points. One entry per protocol |
+| `spec.transport[*].protocol` | string | Yes | | `udp`, `tcp`, `tls`, `ws`, or `wss` |
+| `spec.transport[*].port` | integer | Yes | | Port to listen on. Only `udp` and `tcp` can share a port |
+| `spec.transport[*].bindAddr` | string | No | `spec.bindAddr` | IPv4 interface for this transport |
+| `spec.processor.addr` | string | Yes | | Address of the Dispatcher or Processor, for example `dispatcher:51901`. `PROCESSOR_ADDR` overrides it |
+| `spec.securityContext` | object | Yes, for `tls` or `wss` | | TLS settings for the SIP stack |
+| `spec.securityContext.client.protocols` | string[] | No | | TLS protocols for client connections, for example `SSLv3`, `TLSv1.2` |
+| `spec.securityContext.client.authType` | string | No | | Client authentication type: `Disabled`, `DisabledAll`, `Required`, or `Wanted`. Use `Disabled` or `DisabledAll` with WSS |
+| `spec.securityContext.keyStore` | string | No | | Path to the keystore, for example `/etc/routr/certs/signaling.p12` |
+| `spec.securityContext.trustStore` | string | No | | Path to the truststore |
+| `spec.securityContext.keyStorePassword` | string | No | | Keystore password |
+| `spec.securityContext.trustStorePassword` | string | No | | Truststore password |
+| `spec.securityContext.keyStoreType` | string | No | | Keystore type, for example `pkcs12` |
+
+The `securityContext` fields map to the JAIN SIP `javax.net.ssl.*` and `gov.nist.javax.sip.TLS_CLIENT_*` properties.
+
+## Environment variables
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `CONFIG_PATH` | `/etc/routr/edgeport.yaml` (image) | Path to the configuration file |
+| `PROCESSOR_ADDR` | | Overrides `spec.processor.addr` |
+| `HOSTNAME` | Set by the runtime | Overrides `ref`. Docker and Kubernetes set it to the container or pod hostname |
+| `EXTERNAL_ADDRS` | | Comma-separated addresses. Overrides `spec.externalAddrs` |
+| `LOCALNETS` | | Comma-separated CIDRs. Overrides `spec.localnets` |
+| `IGNORE_LOOPBACK_FROM_LOCALNETS` | `true` (image) | When `localnets` comes from the OS, skip `127.0.0.1` |
+| `STRIP_SESSION_PROGRESS_SDP` | `false` | Remove the body and `Content-Type` from `183 Session Progress` responses |
+| `ENABLE_HEALTHCHECKS` | `false` | Start the HTTP health check on port `8080` (`/healthz`) |
+| `CONSOLE_PUBLISHER_ENABLED` | `false` | Print call events to the console |
+| `NATS_PUBLISHER_ENABLED` | `false` | Publish call events to NATS |
+| `NATS_PUBLISHER_URL` | `nats://localhost:4222` | NATS server URL |
+| `NATS_PUBLISHER_SUBJECT` | `routr` | NATS subject for events |
+| `PKCS12_PASSWORD` | `changeme` | Password of the generated `signaling.p12` keystore. Keep it equal to `keyStorePassword` and `trustStorePassword` |
+| `PATH_TO_CERTS` | `/etc/routr/certs` | Directory with `server.crt`, `server.key`, and an optional `ca.crt` |
+| `CA_CERT_SUBJECT` | `/CN=Self Signed CA` | Subject of the generated CA certificate |
+| `SERVER_CERT_SUBJECT` | `/CN=localhost` | Subject of the generated server certificate |
+| `HEPLIFY_OPTIONS` | | When set, runs `heplify` with these options to mirror SIP traffic to a HEP collector such as Homer |
+| `LOG4J2` | `/etc/routr/log4j2.yaml` | Path to the Log4j2 configuration |
+| `JAVA_HOME` | `/opt/routr/jre` (image) | Java runtime used by `edgeport.sh` |
+
+## gRPC contract
+
+The EdgePort is a gRPC client. For every SIP request and response, it calls `ProcessMessage` on the address in `spec.processor.addr`.
+
+| Service | Method | Request | Response |
+| --- | --- | --- | --- |
+| `fonoster.routr.processor.v2beta1.Processor` | `ProcessMessage` | `MessageRequest` | `MessageResponse` |
+
+`MessageRequest` carries the Call-ID (`ref`), the EdgePort reference (`edge_port_ref`), the SIP method, the sender, the listening points, `external_addrs`, `localnets`, the SIP message, and metadata. See [processor.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/processor.proto) and [sipmessage.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/sipmessage.proto).
+
+## Minimal example
+
+This configuration accepts SIP over UDP and TCP and sends messages to the Dispatcher.
+
+```yaml
+kind: EdgePort
+apiVersion: v2beta1
+ref: edgeport-01
+spec:
+  externalAddrs:
+    - 192.168.1.3
+  methods:
+    - REGISTER
+    - MESSAGE
+    - INVITE
+    - ACK
+    - BYE
+    - CANCEL
+  transport:
+    - protocol: udp
+      port: 5060
+    - protocol: tcp
+      port: 5060
+  processor:
+    addr: dispatcher:51901
+```
+
+This command runs the EdgePort with that file.
+
+```bash
+docker run -it \
+  -v $(pwd)/edgeport.yaml:/etc/routr/edgeport.yaml \
+  -p 5060:5060/udp -p 5060:5060 \
+  fonoster/routr-edgeport
+```
+
+## Notes
+
+- Behind NAT (Docker, Kubernetes, cloud VMs), set `spec.externalAddrs` or `EXTERNAL_ADDRS`. Processors use these addresses to build the advertised address.
+- Publish every port in `spec.transport` from the container.
+- A `tls` or `wss` transport without `spec.securityContext` stops the EdgePort at startup.
+- Because `HOSTNAME` overrides `ref`, the EdgePort reference in Docker and Kubernetes is the container or pod hostname.
+- With several EdgePorts, configure the Connect processor to trust its peer EdgePorts. See [Connect processor](/reference/components/connect).

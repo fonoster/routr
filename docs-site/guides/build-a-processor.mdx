@@ -1,0 +1,294 @@
+---
+title: "Build a processor"
+sidebarTitle: "Build a processor"
+description: "For developers who want custom signaling logic: write a Node.js Processor with @routr/processor and the Alterations API, then route traffic to it from the Message Dispatcher."
+---
+
+Build a gRPC Processor that handles SIP `MESSAGE` requests (instant messaging), then register it in the Message Dispatcher next to the Connect processor.
+
+A Processor receives every SIP message as a protobuf `MessageRequest`, decides where it goes, and returns the modified message. It is the last stop before EdgePort sends the message out. Use one when the built-in [Connect processor](/reference/components/connect) doesn't fit, for example to build an IM service, SCAIP logic, or an IoT integration.
+
+## Prerequisites
+
+- Node.js and npm.
+- A running Routr core: an EdgePort, a Message Dispatcher, and a Location Service. Running [Routr from source](/guides/run-from-source) gives you all three.
+- Familiarity with the [message flow](/concepts/message-flow).
+
+<Tip>
+  The finished example lives in the [nodejs-processor](https://github.com/fonoster/nodejs-processor) template. Run `npx degit fonoster/nodejs-processor my-processor` to start from it instead of from scratch.
+</Tip>
+
+## The processor contract
+
+Every Processor implements one RPC, defined in [`processor.proto`](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/processor.proto):
+
+```protobuf
+service Processor {
+  rpc ProcessMessage (MessageRequest) returns (MessageResponse) {}
+}
+
+message MessageRequest {
+  string ref = 1;                 // Same as the Call-ID
+  string edge_port_ref = 2;       // EdgePort that received the message
+  Method method = 3;
+  NetInterface sender = 4;
+  repeated NetInterface listening_points = 5;
+  repeated string external_addrs = 6;
+  repeated string localnets = 7;
+  fonoster.routr.sipmessage.v2beta1.SIPMessage message = 8;
+  map<string, string> metadata = 9;
+}
+
+message MessageResponse {
+  NetInterface sender = 1;
+  fonoster.routr.sipmessage.v2beta1.SIPMessage message = 2;
+  map<string, string> metadata = 3;
+}
+```
+
+The request carries everything the Processor needs (sender, listening points, networks), so a Processor holds no state and scales horizontally. You can write one in any language with gRPC support. In Node.js, `@routr/processor` hands you the request as JSON. This excerpt shows the shape of a `REGISTER`:
+
+```json
+{
+  "ref": "AynhXaFtbdXwHrUEzt_rUQ..",
+  "edgePortRef": "edgeport-01",
+  "method": "REGISTER",
+  "externalAddrs": ["200.22.21.42"],
+  "localnets": ["127.0.0.1/8", "10.100.42.127/24"],
+  "listeningPoints": [{ "host": "0.0.0.0", "port": 5060, "transport": "UDP" }],
+  "sender": { "host": "127.0.0.1", "port": 36214, "transport": "UDP" },
+  "message": {
+    "messageType": "REQUEST",
+    "requestUri": { "host": "sip.local", "port": 5060, "transportParam": "UDP" },
+    "from": { "address": { "uri": { "user": "1001", "host": "sip.local" } }, "tag": "9041462a" },
+    "to": { "address": { "uri": { "user": "1001", "host": "sip.local" } } },
+    "via": [{ "host": "127.0.0.1", "port": 36214, "transport": "UDP", "branch": "z9hG4bK-524287-1" }],
+    "extensions": [{ "name": "User-Agent", "value": "Z 5.4.12" }],
+    "maxForwards": { "maxForwards": 70 },
+    "expires": { "expires": 60 }
+  }
+}
+```
+
+## Build the IM processor
+
+<Steps>
+  <Step title="Create the project">
+    Create a folder and install the Processor library, the Location Service client, and `fp-ts` for `pipe`:
+
+    ```bash
+    mkdir im-processor && cd im-processor
+    npm init -y
+    npm install --save @routr/processor @routr/location fp-ts
+    ```
+  </Step>
+
+  <Step title="Start the gRPC server">
+    Create `index.js`. It connects to the Location Service and starts a Processor on port `51904` that sends `REGISTER` and `MESSAGE` to handlers and rejects everything else:
+
+    ```javascript index.js
+    const Processor = require("@routr/processor").default
+    const { LocationClient } = require("@routr/location")
+    const { createHandlers } = require("./handlers")
+
+    const locationClient = new LocationClient({ addr: "localhost:51902" })
+    const handlers = createHandlers(locationClient)
+
+    new Processor({ bindAddr: "0.0.0.0:51904", name: "instant-messaging" })
+      .listen(async (req, res) => {
+        try {
+          const method = req.method.toString()
+          if (method === "REGISTER") await handlers.register(req, res)
+          else if (method === "MESSAGE") await handlers.sendMessage(req, res)
+          else res.sendNotImplemented()
+        } catch (error) {
+          console.error("An error occurred:", error)
+          res.sendInternalServerError()
+        }
+      })
+    ```
+
+    `listen()` calls your function once per message with the `MessageRequest` and a `Response`. You must answer every call with one of the `Response` methods:
+
+    | Method | Result |
+    | --- | --- |
+    | `send(request)` | Returns the (altered) message to EdgePort, which forwards it |
+    | `sendOk(extraHeaders?)` | Replies `200 OK` |
+    | `sendRegisterOk(request, extraHeaders?)` | Replies `200 OK` with the request's Contact |
+    | `sendNotFound()` | Replies `404 Not Found` |
+    | `sendForbidden(message?)` | Replies `403 Forbidden` |
+    | `sendMethodNotAllowed()` | Replies `405 Method Not Allowed` |
+    | `sendTemporarilyUnavailable()` | Replies `480 Temporarily Unavailable` |
+    | `sendNotImplemented()` | Replies `501 Not Implemented` |
+    | `sendInternalServerError()` | Replies `500 Internal Server Error` |
+  </Step>
+
+  <Step title="Handle REGISTER">
+    Create `handlers.js`. The `register` handler stores the sender's route in the Location Service under the target AOR and replies `200 OK`:
+
+    ```javascript handlers.js
+    const { Alterations, Target, Helper: ProcessorHelper } = require("@routr/processor")
+    const { Helper: LocationHelper } = require("@routr/location")
+    const { pipe } = require("fp-ts/function")
+
+    const createHandlers = (locationClient) => ({
+      register: async (req, res) => {
+        await locationClient.addRoute({
+          aor: Target.getTargetAOR(req),
+          route: LocationHelper.createRoute(req),
+          maxContacts: -1 // -1 means no limit
+        })
+        res.sendOk()
+      },
+      sendMessage: async (req, res) => {
+        // Next step
+      }
+    })
+
+    module.exports = { createHandlers }
+    ```
+
+    <Warning>
+      Always pass `maxContacts`. Over gRPC an omitted value arrives as `0`, and the Location Service rejects new contacts once the AOR holds `0` or more of them. Use `-1` for no limit.
+    </Warning>
+  </Step>
+
+  <Step title="Handle MESSAGE with the Alterations API">
+    Replace the `sendMessage` stub. It forwards responses back, looks up the callee, and builds the outgoing message by piping the request through [alterations](/reference/alterations-api). Each alteration takes a `MessageRequest` and returns a modified copy:
+
+    ```javascript handlers.js
+    sendMessage: async (req, res) => {
+      // Responses go back unmodified, minus our own Via
+      if (ProcessorHelper.isTypeResponse(req)) {
+        return res.send(Alterations.removeTopVia(req))
+      }
+
+      const route = (
+        await locationClient.findRoutes({
+          aor: Target.getTargetAOR(req),
+          callId: req.ref
+        })
+      )[0]
+
+      // The callee isn't registered
+      if (!route) return res.sendNotFound()
+
+      // The callee is connected to another EdgePort: send the message there
+      if (req.edgePortRef !== route.edgePortRef) {
+        return res.send(
+          pipe(
+            req,
+            Alterations.addSelfVia(route),
+            Alterations.addSelfRecordRoute(route),
+            Alterations.addRouteToPeerEdgePort(route),
+            Alterations.addRouteToNextHop(route),
+            Alterations.addXEdgePortRef,
+            Alterations.decreaseMaxForwards
+          )
+        )
+      }
+
+      // The callee is connected to this EdgePort: deliver it
+      return res.send(
+        pipe(
+          req,
+          Alterations.decreaseMaxForwards,
+          Alterations.removeAuthorization,
+          Alterations.removeSelfRoutes,
+          Alterations.removeXEdgePortRef,
+          Alterations.addSelfVia(route),
+          Alterations.addRouteToNextHop(route)
+        )
+      )
+    }
+    ```
+
+    The two branches implement [EdgePort cooperation](/concepts/edgeport-cooperation):
+
+    - `addSelfVia(route)` adds a Via for the egress EdgePort interface.
+    - `addSelfRecordRoute(route)` keeps this EdgePort in the path for the rest of the dialog.
+    - `addRouteToPeerEdgePort(route)` adds a Route to the EdgePort that holds the callee's connection.
+    - `addRouteToNextHop(route)` adds a Route to the callee.
+    - `addXEdgePortRef` adds the `X-Edgeport-Ref` header; `removeXEdgePortRef` strips it on the last hop.
+    - `decreaseMaxForwards`, `removeAuthorization`, and `removeSelfRoutes` clean up the request before delivery.
+  </Step>
+
+  <Step title="Run the processor">
+    Start it:
+
+    ```bash
+    node index.js
+    ```
+
+    The library logs a line like `starting routr service {"name":"instant-messaging","bindAddr":"0.0.0.0:51904"}`.
+  </Step>
+</Steps>
+
+## Register the processor in the Dispatcher
+
+The Message Dispatcher sends each request to the first processor whose `matchFunc` returns `true` and whose `methods` include the request method. Order matters: put specific matches before catch-alls.
+
+This `dispatcher.yaml` sends `MESSAGE` to the IM processor and everything else to Connect:
+
+```yaml dispatcher.yaml
+kind: MessageDispatcher
+apiVersion: v2beta1
+ref: message-dispatcher
+spec:
+  bindAddr: 0.0.0.0:51901
+  processors:
+    - ref: im-processor
+      addr: im:51904
+      matchFunc: req => req.method === "MESSAGE"
+      methods:
+        - MESSAGE
+    - ref: connect-processor
+      addr: connect:51904
+      matchFunc: req => true
+      methods:
+        - REGISTER
+        - INVITE
+        - ACK
+        - BYE
+        - CANCEL
+```
+
+`matchFunc` is a JavaScript expression evaluated against the JSON `MessageRequest`. Other useful matches:
+
+```javascript
+req => req.message.from.address.uri.user === "alice"
+req => req.message.extensions.find(e => e.name === "User-Agent" && e.value.includes("Zoiper"))
+```
+
+Set `addr` to wherever your processor runs. When you run from source, edit `config/dispatcher.yaml` and restart with `npm run start:dispatcher`. On Kubernetes, add the entry under `dispatcher.processors` in the [Helm values](/reference/helm-values).
+
+<Note>
+  The Dispatcher is optional. For a single processor you can point EdgePort's `spec.processor.addr` straight at it and list the methods it handles in `spec.methods`.
+</Note>
+
+## Verify
+
+Register two softphones (for example Blink) against your EdgePort and send a chat message from one to the other. The message reaches the second phone, and the processor's console shows the requests it handled. A `MESSAGE` to an unregistered user returns `404 Not Found`.
+
+## Pitfalls
+
+- **Keep processors stateless.** Store state in the Location Service or the [API Server](/guides/custom-data-with-the-apiserver), not in memory, so you can run several replicas.
+- **Answer every call.** A handler that throws without calling a `Response` method leaves the transaction hanging; wrap handlers in `try`/`catch` and call `sendInternalServerError()`.
+- **Alterations don't mutate.** They return a deep copy, so always send the result of `pipe`, not the original `req`.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Alterations API" icon="code" href="/reference/alterations-api">
+    Every alteration and helper exported by `@routr/processor`.
+  </Card>
+  <Card title="Build a middleware" icon="layer-group" href="/guides/build-a-middleware">
+    Add side effects before or after the processor.
+  </Card>
+  <Card title="Message Dispatcher" icon="shuffle" href="/reference/components/dispatcher">
+    Full Dispatcher configuration.
+  </Card>
+  <Card title="Message flow" icon="route" href="/concepts/message-flow">
+    How a request moves through Routr.
+  </Card>
+</CardGroup>

@@ -1,0 +1,316 @@
+---
+title: "Set up a home or office phone system"
+sidebarTitle: "Home or office setup"
+description: "For anyone building a small phone system: run Routr on one server with file-based configuration, add extensions, connect a SIP trunk and a phone number, and register softphones."
+---
+
+Build a small phone system on one server: two extensions that call each other, outbound calls through a SIP trunk, and a phone number that rings an extension. Resources live in YAML files, so you can keep the whole setup in version control.
+
+## Prerequisites
+
+- A server on your network with Docker and Docker Compose installed. Note its IP address (this guide uses `192.168.1.3`).
+- A SIP trunk from a provider, if you want to call the PSTN: the provider's host and port, your trunk username and password, and a phone number in E.164 format.
+- A softphone on each device, such as Zoiper, Telephone, or Blink.
+
+## What you deploy
+
+This setup runs four Routr components instead of the all-in-one image:
+
+| Service | Image | Role |
+| --- | --- | --- |
+| `edgeport` | `fonoster/routr-edgeport` | Receives SIP traffic on port `5060`. |
+| `connect` | `fonoster/routr-connect` | Routes calls between extensions, the trunk, and the number. |
+| `location` | `fonoster/routr-location` | Keeps track of registered phones in memory. |
+| `apiserver` | `fonoster/routr-simpledata` | Serves resources read from YAML files. |
+
+With one processor and no middleware, the EdgePort talks to the Connect processor directly. Processors expose the same gRPC interface as the Message Dispatcher, so no dispatcher is needed.
+
+## Set up the system
+
+<Steps>
+  <Step title="Create the Compose file">
+    Create a `routr` directory and add the following `compose.yaml` to it.
+
+    ```yaml compose.yaml
+    services:
+      edgeport:
+        image: fonoster/routr-edgeport:latest
+        ports:
+          - 5060:5060
+          - 5060:5060/udp
+        volumes:
+          - ./config/edgeport.yaml:/etc/routr/edgeport.yaml
+
+      connect:
+        image: fonoster/routr-connect:latest
+        environment:
+          LOCATION_ADDR: location:51902
+          API_ADDR: apiserver:51907
+        expose:
+          - 51904
+
+      location:
+        image: fonoster/routr-location:latest
+        expose:
+          - 51902
+        volumes:
+          - ./config/location.yaml:/etc/routr/location.yaml
+
+      apiserver:
+        image: fonoster/routr-simpledata:latest
+        expose:
+          - 51907
+        volumes:
+          - ./config/resources:/etc/routr/resources
+    ```
+  </Step>
+  <Step title="Configure the EdgePort">
+    Create `config/edgeport.yaml`. Set `externalAddrs` to the server's IP address so Routr advertises an address your phones can reach.
+
+    ```yaml config/edgeport.yaml
+    kind: EdgePort
+    apiVersion: v2beta1
+    ref: edgeport-01
+    metadata:
+      region: default
+    spec:
+      processor:
+        addr: connect:51904
+      externalAddrs:
+        - 192.168.1.3
+      methods:
+        - REGISTER
+        - INVITE
+        - ACK
+        - BYE
+        - CANCEL
+      transport:
+        - protocol: udp
+          port: 5060
+        - protocol: tcp
+          port: 5060
+    ```
+  </Step>
+  <Step title="Configure the Location Service">
+    Create `config/location.yaml`. A single Location Service instance can keep registrations in memory.
+
+    ```yaml config/location.yaml
+    kind: Location
+    apiVersion: v2beta1
+    metadata:
+      region: default
+    spec:
+      bindAddr: 0.0.0.0:51902
+      cache:
+        provider: memory
+    ```
+  </Step>
+  <Step title="Add credentials">
+    Create `config/resources/credentials.yaml` with one set of credentials per extension, plus one for the trunk. Replace the passwords with your own, and use the username and password your provider gave you for the trunk.
+
+    ```yaml config/resources/credentials.yaml
+    - apiVersion: v2beta1
+      kind: Credentials
+      ref: credentials-01
+      metadata:
+        name: John Doe Credentials
+      spec:
+        credentials:
+          username: "1001"
+          password: "1234"
+
+    - apiVersion: v2beta1
+      kind: Credentials
+      ref: credentials-02
+      metadata:
+        name: Jane Doe Credentials
+      spec:
+        credentials:
+          username: "1002"
+          password: "1234"
+
+    - apiVersion: v2beta1
+      kind: Credentials
+      ref: credentials-trunk
+      metadata:
+        name: Provider Credentials
+      spec:
+        credentials:
+          username: my-trunk-user
+          password: my-trunk-password
+    ```
+  </Step>
+  <Step title="Add the trunk and the number">
+    Create `config/resources/trunks.yaml`. The outbound URI is where Routr sends calls to the PSTN. The inbound URI is the host your provider puts in the Request-URI when it sends you calls; Routr uses it to match incoming calls to this trunk.
+
+    ```yaml config/resources/trunks.yaml
+    - apiVersion: v2beta1
+      kind: Trunk
+      ref: trunk-01
+      metadata:
+        name: My Provider
+      spec:
+        inbound:
+          uri: trunk01.example.com
+        outbound:
+          sendRegister: false
+          credentialsRef: credentials-trunk
+          uris:
+            - uri:
+                user: my-trunk-user
+                host: sip.provider.net
+                port: 5060
+                transport: udp
+              priority: 10
+              weight: 10
+              enabled: true
+    ```
+
+    Create `config/resources/numbers.yaml`. Calls to `telUrl` ring the extension in `aorLink`.
+
+    ```yaml config/resources/numbers.yaml
+    - apiVersion: v2beta1
+      kind: Number
+      ref: number-01
+      metadata:
+        name: "(706)604-1487"
+        geoInfo:
+          city: Columbus, GA
+          country: USA
+          countryIsoCode: US
+      spec:
+        trunkRef: trunk-01
+        location:
+          telUrl: tel:+17066041487
+          aorLink: sip:1001@sip.local
+    ```
+
+    <Note>
+    If your provider requires registration, set `sendRegister: true` and add the [Registry](/reference/components/registry) and [Requester](/reference/components/requester) services. This minimal stack doesn't include them.
+    </Note>
+  </Step>
+  <Step title="Add the Domain">
+    Create `config/resources/domains.yaml`. The egress policy sends any number that doesn't match an extension out through `number-01` and its trunk. The `rule` is a regular expression matched against the dialed number.
+
+    ```yaml config/resources/domains.yaml
+    - apiVersion: v2beta1
+      kind: Domain
+      ref: domain-01
+      metadata:
+        name: Local Domain
+      spec:
+        context:
+          domainUri: sip.local
+          egressPolicies:
+            - rule: ".*"
+              numberRef: number-01
+    ```
+  </Step>
+  <Step title="Add the extensions">
+    Create `config/resources/agents.yaml` with one Agent per extension. Each Agent belongs to the Domain and uses its own credentials.
+
+    ```yaml config/resources/agents.yaml
+    - apiVersion: v2beta1
+      kind: Agent
+      ref: agent-01
+      metadata:
+        name: John Doe
+      spec:
+        username: "1001"
+        domainRef: domain-01
+        credentialsRef: credentials-01
+        privacy: None
+
+    - apiVersion: v2beta1
+      kind: Agent
+      ref: agent-02
+      metadata:
+        name: Jane Doe
+      spec:
+        username: "1002"
+        domainRef: domain-01
+        credentialsRef: credentials-02
+        privacy: None
+    ```
+  </Step>
+  <Step title="Start the services">
+    Start the stack in the background.
+
+    ```bash
+    docker compose up -d
+    ```
+
+    Check that every service is running.
+
+    ```bash
+    docker compose ps
+    ```
+
+    <Check>All four services show a status of `Up`.</Check>
+  </Step>
+</Steps>
+
+## Configure the softphones
+
+Create one account per extension. The settings for extension `1001` are:
+
+| Setting | Value |
+| --- | --- |
+| Domain | `sip.local` |
+| Username | `1001` |
+| Password | `1234` |
+| Proxy or registrar server | `192.168.1.3`, port `5060` |
+
+The domain `sip.local` doesn't need to resolve in DNS, because the phone sends its traffic to the proxy address. This is how the account looks in the Telephone app for macOS:
+
+<img
+  className="rounded-xl"
+  src="/images/home-or-office-setup/telephone_config_general.png"
+  alt="Telephone account settings for 1001 with domain sip.local, user name 1001, and a password"
+/>
+
+On the advanced tab, set the registry server and the proxy to the server's IP address and port `5060`:
+
+<img
+  className="rounded-xl"
+  src="/images/home-or-office-setup/telephone_config_advanced.png"
+  alt="Telephone advanced settings with SIP address 1001@sip.local, registry server 192.168.1.2, and proxy 192.168.1.2 on port 5060"
+/>
+
+## Verify
+
+- From `1001`, dial `1002`. The second phone rings (agent-to-agent).
+- From either extension, dial an outside number. The call goes out through the trunk (agent-to-PSTN).
+- Call `+17066041487` from an outside phone. Extension `1001` rings (from-PSTN).
+
+## Make changes
+
+The simpledata API Server reads the YAML files when it starts. After editing files under `config/resources`, restart it.
+
+```bash
+docker compose restart apiserver
+```
+
+## Troubleshooting
+
+- **Phones fail to register with `403 Forbidden`.** The username in the softphone doesn't match an Agent in the Domain, or the Domain in the softphone isn't `sip.local`.
+- **Calls connect without audio.** `externalAddrs` in `edgeport.yaml` doesn't match the server's IP address.
+- **Incoming PSTN calls are rejected with `403`.** The host in the provider's Request-URI must equal the trunk's `inbound.uri`, and the user part must match the Number's `telUrl` exactly, including the `+`.
+- **Outbound calls fail.** Check the trunk's outbound host, port, and credentials. Some providers also require `sendRegister: true`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Connect resources" icon="book" href="/reference/resources/overview">
+    Every field for Agents, Domains, Trunks, and Numbers.
+  </Card>
+  <Card title="Routing types" icon="route" href="/concepts/routing">
+    How Connect picks a route for each call.
+  </Card>
+  <Card title="Connect a PBX as a Peer" icon="server" href="/guides/connect-a-pbx-as-a-peer">
+    Add voicemail and IVR with Asterisk or FreeSWITCH.
+  </Card>
+  <Card title="Secure the server" icon="lock" href="/guides/secure-the-server">
+    Use TLS for signaling.
+  </Card>
+</CardGroup>

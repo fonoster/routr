@@ -1,0 +1,203 @@
+---
+title: "Enable WebRTC clients"
+sidebarTitle: "Enable WebRTC"
+description: "For developers adding browser calling: open WebSocket transports on the EdgePort, bridge WebRTC and SIP media with RTPRelay and RTPEngine, and tune Agents for browser clients."
+---
+
+Let browser clients built with SIP.js or JsSIP register with Routr and call regular SIP phones, PBXs, and the PSTN.
+
+## What browsers need
+
+A WebRTC client differs from a desk phone in two ways, and Routr handles each one separately:
+
+- **Signaling over WebSocket.** Browsers can't send SIP over UDP or TCP. They use SIP over WebSocket, and a page served over HTTPS can only open secure WebSockets (`wss://`) to a server with a certificate the browser trusts. The EdgePort listens for WS on port `5062` and WSS on port `5063`.
+- **Different media.** WebRTC requires ICE and DTLS-SRTP, which most SIP phones and PBXs don't speak. The [RTPRelay](/reference/components/rtprelay) middleware drives an RTPEngine instance that rewrites the SDP and relays media between the two sides. Routr itself never touches media.
+
+If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRelay.
+
+## Prerequisites
+
+- A running Routr deployment. See [Deploy with Docker](/guides/deploy-with-docker) or [Deploy on Kubernetes](/guides/deploy-on-kubernetes).
+- A certificate from a trusted CA for the host name browsers connect to. See [Secure the server](/guides/secure-the-server).
+- An RTPEngine instance, or a host where you can run one, with a public IP and an open UDP port range.
+
+## Enable WebRTC
+
+<Steps>
+  <Step title="Open the WebSocket transports">
+    <Tabs>
+      <Tab title="Docker (routr-one)">
+        The routr-one image already listens on `5062` (WS) and `5063` (WSS). Publish the ports you need in `compose.yaml`.
+
+        ```yaml compose.yaml
+        services:
+          routr:
+            ports:
+              - 51908:51908
+              - 5060:5060/udp
+              - 5062:5062
+              - 5063:5063
+        ```
+      </Tab>
+      <Tab title="Docker (split)">
+        Add the transports to `spec.transport` in `edgeport.yaml`, and publish the same ports on the `edgeport` service.
+
+        ```yaml config/edgeport.yaml
+        spec:
+          transport:
+            - protocol: udp
+              port: 5060
+            - protocol: ws
+              port: 5062
+            - protocol: wss
+              port: 5063
+        ```
+      </Tab>
+      <Tab title="Kubernetes (Helm)">
+        Enable the transports in `values.yaml`. They are exposed through the EdgePort TCP service.
+
+        ```yaml values.yaml
+        edgeport:
+          transport:
+            ws:
+              enabled: true
+            wss:
+              enabled: true
+        ```
+      </Tab>
+    </Tabs>
+
+    For WSS, mount a trusted certificate as described in [Secure the server](/guides/secure-the-server). The EdgePort serves WSS with the same keystore it uses for TLS.
+  </Step>
+  <Step title="Run RTPEngine">
+    RTPEngine needs a public IP and a UDP range for media, plus its control port (`22222/udp` by default). The following service uses the `fonoster/rtpengine` image from the Routr examples.
+
+    ```yaml compose.yaml
+    services:
+      rtpengine:
+        image: fonoster/rtpengine:latest
+        ports:
+          - 22222:22222/udp
+          - 10000-10100:10000-10100/udp
+        environment:
+          PUBLIC_IP: ${DOCKER_HOST_ADDRESS}
+          PORT_MIN: 10000
+          PORT_MAX: 10100
+    ```
+
+    On Kubernetes, deploy RTPEngine yourself. The Routr chart doesn't include it.
+  </Step>
+  <Step title="Enable RTPRelay">
+    RTPRelay runs as a post-processor middleware: the Message Dispatcher calls it after the Connect processor, so it can rewrite the SDP of INVITEs, responses, and ACKs, and release media sessions on BYE.
+
+    <Tabs>
+      <Tab title="Docker (routr-one)">
+        Set `RTPENGINE_HOST`. When it is set, routr-one starts RTPRelay and registers it as a middleware automatically. Set `RTPENGINE_PORT` if RTPEngine doesn't use `22222`.
+
+        ```yaml compose.yaml
+        services:
+          routr:
+            image: fonoster/routr-one:latest
+            environment:
+              EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+              RTPENGINE_HOST: rtpengine
+        ```
+      </Tab>
+      <Tab title="Docker (split)">
+        Add the `rtprelay` service.
+
+        ```yaml compose.yaml
+        services:
+          rtprelay:
+            image: fonoster/routr-rtprelay:latest
+            expose:
+              - 51903
+            environment:
+              RTPENGINE_HOST: rtpengine
+        ```
+
+        Register it as a post-processor middleware in `dispatcher.yaml`. The EdgePort must point at the Message Dispatcher, not directly at the Connect processor.
+
+        ```yaml config/dispatcher.yaml
+        kind: MessageDispatcher
+        apiVersion: v2beta1
+        ref: message-dispatcher
+        spec:
+          bindAddr: 0.0.0.0:51901
+          processors:
+            - ref: connect-processor
+              addr: connect:51904
+              matchFunc: req => true
+              methods: [REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL]
+          middlewares:
+            - ref: rtprelay-middleware
+              addr: rtprelay:51903
+              postProcessor: true
+        ```
+      </Tab>
+      <Tab title="Kubernetes (Helm)">
+        Enable the RTPRelay pod and register it with the dispatcher. The chart prefixes `serviceName` with the release name.
+
+        ```yaml values.yaml
+        rtprelay:
+          enabled: true
+          rtpeHost: rtpengine.example.internal
+          rtpePort: 22222
+
+        dispatcher:
+          middlewares:
+            - ref: rtprelay-middleware
+              serviceName: routr-rtprelay
+              postProcessor: true
+        ```
+
+        Apply the change with `helm upgrade`.
+      </Tab>
+    </Tabs>
+  </Step>
+  <Step title="Tune Agents for browsers">
+    Browsers create a new SIP contact on every page load, and an old contact stays in the location table until its registration expires. If an Agent's `maxContacts` is low, new registrations fail with `403 Forbidden` and the reason `exceeds maximum of N allowed contacts`.
+
+    - Leave `maxContacts` empty in `rctl` (stored as `-1`, no limit), or set it high enough for the tabs and devices you expect.
+    - Register with a short expiry in the client and unregister when the page closes. The registration lifetime comes from the client's `REGISTER` request.
+  </Step>
+  <Step title="Point the client at Routr">
+    Configure SIP.js or JsSIP with the WSS URL, the Agent's SIP URI, and its credentials, for example:
+
+    | Setting | Value |
+    | --- | --- |
+    | WebSocket server | `wss://sip.example.com:5063` |
+    | SIP URI | `sip:1001@sip.local` |
+    | Username / password | The Agent's credentials |
+  </Step>
+</Steps>
+
+## Verify
+
+Register a browser client, then call a desk softphone or a PBX Peer.
+
+<Check>The call connects with two-way audio in both directions: browser to phone and phone to browser.</Check>
+
+## Troubleshooting
+
+- **The browser can't open the WebSocket.** The page is served over HTTPS and you used `ws://`, or the certificate isn't trusted. Use `wss://` with a CA-issued certificate.
+- **The call connects with no audio.** RTPEngine's `PUBLIC_IP` is wrong, or its UDP port range isn't reachable from the internet.
+- **RTPRelay never runs.** On a split deployment, the middleware isn't listed in `dispatcher.yaml`, or the EdgePort points directly at the Connect processor.
+- **Registrations start failing after a few reloads.** The Agent hit `maxContacts`. See the previous step.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Ephemeral agents in the browser" icon="globe" href="/tutorials/ephemeral-agents-in-the-browser">
+    Register browser users with signed tokens instead of stored Agents.
+  </Card>
+  <Card title="RTPRelay reference" icon="wave-square" href="/reference/components/rtprelay">
+    Environment variables and protocol.
+  </Card>
+  <Card title="EdgePort reference" icon="server" href="/reference/components/edgeport">
+    Transports and the security context.
+  </Card>
+  <Card title="Helm values" icon="list" href="/reference/helm-values">
+    The `rtprelay` and `dispatcher` values.
+  </Card>
+</CardGroup>

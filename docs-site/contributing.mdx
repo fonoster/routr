@@ -1,0 +1,94 @@
+---
+title: "Contributing"
+description: "For first-time and regular contributors: how to find work, set up your environment, write commits that pass the checks, and get a pull request merged."
+---
+
+Thanks for helping improve Routr. This page explains how to pick something to work on, set up your environment, and get your change merged.
+
+New contributors are in the best position to spot rough edges. If setup fails, the docs have a gap, or a script doesn't work, [open a bug report](https://github.com/fonoster/routr/issues/new/choose) and tell us.
+
+## Ways to contribute
+
+Not every contribution is code. We welcome:
+
+- Bug fixes and new features
+- Documentation
+- Builds and CI/CD
+- Issue triage
+- Answering questions on [Discord](https://discord.gg/4QWgSz4hTC) and [GitHub Discussions](https://github.com/fonoster/routr/discussions)
+- Web design and UI/UX
+- Blog posts, talks, and social media
+- Release management
+
+To work on something that doesn't fit a pull request, come to office hours or reach out on Discord.
+
+## Find an issue
+
+- [`good first issue`](https://github.com/fonoster/routr/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) issues include extra context for your first contribution.
+- [`help wanted`](https://github.com/fonoster/routr/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) issues suit anyone who isn't a core maintainer.
+
+If neither label has open issues, ask on Discord or GitHub Discussions and we'll help you find something. When you pick an issue, comment on it (for example, "I want to work on this") so others know.
+
+For large or controversial changes, open a discussion before you write code.
+
+## Set up your environment
+
+<CardGroup cols={2}>
+  <Card title="Run Routr from source" icon="laptop-code" href="/guides/run-from-source">
+    Build and run every service on your machine.
+  </Card>
+  <Card title="Develop with Gitpod" icon="cloud" href="/guides/develop-with-gitpod">
+    A ready-made workspace in your browser.
+  </Card>
+</CardGroup>
+
+## Write your commits
+
+### Use Conventional Commits
+
+Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/) (for example `fix(dispatcher): ...` or `docs: ...`). A `commit-msg` hook runs `commitlint` with `@commitlint/config-conventional` and rejects other formats. Release notes are generated from these messages.
+
+The `pre-commit` hook runs `npm test`, `npm run format`, `npm run lint`, `npm run typecheck`, and `npm run generate:readme`, so expect commits to take a moment.
+
+### Sign off your commits
+
+We require a [Developer Certificate of Origin](https://developercertificate.org/) (DCO) sign-off on every commit. It certifies that you wrote the code or have the right to contribute it. The sign-off must match the Git user and email of the commit:
+
+```text
+fix(location): keep zero maxContacts
+
+Signed-off-by: Your Name <your.name@example.com>
+```
+
+Add it automatically with `-s`:
+
+```bash
+git commit -s -m "fix(location): keep zero maxContacts"
+```
+
+If you forgot and haven't pushed yet, amend the commit:
+
+```bash
+git commit --amend -s
+```
+
+## Pull request lifecycle
+
+1. Check that nobody else is working on the same issue. If a related pull request exists, offer to help there. If it gets no response in a reasonable time, open your own.
+2. Open the pull request against `main`. CI runs unit tests, the type check, lint, and the Java tests.
+3. A maintainer reviews it and may ask you to improve the code, add tests or docs, change the approach, or split the change into smaller pull requests.
+4. Depending on the roadmap, a maintainer may delay the merge to fit a release, or ask you to close it and open a revised one.
+
+## Pull request checklist
+
+Before you submit, confirm that:
+
+- [ ] Your code builds and the tests pass locally (`npm test`, `npm run test:java`)
+- [ ] `npm run typecheck` and lint pass
+- [ ] Your commits follow Conventional Commits and are signed off
+- [ ] You added tests for your change, where applicable
+- [ ] You updated the documentation, where applicable
+
+## Ask for help
+
+Ask on the original GitHub issue, in the [Discord](https://discord.gg/4QWgSz4hTC) community, or in [GitHub Discussions](https://github.com/fonoster/routr/discussions).

@@ -1,0 +1,257 @@
+---
+title: "Quickstart"
+description: "Run Routr on your machine with Docker, create a Domain and two Agents with rctl, and make your first call between two softphones."
+---
+
+In this tutorial, you run the all-in-one Routr image with Docker Compose, create a SIP Domain and two Agents with the `rctl` command-line tool, register two softphones, and call from one to the other.
+
+## What you'll build
+
+A single Routr server on your machine with:
+
+- A Domain named `sip.local`.
+- Two Agents, `1001` (John) and `1002` (Jane), each with its own Credentials.
+- Two softphones registered to Routr that can call each other.
+
+It takes about ten minutes.
+
+## Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) with Docker Compose.
+- [Node.js](https://nodejs.org/en/download/) and npm, to install `rctl`.
+- Two SIP softphones, for example [Zoiper](https://www.zoiper.com/) or Telephone. You can run them on the same computer or on two devices on the same network.
+- The IP address of the machine that runs Docker, as seen by your softphones (for example `192.168.1.3`).
+
+## Steps
+
+<Steps>
+  <Step title="Start Routr">
+    Create a directory named `routr` and add a file named `compose.yaml` with the following content. It runs `fonoster/routr-one`, the all-in-one image that bundles every Routr service and a PostgreSQL database in one container.
+
+    ```yaml compose.yaml
+    services:
+      routr:
+        image: fonoster/routr-one:latest
+        environment:
+          EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+        ports:
+          - 51908:51908
+          - 5060:5060/udp
+          - 5060:5060/tcp
+        volumes:
+          - shared:/var/lib/postgresql/data
+
+    volumes:
+      shared:
+    ```
+
+    Here's what each part does:
+
+    - `EXTERNAL_ADDRS` tells the EdgePort which address to advertise in SIP messages. Use an address your softphones can reach.
+    - Port `51908` is the API Server, which `rctl` talks to. Port `5060` is SIP signaling over UDP and TCP.
+    - The `shared` volume keeps the database between restarts.
+
+    Start the server. Replace `192.168.1.3` with your own IP address.
+
+    ```bash
+    DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
+    ```
+
+    Then follow the logs until the services are up:
+
+    ```bash
+    docker compose logs -f routr
+    ```
+
+    Look for the following lines. Press `Ctrl+C` to stop following the logs; the server keeps running.
+
+    ```text
+    routr v2 // all in one distribution
+    ...
+    starting edgeport ref = ...
+    ```
+
+    <Check>
+      Routr is running and listening for SIP on port `5060` and for API calls on port `51908`.
+    </Check>
+  </Step>
+
+  <Step title="Install rctl">
+    Install the Routr command-line tool globally with npm:
+
+    ```bash
+    npm install -g @routr/ctl
+    ```
+
+    Check that it's installed:
+
+    ```bash
+    rctl --version
+    ```
+
+    Every command in this tutorial uses `--insecure` because the all-in-one image serves the API without TLS. To secure it, see [Secure the server](/guides/secure-the-server).
+  </Step>
+
+  <Step title="Create a Domain">
+    A Domain groups Agents that can call each other. Create one with the SIP URI `sip.local`:
+
+    ```bash
+    rctl domains create --insecure
+    ```
+
+    Answer the prompts as shown. Leave the access control list set to `None`.
+
+    ```text
+    This utility will help you create a new Domain.
+    Press ^C at any time to quit.
+    ? Friendly Name Local Domain
+    ? SIP URI sip.local
+    ? IP Access Control List None
+    ? Ready? Yes
+    Creating Domain Local Domain... a27e9fb2-a71a-4cf3-9b1d-dccf373f9777
+    ```
+  </Step>
+
+  <Step title="Create Credentials for both Agents">
+    Credentials hold the username and password a softphone uses to register. Create the first set:
+
+    ```bash
+    rctl credentials create --insecure
+    ```
+
+    Use `1001` as the username and `1234` as the password:
+
+    ```text
+    This utility will help you create a new set of Credentials.
+    Press ^C at any time to quit.
+    ? Friendly Name John Doe Credentials
+    ? Username 1001
+    ? Password [hidden]
+    ? Ready? Yes
+    Creating Credentials John Doe Credentials... 8814fc24-2328-43af-82d4-f5347fe4521b
+    ```
+
+    Run the command again to create `Jane Doe Credentials` with username `1002` and password `1234`.
+  </Step>
+
+  <Step title="Create two Agents">
+    An Agent is a SIP endpoint, such as a softphone, that belongs to a Domain. Create John:
+
+    ```bash
+    rctl agents create --insecure
+    ```
+
+    Select the `sip.local` Domain and John's Credentials. Leave `Max Contacts` empty for no limit, and keep the other defaults.
+
+    ```text
+    This utility will help you create a new Agent.
+    Press ^C at any time to quit.
+    ? Friendly Name John Doe
+    ? Select a Domain sip.local
+    ? Username 1001
+    ? Credentials Name John Doe Credentials
+    ? Max Contacts
+    ? Privacy None
+    ? Enabled? Yes
+    ? Ready? Yes
+    Creating Agent John Doe... 8dae9a7d-99b8-4279-88e1-4cf6ed67190a
+    ```
+
+    Run the command again to create Jane Doe with username `1002` and `Jane Doe Credentials`.
+
+    List the Agents to confirm both exist:
+
+    ```bash
+    rctl agents get --insecure
+    ```
+
+    The output looks similar to this:
+
+    ```text
+    Ref                                  Name     Username Domain    Max Contacts Privacy Enabled
+    8dae9a7d-99b8-4279-88e1-4cf6ed67190a John Doe 1001     sip.local -1           NONE    Yes
+    5c1e8f2a-3b4d-4e6f-9a7b-1c2d3e4f5a6b Jane Doe 1002     sip.local -1           NONE    Yes
+    ```
+
+    <Check>
+      You have a Domain and two Agents that can register and call each other.
+    </Check>
+  </Step>
+
+  <Step title="Register the softphones">
+    Add an account for `1001` in the first softphone and for `1002` in the second. Use these settings:
+
+    | Setting | Value |
+    | --- | --- |
+    | Domain | `sip.local` |
+    | Username | `1001` (or `1002`) |
+    | Password | `1234` |
+    | Proxy or registrar | Your Docker host IP, port `5060` (for example `192.168.1.3:5060`) |
+    | Transport | UDP |
+
+    `sip.local` doesn't resolve in DNS, so the softphone must send its requests to Routr through the proxy setting. In Telephone, the account looks like this:
+
+    <img
+      className="rounded-xl"
+      src="/images/quickstart/softphone-account.png"
+      alt="Telephone account settings for 1001 with domain sip.local, username 1001, and a password"
+    />
+
+    And the proxy settings point at the Docker host:
+
+    <img
+      className="rounded-xl"
+      src="/images/quickstart/softphone-proxy.png"
+      alt="Telephone advanced settings with SIP address 1001@sip.local, registry server 192.168.1.2, and proxy 192.168.1.2 on port 5060"
+    />
+
+    <Check>
+      Both softphones show the account as registered (or online).
+    </Check>
+  </Step>
+
+  <Step title="Make a call">
+    From John's softphone (`1001`), dial `1002`. Jane's softphone rings. Answer it and talk.
+
+    To watch the SIP messages as the call happens, open `sngrep`, which is included in the image:
+
+    ```bash
+    docker compose exec routr sngrep
+    ```
+
+    <Check>
+      You made an agent-to-agent call through Routr.
+    </Check>
+  </Step>
+</Steps>
+
+## Clean up
+
+Stop and remove the container when you're done. Add `-v` to also delete the database volume.
+
+```bash
+docker compose down
+```
+
+## Troubleshooting
+
+- **The softphone doesn't register.** Check that `DOCKER_HOST_ADDRESS` is an address the softphone can reach, and that the softphone's proxy setting points at it on port `5060`.
+- **Registration works, but calls drop or don't ring after a while on UDP.** NAT devices close idle UDP mappings quickly. Lower the softphone's re-register interval, or use TCP. See [EdgePort cooperation](/concepts/edgeport-cooperation) for why connection-oriented transports are recommended.
+- **`rctl` can't connect.** Make sure port `51908` is published and that you pass `--insecure`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Set up a home or office" icon="building" href="/guides/home-or-office-setup">
+    Add a Trunk and a Number so your Agents can call the PSTN.
+  </Card>
+  <Card title="Manage resources with rctl" icon="terminal" href="/guides/manage-resources-with-rctl">
+    Learn the commands for every Connect resource.
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
+    See what happens inside Routr when a call arrives.
+  </Card>
+  <Card title="Deploy with Docker" icon="docker" href="/guides/deploy-with-docker">
+    Run Routr with Docker for a longer-lived setup.
+  </Card>
+</CardGroup>

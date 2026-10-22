@@ -1,0 +1,98 @@
+---
+title: "Load balancing"
+description: "Learn how Routr spreads calls across a group of Peers such as Asterisk or FreeSWITCH servers, and how round-robin, least-sessions, and session affinity behave."
+---
+
+Routr can sit in front of several media servers and spread calls across them. You don't configure a list of backends anywhere. Instead, every server registers with Routr as the same Peer, and the Location Service picks one of them for each new call.
+
+<img
+  className="block dark:hidden rounded-xl"
+  src="/images/load-balancing/algorithms-light.png"
+  alt="Load balancing across a Peer's AOR: several Asterisk instances register under sip:conference@sip.local; round-robin takes turns, least-sessions picks the instance reporting the fewest sessions, and session affinity sends calls with the same header value to the same instance"
+/>
+<img
+  className="hidden dark:block rounded-xl"
+  src="/images/load-balancing/algorithms-dark.png"
+  alt="Load balancing across a Peer's AOR: several Asterisk instances register under sip:conference@sip.local; round-robin takes turns, least-sessions picks the instance reporting the fewest sessions, and session affinity sends calls with the same header value to the same instance"
+/>
+
+## Routr fronts media servers, it doesn't replace them
+
+Routr handles signaling. Asterisk, FreeSWITCH, and similar servers handle media: IVRs, conferences, recordings, and voicemail. Putting Routr in front of them gives you one SIP entry point for phones and carriers, and lets you add or remove media servers without changing anything on the phone or carrier side.
+
+Load balancing picks a server when a call starts. It doesn't move calls that are already up: if a media server goes away, the calls on it end.
+
+## Group servers under one address of record
+
+A Peer has an address of record (`aor`), such as `sip:conference@sip.local`, and Credentials. When a server registers using the Peer's username and password, Connect stores its route under the Peer's `aor`, not under the server's own address. Register three Asterisk servers with the same Credentials, and the `aor` holds three routes.
+
+```yaml
+apiVersion: v2beta1
+kind: Peer
+ref: peer-01
+metadata:
+  name: Asterisk (Media Server)
+spec:
+  aor: sip:conference@sip.local
+  username: asterisk
+  credentialsRef: credentials-01
+  loadBalancing:
+    withSessionAffinity: true
+    algorithm: least-sessions
+```
+
+Calls reach that group in two ways:
+
+- **From the PSTN**, through a Number whose `aorLink` is the Peer's `aor`.
+- **From an Agent**, as an [`agent-to-peer`](/concepts/routing#agent-to-peer) call.
+
+In both cases, Connect reads the Peer's `loadBalancing` settings and asks the Location Service for one route.
+
+## Algorithms
+
+### round-robin
+
+The Location Service takes turns: the first call goes to the first registered route, the next call to the second, and so on, starting over after the last.
+
+The turn counter lives in the memory of each Location Service instance. If you run several instances, each keeps its own counter, so the spread is even per instance rather than across the whole cluster.
+
+### least-sessions
+
+The Location Service sends each call to the route reporting the fewest active sessions. Each server reports its count in an `X-Session-Count` header on the `REGISTER` requests it sends to Routr. Routr doesn't count calls itself, so:
+
+- A server that doesn't send `X-Session-Count` is stored with a count of `-1`, which sorts first.
+- Counts are only as fresh as the last `REGISTER`. Shorter registration intervals give the Location Service a more current picture.
+
+Use Redis as the Location Service cache for `least-sessions` when you run more than one Location instance, so every instance sees the same routes and counts. See [Scale with Redis](/guides/scale-with-redis).
+
+### Session affinity
+
+With `withSessionAffinity: true`, calls that belong together reach the same server. This matters for conferences: every participant in a room must land on the Asterisk server that hosts it.
+
+Affinity is keyed by a header you choose on the Number. Set the Number's `sessionAffinityHeader`, for example `X-Room-Id`. When a call from the PSTN carries that header, the Location Service:
+
+1. Looks up the server already assigned to that header value.
+2. If there's none, picks the server with the fewest sessions and remembers the assignment.
+
+With affinity on, the first pick always uses the least-sessions rule, and round-robin isn't used. Calls without the header fall back to the Peer's `algorithm`. The assignment is stored in the Location Service cache, so use Redis when you run several Location instances.
+
+## Requests within a call
+
+Load balancing happens once per call. The Location Service remembers the route it chose for each Call-ID, so later requests for the same call go to the same server.
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Load balance Asterisk" icon="scale-balanced" href="/tutorials/load-balancing-asterisk">
+    Put Routr in front of several Asterisk servers.
+  </Card>
+  <Card title="Connect a PBX as a Peer" icon="server" href="/guides/connect-a-pbx-as-a-peer">
+    Register Asterisk or FreeSWITCH with Routr.
+  </Card>
+  <Card title="Location Service" icon="location-dot" href="/reference/components/location">
+    Configure the cache provider.
+  </Card>
+  <Card title="Peers" icon="book" href="/reference/resources/peers">
+    See every Peer field, including `loadBalancing`.
+  </Card>
+</CardGroup>

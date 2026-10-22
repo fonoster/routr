@@ -1,0 +1,254 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Routr",
+  "description": "Routr is a programmable SIP proxy, registrar and location server built as a set of cloud-native gRPC services.",
+  "colors": {
+    "primary": "#1F8F8E",
+    "light": "#5FCFCE",
+    "dark": "#1F8F8E"
+  },
+  "background": {
+    "color": {
+      "light": "#FFFFFF",
+      "dark": "#001A1A"
+    }
+  },
+  "favicon": "/favicon.ico",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "https://routr.io"
+  },
+  "appearance": {
+    "default": "dark"
+  },
+  "fonts": {
+    "heading": {
+      "family": "Poppins",
+      "weight": 600
+    },
+    "body": {
+      "family": "Poppins"
+    }
+  },
+  "styling": {
+    "codeblocks": "system"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Docs",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "quickstart-kubernetes"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/architecture",
+              "concepts/message-flow",
+              "concepts/edgeport-cooperation",
+              "concepts/connect-mode",
+              "concepts/routing",
+              "concepts/load-balancing",
+              "concepts/deployment-topologies"
+            ]
+          },
+          {
+            "group": "How-to guides",
+            "pages": [
+              {
+                "group": "Deploy and operate",
+                "icon": "server",
+                "pages": [
+                  "guides/deploy-with-docker",
+                  "guides/deploy-on-kubernetes",
+                  "guides/secure-the-server",
+                  "guides/scale-with-redis"
+                ]
+              },
+              {
+                "group": "Connect phones and services",
+                "icon": "phone",
+                "pages": [
+                  "guides/home-or-office-setup",
+                  "guides/connect-a-pbx-as-a-peer",
+                  "guides/enable-webrtc"
+                ]
+              },
+              {
+                "group": "Manage resources",
+                "icon": "list",
+                "pages": [
+                  "guides/manage-resources-with-rctl",
+                  "guides/manage-resources-with-the-sdk"
+                ]
+              },
+              {
+                "group": "Extend Routr",
+                "icon": "puzzle-piece",
+                "pages": [
+                  "guides/build-a-processor",
+                  "guides/build-a-middleware",
+                  "guides/custom-data-with-the-apiserver",
+                  "guides/extend-rctl"
+                ]
+              },
+              {
+                "group": "Work on Routr",
+                "icon": "code",
+                "pages": [
+                  "guides/run-from-source",
+                  "guides/develop-with-gitpod"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Tutorials",
+            "pages": [
+              "tutorials/load-balancing-asterisk",
+              "tutorials/intercom-on-kubernetes",
+              "tutorials/deploy-to-civo-with-helm",
+              "tutorials/call-events-with-nats",
+              "tutorials/ephemeral-agents-in-the-browser"
+            ]
+          },
+          {
+            "group": "Community",
+            "pages": [
+              "community",
+              "contributing",
+              "faqs"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "Tools",
+            "pages": [
+              "reference/rctl",
+              "reference/sdk"
+            ]
+          },
+          {
+            "group": "Connect resources",
+            "pages": [
+              "reference/resources/overview",
+              "reference/resources/agents",
+              "reference/resources/domains",
+              "reference/resources/peers",
+              "reference/resources/trunks",
+              "reference/resources/numbers",
+              "reference/resources/credentials",
+              "reference/resources/acl"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "reference/components/edgeport",
+              "reference/components/dispatcher",
+              "reference/components/location",
+              "reference/components/connect",
+              "reference/components/apiserver",
+              "reference/components/registry",
+              "reference/components/requester",
+              "reference/components/rtprelay",
+              "reference/components/simpleauth"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "reference/environment-variables",
+              "reference/helm-values"
+            ]
+          },
+          {
+            "group": "Extending",
+            "pages": [
+              "reference/alterations-api",
+              "reference/sip-headers"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Changelog",
+        "groups": [
+          {
+            "group": "Releases",
+            "pages": [
+              "changelog",
+              "previous-versions"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/fonoster/routr",
+          "icon": "github"
+        },
+        {
+          "anchor": "Community",
+          "href": "https://discord.gg/4QWgSz4hTC",
+          "icon": "discord"
+        },
+        {
+          "anchor": "Previous versions",
+          "href": "/previous-versions",
+          "icon": "clock-rotate-left"
+        }
+      ]
+    }
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Website",
+        "href": "https://routr.io"
+      },
+      {
+        "label": "Discussions",
+        "href": "https://github.com/fonoster/routr/discussions"
+      }
+    ],
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/fonoster/routr"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "redirects": [],
+  "footer": {
+    "socials": {
+      "x": "https://x.com/fonoster",
+      "github": "https://github.com/fonoster/routr",
+      "linkedin": "https://linkedin.com/company/fonoster"
+    }
+  }
+}
