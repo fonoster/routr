@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import { Args, Errors } from "@oclif/core"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import { render } from "prettyjson"
 import { getTextForBalancingAlgorithm } from "../../utils"
 import SDK from "@routr/sdk"
@@ -26,13 +26,9 @@ import moment from "moment"
 
 export default class DescribeCommand extends BaseCommand {
   static readonly description = "shows details for a Peer"
-  static readonly args = [
-    {
-      name: "ref",
-      required: false,
-      description: "reference to the Peer"
-    }
-  ]
+  static readonly args = {
+    ref: Args.string({ required: false, description: "reference to the Peer" })
+  }
 
   async run() {
     const { args, flags } = await this.parse(DescribeCommand)
@@ -76,7 +72,7 @@ export default class DescribeCommand extends BaseCommand {
 
       this.log(render(jsonObj, { noColor: true }))
     } catch (e) {
-      throw new CLIError(e.message)
+      throw new Errors.CLIError(e.message)
     }
   }
 }

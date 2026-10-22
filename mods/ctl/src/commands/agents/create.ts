@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import { Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import * as grpc from "@grpc/grpc-js"
-import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
 import {
   nameValidator,
@@ -151,7 +151,7 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       if (!answers.confirm) {
         this.warn("Aborted")
       } else {
-        CliUx.ux.action.start(`Creating Agent ${answers.name}`)
+        ux.action.start(`Creating Agent ${answers.name}`)
         const api = new SDK.Agents({ endpoint, insecure, cacert })
 
         answers.maxContacts = answers.maxContacts
@@ -160,14 +160,14 @@ Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 
         const agent = await api.createAgent(answers)
 
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(agent.ref)
+        await wait(1000)
+        ux.action.stop(agent.ref)
       }
     } catch (e) {
       if (e.code === grpc.status.ALREADY_EXISTS) {
-        throw new CLIError("This Agent already exist")
+        throw new Errors.CLIError("This Agent already exist")
       } else {
-        throw new CLIError(e.message)
+        throw new Errors.CLIError(e.message)
       }
     }
   }

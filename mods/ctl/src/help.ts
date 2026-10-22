@@ -57,7 +57,7 @@ export default class MyHelpClass extends Help {
       .filter((c) => c.id)
       .sort((a, b) => (a.id.includes(":") ? 1 : b.id.includes(":") ? -1 : 0))
       .map((c) => {
-        const { description } = c
+        const description = c.description ?? ""
         return {
           ...c,
           description: removeLastDot(lowercaseFirstLetter(description))

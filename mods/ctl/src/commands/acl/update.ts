@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import { CliUx } from "@oclif/core"
+import { Args, Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import { aclRuleValidator, nameValidator } from "../../validators"
 import { stringToAcl } from "../../utils"
 import SDK from "@routr/sdk"
@@ -37,9 +37,9 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
 `
   ]
 
-  static readonly args = [
-    { name: "ref", required: true, description: "reference to an ACL" }
-  ]
+  static readonly args = {
+    ref: Args.string({ required: true, description: "reference to an ACL" })
+  }
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
@@ -90,13 +90,13 @@ Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
       if (!answers.confirm) {
         this.warn("Aborted")
       } else {
-        CliUx.ux.action.start(`Updating ACL ${answers.name}`)
+        ux.action.start(`Updating ACL ${answers.name}`)
         const acl = await api.updateAcl(answers)
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(acl.ref)
+        await wait(1000)
+        ux.action.stop(acl.ref)
       }
     } catch (e) {
-      throw new CLIError(e.message)
+      throw new Errors.CLIError(e.message)
     }
   }
 }

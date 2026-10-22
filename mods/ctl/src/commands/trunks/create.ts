@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import { Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import * as grpc from "@grpc/grpc-js"
-import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
 import {
   hostValidator,
@@ -210,20 +210,20 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       if (!group3.confirm) {
         this.warn("Aborted")
       } else {
-        CliUx.ux.action.start(`Creating Trunk ${group1.name}`)
+        ux.action.start(`Creating Trunk ${group1.name}`)
         const api = new SDK.Trunks({ endpoint, insecure, cacert })
         const trunk = await api.createTrunk({
           ...group1,
           uris
         })
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(trunk.ref)
+        await wait(1000)
+        ux.action.stop(trunk.ref)
       }
     } catch (e) {
       if (e.code === grpc.status.ALREADY_EXISTS) {
-        throw new CLIError("This Trunk already exist")
+        throw new Errors.CLIError("This Trunk already exist")
       } else {
-        throw new CLIError(e.message)
+        throw new Errors.CLIError(e.message)
       }
     }
   }

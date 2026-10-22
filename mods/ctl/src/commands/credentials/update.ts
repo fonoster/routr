@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import { CliUx } from "@oclif/core"
+import { Args, Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -36,13 +36,12 @@ Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
 `
   ]
 
-  static readonly args = [
-    {
-      name: "ref",
+  static readonly args = {
+    ref: Args.string({
       required: true,
       description: "reference to an existing set of Credentials"
-    }
-  ]
+    })
+  }
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
@@ -89,13 +88,13 @@ Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
       if (!answers.confirm) {
         this.warn("Aborted")
       } else {
-        CliUx.ux.action.start(`Updating Credentials for ${answers.name}`)
+        ux.action.start(`Updating Credentials for ${answers.name}`)
         const acl = await api.updateCredentials(answers)
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(acl.ref)
+        await wait(1000)
+        ux.action.stop(acl.ref)
       }
     } catch (e) {
-      throw new CLIError(e.message)
+      throw new Errors.CLIError(e.message)
     }
   }
 }

@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import { CliUx } from "@oclif/core"
+import { Args, Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import { CommonTypes as CT, CommonConnect as CC } from "@routr/common"
 import {
   hostValidator,
@@ -45,13 +45,12 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
 `
   ]
 
-  static readonly args = [
-    {
-      name: "ref",
+  static readonly args = {
+    ref: Args.string({
       required: true,
       description: "reference to an existing Trunk"
-    }
-  ]
+    })
+  }
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
@@ -226,17 +225,17 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
       if (!group3.confirm) {
         this.warn("Aborted")
       } else {
-        CliUx.ux.action.start(`Updating Trunk ${group1.name}`)
+        ux.action.start(`Updating Trunk ${group1.name}`)
         const trunk = await api.updateTrunk({
           ref: trunkFromDB.ref,
           ...group1,
           uris
         })
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(trunk.ref)
+        await wait(1000)
+        ux.action.stop(trunk.ref)
       }
     } catch (e) {
-      throw new CLIError(e.message)
+      throw new Errors.CLIError(e.message)
     }
   }
 }

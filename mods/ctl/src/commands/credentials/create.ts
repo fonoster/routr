@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import { Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import * as grpc from "@grpc/grpc-js"
-import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import SDK from "@routr/sdk"
 
 // NOTE: Newer versions of inquirer have a bug that causes the following error:
@@ -80,17 +80,17 @@ Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
       this.warn("Aborted")
     } else {
       try {
-        CliUx.ux.action.start(`Creating Credentials ${answers.name}`)
+        ux.action.start(`Creating Credentials ${answers.name}`)
         const api = new SDK.Credentials({ endpoint, insecure, cacert })
         const credentials = await api.createCredentials(answers)
 
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(credentials.ref)
+        await wait(1000)
+        ux.action.stop(credentials.ref)
       } catch (e) {
         if (e.code === grpc.status.ALREADY_EXISTS) {
-          throw new CLIError("This Credentials already exist")
+          throw new Errors.CLIError("This Credentials already exist")
         } else {
-          throw new CLIError(e.message)
+          throw new Errors.CLIError(e.message)
         }
       }
     }

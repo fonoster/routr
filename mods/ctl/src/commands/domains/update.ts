@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
-import { CliUx } from "@oclif/core"
+import { Args, Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import { CommonConnect as CC } from "@routr/common"
 import { nameValidator } from "../../validators"
 import SDK from "@routr/sdk"
@@ -37,13 +37,12 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
 `
   ]
 
-  static readonly args = [
-    {
-      name: "ref",
+  static readonly args = {
+    ref: Args.string({
       required: true,
       description: "reference to an existing Domain"
-    }
-  ]
+    })
+  }
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(UpdateCommand)
@@ -165,17 +164,17 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
       if (!group3.confirm) {
         this.warn("Aborted")
       } else {
-        CliUx.ux.action.start(`Updating Domain ${group1.name}`)
+        ux.action.start(`Updating Domain ${group1.name}`)
         const domain = await api.updateDomain({
           ref: domainFromDB.ref,
           ...group1,
           egressPolicies
         })
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(domain.ref)
+        await wait(1000)
+        ux.action.stop(domain.ref)
       }
     } catch (e) {
-      throw new CLIError(e.message)
+      throw new Errors.CLIError(e.message)
     }
   }
 }

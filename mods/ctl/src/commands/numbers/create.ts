@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 /* eslint-disable require-jsdoc */
+import { Errors, ux } from "@oclif/core"
+import { wait } from "../../lib/wait"
 import * as grpc from "@grpc/grpc-js"
-import { CliUx } from "@oclif/core"
 import { BaseCommand } from "../../base"
-import { CLIError } from "@oclif/core/lib/errors"
 import { countries } from "../../countries"
 import {
   aorLinkValidator,
@@ -149,17 +149,17 @@ Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
       if (!answers.confirm) {
         this.warn("Aborted")
       } else {
-        CliUx.ux.action.start(`Creating Number ${answers.name}`)
+        ux.action.start(`Creating Number ${answers.name}`)
         const api = new SDK.Numbers({ endpoint, insecure, cacert })
         const number = await api.createNumber(answers)
-        await CliUx.ux.wait(1000)
-        CliUx.ux.action.stop(number.ref)
+        await wait(1000)
+        ux.action.stop(number.ref)
       }
     } catch (e) {
       if (e.code === grpc.status.ALREADY_EXISTS) {
-        throw new CLIError("This Number already exist")
+        throw new Errors.CLIError("This Number already exist")
       } else {
-        throw new CLIError(e.message)
+        throw new Errors.CLIError(e.message)
       }
     }
   }
