@@ -91,11 +91,11 @@ const DOT = "M102.112 27.5C100.957 27.5 100.007 27.1667 99.2626 26.5C98.5439 25.
 push(`<g transform="translate(64 64) scale(1.1698)">${LOGO.map((d) => `<path fill="${C.t1}" fill-rule="evenodd" d="${d}"/>`).join("")}<path fill="${C.accent}" d="${DOT}"/></g>`);
 
 /* ---------- Copy ---------- */
-push(tp(F.semi, "The SIP server", 64, 170, 58, C.t1, { ls: -0.034 }).svg);
-push(tp(F.semi, "built for the cloud.", 64, 230, 58, C.t1, { ls: -0.034 }).svg);
-push(tp(F.reg, "A lightweight SIP proxy, location server, and registrar.", 64, 284, 19, C.t3).svg);
-push(tp(F.reg, "The signaling engine behind Fonoster.", 64, 312, 19, C.t3).svg);
-push(tp(F.mono, "routr.io", 64, 355, 16, C.t4).svg);
+push(tp(F.semi, "The SIP server", 64, 188, 58, C.t1, { ls: -0.034 }).svg);
+push(tp(F.semi, "built for the cloud.", 64, 248, 58, C.t1, { ls: -0.034 }).svg);
+push(tp(F.reg, "A lightweight SIP proxy, location server, and registrar.", 64, 302, 19, C.t3).svg);
+push(tp(F.reg, "The signaling engine behind Fonoster.", 64, 330, 19, C.t3).svg);
+push(tp(F.mono, "routr.io", 64, 373, 16, C.t4).svg);
 
 /* ---------- Trace window ---------- */
 const WX = 676, WY = 80, WW = 544, WH = 300;
