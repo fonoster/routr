@@ -1,0 +1,131 @@
+---
+title: "Build a middleware"
+sidebarTitle: "Build a middleware"
+description: "For developers who want to inspect or modify SIP traffic around a processor: write a middleware with @routr/processor and register it in the Message Dispatcher."
+---
+
+Write a middleware that runs before (or after) the processor, and register it in the Message Dispatcher.
+
+A middleware uses the same gRPC contract and the same `@routr/processor` library as a [processor](/guides/build-a-processor). The difference is its job: a processor computes the route, while a middleware makes a small change or causes a side effect, then passes the message along. Typical uses are authentication, logging, tracing, request normalization, and driving RTPEngine. Routr ships two: [SimpleAuth](/reference/components/simpleauth) (pre-processor) and [RTPRelay](/reference/components/rtprelay) (post-processor).
+
+## Prerequisites
+
+- Node.js and npm.
+- A running Routr deployment that uses the Message Dispatcher. Middlewares only run through the Dispatcher; EdgePort never calls them directly.
+
+## How the Dispatcher calls middlewares
+
+For each request, the Dispatcher:
+
+1. Runs every middleware with `postProcessor: false`, in the order listed.
+2. Sends the result to the matching processor.
+3. Runs every middleware with `postProcessor: true`, in the order listed, on the processor's output.
+
+Each middleware receives the output of the previous one. The Dispatcher keeps only the `message` field of a middleware's reply. If a middleware returns a SIP **response** (for example `401 Unauthorized`), the Dispatcher skips the remaining middlewares in that phase and carries the response forward.
+
+Use `postProcessor: true` when your middleware needs data the processor adds, such as the final Route headers or the SDP that the callee sends. RTPRelay runs post-processor for this reason.
+
+## Write the middleware
+
+<Steps>
+  <Step title="Install the library">
+    Create a project and install `@routr/processor`:
+
+    ```bash
+    mkdir header-middleware && cd header-middleware
+    npm init -y
+    npm install --save @routr/processor
+    ```
+  </Step>
+
+  <Step title="Implement the handler">
+    Create `index.js`. This middleware tags every `INVITE` with an `X-Tenant` header and passes all other messages through untouched. The default middleware port in Routr is `51903`:
+
+    ```javascript index.js
+    const Processor = require("@routr/processor").default
+    const { Extensions } = require("@routr/processor")
+
+    new Processor({ bindAddr: "0.0.0.0:51903", name: "header-middleware" })
+      .listen((req, res) => {
+        try {
+          if (req.method.toString() !== "INVITE") {
+            return res.send(req) // pass through
+          }
+          res.send(Extensions.addHeader(req, { name: "X-Tenant", value: "acme" }))
+        } catch (e) {
+          console.error(e)
+          res.sendInternalServerError()
+        }
+      })
+    ```
+
+    Always call `res.send(req)` for messages you don't change. To reject a request, return a SIP response instead. SimpleAuth does this with `CommonResponse.createUnauthorizedResponse()` from `@routr/common` when the digest check fails.
+  </Step>
+
+  <Step title="Run it">
+    Start the middleware:
+
+    ```bash
+    node index.js
+    ```
+  </Step>
+
+  <Step title="Register it in the Dispatcher">
+    Add the middleware under `spec.middlewares` in `dispatcher.yaml`:
+
+    ```yaml dispatcher.yaml
+    kind: MessageDispatcher
+    apiVersion: v2beta1
+    ref: message-dispatcher
+    spec:
+      bindAddr: 0.0.0.0:51901
+      middlewares:
+        - ref: header-middleware
+          addr: header-middleware:51903
+          postProcessor: false
+      processors:
+        - ref: connect-processor
+          addr: connect:51904
+          matchFunc: req => true
+          methods:
+            - REGISTER
+            - INVITE
+            - ACK
+            - BYE
+            - CANCEL
+    ```
+
+    <Warning>
+      Set `postProcessor` explicitly to `true` or `false`. The Dispatcher compares it strictly, so a middleware with no `postProcessor` value never runs.
+    </Warning>
+
+    On Kubernetes, add the entry under `dispatcher.middlewares` in the [Helm values](/reference/helm-values) (`ref`, `serviceName`, `postProcessor`); the chart points it at port `51903`.
+  </Step>
+</Steps>
+
+## Verify
+
+Restart the Dispatcher and place a call. Capture the INVITE that leaves Routr (for example with `sngrep`) and confirm it carries `X-Tenant: acme`.
+
+## Pitfalls
+
+- **An unreachable middleware fails the request.** If the Dispatcher can't reach a middleware, it returns an error instead of skipping it.
+- **Keep it fast and stateless.** Every listed middleware runs on every request.
+- **Filter early.** Check the method or message type first and pass everything else through, as SimpleAuth does with its `METHODS` list.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Build a processor" icon="microchip" href="/guides/build-a-processor">
+    The full processor walkthrough and the `Response` API.
+  </Card>
+  <Card title="Alterations API" icon="code" href="/reference/alterations-api">
+    Helpers for editing SIP messages.
+  </Card>
+  <Card title="Message Dispatcher" icon="shuffle" href="/reference/components/dispatcher">
+    Dispatcher configuration reference.
+  </Card>
+  <Card title="Message flow" icon="route" href="/concepts/message-flow">
+    Where middlewares sit in a request's path.
+  </Card>
+</CardGroup>

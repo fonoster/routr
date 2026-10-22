@@ -1,0 +1,122 @@
+---
+title: "Message flow"
+description: "Follow a SIP request through Routr, from the EdgePort to the Dispatcher, Middlewares, and Processor and back, so you know where to plug in your own logic."
+---
+
+Every SIP message that reaches Routr takes the same path: the EdgePort turns it into a protobuf message, the Message Dispatcher picks a Processor, optional Middlewares run around it, and the EdgePort sends the result back out as SIP. Knowing this path tells you where to put your own logic and what each service can see.
+
+<img
+  className="block dark:hidden rounded-xl"
+  src="/images/message-flow/flow-light.png"
+  alt="Message flow for one request: the EdgePort converts SIP to protobuf, the Message Dispatcher matches a matchFunc, pre-processor middlewares run, the Processor computes the route and alterations, post-processor middlewares run, and the EdgePort sends the SIP message to its next hop"
+/>
+<img
+  className="hidden dark:block rounded-xl"
+  src="/images/message-flow/flow-dark.png"
+  alt="Message flow for one request: the EdgePort converts SIP to protobuf, the Message Dispatcher matches a matchFunc, pre-processor middlewares run, the Processor computes the route and alterations, post-processor middlewares run, and the EdgePort sends the SIP message to its next hop"
+/>
+
+## 1. The EdgePort converts SIP to protobuf
+
+When a request arrives, the EdgePort creates a server transaction for it and converts the SIP message into a `SIPMessage` protobuf. It wraps that in a `MessageRequest`, which adds the metadata downstream services need to route the message without keeping any state of their own:
+
+```protobuf
+message MessageRequest {
+  // Same as the Call-Id header
+  string ref = 1;
+  string edge_port_ref = 2;
+  Method method = 3;
+  NetInterface sender = 4;
+  repeated NetInterface listening_points = 5;
+  repeated string external_addrs = 6;
+  repeated string localnets = 7;
+  fonoster.routr.sipmessage.v2beta1.SIPMessage message = 8;
+  map<string, string> metadata = 9;
+}
+```
+
+- `edge_port_ref` identifies the EdgePort that received the message. The Location Service stores it with each registration, which is what lets EdgePorts [cooperate](/concepts/edgeport-cooperation).
+- `listening_points`, `external_addrs`, and `localnets` describe the EdgePort's interfaces, so a Processor can work out which address to put in `Via` and `Record-Route` headers.
+- `message` holds the parsed SIP headers (`From`, `To`, `Contact`, `Via`, `Route`, and others), any extra headers as a list of extensions, and the body.
+
+The EdgePort then calls `ProcessMessage` on its configured processor address, usually the Message Dispatcher. Every Processor and Middleware implements this same gRPC method:
+
+```protobuf
+service Processor {
+  rpc ProcessMessage (MessageRequest) returns (MessageResponse) {}
+}
+```
+
+Because the interface is the same, an EdgePort can also point straight at a single Processor when you have no Middlewares and only one Processor.
+
+## 2. The Dispatcher picks a Processor
+
+The Message Dispatcher holds an ordered list of Processors. For each message, it walks the list and selects the **first** Processor that meets both conditions:
+
+1. The message's method is in the Processor's `methods` list.
+2. The Processor's `matchFunc` returns `true` for the message.
+
+A `matchFunc` is a JavaScript function that receives the JSON form of the `MessageRequest`. For example, this configuration sends `MESSAGE` requests to an instant-messaging Processor and everything else to Connect:
+
+```yaml
+processors:
+  - ref: im-processor
+    addr: im:51904
+    matchFunc: req => req.method === "MESSAGE"
+    methods: [MESSAGE]
+  - ref: connect-processor
+    addr: connect:51904
+    matchFunc: req => true
+    methods: [REGISTER, INVITE, ACK, BYE, CANCEL]
+```
+
+Order matters. A catch-all `req => true` placed first would take every message. Put specific Processors first and the catch-all last.
+
+If no Processor matches, or the matched Processor is unreachable, the Dispatcher returns a gRPC error instead of a processed message, and the request isn't forwarded.
+
+## 3. Middlewares run before and after the Processor
+
+Middlewares are listed in the Dispatcher configuration in the order they run. Each has a `postProcessor` flag:
+
+- **Pre-processor** Middlewares (`postProcessor: false`) see the request before the Processor. Use them to authenticate, normalize, or log requests. [SimpleAuth](/reference/components/simpleauth) is a pre-processor Middleware.
+- **Post-processor** Middlewares (`postProcessor: true`) see the request after the Processor has altered it. Use them when you need the final route or headers. [RTPRelay](/reference/components/rtprelay) is a post-processor Middleware, because it rewrites the SDP of the request that's about to leave.
+
+Each Middleware receives the output of the previous one. If a Middleware turns the message into a response, for example a `401 Unauthorized` challenge, the remaining Middlewares in that phase are skipped.
+
+Error responses coming back from the far end (anything other than a success or `180 Ringing`) skip the Middlewares and go straight to the Processor.
+
+## 4. The Processor returns a response or an altered request
+
+The Processor does the actual work. It can answer the request itself, for example with `200 OK` for a valid `REGISTER`, `401 Unauthorized` to challenge a caller, or `404 Not Found` when there's no route.
+
+Or it can let the request through. In that case it computes a route, usually by asking the Location Service, and applies **alterations** to the request: it decreases `Max-Forwards`, rewrites the Request-URI to the target, adds its own `Via` and `Record-Route` headers, adds a `Route` to the next hop, and adds or removes extra headers. The [Alterations API](/reference/alterations-api) provides these as small functions you compose. The Processor returns the altered `MessageRequest` to the Dispatcher.
+
+## 5. The EdgePort sends the SIP message
+
+The Dispatcher returns the result to the EdgePort, which acts on it:
+
+- If the result is a **response**, the EdgePort sends it back to the caller on the original server transaction.
+- If the result is a **request**, the EdgePort applies the new Request-URI and headers and forwards the request to its next hop in a new client transaction.
+
+## The response path
+
+Responses travel through the same pipeline. When the callee answers with `180 Ringing` or `200 OK`, the EdgePort converts the response to a `MessageRequest` and sends it to the Dispatcher. The Connect processor, for example, removes its own `Via` header and returns the response. The EdgePort then relays it on the server transaction it kept for the original request.
+
+That kept transaction is why the EdgePort is stateful: only the EdgePort that received a request can send its responses back to the caller.
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
+    See every component and its role.
+  </Card>
+  <Card title="Build a processor" icon="code" href="/guides/build-a-processor">
+    Write your own routing logic.
+  </Card>
+  <Card title="Build a middleware" icon="layer-group" href="/guides/build-a-middleware">
+    Add behavior before or after the Processor.
+  </Card>
+  <Card title="Alterations API" icon="wrench" href="/reference/alterations-api">
+    Look up the functions that change a request.
+  </Card>
+</CardGroup>

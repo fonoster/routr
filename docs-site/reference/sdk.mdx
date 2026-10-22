@@ -1,0 +1,491 @@
+---
+title: "Node.js SDK reference"
+sidebarTitle: "SDK"
+description: "The @routr/sdk API for developers who manage Routr resources from Node.js: client options, every resource client, and its methods, requests, and responses."
+---
+
+`@routr/sdk` is a Node.js client for the Routr API server. It exposes one client class per Connect resource. Each class wraps the gRPC API and returns promises. `rctl` is built on the same SDK.
+
+## Install
+
+Add the SDK to your project.
+
+```bash
+npm install --save @routr/sdk
+```
+
+## Import
+
+The package has a default export that holds the seven client classes. In TypeScript, or any setup with ES module interop, import it like this.
+
+```typescript
+import SDK from "@routr/sdk"
+
+const agents = new SDK.Agents({ endpoint: "localhost:51908", insecure: true })
+```
+
+In plain CommonJS, read the `default` property.
+
+```javascript
+const SDK = require("@routr/sdk").default
+```
+
+The enums used by some fields (`Privacy`, `Transport`, `LoadBalancingAlgorithm`) come from `@routr/common`.
+
+```typescript
+import { CommonTypes as CT } from "@routr/common"
+
+CT.Privacy.PRIVATE
+CT.Transport.UDP
+CT.LoadBalancingAlgorithm.LEAST_SESSIONS
+```
+
+## Client classes
+
+| Class | Resource | Reference |
+| --- | --- | --- |
+| `SDK.Acls` | AccessControlList | [ACL](/reference/resources/acl) |
+| `SDK.Agents` | Agent | [Agents](/reference/resources/agents) |
+| `SDK.Credentials` | Credentials | [Credentials](/reference/resources/credentials) |
+| `SDK.Domains` | Domain | [Domains](/reference/resources/domains) |
+| `SDK.Numbers` | Number | [Numbers](/reference/resources/numbers) |
+| `SDK.Peers` | Peer | [Peers](/reference/resources/peers) |
+| `SDK.Trunks` | Trunk | [Trunks](/reference/resources/trunks) |
+
+## Client options
+
+Every class takes the same `ClientOptions` object.
+
+```typescript
+new SDK.Domains(options: ClientOptions)
+```
+
+<ParamField path="endpoint" type="string" required>
+  Address of the API server, as `host:port`. The API server's external port defaults to `51908`.
+</ParamField>
+
+<ParamField path="insecure" type="boolean" default="false">
+  Use a plaintext connection. When `false`, the client opens a TLS connection. Setting the environment variable `ALLOW_INSECURE=true` has the same effect.
+</ParamField>
+
+<ParamField path="cacert" type="string">
+  Path to a CA certificate used to verify the server's TLS certificate. The client throws if the file does not exist. When omitted, the system CA store is used.
+</ParamField>
+
+<ParamField path="username" type="string">
+  Username for Basic authentication. When you set both `username` and `password`, the client sends an `authorization: Basic <base64(username:password)>` gRPC metadata entry with every call.
+</ParamField>
+
+<ParamField path="password" type="string">
+  Password for Basic authentication.
+</ParamField>
+
+<Warning>
+  Always pass an options object. The constructor reads its properties, so `new SDK.Domains()` with no arguments throws.
+</Warning>
+
+## Common behavior
+
+Every client has the same five methods, named after its resource.
+
+| Method | Parameters | Returns |
+| --- | --- | --- |
+| `create<Resource>(request)` | The resource fields, without `ref`, `apiVersion`, `createdAt`, or `updatedAt`. | The created resource. |
+| `update<Resource>(request)` | `ref` plus the fields to change. | The updated resource. |
+| `get<Resource>(ref)` | The resource `ref`. | The resource. |
+| `delete<Resource>(ref)` | The resource `ref`. | `void`. |
+| `list<Resources>(request)` | `pageSize` and `pageToken`. | One page of resources. |
+
+### List request and response
+
+<ParamField path="pageSize" type="number" required>
+  Number of items to return.
+</ParamField>
+
+<ParamField path="pageToken" type="string" required>
+  Token from the previous page. Use `""` for the first page.
+</ParamField>
+
+<ResponseField name="items" type="Resource[]">
+  The resources in this page.
+</ResponseField>
+
+<ResponseField name="nextPageToken" type="string">
+  Token for the next page. Empty when there are no more pages.
+</ResponseField>
+
+The following loop reads every Agent, one page at a time.
+
+```typescript
+let pageToken = ""
+do {
+  const page = await agents.listAgents({ pageSize: 50, pageToken })
+  page.items.forEach((agent) => console.log(agent.ref, agent.name))
+  pageToken = page.nextPageToken
+} while (pageToken)
+```
+
+### Fields on every resource
+
+Every response object carries these fields in addition to the resource fields.
+
+<ResponseField name="ref" type="string">
+  Unique reference. The API server generates a UUID on create.
+</ResponseField>
+
+<ResponseField name="apiVersion" type="string">
+  `v2beta1` or `v2`. Resources created through the PostgreSQL-backed API server are stored as `v2`.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Friendly name.
+</ResponseField>
+
+<ResponseField name="createdAt" type="number">
+  Creation time, as a Unix timestamp in seconds.
+</ResponseField>
+
+<ResponseField name="updatedAt" type="number">
+  Last update time, as a Unix timestamp in seconds.
+</ResponseField>
+
+<ResponseField name="extended" type="object">
+  Free-form attributes you attach to the resource, such as an external ID.
+</ResponseField>
+
+### Errors
+
+Methods reject with gRPC errors. Check `error.code` against `@grpc/grpc-js` status codes.
+
+| Code | When |
+| --- | --- |
+| `INVALID_ARGUMENT` | A field fails validation, such as a missing name or a malformed URI, or a referenced resource doesn't exist. |
+| `NOT_FOUND` | No resource has the given `ref`. |
+| `ALREADY_EXISTS` | A unique field is taken, such as an Agent `username` or a Domain `domainUri`. |
+| `UNAVAILABLE` | The API server can't reach its database. |
+
+The following snippet handles a duplicate Agent.
+
+```typescript
+import * as grpc from "@grpc/grpc-js"
+
+try {
+  await agents.createAgent({ name: "John Doe", username: "1001" })
+} catch (e) {
+  if (e.code === grpc.status.ALREADY_EXISTS) console.log("Agent exists")
+  else throw e
+}
+```
+
+## Acls
+
+Manages AccessControlList resources.
+
+| Method | Request | Returns |
+| --- | --- | --- |
+| `createAcl(request)` | `CreateAclRequest` | `Promise<AccessControlList>` |
+| `updateAcl(request)` | `UpdateAclRequest` | `Promise<AccessControlList>` |
+| `getAcl(ref)` | `string` | `Promise<AccessControlList>` |
+| `deleteAcl(ref)` | `string` | `Promise<void>` |
+| `listAcls(request)` | `{ pageSize, pageToken }` | `Promise<{ items: AccessControlList[], nextPageToken }>` |
+
+`CreateAclRequest` fields:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Friendly name, up to 60 characters. |
+| `allow` | `string[]` | Yes | IPv4 addresses or CIDR blocks to allow. At least one. |
+| `deny` | `string[]` | Yes | IPv4 addresses or CIDR blocks to deny. At least one. |
+| `extended` | `object` | No | Custom attributes. |
+
+`UpdateAclRequest` takes `ref` (required) plus any of the fields above.
+
+```typescript
+const acls = new SDK.Acls({ endpoint: "localhost:51908", insecure: true })
+
+const acl = await acls.createAcl({
+  name: "Peer network",
+  allow: ["27.116.56.0/22"],
+  deny: ["0.0.0.0/0"]
+})
+```
+
+## Agents
+
+Manages Agent resources.
+
+| Method | Request | Returns |
+| --- | --- | --- |
+| `createAgent(request)` | `CreateAgentRequest` | `Promise<Agent>` |
+| `updateAgent(request)` | `UpdateAgentRequest` | `Promise<Agent>` |
+| `getAgent(ref)` | `string` | `Promise<Agent>` |
+| `deleteAgent(ref)` | `string` | `Promise<void>` |
+| `listAgents(request)` | `{ pageSize, pageToken }` | `Promise<{ items: Agent[], nextPageToken }>` |
+
+`CreateAgentRequest` fields:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Friendly name, up to 60 characters. |
+| `username` | `string` | Yes | SIP username. No spaces. Unique. |
+| `domainRef` | `string` | No | Domain the Agent belongs to. |
+| `credentialsRef` | `string` | No | Credentials the Agent authenticates with. |
+| `privacy` | `Privacy` | No | `CT.Privacy.NONE` (default) or `CT.Privacy.PRIVATE`. |
+| `maxContacts` | `number` | No | Maximum registered contacts. `-1` means no limit. |
+| `expires` | `number` | No | Registration expiry override, in seconds. |
+| `enabled` | `boolean` | No | Reserved for future use. |
+| `extended` | `object` | No | Custom attributes. |
+
+`UpdateAgentRequest` takes `ref` (required) plus any field above except `username`, which you can't change.
+
+Responses include `domain` and `credentials`: the referenced Domain and Credentials objects, when set.
+
+```typescript
+const agent = await agents.createAgent({
+  name: "John Doe",
+  username: "1001",
+  domainRef: "domain-01",
+  credentialsRef: "credentials-01",
+  privacy: CT.Privacy.NONE,
+  maxContacts: -1,
+  enabled: true
+})
+```
+
+## Credentials
+
+Manages Credentials resources.
+
+| Method | Request | Returns |
+| --- | --- | --- |
+| `createCredentials(request)` | `CreateCredentialsRequest` | `Promise<Credentials>` |
+| `updateCredentials(request)` | `UpdateCredentialsRequest` | `Promise<Credentials>` |
+| `getCredentials(ref)` | `string` | `Promise<Credentials>` |
+| `deleteCredentials(ref)` | `string` | `Promise<void>` |
+| `listCredentials(request)` | `{ pageSize, pageToken }` | `Promise<{ items: Credentials[], nextPageToken }>` |
+
+`CreateCredentialsRequest` fields:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Friendly name, up to 60 characters. |
+| `username` | `string` | Yes | Username. No spaces. |
+| `password` | `string` | Yes | Password, up to 255 characters. |
+| `extended` | `object` | No | Custom attributes. |
+
+`UpdateCredentialsRequest` takes `ref` (required) plus any of the fields above.
+
+```typescript
+const credentials = new SDK.Credentials({ endpoint: "localhost:51908", insecure: true })
+
+await credentials.createCredentials({
+  name: "John Doe credentials",
+  username: "1001",
+  password: "changeme"
+})
+```
+
+## Domains
+
+Manages Domain resources.
+
+| Method | Request | Returns |
+| --- | --- | --- |
+| `createDomain(request)` | `CreateDomainRequest` | `Promise<Domain>` |
+| `updateDomain(request)` | `UpdateDomainRequest` | `Promise<Domain>` |
+| `getDomain(ref)` | `string` | `Promise<Domain>` |
+| `deleteDomain(ref)` | `string` | `Promise<void>` |
+| `listDomains(request)` | `{ pageSize, pageToken }` | `Promise<{ items: Domain[], nextPageToken }>` |
+
+`CreateDomainRequest` fields:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Friendly name, up to 60 characters. |
+| `domainUri` | `string` | Yes | Fully qualified domain name, such as `sip.local`. Unique. |
+| `accessControlListRef` | `string` | No | ACL attached to the Domain. |
+| `egressPolicies` | `{ rule: string, numberRef: string }[]` | No | Outbound rules. `rule` is a regular expression matched against the dialed number. `numberRef` is the Number used when it matches. |
+| `extended` | `object` | No | Custom attributes. |
+
+`UpdateDomainRequest` takes `ref` (required) plus any field above except `domainUri`, which you can't change.
+
+Responses include `accessControlList` and, inside each egress policy, `number`: the referenced objects, when set.
+
+```typescript
+const domains = new SDK.Domains({ endpoint: "localhost:51908", insecure: true })
+
+await domains.createDomain({
+  name: "Local domain",
+  domainUri: "sip.local",
+  egressPolicies: [{ rule: ".*", numberRef: "number-01" }]
+})
+```
+
+## Numbers
+
+Manages Number resources.
+
+| Method | Request | Returns |
+| --- | --- | --- |
+| `createNumber(request)` | `CreateNumberRequest` | `Promise<INumber>` |
+| `updateNumber(request)` | `UpdateNumberRequest` | `Promise<INumber>` |
+| `getNumber(ref)` | `string` | `Promise<INumber>` |
+| `deleteNumber(ref)` | `string` | `Promise<void>` |
+| `listNumbers(request)` | `{ pageSize, pageToken }` | `Promise<{ items: INumber[], nextPageToken }>` |
+
+`CreateNumberRequest` fields:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Friendly name, up to 60 characters. |
+| `telUrl` | `string` | Yes | Telephone URL. Must start with `tel:`. Unique. |
+| `city` | `string` | Yes | City of the Number. |
+| `country` | `string` | Yes | Country of the Number. |
+| `countryIsoCode` | `string` | Yes | Two-letter ISO country code. |
+| `aorLink` | `string` | No | Address of Record that receives calls to this Number. Must start with `sip:` or `backend:`. |
+| `trunkRef` | `string` | No | Trunk that carries the Number. |
+| `sessionAffinityHeader` | `string` | No | Name of the header used for session affinity. |
+| `extraHeaders` | `{ name: string, value: string }[]` | No | Headers added to calls routed to `aorLink`. |
+| `extended` | `object` | No | Custom attributes. |
+
+`UpdateNumberRequest` takes `ref` (required) plus any field above except `telUrl`, `city`, `country`, and `countryIsoCode`.
+
+Responses include `trunk`: the referenced Trunk, when set.
+
+```typescript
+const numbers = new SDK.Numbers({ endpoint: "localhost:51908", insecure: true })
+
+await numbers.createNumber({
+  name: "(785) 317-8070",
+  telUrl: "tel:+17853178070",
+  aorLink: "sip:conference@sip.local",
+  city: "Cameron",
+  country: "USA",
+  countryIsoCode: "US",
+  trunkRef: "trunk-01",
+  sessionAffinityHeader: "X-Room-Id",
+  extraHeaders: [{ name: "X-Room-Id", value: "abc-us-123" }]
+})
+```
+
+## Peers
+
+Manages Peer resources.
+
+| Method | Request | Returns |
+| --- | --- | --- |
+| `createPeer(request)` | `CreatePeerRequest` | `Promise<Peer>` |
+| `updatePeer(request)` | `UpdatePeerRequest` | `Promise<Peer>` |
+| `getPeer(ref)` | `string` | `Promise<Peer>` |
+| `deletePeer(ref)` | `string` | `Promise<void>` |
+| `listPeers(request)` | `{ pageSize, pageToken }` | `Promise<{ items: Peer[], nextPageToken }>` |
+
+`CreatePeerRequest` fields:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Friendly name, up to 60 characters. |
+| `username` | `string` | Yes | SIP username. No spaces. Unique. |
+| `aor` | `string` | Yes | Address of Record. Must start with `sip:` or `backend:`. |
+| `contactAddr` | `string` | No | Contact address of the Peer: a host or IP address. |
+| `credentialsRef` | `string` | No | Credentials the Peer authenticates with. |
+| `accessControlListRef` | `string` | No | ACL attached to the Peer. |
+| `balancingAlgorithm` | `LoadBalancingAlgorithm` | No | `CT.LoadBalancingAlgorithm.ROUND_ROBIN` or `LEAST_SESSIONS`. |
+| `withSessionAffinity` | `boolean` | No | Keep a session on the same endpoint. Defaults to `false`. |
+| `maxContacts` | `number` | No | Maximum registered contacts. `-1` means no limit. |
+| `expires` | `number` | No | Registration expiry override, in seconds. |
+| `enabled` | `boolean` | No | Whether the Peer is enabled. |
+| `extended` | `object` | No | Custom attributes. |
+
+`UpdatePeerRequest` takes `ref` (required) plus any field above except `username`, which you can't change.
+
+Responses include `accessControlList` and `credentials`: the referenced objects, when set.
+
+```typescript
+const peers = new SDK.Peers({ endpoint: "localhost:51908", insecure: true })
+
+await peers.createPeer({
+  name: "Asterisk (Media Server)",
+  username: "asterisk",
+  aor: "sip:conference@sip.local",
+  credentialsRef: "credentials-03",
+  balancingAlgorithm: CT.LoadBalancingAlgorithm.LEAST_SESSIONS,
+  withSessionAffinity: true,
+  maxContacts: -1,
+  enabled: true
+})
+```
+
+## Trunks
+
+Manages Trunk resources.
+
+| Method | Request | Returns |
+| --- | --- | --- |
+| `createTrunk(request)` | `CreateTrunkRequest` | `Promise<Trunk>` |
+| `updateTrunk(request)` | `UpdateTrunkRequest` | `Promise<Trunk>` |
+| `getTrunk(ref)` | `string` | `Promise<Trunk>` |
+| `deleteTrunk(ref)` | `string` | `Promise<void>` |
+| `listTrunks(request)` | `{ pageSize, pageToken }` | `Promise<{ items: Trunk[], nextPageToken }>` |
+
+`CreateTrunkRequest` fields:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | Yes | Friendly name, up to 60 characters. |
+| `inboundUri` | `string` | Yes | FQDN or IP address the provider sends calls to. Unique. |
+| `sendRegister` | `boolean` | No | Register with the provider. Defaults to `false`. |
+| `accessControlListRef` | `string` | No | ACL checked against the source of inbound calls. |
+| `inboundCredentialsRef` | `string` | No | Credentials the provider must use on inbound calls. |
+| `outboundCredentialsRef` | `string` | No | Credentials Routr uses toward the provider. |
+| `uris` | `TrunkURI[]` | No | Outbound URIs. See the next table. |
+| `extended` | `object` | No | Custom attributes. |
+
+`TrunkURI` fields:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `host` | `string` | Yes | FQDN or IP address of the provider. |
+| `port` | `number` | Yes | Port. Connect uses `5060` when unset. |
+| `transport` | `Transport` | Yes | `CT.Transport.UDP`, `TCP`, `TLS`, `SCTP`, `WS`, or `WSS`. |
+| `user` | `string` | No | User part of the outbound URI. |
+| `weight` | `number` | No | 1 to 65535. |
+| `priority` | `number` | No | 0 to 65535. |
+| `enabled` | `boolean` | No | Defaults to `true`. |
+
+`UpdateTrunkRequest` takes `ref` (required) plus any of the fields above.
+
+Responses include `accessControlList`, `inboundCredentials`, and `outboundCredentials`: the referenced objects, when set.
+
+```typescript
+const trunks = new SDK.Trunks({ endpoint: "localhost:51908", insecure: true })
+
+await trunks.createTrunk({
+  name: "Provider trunk",
+  inboundUri: "trunk01.acme.com",
+  sendRegister: true,
+  outboundCredentialsRef: "credentials-04",
+  uris: [
+    {
+      host: "sip.provider.net",
+      port: 5060,
+      transport: CT.Transport.UDP,
+      user: "pbx-1",
+      weight: 10,
+      priority: 10,
+      enabled: true
+    }
+  ]
+})
+```
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Manage resources with the SDK" icon="code" href="/guides/manage-resources-with-the-sdk">
+    Build a small script that provisions a Domain and Agents.
+  </Card>
+  <Card title="Connect resources" icon="list" href="/reference/resources/overview">
+    Field constraints and the YAML form of each resource.
+  </Card>
+</CardGroup>

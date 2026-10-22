@@ -1,0 +1,124 @@
+---
+title: "Extend rctl with plugins"
+sidebarTitle: "Extend rctl"
+description: "For developers who want custom commands in the Routr CLI: generate an oclif plugin, link it into rctl, and publish it."
+---
+
+Add your own commands to `rctl` by writing an [oclif](https://oclif.io) plugin and installing it into the CLI.
+
+`rctl` is built with oclif and ships with `@oclif/plugin-plugins`, so it can load third-party plugins at runtime. A plugin is an npm package of oclif commands. Once installed, its commands appear next to the built-in ones, and you can use the [SDK](/reference/sdk) inside them to talk to the API Server.
+
+## Prerequisites
+
+- Node.js and npm.
+- `rctl` installed:
+
+  ```bash
+  npm install --location=global @routr/ctl
+  ```
+
+## Create and install a plugin
+
+<Steps>
+  <Step title="Generate the plugin">
+    Run the oclif generator and answer its prompts. This example names the plugin `mycommand`:
+
+    ```bash
+    npx oclif generate mycommand
+    ```
+
+    The generator creates a TypeScript project with a sample `hello` command:
+
+    ```text
+    mycommand
+    ├── bin
+    │   ├── dev
+    │   └── run
+    ├── package.json
+    ├── src
+    │   ├── commands
+    │   │   └── hello
+    │   │       ├── index.ts
+    │   │       └── world.ts
+    │   └── index.ts
+    ├── test
+    └── tsconfig.json
+    ```
+  </Step>
+
+  <Step title="Write the command">
+    Edit `src/commands/hello/index.ts`. Each command is a class with a description, flags, arguments, and a `run()` method. The generated command takes a `person` argument and a required `--from` flag:
+
+    ```typescript src/commands/hello/index.ts
+    import { Args, Command, Flags } from "@oclif/core"
+
+    export default class Hello extends Command {
+      static description = "Say hello"
+
+      static flags = {
+        from: Flags.string({ char: "f", description: "Who is saying hello", required: true })
+      }
+
+      static args = {
+        person: Args.string({ description: "Person to say hello to", required: true })
+      }
+
+      async run(): Promise<void> {
+        const { args, flags } = await this.parse(Hello)
+        this.log(`hello ${args.person} from ${flags.from}!`)
+      }
+    }
+    ```
+
+    To manage Routr resources from a command, add `@routr/sdk` to the plugin and call it from `run()`. See [Manage resources with the SDK](/guides/manage-resources-with-the-sdk).
+  </Step>
+
+  <Step title="Link it for development">
+    From the plugin folder, link it into `rctl`. Linking points the CLI at your working copy, so rebuilds show up without reinstalling:
+
+    ```bash
+    rctl plugins link .
+    ```
+  </Step>
+
+  <Step title="Run your command">
+    Check that `rctl` lists the plugin and runs the command:
+
+    ```bash
+    rctl plugins
+    rctl hello --help
+    rctl hello world --from oclif
+    ```
+
+    <Check>
+      `rctl hello world --from oclif` prints `hello world from oclif!`.
+    </Check>
+  </Step>
+</Steps>
+
+## Install a published plugin
+
+Publish the plugin to npm like any package. Users then install it by name, or from a Git URL:
+
+```bash
+rctl plugins install mycommand
+rctl plugins install https://github.com/someuser/someplugin
+```
+
+Remove a plugin with `rctl plugins uninstall mycommand`, and upgrade installed plugins with `rctl plugins update`.
+
+## Pitfalls
+
+- **Name collisions override built-ins.** A user-installed plugin that defines a command with the same name as a core `rctl` command replaces it. Pick topic names that don't clash with `agents`, `domains`, `peers`, `trunks`, `numbers`, `credentials`, or `acl`.
+- **Commands use spaces.** `rctl` separates topics with a space (`rctl plugins link`), so your `hello/world.ts` command runs as `rctl hello world`.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="rctl reference" icon="terminal" href="/reference/rctl">
+    Every built-in command and flag.
+  </Card>
+  <Card title="Manage resources with the SDK" icon="js" href="/guides/manage-resources-with-the-sdk">
+    Call the API Server from your plugin.
+  </Card>
+</CardGroup>

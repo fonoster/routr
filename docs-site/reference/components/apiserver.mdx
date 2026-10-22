@@ -1,0 +1,138 @@
+---
+title: "API Server"
+sidebarTitle: "API Server"
+description: "Reference for the API Server backends, pgdata (PostgreSQL) and simpledata (YAML files): images, ports, environment variables, and gRPC contract."
+---
+
+The API Server stores the Connect resources (Agents, Domains, Peers, Trunks, Numbers, Credentials, and Access Control Lists) and serves them over gRPC. It has two interchangeable backends that expose the same contract:
+
+- **pgdata** stores resources in PostgreSQL. It supports reads and writes, so you can manage resources with [rctl](/reference/rctl) and the [SDK](/reference/sdk).
+- **simpledata** loads resources from YAML or JSON files at startup. It is read-only and suited to tests and small, static setups.
+
+## Docker images
+
+| Backend | Image |
+| --- | --- |
+| pgdata | `fonoster/routr-pgdata` |
+| pgdata migrations | `fonoster/routr-pgdata-migrations` (runs `prisma migrate deploy` against `DATABASE_URL`) |
+| simpledata | `fonoster/routr-simpledata` |
+
+## Ports
+
+| Backend | Port | Protocol | Purpose |
+| --- | --- | --- | --- |
+| pgdata | `51907` (`BIND_ADDR`) | gRPC, plaintext | Internal API for Routr services, plus the standard gRPC health service |
+| pgdata | `51908` (`EXTERNAL_SERVER_BIND_ADDR`) | gRPC, TLS when `TLS_ON=true` | External API for rctl and the SDK |
+| simpledata | `51907` (`BIND_ADDR`) | gRPC, plaintext | Internal API for Routr services |
+
+## pgdata
+
+### Environment variables
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | | PostgreSQL connection string, for example `postgresql://postgres:postgres@localhost:5432/routr?schema=public`. Required |
+| `BIND_ADDR` | `0.0.0.0:51907` | Address of the internal server |
+| `EXTERNAL_SERVER_BIND_ADDR` | `0.0.0.0:51908` | Address of the external server |
+| `TLS_ON` | `false` in code, `true` in the image | `true` serves the external server over TLS |
+| `VERIFY_CLIENT_CERT` | `false` | `true` requires client certificates signed by `CACERT` (mutual TLS) |
+| `CACERT` | `/etc/routr/certs/ca.crt` | CA certificate used to verify clients. Must exist when `VERIFY_CLIENT_CERT=true` |
+| `SERVER_CERT` | `/etc/routr/certs/server.crt` | Server certificate. Must exist when `TLS_ON=true` |
+| `SERVER_KEY` | `/etc/routr/certs/server.key` | Server private key. Must exist when `TLS_ON=true` |
+| `CLOAK_ENCRYPTION_KEY` | | Cloak key that turns on field-level encryption in the database |
+| `ENFORCE_E164` | `false` | `true` rejects new Numbers whose `telUrl` is not a valid E.164 number |
+| `ENFORCE_E164_WITH_MOBILE_PREFIX` | `false` | `true` also validates the mobile prefix of Numbers |
+| `PATH_TO_CERTS` | `/etc/routr/certs` (image) | Directory where the image writes its generated certificates |
+| `CA_CERT_SUBJECT` | `/CN=Self Signed CA` (image) | Subject of the generated CA certificate |
+| `SERVER_CERT_SUBJECT` | `/CN=localhost` (image) | Subject of the generated server certificate |
+| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_SERVICE_NAME` | `pgdata` | Service name reported in traces |
+
+### Example
+
+This command runs pgdata against an existing database. Run the migrations image with the same `DATABASE_URL` first.
+
+```bash
+docker run -it \
+  -e DATABASE_URL="postgresql://postgres:postgres@db:5432/routr?schema=public" \
+  -p 51907:51907 -p 51908:51908 \
+  fonoster/routr-pgdata
+```
+
+## simpledata
+
+### Environment variables
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `PATH_TO_RESOURCES` | `/etc/routr/resources` (image) | Directory with the resource files. Required |
+| `BIND_ADDR` | `0.0.0.0:51907` | Address to listen on |
+| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_SERVICE_NAME` | `simpledata` | Service name reported in traces |
+
+### Resource files
+
+simpledata reads every file in `PATH_TO_RESOURCES`. Each file holds a YAML or JSON list of resources of any kind. By convention, use one file per kind:
+
+| File | Kind |
+| --- | --- |
+| `agents.yaml` | `Agent` |
+| `domains.yaml` | `Domain` |
+| `peers.yaml` | `Peer` |
+| `trunks.yaml` | `Trunk` |
+| `numbers.yaml` | `Number` |
+| `credentials.yaml` | `Credentials` |
+| `acl.yaml` | `AccessControlList` |
+
+For the fields of each kind, see [Resources](/reference/resources/overview).
+
+### Example
+
+This file defines one Credentials resource.
+
+```yaml
+- apiVersion: v2beta1
+  kind: Credentials
+  ref: credentials-01
+  metadata:
+    name: Agent Credentials
+  spec:
+    credentials:
+      username: "1001"
+      password: "1234"
+```
+
+This command runs simpledata with a local resources directory.
+
+```bash
+docker run -it \
+  -v $(pwd)/resources:/etc/routr/resources \
+  -p 51907:51907 \
+  fonoster/routr-simpledata
+```
+
+## gRPC contract
+
+Both backends register one service per resource kind.
+
+| Service | Methods |
+| --- | --- |
+| `fonoster.routr.connect.agents.v2beta1.Agents` | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
+| `fonoster.routr.connect.domains.v2beta1.Domains` | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
+| `fonoster.routr.connect.peers.v2beta1.Peers` | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
+| `fonoster.routr.connect.trunks.v2beta1.Trunks` | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
+| `fonoster.routr.connect.numbers.v2beta1.Numbers` | `Create`, `Update`, `Get`, `Delete`, `List`, `FindBy` |
+| `fonoster.routr.connect.credentials.v2beta1.CredentialsService` | `Create`, `Update`, `Get`, `Delete`, `List` |
+| `fonoster.routr.connect.acl.v2beta1.ACLService` | `Create`, `Update`, `Get`, `Delete`, `List` |
+
+`List` takes `page_size` and `page_token` and returns `items` and `next_page_token`. `FindBy` takes `field_name` and `field_value`. See the [Connect protos](https://github.com/fonoster/routr/tree/main/mods/common/src/connect/protos).
+
+## Notes
+
+- simpledata implements only `Get` and `FindBy`. `Create`, `Update`, `Delete`, and `List` return "not implemented", so rctl and the SDK cannot manage simpledata resources.
+- simpledata exits at startup if a `ref` contains spaces or if two resources share the same `ref`.
+- pgdata stores the `extended` attribute of each resource as JSON. simpledata has no equivalent.
+- The `fonoster/routr-pgdata` image generates self-signed certificates in `PATH_TO_CERTS` every time it starts.
+- The internal port `51907` is always plaintext. Do not expose it outside your private network.

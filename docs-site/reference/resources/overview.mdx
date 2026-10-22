@@ -1,0 +1,94 @@
+---
+title: "Connect resources overview"
+sidebarTitle: "Overview"
+description: "The shared shape of Routr Connect resources, for operators who write YAML resource files or call the API, and an index of the seven resource types."
+---
+
+Connect mode routes calls with seven resource types. You define them in one of two ways, depending on which API server implementation you run.
+
+| Backend | Image | How you manage resources | Operations |
+| --- | --- | --- | --- |
+| simpledata | `fonoster/routr-simpledata` | YAML or JSON files in the directory set by `PATH_TO_RESOURCES`. | Read-only. `get` and `findBy` work. `create`, `update`, `delete`, and `list` return `UNIMPLEMENTED`. |
+| pgdata | `fonoster/routr-pgdata` | [rctl](/reference/rctl), the [SDK](/reference/sdk), or the gRPC API. Stored in PostgreSQL. | Full create, read, update, delete, and list. |
+
+Because simpledata can't list or write, `rctl` and the SDK need the PostgreSQL-backed API server.
+
+## Manifest shape (YAML files)
+
+Each file holds a list of resources. Every resource has the same top-level fields.
+
+```yaml
+- apiVersion: v2beta1
+  kind: Agent
+  ref: agent-01
+  metadata:
+    name: John Doe
+  spec:
+    username: "1001"
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `apiVersion` | `string` | Yes | `v2beta1` or `v2`. |
+| `kind` | `string` | Yes | The resource type. See the table below. Case-insensitive. |
+| `ref` | `string` | Yes | Unique reference. Other resources point to it with `*Ref` fields. No spaces. |
+| `metadata.name` | `string` | Yes | Friendly name, up to 60 characters. |
+| `metadata.*` | varies | No | Extra metadata for some kinds, such as `geoInfo` on a Number. |
+| `spec` | `object` | Yes | Kind-specific settings. |
+
+When simpledata loads the files, it checks each resource against its schema and exits on the first invalid one. It also exits when two resources share a `ref`, when a `ref` contains a space, or when a `*Ref` field points to a resource that doesn't exist.
+
+<Note>
+  YAML groups fields under `metadata` and `spec`, sometimes with extra nesting (for example `spec.context.domainUri` on a Domain). The API and SDK use flat objects (`domainUri`). Each resource page lists both names.
+</Note>
+
+## API shape (rctl, SDK, gRPC)
+
+Through the API, a resource is a flat object. You send the resource fields; the server sets the rest.
+
+| Field | Set by | Description |
+| --- | --- | --- |
+| `ref` | Server | UUID generated on create. Pass it to `get`, `update`, and `delete`. |
+| `apiVersion` | Server | pgdata stores new resources as `v2`. |
+| `name` | You | Friendly name, up to 60 characters. Required on create. |
+| `createdAt`, `updatedAt` | Server | Timestamps. |
+| `extended` | You | Optional free-form JSON for your own attributes. |
+
+Responses also embed the objects that `*Ref` fields point to. For example, an Agent with `domainRef` comes back with a `domain` object. When you delete a referenced resource, pgdata clears the reference (sets it to null) on the resources that used it. Deleting a Domain or Trunk also deletes its egress policies or outbound URIs.
+
+## Resource types
+
+| Resource | YAML `kind` | rctl topic | SDK class | What it is |
+| --- | --- | --- | --- | --- |
+| [Agents](/reference/resources/agents) | `Agent` | `agents` | `Agents` | A SIP user, such as a softphone, that registers and makes calls within a Domain. |
+| [Domains](/reference/resources/domains) | `Domain` | `domains` | `Domains` | A SIP domain that groups Agents and holds egress policies for outbound calls. |
+| [Peers](/reference/resources/peers) | `Peer` | `peers` | `Peers` | A trusted SIP service, such as Asterisk or FreeSWITCH, that registers with Routr and can be load balanced. |
+| [Trunks](/reference/resources/trunks) | `Trunk` | `trunks` | `Trunks` | A connection to a SIP provider for calls to and from the PSTN. |
+| [Numbers](/reference/resources/numbers) | `Number` | `numbers` | `Numbers` | A phone number on a Trunk, and where to route calls to it. |
+| [Credentials](/reference/resources/credentials) | `Credentials` | `credentials` | `Credentials` | A username and password used by Agents, Peers, and Trunks. |
+| [ACL](/reference/resources/acl) | `AccessControlList` | `acl` | `Acls` | Allow and deny lists of IPv4 networks. |
+
+## How resources relate
+
+<img
+  className="block dark:hidden rounded-xl"
+  src="/images/connect-mode/resources-light.png"
+  alt="Diagram of Connect resources: Agents belong to a Domain and use Credentials; a Domain has an ACL and egress policies that point to Numbers; Numbers belong to Trunks; Trunks and Peers use Credentials and ACLs."
+/>
+<img
+  className="hidden dark:block rounded-xl"
+  src="/images/connect-mode/resources-dark.png"
+  alt="Diagram of Connect resources: Agents belong to a Domain and use Credentials; a Domain has an ACL and egress policies that point to Numbers; Numbers belong to Trunks; Trunks and Peers use Credentials and ACLs."
+/>
+
+| From | Field | To |
+| --- | --- | --- |
+| Agent | `domainRef` | Domain |
+| Agent | `credentialsRef` | Credentials |
+| Domain | `accessControlListRef` | ACL |
+| Domain | `egressPolicies[].numberRef` | Number |
+| Number | `trunkRef` | Trunk |
+| Trunk | `accessControlListRef`, `inboundCredentialsRef`, `outboundCredentialsRef` | ACL, Credentials |
+| Peer | `credentialsRef`, `accessControlListRef` | Credentials, ACL |
+
+For how these resources drive routing, see [Connect mode](/concepts/connect-mode) and [Routing](/concepts/routing).

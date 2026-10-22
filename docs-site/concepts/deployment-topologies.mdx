@@ -1,0 +1,99 @@
+---
+title: "Deployment topologies"
+description: "Compare running Routr as one container with routr-one and as separate services with the routr-connect Helm chart, and learn how each component scales."
+---
+
+You can run Routr in two shapes. The `fonoster/routr-one` image packs every service into one container for a single host. The `routr-connect` Helm chart runs each service as its own workload on Kubernetes, so you can scale them independently. Both run the same services in Connect mode.
+
+<img
+  className="block dark:hidden rounded-xl"
+  src="/images/deployment/topologies-light.png"
+  alt="Two deployment topologies: routr-one runs every Routr service and PostgreSQL in one Docker container on a single host; routr-connect on Kubernetes runs EdgePorts as a StatefulSet and the Dispatcher, Connect, Location, API Server, Registry, and Requester as separate deployments with Redis and PostgreSQL"
+/>
+<img
+  className="hidden dark:block rounded-xl"
+  src="/images/deployment/topologies-dark.png"
+  alt="Two deployment topologies: routr-one runs every Routr service and PostgreSQL in one Docker container on a single host; routr-connect on Kubernetes runs EdgePorts as a StatefulSet and the Dispatcher, Connect, Location, API Server, Registry, and Requester as separate deployments with Redis and PostgreSQL"
+/>
+
+## routr-one on Docker
+
+`fonoster/routr-one` starts the EdgePort, Message Dispatcher, Connect processor, Location Service, and the PostgreSQL-backed API Server in one container. By default it also starts an internal PostgreSQL database. If you set `RTPENGINE_HOST`, it adds the RTPRelay middleware to drive your RTPEngine.
+
+Use it for development, demos, and small single-host deployments such as a home or office phone system. It's the fastest way to get Routr running, as the [Quickstart](/quickstart) shows.
+
+Its limits follow from running in one process tree:
+
+- Registrations live in memory, in the built-in Location Service. A restart clears them, and phones must re-register.
+- Nothing scales independently. To handle more traffic, you need a bigger host, not more replicas.
+- One container is one EdgePort, so a restart drops the calls in progress.
+
+To use your own database, set `START_INTERNAL_DB=false` and point `DATABASE_URL` at your PostgreSQL server. See [Deploy with Docker](/guides/deploy-with-docker) and [Environment variables](/reference/environment-variables).
+
+## routr-connect on Kubernetes
+
+The `routr/routr-connect` Helm chart deploys each service separately:
+
+| Component | Kubernetes workload | How it scales |
+| --- | --- | --- |
+| EdgePort | StatefulSet | Fixed replica count, `edgeport.replicas` (default `2`). Each pod has a stable name, which becomes its EdgePort ref. |
+| Message Dispatcher | Deployment with a HorizontalPodAutoscaler | Stateless. Scales on CPU and memory between `dispatcher.autoscaling.minReplicas` and `maxReplicas`. |
+| Connect processor | Deployment with a HorizontalPodAutoscaler | Stateless. Scales the same way under `connect.autoscaling`. |
+| Location Service | Deployment with a HorizontalPodAutoscaler | Stateless when it uses Redis, which is the chart's default `location.cache.provider`. |
+| API Server | Deployment with a HorizontalPodAutoscaler | Stateless. Data lives in PostgreSQL. |
+| Requester | Deployment with a HorizontalPodAutoscaler | Stateless. |
+| Registry | Deployment | Runs as a single instance and keeps its cache in Redis by default. |
+| RTPRelay | Deployment with a HorizontalPodAutoscaler | Off by default. Enable it with `rtprelay.enabled` and point it at RTPEngine. |
+
+The chart also installs its dependencies as subcharts:
+
+- **PostgreSQL** (`postgresql.enabled`, on by default) for the API Server. To use an existing database, disable the subchart and set `apiserver.databaseUrl`.
+- **Redis** (`redis.enabled`, on by default) for the Location Service and Registry caches. Several Location replicas need Redis to share registrations and session counts.
+
+See [Helm values](/reference/helm-values) for every setting and [Deploy on Kubernetes](/guides/deploy-on-kubernetes) for a walkthrough.
+
+## Which component scales how
+
+- **Scale stateless services freely.** The Dispatcher, Connect, Location (with Redis), API Server, and Requester hold no per-call state, so any replica can handle any message.
+- **Scale EdgePorts deliberately.** EdgePorts hold transactions and client connections. Adding one is cheap, but removing or restarting one drops its calls and forces its clients to re-register. Several EdgePorts [cooperate](/concepts/edgeport-cooperation) to reach endpoints connected to each other. When you run more than one, set `TRUSTED_EDGEPORT_ADDRESSES` on the Connect processor so it honors forwards between them.
+- **Scale media separately.** Routr doesn't carry media unless you add RTPEngine. Media servers behind Routr scale as [Peers](/concepts/load-balancing).
+
+## Exposing EdgePorts to SIP clients
+
+SIP puts addresses inside its messages, so an EdgePort must know the public address clients use to reach it, and that address must stay stable:
+
+- **Set `externalAddrs`.** In the chart, `edgeport.externalAddrs` is required for EdgePort to work. With routr-one, set the `EXTERNAL_ADDRS` environment variable. Use an address your clients can reach, such as a static public IP or a load balancer IP that doesn't change.
+- **Set `localnets` when needed.** EdgePort uses the local networks to decide whether to advertise its internal or external address. By default it uses the networks the operating system reports. Set `edgeport.localnets` to override them.
+- **Choose a service type.** The chart creates separate Services for UDP and for TCP-based transports (TCP, TLS, WS, WSS). Both default to `NodePort`. Set `edgeport.serviceTypeUDP` and `edgeport.serviceTypeTCP` to `LoadBalancer` to get an external IP from your cloud, and use `serviceAnnotationsUDP` and `serviceAnnotationsTCP` for provider-specific options.
+- **Mind the traffic policy.** `externalTrafficPolicyUDP` and `externalTrafficPolicyTCP` default to `Cluster`. With `Local`, Kubernetes keeps traffic on the node that received it and preserves the client's source address, which matters for ACLs and NAT handling, but only nodes running an EdgePort pod receive traffic.
+
+<Note>
+  Kubernetes load balancers aren't SIP-aware. They forward packets, not SIP transactions. Prefer connection-oriented transports so each client stays on the EdgePort it connected to, and let EdgePort cooperation handle calls between EdgePorts.
+</Note>
+
+The chart enables only UDP by default. Turn on other transports under `edgeport.transport`.
+
+## Choosing a topology
+
+| If you need | Use |
+| --- | --- |
+| A local test or a demo | routr-one with Docker |
+| A small office on one server | routr-one with Docker and a persistent volume |
+| Independent scaling, several EdgePorts, or Kubernetes operations | routr-connect with Helm |
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Deploy with Docker" icon="docker" href="/guides/deploy-with-docker">
+    Run routr-one for a longer-lived setup.
+  </Card>
+  <Card title="Deploy on Kubernetes" icon="dharmachakra" href="/guides/deploy-on-kubernetes">
+    Install and configure the Helm chart.
+  </Card>
+  <Card title="Scale with Redis" icon="database" href="/guides/scale-with-redis">
+    Share registrations across Location replicas.
+  </Card>
+  <Card title="EdgePort cooperation" icon="network-wired" href="/concepts/edgeport-cooperation">
+    Learn how EdgePorts reach each other's endpoints.
+  </Card>
+</CardGroup>

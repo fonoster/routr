@@ -1,0 +1,58 @@
+---
+title: "Changelog"
+description: "For operators and developers tracking Routr releases: the latest versions with a one-line summary each, and where to find the full release notes."
+---
+
+Routr publishes its releases on [GitHub](https://github.com/fonoster/routr/releases). Each release lists every change, grouped by type, with links to the commits. The entries below summarize the most recent releases; see GitHub for the full history.
+
+<Update label="v2.15.3" description="2026-10-17">
+  Release tooling fixes: npm publishing moves to trusted publishing, versions that were tagged but never reached npm are published, and unused TOML config support is removed.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.15.3)
+</Update>
+
+<Update label="v2.15.1" description="2026-09-07">
+  SIP fixes: CANCEL follows its INVITE's path with the matching CSeq, proxy-authenticated dialogs keep the caller's CSeq, `X-Edgeport-Ref` is stripped case-insensitively, `maxContacts: 0` is no longer treated as unlimited, and `fixRequestURI` rewrites the Request-URI user.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.15.1)
+</Update>
+
+<Update label="v2.15.0" description="2026-06-29">
+  Adds the `STRIP_SESSION_PROGRESS_SDP` flag to strip SDP from 183 responses, corrects RTPEngine parameters for WebRTC bridging, fixes an EdgePort hang on WSS connections, and returns 400/404 instead of 500 for `peer-to-pstn` routing errors.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.15.0)
+</Update>
+
+<Update label="v2.13.21" description="2025-12-24">
+  Prevents a recursive loop when closing connections.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.13.21)
+</Update>
+
+<Update label="v2.13.19" description="2025-12-22">
+  Fixes the Docker builds for the `pgdata` image and its migration image.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.13.19)
+</Update>
+
+<Update label="v2.13.15" description="2025-12-21">
+  Refactors EdgePort by extracting utilities and handlers from `GRPCSipListener`.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.13.15)
+</Update>
+
+<Update label="v2.13.13" description="2025-07-30">
+  Uses an `ExecutorService` in EdgePort to prevent hanging on closed connections.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.13.13)
+</Update>
+
+<Update label="v2.13.12" description="2025-07-15">
+  Upgrades Prisma and the Alpine base image to fix a server crash.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.13.12)
+</Update>
+
+## Older releases
+
+Browse every release, including tags and assets, on the [GitHub releases page](https://github.com/fonoster/routr/releases). Documentation for older major versions is listed under [Previous versions](/previous-versions).

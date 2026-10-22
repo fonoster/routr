@@ -1,0 +1,83 @@
+---
+title: "SimpleAuth"
+description: "Reference for the SimpleAuth middleware: its image, port, environment variables, users file, and gRPC contract."
+---
+
+SimpleAuth is a middleware that challenges SIP requests with digest authentication against a static list of users. It suits tests and small deployments. It has no configuration file besides the users file.
+
+## Docker image
+
+`fonoster/routr-simpleauth`
+
+## Ports
+
+| Port | Protocol | Purpose |
+| --- | --- | --- |
+| `51903` (set by `BIND_ADDR`) | gRPC | `Processor` service, used as a middleware by the Dispatcher |
+
+## Environment variables
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `PATH_TO_AUTH` | | Absolute path to the users file. Required |
+| `METHODS` | | Comma-separated SIP methods to authenticate, for example `INVITE,MESSAGE`. Required |
+| `ALLOWLIST` | | Comma-separated From users that skip authentication |
+| `BIND_ADDR` | `0.0.0.0:51903` | Address to listen on |
+| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_SERVICE_NAME` | `simpleauth` | Service name reported in traces |
+
+## Users file
+
+The users file is a JSON array.
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `[*].username` | string | Yes | Username in the `Authorization` header |
+| `[*].secret` | string | Yes | Password |
+
+This file defines two users.
+
+```json
+[
+  { "username": "1001", "secret": "1234" },
+  { "username": "john", "secret": "1234" }
+]
+```
+
+## gRPC contract
+
+| Service | Method | Request | Response |
+| --- | --- | --- | --- |
+| `fonoster.routr.processor.v2beta1.Processor` | `ProcessMessage` | `MessageRequest` | `MessageResponse` |
+
+For a method in `METHODS`, SimpleAuth returns the request unchanged when the From user is in `ALLOWLIST` or the digest response is valid. Otherwise, it returns `401 Unauthorized` with a challenge for the Request-URI host. See [processor.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/processor.proto).
+
+## Minimal example
+
+This command runs SimpleAuth for INVITE and MESSAGE requests.
+
+```bash
+docker run -it \
+  -v $(pwd)/auth.json:/etc/routr/auth.json \
+  -e PATH_TO_AUTH=/etc/routr/auth.json \
+  -e METHODS=INVITE,MESSAGE \
+  -p 51903:51903 \
+  fonoster/routr-simpleauth
+```
+
+This Dispatcher fragment runs SimpleAuth before the Processor.
+
+```yaml
+spec:
+  middlewares:
+    - ref: simpleauth
+      addr: simpleauth:51903
+      postProcessor: false
+```
+
+## Notes
+
+- SimpleAuth loads `PATH_TO_AUTH` with Node's `require`, so use a `.json` file and an absolute path.
+- `METHODS` and `ALLOWLIST` are split on commas without trimming. Do not put spaces after the commas.
+- RTPRelay and SimpleAuth both default to port `51903`. Change `BIND_ADDR` on one of them if they share a host.

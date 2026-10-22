@@ -1,0 +1,73 @@
+---
+title: "AccessControlList resource"
+sidebarTitle: "ACL"
+description: "Every field of the AccessControlList resource, in YAML and API form, for operators who restrict which networks can send calls through a Trunk."
+---
+
+An AccessControlList (ACL) is a pair of allow and deny lists of IPv4 networks. You attach it to a Trunk, a Domain, or a Peer by `ref`.
+
+## Fields
+
+| YAML field | API / SDK field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- | --- |
+| `metadata.name` | `name` | `string` | Yes | - | Friendly name. Up to 60 characters. |
+| `spec.accessControlList.allow` | `allow` | `string[]` | API: Yes. YAML: No | `[]` | IPv4 addresses or CIDR blocks to allow, such as `10.0.0.0/8`. |
+| `spec.accessControlList.deny` | `deny` | `string[]` | API: Yes. YAML: No | `[]` | IPv4 addresses or CIDR blocks to deny, such as `0.0.0.0/0`. |
+| - | `extended` | `object` | No | - | Custom attributes. API only. |
+
+## Constraints
+
+- `name` is required and must be 1 to 60 characters.
+- Each entry must be an IPv4 address or an IPv4 CIDR block. IPv6 is not accepted.
+- Each entry is 7 to 18 characters, and entries in a list must be unique.
+- On create, the API requires at least one entry in both `allow` and `deny`. In YAML, a list that is present needs at least one entry.
+
+## Referenced by
+
+| Resource | Field | Enforced by Connect |
+| --- | --- | --- |
+| [Trunk](/reference/resources/trunks) | `accessControlListRef` (YAML `spec.inbound.accessControlListRef`) | Yes, for calls from the PSTN. |
+| [Domain](/reference/resources/domains) | `accessControlListRef` (YAML `spec.accessControlListRef`) | No. |
+| [Peer](/reference/resources/peers) | `accessControlListRef` | No. Reserved for future use. |
+
+For a Trunk, Connect accepts a call from the PSTN only when its source address is inside one of the `allow` entries. The source is the top Via `received` value, or the Via host when `received` is absent. Connect does not evaluate the `deny` list. A call from outside the allow list gets `401 Unauthorized` without a challenge.
+
+## YAML example
+
+The following ACL allows a single provider network.
+
+```yaml
+- apiVersion: v2beta1
+  kind: AccessControlList
+  ref: acl-01
+  metadata:
+    name: Provider ACL
+  spec:
+    accessControlList:
+      deny:
+        - 0.0.0.0/0
+      allow:
+        - 27.116.56.0/22
+```
+
+## rctl equivalent
+
+Run the interactive create command and answer the prompts. Enter networks as a comma-separated list.
+
+```bash
+rctl acl create
+```
+
+See [`rctl acl`](/reference/rctl#access-control-lists) for the prompts and the other actions.
+
+## SDK equivalent
+
+The following call creates the same ACL through the API.
+
+```typescript
+await new SDK.Acls({ endpoint: "localhost:51908", insecure: true }).createAcl({
+  name: "Provider ACL",
+  allow: ["27.116.56.0/22"],
+  deny: ["0.0.0.0/0"]
+})
+```

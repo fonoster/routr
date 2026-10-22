@@ -1,0 +1,334 @@
+---
+title: "Call from the browser with ephemeral agents"
+sidebarTitle: "Ephemeral agents in the browser"
+description: "Issue a signed JWT to a website visitor, register a SIP.js client with it, and call an Asterisk server through Routr and RTPEngine."
+---
+
+## What you'll build
+
+You build a web page that registers to Routr over WebSocket and calls an Asterisk server, without creating an Agent in the database. Instead, you sign a JSON Web Token (JWT) whose claims describe the caller. The browser sends the token in an `X-Connect-Token` header, the Connect processor verifies it with your public key, and treats the caller as an **ephemeral agent** for as long as the token is valid.
+
+RTPEngine, driven by the RTPRelay middleware, bridges the browser's WebRTC media to the plain RTP that Asterisk expects.
+
+This is how you let website visitors call your contact center without giving each of them a SIP account.
+
+## Prerequisites
+
+- Docker with Docker Compose
+- Node.js and npm
+- OpenSSL
+- A browser with microphone access (Chrome, Firefox, or Safari)
+- The IP address of your machine on your local network (for example, `192.168.1.3`)
+
+## Steps
+
+<Steps>
+  <Step title="Create a signing key pair">
+    Create a folder for the tutorial and a `keys` folder inside it.
+
+    ```bash
+    mkdir -p routr-webrtc/keys && cd routr-webrtc
+    ```
+
+    Generate an RSA private key. You sign tokens with it, so keep it secret and never ship it to the browser.
+
+    ```bash
+    openssl genpkey -algorithm RSA -out keys/private.key -pkeyopt rsa_keygen_bits:4096
+    ```
+
+    Derive the public key from it. Routr uses the public key to verify tokens.
+
+    ```bash
+    openssl rsa -in keys/private.key -pubout -out keys/public.key
+    ```
+  </Step>
+
+  <Step title="Define the services">
+    Create a dialplan for Asterisk. It answers calls to the `asterisk` extension and plays a short prompt.
+
+    Filename: `extensions.conf`
+
+    ```ini
+    [local-ctx]
+    exten => asterisk,1,NoOp()
+     same => n,Answer()
+     same => n,Playback(hello-world)
+     same => n,Hangup()
+    ```
+
+    Create a `compose.yaml` file. It runs `routr-one` with the public key mounted, an Asterisk server, and RTPEngine.
+
+    Filename: `compose.yaml`
+
+    ```yaml
+    services:
+      routr:
+        image: fonoster/routr-one:latest
+        environment:
+          EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+          RTPENGINE_HOST: rtpengine
+          CONNECT_VERIFIER_PUBLIC_KEY_PATH: /keys/public.key
+          CONNECT_VERIFIER_OPTIONS: '{"algorithms":["RS256"]}'
+        volumes:
+          - ./keys/public.key:/keys/public.key
+        ports:
+          - 51908:51908
+          - 5060-5062:5060-5062
+          - 5060:5060/udp
+
+      asterisk:
+        image: fonoster/mediaserver:latest
+        restart: always
+        expose:
+          - 6060
+        environment:
+          EXTERN_ADDR: ${DOCKER_HOST_ADDRESS}
+          SIPPROXY_HOST: routr
+          SIPPROXY_USERNAME: asterisk
+          SIPPROXY_SECRET: asterisk
+        volumes:
+          - ./extensions.conf:/etc/asterisk/extensions.conf
+
+      rtpengine:
+        image: fonoster/rtpengine:latest
+        ports:
+          - 22222:22222/udp
+          - 10000-10100:10000-10100/udp
+        environment:
+          PUBLIC_IP: ${DOCKER_HOST_ADDRESS}
+          PORT_MIN: 10000
+          PORT_MAX: 10100
+    ```
+
+    What each setting does:
+
+    - `RTPENGINE_HOST` makes `routr-one` start the RTPRelay middleware and point it at RTPEngine.
+    - `CONNECT_VERIFIER_PUBLIC_KEY_PATH` turns on ephemeral agents. The Connect processor reads the key at startup and verifies every `X-Connect-Token` with it.
+    - `CONNECT_VERIFIER_OPTIONS` is optional. Its JSON is passed to the verifier, here to accept only RS256 signatures.
+    - Port `5062` is EdgePort's WebSocket (`ws`) listener. The browser connects there.
+  </Step>
+
+  <Step title="Start the stack">
+    Start the services. Replace the address with your own.
+
+    ```bash
+    DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
+    ```
+
+    Check that the three containers are up.
+
+    ```bash
+    docker compose ps
+    ```
+  </Step>
+
+  <Step title="Create the Domain and the Asterisk Peer">
+    Install `rctl`.
+
+    ```bash
+    npm install --location=global @routr/ctl
+    ```
+
+    Create a Domain with the SIP URI `sip.local`. An ephemeral agent must belong to a Domain that exists.
+
+    ```bash
+    rctl domains create --insecure
+    ```
+
+    Create credentials with username `asterisk` and password `asterisk`, then a Peer with username `asterisk`, AOR `sip:asterisk@sip.local`, and those credentials.
+
+    ```bash
+    rctl credentials create --insecure
+    rctl peers create --insecure
+    ```
+
+    Restart Asterisk so it registers now.
+
+    ```bash
+    docker compose restart asterisk
+    ```
+
+    Print the Domain's reference. You need it for the token.
+
+    ```bash
+    rctl domains get --insecure --extended
+    ```
+
+    ```text
+    Ref                                  Name           URI         Egress Policies
+    a27e9fb2-a71a-4cf3-9b1d-dccf373f9777 Local Domain   sip.local
+    ```
+  </Step>
+
+  <Step title="Sign a token">
+    Set up a small Node.js project and install `jsonwebtoken`.
+
+    ```bash
+    npm init -y
+    npm install jsonwebtoken
+    ```
+
+    Create a script that signs the claims with your private key. Replace `domainRef` with the reference from the previous step.
+
+    Filename: `create-jwt.js`
+
+    ```javascript
+    const fs = require("fs");
+    const jwt = require("jsonwebtoken");
+
+    const privateKey = fs.readFileSync("keys/private.key");
+
+    const payload = {
+      ref: "agent-visitor-01",
+      domainRef: "a27e9fb2-a71a-4cf3-9b1d-dccf373f9777",
+      domain: "sip.local",
+      aor: "sip:visitor@sip.local",
+      aorLink: "sip:asterisk@sip.local",
+      allowedMethods: ["INVITE", "REGISTER"]
+    };
+
+    const token = jwt.sign(payload, privateKey, {
+      algorithm: "RS256",
+      expiresIn: "1h"
+    });
+
+    console.log(token);
+    ```
+
+    The claims tell Routr who the caller is and what they can do:
+
+    | Claim | Meaning |
+    | --- | --- |
+    | `ref` | An identifier for the ephemeral agent |
+    | `domain` | The Domain's SIP URI. It must match an existing Domain. |
+    | `domainRef` | The Domain's reference |
+    | `aor` | The address the browser registers under. It can be any URI in the Domain. |
+    | `aorLink` | The AOR of the Peer that receives the visitor's calls |
+    | `allowedMethods` | `REGISTER` lets the client register; `INVITE` lets it place calls |
+    | `maxContacts` | Optional. Limits how many registrations the AOR accepts. |
+
+    Run the script and copy the token it prints.
+
+    ```bash
+    node create-jwt.js
+    ```
+
+    ```text
+    eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWYiOiJhZ2VudC12aXNpdG9yLTAxIiwi...
+    ```
+
+    <Warning>
+    In production, sign tokens on your backend after you decide the visitor may call, and keep `expiresIn` short. Anyone holding a valid token can call the `aorLink` until it expires.
+    </Warning>
+  </Step>
+
+  <Step title="Build the web client">
+    Create a page that uses SIP.js's `SimpleUser` to connect to EdgePort's WebSocket port, register, and call. The token goes in an `X-Connect-Token` header on both the REGISTER and the INVITE. Replace the token and the IP address.
+
+    Filename: `index.html`
+
+    ```html
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <title>Routr browser call</title>
+      </head>
+      <body>
+        <p id="status">Connecting...</p>
+        <button id="call">Call</button>
+        <button id="hangup">Hang up</button>
+        <audio id="remoteAudio" autoplay></audio>
+
+        <script type="module">
+          import { Web } from "https://esm.sh/sip.js@0.21.2";
+
+          const token = "PASTE_YOUR_TOKEN_HERE";
+          const server = "ws://192.168.1.3:5062";
+          const extraHeaders = [`X-Connect-Token: ${token}`];
+          const status = document.getElementById("status");
+
+          const simpleUser = new Web.SimpleUser(server, {
+            aor: "sip:visitor@sip.local",
+            media: {
+              remote: { audio: document.getElementById("remoteAudio") }
+            },
+            registererOptions: { extraHeaders },
+            delegate: {
+              onRegistered: () => (status.textContent = "Registered"),
+              onCallAnswered: () => (status.textContent = "In call"),
+              onCallHangup: () => (status.textContent = "Registered")
+            }
+          });
+
+          await simpleUser.connect();
+          await simpleUser.register();
+
+          document.getElementById("call").onclick = () =>
+            simpleUser.call("sip:asterisk@sip.local", { extraHeaders });
+
+          document.getElementById("hangup").onclick = () =>
+            simpleUser.hangup();
+        </script>
+      </body>
+    </html>
+    ```
+
+    <Note>
+    This page loads SIP.js from a CDN to keep the tutorial short. In a real app, install `sip.js` from npm and bundle it.
+    </Note>
+  </Step>
+
+  <Step title="Serve the page and register">
+    Browsers only allow microphone access on `https` pages or on `localhost`. Serve the folder on `localhost`.
+
+    ```bash
+    npx serve -l 8080 .
+    ```
+
+    Open `http://localhost:8080` and allow microphone access when asked.
+
+    <Check>
+    The page shows **Registered**. Routr accepted the REGISTER because the token verified, and it stored the browser's route under `sip:visitor@sip.local`.
+    </Check>
+
+    If the page stays on **Connecting...**, check that port `5062` is published and the IP in `server` is correct. If the registration fails with `403 Forbidden`, the token didn't verify: check that `public.key` matches the private key, the token hasn't expired, and `domain` matches your Domain's SIP URI.
+  </Step>
+
+  <Step title="Call Asterisk">
+    Click **Call**. Routr verifies the token on the INVITE, finds the Peer whose AOR equals `aorLink`, and routes the call `agent-to-peer`. RTPRelay asks RTPEngine to bridge the browser's WebRTC media to Asterisk.
+
+    <Check>
+    The page shows **In call** and you hear Asterisk's "Hello world" prompt in the browser.
+    </Check>
+  </Step>
+</Steps>
+
+## Clean up
+
+Stop the static server with `Ctrl+C`, then stop and remove the containers.
+
+```bash
+docker compose down
+```
+
+## Use a verifier service instead of a key
+
+If you'd rather not mount a public key in Routr, run a gRPC service that implements the `Verifier` interface in [`verifier.proto`](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/verifier.proto) and set `CONNECT_VERIFIER_ADDR` (for example, `verifier:51915`) on the Connect processor instead of `CONNECT_VERIFIER_PUBLIC_KEY_PATH`. Set only one of the two.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Enable WebRTC" icon="globe" href="/guides/enable-webrtc">
+    RTPRelay and RTPEngine settings for Docker and Kubernetes.
+  </Card>
+  <Card title="RTPRelay" icon="wave-square" href="/reference/components/rtprelay">
+    How the media middleware works and how to configure it.
+  </Card>
+  <Card title="Connect processor" icon="plug" href="/reference/components/connect">
+    Environment variables, including the verifier settings.
+  </Card>
+  <Card title="Load balance Asterisk" icon="scale-balanced" href="/tutorials/load-balancing-asterisk">
+    Put several Asterisk servers behind the same Peer.
+  </Card>
+</CardGroup>

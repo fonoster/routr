@@ -1,0 +1,1294 @@
+---
+title: "rctl command reference"
+sidebarTitle: "rctl"
+description: "Every rctl command, argument, flag, and prompt, for operators who manage Routr resources from the command line."
+---
+
+`rctl` is the command-line tool for the Routr API server. It creates, lists, describes, updates, and deletes Connect resources over gRPC. It is built with [oclif](https://oclif.io), so `rctl --help [COMMAND]` prints the same information shown here.
+
+## Install
+
+Install the CLI globally from npm.
+
+```bash
+npm install -g @routr/ctl
+```
+
+Check the installed version.
+
+```bash
+rctl --version
+```
+
+## Global flags
+
+Every resource command accepts these flags.
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Without `--insecure`, `rctl` opens a TLS connection. It verifies the server with the file in `--cacert`, or with the system CA store when you omit it. To reach a server without TLS, such as a local Docker setup, pass `--insecure` or set `ALLOW_INSECURE=true` in your environment.
+
+<Note>
+`create` and `update` take no field flags. They ask for each value with interactive prompts, then ask `Ready?` before they send the request. Answer no to abort. To create resources from a script, use the [SDK](/reference/sdk).
+</Note>
+
+## Command structure
+
+Resource commands follow the pattern `rctl <resource> <action> [REF]`. Each resource supports the same five actions.
+
+| Action | What it does |
+| --- | --- |
+| `create` | Prompts for the fields and creates the resource. Prints the new `ref`. |
+| `get [REF]` | Lists resources in pages, or shows one resource when you pass `REF`. After the first page, it asks `More` before it loads the next. |
+| `describe [REF]` | Prints every field of one resource. |
+| `update REF` | Prompts for the fields, pre-filled with current values, and updates the resource. |
+| `delete [REF]` | Deletes one resource. |
+
+`REF` is the resource reference, such as `d31f5fb8-e367-42f7-9884-1a7999f53fe8`. Run `get` to find it. The fields of each resource are in [Connect resources](/reference/resources/overview).
+
+## Access control lists
+
+Commands under `rctl acl`. For field details, see [ACL](/reference/resources/acl).
+
+### `rctl acl create`
+
+Creates a new ACL.
+
+```text
+rctl acl create [-i] [-c <value>] [-e <value>]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts:
+
+| Prompt | Field | Notes |
+| --- | --- | --- |
+| Friendly Name | `name` | Required. Up to 60 characters. |
+| Deny CIDR Networks | `deny` | Comma-separated IPv4 addresses or CIDR blocks. Defaults to `0.0.0.0/0`. |
+| Allow CIDR Networks | `allow` | Comma-separated IPv4 addresses or CIDR blocks. At least one is required. |
+
+Example:
+
+```bash
+rctl acl create
+```
+
+```text
+Creating ACL US East... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+```
+
+### `rctl acl get`
+
+Lists ACLs in pages, or shows a single ACL when you pass `REF`.
+
+```text
+rctl acl get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | No | Reference to an ACL. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+| `-s, --size=<value>` | `50` | Number of items to return per page. |
+| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+
+Example:
+
+```bash
+rctl acl get --extended
+```
+
+```text
+Ref                                  Name              Deny List Allow List
+9e7a88f0-8390-42f5-a2cb-689583ba9f4f Local Network ACL 0.0.0.0/0 10.0.0.28
+```
+
+### `rctl acl describe`
+
+Shows every field of an ACL.
+
+```text
+rctl acl describe [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the ACL. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl acl describe 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl acl update`
+
+Updates an existing ACL.
+
+```text
+rctl acl update REF [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to an existing ACL. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts: The same prompts as `create`, pre-filled with the current values.
+
+Example:
+
+```bash
+rctl acl update 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl acl delete`
+
+Deletes an ACL.
+
+```text
+rctl acl delete [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the ACL. The command fails without it. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl acl delete 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Deleting item 80181ca6-d4aa-4575-9375-8f72b07d5555... Done
+```
+
+## Agents
+
+Commands under `rctl agents`. For field details, see [Agents](/reference/resources/agents).
+
+### `rctl agents create`
+
+Creates a new Agent.
+
+```text
+rctl agents create [-i] [-c <value>] [-e <value>]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts:
+
+| Prompt | Field | Notes |
+| --- | --- | --- |
+| Friendly Name | `name` | Required. Up to 60 characters. |
+| Select a Domain | `domainRef` | Pick from existing Domains, or `None`. |
+| Username | `username` | Required. No spaces. |
+| Credentials Name | `credentialsRef` | Pick from existing Credentials, or `None`. |
+| Max Contacts | `maxContacts` | Optional integer, 0 or greater. Empty means no limit (`-1`). |
+| Privacy | `privacy` | `None` (default) or `Private`. |
+| Enabled? | `enabled` | Defaults to yes. |
+
+Example:
+
+```bash
+rctl agents create
+```
+
+```text
+Creating Agent John Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+```
+
+### `rctl agents get`
+
+Lists Agents in pages, or shows a single Agent when you pass `REF`.
+
+```text
+rctl agents get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | No | Reference to a Agent. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+| `-s, --size=<value>` | `50` | Number of items to return per page. |
+| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+
+Example:
+
+```bash
+rctl agents get --extended
+```
+
+```text
+Ref                                  Name     Username Domain    Max Contacts   Privacy Enabled
+d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1              PRIVATE Yes
+```
+
+### `rctl agents describe`
+
+Shows every field of a Agent.
+
+```text
+rctl agents describe [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the Agent. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl agents describe 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl agents update`
+
+Updates an existing Agent.
+
+```text
+rctl agents update REF [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to an existing Agent. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts: The same prompts as `create`, except `Username`, which you can't change.
+
+Example:
+
+```bash
+rctl agents update 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl agents delete`
+
+Deletes a Agent.
+
+```text
+rctl agents delete [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the Agent. The command fails without it. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl agents delete 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Deleting item 80181ca6-d4aa-4575-9375-8f72b07d5555... Done
+```
+
+## Credentials
+
+Commands under `rctl credentials`. For field details, see [Credentials](/reference/resources/credentials).
+
+### `rctl credentials create`
+
+Creates a new set of Credentials.
+
+```text
+rctl credentials create [-i] [-c <value>] [-e <value>]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts:
+
+| Prompt | Field | Notes |
+| --- | --- | --- |
+| Friendly Name | `name` | Required. Up to 60 characters. |
+| Username | `username` | Required. No spaces. |
+| Password | `password` | Required. Input is masked. |
+
+Example:
+
+```bash
+rctl credentials create
+```
+
+```text
+Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+```
+
+### `rctl credentials get`
+
+Lists Credentials in pages, or shows a single set of Credentials when you pass `REF`.
+
+```text
+rctl credentials get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | No | Reference to a set of Credentials. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+| `-s, --size=<value>` | `50` | Number of items to return per page. |
+| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+
+Example:
+
+```bash
+rctl credentials get --extended
+```
+
+### `rctl credentials describe`
+
+Shows every field of a set of Credentials.
+
+```text
+rctl credentials describe [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the set of Credentials. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl credentials describe 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl credentials update`
+
+Updates an existing set of Credentials.
+
+```text
+rctl credentials update REF [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to an existing set of Credentials. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts: The same prompts as `create`, pre-filled with the current values.
+
+Example:
+
+```bash
+rctl credentials update 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl credentials delete`
+
+Deletes a set of Credentials.
+
+```text
+rctl credentials delete [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the set of Credentials. The command fails without it. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl credentials delete 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Deleting item 80181ca6-d4aa-4575-9375-8f72b07d5555... Done
+```
+
+## Domains
+
+Commands under `rctl domains`. For field details, see [Domains](/reference/resources/domains).
+
+### `rctl domains create`
+
+Creates a new Domain.
+
+```text
+rctl domains create [-i] [-c <value>] [-e <value>]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts:
+
+| Prompt | Field | Notes |
+| --- | --- | --- |
+| Friendly Name | `name` | Required. Up to 60 characters. |
+| SIP URI | `domainUri` | Required. Must be a fully qualified domain name, such as `sip.local`. |
+| IP Access Control List | `accessControlListRef` | Pick from existing ACLs, or `None`. |
+| Add an Egress Rule? | `egressPolicies` | Asked only when Numbers exist. Defaults to no. |
+| Number | `egressPolicies[].numberRef` | The Number used for calls that match the rule. |
+| Rule | `egressPolicies[].rule` | Regular expression matched against the dialed number. Defaults to `.*`. |
+| Add another Egress Rule? | - | Repeats the Number and Rule prompts. |
+
+Example:
+
+```bash
+rctl domains create
+```
+
+```text
+Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+```
+
+### `rctl domains get`
+
+Lists Domains in pages, or shows a single Domain when you pass `REF`.
+
+```text
+rctl domains get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | No | Reference to a Domain. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+| `-s, --size=<value>` | `50` | Number of items to return per page. |
+| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+
+Example:
+
+```bash
+rctl domains get --extended
+```
+
+```text
+Ref                                  Name         URI
+ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
+```
+
+### `rctl domains describe`
+
+Shows every field of a Domain.
+
+```text
+rctl domains describe [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the Domain. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl domains describe 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl domains update`
+
+Updates an existing Domain.
+
+```text
+rctl domains update REF [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to an existing Domain. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts: The same prompts as `create`, except `SIP URI`, which you can't change.
+
+Example:
+
+```bash
+rctl domains update 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl domains delete`
+
+Deletes a Domain.
+
+```text
+rctl domains delete [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the Domain. The command fails without it. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl domains delete 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Deleting item 80181ca6-d4aa-4575-9375-8f72b07d5555... Done
+```
+
+## Numbers
+
+Commands under `rctl numbers`. For field details, see [Numbers](/reference/resources/numbers).
+
+### `rctl numbers create`
+
+Creates a new Number.
+
+```text
+rctl numbers create [-i] [-c <value>] [-e <value>]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts:
+
+| Prompt | Field | Notes |
+| --- | --- | --- |
+| Friendly Name | `name` | Required. Up to 60 characters. |
+| Telephony URL | `telUrl` | Required. Must start with `tel:`, such as `tel:+17853178070`. |
+| AOR Link | `aorLink` | Optional. Must start with `sip:` or `backend:`. |
+| Trunk | `trunkRef` | Pick from existing Trunks, or `None`. |
+| City | `city` | Required. |
+| Select a Country | `countryIsoCode` | Type to search. Also sets `country`. |
+| Session Affinity Header | `sessionAffinityHeader` | Optional. Letters, digits, and dashes; can't end with a dash. |
+| Extra Headers | `extraHeaders` | Optional. Comma-separated `Name:value` pairs, such as `X-Room-Id:abc-us-123`. |
+
+Example:
+
+```bash
+rctl numbers create
+```
+
+```text
+Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
+```
+
+### `rctl numbers get`
+
+Lists Numbers in pages, or shows a single Number when you pass `REF`.
+
+```text
+rctl numbers get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | No | Reference to a Number. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+| `-s, --size=<value>` | `50` | Number of items to return per page. |
+| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+
+Example:
+
+```bash
+rctl numbers get --extended
+```
+
+```text
+Ref                                  Name           Telephony URL      AOR Link           Geo
+a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@sip.local Cameron, USA (US)
+```
+
+### `rctl numbers describe`
+
+Shows every field of a Number.
+
+```text
+rctl numbers describe [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the Number. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl numbers describe 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl numbers update`
+
+Updates an existing Number.
+
+```text
+rctl numbers update REF [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to an existing Number. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts: The same prompts as `create`, except `Telephony URL`, `City`, and `Select a Country`, which you can't change.
+
+Example:
+
+```bash
+rctl numbers update 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl numbers delete`
+
+Deletes a Number.
+
+```text
+rctl numbers delete [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the Number. The command fails without it. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl numbers delete 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Deleting item 80181ca6-d4aa-4575-9375-8f72b07d5555... Done
+```
+
+## Peers
+
+Commands under `rctl peers`. For field details, see [Peers](/reference/resources/peers).
+
+### `rctl peers create`
+
+Creates a new Peer.
+
+```text
+rctl peers create [-i] [-c <value>] [-e <value>]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts:
+
+| Prompt | Field | Notes |
+| --- | --- | --- |
+| Friendly Name | `name` | Required. Up to 60 characters. |
+| Username | `username` | Required. No spaces. |
+| Address of Record | `aor` | Required. Must start with `sip:` or `backend:`. |
+| Contact Address | `contactAddr` | Optional. A host or IP address. |
+| Max Contacts | `maxContacts` | Optional integer, 0 or greater. Empty means no limit (`-1`). |
+| IP Access Control List | `accessControlListRef` | Pick from existing ACLs, or `None`. |
+| Credentials Name | `credentialsRef` | Pick from existing Credentials, or `None`. |
+| Enable Session Affinity? | `withSessionAffinity` | Defaults to no. |
+| Balancing Algorithm | `balancingAlgorithm` | `Round Robin` (default) or `Least Sessions`. |
+| Enabled? | `enabled` | Defaults to yes. |
+
+Example:
+
+```bash
+rctl peers create
+```
+
+```text
+Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+```
+
+### `rctl peers get`
+
+Lists Peers in pages, or shows a single Peer when you pass `REF`.
+
+```text
+rctl peers get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | No | Reference to a Peer. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+| `-s, --size=<value>` | `50` | Number of items to return per page. |
+| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+
+Example:
+
+```bash
+rctl peers get --extended
+```
+
+```text
+Ref                                  Name                Username   AOR                      Max Contacts   Balancing Algorithm Session Affinity
+6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local 1              Round Robin         Yes
+```
+
+### `rctl peers describe`
+
+Shows every field of a Peer.
+
+```text
+rctl peers describe [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the Peer. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl peers describe 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl peers update`
+
+Updates an existing Peer.
+
+```text
+rctl peers update REF [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to an existing Peer. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts: The same prompts as `create`, except `Username`, which you can't change.
+
+Example:
+
+```bash
+rctl peers update 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl peers delete`
+
+Deletes a Peer.
+
+```text
+rctl peers delete [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the Peer. The command fails without it. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl peers delete 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Deleting item 80181ca6-d4aa-4575-9375-8f72b07d5555... Done
+```
+
+## Trunks
+
+Commands under `rctl trunks`. For field details, see [Trunks](/reference/resources/trunks).
+
+### `rctl trunks create`
+
+Creates a new Trunk.
+
+```text
+rctl trunks create [-i] [-c <value>] [-e <value>]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts:
+
+| Prompt | Field | Notes |
+| --- | --- | --- |
+| Friendly Name | `name` | Required. Up to 60 characters. |
+| Inbound SIP URI | `inboundUri` | Required. An FQDN or IP address, such as `sip.t01.provider.net`. |
+| IP Access Control List | `accessControlListRef` | Pick from existing ACLs, or `None`. |
+| Inbound Credentials | `inboundCredentialsRef` | Pick from existing Credentials, or `None`. |
+| Outbound Credentials | `outboundCredentialsRef` | Pick from existing Credentials, or `None`. |
+| Send Register? | `sendRegister` | Defaults to no. |
+| Add an Outbound SIP URI? | `uris` | Defaults to no. |
+| Host | `uris[].host` | Required. An FQDN or IP address. |
+| Port | `uris[].port` | Defaults to `5060`. |
+| Transport | `uris[].transport` | `UDP` (default), `TCP`, or `TLS`. |
+| User Part | `uris[].user` | Optional. No spaces. |
+| Priority | `uris[].priority` | 0 to 65535. Defaults to `10`. |
+| Weight | `uris[].weight` | 1 to 65535. Defaults to `10`. |
+| Add another Outbound SIP URI? | - | Repeats the outbound URI prompts. |
+
+Example:
+
+```bash
+rctl trunks create
+```
+
+```text
+Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
+```
+
+### `rctl trunks get`
+
+Lists Trunks in pages, or shows a single Trunk when you pass `REF`.
+
+```text
+rctl trunks get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | No | Reference to a Trunk. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+| `-s, --size=<value>` | `50` | Number of items to return per page. |
+| `-x, --extended` | `false` | Show extended columns, including `Ref`. |
+
+Example:
+
+```bash
+rctl trunks get --extended
+```
+
+```text
+Ref                                  Name   Inbound SIP URI
+8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local  sip.t01.provider.net
+```
+
+### `rctl trunks describe`
+
+Shows every field of a Trunk.
+
+```text
+rctl trunks describe [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the Trunk. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl trunks describe 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl trunks update`
+
+Updates an existing Trunk.
+
+```text
+rctl trunks update REF [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to an existing Trunk. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Prompts: The same prompts as `create`, pre-filled with the current values.
+
+Example:
+
+```bash
+rctl trunks update 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+### `rctl trunks delete`
+
+Deletes a Trunk.
+
+```text
+rctl trunks delete [REF] [-i] [-c <value>] [-e <value>]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `REF` | Yes | Reference to the Trunk. The command fails without it. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-c, --cacert=<value>` | - | Path to the CA certificate used to verify the server. |
+| `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
+| `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
+
+Example:
+
+```bash
+rctl trunks delete 80181ca6-d4aa-4575-9375-8f72b07d5555
+```
+
+```text
+Deleting item 80181ca6-d4aa-4575-9375-8f72b07d5555... Done
+```
+
+## Shell completion
+
+### `rctl autocomplete`
+
+Prints instructions to install shell completion for `rctl`.
+
+```text
+rctl autocomplete [SHELL] [-r]
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `SHELL` | No | Shell type, such as `bash` or `zsh`. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-r, --refresh-cache` | - | Refresh the completion cache without printing instructions. |
+
+Example:
+
+```bash
+rctl autocomplete zsh
+```
+
+## Plugins
+
+`rctl` includes the oclif plugin commands, so you can add your own commands to it. See [Extend rctl](/guides/extend-rctl).
+
+### `rctl plugins`
+
+Lists installed plugins.
+
+```text
+rctl plugins [--core]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--core` | - | Show core plugins. |
+
+Example:
+
+```bash
+rctl plugins
+```
+
+### `rctl plugins:install`
+
+Installs a plugin from npm or a Git URL. A user-installed plugin overrides a core plugin that has a command with the same name.
+
+```text
+rctl plugins:install PLUGIN...
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `PLUGIN` | Yes | Plugin to install: an npm package, a Git URL, or `user/repo`. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-f, --force` | - | Run yarn install with the force flag. |
+| `-h, --help` | - | Show CLI help. |
+| `-v, --verbose` | - | Show verbose output. |
+
+Aliases: `rctl plugins add`.
+
+Example:
+
+```bash
+rctl plugins:install someuser/someplugin
+```
+
+### `rctl plugins:inspect`
+
+Shows installation properties of a plugin.
+
+```text
+rctl plugins:inspect PLUGIN...
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `PLUGIN` | No | Plugin to inspect. Defaults to `.`. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-h, --help` | - | Show CLI help. |
+| `-v, --verbose` | - | Show verbose output. |
+| `--json` | - | Format output as JSON. |
+
+Example:
+
+```bash
+rctl plugins:inspect myplugin
+```
+
+### `rctl plugins:link`
+
+Links a local plugin into the CLI for development. A linked plugin overrides user-installed and core plugins.
+
+```text
+rctl plugins:link PLUGIN
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `PATH` | No | Path to the plugin. Defaults to `.`. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-h, --help` | - | Show CLI help. |
+| `-v, --verbose` | - | Show verbose output. |
+
+Example:
+
+```bash
+rctl plugins:link ./my-plugin
+```
+
+### `rctl plugins:uninstall`
+
+Removes a plugin from the CLI.
+
+```text
+rctl plugins:uninstall PLUGIN...
+```
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `PLUGIN` | Yes | Plugin to uninstall. |
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-h, --help` | - | Show CLI help. |
+| `-v, --verbose` | - | Show verbose output. |
+
+Aliases: `rctl plugins unlink`, `rctl plugins remove`.
+
+Example:
+
+```bash
+rctl plugins:uninstall myplugin
+```
+
+### `rctl plugins update`
+
+Updates installed plugins.
+
+```text
+rctl plugins update [-h] [-v]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-h, --help` | - | Show CLI help. |
+| `-v, --verbose` | - | Show verbose output. |
+
+Example:
+
+```bash
+rctl plugins update
+```
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Manage resources with rctl" icon="terminal" href="/guides/manage-resources-with-rctl">
+    Create a Domain, Agents, and a Trunk step by step.
+  </Card>
+  <Card title="Connect resources" icon="list" href="/reference/resources/overview">
+    Every field, type, and constraint for each resource.
+  </Card>
+</CardGroup>

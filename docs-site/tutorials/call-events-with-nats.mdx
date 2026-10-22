@@ -1,0 +1,208 @@
+---
+title: "Stream call events to NATS"
+sidebarTitle: "Call events with NATS"
+description: "Turn on EdgePort's NATS publisher, subscribe with the nats CLI, and see an event for every registration, call start, and call end."
+---
+
+## What you'll build
+
+You run Routr and a NATS server with Docker Compose, turn on EdgePort's NATS publisher, and subscribe to the events with the `nats` CLI. When you register two softphones and call between them, you see `routr.endpoint.registered`, `routr.call.started`, and `routr.call.ended` messages arrive.
+
+Call events come from EdgePort, so you can feed them to billing, dashboards, or any service that speaks NATS without touching the SIP path.
+
+## Prerequisites
+
+- Docker with Docker Compose
+- The [`nats` CLI](https://github.com/nats-io/natscli)
+- Node.js and npm, to install `rctl`
+- Two SIP softphones
+- The IP address of your machine on your local network (for example, `192.168.1.3`)
+
+## Steps
+
+<Steps>
+  <Step title="Define the services">
+    Create a folder for the tutorial and a `compose.yaml` file inside it. It runs a NATS server and `routr-one` with the NATS publisher turned on.
+
+    Filename: `compose.yaml`
+
+    ```yaml
+    services:
+      nats:
+        image: nats:latest
+        ports:
+          - 4222:4222
+
+      routr:
+        image: fonoster/routr-one:latest
+        depends_on:
+          - nats
+        environment:
+          EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+          NATS_PUBLISHER_ENABLED: "true"
+          NATS_PUBLISHER_URL: nats://nats:4222
+        ports:
+          - 51908:51908
+          - 5060:5060
+          - 5060:5060/udp
+    ```
+
+    EdgePort reads three variables:
+
+    | Variable | Purpose | Default |
+    | --- | --- | --- |
+    | `NATS_PUBLISHER_ENABLED` | Set to `true` to publish events | Off |
+    | `NATS_PUBLISHER_URL` | NATS server to connect to | `nats://localhost:4222` |
+    | `NATS_PUBLISHER_SUBJECT` | Prefix for every subject | `routr` |
+  </Step>
+
+  <Step title="Start the stack">
+    Start the services. Replace the address with your own.
+
+    ```bash
+    DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
+    ```
+
+    Confirm that EdgePort connected to NATS.
+
+    ```bash
+    docker compose logs routr | grep "nats publisher"
+    ```
+
+    The output includes a line that ends like this:
+
+    ```text
+    GRPCSipListener.java nats publisher enabled with subject routr and url nats://nats:4222
+    ```
+
+    <Check>
+    The log line above appears, and the `routr` container stays up.
+    </Check>
+  </Step>
+
+  <Step title="Subscribe to Routr events">
+    Create a `nats` CLI context for the local server and select it.
+
+    ```bash
+    nats context add local --server nats://localhost:4222 --description "Routr events" --select
+    ```
+
+    Subscribe to every subject under `routr`. Leave this running.
+
+    ```bash
+    nats sub "routr.>"
+    ```
+
+    ```text
+    Subscribing on routr.>
+    ```
+  </Step>
+
+  <Step title="Create a Domain and two Agents">
+    In another terminal, install `rctl`.
+
+    ```bash
+    npm install --location=global @routr/ctl
+    ```
+
+    Create a Domain with the SIP URI `sip.local`.
+
+    ```bash
+    rctl domains create --insecure
+    ```
+
+    Create credentials and an Agent for `1001`, then repeat for `1002`. Pick the Domain `sip.local` and the matching credentials when `rctl agents create` asks.
+
+    ```bash
+    rctl credentials create --insecure
+    rctl agents create --insecure
+    ```
+
+    The `--insecure` flag is required because this setup doesn't use TLS on the API.
+  </Step>
+
+  <Step title="Register the softphones">
+    Configure each softphone with one Agent: its username and password, `sip.local` as the domain, and your machine's IP (for example, `192.168.1.3:5060`) as the outbound proxy over UDP.
+
+    Each successful registration publishes an event.
+
+    ```text
+    [#1] Received on "routr.endpoint.registered"
+    {"aor":"sip:1001@sip.local","registeredAt":"2026-10-21T15:02:11.482Z","expires":600,"extraHeaders":{}}
+    ```
+
+    <Check>
+    You see one `routr.endpoint.registered` message per softphone. Softphones re-register periodically, so more arrive over time.
+    </Check>
+  </Step>
+
+  <Step title="Make a call">
+    From `1001`, call `1002`. When Routr forwards the INVITE, EdgePort publishes `routr.call.started`.
+
+    ```text
+    [#3] Received on "routr.call.started"
+    {"callId":"_Ax7XxHju-o7fbemWxxLww..","from":"sip:1001@sip.local","to":"sip:1002@sip.local","startTime":"2026-10-21T15:03:10.111Z","extraHeaders":{}}
+    ```
+
+    Hang up. EdgePort publishes `routr.call.ended` with the same `callId`.
+
+    ```text
+    [#4] Received on "routr.call.ended"
+    {"callId":"_Ax7XxHju-o7fbemWxxLww..","endTime":"2026-10-21T15:03:55.760Z","hangupCause":"NORMAL_CLEARING","extraHeaders":{}}
+    ```
+
+    <Frame caption="routr.call.started as shown by nats sub (captured on an earlier release, so the fields differ slightly)">
+      <img src="/images/call-events-with-nats/nats-sub-routr-call-started.png" alt="Terminal running nats sub routr.call.started and receiving a JSON event with callId, from, to, and startTime" />
+    </Frame>
+
+    <Frame caption="routr.call.ended as shown by nats sub (captured on an earlier release)">
+      <img src="/images/call-events-with-nats/nats-sub-routr-call-ended.png" alt="Terminal running nats sub routr.call.ended and receiving a JSON event with callId, endTime, and hangupCause NORMAL_CLEARING" />
+    </Frame>
+
+    <Check>
+    For one call you see one `routr.call.started` and one `routr.call.ended`, and both carry the same `callId`.
+    </Check>
+  </Step>
+</Steps>
+
+## Event reference
+
+| Subject | Published when | Fields |
+| --- | --- | --- |
+| `routr.endpoint.registered` | A REGISTER succeeds | `aor`, `registeredAt`, `expires`, `extraHeaders` |
+| `routr.call.started` | EdgePort forwards an INVITE | `callId`, `from`, `to`, `startTime`, `extraHeaders`, plus any metadata the processor attached to the route |
+| `routr.call.ended` | A BYE or CANCEL completes, an INVITE fails with a status above 300, or a transport error drops the transaction | `callId`, `endTime`, `hangupCause`, `extraHeaders` |
+
+`extraHeaders` holds every header in the message whose name starts with `X-`. For a list of hangup causes, see [`HangupCauses.java`](https://github.com/fonoster/routr/blob/main/mods/edgeport/src/main/java/io/routr/HangupCauses.java).
+
+To change the prefix, set `NATS_PUBLISHER_SUBJECT`. For example, `NATS_PUBLISHER_SUBJECT=myserver` publishes `myserver.call.started`, `myserver.call.ended`, and `myserver.endpoint.registered`.
+
+<Tip>
+To print events to EdgePort's log instead of NATS while you debug, set `CONSOLE_PUBLISHER_ENABLED=true`.
+</Tip>
+
+## Clean up
+
+Stop and remove the containers, and delete the CLI context.
+
+```bash
+docker compose down
+nats context rm local
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="EdgePort" icon="tower-broadcast" href="/reference/components/edgeport">
+    EdgePort configuration and environment variables.
+  </Card>
+  <Card title="Environment variables" icon="list" href="/reference/environment-variables">
+    Every variable Routr reads, by component.
+  </Card>
+  <Card title="SIP headers" icon="heading" href="/reference/sip-headers">
+    The `X-` headers Routr adds and reads.
+  </Card>
+  <Card title="Deploy with Docker" icon="docker" href="/guides/deploy-with-docker">
+    Run Routr with Docker in production.
+  </Card>
+</CardGroup>

@@ -1,0 +1,153 @@
+---
+title: "Manage resources with rctl"
+sidebarTitle: "Manage with rctl"
+description: "For operators managing a Routr server from the terminal: install rctl, connect it to the API Server with or without TLS, and create, list, update, and delete resources."
+---
+
+Use `rctl`, Routr's command-line tool, to manage Connect resources: Agents, Domains, Peers, Trunks, Numbers, Credentials, and ACLs. It talks to the API Server on port `51908`.
+
+## Prerequisites
+
+- Node.js and npm.
+- A running Routr server with a database-backed API Server, such as routr-one or the Helm chart. The file-based simpledata API Server is configured through YAML files instead.
+- Network access to the API Server's port `51908`. On Kubernetes, use `kubectl port-forward`. See [Deploy on Kubernetes](/guides/deploy-on-kubernetes).
+
+## Install rctl
+
+Install the package globally.
+
+```bash
+npm install --location=global @routr/ctl
+```
+
+Confirm the installation by printing the version.
+
+```bash
+rctl --version
+```
+
+## Connect to the server
+
+Every command accepts the same three connection flags. There is no login step or saved profile, so pass the flags on each command.
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-e`, `--endpoint` | `localhost:51908` | Address of the API Server. |
+| `-i`, `--insecure` | `false` | Connect without TLS. Use it when the API Server runs with TLS off. |
+| `-c`, `--cacert` | none | Path to the CA certificate that signed the server's certificate. |
+
+Pick the form that matches how the API Server is configured.
+
+<Tabs>
+  <Tab title="TLS off">
+    routr-one runs the API Server without TLS by default (`TLS_ON=false`). Add `--insecure`.
+
+    ```bash
+    rctl agents get --insecure
+    ```
+  </Tab>
+  <Tab title="TLS with a self-signed certificate">
+    Pass the CA certificate. The host in `--endpoint` must match the certificate's `CN`.
+
+    ```bash
+    rctl agents get --endpoint localhost:51908 --cacert ./ca.crt
+    ```
+  </Tab>
+  <Tab title="TLS with a trusted certificate">
+    No extra flag is needed when a public CA signed the certificate.
+
+    ```bash
+    rctl agents get --endpoint api.sip.example.com:51908
+    ```
+  </Tab>
+</Tabs>
+
+<Tip>To shorten commands, define a shell alias, for example `alias rctl='rctl --insecure'` for a local test server.</Tip>
+
+## Work with resources
+
+Commands follow a `rctl <resource> <verb>` pattern. The resources are `acl`, `agents`, `credentials`, `domains`, `numbers`, `peers`, and `trunks`. Each one supports `create`, `get`, `describe`, `update`, and `delete`. The examples below use `--insecure` and Agents.
+
+<Steps>
+  <Step title="Create a resource">
+    `create` is interactive. It prompts for each field and lists existing resources, such as Domains and Credentials, to choose from. Create the Domain and Credentials before the Agent that uses them.
+
+    ```bash
+    rctl agents create --insecure
+    ```
+
+    ```text
+    This utility will help you create a new Agent.
+    Press ^C at any time to quit.
+    ? Friendly Name John Doe
+    ? Select a Domain sip.local
+    ? Username 1001
+    ? Credentials Name John Doe Credentials
+    ? Privacy None
+    ? Enabled? Yes
+    ? Ready? Yes
+    Creating Agent John Doe... 8dae9a7d-99b8-4279-88e1-4cf6ed67190a
+    ```
+
+    The value at the end is the new resource's `ref`. Other commands use it.
+  </Step>
+  <Step title="List resources">
+    `get` prints a paginated table. Use `--size` to change the page size (default `50`) and `--extended` for more columns. Pass a `ref` to show one item.
+
+    ```bash
+    rctl agents get --insecure
+    ```
+
+    ```text
+    Ref                                  Name     Username Domain    Max Contacts   Privacy Enabled
+    d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1              PRIVATE Yes
+    ```
+  </Step>
+  <Step title="Show the details of a resource">
+    `describe` prints every field of one resource, including linked resources such as the Agent's Domain and Credentials.
+
+    ```bash
+    rctl agents describe d31f5fb8-e367-42f7-9884-1a7999f53fe8 --insecure
+    ```
+  </Step>
+  <Step title="Update a resource">
+    `update` takes the `ref` and prompts for the fields you can change, prefilled with the current values. Some fields, such as an Agent's username, can't be changed after creation.
+
+    ```bash
+    rctl agents update d31f5fb8-e367-42f7-9884-1a7999f53fe8 --insecure
+    ```
+  </Step>
+  <Step title="Delete a resource">
+    `delete` requires the `ref` and runs without a confirmation prompt.
+
+    ```bash
+    rctl agents delete d31f5fb8-e367-42f7-9884-1a7999f53fe8 --insecure
+    ```
+
+    ```text
+    Deleting item d31f5fb8-e367-42f7-9884-1a7999f53fe8... Done
+    ```
+  </Step>
+</Steps>
+
+## Pitfalls
+
+- **Creating a resource that references a missing one.** Create Credentials and Domains before Agents, ACLs before the Domains or Trunks that use them, and Trunks before Numbers.
+- **`This Agent already exist`.** A resource with the same unique field, such as a username, already exists. Use `update` or pick another value.
+- **Connection errors.** Check `--endpoint`, then check that the TLS flag matches the server: `--insecure` for TLS off, `--cacert` for a self-signed certificate.
+- **Scripting.** `create` and `update` are interactive. To automate changes, use the [Node.js SDK](/guides/manage-resources-with-the-sdk).
+
+## Extend rctl
+
+`rctl` supports oclif plugins through `rctl plugins:install`. To add your own commands, see [Extend rctl](/guides/extend-rctl). For shell completion, run `rctl autocomplete`.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="rctl reference" icon="terminal" href="/reference/rctl">
+    Every command, argument, and flag.
+  </Card>
+  <Card title="Connect resources" icon="book" href="/reference/resources/overview">
+    What each resource represents and its fields.
+  </Card>
+</CardGroup>

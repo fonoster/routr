@@ -1,0 +1,189 @@
+---
+title: "Deploy with Docker"
+sidebarTitle: "Deploy with Docker"
+description: "For operators who want a single-host Routr server: run routr-one with docker run or Docker Compose, keep data across restarts, and upgrade safely."
+---
+
+Run the all-in-one `fonoster/routr-one` image on one host. It bundles the EdgePort, Message Dispatcher, Connect processor, Location Service, and an API Server backed by an internal PostgreSQL database.
+
+## Prerequisites
+
+- Docker, and Docker Compose if you use the Compose variant. See [Get Docker](https://docs.docker.com/get-docker/).
+- The IP address your SIP clients use to reach the host (for example, `192.168.1.3` on a LAN, or the public IP of a VM).
+- Node.js, if you want to manage resources with [rctl](/guides/manage-resources-with-rctl).
+
+## Know the ports
+
+The routr-one image listens on the following ports. Publish only the ones you use.
+
+| Port | Protocol | Purpose |
+| --- | --- | --- |
+| `5060` | UDP and TCP | SIP signaling |
+| `5061` | TCP | SIP over TLS |
+| `5062` | TCP | SIP over WebSocket (WS) |
+| `5063` | TCP | SIP over secure WebSocket (WSS) |
+| `51908` | TCP | API Server, used by `rctl` and the SDK |
+
+## Run the server
+
+<Steps>
+  <Step title="Pick your external address">
+    Routr advertises the address in `EXTERNAL_ADDRS` in the `Via`, `Contact`, and `Record-Route` headers it writes. Use an address your SIP clients can reach. Inside a container, Routr can't discover the host address on its own, so this variable is required for calls to work.
+
+    To advertise more than one address, separate them with commas, for example `EXTERNAL_ADDRS=203.0.113.10,sip.example.com`.
+  </Step>
+  <Step title="Start the container">
+    <Tabs>
+      <Tab title="Docker Compose">
+        Create a directory named `routr` and add a `compose.yaml` file with the following content. The named volume keeps the internal PostgreSQL data across restarts.
+
+        ```yaml compose.yaml
+        services:
+          routr:
+            image: fonoster/routr-one:latest
+            environment:
+              EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+            ports:
+              - 51908:51908
+              - 5060:5060/udp
+            volumes:
+              - shared:/var/lib/postgresql/data
+
+        volumes:
+          shared:
+        ```
+
+        Start the service in the background, replacing the address with your own.
+
+        ```bash
+        DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
+        ```
+      </Tab>
+      <Tab title="docker run">
+        Run the following command, replacing the address with your own. The `-v` flag stores the internal PostgreSQL data in a named volume so it survives container restarts.
+
+        ```bash
+        docker run -d --name routr \
+          -p 51908:51908 \
+          -p 5060:5060/udp \
+          -e EXTERNAL_ADDRS=192.168.1.3 \
+          -v routr-data:/var/lib/postgresql/data \
+          fonoster/routr-one:latest
+        ```
+      </Tab>
+    </Tabs>
+
+    Replace `latest` with a specific version for anything beyond a quick test. The available tags are listed on [Docker Hub](https://hub.docker.com/r/fonoster/routr-one/tags).
+  </Step>
+  <Step title="Check the container status">
+    Wait a few seconds for the container to initialize, then list your containers.
+
+    ```bash
+    docker ps -a --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}'
+    ```
+
+    The output looks similar to this:
+
+    ```text
+    CONTAINER ID   IMAGE                       STATUS
+    6c63fd573768   fonoster/routr-one:latest   Up About a minute
+    ```
+
+    <Check>If the status is `Up`, the server is ready.</Check>
+  </Step>
+  <Step title="Create your first resource">
+    Install the command-line tool.
+
+    ```bash
+    npm install --location=global @routr/ctl
+    ```
+
+    Create a SIP Domain. The `--insecure` flag is required because the API Server runs without TLS by default in this image.
+
+    ```bash
+    rctl domains create --insecure
+    ```
+  </Step>
+</Steps>
+
+## Configure the container
+
+The routr-one image reads these environment variables. Set them with `environment:` in Compose or `-e` with `docker run`.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `EXTERNAL_ADDRS` | none | Comma-separated addresses to advertise to SIP clients. |
+| `LOCALNETS` | OS-reported networks | Comma-separated networks Routr treats as local. Use it with `EXTERNAL_ADDRS`. |
+| `TLS_ON` | `false` | Enables TLS on the API Server port `51908`. See [Secure the server](/guides/secure-the-server). |
+| `VERIFY_CLIENT_CERT` | `false` | Requires client certificates on the API Server. |
+| `DATABASE_URL` | internal PostgreSQL | Connection string for the API Server database. |
+| `START_INTERNAL_DB` | `true` | Set to `false` when `DATABASE_URL` points to an external PostgreSQL server. |
+| `RTPENGINE_HOST` | none | Enables the RTPRelay middleware. See [Enable WebRTC clients](/guides/enable-webrtc). |
+| `RTPENGINE_PORT` | `22222` | RTPEngine control port. |
+| `PKCS12_PASSWORD` | `changeme` | Password for the SIP signaling keystore. Change it in production. |
+| `HEPLIFY_OPTIONS` | none | When set, sends SIP traffic to a Homer server through heplify. |
+
+For the complete list across all components, see [Environment variables](/reference/environment-variables).
+
+To use an external PostgreSQL server instead of the internal one, set both variables. The following snippet shows the shape.
+
+```yaml compose.yaml
+services:
+  routr:
+    image: fonoster/routr-one:latest
+    environment:
+      EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+      START_INTERNAL_DB: "false"
+```
+
+## Upgrade
+
+The container applies pending database migrations every time it starts, so upgrading means replacing the container with a newer image while keeping the data volume.
+
+<Steps>
+  <Step title="Back up your data">
+    Copy the volume or dump the database before a major upgrade. Read the [changelog](/changelog) for breaking changes.
+  </Step>
+  <Step title="Change the image tag">
+    Set the new version in `compose.yaml`, for example `fonoster/routr-one:2.15.4`.
+  </Step>
+  <Step title="Recreate the container">
+    Pull the new image and recreate the service. The `shared` volume is reused.
+
+    ```bash
+    docker compose pull
+    DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
+    ```
+
+    With `docker run`, stop and remove the old container, then run the same command with the new tag and the same `-v routr-data:...` volume.
+  </Step>
+</Steps>
+
+<Note>
+Restarting the container drops its SIP connections and registrations, because routr-one keeps registrations in memory. Clients register again on their next refresh.
+</Note>
+
+## Troubleshooting
+
+- **Calls connect but there is no audio, or replies never arrive.** `EXTERNAL_ADDRS` is missing or wrong. Set it to the address clients use to reach the host.
+- **`rctl` fails with a TLS or connection error.** Add `--insecure` when `TLS_ON` is `false`, or pass `--cacert` when it is `true`.
+- **Data disappears after `docker compose down`.** Make sure the volume is mounted at `/var/lib/postgresql/data`, and don't run `docker compose down -v`, which deletes volumes.
+- **Only UDP works.** The examples publish only `5060/udp`. Add `5060:5060`, `5061:5061`, `5062:5062`, or `5063:5063` for TCP, TLS, WS, or WSS.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Set up a home or office phone system" icon="phone" href="/guides/home-or-office-setup">
+    Add Domains, Agents, and a Trunk.
+  </Card>
+  <Card title="Secure the server" icon="lock" href="/guides/secure-the-server">
+    Turn on TLS for the API and SIP signaling.
+  </Card>
+  <Card title="Deploy on Kubernetes" icon="dharmachakra" href="/guides/deploy-on-kubernetes">
+    Run each component separately with Helm.
+  </Card>
+  <Card title="Deployment topologies" icon="sitemap" href="/concepts/deployment-topologies">
+    Compare routr-one with a split deployment.
+  </Card>
+</CardGroup>
