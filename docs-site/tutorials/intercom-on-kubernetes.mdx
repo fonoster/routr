@@ -1,0 +1,234 @@
+---
+title: "Build an intercom system on Kubernetes"
+sidebarTitle: "Intercom on Kubernetes"
+description: "Install Routr on a local Kubernetes cluster with Helm, create a few Agents, and call between softphones."
+---
+
+## What you'll build
+
+You install the `routr-connect` Helm chart on a Kubernetes cluster, create a SIP Domain and three Agents (`1001`, `1002`, `1003`), register softphones, and call from one extension to another. Routr routes these calls as `agent-to-agent`.
+
+This is the same setup you would use for an office intercom: every desk phone or softphone is an Agent, and anyone can dial anyone else by extension.
+
+## Prerequisites
+
+- A Kubernetes cluster: Docker Desktop with Kubernetes enabled, minikube, or k3s
+- `kubectl` connected to that cluster
+- Helm 3
+- Node.js and npm, to install `rctl`
+- Two SIP softphones (for example, Zoiper on your laptop and Linphone on your phone), on the same network as the cluster
+- The IP address of your machine on your local network (for example, `192.168.1.3`)
+
+## Steps
+
+<Steps>
+  <Step title="Add the Helm repository">
+    Add the Routr chart repository and refresh the local cache.
+
+    ```bash
+    helm repo add routr https://routr.io/charts
+    helm repo update
+    ```
+  </Step>
+
+  <Step title="Create a namespace">
+    Create a namespace to hold the release.
+
+    ```bash
+    kubectl create namespace sipnet
+    ```
+  </Step>
+
+  <Step title="Write your values file">
+    Create a `values.yaml` file. It sets the address that EdgePort advertises to softphones, exposes SIP over UDP with a `LoadBalancer` Service, and turns off TLS on the API for this local test.
+
+    Filename: `values.yaml`
+
+    ```yaml
+    apiserver:
+      tlsOn: false
+
+    edgeport:
+      # An address your softphones can reach (your machine's IP)
+      externalAddrs: [192.168.1.3]
+      serviceTypeUDP: LoadBalancer
+    ```
+
+    EdgePort needs `externalAddrs` to write the right address into SIP headers. The chart's default Service type is `NodePort`, which exposes SIP on a high port. `LoadBalancer` exposes it on port `5060`.
+
+    <Note>
+    Docker Desktop and k3s publish `LoadBalancer` Services on the node's address. On minikube, run `minikube tunnel` in a separate terminal so the Service gets an address.
+    </Note>
+  </Step>
+
+  <Step title="Install the chart">
+    Install the chart as a release named `sipnet`.
+
+    ```bash
+    helm install sipnet routr/routr-connect --namespace sipnet -f values.yaml
+    ```
+
+    ```text
+    NAME: sipnet
+    LAST DEPLOYED: Sun May 21 17:47:48 2023
+    NAMESPACE: sipnet
+    STATUS: deployed
+    REVISION: 1
+    TEST SUITE: None
+    ```
+
+    Watch the pods until they are all `Running`. This takes a few minutes the first time, while images download and PostgreSQL initializes.
+
+    ```bash
+    kubectl get pods -n sipnet
+    ```
+
+    <Check>
+    Every pod shows `Running`, and `kubectl get svc -n sipnet sipnet-routr-edgeport-udp` shows type `LoadBalancer` on port `5060/UDP`.
+    </Check>
+  </Step>
+
+  <Step title="Connect rctl to the API">
+    Install the command-line tool.
+
+    ```bash
+    npm install --location=global @routr/ctl
+    ```
+
+    The API Server isn't exposed outside the cluster. Forward its port to your machine and leave this command running in its own terminal.
+
+    ```bash
+    kubectl -n sipnet port-forward svc/sipnet-routr-apiserver 51908
+    ```
+
+    `rctl` connects to `localhost:51908` by default. Use `--insecure` on every command, because TLS is off.
+  </Step>
+
+  <Step title="Create the Domain">
+    Create a Domain for the intercom.
+
+    ```bash
+    rctl domains create --insecure
+    ```
+
+    ```text
+    This utility will help you create a new Domain.
+    Press ^C at any time to quit.
+    ? Friendly Name Office
+    ? SIP URI sip.local
+    ? IP Access Control List None
+    ? Add an Egress Rule? No
+    ? Ready? Yes
+    Creating Domain Office... a27e9fb2-a71a-4cf3-9b1d-dccf373f9777
+    ```
+  </Step>
+
+  <Step title="Create credentials and Agents">
+    Create a set of credentials for the first extension, with username `1001` and password `1234`.
+
+    ```bash
+    rctl credentials create --insecure
+    ```
+
+    ```text
+    This utility will help you create a new set of Credentials.
+    Press ^C at any time to quit.
+    ? Friendly Name Front Desk Credentials
+    ? Username 1001
+    ? Password [hidden]
+    ? Ready? Yes
+    Creating Credentials Front Desk Credentials... 8814fc24-2328-43af-82d4-f5347fe4521b
+    ```
+
+    Create the Agent and link it to the Domain and credentials.
+
+    ```bash
+    rctl agents create --insecure
+    ```
+
+    ```text
+    This utility will help you create a new Agent.
+    Press ^C at any time to quit.
+    ? Friendly Name Front Desk
+    ? Select a Domain sip.local
+    ? Username 1001
+    ? Credentials Name Front Desk Credentials
+    ? Max Contacts
+    ? Privacy None
+    ? Enabled? Yes
+    ? Ready? Yes
+    Creating Agent Front Desk... 8dae9a7d-99b8-4279-88e1-4cf6ed67190a
+    ```
+
+    Repeat both commands for `1002` and `1003`, each with its own credentials. Then list the Agents.
+
+    ```bash
+    rctl agents get --insecure
+    ```
+
+    ```text
+    Name         Username   Domain      Max Contacts   Privacy   Enabled
+    Front Desk   1001       sip.local                  None      Yes
+    Kitchen      1002       sip.local                  None      Yes
+    Warehouse    1003       sip.local                  None      Yes
+    ```
+  </Step>
+
+  <Step title="Register the softphones">
+    Configure each softphone with one extension.
+
+    | Setting | Value |
+    | --- | --- |
+    | Username | `1001` (or `1002`, `1003`) |
+    | Password | The password you set for that extension |
+    | Domain | `sip.local` |
+    | Proxy (outbound proxy) | Your machine's IP, for example `192.168.1.3:5060` |
+    | Transport | UDP |
+
+    The Domain must be `sip.local`, because Routr finds the Agent by the user and host in the request. The proxy setting tells the softphone where to send requests, since `sip.local` isn't a real DNS name.
+
+    <Check>
+    Each softphone shows its account as registered.
+    </Check>
+  </Step>
+
+  <Step title="Call another extension">
+    From the softphone registered as `1001`, dial `1002`. The other softphone rings. Answer it and talk.
+
+    Routr sees that both the caller and the callee are Agents in the same Domain, looks up `sip:1002@sip.local` in the Location Service, and forwards the call.
+
+    <Check>
+    The call connects in both directions: `1001` can call `1002`, and `1002` can call `1001`.
+    </Check>
+
+    The chart runs two EdgePort replicas. If a softphone registered through one EdgePort and the call arrives on the other, the EdgePorts forward the request between them. See [EdgePort cooperation](/concepts/edgeport-cooperation).
+  </Step>
+</Steps>
+
+## Clean up
+
+Remove the release and the namespace.
+
+```bash
+helm uninstall sipnet --namespace sipnet
+kubectl delete namespace sipnet
+```
+
+Deleting the namespace also deletes the PostgreSQL volume claim and its data.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Deploy to Civo with Helm" icon="cloud" href="/tutorials/deploy-to-civo-with-helm">
+    Run the same chart on a public cloud cluster.
+  </Card>
+  <Card title="Secure the server" icon="lock" href="/guides/secure-the-server">
+    Turn TLS back on for the API and the signaling.
+  </Card>
+  <Card title="Helm values" icon="sliders" href="/reference/helm-values">
+    Every value the chart accepts.
+  </Card>
+  <Card title="Routing" icon="route" href="/concepts/routing">
+    How Routr decides between agent-to-agent and the other routing types.
+  </Card>
+</CardGroup>

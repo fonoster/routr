@@ -154,6 +154,7 @@ The following functions are essential for an implementation of an *EdgePort*:
 - *Transform SIP Msg* - Transform Messages to protobuf
 - *Keep Msg's state* - MUST keep the state until the message is processed or a timeout occurs
 - *Reject Msgs from banned IPs* - MUST have a mechanism to identify and discard unwanted Messages
+- *Trust peer EdgePorts by address* - A request forwarded between EdgePorts (marked with `X-Edgeport-Ref`) bypasses routing and access checks, so it MUST be honored only from configured peer EdgePort addresses. The header alone proves nothing, since any caller can set it
 - *Health Check* - MUST have a mechanism to identify the health of the service
 - *M.E.L.T* - Must be capable of collecting and sending M.E.L.T to external systems
 - *Service Port* - The ports for SIP signaling will default to traditional values (e.g., 5060, 5061, etc.)
@@ -602,6 +603,8 @@ Interface Pseudocode:
   => isAuthorized(message) or send is Unauthorized
   => doProcess(message) and return updated request/response
 ```
+
+A processor that adds headers to a request (via a Route's `headers` with action `ADD`) replaces any existing copy of each header in the request (matched case-insensitively), so a caller-supplied value never sits next to the one Routr adds. Headers with action `REMOVE` are removed first.
 
 > The default gRPC port at the Message Processor SHOULD be `51901`.
 

@@ -1,0 +1,162 @@
+---
+title: "Quickstart on Kubernetes"
+sidebarTitle: "Quickstart (Kubernetes)"
+description: "Install the Routr Connect Helm chart on a local Kubernetes cluster and manage it with rctl."
+---
+
+In this tutorial, you install Routr Connect on a local Kubernetes cluster with Helm, open a tunnel to the API Server, and create your first resource with `rctl`.
+
+## What you'll build
+
+A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr service in its own pod, plus the PostgreSQL and Redis instances the chart installs for you. You manage it from your machine with `rctl`.
+
+## Prerequisites
+
+- A local Kubernetes cluster, such as [Minikube](https://minikube.sigs.k8s.io/) or the one built into Docker Desktop, with a storage provisioner for persistent volumes.
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) configured for that cluster.
+- [Helm](https://helm.sh/docs/intro/install/) v3.
+- [Node.js](https://nodejs.org/en/download/) and npm, to install `rctl`.
+- The IP address your SIP clients will use to reach the cluster (for a local cluster, usually your machine's IP, for example `192.168.1.3`).
+
+## Steps
+
+<Steps>
+  <Step title="Add the Helm repository">
+    Add the Routr chart repository and refresh your local cache:
+
+    ```bash
+    helm repo add routr https://routr.io/charts
+    helm repo update
+    ```
+  </Step>
+
+  <Step title="Create a namespace">
+    Create a namespace for the release. A dedicated namespace makes upgrades and cleanup easier.
+
+    ```bash
+    kubectl create namespace sipnet
+    ```
+  </Step>
+
+  <Step title="Write a values file">
+    Create a file named `values.yaml`. It sets the address the EdgePort advertises in SIP messages and turns off TLS on the API Server so you can connect with `--insecure` in this tutorial.
+
+    ```yaml values.yaml
+    apiserver:
+      tlsOn: false
+
+    edgeport:
+      # An address your SIP clients can reach (for example, your machine's IP)
+      externalAddrs: [192.168.1.3]
+    ```
+
+    <Warning>
+      Use `tlsOn: false` only on a local cluster. The chart enables TLS on the API Server by default. See [Secure the server](/guides/secure-the-server) before you expose Routr to a network you don't control.
+    </Warning>
+  </Step>
+
+  <Step title="Install the chart">
+    Install Routr Connect with your values file:
+
+    ```bash
+    helm install sipnet routr/routr-connect --namespace sipnet -f values.yaml
+    ```
+
+    Helm prints a summary similar to this:
+
+    ```text
+    NAME: sipnet
+    LAST DEPLOYED: ...
+    NAMESPACE: sipnet
+    STATUS: deployed
+    REVISION: 1
+    TEST SUITE: None
+    ```
+
+    Wait a few minutes for the images to download and the pods to start. Check their status:
+
+    ```bash
+    kubectl get pods -n sipnet
+    ```
+
+    You see one pod per Routr service (apiserver, connect, dispatcher, edgeport, location, registry, requester) plus `postgresql` and `redis`. The chart runs two EdgePort replicas by default.
+
+    <Check>
+      All pods show the status `Running`.
+    </Check>
+  </Step>
+
+  <Step title="Open a tunnel to the API Server">
+    The API Server isn't exposed outside the cluster. Forward its external port, `51908`, to your machine. Keep this command running in its own terminal.
+
+    ```bash
+    kubectl -n sipnet port-forward svc/sipnet-routr-apiserver 51908
+    ```
+
+    The service name follows the pattern `<release>-routr-apiserver`.
+  </Step>
+
+  <Step title="Connect with rctl">
+    In a new terminal, install the command-line tool:
+
+    ```bash
+    npm install -g @routr/ctl
+    ```
+
+    `rctl` connects to `localhost:51908` by default, which is where the tunnel listens. Create a Domain:
+
+    ```bash
+    rctl domains create --insecure
+    ```
+
+    Answer the prompts:
+
+    ```text
+    This utility will help you create a new Domain.
+    Press ^C at any time to quit.
+    ? Friendly Name Local Domain
+    ? SIP URI sip.local
+    ? IP Access Control List None
+    ? Ready? Yes
+    Creating Domain Local Domain... a27e9fb2-a71a-4cf3-9b1d-dccf373f9777
+    ```
+
+    List your Domains to confirm the API Server stored it in PostgreSQL:
+
+    ```bash
+    rctl domains get --insecure
+    ```
+
+    <Check>
+      `rctl` reaches Routr running in Kubernetes, and your Domain appears in the list.
+    </Check>
+  </Step>
+</Steps>
+
+From here, the steps to add Credentials and Agents are the same as in the [Docker quickstart](/quickstart). To register softphones, your clients must reach the EdgePort service. By default, the chart exposes it as a `NodePort` service over UDP. See [Deploy on Kubernetes](/guides/deploy-on-kubernetes) for service types, transports, and external addresses.
+
+## Clean up
+
+Remove the release and the namespace when you're done:
+
+```bash
+helm uninstall sipnet --namespace sipnet
+kubectl delete namespace sipnet
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Deploy on Kubernetes" icon="dharmachakra" href="/guides/deploy-on-kubernetes">
+    Configure transports, services, and external addresses for a real cluster.
+  </Card>
+  <Card title="Helm values" icon="list" href="/reference/helm-values">
+    See every value the chart accepts.
+  </Card>
+  <Card title="Deployment topologies" icon="diagram-project" href="/concepts/deployment-topologies">
+    Learn how each component scales.
+  </Card>
+  <Card title="Manage resources with rctl" icon="terminal" href="/guides/manage-resources-with-rctl">
+    Create Agents, Peers, Trunks, and Numbers.
+  </Card>
+</CardGroup>

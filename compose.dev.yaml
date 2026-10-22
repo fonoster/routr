@@ -38,7 +38,9 @@ services:
 
   dispatcher:
     container_name: dispatcher
-    build: ./mods/dispatcher
+    build:
+      context: .
+      dockerfile: ./mods/dispatcher/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
@@ -48,7 +50,9 @@ services:
 
   location:
     container_name: location
-    build: ./mods/location
+    build:
+      context: .
+      dockerfile: ./mods/location/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
@@ -58,7 +62,9 @@ services:
 
   connect:
     container_name: connect
-    build: ./mods/connect
+    build:
+      context: .
+      dockerfile: ./mods/connect/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
@@ -68,7 +74,9 @@ services:
 
   apiserver:
     container_name: apiserver
-    build: ./mods/simpledata
+    build:
+      context: .
+      dockerfile: ./mods/simpledata/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
@@ -90,7 +98,9 @@ services:
 
   registry:
     container_name: registry
-    build: ./mods/registry
+    build:
+      context: .
+      dockerfile: ./mods/registry/Dockerfile
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces

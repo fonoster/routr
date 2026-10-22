@@ -19,6 +19,8 @@
     "start:requester": "cross-env NODE_ENV=dev LOGS_LEVEL=verbose ./mods/requester/requester.sh",
     "start:rtprelay": "cross-env  NODE_ENV=dev LOGS_LEVEL=verbose nodemon mods/rtprelay/src/runner",
     "start:docs": "cd docs && npm start",
+    "start:docs-site": "cd docs-site && npx --yes mint@4.2.1045 dev --port 3333",
+    "check:docs-site": "cd docs-site && npx --yes mint@4.2.1045 broken-links",
     "start:deps": "docker compose -f compose.dev.yaml up rtpengine redis postgres adminer -d",
     "stop:deps": "docker compose -f compose.dev.yaml down rtpengine redis postgres adminer",
     "db:migrate": "npm run migrate --workspace=@routr/pgdata",
@@ -35,6 +37,8 @@
     "build:java": "npm run setup",
     "clean": "./.scripts/clean.sh",
     "bundle": "webpack --config webpack.config.js --mode none",
+    "postbundle": "npm run check:bundle",
+    "check:bundle": "node .scripts/check-graaljs-bundle.js",
     "prebundle": "cross-env npm run setup && npm run transpile && ./.scripts/prebundle.sh",
     "bump:version": "rimraf mods/**/.lerna-changed-buster-* && lerna exec -- touch .lerna-changed-buster-$RANDOM",
     "lint": "eslint mods --ext .ts --fix",
@@ -42,7 +46,7 @@
     "prepare": "husky install",
     "hostile:load": "sudo hostile load etc/hosts.txt",
     "hostile:unload": "sudo hostile unload etc/hosts.txt",
-    "publish": "lerna publish --yes --no-git-reset --dist-tag next $(./.scripts/next-release.sh) --message \"chore(release): publish %s [skip ci]\"",
+    "release": "lerna publish --yes --no-git-reset --dist-tag next $(./.scripts/next-release.sh) --message \"chore(release): publish %s [skip ci]\"",
     "publish:prerelease": "lerna publish prerelease --no-private --dist-tag next",
     "publish:frompackages": "lerna publish from-package",
     "typecheck": "tsc --noEmit",
@@ -61,6 +65,8 @@
     "@types/sinon-chai": "^3.2.4",
     "@types/vinyl": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.30.0",
+    "acorn": "^8.19.0",
+    "acorn-walk": "^8.3.5",
     "buffer": "^6.0.3",
     "chai": "^4",
     "chai-as-promised": "^7.1.1",
@@ -110,5 +116,8 @@
     "exclude": [
       "**/*.js"
     ]
+  },
+  "overrides": {
+    "underscore": "^1.13.8"
   }
 }

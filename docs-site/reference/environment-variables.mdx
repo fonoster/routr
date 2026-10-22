@@ -1,0 +1,147 @@
+---
+title: "Environment variables"
+sidebarTitle: "Environment variables"
+description: "Every environment variable and port of the routr-one image, grouped by component, for anyone running Routr with Docker."
+---
+
+The `fonoster/routr-one` image runs EdgePort, Message Dispatcher, Connect processor, Location Service, and API Server (pgdata) in one container, plus RTPRelay when you set `RTPENGINE_HOST`. It also starts an internal PostgreSQL database by default. This page lists the variables that apply to that image. For standalone images, see the component pages.
+
+## Ports
+
+| Port | Protocol | Component | Notes |
+| --- | --- | --- | --- |
+| `5060` | SIP over UDP and TCP | EdgePort | |
+| `5061` | SIP over TLS | EdgePort | |
+| `5062` | SIP over WS | EdgePort | |
+| `5063` | SIP over WSS | EdgePort | |
+| `51901` | gRPC | Message Dispatcher | |
+| `51902` | gRPC | Location Service | Memory cache |
+| `51903` | gRPC | RTPRelay | Only when `RTPENGINE_HOST` is set |
+| `51904` | gRPC | Connect processor | |
+| `51907` | gRPC, plaintext | API Server (internal) | Used by Routr services |
+| `51908` | gRPC, TLS when `TLS_ON=true` | API Server (external) | Used by rctl and the SDK. Publish this port to manage resources |
+| `5432` | PostgreSQL | Internal database | Only when `START_INTERNAL_DB=true` |
+
+Inside `routr-one`, the gRPC addresses are fixed. `BIND_ADDR`, `LOCATION_ADDR`, and `API_ADDR` have no effect.
+
+The standalone images use the same conventions, plus these ports:
+
+| Port | Protocol | Component |
+| --- | --- | --- |
+| `51909` | gRPC | [Requester](/reference/components/requester) |
+| `8080` | HTTP `/healthz` | EdgePort and Requester (with `ENABLE_HEALTHCHECKS=true`), Registry (unless `ENABLE_HEALTHCHECKS=false`) |
+
+## Container and database
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/routr` | PostgreSQL connection string. Point it at an external database to use your own |
+| `START_INTERNAL_DB` | `true` | `true` initializes and starts the bundled PostgreSQL. Set `false` with an external `DATABASE_URL` |
+| `HEPLIFY_OPTIONS` | | When set, runs `heplify` with these options to mirror SIP traffic to a HEP collector such as Homer |
+| `EDGEPORT_RUNNER` | `/service/edgeport.sh` | Script that starts the EdgePort process |
+
+The container applies database migrations on every start.
+
+## EdgePort
+
+See [EdgePort](/reference/components/edgeport) for details.
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `EXTERNAL_ADDRS` | | Comma-separated public addresses of the host. Set it to your host's IP when clients are outside the container |
+| `LOCALNETS` | Networks reported by the OS | Comma-separated CIDRs considered local |
+| `IGNORE_LOOPBACK_FROM_LOCALNETS` | `true` | Skip `127.0.0.1` when `LOCALNETS` comes from the OS |
+| `HOSTNAME` | Container hostname | EdgePort reference (`ref`) |
+| `PROCESSOR_ADDR` | `localhost:51901` (from the config file) | Address the EdgePort sends messages to |
+| `CONFIG_PATH` | `/service/config/edgeport.yaml` | EdgePort configuration file |
+| `PKCS12_PASSWORD` | `changeme` | Password of the SIP TLS keystore. Written into the EdgePort config at startup |
+| `PATH_TO_CERTS` | `/etc/routr/certs` | Directory with `server.crt`, `server.key`, and an optional `ca.crt`. Self-signed certificates are generated when missing |
+| `CA_CERT_SUBJECT` | `/CN=Self Signed CA` | Subject of the generated CA certificate |
+| `SERVER_CERT_SUBJECT` | `/CN=localhost` | Subject of the generated server certificate |
+| `STRIP_SESSION_PROGRESS_SDP` | `false` | Remove the body from `183 Session Progress` responses |
+| `ENABLE_HEALTHCHECKS` | `false` | Start the HTTP health check on port `8080` |
+| `CONSOLE_PUBLISHER_ENABLED` | `false` | Print call events to the console |
+| `NATS_PUBLISHER_ENABLED` | `false` | Publish call events to NATS |
+| `NATS_PUBLISHER_URL` | `nats://localhost:4222` | NATS server URL |
+| `NATS_PUBLISHER_SUBJECT` | `routr` | NATS subject for events |
+| `LOG4J2` | `/etc/routr/log4j2.yaml` | Log4j2 configuration for the EdgePort |
+| `JAVA_HOME` | `/service/jre` | Java runtime for the EdgePort |
+
+## Connect processor
+
+See [Connect processor](/reference/components/connect) for details.
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `ENFORCE_E164` | `false` | Normalize From, To, and Request-URI users to E.164. Also validates new Numbers in the API Server |
+| `ENFORCE_E164_WITH_MOBILE_PREFIX` | `false` | Also validate mobile prefixes |
+| `CONNECT_VERIFIER_PUBLIC_KEY_PATH` | | Public key used to verify `X-Connect-Token` JWTs locally |
+| `CONNECT_VERIFIER_OPTIONS` | `{"expiresIn":"1h","algorithm":["RS256"]}` | JSON options for local verification |
+| `CONNECT_VERIFIER_ADDR` | | Address of a remote gRPC verifier |
+| `UNTRUSTED_HEADERS_TO_STRIP` | Platform headers list | Comma-separated headers removed from untrusted requests. Empty turns stripping off |
+| `TRUSTED_EDGEPORT_ADDRESSES` | Empty | Comma-separated IPs or CIDRs of peer EdgePorts allowed to send `X-Edgeport-Ref` |
+| `TRUSTED_EDGEPORTS` | Empty | Comma-separated EdgePort refs accepted in `X-Edgeport-Ref` |
+
+## API Server (pgdata)
+
+See [API Server](/reference/components/apiserver) for details.
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `TLS_ON` | `false` | `true` serves the external port `51908` over TLS |
+| `VERIFY_CLIENT_CERT` | `false` | `true` requires client certificates signed by `CACERT` |
+| `CACERT` | `/etc/routr/certs/ca.crt` | CA certificate used to verify clients |
+| `SERVER_CERT` | `/etc/routr/certs/server.crt` | Server certificate for the external port |
+| `SERVER_KEY` | `/etc/routr/certs/server.key` | Server private key for the external port |
+| `CLOAK_ENCRYPTION_KEY` | | Cloak key that turns on field-level encryption |
+
+## RTPRelay
+
+See [RTPRelay](/reference/components/rtprelay) for details.
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `RTPENGINE_HOST` | | RTPEngine host. Setting it starts RTPRelay and adds it as a post-processor middleware |
+| `RTPENGINE_PORT` | `22222` | RTPEngine ng control port |
+| `RTPENGINE_TIMEOUT` | `5000` | Timeout for RTPEngine requests, in milliseconds |
+
+## Logging and tracing
+
+These apply to the Node.js services in the container.
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
+| `OTEL_SERVICE_NAME` | `one` | Service name reported in traces |
+| `OTEL_SDK_DISABLED` | | `true` turns tracing off |
+
+## Example
+
+This Compose file runs `routr-one` with the SIP and API ports published.
+
+```yaml
+services:
+  routr:
+    image: fonoster/routr-one
+    environment:
+      EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+    ports:
+      - 51908:51908
+      - 5060:5060/udp
+```
+
+## Component pages
+
+<CardGroup cols={3}>
+  <Card title="EdgePort" href="/reference/components/edgeport" />
+  <Card title="Dispatcher" href="/reference/components/dispatcher" />
+  <Card title="Location" href="/reference/components/location" />
+  <Card title="Connect" href="/reference/components/connect" />
+  <Card title="API Server" href="/reference/components/apiserver" />
+  <Card title="Registry" href="/reference/components/registry" />
+  <Card title="Requester" href="/reference/components/requester" />
+  <Card title="RTPRelay" href="/reference/components/rtprelay" />
+  <Card title="SimpleAuth" href="/reference/components/simpleauth" />
+</CardGroup>

@@ -1,0 +1,59 @@
+---
+title: "Introduction"
+description: "Learn what Routr is, who it's for, and how it differs from other SIP servers, so you can decide where to start."
+---
+
+<img
+  className="block dark:hidden rounded-xl"
+  src="/images/introduction/banner-light.png"
+  alt="Routr banner: a programmable SIP proxy, registrar, and location server built as cloud-native gRPC services"
+/>
+<img
+  className="hidden dark:block rounded-xl"
+  src="/images/introduction/banner-dark.png"
+  alt="Routr banner: a programmable SIP proxy, registrar, and location server built as cloud-native gRPC services"
+/>
+
+## What Routr is
+
+Routr is an open-source SIP proxy, registrar, and location server. It accepts SIP requests from phones, browsers, PBXs, and carriers, decides where each request should go, and forwards it there. It handles signaling only: Routr is not a media server.
+
+Routr v2 is a set of small services that talk to each other over gRPC instead of a single process with a routing script:
+
+- The **EdgePort** sits at the edge of the network, holds the SIP connections and transactions, and converts each SIP message into a protobuf message.
+- The **Message Dispatcher** sends each message to the right **Processor**, passing it through optional **Middlewares** on the way.
+- A **Processor** decides the route. Routr ships with the Connect processor, which implements the PBX portion of SIP Connect 1.1 with Domains, Agents, Peers, Trunks, and Numbers.
+- The **Location Service** stores registrations, and the **API Server** stores your resources in YAML files or PostgreSQL.
+
+Because every service shares the same gRPC interface, you can replace the routing logic with your own Processor, written in any language that supports gRPC, without touching the rest of the system. Read [Architecture](/concepts/architecture) for the full picture.
+
+Routr is the signaling engine behind [Fonoster](https://fonoster.com), and it's released under the [MIT license](https://github.com/fonoster/routr/blob/main/LICENSE).
+
+## Who it's for
+
+- **Developers** who want to add voice to an application and control call routing with code, using the [rctl](/reference/rctl) command-line tool, the [Node.js SDK](/reference/sdk), or a custom Processor.
+- **Operators** who run SIP infrastructure on Docker or Kubernetes and want to scale each part of it on its own.
+- **Integrators** who need a SIP edge in front of Asterisk or FreeSWITCH. Routr registers phones, routes calls to and from carriers, and spreads calls across a group of media servers. It doesn't replace those media servers.
+
+## How Routr compares with Kamailio and OpenSIPS
+
+Kamailio and OpenSIPS are mature, programmable SIP servers with a long track record and a large module ecosystem. You program them with a routing script that runs inside one server process.
+
+Routr solves the same class of problem with a different design. Each function (edge, dispatch, routing, location, data) is a separate service, so you can scale, restart, or replace one without the others. Routing logic lives in a Processor that receives a protobuf message over gRPC, so you write it in a general-purpose language and test it like any other service. Routr is built to run in containers from the start, with a Docker image for single hosts and a Helm chart for Kubernetes.
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Run Routr with Docker and make your first call between two softphones.
+  </Card>
+  <Card title="Quickstart on Kubernetes" icon="dharmachakra" href="/quickstart-kubernetes">
+    Install the Routr Connect Helm chart on a local cluster.
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
+    Learn what each service does and how they fit together.
+  </Card>
+  <Card title="Connect mode" icon="plug" href="/concepts/connect-mode">
+    Understand Domains, Agents, Peers, Trunks, and Numbers.
+  </Card>
+</CardGroup>

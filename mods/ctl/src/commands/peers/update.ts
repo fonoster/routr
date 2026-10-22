@@ -118,14 +118,14 @@ Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
         {
           name: "accessControlListRef",
           message: "IP Access Control List",
-          choices: [{ name: "None", value: undefined }, ...aclList],
+          choices: [{ name: "None", value: "" }, ...aclList],
           type: "list",
           default: peerFromDB.accessControlListRef
         },
         {
           name: "credentialsRef",
           message: "Credentials Name",
-          choices: [{ name: "None", value: undefined }, ...credentialsList],
+          choices: [{ name: "None", value: "" }, ...credentialsList],
           type: "list",
           default: peerFromDB.credentialsRef
         },

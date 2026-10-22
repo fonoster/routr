@@ -1,0 +1,95 @@
+---
+title: "Number resource"
+sidebarTitle: "Numbers"
+description: "Every field of the Number resource, in YAML and API form, for operators who route phone numbers between a Trunk and Agents or Peers in Routr Connect."
+---
+
+A Number is a phone number on a Trunk. It tells Routr where to send calls that arrive for it, and it is the caller ID for outbound calls that use it.
+
+## Fields
+
+| YAML field | API / SDK field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- | --- |
+| `metadata.name` | `name` | `string` | Yes | - | Friendly name, such as `"(785) 317-8070"`. Up to 60 characters. |
+| `metadata.geoInfo.city` | `city` | `string` | Yes | - | City of the Number. Can't be changed after create. |
+| `metadata.geoInfo.country` | `country` | `string` | Yes | - | Country of the Number. Can't be changed after create. |
+| `metadata.geoInfo.countryIsoCode` | `countryIsoCode` | `string` | Yes | - | Two-letter ISO country code, such as `US`. Can't be changed after create. |
+| `spec.trunkRef` | `trunkRef` | `string` | No | - | `ref` of the [Trunk](/reference/resources/trunks) that carries the Number. |
+| `spec.location.telUrl` | `telUrl` | `string` | Yes | - | The number as a `tel:` URL, such as `tel:+17853178070`. Can't be changed after create. |
+| `spec.location.aorLink` | `aorLink` | `string` | No | - | Address of Record that receives calls to this Number: an Agent (`sip:1001@sip.local`) or a Peer's `aor`. |
+| `spec.location.sessionAffinityHeader` | `sessionAffinityHeader` | `string` | No | - | Name of a header on incoming calls whose value keeps related calls on the same Peer instance. |
+| `spec.location.extraHeaders` | `extraHeaders` | `array` | No | - | Headers Routr adds to calls it routes to `aorLink`. |
+| `spec.location.extraHeaders[].name` | `extraHeaders[].name` | `string` | Yes | - | Header name. |
+| `spec.location.extraHeaders[].value` | `extraHeaders[].value` | `string` | Yes | - | Header value. |
+| - | `extended` | `object` | No | - | Custom attributes. API only. See `accessKeyId` below. |
+
+The API response also includes `trunk`, the object that `trunkRef` points to.
+
+## Constraints
+
+- `name` is required and must be 1 to 60 characters.
+- `telUrl` must start with `tel:`. In pgdata it must be unique and up to 60 characters.
+- When the API server runs with `ENFORCE_E164=true`, `telUrl` must be a valid E.164 number for `countryIsoCode`. `ENFORCE_E164_WITH_MOBILE_PREFIX=true` also validates the mobile prefix.
+- `aorLink` must start with `sip:` or `backend:`.
+- `sessionAffinityHeader` and each `extraHeaders[].name` may contain only letters, digits, and dashes, and can't end with a dash. Each `extraHeaders[].value` must be non-empty.
+- In YAML, `metadata.geoInfo` must be present. The loader reads it for every Number.
+- When `extended.accessKeyId` is set, a Peer can use this Number for `peer-to-pstn` calls only if its request carries the same value in `X-Access-Key-Id`.
+
+## How Connect uses a Number
+
+- `from-pstn`: a call from the Trunk to `telUrl` goes to the endpoints registered under `aorLink`, with `extraHeaders` added.
+- `agent-to-pstn`: a Domain egress policy selects the Number. Its Trunk carries the call, and its `telUrl` becomes the caller ID in `P-Asserted-Identity` and `Remote-Party-ID`.
+- `peer-to-pstn`: the Peer names the Number in the `X-DOD-Number` header, as the `telUrl` without `tel:`.
+
+## YAML example
+
+The following Number routes calls to a Peer and keeps calls with the same `X-Room-Id` on one instance.
+
+```yaml
+- apiVersion: v2beta1
+  kind: Number
+  ref: number-01
+  metadata:
+    name: "(706)604-1487"
+    geoInfo:
+      city: Columbus, GA
+      country: USA
+      countryIsoCode: US
+  spec:
+    trunkRef: trunk-01
+    location:
+      telUrl: tel:+17066041487
+      aorLink: sip:conference@sip.local
+      sessionAffinityHeader: X-Room-Id
+      extraHeaders:
+        - name: X-Room-Id
+          value: jsa-shqm-iyo
+```
+
+## rctl equivalent
+
+Run the interactive create command and answer the prompts. Enter extra headers as comma-separated `Name:value` pairs.
+
+```bash
+rctl numbers create
+```
+
+See [`rctl numbers`](/reference/rctl#numbers) for the prompts and the other actions.
+
+## SDK equivalent
+
+The following call creates the same Number through the API.
+
+```typescript
+await new SDK.Numbers({ endpoint: "localhost:51908", insecure: true }).createNumber({
+  name: "(706)604-1487",
+  telUrl: "tel:+17066041487",
+  aorLink: "sip:conference@sip.local",
+  city: "Columbus, GA",
+  country: "USA",
+  countryIsoCode: "US",
+  trunkRef: "<trunk-ref>",
+  sessionAffinityHeader: "X-Room-Id",
+  extraHeaders: [{ name: "X-Room-Id", value: "jsa-shqm-iyo" }]
+})
+```

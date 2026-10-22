@@ -130,6 +130,22 @@ Furthermore, an Agent can utilize the custom header X-Connect-Token to transmit 
 }
 ```
 
+**Untrusted Platform Headers**
+
+Requests from untrusted sources, meaning calls from the PSTN and requests authorized only by an `X-Connect-Token`, MUST have the following platform headers removed before they are forwarded: `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count` (names are case-insensitive). A request with a verified `X-Connect-Token` keeps its `X-App-Ref`. Requests from authenticated Agents and Peers keep their headers. The list can be overridden with the `UNTRUSTED_HEADERS_TO_STRIP` environment variable (comma-separated; an empty value disables stripping).
+
+**Requests From Peer EdgePorts**
+
+When a request is routed to an endpoint on another EdgePort, the Processor forwards it to that EdgePort with an `X-Edgeport-Ref` header. A request carrying that header skips routing and access checks: its route is rebuilt from the message. The Processor MUST honor `X-Edgeport-Ref` only when the request comes from a trusted peer EdgePort, meaning its source address (the top Via's `received` value, or its host when `received` is absent) is in `TRUSTED_EDGEPORT_ADDRESSES` (comma-separated IPs or CIDRs) and, if `TRUSTED_EDGEPORTS` is set (comma-separated EdgePort refs), the header value is one of those refs. From any other source the header is removed and the request is routed normally, with the usual access checks. Both settings are empty by default, so no peer EdgePort is trusted; that is correct for a single EdgePort, and deployments with several EdgePorts MUST list their EdgePorts' addresses. A `CANCEL` always reuses its INVITE's path and is not affected.
+
+When the Processor adds a header to a request (for example, a Number's `extraHeaders`, `X-Call-Direction`, or `X-Gateway-Auth`), it MUST replace any copy of that header already in the request rather than append a second one.
+
+For Peer-to-PSTN routing, if the Number selected by `X-DOD-Number` has `extended.accessKeyId`, the request MUST carry a matching `X-Access-Key-Id` header or be rejected with Forbidden (403). Numbers without `extended.accessKeyId` are unaffected.
+
+**Trunk Access Control Lists**
+
+When a call from the PSTN arrives on a Trunk with an access control list, the Processor MUST check the request's source address against the list's `allow` entries and reject the call if none matches. The source address is the top Via's `received` value, or its host when `received` is absent (RFC 3261 §18.2.1); the Via host alone is set by the sender and MUST NOT be trusted when `received` is present.
+
 **Non-functional Requirements**
 
 The following requirements are essential to have for an implementation of a *Connect Processor*:

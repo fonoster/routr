@@ -1,0 +1,219 @@
+---
+title: "Helm chart values"
+sidebarTitle: "Helm values"
+description: "Every value of the routr-connect Helm chart, with type, default, and effect, for anyone deploying Routr on Kubernetes."
+---
+
+The `routr/routr-connect` chart deploys EdgePort, Message Dispatcher, Connect processor, Location Service, API Server (pgdata), Registry, Requester, and optionally RTPRelay. It can also deploy PostgreSQL and Redis from the Bitnami charts.
+
+| Chart | Version | App version |
+| --- | --- | --- |
+| `routr-connect` | `0.4.3` | `2.13.6` |
+
+Image tags default to the chart's app version.
+
+## Install
+
+These commands add the chart repository and install a release named `routr` in the `routr` namespace.
+
+```bash
+helm repo add routr https://routr.io/charts
+helm repo update
+kubectl create namespace routr
+helm install routr routr/routr-connect --namespace routr
+```
+
+This command overrides values from a file.
+
+```bash
+helm install routr routr/routr-connect --namespace routr -f values.yaml
+```
+
+## Common value groups
+
+Each service section has the same groups. They are listed once here and referenced by section below.
+
+| Key (under the section) | Type | Default | Description |
+| --- | --- | --- | --- |
+| `image.repository` | string | Per service | Image repository |
+| `image.tag` | string | Chart `appVersion` | Image tag. Immutable tags are recommended |
+| `image.pullPolicy` | string | `IfNotPresent` | Image pull policy |
+| `podAnnotations` | object | `{}` | Pod annotations |
+| `serviceAnnotations` | object | `{}` | Service annotations |
+| `securityContext.runAsUser` | integer | `1000` | User ID of the container |
+| `securityContext.runAsGroup` | integer | `3000` | Group ID of the container |
+| `securityContext.fsGroup` | integer | `2000` | File system group |
+| `securityContext.allowPrivilegeEscalation` | boolean | `false` | Allow privilege escalation |
+| `livenessProbe.initialDelaySeconds` | integer | Per service | Delay before the first probe |
+| `livenessProbe.periodSeconds` | integer | `5` | Seconds between probes |
+| `livenessProbe.successThreshold` | integer | `1` | Successes to be considered healthy |
+| `livenessProbe.failureThreshold` | integer | `2` | Failures to be considered unhealthy |
+| `livenessProbe.timeoutSeconds` | integer | Per service | Probe timeout |
+| `resources.limits` | object | `{}` | Resource limits, for example `{"memory": "512Mi", "cpu": "200m"}` |
+| `resources.requests` | object | `{}` | Resource requests, for example `{"memory": "256Mi", "cpu": "100m"}` |
+| `autoscaling.minReplicas` | integer | `1` | Minimum replicas of the HorizontalPodAutoscaler |
+| `autoscaling.maxReplicas` | integer | `10` | Maximum replicas of the HorizontalPodAutoscaler |
+| `autoscaling.targetCPUUtilizationPercentage` | integer | `50` | Target CPU utilization |
+| `autoscaling.targetMemoryUtilizationPercentage` | integer | `70` | Target memory utilization |
+
+Per-service defaults:
+
+| Section | `image.repository` | `livenessProbe.initialDelaySeconds` | `livenessProbe.timeoutSeconds` | Probe | Autoscaling |
+| --- | --- | --- | --- | --- | --- |
+| `edgeport` | `fonoster/routr-edgeport` | `10` | `1` | HTTP `/healthz` on `8080` | No (StatefulSet with `replicas`) |
+| `dispatcher` | `fonoster/routr-dispatcher` | `5` | `1` | gRPC on `51901` | Yes |
+| `location` | `fonoster/routr-location` | `5` | `1` | gRPC on `51902` | Yes |
+| `apiserver` | `fonoster/routr-pgdata` | `5` | `4` | gRPC on `51907` | Yes |
+| `connect` | `fonoster/routr-connect` | `5` | `1` | gRPC on `51904` | Yes |
+| `registry` | `fonoster/routr-registry` | `5` | `2` | HTTP `/healthz` on `8080` | No |
+| `requester` | `fonoster/routr-requester` | `10` | `2` | HTTP `/healthz` on `8080` | Yes |
+| `rtprelay` | `fonoster/routr-rtprelay` | `5` | `4` | gRPC on `51903` | Yes, when enabled |
+
+## global
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `global.region` | string | `default` | Region written to the EdgePort and Location configs (reserved for future use) |
+| `global.logsLevel` | string | `info` | Sets `LOGS_LEVEL` on every service |
+| `global.otlExporter` | string | Unset | Sets `OTEL_EXPORTER_JAEGER_ENDPOINT` on every service |
+
+## edgeport
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `edgeport.pkcs12Password` | string | `changeme` | Password of the SIP TLS keystore, stored in a Secret. Change it in production |
+| `edgeport.externalAddrs` | string[] | `[]` | External addresses of the EdgePort. Required for correct address advertisement |
+| `edgeport.localnets` | string[] | Unset | Local networks. Defaults to the networks reported by the OS |
+| `edgeport.methods` | string[] | `[REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL]` | Acceptable SIP methods. Required |
+| `edgeport.heplifyOptions` | string | Unset | Options for `heplify`, for example `-hs homerserver:9060`. Experimental HEP support |
+| `edgeport.unknownMethodAction` | string | `Discard` | Reserved for future use. The template always writes `Discard` |
+| `edgeport.transport.tcp.enabled` | boolean | `false` | Enable SIP over TCP |
+| `edgeport.transport.tcp.port` | integer | `5060` | TCP port |
+| `edgeport.transport.udp.enabled` | boolean | `true` | Enable SIP over UDP |
+| `edgeport.transport.udp.port` | integer | `5060` | UDP port |
+| `edgeport.transport.tls.enabled` | boolean | `false` | Enable SIP over TLS |
+| `edgeport.transport.tls.port` | integer | `5061` | TLS port |
+| `edgeport.transport.ws.enabled` | boolean | `false` | Enable SIP over WebSocket |
+| `edgeport.transport.ws.port` | integer | `5062` | WS port |
+| `edgeport.transport.wss.enabled` | boolean | `false` | Enable SIP over secure WebSocket |
+| `edgeport.transport.wss.port` | integer | `5063` | WSS port |
+| `edgeport.replicas` | integer | `2` | Number of EdgePort pods in the StatefulSet |
+| `edgeport.minReadySeconds` | integer | `10` | Seconds a new pod must be ready before it counts as available |
+| `edgeport.terminationGracePeriodSeconds` | integer | `10` | Seconds Kubernetes waits before killing a terminating pod |
+| `edgeport.serviceTypeTCP` | string | `NodePort` | Type of the TCP Service (TCP, TLS, WS, WSS) |
+| `edgeport.serviceTypeUDP` | string | `NodePort` | Type of the UDP Service |
+| `edgeport.externalTrafficPolicyTCP` | string | `Cluster` | `externalTrafficPolicy` of the TCP Service |
+| `edgeport.externalTrafficPolicyUDP` | string | `Cluster` | `externalTrafficPolicy` of the UDP Service |
+| `edgeport.serviceAnnotationsTCP` | object | `{}` | Annotations of the TCP Service |
+| `edgeport.serviceAnnotationsUDP` | object | `{}` | Annotations of the UDP Service |
+| `edgeport.udpHealthCheck` | boolean | `false` | Add the health port `8080` to the UDP Service, for load balancers that need a TCP health check |
+| `edgeport.image.*`, `podAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*` | | See [common groups](#common-value-groups) | |
+
+The TCP Service is created only when TCP, TLS, WS, or WSS is enabled. The UDP Service is created only when UDP is enabled.
+
+## dispatcher
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `dispatcher.processors` | object[] | One `connect-processor` entry | Processors written to the Dispatcher config, in order |
+| `dispatcher.processors[*].ref` | string | `connect-processor` | Processor reference |
+| `dispatcher.processors[*].serviceName` | string | `routr-connect` | Service name of the Processor. The address is `<servicePrefix>-<serviceName>.<serviceNamespace>:51904` |
+| `dispatcher.processors[*].servicePrefix` | string | Release name | Prefix of the Service name |
+| `dispatcher.processors[*].serviceNamespace` | string | Release namespace | Namespace of the Service |
+| `dispatcher.processors[*].matchFunc` | string | `req => true` | Match function |
+| `dispatcher.processors[*].methods` | string[] | `[REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL]` | SIP methods the Processor handles |
+| `dispatcher.middlewares` | object[] | `[]` | Middlewares written to the Dispatcher config |
+| `dispatcher.middlewares[*].ref` | string | | Middleware reference |
+| `dispatcher.middlewares[*].serviceName` | string | | Service name of the middleware. The address is `<servicePrefix>-<serviceName>.<serviceNamespace>:51903` |
+| `dispatcher.middlewares[*].servicePrefix` | string | Release name | Prefix of the Service name |
+| `dispatcher.middlewares[*].serviceNamespace` | string | Release namespace | Namespace of the Service |
+| `dispatcher.middlewares[*].postProcessor` | boolean | | `true` runs the middleware after the Processor. Set it on every entry |
+| `dispatcher.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+
+## location
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `location.cache.provider` | string | `redis` | `redis` or `memory` |
+| `location.cache.parameters` | string | `""` | Redis parameters. Empty uses `host=<release>-redis-master.<namespace>,port=6379` |
+| `location.region` | string | `default` | Reserved for future use. Not used by the templates |
+| `location.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+
+## apiserver
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `apiserver.databaseUrl` | string | Unset | External PostgreSQL URL. Unset builds the URL from `postgresql.auth` and the bundled PostgreSQL Service |
+| `apiserver.tlsOn` | boolean | `true` | Sets `TLS_ON`. Serves the external port `51908` over TLS |
+| `apiserver.verifyClientCert` | boolean | `false` | Sets `VERIFY_CLIENT_CERT`. Requires client certificates |
+| `apiserver.cloakEncryptionKey` | string | Unset | Sets `CLOAK_ENCRYPTION_KEY`. Turns on field-level encryption |
+| `apiserver.migrations.enabled` | boolean | `true` | Run database migrations in a post-install and post-upgrade hook |
+| `apiserver.migrations.image.repository` | string | `fonoster/routr-pgdata-migrations` | Migrations image repository |
+| `apiserver.migrations.image.tag` | string | Chart `appVersion` | Migrations image tag |
+| `apiserver.migrations.image.pullPolicy` | string | `IfNotPresent` | Migrations image pull policy |
+| `apiserver.migrations.resources.limits` | object | `{}` | Resource limits of the wait-for-database init container |
+| `apiserver.migrations.resources.requests` | object | `{}` | Resource requests of the wait-for-database init container |
+| `apiserver.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+
+## connect
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `connect.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+
+The chart sets `LOCATION_ADDR` and `API_ADDR` for you.
+
+## registry
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `registry.registerInterval` | integer | `20` | Seconds between registration rounds |
+| `registry.cache.provider` | string | `redis` | `redis` or `memory` |
+| `registry.cache.parameters` | string | `""` | Redis parameters. Empty uses `host=<release>-redis-master.<namespace>,port=6379` |
+| `registry.methods` | string[] | `[INVITE, MESSAGE]` | Methods advertised in the `Allow` header of the `REGISTER` |
+| `registry.serviceAnnotations` | object | `{}` | Not used: the chart creates no Registry Service |
+| `registry.autoscaling.*` | | See [common groups](#common-value-groups) | Not used: the chart creates no Registry autoscaler |
+| `registry.image.*`, `podAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*` | | See [common groups](#common-value-groups) | |
+
+## requester
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `requester.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+
+## rtprelay
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `rtprelay.enabled` | boolean | `false` | Deploy RTPRelay |
+| `rtprelay.rtpeHost` | string | `""` | Sets `RTPENGINE_HOST`. Required when enabled |
+| `rtprelay.rtpePort` | integer | `22222` | Sets `RTPENGINE_PORT` |
+| `rtprelay.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
+
+Enabling RTPRelay does not add it to the Dispatcher. Add an entry to `dispatcher.middlewares`, for example `{ref: rtprelay, serviceName: routr-rtprelay, postProcessor: true}`.
+
+## postgresql
+
+Values from the [Bitnami PostgreSQL chart](https://github.com/bitnami/charts/tree/main/bitnami/postgresql), chart version `16.2.2`.
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `postgresql.enabled` | boolean | `true` | Deploy PostgreSQL. Set `false` and set `apiserver.databaseUrl` to use an external database |
+| `postgresql.auth.username` | string | `routr` | Database user |
+| `postgresql.auth.password` | string | `changeme` | Database password. Change it in production |
+
+## redis
+
+Values from the [Bitnami Redis chart](https://github.com/bitnami/charts/tree/main/bitnami/redis), chart version `20.3.0`.
+
+| Key | Type | Default | Description |
+| --- | --- | --- | --- |
+| `redis.enabled` | boolean | `true` | Deploy Redis |
+| `redis.architecture` | string | `standalone` | Redis architecture |
+| `redis.auth.enabled` | boolean | `false` | Require a Redis password. If you enable it, pass the password in `location.cache.parameters` and `registry.cache.parameters` |
+
+## Notes
+
+- `global.otlExporter` sets `OTEL_EXPORTER_JAEGER_ENDPOINT`, but the Routr services read the standard `OTEL_EXPORTER_OTLP_ENDPOINT`. See [Environment variables](/reference/environment-variables).
+- The chart does not set `TRUSTED_EDGEPORT_ADDRESSES` on the Connect processor. With more than one EdgePort replica, requests forwarded between EdgePorts go through routing and access checks again. See [Connect processor](/reference/components/connect).
+- The chart has no values for Connect settings such as `ENFORCE_E164` or the Connect Token verifier.

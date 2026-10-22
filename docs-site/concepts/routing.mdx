@@ -1,0 +1,101 @@
+---
+title: "Routing"
+description: "Learn how the Connect processor classifies each call into one of five routing types, which checks it runs, and how Numbers steer calls from the PSTN."
+---
+
+For every new request, such as an `INVITE`, the Connect processor answers two questions: who is calling, and who is being called? The answer determines the **routing type**, and the routing type determines which access checks run and where the call goes.
+
+<img
+  className="block dark:hidden rounded-xl"
+  src="/images/routing/routing-types-light.png"
+  alt="The five Connect routing types: agent-to-agent inside a Domain, agent-to-pstn from an Agent through a Number and Trunk, from-pstn from a Trunk through a Number to an Agent or Peer, peer-to-pstn from a Peer through a Number and Trunk, and agent-to-peer from an Agent to a Peer"
+/>
+<img
+  className="hidden dark:block rounded-xl"
+  src="/images/routing/routing-types-dark.png"
+  alt="The five Connect routing types: agent-to-agent inside a Domain, agent-to-pstn from an Agent through a Number and Trunk, from-pstn from a Trunk through a Number to an Agent or Peer, peer-to-pstn from a Peer through a Number and Trunk, and agent-to-peer from an Agent to a Peer"
+/>
+
+## How Connect identifies the caller and the callee
+
+Connect looks up the caller from the user and host in the `From` header, and the callee from the user and host in the Request-URI. For each one, it tries these resources in order:
+
+1. A **Number** whose `telUrl` is `tel:` plus the user part.
+2. An **Agent** with that username, but only if the Agent belongs to the Domain named by the host. An Agent from another Domain doesn't match.
+3. A **Peer** with that username.
+
+If nothing matches, the party is unknown, which Connect treats as the PSTN.
+
+When the request carries an `X-Connect-Token`, Connect builds the caller from the token's claims instead and looks up the callee as the Peer whose `aor` equals the token's `aorLink`.
+
+## The five routing types
+
+Connect picks the routing type from the kinds of the two parties:
+
+| Caller | Callee | Routing type |
+| --- | --- | --- |
+| Agent | Agent in the same Domain | `agent-to-agent` |
+| Agent | Unknown | `agent-to-pstn` |
+| Agent | Peer | `agent-to-peer` |
+| Any | Number | `from-pstn` |
+| Peer | Unknown | `peer-to-pstn` |
+
+Any other combination is rejected with `403 Forbidden`.
+
+### agent-to-agent
+
+An Agent calls another Agent in its Domain, for example `1001` dialing `1002` in `sip.local`. Connect asks the Location Service for the callee's registered route and sends the call there.
+
+### agent-to-pstn
+
+An Agent dials a number that isn't an Agent, Peer, or Number in Routr. Connect checks the caller's Domain for an **egress policy** whose `rule`, a regular expression, matches the dialed number. The first match selects a Number, and that Number's Trunk carries the call. Connect sets the `Privacy` header from the Agent's privacy setting and adds `Remote-Party-ID`, `P-Asserted-Identity`, and the Trunk's authentication. If no policy matches, the call fails.
+
+### from-pstn
+
+A call arrives from a carrier for one of your Numbers. The Number's `aorLink` says where the call goes, for example `sip:1001@sip.local` for an Agent or `sip:conference@sip.local` for a group of Peers. If a Peer has that `aor`, Connect applies the Peer's [load balancing](/concepts/load-balancing) settings. Connect also adds the Number's `extraHeaders` to the request.
+
+A Number can name a `sessionAffinityHeader`. When the incoming call carries that header, Connect passes its value to the Location Service so that calls with the same value reach the same Peer, for example every caller joining the same conference room.
+
+### peer-to-pstn
+
+A Peer, such as Asterisk, dials a number that Routr doesn't know. Because a Peer isn't bound to a Domain, it must say which Number to call from: the request must include an `X-DOD-Number` header with a Number you own, and may include `X-DOD-Privacy`. Connect uses that Number's Trunk. Without the header, Connect answers `400 Bad Request`; with an unknown Number, `404 Not Found`. If the Number has an `extended.accessKeyId`, the request must carry a matching `X-Access-Key-Id` header or it's rejected with `403 Forbidden`.
+
+### agent-to-peer
+
+An Agent calls a Peer directly. This is designed for Agents that present an `X-Connect-Token` whose `aorLink` names the Peer, such as browser clients calling a feature server. Connect applies the Peer's load balancing settings to pick an instance.
+
+<Note>
+  The code also defines a `peer-to-agent` type, but it isn't supported yet.
+</Note>
+
+## Access checks
+
+Connect runs access checks on `INVITE` requests, except those authorized by an `X-Connect-Token`, whose signature is verified instead:
+
+- **agent-to-agent, agent-to-pstn, and peer-to-pstn**: the caller must answer a digest challenge with the password from its Credentials. The first `INVITE` gets `401 Unauthorized` with a challenge.
+- **from-pstn**: Connect finds the Trunk whose inbound URI matches the Request-URI host and checks that the dialed Number belongs to that Trunk. If the Trunk has an ACL, the request's source address must match one of the ACL's `allow` entries. The source address is the top `Via` header's `received` value, or its host when `received` is absent. If the Trunk has inbound Credentials, the carrier must also pass a digest challenge.
+
+Domains and Peers also accept an ACL reference. In the current Connect processor, the IP check on `INVITE` is enforced for Trunks.
+
+## The X-Call-Direction header
+
+After routing, Connect adds an `X-Call-Direction` header to the request with the routing type as its value, for example `X-Call-Direction: from-pstn`. Downstream systems, such as a media server or a Middleware, can use it to decide how to treat the call.
+
+Connect first removes any `X-Call-Direction` that came from an untrusted source, together with other platform headers, so a caller from the PSTN can't spoof it. See [SIP headers](/reference/sip-headers) for the full list.
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Connect mode" icon="plug" href="/concepts/connect-mode">
+    See the resources behind each routing type.
+  </Card>
+  <Card title="Load balancing" icon="scale-balanced" href="/concepts/load-balancing">
+    Learn how Connect picks one Peer from a group.
+  </Card>
+  <Card title="Numbers" icon="hashtag" href="/reference/resources/numbers">
+    Configure `aorLink`, `sessionAffinityHeader`, and `extraHeaders`.
+  </Card>
+  <Card title="SIP headers" icon="heading" href="/reference/sip-headers">
+    Look up every header Routr reads or adds.
+  </Card>
+</CardGroup>

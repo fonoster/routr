@@ -92,9 +92,9 @@ message UpdateDomainRequest {
   // The unique identifier of the Domain
   string ref = 1;
   // The name of the Domain
-  string name = 2;
+  optional string name = 2;
   // Reference to the ACL to use for this Domain
-  string access_control_list_ref = 3;
+  optional string access_control_list_ref = 3;
   // The egress_policy of the Domain
   repeated EgressPolicy egress_policies = 4;
   // The extended attributes of the Domain

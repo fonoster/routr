@@ -1,0 +1,74 @@
+---
+title: "Agent resource"
+sidebarTitle: "Agents"
+description: "Every field of the Agent resource, in YAML and API form, for operators who configure SIP users in Routr Connect."
+---
+
+An Agent is a SIP user, such as a softphone or desk phone, that registers with Routr and calls other Agents in its Domain or the PSTN.
+
+## Fields
+
+| YAML field | API / SDK field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- | --- |
+| `metadata.name` | `name` | `string` | Yes | - | Friendly name. Up to 60 characters. |
+| `spec.username` | `username` | `string` | Yes | - | SIP username. The Agent's address is `sip:<username>@<domainUri>`. Can't be changed after create. |
+| `spec.domainRef` | `domainRef` | `string` | No | - | `ref` of the [Domain](/reference/resources/domains) the Agent belongs to. |
+| `spec.credentialsRef` | `credentialsRef` | `string` | No | - | `ref` of the [Credentials](/reference/resources/credentials) used to authenticate the Agent's REGISTER and INVITE requests. |
+| `spec.privacy` | `privacy` | enum | No | `NONE` | Caller ID privacy for calls to the PSTN. YAML: `Private` or `None` (any case). API: `NONE` or `PRIVATE`. |
+| `spec.maxContacts` | `maxContacts` | `integer` | No | `-1` | Maximum number of registered contacts. `-1` means no limit; `0` accepts no contacts. |
+| `spec.expires` | `expires` | `integer` | No | `0` (pgdata) | Value, in seconds, to override the expires requested by the Agent. |
+| `spec.enabled` | `enabled` | `boolean` | No | `true` (pgdata) | Reserved for future use. |
+| - | `extended` | `object` | No | - | Custom attributes. API only. |
+
+The API response also includes `domain` and `credentials`, the objects that `domainRef` and `credentialsRef` point to.
+
+## Constraints
+
+- `name` is required and must be 1 to 60 characters.
+- `username` is required and can't contain spaces. In YAML it must be 4 to 60 characters. In pgdata it must be unique across Agents.
+- Quote numeric usernames in YAML (`"1001"`) so they parse as strings.
+- An Agent with no `credentialsRef` is challenged but can't authenticate, because Connect computes the digest response from the Agent's Credentials.
+- When an Agent reaches `maxContacts`, Connect answers new REGISTER requests with `403 Forbidden`. Refreshing an existing contact still works.
+
+## YAML example
+
+The following file defines one Agent in the Domain `domain-01`.
+
+```yaml
+- apiVersion: v2beta1
+  kind: Agent
+  ref: agent-01
+  metadata:
+    name: John Doe
+  spec:
+    username: "1001"
+    domainRef: domain-01
+    credentialsRef: credentials-01
+    privacy: None
+    maxContacts: 1
+```
+
+## rctl equivalent
+
+Run the interactive create command and answer the prompts.
+
+```bash
+rctl agents create
+```
+
+See [`rctl agents`](/reference/rctl#agents) for the prompts and the other actions.
+
+## SDK equivalent
+
+The following call creates the same Agent through the API.
+
+```typescript
+await new SDK.Agents({ endpoint: "localhost:51908", insecure: true }).createAgent({
+  name: "John Doe",
+  username: "1001",
+  domainRef: "<domain-ref>",
+  credentialsRef: "<credentials-ref>",
+  privacy: CT.Privacy.NONE,
+  maxContacts: 1
+})
+```

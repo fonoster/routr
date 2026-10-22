@@ -1,0 +1,166 @@
+---
+title: "Connect Asterisk or FreeSWITCH as a Peer"
+sidebarTitle: "Connect a PBX as a Peer"
+description: "For teams putting a PBX or media server behind Routr: register Asterisk or FreeSWITCH as a Peer, route numbers and extensions to it, and let it place outbound calls through your trunks."
+---
+
+Put a PBX or media server, such as Asterisk or FreeSWITCH, behind Routr as a Peer. Routr handles registration, routing, and load balancing. The PBX keeps doing media work: IVRs, voicemail, conferences, and recordings.
+
+## How a Peer works
+
+A Peer is a trusted SIP endpoint identified by a username and an address of record (AOR). When the PBX registers with the Peer's username, Routr stores its contact under the Peer's AOR. Every PBX instance that registers with the same username joins the same AOR, and Routr spreads calls across them using the Peer's load-balancing settings.
+
+Peers take part in three routing types:
+
+| Routing type | Trigger |
+| --- | --- |
+| `agent-to-peer` | An Agent dials the Peer's username. |
+| `from-pstn` | A call arrives for a Number whose `aorLink` is the Peer's AOR. |
+| `peer-to-pstn` | The PBX sends an INVITE with an `X-DOD-Number` header. |
+
+<Warning>
+`peer-to-agent` routing (the PBX calling an Agent registered with Routr) is not supported yet.
+</Warning>
+
+## Prerequisites
+
+- A running Routr server and `rctl`. See [Deploy with Docker](/guides/deploy-with-docker) and [Manage resources with rctl](/guides/manage-resources-with-rctl).
+- An Asterisk or FreeSWITCH server that can reach Routr's SIP port.
+- For PSTN calls, a Trunk and a Number. See [Set up a home or office phone system](/guides/home-or-office-setup).
+
+## Connect the PBX
+
+<Steps>
+  <Step title="Create credentials for the PBX">
+    Create the credentials the PBX uses to authenticate. Every instance of the same PBX group uses the same set.
+
+    ```bash
+    rctl credentials create --insecure
+    ```
+
+    ```text
+    This utility will help you create a new set of Credentials.
+    Press ^C at any time to quit.
+    ? Friendly Name Asterisk Credentials
+    ? Username asterisk
+    ? Password [hidden]
+    ? Ready? Yes
+    Creating Credentials Asterisk Credentials... 7364eddf-0756-4cb5-8b35-1a90681589ca
+    ```
+  </Step>
+  <Step title="Create the Peer">
+    Create a Peer with the same username, an AOR, the credentials, and a load-balancing algorithm.
+
+    ```bash
+    rctl peers create --insecure
+    ```
+
+    The prompts map to these fields:
+
+    | Prompt | Example | Meaning |
+    | --- | --- | --- |
+    | Username | `asterisk` | The user part the PBX sends in `From` when it registers and calls. Must not collide with an Agent's username. |
+    | Address of Record | `sip:asterisk@sip.local` | The AOR that groups every registered instance. Numbers point here. |
+    | Credentials Name | `Asterisk Credentials` | The credentials from the previous step. |
+    | Balancing Algorithm | `Round Robin` | `Round Robin` or `Least Sessions`. |
+    | Enable Session Affinity? | `No` | Keeps related calls on the same instance. Used with a Number's session affinity header. |
+
+    `Least Sessions` needs the Location Service to run with Redis. The routr-one image keeps registrations in memory, so keep `Round Robin` there. See [Scale the Location Service with Redis](/guides/scale-with-redis).
+
+    In a file-based deployment, the same Peer looks like this:
+
+    ```yaml config/resources/peers.yaml
+    - apiVersion: v2beta1
+      kind: Peer
+      ref: peer-01
+      metadata:
+        name: Asterisk (Media Server)
+      spec:
+        aor: sip:asterisk@sip.local
+        username: asterisk
+        credentialsRef: credentials-03
+        loadBalancing:
+          algorithm: round-robin
+          withSessionAffinity: false
+    ```
+  </Step>
+  <Step title="Register the PBX with Routr">
+    Configure an outbound registration on the PBX. It must:
+
+    - Send `REGISTER` to Routr's address and SIP port (for example `192.168.1.3:5060`).
+    - Use the Peer's username as the user part of the `From` header.
+    - Answer Routr's `401` challenge with digest authentication, using the Peer's credentials.
+    - Refresh the registration before it expires.
+
+    In Asterisk, this is an outbound registration plus an endpoint with authentication in `pjsip.conf`. In FreeSWITCH, it is a gateway with `register=true` in a Sofia profile. Repeat the same configuration on every instance you want in the group.
+
+    <Tip>
+    The [Load balancing Asterisk](/tutorials/load-balancing-asterisk) tutorial runs two Asterisk containers that register as one Peer.
+    </Tip>
+  </Step>
+  <Step title="Route calls to the Peer">
+    Agents reach the Peer by dialing its username, for example `sip:asterisk@sip.local`. Routr looks up the Peer's AOR and picks a registered instance.
+
+    To send PSTN calls to the PBX, set the Number's AOR link to the Peer's AOR.
+
+    ```bash
+    rctl numbers update <number-ref> --insecure
+    ```
+
+    Enter `sip:asterisk@sip.local` at the `AOR Link` prompt. In YAML, set `spec.location.aorLink: sip:asterisk@sip.local`.
+  </Step>
+  <Step title="Place outbound calls from the PBX">
+    To call the PSTN, the PBX sends an INVITE to Routr with these properties:
+
+    - The `From` user is the Peer's username.
+    - The Request-URI user is the destination number. It must not match an existing Number or Agent.
+    - An `X-DOD-Number` header carries the caller ID number in E.164 format, for example `X-DOD-Number: +17066041487`.
+    - It answers Routr's `401` challenge with the Peer's credentials.
+
+    Routr finds the Number whose `telUrl` is `tel:` followed by the `X-DOD-Number` value, then sends the call through that Number's Trunk. It sets `P-Asserted-Identity` and `Remote-Party-ID` from the Number and authenticates with the Trunk's outbound credentials.
+
+    In Asterisk or FreeSWITCH, add the header in the dialplan before the call leaves for Routr.
+  </Step>
+</Steps>
+
+## Verify
+
+Confirm the Peer exists with the expected AOR and username, then make one call of each type.
+
+```bash
+rctl peers get --insecure
+```
+
+<Check>
+An Agent that dials the Peer's username reaches the PBX, a call to the Number reaches the PBX, and a call from the PBX with `X-DOD-Number` reaches the PSTN.
+</Check>
+
+## Troubleshooting
+
+| Response from Routr | Cause |
+| --- | --- |
+| `400 Bad Request` on an outbound INVITE | The `X-DOD-Number` header is missing or empty. |
+| `404 Not Found` on an outbound INVITE | No Number has a `telUrl` matching `tel:` plus the `X-DOD-Number` value. Include the `+`. |
+| `403 Forbidden` on REGISTER | The `From` user doesn't match a Peer username. |
+| `403 Forbidden` on an outbound INVITE | The Number is bound to an access key and the request lacks a matching `X-Access-Key-Id` header. |
+| `401 Unauthorized` repeatedly | The PBX is using the wrong credentials. |
+| `480 Temporarily Unavailable` on calls to the Peer | No instance of the Peer is registered. |
+
+Routr removes `X-DOD-Number` and other platform headers from calls that arrive from the PSTN, so an outside caller can't set them.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Peers reference" icon="book" href="/reference/resources/peers">
+    Every Peer field.
+  </Card>
+  <Card title="Load balancing" icon="scale-balanced" href="/concepts/load-balancing">
+    Round-robin, least-sessions, and session affinity.
+  </Card>
+  <Card title="Routing types" icon="route" href="/concepts/routing">
+    How Connect decides where a call goes.
+  </Card>
+  <Card title="SIP headers" icon="code" href="/reference/sip-headers">
+    `X-DOD-Number` and the other headers Routr reads and writes.
+  </Card>
+</CardGroup>

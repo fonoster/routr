@@ -1,0 +1,79 @@
+---
+title: "EdgePort cooperation"
+description: "Learn how several EdgePorts route calls to endpoints connected to each other, what you must configure to keep that safe, and what happens when an EdgePort restarts."
+---
+
+When you run more than one EdgePort, a caller and a callee can be connected to different EdgePorts. Routr delivers the call anyway: the EdgePort that receives the request forwards it to the EdgePort that holds the callee's connection. You don't need a SIP-aware load balancer in front of Routr for this.
+
+<img
+  className="block dark:hidden rounded-xl"
+  src="/images/edgeport-cooperation/cooperation-light.png"
+  alt="EdgePort cooperation: Alice's INVITE lands on edgeport-01; Connect asks the Location Service and learns Bob is connected to edgeport-02; Connect adds a Route header and X-Edgeport-Ref; edgeport-01 forwards the INVITE to edgeport-02, which checks with Connect that it comes from a trusted peer and delivers it to Bob over his existing connection"
+/>
+<img
+  className="hidden dark:block rounded-xl"
+  src="/images/edgeport-cooperation/cooperation-dark.png"
+  alt="EdgePort cooperation: Alice's INVITE lands on edgeport-01; Connect asks the Location Service and learns Bob is connected to edgeport-02; Connect adds a Route header and X-Edgeport-Ref; edgeport-01 forwards the INVITE to edgeport-02, which checks with Connect that it comes from a trusted peer and delivers it to Bob over his existing connection"
+/>
+
+## Why the request must reach the right EdgePort
+
+A phone behind NAT can usually be reached only through the connection, or NAT mapping, it opened itself. If Bob registered through `edgeport-02` over TCP, only `edgeport-02` holds that connection. A request for Bob that lands on `edgeport-01` can't simply be sent to Bob's address: there's no connection there, and his NAT router would drop it.
+
+## How EdgePorts cooperate
+
+1. **Registration records the EdgePort.** When Bob registers, the Location Service stores his route together with the `edgePortRef` of the EdgePort that received the `REGISTER`, plus that EdgePort's listening points, external addresses, and local networks. An EdgePort's ref comes from the `ref` in its configuration, or from the `HOSTNAME` environment variable when it's set. On Kubernetes, that's the pod name.
+2. **Connect compares refs.** Alice's `INVITE` lands on `edgeport-01`. The Connect processor looks up Bob, gets his route, and sees that the route's `edgePortRef` is `edgeport-02`, not the EdgePort the request came from.
+3. **Connect sends the request to the peer EdgePort.** Instead of routing straight to Bob, Connect adds its own `Via` and `Record-Route`, then a `Route` header pointing at `edgeport-02`, followed by a `Route` to Bob. It also adds an `X-Edgeport-Ref` header and decreases `Max-Forwards`.
+4. **The peer EdgePort delivers it.** `edgeport-01` sends the request to `edgeport-02`. There, Connect sees `X-Edgeport-Ref`, confirms the request comes from a trusted peer EdgePort, rebuilds the route from the message without running routing again, and `edgeport-02` delivers the `INVITE` to Bob over his existing connection.
+
+Because Connect adds `Record-Route` headers, later requests in the same dialog, such as `ACK` and `BYE`, follow the same EdgePorts.
+
+## Trusting peer EdgePorts
+
+A request with `X-Edgeport-Ref` skips routing and access checks on the second EdgePort. Anyone can put that header in a SIP message, so honoring it from any source would let an attacker relay calls through Routr for free (toll fraud).
+
+The Connect processor honors `X-Edgeport-Ref` only from addresses you list. Set these environment variables on the Connect processor:
+
+| Variable | Description |
+| --- | --- |
+| `TRUSTED_EDGEPORT_ADDRESSES` | Comma-separated IPs or CIDRs of your EdgePorts. Connect compares them with the request's source address: the top `Via` header's `received` value, or its host when `received` is absent. Empty by default, which trusts no peer EdgePort. |
+| `TRUSTED_EDGEPORTS` | Optional. Comma-separated EdgePort refs. When set, the `X-Edgeport-Ref` value must also be one of them. |
+
+When a request carries `X-Edgeport-Ref` but doesn't come from a trusted address, Connect removes the header, logs a warning, and routes the request normally with the usual access checks. `X-Edgeport-Ref` is also on the default list of platform headers Connect removes from untrusted sources (see [SIP headers](/reference/sip-headers)).
+
+<Warning>
+  The defaults are right for a single EdgePort. If you run several EdgePorts, list their addresses in `TRUSTED_EDGEPORT_ADDRESSES`, as the [Connect specification](https://github.com/fonoster/routr/blob/main/CONNECT.md) requires. The Helm chart doesn't currently expose a value for these variables, so add them to the Connect deployment yourself.
+</Warning>
+
+## Use connection-oriented transports
+
+EdgePort cooperation relies on the callee's connection or NAT mapping staying open. Use TCP, TLS, WS, or WSS for your clients whenever you can.
+
+UDP has no connection. A NAT router keeps a mapping (a pinhole) open for UDP only while traffic flows, and many routers close it after about 30 seconds of silence. After that, Routr can't reach the phone until it sends something again. If you must use UDP, set the clients' `REGISTER` expiry, or re-register interval, below 30 seconds so the pinhole stays open.
+
+## When an EdgePort restarts
+
+The EdgePort is the only stateful service in Routr. It keeps SIP transactions and client connections in memory, and they don't survive a restart:
+
+- **Calls in progress on that EdgePort are lost.** Requests and responses for those calls have no transaction or connection to go back to. Routr doesn't move calls to another EdgePort.
+- **Its registrations become unreachable.** The Location Service may still hold routes that point at the restarted EdgePort, but the connections behind them are gone. Each client must reconnect and re-register, through the restarted EdgePort or another one, before it can receive calls again. How fast that happens depends on the client's re-register interval and how quickly it notices the lost connection.
+
+Plan maintenance accordingly: drain or schedule EdgePort restarts when few calls are active, and keep client re-register intervals short.
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="EdgePort reference" icon="server" href="/reference/components/edgeport">
+    See the EdgePort configuration, including `externalAddrs` and `localnets`.
+  </Card>
+  <Card title="Environment variables" icon="list" href="/reference/environment-variables">
+    Look up every variable, including the trust settings.
+  </Card>
+  <Card title="Deployment topologies" icon="diagram-project" href="/concepts/deployment-topologies">
+    Learn how to run several EdgePorts.
+  </Card>
+  <Card title="Message flow" icon="route" href="/concepts/message-flow">
+    Follow one request through Routr.
+  </Card>
+</CardGroup>

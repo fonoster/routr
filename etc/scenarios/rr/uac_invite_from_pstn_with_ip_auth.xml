@@ -16,8 +16,6 @@
 			Call-ID: [call_id]
 			CSeq: 1 INVITE
 			Content-Type: application/sdp
-      P-Asserted-Identity: <sip:[$from]>
-      P-Asserted-Identity: tel: +12225553000
       Privacy: id
 			Content-Length: [len]
 			v=0

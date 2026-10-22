@@ -96,14 +96,14 @@ Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
         {
           name: "domainRef",
           message: "Select a Domain",
-          choices: [{ name: "None", value: undefined }, ...domainsList],
+          choices: [{ name: "None", value: "" }, ...domainsList],
           type: "list"
         },
         {
           name: "credentialsRef",
           message: "Credentials Name",
           type: "list",
-          choices: [{ name: "None", value: undefined }, ...credentialsList],
+          choices: [{ name: "None", value: "" }, ...credentialsList],
           default: agentFromDB.credentialsRef
         },
         {

@@ -78,6 +78,37 @@ describe("@routr/location", () => {
     expect(result3.length).to.be.equal(0)
   })
 
+  it("removes routes, including those cached by a previous lookup", async () => {
+    const locator = new Locator(new MemoryStore())
+    const findRoutesRequest = {
+      callId: "3848276298220188511",
+      aor: "sip:1001@sip.local"
+    }
+
+    await locator.addRoute({
+      aor: "sip:1001@sip.local",
+      route: Routes.simpleRoute01,
+      maxContacts: -1
+    })
+    await locator.addRoute({
+      aor: "sip:1002@sip.local",
+      route: Routes.simpleRoute01,
+      maxContacts: -1
+    })
+
+    expect(await locator.findRoutes(findRoutesRequest)).to.have.lengthOf(1)
+
+    await locator.removeRoutes({ aor: "sip:1001@sip.local" })
+
+    expect(await locator.findRoutes(findRoutesRequest)).to.have.lengthOf(0)
+    expect(
+      await locator.findRoutes({
+        ...findRoutesRequest,
+        aor: "sip:1002@sip.local"
+      })
+    ).to.have.lengthOf(1)
+  })
+
   it("find next backend using least-sessions", async () => {
     const locator = new Locator(new MemoryStore())
     await locator.addRoute({
@@ -277,6 +308,21 @@ describe("@routr/location", () => {
     expect((await locator.findRoutes(findRoutesRequest2))[0])
       .to.have.property("user")
       .to.be.equal("conference01")
+  })
+
+  it("rejects the first new route when maxContacts is zero", async () => {
+    const locator = new Locator(new MemoryStore())
+
+    try {
+      await locator.addRoute({
+        aor: "sip:voice@sip.local",
+        route: Routes.voiceBackendRoute01,
+        maxContacts: 0
+      })
+      throw new Error("Test failed - no error thrown")
+    } catch (error) {
+      expect(error.message).to.equal("exceeds maximum of 0 allowed contacts")
+    }
   })
 
   it("checks if maxContacts has been reached (passing a different route)", async () => {

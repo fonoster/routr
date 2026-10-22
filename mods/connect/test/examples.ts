@@ -104,6 +104,8 @@ export const createRequest = (createRequestObj: {
       via: [
         {
           host: "proxy",
+          // Set by the SIP stack: the packet came from the sender's address
+          received: "127.0.0.1",
           port: 5060,
           branch: "z9hG4bK-524287-1---7315a24d84546819",
           transport: Transport.TCP

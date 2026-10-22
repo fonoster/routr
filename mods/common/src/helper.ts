@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import * as yaml from "js-yaml"
-import * as toml from "toml"
 import fs from "fs"
 import { NetInterface, Transport } from "./types"
 
@@ -75,11 +74,11 @@ export const getListeningPoint = (
 
 /**
  * Reads a file and returns a JSON object or throws an error.
- * The file must be a valid JSON, YAML, or TOML file.
+ * The file must be a valid JSON or YAML file.
  *
  * @param {string} path - The path to the file.
  * @return {object} The JSON object.
- * @throws {Error} If the file is not a valid JSON, YAML, or TOML file.
+ * @throws {Error} If the file is not a valid JSON or YAML file.
  * @throws {Error} If the file does not exist.
  * @throws {Error} If the file is not readable.
  * @throws {Error} If the file is empty.
@@ -93,13 +92,6 @@ export const readConfigFile = (path: string): Record<string, any> => {
 
   try {
     return yaml.load(content)
-  } catch (e) {
-    // Ignore
-  }
-
-  // Experimental TOML support
-  try {
-    return toml.parse(content)
   } catch (e) {
     // Ignore
   }

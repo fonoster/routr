@@ -56,6 +56,46 @@ describe("@routr/processor/alterations", () => {
       .to.be.equal(route.transport)
   })
 
+  // The original dialed identifier (e.g. a PSTN DID) as it arrives in the
+  // Request-URI before fixRequestURI runs.
+  const dialedNumber = "17853178070"
+  const requestWithDialedNumber = {
+    ...request,
+    message: {
+      ...request.message,
+      requestUri: { ...request.message.requestUri, user: dialedNumber }
+    }
+  }
+
+  it("rewrites the request uri user with the route user for a registered route", () => {
+    const r = A.fixRequestURI(route)(requestWithDialedNumber)
+    expect(r)
+      .to.have.property("message")
+      .to.have.property("requestUri")
+      .to.have.property("user")
+      .to.be.equal(route.user)
+  })
+
+  it("keeps the original request uri user when route.user is falsy (outbound trunk)", () => {
+    const r = A.fixRequestURI({ ...route, user: "" })(requestWithDialedNumber)
+    expect(r)
+      .to.have.property("message")
+      .to.have.property("requestUri")
+      .to.have.property("user")
+      .to.be.equal(dialedNumber)
+  })
+
+  it("keeps the original request uri user when the route is not registered", () => {
+    const r = A.fixRequestURI({ ...route, registeredOn: undefined })(
+      requestWithDialedNumber
+    )
+    expect(r)
+      .to.have.property("message")
+      .to.have.property("requestUri")
+      .to.have.property("user")
+      .to.be.equal(dialedNumber)
+  })
+
   it("updates the value of the max forwards header", () => {
     const r = A.decreaseMaxForwards(request)
     expect(r)
@@ -148,6 +188,95 @@ describe("@routr/processor/alterations", () => {
     const r = A.applyXHeaders(route)(request)
     expect(E.getHeaderValue(r, CT.ExtraHeader.GATEWAY_AUTH)).to.not.be.null
     expect(E.getHeaderValue(r, "user-agent")).to.be.null
+  })
+
+  it("removes the canonical X-Edgeport-Ref extension", () => {
+    const withHeader = A.addXEdgePortRef(request)
+    expect(E.getHeaderValue(withHeader, CT.ExtraHeader.EDGEPORT_REF)).to.equal(
+      request.edgePortRef
+    )
+
+    const cleaned = A.removeXEdgePortRef(withHeader)
+    expect(E.getHeaderValue(cleaned, CT.ExtraHeader.EDGEPORT_REF)).to.be.null
+    expect(cleaned.message.extensions.find((ext) => ext.name === "CSeq")).to
+      .exist
+  })
+
+  it("strips X-Edgeport-Ref regardless of header-name case", () => {
+    const req = {
+      ...request,
+      message: {
+        ...request.message,
+        extensions: [
+          ...request.message.extensions,
+          { name: "x-edgeport-ref", value: "edgeport-01" }
+        ]
+      }
+    }
+    const cleaned = A.removeXEdgePortRef(req)
+    expect(E.getHeaderValue(cleaned, CT.ExtraHeader.EDGEPORT_REF)).to.be.null
+  })
+
+  it("replaces (not appends) a caller-supplied copy of an added header", () => {
+    const req = {
+      ...request,
+      message: {
+        ...request.message,
+        extensions: [
+          ...request.message.extensions,
+          { name: "x-room-id", value: "spoofed" }
+        ]
+      }
+    }
+    const r = A.applyXHeaders({
+      ...route,
+      headers: [
+        {
+          name: "X-Room-Id",
+          value: "jsa-shqm-iyo",
+          action: CT.HeaderModifierAction.ADD
+        }
+      ]
+    })(req)
+    const copies = r.message.extensions.filter(
+      (ext) => ext.name.toLowerCase() === "x-room-id"
+    )
+    expect(copies).to.be.lengthOf(1)
+    expect(copies[0].value).to.equal("jsa-shqm-iyo")
+  })
+
+  it("keeps every copy Routr itself adds under the same name", () => {
+    const r = A.applyXHeaders({
+      ...route,
+      headers: [
+        { name: "X-Tag", value: "a", action: CT.HeaderModifierAction.ADD },
+        { name: "X-Tag", value: "b", action: CT.HeaderModifierAction.ADD }
+      ]
+    })(request)
+    const values = r.message.extensions
+      .filter((ext) => ext.name === "X-Tag")
+      .map((ext) => ext.value)
+    expect(values).to.deep.equal(["a", "b"])
+  })
+
+  it("removes a list of headers regardless of header-name case", () => {
+    const req = {
+      ...request,
+      message: {
+        ...request.message,
+        extensions: [
+          ...request.message.extensions,
+          { name: "x-app-ref", value: "app-01" },
+          { name: "X-ACCESS-KEY-ID", value: "WO00000000" }
+        ]
+      }
+    }
+    const r = A.removeHeaders(["X-App-Ref", "X-Access-Key-Id"])(req)
+    expect(E.getHeaderValue(r, "X-App-Ref")).to.be.null
+    expect(E.getHeaderValue(r, "X-Access-Key-Id")).to.be.null
+    expect(r.message.extensions.find((ext) => ext.name === "CSeq")).to.exist
+    // An empty list is a no-op
+    expect(A.removeHeaders([])(req)).to.equal(req)
   })
 
   it("pipes alterations and checks the result", () => {

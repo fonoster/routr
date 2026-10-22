@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-require("./tracer").init("dispatcher")
+require("./tracer").init("connect")
 import { Assertions as A } from "@routr/common"
 import { API_ADDR, BIND_ADDR, LOCATION_ADDR } from "./envs"
 import connectProcessor from "./service"

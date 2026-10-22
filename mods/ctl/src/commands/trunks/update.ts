@@ -115,21 +115,21 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
           message: "IP Access Control List",
           type: "list",
           default: trunkFromDB.accessControlListRef,
-          choices: [{ name: "None", value: undefined }, ...aclChoices]
+          choices: [{ name: "None", value: "" }, ...aclChoices]
         },
         {
           name: "inboundCredentialsRef",
           message: "Inbound Credentials",
           type: "list",
           default: trunkFromDB.inboundCredentialsRef,
-          choices: [{ name: "None", value: undefined }, ...credentialsChoice]
+          choices: [{ name: "None", value: "" }, ...credentialsChoice]
         },
         {
           name: "outboundCredentialsRef",
           message: "Outbound Credentials",
           type: "list",
           default: trunkFromDB.outboundCredentialsRef,
-          choices: [{ name: "None", value: undefined }, ...credentialsChoice]
+          choices: [{ name: "None", value: "" }, ...credentialsChoice]
         },
         {
           name: "sendRegister",

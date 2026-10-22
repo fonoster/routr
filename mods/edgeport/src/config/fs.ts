@@ -19,7 +19,6 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: any
 import * as yaml from "js-yaml"
-import * as toml from "toml"
 import { JsonObject } from "pb-util/build"
 
 const JFile = Java.type("java.io.File")
@@ -44,11 +43,11 @@ export const isFile = (path: string) => new JFile(path).isFile()
 
 /**
  * Reads a file and returns a JSON object or throws an error.
- * The file must be a valid JSON, YAML, or TOML file.
+ * The file must be a valid JSON or YAML file.
  *
  * @param {string} path - The path to the file
  * @return {object} The JSON object
- * @throws {Error} If the file is not a valid JSON, YAML, or TOML file
+ * @throws {Error} If the file is not a valid JSON or YAML file
  * @throws {Error} If the file does not exist
  * @throws {Error} If the file is not readable
  * @throws {Error} If the file is empty
@@ -62,13 +61,6 @@ export const readConfigFile = (path: string): JsonObject => {
 
   try {
     return yaml.load(content) as JsonObject
-  } catch (e) {
-    // no-op
-  }
-
-  // Experimental TOML support
-  try {
-    return toml.parse(content)
   } catch (e) {
     // no-op
   }

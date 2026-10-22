@@ -73,7 +73,13 @@ export default class MemoryStore implements ILocatorStore {
 
   /** @inheritdoc */
   public delete(key: string): Promise<void> {
-    this.collections.delete(key)
+    // Also drop the per-call entries findRoutes caches under `${key}:...`,
+    // matching the prefix match in RedisStore.delete
+    this.collections.forEach((_, k) => {
+      if (k === key || k.startsWith(`${key}:`)) {
+        this.collections.delete(k)
+      }
+    })
     return
   }
 

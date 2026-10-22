@@ -35,6 +35,17 @@ import {
 } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
 import { RoutingDirection } from "./../types"
+import {
+  EdgePortTrust,
+  getUntrustedHeadersToStrip,
+  hasXConnectObjectHeader,
+  isFromTrustedEdgePort
+} from "../utils"
+import {
+  TRUSTED_EDGEPORTS,
+  TRUSTED_EDGEPORT_ADDRESSES,
+  UNTRUSTED_HEADERS_TO_STRIP
+} from "../envs"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
 
@@ -43,14 +54,52 @@ const enforceE164 = A.enforceE164(
   Environment.ENFORCE_E164_WITH_MOBILE_PREFIX
 )
 
+const defaultEdgePortTrust: EdgePortTrust = {
+  refs: TRUSTED_EDGEPORTS,
+  addresses: TRUSTED_EDGEPORT_ADDRESSES
+}
+
 export const handleRequest =
-  (location: ILocationService, apiClient?: CC.APIClient) =>
+  (
+    location: ILocationService,
+    apiClient?: CC.APIClient,
+    edgePortTrust: EdgePortTrust = defaultEdgePortTrust
+  ) =>
   async (request: MessageRequest, res: Response) => {
     try {
-      const req = Environment.ENFORCE_E164 ? enforceE164(request) : request
+      let req = Environment.ENFORCE_E164 ? enforceE164(request) : request
       let route
 
-      if (E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF)) {
+      // X-Edgeport-Ref marks a request forwarded by a peer EdgePort, whose route
+      // is rebuilt from the message without routing or access checks. Honor it
+      // only from a trusted peer EdgePort. Anyone else could use it to relay calls
+      // through Routr (toll fraud), so remove it and route the request normally.
+      const fromTrustedEdgePort = isFromTrustedEdgePort(req, edgePortTrust)
+
+      if (
+        !fromTrustedEdgePort &&
+        E.getHeaderValue(req, CT.ExtraHeader.EDGEPORT_REF)
+      ) {
+        logger.warn("ignoring X-Edgeport-Ref from an untrusted source", {
+          ref: req.ref,
+          edgePortRef: req.edgePortRef,
+          via: req.message.via?.[0]
+        })
+        req = A.removeXEdgePortRef(req)
+      }
+
+      // A CANCEL must follow the exact path its INVITE took (RFC 3261 §9.1) — it is
+      // never a new call to route. edgeport already forwards it correctly, straight
+      // from the INVITE's own client transaction (GRPCSipListener#sendCancel), which
+      // does not use the route this handler computes for CANCEL at all; it only needs
+      // a non-error response to reach that logic. Routing it fresh through
+      // peerToPSTN/agentToPSTN re-applies checks meant for a NEW call — chiefly
+      // peerToPSTN's required X-DOD-Number header, which Asterisk's CANCEL does not
+      // carry (only the original INVITE does) — and rejects it with a 400 that never
+      // reaches edgeport's already-correct CANCEL handling. The result: the CANCEL is
+      // silently dropped, the call keeps ringing, and if the callee answers a moment
+      // later they connect into a line the caller has already abandoned.
+      if (fromTrustedEdgePort || req.method === CT.Method.CANCEL) {
         route = H.createRouteFromLastMessage(req)
       } else {
         const routerResult = await router(location, apiClient)(req)
@@ -65,6 +114,16 @@ export const handleRequest =
         } else if (!routerResult.route) {
           return res.sendTemporarilyUnavailable()
         }
+
+        // Remove platform headers a caller from an untrusted source (e.g., the
+        // PSTN) could have spoofed. Routr re-adds its own values afterwards.
+        req = A.removeHeaders(
+          getUntrustedHeadersToStrip(
+            direction,
+            !!hasXConnectObjectHeader(req),
+            UNTRUSTED_HEADERS_TO_STRIP
+          )
+        )(req)
 
         const p: HeaderModifier = {
           name: CT.ExtraHeader.CALL_DIRECTION,

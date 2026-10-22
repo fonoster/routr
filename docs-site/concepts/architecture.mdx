@@ -1,0 +1,91 @@
+---
+title: "Architecture"
+description: "Understand the services that make up Routr, what each one does, and which ones keep state, so you can deploy, scale, and extend it with confidence."
+---
+
+Routr is not one server process. It's a set of loosely coupled services that talk to each other over gRPC. Each service has one job, and you can scale, restart, or replace it without touching the others.
+
+<img
+  className="block dark:hidden rounded-xl"
+  src="/images/architecture/overview-light.png"
+  alt="Routr architecture: SIP clients connect to EdgePorts, which send messages to the Message Dispatcher; the Dispatcher passes them through Middlewares to Processors such as Connect, which use the Location Service, the API Server backed by YAML or PostgreSQL, and Redis; the RTPRelay middleware drives RTPEngine"
+/>
+<img
+  className="hidden dark:block rounded-xl"
+  src="/images/architecture/overview-dark.png"
+  alt="Routr architecture: SIP clients connect to EdgePorts, which send messages to the Message Dispatcher; the Dispatcher passes them through Middlewares to Processors such as Connect, which use the Location Service, the API Server backed by YAML or PostgreSQL, and Redis; the RTPRelay middleware drives RTPEngine"
+/>
+
+## Why services instead of a monolith
+
+A traditional SIP server puts the network stack, the routing logic, and the data in the same process, and you program it with a configuration script. Routr separates them:
+
+- Only the edge speaks SIP. Everything behind it receives a protobuf message and returns one.
+- Routing logic lives in a Processor, so you can write your own in any language with gRPC support.
+- Each service scales on its own. If routing needs more CPU, you add Processor replicas, not more SIP edges.
+
+The trade-off is more moving parts. For a single host, the `fonoster/routr-one` image runs all of them in one container so you don't have to wire them together. See [Deployment topologies](/concepts/deployment-topologies).
+
+## Components
+
+### Core
+
+These services make up the core of Routr, described in the [Core specification](https://github.com/fonoster/routr/blob/main/CORE.md).
+
+| Component | What it does | Default port |
+| --- | --- | --- |
+| [EdgePort](/reference/components/edgeport) | Sits at the edge of the network and accepts SIP over UDP, TCP, TLS, WS, and WSS. It holds connections and transactions, converts each SIP message to a protobuf `MessageRequest`, and sends the processed message to its next hop. | `5060`–`5063` (SIP) |
+| [Message Dispatcher](/reference/components/dispatcher) | Receives messages from EdgePorts, runs them through Middlewares, and forwards them to the first Processor whose method list and `matchFunc` match. | `51901` |
+| Processors | Decide what happens to a message: authenticate it, compute its route, and alter it. All Processors share the same gRPC interface. The built-in one is [Connect](/reference/components/connect). | `51904` |
+| Middlewares | Optional services with the same interface as Processors. They run before or after the Processor to add side effects such as authentication or media control. | `51903` |
+| [Location Service](/reference/components/location) | Stores registrations (where each endpoint can be reached and through which EdgePort) and load balances requests across Peers. It keeps data in `memory` or `redis`. | `51902` |
+
+### Connect mode and supporting services
+
+| Component | What it does | Default port |
+| --- | --- | --- |
+| [Connect processor](/reference/components/connect) | Implements the PBX portion of SIP Connect 1.1 with Domains, Agents, Peers, Trunks, Numbers, Credentials, and ACLs. See [Connect mode](/concepts/connect-mode). | `51904` |
+| [API Server](/reference/components/apiserver) | Stores and serves Connect resources over gRPC. Use `simpledata` for read-only YAML or JSON files, or `pgdata` for PostgreSQL. `rctl` and the SDK talk to the external port. | `51907` internal, `51908` external |
+| [Registry](/reference/components/registry) | Sends outbound `REGISTER` requests on behalf of Trunks that have `sendRegister` enabled. | `51910` |
+| [Requester](/reference/components/requester) | Lets services such as the Registry send SIP requests through an EdgePort using gRPC. | `51909` |
+| [RTPRelay](/reference/components/rtprelay) | A Middleware that drives RTPEngine so WebRTC clients and SIP endpoints can exchange media. | `51903` |
+| [SimpleAuth](/reference/components/simpleauth) | A Middleware that authenticates requests against a list of users, for setups that don't use Connect. | `51903` |
+
+<Note>
+  Routr handles signaling only. Media flows directly between endpoints, or through RTPEngine when you use RTPRelay. To run IVRs, conferences, or voicemail, put Routr in front of a media server such as Asterisk or FreeSWITCH.
+</Note>
+
+## Stateful and stateless services
+
+The **EdgePort is the only stateful service**. It keeps SIP transactions and the connections that clients opened to it, because SIP requires that a response goes back on the same transaction and, for TCP, TLS, and WebSocket, over the same connection. Losing an EdgePort loses the transactions and connections it held. Clients reconnect and re-register.
+
+The Message Dispatcher, Processors, and Middlewares are **stateless**. Every message they receive carries everything needed to process it: the SIP message plus metadata such as the EdgePort reference, its listening points, its external addresses, and its local networks. Any replica can handle any message, so you scale them horizontally behind a regular Kubernetes service.
+
+Data lives in two places outside the request path:
+
+- **Registrations** live in the Location Service. With the `memory` provider, they exist only inside one Location instance. Use `redis` to share them across several instances.
+- **Resources** live behind the API Server, in YAML files or PostgreSQL.
+
+## Specifications
+
+Routr's behavior is written down in two draft specifications. You don't need them to use Routr, but read them before you build your own Processor or replace a component.
+
+- [Core specification (CORE.md)](https://github.com/fonoster/routr/blob/main/CORE.md): the EdgePort, Message Dispatcher, Processor, and Location Service, including their configuration and gRPC interfaces.
+- [Connect specification (CONNECT.md)](https://github.com/fonoster/routr/blob/main/CONNECT.md): the Connect processor, its resources, and its security rules.
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Message flow" icon="route" href="/concepts/message-flow">
+    Follow one request from the EdgePort to the Processor and back.
+  </Card>
+  <Card title="EdgePort cooperation" icon="network-wired" href="/concepts/edgeport-cooperation">
+    Learn how several EdgePorts route calls without a SIP load balancer.
+  </Card>
+  <Card title="Connect mode" icon="plug" href="/concepts/connect-mode">
+    See the resources the built-in Processor works with.
+  </Card>
+  <Card title="Deployment topologies" icon="diagram-project" href="/concepts/deployment-topologies">
+    Choose between the all-in-one image and the Helm chart.
+  </Card>
+</CardGroup>

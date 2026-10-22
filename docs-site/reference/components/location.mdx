@@ -1,0 +1,96 @@
+---
+title: "Location Service"
+sidebarTitle: "Location"
+description: "Reference for the Location Service: its image, port, configuration file, Redis parameters, environment variables, and gRPC contract."
+---
+
+The Location Service stores the routes to registered endpoints and returns them on lookup. It also load balances requests to Peers that share an Address of Record (AOR), with `round-robin` or `least-sessions` and optional session affinity. Routes live in memory or in Redis.
+
+## Docker image
+
+`fonoster/routr-location`
+
+The image reads its configuration from `/etc/routr/location.yaml` (`CONFIG_PATH`).
+
+## Ports
+
+| Port | Protocol | Purpose |
+| --- | --- | --- |
+| `51902` (by convention, set by `spec.bindAddr`) | gRPC | `Location` service and the standard gRPC health service |
+
+## Configuration file
+
+The Location Service reads a YAML or JSON file and validates it against a JSON schema at startup.
+
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `kind` | string | Yes | | `Location` or `location` |
+| `apiVersion` | string | Yes | | `v2beta1` or `v2` |
+| `metadata` | object | Yes | | Resource metadata. `metadata.region` is reserved for future use |
+| `spec.bindAddr` | string | No | | Address to listen on, for example `0.0.0.0:51902`. There is no built-in default, so set it |
+| `spec.cache.provider` | string | Yes, when `spec.cache` is set | `memory` | `memory` or `redis` (also `Memory`, `Redis`) |
+| `spec.cache.parameters` | string | No | | Comma-separated `key=value` pairs for the Redis provider |
+
+### Redis parameters
+
+| Key | Required | Description |
+| --- | --- | --- |
+| `host` | Yes | Redis host |
+| `port` | Yes | Redis port, usually `6379` |
+| `username` | No | Redis username. Use it together with `password` |
+| `password` | No | Redis password |
+| `secure` | No | `true` connects with `rediss://` (TLS) |
+
+The service builds a Redis URL from these keys, so always set both `host` and `port`. Example: `host=redis,port=6379,password=changeme`.
+
+## Environment variables
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `CONFIG_PATH` | `/etc/routr/location.yaml` (image) | Path to the configuration file. Required |
+| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
+| `OTEL_SERVICE_NAME` | `location` | Service name reported in traces |
+| `OTEL_SDK_DISABLED` | | `true` turns tracing off |
+
+## gRPC contract
+
+| Service | Method | Request | Response |
+| --- | --- | --- | --- |
+| `fonoster.routr.location.v2beta1.Location` | `AddRoute` | `AddRouteRequest` (`aor`, `route`) | `google.protobuf.Empty` |
+| | `FindRoutes` | `FindRoutesRequest` (`call_id`, `aor`, `session_affinity_ref`, `backend`, `labels`) | `FindRoutesResponse` (`routes`) |
+| | `RemoveRoutes` | `RemoveRoutesRequest` (`aor`) | `google.protobuf.Empty` |
+
+A `Route` includes the endpoint's `user`, `host`, `port`, `transport`, `advertised_host`, `advertised_port`, `expires`, `session_count`, and the `edge_port_ref` of the EdgePort that holds its connection. `FindRoutesRequest.backend` selects the algorithm (`ROUND_ROBIN` or `LEAST_SESSIONS`) and `with_session_affinity`. See [location.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/location.proto).
+
+## Minimal example
+
+This configuration keeps routes in Redis.
+
+```yaml
+kind: Location
+apiVersion: v2beta1
+metadata:
+  region: default
+spec:
+  bindAddr: 0.0.0.0:51902
+  cache:
+    provider: redis
+    parameters: "host=redis,port=6379"
+```
+
+This command runs the Location Service with that file.
+
+```bash
+docker run -it \
+  -v $(pwd)/location.yaml:/etc/routr/location.yaml \
+  -p 51902:51902 \
+  fonoster/routr-location
+```
+
+## Notes
+
+- The `memory` provider works only with a single Location Service instance. Use `redis` to run several instances or to use `least-sessions`.
+- With the `redis` provider, always set `spec.cache.parameters`. The `host=localhost,port=6379` fallback applies only when the provider is written in uppercase (`REDIS`), which the schema does not accept.
+- `least-sessions` relies on the `X-Session-Count` header that Peers send when they register.

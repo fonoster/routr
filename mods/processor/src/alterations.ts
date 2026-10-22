@@ -34,6 +34,9 @@ export const fixRequestURI =
   (route: Route) =>
   (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
+    if (route.registeredOn && route.user) {
+      req.message.requestUri.user = route.user
+    }
     req.message.requestUri.host = route.host
     req.message.requestUri.port = route.port
     req.message.requestUri.transportParam = route.transport
@@ -184,9 +187,14 @@ export const applyXHeaders =
         (h: HeaderModifier) => h.action === CommonTypes.HeaderModifierAction.ADD
       )
 
+      // An added header replaces any copy already in the request (case-insensitive),
+      // so a caller-supplied value can never sit next to the one Routr adds.
+      const headersToReplace = headersToAdd.map((h) => h.name.toLowerCase())
+
       req.message.extensions = req.message.extensions.filter(
         (h: CommonTypes.Extension) =>
-          !headersToRemove.includes(h.name.toLowerCase())
+          !headersToRemove.includes(h.name.toLowerCase()) &&
+          !headersToReplace.includes(h.name.toLowerCase())
       )
 
       headersToAdd.forEach((h: HeaderModifier) => {
@@ -281,10 +289,24 @@ export const removeXEdgePortRef = (request: MessageRequest): MessageRequest => {
   const req = H.deepCopy(request)
   req.message.extensions = req.message.extensions.filter(
     (ext: CommonTypes.Extension) =>
-      ext.name.toLowerCase() !== CommonTypes.ExtraHeader.EDGEPORT_REF
+      ext.name.toLowerCase() !==
+      CommonTypes.ExtraHeader.EDGEPORT_REF.toLowerCase()
   )
   return req
 }
+
+// Removes every extension whose name matches one of the given names (case-insensitive)
+export const removeHeaders =
+  (names: string[]) =>
+  (request: MessageRequest): MessageRequest => {
+    if (!names || names.length === 0) return request
+    const req = H.deepCopy(request)
+    const toRemove = names.map((n) => n.toLowerCase())
+    req.message.extensions = req.message.extensions.filter(
+      (ext: CommonTypes.Extension) => !toRemove.includes(ext.name.toLowerCase())
+    )
+    return req
+  }
 
 export const removeAuthorization = (
   request: MessageRequest

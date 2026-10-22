@@ -96,7 +96,7 @@ Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
           name: "trunkRef",
           message: "Trunk",
           type: "list",
-          choices: [{ name: "None", value: undefined }, ...trunksChoices],
+          choices: [{ name: "None", value: "" }, ...trunksChoices],
           default: numberFromDB.trunkRef
         },
         {

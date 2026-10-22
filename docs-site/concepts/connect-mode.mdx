@@ -1,0 +1,76 @@
+---
+title: "Connect mode"
+description: "Understand Routr's built-in Connect processor, the resources it works with, and when to use it instead of writing your own Processor."
+---
+
+Connect mode is Routr running with its built-in **Connect processor**. Connect implements the PBX portion of the SIP Connect 1.1 specification, so you can register phones, call between them, reach the PSTN through a carrier, and send calls to media servers by creating resources instead of writing code. It's the most common way to run Routr, and both the `routr-one` image and the `routr-connect` Helm chart use it.
+
+<Note>
+  Routr isn't certified under SIP Connect 1.1. The Connect processor follows the PBX portion of the specification and adds features outside it, such as WebRTC support when combined with RTPEngine.
+</Note>
+
+## Resources
+
+Connect describes your network with seven kinds of resources. You manage them with [rctl](/reference/rctl), the [SDK](/reference/sdk), or, with the `simpledata` API Server, YAML files.
+
+<img
+  className="block dark:hidden rounded-xl"
+  src="/images/connect-mode/resources-light.png"
+  alt="How Connect resources relate: Agents belong to a Domain and use Credentials; a Domain can reference an ACL and egress policies that point to Numbers; Numbers belong to a Trunk and can link to an Agent or Peer through aorLink; Peers use Credentials; Trunks use Credentials and an ACL"
+/>
+<img
+  className="hidden dark:block rounded-xl"
+  src="/images/connect-mode/resources-dark.png"
+  alt="How Connect resources relate: Agents belong to a Domain and use Credentials; a Domain can reference an ACL and egress policies that point to Numbers; Numbers belong to a Trunk and can link to an Agent or Peer through aorLink; Peers use Credentials; Trunks use Credentials and an ACL"
+/>
+
+| Resource | What it represents | Relates to |
+| --- | --- | --- |
+| [Domain](/reference/resources/domains) | A group of Agents that can call each other, identified by a SIP URI such as `sip.local`. | An optional ACL, and egress policies that map dialed numbers (by regular expression) to a Number for outbound calls. |
+| [Agent](/reference/resources/agents) | A SIP endpoint that a person uses, such as a softphone, desk phone, or paging speaker. | Belongs to one Domain and authenticates with Credentials. |
+| [Credentials](/reference/resources/credentials) | A username and password. | Used by Agents and Peers to register, and by Trunks for inbound and outbound authentication. |
+| [ACL](/reference/resources/acl) | An access control list of allowed and denied networks. | Referenced by Domains, Peers, and Trunks. |
+| [Peer](/reference/resources/peers) | A trusted SIP endpoint outside any Domain, usually a media server, PBX, or feature server such as Asterisk or FreeSWITCH. | Registers under a shared address of record (`aor`) with Credentials, and can load balance across every instance that does. |
+| [Trunk](/reference/resources/trunks) | A connection to a SIP carrier, gateway, or SBC that reaches the PSTN. | Uses Credentials and an ACL for inbound calls, and a list of outbound URIs. With `sendRegister`, the [Registry](/reference/components/registry) registers with the carrier for you. |
+| [Number](/reference/resources/numbers) | A phone number (`telUrl`) you own through a Trunk. | Belongs to a Trunk. Its `aorLink` sends inbound calls to an Agent or Peer, and Domains use it as the caller identity for outbound calls. |
+
+Read [Resources overview](/reference/resources/overview) for every field.
+
+## How Connect processes a request
+
+Connect handles each request according to its method:
+
+- **`REGISTER`**: Connect finds the Agent or Peer by the user and host in the `From` header, checks the digest credentials, and stores the route in the [Location Service](/reference/components/location). Agents register under their own address; Peers register under their `aor`.
+- **`INVITE` and other new requests**: Connect identifies the caller and the callee, picks one of five [routing types](/concepts/routing), runs the access checks for that type, finds the route, and returns the request with the alterations needed to reach the target.
+- **`ACK` and `BYE`**: Connect forwards them along the path already recorded for the dialog.
+- **`MESSAGE`, `SUBSCRIBE`, `NOTIFY`, and `PUBLISH`**: Connect answers `405 Method Not Allowed`. To handle them, put another Processor in front of Connect in the Dispatcher.
+
+Agents that can't hold a password, such as browser clients, can authenticate with a signed JWT in the `X-Connect-Token` header instead. The token carries claims similar to an Agent's fields: its `aor`, `domain`, `allowedMethods`, and an `aorLink` to the Peer it may call. See [Ephemeral agents in the browser](/tutorials/ephemeral-agents-in-the-browser).
+
+## When to use Connect and when to write a Processor
+
+Use Connect when your network fits the PBX model:
+
+- Phones that register and call each other inside a Domain.
+- Calls to and from the PSTN through carrier Trunks and Numbers.
+- A group of Asterisk or FreeSWITCH servers behind Routr, with load balancing and session affinity.
+- WebRTC clients, together with RTPRelay and RTPEngine.
+
+Write your own Processor when your routing doesn't fit those resources, for example routing by a database lookup, a time of day, or an external API, or handling methods Connect rejects such as `MESSAGE`. You don't have to choose one or the other: the Dispatcher can send some requests to your Processor with a `matchFunc` and the rest to Connect. See [Build a processor](/guides/build-a-processor).
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Routing" icon="signs-post" href="/concepts/routing">
+    Learn how Connect picks one of five routing types.
+  </Card>
+  <Card title="Load balancing" icon="scale-balanced" href="/concepts/load-balancing">
+    Spread calls across a group of Peers.
+  </Card>
+  <Card title="Resources overview" icon="book" href="/reference/resources/overview">
+    See every field of every resource.
+  </Card>
+  <Card title="Connect processor reference" icon="plug" href="/reference/components/connect">
+    Configure the Connect service.
+  </Card>
+</CardGroup>

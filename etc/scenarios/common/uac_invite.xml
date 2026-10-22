@@ -5,7 +5,9 @@
 
   <Global variables="requestURI,from,to" />
 
-  <!-- The P-Asserted-Identity and Privacy is needed for SC-IT.Conf.1.3.x -->
+  <!-- Privacy: id is needed for SC-IT.Conf.1.3.3 and 1.3.4, which assert that the
+       caller privacy request is honored. No P-Asserted-Identity is sent: Routr
+       generates the identity (SC-IT.Conf.1.3.1), so the caller must not supply one. -->
   <send>
     <![CDATA[
 			INVITE [$requestURI];transport=[transport] SIP/2.0
@@ -17,8 +19,6 @@
 			Call-ID: [call_id]
 			CSeq: 1 INVITE
 			Content-Type: application/sdp
-      P-Asserted-Identity: <sip:[$from]>
-      P-Asserted-Identity: tel: +12225553000
       Privacy: id
 			Content-Length: [len]
 			v=0
@@ -49,7 +49,9 @@
 		]]>
   </send>
 
-  <!-- The P-Asserted-Identity and Privacy is needed for SC-IT.Conf.1.3.x -->
+  <!-- Privacy: id is needed for SC-IT.Conf.1.3.3 and 1.3.4, which assert that the
+       caller privacy request is honored. No P-Asserted-Identity is sent: Routr
+       generates the identity (SC-IT.Conf.1.3.1), so the caller must not supply one. -->
   <send>
     <![CDATA[
       INVITE [$requestURI];transport=[transport] SIP/2.0
@@ -62,8 +64,6 @@
       CSeq: 2 INVITE
       Content-Type: application/sdp
       [authentication]
-      P-Asserted-Identity: <sip:[$from]>
-      P-Asserted-Identity: tel: +12225553000
       Privacy: id
       Content-Length: [len]
       v=0

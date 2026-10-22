@@ -6,6 +6,7 @@ on:
     paths:
       - 'docs/**'
       - 'site/**'
+      - '.scripts/docs-redirect*'
     branches:
       - main
 
@@ -33,7 +34,7 @@ jobs:
     - name: Build and populate out directory
       run: |
         # Create out directories
-        mkdir -p out/charts out/site-assets
+        mkdir -p out/charts
 
         # Build docs
         cd docs
@@ -45,9 +46,19 @@ jobs:
         # Charts directory
         cp -a /tmp/charts/* out/charts
 
-        # Website assets
-        cp -a site/assets/* out/site-assets
-        cp site/index.html out/
+        # Docs moved to docs.routr.io (Mintlify). Once that host answers, replace the old
+        # 2.11.5 pages with redirect stubs; 2.0.0 and 1.x.x stay frozen. See docs-site/REDIRECTS.md.
+        if curl -sfIL --max-time 10 https://docs.routr.io/introduction > /dev/null; then
+          node .scripts/docs-redirect-stubs.js out https://docs.routr.io
+        else
+          echo "docs.routr.io not live yet; keeping the Docusaurus 2.11.5 pages"
+        fi
+
+        # Website (site/README.md stays out; the docs build owns robots.txt and sitemap.xml). The docs build also writes out/assets with
+        # hashed file names, so the site's assets/css, assets/js and assets/img merge in safely.
+        mkdir -p out/assets
+        cp -a site/assets/* out/assets/
+        cp site/index.html site/404.html out/
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
       with:

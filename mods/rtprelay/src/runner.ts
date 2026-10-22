@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-require("./tracer").init("dispatcher")
+require("./tracer").init("rtprelay")
 
 import { BIND_ADDR, RTPENGINE_HOST, RTPENGINE_PORT } from "./envs"
 import rtprelay from "./service"

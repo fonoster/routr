@@ -79,7 +79,8 @@ export class AgentManager extends EntityManager {
 
   validOrThrowUpdate() {
     CC.hasReferenceOrThrow(this.agent.ref)
-    CC.isValidNameOrThrow(this.agent.name)
+    // Updates are partial, so only validate the name when it is sent
+    if (this.agent.name !== undefined) CC.isValidNameOrThrow(this.agent.name)
   }
 
   mapToPrisma(): AgentPrismaModel {

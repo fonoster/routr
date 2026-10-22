@@ -1,0 +1,397 @@
+---
+title: "Load balance Asterisk with Routr"
+sidebarTitle: "Load balance Asterisk"
+description: "Run two Asterisk servers behind Routr as a single Peer and watch Routr spread new calls between them."
+---
+
+## What you'll build
+
+You run Routr and two Asterisk containers with Docker Compose. Both Asterisk servers register to Routr with the same credentials, so Routr groups them under one Peer and one Address of Record (AOR). When a softphone calls the Peer, the Location Service picks one of the registered Asterisk servers for each new call.
+
+<img
+  className="block dark:hidden rounded-xl"
+  src="/images/load-balancing/algorithms-light.png"
+  alt="Load balancing across a Peer's AOR: round-robin alternates between registered servers, least-sessions picks the server reporting the fewest sessions, and session affinity keeps related calls on the same server"
+/>
+<img
+  className="hidden dark:block rounded-xl"
+  src="/images/load-balancing/algorithms-dark.png"
+  alt="Load balancing across a Peer's AOR: round-robin alternates between registered servers, least-sessions picks the server reporting the fewest sessions, and session affinity keeps related calls on the same server"
+/>
+
+<Info>
+Routr balances **new** calls. It picks a server when a call starts, and the call stays on that server until it ends. Routr does not move in-flight calls, and it does not recover a call if the Asterisk server handling it goes away.
+</Info>
+
+## Prerequisites
+
+- Docker with Docker Compose
+- Node.js and npm, to install `rctl`
+- A SIP softphone such as Zoiper or Linphone
+- The IP address of your machine on your local network (for example, `192.168.1.3`)
+
+## Steps
+
+<Steps>
+  <Step title="Create the project files">
+    Create a folder for the tutorial and move into it.
+
+    ```bash
+    mkdir routr-asterisk && cd routr-asterisk
+    ```
+
+    Create a dialplan for each Asterisk server. Each one answers calls to the `asterisk` extension, logs its own name, and says a different digit, so you can tell them apart.
+
+    Filename: `extensions.01.conf`
+
+    ```ini
+    [local-ctx]
+    exten => asterisk,1,NoOp()
+     same => n,Verbose(1, Call answered by asterisk01)
+     same => n,Answer()
+     same => n,SayDigits(1)
+     same => n,Hangup()
+    ```
+
+    Filename: `extensions.02.conf`
+
+    ```ini
+    [local-ctx]
+    exten => asterisk,1,NoOp()
+     same => n,Verbose(1, Call answered by asterisk02)
+     same => n,Answer()
+     same => n,SayDigits(2)
+     same => n,Hangup()
+    ```
+  </Step>
+
+  <Step title="Define the services">
+    Create a `compose.yaml` file. It runs `routr-one` (all Routr components plus an internal database), two Asterisk servers, and RTPEngine for media.
+
+    Filename: `compose.yaml`
+
+    ```yaml
+    services:
+      routr:
+        image: fonoster/routr-one:latest
+        environment:
+          EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+          RTPENGINE_HOST: rtpengine
+        ports:
+          - 51908:51908
+          - 5060:5060
+          - 5060:5060/udp
+
+      asterisk01:
+        image: fonoster/mediaserver:latest
+        restart: always
+        expose:
+          - 6060
+        environment:
+          EXTERN_ADDR: ${DOCKER_HOST_ADDRESS}
+          SIPPROXY_HOST: routr
+          SIPPROXY_USERNAME: asterisk
+          SIPPROXY_SECRET: asterisk
+        volumes:
+          - ./extensions.01.conf:/etc/asterisk/extensions.conf
+
+      asterisk02:
+        image: fonoster/mediaserver:latest
+        restart: always
+        expose:
+          - 6060
+        environment:
+          EXTERN_ADDR: ${DOCKER_HOST_ADDRESS}
+          SIPPROXY_HOST: routr
+          SIPPROXY_USERNAME: asterisk
+          SIPPROXY_SECRET: asterisk
+        volumes:
+          - ./extensions.02.conf:/etc/asterisk/extensions.conf
+
+      rtpengine:
+        image: fonoster/rtpengine:latest
+        ports:
+          - 22222:22222/udp
+          - 10000-10100:10000-10100/udp
+        environment:
+          PUBLIC_IP: ${DOCKER_HOST_ADDRESS}
+          PORT_MIN: 10000
+          PORT_MAX: 10100
+    ```
+
+    Both Asterisk services use the same `SIPPROXY_USERNAME` and `SIPPROXY_SECRET`. That is what makes Routr treat them as one Peer.
+
+    <Note>
+    `fonoster/mediaserver` is an Asterisk image that registers to the host in `SIPPROXY_HOST` with the given username and secret. Any Asterisk build works the same way, as long as it registers to Routr as a Peer and sends calls for the `asterisk` extension to a dialplan.
+    </Note>
+  </Step>
+
+  <Step title="Start the stack">
+    Start the services. Replace the address with your own.
+
+    ```bash
+    DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d
+    ```
+
+    Check that the containers are up.
+
+    ```bash
+    docker compose ps
+    ```
+
+    You see four services with status `Up` (or `running`). The Asterisk servers try to register right away and fail, because the Peer doesn't exist yet. You create it next.
+  </Step>
+
+  <Step title="Install rctl">
+    Install the command-line tool.
+
+    ```bash
+    npm install --location=global @routr/ctl
+    ```
+
+    The `--insecure` flag in the next steps is required because this setup doesn't use TLS on the API.
+  </Step>
+
+  <Step title="Create a Domain and an Agent">
+    Create the Domain your softphone registers to.
+
+    ```bash
+    rctl domains create --insecure
+    ```
+
+    Answer the prompts like this:
+
+    ```text
+    This utility will help you create a new Domain.
+    Press ^C at any time to quit.
+    ? Friendly Name Local Domain
+    ? SIP URI sip.local
+    ? IP Access Control List None
+    ? Add an Egress Rule? No
+    ? Ready? Yes
+    Creating Domain Local Domain... a27e9fb2-a71a-4cf3-9b1d-dccf373f9777
+    ```
+
+    Create credentials for the Agent, using `1001` as the username and `1234` as the password.
+
+    ```bash
+    rctl credentials create --insecure
+    ```
+
+    Then create the Agent and link it to the Domain and credentials.
+
+    ```bash
+    rctl agents create --insecure
+    ```
+
+    ```text
+    This utility will help you create a new Agent.
+    Press ^C at any time to quit.
+    ? Friendly Name John Doe
+    ? Select a Domain sip.local
+    ? Username 1001
+    ? Credentials Name John Doe Credentials
+    ? Max Contacts
+    ? Privacy None
+    ? Enabled? Yes
+    ? Ready? Yes
+    Creating Agent John Doe... 8dae9a7d-99b8-4279-88e1-4cf6ed67190a
+    ```
+  </Step>
+
+  <Step title="Create the Asterisk Peer">
+    Create the credentials both Asterisk servers share: username `asterisk`, password `asterisk`.
+
+    ```bash
+    rctl credentials create --insecure
+    ```
+
+    ```text
+    This utility will help you create a new set of Credentials.
+    Press ^C at any time to quit.
+    ? Friendly Name Asterisk Credentials
+    ? Username asterisk
+    ? Password [hidden]
+    ? Ready? Yes
+    Creating Credentials Asterisk Credentials... 7364eddf-0756-4cb5-8b35-1a90681589ca
+    ```
+
+    Create the Peer. Use `asterisk` as the username and `sip:asterisk@sip.local` as the AOR. Leave **Contact Address** and **Max Contacts** empty, so any number of servers can register under the AOR. Choose **Round Robin**.
+
+    ```bash
+    rctl peers create --insecure
+    ```
+
+    ```text
+    This utility will help you create a new Peer.
+    Press ^C at any time to quit.
+    ? Friendly Name Asterisk PBX
+    ? Username asterisk
+    ? Address of Record sip:asterisk@sip.local
+    ? Contact Address
+    ? Max Contacts
+    ? IP Access Control List None
+    ? Credentials Name Asterisk Credentials
+    ? Enable Session Affinity? No
+    ? Balancing Algorithm Round Robin
+    ? Enabled? Yes
+    ? Ready? Yes
+    Creating Peer Asterisk PBX... 7ae0ddcf-e13d-4456-99f0-0bc4ef68a05d
+    ```
+
+    List the Peers to confirm.
+
+    ```bash
+    rctl peers get --insecure
+    ```
+
+    ```text
+    Name           Username   AOR                      Max Contacts   Balancing Algorithm   Enabled
+    Asterisk PBX   asterisk   sip:asterisk@sip.local                  Round Robin           Yes
+    ```
+  </Step>
+
+  <Step title="Register the Asterisk servers">
+    Restart the Asterisk containers so they register now instead of waiting for their next retry.
+
+    ```bash
+    docker compose restart asterisk01 asterisk02
+    ```
+
+    Each server registers from its own container address. Routr stores both contacts under `sip:asterisk@sip.local`.
+
+    <Check>
+    `docker compose logs routr` shows no authentication errors for the `asterisk` user, and both Asterisk containers stay up.
+    </Check>
+  </Step>
+
+  <Step title="Register your softphone">
+    Configure the softphone with these values:
+
+    | Setting | Value |
+    | --- | --- |
+    | Username | `1001` |
+    | Password | `1234` |
+    | Domain | `sip.local` |
+    | Proxy (outbound proxy) | Your machine's IP, for example `192.168.1.3:5060` |
+    | Transport | UDP |
+
+    `sip.local` isn't a real DNS name, so the proxy setting tells the softphone where to send requests.
+
+    <Check>
+    The softphone shows the account as registered.
+    </Check>
+  </Step>
+
+  <Step title="Call the Peer and watch Routr balance">
+    In a second terminal, open `sngrep` inside the Routr container to watch SIP traffic.
+
+    ```bash
+    docker compose exec routr sngrep
+    ```
+
+    From the softphone, call `asterisk` (the full URI is `sip:asterisk@sip.local`). Hang up and call again a few times.
+
+    Routr finds the Peer by its username, looks up the routes for `sip:asterisk@sip.local`, and picks the next one in round-robin order. In `sngrep`, the INVITEs that Routr forwards alternate between the two Asterisk container addresses. You also hear "one" on one call and "two" on the next.
+
+    You can also search the Asterisk logs for the message each dialplan writes:
+
+    ```bash
+    docker compose logs asterisk01 asterisk02 | grep "Call answered"
+    ```
+
+    The output alternates between the two servers, similar to this:
+
+    ```text
+    asterisk01-1  | Call answered by asterisk01
+    asterisk02-1  | Call answered by asterisk02
+    asterisk01-1  | Call answered by asterisk01
+    ```
+
+    <Check>
+    Consecutive calls land on different Asterisk servers.
+    </Check>
+  </Step>
+
+  <Step title="Stop one server">
+    Stop one Asterisk server and call again.
+
+    ```bash
+    docker compose stop asterisk02
+    ```
+
+    New calls keep reaching `asterisk01` once the stopped server's registration expires or is removed. A call that was already in progress on `asterisk02` ends with it; Routr does not move it.
+
+    Start the server again when you're done.
+
+    ```bash
+    docker compose start asterisk02
+    ```
+  </Step>
+</Steps>
+
+## Route PSTN calls to the Peer
+
+In production, calls usually arrive from a carrier. To send them to the same pool of Asterisk servers, link a Number to the Peer's AOR. The Number needs a Trunk whose inbound SIP URI matches the host your carrier sends calls to.
+
+```bash
+rctl numbers create --insecure
+```
+
+```text
+This utility will help you create a new Number.
+Press ^C at any time to quit.
+? Friendly Name (706)604-1487
+? Telephony URL tel:+17066041487
+? AOR Link sip:asterisk@sip.local
+? Trunk My Carrier
+? City Columbus, GA
+? Select a Country United States
+? Session Affinity Header
+? Extra Headers
+? Ready? Yes
+```
+
+When a call for `+17066041487` arrives on the Trunk, Routr finds the Peer whose AOR equals the Number's AOR Link and applies the Peer's balancing algorithm. See [Numbers](/reference/resources/numbers) and [Trunks](/reference/resources/trunks) for every field.
+
+## Choose a balancing algorithm
+
+| Algorithm | How Routr picks a server | Notes |
+| --- | --- | --- |
+| `round-robin` | The next registered contact, in order | Works with the in-memory Location cache used by `routr-one`. |
+| `least-sessions` | The contact with the lowest session count | Each server reports its count in an `X-Session-Count` header on its REGISTER. Requires Redis. |
+
+Turn on session affinity when related calls must reach the same server, for example everyone joining one conference room. Set `withSessionAffinity` on the Peer and a `sessionAffinityHeader` on the Number (such as `X-Room-Id`). Routr sends calls with the same header value to the same server.
+
+<Note>
+`routr-one` runs the Location Service with the in-memory cache, so use `round-robin` with it. For `least-sessions`, run Routr with Redis, for example with the [Helm chart](/guides/deploy-on-kubernetes), which enables Redis by default. See [Scale with Redis](/guides/scale-with-redis).
+</Note>
+
+<Note>
+FreeSWITCH works the same way. Configure a gateway in FreeSWITCH that registers to Routr with the Peer's username and password. Every FreeSWITCH server that registers with those credentials joins the Peer's AOR, and Routr balances new calls across them.
+</Note>
+
+## Clean up
+
+Stop and remove the containers.
+
+```bash
+docker compose down
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Load balancing" icon="scale-balanced" href="/concepts/load-balancing">
+    How round-robin, least-sessions, and session affinity work.
+  </Card>
+  <Card title="Connect a PBX as a Peer" icon="server" href="/guides/connect-a-pbx-as-a-peer">
+    Configure Asterisk or FreeSWITCH to register with Routr.
+  </Card>
+  <Card title="Scale with Redis" icon="database" href="/guides/scale-with-redis">
+    Share the Location Service state across instances.
+  </Card>
+  <Card title="Peers reference" icon="book" href="/reference/resources/peers">
+    Every Peer field, including load balancing options.
+  </Card>
+</CardGroup>

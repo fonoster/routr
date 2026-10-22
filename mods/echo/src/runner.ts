@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-require("./tracer").init("dispatcher")
+require("./tracer").init("echo")
 
 import Processor, { MessageRequest, Response } from "@routr/processor"
 import { getLogger } from "@fonoster/logger"

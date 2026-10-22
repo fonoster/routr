@@ -1,0 +1,110 @@
+---
+title: "Connect processor"
+sidebarTitle: "Connect"
+description: "Reference for the Connect processor: its image, port, environment variables, EdgePort trust settings, and gRPC contract."
+---
+
+The Connect processor is Routr's built-in Processor. It implements the PBX portion of SIP Connect 1.1 (not certified): it handles registrations and routes calls between Agents, Peers, and the PSTN using the resources stored in the API Server. It is stateless.
+
+## Docker image
+
+`fonoster/routr-connect`
+
+The processor has no configuration file. You configure it with environment variables.
+
+## Ports
+
+| Port | Protocol | Purpose |
+| --- | --- | --- |
+| `51904` (set by `BIND_ADDR`) | gRPC | `Processor` service and the standard gRPC health service |
+
+## Environment variables
+
+### Service
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `BIND_ADDR` | `0.0.0.0:51904` | Address to listen on |
+| `LOCATION_ADDR` | | Location Service address, for example `location:51902`. Required |
+| `API_ADDR` | | API Server address, for example `apiserver:51907`. Required |
+
+### Number normalization
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `ENFORCE_E164` | `false` | `true` normalizes the From, To, and Request-URI users to E.164 when they parse as valid numbers |
+| `ENFORCE_E164_WITH_MOBILE_PREFIX` | `false` | `true` also validates mobile prefixes when normalizing the To and Request-URI users |
+
+### Connect Token verification
+
+These variables verify the JWT in the `X-Connect-Token` header. Set only one of `CONNECT_VERIFIER_ADDR` or `CONNECT_VERIFIER_PUBLIC_KEY_PATH`. If you set both, the public key is used.
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `CONNECT_VERIFIER_PUBLIC_KEY_PATH` | | Path to a public key used to verify tokens locally |
+| `CONNECT_VERIFIER_OPTIONS` | `{"expiresIn":"1h","algorithm":["RS256"]}` | JSON options for local verification |
+| `CONNECT_VERIFIER_ADDR` | | Address of a remote gRPC verifier that implements `fonoster.verifier.Verifier/Verify` |
+
+### Header stripping
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `UNTRUSTED_HEADERS_TO_STRIP` | See below | Comma-separated platform headers removed from untrusted requests. An empty string turns stripping off |
+
+Untrusted requests are calls from the PSTN and requests authorized only by a Connect Token. The default list is `X-App-Ref`, `X-Call-Ref`, `X-Call-Direction`, `X-DOD-Number`, `X-DOD-Privacy`, `X-Access-Key-Id`, `X-Is-Api-Originated-Type`, `X-Edgeport-Ref`, `X-Gateway-Auth`, `X-Request-Uri`, and `X-Session-Count`. A request with a verified Connect Token keeps `X-App-Ref`. Requests from authenticated Agents and Peers keep all headers.
+
+### EdgePort trust
+
+When the callee is connected to a different EdgePort, the processor adds a Route header to that EdgePort and an `X-Edgeport-Ref` header. A request carrying `X-Edgeport-Ref` skips routing and access checks, so the processor honors the header only from a trusted peer EdgePort.
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `TRUSTED_EDGEPORT_ADDRESSES` | Empty (trust none) | Comma-separated IPs or CIDRs of your EdgePorts. Matched against the top Via's `received` value, or its host when `received` is absent |
+| `TRUSTED_EDGEPORTS` | Empty (any ref) | Comma-separated EdgePort refs. When set, the `X-Edgeport-Ref` value must be one of them |
+
+From any other source, the processor removes `X-Edgeport-Ref`, logs a warning, and routes the request normally. A `CANCEL` always follows its INVITE's path and is not affected.
+
+### Observability
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
+| `OTEL_SERVICE_NAME` | `connect` | Service name reported in traces |
+| `OTEL_SDK_DISABLED` | | `true` turns tracing off |
+
+## gRPC contract
+
+The processor serves the Processor contract and is a client of the Location Service and the API Server.
+
+| Service | Method | Request | Response |
+| --- | --- | --- | --- |
+| `fonoster.routr.processor.v2beta1.Processor` | `ProcessMessage` | `MessageRequest` | `MessageResponse` |
+
+See [processor.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/processor.proto), [location.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/location.proto), and the [Connect protos](https://github.com/fonoster/routr/tree/main/mods/common/src/connect/protos).
+
+## Minimal example
+
+This command runs the processor against a Location Service and an API Server.
+
+```bash
+docker run -it \
+  -e LOCATION_ADDR=location:51902 \
+  -e API_ADDR=apiserver:51907 \
+  -p 51904:51904 \
+  fonoster/routr-connect
+```
+
+This fragment trusts two EdgePorts on a private network.
+
+```bash
+TRUSTED_EDGEPORT_ADDRESSES=10.0.0.10,10.0.0.11
+TRUSTED_EDGEPORTS=edgeport-01,edgeport-02
+```
+
+## Notes
+
+- With a single EdgePort, leave `TRUSTED_EDGEPORT_ADDRESSES` empty. With several EdgePorts, list their addresses, or requests forwarded between EdgePorts go through routing and access checks again instead of reusing the route in the message.
+- The EdgePort ref is its `HOSTNAME` in Docker and Kubernetes. Use those values in `TRUSTED_EDGEPORTS`.
+- The processor exits at startup if `LOCATION_ADDR` or `API_ADDR` is missing.

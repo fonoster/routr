@@ -394,6 +394,20 @@ async function peerToPSTN(
     return CR.createNotFoundResponse(`No Number found for tel:${numberTel}`)
   }
 
+  // A Number bound to an access key (e.g., a Fonoster workspace) may only be
+  // used by a request that carries the same X-Access-Key-Id
+  const numberAccessKeyId = number.extended?.accessKeyId
+
+  if (
+    numberAccessKeyId &&
+    numberAccessKeyId !== E.getHeaderValue(req, CT.ExtraHeader.ACCESS_KEY_ID)
+  ) {
+    logger.verbose("rejected peer-to-pstn request: access key mismatch", {
+      numberRef: number.ref
+    })
+    return CR.createForbiddenResponse()
+  }
+
   if (!number.trunk) {
     // TODO: Create custom error
     throw new Error(`no trunk associated with Number ref: ${number.ref}`)

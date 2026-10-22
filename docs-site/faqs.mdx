@@ -1,0 +1,53 @@
+---
+title: "Frequently asked questions"
+sidebarTitle: "FAQs"
+description: "For people evaluating or running Routr: short answers about what Routr is, what it depends on, how it compares to other SIP servers, and how it handles media."
+---
+
+<AccordionGroup>
+  <Accordion title="What is Routr?">
+    Routr is a programmable SIP proxy, location server, and registrar. It is built as a set of gRPC services: EdgePort handles SIP connections, the Message Dispatcher routes each message, and Processors and Middlewares decide what happens to it. You extend Routr by writing your own [processors](/guides/build-a-processor) and [middlewares](/guides/build-a-middleware) in any language with gRPC support.
+
+    Routr is the signaling engine behind [Fonoster](https://fonoster.com). See the [architecture](/concepts/architecture) for how the pieces fit together.
+  </Accordion>
+
+  <Accordion title="Is Routr a media server?">
+    No. Routr handles SIP signaling only. It doesn't play prompts, record, mix, or transcode audio.
+
+    Use Routr in front of media servers such as Asterisk or FreeSWITCH: it registers your phones, routes calls to and between them, and spreads load across several media servers. It complements them; it doesn't replace them. See [Load balancing Asterisk](/tutorials/load-balancing-asterisk).
+
+    For WebRTC clients, the [RTPRelay](/reference/components/rtprelay) middleware drives an RTPEngine instance that bridges WebRTC and SIP media. RTPEngine carries the media, not Routr.
+  </Accordion>
+
+  <Accordion title="What does Routr depend on?">
+    The core services have no external dependencies. The Location Service keeps registrations in memory by default.
+
+    Add these as you need them:
+
+    - **Redis** to share registrations across several Location Service instances, and for the `least-sessions` load-balancing algorithm. See [Scale with Redis](/guides/scale-with-redis).
+    - **PostgreSQL** for the API Server's `pgdata` backend. The all-in-one `fonoster/routr-one` image bundles it; the Helm chart deploys it for you. The YAML backend (`simpledata`) needs no database.
+    - **RTPEngine** only if you need WebRTC.
+  </Accordion>
+
+  <Accordion title="How does Routr compare with Kamailio and OpenSIPS?">
+    Like Kamailio and OpenSIPS, Routr is a programmable SIP server. The difference is the architecture. Routr splits the server into separate services that talk over gRPC, and only EdgePort holds SIP state. You scale each service on its own, for example by adding Location Service or processor replicas, and you can replace any component with your own implementation, such as a custom authentication middleware.
+
+    You write routing logic as regular code (TypeScript, or any gRPC language) rather than in a server-specific configuration language.
+  </Accordion>
+
+  <Accordion title="What happens to calls if an EdgePort goes away?">
+    EdgePort is the only stateful service: it holds the SIP connections and transactions of the endpoints connected to it. If it stops, those endpoints re-register through another EdgePort. Routr doesn't move in-flight calls to another EdgePort. See [EdgePort cooperation](/concepts/edgeport-cooperation) and [Deployment topologies](/concepts/deployment-topologies).
+  </Accordion>
+
+  <Accordion title="Which languages is Routr written in?">
+    EdgePort and Requester, which handle SIP, are written in Java. The other services (Dispatcher, Location Service, Connect, API Server, Registry, and the middlewares) are written in TypeScript for Node.js.
+  </Accordion>
+
+  <Accordion title="Is Routr certified for SIP Connect?">
+    No. The [Connect processor](/reference/components/connect) implements the PBX portion of SIP Connect 1.1, but it isn't certified.
+  </Accordion>
+
+  <Accordion title="What license does Routr use?">
+    Routr is released under the [MIT license](https://github.com/fonoster/routr/blob/main/LICENSE).
+  </Accordion>
+</AccordionGroup>

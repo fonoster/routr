@@ -19,8 +19,14 @@
 import chai from "chai"
 import sinon from "sinon"
 import sinonChai from "sinon-chai"
-import { configFromString, duplicateFilter, expiredFilter } from "../src/utils"
+import {
+  configFromString,
+  duplicateFilter,
+  expiredFilter,
+  getServiceInfo
+} from "../src/utils"
 import * as Routes from "./route_examples"
+import { ILocationService } from "../src/types"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -28,6 +34,45 @@ const sandbox = sinon.createSandbox()
 
 describe("@routr/location", () => {
   afterEach(() => sandbox.restore())
+
+  it("dispatches removeRoutes to locator.removeRoutes and returns Empty", async () => {
+    const locator = {
+      removeRoutes: sandbox.stub().resolves(),
+      findRoutes: sandbox.stub().resolves([{ host: "still-registered" }]),
+      addRoute: sandbox.stub().resolves()
+    } as unknown as ILocationService
+
+    const handlers = getServiceInfo("0.0.0.0:51902", locator).handlers
+    const request = { aor: "sip:alice@example.test" }
+    const callback = sandbox.spy()
+
+    await handlers.removeRoutes({ request }, callback)
+
+    expect(locator.removeRoutes).to.have.been.calledOnceWithExactly(request)
+    expect(locator.findRoutes).to.not.have.been.called
+    expect(callback).to.have.been.calledOnceWithExactly(null, {})
+  })
+
+  it("dispatches addRoute to locator.addRoute and returns Empty", async () => {
+    const locator = {
+      removeRoutes: sandbox.stub().resolves(),
+      findRoutes: sandbox.stub().resolves([]),
+      addRoute: sandbox.stub().resolves()
+    } as unknown as ILocationService
+
+    const handlers = getServiceInfo("0.0.0.0:51902", locator).handlers
+    const request = {
+      aor: "sip:alice@example.test",
+      route: { host: "sip.local" }
+    }
+    const callback = sandbox.spy()
+
+    await handlers.addRoute({ request }, callback)
+
+    expect(locator.addRoute).to.have.been.calledOnceWithExactly(request)
+    expect(locator.findRoutes).to.not.have.been.called
+    expect(callback).to.have.been.calledOnceWithExactly(null, {})
+  })
 
   it("verifies that a route is not expired", () => {
     const route1 = { ...Routes.simpleRoute01 }

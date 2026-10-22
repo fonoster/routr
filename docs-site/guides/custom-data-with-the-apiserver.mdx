@@ -1,0 +1,105 @@
+---
+title: "Store custom data with the API Server"
+sidebarTitle: "Custom data"
+description: "For developers who need to attach their own fields to Routr resources: write, read, and use the extended property through the SDK and your processors."
+---
+
+Attach your own data, such as an external ID or a billing account, to any Connect resource with the `extended` property, then read it back from the SDK or a processor.
+
+Every resource the API Server manages (Agents, Domains, Peers, Trunks, Numbers, Credentials, and ACLs) has an optional `extended` field. It holds any JSON object. Routr stores it as-is and returns it with the resource.
+
+## When to use it
+
+- Link a resource to a record in your own system, for example a CRM user ID on an Agent.
+- Give a [processor](/guides/build-a-processor) or [middleware](/guides/build-a-middleware) the data it needs to change signaling, for example a preferred codec or a tenant ID.
+
+## Prerequisites
+
+- An API Server backed by **PostgreSQL** (`pgdata`). This is the backend in `fonoster/routr-one` and the Helm chart.
+- The SDK: `npm install --save @routr/sdk`.
+
+<Warning>
+  The YAML backend (`simpledata`) is read-only and does not load `extended` from resource files. Use `pgdata` to store custom data.
+</Warning>
+
+## Write custom data
+
+<Steps>
+  <Step title="Create a resource with extended data">
+    This script creates an Agent with an external ID in `extended`. It connects to the API Server on `localhost:51908` without TLS:
+
+    ```javascript index.js
+    const SDK = require("@routr/sdk")
+
+    const agents = new SDK.Agents({ endpoint: "localhost:51908", insecure: true })
+
+    agents.createAgent({
+      name: "John Doe",
+      username: "jdoe",
+      domainRef: "4671371b-ff5d-48b1-aabe-d3c5ca5317a3",
+      credentialsRef: "4671371b-ff5d-48b1-aabe-d3c5ca5317a3",
+      enabled: true,
+      extended: {
+        externalId: "123456789"
+      }
+    })
+      .then(console.log)
+      .catch(console.error)
+    ```
+
+    Replace the `domainRef` and `credentialsRef` values with refs from your server (`rctl domains get`, `rctl credentials get`). If your API Server uses TLS, drop `insecure` and pass `cacert` instead.
+  </Step>
+
+  <Step title="Update it later">
+    Pass `extended` to the matching `update*` method. The object you send replaces the stored one, so include every key you want to keep:
+
+    ```javascript
+    agents.updateAgent({
+      ref: "8571371b-6f5d-78b1-aabe-93c5c75317a3",
+      extended: { externalId: "123456789", plan: "pro" }
+    })
+    ```
+  </Step>
+</Steps>
+
+## Read custom data
+
+The SDK decodes `extended` back into a plain object. This call prints the external ID of an Agent:
+
+```javascript
+agents.getAgent("8571371b-6f5d-78b1-aabe-93c5c75317a3")
+  .then((agent) => console.log(agent.extended?.externalId))
+  .catch(console.error)
+```
+
+From the command line, `rctl <resource> describe <ref>` prints the field under `Extended`. The `-x, --extended` flag on `get` commands is unrelated: it only adds table columns. See [rctl](/reference/rctl).
+
+## Use custom data in signaling
+
+A processor reads resources from the API Server over gRPC, so it sees `extended` like any other field. The Connect processor already uses it in two places:
+
+- **Request metadata.** When Connect routes a call, it copies the `extended` object of the relevant resource (the caller for calls that start at an Agent, the Number for `from-pstn`) into the outgoing `MessageRequest.metadata`. Post-processor middlewares can read it there.
+- **Access keys on Numbers.** For `peer-to-pstn`, if a Number has `extended.accessKeyId`, Connect only lets requests use that Number when they carry a matching `X-Access-Key-Id` header. Otherwise it answers `403 Forbidden`.
+
+## Pitfalls
+
+- **Keep it small and flat.** `extended` travels as a protobuf `Struct`. Store IDs and flags, not large documents.
+- **Don't put secrets in it.** Anyone with API access can read `extended`.
+- **Metadata is string-keyed.** `MessageRequest.metadata` is a `map<string, string>`, so prefer string values for data that signaling needs.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Manage resources with the SDK" icon="js" href="/guides/manage-resources-with-the-sdk">
+    Create and manage every resource type from code.
+  </Card>
+  <Card title="API Server" icon="database" href="/reference/components/apiserver">
+    Backends, ports, and configuration.
+  </Card>
+  <Card title="SDK reference" icon="book" href="/reference/sdk">
+    Every SDK class and method.
+  </Card>
+  <Card title="Build a processor" icon="microchip" href="/guides/build-a-processor">
+    Use your data to make routing decisions.
+  </Card>
+</CardGroup>

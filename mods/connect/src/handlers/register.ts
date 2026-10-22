@@ -117,7 +117,7 @@ export const handleRegister = (
         await location.addRoute({
           aor: payload.aor,
           route: H.createRoute(request),
-          maxContacts: payload.maxContacts || -1
+          maxContacts: payload.maxContacts ?? -1
         })
 
         res.sendRegisterOk(request)
