@@ -21,11 +21,7 @@ import {
   SECURITY_CONTEXT_CLIENT_CIPHER_SUITES,
   SECURITY_CONTEXT_CLIENT_PROTOCOLS
 } from "./envs"
-import {
-  DEFAULT_TLS_CIPHER_SUITES,
-  DEFAULT_TLS_PROTOCOLS,
-  resolveTlsSetting
-} from "./tls"
+import { getTlsProperties } from "./tls"
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: { type(name: string): any }
 const Properties = Java.type("java.util.Properties")
@@ -73,22 +69,12 @@ export default function getServerProperties(
   properties.setProperty("javax.sip.IP_ADDRESS", config.spec.bindAddr)
 
   if (config.spec.securityContext) {
-    properties.setProperty(
-      "gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS",
-      resolveTlsSetting(
-        SECURITY_CONTEXT_CLIENT_PROTOCOLS,
-        config.spec.securityContext.client?.protocols,
-        DEFAULT_TLS_PROTOCOLS
-      ).join()
-    )
-    properties.setProperty(
-      "gov.nist.javax.sip.ENABLED_CIPHER_SUITES",
-      resolveTlsSetting(
-        SECURITY_CONTEXT_CLIENT_CIPHER_SUITES,
-        config.spec.securityContext.client?.cipherSuites,
-        DEFAULT_TLS_CIPHER_SUITES
-      ).join()
-    )
+    Object.entries(
+      getTlsProperties(config.spec.securityContext.client, {
+        protocols: SECURITY_CONTEXT_CLIENT_PROTOCOLS,
+        cipherSuites: SECURITY_CONTEXT_CLIENT_CIPHER_SUITES
+      })
+    ).forEach(([key, value]) => properties.setProperty(key, value))
     // This must be set to 'Disabled' when using WSS
     properties.setProperty(
       "gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE",

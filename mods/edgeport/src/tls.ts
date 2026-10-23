@@ -38,13 +38,40 @@ export const DEFAULT_TLS_CIPHER_SUITES = [
   "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256"
 ]
 
+// Trims entries and drops blank ones. JAIN-SIP's WSS channel splits the
+// protocols on "," alone and rejects names with spaces, and an empty
+// variable must not override the config or the defaults.
+const clean = (list: string[] | undefined): string[] =>
+  (list ?? []).map((item) => item.trim()).filter((item) => item.length > 0)
+
 // The environment wins over the config, and the config over the default
 export const resolveTlsSetting = (
-  fromEnv: string[],
+  fromEnv: string[] | undefined,
   fromConfig: string[] | undefined,
   fallback: string[]
 ): string[] => {
-  if (fromEnv.length > 0) return fromEnv
-  if (fromConfig && fromConfig.length > 0) return fromConfig
+  const env = clean(fromEnv)
+  if (env.length > 0) return env
+  const config = clean(fromConfig)
+  if (config.length > 0) return config
   return fallback
 }
+
+// JAIN-SIP properties that select the TLS versions and cipher suites. They
+// apply to the TLS and WSS transports, for both incoming and outgoing
+// connections.
+export const getTlsProperties = (
+  client: { protocols?: string[]; cipherSuites?: string[] } | undefined,
+  env: { protocols?: string[]; cipherSuites?: string[] }
+): Record<string, string> => ({
+  "gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS": resolveTlsSetting(
+    env.protocols,
+    client?.protocols,
+    DEFAULT_TLS_PROTOCOLS
+  ).join(),
+  "gov.nist.javax.sip.ENABLED_CIPHER_SUITES": resolveTlsSetting(
+    env.cipherSuites,
+    client?.cipherSuites,
+    DEFAULT_TLS_CIPHER_SUITES
+  ).join()
+})

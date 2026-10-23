@@ -34,7 +34,8 @@ export const readFile = (path: string): E.Either<Error, string> =>
 export const validateConfig = (j: J.Json): E.Either<Error, J.Json> =>
   E.tryCatch(() => {
     if (validate(j)) return j
-    throw new Error(validate.errors[0].message)
+    const [error] = validate.errors
+    throw new Error(`${error.dataPath} ${error.message}`.trim())
   }, E.toError)
 
 // Read a file and validate its content with Ajv
