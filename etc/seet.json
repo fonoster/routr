@@ -1034,5 +1034,47 @@
         ]
       }
     ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.7.1: A retransmitted BYE is answered again",
+    "description": "This test verifies that a BYE retransmitted with the same Via branch after its 200 OK is answered again by Routr's server transaction (RFC 3261 17.2.3) instead of being absorbed.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/basic_calls/did_terminating_call_part_abc.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_retransmitted_bye.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:17853178070@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:17853178070@sip.local"
+          }
+        ]
+      }
+    ]
   }
 ]

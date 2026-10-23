@@ -346,26 +346,35 @@ public class GRPCSipListener implements SipListener {
         res.addHeader(header);
       }
 
-      if (isTransactional) {
+      // Answer on the server transaction of the request this response belongs to,
+      // whatever the method. Matched through the client transaction the response
+      // arrived on: the call-ID slot is overwritten by each in-dialog request, so a
+      // BYE or re-INVITE response would otherwise find the wrong one. Sending through
+      // the server transaction completes it, which lets JAIN-SIP release it after
+      // timer J and answer a retransmitted request itself (RFC 3261 section 17.2.3).
+      // Before this, BYE responses went out statelessly: the BYE's server transaction
+      // stayed open for the life of the process and swallowed every later request
+      // with the same branch, including the caller's own retransmission after a lost
+      // 200 (issue #400).
+      var serverTransaction = transactionManager.getServerTransactionFor(event.getClientTransaction());
+
+      if (serverTransaction == null && isTransactional) {
+        // Older pairing by call ID, kept for a client transaction that was never mapped
         var req = event.getClientTransaction().getRequest();
         var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
-        var originalServerTransaction = transactionManager.getServerTransaction(callId.getCallId());
-        boolean isWebSocket = TransportDetector.isWebSocketTransport(req);
-        
-        if (originalServerTransaction != null) {
-          // The response CSeq number must be the same as the original request CSeq number
-          var originalCSeq = (CSeqHeader) originalServerTransaction.getRequest().getHeader(CSeqHeader.NAME);
-          res.setHeader(originalCSeq);
-          SipMessageSender.sendResponse(originalServerTransaction, res, isWebSocket);
-        } else if (res.getHeader(ViaHeader.NAME) != null) {
-          // No server transaction left to copy the caller's CSeq from, so fall back
-          // to the recorded original the same way the non-transactional branch does.
-          restoreCallerCSeq(res);
-          SipMessageSender.sendResponse(sipProvider, res, isWebSocket);
-        }
+        serverTransaction = transactionManager.getServerTransaction(callId.getCallId());
+      }
+
+      if (serverTransaction != null) {
+        boolean isWebSocket = TransportDetector.isWebSocketTransport(serverTransaction.getRequest());
+        // The response CSeq number must be the same as the original request CSeq number
+        var originalCSeq = (CSeqHeader) serverTransaction.getRequest().getHeader(CSeqHeader.NAME);
+        res.setHeader(originalCSeq);
+        SipMessageSender.sendResponse(serverTransaction, res, isWebSocket);
       } else if (res.getHeader(ViaHeader.NAME) != null) {
-        // BYE lands here (isTransactional covers only INVITE/MESSAGE/REGISTER) and so
-        // misses the CSeq restoration above. RFC 3261 §8.2.6.2: echo the caller's CSeq.
+        // No server transaction to answer on (statelessly forwarded request, or its
+        // transaction already released): send statelessly and restore the caller's
+        // CSeq from the recorded original. RFC 3261 §8.2.6.2: echo the caller's CSeq.
         restoreCallerCSeq(res);
 
         // For non-transactional responses, we need to check the Via header from the response
