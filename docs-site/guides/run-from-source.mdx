@@ -15,7 +15,7 @@ Build Routr from a clone of the repository, start its services on your machine w
 - Optional: [sngrep](https://github.com/irontec/sngrep) to watch SIP traffic and [grpcurl](https://github.com/fullstorydev/grpcurl) to call the gRPC services.
 
 <Tip>
-  If you'd rather not install anything, [develop with Gitpod](/guides/develop-with-gitpod) instead.
+  The recommended path is to [develop with dev containers](/guides/develop-with-dev-containers): you get the same toolchain without installing it, and the hostnames and TLS keystore are set up for you.
 </Tip>
 
 ## Build and start
@@ -33,13 +33,13 @@ Build Routr from a clone of the repository, start its services on your machine w
   </Step>
 
   <Step title="Map the service hostnames">
-    The development configs in `config/` address services by name (`dispatcher:51901`, `location:51902`, `apiserver:51907`). Add those names to `/etc/hosts` from `etc/hosts.txt`:
+    The development configs in `config/` address services by name (`dispatcher:51901`, `location:51902`, `connect:51904`, `apiserver:51907`). Append the entries in `etc/hosts.txt`, which map each name to `127.0.0.1`, to `/etc/hosts`:
 
     ```bash
-    npm run hostile:load
+    sudo sh -c 'cat etc/hosts.txt >> /etc/hosts'
     ```
 
-    The command uses `sudo`. Undo it later with `npm run hostile:unload`.
+    Run it once. To undo it, delete those lines from `/etc/hosts`.
   </Step>
 
   <Step title="Create the TLS keystore">
@@ -51,6 +51,18 @@ Build Routr from a clone of the repository, start its services on your machine w
     sudo mkdir -p /etc/routr/certs
     sudo cp .certs/signaling.p12 /etc/routr/certs/signaling.p12
     ```
+  </Step>
+
+  <Step title="Check the setup">
+    Run the smoke test. It starts an EdgePort, the Message Dispatcher, and the Echo processor (on the Connect processor's port, `51904`), sends a SIP `MESSAGE` over UDP to `127.0.0.1:5060`, and needs no database:
+
+    ```bash
+    npm run test:echo
+    ```
+
+    <Check>
+      The test prints `echo test passed: SIP/2.0 200 OK` and exits with code `0`. It exits with code `1` on any other answer, or when nothing answers within 120 seconds.
+    </Check>
   </Step>
 
   <Step title="Start the services">
@@ -92,28 +104,65 @@ npm run start:location
 | `start:simpleauth` | SimpleAuth middleware | `config/auth.yaml`, `METHODS=MESSAGE` |
 | `start:rtprelay` | RTPRelay middleware | needs RTPEngine |
 | `start:echo` | Echo processor (answers `200 OK` to everything) | |
-| `start:one` | All-in-one distribution with `pgdata` | needs PostgreSQL |
+| `start:one` | All-in-one distribution with `pgdata` | starts PostgreSQL itself, see below |
+| `test:echo` | Smoke test: EdgePort, Dispatcher, and Echo answer a SIP `MESSAGE` | |
 
 See the `scripts` section of [`package.json`](https://github.com/fonoster/routr/blob/main/package.json) for the full list.
 
 ## Start the dependencies
 
-PostgreSQL, Redis, and RTPEngine only matter when you use `pgdata`, the Redis cache, or RTPRelay. Start them, plus Adminer on port `8080`, with Docker Compose:
+PostgreSQL, Redis, and RTPEngine only matter when you use `pgdata`, the Redis cache, or RTPRelay. `npm start` and `npm run test:echo` need none of them.
+
+### Let `start:one` start them
+
+The all-in-one distribution starts its own dependencies with Docker Compose, applies the database migrations, and then starts Routr:
+
+```bash
+npm run start:one
+```
+
+It always starts PostgreSQL. It also starts Redis when `LOCATION_CACHE_PROVIDER` is `redis`, and RTPEngine when `RTPENGINE_HOST` is set. The services publish their ports on `localhost` (see the table below), which is where Routr looks by default: `DATABASE_URL` defaults to `postgresql://postgres:postgres@localhost:5432/routr?schema=public` and `LOCATION_CACHE_PARAMETERS` to `host=localhost,port=6379`. To also keep registrations in Redis and relay media through RTPEngine, run:
+
+```bash
+LOCATION_CACHE_PROVIDER=redis RTPENGINE_HOST=localhost npm run start:one
+```
+
+<Check>
+  The log shows `routr v2 // all in one distribution`.
+</Check>
+
+### Start them by hand
+
+For the other scripts, such as `start:pgdata`, start the services yourself. With no arguments, the command starts PostgreSQL and Redis and waits until they're healthy:
 
 ```bash
 npm run start:deps
 ```
 
-This runs `compose.dev.yaml` with Postgres on `5432` (user and password `postgres`), Redis on `6379`, and RTPEngine on `22222/udp`. Before you start `start:one` or `start:pgdata`, apply the database migrations:
+Name the services to start only some of them:
+
+```bash
+npm run start:deps -- postgres rtpengine
+```
+
+The services run in the Compose project `routr-deps` and publish their ports on `localhost`:
+
+| Service | Port | Override |
+| --- | --- | --- |
+| PostgreSQL (user and password `postgres`, database `routr`) | `5432` | `POSTGRES_PORT` |
+| Redis | `6379` | `REDIS_PORT` |
+| RTPEngine | `22222/udp`, media `10000-10020/udp` | |
+
+If you change `POSTGRES_PORT`, set `DATABASE_URL` to match. Before you start `start:pgdata`, apply the database migrations:
 
 ```bash
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/routr?schema=public" npm run db:migrate
 ```
 
-Stop the dependencies with `npm run stop:deps`.
+Stop all three services with `npm run stop:deps`. Adminer is no longer part of the setup; connect to PostgreSQL with any client, for example `psql postgresql://postgres:postgres@localhost:5432/routr`.
 
 <Note>
-  RTPEngine needs `DOCKER_HOST_ADDRESS` set to an IP your SIP clients can reach. On macOS, Compose can't use host networking, so the file publishes media ports `10000-10020/udp` instead.
+  RTPEngine advertises `DOCKER_HOST_ADDRESS` as its media address, `127.0.0.1` when unset. Set it to an IP your SIP clients can reach before the service starts. Compose can't use host networking on macOS, so the media ports are published instead.
 </Note>
 
 ## Run the tests
@@ -125,6 +174,7 @@ npm test             # Node.js unit tests (mods/*/test/*.unit.test.ts)
 npm run test:java    # EdgePort and Requester tests (JDK 17)
 npm run typecheck
 npx eslint mods --ext .ts
+npm run test:echo    # smoke test, no database needed
 ```
 
 `npm test` runs against the built workspaces, so run `npm run make` (or `npx lerna run build`) after pulling. `npm run lint` also lints, but it applies `--fix` and rewrites files.
@@ -139,7 +189,7 @@ docker compose -f compose.yaml -f compose.dev.yaml up \
 ## Pitfalls
 
 - **`Could not find a runtime environment`**: `JAVA_HOME` isn't set in the shell that runs the script.
-- **Connection errors to `location` or `apiserver`**: the hostnames aren't mapped. Run `npm run hostile:load`.
+- **Connection errors to `location` or `apiserver`**: the hostnames aren't mapped. Append `etc/hosts.txt` to `/etc/hosts` (see [Map the service hostnames](#build-and-start)).
 - **Build errors in `@routr/ctl` after `npm install`**: use `npm ci` so the dependency tree matches `package-lock.json`.
 - **Start fresh**: `npm run clean` removes `node_modules`, `dist`, and Gradle outputs.
 
@@ -152,8 +202,8 @@ docker compose -f compose.yaml -f compose.dev.yaml up \
   <Card title="Contributing" icon="code-pull-request" href="/contributing">
     Commit conventions and the pull request checklist.
   </Card>
-  <Card title="Develop with Gitpod" icon="cloud" href="/guides/develop-with-gitpod">
-    The same setup in a browser workspace.
+  <Card title="Develop with dev containers" icon="box" href="/guides/develop-with-dev-containers">
+    The recommended setup, with nothing to install but Docker.
   </Card>
   <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
     How the services fit together.

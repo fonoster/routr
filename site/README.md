@@ -61,7 +61,6 @@ Same rules as fonoster.com:
 
 ## Open items
 
-- **Dev Containers card.** The repo ships `.gitpod.yml` but no `.devcontainer/` yet; the card links to the repo until one exists.
 - "Get started", "Learn more about Connect" and "Build a Processor" point at `/docs`; deep-link them once the docs URLs settle (the current docs are versioned under `/docs/2.11.5/...`).
 - The light theme works but hasn't been reviewed by design.
 - Keep the shared foundation of `v1.css` in sync with fonoster.com by hand when its tokens or components change.

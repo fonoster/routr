@@ -25,6 +25,10 @@ export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51904"
 export const EDGEPORT_RUNNER =
   process.env.EDGEPORT_RUNNER ?? "/opt/routr/edgeport.sh"
 
+export const LOCATION_CACHE_PROVIDER =
+  process.env.LOCATION_CACHE_PROVIDER ?? "memory"
+export const LOCATION_CACHE_PARAMETERS = process.env.LOCATION_CACHE_PARAMETERS
+
 export const RTPENGINE_HOST = process.env.RTPENGINE_HOST
 export const RTPENGINE_PORT = process.env.RTPENGINE_PORT
   ? parseInt(process.env.RTPENGINE_PORT)

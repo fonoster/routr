@@ -1,0 +1,78 @@
+# Services for the Routr dev container. Only `dev` starts with the container. Postgres,
+# Redis, and RTPEngine sit behind the `deps` profile and start on demand, through
+# `npm run start:deps` or the commands that need them (`npm run start:one`).
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sleep infinity
+    # Reaps the processes that test:echo and the start scripts leave behind
+    init: true
+    volumes:
+      - ..:/workspaces/routr:cached
+      # Keep Linux node_modules and the Gradle cache off the bind mount, so they don't
+      # clash with a checkout that was also built on the host (e.g. macOS native modules)
+      - node-modules:/workspaces/routr/node_modules
+      - gradle-cache:/home/node/.gradle
+      - npm-cache:/home/node/.npm
+    environment:
+      # Tells .scripts/deps.sh to start the services in this Compose project
+      ROUTR_DEVCONTAINER: "true"
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/routr?schema=public
+      LOCATION_CACHE_PROVIDER: redis
+      LOCATION_CACHE_PARAMETERS: host=redis,port=6379
+    # The services find each other by these names (see etc/hosts.txt)
+    extra_hosts:
+      - sip.provider.net:127.0.0.1
+      - sip01.edgeport.net:127.0.0.1
+      - sip02.edgeport.net:127.0.0.1
+      - echo:127.0.0.1
+      - dispatcher:127.0.0.1
+      - location:127.0.0.1
+      - connect:127.0.0.1
+      - apiserver:127.0.0.1
+      - requester:127.0.0.1
+      - jaeger:127.0.0.1
+
+  postgres:
+    image: postgres:17.7-alpine3.23
+    profiles: [deps]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: routr
+      TZ: UTC
+      PGTZ: UTC
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U postgres -d routr
+      interval: 2s
+      retries: 15
+
+  redis:
+    image: redis:7.4.7-alpine
+    profiles: [deps]
+    healthcheck:
+      test: redis-cli ping
+      interval: 2s
+      retries: 15
+
+  # In production RTPEngine needs network mode "host", which Docker Desktop doesn't
+  # support. Bridged networking is good enough for development.
+  rtpengine:
+    image: fonoster/rtpengine:latest
+    profiles: [deps]
+    environment:
+      # An address reachable by the SIP clients
+      PUBLIC_IP: ${DOCKER_HOST_ADDRESS:-127.0.0.1}
+      PORT_MIN: 10000
+      PORT_MAX: 10020
+      LOG_LEVEL: 8
+
+volumes:
+  node-modules:
+  gradle-cache:
+  npm-cache:
+  postgres-data:

@@ -1,0 +1,15 @@
+# Publishes the dependency ports on the host. Only `npm run start:deps` uses this file,
+# and only when it runs outside the dev container.
+services:
+  postgres:
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+
+  redis:
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+
+  rtpengine:
+    ports:
+      - 22222:22222/udp
+      - 10000-10020:10000-10020/udp

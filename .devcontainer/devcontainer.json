@@ -1,0 +1,42 @@
+// Dev container for Routr. Learn more at https://containers.dev/implementors/json_reference/
+//
+// Provides Node 22 and a JDK 17 (the same versions CI uses, see Dockerfile). Postgres,
+// Redis, and RTPEngine start on demand, see compose.yaml and .scripts/deps.sh.
+// `npm run test:echo` checks the setup without any of them.
+{
+  "name": "Routr",
+  "dockerComposeFile": "compose.yaml",
+  "service": "dev",
+  "runServices": ["dev"],
+  "workspaceFolder": "/workspaces/routr",
+  "features": {
+    // The host's Docker, so .scripts/deps.sh can start Postgres, Redis, and RTPEngine on
+    // demand. Also keeps the feature list non-empty: with no features, the Dev Containers
+    // CLI builds the compose image without the context Docker's bake builder needs
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+  "postCreateCommand": ".devcontainer/post-create.sh",
+  "forwardPorts": [5060, 5061, 5062, 5063, 51901, 51902, 51904, 51907, 51908],
+  "portsAttributes": {
+    "5060": { "label": "SIP UDP/TCP", "onAutoForward": "silent" },
+    "5061": { "label": "SIP TLS", "onAutoForward": "silent" },
+    "5062": { "label": "SIP WS", "onAutoForward": "silent" },
+    "5063": { "label": "SIP WSS", "onAutoForward": "silent" },
+    "51901": { "label": "Dispatcher", "onAutoForward": "silent" },
+    "51902": { "label": "Location", "onAutoForward": "silent" },
+    "51904": { "label": "Connect processor", "onAutoForward": "silent" },
+    "51907": { "label": "API server", "onAutoForward": "silent" },
+    "51908": { "label": "API server (external)", "onAutoForward": "silent" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-gradle"
+      ]
+    }
+  },
+  "remoteUser": "node"
+}
