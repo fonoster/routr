@@ -37,7 +37,8 @@ import {
   getSipUri,
   getTrunkURI,
   getVerifierImpl,
-  hasXConnectObjectHeader
+  hasXConnectObjectHeader,
+  recordingMetadata
 } from "./utils"
 import { MessageRequest, Target as T, Extensions as E } from "@routr/processor"
 import { ILocationService, Backend } from "@routr/location"
@@ -166,7 +167,9 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
             direction,
             route: {
               ...route,
-              metadata: extended
+              // Resource metadata links the call to an account; the route's
+              // own metadata carries the recording flag a trunk may set
+              metadata: { ...extended, ...route.metadata }
             }
           }
         : {
@@ -271,6 +274,8 @@ async function fromPSTN(
 
   if (!route.headers) route.headers = []
 
+  route.metadata = { ...route.metadata, ...recordingMetadata(callee.trunk) }
+
   callee.extraHeaders?.forEach((prop: { name: string; value: string }) => {
     const p: HeaderModifier = {
       name: prop.name,
@@ -332,6 +337,7 @@ async function agentToPSTN(
     edgePortRef: req.edgePortRef,
     listeningPoints: req.listeningPoints,
     localnets: req.localnets,
+    metadata: recordingMetadata(trunk),
     externalAddrs: req.externalAddrs,
     headers: [
       // TODO: Find a more deterministic way to re-add the Privacy header
@@ -426,6 +432,7 @@ async function peerToPSTN(
     edgePortRef: req.edgePortRef,
     listeningPoints: req.listeningPoints,
     localnets: req.localnets,
+    metadata: recordingMetadata(number.trunk),
     externalAddrs: req.externalAddrs,
     headers: [
       // TODO: Find a more deterministic way to re-add the Privacy header

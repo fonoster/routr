@@ -29,6 +29,7 @@ import {
   MessageRequest,
   Transport,
   CommonConnect as CC,
+  Trace,
   CommonTypes as CT,
   IpUtils,
   Verifier as V
@@ -341,4 +342,21 @@ export const isFromTrustedEdgePort = (
       return false
     }
   })
+}
+
+/**
+ * Metadata that asks the dispatcher to record the call, when the trunk has
+ * the recordMessages extended attribute set to true. The dispatcher removes
+ * the key before the message leaves.
+ *
+ * @param {CC.Trunk} trunk - The trunk the call goes through, if any
+ * @return {Record<string, string>} The metadata to merge into the route
+ */
+export const recordingMetadata = (
+  trunk?: Pick<CC.Trunk, "ref" | "extended">
+): Record<string, string> => {
+  const flag = trunk?.extended?.[Trace.TRUNK_RECORD_ATTRIBUTE]
+  return flag === true || flag === "true"
+    ? { [Trace.TRACE_FLAG_METADATA_KEY]: trunk.ref }
+    : {}
 }
