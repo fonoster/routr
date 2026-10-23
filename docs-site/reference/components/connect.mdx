@@ -27,6 +27,7 @@ The processor has no configuration file. You configure it with environment varia
 | `BIND_ADDR` | `0.0.0.0:51904` | Address to listen on |
 | `LOCATION_ADDR` | | Location Service address, for example `location:51902`. Required |
 | `API_ADDR` | | API Server address, for example `apiserver:51907`. Required |
+| `REGISTER_DEFAULT_EXPIRES` | `3600` | Seconds a registration lasts when the REGISTER carries neither a Contact `expires` parameter nor an `Expires` header. Must be a positive integer |
 
 ### Number normalization
 

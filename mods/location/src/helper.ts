@@ -31,7 +31,11 @@ import { Extensions as E, Target as T } from "@routr/processor"
 //
 // Also consider: https://github.com/fonoster/routr/blob/ee5d339888344013939d06c734385f17f0cd75c2/mod/registrar/utils.js#L116
 // and https://github.com/fonoster/routr/blob/ee5d339888344013939d06c734385f17f0cd75c2/mod/registrar/utils.js#L131
-function buildRoute(request: MessageRequest, uri: CT.SipURI): Route {
+function buildRoute(
+  request: MessageRequest,
+  uri: CT.SipURI,
+  defaultExpires?: number
+): Route {
   const via = request.message.via[0]
   const sessionCount = E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT)
     ? parseInt(E.getHeaderValue(request, CT.ExtraHeader.SESSION_COUNT))
@@ -47,14 +51,17 @@ function buildRoute(request: MessageRequest, uri: CT.SipURI): Route {
     transport: uri.transportParam?.toUpperCase() as Transport,
     registeredOn: Date.now(),
     sessionCount,
-    expires: T.getTargetExpires(request),
+    expires: T.getTargetExpires(request, defaultExpires),
     listeningPoints: request.listeningPoints,
     localnets: request.localnets,
     externalAddrs: request.externalAddrs
   }
 }
 
-export function createRoute(request: MessageRequest): Route {
+export function createRoute(
+  request: MessageRequest,
+  defaultExpires?: number
+): Route {
   const via = request.message.via[0]
   const uri = {
     host: via.received || via.host,
@@ -63,7 +70,7 @@ export function createRoute(request: MessageRequest): Route {
     user: request.message.from.address.uri.user
   }
 
-  return buildRoute(request, uri)
+  return buildRoute(request, uri, defaultExpires)
 }
 
 /**

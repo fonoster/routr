@@ -37,6 +37,7 @@ import {
   getVerifierImpl,
   hasXConnectObjectHeader
 } from "../utils"
+import { REGISTER_DEFAULT_EXPIRES } from "../envs"
 import { getLogger } from "@fonoster/logger"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
@@ -85,7 +86,7 @@ export const handleRegister = (
       try {
         await location.addRoute({
           aor: "aor" in peerOrAgent ? peerOrAgent.aor : T.getTargetAOR(request),
-          route: H.createRoute(request),
+          route: H.createRoute(request, REGISTER_DEFAULT_EXPIRES),
           maxContacts: peerOrAgent.maxContacts
         })
         res.sendRegisterOk(request)
@@ -116,7 +117,7 @@ export const handleRegister = (
 
         await location.addRoute({
           aor: payload.aor,
-          route: H.createRoute(request),
+          route: H.createRoute(request, REGISTER_DEFAULT_EXPIRES),
           maxContacts: payload.maxContacts ?? -1
         })
 

@@ -20,6 +20,22 @@ import { assertOnlyOneEnvIsSet } from "./assertions"
 
 assertOnlyOneEnvIsSet(["CONNECT_VERIFIER_ADDR", "CONNECT_VERIFIER_PUBLIC_KEY"])
 
+/**
+ * Parses an optional environment variable that must hold a positive integer.
+ *
+ * @param {string} name - The variable name, used in the error message
+ * @param {string} value - The raw value
+ * @return {number | undefined} the parsed value, or undefined when unset
+ */
+function parsePositiveInt(name: string, value?: string): number | undefined {
+  if (value === undefined || value.trim() === "") return undefined
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`${name} must be a positive integer, got "${value}"`)
+  }
+  return parsed
+}
+
 export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51904"
 export const LOCATION_ADDR = process.env.LOCATION_ADDR
 export const API_ADDR = process.env.API_ADDR
@@ -29,6 +45,14 @@ export const CONNECT_VERIFIER_PUBLIC_KEY_PATH =
 export const CONNECT_VERIFIER_OPTIONS = process.env.CONNECT_VERIFIER_OPTIONS
   ? JSON.parse(process.env.CONNECT_VERIFIER_OPTIONS)
   : { expiresIn: "1h", algorithm: ["RS256"] }
+
+// Expiry, in seconds, granted to a REGISTER that carries neither a Contact
+// expires parameter nor an Expires header (RFC 3261 section 10.3, step 7).
+// Unset leaves the processor's default in place.
+export const REGISTER_DEFAULT_EXPIRES = parsePositiveInt(
+  "REGISTER_DEFAULT_EXPIRES",
+  process.env.REGISTER_DEFAULT_EXPIRES
+)
 
 // Platform headers a caller must never be able to set. They are removed from
 // requests that come from untrusted sources (e.g., the PSTN or a client using a
