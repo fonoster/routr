@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<!--
+  RR.Tst.Plan.1.8.1, the SP-SSE (transferor). REFER is out of scope for SIP Connect
+  1.1 (section 12.1); this is Routr's own behavior per RFC 3515 and RFC 5589 section 6.
+  This UAS answers a DOD call from agent 1001, then sends a REFER on the established
+  dialog asking 1001 to call 1002 (Refer-To), with Referred-By (RFC 3892). It expects
+  the 202 Accepted, the NOTIFY (Event: refer, message/sipfrag) that opens the implicit
+  subscription, the final NOTIFY reporting the new call's 200, and then the BYE from
+  1001. Routr must forward REFER, 202 and both NOTIFYs along the route set untouched.
+-->
+<scenario name="RR.Tst.Plan.1.8.1.SP-SSE">
+
+  <recv request="INVITE" rrs="true">
+    <action>
+      <!-- The agent's Contact is the remote target for requests we send on this dialog -->
+      <ereg regexp=".*&lt;(sips?:[^&gt;]+)&gt;.*" search_in="hdr" header="Contact" case_indep="true" check_it="true" assign_to="1,agentContact" />
+      <!-- The caller's tag becomes the To tag of requests we send on this dialog.
+           SIPp's [peer_tag_param] is not populated for a UAS, so capture it ourselves. -->
+      <ereg regexp=".*;tag=([^;&gt; ]+).*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="2,callerTag" />
+    </action>
+  </recv>
+  <Reference variables="1,2" />
+
+  <send>
+    <![CDATA[
+      SIP/2.0 180 Ringing
+      [last_Via:]
+      [last_From:]
+      [last_To:];tag=[call_number]
+      [last_Call-ID:]
+      [last_CSeq:]
+      [last_Record-Route:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:];tag=[call_number]
+      [last_Call-ID:]
+      [last_CSeq:]
+      [last_Record-Route:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Type: application/sdp
+      Content-Length: [len]
+
+      v=0
+      o=user1 53655765 2353687637 IN IP[local_ip_type] [local_ip]
+      s=-
+      c=IN IP[media_ip_type] [media_ip]
+      t=0 0
+      m=audio [media_port] RTP/AVP 0
+      a=rtpmap:0 PCMU/8000
+    ]]>
+  </send>
+
+  <recv request="ACK" />
+
+  <pause milliseconds="500" />
+
+  <!-- REFER on the established dialog (RFC 3515 section 2.4.1): transfer 1001 to 1002 -->
+  <send retrans="500">
+    <![CDATA[
+      REFER [$agentContact] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      [routes]
+      From: <sip:17853178070@sip.provider.net;user=phone>;tag=[call_number]
+      To: "John Doe" <sip:1001@sip.local>;tag=[$callerTag]
+      Call-ID: [call_id]
+      CSeq: 1 REFER
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Refer-To: <sip:1002@sip.local>
+      Referred-By: <sip:17853178070@sip.provider.net;user=phone>
+      Max-Forwards: 70
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <recv response="100" optional="true" />
+
+  <recv response="202" />
+
+  <!-- First NOTIFY of the implicit subscription (RFC 3515 section 2.4.4) -->
+  <recv request="NOTIFY">
+    <action>
+      <ereg regexp="refer" search_in="hdr" header="Event" case_indep="true" check_it="true" assign_to="3" />
+      <ereg regexp="message/sipfrag" search_in="hdr" header="Content-Type" case_indep="true" check_it="true" assign_to="4" />
+    </action>
+  </recv>
+  <Reference variables="3,4" />
+
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <!-- Final NOTIFY: the transferee reached the target (the sipfrag carries the 200) -->
+  <recv request="NOTIFY">
+    <action>
+      <ereg regexp="SIP/2.0 200" search_in="body" check_it="true" assign_to="5" />
+    </action>
+  </recv>
+  <Reference variables="5" />
+
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <!-- The transferee drops the original call once the transfer succeeded (RFC 5589 section 6) -->
+  <recv request="BYE" />
+
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+    ]]>
+  </send>
+
+</scenario>

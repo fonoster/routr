@@ -1155,6 +1155,125 @@
     ]
   },
   {
+    "name": "RR.Tst.Plan.1.8.1: SP-SSE refers the SIP-PBX user to a target on the SIP-PBX (REFER)",
+    "description": "REFER-based call transfer is out of scope for SIP Connect 1.1 (section 12.1); this is Routr's own behavior per RFC 3515 (REFER, the implicit subscription, NOTIFY with Event: refer and a message/sipfrag body) and RFC 5589 section 6 (basic transfer with Referred-By, RFC 3892). The SP-SSE sends a REFER on an established DOD call asking agent 1001 to call 1002. Routr must forward the REFER, the 202 and both NOTIFYs along the dialog's route set untouched, and route the transferee's new INVITE to the Refer-To target as a normal call carrying Referred-By.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/refer/uas_refer_from_sp_sse.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "timeout": 60
+      },
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/refer/uas_refer_target_agent.xml",
+        "port": 7061,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        },
+        "timeout": 60
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/refer/uac_refer_transferee.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:17853178070@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:17853178070@sip.local"
+          }
+        ]
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/refer/uac_refer_new_call_to_target.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:1002@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:1002@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.8.2: SIP-PBX user refers the SP-SSE to a PSTN number (REFER)",
+    "description": "REFER-based call transfer is out of scope for SIP Connect 1.1 (section 12.1); this is Routr's own behavior per RFC 3515 (REFER, the implicit subscription, NOTIFY with Event: refer and a message/sipfrag body) and RFC 5589 section 6 (basic transfer with Referred-By, RFC 3892). Agent 1001 sends a REFER on an established DOD call asking the SP-SSE to call a PSTN number. Routr must forward the REFER to the SP-SSE with its Contact as the Request-URI, and the 202, both NOTIFYs and the BYE back along the dialog's route set untouched.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/refer/uas_refer_from_sip_pbx.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/refer/uac_refer_from_sip_pbx.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:17853178070@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:17853178070@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "RR.Tst.Plan.1.9.1: A request no processor accepts is answered 501",
     "description": "This test verifies that a request whose method no processor accepts (OPTIONS) gets 501 Not Implemented (RFC 3261 21.5.2) instead of being dropped.",
     "transportMode": "u1",
