@@ -50,6 +50,7 @@ import java.util.ListIterator;
 public class MessageConverter {
   private static final Logger LOG = LogManager.getLogger(MessageConverter.class);
   private final String edgePortRef;
+  private String edgePortVersion = "";
   private List<NetInterface> listeningPoints;
   private List<String> externalAddrs;
   private List<String> localnets;
@@ -272,6 +273,7 @@ public class MessageConverter {
       .newBuilder()
       .setRef(callId)
       .setEdgePortRef(this.edgePortRef)
+      .setEdgePortVersion(this.edgePortVersion)
       .setMethod(method)
       .setSender(sender)
       .addAllListeningPoints(this.listeningPoints)
@@ -279,6 +281,10 @@ public class MessageConverter {
       .addAllLocalnets(this.localnets)
       .setMessage(convertToMessageDTO(message))
       .build();
+  }
+
+  public void setEdgePortVersion(final String edgePortVersion) {
+    this.edgePortVersion = edgePortVersion == null ? "" : edgePortVersion;
   }
 
   public void setListeningPoints(final List<NetInterface> listeningPoints) {

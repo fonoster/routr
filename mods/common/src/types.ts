@@ -100,6 +100,7 @@ export interface MessageRequest {
   localnets: string[]
   message: SIPMessage
   metadata?: Record<string, string>
+  edgePortVersion?: string
 }
 
 export interface MessageResponse {
