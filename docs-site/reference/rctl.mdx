@@ -1282,6 +1282,60 @@ Example:
 rctl plugins update
 ```
 
+## Call traces
+
+`rctl trace` works on call recordings written by the Message Dispatcher (see [Record and replay calls](/guides/record-and-replay-calls)). It needs Node.js 22 or later and talks to no server except `trace send`.
+
+### `rctl trace replay`
+
+Replays a recorded call: the ladder of every message, what each component changed, and the SIP Connect checks.
+
+```text
+rctl trace replay FILE [-c <file>] [-s] [-v summary|ladder|path|compare|all] [--select <n>] [--columns <n>] [--ascii] [--fail-on rejected|warning]
+```
+
+| Argument or flag | Default | Description |
+| --- | --- | --- |
+| `FILE` | - | A `.jsonl` trace written by the Dispatcher. |
+| `-c, --compare <file>` | - | Second trace to line up with the first. |
+| `-s, --static` | - | Print one page and exit; implied when stdout is not a terminal. |
+| `-v, --view` | `summary` | View to open or print: `summary`, `ladder`, `path`, `compare`, or `all` (static only). |
+| `--select <n>` | - | Record `seq` to select; in static mode its hops and diff are printed. |
+| `--columns <n>` | terminal width, else `100` | Width of a static page, never above `120`. |
+| `--ascii` | - | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales). |
+| `--fail-on` | - | Exit `4` when the call has a rejected message (`rejected`) or a failed or warned check (`warning`). |
+
+Keys in the viewer: `1`–`4` views, `j`/`k` select, `Enter` hops, `d` headers or diff, `p` pane, `t` time column, `c` compare overlay, `x` retransmissions, `/` filter, `n`/`N` next or previous problem, `?` help, `q` quit. Exit codes: `0` printed, `1` usage, `2` unreadable file, `3` unsupported trace version, `4` the `--fail-on` condition.
+
+Example:
+
+```bash
+rctl trace replay call.jsonl --compare call-before-upgrade.jsonl
+rctl trace replay call.jsonl --static --view ladder --select 2
+```
+
+### `rctl trace validate`
+
+Checks that every line of a trace is a record this `rctl` can read: valid JSON, a supported `traceVersion`, and the record schema. Exits `2` on a bad file and `3` on a version this build does not read.
+
+```text
+rctl trace validate FILE
+```
+
+### `rctl trace send`
+
+Sends one recorded message to a running Dispatcher or processor and prints how the live answer differs from the recorded one.
+
+```text
+rctl trace send FILE -t <host:port> [--seq <n>] [--json]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-t, --to` | - | `host:port` of the Processor gRPC service. Required. |
+| `--seq <n>` | first forwarded INVITE | Record to send. |
+| `--json` | - | Print the live answer as JSON instead of a diff. |
+
 ## Related
 
 <CardGroup cols={2}>

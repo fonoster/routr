@@ -29,6 +29,8 @@ A Trunk is a connection to a SIP provider. It defines how the provider reaches R
 
 The API response also includes `accessControlList`, `inboundCredentials`, and `outboundCredentials`, the objects the refs point to.
 
+One `extended` attribute has a meaning to Routr: `recordMessages: true` asks the Dispatcher to record every call through this Trunk. See [Record and replay calls](/guides/record-and-replay-calls).
+
 ## Constraints
 
 - `name` is required and must be 1 to 60 characters.

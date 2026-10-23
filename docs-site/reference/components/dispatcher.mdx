@@ -37,6 +37,13 @@ The Dispatcher reads a YAML or JSON file and validates it against a JSON schema 
 | `spec.middlewares[*].ref` | string | Yes | | Middleware reference |
 | `spec.middlewares[*].addr` | string | Yes | | Middleware address, for example `rtprelay:51903` |
 | `spec.middlewares[*].postProcessor` | boolean | Yes | | `true` runs the middleware after the Processor, `false` runs it before |
+| `spec.recording` | object | No | | Message recording, one `.jsonl` file per call. See [Record and replay calls](/guides/record-and-replay-calls) |
+| `spec.recording.enabled` | boolean | Yes | | Turns recording on |
+| `spec.recording.path` | string | Yes | | Directory the files are written to |
+| `spec.recording.mode` | string | No | `flagged` | `flagged` records calls through a Trunk with `extended.recordMessages`; `all` records every call |
+| `spec.recording.maxRecordsPerCall` | integer | No | `1000` | Stop writing a call after this many records |
+| `spec.recording.maxCalls` | integer | No | `10000` | Stop starting new recordings when this many calls are active |
+| `spec.recording.idleTimeoutSeconds` | integer | No | `7200` | Forget a call after this long without messages |
 
 `matchFunc` receives the JSON form of the `MessageRequest` protobuf ([sipmessage.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/sipmessage.proto)). These are typical match functions:
 
@@ -57,6 +64,9 @@ req => req.message.extensions.find(e => e.name === "User-Agent" && e.value.inclu
 | `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
 | `OTEL_SERVICE_NAME` | `dispatcher` | Service name reported in traces |
 | `OTEL_SDK_DISABLED` | | `true` turns tracing off |
+| `RECORD_MESSAGES` | | `true` turns message recording on, over whatever the file says |
+| `RECORD_MESSAGES_PATH` | `/var/routr/traces` | Directory the recordings are written to |
+| `RECORD_MESSAGES_MODE` | `flagged` | `flagged` or `all` |
 
 ## gRPC contract
 
