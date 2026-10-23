@@ -33,6 +33,7 @@
     "ink": "^8.0.0",
     "inquirer": "^8.2.7",
     "inquirer-autocomplete-prompt": "^2.0.1",
+    "js-yaml": "^4.1.1",
     "moment": "^2.29.4",
     "prettyjson": "^1.2.5",
     "react": "^19.3.0"
@@ -44,6 +45,7 @@
     "@types/fuzzy-search": "^2.1.2",
     "@types/inquirer": "^8.2.12",
     "@types/inquirer-autocomplete-prompt": "^2.0.2",
+    "@types/js-yaml": "^4.0.5",
     "@types/mocha": "^8.2.3",
     "@types/node": "^24.10.4",
     "@types/prettyjson": "^0.0.30",

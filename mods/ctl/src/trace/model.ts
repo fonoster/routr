@@ -56,6 +56,11 @@ export interface Row {
 
 export type CheckState = "pass" | "fail" | "warn" | "na"
 
+export interface AnalyzeOptions {
+  // Rule profiles to evaluate; defaults to the sip profile
+  profiles?: Trace.Profile[]
+}
+
 export interface Check {
   state: CheckState
   text: string
@@ -107,6 +112,9 @@ export interface CallModel {
   pathModel: PathModel
   // Row indices worth jumping to with n
   problems: number[]
+  // Rule findings by record seq (only records with findings)
+  findings: Map<number, Trace.Finding[]>
+  profiles: Trace.Profile[]
   firstForwarded?: Trace.TraceRecord
   recordedAt: string
 }
@@ -414,139 +422,44 @@ const isInternalHost = (req: CT.MessageRequest, host?: string) =>
     }))
 
 /**
- * Runs the spec checks on the first forwarded INVITE.
+ * Turns the rule findings on the first forwarded INVITE into the Summary
+ * checks: one line per finding, failures first, then one line counting
+ * the rules that passed.
  *
  * @param {Trace.TraceRecord} r - The forwarded INVITE, if any
+ * @param {Trace.Finding[]} findings - Its findings
+ * @param {Trace.Profile[]} profiles - Profiles evaluated
  * @return {Check[]} The checks, failures first
  */
-function buildChecks(r?: Trace.TraceRecord): Check[] {
-  const na = (text: string, explain: string): Check => ({
-    state: "na",
-    text: `${text}  (no INVITE was forwarded)`,
-    explain
-  })
-  const explain = {
-    mf: "RFC 3261 §16.6 requires a proxy to decrement Max-Forwards by one",
-    via: "RFC 3261 §16.6 requires the proxy to insert its own Via above the caller's",
-    pai: "SIP Connect 1.1 §9 requires a single E.164 identity with user=phone",
-    one: "The trunk reads the first P-Asserted-Identity; a second one is ambiguous",
-    auth: "Caller credentials are for Routr; forwarding them leaks the digest",
-    rr: "Record-Route must name an interface the far side can reach"
-  }
+function checksFromFindings(
+  r: Trace.TraceRecord | undefined,
+  findings: Trace.Finding[],
+  profiles: Trace.Profile[]
+): Check[] {
+  const rules = Trace.Rules.rulesFor(profiles)
+  const names = profiles.join(" + ")
   if (!r || !r.response) {
     return [
-      na("Max-Forwards decremented", explain.mf),
-      na("own Via on top of the stack", explain.via),
-      na("P-Asserted-Identity is E.164 with user=phone", explain.pai),
-      na("one P-Asserted-Identity reaches the trunk", explain.one),
-      na("caller credentials stripped", explain.auth)
+      {
+        state: "na",
+        text: `${names} rules  (no INVITE was forwarded)`,
+        explain: `The ${names} rules are evaluated on the first INVITE the proxy forwards`
+      }
     ]
   }
-  const inMsg = r.request.message
-  const out = r.response.message
-  const checks: Check[] = []
-  const mfIn = inMsg.maxForwards?.maxForwards
-  const mfOut = out.maxForwards?.maxForwards
-  checks.push(
-    mfIn !== undefined && mfOut === mfIn - 1
-      ? {
-          state: "pass",
-          text: `Max-Forwards decremented ${mfIn} ${"→"} ${mfOut}`,
-          explain: explain.mf
-        }
-      : {
-          state: "fail",
-          text: `Max-Forwards not decremented (${mfIn} in, ${mfOut} out)`,
-          explain: explain.mf
-        }
-  )
-  const viaIn = inMsg.via || []
-  const viaOut = out.via || []
-  const ownIndex = viaOut.findIndex(
-    (v) =>
-      isExternalHost(r.request, v.host) || isInternalHost(r.request, v.host)
-  )
-  checks.push(
-    viaOut.length === viaIn.length + 1 && ownIndex === 0
-      ? {
-          state: "pass",
-          text: "own Via on top of the stack",
-          explain: explain.via
-        }
-      : ownIndex < 0
-      ? {
-          state: "fail",
-          text: "own Via missing from the outgoing message",
-          explain: explain.via
-        }
-      : {
-          state: "fail",
-          text: `own Via is not on top (position ${ownIndex + 1} of ${
-            viaOut.length
-          })`,
-          explain: explain.via
-        }
-  )
-  const pai = headerValues(out, "P-Asserted-Identity")
-  if (pai.length) {
-    const ok =
-      /<sips?:\+[0-9]+@[^>]*;user=phone[^>]*>/.test(pai[0]) ||
-      (/<sips?:\+[0-9]+@[^>]*>/.test(pai[0]) && /user=phone/.test(pai[0]))
-    checks.push(
-      ok
-        ? {
-            state: "pass",
-            text: "P-Asserted-Identity is E.164 with user=phone",
-            explain: explain.pai
-          }
-        : {
-            state: "fail",
-            text: `P-Asserted-Identity is not E.164: ${pai[0]}`,
-            explain: explain.pai
-          }
-    )
-    checks.push(
-      pai.length === 1
-        ? {
-            state: "pass",
-            text: "one P-Asserted-Identity reaches the trunk",
-            explain: explain.one
-          }
-        : {
-            state: "fail",
-            text: `${pai.length} P-Asserted-Identity headers reach the trunk`,
-            explain: explain.one
-          }
-    )
-  } else {
-    checks.push({
-      state: "warn",
-      text: "no P-Asserted-Identity on the outgoing message",
-      explain: explain.pai
-    })
-  }
-  checks.push(
-    !out.authorization && headerValues(out, "Authorization").length === 0
-      ? {
-          state: "pass",
-          text: "caller credentials stripped",
-          explain: explain.auth
-        }
-      : {
-          state: "fail",
-          text: "Authorization forwarded to the trunk",
-          explain: explain.auth
-        }
-  )
-  const rr = out.recordRoute?.[0]?.address?.uri?.host
-  const outVia = viaOut[0]?.host
-  if (rr && outVia && rr !== outVia && isInternalHost(r.request, rr)) {
-    checks.push({
-      state: "warn",
-      text: `Record-Route names ${rr}, an internal interface; the trunk was reached from ${outVia}`,
-      explain: explain.rr
-    })
-  }
+  const checks: Check[] = findings.map((f) => ({
+    state: f.severity === Trace.Severity.ERROR ? "fail" : "warn",
+    text: f.message,
+    explain: `${f.rule}  ${f.spec}`
+  }))
+  const fired = new Set(findings.map((f) => f.rule))
+  const passed = rules.filter((rule) => !fired.has(rule.id)).length
+  checks.push({
+    state: "pass",
+    text: `${passed} of ${rules.length} ${names} rules passed on the first forwarded INVITE`,
+    explain:
+      "Run rctl trace lint --sip-connect for every record, or press 2 and n to jump to each finding"
+  })
   const order: Record<CheckState, number> = { fail: 0, warn: 1, pass: 2, na: 3 }
   return checks.sort((a, b) => order[a.state] - order[b.state])
 }
@@ -685,10 +598,16 @@ function buildPath(
  * Builds everything the views need from a loaded trace.
  *
  * @param {LoadedTrace} loaded - The loaded file
+ * @param {AnalyzeOptions} options - Rule profiles to evaluate
  * @return {CallModel} The model
  */
-export function analyze(loaded: LoadedTrace): CallModel {
+export function analyze(
+  loaded: LoadedTrace,
+  options: AnalyzeOptions = {}
+): CallModel {
   const { records } = loaded
+  const profiles = options.profiles ?? Trace.Rules.DEFAULT_PROFILES
+  const findings = Trace.Rules.evaluateAll(records, { profiles })
   const { lanes, near } = buildLanes(records)
   const rows = buildRows(records, near, lanes.length)
   rows.forEach((row) => {
@@ -703,8 +622,12 @@ export function analyze(loaded: LoadedTrace): CallModel {
   const firstForwarded =
     firstInvite ||
     records.find((r) => r.outcome === Trace.TraceOutcome.FORWARDED)
-  // The SIP Connect checks are about the INVITE a trunk receives
-  const checks = buildChecks(firstInvite)
+  // The rule findings on the first forwarded INVITE become the checks
+  const checks = checksFromFindings(
+    firstInvite,
+    firstInvite ? findings.get(firstInvite.seq) ?? [] : [],
+    profiles
+  )
   const failed = checks.filter((c) => c.state === "fail").length
   const warned = checks.filter((c) => c.state === "warn").length
   const rejectedRows = rows.filter(
@@ -829,10 +752,18 @@ export function analyze(loaded: LoadedTrace): CallModel {
       : undefined
 
   const problems = rows
-    .filter((r) => r.rejected && r.retransOf === undefined)
+    .filter(
+      (r) =>
+        (r.rejected && r.retransOf === undefined) ||
+        (findings.get(records[r.index].seq) ?? []).some(
+          (f) => f.severity === Trace.Severity.ERROR
+        )
+    )
     .map((r) => r.index)
 
   return {
+    findings,
+    profiles,
     file: loaded.file,
     path: loaded.path,
     records,

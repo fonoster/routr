@@ -147,9 +147,10 @@ export default class SendCommand extends Command {
       this.log("no recorded outgoing message to compare against")
       return
     }
+    // Branches, tags and nonces differ between runs by design
     const diff = Trace.diffMessages(
-      record.response.message,
-      Trace.redactMessage(live.message)
+      Trace.normalizeMessage(record.response.message),
+      Trace.normalizeMessage(Trace.redactMessage(live.message))
     )
     if (Trace.isEmptyDiff(diff)) {
       this.log(`${g.pass} live answer matches the recording`)

@@ -22,6 +22,7 @@ import { tmpdir } from "os"
 import chai from "chai"
 import { captureOutput } from "@oclif/test"
 import { Config } from "@oclif/core"
+import { Trace } from "@routr/common"
 import { loadTrace, TraceExit, TraceLoadError } from "../src/trace/load"
 import { alignTraces, analyze, labelOf, recordDiff } from "../src/trace/model"
 import { ASCII, pickGlyphs, UNICODE } from "../src/trace/glyphs"
@@ -38,6 +39,8 @@ import { renderStatic } from "../src/trace/static"
 import { listLength, problemIndices, reduce } from "../src/trace/app"
 import ReplayCommand from "../src/commands/trace/replay"
 import ValidateCommand from "../src/commands/trace/validate"
+import LintCommand from "../src/commands/trace/lint"
+import { runCompat } from "../src/commands/trace/compat"
 
 const expect = chai.expect
 const FIX = path.join(__dirname, "fixtures")
@@ -118,7 +121,7 @@ describe("@routr/ctl trace", () => {
       ])
       expect(a.verdict.word).to.equal("FORWARDED")
       expect(a.verdict.line).to.match(
-        /^FORWARDED {2}16\.1 ms {2}11 messages {2}0 rejected {2}1 warning$/
+        /^FORWARDED {2}16\.1 ms {2}11 messages {2}0 rejected {2}3 warnings$/
       )
       expect(b.verdict.word).to.equal("REJECTED")
       expect(b.verdict.line).to.include(
@@ -132,18 +135,23 @@ describe("@routr/ctl trace", () => {
     })
 
     it("runs the checks, failures first", () => {
+      // Three warnings on the first forwarded INVITE, then the pass count
       expect(a.checks.map((c) => c.state)).to.deep.equal([
         "warn",
-        "pass",
-        "pass",
-        "pass",
-        "pass",
+        "warn",
+        "warn",
         "pass"
       ])
-      expect(b.checks[0]).to.include({ state: "fail" })
-      expect(b.checks.map((c) => c.text)).to.include(
-        "2 P-Asserted-Identity headers reach the trunk"
+      expect(a.checks[0].explain).to.include("RFC 3261")
+      expect(a.checks[3].text).to.match(/^\d+ of \d+ sip rules passed/)
+      const bSipConnect = analyze(loadTrace(B), {
+        profiles: [Trace.Profile.SIP, Trace.Profile.SIP_CONNECT]
+      })
+      expect(bSipConnect.checks[0]).to.include({ state: "fail" })
+      expect(bSipConnect.checks.map((c) => c.text)).to.include(
+        "2 P-Asserted-Identity headers reach the service provider; it reads the first"
       )
+      expect(bSipConnect.checks[0].explain).to.include("sip-connect/pai-single")
       expect(a.checksNote).to.equal(
         "checks cover the first forwarded INVITE; 2 more INVITEs in this call"
       )
@@ -380,7 +388,10 @@ describe("@routr/ctl trace", () => {
       let s = initialState()
       s = press(s, "n")
       expect(s.checkIndex).to.equal(0)
-      expect(s.message).to.include("Record-Route")
+      expect(s.message).to.include("sip/record-route-self")
+      s = press(s, "n")
+      s = press(s, "n")
+      expect(s.checkIndex).to.equal(2)
       s = press(s, "n")
       expect(s.message).to.equal("no more problems")
       const bs = (x: ReturnType<typeof initialState>) =>
@@ -461,6 +472,79 @@ describe("@routr/ctl trace", () => {
     let config: Config
     before(async () => {
       config = await Config.load(path.join(__dirname, ".."))
+    })
+
+    it("lint prints findings with their spec and honours --fail-on", async () => {
+      const { stdout } = await captureOutput(async () =>
+        LintCommand.run([A, "--sip-connect", "--ascii"], config)
+      )
+      expect(stdout).to.include("sip/record-route-self")
+      expect(stdout).to.include("RFC 3261")
+      expect(stdout).to.include("rules: sip, sip-connect")
+      const json = await captureOutput(async () =>
+        LintCommand.run([A, "--json"], config)
+      )
+      const parsed = JSON.parse(json.stdout)
+      expect(parsed.profiles).to.deep.equal(["sip"])
+      expect(
+        parsed.files[0].findings.map((f: { rule: string }) => f.rule)
+      ).to.include("sip/retransmission")
+      const failed = await captureOutput(async () =>
+        LintCommand.run([A, "--fail-on", "warning"], config)
+      )
+      expect(
+        (failed.error as { oclif?: { exit?: number } })?.oclif?.exit
+      ).to.equal(TraceExit.FAIL_ON)
+    })
+
+    it("compat replays the corpus and reports drift", async () => {
+      const manifest = path.join(FIX, "corpus", "manifest.yaml")
+      const faithful = await runCompat({
+        manifestPath: manifest,
+        profiles: [],
+        against: "stub",
+        send: async (_, request) => {
+          const record = loadTrace(
+            path.join(FIX, "corpus", "seet_dod-invite_seet_20261023.jsonl")
+          ).records.find(
+            (r) =>
+              JSON.stringify(r.request.message) ===
+              JSON.stringify(request.message)
+          )
+          return {
+            ...request,
+            message: record.response?.message ?? request.message
+          }
+        }
+      })
+      expect(faithful[0].replayed).to.equal(true)
+      expect(faithful[0].drifts).to.deep.equal([])
+      expect(faithful[0].findings.map((f) => f.rule)).to.include(
+        "sip/retransmission"
+      )
+
+      const drifted = await runCompat({
+        manifestPath: manifest,
+        profiles: [],
+        against: "stub",
+        send: async (_, request) => ({
+          ...request,
+          message: { ...request.message, maxForwards: { maxForwards: 1 } }
+        })
+      })
+      expect(drifted[0].drifts.length).to.be.greaterThan(0)
+      expect(drifted[0].drifts.map((d) => d.reason).join(" ")).to.include(
+        "Max-Forwards"
+      )
+
+      const lintOnly = await runCompat({
+        manifestPath: manifest,
+        profiles: [],
+        send: async () => {
+          throw new Error("must not be called")
+        }
+      })
+      expect(lintOnly[0].replayed).to.equal(false)
     })
 
     it("replay --static prints the summary page", async () => {

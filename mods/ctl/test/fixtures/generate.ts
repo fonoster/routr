@@ -210,7 +210,7 @@ async function run(s: Scenario): Promise<string> {
             ...req,
             message: out,
             metadata: flag
-              ? { "routr.trace": flag, accountRef: "domain-01" }
+              ? { "trace.record": flag, accountRef: "domain-01" }
               : undefined
           }
         : undefined,

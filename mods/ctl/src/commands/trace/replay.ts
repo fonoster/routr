@@ -18,7 +18,12 @@
  */
 import { Args, Command, Flags } from "@oclif/core"
 import { pickGlyphs } from "../../trace/glyphs"
-import { loadTrace, TraceExit, TraceLoadError } from "../../trace/load"
+import {
+  loadTrace,
+  profilesFor,
+  TraceExit,
+  TraceLoadError
+} from "../../trace/load"
 import { analyze, CallModel } from "../../trace/model"
 import { VIEWS } from "../../trace/paint"
 import { renderStatic, StaticView } from "../../trace/static"
@@ -27,7 +32,7 @@ import { runApp } from "../../trace/app"
 // eslint-disable-next-line require-jsdoc
 export default class ReplayCommand extends Command {
   static readonly description =
-    "Replays a recorded call: the ladder of every message, what each component changed, and the SIP Connect checks. Pass --compare to line up two recordings of the same scenario."
+    "Replays a recorded call: the ladder of every message, what each component changed, and the rule findings. Pass --sip-connect for the SIPconnect 1.1 rules and --compare to line up two recordings of the same scenario."
 
   static readonly examples = [
     "<%= config.bin %> <%= command.id %> call.jsonl",
@@ -69,6 +74,10 @@ export default class ReplayCommand extends Command {
       description:
         "exit 4 when the call has a rejected message (rejected) or a failed or warned check (warning)",
       options: ["rejected", "warning"]
+    }),
+    "sip-connect": Flags.boolean({
+      description: "also evaluate the SIPconnect 1.1 rules",
+      default: false
     })
   }
 
@@ -87,8 +96,11 @@ export default class ReplayCommand extends Command {
     let a: CallModel
     let b: CallModel | undefined
     try {
-      a = analyze(loadTrace(args.file))
-      b = flags.compare ? analyze(loadTrace(flags.compare)) : undefined
+      const profiles = profilesFor(flags["sip-connect"])
+      a = analyze(loadTrace(args.file), { profiles })
+      b = flags.compare
+        ? analyze(loadTrace(flags.compare), { profiles })
+        : undefined
     } catch (e) {
       if (e instanceof TraceLoadError) {
         this.error(e.message, { exit: e.exit })

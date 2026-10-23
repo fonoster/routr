@@ -138,3 +138,15 @@ export function loadTrace(path: string): LoadedTrace {
 
   return { file, path, records, truncatedLines, totalLines: lines.length }
 }
+
+/**
+ * Rule profiles for the trace commands: sip always, sip-connect on request.
+ *
+ * @param {boolean} sipConnect - The --sip-connect flag
+ * @return {Trace.Profile[]} Profiles to evaluate
+ */
+export function profilesFor(sipConnect?: boolean): Trace.Profile[] {
+  return sipConnect
+    ? [Trace.Profile.SIP, Trace.Profile.SIP_CONNECT]
+    : [Trace.Profile.SIP]
+}
