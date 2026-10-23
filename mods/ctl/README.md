@@ -19,7 +19,7 @@ $ npm install -g @routr/ctl
 $ rctl COMMAND
 running command...
 $ rctl (--version)
-@routr/ctl/2.15.4 linux-x64 node-v22.23.3
+@routr/ctl/2.16.0 linux-x64 node-v22.23.3
 $ rctl --help [COMMAND]
 USAGE
   $ rctl COMMAND
@@ -60,13 +60,14 @@ USAGE
 * [`rctl peers get [REF]`](#rctl-peers-get-ref)
 * [`rctl peers update REF`](#rctl-peers-update-ref)
 * [`rctl plugins`](#rctl-plugins)
-* [`rctl plugins:install PLUGIN...`](#rctl-pluginsinstall-plugin)
+* [`rctl plugins add PLUGIN`](#rctl-plugins-add-plugin)
 * [`rctl plugins:inspect PLUGIN...`](#rctl-pluginsinspect-plugin)
-* [`rctl plugins:install PLUGIN...`](#rctl-pluginsinstall-plugin-1)
-* [`rctl plugins:link PLUGIN`](#rctl-pluginslink-plugin)
-* [`rctl plugins:uninstall PLUGIN...`](#rctl-pluginsuninstall-plugin)
-* [`rctl plugins:uninstall PLUGIN...`](#rctl-pluginsuninstall-plugin-1)
-* [`rctl plugins:uninstall PLUGIN...`](#rctl-pluginsuninstall-plugin-2)
+* [`rctl plugins install PLUGIN`](#rctl-plugins-install-plugin)
+* [`rctl plugins link PATH`](#rctl-plugins-link-path)
+* [`rctl plugins remove [PLUGIN]`](#rctl-plugins-remove-plugin)
+* [`rctl plugins reset`](#rctl-plugins-reset)
+* [`rctl plugins uninstall [PLUGIN]`](#rctl-plugins-uninstall-plugin)
+* [`rctl plugins unlink [PLUGIN]`](#rctl-plugins-unlink-plugin)
 * [`rctl plugins update`](#rctl-plugins-update)
 * [`rctl trunks create`](#rctl-trunks-create)
 * [`rctl trunks delete [REF]`](#rctl-trunks-delete-ref)
@@ -95,7 +96,7 @@ EXAMPLES
   Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/acl/create.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/acl/create.ts)_
+_See code: [src/commands/acl/create.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/acl/create.ts)_
 
 ## `rctl acl delete [REF]`
 
@@ -118,7 +119,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/acl/delete.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/acl/delete.ts)_
+_See code: [src/commands/acl/delete.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/acl/delete.ts)_
 
 ## `rctl acl describe [REF]`
 
@@ -129,7 +130,7 @@ USAGE
   $ rctl acl describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
-  REF  reference to the ACL
+  [REF]  reference to the ACL
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -140,7 +141,7 @@ DESCRIPTION
   shows details of an ACL
 ```
 
-_See code: [src/commands/acl/describe.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/acl/describe.ts)_
+_See code: [src/commands/acl/describe.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/acl/describe.ts)_
 
 ## `rctl acl get [REF]`
 
@@ -151,7 +152,7 @@ USAGE
   $ rctl acl get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
-  REF  optional reference to an ACL
+  [REF]  optional reference to an ACL
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -169,7 +170,7 @@ EXAMPLES
   9e7a88f0-8390-42f5-a2cb-689583ba9f4f Local Network ACL 0.0.0.0/0 10.0.0.28
 ```
 
-_See code: [src/commands/acl/get.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/acl/get.ts)_
+_See code: [src/commands/acl/get.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/acl/get.ts)_
 
 ## `rctl acl update REF`
 
@@ -177,7 +178,7 @@ Updates an existing ACL
 
 ```
 USAGE
-  $ rctl acl update [REF] [-i] [-c <value>] [-e <value>]
+  $ rctl acl update REF [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an ACL
@@ -195,7 +196,7 @@ EXAMPLES
   Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/acl/update.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/acl/update.ts)_
+_See code: [src/commands/acl/update.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/acl/update.ts)_
 
 ## `rctl agents create`
 
@@ -218,7 +219,7 @@ EXAMPLES
   Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/agents/create.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/agents/create.ts)_
+_See code: [src/commands/agents/create.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/agents/create.ts)_
 
 ## `rctl agents delete [REF]`
 
@@ -241,7 +242,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/agents/delete.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/agents/delete.ts)_
+_See code: [src/commands/agents/delete.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/agents/delete.ts)_
 
 ## `rctl agents describe [REF]`
 
@@ -252,7 +253,7 @@ USAGE
   $ rctl agents describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
-  REF  reference to the Agent
+  [REF]  reference to the Agent
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -263,7 +264,7 @@ DESCRIPTION
   shows details of an Agent
 ```
 
-_See code: [src/commands/agents/describe.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/agents/describe.ts)_
+_See code: [src/commands/agents/describe.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/agents/describe.ts)_
 
 ## `rctl agents get [REF]`
 
@@ -274,7 +275,7 @@ USAGE
   $ rctl agents get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
-  REF  Optional Agents reference
+  [REF]  Optional Agents reference
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -292,7 +293,7 @@ EXAMPLES
   d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1              PRIVATE Yes
 ```
 
-_See code: [src/commands/agents/get.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/agents/get.ts)_
+_See code: [src/commands/agents/get.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/agents/get.ts)_
 
 ## `rctl agents update REF`
 
@@ -300,7 +301,7 @@ Updates an existing Agent
 
 ```
 USAGE
-  $ rctl agents update [REF] [-i] [-c <value>] [-e <value>]
+  $ rctl agents update REF [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Agent
@@ -318,24 +319,24 @@ EXAMPLES
   Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/agents/update.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/agents/update.ts)_
+_See code: [src/commands/agents/update.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/agents/update.ts)_
 
 ## `rctl autocomplete [SHELL]`
 
-display autocomplete installation instructions
+Display autocomplete installation instructions.
 
 ```
 USAGE
   $ rctl autocomplete [SHELL] [-r]
 
 ARGUMENTS
-  SHELL  shell type
+  [SHELL]  (zsh|bash|powershell) Shell type
 
 FLAGS
   -r, --refresh-cache  Refresh cache (ignores displaying instructions)
 
 DESCRIPTION
-  display autocomplete installation instructions
+  Display autocomplete installation instructions.
 
 EXAMPLES
   $ rctl autocomplete
@@ -344,10 +345,12 @@ EXAMPLES
 
   $ rctl autocomplete zsh
 
+  $ rctl autocomplete powershell
+
   $ rctl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.4.6/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.3.0/src/commands/autocomplete/index.ts)_
 
 ## `rctl credentials create`
 
@@ -370,7 +373,7 @@ EXAMPLES
   Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/credentials/create.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/credentials/create.ts)_
+_See code: [src/commands/credentials/create.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/credentials/create.ts)_
 
 ## `rctl credentials delete [REF]`
 
@@ -393,7 +396,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/credentials/delete.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/credentials/delete.ts)_
+_See code: [src/commands/credentials/delete.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/credentials/delete.ts)_
 
 ## `rctl credentials describe [REF]`
 
@@ -404,7 +407,7 @@ USAGE
   $ rctl credentials describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
-  REF  reference to the set of Credentials
+  [REF]  reference to the set of Credentials
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -415,7 +418,7 @@ DESCRIPTION
   shows details for a set of Credentials
 ```
 
-_See code: [src/commands/credentials/describe.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/credentials/describe.ts)_
+_See code: [src/commands/credentials/describe.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/credentials/describe.ts)_
 
 ## `rctl credentials get [REF]`
 
@@ -426,7 +429,7 @@ USAGE
   $ rctl credentials get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
-  REF  optional reference to a set of Credentials
+  [REF]  optional reference to a set of Credentials
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -444,7 +447,7 @@ EXAMPLES
   80181ca6-d4aa-4575-9375-8f72b07d6666 Europe ACL 0.0.0.0/0 10.0.0.25
 ```
 
-_See code: [src/commands/credentials/get.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/credentials/get.ts)_
+_See code: [src/commands/credentials/get.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/credentials/get.ts)_
 
 ## `rctl credentials update REF`
 
@@ -452,7 +455,7 @@ Updates an existing set of Credentials
 
 ```
 USAGE
-  $ rctl credentials update [REF] [-i] [-c <value>] [-e <value>]
+  $ rctl credentials update REF [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing set of Credentials
@@ -470,7 +473,7 @@ EXAMPLES
   Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/credentials/update.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/credentials/update.ts)_
+_See code: [src/commands/credentials/update.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/credentials/update.ts)_
 
 ## `rctl domains create`
 
@@ -493,7 +496,7 @@ EXAMPLES
   Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/domains/create.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/domains/create.ts)_
+_See code: [src/commands/domains/create.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/domains/create.ts)_
 
 ## `rctl domains delete [REF]`
 
@@ -516,7 +519,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/domains/delete.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/domains/delete.ts)_
+_See code: [src/commands/domains/delete.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/domains/delete.ts)_
 
 ## `rctl domains describe [REF]`
 
@@ -527,7 +530,7 @@ USAGE
   $ rctl domains describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
-  REF  reference to the Domain
+  [REF]  reference to the Domain
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -538,7 +541,7 @@ DESCRIPTION
   show details of a Domain
 ```
 
-_See code: [src/commands/domains/describe.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/domains/describe.ts)_
+_See code: [src/commands/domains/describe.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/domains/describe.ts)_
 
 ## `rctl domains get [REF]`
 
@@ -549,7 +552,7 @@ USAGE
   $ rctl domains get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
-  REF  optional reference to a Domain
+  [REF]  optional reference to a Domain
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -567,7 +570,7 @@ EXAMPLES
   ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
 ```
 
-_See code: [src/commands/domains/get.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/domains/get.ts)_
+_See code: [src/commands/domains/get.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/domains/get.ts)_
 
 ## `rctl domains update REF`
 
@@ -575,7 +578,7 @@ Updates an existing Domain
 
 ```
 USAGE
-  $ rctl domains update [REF] [-i] [-c <value>] [-e <value>]
+  $ rctl domains update REF [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Domain
@@ -593,7 +596,7 @@ EXAMPLES
   Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/domains/update.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/domains/update.ts)_
+_See code: [src/commands/domains/update.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/domains/update.ts)_
 
 ## `rctl numbers create`
 
@@ -616,7 +619,7 @@ EXAMPLES
   Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
 ```
 
-_See code: [src/commands/numbers/create.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/numbers/create.ts)_
+_See code: [src/commands/numbers/create.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/numbers/create.ts)_
 
 ## `rctl numbers delete [REF]`
 
@@ -639,7 +642,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/numbers/delete.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/numbers/delete.ts)_
+_See code: [src/commands/numbers/delete.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/numbers/delete.ts)_
 
 ## `rctl numbers describe [REF]`
 
@@ -650,7 +653,7 @@ USAGE
   $ rctl numbers describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
-  REF  reference to the Number
+  [REF]  reference to the Number
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -661,7 +664,7 @@ DESCRIPTION
   shows details for a Number
 ```
 
-_See code: [src/commands/numbers/describe.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/numbers/describe.ts)_
+_See code: [src/commands/numbers/describe.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/numbers/describe.ts)_
 
 ## `rctl numbers get [REF]`
 
@@ -672,7 +675,7 @@ USAGE
   $ rctl numbers get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
-  REF  optional reference to a Number
+  [REF]  optional reference to a Number
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -690,7 +693,7 @@ EXAMPLES
   a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@sip.local Cameron, USA (US)
 ```
 
-_See code: [src/commands/numbers/get.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/numbers/get.ts)_
+_See code: [src/commands/numbers/get.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/numbers/get.ts)_
 
 ## `rctl numbers update REF`
 
@@ -698,7 +701,7 @@ Updates an existing set of Credentials
 
 ```
 USAGE
-  $ rctl numbers update [REF] [-i] [-c <value>] [-e <value>]
+  $ rctl numbers update REF [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Number
@@ -716,7 +719,7 @@ EXAMPLES
   Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/numbers/update.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/numbers/update.ts)_
+_See code: [src/commands/numbers/update.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/numbers/update.ts)_
 
 ## `rctl peers create`
 
@@ -739,7 +742,7 @@ EXAMPLES
   Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/peers/create.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/peers/create.ts)_
+_See code: [src/commands/peers/create.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/peers/create.ts)_
 
 ## `rctl peers delete [REF]`
 
@@ -762,7 +765,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/peers/delete.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/peers/delete.ts)_
+_See code: [src/commands/peers/delete.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/peers/delete.ts)_
 
 ## `rctl peers describe [REF]`
 
@@ -773,7 +776,7 @@ USAGE
   $ rctl peers describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
-  REF  reference to the Peer
+  [REF]  reference to the Peer
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -784,7 +787,7 @@ DESCRIPTION
   shows details for a Peer
 ```
 
-_See code: [src/commands/peers/describe.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/peers/describe.ts)_
+_See code: [src/commands/peers/describe.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/peers/describe.ts)_
 
 ## `rctl peers get [REF]`
 
@@ -795,7 +798,7 @@ USAGE
   $ rctl peers get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
-  REF  optional reference to a Peer
+  [REF]  optional reference to a Peer
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -813,7 +816,7 @@ EXAMPLES
   6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local 1              Round Robin         Yes
 ```
 
-_See code: [src/commands/peers/get.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/peers/get.ts)_
+_See code: [src/commands/peers/get.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/peers/get.ts)_
 
 ## `rctl peers update REF`
 
@@ -821,7 +824,7 @@ Updates an existing Peer
 
 ```
 USAGE
-  $ rctl peers update [REF] [-i] [-c <value>] [-e <value>]
+  $ rctl peers update REF [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Peer
@@ -839,7 +842,7 @@ EXAMPLES
   Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/peers/update.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/peers/update.ts)_
+_See code: [src/commands/peers/update.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/peers/update.ts)_
 
 ## `rctl plugins`
 
@@ -847,10 +850,13 @@ List installed plugins.
 
 ```
 USAGE
-  $ rctl plugins [--core]
+  $ rctl plugins [--json] [--core]
 
 FLAGS
   --core  Show core plugins.
+
+GLOBAL FLAGS
+  --json  Format output as json.
 
 DESCRIPTION
   List installed plugins.
@@ -859,44 +865,53 @@ EXAMPLES
   $ rctl plugins
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/index.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/5.5.2/src/commands/plugins/index.ts)_
 
-## `rctl plugins:install PLUGIN...`
+## `rctl plugins add PLUGIN`
 
-Installs a plugin into the CLI.
+Installs a plugin into rctl.
 
 ```
 USAGE
-  $ rctl plugins:install PLUGIN...
+  $ rctl plugins add PLUGIN... [--json] [-f] [-h] [-s | -v]
 
 ARGUMENTS
-  PLUGIN  Plugin to install.
+  PLUGIN...  Plugin to install.
 
 FLAGS
-  -f, --force    Run yarn install with force flag.
+  -f, --force    Force npm to fetch remote resources even if a local copy exists on disk.
   -h, --help     Show CLI help.
-  -v, --verbose
+  -s, --silent   Silences npm output.
+  -v, --verbose  Show verbose npm output.
+
+GLOBAL FLAGS
+  --json  Format output as json.
 
 DESCRIPTION
-  Installs a plugin into the CLI.
-  Can be installed from npm or a git url.
+  Installs a plugin into rctl.
+
+  Uses npm to install plugins.
 
   Installation of a user-installed plugin will override a core plugin.
 
-  e.g. If you have a core plugin that has a 'hello' command, installing a user-installed plugin with a 'hello' command
-  will override the core plugin implementation. This is useful if a user needs to update core plugin functionality in
-  the CLI without the need to patch and update the whole CLI.
-
+  Use the RCTL_NPM_LOG_LEVEL environment variable to set the npm loglevel.
+  Use the RCTL_NPM_REGISTRY environment variable to set the npm registry.
 
 ALIASES
   $ rctl plugins add
 
 EXAMPLES
-  $ rctl plugins:install myplugin 
+  Install a plugin from npm registry.
 
-  $ rctl plugins:install https://github.com/someuser/someplugin
+    $ rctl plugins add myplugin
 
-  $ rctl plugins:install someuser/someplugin
+  Install a plugin from a github url.
+
+    $ rctl plugins add https://github.com/someuser/someplugin
+
+  Install a plugin from a github slug.
+
+    $ rctl plugins add someuser/someplugin
 ```
 
 ## `rctl plugins:inspect PLUGIN...`
@@ -905,10 +920,10 @@ Displays installation properties of a plugin.
 
 ```
 USAGE
-  $ rctl plugins:inspect PLUGIN...
+  $ rctl plugins inspect PLUGIN...
 
 ARGUMENTS
-  PLUGIN  [default: .] Plugin to inspect.
+  PLUGIN...  [default: .] Plugin to inspect.
 
 FLAGS
   -h, --help     Show CLI help.
@@ -921,68 +936,79 @@ DESCRIPTION
   Displays installation properties of a plugin.
 
 EXAMPLES
-  $ rctl plugins:inspect myplugin
+  $ rctl plugins inspect myplugin
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/inspect.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/5.5.2/src/commands/plugins/inspect.ts)_
 
-## `rctl plugins:install PLUGIN...`
+## `rctl plugins install PLUGIN`
 
-Installs a plugin into the CLI.
+Installs a plugin into rctl.
 
 ```
 USAGE
-  $ rctl plugins:install PLUGIN...
+  $ rctl plugins install PLUGIN... [--json] [-f] [-h] [-s | -v]
 
 ARGUMENTS
-  PLUGIN  Plugin to install.
+  PLUGIN...  Plugin to install.
 
 FLAGS
-  -f, --force    Run yarn install with force flag.
+  -f, --force    Force npm to fetch remote resources even if a local copy exists on disk.
   -h, --help     Show CLI help.
-  -v, --verbose
+  -s, --silent   Silences npm output.
+  -v, --verbose  Show verbose npm output.
+
+GLOBAL FLAGS
+  --json  Format output as json.
 
 DESCRIPTION
-  Installs a plugin into the CLI.
-  Can be installed from npm or a git url.
+  Installs a plugin into rctl.
+
+  Uses npm to install plugins.
 
   Installation of a user-installed plugin will override a core plugin.
 
-  e.g. If you have a core plugin that has a 'hello' command, installing a user-installed plugin with a 'hello' command
-  will override the core plugin implementation. This is useful if a user needs to update core plugin functionality in
-  the CLI without the need to patch and update the whole CLI.
-
+  Use the RCTL_NPM_LOG_LEVEL environment variable to set the npm loglevel.
+  Use the RCTL_NPM_REGISTRY environment variable to set the npm registry.
 
 ALIASES
   $ rctl plugins add
 
 EXAMPLES
-  $ rctl plugins:install myplugin 
+  Install a plugin from npm registry.
 
-  $ rctl plugins:install https://github.com/someuser/someplugin
+    $ rctl plugins install myplugin
 
-  $ rctl plugins:install someuser/someplugin
+  Install a plugin from a github url.
+
+    $ rctl plugins install https://github.com/someuser/someplugin
+
+  Install a plugin from a github slug.
+
+    $ rctl plugins install someuser/someplugin
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/install.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/5.5.2/src/commands/plugins/install.ts)_
 
-## `rctl plugins:link PLUGIN`
+## `rctl plugins link PATH`
 
 Links a plugin into the CLI for development.
 
 ```
 USAGE
-  $ rctl plugins:link PLUGIN
+  $ rctl plugins link PATH [-h] [--install] [-v]
 
 ARGUMENTS
   PATH  [default: .] path to plugin
 
 FLAGS
-  -h, --help     Show CLI help.
+  -h, --help          Show CLI help.
   -v, --verbose
+      --[no-]install  Install dependencies after linking the plugin.
 
 DESCRIPTION
   Links a plugin into the CLI for development.
+
   Installation of a linked plugin will override a user-installed or core plugin.
 
   e.g. If you have a user-installed or core plugin that has a 'hello' command, installing a linked plugin with a 'hello'
@@ -990,21 +1016,21 @@ DESCRIPTION
 
 
 EXAMPLES
-  $ rctl plugins:link myplugin
+  $ rctl plugins link myplugin
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/link.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/5.5.2/src/commands/plugins/link.ts)_
 
-## `rctl plugins:uninstall PLUGIN...`
+## `rctl plugins remove [PLUGIN]`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ rctl plugins:uninstall PLUGIN...
+  $ rctl plugins remove [PLUGIN...] [-h] [-v]
 
 ARGUMENTS
-  PLUGIN  plugin to uninstall
+  [PLUGIN...]  plugin to uninstall
 
 FLAGS
   -h, --help     Show CLI help.
@@ -1016,18 +1042,36 @@ DESCRIPTION
 ALIASES
   $ rctl plugins unlink
   $ rctl plugins remove
+
+EXAMPLES
+  $ rctl plugins remove myplugin
 ```
 
-## `rctl plugins:uninstall PLUGIN...`
+## `rctl plugins reset`
+
+Remove all user-installed and linked plugins.
+
+```
+USAGE
+  $ rctl plugins reset [--hard] [--reinstall]
+
+FLAGS
+  --hard       Delete node_modules and package manager related files in addition to uninstalling plugins.
+  --reinstall  Reinstall all plugins after uninstalling.
+```
+
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/5.5.2/src/commands/plugins/reset.ts)_
+
+## `rctl plugins uninstall [PLUGIN]`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ rctl plugins:uninstall PLUGIN...
+  $ rctl plugins uninstall [PLUGIN...] [-h] [-v]
 
 ARGUMENTS
-  PLUGIN  plugin to uninstall
+  [PLUGIN...]  plugin to uninstall
 
 FLAGS
   -h, --help     Show CLI help.
@@ -1039,20 +1083,23 @@ DESCRIPTION
 ALIASES
   $ rctl plugins unlink
   $ rctl plugins remove
+
+EXAMPLES
+  $ rctl plugins uninstall myplugin
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/uninstall.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/5.5.2/src/commands/plugins/uninstall.ts)_
 
-## `rctl plugins:uninstall PLUGIN...`
+## `rctl plugins unlink [PLUGIN]`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ rctl plugins:uninstall PLUGIN...
+  $ rctl plugins unlink [PLUGIN...] [-h] [-v]
 
 ARGUMENTS
-  PLUGIN  plugin to uninstall
+  [PLUGIN...]  plugin to uninstall
 
 FLAGS
   -h, --help     Show CLI help.
@@ -1064,6 +1111,9 @@ DESCRIPTION
 ALIASES
   $ rctl plugins unlink
   $ rctl plugins remove
+
+EXAMPLES
+  $ rctl plugins unlink myplugin
 ```
 
 ## `rctl plugins update`
@@ -1082,7 +1132,7 @@ DESCRIPTION
   Update installed plugins.
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.4.7/src/commands/plugins/update.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/5.5.2/src/commands/plugins/update.ts)_
 
 ## `rctl trunks create`
 
@@ -1105,7 +1155,7 @@ EXAMPLES
   Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/trunks/create.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/trunks/create.ts)_
+_See code: [src/commands/trunks/create.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/trunks/create.ts)_
 
 ## `rctl trunks delete [REF]`
 
@@ -1128,7 +1178,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/trunks/delete.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/trunks/delete.ts)_
+_See code: [src/commands/trunks/delete.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/trunks/delete.ts)_
 
 ## `rctl trunks describe [REF]`
 
@@ -1139,7 +1189,7 @@ USAGE
   $ rctl trunks describe [REF] [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
-  REF  reference to the Trunk
+  [REF]  reference to the Trunk
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -1150,7 +1200,7 @@ DESCRIPTION
   shows details for a Trunk
 ```
 
-_See code: [src/commands/trunks/describe.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/trunks/describe.ts)_
+_See code: [src/commands/trunks/describe.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/trunks/describe.ts)_
 
 ## `rctl trunks get [REF]`
 
@@ -1161,7 +1211,7 @@ USAGE
   $ rctl trunks get [REF] [-i] [-c <value>] [-e <value>] [-s <value>] [-x]
 
 ARGUMENTS
-  REF  optional reference to a Trunk
+  [REF]  optional reference to a Trunk
 
 FLAGS
   -c, --cacert=<value>    path to the CA certificate to verify the server
@@ -1179,7 +1229,7 @@ EXAMPLES
   8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local  sip.t01.provider.net
 ```
 
-_See code: [src/commands/trunks/get.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/trunks/get.ts)_
+_See code: [src/commands/trunks/get.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/trunks/get.ts)_
 
 ## `rctl trunks update REF`
 
@@ -1187,7 +1237,7 @@ Updates an existing Trunk
 
 ```
 USAGE
-  $ rctl trunks update [REF] [-i] [-c <value>] [-e <value>]
+  $ rctl trunks update REF [-i] [-c <value>] [-e <value>]
 
 ARGUMENTS
   REF  reference to an existing Trunk
@@ -1205,5 +1255,5 @@ EXAMPLES
   Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/trunks/update.ts](https://github.com/fonoster/routr/blob/v2.15.4/mods/ctl/src/commands/trunks/update.ts)_
+_See code: [src/commands/trunks/update.ts](https://github.com/fonoster/routr/blob/v2.16.0/mods/ctl/src/commands/trunks/update.ts)_
 <!-- commandsstop -->
