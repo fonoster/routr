@@ -478,6 +478,83 @@
     ]
   },
   {
+    "name": "SC-IT.Conf.12.1.1: Blind transfer, SP-SSE connects the SIP-PBX user to a target on the SIP-PBX",
+    "description": "This test verifies the third party call control transfer model: the SP-SSE answers a DOD call from a SIP-PBX user, places a DID call to the transfer target, a second SIP-PBX user (agent 1002, DID +18295863315), and re-INVITEs the transferee with a new SDP offer so that media flows between transferee and target (SIP Connect 1.1 section 12.1.1).",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/call_transfer/blind_transfer_transferor_leg.xml",
+        "timeout": 60,
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/call_transfer/blind_transfer_target.xml",
+        "timeout": 60,
+        "port": 7061,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1002",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/sc/sip_pbx/call_transfer/uac_blind_transfer_transferee.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:17853178070@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:17853178070@sip.local"
+          }
+        ]
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/sc/sip_pbx/call_transfer/uac_blind_transfer_to_target.xml",
+        "authentication": {
+          "username": "pbx-1",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:+18295863315@trunk02.acme.com;user=phone"
+          },
+          {
+            "name": "from",
+            "value": "sip:+17853178070@sip.provider.net;user=phone"
+          },
+          {
+            "name": "to",
+            "value": "sip:+18295863315@trunk02.acme.com;user=phone"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "RR.Tst.Plan.1.1.1: Verification of CSeq Header when Proxy authenticates on behalf of caller",
     "description": "This test case verifies that the CSeq in the response matches the CSeq in original request.",
     "transportMode": "u1",
