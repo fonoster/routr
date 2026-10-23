@@ -82,6 +82,8 @@ Per-service defaults:
 | Key | Type | Default | Description |
 | --- | --- | --- | --- |
 | `edgeport.pkcs12Password` | string | `changeme` | Password of the SIP TLS keystore, stored in a Secret. Change it in production |
+| `edgeport.tls.protocols` | string[] | Unset (`TLSv1.3`) | TLS versions for the TLS and WSS transports |
+| `edgeport.tls.cipherSuites` | string[] | Unset (forward-secret AEAD suites) | Cipher suites for the TLS and WSS transports |
 | `edgeport.externalAddrs` | string[] | `[]` | External addresses of the EdgePort. Required for correct address advertisement |
 | `edgeport.localnets` | string[] | Unset | Local networks. Defaults to the networks reported by the OS |
 | `edgeport.methods` | string[] | `[REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL]` | Acceptable SIP methods. Required |

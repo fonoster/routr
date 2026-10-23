@@ -121,6 +121,18 @@ When registration succeeds over TLS, Blink Pro shows a padlock next to the accou
   alt="Blink Pro main window with a green padlock next to the account john@sip.ocean.com"
 />
 
+## Choose TLS versions and cipher suites
+
+The EdgePort accepts TLS 1.3 only, on both the TLS and WSS transports. If a phone or carrier can't connect over TLS 1.3, enable TLS 1.2 as well:
+
+- **routr-one or the EdgePort image:** set `SECURITY_CONTEXT_CLIENT_PROTOCOLS=TLSv1.3,TLSv1.2`.
+- **`edgeport.yaml`:** set `spec.securityContext.client.protocols` to `[TLSv1.3, TLSv1.2]`.
+- **Helm:** set `edgeport.tls.protocols` to `[TLSv1.3, TLSv1.2]`.
+
+TLS 1.2 then uses ECDHE suites with AES-GCM or ChaCha20 only. To change the cipher suites, set `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES`, `spec.securityContext.client.cipherSuites`, or `edgeport.tls.cipherSuites`. See [EdgePort](/reference/components/edgeport#configuration-file) for the default list.
+
+To check what the EdgePort accepts, run `openssl s_client -connect <host>:5061 -tls1_3`. A working connection prints `New, TLSv1.3`.
+
 ## Require client certificates (optional)
 
 To make the API Server accept only clients with a certificate signed by your CA, mount `ca.crt` and set `VERIFY_CLIENT_CERT` to `"true"`. Clients must then present a certificate on every connection.
@@ -137,6 +149,7 @@ The `fonoster/routr-pgdata` image regenerates `server.crt` and `server.key` ever
 ## Troubleshooting
 
 - **`rctl` reports a certificate error.** The endpoint host doesn't match the certificate's `CN`, or you used a self-signed certificate without `--cacert`.
+- **A phone fails the TLS handshake.** It probably doesn't support TLS 1.3. Enable TLS 1.2 as shown in [Choose TLS versions and cipher suites](#choose-tls-versions-and-cipher-suites).
 - **Browsers refuse the WSS connection.** Use a certificate from a trusted CA. See [Enable WebRTC clients](/guides/enable-webrtc).
 - **The EdgePort fails to load the keystore.** `PKCS12_PASSWORD` must be the same value the keystore was built with. Recreate the container after changing it.
 

@@ -55,6 +55,8 @@ See [EdgePort](/reference/components/edgeport) for details.
 | `PROCESSOR_ADDR` | `localhost:51901` (from the config file) | Address the EdgePort sends messages to |
 | `CONFIG_PATH` | `/service/config/edgeport.yaml` | EdgePort configuration file |
 | `PKCS12_PASSWORD` | `changeme` | Password of the SIP TLS keystore. Written into the EdgePort config at startup |
+| `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | `TLSv1.3` | Comma-separated TLS versions for the TLS and WSS transports, for example `TLSv1.3,TLSv1.2` |
+| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | Forward-secret AEAD suites | Comma-separated cipher suites for the TLS and WSS transports. See [EdgePort](/reference/components/edgeport#configuration-file) for the default list |
 | `PATH_TO_CERTS` | `/etc/routr/certs` | Directory with `server.crt`, `server.key`, and an optional `ca.crt`. Self-signed certificates are generated when missing |
 | `CA_CERT_SUBJECT` | `/CN=Self Signed CA` | Subject of the generated CA certificate |
 | `SERVER_CERT_SUBJECT` | `/CN=localhost` | Subject of the generated server certificate |
