@@ -40,7 +40,9 @@ export const dispatcherConfig: MessageDispatcherConfig = {
         Method.INVITE,
         Method.ACK,
         Method.BYE,
-        Method.CANCEL
+        Method.CANCEL,
+        Method.REFER,
+        Method.NOTIFY
       ]
     }
   ],
