@@ -30,7 +30,7 @@ use). New paths are relative to `https://docs.routr.io`.
 | `overview/deploy-with-docker` | `/guides/deploy-with-docker` | |
 | `development/introduction` | `/guides/run-from-source` | |
 | `development/quick-start` | `/guides/run-from-source` | |
-| `development/development-mode-with-gitpod` | `/guides/develop-with-gitpod` | |
+| `development/development-mode-with-gitpod` | `/guides/develop-with-dev-containers` | Gitpod support was removed; dev containers replace it |
 | `development/components/overview` | `/concepts/architecture` | |
 | `development/components/edgeport` | `/reference/components/edgeport` | |
 | `development/components/dispatcher` | `/reference/components/dispatcher` | |

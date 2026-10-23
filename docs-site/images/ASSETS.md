@@ -15,7 +15,7 @@ PNG pair. Screenshots copied from the old Docusaurus site (`docs/static/img`) ar
 | `introduction/banner-dark.png`, `banner-light.png` | `introduction` | "Docs / Introduction / Banner / Dark" (YmAoP), "… / Light" (o8VhK3) | 1600 x 600, 2x | `images/introduction/banner.md` |
 
 Screenshots reused from `docs/static/img` (not in Pencil): `quickstart/*`, `home-or-office-setup/*`,
-`secure-the-server/*`, `develop-with-gitpod/*`, `call-events-with-nats/*`.
+`secure-the-server/*`, `call-events-with-nats/*`.
 
 ## Diagram Kit
 

@@ -95,6 +95,15 @@ See [API Server](/reference/components/apiserver) for details.
 | `SERVER_KEY` | `/etc/routr/certs/server.key` | Server private key for the external port |
 | `CLOAK_ENCRYPTION_KEY` | | Cloak key that turns on field-level encryption |
 
+## Location Service
+
+See [Location](/reference/components/location) for details.
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `LOCATION_CACHE_PROVIDER` | `memory` | Where registrations are kept: `memory` or `redis` |
+| `LOCATION_CACHE_PARAMETERS` | `host=localhost,port=6379` | Redis connection parameters, used when `LOCATION_CACHE_PROVIDER` is `redis` |
+
 ## RTPRelay
 
 See [RTPRelay](/reference/components/rtprelay) for details.

@@ -105,7 +105,7 @@
                 "icon": "code",
                 "pages": [
                   "guides/run-from-source",
-                  "guides/develop-with-gitpod"
+                  "guides/develop-with-dev-containers"
                 ]
               }
             ]
@@ -245,6 +245,10 @@
   },
   "redirects": [
     {
+      "source": "/guides/develop-with-gitpod",
+      "destination": "/guides/develop-with-dev-containers"
+    },
+    {
       "source": "/overview/introduction",
       "destination": "/introduction"
     },
@@ -318,15 +322,15 @@
     },
     {
       "source": "/development/development-mode-with-gitpod",
-      "destination": "/guides/develop-with-gitpod"
+      "destination": "/guides/develop-with-dev-containers"
     },
     {
       "source": "/docs/2.11.5/development/development-mode-with-gitpod",
-      "destination": "/guides/develop-with-gitpod"
+      "destination": "/guides/develop-with-dev-containers"
     },
     {
       "source": "/docs/development/development-mode-with-gitpod",
-      "destination": "/guides/develop-with-gitpod"
+      "destination": "/guides/develop-with-dev-containers"
     },
     {
       "source": "/development/components/overview",

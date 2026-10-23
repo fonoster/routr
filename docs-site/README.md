@@ -102,7 +102,8 @@ Made unsupervised during the migration (2026-10-21). Change any of them freely.
 6. Component pages (EdgePort, Dispatcher, Location, Connect, API Server, Registry, Requester,
    RTPRelay, SimpleAuth) moved from "Development" into Reference, one page each with the same
    structure. The old "Development" section became how-to guides (build a processor/middleware,
-   custom data, extend rctl, run from source, Gitpod).
+   custom data, extend rctl, run from source, dev containers; the Gitpod guide was removed with
+   `.gitpod.yml`).
 7. Old `overview/concepts` and `connect/concepts` split into explanation pages: architecture,
    message flow, EdgePort cooperation, Connect mode, routing, load balancing, deployment topologies.
 8. New pages with no 2.11.5 equivalent: EdgePort cooperation, routing, load balancing, deployment
@@ -180,8 +181,7 @@ Not fixed on this branch (docs-only). Worth an issue each.
 - NATS subjects are `<prefix>.call.started`/`.call.ended` (old docs: `calls.`).
 - No match in the Dispatcher returns a gRPC error that EdgePort only logs (CORE.md says 405/503).
 - Connect answers `MESSAGE` with 405 although EdgePort and the chart accept it by default.
-- `.gitpod.yml` copies `etc/certs/signaling.p12`, which is not tracked; `convert:certs` moves into
-  `etc/certs/`, which does not exist.
+- `convert:certs` moves `signaling.p12` into `etc/certs/`, which does not exist.
 - The SDK README calls constructors without `endpoint` and uses `require` without `.default`; the
   old docs used `SDK.ACL` (the code has `SDK.Acls`).
 - A REGISTER carrying `X-Gateway-Auth` skips authentication, and header stripping does not apply

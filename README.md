@@ -21,6 +21,7 @@ Routr is a lightweight sip proxy, location server, and registrar that provides a
 * [Bugs and feedback](#bugs-and-feedback)
 * [Sponsors](#sponsors)
 * [Contributing](#contributing)
+    * [Dev Containers](#developing-with-dev-containers)
 * [License](#license)
 
 ## Community
@@ -315,6 +316,31 @@ For contributing, please see the following links:
 
  - [Contribution Documents](https://github.com/fonoster/routr/blob/master/CONTRIBUTING.md)
  - [Contributors](https://github.com/fonoster/routr/contributors)
+
+### Developing with Dev Containers
+
+The repository includes a [Dev Container](https://containers.dev) with everything you need to build and run Routr: Node.js 22 and JDK 17, the same versions CI uses.
+
+To get started, open the repository in VS Code and run **Dev Containers: Reopen in Container**, or use the CLI:
+
+```bash
+npx @devcontainers/cli@latest up --workspace-folder .
+```
+
+On first creation, the container generates the TLS keystore EdgePort expects and builds the project. The first build takes a while; later rebuilds reuse the cached `node_modules`, npm, and Gradle volumes.
+
+Once it is ready, check the setup with the echo test. It starts EdgePort, the Dispatcher, and the Echo processor, sends a SIP `MESSAGE`, and expects a `200 OK`, with no database involved:
+
+```bash
+npm run test:echo
+```
+
+Postgres, Redis, and RTPEngine are not started up front. The commands that need them start them: `npm run start:one` brings up Postgres and Redis, migrates the database, and starts the all-in-one distribution. Set `RTPENGINE_HOST=rtpengine` to add RTPEngine. You can also start and stop them yourself with `npm run start:deps` and `npm run stop:deps`.
+
+The SIP ports (5060-5063) and the service ports (51901-51908) are forwarded to your machine. For more, see the [dev containers guide](https://docs.routr.io/guides/develop-with-dev-containers).
+
+> [!NOTE]
+> VS Code only forwards TCP ports, so SIP over UDP from a softphone on your host will not reach the container. Use TCP or WebSocket instead.
 
 <!--contributors:start-->
 
