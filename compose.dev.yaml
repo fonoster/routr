@@ -44,6 +44,10 @@ services:
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      # Record every call of the compliance run; CI uploads the traces
+      RECORD_MESSAGES: "true"
+      RECORD_MESSAGES_MODE: all
+      RECORD_MESSAGES_PATH: /var/routr/traces
     networks:
       internal:
         ipv4_address: 10.111.221.4

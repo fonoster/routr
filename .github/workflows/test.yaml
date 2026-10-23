@@ -172,6 +172,24 @@ jobs:
           path: compliance-traces
           if-no-files-found: warn
 
+      # The dispatcher records every call of the run as one .jsonl per call
+      # (RECORD_MESSAGES in compose.dev.yaml). Replay one locally with
+      # `rctl trace replay <file>`; compare two runs with --compare.
+      - name: Collect call recordings
+        if: always()
+        run: |
+          mkdir -p call-recordings
+          docker compose -f compose.yaml -f compose.dev.yaml cp dispatcher:/var/routr/traces/. call-recordings/ || true
+          ls call-recordings | wc -l
+
+      - name: Upload call recordings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: call-recordings
+          path: call-recordings
+          if-no-files-found: warn
+
       - name: Tear down the stack
         if: always()
         run: docker compose -f compose.yaml -f compose.dev.yaml down -v

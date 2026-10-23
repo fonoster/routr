@@ -132,6 +132,18 @@ dispatcher:
       # Acceptable SIP Methods
       methods: ["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"]
   middlewares: []
+  # Message recording: one JSONL file per call, replayed with `rctl trace replay`
+  recording:
+    # Turn recording on
+    enabled: false
+    # "flagged" records calls through trunks whose extended.recordMessages is true;
+    # "all" records every call
+    mode: flagged
+    # Directory inside the container where traces are written
+    path: /var/routr/traces
+    # Name of an existing PersistentVolumeClaim to keep traces across restarts;
+    # empty uses an emptyDir that lives as long as the pod
+    existingClaim: ""
   image:
     # Dispatcher image repository
     repository: fonoster/routr-dispatcher

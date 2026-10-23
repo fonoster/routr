@@ -43,12 +43,24 @@ spec:
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
               value: {{ .Values.global.otlExporter }}
+            {{- if .Values.dispatcher.recording.enabled }}
+            - name: RECORD_MESSAGES
+              value: "true"
+            - name: RECORD_MESSAGES_MODE
+              value: {{ .Values.dispatcher.recording.mode | quote }}
+            - name: RECORD_MESSAGES_PATH
+              value: {{ .Values.dispatcher.recording.path | quote }}
+            {{- end }}
           ports:
             - containerPort: 51901
           volumeMounts:
             - name: config
               mountPath: /etc/routr/dispatcher.yaml
               subPath: dispatcher.yaml
+            {{- if .Values.dispatcher.recording.enabled }}
+            - name: traces
+              mountPath: {{ .Values.dispatcher.recording.path }}
+            {{- end }}
           resources:
             {{- if .Values.dispatcher.resources.limits }}
             limits:
@@ -64,3 +76,12 @@ spec:
         - name: config
           configMap:
             name: {{ .Release.Name }}-routr-dispatcher-config
+        {{- if .Values.dispatcher.recording.enabled }}
+        - name: traces
+          {{- if .Values.dispatcher.recording.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.dispatcher.recording.existingClaim }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}
