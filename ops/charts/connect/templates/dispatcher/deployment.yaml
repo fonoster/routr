@@ -43,14 +43,6 @@ spec:
               value: {{ .Values.global.logsLevel }}
             - name: OTEL_EXPORTER_JAEGER_ENDPOINT
               value: {{ .Values.global.otlExporter }}
-            {{- if .Values.dispatcher.recording.enabled }}
-            - name: RECORD_MESSAGES
-              value: "true"
-            - name: RECORD_MESSAGES_MODE
-              value: {{ .Values.dispatcher.recording.mode | quote }}
-            - name: RECORD_MESSAGES_PATH
-              value: {{ .Values.dispatcher.recording.path | quote }}
-            {{- end }}
           ports:
             - containerPort: 51901
           volumeMounts:

@@ -132,15 +132,22 @@ dispatcher:
       # Acceptable SIP Methods
       methods: ["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"]
   middlewares: []
-  # Message recording: one JSONL file per call, replayed with `rctl trace replay`
+  # Message recording: one JSONL file per call, replayed with `rctl trace replay`.
+  # Rendered into the dispatcher's configuration file (its `recording` block).
   recording:
     # Turn recording on
     enabled: false
-    # "flagged" records calls through trunks whose extended.recordMessages is true;
-    # "all" records every call
+    # "flagged" records the calls that touch a resource (Trunk, Agent, Peer,
+    # Domain) whose trace.enabled is true; "all" records every call
     mode: flagged
     # Directory inside the container where traces are written
     path: /var/routr/traces
+    # Replace credentials with REDACTED before writing; keep it on in production
+    redact: true
+    # Rule profiles evaluated on every record as it is written, e.g. [sip] or
+    # [sip, sip-connect]; empty turns the end-of-message lint off
+    lint:
+      profiles: []
     # Name of an existing PersistentVolumeClaim to keep traces across restarts;
     # empty uses an emptyDir that lives as long as the pod
     existingClaim: ""

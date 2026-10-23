@@ -1,10 +1,10 @@
 ---
 title: "Record and replay calls"
 sidebarTitle: "Record and replay calls"
-description: "For operators troubleshooting one call: record every message of a call as it crosses the Dispatcher, then replay it in the terminal, compare it with an earlier recording, or resend it to a fix."
+description: "For operators troubleshooting one call: record every message of a call as it crosses the Dispatcher, replay it in the terminal, check it against the SIP and SIPconnect rules, compare it with an earlier recording, or keep it as a known-good the build replays."
 ---
 
-Turn on message recording for a Trunk, and the Message Dispatcher writes every message of every call through that Trunk to one file per call. The file holds each message as the EdgePort received it, every component that touched it with its duration and what it changed, and the message as it left. Replay the file with `rctl trace replay`.
+Turn on message recording for a Trunk, an Agent, a Peer or a Domain, and the Message Dispatcher writes every message of every call that touches it to one file per call. The file holds each message as the EdgePort received it, every component that touched it with its duration and what it changed, and the message as it left. Replay the file with `rctl trace replay`.
 
 ## When to record
 
@@ -12,36 +12,16 @@ Turn on message recording for a Trunk, and the Message Dispatcher writes every m
 - A call was rejected and the logs say `500` without saying which component answered.
 - You are upgrading Routr and want to prove a scenario behaves the same before and after.
 
-Recording costs one JSON line per message, written asynchronously. It never blocks or fails a call: a write error is logged and the message continues on its way. Credentials (`Authorization`, `Proxy-Authorization`, `X-Gateway-Auth`, the digest response) are replaced with `REDACTED` before the record is written.
+Recording costs one JSON line per message, written asynchronously after the answer went back to the EdgePort. It never blocks or fails a call: a write error is logged and the message continues on its way. Credentials (`Authorization`, `Proxy-Authorization`, `X-Gateway-Auth`, the digest response) are replaced with `REDACTED` before the record is written, unless `redact: false` is set for a test stack.
 
 ## Turn recording on
 
 Recording is off by default. Enable it on the Dispatcher, then choose which calls to record.
 
 <Tabs>
-  <Tab title="Docker">
-    Set the variables on the `dispatcher` service (or on `routr-one`) and mount a directory for the files:
-
-    ```yaml
-    dispatcher:
-      environment:
-        RECORD_MESSAGES: "true"
-        RECORD_MESSAGES_MODE: flagged
-        RECORD_MESSAGES_PATH: /var/routr/traces
-      volumes:
-        - ./traces:/var/routr/traces
-    ```
-  </Tab>
-  <Tab title="Kubernetes">
-    ```bash
-    helm upgrade routr routr/routr-connect \
-      --set dispatcher.recording.enabled=true \
-      --set dispatcher.recording.mode=flagged
-    ```
-
-    Files go to an `emptyDir` unless you set `dispatcher.recording.existingClaim` to a PersistentVolumeClaim.
-  </Tab>
   <Tab title="Configuration file">
+    Add a `recording` block to the Dispatcher's configuration file and mount a directory for the files:
+
     ```yaml
     kind: MessageDispatcher
     apiVersion: v2beta1
@@ -52,12 +32,30 @@ Recording is off by default. Enable it on the Dispatcher, then choose which call
         enabled: true
         path: /var/routr/traces
         mode: flagged
+        redact: true
+        lint:
+          profiles: [sip]
       processors:
         - ref: connect-processor
           addr: connect:51904
           matchFunc: req => true
           methods: [REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL, REFER, NOTIFY]
     ```
+
+    With Docker Compose, mount that file over `/etc/routr/dispatcher.yaml` and the directory over `/var/routr/traces`.
+  </Tab>
+  <Tab title="Kubernetes">
+    ```bash
+    helm upgrade routr routr/routr-connect \
+      --set dispatcher.recording.enabled=true \
+      --set dispatcher.recording.mode=flagged \
+      --set 'dispatcher.recording.lint.profiles={sip}'
+    ```
+
+    The chart renders the block into the Dispatcher's ConfigMap. Files go to an `emptyDir` unless you set `dispatcher.recording.existingClaim` to a PersistentVolumeClaim.
+  </Tab>
+  <Tab title="routr-one">
+    The all-in-one image has no configuration file, so it takes `RECORD_MESSAGES`, `RECORD_MESSAGES_MODE` and `RECORD_MESSAGES_PATH`. Credentials are always redacted and no rules are evaluated there.
   </Tab>
 </Tabs>
 
@@ -65,16 +63,21 @@ Two modes:
 
 | Mode | Records |
 | --- | --- |
-| `flagged` (default) | Calls through a Trunk whose `extended.recordMessages` is `true`. The Connect processor flags the call on the first routed message; the Dispatcher then records every later message of the same Call-ID until the call has been idle for two hours. |
+| `flagged` (default) | Calls that touch a Trunk, Agent, Peer or Domain whose `trace.enabled` is `true`. The Connect processor flags the call on the first routed message (or on a REGISTER of a flagged Agent or Peer); the Dispatcher then records every later message of the same Call-ID until the call has been idle for two hours. |
 | `all` | Every call. Use it on a test stack, for example the compliance suite in CI, not in production. |
 
-To flag a Trunk, set the extended attribute:
+Set `trace.enabled` on the resource, in YAML or through the API:
 
-```bash
-rctl trunks update <ref>   # or through the SDK: extended: { recordMessages: true }
+```yaml
+- apiVersion: v2beta1
+  kind: Trunk
+  ref: trunk-01
+  spec:
+    trace:
+      enabled: true
 ```
 
-Through the API the Trunk's `extended` object accepts any attribute; `recordMessages: true` is the one the Connect processor reads.
+A Trunk records the calls of one provider; an Agent its calls and registrations; a Domain every call of that customer.
 
 ## Files
 
@@ -108,19 +111,51 @@ rctl trace replay call-after-upgrade.jsonl --compare call-before-upgrade.jsonl
 
 `4` opens the **Compare** view: the two files lined up by method and CSeq, with `≠` on rows whose outcome, status, hop count or outgoing headers differ, and `−`/`+` on rows present in only one file. In the Ladder, `c` overlays the agreement column on the first file. Timing is shown but never counts as a difference.
 
+## Check a recording against the specs
+
+```bash
+rctl trace lint call.jsonl --sip-connect
+```
+
+Every record is evaluated by a set of rules, one pure function each, that read only the SIP messages and what the Dispatcher measured. Two profiles:
+
+| Profile | Rules | When |
+| --- | --- | --- |
+| `sip` | RFC 3261 and companions: Max-Forwards decremented, the proxy's Via on top and removed on the way back, Record-Route and Route pointing at the proxy, accepted credentials not forwarded, internal addresses not leaving through the external interface, a 200 to REGISTER with its binding, CSeq order, CANCEL and ACK matching their INVITE, a 2xx acknowledged before BYE, retransmissions. | Always. |
+| `sip-connect` | SIPconnect 1.1 on the INVITE that leaves through the external interface: one P-Asserted-Identity, E.164 with `user=phone`, an E.164 Request-URI, From E.164 or anonymous, `Privacy: id` honoured. | `--sip-connect`, because not every deployment faces a SIPconnect provider. |
+
+Each finding names the rule, cites the spec, and points at the side (`in`, `out` or the whole call) and header. The Summary view shows the findings on the first forwarded INVITE; `--fail-on warning` turns them into an exit code for CI.
+
+The Dispatcher can evaluate the same rules as it writes: set `recording.lint.profiles`. Each finding is then logged as a warning with the Call-ID, seq and rule, and written on the record under `findings`, so a recording carries what the proxy thought at the time.
+
+A component may annotate its hop with `trace.`-prefixed metadata keys (the Connect processor adds `direction` and `trunk`). The Dispatcher copies them into the hop's `metadata` and strips them before the message leaves. Routr draws no conclusion from them, since components are swappable; they are there for people and tools reading the file.
+
+## Keep a known-good corpus
+
+A recording of a call that behaved as it should is worth keeping: replayed through the chain after a change, it proves the chain still answers the same way. The repository keeps such recordings under `etc/corpus`, and `npm run compat` replays every one of them through the Node services started from the checkout, with no EdgePort and no Docker, on every pull request. Any message whose outcome or outgoing headers drifted fails the build, and so does a rule finding a file did not have.
+
+Files are named `<origin>_<flow>_<far-end>_<YYYYMMDD>.jsonl`: who sent the first message, what happened, who was on the other side, when. Adding a known-good is four steps:
+
+1. Take the file from the `call-recordings` artifact of a compliance run, or from your own stack.
+2. `rctl trace sanitize <file> --credentials etc/corpus/resources/credentials.yaml --rewrite <real>=<test> ... --out etc/corpus/<name>.jsonl`. The digest responses are recomputed with the test password, so the file still authenticates; the rewrites replace real numbers and hosts everywhere in the file.
+3. Add the Trunk, Number, Agent or Credentials the recording touches to `etc/corpus/resources` if they are not there.
+4. Add a line to `etc/corpus/manifest.yaml`, with `profiles: [sip-connect]` when the file faces a provider, and `findings` listing the rule ids the recording is known to trip (`rctl trace lint` prints them). A known-good describes what the chain does with real traffic; a finding that appears later is a regression, one that disappears is a change to declare.
+
+The README in that directory has the details.
+
 ## Resend a message to a fix
 
 ```bash
 rctl trace send call.jsonl --seq 7 --to localhost:51901
 ```
 
-Sends the recorded message with `seq` 7 to a running Dispatcher (or straight to a processor on `51904`) and prints how the live answer differs from the recorded one. Credentials were redacted at recording time, so a message that needed them comes back as a challenge, which is itself the expected answer.
+Sends the recorded message with `seq` 7 to a running Dispatcher (or straight to a processor on `51904`) and prints how the live answer differs from the recorded one. Via branches, tags and nonces differ between runs by design and never count. Credentials redacted at recording time come back as a challenge, which is itself the expected answer.
 
 ## Related
 
 <CardGroup cols={2}>
   <Card title="rctl trace reference" icon="terminal" href="/reference/rctl#call-traces">
-    Every flag of replay, validate and send.
+    Every flag of replay, validate, lint, compat, sanitize and send.
   </Card>
   <Card title="Message Dispatcher" icon="route" href="/reference/components/dispatcher">
     The recording block of the configuration file and the environment variables.

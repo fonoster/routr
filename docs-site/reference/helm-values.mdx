@@ -129,7 +129,9 @@ The TCP Service is created only when TCP, TLS, WS, or WSS is enabled. The UDP Se
 | `dispatcher.middlewares[*].serviceNamespace` | string | Release namespace | Namespace of the Service |
 | `dispatcher.middlewares[*].postProcessor` | boolean | | `true` runs the middleware after the Processor. Set it on every entry |
 | `dispatcher.recording.enabled` | boolean | `false` | Record calls as one `.jsonl` file per call, replayed with `rctl trace replay` |
-| `dispatcher.recording.mode` | string | `flagged` | `flagged` records calls through Trunks with `extended.recordMessages`; `all` records every call |
+| `dispatcher.recording.mode` | string | `flagged` | `flagged` records the calls that touch a resource whose `trace.enabled` is `true`; `all` records every call |
+| `dispatcher.recording.redact` | boolean | `true` | Replace credentials with `REDACTED` before writing |
+| `dispatcher.recording.lint.profiles` | array | `[]` | Rule profiles evaluated on every record as it is written: `sip`, `sip-connect`. Empty turns the lint off |
 | `dispatcher.recording.path` | string | `/var/routr/traces` | Directory inside the container |
 | `dispatcher.recording.existingClaim` | string | `""` | PersistentVolumeClaim for the recordings; empty uses an `emptyDir` |
 | `dispatcher.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |

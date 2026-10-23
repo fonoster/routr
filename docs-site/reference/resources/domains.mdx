@@ -16,6 +16,7 @@ A Domain is a SIP domain, such as `sip.local`, that groups Agents and holds the 
 | `spec.context.egressPolicies` | `egressPolicies` | `array` | No | - | Rules that pick a Number for outbound PSTN calls. |
 | `spec.context.egressPolicies[].rule` | `egressPolicies[].rule` | `string` | Yes | - | Regular expression tested against the dialed number. |
 | `spec.context.egressPolicies[].numberRef` | `egressPolicies[].numberRef` | `string` | Yes | - | `ref` of the [Number](/reference/resources/numbers) to call from when the rule matches. Its Trunk carries the call. |
+| `spec.trace.enabled` | `trace.enabled` | `boolean` | No | `false` | Record every message of the calls that touch this Domain (the Dispatcher must have recording on, in `flagged` mode). See [Record and replay calls](/guides/record-and-replay-calls). |
 | - | `extended` | `object` | No | - | Custom attributes. API only. |
 
 The API response also includes `accessControlList` and, in each egress policy, `number`: the objects the refs point to.
