@@ -49,13 +49,18 @@ export default class RedisStore implements ILocatorStore {
   /** @inheritdoc */
   public async put(key: string, route: Route): Promise<void> {
     // Formatted the key to ensure it is unique
-    await this.client.set(
-      `${key}:${route.user}${route.host}${route.port}`,
-      JSON.stringify(route),
-      {
-        EX: route.expires
-      }
-    )
+    const routeKey = `${key}:${route.user}${route.host}${route.port}`
+
+    // An expires of zero removes the binding (RFC 3261 section 10.3, step 7).
+    // Redis rejects SET with EX 0, so delete the key instead.
+    if (route.expires <= 0) {
+      await this.client.del(routeKey)
+      return
+    }
+
+    await this.client.set(routeKey, JSON.stringify(route), {
+      EX: route.expires
+    })
     return
   }
 

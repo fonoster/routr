@@ -53,6 +53,20 @@ describe("@routr/location/redis_store", () => {
     expect(await store.get("sip:voice@sip.local")).to.be.empty
   })
 
+  it("removes a binding when it is put with an expires of zero", async () => {
+    const store = new RedisStore()
+    await store.delete("sip:voice@sip.local")
+    await store.put("sip:voice@sip.local", Routes.voiceBackendRoute01)
+    await store.put("sip:voice@sip.local", Routes.voiceBackendRoute02)
+    await store.put("sip:voice@sip.local", {
+      ...Routes.voiceBackendRoute01,
+      expires: 0
+    })
+    const routes = await store.get("sip:voice@sip.local")
+    expect(routes.length).to.be.equal(1)
+    expect(routes[0]).to.have.property("user").to.be.equal("voice02")
+  })
+
   it("sets an expire route and clean the collection", async () => {
     const store = new RedisStore()
     await store.delete("sip:voice@sip.local")
