@@ -27,16 +27,62 @@ export const TRACE_VERSION = 1
 export const SUPPORTED_TRACE_VERSIONS: ReadonlyArray<number> = [1]
 
 /**
- * Metadata key a processor sets on a routed message to ask the dispatcher
- * to record the call. The value is the ref of the trunk that asked for it.
- * The dispatcher removes the key before the message leaves.
+ * Prefix of the metadata keys reserved for the trace. A middleware or a
+ * processor may put any `trace.*` key in the metadata of its response: the
+ * dispatcher copies those keys into the hop's `metadata` and removes them
+ * before the message reaches the EdgePort. Routr draws no conclusion from
+ * them (components are swappable); they are there for people and tools
+ * reading the file.
  */
-export const TRACE_FLAG_METADATA_KEY = "routr.trace"
+export const TRACE_METADATA_PREFIX = "trace."
 
 /**
- * Trunk extended attribute that turns recording on for calls using it.
+ * The one reserved key with a meaning: a processor sets it on a routed
+ * message to ask the dispatcher to record the call. The value is the ref
+ * of the resource (trunk, agent, peer, domain) that asked for it. It is
+ * never copied into a hop.
  */
-export const TRUNK_RECORD_ATTRIBUTE = "recordMessages"
+export const TRACE_FLAG_METADATA_KEY = "trace.record"
+
+/**
+ * Extended attribute of a connect resource (Trunk, Agent, Peer, Domain)
+ * that turns recording on for the calls that touch it.
+ */
+export const RECORD_MESSAGES_ATTRIBUTE = "recordMessages"
+
+/** Rule profiles a lint run can evaluate. */
+export enum Profile {
+  // RFC 3261 and companions; always on
+  SIP = "sip",
+  // SIPconnect 1.1 Technical Recommendation; opt-in
+  SIP_CONNECT = "sip-connect"
+}
+
+export enum Severity {
+  ERROR = "error",
+  WARNING = "warning"
+}
+
+/** One rule firing on one record. */
+export interface Finding {
+  // Rule id, e.g. "sip/max-forwards"
+  rule: string
+  profile: Profile
+  severity: Severity
+  // Spec citation, e.g. "RFC 3261 §16.6"
+  spec: string
+  // One sentence a person reads
+  message: string
+  // Which side of the record the finding points at
+  side: "in" | "out" | "call"
+  header?: string
+}
+
+/** Which rule set produced the findings written on a record. */
+export interface TraceLint {
+  version: string
+  profiles: Profile[]
+}
 
 export enum TraceKind {
   REQUEST = "request",
@@ -99,6 +145,8 @@ export interface TraceHop {
   action: HopAction
   diff?: MessageDiff
   error?: string
+  // trace.* keys the component put in its response metadata, prefix removed
+  metadata?: Record<string, string>
 }
 
 export interface TraceComponent {
@@ -128,4 +176,7 @@ export interface TraceRecord {
   response: TraceResponse | null
   outcome: TraceOutcome
   totalMs: number
+  // Present when the dispatcher evaluated rules while writing the record
+  lint?: TraceLint
+  findings?: Finding[]
 }

@@ -16,7 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HopAction, HopKind, TraceKind, TraceOutcome } from "./types"
+import {
+  HopAction,
+  HopKind,
+  Profile,
+  Severity,
+  TraceKind,
+  TraceOutcome
+} from "./types"
 
 const headerChange = {
   type: "object",
@@ -71,7 +78,8 @@ const hop = {
     durationMs: { type: "number", minimum: 0 },
     action: { type: "string", enum: Object.values(HopAction) },
     diff,
-    error: { type: "string" }
+    error: { type: "string" },
+    metadata: stringMap
   },
   required: ["component", "kind", "durationMs", "action"],
   additionalProperties: false
@@ -92,6 +100,16 @@ const sipMessage = {
   }
 }
 
+const netInterface = {
+  type: "object",
+  properties: {
+    host: { type: "string" },
+    port: { type: "integer" },
+    transport: { type: "string" }
+  },
+  required: ["host", "port", "transport"]
+}
+
 const request = {
   type: "object",
   properties: {
@@ -103,9 +121,39 @@ const request = {
     externalAddrs: { type: "array", items: { type: "string" } },
     localnets: { type: "array", items: { type: "string" } },
     message: sipMessage,
-    metadata: stringMap
+    metadata: stringMap,
+    edgePortVersion: { type: "string" },
+    receivedOn: netInterface
   },
   required: ["ref", "edgePortRef", "method", "sender", "message"]
+}
+
+const finding = {
+  type: "object",
+  properties: {
+    rule: { type: "string", minLength: 1 },
+    profile: { type: "string", enum: Object.values(Profile) },
+    severity: { type: "string", enum: Object.values(Severity) },
+    spec: { type: "string" },
+    message: { type: "string" },
+    side: { type: "string", enum: ["in", "out", "call"] },
+    header: { type: "string" }
+  },
+  required: ["rule", "profile", "severity", "spec", "message", "side"],
+  additionalProperties: false
+}
+
+const lint = {
+  type: "object",
+  properties: {
+    version: { type: "string" },
+    profiles: {
+      type: "array",
+      items: { type: "string", enum: Object.values(Profile) }
+    }
+  },
+  required: ["version", "profiles"],
+  additionalProperties: false
 }
 
 const response = {
@@ -141,7 +189,9 @@ export const traceRecordSchema = {
     hops: { type: "array", items: hop },
     response,
     outcome: { type: "string", enum: Object.values(TraceOutcome) },
-    totalMs: { type: "number", minimum: 0 }
+    totalMs: { type: "number", minimum: 0 },
+    lint,
+    findings: { type: "array", items: finding }
   },
   required: [
     "traceVersion",
