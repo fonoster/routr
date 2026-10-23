@@ -410,9 +410,6 @@ function buildRows(
   })
 }
 
-const isExternalHost = (req: CT.MessageRequest, host?: string) =>
-  !!host && (req.externalAddrs || []).includes(host)
-
 const isInternalHost = (req: CT.MessageRequest, host?: string) =>
   !!host &&
   ((req.listeningPoints || []).some((lp) => lp.host === host) ||
