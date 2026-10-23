@@ -10,6 +10,14 @@ edgeport:
   # Set a password for the JAIN SIP security context
   # The password will be securely stored in a k8s secret
   pkcs12Password: changeme
+  # TLS versions and cipher suites for the TLS and WSS transports. When unset,
+  # the EdgePort accepts TLSv1.3 only, with forward-secret AEAD cipher suites
+  tls: {}
+  #   protocols:
+  #     - TLSv1.3
+  #     - TLSv1.2
+  #   cipherSuites:
+  #     - TLS_AES_256_GCM_SHA384
   # External addresses. Required for edgeport to work
   externalAddrs: []
   # By default, it loads the local networks as reported by the operating system

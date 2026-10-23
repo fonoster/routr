@@ -9,9 +9,6 @@ spec:
     addr: localhost:51901
   securityContext:
     client:
-      protocols:
-        - SSLv3
-        - TLSv1.2
       authType: DisabledAll
     keyStorePassword: changeme
     trustStorePassword: changeme
