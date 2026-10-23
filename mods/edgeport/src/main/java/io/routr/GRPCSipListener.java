@@ -203,7 +203,6 @@ public class GRPCSipListener implements SipListener {
       boolean isRequest = response.getMessage().hasRequestUri();
       var method = event.getRequest().getMethod();
 
-      // WARNING: The Expires always returns zero. Should check if this is a bug
       if (isRequest && method.equals(Request.INVITE)) {
         eventProcessor.processCallStartedEvent(response);
       } else if (isRequest && method.equals(Request.CANCEL)) {
@@ -211,12 +210,7 @@ public class GRPCSipListener implements SipListener {
       } else if (!isRequest && method.equals(Request.REGISTER) 
         && response.getMessage().getResponseType().equals(ResponseType.OK)) {
 
-        var expires = req.getHeader(ExpiresHeader.NAME) != null
-          ? ((ExpiresHeader)req.getHeader(ExpiresHeader.NAME)).getExpires()
-          : 0;
-
-        // WARNING: The Expires from the MessageRequest always returns zero. 
-        // Should check if this is a bug.
+        var expires = RequestHelper.getRegisterExpires(req);
         eventProcessor.processRegistrationEvent(request, expires);
       }
 
