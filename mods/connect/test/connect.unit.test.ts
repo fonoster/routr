@@ -29,6 +29,7 @@ import {
   Helper
 } from "@routr/common"
 import { handleRegister } from "../src/handlers/register"
+import { createDispatcher } from "../src/service"
 import { Extensions as E, Response } from "@routr/processor"
 import { Helper as H } from "@routr/location"
 import { createRequest, r1 } from "./examples"
@@ -620,5 +621,131 @@ describe("@routr/connect", () => {
     expect(r1).to.have.property("username", "1001")
     expect(r2).to.have.property("telUrl", "tel:+17066041487")
     expect(r3).to.not.exist
+  })
+
+  describe("in-dialog requests", () => {
+    // A request inside a dialog carries the To tag and a Route back to this EdgePort
+    const inDialog = (
+      method: Method,
+      fromDomain = "sip.local",
+      fromUser = "1001"
+    ) => {
+      const req = createRequest({
+        fromDomain,
+        fromUser,
+        toDomain: "10.111.221.22",
+        toUser: "sipp",
+        requestUriHost: "10.111.221.22"
+      })
+      req.method = method
+      req.message.to.tag = "callee-tag"
+      req.message.route = [
+        {
+          address: {
+            uri: {
+              host: "10.100.42.127",
+              port: 5060,
+              lrParam: true,
+              transportParam: Transport.UDP
+            }
+          }
+        } as CommonTypes.RouteHeader
+      ]
+      return req
+    }
+
+    const dispatch = createDispatcher({ apiClient, location: locationAPI })
+
+    const capture = () => {
+      const calls: { name: string; message?: MessageRequest }[] = []
+      const res = {
+        send: (m: MessageRequest) => calls.push({ name: "send", message: m }),
+        sendMethodNotAllowed: () =>
+          calls.push({ name: "sendMethodNotAllowed" }),
+        sendNotFound: () => calls.push({ name: "sendNotFound" }),
+        sendTemporarilyUnavailable: () =>
+          calls.push({ name: "sendTemporarilyUnavailable" }),
+        sendInternalServerError: () =>
+          calls.push({ name: "sendInternalServerError" })
+      } as unknown as Response
+      return { res, calls }
+    }
+
+    const expectForwardedAlongTheRouteSet = (
+      calls: { name: string; message?: MessageRequest }[],
+      original: MessageRequest
+    ) => {
+      expect(calls).to.have.lengthOf(1)
+      expect(calls[0].name).to.equal("send")
+      const out = calls[0].message
+      // Request-URI untouched: the remote target, not a trunk or an agent
+      expect(out.message.requestUri.host).to.equal(
+        original.message.requestUri.host
+      )
+      expect(out.message.requestUri.user).to.equal(
+        original.message.requestUri.user
+      )
+      // Our own Route was consumed, nothing else was added to the route set
+      expect(out.message.route).to.have.lengthOf(0)
+      expect(out.message.maxForwards.maxForwards).to.equal(
+        original.message.maxForwards.maxForwards - 1
+      )
+      // No new-call treatment: no gateway auth, no asserted identity rewrite
+      expect(E.getHeaderValue(out, CommonTypes.ExtraHeader.GATEWAY_AUTH)).to.not
+        .exist
+    }
+
+    it("forwards an agent's re-INVITE along the route set instead of routing it to the PSTN", async () => {
+      const req = inDialog(Method.INVITE)
+      const { res, calls } = capture()
+      await dispatch(req, res)
+      expectForwardedAlongTheRouteSet(calls, req)
+    })
+
+    it("forwards a REFER from the provider side instead of failing with 500", async () => {
+      const req = inDialog(Method.REFER, "sip.provider.net", "+17853178070")
+      const { res, calls } = capture()
+      await dispatch(req, res)
+      expectForwardedAlongTheRouteSet(calls, req)
+    })
+
+    it("forwards an in-dialog NOTIFY but still refuses one outside a dialog", async () => {
+      const inside = inDialog(Method.NOTIFY)
+      const first = capture()
+      await dispatch(inside, first.res)
+      expectForwardedAlongTheRouteSet(first.calls, inside)
+
+      const outside = inDialog(Method.NOTIFY)
+      delete outside.message.to.tag
+      const second = capture()
+      await dispatch(outside, second.res)
+      expect(second.calls.map((c) => c.name)).to.deep.equal([
+        "sendMethodNotAllowed"
+      ])
+    })
+
+    it("still routes an initial INVITE, which has no To tag, as a new call", async () => {
+      const req = createRequest({
+        fromDomain: "sip.local",
+        fromUser: "1001",
+        toDomain: "sip.local",
+        toUser: "17853178070"
+      })
+      const { res, calls } = capture()
+      await dispatch(req, res)
+      expect(calls).to.have.lengthOf(1)
+      expect(calls[0].name).to.equal("send")
+      // Routed: the Request-URI now points at the trunk
+      expect(calls[0].message.message.requestUri.host).to.equal(
+        "sip.provider.net"
+      )
+    })
+
+    it("forwards BYE as before", async () => {
+      const req = inDialog(Method.BYE)
+      const { res, calls } = capture()
+      await dispatch(req, res)
+      expectForwardedAlongTheRouteSet(calls, req)
+    })
   })
 })
