@@ -31,6 +31,7 @@ model Agent {
   createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended       Json?
+  traceEnabled   Boolean    @default(false) @map("trace_enabled")
 
   // Relations
   credentials Credentials? @relation(fields: [credentialsRef], references: [ref], onDelete: SetNull)
@@ -58,6 +59,7 @@ model Peer {
   createdAt            DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt            DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended             Json?
+  traceEnabled         Boolean    @default(false) @map("trace_enabled")
 
   // Relations
   accessControlList AccessControlList? @relation(fields: [accessControlListRef], references: [ref], onDelete: SetNull)
@@ -77,6 +79,7 @@ model Domain {
   createdAt            DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt            DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended             Json?
+  traceEnabled         Boolean    @default(false) @map("trace_enabled")
 
   // Relations
   accessControlList AccessControlList? @relation(fields: [accessControlListRef], references: [ref], onDelete: SetNull)
@@ -100,6 +103,7 @@ model Trunk {
   createdAt              DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt              DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
   extended               Json?
+  traceEnabled           Boolean    @default(false) @map("trace_enabled")
 
   // Relations
   accessControlList   AccessControlList? @relation(fields: [accessControlListRef], references: [ref], onDelete: SetNull)

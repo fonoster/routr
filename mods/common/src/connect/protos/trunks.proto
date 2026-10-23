@@ -22,6 +22,7 @@ package fonoster.routr.connect.trunks.v2beta1;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
+import "trace.proto";
 import "acl.proto";
 import "credentials.proto";
 
@@ -85,6 +86,8 @@ message Trunk {
   repeated TrunkURI uris = 11;
   // The extended attributes of the Trunk
   .google.protobuf.Struct extended = 12;
+  // Message recording for the calls that touch this Trunk
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 13;
 }
 
 // The message for the Trunk.Create
@@ -107,6 +110,8 @@ message CreateTrunkRequest {
   repeated TrunkURI uris = 8;
   // The extended attributes of the Trunk
   .google.protobuf.Struct extended = 9;
+  // Message recording for the calls that touch this Trunk
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 10;
 }
 
 // The message for the Trunk.Update
@@ -131,6 +136,8 @@ message UpdateTrunkRequest {
   repeated TrunkURI uris = 9;
   // The extended attributes of the Trunk
   .google.protobuf.Struct extended = 10;
+  // Message recording for the calls that touch this Trunk
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 11;
 }
 
 // The message for the Trunk.Get

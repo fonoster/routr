@@ -28,6 +28,7 @@ import { ACLManager } from "./acl"
 import { EntityManager } from "./manager"
 import { NumberManager } from "./number"
 import { JsonValue } from "@prisma/client/runtime/library"
+import { withoutTrace, withoutTraceEnabled } from "./utils"
 
 type DomainWithACL = Prisma.DomainGetPayload<{
   include: {
@@ -76,7 +77,8 @@ export class DomainManager extends EntityManager {
   } {
     return {
       // TODO: Set a default value for apiVersion
-      ...this.domain,
+      ...withoutTrace(this.domain),
+      traceEnabled: this.domain.trace?.enabled ?? false,
       apiVersion: "v2" as APIVersion,
       accessControlListRef: this.domain.accessControlListRef || null,
       extended: this.domain.extended as JsonValue,
@@ -94,7 +96,8 @@ export class DomainManager extends EntityManager {
   static mapToDto(domain: DomainWithACL): CC.Domain {
     return domain
       ? {
-          ...domain,
+          ...withoutTraceEnabled(domain),
+          trace: { enabled: domain.traceEnabled },
           apiVersion: domain.apiVersion as CC.APIVersion,
           accessControlListRef: domain.accessControlList?.ref,
           accessControlList: ACLManager.mapToDto(domain.accessControlList),

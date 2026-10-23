@@ -29,6 +29,7 @@ import { DomainManager } from "./domain"
 import { NumberManager } from "./number"
 import { EntityManager } from "./manager"
 import { JsonValue } from "@prisma/client/runtime/library"
+import { withoutTrace, withoutTraceEnabled } from "./utils"
 
 type AgentWithDomainAndCredentials = Prisma.AgentGetPayload<{
   include: {
@@ -86,7 +87,8 @@ export class AgentManager extends EntityManager {
   mapToPrisma(): AgentPrismaModel {
     return {
       // TODO: Set a default value for apiVersion
-      ...this.agent,
+      ...withoutTrace(this.agent),
+      traceEnabled: this.agent.trace?.enabled ?? false,
       apiVersion: "v2" as APIVersion,
       privacy: (this.agent.privacy as Privacy) ?? Privacy.NONE,
       domainRef: this.agent.domainRef || null,
@@ -101,7 +103,8 @@ export class AgentManager extends EntityManager {
   static mapToDto(agent: AgentWithDomainAndCredentials): CC.Agent {
     return agent
       ? {
-          ...agent,
+          ...withoutTraceEnabled(agent),
+          trace: { enabled: agent.traceEnabled },
           apiVersion: agent.apiVersion as CC.APIVersion,
           privacy: agent.privacy as CT.Privacy,
           domain: DomainManager.mapToDto(agent.domain),

@@ -45,6 +45,11 @@ export interface BaseConnectModel {
   extended?: Record<string, unknown>
 }
 
+export interface TraceSettings {
+  // Record every message of the calls that touch this resource
+  enabled: boolean
+}
+
 export interface AccessControlList extends BaseConnectModel {
   allow: string[]
   deny: string[]
@@ -55,6 +60,7 @@ export interface Domain extends BaseConnectModel {
   accessControlListRef?: string
   accessControlList?: AccessControlList
   egressPolicies?: EgressPolicy[]
+  trace?: TraceSettings
 }
 
 export interface EgressPolicy {
@@ -73,6 +79,7 @@ export interface Agent extends BaseConnectModel {
   expires?: number
   credentialsRef?: string
   credentials?: Credentials
+  trace?: TraceSettings
 }
 
 export interface Credentials extends BaseConnectModel {
@@ -102,6 +109,7 @@ export interface Trunk extends BaseConnectModel {
   outboundCredentialsRef?: string
   outboundCredentials?: Credentials
   uris?: TrunkURI[]
+  trace?: TraceSettings
 }
 
 export interface TrunkURI {
@@ -129,6 +137,7 @@ export interface Peer extends BaseConnectModel {
   expires?: number
   balancingAlgorithm?: LoadBalancingAlgorithm
   withSessionAffinity?: boolean
+  trace?: TraceSettings
 }
 
 export type ConnectModel =

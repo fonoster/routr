@@ -22,6 +22,7 @@ package fonoster.routr.connect.domains.v2beta1;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
+import "trace.proto";
 import "acl.proto";
 import "numbers.proto";
 
@@ -71,6 +72,8 @@ message Domain {
   repeated EgressPolicy egress_policies = 8;
   // The extended attributes of the Domain
   .google.protobuf.Struct extended = 9;
+  // Message recording for the calls that touch this Domain
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 10;
 }
 
 // The request message for Domains.Create
@@ -85,6 +88,8 @@ message CreateDomainRequest {
   repeated EgressPolicy egress_policies = 4;
   // The extended attributes of the Domain
   .google.protobuf.Struct extended = 5;
+  // Message recording for the calls that touch this Domain
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 6;
 }
 
 // The request message for Domains.Update
@@ -99,6 +104,8 @@ message UpdateDomainRequest {
   repeated EgressPolicy egress_policies = 4;
   // The extended attributes of the Domain
   .google.protobuf.Struct extended = 5;
+  // Message recording for the calls that touch this Domain
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 6;
 }
 
 // The request message for Domains.Get

@@ -22,6 +22,7 @@ package fonoster.routr.connect.agents.v2beta1;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
+import "trace.proto";
 import "domains.proto";
 import "credentials.proto";
 
@@ -74,6 +75,8 @@ message Agent {
   fonoster.routr.connect.credentials.v2beta1.Credentials credentials = 10;
   // The extended attributes of the Agent
   .google.protobuf.Struct extended = 11;  
+  // Message recording for the calls that touch this Agent
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 14;
 }
 
 // The request message for the Agents.Create method
@@ -96,6 +99,8 @@ message CreateAgentRequest {
   int32 expires = 9;
   // The extended attributes of the Agent
   .google.protobuf.Struct extended = 7;
+  // Message recording for the calls that touch this Agent
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 10;
 }
 
 // The request message for the Agents.Update method
@@ -118,6 +123,8 @@ message UpdateAgentRequest {
   optional int32 expires = 9;
   // The extended attributes of the Agent
   .google.protobuf.Struct extended = 7;
+  // Message recording for the calls that touch this Agent
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 10;
 }
 
 // The request message for the Agents.Get method

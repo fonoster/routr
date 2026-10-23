@@ -106,6 +106,7 @@ describe("@routr/pgdata/mappers/number", () => {
         name: "Global Trunk",
         accessControlListRef: "acl-01",
         sendRegister: true,
+        traceEnabled: false,
         inboundUri: "sip:sip.local",
         inboundCredentialsRef: "inbound-01",
         inboundCredentials: {
@@ -171,7 +172,13 @@ describe("@routr/pgdata/mappers/number", () => {
 
     // Assert
     expect(result)
-      .excludingEvery(["createdAt", "updatedAt", "countryIsoCode"])
+      .excludingEvery([
+        "createdAt",
+        "updatedAt",
+        "countryIsoCode",
+        "traceEnabled",
+        "trace"
+      ])
       .to.deep.equal(number)
     expect(result).to.have.property("countryIsoCode", number.countryIsoCode)
   })

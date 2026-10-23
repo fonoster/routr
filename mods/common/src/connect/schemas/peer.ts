@@ -48,6 +48,14 @@ export default {
       description: "Operations spec for an Peer",
       type: "object",
       properties: {
+        trace: {
+          description: "Message recording for the calls that touch this Peer",
+          type: "object",
+          properties: {
+            enabled: { type: "boolean" }
+          },
+          required: ["enabled"]
+        },
         username: {
           description: "The username for the Peer",
           type: "string",

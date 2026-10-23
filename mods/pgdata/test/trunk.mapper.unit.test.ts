@@ -47,7 +47,8 @@ describe("@routr/pgdata/mappers/trunk", () => {
       updatedAt: new Date().getTime(),
       extended: {
         test: "test"
-      }
+      },
+      traceEnabled: false
     }
 
     // Act
@@ -84,6 +85,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
       extended: {
         test: "test"
       },
+      traceEnabled: false,
       accessControlList: {
         apiVersion: CC.APIVersion.V2,
         ref: "acl-01",
@@ -140,8 +142,9 @@ describe("@routr/pgdata/mappers/trunk", () => {
 
     // Assert
     expect(result)
-      .excludingEvery(["createdAt", "updatedAt"])
+      .excludingEvery(["createdAt", "updatedAt", "traceEnabled", "trace"])
       .to.deep.equal(trunk)
+    expect(result.trace).to.deep.equal({ enabled: false })
   })
 
   describe("throws errors", () => {
