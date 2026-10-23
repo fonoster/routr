@@ -25,6 +25,8 @@ import javax.sip.Transaction;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.ViaHeader;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,19 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TransactionManager {
   private final Map<String, Transaction> activeTransactions = new HashMap<>();
+
+  /**
+   * The server transaction each client transaction answers for. activeTransactions is
+   * keyed by call ID, so an in-dialog request (re-INVITE, BYE) overwrites the INVITE's
+   * slot and a response can no longer find its own server transaction there. Keyed by
+   * identity: JAIN-SIP transactions are compared by branch, which an authentication
+   * retry reuses. A response must be sent on the server transaction of the request it
+   * answers, so that transaction completes, JAIN-SIP releases it after timer J, and a
+   * retransmitted request is answered again by the stack (RFC 3261 section 17.2.3)
+   * instead of being absorbed by a transaction that never sent a response.
+   */
+  private final Map<ClientTransaction, ServerTransaction> serverByClient =
+      Collections.synchronizedMap(new IdentityHashMap<>());
 
   /**
    * Per-dialog CSeq offset accrued from proxy-initiated authentication retries (see
@@ -168,6 +183,9 @@ public class TransactionManager {
       ServerTransaction serverTransaction) {
     activeTransactions.put(callId + "_client", clientTransaction);
     activeTransactions.put(callId + "_server", serverTransaction);
+    if (clientTransaction != null && serverTransaction != null) {
+      serverByClient.put(clientTransaction, serverTransaction);
+    }
   }
 
   /**
@@ -212,6 +230,9 @@ public class TransactionManager {
     if (activeTransactions.get(callId + "_server") == terminated) {
       activeTransactions.remove(callId + "_server");
     }
+
+    serverByClient.remove(terminated);
+    serverByClient.values().removeIf(serverTransaction -> serverTransaction == terminated);
   }
 
   /**
@@ -237,7 +258,25 @@ public class TransactionManager {
    * @param clientTransaction The new client transaction
    */
   public void updateClientTransaction(String callId, ClientTransaction clientTransaction) {
+    var previous = activeTransactions.get(callId + "_client");
+    if (previous != null) {
+      var serverTransaction = serverByClient.remove(previous);
+      if (serverTransaction != null) {
+        serverByClient.put(clientTransaction, serverTransaction);
+      }
+    }
     activeTransactions.put(callId + "_client", clientTransaction);
+  }
+
+  /**
+   * The server transaction whose request this client transaction was forwarding, or
+   * null if the request was sent statelessly or the pair has been released.
+   *
+   * @param clientTransaction The client transaction a response arrived on
+   * @return The matching server transaction, or null
+   */
+  public ServerTransaction getServerTransactionFor(ClientTransaction clientTransaction) {
+    return clientTransaction == null ? null : serverByClient.get(clientTransaction);
   }
 
   /**

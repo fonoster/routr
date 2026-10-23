@@ -253,4 +253,47 @@ public class TransactionManagerTest {
     manager.removeDialog("call-1");
     assertFalse(manager.hasDialog("call-1"));
   }
+
+  @Test
+  public void testAResponseFindsTheServerTransactionOfItsOwnRequest() {
+    // An in-dialog BYE overwrites the call's server slot, so a response must be paired
+    // through the client transaction it arrived on, not through the call ID.
+    var manager = new TransactionManager();
+    var inviteClient = mock(ClientTransaction.class);
+    var inviteServer = mock(ServerTransaction.class);
+    var byeClient = mock(ClientTransaction.class);
+    var byeServer = mock(ServerTransaction.class);
+    manager.putTransactions("call-1", inviteClient, inviteServer);
+    manager.putTransactions("call-1", byeClient, byeServer);
+    assertSame(byeServer, manager.getServerTransactionFor(byeClient));
+    assertSame(inviteServer, manager.getServerTransactionFor(inviteClient));
+    assertNull(manager.getServerTransactionFor(mock(ClientTransaction.class)));
+    assertNull(manager.getServerTransactionFor(null));
+  }
+
+  @Test
+  public void testAnAuthenticationRetryKeepsTheServerTransaction() {
+    var manager = new TransactionManager();
+    var first = mock(ClientTransaction.class);
+    var retry = mock(ClientTransaction.class);
+    var server = mock(ServerTransaction.class);
+    manager.putTransactions("call-1", first, server);
+    manager.updateClientTransaction("call-1", retry);
+    assertSame(server, manager.getServerTransactionFor(retry));
+    assertNull(manager.getServerTransactionFor(first));
+  }
+
+  @Test
+  public void testTerminatedTransactionsLeaveThePairing() {
+    var manager = new TransactionManager();
+    var client = mock(ClientTransaction.class);
+    var server = mock(ServerTransaction.class);
+    manager.putTransactions("call-1", client, server);
+    manager.removeTransaction("call-1", server);
+    assertNull(manager.getServerTransactionFor(client));
+
+    manager.putTransactions("call-1", client, server);
+    manager.removeTransaction("call-1", client);
+    assertNull(manager.getServerTransactionFor(client));
+  }
 }
