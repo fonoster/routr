@@ -76,3 +76,17 @@
     location:
       telUrl: tel:+14045551212
       aorLink: sip:voice@sip.local
+- apiVersion: v2beta1
+  kind: Number
+  ref: number-06
+  metadata:
+    name: "(829)586-3315"
+    geoInfo:
+      city: Durham, NC
+      country: USA
+      countryIsoCode: US
+  spec:
+    trunkRef: trunk-02
+    location:
+      telUrl: tel:+18295863315
+      aorLink: sip:1002@sip.local
