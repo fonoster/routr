@@ -22,15 +22,19 @@ import {
   CommonTypes as CT
 } from "@routr/common"
 import { NotMatchingProcessorFound, ProcessorUnavailableError } from "./errors"
+import { HopCollector, RecordingConfig } from "./recorder"
 
 export interface MessageDispatcherConfig {
+  ref?: string
   bindAddr: string
   processors: ProcessorConfig[]
   middlewares: CT.MiddlewareConfig[]
+  recording?: RecordingConfig
 }
 
 export interface ProcessorGPRCConnection {
-  processMessage: (request: unknown, callback: CT.GrpcCallback) => void
+  // Returns the grpc-js ClientUnaryCall; typed loosely so tests can stub it
+  processMessage: (request: unknown, callback: CT.GrpcCallback) => unknown
 }
 
 export type CallbackErrors =
@@ -49,6 +53,7 @@ export interface RunProcessorParams {
   connections: Map<string, ProcessorGPRCConnection>
   processors: ProcessorConfig[]
   request: MessageRequest
+  collector?: HopCollector
 }
 
 export interface RunMiddlewaresParams {
@@ -56,4 +61,5 @@ export interface RunMiddlewaresParams {
   middlewares: CT.MiddlewareConfig[]
   request: MessageRequest
   runPostProcessorMiddlewares: boolean
+  collector?: HopCollector
 }

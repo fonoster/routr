@@ -23,6 +23,7 @@ import {
   ServiceInfo,
   CommonTypes as CT
 } from "@routr/common"
+import { Recorder } from "./recorder"
 
 /**
  * Gets the service metadata for the dispatcher.
@@ -36,6 +37,7 @@ export function getServiceInfo(
   backends: {
     middlewares: CT.MiddlewareConfig[]
     processors: ProcessorConfig[]
+    recorder?: Recorder
   }
 ): ServiceInfo {
   return {

@@ -61,6 +61,20 @@ export const schema = {
             required: ["ref", "addr"]
           }
         },
+        recording: {
+          description: "Message recording (one JSONL file per call)",
+          type: "object",
+          properties: {
+            enabled: { type: "boolean" },
+            path: { type: "string", minLength: 1 },
+            mode: { type: "string", enum: ["all", "flagged"] },
+            maxRecordsPerCall: { type: "integer", minimum: 1 },
+            maxCalls: { type: "integer", minimum: 1 },
+            idleTimeoutSeconds: { type: "integer", minimum: 1 }
+          },
+          required: ["enabled", "path"],
+          additionalProperties: false
+        },
         processors: {
           description: "Message Processors",
           type: "array",

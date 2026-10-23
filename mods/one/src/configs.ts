@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageDispatcherConfig } from "@routr/dispatcher"
+import { MessageDispatcherConfig, recordingFromEnv } from "@routr/dispatcher"
 import { LocationConfig, CacheProvider } from "@routr/location"
 import { ConnectProcessorConfig } from "@routr/connect"
 import { PostgresDataConfig } from "@routr/pgdata"
@@ -46,7 +46,8 @@ export const dispatcherConfig: MessageDispatcherConfig = {
       ]
     }
   ],
-  middlewares: []
+  middlewares: [],
+  recording: recordingFromEnv()
 }
 
 export const connectConfig: ConnectProcessorConfig = {

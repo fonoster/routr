@@ -26,6 +26,18 @@ export const TRACE_VERSION = 1
 
 export const SUPPORTED_TRACE_VERSIONS: ReadonlyArray<number> = [1]
 
+/**
+ * Metadata key a processor sets on a routed message to ask the dispatcher
+ * to record the call. The value is the ref of the trunk that asked for it.
+ * The dispatcher removes the key before the message leaves.
+ */
+export const TRACE_FLAG_METADATA_KEY = "routr.trace"
+
+/**
+ * Trunk extended attribute that turns recording on for calls using it.
+ */
+export const TRUNK_RECORD_ATTRIBUTE = "recordMessages"
+
 export enum TraceKind {
   REQUEST = "request",
   RESPONSE = "response"
