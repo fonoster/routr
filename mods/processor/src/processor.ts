@@ -18,6 +18,7 @@
  */
 import Response from "./response"
 import { ProcessorConfig } from "./types"
+import * as grpc from "@grpc/grpc-js"
 import {
   createService,
   MessageRequest,
@@ -25,6 +26,22 @@ import {
   ServiceInfo,
   CommonTypes as CT
 } from "@routr/common"
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const VERSION: string = require("../package.json").version
+
+// gRPC metadata key under which every processor announces its version, so a
+// dispatcher that records messages can write which build touched them
+export const VERSION_METADATA_KEY = "routr-component-version"
+
+// eslint-disable-next-line require-jsdoc
+const announceVersion = (call: CT.GrpcCall) => {
+  const sender = call as { sendMetadata?: (md: grpc.Metadata) => void }
+  if (typeof sender.sendMetadata !== "function") return
+  const md = new grpc.Metadata()
+  md.set(VERSION_METADATA_KEY, VERSION)
+  sender.sendMetadata(md)
+}
 
 /**
  * Processor is a class that handles the processing of a request.
@@ -58,6 +75,7 @@ export default class Processor {
       handlers: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         processMessage: (call: CT.GrpcCall, callback: any) => {
+          announceVersion(call)
           func(
             call.request as unknown as MessageRequest,
             new Response(callback)
