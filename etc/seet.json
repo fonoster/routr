@@ -1076,5 +1076,24 @@
         ]
       }
     ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.9.1: A request no processor accepts is answered 501",
+    "description": "This test verifies that a request whose method no processor accepts (OPTIONS) gets 501 Not Implemented (RFC 3261 21.5.2) instead of being dropped.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_unhandled_method.xml",
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:17853178070@sip.local"
+          }
+        ]
+      }
+    ]
   }
 ]

@@ -724,6 +724,14 @@ describe("@routr/connect", () => {
       ])
     })
 
+    it("refuses a REFER outside a dialog", async () => {
+      const outside = inDialog(Method.REFER)
+      delete outside.message.to.tag
+      const { res, calls } = capture()
+      await dispatch(outside, res)
+      expect(calls.map((c) => c.name)).to.deep.equal(["sendMethodNotAllowed"])
+    })
+
     it("still routes an initial INVITE, which has no To tag, as a new call", async () => {
       const req = createRequest({
         fromDomain: "sip.local",

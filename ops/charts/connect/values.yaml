@@ -23,6 +23,8 @@ edgeport:
     - ACK
     - BYE
     - CANCEL
+    - REFER
+    - NOTIFY
   # Uncomment to enable experimental support for the HEP protocol
   # heplifyOptions: "-hs homerserver:9060"
   # Reserved for future use
@@ -128,7 +130,7 @@ dispatcher:
       # The function used to match requests with this processor
       matchFunc: "req => true"
       # Acceptable SIP Methods
-      methods: ["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL"]
+      methods: ["REGISTER", "MESSAGE", "INVITE", "ACK", "BYE", "CANCEL", "REFER", "NOTIFY"]
   middlewares: []
   image:
     # Dispatcher image repository

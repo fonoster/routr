@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<!--
+  Sends a request whose method no processor accepts (OPTIONS is in no processor's
+  method list). Routr used to drop it without a response, so the sender retransmitted
+  it until its timer B fired with nothing in any log to say why. RFC 3261 section
+  21.5.2: 501 Not Implemented for a method the server does not implement.
+-->
+<scenario name="RR.Tst.Plan.1.9.1.UAC">
+
+  <Global variables="requestURI" />
+
+  <send>
+    <![CDATA[
+      OPTIONS [$requestURI];transport=[transport] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
+      Max-Forwards: 70
+      From: "John Doe" <sip:1001@sip.local>;tag=[call_number]
+      To: <[$requestURI]>
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Call-ID: [call_id]
+      CSeq: 1 OPTIONS
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <recv response="501" />
+
+</scenario>

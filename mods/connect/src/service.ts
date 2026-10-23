@@ -100,11 +100,15 @@ export const createDispatcher =
       return forwardInDialog(req, res)
     }
 
+    // Out-of-dialog REFER (RFC 3515 allows it) would be routed as a new call below;
+    // it is refused so transfer only happens on a dialog this proxy already
+    // authorized. SIP Connect 1.1 section 12.1 keeps REFER out of scope anyway.
     switch (req.method) {
       case Method.PUBLISH:
       case Method.NOTIFY:
       case Method.SUBSCRIBE:
       case Method.MESSAGE:
+      case Method.REFER:
         res.sendMethodNotAllowed()
         break
       case Method.REGISTER:

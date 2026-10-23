@@ -267,9 +267,16 @@ public class GRPCSipListener implements SipListener {
       var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
 
       if (e instanceof StatusRuntimeException) {
-        var description = ((StatusRuntimeException) e).getStatus().getDescription();
+        var status = ((StatusRuntimeException) e).getStatus();
         LOG.debug("an exception occurred while processing request with callId: {}, status description: {}", callId,
-            description, e);
+            status.getDescription(), e);
+        // The dispatcher found no processor for this method. Answer rather than drop
+        // the request: a request with no response is retransmitted until the caller's
+        // timer B fires, and nothing in any log says why. 501 is RFC 3261's answer for
+        // a method the server does not implement (section 21.5.2).
+        if (status.getCode() == io.grpc.Status.Code.NOT_FOUND && serverTransaction != null) {
+          rejectNotImplemented(serverTransaction, req);
+        }
       } else {
         LOG.debug("an exception occurred while processing callId: {}", callId, e);
       }
@@ -394,6 +401,18 @@ public class GRPCSipListener implements SipListener {
       var req = event.getClientTransaction().getRequest();
       var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
       LOG.debug("an exception occurred while processing response with callId: {}", callId, e);
+    }
+  }
+
+  private void rejectNotImplemented(final ServerTransaction serverTransaction, final Request request) {
+    var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+    LOG.warn("no processor accepts {} requests, answering 501, callId: {}", request.getMethod(),
+        callId != null ? callId.getCallId() : "unknown");
+    try {
+      var response = this.messageFactory.createResponse(Response.NOT_IMPLEMENTED, request);
+      SipMessageSender.sendResponse(serverTransaction, response, TransportDetector.isWebSocketTransport(request));
+    } catch (ParseException | SipException | InvalidArgumentException e) {
+      LOG.debug("an exception occurred while answering 501, callId: {}", callId, e);
     }
   }
 

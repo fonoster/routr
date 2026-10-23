@@ -25,6 +25,8 @@ spec:
     - ACK
     - BYE
     - CANCEL
+    - REFER
+    - NOTIFY
   transport:
     - protocol: tcp
       port: 5060
