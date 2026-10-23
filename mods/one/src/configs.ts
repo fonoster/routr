@@ -21,7 +21,12 @@ import { LocationConfig, CacheProvider } from "@routr/location"
 import { ConnectProcessorConfig } from "@routr/connect"
 import { PostgresDataConfig } from "@routr/pgdata"
 import { Method } from "@routr/common"
-import { RTPENGINE_HOST, RTPENGINE_PORT } from "./envs"
+import {
+  LOCATION_CACHE_PARAMETERS,
+  LOCATION_CACHE_PROVIDER,
+  RTPENGINE_HOST,
+  RTPENGINE_PORT
+} from "./envs"
 
 export const dispatcherConfig: MessageDispatcherConfig = {
   bindAddr: "0.0.0.0:51901",
@@ -50,7 +55,13 @@ export const connectConfig: ConnectProcessorConfig = {
 
 export const locationConfig: LocationConfig = {
   bindAddr: "0.0.0.0:51902",
-  cache: { provider: CacheProvider.MEMORY }
+  cache:
+    LOCATION_CACHE_PROVIDER.toUpperCase() === CacheProvider.REDIS
+      ? {
+          provider: CacheProvider.REDIS,
+          parameters: LOCATION_CACHE_PARAMETERS ?? "host=localhost,port=6379"
+        }
+      : { provider: CacheProvider.MEMORY }
 }
 
 export const rtprelayConfig = {
