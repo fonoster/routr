@@ -29,12 +29,15 @@ export const getTargetAOR = (request: MessageRequest) =>
 // Expires header (RFC 3261 section 10.3, step 7)
 export const DEFAULT_EXPIRES = 3600
 
-export const getTargetExpires = (request: MessageRequest) => {
+export const getTargetExpires = (
+  request: MessageRequest,
+  defaultExpires: number = DEFAULT_EXPIRES
+) => {
   // The expires value in the Contact header takes presendence over the value
   // on the Expires header
   const expires: number = request.message?.contact?.expires ?? -1
   if (expires > -1) return expires
   const headerExpires =
     (request.message.expires as { expires: number })?.expires ?? -1
-  return headerExpires > -1 ? headerExpires : DEFAULT_EXPIRES
+  return headerExpires > -1 ? headerExpires : defaultExpires
 }
