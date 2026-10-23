@@ -21,9 +21,3 @@ import { Assertions as A } from "@routr/common"
 A.assertEnvsAreSet(["CONFIG_PATH"])
 
 export const CONFIG_PATH = process.env.CONFIG_PATH
-
-// Recording can be switched on without editing the config file, which is
-// what containers and the Helm chart do
-export const RECORD_MESSAGES = process.env.RECORD_MESSAGES
-export const RECORD_MESSAGES_PATH = process.env.RECORD_MESSAGES_PATH
-export const RECORD_MESSAGES_MODE = process.env.RECORD_MESSAGES_MODE

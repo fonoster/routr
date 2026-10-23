@@ -28,6 +28,15 @@ import { CommonTypes as CT, MessageRequest, Trace } from "@routr/common"
 export class HopCollector {
   readonly hops: Trace.TraceHop[] = []
   readonly startedAt = performance.now()
+  private readonly redact: boolean
+
+  /**
+   * @param {object} options - Collector options
+   * @param {boolean} options.redact - Redact credentials in hop diffs (default true)
+   */
+  constructor(options: { redact?: boolean } = {}) {
+    this.redact = options.redact ?? true
+  }
 
   /**
    * Records a hop whose outcome is already known.
@@ -49,6 +58,7 @@ export class HopCollector {
    * @param {number} params.startedAt - performance.now() before the call
    * @param {CT.SIPMessage} params.before - Message sent to the component
    * @param {CT.SIPMessage} params.after - Message the component returned
+   * @param {Record<string, string>} params.metadata - trace.* annotations the component returned, prefix removed
    */
   addCall(params: {
     component: string
@@ -57,10 +67,19 @@ export class HopCollector {
     startedAt: number
     before: CT.SIPMessage
     after?: CT.SIPMessage
+    metadata?: Record<string, string>
   }): void {
-    const { component, kind, version, startedAt, before, after } = params
+    const { component, kind, version, startedAt, before, after, metadata } =
+      params
     const durationMs = round(performance.now() - startedAt)
-    const diff = after ? Trace.diffMessages(before, after) : undefined
+    const diff = after
+      ? this.redact
+        ? Trace.diffMessages(
+            Trace.redactMessage(before),
+            Trace.redactMessage(after)
+          )
+        : Trace.diffMessages(before, after)
+      : undefined
     const action = !after
       ? Trace.HopAction.ERROR
       : after.messageType === CT.MessageType.RESPONSE
@@ -77,7 +96,8 @@ export class HopCollector {
       ...(version ? { version } : {}),
       durationMs,
       action,
-      ...(diff ? { diff } : {})
+      ...(diff ? { diff } : {}),
+      ...(metadata && Object.keys(metadata).length ? { metadata } : {})
     })
   }
 
@@ -143,12 +163,24 @@ export function versionFromCall(call: unknown): Promise<string | undefined> {
 export const VERSION_METADATA_KEY = "routr-component-version"
 
 /**
- * Marks a request so the next hop treats the message as part of a recorded
- * call. Set by the connect processor on the trunk's behalf.
+ * Returns the recording flag a processor set on the message, if any.
  *
  * @param {MessageRequest} request - A request as returned by a processor
- * @return {string | undefined} The trunk ref that asked for the recording
+ * @return {string | undefined} The ref of the resource that asked for the recording
  */
 export function traceFlagOf(request: MessageRequest): string | undefined {
-  return request.metadata?.[Trace.TRACE_FLAG_METADATA_KEY]
+  return Trace.splitTraceMetadata(request.metadata).flag
+}
+
+/**
+ * Returns the trace.* annotations a component put in its response metadata.
+ *
+ * @param {object} response - A processor or middleware response
+ * @param {Record<string, string>} response.metadata - Its metadata, if any
+ * @return {Record<string, string>} Annotations with the prefix removed
+ */
+export function hopMetadataOf(response?: {
+  metadata?: Record<string, string>
+}): Record<string, string> {
+  return Trace.splitTraceMetadata(response?.metadata).hop
 }

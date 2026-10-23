@@ -24,7 +24,7 @@ import { RunProcessorParams } from "./types"
 import { getLogger } from "@fonoster/logger"
 import { MessageRequest, Trace } from "@routr/common"
 import { performance } from "perf_hooks"
-import { versionFromCall } from "./recorder"
+import { versionFromCall, hopMetadataOf } from "./recorder"
 
 const logger = getLogger({ service: "dispatcher", filePath: __filename })
 
@@ -100,7 +100,8 @@ export async function runProcessor(
     version: await version,
     startedAt,
     before: request.message,
-    after: result.message
+    after: result.message,
+    metadata: hopMetadataOf(result)
   })
 
   return result

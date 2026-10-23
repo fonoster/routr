@@ -360,7 +360,7 @@ describe("@routr/connect", () => {
       .lengthOf(5)
   })
 
-  it("flags the call for recording when the trunk asks for it", async () => {
+  it("flags the call for recording when the trunk or the agent asks for it", async () => {
     const req = createRequest({
       fromUser: "1001",
       fromDomain: "sip.local",
@@ -376,15 +376,33 @@ describe("@routr/connect", () => {
     const trunk = agent.domain.egressPolicies[0].number.trunk
 
     const before = await router(locationAPI, apiClient)(req)
-    expect((before.route as Route).metadata).to.not.have.property("routr.trace")
-
-    trunk.extended = { ...trunk.extended, recordMessages: true }
-    const after = await router(locationAPI, apiClient)(req)
-    expect((after.route as Route).metadata).to.have.property(
-      "routr.trace",
+    expect((before.route as Route).metadata).to.not.have.property(
+      "trace.record"
+    )
+    expect((before.route as Route).metadata).to.have.property(
+      "trace.direction",
+      "agent-to-pstn"
+    )
+    expect((before.route as Route).metadata).to.have.property(
+      "trace.trunk",
       trunk.ref
     )
-    delete trunk.extended.recordMessages
+
+    trunk.trace = { enabled: true }
+    const viaTrunk = await router(locationAPI, apiClient)(req)
+    expect((viaTrunk.route as Route).metadata).to.have.property(
+      "trace.record",
+      trunk.ref
+    )
+    delete trunk.trace
+
+    agent.trace = { enabled: true }
+    const viaAgent = await router(locationAPI, apiClient)(req)
+    expect((viaAgent.route as Route).metadata).to.have.property(
+      "trace.record",
+      agent.ref
+    )
+    delete agent.trace
   })
 
   it("handles a request from pstn to agent or peer", async () => {

@@ -21,7 +21,7 @@ import { join } from "path"
 import { getLogger } from "@fonoster/logger"
 import { CommonTypes as CT, MessageRequest, Trace } from "@routr/common"
 import { HopCollector } from "./collector"
-import { RecordingConfig, RecordingMode } from "./types"
+import { LintConfig, RecordingConfig, RecordingMode } from "./types"
 
 const logger = getLogger({ service: "dispatcher", filePath: __filename })
 
@@ -33,8 +33,11 @@ const DEFAULTS = {
   maxRecordsPerCall: 1000,
   maxCalls: 10000,
   idleTimeoutSeconds: 7200,
+  redact: true,
   sweepIntervalMs: 60000
 }
+
+const DEFAULT_LINT_WINDOW = 32
 
 interface Session {
   file: string
@@ -44,6 +47,8 @@ interface Session {
   trunkRef?: string
   // Serializes appends so records land in the order they were produced
   queue: Promise<void>
+  // Most recent records of the call, for call-scope rules (lint only)
+  recent: Trace.TraceRecord[]
 }
 
 export interface RecorderDeps {
@@ -61,7 +66,9 @@ export interface RecorderDeps {
  * are logged and the message continues on its way.
  */
 export class Recorder {
-  private readonly config: Required<RecordingConfig>
+  private readonly config: Omit<Required<RecordingConfig>, "lint"> & {
+    lint?: LintConfig
+  }
   private readonly sessions = new Map<string, Session>()
   private readonly appendFile: (path: string, data: string) => Promise<void>
   private readonly now: () => number
@@ -84,8 +91,15 @@ export class Recorder {
     timer.unref()
     logger.info("message recording enabled", {
       path: this.config.path,
-      mode: this.config.mode
+      mode: this.config.mode,
+      redact: this.config.redact,
+      lint: this.config.lint?.profiles?.join(",") ?? "off"
     })
+  }
+
+  /** Whether credentials are redacted before writing. */
+  get redacts(): boolean {
+    return this.config.redact
   }
 
   /**
@@ -96,7 +110,7 @@ export class Recorder {
    * @param {MessageRequest} params.request - Message as received from the EdgePort
    * @param {MessageRequest} params.result - What the dispatcher returns, if any
    * @param {HopCollector} params.collector - Hops collected for this message
-   * @param {string} params.flag - Trunk ref when a processor flagged the call
+   * @param {string} params.flag - Ref of the resource that flagged the call, if any
    * @param {Error} params.error - The error returned to the EdgePort, if any
    */
   record(params: {
@@ -113,7 +127,7 @@ export class Recorder {
 
       session.seq += 1
       session.lastSeenAt = this.now()
-      const record = this.buildRecord(session, params)
+      const record = this.lint(session, this.buildRecord(session, params))
       const line = JSON.stringify(record) + "\n"
       session.queue = session.queue
         .then(() => this.appendFile(session.file, line))
@@ -157,7 +171,8 @@ export class Recorder {
       startedAt,
       lastSeenAt: startedAt,
       trunkRef: flag,
-      queue: Promise.resolve()
+      queue: Promise.resolve(),
+      recent: []
     }
     this.sessions.set(callId, session)
     return session
@@ -206,19 +221,62 @@ export class Recorder {
       },
       dispatcher: { ref: this.ref, version: DISPATCHER_VERSION },
       ...(session.trunkRef ? { trunkRef: session.trunkRef } : {}),
-      request: Trace.redactRequest(stripFlag(request)),
+      request: this.config.redact
+        ? Trace.redactRequest(stripTrace(request))
+        : stripTrace(request),
       hops: collector.hops,
       response: result?.message
         ? {
-            message: Trace.redactMessage(result.message),
-            ...(result.metadata
-              ? { metadata: withoutFlag(result.metadata) }
+            message: this.config.redact
+              ? Trace.redactMessage(result.message)
+              : result.message,
+            ...(Object.keys(Trace.withoutTraceMetadata(result.metadata) ?? {})
+              .length
+              ? { metadata: Trace.withoutTraceMetadata(result.metadata) }
               : {})
           }
         : null,
       outcome,
       totalMs: collector.elapsedMs()
     }
+  }
+
+  /**
+   * Evaluates the configured rule profiles on the record and keeps the
+   * call's recent records for the rules that need them. Runs after the
+   * answer went back to the EdgePort, so it costs the call nothing.
+   *
+   * @param {Session} session - The call being recorded
+   * @param {Trace.TraceRecord} record - The record just built
+   * @return {Trace.TraceRecord} The record, with findings when lint is on
+   */
+  private lint(session: Session, record: Trace.TraceRecord): Trace.TraceRecord {
+    const lint = this.config.lint
+    if (!lint?.profiles?.length) return record
+
+    const window = lint.window ?? DEFAULT_LINT_WINDOW
+    const findings = Trace.Rules.evaluate(record, session.recent, {
+      profiles: lint.profiles
+    })
+    findings.forEach((f) =>
+      logger.warn(`out of spec: ${f.message}`, {
+        callId: record.callId,
+        seq: record.seq,
+        rule: f.rule,
+        severity: f.severity,
+        spec: f.spec
+      })
+    )
+    const linted = {
+      ...record,
+      lint: { version: Trace.Rules.RULESET_VERSION, profiles: lint.profiles },
+      findings
+    }
+    if (window > 0) {
+      session.recent.push(linted)
+      if (session.recent.length > window) session.recent.shift()
+    }
+    return linted
   }
 
   // eslint-disable-next-line require-jsdoc
@@ -235,16 +293,17 @@ export class Recorder {
   }
 }
 
-const withoutFlag = (metadata: Record<string, string>) => {
-  const copy = { ...metadata }
-  delete copy[Trace.TRACE_FLAG_METADATA_KEY]
-  return copy
+// The request as the record carries it: no trace.* metadata, and no
+// receivedOn when the EdgePort could not name the interface (proto-loader
+// hands an unset message field over as null)
+const stripTrace = (request: MessageRequest): MessageRequest => {
+  const { receivedOn, metadata, ...rest } = request
+  return {
+    ...rest,
+    ...(receivedOn?.host ? { receivedOn } : {}),
+    ...(metadata ? { metadata: Trace.withoutTraceMetadata(metadata) } : {})
+  }
 }
-
-const stripFlag = (request: MessageRequest): MessageRequest =>
-  request.metadata
-    ? { ...request, metadata: withoutFlag(request.metadata) }
-    : request
 
 /**
  * Builds a file name that sorts by time and is safe on every file system.

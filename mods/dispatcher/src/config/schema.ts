@@ -70,7 +70,20 @@ export const schema = {
             mode: { type: "string", enum: ["all", "flagged"] },
             maxRecordsPerCall: { type: "integer", minimum: 1 },
             maxCalls: { type: "integer", minimum: 1 },
-            idleTimeoutSeconds: { type: "integer", minimum: 1 }
+            idleTimeoutSeconds: { type: "integer", minimum: 1 },
+            redact: { type: "boolean" },
+            lint: {
+              type: "object",
+              properties: {
+                profiles: {
+                  type: "array",
+                  items: { type: "string", enum: ["sip", "sip-connect"] }
+                },
+                window: { type: "integer", minimum: 0 }
+              },
+              required: ["profiles"],
+              additionalProperties: false
+            }
           },
           required: ["enabled", "path"],
           additionalProperties: false

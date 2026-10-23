@@ -27,7 +27,7 @@ import * as grpc from "@grpc/grpc-js"
 import { getLogger } from "@fonoster/logger"
 import { Trace } from "@routr/common"
 import { performance } from "perf_hooks"
-import { HopCollector, versionFromCall } from "./recorder"
+import { HopCollector, versionFromCall, hopMetadataOf } from "./recorder"
 
 const logger = getLogger({ service: "dispatcher", filePath: __filename })
 
@@ -66,7 +66,8 @@ async function processMessage(
     version: await version,
     startedAt,
     before: request.message,
-    after: response?.message as unknown as CT.SIPMessage
+    after: response?.message as unknown as CT.SIPMessage,
+    metadata: hopMetadataOf(response as { metadata?: Record<string, string> })
   })
 
   return response

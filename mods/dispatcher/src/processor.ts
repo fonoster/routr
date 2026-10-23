@@ -47,11 +47,11 @@ export default function processor(params: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return async (call: RunProcessorParams, callback: any): Promise<void> => {
     const { request } = call
-    const collector = new HopCollector()
+    const collector = new HopCollector({ redact: recorder?.redacts ?? true })
 
     // Hands the result to the EdgePort and, when recording, writes the record.
-    // The recording flag a processor set rides on the metadata and is removed
-    // before the message leaves the dispatcher.
+    // The trace.* metadata a component set (the recording flag, annotations)
+    // is removed before the message leaves the dispatcher.
     const done = (err: unknown, result?: CT.MessageRequest) => {
       const flag = result ? traceFlagOf(result) : undefined
       recorder?.record({
@@ -61,7 +61,7 @@ export default function processor(params: {
         flag,
         error: err as Error
       })
-      callback(err ?? null, err ? null : withoutTraceFlag(result))
+      callback(err ?? null, err ? null : withoutTraceMetadata(result))
     }
 
     try {
@@ -115,9 +115,8 @@ export default function processor(params: {
   }
 }
 
-const withoutTraceFlag = (result: CT.MessageRequest): CT.MessageRequest => {
-  if (!result?.metadata || !traceFlagOf(result)) return result
-  const metadata = { ...result.metadata }
-  delete metadata[Trace.TRACE_FLAG_METADATA_KEY]
+const withoutTraceMetadata = (result: CT.MessageRequest): CT.MessageRequest => {
+  if (!result?.metadata) return result
+  const metadata = Trace.withoutTraceMetadata(result.metadata)
   return { ...result, metadata }
 }

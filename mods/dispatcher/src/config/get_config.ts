@@ -22,7 +22,6 @@ import { schema } from "./schema"
 import { ProcessorConfig } from "@routr/common"
 import { Helper as H } from "@routr/common"
 import Ajv from "ajv"
-import { recordingFromEnv } from "../recorder"
 
 const ajv = new Ajv()
 const validate = ajv.compile(schema)
@@ -48,13 +47,5 @@ export const getConfig = (
   // Re-insert processors with matchFunc now as a function
   c.spec.processors = processors
 
-  try {
-    return E.right({
-      ...c.spec,
-      ref: c.ref,
-      recording: recordingFromEnv(c.spec.recording)
-    })
-  } catch (e) {
-    return E.left(e as Error)
-  }
+  return E.right({ ...c.spec, ref: c.ref })
 }

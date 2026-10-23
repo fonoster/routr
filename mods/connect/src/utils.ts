@@ -344,19 +344,29 @@ export const isFromTrustedEdgePort = (
   })
 }
 
+type Traceable = Pick<CC.Agent, "ref" | "trace"> | undefined | null
+
 /**
- * Metadata that asks the dispatcher to record the call, when the trunk has
- * the recordMessages extended attribute set to true. The dispatcher removes
+ * Metadata that asks the dispatcher to record the call when any of the
+ * resources it touches (Trunk, Agent, Peer, Domain) has `trace.enabled`.
+ * The value is the ref of the first one that asked. The dispatcher removes
  * the key before the message leaves.
  *
- * @param {CC.Trunk} trunk - The trunk the call goes through, if any
+ * @param {Traceable[]} resources - Resources the call touches, in order of precedence
  * @return {Record<string, string>} The metadata to merge into the route
  */
 export const recordingMetadata = (
-  trunk?: Pick<CC.Trunk, "ref" | "extended">
+  ...resources: Traceable[]
 ): Record<string, string> => {
-  const flag = trunk?.extended?.[Trace.TRUNK_RECORD_ATTRIBUTE]
-  return flag === true || flag === "true"
-    ? { [Trace.TRACE_FLAG_METADATA_KEY]: trunk.ref }
-    : {}
+  const asked = resources.find((r) => r?.trace?.enabled === true)
+  return asked ? { [Trace.TRACE_FLAG_METADATA_KEY]: asked.ref } : {}
 }
+
+/**
+ * The domain a resource belongs to, when it carries one (Agents do).
+ *
+ * @param {object} resource - A caller or callee resource
+ * @return {CC.Domain | undefined} Its domain
+ */
+export const domainOf = (resource: unknown): CC.Domain | undefined =>
+  (resource as { domain?: CC.Domain } | undefined)?.domain

@@ -16,6 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Trace } from "@routr/common"
+
 export enum RecordingMode {
   // Record every call
   ALL = "all",
@@ -34,46 +36,18 @@ export interface RecordingConfig {
   maxCalls?: number
   // Forget a call after this long without messages
   idleTimeoutSeconds?: number
+  // Replace credentials with REDACTED before writing (default true). Turn it
+  // off only on a test stack whose recordings feed the known-good corpus.
+  redact?: boolean
+  // Evaluate rules on every record as it is written; absent = off
+  lint?: LintConfig
 }
 
-/**
- * Builds a recording config from RECORD_MESSAGES, RECORD_MESSAGES_PATH and
- * RECORD_MESSAGES_MODE, on top of whatever the config file says. Returns the
- * file config untouched when none of the variables is set.
- *
- * @param {RecordingConfig} fromFile - The recording block of the config file
- * @param {NodeJS.ProcessEnv} env - Environment to read, defaults to process.env
- * @return {RecordingConfig | undefined} The effective recording config
- */
-export function recordingFromEnv(
-  fromFile?: RecordingConfig,
-  env: NodeJS.ProcessEnv = process.env
-): RecordingConfig | undefined {
-  const enabled = env.RECORD_MESSAGES
-  const path = env.RECORD_MESSAGES_PATH
-  const mode = env.RECORD_MESSAGES_MODE
-
-  if (enabled === undefined && path === undefined && mode === undefined) {
-    return fromFile
-  }
-
-  if (
-    mode !== undefined &&
-    !Object.values(RecordingMode).includes(mode as RecordingMode)
-  ) {
-    throw new Error(
-      `RECORD_MESSAGES_MODE must be one of ${Object.values(RecordingMode).join(
-        ", "
-      )}`
-    )
-  }
-
-  return {
-    ...fromFile,
-    enabled: enabled !== undefined ? enabled === "true" : !!fromFile?.enabled,
-    path: path ?? fromFile?.path ?? DEFAULT_RECORDING_PATH,
-    ...(mode !== undefined ? { mode: mode as RecordingMode } : {})
-  }
+export interface LintConfig {
+  // Rule profiles to evaluate; "sip" is always worth having
+  profiles: Trace.Profile[]
+  // Recent records of the same call kept in memory for call-scope rules
+  window?: number
 }
 
 export const DEFAULT_RECORDING_PATH = "/var/routr/traces"

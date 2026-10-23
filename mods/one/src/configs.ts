@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageDispatcherConfig, recordingFromEnv } from "@routr/dispatcher"
+import { MessageDispatcherConfig } from "@routr/dispatcher"
 import { LocationConfig, CacheProvider } from "@routr/location"
 import { ConnectProcessorConfig } from "@routr/connect"
 import { PostgresDataConfig } from "@routr/pgdata"
@@ -27,6 +27,7 @@ import {
   RTPENGINE_HOST,
   RTPENGINE_PORT
 } from "./envs"
+import { recordingFromEnv } from "./recording"
 
 export const dispatcherConfig: MessageDispatcherConfig = {
   bindAddr: "0.0.0.0:51901",

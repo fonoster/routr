@@ -37,7 +37,6 @@ import {
   fileNameFor,
   HopCollector,
   Recorder,
-  recordingFromEnv,
   RecordingMode
 } from "../src/recorder"
 import { getConfig } from "../src/config/get_config"
@@ -129,7 +128,7 @@ describe("@routr/dispatcher recorder", () => {
     r.recorder.record({
       request: request(),
       result: request({
-        metadata: { "routr.trace": "trunk-01", accountRef: "a" }
+        metadata: { "trace.record": "trunk-01", accountRef: "a" }
       }),
       collector,
       flag: "trunk-01"
@@ -346,7 +345,7 @@ describe("@routr/dispatcher pipeline with recording", () => {
       "connect-processor",
       fakeConnection((req) => ({
         ...req,
-        metadata: { "routr.trace": "trunk-01" },
+        metadata: { "trace.record": "trunk-01" },
         message: {
           ...req.message,
           requestUri: { user: "17853178070", host: "sip.provider.net" },
@@ -394,6 +393,108 @@ describe("@routr/dispatcher pipeline with recording", () => {
     expect(record.totalMs).to.be.at.least(hop.durationMs)
   })
 
+  it("lifts trace.* metadata into the hop and strips it before the EdgePort", async () => {
+    const r = newRecorder({ mode: RecordingMode.ALL })
+    const connections = new Map()
+    connections.set(
+      "connect-processor",
+      fakeConnection((req) => ({
+        ...req,
+        metadata: {
+          "trace.record": "agent-1001",
+          "trace.direction": "agentToPSTN",
+          "trace.trunk": "trunk-01",
+          accountRef: "acc-1"
+        }
+      }))
+    )
+    sandbox.stub(connectionsModule, "default").returns(connections)
+    const handler = processor({
+      processors,
+      middlewares: [],
+      recorder: r.recorder
+    })
+
+    const result = await new Promise<MessageRequest>((resolve, reject) =>
+      handler(
+        { request: request() } as never,
+        (err: Error, res: MessageRequest) => (err ? reject(err) : resolve(res))
+      )
+    )
+    await r.flush()
+
+    expect(result.metadata).to.deep.equal({ accountRef: "acc-1" })
+    const [record] = r.records()
+    expect(record.trunkRef).to.equal("agent-1001")
+    expect(record.hops[1].metadata).to.deep.equal({
+      direction: "agentToPSTN",
+      trunk: "trunk-01"
+    })
+    expect(record.response.metadata).to.deep.equal({ accountRef: "acc-1" })
+    expect(record.request.metadata).to.equal(undefined)
+    expect(record.request.receivedOn).to.equal(undefined)
+  })
+
+  it("keeps credentials and evaluates rules when configured to", async () => {
+    const r = newRecorder({
+      mode: RecordingMode.ALL,
+      redact: false,
+      lint: { profiles: [Trace.Profile.SIP], window: 4 }
+    })
+    const connections = new Map()
+    connections.set(
+      "connect-processor",
+      fakeConnection((req) => ({
+        ...req,
+        // Forwarded without decrementing Max-Forwards: a sip/max-forwards finding
+        message: {
+          ...req.message,
+          via: [
+            { host: "10.0.0.1", port: 5060, transport: CT.Transport.UDP },
+            ...req.message.via
+          ]
+        }
+      }))
+    )
+    sandbox.stub(connectionsModule, "default").returns(connections)
+    const handler = processor({
+      processors,
+      middlewares: [],
+      recorder: r.recorder
+    })
+    const withAuth = request({
+      listeningPoints: [
+        { host: "10.0.0.1", port: 5060, transport: CT.Transport.UDP }
+      ],
+      message: message({
+        authorization: {
+          username: "1001",
+          realm: "sip.local",
+          nonce: "n1",
+          response: "d1g3st"
+        } as never
+      })
+    })
+
+    await new Promise<MessageRequest>((resolve, reject) =>
+      handler(
+        { request: withAuth } as never,
+        (err: Error, res: MessageRequest) => (err ? reject(err) : resolve(res))
+      )
+    )
+    await r.flush()
+
+    const [record] = r.records()
+    expect(record.request.message.authorization.response).to.equal("d1g3st")
+    expect(record.lint.profiles).to.deep.equal([Trace.Profile.SIP])
+    expect(record.lint.version).to.be.a("string")
+    expect(record.findings.map((f) => f.rule)).to.include("sip/max-forwards")
+    expect(record.findings.map((f) => f.rule)).to.include(
+      "sip/credentials-stripped"
+    )
+    expect(r.recorder.activeCalls()).to.equal(1)
+  })
+
   it("records an error hop when the processor is unavailable", async () => {
     const r = newRecorder({ mode: RecordingMode.ALL })
     const connections = new Map()
@@ -435,21 +536,5 @@ describe("@routr/dispatcher recording config", () => {
     const file = join(tmpdir(), "dispatcher-bad.yaml")
     fs.writeFileSync(file, yaml.dump(bad))
     expect(getConfig(file)._tag).to.equal("Left")
-  })
-
-  it("lets the environment switch recording on and pick the mode", () => {
-    expect(recordingFromEnv(undefined, {})).to.equal(undefined)
-    expect(
-      recordingFromEnv(undefined, { RECORD_MESSAGES: "true" })
-    ).to.deep.equal({ enabled: true, path: "/var/routr/traces" })
-    expect(
-      recordingFromEnv(
-        { enabled: false, path: "/data" },
-        { RECORD_MESSAGES: "true", RECORD_MESSAGES_MODE: "all" }
-      )
-    ).to.deep.equal({ enabled: true, path: "/data", mode: "all" })
-    expect(() =>
-      recordingFromEnv(undefined, { RECORD_MESSAGES_MODE: "sometimes" })
-    ).to.throw("RECORD_MESSAGES_MODE")
   })
 })
