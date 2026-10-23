@@ -43,4 +43,17 @@ describe("@routr/processor/target", () => {
     req.message.contact.expires = 600
     expect(T.getTargetExpires(request)).to.be.equal(600)
   })
+
+  it("falls back to the default expires when none is present", () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { expires, ...message } = request.message
+    const req = {
+      ...request,
+      message: {
+        ...message,
+        contact: { ...request.message.contact, expires: -1 }
+      }
+    }
+    expect(T.getTargetExpires(req)).to.be.equal(T.DEFAULT_EXPIRES)
+  })
 })
