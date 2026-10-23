@@ -108,53 +108,6 @@ services:
       internal:
         ipv4_address: 10.111.221.10
 
-  # RTPEngine requires of network mode "host" to work properly. However, this option doesn't work on OSX.
-  # For development, we are opening a few ports to the host machine. For production, you must use 
-  # the network_mode: host which works on Linux.
-  rtpengine:
-    image: fonoster/rtpengine:latest
-    restart: always
-    # Uncomment the following line for production
-    # network_mode: host
-    environment:
-      # Set DOCKER_HOST_ADDRESS to an IP address that is reachable to the SIP clients
-      PUBLIC_IP: ${DOCKER_HOST_ADDRESS}
-      PORT_MIN: 10000
-      PORT_MAX: 10020
-      LOG_LEVEL: 8
-    ports:
-      - 22222:22222/udp
-      - 10000-10020:10000-10020/udp
-
-  redis:
-    image: redis:7.4.7-alpine
-    restart: always
-    environment:
-      ALLOW_EMPTY_PASSWORD: yes
-    ports:
-      - 6379:6379
-
-  postgres:
-    image: postgres:17.7-alpine3.23
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      TZ: UTC
-      PGTZ: UTC
-    ports:
-      - 5432:5432
-    volumes:
-      - db:/var/lib/postgresql/data
-
-  adminer:
-    image: adminer
-    restart: always
-    environment:
-      - ADMINER_DEFAULT_SERVER=postgres
-    ports:
-      - 8080:8080
-
   # Tracing monitoring
   jaeger:
     container_name: jaeger
@@ -198,10 +151,6 @@ services:
         ipv4_address: 10.111.220.22
         aliases:
           - sip.provider.net
-
-volumes:
-  db:
-    driver: local
 
 networks:
   public:
