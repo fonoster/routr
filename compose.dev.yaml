@@ -16,7 +16,6 @@ services:
         aliases:
           - sip01.edgeport.net
     volumes:
-      - ./config/log4j2.yaml:/etc/routr/log4j2.yaml
 
   edgeport02:
     container_name: edgeport02
@@ -34,7 +33,6 @@ services:
         aliases:
           - sip02.edgeport.net
     volumes:
-      - ./config/log4j2.yaml:/etc/routr/log4j2.yaml
 
   dispatcher:
     container_name: dispatcher
@@ -44,10 +42,10 @@ services:
     environment:
       LOGS_LEVEL: verbose
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
-      # Record every call of the compliance run; CI uploads the traces
-      RECORD_MESSAGES: "true"
-      RECORD_MESSAGES_MODE: all
-      RECORD_MESSAGES_PATH: /var/routr/traces
+    # Records every call of the compliance run, unredacted and linted; CI
+    # uploads the files and they are the candidates for etc/corpus
+    volumes:
+      - ./config/dispatcher.dev.yaml:/etc/routr/dispatcher.yaml
     networks:
       internal:
         ipv4_address: 10.111.221.4

@@ -1,0 +1,28 @@
+# Dispatcher configuration for the dev and compliance stack (compose.dev.yaml).
+# Records every call unredacted so the files can become known-good corpus
+# entries, and evaluates every rule profile as it writes them.
+kind: MessageDispatcher
+apiVersion: v2beta1
+ref: message-dispatcher
+spec:
+  bindAddr: 0.0.0.0:51901
+  recording:
+    enabled: true
+    path: /var/routr/traces
+    mode: all
+    redact: false
+    lint:
+      profiles: [sip, sip-connect]
+  processors:
+    - ref: connect-processor
+      addr: connect:51904
+      matchFunc: req => true
+      methods:
+        - REGISTER
+        - MESSAGE
+        - INVITE
+        - ACK
+        - BYE
+        - CANCEL
+        - REFER
+        - NOTIFY

@@ -78,6 +78,39 @@ jobs:
       - name: Lint
         run: npx eslint mods --ext .ts
 
+  compat:
+    name: Known-good corpus compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the Node services
+        run: npm run generate --workspace=@routr/pgdata && npx lerna run build
+
+      # Replays every recording of etc/corpus through simpledata, location,
+      # connect and the dispatcher started from this checkout (no EdgePort, no
+      # Docker) and fails on drift or on a rule finding the corpus did not have.
+      - name: Replay the corpus through the chain
+        run: npm run compat -- --sip-connect
+
+      - name: Upload service logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compat-logs
+          path: /tmp/routr-compat-*.log
+
   java:
     name: EdgePort and Requester tests
     runs-on: ubuntu-latest
