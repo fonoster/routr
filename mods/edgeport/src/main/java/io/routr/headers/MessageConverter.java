@@ -280,6 +280,29 @@ public class MessageConverter {
       .addAllExternalAddrs(this.externalAddrs)
       .addAllLocalnets(this.localnets)
       .setMessage(convertToMessageDTO(message))
+      .setReceivedOn(getReceivedOn(message))
+      .build();
+  }
+
+  // The local socket the stack received the message on: the fact the
+  // trace needs to tell an internal interface from an external one.
+  private static NetInterface getReceivedOn(final Message message) {
+    if (!(message instanceof gov.nist.javax.sip.message.SIPMessage)) {
+      return NetInterface.newBuilder().build();
+    }
+    var sipMessage = (gov.nist.javax.sip.message.SIPMessage) message;
+    var localAddress = sipMessage.getLocalAddress();
+    ViaHeader via = (ViaHeader) message.getHeader(ViaHeader.NAME);
+    // A stack bound to every interface reports the wildcard, which names no
+    // interface; the field is left empty rather than misleading
+    if (localAddress == null || localAddress.isAnyLocalAddress()
+        || via == null || via.getTransport() == null) {
+      return NetInterface.newBuilder().build();
+    }
+    return NetInterface.newBuilder()
+      .setHost(localAddress.getHostAddress())
+      .setPort(sipMessage.getLocalPort())
+      .setTransport(Transport.valueOf(via.getTransport().toUpperCase()))
       .build();
   }
 
