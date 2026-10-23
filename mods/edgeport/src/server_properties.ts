@@ -17,6 +17,15 @@
  * limitations under the License.
  */
 import { EdgePortConfig } from "./types"
+import {
+  SECURITY_CONTEXT_CLIENT_CIPHER_SUITES,
+  SECURITY_CONTEXT_CLIENT_PROTOCOLS
+} from "./envs"
+import {
+  DEFAULT_TLS_CIPHER_SUITES,
+  DEFAULT_TLS_PROTOCOLS,
+  resolveTlsSetting
+} from "./tls"
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: { type(name: string): any }
 const Properties = Java.type("java.util.Properties")
@@ -66,7 +75,19 @@ export default function getServerProperties(
   if (config.spec.securityContext) {
     properties.setProperty(
       "gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS",
-      config.spec.securityContext.client?.protocols.join()
+      resolveTlsSetting(
+        SECURITY_CONTEXT_CLIENT_PROTOCOLS,
+        config.spec.securityContext.client?.protocols,
+        DEFAULT_TLS_PROTOCOLS
+      ).join()
+    )
+    properties.setProperty(
+      "gov.nist.javax.sip.ENABLED_CIPHER_SUITES",
+      resolveTlsSetting(
+        SECURITY_CONTEXT_CLIENT_CIPHER_SUITES,
+        config.spec.securityContext.client?.cipherSuites,
+        DEFAULT_TLS_CIPHER_SUITES
+      ).join()
     )
     // This must be set to 'Disabled' when using WSS
     properties.setProperty(
