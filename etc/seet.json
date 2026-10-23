@@ -352,6 +352,132 @@
     ]
   },
   {
+    "name": "SC-IT.Conf.12.2.2: SP-SSE re-INVITE without SDP offer on an established DOD call",
+    "description": "This test verifies that an offerless re-INVITE sent by the SP-SSE on an established dialog is forwarded to the SIP-PBX user, who offers in the 200 OK, and that the SDP answer in the ACK reaches it (SIP Connect 1.1 section 12.2).",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/call_transfer/reinvite_from_sp_sse_no_sdp.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/sc/sip_pbx/call_transfer/uac_invite_recv_reinvite_no_sdp.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:17853178070@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:17853178070@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "SC-IT.Conf.12.2.3: SIP-PBX re-INVITE with SDP offer on an established DOD call",
+    "description": "This test verifies that a re-INVITE with an SDP offer sent by the SIP-PBX user on an established dialog is forwarded to the SP-SSE along the route set with the SP-SSE's Contact as Request-URI (SIP Connect 1.1 section 12.2).",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/call_transfer/reinvite_from_sip_pbx.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/sc/sip_pbx/call_transfer/uac_invite_send_reinvite.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:17853178070@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:17853178070@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "SC-IT.Conf.12.2.4: SIP-PBX re-INVITE without SDP offer on an established DOD call",
+    "description": "This test verifies that an offerless re-INVITE sent by the SIP-PBX user is forwarded to the SP-SSE, which offers in the 200 OK, and that the SIP-PBX user's SDP answer in the ACK reaches the SP-SSE (SIP Connect 1.1 section 12.2).",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/sc/sip_pbx/call_transfer/reinvite_from_sip_pbx_no_sdp.xml",
+        "port": 7060,
+        "sendRegister": true,
+        "expires": 60,
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        }
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/sc/sip_pbx/call_transfer/uac_invite_send_reinvite_no_sdp.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:17853178070@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:17853178070@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "RR.Tst.Plan.1.1.1: Verification of CSeq Header when Proxy authenticates on behalf of caller",
     "description": "This test case verifies that the CSeq in the response matches the CSeq in original request.",
     "transportMode": "u1",
