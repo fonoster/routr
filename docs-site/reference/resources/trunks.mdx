@@ -25,6 +25,7 @@ A Trunk is a connection to a SIP provider. It defines how the provider reaches R
 | `spec.outbound.uris[].weight` | `uris[].weight` | `integer` | No | - | 1 to 65535. Reserved for future use. |
 | `spec.outbound.uris[].priority` | `uris[].priority` | `integer` | No | - | 0 to 65535. Reserved for future use. |
 | `spec.outbound.uris[].enabled` | `uris[].enabled` | `boolean` | No | `true` (pgdata) | Reserved for future use. |
+| `spec.trace.enabled` | `trace.enabled` | `boolean` | No | `false` | Record every message of the calls that touch this Trunk (the Dispatcher must have recording on, in `flagged` mode). See [Record and replay calls](/guides/record-and-replay-calls). |
 | - | `extended` | `object` | No | - | Custom attributes. API only. |
 
 The API response also includes `accessControlList`, `inboundCredentials`, and `outboundCredentials`, the objects the refs point to.

@@ -48,6 +48,14 @@ export default {
       description: "Operations spec for an Domain",
       type: "object",
       properties: {
+        trace: {
+          description: "Message recording for the calls that touch this Domain",
+          type: "object",
+          properties: {
+            enabled: { type: "boolean" }
+          },
+          required: ["enabled"]
+        },
         context: {
           description: "The username for the Domain",
           type: "object",

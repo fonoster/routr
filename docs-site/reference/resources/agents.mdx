@@ -18,6 +18,7 @@ An Agent is a SIP user, such as a softphone or desk phone, that registers with R
 | `spec.maxContacts` | `maxContacts` | `integer` | No | `-1` | Maximum number of registered contacts. `-1` means no limit; `0` accepts no contacts. |
 | `spec.expires` | `expires` | `integer` | No | `0` (pgdata) | Value, in seconds, to override the expires requested by the Agent. |
 | `spec.enabled` | `enabled` | `boolean` | No | `true` (pgdata) | Reserved for future use. |
+| `spec.trace.enabled` | `trace.enabled` | `boolean` | No | `false` | Record every message of the calls that touch this Agent (the Dispatcher must have recording on, in `flagged` mode). See [Record and replay calls](/guides/record-and-replay-calls). |
 | - | `extended` | `object` | No | - | Custom attributes. API only. |
 
 The API response also includes `domain` and `credentials`, the objects that `domainRef` and `credentialsRef` point to.

@@ -20,9 +20,10 @@ import connectToBackend from "./connections"
 import { ProcessorConfig } from "@routr/common"
 import { RunProcessorParams } from "./types"
 import { runProcessor } from "./run_processor"
-import { CommonTypes as CT } from "@routr/common"
+import { CommonTypes as CT, Trace } from "@routr/common"
 import { Helper as H } from "@routr/processor"
 import { runMiddlewares } from "./run_middlewares"
+import { HopCollector, Recorder, traceFlagOf } from "./recorder"
 
 const isErrorResponse = (request: CT.MessageRequest): boolean =>
   H.isTypeResponse(request) && !H.isOk(request) && !H.isRinging(request)
@@ -36,8 +37,9 @@ const isErrorResponse = (request: CT.MessageRequest): boolean =>
 export default function processor(params: {
   processors: ProcessorConfig[]
   middlewares?: CT.MiddlewareConfig[]
+  recorder?: Recorder
 }) {
-  const { processors, middlewares } = params
+  const { processors, middlewares, recorder } = params
   const procConns = connectToBackend(processors)
   const middConns = connectToBackend(middlewares)
 
@@ -45,50 +47,76 @@ export default function processor(params: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return async (call: RunProcessorParams, callback: any): Promise<void> => {
     const { request } = call
+    const collector = new HopCollector({ redact: recorder?.redacts ?? true })
+
+    // Hands the result to the EdgePort and, when recording, writes the record.
+    // The trace.* metadata a component set (the recording flag, annotations)
+    // is removed before the message leaves the dispatcher.
+    const done = (err: unknown, result?: CT.MessageRequest) => {
+      const flag = result ? traceFlagOf(result) : undefined
+      recorder?.record({
+        request,
+        result,
+        collector,
+        flag,
+        error: err as Error
+      })
+      callback(err ?? null, err ? null : withoutTraceMetadata(result))
+    }
+
     try {
       if (isErrorResponse(request)) {
-        callback(
+        return done(
           null,
           await runProcessor({
             request,
             processors,
-            connections: procConns
+            connections: procConns,
+            collector
           })
         )
-        return
       }
 
       const preProcessorRequest = await runMiddlewares({
         request,
         middlewares,
         connections: middConns,
-        runPostProcessorMiddlewares: false
+        runPostProcessorMiddlewares: false,
+        collector
       })
 
       if (isErrorResponse(request)) {
-        return callback(null, preProcessorRequest)
+        return done(null, preProcessorRequest)
       }
 
       const processedRequest = await runProcessor({
         request: preProcessorRequest,
         processors,
-        connections: procConns
+        connections: procConns,
+        collector
       })
 
       if (isErrorResponse(request)) {
-        return callback(null, processedRequest)
+        return done(null, processedRequest)
       }
 
       const postProcessorRequest = await runMiddlewares({
         request: processedRequest,
         middlewares,
         connections: middConns,
-        runPostProcessorMiddlewares: true
+        runPostProcessorMiddlewares: true,
+        collector
       })
 
-      return callback(null, postProcessorRequest)
+      return done(null, postProcessorRequest)
     } catch (err) {
-      return callback(err, null)
+      return done(err)
     }
   }
+}
+
+const withoutTraceMetadata = (result: CT.MessageRequest): CT.MessageRequest => {
+  if (!result?.metadata) return result
+  const metadata = Trace.withoutTraceMetadata(result.metadata)
+  return { ...result, metadata }
 }

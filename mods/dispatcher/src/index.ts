@@ -20,4 +20,5 @@ import { MessageDispatcherConfig } from "./types"
 import messageDispatcher from "./service"
 
 export { getConfig } from "./config/get_config"
+export { LintConfig, RecordingConfig, RecordingMode } from "./recorder"
 export { MessageDispatcherConfig, messageDispatcher }

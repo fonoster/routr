@@ -21,6 +21,7 @@ require("./tracer").init("dispatcher")
 import { MessageDispatcherConfig } from "./types"
 import { createService } from "@routr/common"
 import { getServiceInfo } from "./util"
+import { Recorder } from "./recorder"
 
 /**
  * Creates a service that can be used to dispatch messages to the backend processors.
@@ -28,6 +29,9 @@ import { getServiceInfo } from "./util"
  * @param {MessageDispatcherConfig} config - Configuration for the dispatcher
  */
 export default function messageDispatcher(config: MessageDispatcherConfig) {
-  const { bindAddr, processors, middlewares } = config
-  createService(getServiceInfo(bindAddr, { processors, middlewares }))
+  const { bindAddr, processors, middlewares, recording } = config
+  const recorder = recording?.enabled
+    ? new Recorder(config.ref ?? "dispatcher", recording)
+    : undefined
+  createService(getServiceInfo(bindAddr, { processors, middlewares, recorder }))
 }

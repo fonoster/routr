@@ -48,6 +48,14 @@ export default {
       description: "Operations spec for an Trunk",
       type: "object",
       properties: {
+        trace: {
+          description: "Message recording for the calls that touch this Trunk",
+          type: "object",
+          properties: {
+            enabled: { type: "boolean" }
+          },
+          required: ["enabled"]
+        },
         inbound: {
           description: "Inbound configuration",
           type: "object",

@@ -25,6 +25,9 @@ import {
 } from "@routr/common"
 import * as grpc from "@grpc/grpc-js"
 import { getLogger } from "@fonoster/logger"
+import { Trace } from "@routr/common"
+import { performance } from "perf_hooks"
+import { HopCollector, versionFromCall, hopMetadataOf } from "./recorder"
 
 const logger = getLogger({ service: "dispatcher", filePath: __filename })
 
@@ -32,10 +35,13 @@ const logger = getLogger({ service: "dispatcher", filePath: __filename })
 async function processMessage(
   middlewareRef: string,
   conn: ProcessorGPRCConnection,
-  request: MessageRequest
+  request: MessageRequest,
+  collector?: HopCollector
 ): Promise<MessageResponse> {
-  return new Promise((resolve, reject) => {
-    conn.processMessage(
+  const startedAt = performance.now()
+  let version: Promise<string | undefined> = Promise.resolve(undefined)
+  const response = await new Promise<MessageResponse>((resolve, reject) => {
+    const call = conn.processMessage(
       request,
       (err: { code: number }, response: MessageResponse) => {
         return err?.code === grpc.status.UNAVAILABLE
@@ -43,7 +49,28 @@ async function processMessage(
           : resolve(response)
       }
     )
+    version = versionFromCall(call)
+  }).catch((e) => {
+    collector?.addError({
+      component: middlewareRef,
+      kind: Trace.HopKind.MIDDLEWARE,
+      startedAt,
+      error: (e as Error).message
+    })
+    throw e
   })
+
+  collector?.addCall({
+    component: middlewareRef,
+    kind: Trace.HopKind.MIDDLEWARE,
+    version: await version,
+    startedAt,
+    before: request.message,
+    after: response?.message as unknown as CT.SIPMessage,
+    metadata: hopMetadataOf(response as { metadata?: Record<string, string> })
+  })
+
+  return response
 }
 
 // eslint-disable-next-line require-jsdoc
@@ -54,7 +81,8 @@ export async function runMiddlewares(
     connections,
     request,
     middlewares = [],
-    runPostProcessorMiddlewares
+    runPostProcessorMiddlewares,
+    collector
   } = params
   const req = { ...request }
   // eslint-disable-next-line no-async-promise-executor
@@ -76,7 +104,7 @@ export async function runMiddlewares(
 
       // Send message and re-insert response for next middleware
       try {
-        req.message = (await processMessage(midd.ref, conn, req))
+        req.message = (await processMessage(midd.ref, conn, req, collector))
           .message as unknown as CT.SIPMessage
         if (req.message.messageType === CT.MessageType.RESPONSE) {
           logger.verbose(

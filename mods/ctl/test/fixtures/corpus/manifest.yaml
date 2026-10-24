@@ -1,0 +1,5 @@
+resources: resources
+files:
+  - file: seet_dod-invite_seet_20261023.jsonl
+    profiles: [sip]
+    note: fixture copy of call-2.18.0.jsonl

@@ -72,6 +72,7 @@ public class GRPCSipListener implements SipListener {
     String addr = (String) processor.getMember("addr");
     String bindAddr = (String) spec.getMember("bindAddr");
     String edgePortRef = (String) values.getMember("ref");
+    String edgePortVersion = values.hasMember("version") ? (String) values.getMember("version") : "";
 
     String processorAddrEnv = System.getenv("PROCESSOR_ADDR");
     String ignoreLoopbackEnv = System.getenv("IGNORE_LOOPBACK_FROM_LOCALNETS");
@@ -107,7 +108,7 @@ public class GRPCSipListener implements SipListener {
       }
     }
 
-    LOG.info("starting edgeport ref = {} at {}", edgePortRef, bindAddr);
+    LOG.info("starting edgeport ref = {} version = {} at {}", edgePortRef, edgePortVersion, bindAddr);
     LOG.info("localnets list [{}]", String.join(",", localnets));
     LOG.info("external hosts list [{}]", String.join(",", externalAddrs));
 
@@ -132,6 +133,7 @@ public class GRPCSipListener implements SipListener {
     }
 
     messageConverter = new MessageConverter(edgePortRef);
+    messageConverter.setEdgePortVersion(edgePortVersion);
     messageConverter.setExternalAddrs(externalAddrs);
     messageConverter.setLocalnets(localnets);
     messageConverter.setListeningPoints(listeningPoints);

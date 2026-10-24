@@ -100,6 +100,9 @@ export interface MessageRequest {
   localnets: string[]
   message: SIPMessage
   metadata?: Record<string, string>
+  edgePortVersion?: string
+  // Local socket the EdgePort received the message on
+  receivedOn?: NetInterface
 }
 
 export interface MessageResponse {

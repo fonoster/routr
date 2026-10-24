@@ -22,6 +22,7 @@ package fonoster.routr.connect.peers.v2beta1;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/empty.proto";
+import "trace.proto";
 import "acl.proto";
 import "credentials.proto";
 
@@ -85,6 +86,8 @@ message Peer {
   int32 expires = 16;
   // The extended attributes of the Peer
   .google.protobuf.Struct extended = 14;
+  // Message recording for the calls that touch this Peer
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 17;
 }
 
 // The request message for the Peers.Create method
@@ -113,6 +116,8 @@ message CreatePeerRequest  {
   int32 expires = 12;  
   // The extended attributes of the Peer
   .google.protobuf.Struct extended = 10;
+  // Message recording for the calls that touch this Peer
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 13;
 }
 
 // The request message for the Peers.Update method
@@ -141,6 +146,8 @@ message UpdatePeerRequest {
   optional int32 expires = 12;
   // The extended attributes of the Peer
   .google.protobuf.Struct extended = 10;
+  // Message recording for the calls that touch this Peer
+  fonoster.routr.connect.trace.v2beta1.Trace trace = 13;
 }
 
 // The request message for the Peers.Get method

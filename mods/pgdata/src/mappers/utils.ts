@@ -44,3 +44,33 @@ export function getManager(kind: CC.KindWithoutUnknown) {
       return DomainManager
   }
 }
+
+/**
+ * Drops the API-level `trace` object before handing a resource to Prisma,
+ * which stores it as the trace_enabled column.
+ *
+ * @param {object} resource - A resource with an optional trace object
+ * @return {object} The same resource without it
+ */
+export function withoutTrace<T extends { trace?: unknown }>(
+  resource: T
+): Omit<T, "trace"> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { trace, ...rest } = resource
+  return rest
+}
+
+/**
+ * Drops Prisma's trace_enabled column from a row before it becomes a DTO,
+ * where the setting is the `trace` object.
+ *
+ * @param {object} row - A Prisma row
+ * @return {object} The row without traceEnabled
+ */
+export function withoutTraceEnabled<T extends { traceEnabled?: unknown }>(
+  row: T
+): Omit<T, "traceEnabled"> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { traceEnabled, ...rest } = row
+  return rest
+}

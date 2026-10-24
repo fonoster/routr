@@ -37,6 +37,17 @@ The Dispatcher reads a YAML or JSON file and validates it against a JSON schema 
 | `spec.middlewares[*].ref` | string | Yes | | Middleware reference |
 | `spec.middlewares[*].addr` | string | Yes | | Middleware address, for example `rtprelay:51903` |
 | `spec.middlewares[*].postProcessor` | boolean | Yes | | `true` runs the middleware after the Processor, `false` runs it before |
+| `spec.recording` | object | No | | Message recording, one `.jsonl` file per call. See [Record and replay calls](/guides/record-and-replay-calls) |
+| `spec.recording.enabled` | boolean | Yes | | Turns recording on |
+| `spec.recording.path` | string | Yes | | Directory the files are written to |
+| `spec.recording.mode` | string | No | `flagged` | `flagged` records the calls that touch a Trunk, Agent, Peer or Domain whose `trace.enabled` is `true`; `all` records every call |
+| `spec.recording.maxRecordsPerCall` | integer | No | `1000` | Stop writing a call after this many records |
+| `spec.recording.maxCalls` | integer | No | `10000` | Stop starting new recordings when this many calls are active |
+| `spec.recording.idleTimeoutSeconds` | integer | No | `7200` | Forget a call after this long without messages |
+| `spec.recording.redact` | boolean | No | `true` | Replace credentials with `REDACTED` before writing. Turn it off only on a test stack whose recordings feed the known-good corpus |
+| `spec.recording.lint` | object | No | | Evaluate the SIP rules on every record as it is written; absent turns it off |
+| `spec.recording.lint.profiles` | array | Yes | | Rule profiles: `sip` (RFC 3261 and companions), `sip-connect` (SIPconnect 1.1). Each finding is logged as a warning and written on the record |
+| `spec.recording.lint.window` | integer | No | `32` | Recent records of a call kept in memory for the rules that look at the whole call |
 
 `matchFunc` receives the JSON form of the `MessageRequest` protobuf ([sipmessage.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/sipmessage.proto)). These are typical match functions:
 

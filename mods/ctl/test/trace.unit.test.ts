@@ -1,0 +1,758 @@
+/*
+ * Copyright (C) 2026 by Fonoster Inc (https://fonoster.com)
+ * http://github.com/fonoster/routr
+ *
+ * This file is part of Routr.
+ *
+ * Licensed under the MIT License (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    https://opensource.org/licenses/MIT
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import * as path from "path"
+import * as fs from "fs"
+import { tmpdir } from "os"
+import chai from "chai"
+import { captureOutput } from "@oclif/test"
+import { Config } from "@oclif/core"
+import { Trace } from "@routr/common"
+import { loadTrace, TraceExit, TraceLoadError } from "../src/trace/load"
+import {
+  alignTraces,
+  analyze,
+  comparable,
+  labelOf,
+  recordDiff
+} from "../src/trace/model"
+import { ASCII, pickGlyphs, UNICODE } from "../src/trace/glyphs"
+import {
+  fitAddress,
+  fitBranch,
+  elidePair,
+  fitCallId,
+  fitUri,
+  fmtMs,
+  fmtMsCompact,
+  wrap
+} from "../src/trace/text"
+import {
+  header,
+  helpLines,
+  initialState,
+  paintScreen,
+  paintSplash,
+  visibleRows
+} from "../src/trace/paint"
+import { identity, renderStatic } from "../src/trace/static"
+import {
+  DARK,
+  inkStyle,
+  isLightColorFgBg,
+  isLightReply,
+  LIGHT,
+  listLength,
+  problemIndices,
+  reduce
+} from "../src/trace/app"
+import ReplayCommand from "../src/commands/trace/replay"
+import ValidateCommand from "../src/commands/trace/validate"
+import LintCommand from "../src/commands/trace/lint"
+import { runCompat } from "../src/commands/trace/compat"
+
+const expect = chai.expect
+const FIX = path.join(__dirname, "fixtures")
+const A = path.join(FIX, "call-2.18.0.jsonl")
+const B = path.join(FIX, "call-2.15.4.jsonl")
+
+const quoted = (text: string) => `"${text}"`
+const VERSION_1 = `${quoted("traceVersion")}:1`
+const VERSION_2 = `${quoted("traceVersion")}:2`
+
+const tmp = (name: string, content: string) => {
+  const file = path.join(tmpdir(), name)
+  fs.writeFileSync(file, content)
+  return file
+}
+
+describe("@routr/ctl trace", () => {
+  describe("load", () => {
+    it("reads a valid file", () => {
+      const loaded = loadTrace(A)
+      expect(loaded.records).to.have.length(11)
+      expect(loaded.truncatedLines).to.equal(0)
+    })
+
+    it("maps errors to exit codes", () => {
+      expect(() => loadTrace(path.join(FIX, "nope.jsonl")))
+        .to.throw(TraceLoadError, "cannot read nope.jsonl: no such file")
+        .with.property("exit", TraceExit.UNREADABLE)
+      expect(() => loadTrace(tmp("empty.jsonl", "\n\n")))
+        .to.throw("empty.jsonl has no records")
+        .with.property("exit", TraceExit.UNREADABLE)
+      const lines = fs.readFileSync(A, "utf8").split("\n").filter(Boolean)
+      const future = lines
+        .map((l) => l.replace(VERSION_1, VERSION_2))
+        .join("\n")
+      expect(() => loadTrace(tmp("future.jsonl", future)))
+        .to.throw(
+          "future.jsonl is trace version 2; this rctl reads version 1. Upgrade rctl"
+        )
+        .with.property("exit", TraceExit.UNSUPPORTED_VERSION)
+      expect(() => loadTrace(tmp("nottrace.jsonl", `{${quoted("hello")}:1}`)))
+        .to.throw("nottrace.jsonl is not a Routr trace")
+        .with.property("exit", TraceExit.UNSUPPORTED_VERSION)
+      expect(() =>
+        loadTrace(tmp("bad.jsonl", `${lines[0]}\n{not json}\n${lines[1]}`))
+      )
+        .to.throw("bad.jsonl line 2: invalid JSON")
+        .with.property("exit", TraceExit.UNREADABLE)
+      const broken = lines[0].replace(
+        `${quoted("outcome")}:${quoted("rejected")}`,
+        `${quoted("outcome")}:${quoted("lost")}`
+      )
+      expect(() => loadTrace(tmp("schema.jsonl", broken))).to.throw("/outcome")
+    })
+
+    it("tolerates a truncated last line and says so", () => {
+      const lines = fs.readFileSync(A, "utf8").split("\n").filter(Boolean)
+      const loaded = loadTrace(
+        tmp("cut.jsonl", `${lines[0]}\n${lines[1]}\n${lines[2].slice(0, 50)}`)
+      )
+      expect(loaded.records).to.have.length(2)
+      expect(loaded.truncatedLines).to.equal(1)
+      expect(loaded.totalLines).to.equal(3)
+      const m = analyze(loaded)
+      expect(m.verdict.line).to.include("incomplete")
+    })
+  })
+
+  describe("model", () => {
+    const a = analyze(loadTrace(A))
+    const b = analyze(loadTrace(B))
+
+    it("derives lanes, verdict and facts", () => {
+      expect(a.lanes.map((l) => l.title)).to.deep.equal([
+        "1001",
+        "edgeport-01",
+        "trunk-01"
+      ])
+      expect(a.verdict.word).to.equal("FORWARDED")
+      expect(a.verdict.line).to.match(
+        /^FORWARDED {2}16\.1 ms {2}11 messages {2}0 rejected {2}3 warnings$/
+      )
+      expect(b.verdict.word).to.equal("REJECTED")
+      expect(b.verdict.line).to.include(
+        "REJECTED 500 at +1681 ms  re-INVITE c1 from trunk-01"
+      )
+      expect(Object.fromEntries(a.facts)).to.include({
+        Direction: "agent-to-pstn",
+        Trunk: "trunk-01",
+        EdgePort: "edgeport-01 2.18.0"
+      })
+    })
+
+    it("runs the checks, failures first", () => {
+      // Three warnings on the first forwarded INVITE, then the pass count
+      expect(a.checks.map((c) => c.state)).to.deep.equal([
+        "warn",
+        "warn",
+        "warn",
+        "pass"
+      ])
+      expect(a.checks[0].explain).to.include("RFC 3261")
+      expect(a.checks[3].text).to.match(/^\d+ of \d+ sip rules passed/)
+      const bSipConnect = analyze(loadTrace(B), {
+        profiles: [Trace.Profile.SIP, Trace.Profile.SIP_CONNECT]
+      })
+      expect(bSipConnect.checks[0]).to.include({ state: "fail" })
+      expect(bSipConnect.checks.map((c) => c.text)).to.include(
+        "2 P-Asserted-Identity headers reach the service provider; it reads the first"
+      )
+      expect(bSipConnect.checks[0].explain).to.include("sip-connect/pai-single")
+      expect(a.forwardedInvites).to.equal(3)
+    })
+
+    it("labels messages and folds retransmissions", () => {
+      expect(a.rows.map((r) => r.inLeg.label)).to.deep.equal([
+        "INVITE c1",
+        "INVITE c2",
+        "INVITE c2",
+        "180 Ringing",
+        "200 OK",
+        "ACK c2",
+        "re-INVITE c1",
+        "200 OK",
+        "ACK c1",
+        "BYE c3",
+        "200 OK"
+      ])
+      expect(a.rows[1].retransmissions).to.equal(1)
+      expect(a.rows[2].retransOf).to.equal(1)
+      expect(a.rows[0].mark).to.equal("challenge")
+      expect(a.rows[0].outLeg).to.include({ to: 0, label: "401 Unauthorized" })
+      expect(b.rows[6]).to.include({ mark: "fail", rejected: true })
+      expect(b.rows[6].outLeg).to.include({
+        to: 2,
+        label: "500 Server Internal Error"
+      })
+      expect(visibleRows(a, initialState())).to.have.length(10)
+      expect(
+        visibleRows(a, { ...initialState(), showRetrans: true })
+      ).to.have.length(11)
+      expect(
+        visibleRows(a, { ...initialState(), filter: "5xx" })
+      ).to.have.length(0)
+      expect(
+        visibleRows(b, { ...initialState(), filter: "5xx" })
+      ).to.have.length(1)
+      expect(
+        visibleRows(a, { ...initialState(), filter: "bye" })
+      ).to.have.length(2)
+      expect(labelOf(a.records[6])).to.equal("re-INVITE c1")
+    })
+
+    it("attributes the record diff to the hop that made it", () => {
+      const rows = recordDiff(a.records[1])
+      expect(rows[0]).to.include({
+        kind: "changed",
+        name: "Request-URI",
+        by: "connect-processor"
+      })
+      expect(rows.map((r) => r.kind)).to.satisfy((kinds: string[]) => {
+        const order = ["changed", "added", "removed"]
+        return kinds.every(
+          (k, i) => i === 0 || order.indexOf(k) >= order.indexOf(kinds[i - 1])
+        )
+      })
+      expect(rows.find((r) => r.name === "Authorization")).to.include({
+        kind: "removed"
+      })
+      expect(rows.find((r) => r.name === "X-Gateway-Auth")?.value).to.equal(
+        "REDACTED"
+      )
+    })
+
+    it("lines up two files and says why rows differ", () => {
+      const rows = alignTraces(a.records, b.records)
+      expect(rows.map((r) => r.state)).to.deep.equal([
+        "same",
+        "differs",
+        "differs",
+        "same",
+        "same",
+        "same",
+        "differs",
+        "onlyA",
+        "onlyA",
+        "same",
+        "same"
+      ])
+      expect(rows[1].why).to.match(/P-Asserted-Identity/)
+      expect(rows[6].why).to.equal("outcome forwarded vs rejected")
+    })
+  })
+
+  describe("text", () => {
+    it("fits URIs, branches, Call-IDs and addresses by their rules", () => {
+      expect(fitUri("sip:17853178070@sip.provider.net:7060", 34)).to.equal(
+        "sip:17853178070@…provider.net:7060"
+      )
+      expect(fitUri("sip:17853178070@sip.provider.net:7060", 30)).to.equal(
+        "sip:17853178070@…ider.net:7060"
+      )
+      expect(fitUri("sip:17853178070@sip.provider.net:7060", 40)).to.equal(
+        "sip:17853178070@sip.provider.net:7060"
+      )
+      expect(fitBranch("z9hG4bK-353730-e6d92929a1", 12)).to.equal(
+        "…-e6d92929a1"
+      )
+      expect(fitCallId("a9f3c1e2d4b5@10.111.221.22", 20)).to.equal(
+        "a9f3c…@10.111.221.22"
+      )
+      expect(fitAddress("10.111.221.22:5506/UDP", 19)).to.equal(
+        "10.111.221.22:5506"
+      )
+      expect(fmtMs(681)).to.equal("681")
+      expect(fmtMs(12345)).to.equal("12.345s")
+      expect(fmtMs(62000)).to.equal("1m02s")
+      expect(
+        wrap("Record-Route names 10.111.221.2, an internal interface", 30, 2)
+      ).to.deep.equal([
+        "Record-Route names",
+        "  10.111.221.2, an internal",
+        "  interface"
+      ])
+    })
+
+    it("picks ASCII glyphs for dumb terminals and non-UTF-8 locales", () => {
+      expect(
+        pickGlyphs(false, { TERM: "xterm-256color", LANG: "en_US.UTF-8" })
+      ).to.equal(UNICODE)
+      expect(pickGlyphs(false, { TERM: "dumb" })).to.equal(ASCII)
+      expect(pickGlyphs(false, { LANG: "C" })).to.equal(ASCII)
+      expect(pickGlyphs(true, {})).to.equal(ASCII)
+    })
+  })
+
+  describe("screen", () => {
+    const a = analyze(loadTrace(A))
+    const b = analyze(loadTrace(B))
+    const text = (lines: { text: string }[][]) =>
+      lines.map((l) => l.map((s) => s.text).join("")).join("\n")
+
+    it("paints exactly rows lines at every width and never wider than columns", () => {
+      ;[80, 100, 120, 160].forEach((columns) => {
+        ;[0, 1, 2, 3].forEach((view) => {
+          const l = { columns, rows: 24, g: UNICODE }
+          const lines = paintScreen(
+            a,
+            b,
+            { ...initialState(view), selected: 1 },
+            l
+          )
+          expect(lines, `view ${view} at ${columns}`).to.have.length(24)
+          lines.forEach((line) =>
+            expect(
+              line.map((s) => s.text).join("").length,
+              `view ${view} at ${columns}`
+            ).to.be.at.most(columns)
+          )
+        })
+      })
+    })
+
+    it("refuses a terminal below 80x20", () => {
+      const lines = paintScreen(a, b, initialState(), {
+        columns: 72,
+        rows: 20,
+        g: UNICODE
+      })
+      expect(text(lines)).to.include("needs at least 80×23 (now 72×20)")
+    })
+
+    it("places the pane by width and expands hops inline", () => {
+      const s = { ...initialState(1), selected: 1, expanded: 1 }
+      const wide = text(
+        paintScreen(a, b, s, { columns: 120, rows: 30, g: UNICODE })
+      )
+      expect(wide).to.include("│ record 2")
+      expect(wide).to.include("├ connect-pr")
+      const mid = text(
+        paintScreen(a, b, s, { columns: 100, rows: 30, g: UNICODE })
+      )
+      expect(mid).to.include("── record 2 · INVITE c2 · forwarded ──")
+      const narrow = text(
+        paintScreen(a, b, s, { columns: 80, rows: 30, g: UNICODE })
+      )
+      expect(narrow).to.not.include("record 2 ·")
+    })
+
+    it("reads in ASCII", () => {
+      const s = { ...initialState(1), selected: 1 }
+      const out = text(
+        paintScreen(b, undefined, s, { columns: 100, rows: 34, g: ASCII })
+      )
+      expect(out).to.include("-INVITE c2 x2")
+      expect(out).to.match(/x\s+\+1681/)
+      expect(out).to.not.match(/[─╌▶◀✓✗]/)
+    })
+  })
+
+  describe("brand and theme", () => {
+    const lines = (l: { text: string }[][]) =>
+      l.map((x) => x.map((y) => y.text).join(""))
+
+    it("puts the r. mark beside three context lines", () => {
+      const a = analyze(loadTrace(A))
+      const rows = header(a, undefined, { columns: 120, rows: 34, g: UNICODE })
+      const out = lines(rows)
+      expect(out).to.have.length(3)
+      expect(out[0]).to.match(/^ {10}trace {5}call-2\.18\.0\.jsonl +FORWARDED/)
+      expect(out[1]).to.match(/^ {10}call {6}1-25@/)
+      expect(out[2]).to.match(/^ {10}edgeport {2}edgeport-01 2\.18\.0/)
+      // Solid cells: the letter and the dot are background colour, no glyphs
+      const painted = rows.map((r) =>
+        r
+          .filter((x) => x.bg === "mark" || x.bg === "dot")
+          .map((x) => `${x.bg}:${x.text.length}`)
+          .join(" ")
+      )
+      expect(painted).to.deep.equal(["mark:4", "mark:2", "mark:2 dot:2"])
+      const ascii = lines(
+        header(a, undefined, { columns: 120, rows: 34, g: ASCII })
+      )
+      expect(ascii[0]).to.match(/^routr\. +trace/)
+    })
+
+    it("centres the splash and blinks only the dot", () => {
+      const l = { columns: 80, rows: 24, g: UNICODE }
+      const on = paintSplash("call.jsonl", true, l)
+      const off = paintSplash("call.jsonl", false, l)
+      expect(on).to.have.length(24)
+      const dots = (screen: typeof on) =>
+        screen.flat().filter((x) => x.bg === "dot").length
+      expect(dots(on)).to.equal(1)
+      expect(dots(off)).to.equal(0)
+      const marks = (screen: typeof on) =>
+        screen.flat().filter((x) => x.bg === "mark").length
+      expect(marks(off)).to.equal(marks(on))
+      const note = lines(on).find((t) => t.includes("reading call.jsonl")) ?? ""
+      expect(note.indexOf("reading")).to.equal(Math.floor((80 - 18) / 2))
+    })
+
+    it("keeps every key on a short screen", () => {
+      expect(helpLines(16)).to.have.length(16)
+      expect(helpLines(40)).to.have.length(20)
+    })
+
+    it("keeps two shortened file names tellable apart", () => {
+      const [x, y] = elidePair(
+        "seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl",
+        "seet-agent-1002_sc-1.3.1-dod-invite_provider_20261023.jsonl",
+        20
+      )
+      expect(x).to.have.length(20)
+      expect(x).to.include("1001")
+      expect(y).to.include("1002")
+      expect(
+        elidePair("call-2.17.0.jsonl", "call-2.15.4.jsonl", 40)
+      ).to.deep.equal(["call-2.17.0.jsonl", "call-2.15.4.jsonl"])
+    })
+
+    it("keeps a unit on every time in the ladder column", () => {
+      expect(fmtMsCompact(955)).to.equal("955")
+      expect(fmtMsCompact(12345)).to.equal("12.3s")
+      expect(fmtMsCompact(65000)).to.equal("1m05s")
+      expect(fmtMsCompact(754000)).to.equal("12m")
+      expect(fmtMsCompact(11100000)).to.equal("3h05")
+      ;[955, 12345, 65000, 754000, 11100000].forEach((ms) =>
+        expect(fmtMsCompact(ms).length).to.be.at.most(5)
+      )
+    })
+
+    it("ignores the caller's own source port when comparing", () => {
+      const a = analyze(loadTrace(A))
+      const rec = a.records[1]
+      if (!rec.response) throw new Error("fixture record 2 was forwarded")
+      const msg = rec.response.message
+      const other = JSON.parse(JSON.stringify(msg))
+      const caller = other.via[other.via.length - 1]
+      caller.port = 41000
+      if (caller.rPort) caller.rPort = 41000
+      expect(JSON.stringify(comparable(other))).to.equal(
+        JSON.stringify(comparable(msg))
+      )
+      // Routr's own Via is still compared
+      other.via[0].port = 9999
+      expect(JSON.stringify(comparable(other))).to.not.equal(
+        JSON.stringify(comparable(msg))
+      )
+    })
+
+    it("keeps the static header within the page", () => {
+      const a = analyze(loadTrace(A))
+      const long = { ...a, file: "x".repeat(90) + ".jsonl" }
+      identity(long, 80).forEach((line) =>
+        expect(line.length).to.be.at.most(80)
+      )
+    })
+
+    it("tells light from dark terminals", () => {
+      expect(isLightReply("\x1b]11;rgb:ffff/ffff/ffff\x07")).to.equal(true)
+      expect(isLightReply("\x1b]11;rgb:1818/1818/1818\x1b\\")).to.equal(false)
+      expect(isLightReply("\x1b]11;rgb:fd/f6/e3\x07")).to.equal(true)
+      expect(isLightReply("")).to.equal(undefined)
+      expect(isLightColorFgBg("0;15")).to.equal(true)
+      expect(isLightColorFgBg("15;0")).to.equal(false)
+      expect(isLightColorFgBg(undefined)).to.equal(undefined)
+    })
+
+    it("keeps selected rows readable on light terminals", () => {
+      const row = { bg: "selection" as const, bold: true }
+      expect(inkStyle(row, DARK).backgroundColor).to.equal("#333333")
+      expect(inkStyle(row, LIGHT).backgroundColor).to.equal("#E2E8E8")
+      expect(inkStyle({ color: "success" }, LIGHT).color).to.equal("#0A7F4F")
+      expect(inkStyle({ bg: "accent" }, LIGHT).color).to.equal("#001A1A")
+      expect(inkStyle({ bg: "mark" }, LIGHT).backgroundColor).to.equal(
+        "#1F2328"
+      )
+      expect(inkStyle({ bg: "dot" }, DARK).backgroundColor).to.equal("#5FCFCE")
+    })
+
+    it("compares by what Routr did, not per-call randomness", () => {
+      const a = analyze(loadTrace(A))
+      const rec = a.records[1]
+      if (!rec.response) throw new Error("fixture record 2 was forwarded")
+      const msg = rec.response.message
+      const other = JSON.parse(JSON.stringify(msg))
+      other.callId = { callId: "different@host" }
+      other.via[0].branch = "z9hG4bK-other"
+      if (other.contact) other.contact.address.uri.port = 40000
+      expect(JSON.stringify(comparable(other))).to.equal(
+        JSON.stringify(comparable(msg))
+      )
+    })
+  })
+
+  describe("keys", () => {
+    const a = analyze(loadTrace(A))
+    const b = analyze(loadTrace(B))
+    const ctx = (s: ReturnType<typeof initialState>) => ({
+      a,
+      b,
+      rows: 20,
+      columns: 120,
+      listLength: listLength(a, b, s),
+      problems: problemIndices(a, b, s)
+    })
+    const press = (
+      s: ReturnType<typeof initialState>,
+      input: string,
+      key: Record<string, boolean> = {}
+    ) => {
+      const next = reduce(s, input, key, ctx(s))
+      if (next === "quit") throw new Error("quit")
+      return next
+    }
+
+    it("switches views, moves the selection and expands", () => {
+      let s = initialState()
+      s = press(s, "2")
+      expect(s.view).to.equal(1)
+      s = press(s, "j")
+      s = press(s, "j")
+      expect(s.selected).to.equal(2)
+      s = press(s, "G")
+      expect(s.selected).to.equal(9)
+      s = press(s, "", { return: true })
+      expect(s.expanded).to.equal(10)
+      s = press(s, "d")
+      expect(s.paneMode).to.equal("diff")
+      s = press(s, "", { tab: true })
+      expect(s.view).to.equal(2)
+      s = press(s, "[")
+      expect(s.view).to.equal(1)
+      expect(reduce(s, "q", {}, ctx(s))).to.equal("quit")
+    })
+
+    it("jumps to problems and explains checks", () => {
+      let s = initialState()
+      s = press(s, "n")
+      expect(s.checkIndex).to.equal(0)
+      expect(s.message).to.include("sip/record-route-self")
+      s = press(s, "n")
+      s = press(s, "n")
+      expect(s.checkIndex).to.equal(2)
+      s = press(s, "n")
+      expect(s.message).to.equal("no more problems")
+      const bs = (x: ReturnType<typeof initialState>) =>
+        reduce(
+          x,
+          "n",
+          {},
+          {
+            a: b,
+            b: undefined,
+            rows: 20,
+            columns: 120,
+            listLength: listLength(b, undefined, x),
+            problems: problemIndices(b, undefined, x)
+          }
+        )
+      const ladder = bs(initialState(1)) as ReturnType<typeof initialState>
+      // The folded retransmission is not a visible row, so the 500 is row 5
+      expect(ladder.selected).to.equal(5)
+      expect(bs(ladder)).to.include({ message: "no more problems" })
+    })
+
+    it("filters and refuses compare without a file", () => {
+      let s = initialState(1)
+      s = press(s, "/")
+      s = press(s, "5")
+      s = press(s, "x")
+      s = press(s, "x")
+      s = press(s, "", { return: true })
+      expect(s.filter).to.equal("5xx")
+      s = press(s, "", { escape: true })
+      expect(s.filter).to.equal("")
+      const noB = reduce(
+        initialState(),
+        "4",
+        {},
+        { a, b: undefined, rows: 20, columns: 120, listLength: 0, problems: [] }
+      )
+      expect(noB).to.include({
+        view: 0,
+        message: "no second file loaded; run with --compare <file>"
+      })
+    })
+  })
+
+  describe("static", () => {
+    const a = analyze(loadTrace(A))
+    const b = analyze(loadTrace(B))
+
+    it("prints the identity lines, no trailing spaces, max 120 columns", () => {
+      const out = renderStatic(a, b, { view: "all", columns: 200, g: UNICODE })
+      const first = out.split("\n")[1]
+      expect(first).to.match(
+        /^routr\. trace {2}call-2\.18\.0\.jsonl {2}1-25@10\.111\.221\.22 {2,}FORWARDED 16\.1 ms$/
+      )
+      expect(first.length).to.equal(120)
+      expect(out).to.include("──── compare ")
+      expect(out).to.include("≠  A2 B2")
+      expect(out).to.include("\nFACTS\n")
+      expect(out).to.include("\nLADDER\n")
+      out.split("\n").forEach((line) => {
+        expect(line).to.equal(line.replace(/\s+$/, ""))
+        expect(line.length).to.be.at.most(120)
+      })
+      expect(out.endsWith("\n")).to.equal(true)
+    })
+
+    it("prints the selected record's hops and diff on the ladder page", () => {
+      const out = renderStatic(a, undefined, {
+        view: "ladder",
+        columns: 100,
+        select: 7,
+        g: UNICODE
+      })
+      expect(out).to.include("record 7 · re-INVITE c1 · forwarded")
+      expect(out).to.include("diff  re-INVITE c1  in → out")
+      expect(out).to.include("├ connect-pr")
+    })
+  })
+
+  describe("commands", () => {
+    let config: Config
+    before(async () => {
+      config = await Config.load(path.join(__dirname, ".."))
+    })
+
+    it("lint prints findings with their spec and honours --fail-on", async () => {
+      const { stdout } = await captureOutput(async () =>
+        LintCommand.run([A, "--sip-connect", "--ascii"], config)
+      )
+      expect(stdout).to.include("sip/record-route-self")
+      expect(stdout).to.include("RFC 3261")
+      expect(stdout).to.include("rules: sip, sip-connect")
+      const json = await captureOutput(async () =>
+        LintCommand.run([A, "--json"], config)
+      )
+      const parsed = JSON.parse(json.stdout)
+      expect(parsed.profiles).to.deep.equal(["sip"])
+      expect(
+        parsed.files[0].findings.map((f: { rule: string }) => f.rule)
+      ).to.include("sip/retransmission")
+      const failed = await captureOutput(async () =>
+        LintCommand.run([A, "--fail-on", "warning"], config)
+      )
+      expect(
+        (failed.error as { oclif?: { exit?: number } })?.oclif?.exit
+      ).to.equal(TraceExit.FAIL_ON)
+    })
+
+    it("compat replays the corpus and reports drift", async () => {
+      const manifest = path.join(FIX, "corpus", "manifest.yaml")
+      const faithful = await runCompat({
+        manifestPath: manifest,
+        profiles: [],
+        against: "stub",
+        send: async (_, request) => {
+          const record = loadTrace(
+            path.join(FIX, "corpus", "seet_dod-invite_seet_20261023.jsonl")
+          ).records.find(
+            (r) =>
+              JSON.stringify(r.request.message) ===
+              JSON.stringify(request.message)
+          )
+          return {
+            ...request,
+            message: record.response?.message ?? request.message
+          }
+        }
+      })
+      expect(faithful[0].replayed).to.equal(true)
+      expect(faithful[0].drifts).to.deep.equal([])
+      expect(faithful[0].findings.map((f) => f.rule)).to.include(
+        "sip/retransmission"
+      )
+
+      const drifted = await runCompat({
+        manifestPath: manifest,
+        profiles: [],
+        against: "stub",
+        send: async (_, request) => ({
+          ...request,
+          message: { ...request.message, maxForwards: { maxForwards: 1 } }
+        })
+      })
+      expect(drifted[0].drifts.length).to.be.greaterThan(0)
+      expect(drifted[0].drifts.map((d) => d.reason).join(" ")).to.include(
+        "Max-Forwards"
+      )
+
+      const lintOnly = await runCompat({
+        manifestPath: manifest,
+        profiles: [],
+        send: async () => {
+          throw new Error("must not be called")
+        }
+      })
+      expect(lintOnly[0].replayed).to.equal(false)
+    })
+
+    it("replay --static prints the summary page", async () => {
+      const { stdout } = await captureOutput(async () =>
+        ReplayCommand.run([A, "--static", "--columns", "100"], config)
+      )
+      expect(stdout).to.include("FORWARDED  16.1 ms  11 messages")
+      expect(stdout).to.include("─INVITE c2 ×2")
+    })
+
+    it("replay exits 3 on a version it cannot read and 4 with --fail-on", async () => {
+      const lines = fs.readFileSync(B, "utf8").split("\n").filter(Boolean)
+      const future = tmp(
+        "future2.jsonl",
+        lines.map((l) => l.replace(VERSION_1, VERSION_2)).join("\n")
+      )
+      const { error } = await captureOutput(async () =>
+        ReplayCommand.run([future, "--static"], config)
+      )
+      expect(error?.message).to.include(
+        "is trace version 2; this rctl reads version 1"
+      )
+      expect((error as { oclif?: { exit?: number } })?.oclif?.exit).to.equal(3)
+      const failed = await captureOutput(async () =>
+        ReplayCommand.run([B, "--static", "--fail-on", "rejected"], config)
+      )
+      expect(
+        (failed.error as { oclif?: { exit?: number } })?.oclif?.exit
+      ).to.equal(4)
+      const fine = await captureOutput(async () =>
+        ReplayCommand.run([A, "--static", "--fail-on", "rejected"], config)
+      )
+      expect(fine.error).to.equal(undefined)
+    })
+
+    it("validate reports the record count or the first problem", async () => {
+      const ok = await captureOutput(async () =>
+        ValidateCommand.run([A], config)
+      )
+      expect(ok.stdout).to.include(
+        "call-2.18.0.jsonl: 11 records, trace version 1, Call-ID 1-25@10.111.221.22"
+      )
+      const bad = await captureOutput(async () =>
+        ValidateCommand.run([tmp("v.jsonl", `{${VERSION_1}}`)], config)
+      )
+      expect(bad.error?.message).to.include("v.jsonl line 1:")
+    })
+  })
+})

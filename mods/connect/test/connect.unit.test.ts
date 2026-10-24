@@ -360,6 +360,51 @@ describe("@routr/connect", () => {
       .lengthOf(5)
   })
 
+  it("flags the call for recording when the trunk or the agent asks for it", async () => {
+    const req = createRequest({
+      fromUser: "1001",
+      fromDomain: "sip.local",
+      toUser: "17853178070",
+      toDomain: "sip.local"
+    })
+    const agent = (
+      await apiClient.agents.findBy({
+        fieldName: "username",
+        fieldValue: "1001"
+      })
+    ).items[0] as CC.Agent
+    const trunk = agent.domain.egressPolicies[0].number.trunk
+
+    const before = await router(locationAPI, apiClient)(req)
+    expect((before.route as Route).metadata).to.not.have.property(
+      "trace.record"
+    )
+    expect((before.route as Route).metadata).to.have.property(
+      "trace.direction",
+      "agent-to-pstn"
+    )
+    expect((before.route as Route).metadata).to.have.property(
+      "trace.trunk",
+      trunk.ref
+    )
+
+    trunk.trace = { enabled: true }
+    const viaTrunk = await router(locationAPI, apiClient)(req)
+    expect((viaTrunk.route as Route).metadata).to.have.property(
+      "trace.record",
+      trunk.ref
+    )
+    delete trunk.trace
+
+    agent.trace = { enabled: true }
+    const viaAgent = await router(locationAPI, apiClient)(req)
+    expect((viaAgent.route as Route).metadata).to.have.property(
+      "trace.record",
+      agent.ref
+    )
+    delete agent.trace
+  })
+
   it("handles a request from pstn to agent or peer", async () => {
     const req = createRequest({
       fromUser: "+19195551212",

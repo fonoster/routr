@@ -43,6 +43,7 @@ describe("@routr/pgdata/mappers/domain", () => {
       extended: {
         test: "test"
       },
+      traceEnabled: false,
       createdAt: new Date().getTime(),
       updatedAt: new Date().getTime()
     }
@@ -80,6 +81,7 @@ describe("@routr/pgdata/mappers/domain", () => {
       extended: {
         test: "test"
       },
+      traceEnabled: false,
       accessControlList: {
         apiVersion: CC.APIVersion.V2,
         ref: "acl-01",
@@ -100,8 +102,9 @@ describe("@routr/pgdata/mappers/domain", () => {
 
     // Assert
     expect(result)
-      .excludingEvery(["createdAt", "updatedAt"])
+      .excludingEvery(["createdAt", "updatedAt", "traceEnabled", "trace"])
       .to.deep.equal(domain)
+    expect(result.trace).to.deep.equal({ enabled: false })
   })
 
   describe("throws errors", () => {
@@ -116,6 +119,7 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
+        traceEnabled: false,
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime()
       }
@@ -140,6 +144,7 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
+        traceEnabled: false,
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime()
       }
@@ -168,6 +173,7 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
+        traceEnabled: false,
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime()
       }
@@ -190,6 +196,7 @@ describe("@routr/pgdata/mappers/domain", () => {
         extended: {
           test: "test"
         },
+        traceEnabled: false,
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime()
       }

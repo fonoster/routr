@@ -30,6 +30,7 @@ export const getConfig = (
   path: string
 ): E.Either<Error, MessageDispatcherConfig> => {
   const c = H.readConfigFile(path) as unknown as {
+    ref: string
     spec: MessageDispatcherConfig
   }
 
@@ -46,5 +47,5 @@ export const getConfig = (
   // Re-insert processors with matchFunc now as a function
   c.spec.processors = processors
 
-  return E.right(c.spec)
+  return E.right({ ...c.spec, ref: c.ref })
 }

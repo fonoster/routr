@@ -70,7 +70,8 @@
                   "guides/deploy-with-docker",
                   "guides/deploy-on-kubernetes",
                   "guides/secure-the-server",
-                  "guides/scale-with-redis"
+                  "guides/scale-with-redis",
+                  "guides/record-and-replay-calls"
                 ]
               },
               {

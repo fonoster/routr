@@ -48,6 +48,7 @@ export function mapToTrunk(config: TrunkConfig): Trunk {
         priority: entry.priority
       }
     }),
+    trace: config.spec.trace,
     createdAt: new Date().getTime(),
     updatedAt: new Date().getTime()
   }

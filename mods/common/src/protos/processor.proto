@@ -83,6 +83,10 @@ message MessageRequest {
   repeated string localnets = 7;
   fonoster.routr.sipmessage.v2beta1.SIPMessage message = 8;
   map<string, string> metadata = 9;
+  // Version of the EdgePort that received the message (e.g. 2.18.0)
+  string edge_port_version = 10;
+  // Local socket the EdgePort received the message on
+  NetInterface received_on = 11;
 }
 
 message MessageResponse {

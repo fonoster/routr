@@ -24,7 +24,8 @@ import {
   HeaderModifier,
   Route,
   Method,
-  Verifier
+  Verifier,
+  Trace
 } from "@routr/common"
 import {
   createPAssertedIdentity,
@@ -37,7 +38,9 @@ import {
   getSipUri,
   getTrunkURI,
   getVerifierImpl,
-  hasXConnectObjectHeader
+  hasXConnectObjectHeader,
+  recordingMetadata,
+  domainOf
 } from "./utils"
 import { MessageRequest, Target as T, Extensions as E } from "@routr/processor"
 import { ILocationService, Backend } from "@routr/location"
@@ -166,7 +169,20 @@ export function router(location: ILocationService, apiClient: CC.APIClient) {
             direction,
             route: {
               ...route,
-              metadata: extended
+              // Resource metadata links the call to an account; the recording
+              // flag comes from any resource the call touches that asks for
+              // it; trace.* keys annotate the hop in the recording
+              metadata: {
+                ...extended,
+                ...recordingMetadata(
+                  caller,
+                  domainOf(caller),
+                  callee,
+                  domainOf(callee)
+                ),
+                ...Trace.traceAnnotations({ direction }),
+                ...route.metadata
+              }
             }
           }
         : {
@@ -271,6 +287,12 @@ async function fromPSTN(
 
   if (!route.headers) route.headers = []
 
+  route.metadata = {
+    ...route.metadata,
+    ...recordingMetadata(callee.trunk),
+    ...Trace.traceAnnotations({ trunk: callee.trunk?.ref })
+  }
+
   callee.extraHeaders?.forEach((prop: { name: string; value: string }) => {
     const p: HeaderModifier = {
       name: prop.name,
@@ -332,6 +354,10 @@ async function agentToPSTN(
     edgePortRef: req.edgePortRef,
     listeningPoints: req.listeningPoints,
     localnets: req.localnets,
+    metadata: {
+      ...recordingMetadata(trunk),
+      ...Trace.traceAnnotations({ trunk: trunk.ref })
+    },
     externalAddrs: req.externalAddrs,
     headers: [
       // TODO: Find a more deterministic way to re-add the Privacy header
@@ -426,6 +452,10 @@ async function peerToPSTN(
     edgePortRef: req.edgePortRef,
     listeningPoints: req.listeningPoints,
     localnets: req.localnets,
+    metadata: {
+      ...recordingMetadata(number.trunk),
+      ...Trace.traceAnnotations({ trunk: number.trunk?.ref })
+    },
     externalAddrs: req.externalAddrs,
     headers: [
       // TODO: Find a more deterministic way to re-add the Privacy header

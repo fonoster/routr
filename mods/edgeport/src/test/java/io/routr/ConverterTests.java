@@ -541,4 +541,34 @@ public class ConverterTests {
     assertEquals(viaList.get(2).getHost(), viaListOut.get(2).getHost());
     assertNull(requestOut.getHeader("X-Gateway-Auth"));
   }
+
+  @Test
+  public void testReceivedOn() throws Exception {
+    MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
+    var raw = "INVITE sip:1002@sip.local SIP/2.0\r\n"
+      + "Via: SIP/2.0/UDP 10.111.221.22:5060;branch=z9hG4bK-1\r\n"
+      + "From: <sip:1001@sip.local>;tag=1\r\n"
+      + "To: <sip:1002@sip.local>\r\n"
+      + "Call-ID: call-1\r\n"
+      + "CSeq: 1 INVITE\r\n"
+      + "Max-Forwards: 70\r\n"
+      + "Content-Length: 0\r\n\r\n";
+    var request = (gov.nist.javax.sip.message.SIPRequest) messageFactory.createRequest(raw);
+    request.setLocalAddress(java.net.InetAddress.getByName("10.111.221.2"));
+    request.setLocalPort(5060);
+
+    var converter = new MessageConverter("edgeport-01");
+    converter.setListeningPoints(new ArrayList<>());
+    converter.setExternalAddrs(new ArrayList<>());
+    converter.setLocalnets(new ArrayList<>());
+    var messageRequest = converter.createMessageRequest(request, null, null);
+
+    assertEquals("10.111.221.2", messageRequest.getReceivedOn().getHost());
+    assertEquals(5060, messageRequest.getReceivedOn().getPort());
+    assertEquals(io.routr.common.Transport.UDP, messageRequest.getReceivedOn().getTransport());
+
+    request.setLocalAddress(java.net.InetAddress.getByName("0.0.0.0"));
+    var wildcard = converter.createMessageRequest(request, null, null);
+    assertEquals("", wildcard.getReceivedOn().getHost());
+  }
 }

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { LoadBalancingAlgorithm, Privacy, Transport } from "../types"
-import { APIVersion, Kind } from "./types"
+import { APIVersion, Kind, TraceSettings } from "./types"
 
 export interface ConfigBase {
   apiVersion: APIVersion
@@ -45,6 +45,7 @@ export interface AgentConfig extends ConfigBase {
     maxContacts?: number
     expires?: number
     enabled: boolean
+    trace?: TraceSettings
   }
 }
 
@@ -62,6 +63,7 @@ export interface PeerConfig extends ConfigBase {
       algorithm: LoadBalancingAlgorithm
       withSessionAffinity: boolean
     }
+    trace?: TraceSettings
   }
 }
 
@@ -83,6 +85,7 @@ export interface DomainConfig extends ConfigBase {
       domainUri: string
       egressPolicies?: { rule: string; numberRef: string }[]
     }
+    trace?: TraceSettings
   }
 }
 
@@ -130,6 +133,7 @@ export interface TrunkConfig extends ConfigBase {
         enabled: boolean
       }[]
     }
+    trace?: TraceSettings
   }
 }
 

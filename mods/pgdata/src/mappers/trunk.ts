@@ -28,6 +28,7 @@ import { ACLManager } from "./acl"
 import { CredentialsManager } from "./credentials"
 import { EntityManager } from "./manager"
 import { JsonValue } from "@prisma/client/runtime/library"
+import { withoutTrace, withoutTraceEnabled } from "./utils"
 
 type TrunkWithEagerLoading = Prisma.TrunkGetPayload<{
   include: {
@@ -73,7 +74,8 @@ export class TrunkManager extends EntityManager {
   } {
     return {
       // TODO: Set a default value for apiVersion
-      ...this.trunk,
+      ...withoutTrace(this.trunk),
+      traceEnabled: this.trunk.trace?.enabled ?? false,
       apiVersion: "v2" as APIVersion,
       accessControlListRef: this.trunk.accessControlListRef || null,
       inboundCredentialsRef: this.trunk.inboundCredentialsRef || null,
@@ -90,7 +92,8 @@ export class TrunkManager extends EntityManager {
   static mapToDto(trunk: TrunkWithEagerLoading): CC.Trunk {
     return trunk
       ? {
-          ...trunk,
+          ...withoutTraceEnabled(trunk),
+          trace: { enabled: trunk.traceEnabled },
           apiVersion: trunk.apiVersion as CC.APIVersion,
           accessControlListRef: trunk.accessControlList?.ref,
           inboundCredentialsRef: trunk.inboundCredentials?.ref,

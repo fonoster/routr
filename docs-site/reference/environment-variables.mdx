@@ -69,6 +69,16 @@ See [EdgePort](/reference/components/edgeport) for details.
 | `LOG4J2` | `/etc/routr/log4j2.yaml` | Log4j2 configuration for the EdgePort |
 | `JAVA_HOME` | `/service/jre` | Java runtime for the EdgePort |
 
+## Message Dispatcher
+
+| Name | Default | Description |
+| --- | --- | --- |
+| `RECORD_MESSAGES` | | `true` records calls as one `.jsonl` file per call. See [Record and replay calls](/guides/record-and-replay-calls) |
+| `RECORD_MESSAGES_PATH` | `/var/routr/traces` | Directory the recordings are written to; mount it to keep them |
+| `RECORD_MESSAGES_MODE` | `flagged` | `flagged` records the calls that touch a Trunk, Agent, Peer or Domain whose `trace.enabled` is `true`; `all` records every call |
+
+These three variables exist because `routr-one` has no configuration file. The standalone Dispatcher image takes the same settings, plus `redact` and `lint`, from the `recording` block of its configuration file.
+
 ## Connect processor
 
 See [Connect processor](/reference/components/connect) for details.

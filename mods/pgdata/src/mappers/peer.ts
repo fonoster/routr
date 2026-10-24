@@ -23,6 +23,7 @@ import { ACLManager } from "./acl"
 import { CredentialsManager } from "./credentials"
 import { EntityManager } from "./manager"
 import { JsonValue } from "@prisma/client/runtime/library"
+import { withoutTrace, withoutTraceEnabled } from "./utils"
 
 type PeerWithDomainAndCredentials = Prisma.PeerGetPayload<{
   include: {
@@ -71,7 +72,8 @@ export class PeerManager extends EntityManager {
 
     return {
       // TODO: Set a default value for apiVersion
-      ...this.peer,
+      ...withoutTrace(this.peer),
+      traceEnabled: this.peer.trace?.enabled ?? false,
       apiVersion: "v2" as APIVersion,
       balancingAlgorithm: normalizeAlgorithm(this.peer.balancingAlgorithm),
       withSessionAffinity: this.peer.withSessionAffinity,
@@ -87,7 +89,8 @@ export class PeerManager extends EntityManager {
   static mapToDto(peer: PeerWithDomainAndCredentials): CC.Peer {
     return peer
       ? {
-          ...peer,
+          ...withoutTraceEnabled(peer),
+          trace: { enabled: peer.traceEnabled },
           apiVersion: peer.apiVersion as CC.APIVersion,
           balancingAlgorithm:
             peer.balancingAlgorithm as CT.LoadBalancingAlgorithm,

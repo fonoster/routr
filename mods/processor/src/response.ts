@@ -68,16 +68,19 @@ export default class Response {
    *
    * @param {MessageRequest} request - The request message.
    * @param {object[]} extraHeaders - Optional extra headers to be sent.
+   * @param {Record<string, string>} metadata - Optional metadata for the dispatcher (e.g. the recording flag).
    */
   sendRegisterOk(
     request: MessageRequest,
-    extraHeaders?: Array<{ name: string; value: string }>
+    extraHeaders?: Array<{ name: string; value: string }>,
+    metadata?: Record<string, string>
   ) {
     this.callback(null, {
       message: {
         ...buildResponse({ code: CT.ResponseType.OK, extraHeaders }).message,
         contact: request.message.contact
-      }
+      },
+      ...(metadata && Object.keys(metadata).length ? { metadata } : {})
     })
   }
 

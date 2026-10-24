@@ -49,6 +49,10 @@ spec:
             - name: config
               mountPath: /etc/routr/dispatcher.yaml
               subPath: dispatcher.yaml
+            {{- if .Values.dispatcher.recording.enabled }}
+            - name: traces
+              mountPath: {{ .Values.dispatcher.recording.path }}
+            {{- end }}
           resources:
             {{- if .Values.dispatcher.resources.limits }}
             limits:
@@ -64,3 +68,12 @@ spec:
         - name: config
           configMap:
             name: {{ .Release.Name }}-routr-dispatcher-config
+        {{- if .Values.dispatcher.recording.enabled }}
+        - name: traces
+          {{- if .Values.dispatcher.recording.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.dispatcher.recording.existingClaim }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}

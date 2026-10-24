@@ -52,7 +52,8 @@ describe("@routr/pgdata/mappers/peer", () => {
       expires: 3600,
       extended: {
         test: "test"
-      }
+      },
+      traceEnabled: false
     }
 
     // Act
@@ -112,6 +113,7 @@ describe("@routr/pgdata/mappers/peer", () => {
       extended: {
         test: "test"
       },
+      traceEnabled: false,
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -121,8 +123,9 @@ describe("@routr/pgdata/mappers/peer", () => {
 
     // Assert
     expect(result)
-      .excludingEvery(["createdAt", "updatedAt"])
+      .excludingEvery(["createdAt", "updatedAt", "traceEnabled", "trace"])
       .to.deep.equal(peer)
+    expect(result.trace).to.deep.equal({ enabled: false })
   })
 
   describe("throws errors", () => {
@@ -143,7 +146,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         updatedAt: new Date().getTime(),
         extended: {
           test: "test"
-        }
+        },
+        traceEnabled: false
       }
 
       // Act
@@ -172,7 +176,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         maxContacts: -1,
         extended: {
           test: "test"
-        }
+        },
+        traceEnabled: false
       }
 
       // Act
@@ -205,7 +210,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         updatedAt: new Date().getTime(),
         extended: {
           test: "test"
-        }
+        },
+        traceEnabled: false
       }
 
       // Act
@@ -232,7 +238,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         updatedAt: new Date().getTime(),
         extended: {
           test: "test"
-        }
+        },
+        traceEnabled: false
       }
 
       // Act
@@ -259,7 +266,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         updatedAt: new Date().getTime(),
         extended: {
           test: "test"
-        }
+        },
+        traceEnabled: false
       }
 
       // Act
@@ -286,7 +294,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         updatedAt: new Date().getTime(),
         extended: {
           test: "test"
-        }
+        },
+        traceEnabled: false
       }
 
       // Act
@@ -313,7 +322,8 @@ describe("@routr/pgdata/mappers/peer", () => {
         updatedAt: new Date().getTime(),
         extended: {
           test: "test"
-        }
+        },
+        traceEnabled: false
       }
 
       // Act

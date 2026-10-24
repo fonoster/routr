@@ -47,6 +47,7 @@ describe("@routr/pgdata/mappers/agent", () => {
       extended: {
         test: "test"
       },
+      traceEnabled: false,
       maxContacts: 1,
       expires: 3600,
       createdAt: new Date().getTime(),
@@ -90,6 +91,7 @@ describe("@routr/pgdata/mappers/agent", () => {
       extended: {
         test: "test"
       },
+      traceEnabled: false,
       createdAt: new Date(),
       updatedAt: new Date(),
       maxContacts: 1,
@@ -116,6 +118,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
+        traceEnabled: false,
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -138,8 +141,9 @@ describe("@routr/pgdata/mappers/agent", () => {
 
     // Assert
     expect(result)
-      .excludingEvery(["createdAt", "updatedAt"])
+      .excludingEvery(["createdAt", "updatedAt", "traceEnabled", "trace"])
       .to.deep.equal(agent)
+    expect(result.trace).to.deep.equal({ enabled: false })
   })
 
   describe("throws errors", () => {
@@ -158,6 +162,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
+        traceEnabled: false,
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime()
       }
@@ -186,6 +191,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
+        traceEnabled: false,
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime()
       }
@@ -218,6 +224,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
+        traceEnabled: false,
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime()
       }
@@ -244,6 +251,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
+        traceEnabled: false,
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime()
       }
@@ -270,6 +278,7 @@ describe("@routr/pgdata/mappers/agent", () => {
         extended: {
           test: "test"
         },
+        traceEnabled: false,
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime()
       }

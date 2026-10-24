@@ -18,6 +18,8 @@
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: any
+// Injected by webpack from mods/edgeport/package.json at bundle time
+declare const EDGEPORT_VERSION: string | undefined
 
 import { EXTERNAL_ADDRS, LOCALNETS } from "./envs"
 import {
@@ -83,7 +85,15 @@ export default function edgePort(config: EdgePortConfig) {
     config.spec.localnets?.forEach((net: string) => localnets.add(net))
   }
 
+  const version =
+    typeof EDGEPORT_VERSION === "string" ? EDGEPORT_VERSION : "unknown"
+
   sipProvider.addSipListener(
-    new GRPCSipListener(sipProvider, config, externalAddrs, localnets)
+    new GRPCSipListener(
+      sipProvider,
+      { ...config, version },
+      externalAddrs,
+      localnets
+    )
   )
 }

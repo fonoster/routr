@@ -12,6 +12,20 @@ data:
     ref: message-dispatcher
     spec:
       bindAddr: 0.0.0.0:51901
+      {{- if .Values.dispatcher.recording.enabled }}
+      recording:
+        enabled: true
+        path: {{ .Values.dispatcher.recording.path }}
+        mode: {{ .Values.dispatcher.recording.mode }}
+        redact: {{ .Values.dispatcher.recording.redact | default true }}
+        {{- if .Values.dispatcher.recording.lint.profiles }}
+        lint:
+          profiles:
+          {{- range .Values.dispatcher.recording.lint.profiles }}
+            - {{ . }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
       processors:
         {{- range .Values.dispatcher.processors }}
         - ref: {{ .ref }}

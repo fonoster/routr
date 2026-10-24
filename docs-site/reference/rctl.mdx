@@ -1282,6 +1282,113 @@ Example:
 rctl plugins update
 ```
 
+## Call traces
+
+`rctl trace` works on call recordings written by the Message Dispatcher (see [Record and replay calls](/guides/record-and-replay-calls)). It needs Node.js 22 or later and talks to no server except `trace send`.
+
+### `rctl trace replay`
+
+Replays a recorded call: the ladder of every message, what each component changed, and the rule findings on the first forwarded INVITE.
+
+```text
+rctl trace replay FILE [-c <file>] [-s] [-v summary|ladder|path|compare|all] [--select <n>] [--columns <n>] [--ascii] [--sip-connect] [--fail-on rejected|warning]
+```
+
+| Argument or flag | Default | Description |
+| --- | --- | --- |
+| `FILE` | - | A `.jsonl` trace written by the Dispatcher. |
+| `-c, --compare <file>` | - | Second trace to line up with the first. |
+| `-s, --static` | - | Print one page and exit; implied when stdout is not a terminal. |
+| `-v, --view` | `summary` | View to open or print: `summary`, `ladder`, `path`, `compare`, or `all` (static only). |
+| `--select <n>` | - | Record `seq` to select; in static mode its hops and diff are printed. |
+| `--columns <n>` | terminal width, else `100` | Width of a static page, never above `120`. |
+| `--ascii` | - | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales). |
+| `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules. The `sip` rules always run. |
+| `--fail-on` | - | Exit `4` when the call has a rejected message (`rejected`) or a failed or warned check (`warning`). |
+
+Keys in the viewer: `1`–`4` views, `j`/`k` select, `Enter` hops, `d` headers or diff, `p` pane, `t` time column, `c` compare overlay, `x` retransmissions, `/` filter, `n`/`N` next or previous problem, `?` help, `q` quit. Exit codes: `0` printed, `1` usage, `2` unreadable file, `3` unsupported trace version, `4` the `--fail-on` condition.
+
+Example:
+
+```bash
+rctl trace replay call.jsonl --compare call-before-upgrade.jsonl
+rctl trace replay call.jsonl --static --view ladder --select 2
+```
+
+### `rctl trace validate`
+
+Checks that every line of a trace is a record this `rctl` can read: valid JSON, a supported `traceVersion`, and the record schema. Exits `2` on a bad file and `3` on a version this build does not read.
+
+```text
+rctl trace validate FILE
+```
+
+### `rctl trace send`
+
+Sends one recorded message to a running Dispatcher or processor and prints how the live answer differs from the recorded one.
+
+```text
+rctl trace send FILE -t <host:port> [--seq <n>] [--json]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `-t, --to` | - | `host:port` of the Processor gRPC service. Required. |
+| `--seq <n>` | first forwarded INVITE | Record to send. |
+| `--json` | - | Print the live answer as JSON instead of a diff. |
+
+Via branches, From and To tags and digest nonces differ between runs by design and never count as a difference.
+
+### `rctl trace lint`
+
+Evaluates the SIP rules on every record of one or more traces and prints each finding with its spec citation. The `sip` profile (RFC 3261 and companions) always runs; `--sip-connect` adds the SIPconnect 1.1 profile.
+
+```text
+rctl trace lint FILE... [--sip-connect] [--fail-on error|warning] [--json] [--ascii]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules. |
+| `--fail-on` | - | Exit `4` when a finding of this severity or worse exists. |
+| `--json` | - | Print the findings as JSON: `{ profiles, files: [{ file, records, findings: [{ seq, rule, profile, severity, spec, message, side, header }] }] }`. |
+
+Example:
+
+```bash
+rctl trace lint traces/*.jsonl --sip-connect --fail-on warning
+```
+
+### `rctl trace compat`
+
+Replays the known-good corpus through a running Dispatcher (or processor) and reports every message whose outcome or outgoing headers drifted from the recording, plus the rule findings of each file. `npm run compat` wraps it for the build. See [Keep a known-good corpus](/guides/record-and-replay-calls#keep-a-known-good-corpus).
+
+```text
+rctl trace compat MANIFEST [--against <host:port>] [--sip-connect] [--fail-on drift|error|warning] [--json] [--ascii]
+```
+
+| Argument or flag | Default | Description |
+| --- | --- | --- |
+| `MANIFEST` | - | The corpus manifest, `etc/corpus/manifest.yaml` in the repository. |
+| `--against` | - | `host:port` of the Dispatcher (`51901`) or a processor (`51904`). Omitted, the files are only linted. |
+| `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules on every file, on top of each file's own `profiles`. |
+| `--fail-on` | - | Exit `4` on drift (`drift`), on drift or an error finding (`error`), or on any finding (`warning`). |
+| `--json` | - | Print the report as JSON. |
+
+### `rctl trace sanitize`
+
+Prepares a recording for the corpus: recomputes every digest response with the corpus test credentials, so the file still authenticates when replayed, and applies literal rewrites to numbers, hosts and addresses across the whole file. Refuses a file whose digest username has no credential.
+
+```text
+rctl trace sanitize FILE --credentials <credentials.yaml> [--rewrite old=new]... [--out <file>]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--credentials` | - | A simpledata `credentials.yaml`. Required. |
+| `--rewrite` | - | Literal rewrite `old=new`, applied to every string of every record. Repeatable. |
+| `--out` | stdout | Where to write the sanitized file. |
+
 ## Related
 
 <CardGroup cols={2}>

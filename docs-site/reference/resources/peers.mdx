@@ -21,6 +21,7 @@ A Peer is a trusted SIP service, such as Asterisk or FreeSWITCH, that registers 
 | `spec.maxContacts` | `maxContacts` | `integer` | No | `-1` | Maximum number of registered instances. `-1` means no limit; `0` accepts none. |
 | `spec.expires` | `expires` | `integer` | No | `0` (pgdata) | Value, in seconds, to override the expires requested by the Peer. |
 | `spec.enabled` | `enabled` | `boolean` | No | `true` (pgdata) | Whether the Peer is enabled. |
+| `spec.trace.enabled` | `trace.enabled` | `boolean` | No | `false` | Record every message of the calls that touch this Peer (the Dispatcher must have recording on, in `flagged` mode). See [Record and replay calls](/guides/record-and-replay-calls). |
 | - | `extended` | `object` | No | - | Custom attributes. API only. |
 
 The API response also includes `accessControlList` and `credentials`, the objects the refs point to.

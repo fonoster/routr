@@ -50,6 +50,7 @@ import java.util.ListIterator;
 public class MessageConverter {
   private static final Logger LOG = LogManager.getLogger(MessageConverter.class);
   private final String edgePortRef;
+  private String edgePortVersion = "";
   private List<NetInterface> listeningPoints;
   private List<String> externalAddrs;
   private List<String> localnets;
@@ -272,13 +273,41 @@ public class MessageConverter {
       .newBuilder()
       .setRef(callId)
       .setEdgePortRef(this.edgePortRef)
+      .setEdgePortVersion(this.edgePortVersion)
       .setMethod(method)
       .setSender(sender)
       .addAllListeningPoints(this.listeningPoints)
       .addAllExternalAddrs(this.externalAddrs)
       .addAllLocalnets(this.localnets)
       .setMessage(convertToMessageDTO(message))
+      .setReceivedOn(getReceivedOn(message))
       .build();
+  }
+
+  // The local socket the stack received the message on: the fact the
+  // trace needs to tell an internal interface from an external one.
+  private static NetInterface getReceivedOn(final Message message) {
+    if (!(message instanceof gov.nist.javax.sip.message.SIPMessage)) {
+      return NetInterface.newBuilder().build();
+    }
+    var sipMessage = (gov.nist.javax.sip.message.SIPMessage) message;
+    var localAddress = sipMessage.getLocalAddress();
+    ViaHeader via = (ViaHeader) message.getHeader(ViaHeader.NAME);
+    // A stack bound to every interface reports the wildcard, which names no
+    // interface; the field is left empty rather than misleading
+    if (localAddress == null || localAddress.isAnyLocalAddress()
+        || via == null || via.getTransport() == null) {
+      return NetInterface.newBuilder().build();
+    }
+    return NetInterface.newBuilder()
+      .setHost(localAddress.getHostAddress())
+      .setPort(sipMessage.getLocalPort())
+      .setTransport(Transport.valueOf(via.getTransport().toUpperCase()))
+      .build();
+  }
+
+  public void setEdgePortVersion(final String edgePortVersion) {
+    this.edgePortVersion = edgePortVersion == null ? "" : edgePortVersion;
   }
 
   public void setListeningPoints(final List<NetInterface> listeningPoints) {

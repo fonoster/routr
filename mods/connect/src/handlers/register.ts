@@ -35,7 +35,9 @@ import {
 import {
   findResource,
   getVerifierImpl,
-  hasXConnectObjectHeader
+  hasXConnectObjectHeader,
+  recordingMetadata,
+  domainOf
 } from "../utils"
 import { REGISTER_DEFAULT_EXPIRES } from "../envs"
 import { getLogger } from "@fonoster/logger"
@@ -89,7 +91,11 @@ export const handleRegister = (
           route: H.createRoute(request, REGISTER_DEFAULT_EXPIRES),
           maxContacts: peerOrAgent.maxContacts
         })
-        res.sendRegisterOk(request)
+        res.sendRegisterOk(
+          request,
+          undefined,
+          recordingMetadata(peerOrAgent, domainOf(peerOrAgent))
+        )
       } catch (e) {
         if (e.code === grpc.status.INVALID_ARGUMENT) {
           const details = (e as unknown as { details: string }).details

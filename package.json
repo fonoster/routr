@@ -30,6 +30,7 @@
     "make": "npm install && npm run build && npm run setup",
     "setup": "./.scripts/setup.sh",
     "test": "cross-env NODE_ENV=dev mocha mods/*/test/*.unit.test.ts --exit",
+    "compat": "./scripts/compat.sh",
     "test:echo": "cross-env NODE_ENV=dev ts-node .scripts/echo-test.ts",
     "test:integration": "cross-env NODE_ENV=dev nyc mocha mods/*/test/*.int.test.ts --exit",
     "test:graaljs": "cross-env NODE_ENV=dev nyc .scripts/mocha-wrapper.sh mods/**/graaljstest/*.unit.test.ts --exit",
