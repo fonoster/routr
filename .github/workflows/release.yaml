@@ -1,9 +1,10 @@
 name: Release
 
-# Every push to main that passes Tests is released: the conventional commits since the last
-# tag pick the bump (.scripts/next-release.sh), and a commit with nothing releasable (docs,
-# chore, ci) ships nothing. One release publishes, in order, the npm packages, the Docker
-# images, the Helm chart (only once its images exist) and the GitHub release.
+# Every push to main is released; Tests already passed on its pull request (see test.yaml).
+# The conventional commits since the last tag pick the bump (.scripts/next-release.sh), and
+# a push with nothing releasable (docs, chore, ci, test) ships nothing. One release
+# publishes, in order, the npm packages, the Docker images, the Helm chart (only once its
+# images exist) and the GitHub release with its shareable card (.scripts/release-card).
 #
 # Run it by hand to retry a release that failed partway; with no new commits it re-publishes
 # the current version from its tag, skipping whatever is already out:
@@ -12,13 +13,13 @@ name: Release
 # npm trusts only this file to publish the @routr packages (trusted publishing), so keep its name.
 
 on:
-  workflow_run:
-    workflows: [Tests]
-    types: [completed]
-    branches: [main]
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
-# Releases run one at a time, oldest first; a second one would race the first for the tag.
+# Releases run one at a time; a second one would race the first for the tag. Each checks out
+# the tip of main, so a run that waited still releases everything merged before it.
 concurrency:
   group: release
   cancel-in-progress: false
@@ -26,9 +27,6 @@ concurrency:
 jobs:
   npm:
     name: Publish to npm
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # id-token lets npm verify this run (trusted publishing), so no npm token is stored
@@ -49,17 +47,7 @@ jobs:
 
       - name: Plan the release
         id: plan
-        env:
-          TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          # Release only the commit Tests passed. If main has moved on, the Tests run for
-          # the newer commit releases it.
-          if [ -n "$TESTED_SHA" ] && [ "$(git rev-parse HEAD)" != "$TESTED_SHA" ]; then
-            echo "main moved past $TESTED_SHA; leaving the release to the next Tests run"
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
           bump=$(.scripts/next-release.sh)
           if [ "$bump" != "none" ]; then
             echo "Releasing a $bump"
@@ -254,12 +242,27 @@ jobs:
           exclude_types: other,doc,chore
           config_file: ./.scripts/tag-changelog-config.js
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+
+      # A card that fails to render leaves the release without one rather than holding it up.
+      - name: Render the release card
+        continue-on-error: true
+        run: |
+          npm ci --prefix .scripts/release-card
+          node .scripts/release-card/release-card.mjs "$TAG" "release-card-$TAG.png"
+
       - name: Publish the release
         env:
           NOTES: ${{ steps.changelog.outputs.changelog }}
         run: |
+          card=()
+          [ -f "release-card-$TAG.png" ] && card=("release-card-$TAG.png")
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release edit "$TAG" --draft=false --latest --notes "$NOTES"
+            if [ ${#card[@]} -gt 0 ]; then gh release upload "$TAG" "${card[@]}" --clobber; fi
           else
-            gh release create "$TAG" --title "Release $TAG" --latest --notes "$NOTES"
+            gh release create "$TAG" "${card[@]}" --title "Release $TAG" --latest --notes "$NOTES"
           fi
