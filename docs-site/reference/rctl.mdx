@@ -1299,14 +1299,14 @@ rctl trace replay FILE [-c <file>] [-s] [-v summary|ladder|path|compare|all] [--
 | `FILE` | - | A `.jsonl` trace written by the Dispatcher. |
 | `-c, --compare <file>` | - | Second trace to line up with the first. |
 | `-s, --static` | - | Print one page and exit; implied when stdout is not a terminal. |
-| `-v, --view` | `summary` | View to open or print: `summary`, `ladder`, `path`, `compare`, or `all` (static only). |
-| `--select <n>` | - | Record `seq` to select; in static mode its hops and diff are printed. |
-| `--columns <n>` | terminal width, else `100` | Width of a static page, never above `120`. |
+| `-v, --view` | `summary` | View to open or print: `summary`, `ladder`, `path`, `compare`, or `all` (`all` implies `--static`). |
+| `--select <n>` | - | Record `seq` to select. The viewer opens on it, with its hops open and no splash; in static mode its hops, headers and diff are printed. |
+| `--columns <n>` | terminal width, else `100` | Width of a static page, between `80` and `120`. |
 | `--ascii` | - | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales). |
 | `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules. The `sip` rules always run. |
-| `--fail-on` | - | Exit `4` when the call has a rejected message (`rejected`) or a failed or warned check (`warning`). |
+| `--fail-on` | - | In static mode, exit `4` when the call has a rejected message (`rejected`), or also a failed or warned check (`warning`). |
 
-Keys in the viewer: `1`–`4` views, `j`/`k` select, `Enter` hops, `d` headers or diff, `p` pane, `t` time column, `c` compare overlay, `x` retransmissions, `/` filter, `n`/`N` next or previous problem, `?` help, `q` quit. Exit codes: `0` printed, `1` usage, `2` unreadable file, `3` unsupported trace version, `4` the `--fail-on` condition.
+The viewer needs a terminal of at least 80×24 and picks a light or dark palette from the terminal's background colour at startup. Keys: `1`–`4` views, `Tab`/`[`/`]` next or previous view, `j`/`k` select, `g`/`G` first or last, `Ctrl-D`/`Ctrl-U` half a page, `Enter` hops, `d` headers or diff (in Compare, the A/B diff), `p` pane, `t` time column, `c` compare overlay, `x` retransmissions, `/` filter, `n`/`N` next or previous problem, `?` help, `q` quit. Exit codes: `0` printed, `1` usage, `2` unreadable file, `3` unsupported trace version, `4` the `--fail-on` condition. The [replay guide](/guides/record-and-replay-calls#replay-a-call-in-the-terminal) walks through every view.
 
 Example:
 

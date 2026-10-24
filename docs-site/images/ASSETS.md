@@ -17,6 +17,11 @@ PNG pair. Screenshots copied from the old Docusaurus site (`docs/static/img`) ar
 Screenshots reused from `docs/static/img` (not in Pencil): `quickstart/*`, `home-or-office-setup/*`,
 `secure-the-server/*`, `call-events-with-nats/*`.
 
+Terminal screens of `rctl trace replay` (`record-and-replay/*`, page `guides/record-and-replay-calls`) are
+rendered from the viewer's own painter on the corpus recordings `seet-agent-1001` and `seet-agent-1002`
+(SIPconnect 1.1 test 1.3.1), at 120 columns, dark palette except `ladder-light.png`. `replay.gif` is the
+960x540 cut of the trace viewer reel. The screens follow `designs/trace-viewer.pen`.
+
 ## Diagram Kit
 
 `designs/docs.pen` → "Docs / Diagram Kit" (fdbKR), Routr v1. Reusable components: Diagram/Node (sEKX6),
