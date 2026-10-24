@@ -91,6 +91,14 @@ export default function pgDataService(config: PostgresDataConfig): void {
     logger.info("internal server started", { bindAddr: config.bindAddr })
   })
 
+  // Report SERVING once the external server is up, with or without TLS
+  const onExternalServerStarted = () => {
+    healthImpl.setStatus("", GRPC_SERVING_STATUS)
+    logger.info("external server started", {
+      externalServerBindAddr: config.externalServerBindAddr
+    })
+  }
+
   if (TLS_ON) {
     const cacert = VERIFY_CLIENT_CERT ? fs.readFileSync(CACERT) : null
     const cert = fs.readFileSync(SERVER_CERT)
@@ -110,19 +118,14 @@ export default function pgDataService(config: PostgresDataConfig): void {
     externalServer.bindAsync(
       config.externalServerBindAddr,
       externalCredentials,
-      () => {
-        logger.info("external server started", {
-          externalServerBindAddr: config.externalServerBindAddr
-        })
-      }
+      onExternalServerStarted
     )
   } else {
-    externalServer.bindAsync(config.externalServerBindAddr, credentials, () => {
-      healthImpl.setStatus("", GRPC_SERVING_STATUS)
-      logger.info("secure connection disabled")
-      logger.info("external server started", {
-        externalServerBindAddr: config.externalServerBindAddr
-      })
-    })
+    logger.info("secure connection disabled")
+    externalServer.bindAsync(
+      config.externalServerBindAddr,
+      credentials,
+      onExternalServerStarted
+    )
   }
 }
