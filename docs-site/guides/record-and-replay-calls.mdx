@@ -1,7 +1,7 @@
 ---
 title: "Record and replay calls"
 sidebarTitle: "Record and replay calls"
-description: "For operators troubleshooting one call: record every message of a call as it crosses the Dispatcher, replay it in the terminal, check it against the SIP and SIPconnect rules, compare it with an earlier recording, or keep it as a known-good the build replays."
+description: "For operators troubleshooting one call: record every message of a call as it crosses the Dispatcher, replay it in the terminal view by view, check it against the SIP and SIPconnect rules, compare it with an earlier recording, or keep it as a known-good the build replays."
 ---
 
 Turn on message recording for a Trunk, an Agent, a Peer or a Domain, and the Message Dispatcher writes every message of every call that touches it to one file per call. The file holds each message as the EdgePort received it, every component that touched it with its duration and what it changed, and the message as it left. Replay the file with `rctl trace replay`.
@@ -85,31 +85,232 @@ One file per call in `RECORD_MESSAGES_PATH`, named by the time of the first reco
 
 The Dispatcher stops writing a call after 1 000 records and stops starting new recordings when 10 000 calls are active. Both limits are configurable (`maxRecordsPerCall`, `maxCalls`) in the `recording` block of the configuration file.
 
-## Replay a call
+## Replay a call in the terminal
+
+<img
+  className="rounded-xl"
+  src="/images/record-and-replay/replay.gif"
+  alt="rctl trace replay opening a recording: the r. mark blinks on the splash, moves into the header, then the Summary, Ladder, Path and Compare views appear in turn with messages drawn between the caller, the EdgePort and the provider"
+/>
+
+Open a recording with `rctl trace replay`. The examples on this page use two recordings of SIPconnect 1.1 test 1.3.1 from the repository's corpus: agent 1001 calls `17853178070` through the trunk `sip.provider.net`, and agent 1002 places the same call.
 
 ```bash
-rctl trace replay 20261023T024110321Z-1-25_10.111.221.22.jsonl
+rctl trace replay seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl --sip-connect
 ```
 
-The viewer opens on the **Summary**: the verdict (`FORWARDED 16.1 ms` or `REJECTED 500 at +1681 ms`), the SIP Connect checks on the first forwarded INVITE, and the call facts. Press `2` for the **Ladder**: every message with both legs, solid arrows for requests and dashed for responses; select a message with `j`/`k`, press `Enter` to open its hop list inline, and `d` to switch the detail pane between the incoming headers and the diff of what left. `3` is the **Path**: who sat where, what the proxy rewrote. `n` jumps to the next problem. `?` lists every key.
+The viewer opens with a short splash: the `r.` mark with its dot blinking and the name of the file being read. It lasts five seconds; press any key to skip it. When you open the viewer on a record with `--select`, there is no splash.
 
-The viewer needs an 80×20 terminal and reacts to resizing. Under `NO_COLOR` or `TERM=dumb` it draws with glyphs only, and `--ascii` forces the ASCII set.
+### Read the header
 
-## Paste it into an issue
+Every view shares the same three header lines, with the `r.` mark on the left:
+
+- **trace** names the file, or both files when you compare, and pins the verdict for the call on the right.
+- **call** shows the Call-ID and when the first message was recorded, in UTC.
+- **edgeport** shows the EdgePort that received the call and its version, the Dispatcher version, and how many messages were recorded.
+
+The verdict sums up the whole call in a word:
+
+| Verdict | Means |
+| --- | --- |
+| `FORWARDED 8.8 ms` | Routr forwarded the call. The time is how long the first forwarded INVITE spent inside Routr. |
+| `REJECTED 500` | A component answered a message with a failure, or failed itself. The status is the first one, and the Summary says at what offset and from which trunk. A `401` or `407` challenge is not a rejection. |
+| `ANSWERED 200` | Routr answered the request itself, for example the `200` to a REGISTER. |
+| `CHALLENGED 401` | Routr asked for credentials and the recording ends there. |
+| `DROPPED` | No message left Routr. |
+| `INCOMPLETE` | No line of the file could be read. When only the last line is cut, the verdict says `· incomplete` and the status bar tells you how many records were read. |
+
+Below the header, the tab row shows the four views. The bottom line lists the keys for the current view and, on the right, where you are, for example `msg 2/7  +23 ms`.
+
+### Summary
+
+<img
+  className="rounded-xl"
+  src="/images/record-and-replay/summary-dark.png"
+  alt="Summary view of the agent 1001 call: FORWARDED 8.8 ms, 7 messages, 0 rejected, 1 check failed; facts for the call, Call-ID, direction agent-to-pstn, trunk sip.provider.net, EdgePort, Dispatcher, recording time and identity; and the checks on the first forwarded INVITE, with the failed Request-URI check selected"
+/>
+
+The Summary answers "what happened to this call" before you look at any message. Press `1` to come back to it.
+
+The first line repeats the verdict with the message counts. **FACTS** lists who called whom, the Call-ID, the direction and trunk the Connect processor chose, the EdgePort and Dispatcher that handled the call, when it was recorded, and the identity sent to the far side (`P-Asserted-Identity`), when there is one.
+
+**CHECKS** shows the rule findings on the first INVITE that Routr forwarded:
+
+| Mark | Means |
+| --- | --- |
+| `✗` | A rule failed, for example `Request-URI user 17853178070 is not E.164`. |
+| `!` | A warning, for example `Contact names 10.111.221.22, an internal address the far side cannot reach`. |
+| `✓` | How many rules passed, for example `13 of 17 sip + sip-connect rules passed`. |
+| `–` | No INVITE was forwarded, so the checks do not apply. |
+
+Press `n` and `N` to move between failed and warned checks. The status bar then shows the rule id and the spec it comes from, so you can look it up. The `sip` rules always run. The `sip-connect` rules run only with `--sip-connect`: without it, the same call shows `2 warnings` instead of `1 check failed`, because the E.164 Request-URI rule belongs to SIPconnect. When the call holds more than one forwarded INVITE, for example a re-INVITE, the **CHECKS** line says how many more there are.
+
+### Ladder
+
+<img
+  className="rounded-xl"
+  src="/images/record-and-replay/ladder-dark.png"
+  alt="Ladder view: lanes for 1001, the EdgePort 2c339a0d50cd and sip.provider.net with a vertical rail under each; the second INVITE is selected and open, showing its hops dispatcher matched and connect-processor forwarded under the EdgePort rail; the detail pane on the right shows the incoming INVITE headers and the hop list"
+/>
+
+Press `2` for the Ladder: every message of the call, in order, between the parties that sent and received it.
+
+- **Lanes.** Each party gets a lane with a vertical rail: the caller on the left, the EdgePort in the middle in teal, and the far side on the right. Under each title is the address it used, when there is room.
+- **Arrows.** A solid arrow is a request, a dashed arrow is a response. Each message has two legs: the leg that reached Routr, and the leg that left it. The outgoing leg's label adds the number of hops and the time spent in Routr, for example `INVITE c2 · 2 hops 8.8ms`. `c2` is the CSeq number.
+- **Marks.** The column left of the time explains rows that did not go straight through. `?` marks a `401` or `407` challenge. `✗` marks a message a component rejected or failed on; its answer is drawn in red. `·` marks a message that stopped at Routr, because Routr answered it itself or dropped it; its arrow ends in a bar (`┤`) on the EdgePort rail instead of an arrowhead. `=` marks a retransmission.
+- **Time.** The time column shows the offset from the first message, for example `+23` (milliseconds). Press `t` to switch to the time since the previous message (`Δ`) and to the wall clock in UTC. Offsets past ten seconds keep their unit, such as `12.3s` or `1m05s`. A silence of more than two seconds between messages gets its own row, `· · · 3.1 s · · ·`, so long pauses stand out.
+- **Retransmissions.** Identical retransmissions are folded into the first copy, which shows `×3` for three copies. Press `x` to show each copy on its own row.
+
+Select a message with `j` and `k` (or the arrow keys); `g` and `G` jump to the first and last message, and `Ctrl-D` and `Ctrl-U` move half a page.
+
+#### Hops
+
+Press `Enter` on a message to open its hops under the EdgePort rail, and again to close them. Each line is one component that handled the message, in order:
+
+```text
+├ dispatcher         0ms  matched
+├ connect-processor  8.4ms  forwarded  +5 −1 ~4
+└ 8.8ms
+```
+
+The line gives the component, how long it took, and what it did: `matched` (the Dispatcher picked a processor), `pass-through` (a middleware returned the message unchanged), `forwarded`, `responded` (the component answered the request), `relayed` (a response going back), or `error`. The counts are the headers that component added (`+`), removed (`−`) and changed (`~`); the Request-URI counts as a change. The last line is the total time in Routr. A component's error message is printed under its line in red.
+
+#### Detail pane
+
+The detail pane shows the selected message. Press `d` to switch between two modes:
+
+- **Headers.** The request line or status line, where the message came in and where it went (`in 10.111.221.22:5647/UDP → 0.0.0.0:5060`, `out 10.111.220.2:5060 → sip.provider.net:7060`), the headers as received, and the hop list. Credentials show as `… (redacted)`. For a request Routr answered itself, the out line says the reply went back to the sender, for example `out 401 back to 10.111.221.22:5647/UDP`.
+- **Diff.** Every change between the message that came in and the one that left, with the component that made it: the rewritten Request-URI, `Max-Forwards 70 → 69`, the Via Routr added, and headers such as `P-Asserted-Identity` and `Record-Route` added by the Connect processor.
+
+Press `p` to hide or show the pane. Where it sits depends on the width of your terminal; see [Terminal size and colours](#terminal-size-and-colours).
+
+#### Filter and problems
+
+Press `/` and type to show only some messages, then `Enter` to apply it and `Esc` to clear it. A filter can be a method (`invite`), a status (`500`), a status class (`5xx`), or an outcome (`rejected`, `forwarded`, `relayed`, `answered`, `error`). Any other text matches the message label.
+
+In the Ladder, `n` and `N` jump to the next or previous problem, which is any message that was rejected or failed. Challenges do not count.
+
+### Path
+
+<img
+  className="rounded-xl"
+  src="/images/record-and-replay/path-dark.png"
+  alt="Path view of the first forwarded INVITE: boxes for 1001, the EdgePort and sip.provider.net joined by arrows labelled INVITE and INVITE rewritten; then the Request-URI before and after, the Via stack with Routr's own Via marked ours, added on egress, the route set with the added Record-Route, and notes"
+/>
+
+Press `3` for the Path: how the first forwarded INVITE crossed Routr, read from top to bottom.
+
+- **The three boxes** are the caller (its address, and whether it is inside the local network), the EdgePort (the address it received on and the one it sent from), and the far side (the host and port the request went to, and the address that resolved to).
+- **REQUEST-URI** shows the Request-URI as it came in and as it left: here `sip:17853178070@sip.local:-1;transport=udp` became `sip:17853178070@sip.provider.net:7060;transport=udp`.
+- **VIA STACK, TOP FIRST** lists the Via headers of the outgoing request. The top one is marked `ours, added on egress`; the ones below belong to the caller.
+- **ROUTE SET** shows the Route headers in and out, and the Record-Route Routr added.
+- **NOTES** points out what deserves a look, for example a Record-Route that names an internal interface the far side cannot reach, and confirms what went as expected, such as `Max-Forwards 70 → 69`.
+
+When no message was forwarded, the Path says so and names the component that answered, with its status or error.
+
+### Compare
+
+<img
+  className="rounded-xl"
+  src="/images/record-and-replay/compare-dark.png"
+  alt="Compare view of the agent 1001 and agent 1002 recordings: both files with their date, Routr version, outcome and message count; a summary that 6 of 7 rows differ; then the two calls side by side, row by row, with ≠ on the rows that differ and the third row selected"
+/>
+
+Compare lines up two recordings of the same scenario, for example a call before and after an upgrade, or the same call placed by two agents:
 
 ```bash
-rctl trace replay call.jsonl --static --view ladder --select 2
+rctl trace replay seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl \
+  --compare seet-agent-1002_sc-1.3.1-dod-invite_provider_20261023.jsonl
 ```
 
-`--static` prints one page and exits, with no colour or boxes, never wider than 120 columns, so it reads in a GitHub issue or a CI log. `--view all` prints every page. When stdout is not a terminal, static mode is implied. `--fail-on rejected` makes the command exit `4` when the call has a rejected message, which turns a recording into a test.
+Press `4` for the Compare view. The top lines name file `A` and file `B` with their date, Routr version, outcome and number of messages, then sum up the differences: `≠ 6 of 7 rows differ · 0 only in A · 0 only in B`.
 
-## Compare two recordings
+The two files are lined up by kind, method, CSeq and status, so a message missing from one side shows as a gap instead of shifting everything after it. Each row has a mark:
+
+| Mark | Means |
+| --- | --- |
+| `≠` | The message is in both files, and Routr handled it differently. |
+| `−` | The message is only in file A. |
+| `+` | The message is only in file B. |
+
+A row differs when its outcome, status, number of hops or outgoing headers differ. Compare looks at what Routr did, not at what changes on every call: Via branches, tags, digest nonces, the Call-ID and the caller's source port are ignored. Timing is shown but never counts. In this example every forwarded row differs for one reason, the `From` header: one call comes from `1001`, the other from `1002`.
+
+Select a row and press `d` to open it in the Ladder with the A/B diff in the detail pane. In the Ladder, `c` adds a column that compares each message with file B: `=` the same, `≠` different, `−` only in A. Messages only file B has are slotted in as `(B)` rows marked `+`. At 160 columns and wider, Compare also prints the reason under each row that differs.
+
+### Keys
+
+Press `?` for the list of keys at any time; any key closes it.
+
+<img
+  className="rounded-xl"
+  src="/images/record-and-replay/help-dark.png"
+  alt="The help overlay listing every key of the viewer with what it does"
+/>
+
+| Key | Does |
+| --- | --- |
+| `1` `2` `3` `4` | Summary, Ladder, Path, Compare. |
+| `Tab`, `]`, `→`, `l` | Next view. `Shift-Tab`, `[`, `←` and `h` go back. |
+| `j` `k`, `↓` `↑` | Select the next or previous message. In Summary and Path they scroll. |
+| `g` `G` | First or last message. |
+| `Ctrl-D` `Ctrl-U`, `PgDn` `PgUp` | Half a page down or up. |
+| `Enter` | Open or close the hops of the selected message. |
+| `d` | Detail pane: headers or diff. In Compare, open the row's A/B diff. |
+| `p` | Show or hide the detail pane. |
+| `t` | Time column: offset, delta, clock. |
+| `c` | Compare overlay on the Ladder. |
+| `x` | Show or fold retransmissions. |
+| `/` | Filter by method, status (`5xx`) or outcome. |
+| `n` `N` | Next or previous problem; on the Summary, failed or warned checks. |
+| `Esc` | Close, clear the filter. |
+| `q`, `Ctrl-C` | Quit. |
+
+### Terminal size and colours
+
+The viewer needs a terminal of at least 80 columns by 24 rows, and redraws when you resize it. The layout adapts to the width:
+
+| Width | Layout |
+| --- | --- |
+| 80 to 99 columns | The Ladder uses the full width and the detail pane is hidden; `p` opens it under the ladder. Compare stacks the A and B lines of each row. |
+| 100 to 119 columns | The detail pane sits under the ladder. Compare still stacks A and B. |
+| 120 to 159 columns | The detail pane sits on the right, next to the ladder. Compare shows A and B side by side. |
+| 160 columns and wider | A wider detail pane, and Compare explains each difference on its own line. |
+
+When the viewer starts, it asks the terminal for its background colour and picks a palette to match. If the terminal does not answer, it reads `COLORFGBG`, and otherwise uses the dark palette. On a light background, the accents are darker and the selected row is a pale bar, so the text stays readable:
+
+<img
+  className="rounded-xl"
+  src="/images/record-and-replay/ladder-light.png"
+  alt="The same Ladder view on a terminal with a white background: dark text, darker teal and green accents, and a pale grey bar on the selected rows"
+/>
+
+The palette is chosen once, at startup. If you switch your terminal theme, open the recording again. The viewer draws with box-drawing characters and arrows; `--ascii` uses plain ASCII instead, which it also does by itself when `TERM=dumb` or the locale is not UTF-8.
+
+## Print a call for an issue or CI
 
 ```bash
-rctl trace replay call-after-upgrade.jsonl --compare call-before-upgrade.jsonl
+rctl trace replay seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl --static --view ladder --select 2
 ```
 
-`4` opens the **Compare** view: the two files lined up by method and CSeq, with `≠` on rows whose outcome, status, hop count or outgoing headers differ, and `−`/`+` on rows present in only one file. In the Ladder, `c` overlays the agreement column on the first file. Timing is shown but never counts as a difference.
+`--static` prints pages of plain text and exits, with no colour and no cursor movement, so the output reads in a GitHub issue, a pager or a CI log. Static mode is implied when stdout is not a terminal, and by `--view all`.
+
+| View | Prints |
+| --- | --- |
+| `summary` (default) | The verdict, facts and checks, then the ladder. |
+| `ladder` | The ladder. With `--select <seq>`, it opens that record's hops and adds its headers and its diff. Without it, the first forwarded INVITE's headers and diff are added. |
+| `path` | The Path view. |
+| `compare` | The Compare view, then the header diff of every row that differs. |
+| `all` | Every page, one after the other. |
+
+Pages are as wide as your terminal, or `100` columns when there is none; `--columns` sets the width, between `80` and `120`. `--fail-on` turns a recording into a test: with `rejected`, the command exits `4` when the call has a rejected message; with `warning`, also when a check failed or warned. The agent 1001 call passes `--fail-on rejected` and exits `4` with `--fail-on warning --sip-connect`.
+
+| Exit code | Means |
+| --- | --- |
+| `0` | Printed. |
+| `1` | Usage error. |
+| `2` | The file cannot be read or has no records. |
+| `3` | The file uses a trace version this `rctl` does not read. |
+| `4` | The `--fail-on` condition is met. |
 
 ## Check a recording against the specs
 
