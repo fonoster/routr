@@ -1,4 +1,4 @@
-name: test
+name: Tests
 
 # Runs the suites that gate a change. Until this workflow existed nothing ran on a pull
 # request, and the only enforcement was the (bypassable) .husky/pre-commit hook.
@@ -17,16 +17,16 @@ name: test
 # @routr/location from the npm registry, not from this checkout. A change to one of
 # those packages reaches this job only through the edgeport/requester webpack bundle.
 
+# A green run on main triggers the Release workflow, so pushes to main run every time,
+# chart-only changes included: that is how a chart fix gets released.
 on:
   pull_request:
-    # The chart is not exercised by any job here; charts-deployment.yaml publishes it.
+    # The chart is not exercised by any job here.
     paths-ignore:
       - "ops/**"
   push:
     branches:
       - main
-    paths-ignore:
-      - "ops/**"
   # Re-run a branch by hand: gh workflow run test.yaml --ref <branch>
   workflow_dispatch:
 

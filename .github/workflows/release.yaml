@@ -1,121 +1,125 @@
-name: release
+name: Release
+
+# Every push to main that passes Tests is released: the conventional commits since the last
+# tag pick the bump (.scripts/next-release.sh), and a commit with nothing releasable (docs,
+# chore, ci) ships nothing. One release publishes, in order, the npm packages, the Docker
+# images, the Helm chart (only once its images exist) and the GitHub release.
+#
+# Run it by hand to retry a release that failed partway; with no new commits it re-publishes
+# the current version from its tag, skipping whatever is already out:
+#   gh workflow run release.yaml
+#
+# npm trusts only this file to publish the @routr packages (trusted publishing), so keep its name.
 
 on:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      use_branch_name:
-        description: 'Use branch name instead of lerna version'
-        required: false
-        type: choice
-        options:
-          - 'true'
-          - 'false'
-        default: 'false'
-      tag_latest:
-        description: 'Only move the npm latest tag to the version on this branch'
-        required: false
-        type: choice
-        options:
-          - 'true'
-          - 'false'
-        default: 'false'
-  # Publishing the draft GitHub release moves the npm `latest` tag. It lives in this workflow
-  # because npm trusts only this file to publish and tag the @routr packages.
-  release:
-    types:
-      - released
+
+# Releases run one at a time, oldest first; a second one would race the first for the tag.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  build-and-test:
-    name: Build and publish
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.tag_latest != 'true'
-    timeout-minutes: 20
+  npm:
+    name: Publish to npm
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     # id-token lets npm verify this run (trusted publishing), so no npm token is stored
     permissions:
       contents: write
       id-token: write
+    outputs:
+      publish: ${{ steps.plan.outputs.publish }}
+      version: ${{ steps.version.outputs.version }}
     steps:
+      # The PAT pushes the release commit and tag past branch protection.
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
+
+      - name: Plan the release
+        id: plan
+        env:
+          TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          # Release only the commit Tests passed. If main has moved on, the Tests run for
+          # the newer commit releases it.
+          if [ -n "$TESTED_SHA" ] && [ "$(git rev-parse HEAD)" != "$TESTED_SHA" ]; then
+            echo "main moved past $TESTED_SHA; leaving the release to the next Tests run"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          bump=$(.scripts/next-release.sh)
+          if [ "$bump" != "none" ]; then
+            echo "Releasing a $bump"
+          elif [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            version=$(node -p "require('./lerna.json').version")
+            echo "Nothing new to release; re-publishing v$version"
+            git checkout "v$version"
+          else
+            echo "No releasable commits since the last tag"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "bump=$bump" >> "$GITHUB_OUTPUT"
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+
       - name: Set up Node.js
+        if: steps.plan.outputs.publish == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
           registry-url: "https://registry.npmjs.org"
           scope: "@routr"
-      - name: Install an npm with trusted publishing
-        run: npm install -g npm@^11.10.0
-      - name: Build project
-        run: npm run make
-      - name: Check for next release
-        run: |
-          release=$(.scripts/next-release.sh)
-          echo "Next release: $release"
-          echo "RELEASE=$release" >> $GITHUB_ENV
-      - name: Publish packages to NPM
-        if: env.RELEASE != 'none'
-        run: |
-          echo "GITHUB_TOKEN=${{ secrets.GH_PAT }}" >> $GITHUB_ENV
 
+      - name: Install an npm with trusted publishing
+        if: steps.plan.outputs.publish == 'true'
+        run: npm install -g npm@^11.10.0
+
+      - name: Build
+        if: steps.plan.outputs.publish == 'true'
+        run: npm run make
+
+      # Bumps every package, points the Helm chart at the new version (the root "version"
+      # script), commits both as one [skip ci] commit, tags it and pushes.
+      - name: Version and publish
+        if: steps.plan.outputs.bump != 'none' && steps.plan.outputs.publish == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout package-lock.json
-
           npm run release
-      # Runs on every release, even with no new commits: publishes any version already in
-      # package.json that npm doesn't have yet, such as one whose release run failed partway.
-      # Does nothing otherwise.
-      - name: Publish versions missing from NPM
+
+      # Publishes any version in package.json that npm doesn't have yet, such as one whose
+      # release run failed partway. Does nothing otherwise.
+      - name: Publish versions missing from npm
+        if: steps.plan.outputs.publish == 'true'
         run: |
-          # The normal publish leaves gitHead edits in package.json files; from-package refuses a
-          # dirty tree, and those edits are not meant to be committed.
+          # The publish above leaves gitHead edits in package.json files; from-package
+          # refuses a dirty tree, and those edits are not meant to be committed.
           git checkout -- .
-          npx lerna publish from-package --yes --dist-tag next
-      - name: Get version for release
-        run: |
-          if [[ "${{ github.event.inputs.use_branch_name }}" == "true" ]]; then
-            echo "LERNA_VERSION=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-          else
-            lerna_version=$(node -p "require('./lerna.json').version")
-            echo "LERNA_VERSION=$lerna_version" >> $GITHUB_ENV
-          fi
-      - name: Create release note
-        if: env.RELEASE != 'none'
-        id: changelog
-        uses: loopwerk/tag-changelog@v1
-        with:
-          token: ${{ secrets.DEPLOY_KEY }}
-          exclude_types: other,doc,chore
-          config_file: ./.scripts/tag-changelog-config.js
-      - name: Create draft release
-        if: env.RELEASE != 'none'
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
-        with:
-          tag_name: v${{ env.LERNA_VERSION }}
-          release_name: Release v${{ env.LERNA_VERSION }}
-          body: ${{ steps.changelog.outputs.changelog }}
-          draft: true
-      # The chart installs the image tag that matches its appVersion, so a release that
-      # does not move it leaves helm users on the previous Routr. The push below lands on
-      # main with the PAT, which lets charts-deployment.yaml fire and publish the chart.
-      - name: Point the Helm chart at this release
-        if: env.RELEASE != 'none' && github.ref == 'refs/heads/main'
-        run: |
-          .scripts/bump-chart.sh "$LERNA_VERSION"
-          if git diff --quiet -- ops/charts/connect/Chart.yaml; then
-            echo "chart unchanged"
-          else
-            git add ops/charts/connect/Chart.yaml
-            git commit -m "chore(charts): routr $LERNA_VERSION"
-            git push origin HEAD:main
-          fi
-      - name: Upload build artifact
+          npx lerna publish from-package --yes --dist-tag latest
+
+      - name: Read the version
+        id: version
+        if: steps.plan.outputs.publish == 'true'
+        run: echo "version=$(node -p "require('./lerna.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the build
+        if: steps.plan.outputs.publish == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: routr-build
@@ -132,37 +136,130 @@ jobs:
             !mods/**/test
             !mods/**/dist/*.ts
 
-  publish-to-docker-hub:
-    name: Publish to Docker Hub
-    uses: ./.github/workflows/docker-hub-release.yaml
-    with:
-      use_branch_name: ${{ github.event.inputs.use_branch_name }}
-    secrets: inherit
-    needs: [build-and-test]
-
-  tag-latest:
-    name: Tag the released npm packages as latest
-    if: github.event_name == 'release' || github.event.inputs.tag_latest == 'true'
+  docker:
+    name: Publish ${{ matrix.image }} to Docker Hub
+    needs: npm
+    if: needs.npm.outputs.publish == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
+    strategy:
+      matrix:
+        include:
+          - image: routr-one
+            dockerfile: Dockerfile
+          - image: routr-edgeport
+            dockerfile: mods/edgeport/Dockerfile
+          - image: routr-dispatcher
+            dockerfile: mods/dispatcher/Dockerfile
+          - image: routr-location
+            dockerfile: mods/location/Dockerfile
+          - image: routr-connect
+            dockerfile: mods/connect/Dockerfile
+          - image: routr-simpledata
+            dockerfile: mods/simpledata/Dockerfile
+          - image: routr-simpleauth
+            dockerfile: mods/simpleauth/Dockerfile
+          - image: routr-requester
+            dockerfile: mods/requester/Dockerfile
+          - image: routr-registry
+            dockerfile: mods/registry/Dockerfile
+          - image: routr-pgdata
+            dockerfile: mods/pgdata/Dockerfile
+            buildoptions: "--target runner"
+          - image: routr-pgdata-migrations
+            dockerfile: mods/pgdata/Dockerfile
+            buildoptions: "--target migrations"
+          - image: routr-echo
+            dockerfile: mods/echo/Dockerfile
+          - image: routr-rtprelay
+            dockerfile: mods/rtprelay/Dockerfile
     steps:
-      - name: Checkout
+      - name: Download the build
+        uses: actions/download-artifact@v4
+        with:
+          name: routr-build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Publish the image
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: fonoster/${{ matrix.image }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          dockerfile: ${{ matrix.dockerfile }}
+          buildoptions: ${{ matrix.buildoptions }}
+          tags: "latest,${{ needs.npm.outputs.version }}"
+          platforms: linux/amd64,linux/arm64
+
+  # The chart installs the image tag matching its appVersion, so it ships only after every
+  # image is on Docker Hub, and only from the release tag.
+  chart:
+    name: Publish Helm Chart
+    needs: [npm, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the release
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name || github.ref }}
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+          ref: v${{ needs.npm.outputs.version }}
+
+      - name: Checkout the published charts
+        uses: actions/checkout@v4
         with:
-          node-version: "22.x"
-          registry-url: "https://registry.npmjs.org"
-          scope: "@routr"
-      - name: Install an npm with trusted publishing
-        run: npm install -g npm@^11.10.0
-      - name: Tag latest npm packages
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.1.0
+        with:
+          version: latest
+
+      - name: Package the chart
         run: |
-          for pkg in mods/*/package.json; do
-            if [ "$(jq -r '.private // false' "$pkg")" = "true" ]; then continue; fi
-            npm dist-tag add "$(jq -r '.name' "$pkg")@$(jq -r '.version' "$pkg")" latest
-          done
+          mkdir -p public/charts
+          cp -a gh-pages/charts/* public/charts
+          helm package ops/charts/connect -d public/charts
+          helm repo index public/charts --merge public/charts/index.yaml
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.DEPLOY_KEY }}
+          publish_dir: ./public
+          publish_branch: gh-pages
+          keep_files: true
+
+  github:
+    name: Create GitHub Release
+    needs: [npm, chart]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: v${{ needs.npm.outputs.version }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout the release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 0
+
+      - name: Write the release notes
+        id: changelog
+        uses: loopwerk/tag-changelog@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          exclude_types: other,doc,chore
+          config_file: ./.scripts/tag-changelog-config.js
+
+      - name: Publish the release
+        env:
+          NOTES: ${{ steps.changelog.outputs.changelog }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release edit "$TAG" --draft=false --latest --notes "$NOTES"
+          else
+            gh release create "$TAG" --title "Release $TAG" --latest --notes "$NOTES"
+          fi

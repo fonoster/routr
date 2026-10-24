@@ -1,9 +1,9 @@
 #!/bin/bash
 # Points the Helm chart at a Routr release: sets appVersion and bumps the chart's own
 # patch version, since a chart whose contents changed must carry a new version
-# (the chart and app versions are independent, as Helm recommends). Run by the
-# release workflow after a publish; safe to run by hand. No-op when appVersion
-# already matches, so a re-run of a release does not bump the chart twice.
+# (the chart and app versions are independent, as Helm recommends). Lerna runs it as the
+# root "version" script, so the bump lands in the release commit; safe to run by hand.
+# No-op when appVersion already matches, so a re-run does not bump the chart twice.
 #
 #   .scripts/bump-chart.sh <app-version> [path/to/Chart.yaml]
 
