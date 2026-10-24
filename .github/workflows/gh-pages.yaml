@@ -59,6 +59,8 @@ jobs:
         mkdir -p out/assets
         cp -a site/assets/* out/assets/
         cp site/index.html site/404.html out/
+        mkdir -p out/record-and-replay
+        cp site/record-and-replay/index.html out/record-and-replay/
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
       with:

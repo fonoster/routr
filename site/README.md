@@ -3,7 +3,7 @@
 The marketing site. Plain HTML + CSS + JS, the same approach as fonoster.com, deployed to GitHub Pages by `.github/workflows/gh-pages.yaml` together with the docs build (everything in `site/` except this README).
 
 - Designs: `designs/website.pen` (frames: Home / Desktop, Home / Mobile, 404 / Desktop, Share Image, Components, Color Palette). The site is coded from them.
-- Pages: `index.html` (home) and `404.html` (absolute paths, since GitHub Pages serves it at any missing URL; it replaces the one the docs build writes).
+- Pages: `index.html` (home), `record-and-replay/index.html` (relative `../assets` paths; the deploy workflow copies it to `out/record-and-replay/`) and `404.html` (absolute paths, since GitHub Pages serves it at any missing URL; it replaces the one the docs build writes).
 - Docs live at `/docs`, built by Docusaurus from `docs/` in the same workflow. The docs build writes `assets/` with hashed file names, so the site's `assets/css`, `assets/js` and `assets/img` merge into the same folder without collisions.
 - SEO: canonical + Open Graph tags (`assets/img/og.png`, exported from the "Share Image" frame in Pencil). `robots.txt` and `sitemap.xml` come from the docs build.
 - Analytics: Google Analytics `G-JX93S6PKN4` in every page head (same property as the docs).
