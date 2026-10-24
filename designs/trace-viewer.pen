@@ -538,7 +538,7 @@
           "fill": "#C2C2C2",
           "textGrowth": "fixed-width",
           "width": 1000,
-          "content": "2  Header: the r. mark cut from the real logo, three rows in quarter-block cells, one row per context line (trace + files with the verdict pinned right, call + recorded, edgeport + dispatcher). The splash uses the same three-row mark, dot blinking.",
+          "content": "2  Header: the r. mark as solid background cells (stem two cells wide, arm across the top, a square teal dot), three rows, one row per context line (trace + files with the verdict pinned right, call + recorded, edgeport + dispatcher). Background cells fill the whole cell in every terminal, so the mark has no gaps. The splash uses the same mark, dot blinking.",
           "fontFamily": "Inter",
           "fontSize": 13,
           "fontWeight": "normal"
@@ -608,58 +608,6 @@
       "children": [
         {
           "type": "text",
-          "id": "C40Xb",
-          "x": 486.40000000000003,
-          "y": 268,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "n56oRs",
-          "x": 486.40000000000003,
-          "y": 286,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "ehQMi",
-          "x": 486.40000000000003,
-          "y": 304,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "tfdDx",
-          "x": 528.4,
-          "y": 304,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
           "id": "DVrdQ",
           "x": 377.2,
           "y": 340,
@@ -670,6 +618,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "iWdWD",
+          "x": 486.40000000000003,
+          "y": 268,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "i7LrLZ",
+          "x": 486.40000000000003,
+          "y": 286,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "xaoPC",
+          "x": 486.40000000000003,
+          "y": 304,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "DVH8G",
+          "x": 528.4000000000001,
+          "y": 304,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -688,58 +676,6 @@
       "children": [
         {
           "type": "text",
-          "id": "Qj4lV",
-          "x": 486.40000000000003,
-          "y": 268,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "Y2WMl",
-          "x": 486.40000000000003,
-          "y": 286,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "MS1CR",
-          "x": 486.40000000000003,
-          "y": 304,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "TLL6y",
-          "x": 528.4,
-          "y": 304,
-          "name": "██",
-          "fill": "$tv-dim",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "normal"
-        },
-        {
-          "type": "text",
           "id": "cpvXY",
           "x": 377.2,
           "y": 340,
@@ -750,6 +686,36 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "Km1vk",
+          "x": 486.40000000000003,
+          "y": 268,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "K2TV4q",
+          "x": 486.40000000000003,
+          "y": 286,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "F18K7M",
+          "x": 486.40000000000003,
+          "y": 304,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -766,19 +732,6 @@
       "cornerRadius": 8,
       "layout": "none",
       "children": [
-        {
-          "type": "text",
-          "id": "CnYAF",
-          "x": 16,
-          "y": 16,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
         {
           "type": "text",
           "id": "T8jG0J",
@@ -813,19 +766,6 @@
           "name": "FORWARDED 6.4 ms",
           "fill": "$tv-success",
           "content": "FORWARDED 6.4 ms",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "F8y8H",
-          "x": 16,
-          "y": 34,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
           "lineHeight": 1.2857142857142858,
           "fontFamily": "$tv-font",
           "fontSize": 14,
@@ -869,32 +809,6 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "qZMvX",
-          "x": 16,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "LmLXz",
-          "x": 58,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
         },
         {
           "type": "text",
@@ -1425,6 +1339,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "ijagW",
+          "x": 16,
+          "y": 16,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "U3Jmqt",
+          "x": 16,
+          "y": 34,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "vHeIl",
+          "x": 16,
+          "y": 52,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "Srh0m",
+          "x": 58,
+          "y": 52,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -1443,58 +1397,6 @@
       "children": [
         {
           "type": "text",
-          "id": "futPj",
-          "x": 318.40000000000003,
-          "y": 178,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "Wzeoo",
-          "x": 318.40000000000003,
-          "y": 196,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "C4BZhP",
-          "x": 318.40000000000003,
-          "y": 214,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "gaQ9g",
-          "x": 360.40000000000003,
-          "y": 214,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
           "id": "WfMHA",
           "x": 209.20000000000002,
           "y": 250,
@@ -1505,6 +1407,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "i2RTKm",
+          "x": 318.40000000000003,
+          "y": 178,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "Hu0LB",
+          "x": 318.40000000000003,
+          "y": 196,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "CS1pk",
+          "x": 318.40000000000003,
+          "y": 214,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "zVruY",
+          "x": 360.40000000000003,
+          "y": 214,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -1523,58 +1465,6 @@
       "children": [
         {
           "type": "text",
-          "id": "l4pVHu",
-          "x": 318.40000000000003,
-          "y": 178,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "iC2gW",
-          "x": 318.40000000000003,
-          "y": 196,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "CT2JI",
-          "x": 318.40000000000003,
-          "y": 214,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "rrYZw",
-          "x": 360.40000000000003,
-          "y": 214,
-          "name": "██",
-          "fill": "$tv-dim",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "normal"
-        },
-        {
-          "type": "text",
           "id": "d37ki",
           "x": 209.20000000000002,
           "y": 250,
@@ -1585,6 +1475,36 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "FGgcP",
+          "x": 318.40000000000003,
+          "y": 178,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "O7OT4",
+          "x": 318.40000000000003,
+          "y": 196,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "PmRJG",
+          "x": 318.40000000000003,
+          "y": 214,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -1601,19 +1521,6 @@
       "cornerRadius": 8,
       "layout": "none",
       "children": [
-        {
-          "type": "text",
-          "id": "Zm1m3",
-          "x": 16,
-          "y": 16,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
         {
           "type": "text",
           "id": "fM7uZ",
@@ -1648,19 +1555,6 @@
           "name": "FORWARDED 6.4 ms",
           "fill": "$tv-success",
           "content": "FORWARDED 6.4 ms",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "FRNHW",
-          "x": 16,
-          "y": 34,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
           "lineHeight": 1.2857142857142858,
           "fontFamily": "$tv-font",
           "fontSize": 14,
@@ -1704,32 +1598,6 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "v6CmCy",
-          "x": 16,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "mgIOX",
-          "x": 58,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
         },
         {
           "type": "text",
@@ -2195,6 +2063,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "hUPau",
+          "x": 16,
+          "y": 16,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "ePoKe",
+          "x": 16,
+          "y": 34,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "l13Ix",
+          "x": 16,
+          "y": 52,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "v3XRC",
+          "x": 58,
+          "y": 52,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -2211,19 +2119,6 @@
       "cornerRadius": 8,
       "layout": "none",
       "children": [
-        {
-          "type": "text",
-          "id": "UIfbP",
-          "x": 16,
-          "y": 16,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
         {
           "type": "text",
           "id": "v5LXfO",
@@ -2258,19 +2153,6 @@
           "name": "FORWARDED 6.4 ms",
           "fill": "$tv-success",
           "content": "FORWARDED 6.4 ms",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "QNw4B",
-          "x": 16,
-          "y": 34,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
           "lineHeight": 1.2857142857142858,
           "fontFamily": "$tv-font",
           "fontSize": 14,
@@ -2314,32 +2196,6 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "GOJuW",
-          "x": 16,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "z0ixoP",
-          "x": 58,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
         },
         {
           "type": "text",
@@ -4476,6 +4332,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "qsfwc",
+          "x": 16,
+          "y": 16,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "RU9SD",
+          "x": 16,
+          "y": 34,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "c7URKM",
+          "x": 16,
+          "y": 52,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "TlM6c",
+          "x": 58,
+          "y": 52,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -4492,19 +4388,6 @@
       "cornerRadius": 8,
       "layout": "none",
       "children": [
-        {
-          "type": "text",
-          "id": "Lk8nT",
-          "x": 16,
-          "y": 16,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
         {
           "type": "text",
           "id": "T1352",
@@ -4539,19 +4422,6 @@
           "name": "FORWARDED 6.4 ms",
           "fill": "$tv-success",
           "content": "FORWARDED 6.4 ms",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "V2fYM",
-          "x": 16,
-          "y": 34,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
           "lineHeight": 1.2857142857142858,
           "fontFamily": "$tv-font",
           "fontSize": 14,
@@ -4595,32 +4465,6 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "Aa7VV",
-          "x": 16,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "U0p9C0",
-          "x": 58,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
         },
         {
           "type": "text",
@@ -5678,6 +5522,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "dQDZX",
+          "x": 16,
+          "y": 16,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "w3NzuH",
+          "x": 16,
+          "y": 34,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "WNnFj",
+          "x": 16,
+          "y": 52,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "pItZR",
+          "x": 58,
+          "y": 52,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -5694,19 +5578,6 @@
       "cornerRadius": 8,
       "layout": "none",
       "children": [
-        {
-          "type": "text",
-          "id": "kEynS",
-          "x": 16,
-          "y": 16,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
         {
           "type": "text",
           "id": "zIIeA",
@@ -5741,19 +5612,6 @@
           "name": "FORWARDED 6.4 ms",
           "fill": "$tv-success",
           "content": "FORWARDED 6.4 ms",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "odFla",
-          "x": 16,
-          "y": 34,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
           "lineHeight": 1.2857142857142858,
           "fontFamily": "$tv-font",
           "fontSize": 14,
@@ -5797,32 +5655,6 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "Y2CAu",
-          "x": 16,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "EzC8S",
-          "x": 58,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
         },
         {
           "type": "text",
@@ -6717,6 +6549,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "Z5GQU",
+          "x": 16,
+          "y": 16,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "Y6GCOt",
+          "x": 16,
+          "y": 34,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "jMKRy",
+          "x": 16,
+          "y": 52,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "pcnEH",
+          "x": 58,
+          "y": 52,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -6733,19 +6605,6 @@
       "cornerRadius": 8,
       "layout": "none",
       "children": [
-        {
-          "type": "text",
-          "id": "pwrdh",
-          "x": 16,
-          "y": 16,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
         {
           "type": "text",
           "id": "qoH2M",
@@ -6780,19 +6639,6 @@
           "name": "FORWARDED 6.4 ms",
           "fill": "$tv-success",
           "content": "FORWARDED 6.4 ms",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "QHrnq",
-          "x": 16,
-          "y": 34,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
           "lineHeight": 1.2857142857142858,
           "fontFamily": "$tv-font",
           "fontSize": 14,
@@ -6836,32 +6682,6 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "X5u4x",
-          "x": 16,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "Ys744",
-          "x": 58,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
         },
         {
           "type": "text",
@@ -7262,6 +7082,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "VGGdz",
+          "x": 16,
+          "y": 16,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "s0wwqq",
+          "x": 16,
+          "y": 34,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "B7Vyv",
+          "x": 16,
+          "y": 52,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "d0GHCN",
+          "x": 58,
+          "y": 52,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -7278,19 +7138,6 @@
       "cornerRadius": 8,
       "layout": "none",
       "children": [
-        {
-          "type": "text",
-          "id": "wTa4B",
-          "x": 16,
-          "y": 16,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
         {
           "type": "text",
           "id": "lTgui",
@@ -7325,19 +7172,6 @@
           "name": "FORWARDED 6.4 ms",
           "fill": "$tv-success",
           "content": "FORWARDED 6.4 ms",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "QiAkW",
-          "x": 16,
-          "y": 34,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
           "lineHeight": 1.2857142857142858,
           "fontFamily": "$tv-font",
           "fontSize": 14,
@@ -7381,32 +7215,6 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "wG8Pc",
-          "x": 16,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "C4C39",
-          "x": 58,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
         },
         {
           "type": "text",
@@ -8218,6 +8026,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "p6zisS",
+          "x": 16,
+          "y": 16,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "Y4vxho",
+          "x": 16,
+          "y": 34,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "smKYF",
+          "x": 16,
+          "y": 52,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "WFbWj",
+          "x": 58,
+          "y": 52,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -8234,19 +8082,6 @@
       "cornerRadius": 8,
       "layout": "none",
       "children": [
-        {
-          "type": "text",
-          "id": "ySTIl",
-          "x": 16,
-          "y": 16,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
         {
           "type": "text",
           "id": "qaWv4",
@@ -8281,19 +8116,6 @@
           "name": "FORWARDED 6.4 ms",
           "fill": "$tv-success",
           "content": "FORWARDED 6.4 ms",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "PQdgA",
-          "x": 16,
-          "y": 34,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
           "lineHeight": 1.2857142857142858,
           "fontFamily": "$tv-font",
           "fontSize": 14,
@@ -8337,32 +8159,6 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "T29ng",
-          "x": 16,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "Bt89q",
-          "x": 58,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
         },
         {
           "type": "text",
@@ -8906,6 +8702,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "Hd995",
+          "x": 16,
+          "y": 16,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "eouaa",
+          "x": 16,
+          "y": 34,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "C9taJw",
+          "x": 16,
+          "y": 52,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "AjeXQ",
+          "x": 58,
+          "y": 52,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -8922,19 +8758,6 @@
       "cornerRadius": 8,
       "layout": "none",
       "children": [
-        {
-          "type": "text",
-          "id": "Jmzmx",
-          "x": 16,
-          "y": 16,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
         {
           "type": "text",
           "id": "F1lh9j",
@@ -8969,19 +8792,6 @@
           "name": "FORWARDED 6.4 ms",
           "fill": "$tv-success",
           "content": "FORWARDED 6.4 ms",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "grAjY",
-          "x": 16,
-          "y": 34,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
           "lineHeight": 1.2857142857142858,
           "fontFamily": "$tv-font",
           "fontSize": 14,
@@ -9025,32 +8835,6 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "YyMBs",
-          "x": 16,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "zIZ1Q",
-          "x": 58,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
         },
         {
           "type": "text",
@@ -9615,6 +9399,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "DBfR5",
+          "x": 16,
+          "y": 16,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "LJuAU",
+          "x": 16,
+          "y": 34,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "qzM5X",
+          "x": 16,
+          "y": 52,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "z9ujC",
+          "x": 58,
+          "y": 52,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     },
@@ -9631,19 +9455,6 @@
       "cornerRadius": 8,
       "layout": "none",
       "children": [
-        {
-          "type": "text",
-          "id": "m5pPp",
-          "x": 16,
-          "y": 16,
-          "name": "██▟█",
-          "fill": "$tv-fg",
-          "content": "██▟█",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
         {
           "type": "text",
           "id": "JOFNJ",
@@ -9678,19 +9489,6 @@
           "name": "FORWARDED 6.4 ms",
           "fill": "$tv-success",
           "content": "FORWARDED 6.4 ms",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "S2yxz",
-          "x": 16,
-          "y": 34,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
           "lineHeight": 1.2857142857142858,
           "fontFamily": "$tv-font",
           "fontSize": 14,
@@ -9734,32 +9532,6 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
-        },
-        {
-          "type": "text",
-          "id": "m2SJQ",
-          "x": 16,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-fg",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
-        },
-        {
-          "type": "text",
-          "id": "f8BRWz",
-          "x": 58,
-          "y": 52,
-          "name": "██",
-          "fill": "$tv-accent",
-          "content": "██",
-          "lineHeight": 1.2857142857142858,
-          "fontFamily": "$tv-font",
-          "fontSize": 14,
-          "fontWeight": "bold"
         },
         {
           "type": "text",
@@ -10277,6 +10049,46 @@
           "fontFamily": "$tv-font",
           "fontSize": 14,
           "fontWeight": "normal"
+        },
+        {
+          "type": "rectangle",
+          "id": "t7h4M",
+          "x": 16,
+          "y": 16,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 33.6,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "Bs6Q2",
+          "x": 16,
+          "y": 34,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "XpO8a",
+          "x": 16,
+          "y": 52,
+          "name": "mark",
+          "fill": "$tv-fg",
+          "width": 16.8,
+          "height": 18
+        },
+        {
+          "type": "rectangle",
+          "id": "RDEoo",
+          "x": 58,
+          "y": 52,
+          "name": "mark dot",
+          "fill": "$tv-accent",
+          "width": 16.8,
+          "height": 18
         }
       ]
     }
