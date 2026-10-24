@@ -19,7 +19,7 @@ $ npm install -g @routr/ctl
 $ rctl COMMAND
 running command...
 $ rctl (--version)
-@routr/ctl/2.17.0 linux-x64 node-v22.23.3
+@routr/ctl/2.19.0 linux-x64 node-v22.23.3
 $ rctl --help [COMMAND]
 USAGE
   $ rctl COMMAND
@@ -69,6 +69,12 @@ USAGE
 * [`rctl plugins uninstall [PLUGIN]`](#rctl-plugins-uninstall-plugin)
 * [`rctl plugins unlink [PLUGIN]`](#rctl-plugins-unlink-plugin)
 * [`rctl plugins update`](#rctl-plugins-update)
+* [`rctl trace compat MANIFEST`](#rctl-trace-compat-manifest)
+* [`rctl trace lint FILE`](#rctl-trace-lint-file)
+* [`rctl trace replay FILE`](#rctl-trace-replay-file)
+* [`rctl trace sanitize FILE`](#rctl-trace-sanitize-file)
+* [`rctl trace send FILE`](#rctl-trace-send-file)
+* [`rctl trace validate FILE`](#rctl-trace-validate-file)
 * [`rctl trunks create`](#rctl-trunks-create)
 * [`rctl trunks delete [REF]`](#rctl-trunks-delete-ref)
 * [`rctl trunks describe [REF]`](#rctl-trunks-describe-ref)
@@ -96,7 +102,7 @@ EXAMPLES
   Creating ACL US Eeast... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/acl/create.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/acl/create.ts)_
+_See code: [src/commands/acl/create.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/acl/create.ts)_
 
 ## `rctl acl delete [REF]`
 
@@ -119,7 +125,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/acl/delete.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/acl/delete.ts)_
+_See code: [src/commands/acl/delete.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/acl/delete.ts)_
 
 ## `rctl acl describe [REF]`
 
@@ -141,7 +147,7 @@ DESCRIPTION
   shows details of an ACL
 ```
 
-_See code: [src/commands/acl/describe.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/acl/describe.ts)_
+_See code: [src/commands/acl/describe.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/acl/describe.ts)_
 
 ## `rctl acl get [REF]`
 
@@ -170,7 +176,7 @@ EXAMPLES
   9e7a88f0-8390-42f5-a2cb-689583ba9f4f Local Network ACL 0.0.0.0/0 10.0.0.28
 ```
 
-_See code: [src/commands/acl/get.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/acl/get.ts)_
+_See code: [src/commands/acl/get.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/acl/get.ts)_
 
 ## `rctl acl update REF`
 
@@ -196,7 +202,7 @@ EXAMPLES
   Updating ACL US East... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/acl/update.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/acl/update.ts)_
+_See code: [src/commands/acl/update.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/acl/update.ts)_
 
 ## `rctl agents create`
 
@@ -219,7 +225,7 @@ EXAMPLES
   Creating Agent Jhon Doe... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/agents/create.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/agents/create.ts)_
+_See code: [src/commands/agents/create.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/agents/create.ts)_
 
 ## `rctl agents delete [REF]`
 
@@ -242,7 +248,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/agents/delete.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/agents/delete.ts)_
+_See code: [src/commands/agents/delete.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/agents/delete.ts)_
 
 ## `rctl agents describe [REF]`
 
@@ -264,7 +270,7 @@ DESCRIPTION
   shows details of an Agent
 ```
 
-_See code: [src/commands/agents/describe.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/agents/describe.ts)_
+_See code: [src/commands/agents/describe.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/agents/describe.ts)_
 
 ## `rctl agents get [REF]`
 
@@ -293,7 +299,7 @@ EXAMPLES
   d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1              PRIVATE Yes
 ```
 
-_See code: [src/commands/agents/get.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/agents/get.ts)_
+_See code: [src/commands/agents/get.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/agents/get.ts)_
 
 ## `rctl agents update REF`
 
@@ -319,7 +325,7 @@ EXAMPLES
   Updating Agent John Doe... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/agents/update.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/agents/update.ts)_
+_See code: [src/commands/agents/update.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/agents/update.ts)_
 
 ## `rctl autocomplete [SHELL]`
 
@@ -373,7 +379,7 @@ EXAMPLES
   Creating Credentials JDoe Access... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/credentials/create.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/credentials/create.ts)_
+_See code: [src/commands/credentials/create.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/credentials/create.ts)_
 
 ## `rctl credentials delete [REF]`
 
@@ -396,7 +402,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/credentials/delete.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/credentials/delete.ts)_
+_See code: [src/commands/credentials/delete.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/credentials/delete.ts)_
 
 ## `rctl credentials describe [REF]`
 
@@ -418,7 +424,7 @@ DESCRIPTION
   shows details for a set of Credentials
 ```
 
-_See code: [src/commands/credentials/describe.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/credentials/describe.ts)_
+_See code: [src/commands/credentials/describe.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/credentials/describe.ts)_
 
 ## `rctl credentials get [REF]`
 
@@ -447,7 +453,7 @@ EXAMPLES
   80181ca6-d4aa-4575-9375-8f72b07d6666 Europe ACL 0.0.0.0/0 10.0.0.25
 ```
 
-_See code: [src/commands/credentials/get.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/credentials/get.ts)_
+_See code: [src/commands/credentials/get.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/credentials/get.ts)_
 
 ## `rctl credentials update REF`
 
@@ -473,7 +479,7 @@ EXAMPLES
   Updating Credentials JDoe Credentials... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/credentials/update.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/credentials/update.ts)_
+_See code: [src/commands/credentials/update.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/credentials/update.ts)_
 
 ## `rctl domains create`
 
@@ -496,7 +502,7 @@ EXAMPLES
   Creating Domain Local Domain... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/domains/create.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/domains/create.ts)_
+_See code: [src/commands/domains/create.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/domains/create.ts)_
 
 ## `rctl domains delete [REF]`
 
@@ -519,7 +525,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/domains/delete.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/domains/delete.ts)_
+_See code: [src/commands/domains/delete.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/domains/delete.ts)_
 
 ## `rctl domains describe [REF]`
 
@@ -541,7 +547,7 @@ DESCRIPTION
   show details of a Domain
 ```
 
-_See code: [src/commands/domains/describe.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/domains/describe.ts)_
+_See code: [src/commands/domains/describe.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/domains/describe.ts)_
 
 ## `rctl domains get [REF]`
 
@@ -570,7 +576,7 @@ EXAMPLES
   ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
 ```
 
-_See code: [src/commands/domains/get.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/domains/get.ts)_
+_See code: [src/commands/domains/get.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/domains/get.ts)_
 
 ## `rctl domains update REF`
 
@@ -596,7 +602,7 @@ EXAMPLES
   Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/domains/update.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/domains/update.ts)_
+_See code: [src/commands/domains/update.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/domains/update.ts)_
 
 ## `rctl numbers create`
 
@@ -619,7 +625,7 @@ EXAMPLES
   Creating Number (784) 317-8170... a134487f-a668-4509-9ddd-dcbc98175468
 ```
 
-_See code: [src/commands/numbers/create.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/numbers/create.ts)_
+_See code: [src/commands/numbers/create.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/numbers/create.ts)_
 
 ## `rctl numbers delete [REF]`
 
@@ -642,7 +648,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/numbers/delete.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/numbers/delete.ts)_
+_See code: [src/commands/numbers/delete.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/numbers/delete.ts)_
 
 ## `rctl numbers describe [REF]`
 
@@ -664,7 +670,7 @@ DESCRIPTION
   shows details for a Number
 ```
 
-_See code: [src/commands/numbers/describe.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/numbers/describe.ts)_
+_See code: [src/commands/numbers/describe.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/numbers/describe.ts)_
 
 ## `rctl numbers get [REF]`
 
@@ -693,7 +699,7 @@ EXAMPLES
   a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@sip.local Cameron, USA (US)
 ```
 
-_See code: [src/commands/numbers/get.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/numbers/get.ts)_
+_See code: [src/commands/numbers/get.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/numbers/get.ts)_
 
 ## `rctl numbers update REF`
 
@@ -719,7 +725,7 @@ EXAMPLES
   Updating Number (785) 317-8070... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/numbers/update.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/numbers/update.ts)_
+_See code: [src/commands/numbers/update.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/numbers/update.ts)_
 
 ## `rctl peers create`
 
@@ -742,7 +748,7 @@ EXAMPLES
   Creating Peer Asterisk Conference... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/peers/create.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/peers/create.ts)_
+_See code: [src/commands/peers/create.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/peers/create.ts)_
 
 ## `rctl peers delete [REF]`
 
@@ -765,7 +771,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/peers/delete.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/peers/delete.ts)_
+_See code: [src/commands/peers/delete.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/peers/delete.ts)_
 
 ## `rctl peers describe [REF]`
 
@@ -787,7 +793,7 @@ DESCRIPTION
   shows details for a Peer
 ```
 
-_See code: [src/commands/peers/describe.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/peers/describe.ts)_
+_See code: [src/commands/peers/describe.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/peers/describe.ts)_
 
 ## `rctl peers get [REF]`
 
@@ -816,7 +822,7 @@ EXAMPLES
   6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local 1              Round Robin         Yes
 ```
 
-_See code: [src/commands/peers/get.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/peers/get.ts)_
+_See code: [src/commands/peers/get.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/peers/get.ts)_
 
 ## `rctl peers update REF`
 
@@ -842,7 +848,7 @@ EXAMPLES
   Updating Peer Asterisk Conf... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/peers/update.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/peers/update.ts)_
+_See code: [src/commands/peers/update.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/peers/update.ts)_
 
 ## `rctl plugins`
 
@@ -1134,6 +1140,190 @@ DESCRIPTION
 
 _See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/5.5.2/src/commands/plugins/update.ts)_
 
+## `rctl trace compat MANIFEST`
+
+Replays the known-good corpus through a running dispatcher (or processor) and reports every message whose outcome or outgoing headers drifted from the recording, plus the rule findings of each file. The build's compatibility test.
+
+```
+USAGE
+  $ rctl trace compat MANIFEST [--against <value>] [--sip-connect] [--fail-on drift|error|warning] [--json]
+    [--ascii]
+
+ARGUMENTS
+  MANIFEST  the corpus manifest (etc/corpus/manifest.yaml)
+
+FLAGS
+  --against=<value>   host:port of the dispatcher (51901) or a processor (51904); omit to lint only
+  --ascii             draw with ASCII glyphs only
+  --fail-on=<option>  exit 4 on drift (drift), on drift or a new error finding (error), or on drift or any new finding
+                      (warning); findings the manifest declares never count
+                      <options: drift|error|warning>
+  --json              print the report as JSON
+  --sip-connect       also evaluate the SIPconnect 1.1 rules on every file
+
+DESCRIPTION
+  Replays the known-good corpus through a running dispatcher (or processor) and reports every message whose outcome or
+  outgoing headers drifted from the recording, plus the rule findings of each file. The build's compatibility test.
+
+EXAMPLES
+  $ rctl trace compat etc/corpus/manifest.yaml --against localhost:51901
+
+  $ rctl trace compat etc/corpus/manifest.yaml --against localhost:51901 --sip-connect --fail-on drift
+
+  $ rctl trace compat etc/corpus/manifest.yaml  # lint only
+```
+
+_See code: [src/commands/trace/compat.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/trace/compat.ts)_
+
+## `rctl trace lint FILE`
+
+Evaluates the SIP rules on every record of one or more traces and prints each finding with its spec citation. Pass --sip-connect to add the SIPconnect 1.1 rules.
+
+```
+USAGE
+  $ rctl trace lint FILE... [--sip-connect] [--fail-on error|warning] [--json] [--ascii]
+
+ARGUMENTS
+  FILE...  one or more .jsonl traces written by the dispatcher
+
+FLAGS
+  --ascii             draw with ASCII glyphs only
+  --fail-on=<option>  exit 4 when a finding of this severity or worse exists
+                      <options: error|warning>
+  --json              print the findings as JSON
+  --sip-connect       also evaluate the SIPconnect 1.1 rules
+
+DESCRIPTION
+  Evaluates the SIP rules on every record of one or more traces and prints each finding with its spec citation. Pass
+  --sip-connect to add the SIPconnect 1.1 rules.
+
+EXAMPLES
+  $ rctl trace lint call.jsonl
+
+  $ rctl trace lint traces/*.jsonl --sip-connect --fail-on warning
+
+  $ rctl trace lint call.jsonl --json
+```
+
+_See code: [src/commands/trace/lint.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/trace/lint.ts)_
+
+## `rctl trace replay FILE`
+
+Replays a recorded call: the ladder of every message, what each component changed, and the rule findings. Pass --sip-connect for the SIPconnect 1.1 rules and --compare to line up two recordings of the same scenario.
+
+```
+USAGE
+  $ rctl trace replay FILE [-c <value>] [-s] [-v summary|ladder|path|compare|all] [--select <value>] [--columns
+    <value>] [--ascii] [--fail-on rejected|warning] [--sip-connect]
+
+ARGUMENTS
+  FILE  a .jsonl trace written by the dispatcher
+
+FLAGS
+  -c, --compare=<value>   second trace to line up with the first
+  -s, --static            print one page and exit; implied when stdout is not a terminal
+  -v, --view=<option>     [default: summary] view to open or print
+                          <options: summary|ladder|path|compare|all>
+      --ascii             draw with ASCII glyphs only
+      --columns=<value>   width of a static page (default: the terminal's, else 100; never above 120)
+      --fail-on=<option>  exit 4 when the call has a rejected message (rejected) or a failed or warned check (warning)
+                          <options: rejected|warning>
+      --select=<value>    record seq to select; in static mode its hops and diff are printed
+      --sip-connect       also evaluate the SIPconnect 1.1 rules
+
+DESCRIPTION
+  Replays a recorded call: the ladder of every message, what each component changed, and the rule findings. Pass
+  --sip-connect for the SIPconnect 1.1 rules and --compare to line up two recordings of the same scenario.
+
+EXAMPLES
+  $ rctl trace replay call.jsonl
+
+  $ rctl trace replay call.jsonl --compare call-before-upgrade.jsonl
+
+  $ rctl trace replay call.jsonl --static --view ladder --select 2
+
+  $ rctl trace replay call.jsonl --static --fail-on rejected
+```
+
+_See code: [src/commands/trace/replay.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/trace/replay.ts)_
+
+## `rctl trace sanitize FILE`
+
+Prepares a recording for the known-good corpus: recomputes every digest response with the corpus test credentials (so it still authenticates on replay) and applies literal rewrites to numbers, hosts and addresses across the whole file.
+
+```
+USAGE
+  $ rctl trace sanitize FILE --credentials <value> [--rewrite <value>...] [--out <value>]
+
+ARGUMENTS
+  FILE  a .jsonl trace written by the dispatcher
+
+FLAGS
+  --credentials=<value>  (required) a simpledata credentials.yaml; every digest username in the file must appear in it
+  --out=<value>          where to write the sanitized file (default: stdout)
+  --rewrite=<value>...   literal rewrite old=new, applied to every string; repeatable
+
+DESCRIPTION
+  Prepares a recording for the known-good corpus: recomputes every digest response with the corpus test credentials (so
+  it still authenticates on replay) and applies literal rewrites to numbers, hosts and addresses across the whole file.
+
+EXAMPLES
+  $ rctl trace sanitize call.jsonl --credentials etc/corpus/resources/credentials.yaml --out etc/corpus/zoiper_dod-invite_twilio_20261101.jsonl
+
+  $ rctl trace sanitize call.jsonl --credentials creds.yaml --rewrite +13055550100=+15555550100 --rewrite 203.0.113.7=10.111.220.22
+```
+
+_See code: [src/commands/trace/sanitize.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/trace/sanitize.ts)_
+
+## `rctl trace send FILE`
+
+Sends one recorded message to a running dispatcher or processor and shows how the live answer differs from the recorded one. Useful to reproduce a routing decision against a fix without placing a call.
+
+```
+USAGE
+  $ rctl trace send FILE -t <value> [--seq <value>] [--json]
+
+ARGUMENTS
+  FILE  a .jsonl trace written by the dispatcher
+
+FLAGS
+  -t, --to=<value>   (required) host:port of the Processor gRPC service (a dispatcher or a processor)
+      --json         print the live answer as JSON instead of a diff
+      --seq=<value>  record to send (default: the first forwarded INVITE, else the first record)
+
+DESCRIPTION
+  Sends one recorded message to a running dispatcher or processor and shows how the live answer differs from the
+  recorded one. Useful to reproduce a routing decision against a fix without placing a call.
+
+EXAMPLES
+  $ rctl trace send call.jsonl --to localhost:51901
+
+  $ rctl trace send call.jsonl --seq 7 --to connect:51904
+```
+
+_See code: [src/commands/trace/send.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/trace/send.ts)_
+
+## `rctl trace validate FILE`
+
+Checks that every line of a trace is a record this rctl can read: valid JSON, a supported traceVersion, and the record schema.
+
+```
+USAGE
+  $ rctl trace validate FILE
+
+ARGUMENTS
+  FILE  a .jsonl trace written by the dispatcher
+
+DESCRIPTION
+  Checks that every line of a trace is a record this rctl can read: valid JSON, a supported traceVersion, and the record
+  schema.
+
+EXAMPLES
+  $ rctl trace validate call.jsonl
+```
+
+_See code: [src/commands/trace/validate.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/trace/validate.ts)_
+
 ## `rctl trunks create`
 
 Creates a new Trunk
@@ -1155,7 +1345,7 @@ EXAMPLES
   Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
 ```
 
-_See code: [src/commands/trunks/create.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/trunks/create.ts)_
+_See code: [src/commands/trunks/create.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/trunks/create.ts)_
 
 ## `rctl trunks delete [REF]`
 
@@ -1178,7 +1368,7 @@ EXAMPLES
   Deleting item 80181ca6-d4aa-4575-9375-8f72b071111... Done
 ```
 
-_See code: [src/commands/trunks/delete.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/trunks/delete.ts)_
+_See code: [src/commands/trunks/delete.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/trunks/delete.ts)_
 
 ## `rctl trunks describe [REF]`
 
@@ -1200,7 +1390,7 @@ DESCRIPTION
   shows details for a Trunk
 ```
 
-_See code: [src/commands/trunks/describe.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/trunks/describe.ts)_
+_See code: [src/commands/trunks/describe.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/trunks/describe.ts)_
 
 ## `rctl trunks get [REF]`
 
@@ -1229,7 +1419,7 @@ EXAMPLES
   8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local  sip.t01.provider.net
 ```
 
-_See code: [src/commands/trunks/get.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/trunks/get.ts)_
+_See code: [src/commands/trunks/get.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/trunks/get.ts)_
 
 ## `rctl trunks update REF`
 
@@ -1255,5 +1445,5 @@ EXAMPLES
   Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
 ```
 
-_See code: [src/commands/trunks/update.ts](https://github.com/fonoster/routr/blob/v2.17.0/mods/ctl/src/commands/trunks/update.ts)_
+_See code: [src/commands/trunks/update.ts](https://github.com/fonoster/routr/blob/v2.19.0/mods/ctl/src/commands/trunks/update.ts)_
 <!-- commandsstop -->
