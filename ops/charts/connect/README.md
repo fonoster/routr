@@ -45,6 +45,19 @@ We recommend using a namespace for easy upgrades.
 
 The [configuration](https://hub.helm.sh/#configuration) section lists the parameters that can be configured during installation.
 
+## Upgrading the Chart
+
+### From 0.4.7 or earlier
+
+The EdgePort StatefulSet now uses the `<release>-routr-edgeport-headless` Service as its governing Service. Kubernetes doesn't allow changing that field on an existing StatefulSet, so delete the StatefulSet first, leaving its pods running, and then upgrade:
+
+```bash
+$ kubectl delete statefulset my-release-routr-edgeport --cascade=orphan --namespace routr
+$ helm upgrade my-release routr/routr-connect --namespace routr
+```
+
+The pods keep serving traffic until the upgraded StatefulSet replaces them.
+
 ## Uninstalling the Chart
 
 To uninstall/delete the `my-release` deployment:
@@ -328,6 +341,8 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 
 This is taken from Bitnami Helm Chart. Please refer to https://bitnami.com/stack/postgresql/helm
 
+Bitnami no longer serves these images from `docker.io/bitnami`, so the chart pulls them from `bitnamilegacy`. Keep these `image` overrides if you copy the defaults into your own values. The move off Bitnami is tracked in [#347](https://github.com/fonoster/routr/issues/347).
+
 Here are the default values:
 
 ```
@@ -335,6 +350,15 @@ Here are the default values:
 postgresql:
   # Whether to enable PostgreSQL
   enabled: true
+  image:
+    repository: bitnamilegacy/postgresql
+  volumePermissions:
+    image:
+      repository: bitnamilegacy/os-shell
+      tag: 11-debian-11-r99
+  metrics:
+    image:
+      repository: bitnamilegacy/postgres-exporter
   auth:
     # Initial username for the database
     username: routr
@@ -346,6 +370,8 @@ postgresql:
 
 This is taken from Bitnami Helm Chart. Please refer to https://bitnami.com/stack/postgres/helm
 
+Like Postgres, these images come from `bitnamilegacy`.
+
 Here are the default values:
 
 ```
@@ -354,6 +380,22 @@ redis:
   # Whether to enable Redis
   enabled: true
   architecture: standalone
+  image:
+    repository: bitnamilegacy/redis
+  sentinel:
+    image:
+      repository: bitnamilegacy/redis-sentinel
+  metrics:
+    image:
+      repository: bitnamilegacy/redis-exporter
+  volumePermissions:
+    image:
+      repository: bitnamilegacy/os-shell
+      tag: 11-debian-11-r99
+  sysctl:
+    image:
+      repository: bitnamilegacy/os-shell
+      tag: 11-debian-11-r99
   auth:
     enabled: false
 ```

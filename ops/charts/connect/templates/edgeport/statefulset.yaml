@@ -12,7 +12,7 @@ spec:
     matchLabels:
       {{- include ".helm.selectorLabels" . | nindent 6 }}
       service: edgeport
-  serviceName: edgeport
+  serviceName: {{ .Release.Name }}-routr-edgeport-headless
   minReadySeconds: {{ .Values.edgeport.minReadySeconds }}
   template:
     metadata:
@@ -60,31 +60,7 @@ spec:
               value: "true"
           ports:
             - containerPort: 8080
-          {{- if .Values.edgeport.transport.tcp.enabled }}
-            - name: siptcp
-              protocol: TCP
-              containerPort: {{ .Values.edgeport.transport.tcp.port | default 5060 }}
-          {{- end }}
-          {{- if .Values.edgeport.transport.udp.enabled }}
-            - name: sipudp
-              protocol: UDP
-              containerPort: {{ .Values.edgeport.transport.udp.port | default 5060 }}
-          {{- end }}
-          {{- if .Values.edgeport.transport.tls.enabled }}
-            - name: siptls
-              protocol: TCP
-              containerPort: {{ .Values.edgeport.transport.tls.port | default 5061 }}
-          {{- end }}      
-          {{- if .Values.edgeport.transport.ws.enabled }}
-            - name: sipws
-              protocol: TCP
-              containerPort: {{ .Values.edgeport.transport.ws.port | default 5062 }}
-          {{- end }}
-          {{- if .Values.edgeport.transport.wss.enabled }}
-            - name: sipwss
-              protocol: TCP
-              containerPort: {{ .Values.edgeport.transport.wss.port | default 5063 }}
-          {{- end }}
+            {{- include ".helm.edgeportPorts" (dict "ctx" . "transports" (list "udp" "tcp" "tls" "ws" "wss") "container" true) | trim | nindent 12 }}
           volumeMounts:
             - name: log4j2
               mountPath: /etc/routr/log4j2.yaml

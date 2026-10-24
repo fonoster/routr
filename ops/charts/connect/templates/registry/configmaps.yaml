@@ -31,4 +31,5 @@ data:
       {{- end }}
       {{- end }}
       edgePorts:
-        - address: {{ .Release.Name }}-routr-edgeport.{{ .Release.Namespace }}:5060
+        # The in-cluster EdgePort Service (see edgeport/service.yaml), on the UDP port
+        - address: {{ .Release.Name }}-routr-edgeport.{{ .Release.Namespace }}:{{ .Values.edgeport.transport.udp.port | default 5060 }}

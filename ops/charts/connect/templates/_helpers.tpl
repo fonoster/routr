@@ -61,3 +61,27 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+EdgePort SIP ports for every enabled transport, in a fixed order. Call it with
+(dict "ctx" $ "transports" (list "udp" "tcp" ...)) to choose which transports to
+list, and add "container" true to render container ports instead of service ports.
+*/}}
+{{- define ".helm.edgeportPorts" -}}
+{{- $defaults := dict "udp" (list "sipudp" "UDP" 5060) "tcp" (list "siptcp" "TCP" 5060) "tls" (list "siptls" "TCP" 5061) "ws" (list "sipws" "TCP" 5062) "wss" (list "sipwss" "TCP" 5063) }}
+{{- range $key := list "udp" "tcp" "tls" "ws" "wss" }}
+{{- $transport := index $.ctx.Values.edgeport.transport $key }}
+{{- if and $transport.enabled (has $key $.transports) }}
+{{- $default := index $defaults $key }}
+{{- $port := $transport.port | default (index $default 2) }}
+- name: {{ index $default 0 }}
+  protocol: {{ index $default 1 }}
+{{- if $.container }}
+  containerPort: {{ $port }}
+{{- else }}
+  port: {{ $port }}
+  targetPort: {{ $port }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -564,10 +564,22 @@ rtprelay:
     # Target memory utilization percentage
     targetMemoryUtilizationPercentage: 70
 
-# Postgresql Service defaults 
+# Postgresql Service defaults
 postgresql:
   # Whether to enable PostgreSQL
   enabled: true
+  # Bitnami sunset docker.io/bitnami, and its versioned tags now live under
+  # bitnamilegacy. This is a stopgap until the move off Bitnami (#347).
+  image:
+    repository: bitnamilegacy/postgresql
+  volumePermissions:
+    image:
+      # bitnami-shell has no bitnamilegacy copy; os-shell is its renamed successor
+      repository: bitnamilegacy/os-shell
+      tag: 11-debian-11-r99
+  metrics:
+    image:
+      repository: bitnamilegacy/postgres-exporter
   auth:
     # Initial username for the database
     username: routr
@@ -579,5 +591,25 @@ redis:
   # Whether to enable Redis
   enabled: true
   architecture: standalone
+  # Bitnami sunset docker.io/bitnami, and its versioned tags now live under
+  # bitnamilegacy. This is a stopgap until the move off Bitnami (#347).
+  image:
+    repository: bitnamilegacy/redis
+  sentinel:
+    image:
+      repository: bitnamilegacy/redis-sentinel
+  metrics:
+    image:
+      repository: bitnamilegacy/redis-exporter
+  volumePermissions:
+    image:
+      # bitnami-shell has no bitnamilegacy copy; os-shell is its renamed successor
+      repository: bitnamilegacy/os-shell
+      tag: 11-debian-11-r99
+  sysctl:
+    image:
+      # bitnami-shell has no bitnamilegacy copy; os-shell is its renamed successor
+      repository: bitnamilegacy/os-shell
+      tag: 11-debian-11-r99
   auth:
     enabled: false
