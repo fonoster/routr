@@ -108,6 +108,36 @@ export const schema = {
               type: "string"
             }
           }
+        },
+        securityContext: {
+          description: "TLS settings for the TLS and WSS transports",
+          type: "object",
+          properties: {
+            client: {
+              type: "object",
+              properties: {
+                authType: {
+                  type: "string"
+                },
+                protocols: {
+                  description: "TLS versions, for example TLSv1.3",
+                  type: "array",
+                  items: {
+                    type: "string",
+                    minLength: 1
+                  }
+                },
+                cipherSuites: {
+                  description: "Cipher suites, using JDK names",
+                  type: "array",
+                  items: {
+                    type: "string",
+                    minLength: 1
+                  }
+                }
+              }
+            }
+          }
         }
       },
       required: ["methods", "transport", "processor"]

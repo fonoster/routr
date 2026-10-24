@@ -40,7 +40,8 @@ export interface EdgePortConfig {
       keyStoreType: string
       client: {
         authType: string
-        protocols: string[]
+        protocols?: string[]
+        cipherSuites?: string[]
       }
     }
   }
