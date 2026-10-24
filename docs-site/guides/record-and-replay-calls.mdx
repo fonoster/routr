@@ -81,7 +81,7 @@ A Trunk records the calls of one provider; an Agent its calls and registrations;
 
 ## Files
 
-One file per call in `RECORD_MESSAGES_PATH`, named by the time of the first recorded message and the Call-ID, for example `20261023T024110321Z-1-25_10.111.221.22.jsonl`. Each line is one record; `rctl trace validate <file>` checks that a file is complete and readable by your `rctl`.
+One file per call in the Dispatcher's `recording.path` (`RECORD_MESSAGES_PATH` in the all-in-one image), named by the time of the first recorded message and the Call-ID, for example `20261023T024110321Z-1-25_10.111.221.22.jsonl`. Each line is one record; `rctl trace validate <file>` checks that a file is complete and readable by your `rctl`.
 
 The Dispatcher stops writing a call after 1 000 records and stops starting new recordings when 10 000 calls are active. Both limits are configurable (`maxRecordsPerCall`, `maxCalls`) in the `recording` block of the configuration file.
 
