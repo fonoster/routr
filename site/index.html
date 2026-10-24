@@ -58,6 +58,7 @@
         <nav class="nav__links" aria-label="Main">
           <a href="#architecture">Architecture</a>
           <a href="#connect">Connect</a>
+          <a href="record-and-replay/">Record &amp; Replay</a>
           <a href="https://docs.routr.io">Docs</a>
           <a href="#community">Community</a>
         </nav>
@@ -76,6 +77,7 @@
       <div class="sheet" id="sheet" hidden>
         <a href="#architecture">Architecture</a>
         <a href="#connect">Connect</a>
+        <a href="record-and-replay/">Record &amp; Replay</a>
         <a href="https://docs.routr.io">Docs</a>
         <a href="#community">Community</a>
         <a class="btn btn--primary" href="https://docs.routr.io/quickstart">Get started</a>
@@ -378,6 +380,25 @@ class="l">      <span class="v">X-Room-Id</span></span></code></pre>
               <div class="log__row"><span class="log__t">10:42:04</span><span class="log__hop">edgeport-01</span><span>new calls landing · nothing refused</span></div>
               <div class="log__row ok"><span class="log__t">10:42:05</span><span class="log__hop">edgeport-02</span><span>new pod Running · back in rotation</span></div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Record and replay -->
+      <section class="section" id="record-and-replay">
+        <div class="container split">
+          <div class="split__copy" data-reveal>
+            <span class="eyebrow"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-history"></use></svg>Record and replay</span>
+            <h2 class="t-h2">When a call fails, see why.</h2>
+            <p class="t-sub">Routr keeps a record of every SIP message and what each component did to it. Play any call back in your terminal.</p>
+            <a class="arrow-link" href="record-and-replay/">
+              <span>See how it works</span>
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-arrow-right"></use></svg>
+            </a>
+          </div>
+          <div class="window hide-m" data-reveal style="--i: 1">
+            <div class="window__bar"><i></i><i></i><i></i>rctl trace replay call.jsonl</div>
+            <img class="rr-shot" src="assets/img/replay-ladder.webp" width="1860" height="1080" loading="lazy" alt="The rctl trace replay ladder of a call through Routr, message by message." />
           </div>
         </div>
       </section>

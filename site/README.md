@@ -3,7 +3,7 @@
 The marketing site. Plain HTML + CSS + JS, the same approach as fonoster.com, deployed to GitHub Pages by `.github/workflows/gh-pages.yaml` together with the docs build (everything in `site/` except this README).
 
 - Designs: `designs/website.pen` (frames: Home / Desktop, Home / Mobile, 404 / Desktop, Share Image, Components, Color Palette). The site is coded from them.
-- Pages: `index.html` (home) and `404.html` (absolute paths, since GitHub Pages serves it at any missing URL; it replaces the one the docs build writes).
+- Pages: `index.html` (home), `record-and-replay/index.html` (relative `../assets` paths; the deploy workflow copies it to `out/record-and-replay/`) and `404.html` (absolute paths, since GitHub Pages serves it at any missing URL; it replaces the one the docs build writes).
 - Docs live at `/docs`, built by Docusaurus from `docs/` in the same workflow. The docs build writes `assets/` with hashed file names, so the site's `assets/css`, `assets/js` and `assets/img` merge into the same folder without collisions.
 - SEO: canonical + Open Graph tags (`assets/img/og.png`, exported from the "Share Image" frame in Pencil). `robots.txt` and `sitemap.xml` come from the docs build.
 - Analytics: Google Analytics `G-JX93S6PKN4` in every page head (same property as the docs).
@@ -58,6 +58,9 @@ Same rules as fonoster.com:
 | 9 | Section content | Fade up 12px, staggered | Once, on enter | 600ms, 60ms stagger |
 | 10 | Buttons, cards, links | Lift 1–2px, brighten, arrow nudge | Hover / focus | 150ms |
 | 11 | Nav | Background blur and divider fade in after scrolling | Scroll | 240ms |
+| 12 | Record and replay: hero | A clip of the real Ladder drawing itself (rails, each message with a packet on its head, the pane, then Enter opens the INVITE's hops); poster frame for reduced motion | Loop, paused offscreen | 9s, 264 KB MP4 |
+| 13 | Record and replay: flow | A pulse runs Caller → Carrier lighting each node; at the Dispatcher a teal dot drops into `call.jsonl` and runs on to `rctl trace replay` | Loop, paused offscreen | 6s cycle |
+| 14 | Record and replay: setup | The YAML lines that turn recording on light up one after another, then the terminal types `rctl trace replay call.jsonl --static` and prints its first line | Once, on enter | 140ms per line, 28ms/char |
 
 ## Open items
 

@@ -261,6 +261,22 @@
     links.forEach((l, i) => l.classList.toggle("is-on", idx >= 0 && i < idx));
   };
 
+  /* ---------- Clips play only while visible; reduced motion keeps the poster ---------- */
+  const initClips = () => {
+    $$("video[data-autoplay]").forEach((video) => {
+      if (reduceMotion) return;
+      loopWhileVisible(
+        video,
+        () => {
+          const playing = video.play();
+          if (playing && playing.catch) playing.catch(() => {});
+        },
+        () => video.pause(),
+        0.2
+      );
+    });
+  };
+
   /* ---------- Hero: the SIP trace plays in a loop ---------- */
   const initTrace = () => {
     $$("[data-trace]").forEach((root) => {
@@ -381,6 +397,7 @@
   initOdometers();
   initTyping();
   initTrace();
+  initClips();
   initHop();
   initFailover();
 })();
