@@ -1,6 +1,6 @@
 {
   "name": "@routr/processor",
-  "version": "2.17.0",
+  "version": "2.18.0",
   "description": "Processor server and API",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
