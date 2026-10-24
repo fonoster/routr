@@ -105,10 +105,10 @@
           </div>
           <div class="window" data-reveal style="--i: 2">
             <div class="window__bar"><i></i><i></i><i></i>rctl trace replay call.jsonl<span class="hide-m"> --compare before.jsonl</span></div>
-            <picture>
-              <source media="(max-width: 640px)" srcset="../assets/img/replay-ladder-m.webp" width="1260" height="780" />
-              <img class="rr-shot" src="../assets/img/replay-ladder.webp" width="1860" height="1080" alt="The rctl trace replay ladder: an INVITE challenged with a 401, sent again, forwarded by the Dispatcher and Connect to the provider, then 180 Ringing, 200 OK, ACK and BYE, with the selected message's headers on the right." />
-            </picture>
+            <video class="rr-shot show-d" data-autoplay muted loop playsinline preload="metadata" width="1240" height="720" poster="../assets/img/replay-ladder-poster.webp" aria-label="The rctl trace replay ladder drawing itself: an INVITE challenged with a 401, sent again, forwarded by the Dispatcher and Connect to the provider, then 180 Ringing, 200 OK, ACK and BYE; then the INVITE's hops open.">
+              <source src="../assets/img/replay-ladder.mp4" type="video/mp4" />
+            </video>
+            <img class="rr-shot show-m" src="../assets/img/replay-ladder-m.webp" width="1260" height="780" alt="The rctl trace replay ladder of a call through Routr, message by message." />
           </div>
         </div>
       </section>
@@ -131,16 +131,16 @@
             <h2 class="t-h2" data-reveal style="--i: 1">Every message passes one point.</h2>
             <p class="t-sub" data-reveal style="--i: 2">On its way to the carrier, each message goes through Routr's Dispatcher. That is where Routr writes it down: what came in, what each step changed, and what went out.</p>
           </div>
-          <div class="rr-flow" data-reveal style="--i: 2" role="img" aria-label="A caller's message goes through the EdgePort and the Dispatcher to Connect and the carrier. The Dispatcher writes one line per message to call.jsonl, which rctl trace replay opens.">
+          <div class="rr-flow" data-reveal data-loop style="--i: 2" role="img" aria-label="A caller's message goes through the EdgePort and the Dispatcher to Connect and the carrier. The Dispatcher writes one line per message to call.jsonl, which rctl trace replay opens.">
             <i class="rr-flow__rail" aria-hidden="true"></i>
-            <div class="rr-node" style="--col: 1"><span class="rr-node__name"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-phone"></use></svg>Caller</span><span class="rr-node__note">phone, PBX, app</span></div>
-            <div class="rr-node" style="--col: 2"><span class="rr-node__name"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-signal"></use></svg>EdgePort</span><span class="rr-node__note">receives the SIP</span></div>
-            <div class="rr-node rr-node--hi" style="--col: 3"><span class="rr-node__name"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-split"></use></svg>Dispatcher</span><span class="rr-node__note">writes it down</span></div>
-            <div class="rr-node rr-node--route" style="--col: 4"><span class="rr-node__name"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-route"></use></svg>Connect</span><span class="rr-node__note">routes the call</span></div>
-            <div class="rr-node rr-node--route" style="--col: 5"><span class="rr-node__name"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-building-2"></use></svg>Carrier</span><span class="rr-node__note">your provider</span></div>
+            <div class="rr-node" style="--col: 1; --d: 0s"><span class="rr-node__name"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-phone"></use></svg>Caller</span><span class="rr-node__note">phone, PBX, app</span></div>
+            <div class="rr-node" style="--col: 2; --d: 0.9s"><span class="rr-node__name"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-signal"></use></svg>EdgePort</span><span class="rr-node__note">receives the SIP</span></div>
+            <div class="rr-node rr-node--hi" style="--col: 3; --d: 1.8s"><span class="rr-node__name"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-split"></use></svg>Dispatcher</span><span class="rr-node__note">writes it down</span></div>
+            <div class="rr-node rr-node--route" style="--col: 4; --d: 2.7s"><span class="rr-node__name"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-route"></use></svg>Connect</span><span class="rr-node__note">routes the call</span></div>
+            <div class="rr-node rr-node--route" style="--col: 5; --d: 3.6s"><span class="rr-node__name"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-building-2"></use></svg>Carrier</span><span class="rr-node__note">your provider</span></div>
             <i class="rr-flow__tap" aria-hidden="true"><span>one line per message</span></i>
-            <div class="rr-chip rr-chip--file"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-file-text"></use></svg>call.jsonl</div>
-            <div class="rr-chip rr-chip--replay"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-terminal"></use></svg>rctl trace replay call.jsonl</div>
+            <div class="rr-chip rr-chip--file" style="--d: 2.5s"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-file-text"></use></svg>call.jsonl</div>
+            <div class="rr-chip rr-chip--replay" style="--d: 3.25s"><svg class="icon" aria-hidden="true"><use href="../assets/img/icons.svg#i-terminal"></use></svg>rctl trace replay call.jsonl</div>
             <p class="rr-flow__caption">Nothing else to run, and calls are not held up: the record is written after the message has moved on.</p>
           </div>
           <p class="rr-flow__after">Then Connect routes the call to your carrier as usual. Nothing else to run, and calls are not held up.</p>
@@ -174,11 +174,19 @@
           <div class="rr-editors" data-reveal style="--i: 1">
             <div class="window">
               <div class="window__bar"><i></i><i></i><i></i>dispatcher.yaml</div>
-              <pre class="code"><code><span class="l"><span class="k">kind</span>: <span class="v">MessageDispatcher</span></span><span class="l"><span class="k">spec</span>:</span><span class="l hl">  <span class="k">recording</span>:</span><span class="l hl">    <span class="k">enabled</span>: <span class="v">true</span></span><span class="l hl">    <span class="k">path</span>: <span class="v">/var/routr/traces</span></span><span class="l hl">    <span class="k">mode</span>: <span class="v">flagged</span></span></code></pre>
+              <pre class="code"><code><span class="l"><span class="k">kind</span>: <span class="v">MessageDispatcher</span></span><span class="l"><span class="k">spec</span>:</span><span class="l hl" style="--n: 0">  <span class="k">recording</span>:</span><span class="l hl" style="--n: 1">    <span class="k">enabled</span>: <span class="v">true</span></span><span class="l hl" style="--n: 2">    <span class="k">path</span>: <span class="v">/var/routr/traces</span></span><span class="l hl" style="--n: 3">    <span class="k">mode</span>: <span class="v">flagged</span></span></code></pre>
             </div>
             <div class="window">
               <div class="window__bar"><i></i><i></i><i></i>trunk.yaml</div>
-              <pre class="code"><code><span class="l"><span class="k">kind</span>: <span class="v">Trunk</span></span><span class="l"><span class="k">ref</span>: <span class="v">trunk-01</span></span><span class="l"><span class="k">spec</span>:</span><span class="l hl">  <span class="k">trace</span>:</span><span class="l hl">    <span class="k">enabled</span>: <span class="v">true</span></span></code></pre>
+              <pre class="code"><code><span class="l"><span class="k">kind</span>: <span class="v">Trunk</span></span><span class="l"><span class="k">ref</span>: <span class="v">trunk-01</span></span><span class="l"><span class="k">spec</span>:</span><span class="l hl" style="--n: 4">  <span class="k">trace</span>:</span><span class="l hl" style="--n: 5">    <span class="k">enabled</span>: <span class="v">true</span></span></code></pre>
+              <div class="term">
+                <div class="term__line">
+                  <span class="term__prompt">$</span>
+                  <span><span data-type="rctl trace replay call.jsonl --static">rctl trace replay call.jsonl --static</span><span class="caret" aria-hidden="true"></span></span>
+                </div>
+                <div class="term__out" data-type-out>routr. trace  call.jsonl  FORWARDED 8.8 ms</div>
+              </div>
+
             </div>
           </div>
         </div>

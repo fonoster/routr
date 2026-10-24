@@ -2279,3 +2279,126 @@ section[id] {
     padding-inline: 6px;
   }
 }
+
+/* ---------- Record and replay: motion (see README, Motion 12-14) ---------- */
+.rr-shot.show-m {
+  display: none;
+}
+@media (max-width: 640px) {
+  .rr-shot.show-m {
+    display: block;
+  }
+  .rr-shot.show-d {
+    display: none;
+  }
+}
+/* 12. The flow: a pulse runs Caller → Carrier; at the Dispatcher a record drops
+   into call.jsonl and rctl trace replay picks it up. One 6s loop, paused offscreen. */
+.rr-node,
+.rr-chip {
+  animation: rr-glow 6s var(--ease-in-out) infinite;
+  animation-delay: var(--d, 0s);
+}
+.rr-node--hi {
+  animation-name: rr-glow-hi;
+}
+.rr-flow__rail,
+.rr-flow__tap,
+.rr-chip--replay {
+  position: relative;
+}
+.rr-flow__rail::after,
+.rr-chip--replay::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 12px;
+  margin-top: -6px;
+  background: radial-gradient(circle at 6px 50%, var(--text-1) 0 4px, transparent 5px);
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.45));
+  opacity: 0;
+  animation: rr-run 6s linear infinite;
+}
+.rr-chip--replay::after {
+  left: -100px;
+  width: 100px;
+  background: radial-gradient(circle at 6px 50%, var(--accent) 0 4px, transparent 5px);
+  filter: drop-shadow(0 0 6px rgba(95, 207, 206, 0.6));
+  animation-name: rr-run-replay;
+}
+.rr-flow__tap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 12px;
+  height: 100%;
+  margin-left: -6px;
+  background: radial-gradient(circle at 50% 6px, var(--accent) 0 4px, transparent 5px);
+  filter: drop-shadow(0 0 6px rgba(95, 207, 206, 0.6));
+  opacity: 0;
+  animation: rr-drop 6s linear infinite;
+}
+@keyframes rr-run {
+  0% { transform: translateX(0); opacity: 0; }
+  2% { opacity: 1; }
+  58% { opacity: 1; }
+  60% { transform: translateX(calc(100% - 12px)); opacity: 0; }
+  100% { transform: translateX(calc(100% - 12px)); opacity: 0; }
+}
+@keyframes rr-drop {
+  0%, 31% { transform: translateY(0); opacity: 0; }
+  32% { opacity: 1; }
+  41% { opacity: 1; }
+  42% { transform: translateY(calc(100% - 12px)); opacity: 0; }
+  100% { transform: translateY(calc(100% - 12px)); opacity: 0; }
+}
+@keyframes rr-run-replay {
+  0%, 45% { transform: translateX(0); opacity: 0; }
+  46% { opacity: 1; }
+  53% { opacity: 1; }
+  54% { transform: translateX(calc(100% - 12px)); opacity: 0; }
+  100% { transform: translateX(calc(100% - 12px)); opacity: 0; }
+}
+@keyframes rr-glow {
+  0%, 14%, 100% {
+    border-color: var(--border);
+  }
+  3%, 9% {
+    border-color: var(--hl-border);
+  }
+}
+@keyframes rr-glow-hi {
+  0%, 14%, 100% {
+    box-shadow: 0 0 0 0 rgba(95, 207, 206, 0);
+  }
+  3%, 9% {
+    box-shadow: 0 0 0 6px rgba(95, 207, 206, 0.18);
+  }
+}
+/* 13. Setup: the lines that switch it on light up one after another */
+.js .rr-editors .code .l.hl {
+  background: transparent;
+}
+.js .rr-editors.is-in .code .l.hl {
+  background: var(--accent-subtle);
+  animation: rr-hl 0.5s var(--ease-out) both;
+  animation-delay: calc(500ms + var(--n, 0) * 140ms);
+}
+@keyframes rr-hl {
+  from {
+    background-color: transparent;
+  }
+}
+@media (max-width: 960px) {
+  .rr-chip--replay::after {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .rr-editors .code .l.hl {
+    background: var(--accent-subtle);
+  }
+}
