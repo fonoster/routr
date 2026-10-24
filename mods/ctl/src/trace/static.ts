@@ -30,7 +30,7 @@ import {
   ViewState,
   visibleRows
 } from "./paint"
-import { Line, textOf, wrap } from "./text"
+import { elideMiddle, Line, textOf, wrap } from "./text"
 
 export type StaticView = "summary" | "ladder" | "path" | "compare" | "all"
 
@@ -50,12 +50,24 @@ const plain = (lines: Line[]): string[] =>
  * The three identity lines every static page starts with.
  *
  * @param {CallModel} m - Model
+ * @param {number} columns - Page width, for the right-aligned verdict
  * @return {string[]} The lines
  */
-export function identity(m: CallModel): string[] {
+export function identity(m: CallModel, columns = 100): string[] {
   const first = m.records[0]
+  const verdict = m.verdict.short
+  // The file name gives way first, so the line never exceeds the page
+  const fileRoom = Math.max(
+    16,
+    columns - "routr. trace  ".length - 2 - verdict.length
+  )
+  const head = `routr. trace  ${elideMiddle(m.file, fileRoom)}`
+  const withId = `${head}  ${m.callId}`
+  const left = withId.length + 2 + verdict.length <= columns ? withId : head
   const lines = [
-    `routr trace  ${m.file}  Call-ID ${m.callId}`,
+    left +
+      " ".repeat(Math.max(2, columns - left.length - verdict.length)) +
+      verdict,
     `${first.edgePort.ref} ${
       first.edgePort.version ?? ""
     }  recorded ${m.recordedAt.replace("T", " ").replace(/\.\d+Z$/, " UTC")}  ${
@@ -84,7 +96,7 @@ export function renderStatic(
   opts: StaticOptions
 ): string {
   const columns = Math.min(MAX_STATIC_COLUMNS, Math.max(80, opts.columns))
-  const l: Layout = { columns, rows: 1000, g: opts.g }
+  const l: Layout = { columns, rows: 1000, g: opts.g, plain: true }
   const s: ViewState = {
     ...initialState(),
     selected: -1,
@@ -101,7 +113,10 @@ export function renderStatic(
       opts.select !== undefined
         ? rows.findIndex((r) => a.records[r.index].seq === opts.select)
         : -1
-    if (withDetail && selectedRow >= 0) state.expanded = rows[selectedRow].index
+    if (withDetail && selectedRow >= 0) {
+      state.expanded = rows[selectedRow].index
+      state.selected = selectedRow
+    }
     const lines = plain(paintLadderBody(a, b, state, l, geo).map((x) => x.line))
     if (!withDetail) return lines
     const rec =
@@ -118,18 +133,24 @@ export function renderStatic(
   const want = (v: StaticView) => opts.view === v || opts.view === "all"
   if (want("summary")) {
     pages.push([
-      ...identity(a),
+      ...identity(a, columns),
       "",
       ...plain(paintSummary(a, s, l).slice(2)),
       "",
+      "LADDER",
       ...ladder(false)
     ])
   }
   if (want("ladder")) {
-    pages.push([...identity(a), "", ...ladder(true)])
+    pages.push([...identity(a, columns), "", "LADDER", ...ladder(true)])
   }
   if (want("path")) {
-    pages.push([...identity(a), "", ...plain(paintPath(a, s, l))])
+    pages.push([
+      ...identity(a, columns),
+      "",
+      "PATH",
+      ...plain(paintPath(a, s, l))
+    ])
   }
   if (want("compare") && (b || opts.view === "compare")) {
     const { lines } = paintCompare(a, b, s, l, 100000)

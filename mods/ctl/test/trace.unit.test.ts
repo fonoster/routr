@@ -24,19 +24,43 @@ import { captureOutput } from "@oclif/test"
 import { Config } from "@oclif/core"
 import { Trace } from "@routr/common"
 import { loadTrace, TraceExit, TraceLoadError } from "../src/trace/load"
-import { alignTraces, analyze, labelOf, recordDiff } from "../src/trace/model"
+import {
+  alignTraces,
+  analyze,
+  comparable,
+  labelOf,
+  recordDiff
+} from "../src/trace/model"
 import { ASCII, pickGlyphs, UNICODE } from "../src/trace/glyphs"
 import {
   fitAddress,
   fitBranch,
+  elidePair,
   fitCallId,
   fitUri,
   fmtMs,
+  fmtMsCompact,
   wrap
 } from "../src/trace/text"
-import { initialState, paintScreen, visibleRows } from "../src/trace/paint"
-import { renderStatic } from "../src/trace/static"
-import { listLength, problemIndices, reduce } from "../src/trace/app"
+import {
+  header,
+  helpLines,
+  initialState,
+  paintScreen,
+  paintSplash,
+  visibleRows
+} from "../src/trace/paint"
+import { identity, renderStatic } from "../src/trace/static"
+import {
+  DARK,
+  inkStyle,
+  isLightColorFgBg,
+  isLightReply,
+  LIGHT,
+  listLength,
+  problemIndices,
+  reduce
+} from "../src/trace/app"
 import ReplayCommand from "../src/commands/trace/replay"
 import ValidateCommand from "../src/commands/trace/validate"
 import LintCommand from "../src/commands/trace/lint"
@@ -152,9 +176,7 @@ describe("@routr/ctl trace", () => {
         "2 P-Asserted-Identity headers reach the service provider; it reads the first"
       )
       expect(bSipConnect.checks[0].explain).to.include("sip-connect/pai-single")
-      expect(a.checksNote).to.equal(
-        "checks cover the first forwarded INVITE; 2 more INVITEs in this call"
-      )
+      expect(a.forwardedInvites).to.equal(3)
     })
 
     it("labels messages and folds retransmissions", () => {
@@ -312,7 +334,7 @@ describe("@routr/ctl trace", () => {
         rows: 20,
         g: UNICODE
       })
-      expect(text(lines)).to.include("needs at least 80×20 (now 72×20)")
+      expect(text(lines)).to.include("needs at least 80×23 (now 72×20)")
     })
 
     it("places the pane by width and expands hops inline", () => {
@@ -335,11 +357,147 @@ describe("@routr/ctl trace", () => {
     it("reads in ASCII", () => {
       const s = { ...initialState(1), selected: 1 }
       const out = text(
-        paintScreen(b, undefined, s, { columns: 100, rows: 30, g: ASCII })
+        paintScreen(b, undefined, s, { columns: 100, rows: 34, g: ASCII })
       )
       expect(out).to.include("-INVITE c2 x2")
       expect(out).to.match(/x\s+\+1681/)
       expect(out).to.not.match(/[─╌▶◀✓✗]/)
+    })
+  })
+
+  describe("brand and theme", () => {
+    const lines = (l: { text: string }[][]) =>
+      l.map((x) => x.map((y) => y.text).join(""))
+
+    it("puts the r. mark beside three context lines", () => {
+      const a = analyze(loadTrace(A))
+      const rows = header(a, undefined, { columns: 120, rows: 34, g: UNICODE })
+      const out = lines(rows)
+      expect(out).to.have.length(3)
+      expect(out[0]).to.match(/^ {10}trace {5}call-2\.18\.0\.jsonl +FORWARDED/)
+      expect(out[1]).to.match(/^ {10}call {6}1-25@/)
+      expect(out[2]).to.match(/^ {10}edgeport {2}edgeport-01 2\.18\.0/)
+      // Solid cells: the letter and the dot are background colour, no glyphs
+      const painted = rows.map((r) =>
+        r
+          .filter((x) => x.bg === "mark" || x.bg === "dot")
+          .map((x) => `${x.bg}:${x.text.length}`)
+          .join(" ")
+      )
+      expect(painted).to.deep.equal(["mark:4", "mark:2", "mark:2 dot:2"])
+      const ascii = lines(
+        header(a, undefined, { columns: 120, rows: 34, g: ASCII })
+      )
+      expect(ascii[0]).to.match(/^routr\. +trace/)
+    })
+
+    it("centres the splash and blinks only the dot", () => {
+      const l = { columns: 80, rows: 24, g: UNICODE }
+      const on = paintSplash("call.jsonl", true, l)
+      const off = paintSplash("call.jsonl", false, l)
+      expect(on).to.have.length(24)
+      const dots = (screen: typeof on) =>
+        screen.flat().filter((x) => x.bg === "dot").length
+      expect(dots(on)).to.equal(1)
+      expect(dots(off)).to.equal(0)
+      const marks = (screen: typeof on) =>
+        screen.flat().filter((x) => x.bg === "mark").length
+      expect(marks(off)).to.equal(marks(on))
+      const note = lines(on).find((t) => t.includes("reading call.jsonl")) ?? ""
+      expect(note.indexOf("reading")).to.equal(Math.floor((80 - 18) / 2))
+    })
+
+    it("keeps every key on a short screen", () => {
+      expect(helpLines(16)).to.have.length(16)
+      expect(helpLines(40)).to.have.length(20)
+    })
+
+    it("keeps two shortened file names tellable apart", () => {
+      const [x, y] = elidePair(
+        "seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl",
+        "seet-agent-1002_sc-1.3.1-dod-invite_provider_20261023.jsonl",
+        20
+      )
+      expect(x).to.have.length(20)
+      expect(x).to.include("1001")
+      expect(y).to.include("1002")
+      expect(
+        elidePair("call-2.17.0.jsonl", "call-2.15.4.jsonl", 40)
+      ).to.deep.equal(["call-2.17.0.jsonl", "call-2.15.4.jsonl"])
+    })
+
+    it("keeps a unit on every time in the ladder column", () => {
+      expect(fmtMsCompact(955)).to.equal("955")
+      expect(fmtMsCompact(12345)).to.equal("12.3s")
+      expect(fmtMsCompact(65000)).to.equal("1m05s")
+      expect(fmtMsCompact(754000)).to.equal("12m")
+      expect(fmtMsCompact(11100000)).to.equal("3h05")
+      ;[955, 12345, 65000, 754000, 11100000].forEach((ms) =>
+        expect(fmtMsCompact(ms).length).to.be.at.most(5)
+      )
+    })
+
+    it("ignores the caller's own source port when comparing", () => {
+      const a = analyze(loadTrace(A))
+      const rec = a.records[1]
+      if (!rec.response) throw new Error("fixture record 2 was forwarded")
+      const msg = rec.response.message
+      const other = JSON.parse(JSON.stringify(msg))
+      const caller = other.via[other.via.length - 1]
+      caller.port = 41000
+      if (caller.rPort) caller.rPort = 41000
+      expect(JSON.stringify(comparable(other))).to.equal(
+        JSON.stringify(comparable(msg))
+      )
+      // Routr's own Via is still compared
+      other.via[0].port = 9999
+      expect(JSON.stringify(comparable(other))).to.not.equal(
+        JSON.stringify(comparable(msg))
+      )
+    })
+
+    it("keeps the static header within the page", () => {
+      const a = analyze(loadTrace(A))
+      const long = { ...a, file: "x".repeat(90) + ".jsonl" }
+      identity(long, 80).forEach((line) =>
+        expect(line.length).to.be.at.most(80)
+      )
+    })
+
+    it("tells light from dark terminals", () => {
+      expect(isLightReply("\x1b]11;rgb:ffff/ffff/ffff\x07")).to.equal(true)
+      expect(isLightReply("\x1b]11;rgb:1818/1818/1818\x1b\\")).to.equal(false)
+      expect(isLightReply("\x1b]11;rgb:fd/f6/e3\x07")).to.equal(true)
+      expect(isLightReply("")).to.equal(undefined)
+      expect(isLightColorFgBg("0;15")).to.equal(true)
+      expect(isLightColorFgBg("15;0")).to.equal(false)
+      expect(isLightColorFgBg(undefined)).to.equal(undefined)
+    })
+
+    it("keeps selected rows readable on light terminals", () => {
+      const row = { bg: "selection" as const, bold: true }
+      expect(inkStyle(row, DARK).backgroundColor).to.equal("#333333")
+      expect(inkStyle(row, LIGHT).backgroundColor).to.equal("#E2E8E8")
+      expect(inkStyle({ color: "success" }, LIGHT).color).to.equal("#0A7F4F")
+      expect(inkStyle({ bg: "accent" }, LIGHT).color).to.equal("#001A1A")
+      expect(inkStyle({ bg: "mark" }, LIGHT).backgroundColor).to.equal(
+        "#1F2328"
+      )
+      expect(inkStyle({ bg: "dot" }, DARK).backgroundColor).to.equal("#5FCFCE")
+    })
+
+    it("compares by what Routr did, not per-call randomness", () => {
+      const a = analyze(loadTrace(A))
+      const rec = a.records[1]
+      if (!rec.response) throw new Error("fixture record 2 was forwarded")
+      const msg = rec.response.message
+      const other = JSON.parse(JSON.stringify(msg))
+      other.callId = { callId: "different@host" }
+      other.via[0].branch = "z9hG4bK-other"
+      if (other.contact) other.contact.address.uri.port = 40000
+      expect(JSON.stringify(comparable(other))).to.equal(
+        JSON.stringify(comparable(msg))
+      )
     })
   })
 
@@ -443,11 +601,15 @@ describe("@routr/ctl trace", () => {
 
     it("prints the identity lines, no trailing spaces, max 120 columns", () => {
       const out = renderStatic(a, b, { view: "all", columns: 200, g: UNICODE })
-      expect(out.split("\n")[1]).to.equal(
-        "routr trace  call-2.18.0.jsonl  Call-ID 1-25@10.111.221.22"
+      const first = out.split("\n")[1]
+      expect(first).to.match(
+        /^routr\. trace {2}call-2\.18\.0\.jsonl {2}1-25@10\.111\.221\.22 {2,}FORWARDED 16\.1 ms$/
       )
+      expect(first.length).to.equal(120)
       expect(out).to.include("──── compare ")
-      expect(out).to.include("≠ A2 B2")
+      expect(out).to.include("≠  A2 B2")
+      expect(out).to.include("\nFACTS\n")
+      expect(out).to.include("\nLADDER\n")
       out.split("\n").forEach((line) => {
         expect(line).to.equal(line.replace(/\s+$/, ""))
         expect(line.length).to.be.at.most(120)

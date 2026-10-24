@@ -28,6 +28,8 @@ export interface Glyphs {
   right: string
   left: string
   dropped: string
+  // The dropped head on a leg travelling right to left
+  droppedLeft: string
   branch: string
   last: string
   pass: string
@@ -56,6 +58,7 @@ export const UNICODE: Glyphs = {
   right: "▶",
   left: "◀",
   dropped: "┤",
+  droppedLeft: "├",
   branch: "├",
   last: "└",
   pass: "✓",
@@ -84,6 +87,7 @@ export const ASCII: Glyphs = {
   right: ">",
   left: "<",
   dropped: "|",
+  droppedLeft: "|",
   branch: "|-",
   last: "`-",
   pass: "ok",

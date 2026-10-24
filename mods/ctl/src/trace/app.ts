@@ -22,11 +22,12 @@ import {
   initialState,
   Layout,
   paintScreen,
+  paintSplash,
   VIEWS,
   ViewState,
   visibleRows
 } from "./paint"
-import { Color, Line } from "./text"
+import { Background, Color, Line } from "./text"
 
 // Ink is ESM-only; rctl is CommonJS. The dynamic import below is preserved
 // by the node16 module setting, so this works on Node 22 without a bundler.
@@ -55,13 +56,151 @@ interface ReactModule {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-const COLORS: Record<Color, string | undefined> = {
-  accent: "#39e19e",
-  danger: "#f97066",
-  warn: "#e8c07d",
-  info: "#82aaff",
-  muted: "#9a9a9a",
-  fg: undefined
+export interface Palette {
+  colors: Record<Color, string | undefined>
+  // The quietest tone, for rails, dividers and gap rows (never SGR dim,
+  // which renders unpredictably over hex colours)
+  dim: Partial<Record<Color, string>>
+  backgrounds: Record<Background, string>
+  // Text on the teal chip is never white
+  onAccent: string
+}
+
+// Routr brand tokens on a dark terminal: teal is the brand, green means ok.
+// fg stays undefined so normal text keeps the terminal's own colour.
+export const DARK: Palette = {
+  colors: {
+    accent: "#5FCFCE",
+    success: "#39E19E",
+    danger: "#F97066",
+    warn: "#F5A524",
+    info: "#60A5FA",
+    muted: "#8D8D8D",
+    fg: undefined
+  },
+  dim: { muted: "#555555", fg: "#8D8D8D" },
+  backgrounds: {
+    accent: "#5FCFCE",
+    selection: "#333333",
+    mark: "#E8E8E8",
+    dot: "#5FCFCE"
+  },
+  onAccent: "#001A1A"
+}
+
+// The same roles on a light terminal: darker hues that keep 4.5:1 on white,
+// a pale selection bar so the terminal's dark text stays readable on it
+export const LIGHT: Palette = {
+  colors: {
+    accent: "#0B7A79",
+    success: "#0A7F4F",
+    danger: "#C4321F",
+    warn: "#A85F00",
+    info: "#1F5FD0",
+    muted: "#6E6E6E",
+    fg: undefined
+  },
+  dim: { muted: "#B5B5B5", fg: "#6E6E6E" },
+  backgrounds: {
+    accent: "#5FCFCE",
+    selection: "#E2E8E8",
+    mark: "#1F2328",
+    dot: "#0B7A79"
+  },
+  onAccent: "#001A1A"
+}
+
+/**
+ * Resolves a segment's semantic style to what Ink's Text takes.
+ *
+ * @param {object} x - A segment
+ * @param {Palette} p - The palette for the terminal's background
+ * @return {object} Ink Text props
+ */
+export function inkStyle(
+  x: {
+    color?: Color
+    bold?: boolean
+    bg?: Background
+    dim?: boolean
+  },
+  p: Palette = DARK
+): {
+  color?: string
+  backgroundColor?: string
+  bold?: boolean
+} {
+  const base = x.color ? p.colors[x.color] : undefined
+  const color = x.dim && x.color ? p.dim[x.color] ?? base : base
+  return {
+    color: x.bg === "accent" ? p.onAccent : color,
+    ...(x.bg ? { backgroundColor: p.backgrounds[x.bg] } : {}),
+    bold: x.bold
+  }
+}
+
+/**
+ * Whether a terminal background is light, from an OSC 11 reply
+ * ("rgb:RRRR/GGGG/BBBB", 1 to 4 hex digits per channel).
+ *
+ * @param {string} reply - What the terminal answered
+ * @return {boolean | undefined} true when light, undefined when unparseable
+ */
+export function isLightReply(reply: string): boolean | undefined {
+  const m = /rgb:([0-9a-f]{1,4})\/([0-9a-f]{1,4})\/([0-9a-f]{1,4})/i.exec(reply)
+  if (!m) return undefined
+  const [r, g, b] = m
+    .slice(1)
+    .map((h) => parseInt(h, 16) / (16 ** h.length - 1))
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5
+}
+
+/**
+ * Whether COLORFGBG ("fg;bg", set by rxvt, Konsole and others) names a
+ * light background.
+ *
+ * @param {string | undefined} value - The variable
+ * @return {boolean | undefined} true when light, undefined when absent
+ */
+export function isLightColorFgBg(value?: string): boolean | undefined {
+  const bg = Number(value?.split(";").pop())
+  if (!value || Number.isNaN(bg)) return undefined
+  return bg === 7 || bg === 15
+}
+
+/**
+ * Picks the palette for the terminal: asks for the background colour with
+ * OSC 11 and waits briefly for the reply; falls back to COLORFGBG, then dark.
+ *
+ * @param {number} timeoutMs - How long to wait for the terminal
+ * @return {Promise<Palette>} The palette
+ */
+export async function detectPalette(timeoutMs = 150): Promise<Palette> {
+  const hint = isLightColorFgBg(process.env.COLORFGBG)
+  const { stdin, stdout } = process
+  if (!stdin.isTTY || !stdout.isTTY) return hint ? LIGHT : DARK
+  const reply = await new Promise<string>((resolve) => {
+    let buf = ""
+    const done = () => {
+      clearTimeout(timer)
+      stdin.off("data", onData)
+      stdin.setRawMode(false)
+      stdin.pause()
+      resolve(buf)
+    }
+    const onData = (d: Buffer) => {
+      buf += d.toString("latin1")
+      // The reply ends with BEL or ST (ESC \\)
+      if (buf.includes("\x07") || buf.includes("\x1b\\")) done()
+    }
+    const timer = setTimeout(done, timeoutMs)
+    stdin.setRawMode(true)
+    stdin.resume()
+    stdin.on("data", onData)
+    stdout.write("\x1b]11;?\x1b\\")
+  })
+  const light = isLightReply(reply) ?? hint
+  return light ? LIGHT : DARK
 }
 
 /** The key flags Ink's useInput reports; declared here so the reducer has no ESM type import. */
@@ -86,7 +225,12 @@ export interface AppOptions {
   view: number
   g: Glyphs
   select?: number
+  // false skips the splash (tests, --select, scripted runs)
+  splash?: boolean
 }
+
+// How long the splash blinks before the first view opens
+const SPLASH_MS = 5000
 
 /**
  * Applies one key press to the state. Pure, so the key map is testable
@@ -303,6 +447,7 @@ export async function runApp(
   b: CallModel | undefined,
   opts: AppOptions
 ): Promise<void> {
+  const palette = await detectPalette()
   const ink = (await import(INK)) as InkModule
   const React = (await import(REACT)) as ReactModule
   const { Box, Text, render, useApp, useInput, useStdout } = ink
@@ -329,6 +474,18 @@ export async function runApp(
       rows: stdout.rows || 24
     })
     const [s, setS] = React.useState<ViewState>(start)
+    // The splash blinks the dot for a few seconds; any key skips it
+    const [splash, setSplash] = React.useState(opts.splash !== false)
+    const [dotOn, setDotOn] = React.useState(true)
+    React.useEffect(() => {
+      if (!splash) return undefined
+      const blink = setInterval(() => setDotOn((on) => !on), 420)
+      const end = setTimeout(() => setSplash(false), SPLASH_MS)
+      return () => {
+        clearInterval(blink)
+        clearTimeout(end)
+      }
+    }, [splash])
     const timer = React.useRef<NodeJS.Timeout | undefined>(undefined)
 
     React.useEffect(() => {
@@ -344,7 +501,9 @@ export async function runApp(
     }, [stdout])
 
     React.useEffect(() => {
-      if (!s.message) return undefined
+      // The message clock starts once the splash is gone, so a warning
+      // raised at load time is on screen for its full 3 s
+      if (!s.message || splash) return undefined
       if (timer.current) clearTimeout(timer.current)
       timer.current = setTimeout(
         () => setS((prev) => ({ ...prev, message: undefined })),
@@ -353,7 +512,7 @@ export async function runApp(
       return () => {
         if (timer.current) clearTimeout(timer.current)
       }
-    }, [s.message])
+    }, [s.message, splash])
 
     // Keep the latest state in a ref so the key handler never updates
     // state from inside an updater (React forbids side effects there)
@@ -361,11 +520,17 @@ export async function runApp(
     latest.current = s
 
     useInput((input: string, key: Key) => {
+      // A colour reply that came back after the probe gave up is not a key
+      if (/\]11;|rgb:[0-9a-f]+\//i.test(input)) return
+      if (splash) {
+        setSplash(false)
+        return
+      }
       const prev = latest.current
       const next = reduce(prev, input, key, {
         a,
         b,
-        rows: size.rows - 3,
+        rows: size.rows - 8,
         columns: size.columns,
         listLength: listLength(a, b, prev),
         problems: problemIndices(a, b, prev)
@@ -382,7 +547,9 @@ export async function runApp(
       rows: size.rows - 1,
       g: opts.g
     }
-    const lines = paintScreen(a, b, s, layout)
+    const lines = splash
+      ? paintSplash(a.file, dotOn, layout)
+      : paintScreen(a, b, s, layout)
     return h(
       Box,
       { flexDirection: "column", width: size.columns },
@@ -392,17 +559,7 @@ export async function runApp(
           { key: i, wrap: "truncate-end" },
           line.length
             ? line.map((x, j) =>
-                h(
-                  Text,
-                  {
-                    key: j,
-                    color: x.color ? COLORS[x.color] : undefined,
-                    bold: x.bold,
-                    inverse: x.inverse,
-                    dimColor: x.dim
-                  },
-                  x.text
-                )
+                h(Text, { key: j, ...inkStyle(x, palette) }, x.text)
               )
             : " "
         )

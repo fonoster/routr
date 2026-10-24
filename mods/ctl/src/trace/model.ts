@@ -107,7 +107,6 @@ export interface CallModel {
   rows: Row[]
   verdict: Verdict
   checks: Check[]
-  checksNote?: string
   facts: [string, string][]
   pathModel: PathModel
   // Row indices worth jumping to with n
@@ -115,6 +114,8 @@ export interface CallModel {
   // Rule findings by record seq (only records with findings)
   findings: Map<number, Trace.Finding[]>
   profiles: Trace.Profile[]
+  // How many INVITEs were forwarded; the checks cover the first
+  forwardedInvites: number
   firstForwarded?: Trace.TraceRecord
   recordedAt: string
 }
@@ -717,6 +718,7 @@ export function analyze(
         to?.user ?? to?.host ?? "?"
       }`
     ],
+    ["Call-ID", loaded.records[0].callId],
     ["Direction", direction || "n/a"],
     [
       "Trunk",
@@ -741,12 +743,6 @@ export function analyze(
   const inviteCount = requests.filter(
     (r) => r.method === "INVITE" && r.outcome === Trace.TraceOutcome.FORWARDED
   ).length
-  const checksNote =
-    inviteCount > 1
-      ? `checks cover the first forwarded INVITE; ${
-          inviteCount - 1
-        } more INVITE${inviteCount - 1 === 1 ? "" : "s"} in this call`
-      : undefined
 
   const problems = rows
     .filter(
@@ -761,6 +757,7 @@ export function analyze(
   return {
     findings,
     profiles,
+    forwardedInvites: inviteCount,
     file: loaded.file,
     path: loaded.path,
     records,
@@ -771,7 +768,6 @@ export function analyze(
     rows,
     verdict,
     checks,
-    checksNote,
     facts,
     pathModel: buildPath(records, lanes, firstForwarded),
     problems,
@@ -875,8 +871,8 @@ export function recordDiff(r: Trace.TraceRecord): DiffRow[] {
  * @return {DiffRow[]} The rows, "by" is A or B
  */
 export function abDiff(a: Trace.TraceRecord, b: Trace.TraceRecord): DiffRow[] {
-  const ma = a.response?.message ?? a.request.message
-  const mb = b.response?.message ?? b.request.message
+  const ma = comparable(a.response?.message ?? a.request.message)
+  const mb = comparable(b.response?.message ?? b.request.message)
   const d = Trace.diffMessages(ma, mb)
   const rows: DiffRow[] = []
   if (d.requestUri)
@@ -930,8 +926,42 @@ const alignKey = (r: Trace.TraceRecord) =>
     r.kind === "response" ? "|" + (r.status ?? "") : ""
   }`
 
-const outgoingSignature = (r: Trace.TraceRecord) =>
-  r.response ? JSON.stringify(Trace.flattenHeaders(r.response.message)) : ""
+/**
+ * A message with what changes on every call blanked (branches, tags,
+ * digest nonces, the Call-ID, the caller's source port), so two recordings of the same scenario
+ * compare by what Routr did, not by per-call randomness.
+ *
+ * @param {SIPMessage} m - The message
+ * @return {SIPMessage} The comparable copy
+ */
+export const comparable = (
+  m: Trace.TraceRecord["request"]["message"]
+): Trace.TraceRecord["request"]["message"] => {
+  const copy = Trace.normalizeMessage(m)
+  if (copy.callId) copy.callId = { callId: "*" }
+  // The caller's source port is picked anew on every run: it shows in its
+  // Contact and in its own Via (the bottom one), with rport and received
+  if (copy.contact?.address?.uri) copy.contact.address.uri.port = 0
+  const caller = copy.via?.[copy.via.length - 1]
+  if (caller) {
+    caller.port = 0
+    if (caller.rPort) caller.rPort = 0
+    if (caller.received) caller.received = "*"
+  }
+  return copy
+}
+
+// Records never change once loaded, so each signature is computed once
+const signatures = new WeakMap<Trace.TraceRecord, string>()
+const outgoingSignature = (r: Trace.TraceRecord): string => {
+  const known = signatures.get(r)
+  if (known !== undefined) return known
+  const sig = r.response
+    ? JSON.stringify(Trace.flattenHeaders(comparable(r.response.message)))
+    : ""
+  signatures.set(r, sig)
+  return sig
+}
 
 /**
  * Why two aligned records differ, or undefined when they agree.
@@ -970,6 +1000,26 @@ export function alignTraces(
   a: Trace.TraceRecord[],
   b: Trace.TraceRecord[]
 ): CompareRow[] {
+  // Every key press asks again; the pair is fixed for the whole session
+  const byB =
+    alignments.get(a) ?? new WeakMap<Trace.TraceRecord[], CompareRow[]>()
+  alignments.set(a, byB)
+  const known = byB.get(b)
+  if (known) return known
+  const rows = alignUncached(a, b)
+  byB.set(b, rows)
+  return rows
+}
+
+const alignments = new WeakMap<
+  Trace.TraceRecord[],
+  WeakMap<Trace.TraceRecord[], CompareRow[]>
+>()
+
+const alignUncached = (
+  a: Trace.TraceRecord[],
+  b: Trace.TraceRecord[]
+): CompareRow[] => {
   const n = a.length
   const m = b.length
   const L: number[][] = Array.from({ length: n + 1 }, () =>

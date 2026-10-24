@@ -18,14 +18,30 @@
  */
 import { Glyphs, UNICODE } from "./glyphs"
 
-/** Semantic colours. The painter never names a hex; the renderer maps these. */
-export type Color = "accent" | "danger" | "warn" | "info" | "muted" | "fg"
+/**
+ * Semantic colours. The painter never names a hex; the renderer maps these.
+ * accent is the brand (teal): the wordmark dot, the active tab, the marker,
+ * the EdgePort. success is "ok" (green) and never the brand.
+ */
+export type Color =
+  | "accent"
+  | "success"
+  | "danger"
+  | "warn"
+  | "info"
+  | "muted"
+  | "fg"
+
+/** Backgrounds: the teal chip of the active tab, the bar of a selected row. */
+// mark and dot paint the r. mark with solid cells: a background fills the
+// whole cell in every terminal, where block glyphs leave gaps between rows
+export type Background = "accent" | "selection" | "mark" | "dot"
 
 export interface Segment {
   text: string
   color?: Color
   bold?: boolean
-  inverse?: boolean
+  bg?: Background
   dim?: boolean
 }
 
@@ -121,6 +137,37 @@ export function elideMiddle(
   if (room < 2) return s.slice(0, n)
   const head = Math.ceil(room / 2)
   return s.slice(0, head) + ellipsis + s.slice(s.length - (room - head))
+}
+
+/**
+ * Shortens two names that must stay tellable apart (two trace files): each
+ * keeps a window that starts just before the first character where they
+ * differ, so call-1001 / call-1002 or 2.17.0 / 2.15.4 stay visible.
+ *
+ * @param {string} a - First name
+ * @param {string} b - Second name
+ * @param {number} n - Max width of each
+ * @param {string} ellipsis - Elision glyph
+ * @return {[string, string]} The two names, each at most n cells
+ */
+export function elidePair(
+  a: string,
+  b: string,
+  n: number,
+  ellipsis = UNICODE.ellipsis
+): [string, string] {
+  const firstDiff = [...a].findIndex((ch, i) => ch !== b[i])
+  const d = firstDiff < 0 ? Math.min(a.length, b.length) : firstDiff
+  const one = (s: string): string => {
+    if (s.length <= n) return s
+    if (d < n / 2) return elideMiddle(s, n, ellipsis)
+    const start = Math.min(d - 4, s.length - (n - ellipsis.length))
+    const body = s.slice(start)
+    return body.length + ellipsis.length <= n
+      ? ellipsis + body
+      : ellipsis + body.slice(0, n - 2 * ellipsis.length) + ellipsis
+  }
+  return [one(a), one(b)]
 }
 
 /**
@@ -265,6 +312,25 @@ export function fmtMs(ms: number): string {
 }
 
 /**
+ * Formats an offset for the ladder's time column: at most 5 characters and
+ * always with a unit once it leaves milliseconds, so a clipped value never
+ * reads as a smaller one (12.3s, 1m05s, 12m, 3h05).
+ *
+ * @param {number} ms - Milliseconds
+ * @return {string} The compact form
+ */
+export function fmtMsCompact(ms: number): string {
+  const v = Math.round(ms)
+  if (v < 10000) return `${v}`
+  if (v < 60000) return `${(v / 1000).toFixed(1)}s`
+  const m = Math.floor(v / 60000)
+  if (m < 10)
+    return `${m}m${String(Math.floor((v % 60000) / 1000)).padStart(2, "0")}s`
+  if (m < 60) return `${m}m`
+  return `${Math.floor(m / 60)}h${String(m % 60).padStart(2, "0")}`
+}
+
+/**
  * Formats a duration with a unit, for labels.
  *
  * @param {number} ms - Milliseconds
@@ -285,4 +351,24 @@ export function fmtDuration(ms: number): string {
 export function fmtClock(iso: string, plusMs = 0): string {
   const d = new Date(new Date(iso).getTime() + plusMs)
   return d.toISOString().slice(11, 23)
+}
+
+/**
+ * Fits a label to a budget by dropping its optional parts from the end
+ * before clipping anything: `INVITE c2 · 2 hops 6.4ms` becomes
+ * `INVITE c2 · 6.4ms`, then `INVITE c2`, and only then `INVITE c…`.
+ *
+ * @param {string[]} tiers - Candidate labels, longest first
+ * @param {number} budget - Cells available
+ * @param {Glyphs} g - Glyph set, for the ellipsis
+ * @return {string} The longest tier that fits, else the last one clipped
+ */
+export function fitLabel(
+  tiers: string[],
+  budget: number,
+  g: Glyphs = UNICODE
+): string {
+  const found = tiers.find((t) => t.length <= budget)
+  if (found !== undefined) return found
+  return clip(tiers[tiers.length - 1] ?? "", Math.max(0, budget), g.ellipsis)
 }

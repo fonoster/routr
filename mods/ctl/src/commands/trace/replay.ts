@@ -148,7 +148,9 @@ export default class ReplayCommand extends Command {
     await runApp(a, b, {
       view: view === 3 && !b ? 0 : view,
       g,
-      select: flags.select
+      select: flags.select,
+      // Opening straight on a record skips the splash
+      splash: flags.select === undefined
     })
   }
 }

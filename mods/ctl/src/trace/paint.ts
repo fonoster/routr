@@ -35,15 +35,19 @@ import {
   clip,
   Color,
   elideMiddle,
+  elidePair,
+  fitCallId,
   fit,
   fitAddress,
-  fitCallId,
+  fitLabel,
   fmtClock,
   fmtDuration,
   fmtMs,
+  fmtMsCompact,
   Line,
   rpad,
   seg,
+  Segment,
   wrap
 } from "./text"
 
@@ -58,7 +62,27 @@ export interface Layout {
   columns: number
   rows: number
   g: Glyphs
+  // No colour or attributes (static mode, NO_COLOR, TERM=dumb): the active
+  // tab is bracketed and nothing relies on a background
+  plain?: boolean
 }
+
+export type Breakpoint = "narrow" | "medium" | "wide" | "ultra"
+
+/**
+ * The width class every per-width rule reads, so each rule has one source.
+ *
+ * @param {number} columns - Terminal width
+ * @return {Breakpoint} narrow 80-99, medium 100-119, wide 120-159, ultra 160+
+ */
+export const breakpointOf = (columns: number): Breakpoint =>
+  columns >= 160
+    ? "ultra"
+    : columns >= 120
+    ? "wide"
+    : columns >= 100
+    ? "medium"
+    : "narrow"
 
 export type PaneMode = "headers" | "diff" | "ab"
 
@@ -96,7 +120,8 @@ export const initialState = (view = 0): ViewState => ({
 })
 
 const MIN_COLUMNS = 80
-const MIN_ROWS = 20
+// Eight rows of chrome (header, tabs, status) leave 16 for the body at 80x24
+const MIN_ROWS = 23
 
 const checkGlyph = (state: string, g: Glyphs) =>
   state === "pass"
@@ -108,7 +133,7 @@ const checkGlyph = (state: string, g: Glyphs) =>
     : g.na
 const checkColor = (state: string): Color =>
   state === "pass"
-    ? "accent"
+    ? "success"
     : state === "fail"
     ? "danger"
     : state === "warn"
@@ -122,62 +147,148 @@ const padLines = (lines: Line[], rows: number): Line[] => {
   return out
 }
 
-const joinCols = (
-  left: Line[],
-  right: Line[],
-  leftWidth: number,
-  gap = 2
-): Line[] => {
-  const n = Math.max(left.length, right.length)
-  return Array.from({ length: n }, (_, i) => {
-    const l = left[i] || []
-    const used = l.reduce((s, x) => s + x.text.length, 0)
-    return [
-      ...l,
-      seg(" ".repeat(Math.max(0, leftWidth - used) + gap)),
-      ...(right[i] || [])
-    ]
-  })
-}
-
 // ---------- chrome ----------
 
+const verdictColor = (word: string): Color =>
+  word === "FORWARDED" ? "success" : word === "REJECTED" ? "danger" : "warn"
+
+// The "r." of the Routr logo on a cell grid: the stem two cells wide, the
+// arm across the top, the dot two cells wide (a square, cells are 1:2).
+// "#" is the letter, "o" the dot. Painted as background colour, so the
+// mark is solid in every terminal.
+const MARK = ["####   ", "##     ", "##   oo"]
+// ASCII and plain terminals get the name instead
+const MARK_WIDTH = 7
+
 /**
- * Row 1: wordmark, file, Call-ID and verdict.
+ * The r. mark, three rows.
+ *
+ * @param {Layout} l - Layout (ASCII glyphs and plain output get the name)
+ * @param {boolean} dotOn - Whether the dot is lit (the splash blinks it)
+ * @return {Line[]} Three rows
+ */
+export function wordmark(l: Layout, dotOn = true): Line[] {
+  if (l.g.right === ">" || l.plain)
+    return [
+      [seg("routr", { bold: true }), seg(".", { color: "accent", bold: true })],
+      [],
+      []
+    ]
+  return MARK.map((row) =>
+    (row.match(/#+|o+| +/g) ?? []).map((run) =>
+      run[0] === "#"
+        ? seg(" ".repeat(run.length), { bg: "mark" })
+        : run[0] === "o" && dotOn
+        ? seg(" ".repeat(run.length), { bg: "dot" })
+        : seg(" ".repeat(run.length))
+    )
+  )
+}
+
+/**
+ * Splash: the r. mark centred, the dot on or off, the file being read below.
+ *
+ * @param {string} file - The file being loaded
+ * @param {boolean} dotOn - Blink state
+ * @param {Layout} l - Layout
+ * @return {Line[]} Exactly l.rows lines
+ */
+export function paintSplash(file: string, dotOn: boolean, l: Layout): Line[] {
+  const x = Math.max(0, Math.floor((l.columns - MARK_WIDTH) / 2))
+  const note = elideMiddle(`reading ${file}`, l.columns, l.g.ellipsis)
+  const nx = Math.max(0, Math.floor((l.columns - note.length) / 2))
+  const top = Math.max(0, Math.floor((l.rows - 5) / 2))
+  return padLines(
+    [
+      ...Array.from({ length: top }, (): Line => []),
+      ...wordmark(l, dotOn).map((m): Line => [seg(" ".repeat(x)), ...m]),
+      [],
+      [seg(" ".repeat(nx)), seg(note, { color: "muted" })]
+    ],
+    l.rows
+  )
+}
+
+/**
+ * The header: the r. mark on the left and one context line beside each of
+ * its rows (trace files with the verdict pinned right, the call, the
+ * EdgePort and dispatcher that recorded it).
  *
  * @param {CallModel} a - File A
- * @param {CallModel} b - File B, if any
+ * @param {CallModel | undefined} b - File B, if any
  * @param {Layout} l - Layout
- * @return {Line} The line
+ * @return {Line[]} Three lines
  */
-export function statusLine(
+export function header(
   a: CallModel,
   b: CallModel | undefined,
   l: Layout
-): Line {
-  const files = b
-    ? `${a.file} ${l.g.right === ">" ? ">" : "▸"} ${b.file}`
-    : a.file
+): Line[] {
+  const g = l.g
+  const left = MARK_WIDTH + 3
+  const pad = (line: Line): Line => {
+    const used = line.reduce((n, x) => n + x.text.length, 0)
+    return [...line, seg(" ".repeat(Math.max(2, left - used)))]
+  }
+  const label = (t: string) => seg(fit(t, 10), { color: "muted" })
+  const sep = ` ${g.right === ">" ? ">" : "\u25b8"} `
   const verdict = a.verdict.short
-  const fixed = `${l.g.dot} routr trace  ${files}  `
-  const room = l.columns - fixed.length - verdict.length - 2
-  const callId = fitCallId(a.callId, Math.max(8, room), l.g)
+  const room = l.columns - left - 10
+  // Two files share the room: each is shortened on its own so the
+  // separator and both distinguishing tails stay visible
+  const fileRoom = Math.max(16, room - verdict.length - 2)
+  const files = !b
+    ? elideMiddle(a.file, fileRoom, g.ellipsis)
+    : a.file.length + sep.length + b.file.length <= fileRoom
+    ? `${a.file}${sep}${b.file}`
+    : elidePair(
+        a.file,
+        b.file,
+        Math.floor((fileRoom - sep.length) / 2),
+        g.ellipsis
+      ).join(sep)
+  const first = a.records[0]
+  const recorded = a.recordedAt
+    .replace("T", " ")
+    .replace(/:\d\d(\.\d+)?Z$/, " UTC")
+  const mark = wordmark(l)
   return [
-    seg(`${l.g.dot} `, { color: "accent" }),
-    seg("routr", { bold: true }),
-    seg(" trace  ", { color: "muted" }),
-    seg(files),
-    seg("  " + callId, { color: "muted" }),
-    seg("  "),
-    seg(verdict, {
-      color: a.verdict.word === "REJECTED" ? "danger" : "accent",
-      bold: true
-    })
+    [
+      ...pad(mark[0]),
+      label("trace"),
+      seg(files),
+      seg(" ".repeat(Math.max(2, room - files.length - verdict.length))),
+      seg(verdict, { color: verdictColor(a.verdict.word), bold: true })
+    ],
+    [
+      ...pad(mark[1]),
+      label("call"),
+      // A long Call-ID gives way before the recording time does
+      seg(
+        fitCallId(
+          a.callId,
+          Math.max(12, room - `   recorded ${recorded}`.length),
+          g
+        )
+      ),
+      seg(`   recorded ${recorded}`, { color: "muted" })
+    ],
+    [
+      ...pad(mark[2]),
+      label("edgeport"),
+      seg(`${first.edgePort.ref} ${first.edgePort.version ?? ""}`.trim()),
+      seg(
+        `   dispatcher ${first.dispatcher.version ?? ""}   ${
+          a.records.length
+        } messages`,
+        { color: "muted" }
+      )
+    ]
   ]
 }
 
 /**
- * Row 2: the view bar.
+ * The view bar under the header.
  *
  * @param {ViewState} s - State
  * @param {boolean} hasCompare - Whether a second file is loaded
@@ -185,23 +296,52 @@ export function statusLine(
  * @return {Line} The line
  */
 export function viewBar(s: ViewState, hasCompare: boolean, l: Layout): Line {
-  const line: Line = []
-  VIEWS.forEach((name, i) => {
+  return VIEWS.flatMap((name, i): Line => {
     const disabled = name === "Compare" && !hasCompare
-    const label = ` ${i + 1} ${name}${
+    const label = `${i + 1} ${name}${
       disabled && l.columns >= 100 ? " (no file)" : ""
-    } `
-    line.push(
+    }`
+    const active = i === s.view
+    const text = active && l.plain ? `[${label}]` : ` ${label} `
+    return [
       seg(
-        label,
-        i === s.view
-          ? { color: "accent", inverse: true, bold: true }
-          : { color: disabled ? "muted" : "fg", dim: disabled }
-      )
-    )
-    line.push(seg(" "))
+        text,
+        active
+          ? l.plain
+            ? { bold: true }
+            : { bg: "accent", bold: true }
+          : { color: disabled ? "muted" : "fg" }
+      ),
+      seg("  ")
+    ]
   })
-  return line
+}
+
+// Key hints per view, most useful first; dropped from the right, never clipped
+const KEYS: Record<number, string[]> = {
+  0: ["n next failed check", "2 ladder", "3 path", "? help", "q quit"],
+  1: [
+    "j/k select",
+    "Enter hops",
+    "d diff",
+    "p pane",
+    "t time",
+    "/ filter",
+    "n next problem",
+    "? help",
+    "q quit"
+  ],
+  2: ["j/k scroll", "2 ladder", "? help", "q quit"],
+  3: ["j/k select", "d A/B diff", "n next difference", "? help", "q quit"]
+}
+
+const hintList = (hints: string[], room: number): string => {
+  const out: string[] = []
+  hints.forEach((h) => {
+    const next = [...out, h].join("  ")
+    if (next.length <= room) out.push(h)
+  })
+  return out.join("  ")
 }
 
 /**
@@ -221,33 +361,30 @@ export function statusBar(s: ViewState, position: string, l: Layout): Line {
     ]
   }
   if (s.message) return [seg(clip(s.message, l.columns), { color: "warn" })]
-  const keys =
-    s.view === 1
-      ? "j/k select  Enter hops  d diff  p pane  t time  / filter  n next problem  ? help  q quit"
-      : s.view === 3
-      ? "j/k select  d A/B diff  n next difference  ? help  q quit"
-      : s.view === 0
-      ? "n next failed check  2 ladder  3 path  ? help  q quit"
-      : "j/k scroll  2 ladder  ? help  q quit"
-  const left = s.filter ? `filter: ${s.filter}  ${position}  Esc clear` : keys
   const room = l.columns - position.length - 2
+  const left = s.filter
+    ? fit(`filter: ${s.filter}  ${position}  Esc clear`, Math.max(0, room))
+    : hintList(KEYS[s.view] ?? KEYS[2], Math.max(0, room))
   return [
-    seg(fit(left, Math.max(0, room)), { color: "muted" }),
-    seg("  "),
+    seg(left, { color: "muted" }),
+    seg(" ".repeat(Math.max(0, room - left.length) + 2)),
     seg(position, { color: "muted" })
   ]
 }
 
 /**
- * The help overlay body.
+ * The help overlay body. When the screen is too short for the full page
+ * (80x24 and smaller) the title and spacing go and the legend and the
+ * close hint share one line, so every key stays on screen.
  *
+ * @param {number} room - Body rows available
  * @return {Line[]} The lines
  */
-export function helpLines(): Line[] {
+export function helpLines(room = Infinity): Line[] {
   const rows: [string, string][] = [
     ["1 2 3 4", "Summary, Ladder, Path, Compare"],
-    ["Tab ] [ → ← l h", "next / previous view"],
-    ["j k ↓ ↑", "select next / previous message"],
+    ["Tab ] [ \u2192 \u2190 l h", "next / previous view"],
+    ["j k \u2193 \u2191", "select next / previous message"],
     ["g G", "first / last message"],
     ["Ctrl-D Ctrl-U PgDn PgUp", "half page down / up"],
     ["Enter", "expand / collapse the hops of the selected message"],
@@ -261,13 +398,30 @@ export function helpLines(): Line[] {
     ["Esc", "close, clear filter"],
     ["q Ctrl-C", "quit"]
   ]
+  const keys = rows.map(
+    ([k, v]): Line => [seg(fit(k, 26), { color: "accent" }), seg(v)]
+  )
+  if (room < keys.length + 5)
+    return [
+      ...keys,
+      [
+        seg(
+          "\u2500 request \u00b7 \u254c response \u00b7 ms from the first message \u00b7 any key closes",
+          { color: "muted" }
+        )
+      ]
+    ]
   return [
     [seg("keys", { bold: true })],
     [],
-    ...rows.map(
-      ([k, v]): Line => [seg(fit(k, 26), { color: "accent" }), seg(v)]
-    ),
+    ...keys,
     [],
+    [
+      seg(
+        "\u2500 request \u00b7 \u254c response \u00b7 times from the first message in ms",
+        { color: "muted" }
+      )
+    ],
     [seg("any key to close", { color: "muted" })]
   ]
 }
@@ -294,44 +448,60 @@ export function tooSmall(l: Layout): string | undefined {
  * @return {Line[]} The lines
  */
 export function paintSummary(m: CallModel, s: ViewState, l: Layout): Line[] {
-  const verdictColor: Color =
-    m.verdict.word === "REJECTED"
-      ? "danger"
-      : m.verdict.word === "FORWARDED"
-      ? "accent"
-      : "warn"
-  const head: Line[] = [
+  const g = l.g
+  const lines: Line[] = [
     [
-      seg(m.verdict.word, { color: verdictColor, bold: true }),
+      seg(m.verdict.word, { color: verdictColor(m.verdict.word), bold: true }),
       seg(m.verdict.line.slice(m.verdict.word.length))
     ],
-    []
+    [],
+    [seg("FACTS", { color: "muted" })]
   ]
-
-  const checkWidth = l.columns >= 120 ? l.columns - 48 - 2 : l.columns
-  const checks: Line[] = []
+  m.facts.forEach(([k, v]) => {
+    wrap(v, Math.max(20, l.columns - 12), 12).forEach((t, i) =>
+      lines.push(
+        i === 0 ? [seg(fit(k, 12), { color: "muted" }), seg(t)] : [seg(t)]
+      )
+    )
+  })
+  lines.push([])
+  const na = m.checks.length > 0 && m.checks.every((c) => c.state === "na")
+  const coverage = na
+    ? "no INVITE was forwarded"
+    : `first forwarded INVITE${
+        m.forwardedInvites > 1
+          ? ` ${g.sep} ${m.forwardedInvites - 1} more INVITE${
+              m.forwardedInvites - 1 === 1 ? "" : "s"
+            } in this call`
+          : ""
+      }`
+  lines.push([seg("CHECKS  " + coverage, { color: "muted" })])
+  // Marker column, glyph column, space, text; the glyph alone carries the colour
+  const glyphWidth = Math.max(
+    g.pass.length,
+    g.fail.length,
+    g.warn.length,
+    g.na.length
+  )
+  const indent = 1 + glyphWidth + 1
   m.checks.forEach((c, i) => {
-    const glyph = checkGlyph(c.state, l.g)
-    const indent = glyph.length + 1
-    wrap(c.text, checkWidth - indent, 0).forEach((text, j) => {
-      checks.push([
-        seg(j === 0 ? `${glyph} ` : " ".repeat(indent), {
-          color: checkColor(c.state)
-        }),
-        seg(text, i === s.checkIndex ? { inverse: true } : {})
-      ])
+    const highlighted = i === s.checkIndex
+    const style = highlighted ? { bg: "selection" as const, bold: true } : {}
+    wrap(c.text, Math.max(20, l.columns - indent), 0).forEach((text, j) => {
+      lines.push(
+        j === 0
+          ? [
+              seg(highlighted ? g.marker : " ", { color: "accent", ...style }),
+              seg(fit(checkGlyph(c.state, g), glyphWidth), {
+                color: checkColor(c.state),
+                ...style
+              }),
+              seg(" " + text, style)
+            ]
+          : [seg(" ".repeat(indent) + text, style)]
+      )
     })
   })
-  if (m.checksNote) checks.push([seg(m.checksNote, { color: "muted" })])
-
-  const twoCols = l.columns >= 120
-  const facts: Line[] = m.facts.map(([k, v]) => [
-    seg(fit(k, 12), { color: "muted" }),
-    seg(twoCols ? clip(v, 34, l.g.ellipsis) : v)
-  ])
-
-  const body = twoCols ? joinCols(facts, checks, 46) : [...checks, [], ...facts]
-  const lines = [...head, ...body]
   return lines.slice(s.scroll)
 }
 
@@ -344,10 +514,18 @@ interface LadderGeometry {
   paneSide: "right" | "bottom" | "none"
   paneWidth: number
   paneRows: number
+  // Cells the ladder may paint (columns minus the right pane)
+  ladderWidth: number
+  // Cell index of each lane's rail
+  rails: number[]
 }
 
+const MIN_LANE = 21
+
 /**
- * Lays out the ladder for a width, following the per-width rules.
+ * Lays out the ladder for a width. The gutter is marker, mark, space and
+ * the time cell (8 cells, 12 in clock mode). The right pane is allowed only
+ * while every lane keeps MIN_LANE cells; otherwise it moves to the bottom.
  *
  * @param {ViewState} s - State
  * @param {Layout} l - Layout
@@ -361,50 +539,184 @@ export function ladderGeometry(
   laneCount: number,
   hasCompare: boolean
 ): LadderGeometry {
-  const gutter = 9 + (l.g.pass.length > 1 ? 1 : 0)
+  const bp = breakpointOf(l.columns)
+  const timeWidth = s.timeMode === 2 ? 12 : 6
+  const gutter = 2 + timeWidth + 1
   const overlayCol = s.overlay && hasCompare ? 3 : 0
-  const paneVisible = s.paneVisible ?? l.columns >= 100
-  const side: LadderGeometry["paneSide"] = !paneVisible
+  const paneVisible = s.paneVisible ?? bp !== "narrow"
+  const lanes = Math.max(2, laneCount)
+  const laneFor = (ladderWidth: number) =>
+    Math.floor((ladderWidth - gutter - overlayCol) / lanes)
+
+  let side: LadderGeometry["paneSide"] = !paneVisible
     ? "none"
-    : l.columns >= 120
+    : bp === "wide" || bp === "ultra"
     ? "right"
     : "bottom"
-  const paneWidth = side === "right" ? (l.columns >= 160 ? 56 : 44) : 0
+  let paneWidth = side === "right" ? (bp === "ultra" ? 56 : 44) : 0
+  if (side === "right" && laneFor(l.columns - paneWidth - 1) < MIN_LANE) {
+    side = "bottom"
+    paneWidth = 0
+  }
   const paneRows =
-    side === "bottom" ? (l.rows < 28 ? 6 : l.columns >= 100 ? 10 : 8) : 0
-  const ladderWidth = l.columns - paneWidth - (side === "right" ? 1 : 0)
-  const laneWidth = Math.max(
-    16,
-    Math.floor((ladderWidth - gutter - overlayCol - 1) / Math.max(2, laneCount))
-  )
-  return { gutter, laneWidth, overlayCol, paneSide: side, paneWidth, paneRows }
+    side === "bottom" ? (l.rows < 28 ? 6 : bp === "narrow" ? 8 : 10) : 0
+  const ladderWidth = side === "right" ? l.columns - paneWidth - 1 : l.columns
+  const laneWidth = Math.max(16, laneFor(ladderWidth))
+  // First rail right after the time column; the others share what is left
+  const first = gutter + overlayCol + 1
+  // Ten cells of right margin keep the last lane's title inside the ladder
+  const step = Math.floor((ladderWidth - first - 10) / (lanes - 1))
+  const rails = Array.from({ length: lanes }, (_, i) => first + i * step)
+  return {
+    gutter,
+    laneWidth,
+    overlayCol,
+    paneSide: side,
+    paneWidth,
+    paneRows,
+    ladderWidth,
+    rails
+  }
 }
 
-const arrow = (
-  from: number,
-  to: number,
-  label: string,
-  kind: "request" | "response",
-  laneWidth: number,
-  g: Glyphs,
-  dropped = false
-): string => {
-  const a = Math.min(from, to)
-  const b = Math.max(from, to)
-  const span = laneWidth * (b - a)
-  const fill = kind === "response" ? g.dashed : g.solid
-  const lbl = clip(label, Math.max(0, span - 3), g.ellipsis)
-  let art: string
-  if (dropped) {
-    art =
-      fill + lbl + fill.repeat(Math.max(1, span - lbl.length - 2)) + g.dropped
-  } else if (from < to) {
-    art = fill + lbl + fill.repeat(Math.max(1, span - lbl.length - 2)) + g.right
-  } else {
-    art = g.left + fill.repeat(Math.max(1, span - lbl.length - 2)) + lbl + fill
+/**
+ * The label tiers of a leg, longest first: `INVITE c2 · 2 hops 6.4ms`,
+ * `INVITE c2 · 6.4ms`, `INVITE c2`. A `×N` suffix lives in the first part
+ * and survives every tier.
+ *
+ * @param {string} label - The leg label as the model built it
+ * @return {string[]} The tiers
+ */
+export function labelTiers(label: string): string[] {
+  const parts = label.split(" · ")
+  if (parts.length < 2) return [label]
+  const timing = parts[parts.length - 1].replace(/^\d+ hops? /, "")
+  const tiers = [label, `${parts[0]} · ${timing}`, parts[0]]
+  return tiers.filter((t, i) => tiers.indexOf(t) === i)
+}
+
+/**
+ * A row of cells the ladder paints into: rails first, arrows and text over
+ * them, so a rail shows wherever nothing covers it.
+ */
+class Canvas {
+  readonly cells: { ch: string; style: Partial<Segment> }[]
+
+  /**
+   * @param {number} width - Cells
+   * @param {number[]} rails - Rail cell indexes to pre-draw
+   * @param {Glyphs} g - Glyph set
+   */
+  constructor(width: number, rails: number[], g: Glyphs) {
+    this.cells = Array.from({ length: width }, () => ({ ch: " ", style: {} }))
+    rails.forEach((x) => this.put(x, g.pipe, { color: "muted", dim: true }))
   }
-  art = art.slice(0, span).padEnd(span)
-  return " ".repeat(laneWidth * a + Math.floor(laneWidth / 2)) + art
+
+  /**
+   * Writes text at a cell, clipped to the canvas.
+   *
+   * @param {number} x - Start cell
+   * @param {string} text - Text
+   * @param {Partial<Segment>} style - Style
+   */
+  put(x: number, text: string, style: Partial<Segment> = {}): void {
+    Array.from(text).forEach((ch, i) => {
+      const at = x + i
+      if (at >= 0 && at < this.cells.length) this.cells[at] = { ch, style }
+    })
+  }
+
+  /**
+   * Applies a style over a span without changing the glyphs.
+   *
+   * @param {number} from - First cell
+   * @param {number} to - Last cell, exclusive
+   * @param {Partial<Segment>} style - Style to merge
+   */
+  wash(from: number, to: number, style: Partial<Segment>): void {
+    // eslint-disable-next-line no-loops/no-loops
+    for (let i = Math.max(0, from); i < Math.min(to, this.cells.length); i++) {
+      this.cells[i] = {
+        ...this.cells[i],
+        style: { ...this.cells[i].style, ...style }
+      }
+    }
+  }
+
+  /**
+   * Collapses the cells into segments, merging equal neighbours.
+   *
+   * @return {Line} The line
+   */
+  toLine(): Line {
+    const line: Line = []
+    this.cells.forEach((c) => {
+      const last = line[line.length - 1]
+      if (last && sameStyle(last, c.style)) {
+        last.text += c.ch
+      } else {
+        line.push(seg(c.ch, c.style))
+      }
+    })
+    // Trailing blanks carry no information
+    // eslint-disable-next-line no-loops/no-loops
+    while (
+      line.length &&
+      line[line.length - 1].text.trim() === "" &&
+      !line[line.length - 1].bg
+    )
+      line.pop()
+    return line
+  }
+}
+
+const sameStyle = (a: Segment, b: Partial<Segment>) =>
+  a.color === b.color &&
+  !!a.bold === !!b.bold &&
+  a.bg === b.bg &&
+  !!a.dim === !!b.dim
+
+/**
+ * Draws one arrow on the canvas, from rail to rail, with the label at the
+ * sender's end and the head on the destination rail.
+ *
+ * @param {Canvas} c - Row canvas
+ * @param {LadderGeometry} geo - Geometry
+ * @param {object} leg - From/to lanes, label and kind
+ * @param {Glyphs} g - Glyph set
+ * @param {Partial<Segment>} style - Colour of the arrow
+ * @param {boolean} dropped - Draw the dropped head instead of an arrowhead
+ */
+function drawArrow(
+  c: Canvas,
+  geo: LadderGeometry,
+  leg: {
+    from: number
+    to: number
+    label: string
+    kind: "request" | "response"
+  },
+  g: Glyphs,
+  style: Partial<Segment>,
+  dropped = false
+): void {
+  const lo = Math.min(leg.from, leg.to)
+  const hi = Math.max(leg.from, leg.to)
+  const span = geo.rails[hi] - geo.rails[lo]
+  const fill = leg.kind === "response" ? g.dashed : g.solid
+  const label = fitLabel(labelTiers(leg.label), Math.max(0, span - 3), g)
+  const pad = Math.max(1, span - label.length - 2)
+  let art: string
+  let x: number
+  if (leg.from <= leg.to) {
+    art = fill + label + fill.repeat(pad) + (dropped ? g.dropped : g.right)
+    x = geo.rails[lo] + 1
+  } else {
+    // A dropped leg ends in the dropped head whichever way it travels
+    art = (dropped ? g.droppedLeft : g.left) + fill.repeat(pad) + label + fill
+    x = geo.rails[lo]
+  }
+  c.put(x, art.slice(0, span).padEnd(span, fill), style)
 }
 
 /** A rendered ladder line, with the row it belongs to. */
@@ -443,15 +755,55 @@ export function visibleRows(m: CallModel, s: ViewState): Row[] {
 const timeCell = (row: Row, s: ViewState, width: number, g: Glyphs): string => {
   const text =
     s.timeMode === 0
-      ? `+${fmtMs(row.tOffsetMs)}`
+      ? `+${fmtMsCompact(row.tOffsetMs)}`
       : s.timeMode === 1
-      ? `${g.delta}${fmtMs(row.deltaMs)}`
+      ? `${g.delta}${fmtMsCompact(row.deltaMs)}`
       : fmtClock(row.clock)
-  return rpad(text, width)
+  return rpad(text.length > width ? text.slice(0, width) : text, width)
 }
 
 /**
- * Paints the ladder body: lane titles, rows, optional inline hops.
+ * Fits a lane subtitle: each address loses its transport first, then the
+ * `in`/`out` words go, then only the outbound address stays.
+ *
+ * @param {string} subtitle - e.g. `in 10.111.221.2:5060/UDP · out 10.111.220.2:5060/UDP`
+ * @param {number} n - Cells
+ * @param {Glyphs} g - Glyph set
+ * @return {string} The longest form that fits, else the last one clipped
+ */
+export function fitSubtitle(subtitle: string, n: number, g: Glyphs): string {
+  const parts = subtitle.split(` ${g.sep} `)
+  const bare = (p: string) => p.replace(/^(in|out) /, "")
+  const addr = (p: string) =>
+    fitAddress(bare(p), 1000, g).replace(/\/[A-Z]+$/, "")
+  const forms = [
+    subtitle,
+    parts.map((p) => p.replace(bare(p), addr(p))).join(` ${g.sep} `),
+    parts.map(addr).join(` ${g.sep} `),
+    parts.length > 1
+      ? parts[parts.length - 1].replace(
+          bare(parts[parts.length - 1]),
+          addr(parts[parts.length - 1])
+        )
+      : addr(parts[0]),
+    addr(parts[parts.length - 1])
+  ]
+  return fitLabel(
+    forms.filter((f, i) => forms.indexOf(f) === i),
+    n,
+    g
+  )
+}
+
+const center = (t: string, w: number, g: Glyphs) => {
+  const c = clip(t, w, g.ellipsis)
+  const left = Math.floor((w - c.length) / 2)
+  return " ".repeat(Math.max(0, left)) + c
+}
+
+/**
+ * Paints the ladder body: lane titles, a rail-only row, then the records
+ * with their rails, arrows and optional inline hops.
  *
  * @param {CallModel} m - Model A
  * @param {CallModel | undefined} b - Model B for the overlay
@@ -468,44 +820,34 @@ export function paintLadderBody(
   geo: LadderGeometry
 ): LadderLine[] {
   const g = l.g
-  const { gutter, laneWidth, overlayCol } = geo
+  const { gutter, laneWidth, overlayCol, rails, ladderWidth } = geo
   const rows = visibleRows(m, s)
   const lanes = m.lanes
-  const center = (t: string, w: number) => {
-    const c = clip(t, w, g.ellipsis)
-    const left = Math.floor((w - c.length) / 2)
-    return (
-      " ".repeat(Math.max(0, left)) +
-      c +
-      " ".repeat(Math.max(0, w - c.length - left))
-    )
-  }
   const out: LadderLine[] = []
-  const pad = " ".repeat(gutter + overlayCol)
-  out.push({
-    line: [
-      seg(pad),
-      ...lanes.map((lane, i) =>
-        seg(center(lane.title, laneWidth), {
-          bold: true,
-          color: i === 1 ? "accent" : "fg"
-        })
-      )
-    ]
-  })
-  // Lane subtitles (addresses) need room; at 80 columns titles only
-  if (laneWidth >= 27) {
-    out.push({
-      line: [
-        seg(pad),
-        ...lanes.map((lane) =>
-          seg(center(fitAddress(lane.subtitle, laneWidth - 2, g), laneWidth), {
-            color: "muted"
-          })
-        )
-      ]
+  const laneStart = (i: number) =>
+    Math.max(0, rails[i] - Math.floor(laneWidth / 2))
+
+  // Lane header: titles, subtitles when there is room, then a rail-only row
+  const titles = new Canvas(ladderWidth, [], g)
+  lanes.forEach((lane, i) =>
+    titles.put(laneStart(i), center(lane.title, laneWidth, g), {
+      bold: true,
+      color: i === 1 ? "accent" : "fg"
     })
+  )
+  out.push({ line: titles.toLine() })
+  if (laneWidth >= 24) {
+    const subs = new Canvas(ladderWidth, [], g)
+    lanes.forEach((lane, i) =>
+      subs.put(
+        laneStart(i),
+        center(fitSubtitle(lane.subtitle, laneWidth - 2, g), laneWidth, g),
+        { color: "muted" }
+      )
+    )
+    out.push({ line: subs.toLine() })
   }
+  out.push({ line: new Canvas(ladderWidth, rails, g).toLine() })
 
   const overlay = s.overlay && b ? alignTraces(m.records, b.records) : undefined
   const overlayState = (
@@ -529,34 +871,38 @@ export function paintLadderBody(
       ghosts.unshift(overlay[i])
     return ghosts
   }
+  const selection = { bg: "selection" as const, bold: true }
 
   rows.forEach((row, vi) => {
     const selected = vi === s.selected
     const rec = m.records[row.index]
     if (row.gapBeforeMs) {
-      out.push({
-        line: [
-          seg(" ".repeat(gutter + overlayCol)),
-          seg(`${g.gap} ${fmtDuration(row.gapBeforeMs)} ${g.gap}`, {
-            color: "muted",
-            dim: true
-          })
-        ]
-      })
+      const c = new Canvas(ladderWidth, [], g)
+      const text = `${g.gap} ${fmtDuration(row.gapBeforeMs)} ${g.gap}`
+      const span = rails[rails.length - 1] - rails[0]
+      c.put(
+        rails[0] + Math.max(0, Math.floor((span - text.length) / 2)),
+        text,
+        {
+          color: "muted",
+          dim: true
+        }
+      )
+      out.push({ line: c.toLine() })
     }
     ghostsBefore(row.index).forEach((ghost) => {
-      const label = `(B) ${describe(ghost.b!)}`
-      out.push({
-        ghost,
-        line: [
-          seg(" ".repeat(gutter)),
-          seg(fit(g.added, overlayCol), { color: "info" }),
-          seg(" ".repeat(laneWidth) + clip(label, laneWidth * 2, g.ellipsis), {
-            color: "info",
-            dim: true
-          })
-        ]
-      })
+      const c = new Canvas(ladderWidth, rails, g)
+      c.put(gutter, fit(g.added, overlayCol), { color: "info" })
+      c.put(
+        rails[0] + 1,
+        clip(
+          `(B) ${describe(ghost.b!)}`,
+          ladderWidth - rails[0] - 2,
+          g.ellipsis
+        ),
+        { color: "info", dim: true }
+      )
+      out.push({ ghost, line: c.toLine() })
     })
     const markGlyph =
       row.mark === "fail"
@@ -570,98 +916,89 @@ export function paintLadderBody(
         : " "
     const markColor: Color =
       row.mark === "fail" ? "danger" : row.mark === "retrans" ? "muted" : "fg"
-    const timeWidth = gutter - 3
-    const time = timeCell(row, s, timeWidth, g)
-    const sel = selected ? g.marker : " "
-    const ov = overlayState(row.index)
-    const ovSeg = overlayCol
-      ? seg(fit(ov?.glyph ?? " ", overlayCol), { color: ov?.color ?? "muted" })
-      : seg("")
     const label =
       row.inLeg.label +
       (row.retransmissions ? ` ${g.times}${row.retransmissions + 1}` : "")
-    const inLine: Line = [
-      seg(sel, { color: "accent" }),
-      seg(fit(markGlyph, 1), { color: markColor }),
-      seg(" "),
-      seg(time, { color: "muted" }),
-      ovSeg,
-      seg(
-        arrow(
-          row.inLeg.from,
-          row.inLeg.to,
-          label,
-          row.inLeg.kind,
-          laneWidth,
-          g,
-          row.mark === "dropped"
-        ),
-        { color: row.inLeg.color, inverse: selected }
-      )
-    ]
-    out.push({ row: vi, line: inLine })
+
+    const inRow = new Canvas(ladderWidth, rails, g)
+    inRow.put(0, selected ? g.marker : " ", { color: "accent" })
+    inRow.put(1, markGlyph, { color: markColor })
+    inRow.put(2, timeCell(row, s, gutter - 3, g), { color: "muted" })
+    const ov = overlayState(row.index)
+    if (overlayCol)
+      inRow.put(gutter, fit(ov?.glyph ?? " ", overlayCol), {
+        color: ov?.color ?? "muted"
+      })
+    drawArrow(
+      inRow,
+      geo,
+      { ...row.inLeg, label },
+      g,
+      { color: row.inLeg.color },
+      row.mark === "dropped"
+    )
+    if (selected) inRow.wash(0, ladderWidth, selection)
+    out.push({ row: vi, line: inRow.toLine() })
 
     if (s.expanded === row.index) {
-      const indent =
-        gutter + overlayCol + laneWidth + Math.floor(laneWidth / 2) + 1
-      const room = l.columns - indent - 2
-      if (!rec.hops.length) {
-        out.push({
-          row: vi,
-          line: [
-            seg(" ".repeat(indent)),
-            seg(`${g.last} no hops recorded`, { color: "muted" })
-          ]
-        })
+      // Hops hang off Routr's rail; on a two-lane call that rail is the last
+      // one and the space after it is too narrow, so they sit in the gap
+      // between the two rails instead
+      const tight = ladderWidth - rails[1] - 2 < 24 && rails.length === 2
+      const x = tight ? rails[0] + 2 : rails[1]
+      const room = tight ? rails[1] - x - 1 : ladderWidth - x - 2
+      const hopLine = (glyph: string, text: string, color: Color = "muted") => {
+        const c = new Canvas(ladderWidth, rails, g)
+        c.put(x, glyph, { color: "muted" })
+        c.put(
+          x + glyph.length + 1,
+          clip(text, room - glyph.length, g.ellipsis),
+          { color }
+        )
+        return c.toLine()
       }
-      rec.hops.forEach((h) => {
-        const chips = hopChips(h, g).join(" ")
-        const text = `${g.branch} ${fit(h.component, 11)} ${rpad(
-          fmtDuration(h.durationMs),
-          7
-        )}  ${h.action}${chips ? "  " + chips : h.diff ? "  no changes" : ""}`
-        out.push({
-          row: vi,
-          line: [
-            seg(" ".repeat(indent)),
-            seg(clip(text, room, g.ellipsis), { color: "muted" })
-          ]
-        })
-        if (h.error) {
+      if (!rec.hops.length)
+        out.push({ row: vi, line: hopLine(g.last, "no hops recorded") })
+      // One tier for every hop of the record, the fullest that fits them all
+      const tiersOf = (h: Trace.TraceHop): string[] => {
+        const counts = h.diff
+          ? `${g.added}${Object.keys(h.diff.headers.added).length} ${
+              g.removed
+            }${Object.keys(h.diff.headers.removed).length} ${g.changed}${
+              Object.keys(h.diff.headers.changed).length +
+              (h.diff.requestUri ? 1 : 0)
+            }`
+          : ""
+        const dur = rpad(fmtDuration(h.durationMs), 6)
+        return [
+          `${fit(h.component, 18, g.ellipsis)}  ${dur}  ${h.action}${
+            counts ? "  " + counts : ""
+          }`,
+          `${fit(h.component, 18, g.ellipsis)}  ${dur}  ${h.action}`,
+          `${h.component}  ${h.action}`,
+          `${fit(h.component, 12, g.ellipsis)}  ${h.action}`
+        ]
+      }
+      const hopRoom = room - g.branch.length
+      const all = rec.hops.map(tiersOf)
+      const tier =
+        [0, 1, 2, 3].find((i) => all.every((t) => t[i].length <= hopRoom)) ?? 3
+      rec.hops.forEach((h, k) => {
+        out.push({ row: vi, line: hopLine(g.branch, all[k][tier]) })
+        if (h.error)
           out.push({
             row: vi,
-            line: [
-              seg(" ".repeat(indent + 2)),
-              seg(clip(h.error, room - 2, g.ellipsis), { color: "danger" })
-            ]
+            line: hopLine(" ".repeat(g.branch.length), h.error, "danger")
           })
-        }
       })
-      out.push({
-        row: vi,
-        line: [
-          seg(" ".repeat(indent)),
-          seg(`${g.last} ${fmtDuration(rec.totalMs)}`, { color: "muted" })
-        ]
-      })
+      out.push({ row: vi, line: hopLine(g.last, fmtDuration(rec.totalMs)) })
     }
 
     if (row.outLeg) {
-      const outLine: Line = [
-        seg(" ".repeat(gutter + overlayCol)),
-        seg(
-          arrow(
-            row.outLeg.from,
-            row.outLeg.to,
-            row.outLeg.label,
-            row.outLeg.kind,
-            laneWidth,
-            g
-          ),
-          { color: row.outLeg.color, inverse: selected }
-        )
-      ]
-      out.push({ row: vi, line: outLine })
+      const outRow = new Canvas(ladderWidth, rails, g)
+      drawArrow(outRow, geo, row.outLeg, g, { color: row.outLeg.color })
+      if (selected) outRow.wash(0, ladderWidth, selection)
+      out.push({ row: vi, line: outRow.toLine() })
     }
   })
 
@@ -674,15 +1011,6 @@ export function paintLadderBody(
       ]
     })
   }
-  out.push({ line: [] })
-  out.push({
-    line: [
-      seg(
-        `${g.solid} request  ${g.dashed} response  times from the first message in ms`,
-        { color: "muted" }
-      )
-    ]
-  })
   return out
 }
 
@@ -708,10 +1036,24 @@ export function paintPane(
   const g = l.g
   if (!rec) return [[seg("select a message", { color: "muted" })]]
   const row = m.rows[m.records.indexOf(rec)]
-  const title = `record ${rec.seq} ${g.sep} ${row.inLeg.label} ${g.sep} ${
-    rec.outcome
-  }${rec.status ? " " + rec.status : ""} ${g.sep} ${row.hopsSummary}`
-  const lines: Line[] = [[seg(clip(title, width, g.ellipsis), { bold: true })]]
+  const title = `record ${rec.seq} ${g.sep} ${row.inLeg.label}`
+  const detail = `${rec.outcome}${rec.status ? " " + rec.status : ""} ${
+    g.sep
+  } ${row.hopsSummary}`
+  const lines: Line[] =
+    width >= 55
+      ? [
+          [
+            seg(clip(title, width, g.ellipsis), { bold: true }),
+            seg(clip(` ${g.sep} ${detail}`, width - title.length, g.ellipsis), {
+              color: "muted"
+            })
+          ]
+        ]
+      : [
+          [seg(clip(title, width, g.ellipsis), { bold: true })],
+          [seg(clip(detail, width, g.ellipsis), { color: "muted" })]
+        ]
   const wrapTo = (text: string, color?: Color, indent = 4) =>
     wrap(text, width, indent).forEach((t) =>
       lines.push([seg(t, color ? { color } : {})])
@@ -727,26 +1069,47 @@ export function paintPane(
         ? `${rec.method} ${Trace.formatUri(req.message.requestUri)}`
         : `SIP/2.0 ${rec.status ?? ""} ${row.inLeg.label.replace(/^\d+ /, "")}`
     )
-    wrapTo(
-      `in   ${req.sender.host}:${req.sender.port}/${
-        req.sender.transport
-      } ${"→"} ${lp ? `${lp.host}:${lp.port}/${lp.transport}` : "?"}`,
-      "muted"
+    // Transports are dropped before a line wraps
+    const hop = (label: string, from: string, to: string, transport: string) =>
+      wrapTo(
+        `${label}  ${from}/${transport} ${"→"} ${to}`.length <= width
+          ? `${label}  ${from}/${transport} ${"→"} ${to}`
+          : `${label}  ${from} ${"→"} ${to}`,
+        "muted",
+        5
+      )
+    hop(
+      "in ",
+      `${req.sender.host}:${req.sender.port}`,
+      lp ? `${lp.host}:${lp.port}` : "?",
+      req.sender.transport
     )
-    if (rec.response) {
+    if (
+      rec.response &&
+      rec.kind === "request" &&
+      !rec.response.message.requestUri
+    ) {
+      // Routr answered the request itself (a challenge, a rejection): the
+      // reply goes back to the sender, there is no outbound leg to show
+      wrapTo(
+        `out  ${rec.status ?? "reply"} back to ${req.sender.host}:${
+          req.sender.port
+        }/${req.sender.transport}`,
+        "muted",
+        5
+      )
+    } else if (rec.response) {
       const via = rec.response.message.via?.[0]
       const uri = rec.response.message.requestUri
-      wrapTo(
-        `out  ${
-          via ? `${via.host}:${via.port}/${via.transport}` : "?"
-        } ${"→"} ${
-          uri
-            ? `${uri.host}${uri.port ? ":" + uri.port : ""}`
-            : row.outLeg
-            ? m.lanes[row.outLeg.to]?.subtitle ?? ""
-            : ""
-        }`,
-        "muted"
+      hop(
+        "out",
+        via ? `${via.host}:${via.port}` : "?",
+        uri
+          ? `${uri.host}${uri.port ? ":" + uri.port : ""}`
+          : row.outLeg
+          ? m.lanes[row.outLeg.to]?.subtitle ?? ""
+          : "",
+        via?.transport ?? ""
       )
     } else {
       wrapTo("no outgoing message recorded", "warn")
@@ -754,7 +1117,7 @@ export function paintPane(
     lines.push([])
     headerLines(rec).forEach((h) => wrapTo(h, "muted"))
     lines.push([])
-    lines.push([seg("hops", { bold: true })])
+    lines.push([seg("HOPS", { color: "muted" })])
     if (!rec.hops.length)
       lines.push([seg("no hops recorded", { color: "muted" })])
     rec.hops.forEach((h) => {
@@ -769,7 +1132,7 @@ export function paintPane(
         : ""
       lines.push([
         seg(fit(h.component, 12), { color: "info" }),
-        seg(rpad(fmtDuration(h.durationMs), 8)),
+        seg(rpad(fmtDuration(h.durationMs), 6)),
         seg(`  ${h.action}`),
         seg(chips.length ? `  ${counts}` : h.diff ? "  no changes" : "", {
           color: "muted"
@@ -816,7 +1179,7 @@ export function paintPane(
         ? g.added
         : g.removed
     const color: Color =
-      d.kind === "changed" ? "warn" : d.kind === "added" ? "accent" : "danger"
+      d.kind === "changed" ? "warn" : d.kind === "added" ? "success" : "danger"
     const value = d.value === Trace.REDACTED ? "(redacted)" : d.value ?? ""
     const body = d.kind === "changed" ? `${d.from} ${"\u2192"} ${d.to}` : value
     const oneLine = `${glyph} ${d.name}  ${body}  ${d.by}`
@@ -890,7 +1253,6 @@ export function paintLadder(
   const ladderLines = padLines(windowed, ladderRows)
 
   if (geo.paneSide === "right") {
-    const ladderWidth = l.columns - geo.paneWidth - 1
     const pane = padLines(
       paintPane(m, b, selectedRec, s, geo.paneWidth - 1, l),
       rows
@@ -901,8 +1263,9 @@ export function paintLadder(
         const used = line.reduce((n, x) => n + x.text.length, 0)
         return [
           ...line,
-          seg(" ".repeat(Math.max(0, ladderWidth - used))),
-          seg(l.g.pipe + " ", { color: "muted" }),
+          seg(" ".repeat(Math.max(0, geo.ladderWidth - used))),
+          seg(l.g.pipe, { color: "muted", dim: true }),
+          seg(" "),
           ...(pane[i] || [])
         ]
       })
@@ -915,12 +1278,12 @@ export function paintLadder(
         } ${l.g.sep} ${selectedRec.outcome} `
       : ""
     const rule: Line = [
-      seg(
-        l.g.rule.repeat(2) +
-          title +
-          l.g.rule.repeat(Math.max(0, l.columns - title.length - 2)),
-        { color: "muted" }
-      )
+      seg(l.g.rule.repeat(2), { color: "muted", dim: true }),
+      seg(title),
+      seg(l.g.rule.repeat(Math.max(0, l.columns - title.length - 2)), {
+        color: "muted",
+        dim: true
+      })
     ]
     const pane = padLines(
       paintPane(m, b, selectedRec, s, l.columns, l).slice(1),
@@ -944,31 +1307,34 @@ export function paintLadder(
 export function paintPath(m: CallModel, s: ViewState, l: Layout): Line[] {
   const g = l.g
   const p = m.pathModel
+  const bp = breakpointOf(l.columns)
   const lines: Line[] = []
-  const boxes = l.columns >= 100 && g.pipe === "│"
+  const boxes = bp !== "narrow" && g.pipe === "\u2502"
+  const borderOf = (i: number): Partial<Segment> =>
+    i === 1 ? { color: "accent" } : { color: "muted", dim: true }
   if (boxes) {
-    const gap = 3
-    // Three boxes and two labelled arrows (gap + 16 cells each) must fit
-    const w = Math.min(32, Math.floor((l.columns - 2 * (gap + 16)) / 3))
+    const gap = bp === "medium" ? 12 : 19
+    const w = Math.min(30, Math.floor((l.columns - 2 * gap) / 3))
+    const content = (text: string) => fitAddressLine(text, w - 4, g)
     const top = (i: number): Line => [
-      seg(`╭${g.rule.repeat(w - 2)}╮`, { color: i === 1 ? "accent" : "muted" })
+      seg(`\u256d${g.rule.repeat(w - 2)}\u256e`, borderOf(i))
     ]
     const mid = (text: string, i: number, bold = false): Line => [
-      seg(g.pipe, { color: i === 1 ? "accent" : "muted" }),
-      seg(" " + fit(text, w - 4) + " ", {
+      seg(g.pipe, borderOf(i)),
+      seg(" " + fit(bold ? text : content(text), w - 4) + " ", {
         bold,
         color: bold && i === 1 ? "accent" : bold ? "fg" : "muted"
       }),
-      seg(g.pipe, { color: i === 1 ? "accent" : "muted" })
+      seg(g.pipe, borderOf(i))
     ]
     const bottom = (i: number): Line => [
-      seg(`╰${g.rule.repeat(w - 2)}╯`, { color: i === 1 ? "accent" : "muted" })
+      seg(`\u2570${g.rule.repeat(w - 2)}\u256f`, borderOf(i))
     ]
     const height = Math.max(...p.actors.map((a) => a.lines.length)) + 1
     const labels = [
       "",
       p.requestUri ? "INVITE" : "",
-      p.requestUri ? "INVITE rewritten" : ""
+      p.requestUri ? (bp === "medium" ? "rewritten" : "INVITE rewritten") : ""
     ]
     const rowsOut: Line[][] = p.actors.map((a, i) => [
       top(i),
@@ -976,18 +1342,6 @@ export function paintPath(m: CallModel, s: ViewState, l: Layout): Line[] {
       ...Array.from({ length: height - 1 }, (_, k) => mid(a.lines[k] ?? "", i)),
       bottom(i)
     ])
-    const labelLine: Line = []
-    const arrowLine: Line = []
-    p.actors.forEach((_, i) => {
-      labelLine.push(seg(" ".repeat(w)))
-      arrowLine.push(seg(" ".repeat(w)))
-      if (i < p.actors.length - 1) {
-        const lbl = labels[i + 1] || ""
-        labelLine.push(seg(" " + fit(lbl, gap + 14) + " "))
-        arrowLine.push(seg(" " + g.solid.repeat(gap + 13) + g.right + " "))
-      }
-    })
-    // Interleave: label row, then boxes with the arrow on the title row
     const rowCount = height + 2
     // eslint-disable-next-line no-loops/no-loops
     for (let r = 0; r < rowCount; r++) {
@@ -997,21 +1351,25 @@ export function paintPath(m: CallModel, s: ViewState, l: Layout): Line[] {
         if (i < p.actors.length - 1) {
           if (r === 1)
             line.push(
-              seg(" " + fit(labels[i + 1] || "", gap + 14) + " ", {
+              seg(" " + fit(labels[i + 1] || "", gap - 2) + " ", {
                 color: "muted"
               })
             )
           else if (r === 2)
-            line.push(seg(" " + g.solid.repeat(gap + 13) + g.right + " "))
-          else line.push(seg(" ".repeat(gap + 16)))
+            line.push(seg(" " + g.solid.repeat(gap - 3) + g.right + " "))
+          else line.push(seg(" ".repeat(gap)))
         }
       })
       lines.push(line)
     }
   } else {
+    const titleWidth = Math.max(...p.actors.map((a) => a.title.length)) + 2
     p.actors.forEach((a, i) => {
       lines.push([
-        seg(fit(a.title, 16), { bold: true, color: i === 1 ? "accent" : "fg" }),
+        seg(fit(a.title, titleWidth), {
+          bold: true,
+          color: i === 1 ? "accent" : "fg"
+        }),
         seg(a.lines.join("   "), { color: "muted" })
       ])
       if (i < p.actors.length - 1)
@@ -1030,64 +1388,85 @@ export function paintPath(m: CallModel, s: ViewState, l: Layout): Line[] {
     )
     return lines.slice(s.scroll)
   }
-  lines.push([seg("REQUEST-URI", { color: "muted" })])
+  const section = (label: string) => {
+    if (lines[lines.length - 1]?.length) lines.push([])
+    lines.push([seg(label, { color: "muted" })])
+  }
+  section("REQUEST-URI")
   if (p.requestUri) {
-    const one = `${p.requestUri.from}  ${"→"}  ${p.requestUri.to}`
+    const one = `${p.requestUri.from}  ${"\u2192"}  ${p.requestUri.to}`
     if (one.length <= l.columns)
       lines.push([
         seg(p.requestUri.from),
-        seg(`  ${"→"}  `, { color: "accent" }),
+        seg(`  ${"\u2192"}  `),
         seg(p.requestUri.to)
       ])
     else {
       lines.push([seg(p.requestUri.from)])
-      lines.push([seg(`  ${"→"} `, { color: "accent" }), seg(p.requestUri.to)])
+      lines.push([seg(`  ${"\u2192"} `), seg(p.requestUri.to)])
     }
   }
-  lines.push([])
-  lines.push([seg("VIA STACK, TOP FIRST", { color: "muted" })])
+  section("VIA STACK, TOP FIRST")
+  const viaWidth = Math.max(0, ...p.via.map((v) => v.line.length))
   p.via.forEach((v) => {
-    const note = `  ${v.note}`
-    const room = l.columns - note.length
-    wrap(v.line, room, 4).forEach((t, i) =>
-      lines.push([
-        seg(t),
-        ...(i === 0
+    const room = l.columns - 4 - Math.max(0, ...p.via.map((x) => x.note.length))
+    wrap(v.line, Math.max(20, room), 4).forEach((t, i) =>
+      lines.push(
+        i === 0 && v.note
           ? [
-              seg(note, {
+              seg(fit(t, Math.min(viaWidth, room))),
+              seg(`  ${g.pipe} `, { color: "muted", dim: true }),
+              seg(v.note, {
                 color: v.note.startsWith("ours") ? "accent" : "muted"
               })
             ]
-          : [])
-      ])
+          : [seg(t)]
+      )
     )
   })
-  lines.push([])
-  lines.push([seg("ROUTE SET", { color: "muted" })])
+  section("ROUTE SET")
   lines.push([
-    seg("Route: ", { color: "muted" }),
+    seg(fit("Route", 14), { color: "muted" }),
     seg(`${p.routeIn}, ${p.routeOut}`)
   ])
   lines.push([
-    seg("Record-Route: ", { color: "muted" }),
-    seg(p.recordRoute ? `${g.added} ${p.recordRoute}` : "none", {
-      color: p.recordRoute ? "accent" : "fg"
-    })
+    seg(fit("Record-Route", 14), { color: "muted" }),
+    ...(p.recordRoute
+      ? [seg(g.added + " ", { color: "success" }), seg(p.recordRoute)]
+      : [seg("none")])
   ])
-  lines.push([])
+  if (p.notes.length) section("NOTES")
+  const glyphWidth = Math.max(g.pass.length, g.fail.length, g.warn.length)
   p.notes.forEach((n) => {
     const glyph =
       n.color === "accent" ? g.pass : n.color === "warn" ? g.warn : g.fail
-    wrap(n.text, l.columns - glyph.length - 1, 0).forEach((t, i) =>
-      lines.push([
-        seg(i === 0 ? `${glyph} ` : " ".repeat(glyph.length + 1), {
-          color: n.color
-        }),
-        seg(t)
-      ])
+    const color: Color =
+      n.color === "accent" ? "success" : n.color === "warn" ? "warn" : "danger"
+    const indent = 1 + glyphWidth + 1
+    wrap(n.text, Math.max(20, l.columns - indent), 0).forEach((t, i) =>
+      lines.push(
+        i === 0
+          ? [seg(" "), seg(fit(glyph, glyphWidth), { color }), seg(" " + t)]
+          : [seg(" ".repeat(indent) + t)]
+      )
     )
   })
   return lines.slice(s.scroll)
+}
+
+/**
+ * Fits a box line that may carry an address: the transport goes before
+ * anything is clipped.
+ *
+ * @param {string} text - e.g. `in  10.111.221.2:5060/UDP`
+ * @param {number} n - Cells
+ * @param {Glyphs} g - Glyph set
+ * @return {string} The text, at most n cells
+ */
+function fitAddressLine(text: string, n: number, g: Glyphs): string {
+  if (text.length <= n) return text
+  const stripped = text.replace(/\/[A-Z]+\b/g, "")
+  return stripped.length <= n ? stripped : clip(stripped, n, g.ellipsis)
 }
 
 // ---------- compare ----------
@@ -1121,43 +1500,49 @@ export function paintCompare(
     }
   }
   const aligned = alignTraces(a.records, b.records)
+  const meta = (m: CallModel) =>
+    `${m.recordedAt.slice(0, 10)}  routr ${
+      m.records[0].edgePort.version ?? "?"
+    }  ${m.verdict.word.toLowerCase()}  ${m.records.length} messages`
+  // File names give way to the facts after them, never the other way round
+  const metaWidth = Math.max(meta(a).length, meta(b).length)
+  const nameWidth = Math.min(
+    Math.max(a.file.length, b.file.length),
+    Math.max(16, l.columns - 3 - metaWidth - 2)
+  )
+  const [nameA, nameB] = elidePair(a.file, b.file, nameWidth, g.ellipsis)
   const head = (m: CallModel, tag: string): Line => [
-    seg(`${tag}  `, { color: tag === "B" ? "info" : "accent", bold: true }),
-    seg(fit(m.file, Math.max(a.file.length, b.file.length) + 2)),
-    seg(
-      `${m.recordedAt.slice(0, 10)}  routr ${
-        m.records[0].edgePort.version ?? "?"
-      }  ${m.verdict.word.toLowerCase()}  ${m.records.length} messages`,
-      { color: "muted" }
-    )
+    seg(`${tag}  `, { color: tag === "B" ? "info" : "fg", bold: true }),
+    seg(fit(m === a ? nameA : nameB, nameWidth + 2)),
+    seg(meta(m), { color: "muted" })
   ]
   const differs = aligned.filter((r) => r.state === "differs").length
   const onlyA = aligned.filter((r) => r.state === "onlyA").length
   const onlyB = aligned.filter((r) => r.state === "onlyB").length
   const problems = differs + onlyA + onlyB
-  const verdict: Line = problems
-    ? [
-        seg(
-          `${g.differs} ${differs} of ${aligned.length} rows differ ${g.sep} ${onlyA} only in A ${g.sep} ${onlyB} only in B`,
-          { color: "warn" }
-        )
-      ]
-    : [seg(`${g.pass} all ${aligned.length} rows agree`, { color: "accent" })]
-  if (a.callId !== b.callId)
-    verdict.push(
-      seg(`   different calls: A ${a.callId}  B ${b.callId}`, {
-        color: "muted"
-      })
-    )
-  const lines: Line[] = [head(a, "A"), head(b, "B"), verdict, []]
+  const verdictText = problems
+    ? `${g.differs} ${differs} of ${aligned.length} rows differ ${g.sep} ${onlyA} only in A ${g.sep} ${onlyB} only in B`
+    : `${g.pass} all ${aligned.length} rows agree`
+  const verdict: Line = [
+    seg(verdictText, { color: problems ? "warn" : "success" })
+  ]
+  const lines: Line[] = [head(a, "A"), head(b, "B"), verdict]
+  if (a.callId !== b.callId) {
+    const note = `different calls: A ${a.callId}  B ${b.callId}`
+    if (verdictText.length + 3 + note.length <= l.columns)
+      verdict.push(seg("   " + note, { color: "muted" }))
+    else lines.push([seg(note, { color: "muted" })])
+  }
+  lines.push([])
 
-  const wide = l.columns >= 120
-  const gutterW = 12
+  const wide =
+    breakpointOf(l.columns) !== "narrow" && breakpointOf(l.columns) !== "medium"
+  const prefixW = 14
   const colW = wide
-    ? Math.floor((l.columns - gutterW - 2) / 2)
-    : l.columns - gutterW
-  const cell = (r: Trace.TraceRecord | undefined, missing: string) =>
-    r ? describe(r) : missing
+    ? Math.floor((l.columns - prefixW - 2) / 2)
+    : l.columns - prefixW
+  const cell = (r: Trace.TraceRecord | undefined, missing: string, w: number) =>
+    r ? fitLabel(labelTiers(describe(r)), w, g) : missing
   const stateGlyph = (st: CompareRow["state"]) =>
     st === "same"
       ? " "
@@ -1179,43 +1564,44 @@ export function paintCompare(
   aligned.forEach((r, i) => {
     rowStart.push(body.length)
     const sel = i === s.selected
-    const seqs = `A${r.a ? r.a.seq : "–"} B${r.b ? r.b.seq : "–"}`
-    const gutterSeg = [
-      seg(sel ? g.marker : " ", { color: "accent" }),
-      seg(fit(stateGlyph(r.state), 2), { color: stateColor(r.state) }),
-      seg(fit(seqs, gutterW - 3), { color: "muted" })
+    const bar = sel ? { bg: "selection" as const, bold: true } : {}
+    const seqs = `A${r.a ? r.a.seq : "\u2013"} B${r.b ? r.b.seq : "\u2013"}`
+    const prefix = [
+      seg(sel ? g.marker : " ", { color: "accent", ...bar }),
+      seg(fit(stateGlyph(r.state), 2), { color: stateColor(r.state), ...bar }),
+      seg(" " + fit(seqs, 9) + " ", { color: "muted", ...bar })
     ]
     if (wide) {
       body.push([
-        ...gutterSeg,
-        seg(fit(cell(r.a, "not in A"), colW), {
-          color: r.a ? stateColor(r.state) : "muted",
-          inverse: sel
+        ...prefix,
+        seg(fit(cell(r.a, "not in A", colW), colW), {
+          color: r.a ? "fg" : "muted",
+          ...bar
         }),
-        seg("  "),
-        seg(fit(cell(r.b, "not in B"), colW), {
-          color: r.b ? stateColor(r.state) : "muted",
-          inverse: sel
+        seg("  ", bar),
+        seg(fit(cell(r.b, "not in B", colW), colW), {
+          color: r.b ? "fg" : "muted",
+          ...bar
         })
       ])
       if (l.columns >= 160 && r.state === "differs" && r.why)
         body.push([
-          seg(" ".repeat(gutterW)),
-          seg(`  ${r.why}`, { color: "warn" })
+          seg(" ".repeat(prefixW)),
+          seg(fit(r.why, l.columns - prefixW), { color: "warn" })
         ])
     } else {
       body.push([
-        ...gutterSeg,
-        seg(fit("A " + cell(r.a, "not in A"), colW), {
-          color: r.a ? stateColor(r.state) : "muted",
-          inverse: sel
+        ...prefix,
+        seg(fit("A " + cell(r.a, "not in A", colW - 2), colW), {
+          color: r.a ? "fg" : "muted",
+          ...bar
         })
       ])
       body.push([
-        seg(" ".repeat(gutterW)),
-        seg(fit("B " + cell(r.b, "not in B"), colW), {
-          color: r.b ? stateColor(r.state) : "muted",
-          inverse: sel
+        seg(" ".repeat(prefixW), bar),
+        seg(fit("B " + cell(r.b, "not in B", colW - 2), colW), {
+          color: r.b ? "fg" : "muted",
+          ...bar
         })
       ])
     }
@@ -1225,7 +1611,13 @@ export function paintCompare(
   let start = 0
   if (selStart + 2 >= avail)
     start = Math.min(selStart - avail + 4, Math.max(0, body.length - avail))
-  return { aligned, lines: [...lines, ...body.slice(start, start + avail)] }
+  // Never open the window halfway into a stacked row
+  start = rowStart.find((x) => x >= start) ?? start
+  // ...and never close it halfway through one either
+  const end =
+    [...rowStart, body.length].filter((x) => x <= start + avail).pop() ??
+    start + avail
+  return { aligned, lines: [...lines, ...body.slice(start, end)] }
 }
 
 /**
@@ -1245,11 +1637,11 @@ export function paintScreen(
 ): Line[] {
   const small = tooSmall(l)
   if (small) return padLines([[seg(small, { color: "warn" })]], l.rows)
-  const bodyRows = l.rows - 3
+  const bodyRows = l.rows - 7
   let body: Line[]
   let position = ""
   if (s.help) {
-    body = helpLines()
+    body = helpLines(bodyRows)
   } else if (s.view === 0) {
     body = paintSummary(a, s, l)
   } else if (s.view === 1) {
@@ -1272,8 +1664,10 @@ export function paintScreen(
       : ""
   }
   return [
-    statusLine(a, b, l),
+    ...header(a, b, l),
+    [],
     viewBar(s, !!b, l),
+    [],
     ...padLines(body, bodyRows),
     statusBar(s, position, l)
   ].map((line) => trimLine(line, l.columns))
