@@ -1,4 +1,4 @@
-name: add contributors
+name: Update Contributors
 
 on:
   workflow_dispatch:
@@ -8,6 +8,7 @@ on:
 
 jobs:
   add-contributors:
+    name: Update Contributors
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4

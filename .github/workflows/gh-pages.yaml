@@ -1,4 +1,4 @@
-name: publish to gh pages
+name: Publish Website
 
 on:
   workflow_dispatch:
@@ -12,6 +12,7 @@ on:
 
 jobs:
   build_deploy:
+    name: Build and Deploy
     runs-on: ubuntu-latest
 
     steps:
@@ -62,7 +63,7 @@ jobs:
         mkdir -p out/record-and-replay
         cp site/record-and-replay/index.html out/record-and-replay/
     - name: Deploy
-      uses: peaceiris/actions-gh-pages@v3
+      uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.DEPLOY_KEY }}
         publish_dir: ./out

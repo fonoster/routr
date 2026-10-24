@@ -1,4 +1,4 @@
-name: test
+name: Tests
 
 # Runs the suites that gate a change. Until this workflow existed nothing ran on a pull
 # request, and the only enforcement was the (bypassable) .husky/pre-commit hook.
@@ -17,16 +17,12 @@ name: test
 # @routr/location from the npm registry, not from this checkout. A change to one of
 # those packages reaches this job only through the edgeport/requester webpack bundle.
 
+# Runs once per change, on its pull request. Branch protection requires these checks and
+# requires the branch to be up to date with main, so what merges is what passed, and main
+# is not tested again. A PR that only touches docs, the site, designs or Markdown skips
+# the suites; its skipped jobs still satisfy the required checks.
 on:
   pull_request:
-    # The chart is not exercised by any job here; charts-deployment.yaml publishes it.
-    paths-ignore:
-      - "ops/**"
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - "ops/**"
   # Re-run a branch by hand: gh workflow run test.yaml --ref <branch>
   workflow_dispatch:
 
@@ -36,8 +32,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - name: Look for changes outside docs, site, designs and Markdown
+        id: filter
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -z "$PR" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" -q '.[].filename')
+          code=$(echo "$files" | grep -Ev '^(docs|docs-site|site|designs)/|\.md$' || true)
+          if [ -n "$code" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Only docs, site, designs or Markdown changed; skipping the suites"
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   unit:
     name: Unit tests, typecheck and lint
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -80,6 +105,8 @@ jobs:
 
   compat:
     name: Known-good corpus compatibility
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -113,6 +140,8 @@ jobs:
 
   java:
     name: EdgePort and Requester tests
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -141,6 +170,8 @@ jobs:
 
   compliance:
     name: SIP Connect v1.1 compliance (SEET)
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     # npm run make + compose build + settle + the suite is about 20 min on a normal runner.
     timeout-minutes: 45
