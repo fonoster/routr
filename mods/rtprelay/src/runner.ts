@@ -62,5 +62,8 @@ if (result._tag === "Right") {
     config.profiles
   )
 } else {
+  // A relay that is up but never listens looks healthy to the orchestrator
+  // while every call fails; exit so the error is seen and the container restarts
   logger.error(result.left)
+  process.exit(1)
 }
