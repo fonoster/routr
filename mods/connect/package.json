@@ -1,6 +1,6 @@
 {
   "name": "@routr/connect",
-  "version": "2.23.0",
+  "version": "2.24.0",
   "description": "Default processor",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -20,9 +20,9 @@
   },
   "dependencies": {
     "@fonoster/logger": "0.6.0",
-    "@routr/common": "^2.23.0",
-    "@routr/location": "^2.23.0",
-    "@routr/processor": "^2.23.0",
+    "@routr/common": "^2.24.0",
+    "@routr/location": "^2.24.0",
+    "@routr/processor": "^2.24.0",
     "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
