@@ -18,7 +18,6 @@
  */
 export const countries = [
   // Special for situations where we don't want to specify a country
-  // this would not work if the ENFORCE_E164 flag is set to true
   { name: "Unknown", value: "XX" },
   { name: "Afghanistan", value: "AF" },
   { name: "Åland Islands", value: "AX" },

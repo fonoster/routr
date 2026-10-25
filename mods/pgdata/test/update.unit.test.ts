@@ -213,6 +213,24 @@ describe("@routr/pgdata/api/update", () => {
     expect(data).to.deep.equal({ ref: "trunk-01", sendRegister: false })
   })
 
+  it("applies the caller identity settings of a Trunk", async () => {
+    const request = decode(TRUNKS[0], TRUNKS[1], "Update", {
+      ref: "trunk-01",
+      enforceE164: true,
+      rewriteFromWithNumber: true,
+      fromDomain: "sip.example.com"
+    })
+
+    const data = await runUpdate(CC.Kind.TRUNK, request, trunkFromDb)
+
+    expect(data).to.deep.equal({
+      ref: "trunk-01",
+      enforceE164: true,
+      rewriteFromWithNumber: true,
+      fromDomain: "sip.example.com"
+    })
+  })
+
   it("replaces Trunk URIs when the request sends a non-empty list", async () => {
     const request = decode(TRUNKS[0], TRUNKS[1], "Update", {
       ref: "trunk-01",

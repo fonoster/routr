@@ -313,6 +313,157 @@ describe("@routr/processor/alterations", () => {
     expect(r.message.requestUri.user).to.be.equal("+46721895538")
   })
 
+  describe("per-Trunk caller identity", () => {
+    const toTrunk = (rewriteFrom?: { user: string; host: string }) => ({
+      ...route,
+      rewriteFrom
+    })
+
+    it("presents the Number as the caller at the given domain", () => {
+      const r = A.rewriteFromWithNumber(
+        toTrunk({ user: "+18295863314", host: "sip.provider.net" })
+      )(request)
+      const from = r.message.from
+      expect(from.address.uri.user).to.equal("+18295863314")
+      expect(from.address.uri.host).to.equal("sip.provider.net")
+      expect(from.address.uri.userParam).to.equal("phone")
+      // Tag and display name stay, so the dialog is the same one
+      expect(from.tag).to.equal(request.message.from.tag)
+      expect(from.address.displayName).to.equal("John Doe")
+      // The input is not mutated
+      expect(request.message.from.address.uri.user).to.equal("1001")
+    })
+
+    it("uses whatever domain the route carries (fromDomain or the outbound host)", () => {
+      const r = A.rewriteFromWithNumber(
+        toTrunk({ user: "+18295863314", host: "wa.example.com" })
+      )(request)
+      expect(r.message.from.address.uri.host).to.equal("wa.example.com")
+    })
+
+    it("does nothing when the Trunk does not ask for it", () => {
+      expect(A.rewriteFromWithNumber(toTrunk())(request)).to.equal(request)
+    })
+
+    it("never rewrites an anonymous From", () => {
+      const anonymous = createPSTNMessage(request, {
+        from: "anonymous",
+        to: "17853178070"
+      })
+      anonymous.message.from.address.uri.host = "anonymous.invalid"
+      const r = A.rewriteFromWithNumber(
+        toTrunk({ user: "+18295863314", host: "sip.provider.net" })
+      )(anonymous)
+      expect(r.message.from.address.uri.user).to.equal("anonymous")
+      expect(r.message.from.address.uri.host).to.equal("anonymous.invalid")
+      expect(A.isAnonymous({ host: "anonymous.invalid" })).to.equal(true)
+      expect(A.isAnonymous({ user: "Anonymous", host: "x.com" })).to.equal(true)
+    })
+
+    it("leaves the request alone when enforceE164 is off", () => {
+      const req = createPSTNMessage(request, {
+        from: "17853178071",
+        to: "46721895538"
+      })
+      expect(A.enforceE164(false, false)(req)).to.equal(req)
+    })
+
+    it("records nothing in Record-Route when the identity did not change", () => {
+      expect(A.identityRewriteParameters(request, request)).to.deep.equal({})
+    })
+
+    it("records the original and the new From in Record-Route", () => {
+      const altered = A.rewriteFromWithNumber(
+        toTrunk({ user: "+18295863314", host: "sip.provider.net" })
+      )(request)
+      const parameters = A.identityRewriteParameters(request, altered)
+      expect(parameters).to.have.keys("rfo", "rfn")
+      // Base64url: a SIP token, no quoting needed
+      expect(parameters.rfo).to.match(/^[A-Za-z0-9_-]+$/)
+      expect(Buffer.from(parameters.rfo, "base64url").toString()).to.equal(
+        "1001@sip.local"
+      )
+      expect(Buffer.from(parameters.rfn, "base64url").toString()).to.equal(
+        "+18295863314@sip.provider.net;user=phone"
+      )
+
+      const r = A.addSelfRecordRoute(route, parameters)(altered)
+      // Every entry this EdgePort added, and none of the ones already there
+      const added =
+        r.message.recordRoute.length - altered.message.recordRoute.length
+      expect(added).to.be.greaterThan(0)
+      expect(r.message.recordRoute[added].parameters).to.not.have.property(
+        "rfo"
+      )
+      r.message.recordRoute
+        .slice(0, added)
+        .forEach((rr: CT.RecordRoute) =>
+          expect(rr.parameters).to.include({ rfo: parameters.rfo })
+        )
+    })
+
+    it("records a To normalized by enforceE164", () => {
+      const req = createPSTNMessage(request, {
+        from: "1001",
+        to: "46721895538"
+      })
+      const parameters = A.identityRewriteParameters(
+        req,
+        A.enforceE164(true, false)(req)
+      )
+      expect(parameters).to.have.keys("rto", "rtn")
+    })
+
+    describe("in-dialog requests", () => {
+      const rewritten = A.rewriteFromWithNumber(
+        toTrunk({ user: "+18295863314", host: "sip.provider.net" })
+      )(request)
+      const parameters = A.identityRewriteParameters(request, rewritten)
+
+      // An in-dialog request whose first Route entry is this EdgePort, stamped
+      // by the INVITE that set up the dialog
+      const inDialog = (from: CT.SipURI, to: CT.SipURI) => {
+        const req = createPSTNMessage(request, { from: "x", to: "y" })
+        req.message.from.address.uri = { ...from }
+        req.message.to.address.uri = { ...to }
+        req.message.route[0].parameters = { ...parameters }
+        return req
+      }
+
+      const caller = request.message.from.address.uri
+      const number = rewritten.message.from.address.uri
+      const callee = request.message.to.address.uri
+
+      it("gives a request from the caller the From the Trunk knows", () => {
+        const r = A.swapIdentityFromRouteSet(inDialog(caller, callee))
+        expect(r.message.from.address.uri.user).to.equal("+18295863314")
+        expect(r.message.from.address.uri.host).to.equal("sip.provider.net")
+        expect(r.message.from.address.uri.userParam).to.equal("phone")
+      })
+
+      it("gives a request from the Trunk the caller's own identity in To", () => {
+        const r = A.swapIdentityFromRouteSet(inDialog(callee, number))
+        expect(r.message.to.address.uri.user).to.equal("1001")
+        expect(r.message.to.address.uri.host).to.equal("sip.local")
+        expect(r.message.to.address.uri.userParam).to.equal(undefined)
+      })
+
+      it("leaves a To the Trunk did not get from Routr alone", () => {
+        // A carrier that answers with the caller's original identity in To
+        const r = A.swapIdentityFromRouteSet(inDialog(callee, caller))
+        expect(r.message.to.address.uri.user).to.equal("1001")
+        expect(r.message.to.address.uri.host).to.equal("sip.local")
+      })
+
+      it("ignores the mapping on a Route entry of another EdgePort", () => {
+        const req = inDialog(caller, callee)
+        req.message.route[0].address.uri.host = "192.0.2.10"
+        const r = A.swapIdentityFromRouteSet(req)
+        expect(r.message.from.address.uri.user).to.equal("1001")
+      })
+    })
+  })
+
   it("adds the via header using the route headers to calculate the egress interface", () => {
     const req = A.addSelfViaUsingTheRouteHeaders(request)
     expect(req).to.have.property("message")

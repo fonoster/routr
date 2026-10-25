@@ -12,6 +12,9 @@ A Trunk is a connection to a SIP provider. It defines how the provider reaches R
 | --- | --- | --- | --- | --- | --- |
 | `metadata.name` | `name` | `string` | Yes | - | Friendly name. Up to 60 characters. |
 | `metadata.region` | - | `string` | No | - | Reserved for future use. Not loaded. |
+| `spec.enforceE164` | `enforceE164` | `boolean` | No | `false` | Normalize the From, To, and Request-URI users to +E.164 on calls through this Trunk, in both directions. See [Caller identity](#caller-identity). |
+| `spec.rewriteFromWithNumber` | `rewriteFromWithNumber` | `boolean` | No | `false` | On calls leaving through this Trunk, From becomes the Number's E.164 at `fromDomain`. See [Caller identity](#caller-identity). |
+| `spec.fromDomain` | `fromDomain` | `string` | No | Outbound URI host | Host of the rewritten From. Up to 255 characters. |
 | `spec.inbound.uri` | `inboundUri` | `string` | Yes | - | Host the provider sends calls to, as an FQDN or IP address. Connect matches it against the Request-URI host of calls from the PSTN. |
 | `spec.inbound.accessControlListRef` | `accessControlListRef` | `string` | No | - | `ref` of an [ACL](/reference/resources/acl). Calls from the PSTN must come from an address in its `allow` list. |
 | `spec.inbound.credentialsRef` | `inboundCredentialsRef` | `string` | No | - | `ref` of [Credentials](/reference/resources/credentials) the provider must authenticate with on inbound calls. |
@@ -39,6 +42,30 @@ The API response also includes `accessControlList`, `inboundCredentials`, and `o
 - For a call from the PSTN to be accepted, the Request-URI host must match a Trunk's `inboundUri`, and the dialed Number must belong to that Trunk.
 - Connect checks only the ACL `allow` list, against the top Via `received` address (or the Via host when `received` is absent).
 - On outbound calls, Connect passes the outbound credentials to EdgePort in the `X-Gateway-Auth` header, so EdgePort can answer the provider's authentication challenge. EdgePort removes the header before it sends the request.
+
+## Caller identity
+
+Carriers that authenticate a call by its From header only accept a From that is your number at their domain. WhatsApp Business Calling over SIP needs the business number at the hostname registered with Meta; many SIPconnect carriers expect `+E.164` at their own domain. Two settings cover this:
+
+- `enforceE164` normalizes the From, To, and Request-URI users to `+E.164` when they parse as valid numbers. On calls from the Trunk it runs before routing, so a Number is found even when the carrier leaves out the `+`. On calls toward the Trunk it runs after routing, so egress policy rules match the number as the caller dialed it.
+- `rewriteFromWithNumber` sets the From of calls leaving through the Trunk to the Number the call is placed from, at `fromDomain` (the outbound URI host when unset), with `user=phone`. For an Agent the Number comes from the Domain's egress policy; for a Peer, from `X-DOD-Number`. The display name and tag stay.
+
+Some things stay as they were:
+
+- An anonymous From (`anonymous@anonymous.invalid`) is never rewritten, so a caller who asked for privacy keeps it.
+- Routing, access checks, Privacy, `P-Asserted-Identity`, and `Remote-Party-ID` are worked out from the caller's own From before the rewrite.
+- The caller still sees its own identity. Responses carry the caller's original From and To, and in-dialog requests from the carrier (BYE, re-INVITE) reach the caller with its own identity in To. Routr records the mapping as parameters of its Record-Route header (`rfo`, `rfn`, `rto`, `rtn`, base64url), so it needs no state and works across restarts. The carrier can decode the caller's original From from those parameters.
+- The `call.started` event names the caller as the INVITE arrived, not the Number.
+
+These settings replace the `ENFORCE_E164` and `ENFORCE_E164_WITH_MOBILE_PREFIX` environment variables, which no longer exist. Set `enforceE164` on each Trunk that needs it. The API Server no longer checks that new Numbers are valid E.164.
+
+```yaml
+spec:
+  enforceE164: true
+  rewriteFromWithNumber: true
+  # The hostname registered with the carrier, for example with Meta
+  fromDomain: sip.example.com
+```
 
 ## YAML example
 

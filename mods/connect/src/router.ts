@@ -40,7 +40,8 @@ import {
   getVerifierImpl,
   hasXConnectObjectHeader,
   recordingMetadata,
-  domainOf
+  domainOf,
+  trunkIdentity
 } from "./utils"
 import { MessageRequest, Target as T, Extensions as E } from "@routr/processor"
 import { ILocationService, Backend } from "@routr/location"
@@ -358,6 +359,9 @@ async function agentToPSTN(
       ...recordingMetadata(trunk),
       ...Trace.traceAnnotations({ trunk: trunk.ref })
     },
+    // Applied by the tailor, after routing, access control, privacy and the
+    // asserted identity have all been worked out from the caller's own From
+    ...trunkIdentity(trunk, policy.number),
     externalAddrs: req.externalAddrs,
     headers: [
       // TODO: Find a more deterministic way to re-add the Privacy header
@@ -456,6 +460,8 @@ async function peerToPSTN(
       ...recordingMetadata(number.trunk),
       ...Trace.traceAnnotations({ trunk: number.trunk?.ref })
     },
+    // The Number named by X-DOD-Number is the identity the peer calls from
+    ...trunkIdentity(number.trunk, number),
     externalAddrs: req.externalAddrs,
     headers: [
       // TODO: Find a more deterministic way to re-add the Privacy header

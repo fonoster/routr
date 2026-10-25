@@ -31,10 +31,7 @@ The processor has no configuration file. You configure it with environment varia
 
 ### Number normalization
 
-| Name | Default | Description |
-| --- | --- | --- |
-| `ENFORCE_E164` | `false` | `true` normalizes the From, To, and Request-URI users to E.164 when they parse as valid numbers |
-| `ENFORCE_E164_WITH_MOBILE_PREFIX` | `false` | `true` also validates mobile prefixes when normalizing the To and Request-URI users |
+Connect normalizes numbers per Trunk, not with an environment variable. Set `spec.enforceE164` on each Trunk that needs it; see [caller identity](/reference/resources/trunks#caller-identity). The `ENFORCE_E164` and `ENFORCE_E164_WITH_MOBILE_PREFIX` variables are gone.
 
 ### Connect Token verification
 

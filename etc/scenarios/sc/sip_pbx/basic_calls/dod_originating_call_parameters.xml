@@ -5,13 +5,15 @@
 
   <recv request="INVITE">
     <action>
-      <ereg regexp=".*INVITE sips?:[0-9a-z]+@sip.provider.net.*" search_in="msg" case_indep="true" check_it="true" assign_to="1" />
       <!--
-        FIXME: According to SIP Connect we should replace the host part in the From and To headers with the host part of the
-        of the Service Provider's.
+        The call leaves over trunk-02, which has enforceE164 and rewriteFromWithNumber (config/resources/trunks.yaml):
+        the Request-URI and To users are +E.164, and From is the Number (number-03, +18295863314) at the Service
+        Provider's host, as SIP Connect 1.1 section 9 asks of a SIP-PBX in Registration mode.
       -->
-      <ereg regexp=".*sips?:[0-9a-z]+@sip.local.*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="1" />
-      <ereg regexp=".*sips?:[0-9a-z]+@sip.local.*" search_in="hdr" header="To" case_indep="true" check_it="true" assign_to="1" />
+      <ereg regexp=".*INVITE sips?:\+[0-9]+@sip.provider.net.*" search_in="msg" case_indep="true" check_it="true" assign_to="1" />
+      <ereg regexp=".*sips?:\+18295863314@sip.provider.net;user=phone.*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="1" />
+      <!-- Routr does not rewrite the To host; SIP Connect would have it be the Service Provider's too -->
+      <ereg regexp=".*sips?:\+[0-9]+@sip.local.*" search_in="hdr" header="To" case_indep="true" check_it="true" assign_to="1" />
       <!--
         SIP Connect 1.1 section 9: the asserted identity is a SIP URI carrying a global E.164 number
         with a leading "+" and the user=phone parameter, e.g. sip:+16132581234@example.com;user=phone.

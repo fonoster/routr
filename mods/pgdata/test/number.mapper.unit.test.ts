@@ -106,6 +106,9 @@ describe("@routr/pgdata/mappers/number", () => {
         name: "Global Trunk",
         accessControlListRef: "acl-01",
         sendRegister: true,
+        enforceE164: false,
+        rewriteFromWithNumber: false,
+        fromDomain: null,
         traceEnabled: false,
         inboundUri: "sip:sip.local",
         inboundCredentialsRef: "inbound-01",
@@ -177,7 +180,9 @@ describe("@routr/pgdata/mappers/number", () => {
         "updatedAt",
         "countryIsoCode",
         "traceEnabled",
-        "trace"
+        "trace",
+        // NULL in the database, left out of the dto (see the trunk mapper tests)
+        "fromDomain"
       ])
       .to.deep.equal(number)
     expect(result).to.have.property("countryIsoCode", number.countryIsoCode)

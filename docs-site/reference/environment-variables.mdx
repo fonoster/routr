@@ -86,8 +86,6 @@ See [Connect processor](/reference/components/connect) for details.
 | Name | Default | Description |
 | --- | --- | --- |
 | `REGISTER_DEFAULT_EXPIRES` | `3600` | Registration lifetime in seconds when a REGISTER carries no expiry |
-| `ENFORCE_E164` | `false` | Normalize From, To, and Request-URI users to E.164. Also validates new Numbers in the API Server |
-| `ENFORCE_E164_WITH_MOBILE_PREFIX` | `false` | Also validate mobile prefixes |
 | `CONNECT_VERIFIER_PUBLIC_KEY_PATH` | | Public key used to verify `X-Connect-Token` JWTs locally |
 | `CONNECT_VERIFIER_OPTIONS` | `{"expiresIn":"1h","algorithm":["RS256"]}` | JSON options for local verification |
 | `CONNECT_VERIFIER_ADDR` | | Address of a remote gRPC verifier |

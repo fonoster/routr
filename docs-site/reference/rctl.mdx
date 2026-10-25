@@ -987,6 +987,9 @@ Prompts:
 | Inbound Credentials | `inboundCredentialsRef` | Pick from existing Credentials, or `None`. |
 | Outbound Credentials | `outboundCredentialsRef` | Pick from existing Credentials, or `None`. |
 | Send Register? | `sendRegister` | Defaults to no. |
+| Normalize numbers to E.164? | `enforceE164` | Defaults to no. |
+| Present the Number as the caller (rewrite From)? | `rewriteFromWithNumber` | Defaults to no. |
+| From Domain | `fromDomain` | Asked only when the previous answer is yes. Empty uses the outbound URI host. |
 | Add an Outbound SIP URI? | `uris` | Defaults to no. |
 | Host | `uris[].host` | Required. An FQDN or IP address. |
 | Port | `uris[].port` | Defaults to `5060`. |

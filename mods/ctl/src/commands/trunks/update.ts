@@ -25,6 +25,7 @@ import {
   hostValidator,
   inboundUriValidator,
   nameValidator,
+  optionalHostValidator,
   optionalUsernameValidator,
   portValidator,
   priorityValidator,
@@ -136,6 +137,27 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
           message: "Send Register?",
           type: "confirm",
           default: trunkFromDB.sendRegister
+        },
+        {
+          name: "enforceE164",
+          message: "Normalize numbers to E.164?",
+          type: "confirm",
+          default: trunkFromDB.enforceE164 ?? false
+        },
+        {
+          name: "rewriteFromWithNumber",
+          message: "Present the Number as the caller (rewrite From)?",
+          type: "confirm",
+          default: trunkFromDB.rewriteFromWithNumber ?? false
+        },
+        {
+          name: "fromDomain",
+          message: "From Domain (empty for the outbound URI host)",
+          type: "input",
+          default: trunkFromDB.fromDomain,
+          when: (answers: { rewriteFromWithNumber: boolean }) =>
+            answers.rewriteFromWithNumber,
+          validate: optionalHostValidator
         },
         {
           name: "addOutboundUri",

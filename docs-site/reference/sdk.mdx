@@ -447,6 +447,9 @@ Manages Trunk resources.
 | `name` | `string` | Yes | Friendly name, up to 60 characters. |
 | `inboundUri` | `string` | Yes | FQDN or IP address the provider sends calls to. Unique. |
 | `sendRegister` | `boolean` | No | Register with the provider. Defaults to `false`. |
+| `enforceE164` | `boolean` | No | Normalize From, To, and Request-URI users to +E.164 on calls through the Trunk. Defaults to `false`. |
+| `rewriteFromWithNumber` | `boolean` | No | On calls leaving through the Trunk, From becomes the Number's E.164 at `fromDomain`. Defaults to `false`. |
+| `fromDomain` | `string` | No | Host of the rewritten From. Defaults to the outbound URI host. |
 | `accessControlListRef` | `string` | No | ACL checked against the source of inbound calls. |
 | `inboundCredentialsRef` | `string` | No | Credentials the provider must use on inbound calls. |
 | `outboundCredentialsRef` | `string` | No | Credentials Routr uses toward the provider. |

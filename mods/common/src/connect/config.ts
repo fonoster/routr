@@ -113,6 +113,9 @@ export interface NumberConfig extends Omit<ConfigBase, "metadata"> {
 export interface TrunkConfig extends ConfigBase {
   kind: Kind.TRUNK
   spec: {
+    enforceE164?: boolean
+    rewriteFromWithNumber?: boolean
+    fromDomain?: string
     inbound: {
       uri: string
       accessControlListRef: string

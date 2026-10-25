@@ -29,7 +29,6 @@ The API response also includes `trunk`, the object that `trunkRef` points to.
 
 - `name` is required and must be 1 to 60 characters.
 - `telUrl` must start with `tel:`. In pgdata it must be unique and up to 60 characters.
-- When the API server runs with `ENFORCE_E164=true`, `telUrl` must be a valid E.164 number for `countryIsoCode`. `ENFORCE_E164_WITH_MOBILE_PREFIX=true` also validates the mobile prefix.
 - `aorLink` must start with `sip:` or `backend:`.
 - `sessionAffinityHeader` and each `extraHeaders[].name` may contain only letters, digits, and dashes, and can't end with a dash. Each `extraHeaders[].value` must be non-empty.
 - In YAML, `metadata.geoInfo` must be present. The loader reads it for every Number.

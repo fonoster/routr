@@ -26,6 +26,7 @@ import {
   hostValidator,
   inboundUriValidator,
   nameValidator,
+  optionalHostValidator,
   optionalUsernameValidator,
   portValidator,
   priorityValidator,
@@ -121,6 +122,26 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           message: "Send Register?",
           type: "confirm",
           default: false
+        },
+        {
+          name: "enforceE164",
+          message: "Normalize numbers to E.164?",
+          type: "confirm",
+          default: false
+        },
+        {
+          name: "rewriteFromWithNumber",
+          message: "Present the Number as the caller (rewrite From)?",
+          type: "confirm",
+          default: false
+        },
+        {
+          name: "fromDomain",
+          message: "From Domain (empty for the outbound URI host)",
+          type: "input",
+          when: (answers: { rewriteFromWithNumber: boolean }) =>
+            answers.rewriteFromWithNumber,
+          validate: optionalHostValidator
         },
         {
           name: "addOutboundUri",

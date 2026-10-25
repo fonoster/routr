@@ -11,5 +11,9 @@
         # Calls to this number leave over the TLS trunk (RR.Tst.Plan.1.2.2)
         - rule: "^12225554000$"
           numberRef: number-07
+        # Calls to this number leave over trunk-02, which presents the Number as
+        # the caller (SC-IT.Conf.1.3.1)
+        - rule: "^17853178071$"
+          numberRef: number-03
         - rule: ".*"
           numberRef: number-01

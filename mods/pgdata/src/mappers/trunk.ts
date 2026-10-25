@@ -76,6 +76,10 @@ export class TrunkManager extends EntityManager {
       // TODO: Set a default value for apiVersion
       ...withoutTrace(this.trunk),
       traceEnabled: this.trunk.trace?.enabled ?? false,
+      enforceE164: this.trunk.enforceE164 ?? false,
+      rewriteFromWithNumber: this.trunk.rewriteFromWithNumber ?? false,
+      // An empty string clears the setting, so the outbound URI host applies again
+      fromDomain: this.trunk.fromDomain || null,
       apiVersion: "v2" as APIVersion,
       accessControlListRef: this.trunk.accessControlListRef || null,
       inboundCredentialsRef: this.trunk.inboundCredentialsRef || null,
@@ -94,6 +98,7 @@ export class TrunkManager extends EntityManager {
       ? {
           ...withoutTraceEnabled(trunk),
           trace: { enabled: trunk.traceEnabled },
+          fromDomain: trunk.fromDomain ?? undefined,
           apiVersion: trunk.apiVersion as CC.APIVersion,
           accessControlListRef: trunk.accessControlList?.ref,
           inboundCredentialsRef: trunk.inboundCredentials?.ref,

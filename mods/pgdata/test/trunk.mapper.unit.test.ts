@@ -43,6 +43,9 @@ describe("@routr/pgdata/mappers/trunk", () => {
       inboundCredentialsRef: "credentials-01",
       outboundCredentialsRef: "credentials-01",
       sendRegister: true,
+      enforceE164: true,
+      rewriteFromWithNumber: true,
+      fromDomain: "sip.example.com",
       createdAt: new Date().getTime(),
       updatedAt: new Date().getTime(),
       extended: {
@@ -80,6 +83,9 @@ describe("@routr/pgdata/mappers/trunk", () => {
       inboundCredentialsRef: "credentials-01",
       outboundCredentialsRef: "credentials-01",
       sendRegister: true,
+      enforceE164: true,
+      rewriteFromWithNumber: true,
+      fromDomain: "sip.example.com",
       createdAt: new Date(),
       updatedAt: new Date(),
       extended: {
@@ -145,6 +151,61 @@ describe("@routr/pgdata/mappers/trunk", () => {
       .excludingEvery(["createdAt", "updatedAt", "traceEnabled", "trace"])
       .to.deep.equal(trunk)
     expect(result.trace).to.deep.equal({ enabled: false })
+  })
+
+  it("defaults the caller identity settings when a Trunk leaves them out", () => {
+    // Arrange
+    const trunk = {
+      apiVersion: CC.APIVersion.V2,
+      ref: "trunk-01",
+      name: "Global Trunk",
+      inboundUri: "sip.local",
+      sendRegister: false,
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime()
+    }
+
+    // Act
+    const result = new TrunkManager(trunk).mapToPrisma()
+
+    // Assert
+    expect(result.enforceE164).to.equal(false)
+    expect(result.rewriteFromWithNumber).to.equal(false)
+    // Stored as NULL so the outbound URI host is used
+    expect(result.fromDomain).to.equal(null)
+  })
+
+  it("leaves fromDomain out of the dto when it is not stored", () => {
+    // Arrange
+    const row = {
+      apiVersion: CC.APIVersion.V2,
+      ref: "trunk-01",
+      name: "Global Trunk",
+      accessControlListRef: null,
+      inboundUri: "sip.local",
+      inboundCredentialsRef: null,
+      outboundCredentialsRef: null,
+      sendRegister: false,
+      enforceE164: false,
+      rewriteFromWithNumber: false,
+      fromDomain: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      extended: null,
+      traceEnabled: false,
+      accessControlList: null,
+      inboundCredentials: null,
+      outboundCredentials: null,
+      uris: []
+    } as unknown as Parameters<typeof TrunkManager.mapToDto>[0]
+
+    // Act
+    const result = TrunkManager.mapToDto(row)
+
+    // Assert
+    expect(result.fromDomain).to.equal(undefined)
+    expect(result.enforceE164).to.equal(false)
+    expect(result.rewriteFromWithNumber).to.equal(false)
   })
 
   describe("throws errors", () => {

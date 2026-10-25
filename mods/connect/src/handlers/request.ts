@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import * as grpc from "@grpc/grpc-js"
-import { tailor } from "../tailor"
+import { applyTrunkIdentity, tailor } from "../tailor"
 import {
   Alterations as A,
   Extensions as E,
@@ -31,7 +31,6 @@ import {
   CommonConnect as CC,
   CommonErrors as CE,
   CommonTypes as CT,
-  Environment,
   HeaderModifier
 } from "@routr/common"
 import { getLogger } from "@fonoster/logger"
@@ -40,7 +39,8 @@ import {
   EdgePortTrust,
   getUntrustedHeadersToStrip,
   hasXConnectObjectHeader,
-  isFromTrustedEdgePort
+  isFromTrustedEdgePort,
+  normalizeFromTrunk
 } from "../utils"
 import {
   TRUSTED_EDGEPORTS,
@@ -49,11 +49,6 @@ import {
 } from "../envs"
 
 const logger = getLogger({ service: "connect", filePath: __filename })
-
-const enforceE164 = A.enforceE164(
-  Environment.ENFORCE_E164,
-  Environment.ENFORCE_E164_WITH_MOBILE_PREFIX
-)
 
 const defaultEdgePortTrust: EdgePortTrust = {
   refs: TRUSTED_EDGEPORTS,
@@ -68,7 +63,10 @@ export const handleRequest =
   ) =>
   async (request: MessageRequest, res: Response) => {
     try {
-      let req = Environment.ENFORCE_E164 ? enforceE164(request) : request
+      // A Trunk with enforceE164 gets its calls normalized before routing, which
+      // finds the Number by the Request-URI user. Calls toward a Trunk are
+      // normalized after routing, by the tailor.
+      let req = await normalizeFromTrunk(apiClient, request)
       let route
 
       // X-Edgeport-Ref marks a request forwarded by a peer EdgePort, whose route
@@ -139,11 +137,14 @@ export const handleRequest =
 
       // Forward request to peer edgeport
       if (req.edgePortRef !== route.edgePortRef) {
+        // The peer EdgePort rebuilds the route from the message alone, without
+        // the Trunk's settings, so the caller identity is applied here
+        const identity = applyTrunkIdentity(route, req)
         return res.send(
           pipe(
-            req,
+            identity.req,
             A.addSelfVia(route),
-            A.addSelfRecordRoute(route),
+            A.addSelfRecordRoute(route, identity.recordRouteParameters),
             // The order of the routes is important
             A.addRouteToPeerEdgePort(route),
             A.addRouteToNextHop(route),
