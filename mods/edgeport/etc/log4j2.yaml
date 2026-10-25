@@ -23,6 +23,12 @@ Configuration:
         AppenderRef:
           - ref: Console
           - ref: LogToRollingFile
+      # JAIN-SIP logs under the stack name. Quiet unless JAIN_SIP_TRACE_LEVEL is set.
+      - name: routr
+        level: debug
+        additivity: false
+        AppenderRef:
+          - ref: Console
     Root:
       level: error
       AppenderRef:

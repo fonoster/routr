@@ -64,4 +64,26 @@ public class SafeNioMessageProcessorFactoryTest {
     assertTrue(NioTlsWebSocketMessageProcessor.class
         .isAssignableFrom(SafeNioTlsWebSocketMessageProcessor.class));
   }
+
+  @Test
+  public void safeTlsProcessorIsRecognisedAsStockTlsProcessor() {
+    assertTrue(gov.nist.javax.sip.stack.NioTlsMessageProcessor.class
+        .isAssignableFrom(SafeNioTlsMessageProcessor.class));
+  }
+
+  @Test
+  public void factoryReturnsTheSafeTlsProcessorForTls() throws Exception {
+    java.util.Properties props = new java.util.Properties();
+    props.setProperty("javax.sip.STACK_NAME", "factory-test-" + System.nanoTime());
+    props.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "0");
+    gov.nist.javax.sip.SipStackImpl stack = new gov.nist.javax.sip.SipStackImpl(props);
+    try {
+      Object processor = new SafeNioMessageProcessorFactory().createMessageProcessor(
+          stack, java.net.InetAddress.getByName("127.0.0.1"), 0, "TLS");
+      assertTrue(processor instanceof SafeNioTlsMessageProcessor,
+          "TLS listening points must use the safe processor; got " + processor.getClass());
+    } finally {
+      stack.stop();
+    }
+  }
 }
