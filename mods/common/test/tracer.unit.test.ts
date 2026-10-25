@@ -90,9 +90,6 @@ describe("@routr/common/tracer", () => {
       expect(JSON.stringify(sent("/v1/logs"))).to.contain("a lookup")
     } finally {
       await shutdown()
-      opentelemetry.trace.disable()
-      opentelemetry.metrics.disable()
-      opentelemetry.logs.disable()
       server.close()
     }
   })

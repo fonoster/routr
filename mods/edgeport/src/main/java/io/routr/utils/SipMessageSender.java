@@ -49,12 +49,15 @@ public class SipMessageSender {
    * 
    * @param sendOperation The operation to execute (either sipProvider.sendResponse or transaction.sendResponse)
    * @param context Context string for logging purposes
+   * @return whether the response went out (false on a timeout or an error)
    */
-  public static void sendResponseWithTimeout(Runnable sendOperation, String context) {
+  public static boolean sendResponseWithTimeout(Runnable sendOperation, String context) {
     ExecutorService executor = Executors.newSingleThreadExecutor();
+    var sent = new java.util.concurrent.atomic.AtomicBoolean(false);
     Future<?> future = executor.submit(() -> {
       try {
         sendOperation.run();
+        sent.set(true);
       } catch (StackOverflowError e) {
         // Catch StackOverflowError specifically to prevent thread crashes
         // This can occur when attempting to send a response after receiving a REQUEST (like BYE)
@@ -71,6 +74,7 @@ public class SipMessageSender {
     try {
       future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       LOG.debug("Response sent via " + context + " successfully");
+      return sent.get();
     } catch (TimeoutException e) {
       LOG.warn("sendResponse() timed out via " + context + " — client likely disconnected");
       Telemetry.dropped("send_timeout", "ws", null);
@@ -91,6 +95,7 @@ public class SipMessageSender {
     } finally {
       executor.shutdown();
     }
+    return false;
   }
 
   /**
@@ -124,8 +129,9 @@ public class SipMessageSender {
    */
   public static void sendResponse(Transaction transaction, javax.sip.message.Response response, 
       boolean isWebSocket) throws SipException, InvalidArgumentException {
+    var sent = true;
     if (isWebSocket) {
-      sendResponseWithTimeout(() -> {
+      sent = sendResponseWithTimeout(() -> {
         try {
           ((javax.sip.ServerTransaction) transaction).sendResponse(response);
         } catch (SipException | InvalidArgumentException e) {
@@ -135,7 +141,7 @@ public class SipMessageSender {
     } else {
       ((javax.sip.ServerTransaction) transaction).sendResponse(response);
     }
-    Telemetry.responseSent(transaction, response);
+    Telemetry.responseSent(transaction, response, sent);
   }
 
   /**

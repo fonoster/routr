@@ -78,6 +78,7 @@ let providers: Array<{
   forceFlush(): Promise<void>
   shutdown(): Promise<void>
 }> = []
+let unregisterInstrumentations: (() => void) | undefined
 
 /**
  * Starts telemetry for the service: traces, metrics and logs over OTLP/HTTP to the endpoint
@@ -144,11 +145,22 @@ export function init(
 
   providers = [tracerProvider, meterProvider, loggerProvider]
 
-  registerInstrumentations({
+  unregisterInstrumentations = registerInstrumentations({
     instrumentations: [new GrpcInstrumentation(), new WinstonInstrumentation()]
   })
 
+  // Flush what is buffered when the process stops: beforeExit for a natural end, and SIGTERM
+  // and SIGINT (a rollout, Ctrl-C), re-raised once flushed when nothing else handles them.
   process.once("beforeExit", () => void shutdown())
+  const flushOn = (signal: NodeJS.Signals) =>
+    process.once(signal, () => {
+      void flush().finally(() => {
+        if (process.listenerCount(signal) === 0)
+          process.kill(process.pid, signal)
+      })
+    })
+  flushOn("SIGTERM")
+  flushOn("SIGINT")
 
   return opentelemetry.trace.getTracer("routr-tracer")
 }
@@ -163,13 +175,21 @@ export async function flush(): Promise<void> {
 }
 
 /**
- * Flushes and stops every provider; a later init starts telemetry again.
+ * Flushes and stops every provider and unregisters them and the instrumentations, so a later
+ * init starts telemetry afresh (tests).
  *
  * @return {Promise<void>} Resolves once every provider stopped.
  */
 export async function shutdown(): Promise<void> {
   const stopping = providers
   providers = []
+  unregisterInstrumentations?.()
+  unregisterInstrumentations = undefined
+  opentelemetry.trace.disable()
+  opentelemetry.metrics.disable()
+  opentelemetry.logs.disable()
+  context.disable()
+  propagation.disable()
   await Promise.all(
     stopping.map((p) => p.shutdown().catch((): void => undefined))
   )

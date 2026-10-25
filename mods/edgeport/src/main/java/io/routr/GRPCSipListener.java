@@ -137,6 +137,7 @@ public class GRPCSipListener implements SipListener {
     messageConverter.setEdgePortVersion(edgePortVersion);
     messageConverter.setExternalAddrs(externalAddrs);
     messageConverter.setLocalnets(localnets);
+    Telemetry.setInternalNetworks(localnets);
     messageConverter.setListeningPoints(listeningPoints);
 
     this.messageFactory = SipFactory.getInstance().createMessageFactory();
@@ -283,6 +284,8 @@ public class GRPCSipListener implements SipListener {
       } else {
         LOG.debug("an exception occurred while processing callId: {}", callId, e);
       }
+      // Answered (501 above) or not, the request's span ends here.
+      Telemetry.failed(serverTransaction, e.getClass().getSimpleName());
     }
   }
 
@@ -513,10 +516,13 @@ public class GRPCSipListener implements SipListener {
         : (Transaction) event.getServerTransaction();
     if (transaction != null) {
       var request = transaction.getRequest();
-      // A forwarded request that timed out leaves its caller's request unanswered.
-      Telemetry.timedOut(event.getClientTransaction() != null
-          ? transactionManager.getServerTransactionFor(event.getClientTransaction())
-          : transaction, request.getMethod());
+      // A forwarded request that timed out leaves its caller's request unanswered. RETRANSMIT
+      // events are the stack's own retransmission timer, not a timeout.
+      if (event.getTimeout() == Timeout.TRANSACTION) {
+        Telemetry.timedOut(event.getClientTransaction() != null
+            ? transactionManager.getServerTransactionFor(event.getClientTransaction())
+            : transaction, request.getMethod());
+      }
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
       if (callId != null) {
         // Same sibling-in-flight caveat as processTransactionTerminated below.

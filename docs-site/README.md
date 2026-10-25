@@ -174,7 +174,7 @@ Not fixed on this branch (docs-only). Worth an issue each.
 - routr-one has no Redis option, no Registry/Requester, and ignores `BIND_ADDR`, `LOCATION_ADDR`,
   `API_ADDR`.
 - Helm: `rtprelay.rtpePort` (old docs say `rtpPort`); enabling RTPRelay does not add the Dispatcher
-  middleware; `global.otlExporter` sets an env var no service reads; `edgeport.unknownMethodAction`,
+  middleware; `edgeport.unknownMethodAction`,
   `location.region`, `registry.serviceAnnotations`, `registry.autoscaling` are ignored; the Registry
   points at a `<release>-routr-edgeport` Service the chart does not create; `Chart.lock` and the
   bundled subcharts do not match `Chart.yaml`.

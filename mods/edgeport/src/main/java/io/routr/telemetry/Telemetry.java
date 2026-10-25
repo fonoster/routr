@@ -41,11 +41,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.ParseException;
+import java.util.List;
 import java.util.regex.Pattern;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
 import javax.sip.Transaction;
+import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.HeaderFactory;
 import javax.sip.header.ViaHeader;
@@ -83,7 +87,15 @@ public final class Telemetry {
   private static final Pattern TRACEPARENT_FORMAT =
       Pattern.compile("^00-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$");
 
-  private static final Map<Transaction, Span> SPANS = new ConcurrentHashMap<>();
+  /** An open span and when it started, for the sweep that bounds the map. */
+  private record Tracked(Span span, long startNanos) {
+  }
+
+  private static final Map<Transaction, Tracked> SPANS = new ConcurrentHashMap<>();
+  /** A span still open after this long is ended by the sweep (no final response, no event). */
+  private static final long MAX_OPEN_NANOS = 5L * 60 * 1_000_000_000L;
+  private static final int SWEEP_ABOVE = 1000;
+  private static volatile List<String> internalNetworks = List.of();
 
   private static volatile Tracer tracer = OpenTelemetry.noop().getTracer(SCOPE);
   private static volatile LongCounter requests;
@@ -117,7 +129,12 @@ public final class Telemetry {
    * @param serviceName the service.name, unless OTEL_SERVICE_NAME is set
    */
   public static synchronized void init(String serviceName) {
-    init(serviceName, System.getenv());
+    try {
+      init(serviceName, System.getenv());
+    } catch (RuntimeException e) {
+      // A bad OTEL_* value must not stop the SIP edge: run without telemetry.
+      LOG.warn("telemetry off: could not configure OpenTelemetry: {}", e.getMessage());
+    }
   }
 
   static synchronized void init(String serviceName, Map<String, String> env) {
@@ -134,6 +151,12 @@ public final class Telemetry {
           var fixed = new HashMap<String, String>();
           if (blank(config.getString("otel.exporter.otlp.protocol"))) {
             fixed.put("otel.exporter.otlp.protocol", "http/protobuf");
+          }
+          // With only a traces endpoint, metrics and logs go to the same collector (as the Node
+          // services do), not to autoconfigure's localhost default.
+          var traces = config.getString("otel.exporter.otlp.traces.endpoint");
+          if (blank(config.getString("otel.exporter.otlp.endpoint")) && !blank(traces)) {
+            fixed.put("otel.exporter.otlp.endpoint", traces.replaceAll("/v1/traces/?$", ""));
           }
           return fixed;
         })
@@ -176,13 +199,18 @@ public final class Telemetry {
   public static void requestReceived(Request request, Transaction serverTransaction,
       String peerAddress, int peerPort) {
     var method = request.getMethod();
+    // No server transaction for anything but an ACK: a retransmission of a request already
+    // traced.
+    if (serverTransaction == null && !Request.ACK.equals(method)) {
+      return;
+    }
     var transport = transportOf(request);
     requests.add(1, Attributes.of(SIP_METHOD, method, TRANSPORT, transport));
 
     var span = tracer.spanBuilder("SIP " + method)
         // A request that carries a traceparent (from Roomr, a carrier or another proxy) joins
         // that trace.
-        .setParent(parentOf(request))
+        .setParent(parentOf(request, peerAddress))
         .setSpanKind(SpanKind.SERVER)
         .setAttribute(SIP_METHOD, method)
         .setAttribute(SIP_CALL_ID, callIdOf(request))
@@ -194,22 +222,91 @@ public final class Telemetry {
       span.end();
       return;
     }
-    var previous = SPANS.put(serverTransaction, span);
+    var previous = SPANS.put(serverTransaction, new Tracked(span, System.nanoTime()));
     if (previous != null) {
-      previous.end();
+      previous.span().end();
     }
+    if (SPANS.size() > SWEEP_ABOVE) {
+      sweep(System.nanoTime());
+    }
+  }
+
+  /** Ends and forgets spans open longer than MAX_OPEN_NANOS, so the map stays bounded. */
+  static void sweep(long now) {
+    SPANS.entrySet().removeIf(e -> {
+      if (now - e.getValue().startNanos() < MAX_OPEN_NANOS) {
+        return false;
+      }
+      e.getValue().span().setStatus(StatusCode.ERROR, "no final response or transaction event");
+      e.getValue().span().end();
+      return true;
+    });
+  }
+
+  /**
+   * EdgePort's own networks (its localnets). Only peers there are trusted to set a request's
+   * trace context, and only requests to them carry EdgePort's.
+   */
+  public static void setInternalNetworks(List<String> cidrs) {
+    internalNetworks = cidrs != null ? List.copyOf(cidrs) : List.of();
+  }
+
+  static boolean isInternal(String host) {
+    if (host == null || host.isEmpty()) {
+      return false;
+    }
+    byte[] addr;
+    try {
+      // Literal addresses only: a hostname is not resolved here, and counts as external.
+      if (!host.matches("^[0-9.]+$")) {
+        return false;
+      }
+      addr = InetAddress.getByName(host).getAddress();
+    } catch (UnknownHostException e) {
+      return false;
+    }
+    for (var cidr : internalNetworks) {
+      var parts = cidr.split("/");
+      try {
+        var net = InetAddress.getByName(parts[0]).getAddress();
+        int bits = parts.length > 1 ? Integer.parseInt(parts[1]) : net.length * 8;
+        if (net.length == addr.length && sameNetwork(addr, net, bits)) {
+          return true;
+        }
+      } catch (UnknownHostException | NumberFormatException e) {
+        // not a CIDR: skip it
+      }
+    }
+    return false;
+  }
+
+  private static boolean sameNetwork(byte[] a, byte[] b, int bits) {
+    for (int i = 0; i < a.length && bits > 0; i++, bits -= 8) {
+      int mask = bits >= 8 ? 0xff : (0xff << (8 - bits)) & 0xff;
+      if ((a[i] & mask) != (b[i] & mask)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
    * Puts the trace context of the server transaction's span on the request EdgePort forwards for
-   * it, so the next hop (the Roomr node, for a call to an app) continues the same trace.
+   * it, so the next hop (the Roomr node, for a call to an app) continues the same trace. Only for
+   * an internal next hop; the header is removed from a request to anywhere else.
    */
   public static void forwarding(Transaction serverTransaction, Request requestOut) {
-    var span = serverTransaction != null ? SPANS.get(serverTransaction) : null;
-    if (span == null || !span.getSpanContext().isValid()) {
+    // Trace context stays inside Fonoster: never sent to a carrier or a phone.
+    var target = requestOut.getRequestURI() instanceof SipURI uri ? uri.getHost() : null;
+    if (!isInternal(target)) {
+      requestOut.removeHeader(TRACEPARENT);
       return;
     }
-    var sc = span.getSpanContext();
+    var tracked = serverTransaction != null ? SPANS.get(serverTransaction) : null;
+    if (tracked == null || !tracked.span().getSpanContext().isValid()) {
+      return;
+    }
+    var sc = tracked.span().getSpanContext();
     var value = "00-" + sc.getTraceId() + "-" + sc.getSpanId() + "-" + sc.getTraceFlags().asHex();
     try {
       requestOut.setHeader(headers().createHeader(TRACEPARENT, value));
@@ -218,9 +315,11 @@ public final class Telemetry {
     }
   }
 
-  private static Context parentOf(Request request) {
+  private static Context parentOf(Request request, String peerAddress) {
     var header = request.getHeader(TRACEPARENT);
-    if (header == null) {
+    // A traceparent from outside (a carrier, a phone) is not trusted: it would put EdgePort's
+    // spans in a trace someone else chose.
+    if (header == null || !isInternal(peerAddress)) {
       return Context.root();
     }
     var value = header.toString();
@@ -247,18 +346,36 @@ public final class Telemetry {
    * A response went out on a server transaction. A final response ends its span.
    */
   public static void responseSent(Transaction serverTransaction, Response response) {
+    responseSent(serverTransaction, response, true);
+  }
+
+  /**
+   * A final response went out, or failed to (sent false: a WebSocket send that timed out); a
+   * failed one ends the span as an error and is not counted as a response.
+   */
+  public static void responseSent(Transaction serverTransaction, Response response, boolean sent) {
     var status = response.getStatusCode();
     if (status < 200) {
+      return;
+    }
+    if (!sent) {
+      var tracked = serverTransaction != null ? SPANS.remove(serverTransaction) : null;
+      if (tracked != null) {
+        tracked.span().setAttribute(SIP_STATUS, (long) status);
+        tracked.span().setStatus(StatusCode.ERROR, "final response not sent");
+        tracked.span().end();
+      }
       return;
     }
     var method = serverTransaction != null && serverTransaction.getRequest() != null
         ? serverTransaction.getRequest().getMethod()
         : "";
     responses.add(1, Attributes.of(SIP_METHOD, method, SIP_STATUS, (long) status));
-    var span = serverTransaction != null ? SPANS.remove(serverTransaction) : null;
-    if (span == null) {
+    var tracked = serverTransaction != null ? SPANS.remove(serverTransaction) : null;
+    if (tracked == null) {
       return;
     }
+    var span = tracked.span();
     span.setAttribute(SIP_STATUS, (long) status);
     if (status >= 500 || status == Response.REQUEST_TIMEOUT) {
       span.setStatus(StatusCode.ERROR, response.getReasonPhrase());
@@ -276,10 +393,21 @@ public final class Telemetry {
    */
   public static void timedOut(Transaction serverTransaction, String method) {
     timeouts.add(1, Attributes.of(SIP_METHOD, method));
-    var span = serverTransaction != null ? SPANS.remove(serverTransaction) : null;
-    if (span != null) {
-      span.setStatus(StatusCode.ERROR, "timeout: no final response");
-      span.end();
+    end(serverTransaction, "timeout: no final response");
+  }
+
+  /**
+   * EdgePort could not process a request (the dispatcher failed): ends its span as an error.
+   */
+  public static void failed(Transaction serverTransaction, String reason) {
+    end(serverTransaction, reason);
+  }
+
+  private static void end(Transaction serverTransaction, String error) {
+    var tracked = serverTransaction != null ? SPANS.remove(serverTransaction) : null;
+    if (tracked != null) {
+      tracked.span().setStatus(StatusCode.ERROR, error);
+      tracked.span().end();
     }
   }
 
@@ -287,9 +415,9 @@ public final class Telemetry {
    * A transaction terminated. Ends its span if nothing ended it before.
    */
   public static void terminated(Transaction transaction) {
-    var span = transaction != null ? SPANS.remove(transaction) : null;
-    if (span != null) {
-      span.end();
+    var tracked = transaction != null ? SPANS.remove(transaction) : null;
+    if (tracked != null) {
+      tracked.span().end();
     }
   }
 

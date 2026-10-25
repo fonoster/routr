@@ -3,7 +3,8 @@ global:
   region: default
   logsLevel: info
   # OTLP/HTTP base URL every service sends traces, metrics and logs to; unset turns
-  # telemetry off. (otlExporter, the old name, is still read.)
+  # telemetry off. Replaces otlExporter, which took a Jaeger collector URL and is no
+  # longer read.
   # otlpEndpoint: http://otel-lgtm:4318
 
 # EdgePort Service defaults

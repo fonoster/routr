@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,8 +35,10 @@ import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import javax.sip.ServerTransaction;
+import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.Header;
 import org.mockito.ArgumentCaptor;
@@ -58,6 +61,7 @@ class TelemetryTest {
             .addSpanProcessor(SimpleSpanProcessor.create(spans)).build())
         .setMeterProvider(SdkMeterProvider.builder().registerMetricReader(metrics).build())
         .build());
+    Telemetry.setInternalNetworks(List.of("10.0.0.0/8"));
   }
 
   @Test
@@ -111,7 +115,7 @@ class TelemetryTest {
     var request = request("INVITE", "call-1", "WSS");
     var transaction = mock(ServerTransaction.class);
     when(transaction.getRequest()).thenReturn(request);
-    var requestOut = mock(Request.class);
+    var requestOut = requestTo("10.216.16.42");
 
     Telemetry.requestReceived(request, transaction, "10.0.0.7", 59288);
     Telemetry.forwarding(transaction, requestOut);
@@ -123,6 +127,81 @@ class TelemetryTest {
     assertEquals("traceparent: 00-" + span.getTraceId() + "-" + span.getSpanId() + "-"
         + span.getSpanContext().getTraceFlags().asHex(),
         header.getValue().toString().trim());
+  }
+
+  @Test
+  void traceContextNeverLeavesForACarrierOrComesFromOne() {
+    var request = request("INVITE", "call-2", "UDP");
+    var traceparent = mock(Header.class);
+    when(traceparent.toString())
+        .thenReturn("traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01");
+    when(request.getHeader(Telemetry.TRACEPARENT)).thenReturn(traceparent);
+    var transaction = mock(ServerTransaction.class);
+    when(transaction.getRequest()).thenReturn(request);
+    var toCarrier = requestTo("203.0.113.9");
+
+    Telemetry.requestReceived(request, transaction, "198.51.100.4", 5060);
+    Telemetry.forwarding(transaction, toCarrier);
+    Telemetry.responseSent(transaction, response(200));
+
+    verify(toCarrier).removeHeader(Telemetry.TRACEPARENT);
+    verify(toCarrier, never()).setHeader(org.mockito.ArgumentMatchers.any());
+    var span = spans.getFinishedSpanItems().get(0);
+    assertFalse(span.getParentSpanContext().isValid(), "joined a trace sent from outside");
+  }
+
+  @Test
+  void aResponseThatWasNotSentEndsTheSpanAsAnError() {
+    var request = request("BYE", "dialog-3", "WSS");
+    var transaction = mock(ServerTransaction.class);
+    when(transaction.getRequest()).thenReturn(request);
+
+    Telemetry.requestReceived(request, transaction, "10.0.0.7", 59288);
+    Telemetry.responseSent(transaction, response(200), false);
+
+    var span = spans.getFinishedSpanItems().get(0);
+    assertEquals(StatusCode.ERROR, span.getStatus().getStatusCode());
+    assertEquals(0, sum("routr.sip.responses"));
+  }
+
+  @Test
+  void aRetransmissionWithoutATransactionIsNotTraced() {
+    Telemetry.requestReceived(request("INVITE", "call-4", "UDP"), null, "10.0.0.7", 5060);
+
+    assertTrue(spans.getFinishedSpanItems().isEmpty());
+    assertEquals(0, sum("routr.sip.requests"));
+  }
+
+  @Test
+  void aRequestTheDispatcherFailedEndsAsAnError() {
+    var request = request("OPTIONS", "call-5", "UDP");
+    var transaction = mock(ServerTransaction.class);
+    when(transaction.getRequest()).thenReturn(request);
+
+    Telemetry.requestReceived(request, transaction, "10.0.0.7", 5060);
+    Telemetry.failed(transaction, "StatusRuntimeException");
+
+    assertEquals(StatusCode.ERROR, spans.getFinishedSpanItems().get(0).getStatus().getStatusCode());
+  }
+
+  @Test
+  void spansOpenTooLongAreSwept() {
+    var request = request("INFO", "call-6", "UDP");
+    var transaction = mock(ServerTransaction.class);
+    when(transaction.getRequest()).thenReturn(request);
+
+    Telemetry.requestReceived(request, transaction, "10.0.0.7", 5060);
+    Telemetry.sweep(System.nanoTime() + 6L * 60 * 1_000_000_000L);
+
+    assertEquals(StatusCode.ERROR, spans.getFinishedSpanItems().get(0).getStatus().getStatusCode());
+  }
+
+  @Test
+  void onlyLocalnetAddressesAreInternal() {
+    assertTrue(Telemetry.isInternal("10.216.16.42"));
+    assertFalse(Telemetry.isInternal("203.0.113.9"));
+    assertFalse(Telemetry.isInternal("roomr.internal"));
+    assertFalse(Telemetry.isInternal(null));
   }
 
   @Test
@@ -183,6 +262,14 @@ class TelemetryTest {
     when(via.getTransport()).thenReturn(transport);
     when(request.getHeader(CallIdHeader.NAME)).thenReturn(callIdHeader);
     when(request.getHeader(ViaHeader.NAME)).thenReturn(via);
+    return request;
+  }
+
+  private static Request requestTo(String host) {
+    var request = mock(Request.class);
+    var uri = mock(SipURI.class);
+    when(uri.getHost()).thenReturn(host);
+    when(request.getRequestURI()).thenReturn(uri);
     return request;
   }
 
