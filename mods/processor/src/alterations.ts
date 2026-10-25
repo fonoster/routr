@@ -23,10 +23,14 @@ import {
   Route,
   CommonTypes,
   Transport,
-  NetInterface
+  NetInterface,
+  Identity as I
 } from "@routr/common"
 import { phone } from "phone"
 import { getEdgeInterface } from "./helper"
+
+const { IDENTITY_PARAMETERS, encodeIdentity, decodeIdentity } = I
+type Identity = I.Identity
 
 // Forces the requestURI to be the same as the trunk uri.
 // This is a workaround for Twilio.
@@ -436,13 +440,6 @@ export const normalizeToE164 =
     return req
   }
 
-// The identity a SIP URI carries, as stored in a Record-Route parameter
-interface Identity {
-  user?: string
-  host: string
-  userParam?: string
-}
-
 /**
  * Whether a From is the anonymous identity (RFC 3323, SIP Connect 1.1 section 9).
  * A caller that asked for privacy keeps it, so such a From is never rewritten.
@@ -482,39 +479,6 @@ export const rewriteFromWithNumber =
     uri.port = -1
     return req
   }
-
-// The Record-Route parameter names: [r]ewritten [f]rom or [c]allee (To),
-// [o]riginal/[n]ew. Not "rto": a parser that looks for a header by searching
-// for its name (SIPp does) finds "To" inside "rto=" on the Record-Route line.
-const IDENTITY_PARAMETERS = {
-  fromOriginal: "rfo",
-  fromNew: "rfn",
-  toOriginal: "rco",
-  toNew: "rcn"
-}
-
-// Base64url keeps the value a SIP token (RFC 3261 section 25.1), so it needs no
-// quoting in the header and survives every hop unchanged
-const encodeIdentity = (uri: CommonTypes.SipURI): string =>
-  Buffer.from(
-    `${uri.user ?? ""}@${uri.host}${
-      uri.userParam ? `;user=${uri.userParam}` : ""
-    }`
-  ).toString("base64url")
-
-const decodeIdentity = (value?: string): Identity | undefined => {
-  if (!value) return undefined
-  const decoded = Buffer.from(value, "base64url").toString("utf8")
-  const [address, userParam] = decoded.split(";user=")
-  const at = address.lastIndexOf("@")
-  if (at < 0) return undefined
-  const user = address.slice(0, at)
-  return {
-    user: user || undefined,
-    host: address.slice(at + 1),
-    userParam: userParam || undefined
-  }
-}
 
 const sameIdentity = (uri: CommonTypes.SipURI, identity?: Identity) =>
   !!identity &&

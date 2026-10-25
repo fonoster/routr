@@ -20,7 +20,7 @@ import chai from "chai"
 import { createHash } from "crypto"
 import { readFileSync } from "fs"
 import { join } from "path"
-import { Trace } from "../src"
+import { Identity, Trace } from "../src"
 import { SIPMessage } from "../src/types"
 
 const expect = chai.expect
@@ -682,6 +682,41 @@ describe("@routr/common/trace corpus helpers", () => {
     const ha2 = md5(`${record.method}:sip:+15555550142@wa.meta.vc:5061`)
     expect(out.request.message.authorization.response).to.equal(
       md5(`${ha1}:n1:${ha2}`)
+    )
+  })
+
+  it("rewrites every identity parameter the processor writes", () => {
+    // Built with the shared encoder and parameter names, so a rename or a new
+    // parameter in the processor is covered here too
+    const record = mutate(forwardedInvite, (inMsg) => {
+      inMsg.recordRoute = [
+        {
+          address: { uri: { host: "203.0.113.10", port: 5061 } },
+          parameters: Object.fromEntries(
+            Identity.IDENTITY_PARAMETER_NAMES.map((name) => [
+              name,
+              Identity.encodeIdentity({
+                user: "+15555550133",
+                host: "real.example.net"
+              } as never)
+            ])
+          )
+        }
+      ] as never
+    })
+    const out = Trace.sanitizeRecord(record, {
+      credentials: [{ username: "1001", password: "1234" }],
+      rewrites: [["15555550133", "15555550144"]]
+    })
+    const params = (
+      out.request.message.recordRoute as unknown as {
+        parameters: Record<string, string>
+      }[]
+    )[0].parameters
+    Identity.IDENTITY_PARAMETER_NAMES.forEach((name) =>
+      expect(Identity.decodeIdentity(params[name])?.user).to.equal(
+        "+15555550144"
+      )
     )
   })
 

@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IDENTITY_PARAMETER_NAMES } from "../identity"
 import { calculateAuthResponse } from "../auth"
 import { AuthChallengeResponse, Method } from "../types"
 import { TraceRecord } from "./types"
@@ -141,7 +142,7 @@ function reencode(value: string, rewrite: (s: string) => string): string {
 // toward a Trunk, as base64url (see the processor's identity alterations). A
 // literal rewrite cannot see inside them, so the real number and host would
 // survive sanitizing; they are decoded, rewritten and encoded again.
-const ENCODED_IDENTITY_PARAMETERS = ["rfo", "rfn", "rco", "rcn"]
+const ENCODED_IDENTITY_PARAMETERS = IDENTITY_PARAMETER_NAMES
 
 /**
  * Rewrites the identity parameters wherever they are a field of the record.
