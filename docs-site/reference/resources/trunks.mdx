@@ -54,7 +54,7 @@ Some things stay as they were:
 
 - An anonymous From (`anonymous@anonymous.invalid`) is never rewritten, so a caller who asked for privacy keeps it.
 - Routing, access checks, Privacy, `P-Asserted-Identity`, and `Remote-Party-ID` are worked out from the caller's own From before the rewrite.
-- The caller still sees its own identity. Responses carry the caller's original From and To, and in-dialog requests from the carrier (BYE, re-INVITE) reach the caller with its own identity in To. Routr records the mapping as parameters of its Record-Route header (`rfo`, `rfn`, `rto`, `rtn`, base64url), so it needs no state and works across restarts. The carrier can decode the caller's original From from those parameters.
+- The caller still sees its own identity. Responses carry the caller's original From and To, and in-dialog requests from the carrier (BYE, re-INVITE) reach the caller with its own identity in To. Routr records the mapping as parameters of its Record-Route header (`rfo`, `rfn`, `rco`, `rcn`, base64url), so it needs no state and works across restarts. The carrier can decode the caller's original From from those parameters.
 - The `call.started` event names the caller as the INVITE arrived, not the Number.
 
 These settings replace the `ENFORCE_E164` and `ENFORCE_E164_WITH_MOBILE_PREFIX` environment variables, which no longer exist. Set `enforceE164` on each Trunk that needs it. The API Server no longer checks that new Numbers are valid E.164.

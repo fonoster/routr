@@ -480,12 +480,14 @@ export const rewriteFromWithNumber =
     return req
   }
 
-// The Record-Route parameter names: [r]ewritten [f]rom/[t]o, [o]riginal/[n]ew
+// The Record-Route parameter names: [r]ewritten [f]rom or [c]allee (To),
+// [o]riginal/[n]ew. Not "rto": a parser that looks for a header by searching
+// for its name (SIPp does) finds "To" inside "rto=" on the Record-Route line.
 const IDENTITY_PARAMETERS = {
   fromOriginal: "rfo",
   fromNew: "rfn",
-  toOriginal: "rto",
-  toNew: "rtn"
+  toOriginal: "rco",
+  toNew: "rcn"
 }
 
 // Base64url keeps the value a SIP token (RFC 3261 section 25.1), so it needs no

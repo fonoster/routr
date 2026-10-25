@@ -331,7 +331,7 @@ const out = A.rewriteFromWithNumber({ ...route, rewriteFrom: { user: "+182958633
 identityRewriteParameters(original: MessageRequest, altered: MessageRequest): Record<string, string>
 ```
 
-Compares the From and To URIs of a request before and after the identity alterations and returns Record-Route parameters for what changed: `rfo` and `rfn` hold the original and new From, `rto` and `rtn` the original and new To, each as base64url of `user@host` (plus `;user=` when set). Returns `{}` when nothing changed. Pass the result to `addSelfRecordRoute`.
+Compares the From and To URIs of a request before and after the identity alterations and returns Record-Route parameters for what changed: `rfo` and `rfn` hold the original and new From, `rco` and `rcn` the original and new To, each as base64url of `user@host` (plus `;user=` when set). Returns `{}` when nothing changed. Pass the result to `addSelfRecordRoute`.
 
 ### swapIdentityFromRouteSet
 

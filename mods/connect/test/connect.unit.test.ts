@@ -560,7 +560,7 @@ describe("@routr/connect", () => {
       )
       // The mapping back rides on our Record-Route
       expect(out.message.recordRoute[0].parameters).to.have.property("rfo")
-      expect(out.message.recordRoute[0].parameters).to.have.property("rtn")
+      expect(out.message.recordRoute[0].parameters).to.have.property("rcn")
     })
 
     it("uses fromDomain when the Trunk sets it", async () => {

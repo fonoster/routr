@@ -411,7 +411,7 @@ describe("@routr/processor/alterations", () => {
         req,
         A.enforceE164(true, false)(req)
       )
-      expect(parameters).to.have.keys("rto", "rtn")
+      expect(parameters).to.have.keys("rco", "rcn")
     })
 
     describe("in-dialog requests", () => {
