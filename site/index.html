@@ -339,31 +339,12 @@ class="l">      <span class="v">X-Room-Id</span></span></code></pre>
           <span class="eyebrow" data-reveal><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-shield-check"></use></svg>Resilience</span>
           <p class="rr-why__line" data-reveal style="--i: 1">No single point of failure.</p>
           <p class="rr-why__line rr-why__line--dim" data-reveal style="--i: 2">Every service is its own pod. Lose an EdgePort, the others keep taking calls. Lose a Processor, the Dispatcher routes around it.</p>
-          <p class="rr-why__line rr-why__line--accent" data-reveal style="--i: 3">The call stays up.</p>
-        </div>
-      </section>
-
-      <!-- Record and replay -->
-      <section class="section band" id="record-and-replay">
-        <div class="container split">
-          <div class="split__copy" data-reveal>
-            <span class="eyebrow"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-history"></use></svg>Record and replay</span>
-            <h2 class="t-h2">When a call fails, see why.</h2>
-            <p class="t-sub">Routr keeps a record of every SIP message and what each component did to it. Play any call back in your terminal.</p>
-            <a class="arrow-link" href="record-and-replay/">
-              <span>See how it works</span>
-              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-arrow-right"></use></svg>
-            </a>
-          </div>
-          <div class="window hide-m" data-reveal style="--i: 1">
-            <div class="window__bar"><i></i><i></i><i></i>rctl trace replay call.jsonl</div>
-            <img class="rr-shot" src="assets/img/replay-ladder.webp" width="1860" height="1080" loading="lazy" alt="The rctl trace replay ladder of a call through Routr, message by message." />
-          </div>
+          <p class="rr-why__line rr-why__line--accent" data-reveal style="--i: 3">Calls keep flowing.</p>
         </div>
       </section>
 
       <!-- Programmable -->
-      <section class="section" id="programmable">
+      <section class="section band" id="programmable">
         <div class="container split split--rev">
           <div class="split__copy" data-reveal>
             <span class="eyebrow"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-code"></use></svg>Programmable</span>
@@ -406,7 +387,7 @@ class="l">  <span class="i">})</span></span></code></pre>
       </section>
 
       <!-- Deploy -->
-      <section class="section band" id="deploy">
+      <section class="section" id="deploy">
         <div class="container">
           <h2 class="t-h2" data-reveal>Deploy anywhere.</h2>
           <div class="deploy__grid">
