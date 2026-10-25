@@ -2191,10 +2191,19 @@ section[id] {
   flex: none;
 }
 .code .l.hl {
+  position: relative;
+  isolation: isolate;
   margin-inline: -8px;
   padding-inline: 8px;
+}
+/* The highlight is inset 1.5px top and bottom so stacked lines keep a 3px gap */
+.code .l.hl::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px 0;
+  z-index: -1;
   border-radius: 6px;
-  background: var(--accent-subtle);
+  background-color: var(--accent-subtle);
 }
 .numbers--facts .num__value {
   font-size: clamp(24px, 2.6vw, 40px);
@@ -2379,11 +2388,11 @@ section[id] {
   }
 }
 /* 13. Setup: the lines that switch it on light up one after another */
-.js .rr-editors .code .l.hl {
-  background: transparent;
+.js .rr-editors .code .l.hl::after {
+  background-color: transparent;
 }
-.js .rr-editors.is-in .code .l.hl {
-  background: var(--accent-subtle);
+.js .rr-editors.is-in .code .l.hl::after {
+  background-color: var(--accent-subtle);
   animation: rr-hl 0.5s var(--ease-out) both;
   animation-delay: calc(500ms + var(--n, 0) * 140ms);
 }
@@ -2398,8 +2407,8 @@ section[id] {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .js .rr-editors .code .l.hl {
-    background: var(--accent-subtle);
+  .js .rr-editors .code .l.hl::after {
+    background-color: var(--accent-subtle);
   }
 }
 
