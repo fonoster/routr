@@ -294,7 +294,7 @@ describe("@routr/processor/alterations", () => {
       from: "17853178071",
       to: "46721895538"
     })
-    const r = A.enforceE164(true, false)(req)
+    const r = A.enforceE164(true)(req)
     expect(r).to.have.property("message")
     expect(r.message.from.address.uri.user).to.be.equal("+17853178071")
     expect(r.message.to.address.uri.user).to.be.equal("+46721895538")
@@ -306,11 +306,24 @@ describe("@routr/processor/alterations", () => {
       from: "1001",
       to: "46721895538"
     })
-    const r = A.enforceE164(true, false)(req)
+    const r = A.enforceE164(true)(req)
     expect(r).to.have.property("message")
     expect(r.message.from.address.uri.user).to.be.equal("1001")
     expect(r.message.to.address.uri.user).to.be.equal("+46721895538")
     expect(r.message.requestUri.user).to.be.equal("+46721895538")
+  })
+
+  it("normalizes a landline in every header, From included", () => {
+    // A French landline (01): it has no mobile prefix, which the old check on
+    // From required, so a business line calling in kept its bare digits
+    const req = createPSTNMessage(request, {
+      from: "33183646565",
+      to: "33183646566"
+    })
+    const r = A.enforceE164(true)(req)
+    expect(r.message.from.address.uri.user).to.be.equal("+33183646565")
+    expect(r.message.to.address.uri.user).to.be.equal("+33183646566")
+    expect(r.message.requestUri.user).to.be.equal("+33183646566")
   })
 
   describe("per-Trunk caller identity", () => {
@@ -365,7 +378,7 @@ describe("@routr/processor/alterations", () => {
         from: "17853178071",
         to: "46721895538"
       })
-      expect(A.enforceE164(false, false)(req)).to.equal(req)
+      expect(A.enforceE164(false)(req)).to.equal(req)
     })
 
     it("records nothing in Record-Route when the identity did not change", () => {
@@ -409,7 +422,7 @@ describe("@routr/processor/alterations", () => {
       })
       const parameters = A.identityRewriteParameters(
         req,
-        A.enforceE164(true, false)(req)
+        A.enforceE164(true)(req)
       )
       expect(parameters).to.have.keys("rco", "rcn")
     })

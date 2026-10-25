@@ -35,7 +35,7 @@ export const applyTrunkIdentity = (
 ): { req: MessageRequest; recordRouteParameters: Record<string, string> } => {
   const altered = pipe(
     req,
-    A.enforceE164(!!route.enforceE164, false),
+    A.enforceE164(!!route.enforceE164),
     A.rewriteFromWithNumber(route)
   )
   return {

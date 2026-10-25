@@ -271,7 +271,7 @@ export const normalizeFromTrunk = async (
       })
     ).items[0]
 
-    return trunk?.enforceE164 ? A.enforceE164(true, false)(req) : req
+    return trunk?.enforceE164 ? A.enforceE164(true)(req) : req
   } catch (err) {
     // No Trunk answers to this host: not a call from the PSTN
     if (err.code === grpc.status.NOT_FOUND) return req
