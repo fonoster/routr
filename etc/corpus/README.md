@@ -42,10 +42,13 @@ the four fields; use hyphens inside a field.
      --out etc/corpus/zoiper_dod-invite_twilio_20261101.jsonl
    ```
 
-   Every digest response is recomputed with the test password of its username
-   (the digest is stateless, so the record authenticates again on replay) and
-   each rewrite is applied to every string of every record. The command refuses
-   a file whose digest username has no credential here.
+   Each rewrite is applied to every string of every record first, including
+   inside the identity parameters Routr adds to Record-Route. Then every digest
+   response is recomputed with the test password of its username, as that
+   username reads after the rewrites (the digest is stateless, so the record
+   authenticates again on replay). So `credentials.yaml` holds the corpus's test
+   usernames, not the recorded ones; the command refuses a file whose rewritten
+   digest username has no credential here and names both usernames.
 3. Add the Trunk, Number, Agent, Peer or Credentials the recording touches to
    `resources/` when they are not there yet. Every secret in `resources/` is a
    test value.

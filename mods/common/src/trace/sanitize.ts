@@ -39,24 +39,35 @@ export interface SanitizeOptions {
  */
 export class UnknownCredentialError extends Error {
   readonly username: string
+  readonly recordedUsername?: string
 
   /**
-   * @param {string} username - The digest username without a credential
+   * @param {string} username - The digest username without a credential, as it
+   *   reads after the rewrites (the one looked up)
    * @param {number} seq - The record it appears on
+   * @param {string} recordedUsername - The username as recorded, when a rewrite
+   *   changed it
    */
-  constructor(username: string, seq: number) {
-    super(`record ${seq}: no credential for digest username "${username}"`)
+  constructor(username: string, seq: number, recordedUsername?: string) {
+    const recorded =
+      recordedUsername && recordedUsername !== username
+        ? ` (recorded as "${recordedUsername}")`
+        : ""
+    super(
+      `record ${seq}: no credential for digest username "${username}"${recorded}`
+    )
     this.name = "UnknownCredentialError"
     this.username = username
+    if (recorded) this.recordedUsername = recordedUsername
   }
 }
 
 /**
- * Makes a recording committable as a known-good: every digest response is
- * recomputed with the test password for its username (the digest is
- * stateless, so the record keeps authenticating), then each rewrite is
- * applied to every string so numbers, hosts and addresses stay consistent
- * across the file.
+ * Makes a recording committable as a known-good. First each rewrite is applied
+ * to every string, so numbers, hosts and addresses stay consistent across the
+ * file. Then every digest response is recomputed with the test password for its
+ * username, as that username reads after the rewrites (the digest is stateless,
+ * so the record keeps authenticating on replay).
  *
  * @param {TraceRecord} record - A record, redacted or not
  * @param {SanitizeOptions} options - Credentials and rewrites
@@ -73,14 +84,19 @@ export function sanitizeRecord(
     JSON.parse(JSON.stringify(record)),
     options.rewrites ?? []
   )
-  const messages = [copy.request.message, copy.response?.message].filter(
-    Boolean
-  )
-  messages.forEach((m) => {
-    const auth = m.authorization
+  const recorded = [record.request.message, record.response?.message]
+  const messages = [copy.request.message, copy.response?.message]
+  messages.forEach((m, i) => {
+    const auth = m?.authorization
     if (!auth?.username) return
     const cred = options.credentials.find((c) => c.username === auth.username)
-    if (!cred) throw new UnknownCredentialError(auth.username, record.seq)
+    if (!cred) {
+      throw new UnknownCredentialError(
+        auth.username,
+        record.seq,
+        recorded[i]?.authorization?.username
+      )
+    }
     // The recorder writes an empty method on the digest; the record's own
     // method is the one the digest covers (RFC 2617 A2 = method:uri)
     const method = (auth.method || copy.method) as Method

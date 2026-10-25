@@ -36,7 +36,7 @@ export default class SanitizeCommand extends Command {
     credentials: Flags.string({
       required: true,
       description:
-        "a simpledata credentials.yaml; every digest username in the file must appear in it"
+        "a simpledata credentials.yaml; every digest username, as it reads after the rewrites, must appear in it"
     }),
     rewrite: Flags.string({
       multiple: true,

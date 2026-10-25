@@ -618,6 +618,17 @@ describe("@routr/common/trace corpus helpers", () => {
     expect(() => Trace.sanitizeRecord(record, { credentials: [] })).to.throw(
       `no credential for digest username ${q("1001")}`
     )
+    // The lookup uses the username as rewritten, and the error names both
+    expect(() =>
+      Trace.sanitizeRecord(record, {
+        credentials: [{ username: "1001", password: "1234" }],
+        rewrites: [["1001", "1101"]]
+      })
+    ).to.throw(
+      `no credential for digest username ${q("1101")} (recorded as ${q(
+        "1001"
+      )})`
+    )
     expect(
       Trace.credentialsFromResources([
         { spec: { credentials: { username: "a", password: "b" } } },
