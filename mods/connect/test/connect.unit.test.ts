@@ -45,6 +45,8 @@ import { RoutingDirection } from "../src/types"
 import { CommonConnect as CC } from "@routr/common"
 import { ILocationService } from "@routr/location"
 import { handleRequest } from "../src/handlers/request"
+import { applyTrunkIdentity } from "../src/tailor"
+import { normalizeFromTrunk } from "../src/utils"
 
 const expect = chai.expect
 chai.use(sinonChai)
@@ -486,6 +488,162 @@ describe("@routr/connect", () => {
       .lengthOf(5)
   })
 
+  describe("caller identity toward a Trunk", () => {
+    const dispatch = createDispatcher({ apiClient, location: locationAPI })
+
+    const send = async (req: MessageRequest) => {
+      const sent: MessageRequest[] = []
+      const res = {
+        send: (m: MessageRequest) => sent.push(m)
+      } as unknown as Response
+      await dispatch(req, res)
+      expect(sent).to.have.lengthOf(1)
+      return sent[0]
+    }
+
+    // The Trunk as the Number embeds it, which is the copy routing reads
+    const trunkOf = async (telUrl: string) =>
+      (
+        await apiClient.numbers.findBy({
+          fieldName: "telUrl",
+          fieldValue: telUrl
+        })
+      ).items[0].trunk as CC.Trunk
+
+    const trunkOfPolicy = async (callee: string) => {
+      const agent = (
+        await apiClient.agents.findBy({
+          fieldName: "username",
+          fieldValue: "1001"
+        })
+      ).items[0] as CC.Agent
+      return agent.domain.egressPolicies.find((policy) =>
+        new RegExp(policy.rule).test(callee)
+      ).number.trunk
+    }
+
+    // Agent 1001 dialing 17853178071 leaves over trunk-02 (number-03), whose
+    // fixture has enforceE164 and rewriteFromWithNumber
+    const agentCall = (toUser: string) =>
+      createRequest({
+        fromUser: "1001",
+        fromDomain: "sip.local",
+        toUser,
+        toDomain: "sip.local"
+      })
+
+    const peerCall = () => {
+      const req = createRequest({
+        fromUser: "asterisk",
+        fromDomain: "unknown.com",
+        toUser: "+17853178070",
+        toDomain: "unknown.com",
+        dodNumber: "+18095863314"
+      })
+      req.message.authorization.response = "09f30fe20face5e168ca7dafcbf154c0"
+      return req
+    }
+
+    it("presents the Number at the outbound host on an agent-to-pstn call", async () => {
+      const out = await send(agentCall("17853178071"))
+      const from = out.message.from
+      expect(from.address.uri.user).to.equal("+18295863314")
+      expect(from.address.uri.host).to.equal("sip.provider.net")
+      expect(from.address.uri.userParam).to.equal("phone")
+      expect(from.tag).to.equal("9041462a")
+      // enforceE164 normalized the callee
+      expect(out.message.to.address.uri.user).to.equal("+17853178071")
+      expect(out.message.requestUri.user).to.equal("+17853178071")
+      // Routing and the asserted identity worked from the caller's own From
+      expect(E.getHeaderValue(out, "P-Asserted-Identity")).to.equal(
+        "<sip:+18295863314@sip.provider.net;user=phone>"
+      )
+      // The mapping back rides on our Record-Route
+      expect(out.message.recordRoute[0].parameters).to.have.property("rfo")
+      expect(out.message.recordRoute[0].parameters).to.have.property("rcn")
+    })
+
+    it("uses fromDomain when the Trunk sets it", async () => {
+      const trunk = await trunkOfPolicy("17853178071")
+      expect(trunk.ref).to.equal("trunk-02")
+      trunk.fromDomain = "wa.example.com"
+      try {
+        const out = await send(agentCall("17853178071"))
+        expect(out.message.from.address.uri.host).to.equal("wa.example.com")
+      } finally {
+        delete trunk.fromDomain
+      }
+    })
+
+    it("leaves the identity alone on a Trunk with the settings off", async () => {
+      // 17853178070 leaves over trunk-01 (number-01), all defaults
+      const out = await send(agentCall("17853178070"))
+      expect(out.message.from.address.uri.user).to.equal("1001")
+      expect(out.message.from.address.uri.host).to.equal("sip.local")
+      expect(out.message.to.address.uri.user).to.equal("17853178070")
+      expect(out.message.requestUri.user).to.equal("17853178070")
+      out.message.recordRoute.forEach((rr: CommonTypes.RecordRoute) =>
+        expect(rr.parameters ?? {}).to.not.have.property("rfo")
+      )
+    })
+
+    it("presents the X-DOD-Number on a peer-to-pstn call when the Trunk asks", async () => {
+      const off = await send(peerCall())
+      expect(off.message.from.address.uri.user).to.equal("asterisk")
+
+      // number-04 is on trunk-03
+      const trunk = await trunkOf("tel:+18095863314")
+      expect(trunk.ref).to.equal("trunk-03")
+      trunk.rewriteFromWithNumber = true
+      trunk.enforceE164 = true
+      try {
+        const on = await send(peerCall())
+        expect(on.message.from.address.uri.user).to.equal("+18095863314")
+        expect(on.message.from.address.uri.host).to.equal("sip.provider.net")
+        expect(on.message.to.address.uri.user).to.equal("+17853178070")
+      } finally {
+        trunk.rewriteFromWithNumber = false
+        trunk.enforceE164 = false
+      }
+    })
+
+    it("never rewrites an anonymous From", () => {
+      const req = agentCall("17853178071")
+      req.message.from.address.uri.user = "anonymous"
+      req.message.from.address.uri.host = "anonymous.invalid"
+      const { req: out, recordRouteParameters } = applyTrunkIdentity(
+        {
+          ...r1,
+          rewriteFrom: { user: "+18295863314", host: "sip.provider.net" }
+        },
+        req
+      )
+      expect(recordRouteParameters).to.deep.equal({})
+      expect(out.message.from.address.uri.user).to.equal("anonymous")
+      expect(out.message.from.address.uri.host).to.equal("anonymous.invalid")
+    })
+
+    it("normalizes a call from a Trunk with enforceE164 before routing", async () => {
+      const fromTrunk02 = createRequest({
+        fromUser: "17853178070",
+        fromDomain: "sip.provider.net",
+        toUser: "18295863314",
+        toDomain: "trunk02.acme.com",
+        requestUriHost: "trunk02.acme.com"
+      })
+      fromTrunk02.message.requestUri.user = "18295863314"
+      const normalized = await normalizeFromTrunk(apiClient, fromTrunk02)
+      expect(normalized.message.requestUri.user).to.equal("+18295863314")
+      expect(normalized.message.from.address.uri.user).to.equal("+17853178070")
+
+      // trunk-01 keeps the users as the carrier sent them
+      const fromTrunk01 = Helper.deepCopy(fromTrunk02)
+      fromTrunk01.message.requestUri.host = "trunk01.acme.com"
+      const untouched = await normalizeFromTrunk(apiClient, fromTrunk01)
+      expect(untouched.message.requestUri.user).to.equal("18295863314")
+    })
+  })
+
   it("returns Bad Request when X-Dod-Number is missing for peer to pstn", async () => {
     const req = createRequest({
       fromUser: "asterisk",
@@ -831,6 +989,25 @@ describe("@routr/connect", () => {
       expect(calls[0].message.message.requestUri.host).to.equal(
         "sip.provider.net"
       )
+    })
+
+    it("gives the caller back its own identity on a BYE from the Trunk", async () => {
+      const encode = (v: string) => Buffer.from(v).toString("base64url")
+      // The BYE from the carrier: From is the callee, To the Number it was shown
+      const req = inDialog(Method.BYE, "sip.provider.net", "17853178071")
+      req.message.to.address.uri.user = "+18295863314"
+      req.message.to.address.uri.host = "sip.provider.net"
+      req.message.route[0].parameters = {
+        rfo: encode("1001@sip.local"),
+        rfn: encode("+18295863314@sip.provider.net;user=phone")
+      }
+      const { res, calls } = capture()
+      await dispatch(req, res)
+      expectForwardedAlongTheRouteSet(calls, req)
+      const to = calls[0].message.message.to
+      expect(to.address.uri.user).to.equal("1001")
+      expect(to.address.uri.host).to.equal("sip.local")
+      expect(to.tag).to.equal("callee-tag")
     })
 
     it("forwards BYE as before", async () => {

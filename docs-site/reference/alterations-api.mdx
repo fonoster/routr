@@ -21,8 +21,11 @@ import { pipe } from "fp-ts/function"
 The following function is the chain Connect applies to a request routed to its final target (`mods/connect/src/tailor.ts`).
 
 ```typescript
-export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
-  pipe(
+export const tailor = (route: Route, request: MessageRequest): MessageRequest => {
+  // The Trunk's caller identity settings, and the Record-Route parameters that
+  // remember them for the rest of the dialog
+  const { req, recordRouteParameters } = applyTrunkIdentity(route, request)
+  return pipe(
     req,
     A.decreaseMaxForwards,
     A.removeAuthorization,
@@ -32,12 +35,15 @@ export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
     A.fixRequestURI(route),
     A.addSelfVia(route),
     A.applyXHeaders(route),
-    A.addSelfRecordRoute(route),
+    A.addSelfRecordRoute(route, recordRouteParameters),
     A.addRouteToNextHop(route)
   )
+}
 ```
 
-The `Route` argument is usually the result of a Location Service lookup. Its relevant fields are `user`, `host`, `port`, `transport`, `advertisedHost`, `advertisedPort`, `edgePortRef`, `listeningPoints`, `localnets`, `externalAddrs`, `registeredOn`, and `headers`.
+`applyTrunkIdentity` runs `enforceE164(!!route.enforceE164, false)` and `rewriteFromWithNumber(route)`, then `identityRewriteParameters` on the result.
+
+The `Route` argument is usually the result of a Location Service lookup. Its relevant fields are `user`, `host`, `port`, `transport`, `advertisedHost`, `advertisedPort`, `edgePortRef`, `listeningPoints`, `localnets`, `externalAddrs`, `registeredOn`, and `headers`. A route to a Trunk also carries `enforceE164` and `rewriteFrom` (`{ user, host }`), from the Trunk's [caller identity settings](/reference/resources/trunks#caller-identity).
 
 ## Summary
 
@@ -51,7 +57,7 @@ The `Route` argument is usually the result of a Location Service lookup. Its rel
 | [`addRouteToNextHop`](#addroutetonexthop) | `(route) => (request) => request` | Route |
 | [`addRouteToPeerEdgePort`](#addroutetopeeredgeport) | `(route) => (request) => request` | Route |
 | [`removeSelfRoutes`](#removeselfroutes) | `(request) => request` | Route |
-| [`addSelfRecordRoute`](#addselfrecordroute) | `(route) => (request) => request` | Record-Route |
+| [`addSelfRecordRoute`](#addselfrecordroute) | `(route, parameters?) => (request) => request` | Record-Route |
 | [`applyXHeaders`](#applyxheaders) | `(route) => (request) => request` | Extension headers |
 | [`addXEdgePortRef`](#addxedgeportref) | `(request) => request` | `X-Edgeport-Ref` |
 | [`removeXEdgePortRef`](#removexedgeportref) | `(request) => request` | `X-Edgeport-Ref` |
@@ -61,6 +67,9 @@ The `Route` argument is usually the result of a Location Service lookup. Its rel
 | [`fixInvalidContact`](#fixinvalidcontact) | `(request) => request` | Contact |
 | [`overwriteContactWithSenderInfo`](#overwritecontactwithsenderinfo) | `(request) => request` | Contact |
 | [`enforceE164`](#enforcee164) | `(enforce: boolean, validateMobilePrefix: boolean) => (request) => request` | From, To, Request-URI users |
+| [`rewriteFromWithNumber`](#rewritefromwithnumber) | `(route) => (request) => request` | From |
+| [`identityRewriteParameters`](#identityrewriteparameters) | `(original, altered) => Record<string, string>` | None (returns parameters) |
+| [`swapIdentityFromRouteSet`](#swapidentityfromrouteset) | `(request) => request` | From, To |
 
 ## Request-URI
 
@@ -177,10 +186,10 @@ const out = A.removeSelfRoutes(request)
 ### addSelfRecordRoute
 
 ```typescript
-addSelfRecordRoute(route: Route): (request: MessageRequest) => MessageRequest
+addSelfRecordRoute(route: Route, parameters?: Record<string, string>): (request: MessageRequest) => MessageRequest
 ```
 
-Adds a Record-Route header for this EdgePort so later requests in the dialog pass through it. When the interface the request arrived on differs from the one that faces the target (by host, port, or transport), it adds two Record-Route headers, both with `r2=on`.
+Adds a Record-Route header for this EdgePort so later requests in the dialog pass through it. When the interface the request arrived on differs from the one that faces the target (by host, port, or transport), it adds two Record-Route headers, both with `r2=on`. Every header it adds also carries `parameters`, when given.
 
 ```typescript
 const out = A.addSelfRecordRoute(route)(request)
@@ -298,11 +307,39 @@ const out = A.overwriteContactWithSenderInfo(request)
 enforceE164(enforce: boolean, validateMobilePrefix: boolean): (request: MessageRequest) => MessageRequest
 ```
 
-When `enforce` is `true`, tries to rewrite the From, To, and Request-URI users as E.164 numbers (with a leading `+`). It replaces a value only when it parses as a valid number. `validateMobilePrefix` applies to the To and Request-URI users; the From user is always checked with mobile prefix validation. Returns the request unchanged when `enforce` is `false`.
+When `enforce` is `true`, tries to rewrite the From, To, and Request-URI users as E.164 numbers (with a leading `+`). It replaces a value only when it parses as a valid number. `validateMobilePrefix` applies to the To and Request-URI users; the From user is always checked with mobile prefix validation. Returns the request unchanged when `enforce` is `false`. Connect applies it for Trunks with `enforceE164`: before routing on calls from the Trunk, and in the tailor on calls toward it.
 
 ```typescript
 const out = A.enforceE164(true, false)(request)
 ```
+
+### rewriteFromWithNumber
+
+```typescript
+rewriteFromWithNumber(route: Route): (request: MessageRequest) => MessageRequest
+```
+
+When `route.rewriteFrom` is set, sets the From URI user and host to `route.rewriteFrom.user` and `route.rewriteFrom.host`, adds `user=phone`, and drops the port. The display name and tag stay. An anonymous From (user `anonymous` or host `anonymous.invalid`) is never rewritten. Returns the request unchanged when `route.rewriteFrom` is not set.
+
+```typescript
+const out = A.rewriteFromWithNumber({ ...route, rewriteFrom: { user: "+18295863314", host: "sip.provider.net" } })(request)
+```
+
+### identityRewriteParameters
+
+```typescript
+identityRewriteParameters(original: MessageRequest, altered: MessageRequest): Record<string, string>
+```
+
+Compares the From and To URIs of a request before and after the identity alterations and returns Record-Route parameters for what changed: `rfo` and `rfn` hold the original and new From, `rco` and `rcn` the original and new To, each as base64url of `user@host` (plus `;user=` when set). Returns `{}` when nothing changed. Pass the result to `addSelfRecordRoute`.
+
+### swapIdentityFromRouteSet
+
+```typescript
+swapIdentityFromRouteSet(request: MessageRequest): MessageRequest
+```
+
+For an in-dialog request whose Route entry for this EdgePort carries the parameters above, swaps From and To so each side sees the identities it knows: a request from the caller gets the From and To the Trunk saw, and a request from the Trunk gets the caller's own identity back. It reads only Route entries that point at this EdgePort, so with two EdgePorts on the path only the one that rewrote the INVITE swaps. Run it before `removeSelfRoutes`.
 
 ## Header helpers (Extensions)
 

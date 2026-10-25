@@ -70,6 +70,9 @@ export default class DescribeCommand extends BaseCommand {
             )
             .join(",") || "None",
         "Send Register": trunk.sendRegister,
+        "Enforce E.164": trunk.enforceE164 ?? false,
+        "Rewrite From With Number": trunk.rewriteFromWithNumber ?? false,
+        "From Domain": trunk.fromDomain || "Outbound URI host",
         Extended: trunk.extended,
         Created: moment(trunk.createdAt).toISOString(),
         Updated: moment(trunk.createdAt).toISOString()

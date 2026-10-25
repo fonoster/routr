@@ -42,7 +42,8 @@ const logger = getLogger({ service: "connect", filePath: __filename })
  * Request-URI. No routing and no access checks, the dialog was authorized when it
  * was set up. BYE and ACK always took this path; since RFC 3261 section 12.2 makes
  * any request with a To tag an in-dialog request, re-INVITE, UPDATE, INFO, REFER and
- * the NOTIFY that follows a REFER take it too.
+ * the NOTIFY that follows a REFER take it too. When the INVITE went to a Trunk
+ * that rewrote the caller identity, each side gets back the From and To it knows.
  *
  * @param {MessageRequest} req - the in-dialog request
  * @param {Response} res - the response object used to send it on
@@ -52,6 +53,8 @@ const forwardInDialog = (req: MessageRequest, res: Response) =>
   res.send(
     pipe(
       req,
+      // Before our own Route entries go: they carry the identity mapping
+      A.swapIdentityFromRouteSet,
       A.decreaseMaxForwards,
       A.addSelfViaUsingExternalAddrs,
       A.removeSelfRoutes

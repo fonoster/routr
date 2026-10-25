@@ -20,9 +20,37 @@ import { Alterations as A, MessageRequest } from "@routr/processor"
 import { Route } from "@routr/common"
 import { pipe } from "fp-ts/function"
 
+/**
+ * The caller identity a Trunk asks for (Route.enforceE164 and Route.rewriteFrom),
+ * applied to a request on its way out, plus the Record-Route parameters that let
+ * Routr map the identities back on the dialog's later requests.
+ *
+ * @param {Route} route - the route; a Trunk route carries the settings
+ * @param {MessageRequest} req - the request as routed
+ * @return {object} the altered request and the Record-Route parameters
+ */
+export const applyTrunkIdentity = (
+  route: Route,
+  req: MessageRequest
+): { req: MessageRequest; recordRouteParameters: Record<string, string> } => {
+  const altered = pipe(
+    req,
+    A.enforceE164(!!route.enforceE164, false),
+    A.rewriteFromWithNumber(route)
+  )
+  return {
+    req: altered,
+    recordRouteParameters: A.identityRewriteParameters(req, altered)
+  }
+}
+
 // Q: Should we add support for strict routing?
-export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
-  pipe(
+export const tailor = (
+  route: Route,
+  request: MessageRequest
+): MessageRequest => {
+  const { req, recordRouteParameters } = applyTrunkIdentity(route, request)
+  return pipe(
     req,
     A.decreaseMaxForwards,
     A.removeAuthorization,
@@ -34,6 +62,7 @@ export const tailor = (route: Route, req: MessageRequest): MessageRequest =>
     A.fixRequestURI(route),
     A.addSelfVia(route),
     A.applyXHeaders(route),
-    A.addSelfRecordRoute(route),
+    A.addSelfRecordRoute(route, recordRouteParameters),
     A.addRouteToNextHop(route)
   )
+}

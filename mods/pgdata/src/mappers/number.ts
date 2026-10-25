@@ -18,7 +18,7 @@
  */
 /* eslint-disable require-jsdoc */
 import { Number as NumberPrismaModel, APIVersion, Prisma } from "@prisma/client"
-import { CommonConnect as CC, Environment } from "@routr/common"
+import { CommonConnect as CC } from "@routr/common"
 import { EntityManager } from "./manager"
 import { TrunkManager } from "./trunk"
 import { JsonValue } from "@prisma/client/runtime/library"
@@ -58,13 +58,6 @@ export class NumberManager extends EntityManager {
   validOrThrowCreate() {
     CC.hasTelUrlOrThrow(this.number.telUrl)
     CC.isValidTelUrlOrThrow(this.number.telUrl)
-    if (Environment.ENFORCE_E164) {
-      CC.isValidE164OrThrow(
-        this.number.telUrl.split("tel:")[1],
-        this.number.countryIsoCode,
-        Environment.ENFORCE_E164_WITH_MOBILE_PREFIX
-      )
-    }
     CC.hasNameOrThrow(this.number.name)
     CC.isValidNameOrThrow(this.number.name)
     CC.isValidAORLinkOrThrow(this.number.aorLink)

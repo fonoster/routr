@@ -293,6 +293,38 @@ describe("@routr/common/connect/mappers", () => {
       "transport",
       trunkConfig.spec.outbound.uris[0].uri.transport
     )
+    // Caller identity settings default to off
+    expect(trunk).to.have.property("enforceE164", false)
+    expect(trunk).to.have.property("rewriteFromWithNumber", false)
+    expect(trunk.fromDomain).to.equal(undefined)
+  })
+
+  it("maps the caller identity settings of a trunk", () => {
+    const trunk = mapToTrunk({
+      kind: Kind.TRUNK,
+      apiVersion: APIVersion.V2BETA1,
+      ref: "trunk-1",
+      metadata: { name: "trunk-1" },
+      spec: {
+        enforceE164: true,
+        rewriteFromWithNumber: true,
+        fromDomain: "wa.example.com",
+        inbound: { uri: "trunk01.sip.local" },
+        outbound: {
+          uris: [
+            {
+              uri: { host: "sip.provider.net", port: 5060, transport: "udp" }
+            }
+          ]
+        }
+      }
+    } as unknown as TrunkConfig)
+
+    expect(trunk).to.include({
+      enforceE164: true,
+      rewriteFromWithNumber: true,
+      fromDomain: "wa.example.com"
+    })
   })
 
   it("validates the acl config with json-schema", () => {

@@ -158,6 +158,11 @@ export function hostValidator(value: string) {
   return true
 }
 
+// Empty means "not set", so the default applies
+export function optionalHostValidator(value: string) {
+  return value ? hostValidator(value) : true
+}
+
 export function portValidator(value: string) {
   const isValidPort = CC.isValidPort(value)
 

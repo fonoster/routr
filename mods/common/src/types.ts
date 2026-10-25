@@ -194,6 +194,16 @@ export interface Route {
   labels?: Map<string, string>
   headers?: HeaderModifier[]
   metadata?: Record<string, string>
+  /**
+   * Set on routes to a Trunk with enforceE164: the From, To and Request-URI
+   * users are normalized to +E.164 before the request leaves.
+   */
+  enforceE164?: boolean
+  /**
+   * Set on routes to a Trunk with rewriteFromWithNumber: the identity the
+   * From header takes on the way out (the Number, at the Trunk's fromDomain).
+   */
+  rewriteFrom?: { user: string; host: string }
 }
 
 export enum ResponseType {

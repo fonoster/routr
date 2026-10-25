@@ -143,6 +143,21 @@ A trunk whose outbound URI has `transport: tls` makes the EdgePort open a TLS co
 
 Carriers that require TLS usually require SRTP as well. SRTP follows the transport: when RTPEngine is in the path, the media relay asks it for SDES-SRTP (`RTP/SAVP` with `a=crypto` lines) on every leg that uses TLS, and plain RTP or DTLS-SRTP on the other leg as before. There is nothing to configure on the trunk. Without RTPEngine (`RTPENGINE_HOST` unset in routr-one, or no RTPRelay middleware in a split deployment) the carrier receives the caller's SDP unchanged and will reject plain RTP.
 
+### Caller identity toward a carrier
+
+A carrier that authenticates by the From header, such as WhatsApp Business Calling over SIP, accepts a call only when From is your number at the domain it knows. By default Routr leaves the caller's own From on the call, for example `sip:1001@sip.local`. Set two fields on the trunk:
+
+```yaml
+spec:
+  enforceE164: true             # From, To and Request-URI users become +E.164
+  rewriteFromWithNumber: true   # From becomes the Number, at fromDomain
+  fromDomain: sip.example.com   # for Meta, the hostname registered with Meta
+```
+
+With these, an agent's call leaves with `From: <sip:+18295863314@sip.example.com;user=phone>`, the Number from the Domain's egress policy. Without `fromDomain`, the host is the trunk's outbound URI host. A caller who asked for privacy keeps `anonymous@anonymous.invalid`. The caller still sees its own identity on responses and on the carrier's in-dialog requests. Routr keeps the mapping in its Record-Route parameters.
+
+The `ENFORCE_E164` environment variable is gone: set `enforceE164` on each trunk instead. See [Caller identity](/reference/resources/trunks#caller-identity) for every detail.
+
 ## Require client certificates (optional)
 
 To make the API Server accept only clients with a certificate signed by your CA, mount `ca.crt` and set `VERIFY_CLIENT_CERT` to `"true"`. Clients must then present a certificate on every connection.

@@ -40,8 +40,6 @@ The API Server stores the Connect resources (Agents, Domains, Peers, Trunks, Num
 | `SERVER_CERT` | `/etc/routr/certs/server.crt` | Server certificate. Must exist when `TLS_ON=true` |
 | `SERVER_KEY` | `/etc/routr/certs/server.key` | Server private key. Must exist when `TLS_ON=true` |
 | `CLOAK_ENCRYPTION_KEY` | | Cloak key that turns on field-level encryption in the database |
-| `ENFORCE_E164` | `false` | `true` rejects new Numbers whose `telUrl` is not a valid E.164 number |
-| `ENFORCE_E164_WITH_MOBILE_PREFIX` | `false` | `true` also validates the mobile prefix of Numbers |
 | `PATH_TO_CERTS` | `/etc/routr/certs` (image) | Directory where the image writes its generated certificates |
 | `CA_CERT_SUBJECT` | `/CN=Self Signed CA` (image) | Subject of the generated CA certificate |
 | `SERVER_CERT_SUBJECT` | `/CN=localhost` (image) | Subject of the generated server certificate |

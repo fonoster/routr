@@ -24,6 +24,10 @@ import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.WWWAuthenticate;
 import javax.sip.header.CSeqHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.ToHeader;
+import javax.sip.message.Message;
+import java.text.ParseException;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -95,5 +99,39 @@ public class ResponseHelper {
     response.removeHeader(RecordRoute.NAME);
     response.removeHeader(javax.sip.header.WWWAuthenticateHeader.NAME);
   }
-}
 
+  /**
+   * Gives a response the From and To of the request it answers, keeping the To tag
+   * the far end added. A proxy that changed the identity on the way out (a Trunk
+   * with rewriteFromWithNumber or enforceE164) must restore it on the way back:
+   * RFC 3261 section 8.2.6.2 has a response copy From and To from its request, and
+   * the caller's request is the one on the server transaction.
+   *
+   * Only From and To change; Call-ID, tags and everything else are as received.
+   *
+   * @param response The response about to be sent toward the caller
+   * @param original The caller's request, from the server transaction
+   */
+  public static void restoreIdentity(final Response response, final Message original) {
+    if (original == null) {
+      return;
+    }
+    var from = (FromHeader) original.getHeader(FromHeader.NAME);
+    if (from != null) {
+      response.setHeader((FromHeader) from.clone());
+    }
+    var to = (ToHeader) original.getHeader(ToHeader.NAME);
+    var answered = (ToHeader) response.getHeader(ToHeader.NAME);
+    if (to != null) {
+      var restored = (ToHeader) to.clone();
+      try {
+        if (answered != null && answered.getTag() != null) {
+          restored.setTag(answered.getTag());
+        }
+        response.setHeader(restored);
+      } catch (ParseException e) {
+        // A tag that parsed on the way in parses here; keep the To as received
+      }
+    }
+  }
+}

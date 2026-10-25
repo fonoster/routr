@@ -204,8 +204,10 @@ export const applyXHeaders =
     return req
   }
 
+// The parameters argument is merged into every Record-Route entry this adds;
+// identityRewriteParameters uses it to carry a rewritten From or To.
 export const addSelfRecordRoute =
-  (route: Route) =>
+  (route: Route, parameters: Record<string, string> = {}) =>
   (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
     const originIntf = getEdgeInterface({
@@ -254,13 +256,15 @@ export const addSelfRecordRoute =
           }
         },
         parameters: {
-          r2: "on"
+          r2: "on",
+          ...parameters
         }
       }
 
       // Add r2 on to origin route
       originRoute.parameters = {
-        r2: "on"
+        r2: "on",
+        ...parameters
       }
 
       req.message.recordRoute = [
@@ -269,6 +273,9 @@ export const addSelfRecordRoute =
         ...req.message.recordRoute
       ]
     } else {
+      if (Object.keys(parameters).length > 0) {
+        originRoute.parameters = { ...parameters }
+      }
       req.message.recordRoute = [originRoute, ...req.message.recordRoute]
     }
 
@@ -316,11 +323,12 @@ export const removeAuthorization = (
   return req
 }
 
-export const removeSelfRoutes = (request: MessageRequest): MessageRequest => {
-  const req = H.deepCopy(request)
-  const localIps = request.localnets.map((ln) => ln.split("/")[0])
-
-  req.message.route = req.message.route.filter((r: CommonTypes.RouteHeader) => {
+// Whether a Route entry points at this EdgePort (one of its local or external
+// addresses, on the port of the matching listening point)
+const isSelfRoute =
+  (request: MessageRequest) =>
+  (r: CommonTypes.RouteHeader): boolean => {
+    const localIps = request.localnets.map((ln) => ln.split("/")[0])
     const lp = H.getListeningPoint(
       request.listeningPoints,
       (r.address.uri.transportParam?.toUpperCase() as Transport) ||
@@ -328,12 +336,18 @@ export const removeSelfRoutes = (request: MessageRequest): MessageRequest => {
     )
 
     const routeUri = r.address.uri
-    return !(
+    return (
       (localIps.includes(routeUri.host) ||
         request.externalAddrs.includes(routeUri.host)) &&
-      routeUri.port === lp.port
+      routeUri.port === lp?.port
     )
-  })
+  }
+
+export const removeSelfRoutes = (request: MessageRequest): MessageRequest => {
+  const req = H.deepCopy(request)
+  req.message.route = req.message.route.filter(
+    (r: CommonTypes.RouteHeader) => !isSelfRoute(request)(r)
+  )
   return req
 }
 
@@ -379,7 +393,9 @@ export const overwriteContactWithSenderInfo = (request: MessageRequest) => {
   return req
 }
 
-// Will do the best effort to normalize from/to/requestUri users as e164 values
+// Will do the best effort to normalize from/to/requestUri users as e164 values.
+// Connect applies it per Trunk (spec.enforceE164), on the way in before routing
+// and on the way out through the tailor.
 export const enforceE164 =
   (enforceE164: boolean, validateMobilePrefix: boolean) =>
   (request: MessageRequest): MessageRequest => {
@@ -416,3 +432,200 @@ export const enforceE164 =
 
     return req
   }
+
+// The identity a SIP URI carries, as stored in a Record-Route parameter
+interface Identity {
+  user?: string
+  host: string
+  userParam?: string
+}
+
+/**
+ * Whether a From is the anonymous identity (RFC 3323, SIP Connect 1.1 section 9).
+ * A caller that asked for privacy keeps it, so such a From is never rewritten.
+ *
+ * @param {CommonTypes.SipURI} uri - the From URI
+ * @return {boolean} true for anonymous@anonymous.invalid and its variants
+ */
+export const isAnonymous = (uri: CommonTypes.SipURI): boolean =>
+  uri.user?.toLowerCase() === CommonTypes.ANONYMOUS ||
+  uri.host?.toLowerCase() === "anonymous.invalid"
+
+/**
+ * Presents the Number as the caller toward a Trunk with rewriteFromWithNumber.
+ * Carriers that authenticate by the From header (WhatsApp Business Calling, many
+ * SIPconnect carriers) only accept a From that is the business number at their
+ * domain. The tag and display name stay, so the dialog is unchanged for Routr,
+ * which matches on tags and Call-ID. An anonymous From is left as it is.
+ *
+ * @param {Route} route - the route; does nothing unless route.rewriteFrom is set
+ * @return {Function} the alteration
+ */
+export const rewriteFromWithNumber =
+  (route: Route) =>
+  (request: MessageRequest): MessageRequest => {
+    if (!route.rewriteFrom) return request
+    if (isAnonymous(request.message.from.address.uri)) return request
+
+    const req = H.deepCopy(request)
+    const uri = req.message.from.address.uri
+    uri.user = route.rewriteFrom.user
+    uri.host = route.rewriteFrom.host
+    // The URI names a telephone number (RFC 3261 section 19.1.1), as the
+    // P-Asserted-Identity Connect adds toward the Trunk does
+    uri.userParam = "phone"
+    // The caller's own port has no meaning at the carrier's domain; -1 is how
+    // the EdgePort's converter spells "no port"
+    uri.port = -1
+    return req
+  }
+
+// The Record-Route parameter names: [r]ewritten [f]rom or [c]allee (To),
+// [o]riginal/[n]ew. Not "rto": a parser that looks for a header by searching
+// for its name (SIPp does) finds "To" inside "rto=" on the Record-Route line.
+const IDENTITY_PARAMETERS = {
+  fromOriginal: "rfo",
+  fromNew: "rfn",
+  toOriginal: "rco",
+  toNew: "rcn"
+}
+
+// Base64url keeps the value a SIP token (RFC 3261 section 25.1), so it needs no
+// quoting in the header and survives every hop unchanged
+const encodeIdentity = (uri: CommonTypes.SipURI): string =>
+  Buffer.from(
+    `${uri.user ?? ""}@${uri.host}${
+      uri.userParam ? `;user=${uri.userParam}` : ""
+    }`
+  ).toString("base64url")
+
+const decodeIdentity = (value?: string): Identity | undefined => {
+  if (!value) return undefined
+  const decoded = Buffer.from(value, "base64url").toString("utf8")
+  const [address, userParam] = decoded.split(";user=")
+  const at = address.lastIndexOf("@")
+  if (at < 0) return undefined
+  const user = address.slice(0, at)
+  return {
+    user: user || undefined,
+    host: address.slice(at + 1),
+    userParam: userParam || undefined
+  }
+}
+
+const sameIdentity = (uri: CommonTypes.SipURI, identity?: Identity) =>
+  !!identity &&
+  (uri.user ?? "") === (identity.user ?? "") &&
+  uri.host?.toLowerCase() === identity.host.toLowerCase()
+
+const changed = (a: CommonTypes.SipURI, b: CommonTypes.SipURI) =>
+  (a.user ?? "") !== (b.user ?? "") ||
+  a.host !== b.host ||
+  (a.userParam ?? "") !== (b.userParam ?? "")
+
+/**
+ * The Record-Route parameters that remember how the identity alterations changed
+ * a request's From and To. Both ends of the dialog copy Record-Route into the
+ * Route of their in-dialog requests, so the mapping comes back to Routr on every
+ * BYE, re-INVITE and ACK without any state in Routr (see swapIdentityFromRouteSet).
+ *
+ * @param {MessageRequest} original - the request before the identity alterations
+ * @param {MessageRequest} altered - the request after them
+ * @return {Record<string, string>} the parameters, empty when nothing changed
+ */
+export const identityRewriteParameters = (
+  original: MessageRequest,
+  altered: MessageRequest
+): Record<string, string> => {
+  const parameters: Record<string, string> = {}
+  const fromBefore = original.message.from.address.uri
+  const fromAfter = altered.message.from.address.uri
+  const toBefore = original.message.to.address.uri
+  const toAfter = altered.message.to.address.uri
+
+  if (changed(fromBefore, fromAfter)) {
+    parameters[IDENTITY_PARAMETERS.fromOriginal] = encodeIdentity(fromBefore)
+    parameters[IDENTITY_PARAMETERS.fromNew] = encodeIdentity(fromAfter)
+  }
+
+  if (changed(toBefore, toAfter)) {
+    parameters[IDENTITY_PARAMETERS.toOriginal] = encodeIdentity(toBefore)
+    parameters[IDENTITY_PARAMETERS.toNew] = encodeIdentity(toAfter)
+  }
+
+  return parameters
+}
+
+// Like isSelfRoute, but a Route on a transport this EdgePort lacks is simply
+// not ours, instead of an error that would stop the in-dialog request
+const isOwnRoute = (
+  request: MessageRequest,
+  route: CommonTypes.RouteHeader
+): boolean => {
+  try {
+    return isSelfRoute(request)(route)
+  } catch {
+    return false
+  }
+}
+
+const applyIdentity = (uri: CommonTypes.SipURI, identity: Identity) => {
+  uri.user = identity.user
+  uri.host = identity.host
+  uri.userParam = identity.userParam
+}
+
+/**
+ * Keeps each side of a dialog seeing the identities it knows. A request from the
+ * caller gets the From and To the Trunk saw on the INVITE; a request from the
+ * Trunk, whose To is the Number, gets the caller's own identity back. Some phones
+ * answer 481 to an in-dialog request whose To or From URI changed.
+ *
+ * The mapping is read only from Route entries that point at this EdgePort: with
+ * two EdgePorts on the path, the one that rewrote the INVITE is the one that
+ * swaps, and the other leaves the request alone.
+ *
+ * @param {MessageRequest} request - an in-dialog request, with its Route set
+ * @return {MessageRequest} the request with From and To swapped where they match
+ */
+export const swapIdentityFromRouteSet = (
+  request: MessageRequest
+): MessageRequest => {
+  const own = (request.message.route ?? []).find(
+    (r: CommonTypes.RouteHeader) =>
+      r.parameters?.[IDENTITY_PARAMETERS.fromNew] ||
+      r.parameters?.[IDENTITY_PARAMETERS.toNew]
+  )
+
+  if (!own || !isOwnRoute(request, own)) return request
+
+  const fromOriginal = decodeIdentity(
+    own.parameters[IDENTITY_PARAMETERS.fromOriginal]
+  )
+  const fromNew = decodeIdentity(own.parameters[IDENTITY_PARAMETERS.fromNew])
+  const toOriginal = decodeIdentity(
+    own.parameters[IDENTITY_PARAMETERS.toOriginal]
+  )
+  const toNew = decodeIdentity(own.parameters[IDENTITY_PARAMETERS.toNew])
+
+  const req = H.deepCopy(request)
+  const from = req.message.from.address.uri
+  const to = req.message.to.address.uri
+
+  // From the caller: From is the caller, To is the callee
+  if (fromNew && sameIdentity(from, fromOriginal)) {
+    applyIdentity(from, fromNew)
+  } else if (toOriginal && sameIdentity(from, toNew)) {
+    // From the Trunk: From is the callee as the Trunk knows it
+    applyIdentity(from, toOriginal)
+  }
+
+  if (toNew && sameIdentity(to, toOriginal)) {
+    applyIdentity(to, toNew)
+  } else if (fromOriginal && sameIdentity(to, fromNew)) {
+    // From the Trunk: To is the Number the caller was presented as
+    applyIdentity(to, fromOriginal)
+  }
+
+  return req
+}

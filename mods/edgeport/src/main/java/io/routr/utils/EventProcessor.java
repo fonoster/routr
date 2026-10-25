@@ -52,11 +52,24 @@ public class EventProcessor {
    * @param response The message response containing call information
    */
   public void processCallStartedEvent(MessageResponse response) {
+    processCallStartedEvent(response, response.getMessage().getFrom());
+  }
+
+  /**
+   * Processes a call started event whose caller is the From the INVITE arrived
+   * with. A Trunk with rewriteFromWithNumber presents the Number as the caller on
+   * the way out, so the processor's reply carries the Number in From, but the
+   * event names who actually placed the call.
+   *
+   * @param response The message response containing call information
+   * @param caller The From of the INVITE as received
+   */
+  public void processCallStartedEvent(MessageResponse response, io.routr.message.From caller) {
     var startTime = ZonedDateTime.now(ZoneOffset.UTC)
         .truncatedTo(ChronoUnit.MILLIS)
         .format(DateTimeFormatter.ISO_INSTANT);
     var callId = response.getMessage().getCallId().getCallId();
-    var from = response.getMessage().getFrom().getAddress().getUri();
+    var from = (caller != null ? caller : response.getMessage().getFrom()).getAddress().getUri();
     var to = response.getMessage().getTo().getAddress().getUri();
     var callStartedEvent = new HashMap<String, Object>();
 

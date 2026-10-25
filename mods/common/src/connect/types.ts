@@ -101,6 +101,14 @@ export interface INumber extends BaseConnectModel {
 
 export interface Trunk extends BaseConnectModel {
   sendRegister: boolean
+  // Normalize the From, To and Request-URI users to +E.164 on calls through
+  // this Trunk, in both directions
+  enforceE164?: boolean
+  // On calls leaving through this Trunk, present the Number as the caller:
+  // From becomes the Number's E.164 at fromDomain
+  rewriteFromWithNumber?: boolean
+  // Host part of the rewritten From. Defaults to the outbound URI host
+  fromDomain?: string
   inboundUri: string
   accessControlListRef?: string
   accessControlList?: AccessControlList

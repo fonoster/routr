@@ -34,7 +34,7 @@ import {
   IpUtils,
   Verifier as V
 } from "@routr/common"
-import { Extensions as E } from "@routr/processor"
+import { Alterations as A, Extensions as E } from "@routr/processor"
 import { RoutingDirection } from "./types"
 
 // OMG, this is so ugly and hacky
@@ -212,6 +212,70 @@ export const getTrunkURI = (
     host,
     port: port ?? 5060,
     transport: transport ?? Transport.UDP
+  }
+}
+
+/**
+ * The caller identity settings of the Trunk a call leaves through, in the form
+ * the tailor applies them (Route.enforceE164 and Route.rewriteFrom).
+ *
+ * @param {CC.Trunk} trunk - the Trunk the call leaves through
+ * @param {CC.INumber} number - the Number the call is placed from
+ * @return {object} the Route fields; empty when the Trunk asks for neither
+ */
+export const trunkIdentity = (
+  trunk: CC.Trunk,
+  number: CC.INumber
+): { enforceE164?: boolean; rewriteFrom?: { user: string; host: string } } => {
+  const identity: {
+    enforceE164?: boolean
+    rewriteFrom?: { user: string; host: string }
+  } = {}
+
+  if (trunk.enforceE164) identity.enforceE164 = true
+
+  if (trunk.rewriteFromWithNumber) {
+    const telNumber = number.telUrl.split(":")[1]
+    identity.rewriteFrom = {
+      // E.164 always carries the leading +, whether or not the telUrl does
+      user: telNumber.startsWith("+") ? telNumber : `+${telNumber}`,
+      host: trunk.fromDomain || getTrunkURI(trunk).host
+    }
+  }
+
+  return identity
+}
+
+/**
+ * Normalizes the From, To and Request-URI users of a call from the PSTN when its
+ * Trunk has enforceE164. This runs before routing because routing finds the
+ * Number by the Request-URI user, which a carrier may send without the +. The
+ * Trunk is the one whose inboundUri is the Request-URI host, the same lookup the
+ * access check makes.
+ *
+ * @param {CC.APIClient} apiClient - API client
+ * @param {MessageRequest} req - the request
+ * @return {Promise<MessageRequest>} the request, normalized when its Trunk asks
+ */
+export const normalizeFromTrunk = async (
+  apiClient: CC.APIClient,
+  req: MessageRequest
+): Promise<MessageRequest> => {
+  if (!apiClient) return req
+
+  try {
+    const trunk = (
+      await apiClient.trunks.findBy({
+        fieldName: "inboundUri",
+        fieldValue: req.message.requestUri.host
+      })
+    ).items[0]
+
+    return trunk?.enforceE164 ? A.enforceE164(true, false)(req) : req
+  } catch (err) {
+    // No Trunk answers to this host: not a call from the PSTN
+    if (err.code === grpc.status.NOT_FOUND) return req
+    throw err
   }
 }
 
