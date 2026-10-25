@@ -129,6 +129,42 @@ describe("@routr/connect", () => {
       expect(findRoutes).to.not.have.been.called
     })
 
+    it("answers 502 when the next hop wants a transport this edgeport has no listening point for", async () => {
+      // A TLS next hop on an EdgePort that only listens on TCP
+      const req = withEdgePortRef(request, "edgeport-02", "10.0.0.5")
+      req.message.requestUri.transportParam = Transport.TLS
+      req.listeningPoints = [
+        { host: "10.1.1.1", port: 5060, transport: Transport.TCP }
+      ]
+      const response = {
+        send: () => {
+          // noop
+        },
+        sendBadGateway: () => {
+          // noop
+        },
+        sendInternalServerError: () => {
+          // noop
+        }
+      } as unknown as Response
+      const sendBadGateway = sandbox.spy(response, "sendBadGateway")
+      const sendInternalServerError = sandbox.spy(
+        response,
+        "sendInternalServerError"
+      )
+      const send = sandbox.spy(response, "send")
+
+      await handleRequest(
+        { findRoutes: () => [route] } as unknown as ILocationService,
+        undefined,
+        trust
+      )(req, response)
+
+      expect(sendBadGateway).to.have.been.calledOnce
+      expect(sendInternalServerError).to.not.have.been.called
+      expect(send).to.not.have.been.called
+    })
+
     it("ignores a forged X-Edgeport-Ref with the default config", async () => {
       // Default config trusts no peer edgeport: the header is removed and the
       // request is routed normally (pstn to agent here)
@@ -373,7 +409,10 @@ describe("@routr/connect", () => {
         fieldValue: "1001"
       })
     ).items[0] as CC.Agent
-    const trunk = agent.domain.egressPolicies[0].number.trunk
+    // The policy the router picks for this callee, not the first in the fixture
+    const trunk = agent.domain.egressPolicies.find((policy) =>
+      new RegExp(policy.rule).test("17853178070")
+    ).number.trunk
 
     const before = await router(locationAPI, apiClient)(req)
     expect((before.route as Route).metadata).to.not.have.property(

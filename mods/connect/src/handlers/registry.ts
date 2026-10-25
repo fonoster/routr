@@ -18,19 +18,36 @@
  */
 import { Helper as H } from "@routr/location"
 import { Alterations as A, MessageRequest, Response } from "@routr/processor"
+import { CommonErrors as CE } from "@routr/common"
+import { getLogger } from "@fonoster/logger"
 import { pipe } from "fp-ts/function"
 
-// TODO: Needs test
+const logger = getLogger({ service: "connect", filePath: __filename })
+
+// Forwards the REGISTER the Registry sends on behalf of a trunk to the provider.
 export const handleRegistry = (req: MessageRequest, res: Response) => {
-  const route = H.createRouteFromLastMessage(req)
-  res.send(
-    pipe(
-      req,
-      A.addSelfVia(route),
-      A.decreaseMaxForwards,
-      A.removeAuthorization,
-      A.removeSelfRoutes,
-      A.removeXEdgePortRef
+  try {
+    const route = H.createRouteFromLastMessage(req)
+    res.send(
+      pipe(
+        req,
+        A.addSelfVia(route),
+        A.decreaseMaxForwards,
+        A.removeAuthorization,
+        A.removeSelfRoutes,
+        A.removeXEdgePortRef
+      )
     )
-  )
+  } catch (err) {
+    // A trunk URI with a transport this EdgePort does not listen on (e.g. tls)
+    if (err instanceof CE.NoListeningPointError) {
+      logger.error(err.message, {
+        edgePortRef: req.edgePortRef,
+        transport: err.transport
+      })
+      return res.sendBadGateway()
+    }
+    logger.error(err)
+    res.sendInternalServerError()
+  }
 }

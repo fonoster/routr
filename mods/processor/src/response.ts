@@ -137,6 +137,21 @@ export default class Response {
   }
 
   /**
+   * Sends a bad gateway response: the next hop cannot be reached as configured.
+   *
+   * @param {string} reasonPhrase - Optional reason phrase.
+   */
+  sendBadGateway(reasonPhrase?: string) {
+    this.callback(
+      null,
+      buildResponse({
+        code: CT.ResponseType.BAD_GATEWAY,
+        reasonPhrase: reasonPhrase || "Bad Gateway"
+      })
+    )
+  }
+
+  /**
    * Sends a internal server error response.
    */
   sendInternalServerError() {

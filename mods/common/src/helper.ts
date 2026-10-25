@@ -19,6 +19,7 @@
 import * as yaml from "js-yaml"
 import fs from "fs"
 import { NetInterface, Transport } from "./types"
+import { NoListeningPointError } from "./errors"
 
 /**
  * Makes a deep copy of an object.
@@ -66,7 +67,7 @@ export const getListeningPoint = (
     : listeningPoints.find((lp) => lp.transport.toUpperCase() === Transport.UDP)
 
   if (!listeningPoint) {
-    throw new Error(`no listening point found for transport ${transport}`)
+    throw new NoListeningPointError(transport ?? Transport.UDP)
   }
 
   return listeningPoint

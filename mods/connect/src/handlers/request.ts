@@ -29,6 +29,7 @@ import { router } from "../router"
 import { ILocationService, Helper as H } from "@routr/location"
 import {
   CommonConnect as CC,
+  CommonErrors as CE,
   CommonTypes as CT,
   Environment,
   HeaderModifier
@@ -159,6 +160,16 @@ export const handleRequest =
     } catch (err) {
       if (err.code === grpc.status.NOT_FOUND) {
         return res.sendTemporarilyUnavailable()
+      }
+      // The route wants a transport this EdgePort does not listen on, typically
+      // a TLS trunk on an EdgePort without a tls transport. That is a
+      // configuration problem on our side of the call, so say so instead of 500.
+      if (err instanceof CE.NoListeningPointError) {
+        logger.error(err.message, {
+          edgePortRef: request.edgePortRef,
+          transport: err.transport
+        })
+        return res.sendBadGateway()
       }
       logger.error(err)
       res.sendInternalServerError()
