@@ -20,11 +20,16 @@ package io.routr.sip;
 
 import gov.nist.javax.sip.stack.NioTcpMessageProcessor;
 import gov.nist.javax.sip.stack.NioTlsMessageChannel;
+import gov.nist.javax.sip.stack.SSLStateMachine;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import java.net.InetAddress;
 import java.nio.channels.SocketChannel;
 
@@ -60,6 +65,31 @@ public class SafeNioTlsMessageChannel extends NioTlsMessageChannel {
 
   private static final Logger LOG = LogManager.getLogger(SafeNioTlsMessageChannel.class);
 
+  // NioTlsMessageChannel.sslStateMachine and SSLStateMachine.sslEngine are
+  // package-private in JAIN-SIP, SSLStateMachine.wrapNonAppData is private
+  private static final Field SSL_STATE_MACHINE;
+  private static final Field SSL_ENGINE;
+  private static final Method WRAP_NON_APP_DATA;
+
+  static {
+    Field stateMachine = null;
+    Field engine = null;
+    Method wrapNonAppData = null;
+    try {
+      stateMachine = NioTlsMessageChannel.class.getDeclaredField("sslStateMachine");
+      stateMachine.setAccessible(true);
+      engine = SSLStateMachine.class.getDeclaredField("sslEngine");
+      engine.setAccessible(true);
+      wrapNonAppData = SSLStateMachine.class.getDeclaredMethod("wrapNonAppData");
+      wrapNonAppData.setAccessible(true);
+    } catch (ReflectiveOperationException | RuntimeException e) {
+      LOG.error("cannot reach JAIN-SIP's TLS state machine; a TLS handshake may stall", e);
+    }
+    SSL_STATE_MACHINE = stateMachine;
+    SSL_ENGINE = engine;
+    WRAP_NON_APP_DATA = wrapNonAppData;
+  }
+
   // onNewSocket runs synchronously on the thread that sends, so a plain field
   // is enough to detect re-entry on this channel.
   private boolean reconnecting;
@@ -93,6 +123,66 @@ public class SafeNioTlsMessageChannel extends NioTlsMessageChannel {
    */
   void markCached() {
     this.isCached = true;
+  }
+
+  /**
+   * Sends what was queued while the TLS handshake ran, as soon as it completes.
+   *
+   * <p>A message sent before the handshake finishes waits in the state machine's
+   * queue. JAIN-SIP 1.3.0 sends that queue when the handshake finishes on the
+   * receiving side (unwrap), but not when it finishes on the sending side
+   * (wrapNonAppData). In TLS 1.3 the client's handshake ends with the client
+   * sending its Finished message, so the first request on a new connection
+   * waits until something else is written. Against Meta's WhatsApp gateway the
+   * INVITE sat unsent until the caller's CANCEL pushed it out, 30 seconds later.
+   * (A server that sends a session ticket right away, as OpenSSL does, hides
+   * this: reading the ticket takes the unwrap path, which flushes.)
+   */
+  @Override
+  public void setHandshakeCompleted(boolean handshakeCompleted) {
+    super.setHandshakeCompleted(handshakeCompleted);
+    if (!handshakeCompleted || SSL_STATE_MACHINE == null) {
+      return;
+    }
+    try {
+      var stateMachine = (SSLStateMachine) SSL_STATE_MACHINE.get(this);
+      if (stateMachine != null) {
+        // Sends the queued messages, if any; with an empty queue it does nothing
+        stateMachine.wrapRemaining();
+      }
+    } catch (IllegalAccessException | IOException | RuntimeException e) {
+      LOG.warn("could not send the messages queued during the TLS handshake; peerAddress={}, peerPort={}",
+          peerAddress, peerPort, e);
+    }
+  }
+
+  /**
+   * Sends the handshake message the TLS engine is waiting to send, if any,
+   * after the peer's bytes were processed.
+   *
+   * <p>JAIN-SIP 1.3.0's unwrap loop stops on BUFFER_UNDERFLOW (waiting for more
+   * input) without looking at the handshake status. When the engine is in
+   * NEED_WRAP at that point (its own handshake message is due, such as the
+   * client's Finished), nothing sends it: the peer waits for us and we wait for
+   * the peer. Seen with Meta's WhatsApp gateway on the connection a BYE opened;
+   * the handshake never finished and the BYE never left.
+   */
+  @Override
+  protected void addBytes(byte[] bytes) throws Exception {
+    super.addBytes(bytes);
+    if (SSL_STATE_MACHINE == null || SSL_ENGINE == null || WRAP_NON_APP_DATA == null) {
+      return;
+    }
+    var stateMachine = (SSLStateMachine) SSL_STATE_MACHINE.get(this);
+    if (stateMachine == null) {
+      return;
+    }
+    var engine = (SSLEngine) SSL_ENGINE.get(stateMachine);
+    if (engine != null && engine.getHandshakeStatus() == HandshakeStatus.NEED_WRAP) {
+      // Sends the pending handshake records; finishing the handshake calls
+      // setHandshakeCompleted, which sends what was queued meanwhile
+      WRAP_NON_APP_DATA.invoke(stateMachine);
+    }
   }
 
   @Override
