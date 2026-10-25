@@ -1,0 +1,23 @@
+# RTPRelay configuration. The file is optional: without it the relay runs with
+# the profiles it ships with (see the RTPRelay reference for their contents).
+#
+# Each profile under spec.profiles is merged over the default of the same name
+# one key at a time, so list only the keys you want to change. A list replaces
+# the default list; it is not appended to it.
+kind: RTPRelay
+apiVersion: v2beta1
+spec:
+  # bindAddr: 0.0.0.0:51903
+  # rtpengine:
+  #   host: rtpengine
+  #   port: 22222
+  profiles:
+    # A carrier reached over TLS that accepts only one SRTP crypto suite. The
+    # rest of the profile (RTP/SAVP, ICE removal, flags) stays as shipped.
+    phone-to-secure-phone:
+      SDES:
+        - only-AES_CM_128_HMAC_SHA1_80
+    # The same carrier called from a browser
+    web-to-secure-phone:
+      SDES:
+        - only-AES_CM_128_HMAC_SHA1_80

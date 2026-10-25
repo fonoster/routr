@@ -20,7 +20,50 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("./tracer").init("rtprelay")
 
-import { BIND_ADDR, RTPENGINE_HOST, RTPENGINE_PORT } from "./envs"
+import { getLogger } from "@fonoster/logger"
+import {
+  BIND_ADDR,
+  CONFIG_PATH,
+  DEFAULT_BIND_ADDR,
+  DEFAULT_RTPENGINE_PORT,
+  RTPENGINE_HOST,
+  RTPENGINE_PORT
+} from "./envs"
+import { getConfig } from "./config/get_config"
 import rtprelay from "./service"
 
-rtprelay(BIND_ADDR, { host: RTPENGINE_HOST, port: RTPENGINE_PORT })
+const logger = getLogger({ service: "rtprelay", filePath: __filename })
+const result = getConfig(CONFIG_PATH)
+
+if (result._tag === "Right") {
+  const config = result.right
+  const host = RTPENGINE_HOST ?? config.rtpengine?.host
+
+  if (!host) {
+    logger.error(
+      "the environment variable RTPENGINE_HOST is required unless the " +
+        "configuration file sets spec.rtpengine.host"
+    )
+    process.exit(1)
+  }
+
+  if (config.source) {
+    logger.info("loaded configuration file", { path: config.source })
+  } else {
+    logger.info("no configuration file, running with the default profiles")
+  }
+
+  rtprelay(
+    BIND_ADDR ?? config.bindAddr ?? DEFAULT_BIND_ADDR,
+    {
+      host,
+      port: RTPENGINE_PORT ?? config.rtpengine?.port ?? DEFAULT_RTPENGINE_PORT
+    },
+    config.profiles
+  )
+} else {
+  // A relay that is up but never listens looks healthy to the orchestrator
+  // while every call fails; exit so the error is seen and the container restarts
+  logger.error(result.left)
+  process.exit(1)
+}

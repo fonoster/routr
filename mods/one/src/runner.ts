@@ -25,7 +25,7 @@ import { connectProcessor } from "@routr/connect"
 import { messageDispatcher } from "@routr/dispatcher"
 import { locationService } from "@routr/location"
 import { pgDataService as apiserver } from "@routr/pgdata"
-import { EDGEPORT_RUNNER, RTPENGINE_HOST } from "./envs"
+import { EDGEPORT_RUNNER, RTPENGINE_HOST, RTPRELAY_CONFIG_PATH } from "./envs"
 import {
   connectConfig,
   dispatcherConfig,
@@ -40,9 +40,22 @@ logger.info("routr v2 // all in one distribution")
 
 if (RTPENGINE_HOST) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { rtprelay } = require("@routr/rtprelay")
+  const { rtprelay, getConfig } = require("@routr/rtprelay")
 
-  rtprelay("0.0.0.0:51903", rtprelayConfig)
+  // Only the profiles are taken from the file; the RTPEngine address comes
+  // from the environment, as it always has in routr-one
+  const result = getConfig(RTPRELAY_CONFIG_PATH)
+
+  if (result._tag === "Left") {
+    logger.error(result.left)
+    process.exit(1)
+  }
+
+  if (result.right.source) {
+    logger.info("loaded rtprelay configuration", { path: result.right.source })
+  }
+
+  rtprelay("0.0.0.0:51903", rtprelayConfig, result.right.profiles)
 
   // Add rtprelay middleware
   dispatcherConfig.middlewares.push({

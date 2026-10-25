@@ -16,13 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Assertions as A } from "@routr/common"
+export const DEFAULT_BIND_ADDR = "0.0.0.0:51903"
+export const DEFAULT_RTPENGINE_PORT = 22222
 
-A.assertEnvsAreSet(["RTPENGINE_HOST"])
-
-export const BIND_ADDR = process.env.BIND_ADDR ?? "0.0.0.0:51903"
+// The configuration file is optional, and RTPENGINE_HOST may come from it, so
+// nothing is asserted here; the runner checks once the file is read. An
+// environment variable, when set, still wins over the file.
+export const CONFIG_PATH = process.env.CONFIG_PATH
+export const BIND_ADDR = process.env.BIND_ADDR
 export const RTPENGINE_HOST = process.env.RTPENGINE_HOST
-export const RTPENGINE_PORT = parseInt(process.env.RTPENGINE_PORT ?? "22222")
+export const RTPENGINE_PORT = process.env.RTPENGINE_PORT
+  ? parseInt(process.env.RTPENGINE_PORT)
+  : undefined
 export const RTPENGINE_TIMEOUT = parseInt(
   process.env.RTPENGINE_TIMEOUT ?? "5000"
 )

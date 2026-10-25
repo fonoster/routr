@@ -531,6 +531,14 @@ rtprelay:
   rtpeHost: ""
   # RTPEngine port
   rtpePort: 22222
+  # RTPEngine profiles by direction, merged over the defaults one key at a time
+  # (a list replaces the default list). Leave empty to run with the defaults.
+  # Profile names: web-to-web, web-to-phone, phone-to-web, phone-to-phone,
+  # web-to-secure-phone, phone-to-secure-phone. For example:
+  #   profiles:
+  #     phone-to-secure-phone:
+  #       SDES: [only-AES_CM_128_HMAC_SHA1_80]
+  profiles: {}
   # RTPRelay image configuration
   image:
     # RTPRelay image repository

@@ -33,3 +33,8 @@ export const RTPENGINE_HOST = process.env.RTPENGINE_HOST
 export const RTPENGINE_PORT = process.env.RTPENGINE_PORT
   ? parseInt(process.env.RTPENGINE_PORT)
   : 22222
+
+// Read only when the file is there; otherwise the relay runs with its default
+// profiles, which is how routr-one behaved before the file existed
+export const RTPRELAY_CONFIG_PATH =
+  process.env.RTPRELAY_CONFIG_PATH ?? "/etc/routr/rtprelay.yaml"

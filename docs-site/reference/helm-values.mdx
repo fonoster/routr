@@ -196,6 +196,7 @@ The chart sets `LOCATION_ADDR` and `API_ADDR` for you.
 | `rtprelay.enabled` | boolean | `false` | Deploy RTPRelay |
 | `rtprelay.rtpeHost` | string | `""` | Sets `RTPENGINE_HOST`. Required when enabled |
 | `rtprelay.rtpePort` | integer | `22222` | Sets `RTPENGINE_PORT` |
+| `rtprelay.profiles` | object | `{}` | RTPEngine profiles by direction, merged over the defaults one key at a time. When set, rendered into a ConfigMap mounted at `/etc/routr/rtprelay.yaml` with `CONFIG_PATH` pointing to it. See [RTPRelay](/reference/components/rtprelay#profiles) |
 | `rtprelay.image.*`, `podAnnotations`, `serviceAnnotations`, `securityContext.*`, `livenessProbe.*`, `resources.*`, `autoscaling.*` | | See [common groups](#common-value-groups) | |
 
 Enabling RTPRelay does not add it to the Dispatcher. Add an entry to `dispatcher.middlewares`, for example `{ref: rtprelay, serviceName: routr-rtprelay, postProcessor: true}`.

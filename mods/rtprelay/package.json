@@ -23,6 +23,8 @@
     "@grpc/grpc-js": "~1.14.6",
     "@routr/common": "^2.23.0",
     "@routr/processor": "^2.23.0",
+    "ajv": "^6.12.6",
+    "fp-ts": "^2.11.8",
     "rtpengine-client": "^0.4.11"
   },
   "files": [
