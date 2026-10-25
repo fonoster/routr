@@ -96,6 +96,51 @@ public class TransactionManager {
   private final Set<String> proxiedDialogs = ConcurrentHashMap.newKeySet();
 
   /**
+   * How long a cancel is remembered: 64 * T1 (RFC 3261 section 17.1.1.2), the
+   * longest an INVITE client transaction can still be answered.
+   */
+  static final long CANCEL_MEMORY_MS = 64 * 500L;
+
+  /**
+   * Call IDs whose caller cancelled, with the time the CANCEL was processed. A
+   * challenge (401/407) that arrives after the caller gave up must not be
+   * answered: the authenticated retry would start a call nobody is waiting for.
+   * This cannot be inferred from the caller's server transaction, which JAIN-SIP
+   * removes as soon as the caller ACKs the 487 on a reliable transport.
+   */
+  private final Map<String, Long> cancelledAt = new ConcurrentHashMap<>();
+
+  /**
+   * Records that the caller of a call cancelled it.
+   *
+   * @param callId The call ID
+   */
+  public void markCancelled(String callId) {
+    markCancelled(callId, System.currentTimeMillis());
+  }
+
+  void markCancelled(String callId, long nowMs) {
+    // Drop what is past its memory, so calls that never form a dialog don't leak
+    cancelledAt.values().removeIf(at -> nowMs - at > CANCEL_MEMORY_MS);
+    cancelledAt.put(callId, nowMs);
+  }
+
+  /**
+   * Whether the caller of a call cancelled it within the last 64 * T1.
+   *
+   * @param callId The call ID
+   * @return true if the call was cancelled and that is still remembered
+   */
+  public boolean isCancelled(String callId) {
+    return isCancelled(callId, System.currentTimeMillis());
+  }
+
+  boolean isCancelled(String callId, long nowMs) {
+    var at = cancelledAt.get(callId);
+    return at != null && nowMs - at <= CANCEL_MEMORY_MS;
+  }
+
+  /**
    * Records that this EdgePort proxied the dialog identified by the call ID.
    *
    * @param callId The call ID
@@ -248,6 +293,7 @@ public class TransactionManager {
   public void removeDialog(String callId) {
     proxiedDialogs.remove(callId);
     cseqOffsets.remove(callId);
+    cancelledAt.remove(callId);
     originalCseqNumbers.keySet().removeIf(key -> key.startsWith(callId + "_"));
   }
 

@@ -621,9 +621,13 @@ public class GRPCSipListener implements SipListener {
     }
   }
 
-  // The caller's server transaction is past PROCEEDING once it was answered
-  // with a final response, for example the 487 that follows its CANCEL
+  // The caller gave up when it cancelled (remembered explicitly, since its server
+  // transaction disappears once it ACKs the 487), or when its transaction was
+  // already answered with a final response
   private boolean callerGaveUp(final ClientTransaction clientTransaction, final CallIdHeader callId) {
+    if (callId != null && transactionManager.isCancelled(callId.getCallId())) {
+      return true;
+    }
     var callerTransaction = transactionManager.getServerTransactionFor(clientTransaction);
     if (callerTransaction == null && callId != null) {
       callerTransaction = transactionManager.getServerTransaction(callId.getCallId());
@@ -689,6 +693,10 @@ public class GRPCSipListener implements SipListener {
       if (callId == null) {
         return;
       }
+
+      // Remembered before anything else: a challenge to the INVITE can still
+      // arrive after this, and must not be answered (see callerGaveUp)
+      transactionManager.markCancelled(callId.getCallId());
 
       var originalClientTransaction = transactionManager.getClientTransaction(callId.getCallId());
       var originalServerTransaction = transactionManager.getServerTransaction(callId.getCallId());

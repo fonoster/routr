@@ -296,4 +296,33 @@ public class TransactionManagerTest {
     manager.removeTransaction("call-1", client);
     assertNull(manager.getServerTransactionFor(client));
   }
+
+  @Test
+  public void testACancelIsRememberedAfterTheCallersTransactionIsGone() {
+    var manager = new TransactionManager();
+    var client = mock(ClientTransaction.class);
+    var server = mock(ServerTransaction.class);
+    manager.putTransactions("call-1", client, server);
+
+    manager.markCancelled("call-1", 1_000);
+    // The caller ACKed the 487 and JAIN-SIP terminated its transaction
+    manager.removeTransaction("call-1", server);
+    manager.removeTransaction("call-1", client);
+
+    assertTrue(manager.isCancelled("call-1", 2_000));
+    assertFalse(manager.isCancelled("call-2", 2_000));
+  }
+
+  @Test
+  public void testACancelIsForgottenAfter64T1OrWhenTheDialogEnds() {
+    var manager = new TransactionManager();
+
+    manager.markCancelled("call-1", 1_000);
+    assertTrue(manager.isCancelled("call-1", 1_000 + TransactionManager.CANCEL_MEMORY_MS));
+    assertFalse(manager.isCancelled("call-1", 1_001 + TransactionManager.CANCEL_MEMORY_MS));
+
+    manager.markCancelled("call-2", 1_000);
+    manager.removeDialog("call-2");
+    assertFalse(manager.isCancelled("call-2", 1_000));
+  }
 }
