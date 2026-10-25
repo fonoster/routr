@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.opentelemetry.api.trace.StatusCode;
@@ -36,6 +37,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import javax.sip.ServerTransaction;
 import javax.sip.header.CallIdHeader;
+import javax.sip.header.Header;
+import org.mockito.ArgumentCaptor;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -83,6 +86,43 @@ class TelemetryTest {
     assertEquals("wss", span.getAttributes().get(Telemetry.TRANSPORT));
     assertEquals(200L, span.getAttributes().get(Telemetry.SIP_STATUS));
     assertEquals(StatusCode.UNSET, span.getStatus().getStatusCode());
+  }
+
+  @Test
+  void aRequestWithATraceparentJoinsThatTrace() {
+    var request = request("BYE", "dialog-1", "UDP");
+    var traceparent = mock(Header.class);
+    when(traceparent.toString())
+        .thenReturn("traceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\r\n");
+    when(request.getHeader(Telemetry.TRACEPARENT)).thenReturn(traceparent);
+    var transaction = mock(ServerTransaction.class);
+    when(transaction.getRequest()).thenReturn(request);
+
+    Telemetry.requestReceived(request, transaction, "10.0.0.9", 5060);
+    Telemetry.responseSent(transaction, response(200));
+
+    var span = spans.getFinishedSpanItems().get(0);
+    assertEquals("0af7651916cd43dd8448eb211c80319c", span.getTraceId());
+    assertEquals("b7ad6b7169203331", span.getParentSpanId());
+  }
+
+  @Test
+  void aForwardedRequestCarriesTheSpansTraceparent() {
+    var request = request("INVITE", "call-1", "WSS");
+    var transaction = mock(ServerTransaction.class);
+    when(transaction.getRequest()).thenReturn(request);
+    var requestOut = mock(Request.class);
+
+    Telemetry.requestReceived(request, transaction, "10.0.0.7", 59288);
+    Telemetry.forwarding(transaction, requestOut);
+    Telemetry.responseSent(transaction, response(200));
+
+    var header = ArgumentCaptor.forClass(Header.class);
+    verify(requestOut).setHeader(header.capture());
+    var span = spans.getFinishedSpanItems().get(0);
+    assertEquals("traceparent: 00-" + span.getTraceId() + "-" + span.getSpanId() + "-"
+        + span.getSpanContext().getTraceFlags().asHex(),
+        header.getValue().toString().trim());
   }
 
   @Test

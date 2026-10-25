@@ -27,9 +27,13 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.log4j.appender.v2_17.OpenTelemetryAppender;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
@@ -37,8 +41,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.text.ParseException;
+import java.util.regex.Pattern;
+import javax.sip.PeerUnavailableException;
+import javax.sip.SipFactory;
 import javax.sip.Transaction;
 import javax.sip.header.CallIdHeader;
+import javax.sip.header.HeaderFactory;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -68,6 +77,11 @@ public final class Telemetry {
   public static final AttributeKey<String> PEER_ADDRESS = stringKey("network.peer.address");
   public static final AttributeKey<Long> PEER_PORT = longKey("network.peer.port");
   public static final AttributeKey<String> DROP_REASON = stringKey("routr.drop.reason");
+
+  /** The W3C trace context header, carried on SIP requests like on HTTP ones. */
+  public static final String TRACEPARENT = "traceparent";
+  private static final Pattern TRACEPARENT_FORMAT =
+      Pattern.compile("^00-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$");
 
   private static final Map<Transaction, Span> SPANS = new ConcurrentHashMap<>();
 
@@ -166,6 +180,9 @@ public final class Telemetry {
     requests.add(1, Attributes.of(SIP_METHOD, method, TRANSPORT, transport));
 
     var span = tracer.spanBuilder("SIP " + method)
+        // A request that carries a traceparent (from Roomr, a carrier or another proxy) joins
+        // that trace.
+        .setParent(parentOf(request))
         .setSpanKind(SpanKind.SERVER)
         .setAttribute(SIP_METHOD, method)
         .setAttribute(SIP_CALL_ID, callIdOf(request))
@@ -181,6 +198,49 @@ public final class Telemetry {
     if (previous != null) {
       previous.end();
     }
+  }
+
+  /**
+   * Puts the trace context of the server transaction's span on the request EdgePort forwards for
+   * it, so the next hop (the Roomr node, for a call to an app) continues the same trace.
+   */
+  public static void forwarding(Transaction serverTransaction, Request requestOut) {
+    var span = serverTransaction != null ? SPANS.get(serverTransaction) : null;
+    if (span == null || !span.getSpanContext().isValid()) {
+      return;
+    }
+    var sc = span.getSpanContext();
+    var value = "00-" + sc.getTraceId() + "-" + sc.getSpanId() + "-" + sc.getTraceFlags().asHex();
+    try {
+      requestOut.setHeader(headers().createHeader(TRACEPARENT, value));
+    } catch (ParseException | PeerUnavailableException e) {
+      LOG.debug("could not add the traceparent header", e);
+    }
+  }
+
+  private static Context parentOf(Request request) {
+    var header = request.getHeader(TRACEPARENT);
+    if (header == null) {
+      return Context.root();
+    }
+    var value = header.toString();
+    value = value.substring(value.indexOf(':') + 1).trim().toLowerCase();
+    var m = TRACEPARENT_FORMAT.matcher(value);
+    if (!m.matches()) {
+      return Context.root();
+    }
+    var parent = SpanContext.createFromRemoteParent(m.group(1), m.group(2),
+        TraceFlags.fromHex(m.group(3), 0), TraceState.getDefault());
+    return parent.isValid() ? Context.root().with(Span.wrap(parent)) : Context.root();
+  }
+
+  private static HeaderFactory headerFactory;
+
+  private static synchronized HeaderFactory headers() throws PeerUnavailableException {
+    if (headerFactory == null) {
+      headerFactory = SipFactory.getInstance().createHeaderFactory();
+    }
+    return headerFactory;
   }
 
   /**

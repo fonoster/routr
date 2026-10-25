@@ -653,6 +653,8 @@ public class GRPCSipListener implements SipListener {
         }
       }
 
+      Telemetry.forwarding(serverTransaction, requestOut);
+
       // Does not need a transaction
       if (requestOut.getMethod().equals(Request.ACK)) {
         SipMessageSender.sendRequest(this.sipProvider, requestOut, isWebSocket);
