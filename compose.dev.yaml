@@ -113,6 +113,38 @@ services:
       internal:
         ipv4_address: 10.111.221.10
 
+  # Media relay, as in a real deployment. The dispatcher (config/dispatcher.dev.yaml)
+  # runs the rtprelay middleware, which drives RTPEngine. Nothing in the suite sends
+  # media; what matters is the SDP RTPEngine negotiates, for example SRTP toward
+  # a trunk that uses TLS (RR.Tst.Plan.1.2.2).
+  rtpengine:
+    container_name: rtpengine
+    image: fonoster/rtpengine:0.3.17
+    platform: linux/x86_64
+    command: ["rtpengine", "--dtls-passive"]
+    environment:
+      RTPENGINE_PORT_MIN: 10000
+      RTPENGINE_PORT_MAX: 10100
+      RTPENGINE_PUBLIC_IP: 10.111.221.30
+    networks:
+      internal:
+        ipv4_address: 10.111.221.30
+
+  rtprelay:
+    container_name: rtprelay
+    build:
+      context: .
+      dockerfile: ./mods/rtprelay/Dockerfile
+    depends_on:
+      - rtpengine
+    environment:
+      LOGS_LEVEL: verbose
+      RTPENGINE_HOST: rtpengine
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+    networks:
+      internal:
+        ipv4_address: 10.111.221.11
+
   # Tracing monitoring
   jaeger:
     container_name: jaeger
@@ -142,6 +174,7 @@ services:
       - apiserver
       - connect
       - location
+      - rtprelay
     environment:
       SCENARIOS: /seet.json
     ports:

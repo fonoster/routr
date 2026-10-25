@@ -6,7 +6,7 @@ description: "For operators exposing Routr beyond a test network: turn on TLS fo
 Encrypt the two channels that carry credentials: the API Server (port `51908`, used by `rctl` and the SDK) and SIP signaling (TLS on `5061`, WSS on `5063`). This guide uses the `fonoster/routr-one` image. Notes for split deployments and Kubernetes follow at the end.
 
 <Note>
-TLS protects signaling only. Routr is not a media server and doesn't encrypt RTP. Media encryption, if any, is negotiated between the endpoints.
+TLS protects signaling. Routr is not a media server and never touches RTP itself. With RTPEngine in the path (see [RTPRelay](/reference/components/rtprelay)), media toward a trunk that uses TLS is encrypted with SRTP; otherwise media encryption, if any, is negotiated between the endpoints.
 </Note>
 
 ## Prerequisites
@@ -141,7 +141,7 @@ A trunk whose outbound URI has `transport: tls` makes the EdgePort open a TLS co
 2. The EdgePort trusts the carrier's certificate. With `client.authType: DisabledAll`, the default in the examples, JAIN-SIP skips certificate validation on the connections the EdgePort opens, so any carrier certificate is accepted. With any other `authType`, the carrier's certificate is checked against the truststore: leave `spec.securityContext.trustStore` unset so the JVM's public CAs apply, set it only to trust a private CA, and never point it at `signaling.p12`.
 3. The TLS versions overlap. Most carriers negotiate TLS 1.2, so enable it as shown in [Choose TLS versions and cipher suites](#choose-tls-versions-and-cipher-suites).
 
-Carriers that require TLS usually require SRTP as well. The media relay does not negotiate SRTP toward a trunk yet, so such a carrier will still reject the media.
+Carriers that require TLS usually require SRTP as well. SRTP follows the transport: when RTPEngine is in the path, the media relay asks it for SDES-SRTP (`RTP/SAVP` with `a=crypto` lines) on every leg that uses TLS, and plain RTP or DTLS-SRTP on the other leg as before. There is nothing to configure on the trunk. Without RTPEngine (`RTPENGINE_HOST` unset in routr-one, or no RTPRelay middleware in a split deployment) the carrier receives the caller's SDP unchanged and will reject plain RTP.
 
 ## Require client certificates (optional)
 

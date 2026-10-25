@@ -23,7 +23,7 @@ import { RTPEConfig, RTPEFunctionResult } from "./types"
 import {
   getDirectionFromRequest,
   getDirectionFromResponse,
-  getRTPEParamsByDirection
+  getRTPEParams
 } from "./utils"
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Client = require("rtpengine-client").Client
@@ -40,7 +40,7 @@ export function query(config: RTPEConfig) {
 export function offer(config: RTPEConfig, invertTags = false) {
   return async (request: MessageRequest): Promise<RTPEFunctionResult> => {
     const direction = getDirectionFromRequest(request)
-    const sdpModifiers = getRTPEParamsByDirection(direction)
+    const sdpModifiers = getRTPEParams(request, direction)
     return await rtpe.offer(config, {
       ...sdpModifiers,
       sdp: request.message.body,
@@ -53,7 +53,7 @@ export function offer(config: RTPEConfig, invertTags = false) {
 export function answer(config: RTPEConfig, invertTags = false) {
   return async (request: MessageRequest): Promise<RTPEFunctionResult> => {
     const direction = getDirectionFromResponse(request)
-    const sdpModifiers = getRTPEParamsByDirection(direction)
+    const sdpModifiers = getRTPEParams(request, direction)
     return await rtpe.answer(config, {
       ...sdpModifiers,
       sdp: request.message.body,
