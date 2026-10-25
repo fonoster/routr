@@ -32,6 +32,8 @@ import { sendToProcessor } from "./send"
 
 export interface CompatFileResult {
   file: string
+  // From the manifest: not reviewed yet
+  draft?: boolean
   records: number
   replayed: boolean
   drifts: Trace.Drift[]
@@ -87,6 +89,7 @@ export async function runCompat(params: {
     const fired = new Set(findings.map((f) => f.rule))
     results.push({
       file: entry.file,
+      ...(entry.draft ? { draft: true } : {}),
       records: loaded.records.length,
       replayed,
       drifts,
@@ -173,7 +176,8 @@ export default class CompatCommand extends Command {
               r.unexpected.length ? `, ${r.unexpected.length} new` : ""
             }`
           : ""
-        this.log(`${state}  ${r.file}  ${r.records} records${lint}`)
+        const draft = r.draft ? "  (draft, needs review)" : ""
+        this.log(`${state}  ${r.file}  ${r.records} records${lint}${draft}`)
         r.drifts.forEach((d) =>
           this.log(`  ${g.differs} seq ${d.seq}  ${d.reason}`)
         )

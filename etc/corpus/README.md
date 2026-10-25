@@ -73,6 +73,12 @@ prints what to declare.
 `replay: false` keeps a file lint-only, for a recording whose chain state cannot
 be reproduced from the files alone.
 
+`draft: true` marks a recording nobody has reviewed yet, such as the first real
+traffic from a new interconnect. It is replayed and linted like any other file,
+so it guards the chain from the day it lands, and `rctl trace compat` prints
+`(draft, needs review)` next to it. A reviewer checks the flow and the declared
+findings, then removes the flag.
+
 ## Reading a drift
 
 `npm run compat` prints one line per file and one per drift:
