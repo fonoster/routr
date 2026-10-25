@@ -15,9 +15,9 @@
   --text-2: #e8e8e8;
   --text-3: #c2c2c2;
   --text-4: #8d8d8d;
-  --accent: #39e19e;
-  --on-accent: #011900;
-  --accent-text: #39e19e;
+  --accent: #5fcfce;
+  --on-accent: #001a1a;
+  --accent-text: #5fcfce;
   --danger: #f97066;
   --overlay-1: rgba(255, 255, 255, 0.04);
   --overlay-2: rgba(255, 255, 255, 0.07);
@@ -58,7 +58,7 @@
   --text-2: #555555;
   --text-3: #6b6b6b;
   --text-4: #8d8d8d;
-  --accent-text: #008751;
+  --accent-text: #1f8f8e;
   --danger: #d92d20;
   --overlay-1: rgba(0, 0, 0, 0.03);
   --overlay-2: rgba(0, 0, 0, 0.06);
@@ -2400,5 +2400,177 @@ section[id] {
 @media (prefers-reduced-motion: reduce) {
   .js .rr-editors .code .l.hl {
     background: var(--accent-subtle);
+  }
+}
+
+/* ---------- Routr v2: hero use-case scene ---------- */
+.hero__copy .t-display {
+  font-size: clamp(42px, 5.3vw, 76px);
+  line-height: 1.04;
+  letter-spacing: -0.034em;
+}
+.scene {
+  position: relative;
+  width: 660px;
+  flex-shrink: 0;
+}
+.scene__canvas {
+  display: none;
+  width: 100%;
+}
+.scene__fallback {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.scene.is-live .scene__canvas {
+  display: block;
+}
+.scene.is-live .scene__fallback {
+  display: none;
+}
+.scene-pill {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 6px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font: 400 12px/1 var(--mono);
+  color: var(--text-3);
+  pointer-events: none;
+}
+.scene-hub {
+  position: absolute;
+  transform: translateX(-50%);
+  font: 600 15px/1.2 var(--font);
+  color: var(--text-1);
+  pointer-events: none;
+}
+.scene-hub b {
+  color: var(--accent-text);
+}
+
+/* ---------- Routr v2: cards keep contrast on band sections ---------- */
+.band .dcard {
+  background: var(--bg);
+}
+.band .dcard--hi {
+  background: var(--surface-raised);
+}
+
+/* ---------- Routr v2: community color block ---------- */
+.community-color {
+  padding-block: 144px;
+  border-block: 1px solid rgba(0, 26, 26, 0.18);
+  background:
+    radial-gradient(90% 130% at 12% 0%, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0) 60%),
+    radial-gradient(80% 120% at 100% 100%, rgba(0, 26, 26, 0.35), rgba(0, 26, 26, 0) 70%),
+    linear-gradient(160deg, #7fe3e2, #5fcfce 40%, #2ba9a8);
+}
+.sec-head--row {
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 48px;
+}
+.community-color .eyebrow,
+.community-color .t-sub {
+  color: #0b3d3d;
+}
+.community-color .t-h2 {
+  color: #001a1a;
+}
+.star-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 14px 22px;
+  border-radius: 999px;
+  background: #001a1a;
+  color: #f0fdff;
+  font-weight: 500;
+  font-size: 15px;
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.star-cta:hover {
+  transform: translateY(-2px);
+}
+.star-cta .icon {
+  color: #5fcfce;
+}
+.star-cta__count {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(95, 207, 206, 0.18);
+  font: 500 13px/1.4 var(--mono);
+  color: #5fcfce;
+}
+.community-color .quote {
+  background: rgba(255, 255, 255, 0.34);
+  border-color: rgba(255, 255, 255, 0.62);
+}
+.community-color .quote p,
+.community-color .quote__who b {
+  color: #001a1a;
+}
+.community-color .quote > .icon,
+.community-color .quote__who span {
+  color: #0b3d3d;
+}
+.community-color .quote--featured {
+  background: #001a1a;
+  border-color: #001a1a;
+}
+.community-color .quote--featured p,
+.community-color .quote--featured .quote__who b {
+  color: #f0fdff;
+}
+.community-color .quote--featured > .icon {
+  color: #5fcfce;
+}
+.community-color .quote--featured .quote__who span {
+  color: #a8e6e5;
+}
+.community-color .dcard {
+  background: #f0fdff;
+  border-color: #ffffff;
+}
+.community-color .dcard:hover {
+  border-color: #001a1a;
+}
+.community-color .dcard__name {
+  color: #001a1a;
+}
+.community-color .dcard__line {
+  color: #0b3d3d;
+}
+.community-color .dcard > .icon {
+  color: #1f8f8e;
+}
+.community-color .arrow-link {
+  color: #001a1a;
+}
+
+@media (max-width: 1240px) {
+  .scene {
+    width: 520px;
+  }
+}
+@media (max-width: 960px) {
+  .scene {
+    width: 100%;
+    max-width: 560px;
+    margin-inline: auto;
+  }
+  .scene .scene-pill {
+    display: none;
+  }
+  .sec-head--row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
   }
 }
