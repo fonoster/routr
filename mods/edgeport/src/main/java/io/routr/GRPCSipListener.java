@@ -304,6 +304,15 @@ public class GRPCSipListener implements SipListener {
           var req = event.getClientTransaction().getRequest();
           var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
 
+          // A challenge that arrives after the caller gave up (its CANCEL was
+          // answered with 487) must not be answered: the retry would start a
+          // new call nobody is waiting for, and ring the callee after the
+          // caller hung up. JAIN-SIP ACKs the challenge on its own.
+          if (callerGaveUp(event.getClientTransaction(), callId)) {
+            LOG.debug("not authenticating callId: {}; the caller's transaction is already over", callId);
+            return;
+          }
+
           LOG.debug("authenticating on behalf of callId: {}", callId);
 
           ClientTransaction newClientTransaction = authenticationHandler.handleAuthChallenge(event, accountManager);
@@ -610,6 +619,19 @@ public class GRPCSipListener implements SipListener {
     if (removedTransactions.isEmpty()) {
       LOG.info("no active transactions matched the transport error on {}:{} via {}", host, port, transport);
     }
+  }
+
+  // The caller's server transaction is past PROCEEDING once it was answered
+  // with a final response, for example the 487 that follows its CANCEL
+  private boolean callerGaveUp(final ClientTransaction clientTransaction, final CallIdHeader callId) {
+    var callerTransaction = transactionManager.getServerTransactionFor(clientTransaction);
+    if (callerTransaction == null && callId != null) {
+      callerTransaction = transactionManager.getServerTransaction(callId.getCallId());
+    }
+    if (callerTransaction == null || callerTransaction.getState() == null) {
+      return false;
+    }
+    return callerTransaction.getState().getValue() > TransactionState._PROCEEDING;
   }
 
   private void sendRequest(final ServerTransaction serverTransaction, final Request request,
