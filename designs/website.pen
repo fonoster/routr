@@ -13309,7 +13309,7 @@
               "fill": "$accent-text",
               "textGrowth": "fixed-width",
               "width": "fill_container",
-              "content": "The call stays up.",
+              "content": "Calls keep flowing.",
               "lineHeight": 1.12,
               "fontFamily": "Poppins",
               "fontSize": 36,
