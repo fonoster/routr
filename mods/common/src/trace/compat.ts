@@ -159,22 +159,32 @@ function ignoreWhatTheRecordingCannotShow(
   })
   // Only when the relay actually rewrote the body; a relay that passed the
   // message through leaves it comparable
-  const throughMedia = (record.hops ?? []).some(
-    (h) =>
+  const throughMedia = (record.hops ?? []).some((h) => {
+    const headers = h.diff?.headers
+    return (
       MEDIA_COMPONENT.test(h.component) &&
-      !!h.diff?.headers &&
-      ["changed", "added", "removed"].some(
-        (k) =>
-          "Body" in
-          ((
-            h.diff.headers as unknown as Record<string, Record<string, unknown>>
-          )[k] ?? {})
-      )
-  )
+      !!headers &&
+      ("Body" in headers.changed ||
+        "Body" in headers.added ||
+        "Body" in headers.removed)
+    )
+  })
   if (throughMedia) {
-    recorded.body = "*"
-    replayed.body = "*"
+    recorded.body = withoutMediaDetails(recorded.body)
+    replayed.body = withoutMediaDetails(replayed.body)
   }
+}
+
+/**
+ * Replaces the media a body describes with a placeholder media line. The diff
+ * summarizes a body by its m= and c= lines, so a body that has media still
+ * compares as present and one that lost its SDP still shows as removed.
+ *
+ * @param {string} body - The body, possibly empty
+ * @return {string} The placeholder, or the body unchanged when it has no media
+ */
+function withoutMediaDetails(body?: string): string | undefined {
+  return /^(m|c)=/m.test(body ?? "") ? "m=*" : body
 }
 
 /**

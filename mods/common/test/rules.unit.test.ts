@@ -513,6 +513,12 @@ describe("@routr/common/trace corpus helpers", () => {
       }
     }
     expect(Trace.compareLive(relayed, live)).to.equal(undefined)
+    // Losing the SDP altogether is still drift, relay or not
+    const lostSdp = {
+      ...live,
+      message: { ...live.message, body: "" }
+    }
+    expect(Trace.compareLive(relayed, lostSdp)?.reason).to.include("Body")
     // A relay that only passed the message through (the hops of the
     // existing fixture) leaves the body comparable
     const passedThrough = { ...relayed, hops: forwardedInvite.hops }
