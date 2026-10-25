@@ -63,3 +63,4 @@ spec:
 - RTPRelay does nothing until you add it to the Dispatcher's `spec.middlewares`.
 - In `routr-one`, setting `RTPENGINE_HOST` starts RTPRelay and adds it as a post-processor middleware automatically.
 - RTPRelay controls media relaying only. Routr is not a media server, and RTPEngine is a separate service you run.
+- A leg that uses TLS gets SDES-SRTP: RTPRelay asks RTPEngine for `RTP/SAVP` toward a trunk or phone reached over TLS and keeps plain RTP, or DTLS-SRTP for browsers, on the other leg. This is how carriers that require secure trunking are satisfied; see [Secure the server](/guides/secure-the-server#call-a-carrier-over-tls).

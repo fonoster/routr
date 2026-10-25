@@ -54,7 +54,21 @@ export function getDirection(
   return Direction.PHONE_TO_PHONE
 }
 
-export function getRTPEParamsByDirection(dir: Direction) {
+// A phone leg reached over TLS, which is how a carrier that requires secure
+// trunking is configured. SRTP follows the transport: such a leg gets SDES-SRTP.
+export const isSecurePhone = (transport: CT.Transport) =>
+  transport?.toUpperCase() === CT.Transport.TLS
+
+// The leg a message is being sent to. For a request the EdgePort has already
+// put its own Via on top, facing the next hop; for a response the top Via is
+// the party the response goes back to.
+export const getDestinationTransport = (request: MessageRequest) =>
+  request.message.via[0]?.transport
+
+// The RTPEngine parameters for the leg the message is sent to. With
+// secureCallee the phone leg negotiates SDES-SRTP (RTP/SAVP) instead of plain
+// RTP; RTPEngine then encrypts toward the carrier and bridges to the other leg.
+export function getRTPEParamsByDirection(dir: Direction, secureCallee = false) {
   switch (dir) {
     case Direction.WEB_TO_WEB:
       return {
@@ -64,12 +78,12 @@ export function getRTPEParamsByDirection(dir: Direction) {
       }
     case Direction.WEB_TO_PHONE:
       return {
-        "transport-protocol": "RTP/AVP",
+        "transport-protocol": secureCallee ? "RTP/SAVP" : "RTP/AVP",
         DTLS: "off",
         ICE: "remove",
         "rtcp-mux": ["demux"],
         replace: ["origin", "session-connection"],
-        flags: ["trust-address", "SDES-no"]
+        flags: secureCallee ? ["trust-address"] : ["trust-address", "SDES-no"]
       }
     case Direction.PHONE_TO_WEB:
       return {
@@ -82,13 +96,21 @@ export function getRTPEParamsByDirection(dir: Direction) {
       }
     case Direction.PHONE_TO_PHONE:
       return {
-        "transport-protocol": "RTP/AVP",
+        "transport-protocol": secureCallee ? "RTP/SAVP" : "RTP/AVP",
         "rtcp-mux": "demux",
         ICE: "remove",
         flags: ["trust-address", "replace-origin", "replace-session-connection"]
       }
   }
 }
+
+// The RTPEngine parameters for a message, from its direction and the transport
+// of the leg it is sent to.
+export const getRTPEParams = (request: MessageRequest, direction: Direction) =>
+  getRTPEParamsByDirection(
+    direction,
+    isSecurePhone(getDestinationTransport(request))
+  )
 
 export const callInvolvesWebRTC = (direction: Direction) =>
   direction == Direction.WEB_TO_PHONE || direction == Direction.PHONE_TO_WEB

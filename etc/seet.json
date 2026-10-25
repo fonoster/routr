@@ -821,7 +821,7 @@
       },
       {
         "mode": "uac",
-        "scenarioFile": "scenarios/common/uac_invite.xml",
+        "scenarioFile": "scenarios/rr/uac_invite_tls.xml",
         "authentication": {
           "username": "1001",
           "secret": "1234"
@@ -842,6 +842,44 @@
         ]
       }
     ]
+  },
+  {
+    "name": "RR.Tst.Plan.1.2.3: SRTP toward the Service Provider on a TLS trunk",
+    "description": "This test verifies that the media relay asks RTPEngine for SDES-SRTP on a trunk that uses TLS: the Service Provider receives RTP/SAVP with crypto lines. Disabled until the rtprelay middleware handles re-INVITE and REFER (fonoster/routr#422); turn the middleware on in config/dispatcher.dev.yaml to run it.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_agent_to_pstn_tls_srtp.xml",
+        "transportMode": "l1",
+        "port": 5061
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/rr/uac_invite_tls.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:12225554000@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:12225554000@sip.local"
+          }
+        ]
+      }
+    ],
+    "enabled": false
   },
   {
     "name": "RR.Tst.Plan.1.3.1: Peer registration with Routr",
