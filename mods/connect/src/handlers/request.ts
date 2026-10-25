@@ -143,6 +143,10 @@ export const handleRequest =
         return res.send(
           pipe(
             identity.req,
+            // A Route the caller preloaded toward this EdgePort (an outbound
+            // proxy setting) is consumed here, as the tailor does; left in, it
+            // would follow the new route set and send the call back to us
+            A.removeSelfRoutes,
             A.addSelfVia(route),
             A.addSelfRecordRoute(route, identity.recordRouteParameters),
             // Each alteration puts its Route on top, so the one applied last is

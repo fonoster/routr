@@ -215,7 +215,7 @@ describe("@routr/connect", () => {
         .null
     })
 
-    it("routes through the peer edgeport first, then to the next hop", async () => {
+    it("routes through the peer edgeport first, drops Routes to itself and keeps the rest", async () => {
       // The agent is registered on edgeport-02 and the call arrives on
       // edgeport-01: the route set must send it to edgeport-02 first. The
       // EdgePort writes Routes in list order.
@@ -227,6 +227,11 @@ describe("@routr/connect", () => {
         requestUriHost: "trunk01.acme.com"
       })
       req.message.via[0].received = "127.0.0.1"
+      // The fixture's own Route points at this EdgePort (10.100.42.127:5060, a
+      // local address on its TCP listening point); add one that does not
+      const foreign = Helper.deepCopy(req.message.route[0])
+      foreign.address.uri.host = "203.0.113.50"
+      req.message.route = [...req.message.route, foreign]
       const location = {
         findRoutes: () => [
           {
@@ -255,17 +260,11 @@ describe("@routr/connect", () => {
       const hops = sent.message.route.map(
         (r) => `${r.address.uri.host}:${r.address.uri.port}`
       )
-      // The two Routes Connect adds come first, in that order; the request's
-      // own route set (from the fixture) follows untouched
-      expect(hops.slice(0, 2)).to.deep.equal([
+      expect(hops).to.deep.equal([
         "192.168.1.2:6060",
-        "192.168.1.3:5060"
+        "192.168.1.3:5060",
+        "203.0.113.50:5060"
       ])
-      expect(hops.slice(2)).to.deep.equal(
-        req.message.route.map(
-          (r) => `${r.address.uri.host}:${r.address.uri.port}`
-        )
-      )
     })
 
     it("rejects an unauthorized relay attempt with a forged X-Edgeport-Ref", async () => {
