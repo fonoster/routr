@@ -145,9 +145,12 @@ export const handleRequest =
             identity.req,
             A.addSelfVia(route),
             A.addSelfRecordRoute(route, identity.recordRouteParameters),
-            // The order of the routes is important
-            A.addRouteToPeerEdgePort(route),
+            // Each alteration puts its Route on top, so the one applied last is
+            // the first hop: the peer EdgePort, then the next hop after it.
+            // (The EdgePort used to write Routes bottom-first, which made the
+            // reverse order work here and flipped every other route set.)
             A.addRouteToNextHop(route),
+            A.addRouteToPeerEdgePort(route),
             A.addXEdgePortRef,
             A.decreaseMaxForwards
           )
