@@ -135,7 +135,12 @@ function applyRewrites(
  */
 function reencode(value: string, rewrite: (s: string) => string): string {
   const decoded = Buffer.from(value, "base64url").toString("utf8")
-  return Buffer.from(rewrite(decoded), "utf8").toString("base64url")
+  const rewritten = rewrite(decoded)
+  // Untouched unless a rewrite applied: decoding a value that is not UTF-8 text
+  // (a parameter with the same name that is not Routr's) would otherwise alter it
+  return rewritten === decoded
+    ? value
+    : Buffer.from(rewritten, "utf8").toString("base64url")
 }
 
 // Record-Route parameters in which Routr keeps the caller identity it rewrote

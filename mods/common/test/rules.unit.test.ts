@@ -685,6 +685,36 @@ describe("@routr/common/trace corpus helpers", () => {
     )
   })
 
+  it("leaves an identity parameter alone when no rewrite applies to it", () => {
+    // Not UTF-8 once decoded: re-encoding it would turn bytes into U+FFFD
+    const opaque = Buffer.from([0xff, 0xfe, 0x00, 0x80, 0x41]).toString(
+      "base64url"
+    )
+    const record = mutate(forwardedInvite, (inMsg) => {
+      inMsg.recordRoute = [
+        {
+          address: { uri: { host: "203.0.113.10", port: 5061 } },
+          parameters: { rco: opaque }
+        }
+      ] as never
+      inMsg.extensions = [
+        ...(inMsg.extensions ?? []),
+        { name: "X-Note", value: `<sip:203.0.113.10;lr>;rco=${opaque}` }
+      ] as never
+    })
+    const out = Trace.sanitizeRecord(record, {
+      credentials: [{ username: "1001", password: "1234" }],
+      rewrites: [["15555550133", "15555550144"]]
+    })
+    const params = (
+      out.request.message.recordRoute as unknown as {
+        parameters: Record<string, string>
+      }[]
+    )[0].parameters
+    expect(params.rco).to.equal(opaque)
+    expect(JSON.stringify(out)).to.include(`rco=${opaque}`)
+  })
+
   it("rewrites every identity parameter the processor writes", () => {
     // Built with the shared encoder and parameter names, so a rename or a new
     // parameter in the processor is covered here too
