@@ -90,3 +90,18 @@
     location:
       telUrl: tel:+18295863315
       aorLink: sip:1002@sip.local
+
+- apiVersion: v2beta1
+  kind: Number
+  ref: number-07
+  metadata:
+    name: "(222)555-4000"
+    geoInfo:
+      city: Unknown
+      country: USA
+      countryIsoCode: US
+  spec:
+    trunkRef: trunk-04
+    location:
+      telUrl: tel:+12225554000
+      aorLink: sip:1001@sip.local

@@ -8,5 +8,8 @@
     context:
       domainUri: sip.local
       egressPolicies:
+        # Calls to this number leave over the TLS trunk (RR.Tst.Plan.1.2.2)
+        - rule: "^12225554000$"
+          numberRef: number-07
         - rule: ".*"
           numberRef: number-01

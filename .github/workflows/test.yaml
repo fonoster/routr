@@ -198,6 +198,11 @@ jobs:
       - name: Build project
         run: npm run make
 
+      # The EdgePort and the SEET fake carrier share one certificate, so a call over TLS
+      # to the carrier is trusted (compose.dev.yaml mounts etc/certs into both).
+      - name: Generate dev certificates
+        run: sh .scripts/dev-certs.sh
+
       # Build every image from this checkout, let
       # edgeport's JVM and the data services settle, then run the compliance container
       # on its own and take its exit code.
