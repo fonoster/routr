@@ -206,7 +206,9 @@ public class GRPCSipListener implements SipListener {
       var method = event.getRequest().getMethod();
 
       if (isRequest && method.equals(Request.INVITE)) {
-        eventProcessor.processCallStartedEvent(response);
+        // The caller as it arrived, not the identity a Trunk may present it as
+        eventProcessor.processCallStartedEvent(response,
+            request != null && request.hasMessage() ? request.getMessage().getFrom() : null);
       } else if (isRequest && method.equals(Request.CANCEL)) {
         eventProcessor.processCallEndedEvent(response);
       } else if (!isRequest && method.equals(Request.REGISTER) 
@@ -369,6 +371,11 @@ public class GRPCSipListener implements SipListener {
       }
 
       if (serverTransaction != null) {
+        // The far end answers with the From and To this leg's request carried, which
+        // differ from the caller's when the Trunk rewrote the caller identity. A
+        // response must echo the caller's own (RFC 3261 section 8.2.6.2), and a phone
+        // may drop one that does not.
+        ResponseHelper.restoreIdentity(res, serverTransaction.getRequest());
         boolean isWebSocket = TransportDetector.isWebSocketTransport(serverTransaction.getRequest());
         // The response CSeq number must be the same as the original request CSeq number
         var originalCSeq = (CSeqHeader) serverTransaction.getRequest().getHeader(CSeqHeader.NAME);
