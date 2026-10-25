@@ -523,7 +523,7 @@ describe("@routr/connect", () => {
     }
 
     // Agent 1001 dialing 17853178071 leaves over trunk-02 (number-03), whose
-    // fixture has enforceE164 and rewriteFromWithNumber
+    // fixture has normalizeToE164 and rewriteFromWithNumber
     const agentCall = (toUser: string) =>
       createRequest({
         fromUser: "1001",
@@ -551,7 +551,7 @@ describe("@routr/connect", () => {
       expect(from.address.uri.host).to.equal("sip.provider.net")
       expect(from.address.uri.userParam).to.equal("phone")
       expect(from.tag).to.equal("9041462a")
-      // enforceE164 normalized the callee
+      // normalizeToE164 normalized the callee
       expect(out.message.to.address.uri.user).to.equal("+17853178071")
       expect(out.message.requestUri.user).to.equal("+17853178071")
       // Routing and the asserted identity worked from the caller's own From
@@ -595,7 +595,7 @@ describe("@routr/connect", () => {
       const trunk = await trunkOf("tel:+18095863314")
       expect(trunk.ref).to.equal("trunk-03")
       trunk.rewriteFromWithNumber = true
-      trunk.enforceE164 = true
+      trunk.normalizeToE164 = true
       try {
         const on = await send(peerCall())
         expect(on.message.from.address.uri.user).to.equal("+18095863314")
@@ -603,7 +603,7 @@ describe("@routr/connect", () => {
         expect(on.message.to.address.uri.user).to.equal("+17853178070")
       } finally {
         trunk.rewriteFromWithNumber = false
-        trunk.enforceE164 = false
+        trunk.normalizeToE164 = false
       }
     })
 
@@ -623,7 +623,7 @@ describe("@routr/connect", () => {
       expect(out.message.from.address.uri.host).to.equal("anonymous.invalid")
     })
 
-    it("normalizes a call from a Trunk with enforceE164 before routing", async () => {
+    it("normalizes a call from a Trunk with normalizeToE164 before routing", async () => {
       const fromTrunk02 = createRequest({
         fromUser: "17853178070",
         fromDomain: "sip.provider.net",

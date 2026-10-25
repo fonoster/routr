@@ -89,7 +89,7 @@ message Trunk {
   // Message recording for the calls that touch this Trunk
   fonoster.routr.connect.trace.v2beta1.Trace trace = 13;
   // Normalize From, To and Request-URI users to +E.164 on calls through this Trunk
-  bool enforce_e164 = 14;
+  bool normalize_to_e164 = 14;
   // On calls leaving through this Trunk, From becomes the Number's E.164 at from_domain
   bool rewrite_from_with_number = 15;
   // Host part of the rewritten From. Defaults to the outbound URI host
@@ -119,7 +119,7 @@ message CreateTrunkRequest {
   // Message recording for the calls that touch this Trunk
   fonoster.routr.connect.trace.v2beta1.Trace trace = 10;
   // Normalize From, To and Request-URI users to +E.164 on calls through this Trunk
-  bool enforce_e164 = 11;
+  bool normalize_to_e164 = 11;
   // On calls leaving through this Trunk, From becomes the Number's E.164 at from_domain
   bool rewrite_from_with_number = 12;
   // Host part of the rewritten From. Defaults to the outbound URI host
@@ -151,7 +151,7 @@ message UpdateTrunkRequest {
   // Message recording for the calls that touch this Trunk
   fonoster.routr.connect.trace.v2beta1.Trace trace = 11;
   // Normalize From, To and Request-URI users to +E.164 on calls through this Trunk
-  optional bool enforce_e164 = 12;
+  optional bool normalize_to_e164 = 12;
   // On calls leaving through this Trunk, From becomes the Number's E.164 at from_domain
   optional bool rewrite_from_with_number = 13;
   // Host part of the rewritten From. Defaults to the outbound URI host

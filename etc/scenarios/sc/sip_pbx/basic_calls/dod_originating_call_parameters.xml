@@ -6,7 +6,7 @@
   <recv request="INVITE">
     <action>
       <!--
-        The call leaves over trunk-02, which has enforceE164 and rewriteFromWithNumber (config/resources/trunks.yaml):
+        The call leaves over trunk-02, which has normalizeToE164 and rewriteFromWithNumber (config/resources/trunks.yaml):
         the Request-URI and To users are +E.164, and From is the Number (number-03, +18295863314) at the Service
         Provider's host, as SIP Connect 1.1 section 9 asks of a SIP-PBX in Registration mode.
       -->

@@ -124,7 +124,7 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
           default: false
         },
         {
-          name: "enforceE164",
+          name: "normalizeToE164",
           message: "Normalize numbers to E.164?",
           type: "confirm",
           default: false

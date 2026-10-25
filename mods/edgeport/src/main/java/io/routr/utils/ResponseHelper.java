@@ -103,7 +103,7 @@ public class ResponseHelper {
   /**
    * Gives a response the From and To of the request it answers, keeping the To tag
    * the far end added. A proxy that changed the identity on the way out (a Trunk
-   * with rewriteFromWithNumber or enforceE164) must restore it on the way back:
+   * with rewriteFromWithNumber or normalizeToE164) must restore it on the way back:
    * RFC 3261 section 8.2.6.2 has a response copy From and To from its request, and
    * the caller's request is the one on the server transaction.
    *

@@ -106,7 +106,7 @@ describe("@routr/pgdata/mappers/number", () => {
         name: "Global Trunk",
         accessControlListRef: "acl-01",
         sendRegister: true,
-        enforceE164: false,
+        normalizeToE164: false,
         rewriteFromWithNumber: false,
         fromDomain: null,
         traceEnabled: false,

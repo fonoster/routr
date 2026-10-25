@@ -63,7 +63,7 @@ export const handleRequest =
   ) =>
   async (request: MessageRequest, res: Response) => {
     try {
-      // A Trunk with enforceE164 gets its calls normalized before routing, which
+      // A Trunk with normalizeToE164 gets its calls normalized before routing, which
       // finds the Number by the Request-URI user. Calls toward a Trunk are
       // normalized after routing, by the tailor.
       let req = await normalizeFromTrunk(apiClient, request)

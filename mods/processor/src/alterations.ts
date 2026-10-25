@@ -394,12 +394,19 @@ export const overwriteContactWithSenderInfo = (request: MessageRequest) => {
 }
 
 // Will do the best effort to normalize from/to/requestUri users as e164 values.
-// Connect applies it per Trunk (spec.enforceE164), on the way in before routing
+// Connect applies it per Trunk (spec.normalizeToE164), on the way in before routing
 // and on the way out through the tailor.
-export const enforceE164 =
-  (enforceE164: boolean, validateMobilePrefix: boolean) =>
+//
+// The phone library validates mobile prefixes by default, which rejects
+// landlines; that check is off everywhere, so any valid number is normalized.
+// (The first version did the same; a later port turned it on for From alone.)
+const normalize = (user: string | undefined) =>
+  phone(`+${user}`, { validateMobilePrefix: false })
+
+export const normalizeToE164 =
+  (normalizeToE164: boolean) =>
   (request: MessageRequest): MessageRequest => {
-    if (!enforceE164) return request
+    if (!normalizeToE164) return request
 
     const req = H.deepCopy(request)
 
@@ -409,13 +416,9 @@ export const enforceE164 =
     const requestUriUser = req.message.requestUri.user?.replace("+", "")
 
     // Normalizing as e164
-    const normalizedTo = phone(`+${toUser}`, { validateMobilePrefix })
-    const normalizedFrom = phone(`+${fromUser}`, {
-      validateMobilePrefix: true
-    })
-    const normalizedReqUri = phone(`+${requestUriUser}`, {
-      validateMobilePrefix
-    })
+    const normalizedTo = normalize(toUser)
+    const normalizedFrom = normalize(fromUser)
+    const normalizedReqUri = normalize(requestUriUser)
 
     // If the normalization worked we overwrite the original values
     if (normalizedFrom.isValid) {

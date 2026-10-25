@@ -217,7 +217,7 @@ export const getTrunkURI = (
 
 /**
  * The caller identity settings of the Trunk a call leaves through, in the form
- * the tailor applies them (Route.enforceE164 and Route.rewriteFrom).
+ * the tailor applies them (Route.normalizeToE164 and Route.rewriteFrom).
  *
  * @param {CC.Trunk} trunk - the Trunk the call leaves through
  * @param {CC.INumber} number - the Number the call is placed from
@@ -226,13 +226,16 @@ export const getTrunkURI = (
 export const trunkIdentity = (
   trunk: CC.Trunk,
   number: CC.INumber
-): { enforceE164?: boolean; rewriteFrom?: { user: string; host: string } } => {
+): {
+  normalizeToE164?: boolean
+  rewriteFrom?: { user: string; host: string }
+} => {
   const identity: {
-    enforceE164?: boolean
+    normalizeToE164?: boolean
     rewriteFrom?: { user: string; host: string }
   } = {}
 
-  if (trunk.enforceE164) identity.enforceE164 = true
+  if (trunk.normalizeToE164) identity.normalizeToE164 = true
 
   if (trunk.rewriteFromWithNumber) {
     const telNumber = number.telUrl.split(":")[1]
@@ -248,7 +251,7 @@ export const trunkIdentity = (
 
 /**
  * Normalizes the From, To and Request-URI users of a call from the PSTN when its
- * Trunk has enforceE164. This runs before routing because routing finds the
+ * Trunk has normalizeToE164. This runs before routing because routing finds the
  * Number by the Request-URI user, which a carrier may send without the +. The
  * Trunk is the one whose inboundUri is the Request-URI host, the same lookup the
  * access check makes.
@@ -271,7 +274,7 @@ export const normalizeFromTrunk = async (
       })
     ).items[0]
 
-    return trunk?.enforceE164 ? A.enforceE164(true, false)(req) : req
+    return trunk?.normalizeToE164 ? A.normalizeToE164(true)(req) : req
   } catch (err) {
     // No Trunk answers to this host: not a call from the PSTN
     if (err.code === grpc.status.NOT_FOUND) return req

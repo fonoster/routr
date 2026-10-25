@@ -149,14 +149,14 @@ A carrier that authenticates by the From header, such as WhatsApp Business Calli
 
 ```yaml
 spec:
-  enforceE164: true             # From, To and Request-URI users become +E.164
+  normalizeToE164: true             # From, To and Request-URI users become +E.164
   rewriteFromWithNumber: true   # From becomes the Number, at fromDomain
   fromDomain: sip.example.com   # for Meta, the hostname registered with Meta
 ```
 
 With these, an agent's call leaves with `From: <sip:+18295863314@sip.example.com;user=phone>`, the Number from the Domain's egress policy. Without `fromDomain`, the host is the trunk's outbound URI host. A caller who asked for privacy keeps `anonymous@anonymous.invalid`. The caller still sees its own identity on responses and on the carrier's in-dialog requests. Routr keeps the mapping in its Record-Route parameters.
 
-The `ENFORCE_E164` environment variable is gone: set `enforceE164` on each trunk instead. See [Caller identity](/reference/resources/trunks#caller-identity) for every detail.
+The `ENFORCE_E164` environment variable is gone: set `normalizeToE164` on each trunk instead. See [Caller identity](/reference/resources/trunks#caller-identity) for every detail.
 
 ## Require client certificates (optional)
 

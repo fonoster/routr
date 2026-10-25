@@ -76,7 +76,7 @@ export class TrunkManager extends EntityManager {
       // TODO: Set a default value for apiVersion
       ...withoutTrace(this.trunk),
       traceEnabled: this.trunk.trace?.enabled ?? false,
-      enforceE164: this.trunk.enforceE164 ?? false,
+      normalizeToE164: this.trunk.normalizeToE164 ?? false,
       rewriteFromWithNumber: this.trunk.rewriteFromWithNumber ?? false,
       // An empty string clears the setting, so the outbound URI host applies again
       fromDomain: this.trunk.fromDomain || null,

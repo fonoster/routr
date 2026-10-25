@@ -41,9 +41,9 @@ export const tailor = (route: Route, request: MessageRequest): MessageRequest =>
 }
 ```
 
-`applyTrunkIdentity` runs `enforceE164(!!route.enforceE164, false)` and `rewriteFromWithNumber(route)`, then `identityRewriteParameters` on the result.
+`applyTrunkIdentity` runs `normalizeToE164(!!route.normalizeToE164, false)` and `rewriteFromWithNumber(route)`, then `identityRewriteParameters` on the result.
 
-The `Route` argument is usually the result of a Location Service lookup. Its relevant fields are `user`, `host`, `port`, `transport`, `advertisedHost`, `advertisedPort`, `edgePortRef`, `listeningPoints`, `localnets`, `externalAddrs`, `registeredOn`, and `headers`. A route to a Trunk also carries `enforceE164` and `rewriteFrom` (`{ user, host }`), from the Trunk's [caller identity settings](/reference/resources/trunks#caller-identity).
+The `Route` argument is usually the result of a Location Service lookup. Its relevant fields are `user`, `host`, `port`, `transport`, `advertisedHost`, `advertisedPort`, `edgePortRef`, `listeningPoints`, `localnets`, `externalAddrs`, `registeredOn`, and `headers`. A route to a Trunk also carries `normalizeToE164` and `rewriteFrom` (`{ user, host }`), from the Trunk's [caller identity settings](/reference/resources/trunks#caller-identity).
 
 ## Summary
 
@@ -66,7 +66,7 @@ The `Route` argument is usually the result of a Location Service lookup. Its rel
 | [`decreaseMaxForwards`](#decreasemaxforwards) | `(request) => request` | Max-Forwards |
 | [`fixInvalidContact`](#fixinvalidcontact) | `(request) => request` | Contact |
 | [`overwriteContactWithSenderInfo`](#overwritecontactwithsenderinfo) | `(request) => request` | Contact |
-| [`enforceE164`](#enforcee164) | `(enforce: boolean, validateMobilePrefix: boolean) => (request) => request` | From, To, Request-URI users |
+| [`normalizeToE164`](#normalizetoe164) | `(normalize: boolean) => (request) => request` | From, To, Request-URI users |
 | [`rewriteFromWithNumber`](#rewritefromwithnumber) | `(route) => (request) => request` | From |
 | [`identityRewriteParameters`](#identityrewriteparameters) | `(original, altered) => Record<string, string>` | None (returns parameters) |
 | [`swapIdentityFromRouteSet`](#swapidentityfromrouteset) | `(request) => request` | From, To |
@@ -301,16 +301,16 @@ const out = A.overwriteContactWithSenderInfo(request)
 
 ## Numbers
 
-### enforceE164
+### normalizeToE164
 
 ```typescript
-enforceE164(enforce: boolean, validateMobilePrefix: boolean): (request: MessageRequest) => MessageRequest
+normalizeToE164(normalize: boolean): (request: MessageRequest) => MessageRequest
 ```
 
-When `enforce` is `true`, tries to rewrite the From, To, and Request-URI users as E.164 numbers (with a leading `+`). It replaces a value only when it parses as a valid number. `validateMobilePrefix` applies to the To and Request-URI users; the From user is always checked with mobile prefix validation. Returns the request unchanged when `enforce` is `false`. Connect applies it for Trunks with `enforceE164`: before routing on calls from the Trunk, and in the tailor on calls toward it.
+When `normalize` is `true`, tries to rewrite the From, To, and Request-URI users as E.164 numbers (with a leading `+`). It replaces a value only when it parses as a valid number, landlines included: mobile prefixes are not checked. Returns the request unchanged when `normalize` is `false`. Connect applies it for Trunks with `normalizeToE164`: before routing on calls from the Trunk, and in the tailor on calls toward it.
 
 ```typescript
-const out = A.enforceE164(true, false)(request)
+const out = A.normalizeToE164(true)(request)
 ```
 
 ### rewriteFromWithNumber

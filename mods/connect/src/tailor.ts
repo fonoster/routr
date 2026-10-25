@@ -21,7 +21,7 @@ import { Route } from "@routr/common"
 import { pipe } from "fp-ts/function"
 
 /**
- * The caller identity a Trunk asks for (Route.enforceE164 and Route.rewriteFrom),
+ * The caller identity a Trunk asks for (Route.normalizeToE164 and Route.rewriteFrom),
  * applied to a request on its way out, plus the Record-Route parameters that let
  * Routr map the identities back on the dialog's later requests.
  *
@@ -35,7 +35,7 @@ export const applyTrunkIdentity = (
 ): { req: MessageRequest; recordRouteParameters: Record<string, string> } => {
   const altered = pipe(
     req,
-    A.enforceE164(!!route.enforceE164, false),
+    A.normalizeToE164(!!route.normalizeToE164),
     A.rewriteFromWithNumber(route)
   )
   return {

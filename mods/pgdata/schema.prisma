@@ -99,7 +99,7 @@ model Trunk {
   outboundCredentialsRef String?    @map("outbound_credentials_ref")
   name                   String     @db.VarChar(60)
   sendRegister           Boolean    @default(false) @map("send_register")
-  enforceE164            Boolean    @default(false) @map("enforce_e164")
+  normalizeToE164            Boolean    @default(false) @map("normalize_to_e164")
   rewriteFromWithNumber  Boolean    @default(false) @map("rewrite_from_with_number")
   fromDomain             String?    @map("from_domain") @db.VarChar(255)
   inboundUri             String?    @unique @map("inbound_uri")
