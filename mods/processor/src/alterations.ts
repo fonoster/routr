@@ -394,7 +394,7 @@ export const overwriteContactWithSenderInfo = (request: MessageRequest) => {
 }
 
 // Will do the best effort to normalize from/to/requestUri users as e164 values.
-// Connect applies it per Trunk (spec.enforceE164), on the way in before routing
+// Connect applies it per Trunk (spec.normalizeToE164), on the way in before routing
 // and on the way out through the tailor.
 //
 // The phone library validates mobile prefixes by default, which rejects
@@ -403,10 +403,10 @@ export const overwriteContactWithSenderInfo = (request: MessageRequest) => {
 const normalize = (user: string | undefined) =>
   phone(`+${user}`, { validateMobilePrefix: false })
 
-export const enforceE164 =
-  (enforceE164: boolean) =>
+export const normalizeToE164 =
+  (normalizeToE164: boolean) =>
   (request: MessageRequest): MessageRequest => {
-    if (!enforceE164) return request
+    if (!normalizeToE164) return request
 
     const req = H.deepCopy(request)
 

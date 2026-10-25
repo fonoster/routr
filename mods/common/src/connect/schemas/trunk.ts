@@ -48,7 +48,7 @@ export default {
       description: "Operations spec for an Trunk",
       type: "object",
       properties: {
-        enforceE164: {
+        normalizeToE164: {
           description:
             "Normalize From, To and Request-URI users to +E.164 on calls through this Trunk",
           type: "boolean"

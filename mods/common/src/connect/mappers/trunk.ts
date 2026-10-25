@@ -33,7 +33,7 @@ export function mapToTrunk(config: TrunkConfig): Trunk {
     ref: config.ref,
     name: config.metadata.name,
     sendRegister: config.spec.outbound?.sendRegister,
-    enforceE164: config.spec.enforceE164 ?? false,
+    normalizeToE164: config.spec.normalizeToE164 ?? false,
     rewriteFromWithNumber: config.spec.rewriteFromWithNumber ?? false,
     fromDomain: config.spec.fromDomain,
     inboundUri: config.spec.inbound?.uri,

@@ -216,7 +216,7 @@ describe("@routr/pgdata/api/update", () => {
   it("applies the caller identity settings of a Trunk", async () => {
     const request = decode(TRUNKS[0], TRUNKS[1], "Update", {
       ref: "trunk-01",
-      enforceE164: true,
+      normalizeToE164: true,
       rewriteFromWithNumber: true,
       fromDomain: "sip.example.com"
     })
@@ -225,7 +225,7 @@ describe("@routr/pgdata/api/update", () => {
 
     expect(data).to.deep.equal({
       ref: "trunk-01",
-      enforceE164: true,
+      normalizeToE164: true,
       rewriteFromWithNumber: true,
       fromDomain: "sip.example.com"
     })

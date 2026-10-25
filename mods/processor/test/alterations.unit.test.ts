@@ -294,7 +294,7 @@ describe("@routr/processor/alterations", () => {
       from: "17853178071",
       to: "46721895538"
     })
-    const r = A.enforceE164(true)(req)
+    const r = A.normalizeToE164(true)(req)
     expect(r).to.have.property("message")
     expect(r.message.from.address.uri.user).to.be.equal("+17853178071")
     expect(r.message.to.address.uri.user).to.be.equal("+46721895538")
@@ -306,7 +306,7 @@ describe("@routr/processor/alterations", () => {
       from: "1001",
       to: "46721895538"
     })
-    const r = A.enforceE164(true)(req)
+    const r = A.normalizeToE164(true)(req)
     expect(r).to.have.property("message")
     expect(r.message.from.address.uri.user).to.be.equal("1001")
     expect(r.message.to.address.uri.user).to.be.equal("+46721895538")
@@ -320,7 +320,7 @@ describe("@routr/processor/alterations", () => {
       from: "33183646565",
       to: "33183646566"
     })
-    const r = A.enforceE164(true)(req)
+    const r = A.normalizeToE164(true)(req)
     expect(r.message.from.address.uri.user).to.be.equal("+33183646565")
     expect(r.message.to.address.uri.user).to.be.equal("+33183646566")
     expect(r.message.requestUri.user).to.be.equal("+33183646566")
@@ -373,12 +373,12 @@ describe("@routr/processor/alterations", () => {
       expect(A.isAnonymous({ user: "Anonymous", host: "x.com" })).to.equal(true)
     })
 
-    it("leaves the request alone when enforceE164 is off", () => {
+    it("leaves the request alone when normalizeToE164 is off", () => {
       const req = createPSTNMessage(request, {
         from: "17853178071",
         to: "46721895538"
       })
-      expect(A.enforceE164(false)(req)).to.equal(req)
+      expect(A.normalizeToE164(false)(req)).to.equal(req)
     })
 
     it("records nothing in Record-Route when the identity did not change", () => {
@@ -415,14 +415,14 @@ describe("@routr/processor/alterations", () => {
         )
     })
 
-    it("records a To normalized by enforceE164", () => {
+    it("records a To normalized by normalizeToE164", () => {
       const req = createPSTNMessage(request, {
         from: "1001",
         to: "46721895538"
       })
       const parameters = A.identityRewriteParameters(
         req,
-        A.enforceE164(true)(req)
+        A.normalizeToE164(true)(req)
       )
       expect(parameters).to.have.keys("rco", "rcn")
     })

@@ -43,7 +43,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
       inboundCredentialsRef: "credentials-01",
       outboundCredentialsRef: "credentials-01",
       sendRegister: true,
-      enforceE164: true,
+      normalizeToE164: true,
       rewriteFromWithNumber: true,
       fromDomain: "sip.example.com",
       createdAt: new Date().getTime(),
@@ -83,7 +83,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
       inboundCredentialsRef: "credentials-01",
       outboundCredentialsRef: "credentials-01",
       sendRegister: true,
-      enforceE164: true,
+      normalizeToE164: true,
       rewriteFromWithNumber: true,
       fromDomain: "sip.example.com",
       createdAt: new Date(),
@@ -169,7 +169,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
     const result = new TrunkManager(trunk).mapToPrisma()
 
     // Assert
-    expect(result.enforceE164).to.equal(false)
+    expect(result.normalizeToE164).to.equal(false)
     expect(result.rewriteFromWithNumber).to.equal(false)
     // Stored as NULL so the outbound URI host is used
     expect(result.fromDomain).to.equal(null)
@@ -186,7 +186,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
       inboundCredentialsRef: null,
       outboundCredentialsRef: null,
       sendRegister: false,
-      enforceE164: false,
+      normalizeToE164: false,
       rewriteFromWithNumber: false,
       fromDomain: null,
       createdAt: new Date(),
@@ -204,7 +204,7 @@ describe("@routr/pgdata/mappers/trunk", () => {
 
     // Assert
     expect(result.fromDomain).to.equal(undefined)
-    expect(result.enforceE164).to.equal(false)
+    expect(result.normalizeToE164).to.equal(false)
     expect(result.rewriteFromWithNumber).to.equal(false)
   })
 

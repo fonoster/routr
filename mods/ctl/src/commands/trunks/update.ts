@@ -139,10 +139,10 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
           default: trunkFromDB.sendRegister
         },
         {
-          name: "enforceE164",
+          name: "normalizeToE164",
           message: "Normalize numbers to E.164?",
           type: "confirm",
-          default: trunkFromDB.enforceE164 ?? false
+          default: trunkFromDB.normalizeToE164 ?? false
         },
         {
           name: "rewriteFromWithNumber",
