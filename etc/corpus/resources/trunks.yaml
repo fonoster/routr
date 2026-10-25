@@ -65,3 +65,29 @@
           priority: 10
           weight: 10
           enabled: true
+
+# WhatsApp Business Calling over SIP: TLS to Meta, the business number as the
+# caller at the hostname registered with Meta (sipjs_wa-dod-invite_whatsapp)
+- apiVersion: v2beta1
+  kind: Trunk
+  ref: trunk-wa
+  metadata:
+    name: WhatsApp (Meta)
+    region: us-east1
+  spec:
+    normalizeToE164: true
+    rewriteFromWithNumber: true
+    fromDomain: wa.example.com
+    inbound:
+      uri: wa.meta.vc
+    outbound:
+      credentialsRef: credentials-wa-meta
+      uris:
+        - uri:
+            user: "15555550199"
+            host: wa.meta.vc
+            port: 5061
+            transport: tls
+          priority: 10
+          weight: 10
+          enabled: true

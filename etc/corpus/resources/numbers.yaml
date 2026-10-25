@@ -90,3 +90,18 @@
     location:
       telUrl: tel:+18295863315
       aorLink: sip:1002@sip.local
+
+- apiVersion: v2beta1
+  kind: Number
+  ref: number-wa
+  metadata:
+    name: WhatsApp Business Number
+    geoInfo:
+      city: N/A
+      country: N/A
+      countryIsoCode: US
+  spec:
+    trunkRef: trunk-wa
+    location:
+      telUrl: tel:+15555550199
+      aorLink: sip:dialer@wp.local

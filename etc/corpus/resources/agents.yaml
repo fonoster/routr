@@ -19,3 +19,14 @@
     domainRef: domain-01
     credentialsRef: credentials-02
     privacy: None
+
+- apiVersion: v2beta1
+  kind: Agent
+  ref: agent-wa
+  metadata:
+    name: Browser Dialer
+  spec:
+    username: dialer
+    domainRef: domain-wa
+    credentialsRef: credentials-wa-dialer
+    privacy: None

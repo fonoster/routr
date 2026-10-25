@@ -10,3 +10,15 @@
       egressPolicies:
         - rule: ".*"
           numberRef: number-01
+
+- apiVersion: v2beta1
+  kind: Domain
+  ref: domain-wa
+  metadata:
+    name: WhatsApp Dialer Domain
+  spec:
+    context:
+      domainUri: wp.local
+      egressPolicies:
+        - rule: ".*"
+          numberRef: number-wa
