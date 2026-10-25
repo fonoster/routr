@@ -66,20 +66,25 @@ public class SafeNioTlsMessageChannel extends NioTlsMessageChannel {
   private static final Logger LOG = LogManager.getLogger(SafeNioTlsMessageChannel.class);
 
   // NioTlsMessageChannel.sslStateMachine and SSLStateMachine.sslEngine are
-  // package-private in JAIN-SIP, SSLStateMachine.wrapNonAppData is private
+  // package-private in JAIN-SIP; SSLStateMachine.wrapLock and wrapNonAppData are
+  // private
   private static final Field SSL_STATE_MACHINE;
   private static final Field SSL_ENGINE;
+  private static final Field WRAP_LOCK;
   private static final Method WRAP_NON_APP_DATA;
 
   static {
     Field stateMachine = null;
     Field engine = null;
+    Field wrapLock = null;
     Method wrapNonAppData = null;
     try {
       stateMachine = NioTlsMessageChannel.class.getDeclaredField("sslStateMachine");
       stateMachine.setAccessible(true);
       engine = SSLStateMachine.class.getDeclaredField("sslEngine");
       engine.setAccessible(true);
+      wrapLock = SSLStateMachine.class.getDeclaredField("wrapLock");
+      wrapLock.setAccessible(true);
       wrapNonAppData = SSLStateMachine.class.getDeclaredMethod("wrapNonAppData");
       wrapNonAppData.setAccessible(true);
     } catch (ReflectiveOperationException | RuntimeException e) {
@@ -87,6 +92,7 @@ public class SafeNioTlsMessageChannel extends NioTlsMessageChannel {
     }
     SSL_STATE_MACHINE = stateMachine;
     SSL_ENGINE = engine;
+    WRAP_LOCK = wrapLock;
     WRAP_NON_APP_DATA = wrapNonAppData;
   }
 
@@ -170,7 +176,8 @@ public class SafeNioTlsMessageChannel extends NioTlsMessageChannel {
   @Override
   protected void addBytes(byte[] bytes) throws Exception {
     super.addBytes(bytes);
-    if (SSL_STATE_MACHINE == null || SSL_ENGINE == null || WRAP_NON_APP_DATA == null) {
+    if (SSL_STATE_MACHINE == null || SSL_ENGINE == null || WRAP_LOCK == null
+        || WRAP_NON_APP_DATA == null) {
       return;
     }
     var stateMachine = (SSLStateMachine) SSL_STATE_MACHINE.get(this);
@@ -178,10 +185,52 @@ public class SafeNioTlsMessageChannel extends NioTlsMessageChannel {
       return;
     }
     var engine = (SSLEngine) SSL_ENGINE.get(stateMachine);
-    if (engine != null && engine.getHandshakeStatus() == HandshakeStatus.NEED_WRAP) {
-      // Sends the pending handshake records; finishing the handshake calls
-      // setHandshakeCompleted, which sends what was queued meanwhile
+    var lock = WRAP_LOCK.get(stateMachine);
+    // Sends the pending handshake records; finishing the handshake calls
+    // setHandshakeCompleted, which sends what was queued meanwhile
+    sendPendingHandshake(engine, lock, () -> {
       WRAP_NON_APP_DATA.invoke(stateMachine);
+      return null;
+    }, peerAddress + ":" + peerPort);
+  }
+
+  /**
+   * Runs {@code wrap} when the engine has a handshake message due, under the
+   * state machine's wrap lock.
+   *
+   * <p>The lock is the one SSLStateMachine.wrap holds: without it, a SIP message
+   * sent from another thread at the same moment produces TLS records too, and
+   * the two writes can reach the wire out of order, which the peer rejects
+   * (bad_record_mac). The status is read again under the lock, since a send
+   * that held it may have advanced the handshake meanwhile. An error is logged,
+   * not thrown: it would otherwise end the read path of the connection.
+   *
+   * @param engine the TLS engine, or null
+   * @param lock the state machine's wrap lock, or null
+   * @param wrap what sends the handshake records
+   * @param peer the peer, for the log
+   * @return true when wrap ran and did not fail
+   */
+  static boolean sendPendingHandshake(SSLEngine engine, Object lock,
+      java.util.concurrent.Callable<?> wrap, String peer) {
+    if (engine == null || lock == null
+        || engine.getHandshakeStatus() != HandshakeStatus.NEED_WRAP) {
+      return false;
+    }
+    synchronized (lock) {
+      if (engine.getHandshakeStatus() != HandshakeStatus.NEED_WRAP) {
+        return false;
+      }
+      try {
+        wrap.call();
+        return true;
+      } catch (Exception e) {
+        var cause = e instanceof java.lang.reflect.InvocationTargetException && e.getCause() != null
+            ? e.getCause()
+            : e;
+        LOG.warn("could not send the pending TLS handshake message; peer={}", peer, cause);
+        return false;
+      }
     }
   }
 
