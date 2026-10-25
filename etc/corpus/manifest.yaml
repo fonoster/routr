@@ -82,3 +82,12 @@ files:
       numbers, the registered hostname, public addresses and Meta ids are test
       values. Review: request-uri-e164 is Meta's required URI format (no
       user=phone).
+  - file: sipjs_wa-dod-invite-cancel_whatsapp_20261025.jsonl
+    profiles: [sip, sip-connect]
+    findings: [sip-connect/request-uri-e164]
+    draft: true
+    note: >-
+      Real call from the SIP.js dialer to a WhatsApp user, cancelled by the caller
+      right away: the CANCEL leaves before Meta's 180 arrives, and no further
+      INVITE follows. Sanitized like the answered call. Review: request-uri-e164
+      is Meta's required URI format (no user=phone).
