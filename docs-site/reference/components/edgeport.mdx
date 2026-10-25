@@ -43,9 +43,9 @@ The EdgePort reads a YAML or JSON file and validates it against a JSON schema at
 | `spec.securityContext.client.cipherSuites` | string[] | No | See below | Cipher suites for the TLS and WSS transports, using JDK names. `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` overrides it |
 | `spec.securityContext.client.authType` | string | No | | Client authentication type: `Disabled`, `DisabledAll`, `Required`, or `Wanted`. Use `Disabled` or `DisabledAll` with WSS |
 | `spec.securityContext.keyStore` | string | No | | Path to the keystore, for example `/etc/routr/certs/signaling.p12` |
-| `spec.securityContext.trustStore` | string | No | | Path to the truststore |
+| `spec.securityContext.trustStore` | string | No | JVM truststore | Path to a truststore with the CAs the EdgePort trusts on connections it opens, for example to a carrier over TLS. Leave it unset to trust the public CAs in the JVM's `cacerts`. Don't point it at `signaling.p12`: that trusts only the EdgePort's own certificate and fails the handshake to a carrier |
 | `spec.securityContext.keyStorePassword` | string | No | | Keystore password |
-| `spec.securityContext.trustStorePassword` | string | No | | Truststore password |
+| `spec.securityContext.trustStorePassword` | string | No | | Truststore password. Only with `trustStore` |
 | `spec.securityContext.keyStoreType` | string | No | | Keystore type, for example `pkcs12` |
 
 The `securityContext` fields map to the JAIN SIP `javax.net.ssl.*`, `gov.nist.javax.sip.TLS_CLIENT_*`, and `gov.nist.javax.sip.ENABLED_CIPHER_SUITES` properties.
@@ -70,6 +70,7 @@ Use the names the Java runtime knows. A name it doesn't recognize makes every TL
 | `LOCALNETS` | | Comma-separated CIDRs. Overrides `spec.localnets` |
 | `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | | Comma-separated TLS versions, for example `TLSv1.3,TLSv1.2`. Overrides `spec.securityContext.client.protocols` |
 | `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | | Comma-separated cipher suites. Overrides `spec.securityContext.client.cipherSuites` |
+| `JAIN_SIP_TRACE_LEVEL` | | Troubleshooting only. JAIN-SIP's own trace level, for example `32` for debug: logs sockets and TLS handshakes under the `routr` logger. Very verbose |
 | `IGNORE_LOOPBACK_FROM_LOCALNETS` | `true` (image) | When `localnets` comes from the OS, skip `127.0.0.1` |
 | `STRIP_SESSION_PROGRESS_SDP` | `false` | Remove the body and `Content-Type` from `183 Session Progress` responses |
 | `ENABLE_HEALTHCHECKS` | `false` | Start the HTTP health check on port `8080` (`/healthz`) |

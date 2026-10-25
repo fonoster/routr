@@ -36,6 +36,28 @@ export class ServiceDefinitionNotFoundError extends Error {
 }
 
 /**
+ * Error thrown when a request must leave over a transport the EdgePort has no
+ * listening point for, for example a trunk URI with transport=tls on an
+ * EdgePort without a tls transport.
+ */
+export class NoListeningPointError extends Error {
+  transport: string
+
+  /**
+   * Constructs a new NoListeningPointError error.
+   *
+   * @param {string} transport - The transport without a listening point.
+   */
+  constructor(transport: string) {
+    super(
+      `no listening point found for transport ${transport}; add the transport to the EdgePort's spec.transport (and spec.securityContext for tls or wss)`
+    )
+    this.transport = transport
+    Object.setPrototypeOf(this, NoListeningPointError.prototype)
+  }
+}
+
+/**
  * Error thrown if the service is not available.
  */
 export class ServiceUnavailableError extends Error {

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<!-- The Service Provider for an Agent to PSTN call over TLS. SIPp runs this UAS with
+     transport mode l1, so the INVITE can only arrive over a TLS connection the EdgePort
+     opened to it. The checks below make sure Routr also says so in the message. -->
+<scenario name="RR.Tst.Plan.1.2.2.UAS">
+
+  <recv request="INVITE">
+    <action>
+      <ereg regexp="^:? ?SIP/2.0/TLS " search_in="hdr" header="Via" case_indep="true" check_it="true" assign_to="1" />
+    </action>
+  </recv>
+
+  <send>
+    <![CDATA[
+      SIP/2.0 401 Unauthorized
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+      Server: SIP Gateway
+      WWW-Authenticate: Digest realm="provider", nonce="d6b6b6b6", algorithm=MD5
+    ]]>
+  </send>
+
+  <recv request="ACK">
+    <action>
+      <ereg regexp="2 ACK" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
+    </action>
+  </recv>
+
+  <!-- Routr retries with the trunk credentials, still over TLS. -->
+  <recv request="INVITE">
+    <action>
+      <ereg regexp="3 INVITE" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
+      <ereg regexp="^:? ?SIP/2.0/TLS " search_in="hdr" header="Via" case_indep="true" check_it="true" assign_to="1" />
+      <ereg regexp="Digest " search_in="hdr" header="Authorization" case_indep="true" check_it="true" assign_to="1" />
+    </action>
+  </recv>
+
+  <send>
+    <![CDATA[
+      SIP/2.0 180 Ringing
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      [last_Record-Route:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+    ]]>
+  </send>
+
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      [last_Record-Route:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Type: application/sdp
+      Content-Length: [len]
+      v=0
+      o=user1 53655765 2353687637 IN IP[local_ip_type] [local_ip]
+      s=-
+      c=IN IP[media_ip_type] [media_ip]
+      t=0 0
+      m=audio [media_port] RTP/AVP 0
+      a=rtpmap:0 PCMU/8000
+    ]]>
+  </send>
+
+  <recv request="ACK">
+    <action>
+      <ereg regexp="3 ACK" search_in="hdr" header="CSeq" case_indep="true" check_it="true" assign_to="1" />
+    </action>
+  </recv>
+
+  <recv request="BYE">
+    <action>
+      <ereg regexp="^:? ?SIP/2.0/TLS " search_in="hdr" header="Via" case_indep="true" check_it="true" assign_to="1" />
+    </action>
+  </recv>
+
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+    ]]>
+  </send>
+
+</scenario>

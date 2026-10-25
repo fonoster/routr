@@ -61,6 +61,12 @@ public class SafeNioMessageProcessorFactory extends NioMessageProcessorFactory {
       return new SafeNioTlsWebSocketMessageProcessor(ipAddress, sipStack, port, "WS");
     }
 
+    if ("TLS".equalsIgnoreCase(transport)) {
+      // Plain SIP over TLS. The stock processor cannot open a connection to a
+      // carrier in non-blocking mode (see SafeNioTlsMessageChannel).
+      return new SafeNioTlsMessageProcessor(ipAddress, sipStack, port);
+    }
+
     return super.createMessageProcessor(sipStack, ipAddress, port, transport);
   }
 }

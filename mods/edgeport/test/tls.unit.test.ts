@@ -22,6 +22,7 @@ import { schema } from "../src/config/schema"
 import {
   DEFAULT_TLS_CIPHER_SUITES,
   DEFAULT_TLS_PROTOCOLS,
+  getKeyStoreProperties,
   getTlsProperties,
   resolveTlsSetting
 } from "../src/tls"
@@ -113,6 +114,42 @@ describe("@routr/edgeport/tls", () => {
         "gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS": "TLSv1.3,TLSv1.2",
         "gov.nist.javax.sip.ENABLED_CIPHER_SUITES": "TLS_AES_256_GCM_SHA384"
       })
+    })
+  })
+
+  describe("getKeyStoreProperties", () => {
+    it("leaves the truststore to the JVM when none is configured", () => {
+      expect(
+        getKeyStoreProperties({
+          keyStore: "/etc/routr/certs/signaling.p12",
+          keyStorePassword: "changeme",
+          keyStoreType: "pkcs12"
+        })
+      ).to.deep.equal({
+        "javax.net.ssl.keyStore": "/etc/routr/certs/signaling.p12",
+        "javax.net.ssl.keyStorePassword": "changeme",
+        "javax.net.ssl.keyStoreType": "pkcs12"
+      })
+    })
+
+    it("sets the truststore when one is configured", () => {
+      expect(
+        getKeyStoreProperties({
+          keyStore: "/etc/routr/certs/signaling.p12",
+          keyStorePassword: "changeme",
+          keyStoreType: "pkcs12",
+          trustStore: "/etc/routr/certs/carriers.p12",
+          trustStorePassword: "secret"
+        })
+      ).to.include({
+        "javax.net.ssl.trustStore": "/etc/routr/certs/carriers.p12",
+        "javax.net.ssl.trustStorePassword": "secret"
+      })
+    })
+
+    it("treats an empty value as unset", () => {
+      expect(getKeyStoreProperties({ trustStore: "" })).to.deep.equal({})
+      expect(getKeyStoreProperties(undefined)).to.deep.equal({})
     })
   })
 

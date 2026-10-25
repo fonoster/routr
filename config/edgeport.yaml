@@ -11,10 +11,10 @@ spec:
     client:
       authType: DisabledAll
     keyStorePassword: changeme
-    trustStorePassword: changeme
     keyStore: "/etc/routr/certs/signaling.p12"
-    trustStore: "/etc/routr/certs/signaling.p12"
     keyStoreType: pkcs12
+    # No trustStore: the JVM's public CAs apply, which is what a carrier reached over TLS
+    # presents. Set trustStore only to trust a private CA.
   externalAddrs:
     - 10.111.220.2
     - sip01.edgeport.net

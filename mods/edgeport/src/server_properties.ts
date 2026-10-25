@@ -18,10 +18,11 @@
  */
 import { EdgePortConfig } from "./types"
 import {
+  JAIN_SIP_TRACE_LEVEL,
   SECURITY_CONTEXT_CLIENT_CIPHER_SUITES,
   SECURITY_CONTEXT_CLIENT_PROTOCOLS
 } from "./envs"
-import { getTlsProperties } from "./tls"
+import { getKeyStoreProperties, getTlsProperties } from "./tls"
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const Java: { type(name: string): any }
 const Properties = Java.type("java.util.Properties")
@@ -68,6 +69,15 @@ export default function getServerProperties(
   // Default host
   properties.setProperty("javax.sip.IP_ADDRESS", config.spec.bindAddr)
 
+  // Troubleshooting aid: JAIN_SIP_TRACE_LEVEL=32 prints the stack's own debug
+  // log (sockets, TLS handshakes) under the "routr" logger
+  if (JAIN_SIP_TRACE_LEVEL) {
+    properties.setProperty(
+      "gov.nist.javax.sip.TRACE_LEVEL",
+      JAIN_SIP_TRACE_LEVEL
+    )
+  }
+
   if (config.spec.securityContext) {
     Object.entries(
       getTlsProperties(config.spec.securityContext.client, {
@@ -76,30 +86,16 @@ export default function getServerProperties(
       })
     ).forEach(([key, value]) => properties.setProperty(key, value))
     // This must be set to 'Disabled' when using WSS
-    properties.setProperty(
-      "gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE",
-      config.spec.securityContext.client?.authType
-    )
-    properties.setProperty(
-      "javax.net.ssl.keyStore",
-      config.spec.securityContext.keyStore
-    )
-    properties.setProperty(
-      "javax.net.ssl.trustStore",
-      config.spec.securityContext.trustStore
-    )
-
-    properties.setProperty(
-      "javax.net.ssl.keyStorePassword",
-      config.spec.securityContext.keyStorePassword
-    )
-    properties.setProperty(
-      "javax.net.ssl.trustStorePassword",
-      config.spec.securityContext.trustStorePassword
-    )
-    properties.setProperty(
-      "javax.net.ssl.keyStoreType",
-      config.spec.securityContext.keyStoreType
+    if (config.spec.securityContext.client?.authType) {
+      properties.setProperty(
+        "gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE",
+        config.spec.securityContext.client.authType
+      )
+    }
+    // Without a truststore the JVM default (cacerts) applies, which trusts the
+    // public certificates carriers present on outbound TLS. See tls.ts.
+    Object.entries(getKeyStoreProperties(config.spec.securityContext)).forEach(
+      ([key, value]) => properties.setProperty(key, value)
     )
   }
 

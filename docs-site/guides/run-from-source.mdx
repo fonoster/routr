@@ -179,12 +179,15 @@ npm run test:echo    # smoke test, no database needed
 
 `npm test` runs against the built workspaces, so run `npm run make` (or `npx lerna run build`) after pulling. `npm run lint` also lints, but it applies `--fix` and rewrites files.
 
-To run the SIP Connect compliance scenarios (SEET) against containers built from your tree:
+To run the SIP Connect compliance scenarios (SEET) against containers built from your tree, first create the certificates the EdgePort and the fake carrier share, then run the suite:
 
 ```bash
+sh .scripts/dev-certs.sh
 docker compose -f compose.yaml -f compose.dev.yaml up \
   --build --abort-on-container-exit --exit-code-from compliance compliance
 ```
+
+The certificates land in `etc/certs`, which git ignores. The EdgePort builds its keystore from them and the fake carrier serves the same certificate on its TLS port, which is how the scenario that calls a provider over TLS is trusted.
 
 ## Pitfalls
 

@@ -133,6 +133,16 @@ TLS 1.2 then uses ECDHE suites with AES-GCM or ChaCha20 only. To change the ciph
 
 To check what the EdgePort accepts, run `openssl s_client -connect <host>:5061 -tls1_3`. A working connection prints `New, TLSv1.3`.
 
+## Call a carrier over TLS
+
+A trunk whose outbound URI has `transport: tls` makes the EdgePort open a TLS connection to the carrier for every call that leaves through it. Three things must be true:
+
+1. The EdgePort has a `tls` transport and a `spec.securityContext` with a keystore, as set up above. The connection to the carrier leaves from that listening point. Without it the call gets `502 Bad Gateway` and the Connect processor logs `no listening point found for transport TLS`.
+2. The EdgePort trusts the carrier's certificate. With `client.authType: DisabledAll`, the default in the examples, JAIN-SIP skips certificate validation on the connections the EdgePort opens, so any carrier certificate is accepted. With any other `authType`, the carrier's certificate is checked against the truststore: leave `spec.securityContext.trustStore` unset so the JVM's public CAs apply, set it only to trust a private CA, and never point it at `signaling.p12`.
+3. The TLS versions overlap. Most carriers negotiate TLS 1.2, so enable it as shown in [Choose TLS versions and cipher suites](#choose-tls-versions-and-cipher-suites).
+
+Carriers that require TLS usually require SRTP as well. The media relay does not negotiate SRTP toward a trunk yet, so such a carrier will still reject the media.
+
 ## Require client certificates (optional)
 
 To make the API Server accept only clients with a certificate signed by your CA, mount `ca.crt` and set `VERIFY_CLIENT_CERT` to `"true"`. Clients must then present a certificate on every connection.
@@ -150,6 +160,7 @@ The `fonoster/routr-pgdata` image regenerates `server.crt` and `server.key` ever
 
 - **`rctl` reports a certificate error.** The endpoint host doesn't match the certificate's `CN`, or you used a self-signed certificate without `--cacert`.
 - **A phone or a TLS trunk fails the TLS handshake.** It probably doesn't support TLS 1.3. Enable TLS 1.2 as shown in [Choose TLS versions and cipher suites](#choose-tls-versions-and-cipher-suites).
+- **A call to a TLS trunk fails the handshake with a certificate error.** The EdgePort doesn't trust the carrier's certificate. Remove `spec.securityContext.trustStore` so the JVM's public CAs apply, or point it at a truststore that holds the carrier's CA.
 - **Browsers refuse the WSS connection.** Use a certificate from a trusted CA. See [Enable WebRTC clients](/guides/enable-webrtc).
 - **The EdgePort fails to load the keystore.** `PKCS12_PASSWORD` must be the same value the keystore was built with. Recreate the container after changing it.
 

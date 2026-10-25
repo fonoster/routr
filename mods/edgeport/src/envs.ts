@@ -24,3 +24,6 @@ export const SECURITY_CONTEXT_CLIENT_PROTOCOLS =
   System.getenv("SECURITY_CONTEXT_CLIENT_PROTOCOLS")?.split(",") ?? []
 export const SECURITY_CONTEXT_CLIENT_CIPHER_SUITES =
   System.getenv("SECURITY_CONTEXT_CLIENT_CIPHER_SUITES")?.split(",") ?? []
+// JAIN-SIP's own trace level (gov.nist.javax.sip.TRACE_LEVEL), for example 32 for
+// debug. Unset keeps the stack quiet. Its output goes to the "routr" logger.
+export const JAIN_SIP_TRACE_LEVEL = System.getenv("JAIN_SIP_TRACE_LEVEL")

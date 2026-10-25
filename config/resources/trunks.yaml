@@ -65,3 +65,27 @@
           priority: 10
           weight: 10
           enabled: true
+
+# Reaches the Service Provider over TLS. The provider is the SEET fake carrier, which
+# serves the certificate from etc/certs on 5061 (see .scripts/dev-certs.sh).
+- apiVersion: v2beta1
+  kind: Trunk
+  ref: trunk-04
+  metadata:
+    name: Test Trunk4 (TLS)
+    region: us-east1
+  spec:
+    inbound:
+      uri: trunk04.acme.com
+      accessControlListRef: acl-01
+    outbound:
+      credentialsRef: credentials-04
+      uris:
+        - uri:
+            user: pbx-1
+            host: sip.provider.net
+            port: 5061
+            transport: tls
+          priority: 10
+          weight: 10
+          enabled: true

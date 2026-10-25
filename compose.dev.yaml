@@ -16,6 +16,9 @@ services:
         aliases:
           - sip01.edgeport.net
     volumes:
+      # Shared with the compliance container, which serves the same certificate as the
+      # TLS carrier. The EdgePort builds its keystore from this directory at startup.
+      - ./etc/certs:/etc/routr/certs
 
   edgeport02:
     container_name: edgeport02
@@ -146,6 +149,10 @@ services:
     volumes:
       - ./etc/seet.json/:/seet.json
       - ./etc/scenarios:/scenarios
+      # SIPp reads cacert.pem and cakey.pem from its working directory when a scenario
+      # uses a TLS transport mode (l1). See .scripts/dev-certs.sh.
+      - ./etc/certs/server.crt:/cacert.pem:ro
+      - ./etc/certs/server.key:/cakey.pem:ro
     networks:
       internal:
         ipv4_address: 10.111.221.22

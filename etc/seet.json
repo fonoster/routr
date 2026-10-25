@@ -807,6 +807,43 @@
     ]
   },
   {
+    "name": "RR.Tst.Plan.1.2.2: Agent to PSTN call over TLS to the Service Provider",
+    "description": "This test verifies that Routr reaches a Service Provider whose trunk URI uses TLS: the INVITE, the authenticated retry and the BYE all arrive over the TLS connection the EdgePort opened.",
+    "transportMode": "u1",
+    "target": "sip01.edgeport.net:5060",
+    "domain": "sip.local",
+    "userAgents": [
+      {
+        "mode": "uas",
+        "scenarioFile": "scenarios/rr/uas_agent_to_pstn_tls.xml",
+        "transportMode": "l1",
+        "port": 5061
+      },
+      {
+        "mode": "uac",
+        "scenarioFile": "scenarios/common/uac_invite.xml",
+        "authentication": {
+          "username": "1001",
+          "secret": "1234"
+        },
+        "variables": [
+          {
+            "name": "requestURI",
+            "value": "sip:12225554000@sip.local"
+          },
+          {
+            "name": "from",
+            "value": "sip:1001@sip.local"
+          },
+          {
+            "name": "to",
+            "value": "sip:12225554000@sip.local"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name": "RR.Tst.Plan.1.3.1: Peer registration with Routr",
     "description": "This test verifies that a Peer can register to Routr using special backend AOR",
     "transportMode": "u1",

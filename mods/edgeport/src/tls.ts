@@ -20,6 +20,36 @@
 // Older versions must be listed explicitly.
 export const DEFAULT_TLS_PROTOCOLS = ["TLSv1.3"]
 
+export interface KeyStoreSettings {
+  keyStore?: string
+  keyStorePassword?: string
+  keyStoreType?: string
+  trustStore?: string
+  trustStorePassword?: string
+}
+
+// The javax.net.ssl properties for the keystore and the truststore. Only the
+// values that are set are returned: JAIN-SIP reads a missing property as "use
+// the JVM default", and the JVM default truststore (cacerts) is what trusts the
+// public certificates carriers present when the EdgePort calls them over TLS.
+// Pointing the truststore at the EdgePort's own keystore, as older examples did,
+// trusts only that one certificate and fails the handshake to a carrier.
+export const getKeyStoreProperties = (
+  settings: KeyStoreSettings | undefined
+): Record<string, string> => {
+  const mapping: Array<[string, string | undefined]> = [
+    ["javax.net.ssl.keyStore", settings?.keyStore],
+    ["javax.net.ssl.keyStorePassword", settings?.keyStorePassword],
+    ["javax.net.ssl.keyStoreType", settings?.keyStoreType],
+    ["javax.net.ssl.trustStore", settings?.trustStore],
+    ["javax.net.ssl.trustStorePassword", settings?.trustStorePassword]
+  ]
+  // No Object.fromEntries: the EdgePort runs this on GraalJS 22.3
+  return mapping
+    .filter(([, value]) => value !== undefined && value !== "")
+    .reduce((props, [key, value]) => ({ ...props, [key]: value }), {})
+}
+
 // Used when neither the environment nor the config sets the cipher suites.
 // Without a list, JAIN-SIP falls back to its own defaults, which include RSA
 // key exchange, CBC, 3DES, and anonymous DH. The TLS 1.2 suites only take
