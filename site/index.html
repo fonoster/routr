@@ -108,27 +108,15 @@
             </div>
           </div>
 
-          <div class="trace" data-reveal style="--i: 2" data-trace aria-label="A SIP INVITE traced through Routr">
-            <div class="trace__glow" aria-hidden="true"></div>
-            <div class="board">
-              <div class="window__bar"><i></i><i></i><i></i>sip trace · INVITE<span class="hide-m"> from 1001@sip.local</span></div>
-              <div class="trace__path" aria-hidden="true">
-                <span class="chip-node" data-node="softphone">Softphone</span><i class="chip-link"></i>
-                <span class="chip-node" data-node="edgeport">EdgePort</span><i class="chip-link"></i>
-                <span class="chip-node" data-node="dispatcher">Dispatcher</span><i class="chip-link"></i>
-                <span class="chip-node" data-node="connect">Connect</span><i class="chip-link"></i>
-                <span class="chip-node" data-node="trunk">Trunk</span>
-              </div>
-              <div class="log trace__log">
-                <div class="log__row" data-node="edgeport"><span class="log__t">00.004</span><span class="log__dir log__dir--in">→</span><b>INVITE</b><span> sip:+19103434434@sip.local SIP/2.0</span></div>
-                <div class="log__row" data-node="dispatcher"><span class="log__t">00.006</span><span class="log__dir">·</span><b>edgeport-01</b><span> → dispatcher  (gRPC)</span></div>
-                <div class="log__row" data-node="connect"><span class="log__t">00.007</span><span class="log__dir">·</span><b>match</b><span> req => true  → connect</span></div>
-                <div class="log__row" data-node="trunk"><span class="log__t">00.011</span><span class="log__dir">·</span><b>egress</b><span> domain-01 › number-01 › trunk-01</span></div>
-                <div class="log__row"><span class="log__t">00.013</span><span class="log__dir">←</span><b>100 Trying</b></div>
-                <div class="log__row"><span class="log__t">00.412</span><span class="log__dir">←</span><b>180 Ringing</b></div>
-                <div class="log__row ok"><span class="log__t">04.120</span><span class="log__dir">←</span><b>200 OK</b><span>   session established</span></div>
-              </div>
-            </div>
+          <div class="scene" data-scene data-reveal style="--i: 2" aria-label="Five things people build with Routr — camera networks, SCAIP care alarms, PBX clusters, intercoms, and radio over IP — all signaled by one Routr core.">
+            <canvas class="scene__canvas" aria-hidden="true"></canvas>
+            <img class="scene__fallback" src="assets/img/hero-usecases.png" width="750" height="456" alt="" />
+            <span class="scene-pill" data-scene-label="camera" style="left: 37.4%; top: 0.1%">connect camera networks</span>
+            <span class="scene-pill" data-scene-label="scaip" style="left: 77.8%; top: 16.6%">build a scaip network</span>
+            <span class="scene-pill" data-scene-label="intercom" style="left: 19.8%; top: 66.4%">wire up intercoms</span>
+            <span class="scene-pill" data-scene-label="radio" style="left: 47.1%; top: 94.1%">bridge radio over ip</span>
+            <span class="scene-pill" data-scene-label="pbx" style="left: 74.7%; top: 90.2%">scale your pbx</span>
+            <span class="scene-hub" data-scene-hub aria-hidden="true">routr<b>.</b></span>
           </div>
         </div>
       </section>
@@ -189,7 +177,7 @@
       </section>
 
       <!-- Architecture -->
-      <section class="section arch pipe" id="architecture" data-loop style="padding-top: 0">
+      <section class="section arch pipe band" id="architecture" data-loop>
         <div class="container">
           <div class="sec-head">
             <span class="eyebrow" data-reveal><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-grid-2x2"></use></svg>Architecture</span>
@@ -247,7 +235,7 @@
       </section>
 
       <!-- Routr Connect -->
-      <section class="band" id="connect">
+      <section id="connect">
         <div class="container section split">
           <div class="split__copy" data-reveal>
             <span class="eyebrow"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-cable"></use></svg>Routr Connect</span>
@@ -299,7 +287,7 @@ class="l">      <span class="v">X-Room-Id</span></span></code></pre>
       </section>
 
       <!-- Scale -->
-      <section class="section" id="scale">
+      <section class="section band" id="scale">
         <div class="container">
           <div class="sec-head">
             <span class="eyebrow" data-reveal><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-maximize-2"></use></svg>Scale</span>
@@ -346,46 +334,17 @@ class="l">      <span class="v">X-Room-Id</span></span></code></pre>
       </section>
 
       <!-- Resilience -->
-      <section class="band" id="resilience">
-        <div class="container section split">
-          <div class="split__copy" data-reveal>
-            <span class="eyebrow"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-shield-check"></use></svg>Resilience</span>
-            <h2 class="t-h2">No single point of failure.</h2>
-            <p class="t-sub">Every service is its own pod. Lose an EdgePort, the others keep taking calls. Lose a Processor, the Dispatcher routes around it.</p>
-            <ul class="points">
-              <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-check"></use></svg>EdgePorts: stateful, scaled out, any one can take a call</li>
-              <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-check"></use></svg>Dispatcher, Processors, Middlewares: stateless replicas</li>
-              <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-check"></use></svg>Location Service: shared table on Redis</li>
-              <li><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-check"></use></svg>API Server: Postgres, backed up like any database</li>
-            </ul>
-          </div>
-          <div class="board fail" data-reveal style="--i: 1" data-failover aria-label="One EdgePort fails and the cluster keeps serving calls">
-            <div class="fail__head"><span>routr · us-east1</span><span class="status">healthy</span></div>
-            <div class="fail__stats">
-              <div class="stat"><span class="stat__v" data-stat="calls">1,240</span><span class="stat__l">active calls</span></div>
-              <div class="stat"><span class="stat__v ok" data-stat="refused">0</span><span class="stat__l">new calls refused</span></div>
-              <div class="stat"><span class="stat__v" data-stat="up">3 / 3</span><span class="stat__l">edgeports up</span></div>
-              <div class="stat"><span class="stat__v" data-stat="restart">—</span><span class="stat__l">pod restart</span></div>
-            </div>
-            <div class="fail__rows">
-              <div class="frow frow--hi"><span class="frow__name">edgeport</span><span class="frow__dots"><i></i><i data-down></i><i></i></span><span class="frow__note">new calls land on 01 and 03</span></div>
-              <div class="frow"><span class="frow__name">dispatcher</span><span class="frow__dots"><i></i><i></i></span><span class="frow__note">stateless</span></div>
-              <div class="frow"><span class="frow__name">connect</span><span class="frow__dots"><i></i><i></i><i></i></span><span class="frow__note">stateless</span></div>
-              <div class="frow"><span class="frow__name">location</span><span class="frow__dots"><i></i><i></i></span><span class="frow__note">redis · shared table</span></div>
-              <div class="frow"><span class="frow__name">apiserver</span><span class="frow__dots"><i></i><i></i></span><span class="frow__note">postgres · primary + standby</span></div>
-            </div>
-            <div class="log fail__events">
-              <div class="log__row bad"><span class="log__t">10:42:03</span><span class="log__hop">edgeport-02</span><span>OOMKilled · pod terminated</span></div>
-              <div class="log__row"><span class="log__t">10:42:03</span><span class="log__hop">location</span><span>edgeport-02 contacts expire · clients re-register on 01 and 03</span></div>
-              <div class="log__row"><span class="log__t">10:42:04</span><span class="log__hop">edgeport-01</span><span>new calls landing · nothing refused</span></div>
-              <div class="log__row ok"><span class="log__t">10:42:05</span><span class="log__hop">edgeport-02</span><span>new pod Running · back in rotation</span></div>
-            </div>
-          </div>
+      <section class="rr-why" id="resilience">
+        <div class="container">
+          <span class="eyebrow" data-reveal><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-shield-check"></use></svg>Resilience</span>
+          <p class="rr-why__line" data-reveal style="--i: 1">No single point of failure.</p>
+          <p class="rr-why__line rr-why__line--dim" data-reveal style="--i: 2">Every service is its own pod. Lose an EdgePort, the others keep taking calls. Lose a Processor, the Dispatcher routes around it.</p>
+          <p class="rr-why__line rr-why__line--accent" data-reveal style="--i: 3">The call stays up.</p>
         </div>
       </section>
 
       <!-- Record and replay -->
-      <section class="section" id="record-and-replay">
+      <section class="section band" id="record-and-replay">
         <div class="container split">
           <div class="split__copy" data-reveal>
             <span class="eyebrow"><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-history"></use></svg>Record and replay</span>
@@ -447,7 +406,7 @@ class="l">  <span class="i">})</span></span></code></pre>
       </section>
 
       <!-- Deploy -->
-      <section class="section" id="deploy" style="padding-top: 0">
+      <section class="section band" id="deploy">
         <div class="container">
           <h2 class="t-h2" data-reveal>Deploy anywhere.</h2>
           <div class="deploy__grid">
@@ -474,15 +433,22 @@ class="l">  <span class="i">})</span></span></code></pre>
       </section>
 
       <!-- Community -->
-      <section class="section" id="community" style="padding-top: 0">
+      <section class="section community-color" id="community">
         <div class="container">
-          <div class="sec-head">
-            <span class="eyebrow" data-reveal><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-users"></use></svg>Community</span>
-            <h2 class="t-h2" data-reveal style="--i: 1">Built in the open.</h2>
-            <p class="t-sub" data-reveal style="--i: 2">MIT licensed, built on GitHub. Questions and ideas go to Discussions and Discord.</p>
+          <div class="sec-head sec-head--row">
+            <div class="sec-head">
+              <span class="eyebrow" data-reveal><svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-users"></use></svg>Community</span>
+              <h2 class="t-h2" data-reveal style="--i: 1">Built in the open.</h2>
+              <p class="t-sub" data-reveal style="--i: 2">MIT licensed, built on GitHub. Questions and ideas go to Discussions and Discord.</p>
+            </div>
+            <a class="star-cta" href="https://github.com/fonoster/routr" data-reveal style="--i: 2">
+              <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-github"></use></svg>
+              <span>Star on GitHub</span>
+              <b class="star-cta__count">1.7K</b>
+            </a>
           </div>
           <div class="quotes">
-            <blockquote class="quote" data-reveal>
+            <blockquote class="quote quote--featured" data-reveal>
               <svg class="icon" aria-hidden="true"><use href="assets/img/icons.svg#i-quote"></use></svg>
               <p>Routr's architecture and design is fantastic. A breath of fresh air. Being Docker and Kubernetes ready is a huge win over a more traditional SIP server setup.</p>
               <footer class="quote__who"><b>Phil Jones</b><span>VP of Web Architecture, VQ Communications</span></footer>
@@ -558,5 +524,7 @@ class="l">  <span class="i">})</span></span></code></pre>
     </footer>
 
     <script src="assets/js/v1.js"></script>
+    <script src="assets/js/hero-scene-data.js"></script>
+    <script src="assets/js/hero-scene.js"></script>
   </body>
 </html>
