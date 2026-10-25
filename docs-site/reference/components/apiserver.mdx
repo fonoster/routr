@@ -44,8 +44,8 @@ The API Server stores the Connect resources (Agents, Domains, Peers, Trunks, Num
 | `CA_CERT_SUBJECT` | `/CN=Self Signed CA` (image) | Subject of the generated CA certificate |
 | `SERVER_CERT_SUBJECT` | `/CN=localhost` (image) | Subject of the generated server certificate |
 | `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
-| `OTEL_SERVICE_NAME` | `pgdata` | Service name reported in traces |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
+| `OTEL_SERVICE_NAME` | `pgdata` | Service name reported in traces, metrics and logs |
 
 ### Example
 
@@ -67,8 +67,8 @@ docker run -it \
 | `PATH_TO_RESOURCES` | `/etc/routr/resources` (image) | Directory with the resource files. Required |
 | `BIND_ADDR` | `0.0.0.0:51907` | Address to listen on |
 | `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
-| `OTEL_SERVICE_NAME` | `simpledata` | Service name reported in traces |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
+| `OTEL_SERVICE_NAME` | `simpledata` | Service name reported in traces, metrics and logs |
 
 ### Resource files
 

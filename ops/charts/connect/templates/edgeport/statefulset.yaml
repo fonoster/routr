@@ -52,8 +52,10 @@ spec:
                   key: password
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}
-            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
-              value: {{ .Values.global.otlExporter }}
+            {{- with (.Values.global.otlpEndpoint | default .Values.global.otlExporter) }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ . | quote }}
+            {{- end }}
             - name: HEPLIFY_OPTIONS
               value: {{ .Values.edgeport.heplifyOptions }}
             - name: ENABLE_HEALTHCHECKS

@@ -46,10 +46,10 @@ The Registry Service reads a YAML or JSON file and validates it against a JSON s
 | `CONFIG_PATH` | `/etc/routr/registry.yaml` (image) | Path to the configuration file. Required |
 | `ENABLE_HEALTHCHECKS` | `true` | `false` turns off the HTTP health check on port `8080` |
 | `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
 | `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME` | `registry` | Service name reported in traces |
-| `OTEL_SDK_DISABLED` | | `true` turns tracing off |
+| `OTEL_SERVICE_NAME` | `registry` | Service name reported in traces, metrics and logs |
+| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
 
 ## gRPC contract
 

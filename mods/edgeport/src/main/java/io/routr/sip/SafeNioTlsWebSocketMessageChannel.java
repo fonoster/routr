@@ -21,6 +21,7 @@ package io.routr.sip;
 import gov.nist.javax.sip.stack.NioTcpMessageProcessor;
 import gov.nist.javax.sip.stack.NioTlsWebSocketMessageChannel;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
+import io.routr.telemetry.Telemetry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -98,8 +99,9 @@ public class SafeNioTlsWebSocketMessageChannel extends NioTlsWebSocketMessageCha
     LOG.warn(
         "WSS channel reconnected after peer disconnect; dropping {} buffered byte(s) " +
         "to avoid JAIN-SIP onNewSocket -> sendMessage recursion. " +
-        "peerAddress={}, peerPort={}, transport={}",
-        size, peerAddress, peerPort, getTransport());
+        "peerAddress={}, peerPort={}, transport={}, {}",
+        size, peerAddress, peerPort, getTransport(),
+        Telemetry.dropped("ws_reconnect", getTransport(), message));
 
     // Note: we intentionally do NOT call super.onNewSocket(message) because that
     // is the buggy path that recurses through sendMessage -> sendTCPMessage ->

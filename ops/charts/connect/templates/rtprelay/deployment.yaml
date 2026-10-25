@@ -49,8 +49,10 @@ spec:
               value: {{ .Values.rtprelay.rtpePort | quote}}
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}
-            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
-              value: {{ .Values.global.otlExporter }}
+            {{- with (.Values.global.otlpEndpoint | default .Values.global.otlExporter) }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ . | quote }}
+            {{- end }}
             {{- if .Values.rtprelay.profiles }}
             - name: CONFIG_PATH
               value: /etc/routr/rtprelay.yaml

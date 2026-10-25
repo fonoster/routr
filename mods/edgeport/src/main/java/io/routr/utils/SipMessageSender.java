@@ -18,6 +18,7 @@
  */
 package io.routr.utils;
 
+import io.routr.telemetry.Telemetry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -72,6 +73,7 @@ public class SipMessageSender {
       LOG.debug("Response sent via " + context + " successfully");
     } catch (TimeoutException e) {
       LOG.warn("sendResponse() timed out via " + context + " — client likely disconnected");
+      Telemetry.dropped("send_timeout", "ws", null);
       future.cancel(true);
     } catch (java.util.concurrent.ExecutionException e) {
       // Check if the cause is a StackOverflowError
@@ -80,6 +82,7 @@ public class SipMessageSender {
         LOG.error("StackOverflowError caught in executor for " + context + 
             " — edge case: attempting to send response on a closed WebSocket/WSS connection " +
             "(likely after receiving a REQUEST on a closed connection). Response not sent.", cause);
+        Telemetry.dropped("stack_overflow", "ws", null);
       } else {
         LOG.error("Exception during sendResponse execution via " + context, e);
       }
@@ -132,6 +135,7 @@ public class SipMessageSender {
     } else {
       ((javax.sip.ServerTransaction) transaction).sendResponse(response);
     }
+    Telemetry.responseSent(transaction, response);
   }
 
   /**
@@ -166,6 +170,7 @@ public class SipMessageSender {
       LOG.debug("Request sent via " + context + " successfully");
     } catch (TimeoutException e) {
       LOG.warn("sendRequest() timed out via " + context + " — client likely disconnected");
+      Telemetry.dropped("send_timeout", "ws", null);
       future.cancel(true);
     } catch (java.util.concurrent.ExecutionException e) {
       // Check if the cause is a StackOverflowError
@@ -174,6 +179,7 @@ public class SipMessageSender {
         LOG.error("StackOverflowError caught in executor for " + context + 
             " — edge case: attempting to send request on a closed WebSocket/WSS connection " +
             "(likely after receiving a REQUEST on a closed connection). Request not sent.", cause);
+        Telemetry.dropped("stack_overflow", "ws", null);
       } else {
         LOG.error("Exception during sendRequest execution via " + context, e);
       }

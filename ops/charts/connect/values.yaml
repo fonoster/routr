@@ -2,8 +2,9 @@ global:
   # Reserved for future use
   region: default
   logsLevel: info
-  # Uncomment and point to valid URL to enable tracing
-  # otlExporter: http://jaeger:14268/api/traces
+  # OTLP/HTTP base URL every service sends traces, metrics and logs to; unset turns
+  # telemetry off. (otlExporter, the old name, is still read.)
+  # otlpEndpoint: http://otel-lgtm:4318
 
 # EdgePort Service defaults
 edgeport:

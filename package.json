@@ -118,6 +118,7 @@
     ]
   },
   "overrides": {
+    "@opentelemetry/api": "^1.10.0",
     "underscore": "^1.13.8"
   }
 }

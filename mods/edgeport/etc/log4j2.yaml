@@ -1,5 +1,10 @@
 Configuration:
+  # The OpenTelemetry appender sends records over OTLP once Telemetry.init installs the SDK;
+  # without an endpoint it does nothing.
+  packages: io.opentelemetry.instrumentation.log4j.appender.v2_17
   Appenders:
+    OpenTelemetry:
+      name: OpenTelemetry
     Console:
       PatternLayout:
         pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%-4level{lowerCase=true}]: (${sys:serviceName}) %c{1}.java %msg%n"
@@ -23,6 +28,7 @@ Configuration:
         AppenderRef:
           - ref: Console
           - ref: LogToRollingFile
+          - ref: OpenTelemetry
       # JAIN-SIP logs under the stack name. Quiet unless JAIN_SIP_TRACE_LEVEL is set.
       - name: routr
         level: debug
