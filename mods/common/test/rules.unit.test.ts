@@ -519,6 +519,29 @@ describe("@routr/common/trace corpus helpers", () => {
     expect(Trace.compareLive(passedThrough, live)?.reason).to.include("Body")
   })
 
+  describe("sip/ack-2xx when the EdgePort authenticated on the caller's behalf", () => {
+    // The provider leg's 2xx carries CSeq 3 after the authenticated retry,
+    // while the caller's INVITE and ACK keep CSeq 2
+    const withCSeq = (record: Trace.TraceRecord, value: string) =>
+      mutate(record, (inMsg) => setExt(inMsg, "CSeq", [value]))
+    const invite = withCSeq(forwardedInvite, "2 INVITE")
+    const ok = withCSeq(ok200, "3 INVITE")
+    const ackFromCaller = withCSeq(ack, "2 ACK")
+    const byeFromCaller = withCSeq(bye, "3 BYE")
+    const ack2xx = (call: Trace.TraceRecord[]) =>
+      Trace.Rules.evaluate(byeFromCaller, call).filter(
+        (f) => f.rule === "sip/ack-2xx"
+      )
+
+    it("accepts the caller's ACK by the CSeq of the INVITE it forwarded", () => {
+      expect(ack2xx([invite, ok, ackFromCaller])).to.have.length(0)
+    })
+
+    it("still warns when no ACK came", () => {
+      expect(ack2xx([invite, ok])).to.have.length(1)
+    })
+  })
+
   it("validates the manifest and the file naming convention", () => {
     const m = Trace.parseManifest({
       resources: "resources",

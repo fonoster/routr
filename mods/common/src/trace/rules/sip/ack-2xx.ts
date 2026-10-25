@@ -39,13 +39,25 @@ export default defineRule(
           (statusOf(r) ?? 0) < 300
       )
       .filter((ok) => {
-        const n = cseqOf(inbound(ok))?.number
+        // The ACK carries the caller's CSeq, which is the CSeq of the INVITE
+        // forwarded before this 2xx. It differs from the 2xx's own when the
+        // EdgePort authenticated on the caller's behalf: the retry raised the
+        // CSeq on the provider leg alone.
+        const forwarded = [...call]
+          .reverse()
+          .find((r) => isRequest(r) && r.method === "INVITE" && r.seq < ok.seq)
+        const numbers = new Set(
+          [
+            cseqOf(inbound(ok))?.number,
+            forwarded && cseqOf(inbound(forwarded))?.number
+          ].filter((n) => n !== undefined)
+        )
         return !call.some(
           (r) =>
             isRequest(r) &&
             r.method === "ACK" &&
             r.seq > ok.seq &&
-            cseqOf(inbound(r))?.number === n
+            numbers.has(cseqOf(inbound(r))?.number)
         )
       })
     if (unacked.length) {

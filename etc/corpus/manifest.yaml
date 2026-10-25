@@ -73,7 +73,7 @@ files:
     note: The SIP.js browser dialer registers over WSS before its call to a WhatsApp user (401 challenge, then 200)
   - file: sipjs_wa-dod-invite_whatsapp_20261025.jsonl
     profiles: [sip, sip-connect]
-    findings: [sip-connect/request-uri-e164, sip/ack-2xx]
+    findings: [sip-connect/request-uri-e164]
     draft: true
     note: >-
       Real call from the SIP.js dialer to a WhatsApp user through Meta's WhatsApp
@@ -81,6 +81,4 @@ files:
       number, ICE + DTLS-SRTP via RTPEngine), answered, browser BYE. Sanitized:
       numbers, the registered hostname, public addresses and Meta ids are test
       values. Review: request-uri-e164 is Meta's required URI format (no
-      user=phone); ack-2xx is the linter not knowing the CSeq offset Routr adds
-      on the provider leg when it authenticates on the caller's behalf (the ACK
-      did reach Meta).
+      user=phone).
