@@ -113,12 +113,6 @@ public class AuthenticationHandler {
   }
 
   /**
-   * Checks if a response requires authentication.
-   * 
-   * @param response The response to check
-   * @return true if authentication is required
-   */
-  /**
    * Returns the challenge without the digest challenges JAIN-SIP cannot answer.
    *
    * <p>JAIN-SIP 1.3.0 computes digests with MD5 only: it answers a SHA-256
@@ -171,6 +165,12 @@ public class AuthenticationHandler {
         || algorithm.equalsIgnoreCase("MD5-sess");
   }
 
+  /**
+   * Checks if a response requires authentication.
+   * 
+   * @param response The response to check
+   * @return true if authentication is required
+   */
   public static boolean authenticationRequired(final Response response) {
     int statusCode = response.getStatusCode();
     return statusCode == Response.PROXY_AUTHENTICATION_REQUIRED || statusCode == Response.UNAUTHORIZED;
