@@ -32,13 +32,14 @@ export interface EdgePortConfig {
     externalAddrs?: string[]
     localnets: string[]
     securityContext?: {
-      debugging: boolean
-      keyStore: string
-      trustStore: string
-      trustStorePassword: string
-      keyStorePassword: string
-      keyStoreType: string
-      client: {
+      debugging?: boolean
+      keyStore?: string
+      keyStorePassword?: string
+      keyStoreType?: string
+      // Optional: without it the JVM default truststore (cacerts) applies
+      trustStore?: string
+      trustStorePassword?: string
+      client?: {
         authType: string
         protocols?: string[]
         cipherSuites?: string[]

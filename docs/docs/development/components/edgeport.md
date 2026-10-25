@@ -54,10 +54,10 @@ To configure the EdgePort, you must provide a YAML or JSON configuration with th
 | `spec.bindAddr`                            | Ipv4 interface to accept requests on                                        | No       |
 | `spec.securityContext`                     | Security context                                                            | No       |
 | `spec.securityContext.client`              | Client security context                                                     | No       |
-| `spec.securityContext.client.protocols`    | TLS protocols used by the client (e.g., SSLv3, TLSv1.2)                     | No       |
+| `spec.securityContext.client.protocols`    | TLS protocols used by the client (e.g., TLSv1.3, TLSv1.2)                   | No       |
 | `spec.securityContext.client.authType`     | Client authentication type (e.g., Disabled, DisabledAll, Required, Wanted)  | No       |
 | `spec.securityContext.keyStore`            | Path to the key store file                                                  | No       |
-| `spec.securityContext.trustStore`          | Path to the trust store file                                                | No       |
+| `spec.securityContext.trustStore`          | Path to the trust store file. Unset, the JVM's public CAs apply             | No       |
 | `spec.securityContext.keyStorePassword`    | Password for the key store                                                  | No       |
 | `spec.securityContext.trustStorePassword`  | Password for the trust store                                                | No       |
 | `spec.securityContext.keyStoreType`        | Type of the key store (e.g., pkcs12)                                        | No       |
@@ -83,13 +83,11 @@ spec:
   securityContext:
     client:
       protocols:
-        - SSLv3
+        - TLSv1.3
         - TLSv1.2
       authType: DisabledAll
     keyStorePassword: changeme
-    trustStorePassword: changeme
     keyStore: "/etc/routr/certs/signaling.p12"
-    trustStore: "/etc/routr/certs/signaling.p12"
     keyStoreType: pkcs12
   externalAddrs:
     - 10.111.220.2

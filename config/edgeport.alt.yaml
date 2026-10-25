@@ -11,9 +11,7 @@ spec:
     client:
       authType: DisabledAll
     keyStorePassword: changeme
-    trustStorePassword: changeme
     keyStore: "/etc/routr/certs/signaling.p12"
-    trustStore: "/etc/routr/certs/signaling.p12"
     keyStoreType: pkcs12
   externalAddrs:
     - 10.111.220.3
