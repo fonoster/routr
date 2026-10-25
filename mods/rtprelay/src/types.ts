@@ -1,5 +1,3 @@
-import { MessageRequest } from "@routr/common"
-
 /*
  * Copyright (C) 2026 by Fonoster Inc (https://fonoster.com)
  * http://github.com/fonoster/routr
@@ -18,6 +16,8 @@ import { MessageRequest } from "@routr/common"
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { MessageRequest } from "@routr/common"
+
 export enum Direction {
   WEB_TO_WEB = "web-to-web",
   WEB_TO_PHONE = "web-to-phone",
@@ -37,9 +37,42 @@ export interface RTPERequest {
   SDES?: string
 }
 
+// The RTPEngine ng keys sent with an offer or answer: a key maps to a value
+// ("ICE: force"), to a list of flags ("flags: [trust-address]") or to a list
+// of values ("SDES: [off]").
+export type RTPEProfile = Record<string, string | string[]>
+
+// One profile per direction, plus the secure-callee variant of the two
+// directions that end on a phone leg, since a phone reached over TLS gets
+// SDES-SRTP instead of plain RTP.
+export const PROFILE_NAMES = [
+  "web-to-web",
+  "web-to-phone",
+  "phone-to-web",
+  "phone-to-phone",
+  "web-to-secure-phone",
+  "phone-to-secure-phone"
+] as const
+
+export type ProfileName = (typeof PROFILE_NAMES)[number]
+
+export type RTPEProfiles = Record<ProfileName, RTPEProfile>
+
+export type RTPEProfileOverrides = Partial<RTPEProfiles>
+
 export interface RTPEConfig {
   host: string
   port: number
+}
+
+// What the service runs with once the optional file (if any) is read,
+// validated and merged over the defaults. source is the file the config came
+// from, and is absent when no file was found and the defaults apply.
+export interface RTPRelayConfig {
+  bindAddr?: string
+  rtpengine?: { host?: string; port?: number }
+  profiles: RTPEProfiles
+  source?: string
 }
 
 export type RTPEClient = {
@@ -55,5 +88,6 @@ export type RTPEFunctionResult =
 
 export type RTPEFunction = (
   config: RTPEConfig,
-  invertTags?: boolean
+  invertTags?: boolean,
+  profiles?: RTPEProfiles
 ) => (req: MessageRequest) => Promise<RTPEFunctionResult>

@@ -19,7 +19,8 @@
 /* eslint-disable require-jsdoc */
 import { CommonTypes as CT, MessageRequest } from "@routr/common"
 import { Helper as H } from "@routr/processor"
-import { Direction } from "./types"
+import { Direction, RTPEProfiles } from "./types"
+import { DEFAULT_PROFILES, profileNameFor } from "./profiles"
 
 export function getDirectionFromResponse(request: MessageRequest) {
   const srcTransport = request.sender.transport
@@ -68,48 +69,25 @@ export const getDestinationTransport = (request: MessageRequest) =>
 // The RTPEngine parameters for the leg the message is sent to. With
 // secureCallee the phone leg negotiates SDES-SRTP (RTP/SAVP) instead of plain
 // RTP; RTPEngine then encrypts toward the carrier and bridges to the other leg.
-export function getRTPEParamsByDirection(dir: Direction, secureCallee = false) {
-  switch (dir) {
-    case Direction.WEB_TO_WEB:
-      return {
-        ICE: "force",
-        SDES: ["off"],
-        flags: ["trust-address", "replace-origin", "replace-session-connection"]
-      }
-    case Direction.WEB_TO_PHONE:
-      return {
-        "transport-protocol": secureCallee ? "RTP/SAVP" : "RTP/AVP",
-        DTLS: "off",
-        ICE: "remove",
-        "rtcp-mux": ["demux"],
-        replace: ["origin", "session-connection"],
-        flags: secureCallee ? ["trust-address"] : ["trust-address", "SDES-no"]
-      }
-    case Direction.PHONE_TO_WEB:
-      return {
-        "transport-protocol": "UDP/TLS/RTP/SAVPF",
-        ICE: "force",
-        DTLS: "passive",
-        "rtcp-mux": ["require"],
-        replace: ["origin", "session-connection"],
-        flags: ["SDES-no", "generate mid", "strip-extmap"]
-      }
-    case Direction.PHONE_TO_PHONE:
-      return {
-        "transport-protocol": secureCallee ? "RTP/SAVP" : "RTP/AVP",
-        "rtcp-mux": "demux",
-        ICE: "remove",
-        flags: ["trust-address", "replace-origin", "replace-session-connection"]
-      }
-  }
-}
+// The profiles default to the shipped ones; the runner passes the merged set
+// when a configuration file is present.
+export const getRTPEParamsByDirection = (
+  dir: Direction,
+  secureCallee = false,
+  profiles: RTPEProfiles = DEFAULT_PROFILES
+) => profiles[profileNameFor(dir, secureCallee)]
 
 // The RTPEngine parameters for a message, from its direction and the transport
 // of the leg it is sent to.
-export const getRTPEParams = (request: MessageRequest, direction: Direction) =>
+export const getRTPEParams = (
+  request: MessageRequest,
+  direction: Direction,
+  profiles: RTPEProfiles = DEFAULT_PROFILES
+) =>
   getRTPEParamsByDirection(
     direction,
-    isSecurePhone(getDestinationTransport(request))
+    isSecurePhone(getDestinationTransport(request)),
+    profiles
   )
 
 export const callInvolvesWebRTC = (direction: Direction) =>

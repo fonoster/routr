@@ -27,6 +27,7 @@ import {
   getRTPEParamsByDirection
 } from "../src/utils"
 import { Direction } from "../src/types"
+import { mergeProfiles } from "../src/profiles"
 import { Transport, Helper } from "@routr/common"
 import { response } from "./examples"
 
@@ -103,6 +104,29 @@ describe("@routr/rtprelay", () => {
       chai
         .expect(getRTPEParams(toAgent, getDirectionFromResponse(toAgent)))
         .to.have.property("transport-protocol", "RTP/AVP")
+    })
+
+    it("uses the profiles it is given instead of the defaults", () => {
+      const toTrunk = createRequest({
+        fromUser: "1001",
+        fromDomain: "sip.local",
+        toUser: "12225554000",
+        toDomain: "sip.local"
+      })
+      toTrunk.message.via[0].transport = Transport.TLS
+      const profiles = mergeProfiles({
+        "phone-to-secure-phone": { SDES: ["only-AES_CM_128_HMAC_SHA1_80"] }
+      })
+      const params = getRTPEParams(
+        toTrunk,
+        getDirectionFromRequest(toTrunk),
+        profiles
+      )
+      chai.expect(params.SDES).to.deep.equal(["only-AES_CM_128_HMAC_SHA1_80"])
+      chai.expect(params).to.have.property("transport-protocol", "RTP/SAVP")
+      chai
+        .expect(getRTPEParams(toTrunk, getDirectionFromRequest(toTrunk)))
+        .to.not.have.property("SDES")
     })
   })
 })

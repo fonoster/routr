@@ -24,7 +24,8 @@ import Processor, {
 } from "@routr/processor"
 import { offer, answer, del, query } from "./client"
 import { CommonErrors as CE } from "@routr/common"
-import { Direction, RTPEFunction } from "./types"
+import { Direction, RTPEFunction, RTPEProfiles } from "./types"
+import { DEFAULT_PROFILES } from "./profiles"
 import { getLogger } from "@fonoster/logger"
 import {
   getDirectionFromRequest,
@@ -39,10 +40,13 @@ const logger = getLogger({ service: "rtprelay", filePath: __filename })
  *
  * @param {string} bindAddr - The address to bind to.
  * @param {object} rtpeConfig - The address of the rtpengine server.
+ * @param {object} profiles - The RTPEngine profiles by direction, already
+ * merged over the defaults. Defaults to the shipped profiles.
  */
 export default function rtprelay(
   bindAddr: string,
-  rtpeConfig: { host: string; port: number }
+  rtpeConfig: { host: string; port: number },
+  profiles: RTPEProfiles = DEFAULT_PROFILES
 ) {
   new Processor({
     bindAddr,
@@ -58,7 +62,7 @@ export default function rtprelay(
         : getDirectionFromRequest(req)
 
       const sendRequest = async (f: RTPEFunction, invertTags = false) => {
-        const r = await f(rtpeConfig, invertTags)(req)
+        const r = await f(rtpeConfig, invertTags, profiles)(req)
 
         if (r.result === "error") {
           throw new CE.BadRequestError(r["error-reason"])

@@ -17,5 +17,14 @@
  * limitations under the License.
  */
 import rtprelay from "./service"
+import { getConfig } from "./config/get_config"
+import { DEFAULT_PROFILES, mergeProfiles } from "./profiles"
 
-export { rtprelay }
+export { rtprelay, getConfig, DEFAULT_PROFILES, mergeProfiles }
+export type {
+  ProfileName,
+  RTPEProfile,
+  RTPEProfileOverrides,
+  RTPEProfiles,
+  RTPRelayConfig
+} from "./types"

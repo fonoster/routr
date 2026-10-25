@@ -19,7 +19,8 @@
 /* eslint-disable require-jsdoc */
 import { MessageRequest } from "@routr/common"
 import { RTPENGINE_TIMEOUT } from "./envs"
-import { RTPEConfig, RTPEFunctionResult } from "./types"
+import { RTPEConfig, RTPEFunctionResult, RTPEProfiles } from "./types"
+import { DEFAULT_PROFILES } from "./profiles"
 import {
   getDirectionFromRequest,
   getDirectionFromResponse,
@@ -37,10 +38,14 @@ export function query(config: RTPEConfig) {
   }
 }
 
-export function offer(config: RTPEConfig, invertTags = false) {
+export function offer(
+  config: RTPEConfig,
+  invertTags = false,
+  profiles: RTPEProfiles = DEFAULT_PROFILES
+) {
   return async (request: MessageRequest): Promise<RTPEFunctionResult> => {
     const direction = getDirectionFromRequest(request)
-    const sdpModifiers = getRTPEParams(request, direction)
+    const sdpModifiers = getRTPEParams(request, direction, profiles)
     return await rtpe.offer(config, {
       ...sdpModifiers,
       sdp: request.message.body,
@@ -50,10 +55,14 @@ export function offer(config: RTPEConfig, invertTags = false) {
   }
 }
 
-export function answer(config: RTPEConfig, invertTags = false) {
+export function answer(
+  config: RTPEConfig,
+  invertTags = false,
+  profiles: RTPEProfiles = DEFAULT_PROFILES
+) {
   return async (request: MessageRequest): Promise<RTPEFunctionResult> => {
     const direction = getDirectionFromResponse(request)
-    const sdpModifiers = getRTPEParams(request, direction)
+    const sdpModifiers = getRTPEParams(request, direction, profiles)
     return await rtpe.answer(config, {
       ...sdpModifiers,
       sdp: request.message.body,

@@ -1,9 +1,9 @@
 ---
 title: "RTPRelay"
-description: "Reference for the RTPRelay middleware: its image, port, environment variables, and gRPC contract."
+description: "Reference for the RTPRelay middleware: its image, port, configuration file, environment variables, and gRPC contract."
 ---
 
-RTPRelay is a middleware that drives RTPEngine over the ng protocol. It rewrites the SDP of calls so RTPEngine relays the media, which bridges WebRTC clients and SIP clients and helps clients that cannot exchange media directly. It has no configuration file.
+RTPRelay is a middleware that drives RTPEngine over the ng protocol. It rewrites the SDP of calls so RTPEngine relays the media, which bridges WebRTC clients and SIP clients and helps clients that cannot exchange media directly. It runs without a configuration file; one is needed only to tune the RTPEngine profiles.
 
 ## Docker image
 
@@ -15,11 +15,53 @@ RTPRelay is a middleware that drives RTPEngine over the ng protocol. It rewrites
 | --- | --- | --- |
 | `51903` (set by `BIND_ADDR`) | gRPC | `Processor` service, used as a middleware by the Dispatcher |
 
+## Configuration file
+
+The file is optional. When `CONFIG_PATH` is unset, or nothing is at that path, RTPRelay runs with the profiles below and logs that it did. When the file is there, RTPRelay validates it against a JSON schema at startup and fails on a profile name or value shape it does not know, so a typo does not silently fall back to a default.
+
+| Field | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `kind` | string | Yes | | Resource type. Use `RTPRelay` |
+| `apiVersion` | string | Yes | | Resource version, for example `v2beta1` |
+| `spec.bindAddr` | string | No | `0.0.0.0:51903` | Address to listen on. `BIND_ADDR` wins when set |
+| `spec.rtpengine.host` | string | No | | RTPEngine host or IP. `RTPENGINE_HOST` wins when set; one of the two is required |
+| `spec.rtpengine.port` | integer | No | `22222` | RTPEngine ng control port. `RTPENGINE_PORT` wins when set |
+| `spec.profiles` | object | No | | RTPEngine profiles by direction, each optional. See below |
+| `spec.profiles.<name>` | object | No | | A map of RTPEngine ng keys (`transport-protocol`, `ICE`, `DTLS`, `SDES`, `rtcp-mux`, `replace`, `flags`, `codec`, and any other ng key) to a string or a list of strings |
+
+### Profiles
+
+RTPRelay classifies every message by the leg it came from and the leg it goes to: a browser (WebRTC) leg or a phone (SIP over UDP, TCP or TLS) leg. A phone leg reached over TLS gets SDES-SRTP, so the two directions that end on a phone have a secure variant. The classification is fixed; the parameters RTPRelay sends to RTPEngine for each case are the profiles, and these are their defaults.
+
+| Profile | When | Default |
+| --- | --- | --- |
+| `web-to-web` | Browser to browser | `ICE: force`, `SDES: [off]`, `flags: [trust-address, replace-origin, replace-session-connection]` |
+| `web-to-phone` | Browser to phone on UDP or TCP | `transport-protocol: RTP/AVP`, `DTLS: off`, `ICE: remove`, `rtcp-mux: [demux]`, `replace: [origin, session-connection]`, `flags: [trust-address, SDES-no]` |
+| `web-to-secure-phone` | Browser to phone on TLS | As `web-to-phone`, with `transport-protocol: RTP/SAVP` and `flags: [trust-address]` |
+| `phone-to-web` | Phone to browser | `transport-protocol: UDP/TLS/RTP/SAVPF`, `ICE: force`, `DTLS: passive`, `rtcp-mux: [require]`, `replace: [origin, session-connection]`, `flags: [SDES-no, generate mid, strip-extmap]` |
+| `phone-to-phone` | Phone to phone on UDP or TCP | `transport-protocol: RTP/AVP`, `rtcp-mux: demux`, `ICE: remove`, `flags: [trust-address, replace-origin, replace-session-connection]` |
+| `phone-to-secure-phone` | Phone to phone on TLS | As `phone-to-phone`, with `transport-protocol: RTP/SAVP` |
+
+A profile in the file is merged over the default of the same name one key at a time: set one key and the rest of the default stays. A list replaces the default list; it is not appended to it, which is how you drop a default flag. This file restricts the SRTP crypto suite offered to a carrier reached over TLS and leaves everything else as shipped.
+
+```yaml
+kind: RTPRelay
+apiVersion: v2beta1
+spec:
+  profiles:
+    phone-to-secure-phone:
+      SDES:
+        - only-AES_CM_128_HMAC_SHA1_80
+```
+
+The result for `phone-to-secure-phone` is `transport-protocol: RTP/SAVP`, `rtcp-mux: demux`, `ICE: remove`, the default `flags`, and the new `SDES`. The keys and values are RTPEngine's own; see the [ng control protocol](https://github.com/sipwise/rtpengine/blob/master/docs/ng_control_protocol.md) for what each one does.
+
 ## Environment variables
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `RTPENGINE_HOST` | | RTPEngine host or IP. Required |
+| `CONFIG_PATH` | | Path to the configuration file. Optional; without it, or when the file is missing, the default profiles apply |
+| `RTPENGINE_HOST` | | RTPEngine host or IP. Required unless the configuration file sets `spec.rtpengine.host` |
 | `RTPENGINE_PORT` | `22222` | RTPEngine ng control port |
 | `RTPENGINE_TIMEOUT` | `5000` | Timeout for RTPEngine requests, in milliseconds |
 | `BIND_ADDR` | `0.0.0.0:51903` | Address to listen on |
@@ -61,6 +103,7 @@ spec:
 ## Notes
 
 - RTPRelay does nothing until you add it to the Dispatcher's `spec.middlewares`.
-- In `routr-one`, setting `RTPENGINE_HOST` starts RTPRelay and adds it as a post-processor middleware automatically.
+- In `routr-one`, setting `RTPENGINE_HOST` starts RTPRelay and adds it as a post-processor middleware automatically. It reads `/etc/routr/rtprelay.yaml` when that file exists (`RTPRELAY_CONFIG_PATH` changes the path) and takes only the profiles from it.
+- On Kubernetes, the `rtprelay.profiles` Helm value renders the file and mounts it; see [Helm values](/reference/helm-values#rtprelay).
 - RTPRelay controls media relaying only. Routr is not a media server, and RTPEngine is a separate service you run.
 - A leg that uses TLS gets SDES-SRTP: RTPRelay asks RTPEngine for `RTP/SAVP` toward a trunk or phone reached over TLS and keeps plain RTP, or DTLS-SRTP for browsers, on the other leg. This is how carriers that require secure trunking are satisfied; see [Secure the server](/guides/secure-the-server#call-a-carrier-over-tls).

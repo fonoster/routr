@@ -1,0 +1,18 @@
+{{- if and .Values.rtprelay.enabled .Values.rtprelay.profiles }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-routr-rtprelay-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include ".helm.labels" . | nindent 4 }}
+data:
+  rtprelay.yaml: |-
+    kind: RTPRelay
+    apiVersion: v2beta1
+    spec:
+      profiles:
+        {{- toYaml .Values.rtprelay.profiles | nindent 8 }}
+
+{{- end }}
