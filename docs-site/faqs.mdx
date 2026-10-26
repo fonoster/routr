@@ -32,7 +32,7 @@ description: "For people evaluating or running Routr: short answers about what R
   <Accordion title="How does Routr compare with Kamailio and OpenSIPS?">
     Like Kamailio and OpenSIPS, Routr is a programmable SIP server. The difference is the architecture. Routr splits the server into separate services that talk over gRPC, and only EdgePort holds SIP state. You scale each service on its own, for example by adding Location Service or processor replicas, and you can replace any component with your own implementation, such as a custom authentication middleware.
 
-    You write routing logic as regular code (TypeScript, or any gRPC language) rather than in a server-specific configuration language.
+    You write routing logic as regular code (TypeScript, or any gRPC language) rather than in a server-specific configuration language, and test it like any other service. Routr runs in containers, with a Docker image for single hosts and a Helm chart for Kubernetes.
   </Accordion>
 
   <Accordion title="What happens to calls if an EdgePort goes away?">
