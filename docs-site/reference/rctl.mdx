@@ -8,7 +8,7 @@ description: "Every rctl command, argument, flag, and prompt, for operators who 
 
 ## Install
 
-Install the CLI globally from npm.
+Install the CLI globally from npm. It needs Node.js 22 or later.
 
 ```bash
 npm install -g @routr/ctl
@@ -1310,7 +1310,7 @@ rctl plugins update
 
 ## Call traces
 
-`rctl trace` works on call recordings written by the Message Dispatcher (see [Record and replay calls](/guides/record-and-replay-calls)). It needs Node.js 22 or later and talks to no server except `trace send`.
+`rctl trace` works on call recordings written by the Message Dispatcher (see [Record and replay calls](/guides/record-and-replay-calls)). It talks to no server except `trace send` and `trace compat --against`.
 
 ### `rctl trace replay`
 
@@ -1378,6 +1378,7 @@ rctl trace lint FILE... [--sip-connect] [--fail-on error|warning] [--json] [--as
 | `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules. |
 | `--fail-on` | - | Exit `4` when a finding of this severity or worse exists. |
 | `--json` | - | Print the findings as JSON: `{ profiles, files: [{ file, records, findings: [{ seq, rule, profile, severity, spec, message, side, header }] }] }`. |
+| `--ascii` | - | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales). |
 
 Example:
 
@@ -1400,6 +1401,7 @@ rctl trace compat MANIFEST [--against <host:port>] [--sip-connect] [--fail-on dr
 | `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules on every file, on top of each file's own `profiles`. |
 | `--fail-on` | - | Exit `4` on drift (`drift`), on drift or an error finding (`error`), or on any finding (`warning`). |
 | `--json` | - | Print the report as JSON. |
+| `--ascii` | - | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales). |
 
 ### `rctl trace sanitize`
 
