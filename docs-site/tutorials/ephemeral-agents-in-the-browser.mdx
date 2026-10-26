@@ -15,7 +15,7 @@ This is how you let website visitors call your contact center without giving eac
 ## Prerequisites
 
 - Docker with Docker Compose
-- Node.js and npm
+- Node.js 22 or later
 - OpenSSL
 - A browser with microphone access (Chrome, Firefox, or Safari)
 - The IP address of your machine on your local network (for example, `192.168.1.3`)
@@ -102,7 +102,7 @@ This is how you let website visitors call your contact center without giving eac
 
     What each setting does:
 
-    - `RTPENGINE_HOST` makes `routr-one` start the RTPRelay middleware and point it at RTPEngine.
+    - `RTPENGINE_HOST` makes `routr-one` start the RTPRelay middleware and point it at RTPEngine. To change the media profiles, mount a file at `/etc/routr/rtprelay.yaml` (or set `RTPRELAY_CONFIG_PATH`); without it, RTPRelay uses its defaults. See [RTPRelay](/reference/components/rtprelay).
     - `CONNECT_VERIFIER_PUBLIC_KEY_PATH` turns on ephemeral agents. The Connect processor reads the key at startup and verifies every `X-Connect-Token` with it.
     - `CONNECT_VERIFIER_OPTIONS` is optional. Its JSON is passed to the verifier, here to accept only RS256 signatures.
     - Port `5062` is EdgePort's WebSocket (`ws`) listener. The browser connects there.
