@@ -25,6 +25,7 @@ Use it for development, demos, and small single-host deployments such as a home 
 Its limits follow from running in one process tree:
 
 - It doesn't run the Registry or the Requester, so Trunks with `sendRegister` never register with the carrier. If your carrier requires registration, use the Helm chart.
+- Registrations live in memory by default, so a restart clears them and phones must re-register. To keep them in Redis, set `LOCATION_CACHE_PROVIDER=redis` and point `LOCATION_CACHE_PARAMETERS` at your server (default `host=localhost,port=6379`).
 - Nothing scales independently. To handle more traffic, you need a bigger host, not more replicas.
 - One container is one EdgePort, so a restart drops the calls in progress.
 
