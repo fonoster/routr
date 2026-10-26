@@ -1,6 +1,6 @@
 <a href="https://routr.io"><img src="./assets/banner.svg" alt="Routr: the SIP server built for the cloud. A lightweight SIP proxy, location server, and registrar." width="100%"></a>
 
-[![Sponsor this](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&link=https://github.com/sponsors/fonoster)](https://github.com/sponsors/fonoster) [![Discord](https://img.shields.io/discord/1016419835455996076?color=5865F2&label=Discord&logo=discord&logoColor=white)](https://discord.com/invite/4QWgSz4hTC) ![GitHub](https://img.shields.io/github/license/fonoster/routr?color=%2347b96d) ![Twitter Follow](https://img.shields.io/twitter/follow/fonoster?style=social)
+[![Sponsor this](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&link=https://github.com/sponsors/fonoster)](https://github.com/sponsors/fonoster) [![Discord](https://img.shields.io/discord/1016419835455996076?color=5865F2&label=Discord&logo=discord&logoColor=white)](https://discord.com/invite/4QWgSz4hTC) ![GitHub](https://img.shields.io/github/license/fonoster/routr?color=%2347b96d)
 
 Routr is a lightweight sip proxy, location server, and registrar that provides a reliable and scalable SIP infrastructure for telephony carriers, communication service providers, and integrators.
 
@@ -74,6 +74,9 @@ Routr's main features are:
 - [x] RTPEngine Middleware
 - [x] Helm Chart for  Kubernetes Deployments
 - [x] Endpoint Authentication with JWT (For web phones)
+- [x] SDES-SRTP media toward TLS trunks (with RTPEngine)
+- [x] Call message recording and replay
+- [x] OpenTelemetry traces, metrics, and logs
 - [ ] Support for STIR/SHAKEN
 - [ ] Web Application
 
@@ -308,13 +311,13 @@ For more information about building Processors and Middleware, please refer to t
 
 ## Bugs and feedback
 
-For bugs, questions, and discussions, please use the [Github Issues](https://github.com/fonoster/routr/issues)
+Report bugs in [GitHub Issues](https://github.com/fonoster/routr/issues). For questions and feature ideas, use [GitHub Discussions](https://github.com/fonoster/routr/discussions).
 
 ## Contributing
 
 For contributing, please see the following links:
 
- - [Contribution Documents](https://github.com/fonoster/routr/blob/master/CONTRIBUTING.md)
+ - [Contribution Documents](https://github.com/fonoster/routr/blob/main/CONTRIBUTING.md)
  - [Contributors](https://github.com/fonoster/routr/contributors)
 
 ### Developing with Dev Containers
