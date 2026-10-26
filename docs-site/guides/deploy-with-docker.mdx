@@ -161,7 +161,7 @@ The container applies pending database migrations every time it starts, so upgra
 </Steps>
 
 <Note>
-Restarting the container drops its SIP connections and registrations, because routr-one keeps registrations in memory. Clients register again on their next refresh.
+Restarting the container drops its SIP connections. By default routr-one keeps registrations in memory, so clients also have to register again on their next refresh. To keep registrations across restarts, store them in Redis. See [Scale the Location Service with Redis](/guides/scale-with-redis).
 </Note>
 
 ## Troubleshooting
