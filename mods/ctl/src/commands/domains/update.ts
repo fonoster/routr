@@ -110,7 +110,7 @@ Updating Domain Local... 80181ca6-d4aa-4575-9375-8f72b07d5555
           message: "Add an Egress Rule?",
           type: "confirm",
           default: false,
-          when: aclChoices.length > 0
+          when: numberChoices.length > 0
         }
       ])
 
