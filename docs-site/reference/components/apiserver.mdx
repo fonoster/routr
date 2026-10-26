@@ -45,7 +45,9 @@ The API Server stores the Connect resources (Agents, Domains, Peers, Trunks, Num
 | `SERVER_CERT_SUBJECT` | `/CN=localhost` (image) | Subject of the generated server certificate |
 | `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
 | `OTEL_SERVICE_NAME` | `pgdata` | Service name reported in traces, metrics and logs |
+| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
 
 ### Example
 
@@ -68,7 +70,9 @@ docker run -it \
 | `BIND_ADDR` | `0.0.0.0:51907` | Address to listen on |
 | `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
 | `OTEL_SERVICE_NAME` | `simpledata` | Service name reported in traces, metrics and logs |
+| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
 
 ### Resource files
 
