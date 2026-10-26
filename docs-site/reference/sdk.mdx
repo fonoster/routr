@@ -246,6 +246,7 @@ Manages Agent resources.
 | `maxContacts` | `number` | No | Maximum registered contacts. `-1` means no limit. |
 | `expires` | `number` | No | Registration expiry override, in seconds. |
 | `enabled` | `boolean` | No | Reserved for future use. |
+| `trace` | `{ enabled: boolean }` | No | Record every message of the calls that touch this Agent. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
 | `extended` | `object` | No | Custom attributes. |
 
 `UpdateAgentRequest` takes `ref` (required) plus any field above except `username`, which you can't change.
@@ -317,6 +318,7 @@ Manages Domain resources.
 | `domainUri` | `string` | Yes | Fully qualified domain name, such as `sip.local`. Unique. |
 | `accessControlListRef` | `string` | No | ACL attached to the Domain. |
 | `egressPolicies` | `{ rule: string, numberRef: string }[]` | No | Outbound rules. `rule` is a regular expression matched against the dialed number. `numberRef` is the Number used when it matches. |
+| `trace` | `{ enabled: boolean }` | No | Record every message of the calls that touch this Domain. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
 | `extended` | `object` | No | Custom attributes. |
 
 `UpdateDomainRequest` takes `ref` (required) plus any field above except `domainUri`, which you can't change.
@@ -407,6 +409,7 @@ Manages Peer resources.
 | `maxContacts` | `number` | No | Maximum registered contacts. `-1` means no limit. |
 | `expires` | `number` | No | Registration expiry override, in seconds. |
 | `enabled` | `boolean` | No | Whether the Peer is enabled. |
+| `trace` | `{ enabled: boolean }` | No | Record every message of the calls that touch this Peer. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
 | `extended` | `object` | No | Custom attributes. |
 
 `UpdatePeerRequest` takes `ref` (required) plus any field above except `username`, which you can't change.
@@ -454,6 +457,7 @@ Manages Trunk resources.
 | `inboundCredentialsRef` | `string` | No | Credentials the provider must use on inbound calls. |
 | `outboundCredentialsRef` | `string` | No | Credentials Routr uses toward the provider. |
 | `uris` | `TrunkURI[]` | No | Outbound URIs. See the next table. |
+| `trace` | `{ enabled: boolean }` | No | Record every message of the calls that touch this Trunk. Defaults to `{ enabled: false }`. Needs the Dispatcher recording in `flagged` mode. See [Record and replay calls](/guides/record-and-replay-calls). |
 | `extended` | `object` | No | Custom attributes. |
 
 `TrunkURI` fields:
