@@ -33,10 +33,13 @@ import java.net.InetAddress;
  * StackOverflowError described in {@link SafeNioTlsWebSocketMessageChannel}
  * cannot kill {@code EventScannerThread}.
  *
- * <p>All other transports (UDP, TCP, TLS, plain WS, SCTP) fall through to the
- * standard factory and are unaffected. Plain WS does not suffer from the same
- * recursion because {@code NioWebSocketMessageChannel.onNewSocket} is a no-op
- * delegate to {@code NioTcpMessageChannel.onNewSocket}.
+ * <p>Plain WS gets {@link SafeNioWebSocketMessageProcessor} so a request named
+ * WSS can go out on a WS connection (see {@link SiblingChannels}); it does
+ * not suffer from the recursion because {@code NioWebSocketMessageChannel.onNewSocket}
+ * is a no-op delegate to {@code NioTcpMessageChannel.onNewSocket}. TLS gets
+ * {@link SafeNioTlsMessageProcessor}, and plain TCP gets
+ * {@link SafeNioTcpMessageProcessor} so a request named TLS can go out on a
+ * TCP connection. UDP and SCTP fall through to the standard factory.
  */
 public class SafeNioMessageProcessorFactory extends NioMessageProcessorFactory {
 
@@ -59,6 +62,18 @@ public class SafeNioMessageProcessorFactory extends NioMessageProcessorFactory {
       // labels it as WS. That path goes through the same recursive onNewSocket
       // codepath, so we patch it too.
       return new SafeNioTlsWebSocketMessageProcessor(ipAddress, sipStack, port, "WS");
+    }
+
+    if (ListeningPointExt.WS.equalsIgnoreCase(transport)) {
+      // Plain WS behind a proxy that terminates the browser's TLS. Its
+      // connections must be reachable from the WSS listening point.
+      return new SafeNioWebSocketMessageProcessor(ipAddress, sipStack, port);
+    }
+
+    if ("TCP".equalsIgnoreCase(transport)) {
+      // Plain TCP behind a proxy that terminates the client's TLS. Its
+      // connections must be reachable from the TLS listening point.
+      return new SafeNioTcpMessageProcessor(ipAddress, sipStack, port);
     }
 
     if ("TLS".equalsIgnoreCase(transport)) {
