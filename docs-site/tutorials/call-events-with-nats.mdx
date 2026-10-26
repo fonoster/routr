@@ -175,7 +175,7 @@ For traces and metrics instead of business events, see [Monitor with OpenTelemet
 | `routr.call.started` | EdgePort forwards an INVITE | `callId`, `from`, `to`, `startTime`, `extraHeaders`, plus any metadata the processor attached to the route |
 | `routr.call.ended` | A BYE or CANCEL completes, an INVITE fails with a status above 300, or a transport error drops the transaction | `callId`, `endTime`, `hangupCause`, `extraHeaders` |
 
-`extraHeaders` holds every header in the message whose name starts with `X-`. For a list of hangup causes, see [`HangupCauses.java`](https://github.com/fonoster/routr/blob/main/mods/edgeport/src/main/java/io/routr/HangupCauses.java).
+`extraHeaders` holds every header in the message whose name starts with `X-`. On `routr.call.ended` it also carries the `X-` headers of the INVITE that started the call, so a header such as `X-Call-Ref` correlates both events. If the message that ends the call carries a header with the same name, its value wins. For a list of hangup causes, see [`HangupCauses.java`](https://github.com/fonoster/routr/blob/main/mods/edgeport/src/main/java/io/routr/HangupCauses.java).
 
 To change the prefix, set `NATS_PUBLISHER_SUBJECT`. For example, `NATS_PUBLISHER_SUBJECT=myserver` publishes `myserver.call.started`, `myserver.call.ended`, and `myserver.endpoint.registered`.
 
