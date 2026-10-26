@@ -66,7 +66,7 @@ use). New paths are relative to `https://docs.routr.io`.
 | `connect/sending-call-events-to-nats` | `/tutorials/call-events-with-nats` | |
 | `tutorials/load-balancing-asterisk-with-routr` | `/tutorials/load-balancing-asterisk` | |
 | `tutorials/intercom-system-with-routr-and-kubernetes` | `/tutorials/intercom-on-kubernetes` | |
-| `tutorials/deploying-to-civo-with-helm` | `/tutorials/deploy-to-civo-with-helm` | |
+| `tutorials/deploying-to-civo-with-helm` | `/guides/deploy-on-kubernetes` | The Civo tutorial was removed; the cloud load balancer steps live in the Kubernetes guide |
 | `tutorials/ephemeral-agents-in-the-browser` | `/tutorials/ephemeral-agents-in-the-browser` | |
 | `community` | `/community` | |
 | `contributing` | `/contributing` | |

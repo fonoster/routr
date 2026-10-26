@@ -71,7 +71,8 @@
                   "guides/deploy-on-kubernetes",
                   "guides/secure-the-server",
                   "guides/scale-with-redis",
-                  "guides/record-and-replay-calls"
+                  "guides/record-and-replay-calls",
+                  "guides/monitor-with-opentelemetry"
                 ]
               },
               {
@@ -116,7 +117,6 @@
             "pages": [
               "tutorials/load-balancing-asterisk",
               "tutorials/intercom-on-kubernetes",
-              "tutorials/deploy-to-civo-with-helm",
               "tutorials/call-events-with-nats",
               "tutorials/ephemeral-agents-in-the-browser"
             ]
@@ -245,6 +245,10 @@
     ]
   },
   "redirects": [
+    {
+      "source": "/tutorials/deploy-to-civo-with-helm",
+      "destination": "/guides/deploy-on-kubernetes"
+    },
     {
       "source": "/guides/develop-with-gitpod",
       "destination": "/guides/develop-with-dev-containers"
@@ -755,19 +759,15 @@
     },
     {
       "source": "/tutorials/deploying-to-civo-with-helm",
-      "destination": "/tutorials/deploy-to-civo-with-helm"
+      "destination": "/guides/deploy-on-kubernetes"
     },
     {
       "source": "/docs/2.11.5/tutorials/deploying-to-civo-with-helm",
-      "destination": "/tutorials/deploy-to-civo-with-helm"
+      "destination": "/guides/deploy-on-kubernetes"
     },
     {
       "source": "/docs/tutorials/deploying-to-civo-with-helm",
-      "destination": "/tutorials/deploy-to-civo-with-helm"
-    },
-    {
-      "source": "/tutorials/ephemeral-agents-in-the-browser",
-      "destination": "/tutorials/ephemeral-agents-in-the-browser"
+      "destination": "/guides/deploy-on-kubernetes"
     },
     {
       "source": "/docs/2.11.5/tutorials/ephemeral-agents-in-the-browser",
@@ -778,20 +778,12 @@
       "destination": "/tutorials/ephemeral-agents-in-the-browser"
     },
     {
-      "source": "/community",
-      "destination": "/community"
-    },
-    {
       "source": "/docs/2.11.5/community",
       "destination": "/community"
     },
     {
       "source": "/docs/community",
       "destination": "/community"
-    },
-    {
-      "source": "/contributing",
-      "destination": "/contributing"
     },
     {
       "source": "/docs/2.11.5/contributing",
@@ -802,20 +794,12 @@
       "destination": "/contributing"
     },
     {
-      "source": "/faqs",
-      "destination": "/faqs"
-    },
-    {
       "source": "/docs/2.11.5/faqs",
       "destination": "/faqs"
     },
     {
       "source": "/docs/faqs",
       "destination": "/faqs"
-    },
-    {
-      "source": "/changelog",
-      "destination": "/changelog"
     },
     {
       "source": "/docs/2.11.5/changelog",
