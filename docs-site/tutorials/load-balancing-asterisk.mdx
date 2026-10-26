@@ -114,9 +114,9 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
           - 22222:22222/udp
           - 10000-10100:10000-10100/udp
         environment:
-          PUBLIC_IP: ${DOCKER_HOST_ADDRESS}
-          PORT_MIN: 10000
-          PORT_MAX: 10100
+          RTPENGINE_PUBLIC_IP: ${DOCKER_HOST_ADDRESS}
+          RTPENGINE_PORT_MIN: 10000
+          RTPENGINE_PORT_MAX: 10100
     ```
 
     Both Asterisk services use the same `SIPPROXY_USERNAME` and `SIPPROXY_SECRET`. That is what makes Routr treat them as one Peer.
