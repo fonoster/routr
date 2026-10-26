@@ -1,6 +1,6 @@
 {
   "name": "@routr/rtprelay",
-  "version": "2.25.1",
+  "version": "2.25.2",
   "description": "Media Relay for Routr using RTPengine",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -21,8 +21,8 @@
   "dependencies": {
     "@fonoster/logger": "0.6.0",
     "@grpc/grpc-js": "~1.14.6",
-    "@routr/common": "^2.25.1",
-    "@routr/processor": "^2.25.1",
+    "@routr/common": "^2.25.2",
+    "@routr/processor": "^2.25.2",
     "ajv": "^6.12.6",
     "fp-ts": "^2.11.8",
     "rtpengine-client": "^0.4.11"
