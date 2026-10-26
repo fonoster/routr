@@ -40,6 +40,58 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     mkdir routr-asterisk && cd routr-asterisk
     ```
 
+    Download the English core sounds. The Asterisk image doesn't include prompts, and the dialplan below needs them to say a digit.
+
+    ```bash
+    mkdir sounds
+    curl -sL https://downloads.asterisk.org/pub/telephony/sounds/releases/asterisk-core-sounds-en-ulaw-1.6.1.tar.gz | tar -xz -C sounds
+    ```
+
+    Create the PJSIP configuration both Asterisk servers share. It registers to Routr as the `asterisk` Peer and accepts the calls Routr sends back.
+
+    Filename: `pjsip.conf`
+
+    ```ini
+    [transport-udp]
+    type=transport
+    protocol=udp
+    bind=0.0.0.0:5060
+
+    [routr]
+    type=registration
+    transport=transport-udp
+    server_uri=sip:routr:5060
+    client_uri=sip:asterisk@sip.local
+    outbound_auth=routr-auth
+    expiration=60
+    retry_interval=10
+    forbidden_retry_interval=10
+
+    [routr-auth]
+    type=auth
+    auth_type=userpass
+    username=asterisk
+    password=asterisk
+
+    [routr]
+    type=endpoint
+    transport=transport-udp
+    context=local-ctx
+    disallow=all
+    allow=ulaw,alaw
+
+    [routr]
+    type=identify
+    endpoint=routr
+    match=routr
+    ```
+
+    What each section does:
+
+    - `registration` sends a REGISTER to the `routr` service every minute. The user part of `client_uri` is the Peer's username, which is how Routr finds the Peer. `forbidden_retry_interval` keeps it retrying after a `403 Forbidden`, which is what Routr answers until the Peer exists.
+    - `auth` holds the Peer's credentials. Asterisk uses them to answer Routr's `401` challenge.
+    - `endpoint` and `identify` accept calls that come from the `routr` service and send them to the `local-ctx` context. Routr doesn't challenge the calls it forwards, so the endpoint has no inbound authentication.
+
     Create a dialplan for each Asterisk server. Each one answers calls to the `asterisk` extension, logs its own name, and says a different digit, so you can tell them apart.
 
     Filename: `extensions.01.conf`
@@ -83,33 +135,24 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
           - 5060:5060/udp
 
       asterisk01:
-        image: fonoster/mediaserver:latest
+        image: andrius/asterisk:22.11.0_debian-trixie
         restart: always
-        expose:
-          - 6060
-        environment:
-          EXTERN_ADDR: ${DOCKER_HOST_ADDRESS}
-          SIPPROXY_HOST: routr
-          SIPPROXY_USERNAME: asterisk
-          SIPPROXY_SECRET: asterisk
         volumes:
-          - ./extensions.01.conf:/etc/asterisk/extensions.conf
+          - ./pjsip.conf:/etc/asterisk/pjsip.conf:ro
+          - ./extensions.01.conf:/etc/asterisk/extensions.conf:ro
+          - ./sounds:/var/lib/asterisk/sounds/en:ro
 
       asterisk02:
-        image: fonoster/mediaserver:latest
+        image: andrius/asterisk:22.11.0_debian-trixie
         restart: always
-        expose:
-          - 6060
-        environment:
-          EXTERN_ADDR: ${DOCKER_HOST_ADDRESS}
-          SIPPROXY_HOST: routr
-          SIPPROXY_USERNAME: asterisk
-          SIPPROXY_SECRET: asterisk
         volumes:
-          - ./extensions.02.conf:/etc/asterisk/extensions.conf
+          - ./pjsip.conf:/etc/asterisk/pjsip.conf:ro
+          - ./extensions.02.conf:/etc/asterisk/extensions.conf:ro
+          - ./sounds:/var/lib/asterisk/sounds/en:ro
 
       rtpengine:
         image: fonoster/rtpengine:latest
+        platform: linux/amd64
         ports:
           - 22222:22222/udp
           - 10000-10100:10000-10100/udp
@@ -119,10 +162,10 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
           RTPENGINE_PORT_MAX: 10100
     ```
 
-    Both Asterisk services use the same `SIPPROXY_USERNAME` and `SIPPROXY_SECRET`. That is what makes Routr treat them as one Peer.
+    Both Asterisk services mount the same `pjsip.conf`, so they register with the same username and password. That is what makes Routr treat them as one Peer. Only the dialplan differs.
 
     <Note>
-    `fonoster/mediaserver` is Fonoster's media server image: Asterisk with Fonoster's media controller, built for amd64 only. The tutorial relies on two things it configures from the environment: a PJSIP registration over TCP to `SIPPROXY_HOST` with `SIPPROXY_USERNAME` and `SIPPROXY_SECRET`, and an endpoint that sends incoming calls to the `local-ctx` context, which the mounted `extensions.conf` defines. Any Asterisk build works the same way, as long as it registers to Routr as a Peer and sends calls for the `asterisk` extension to a dialplan.
+    `andrius/asterisk` is a community-maintained build of stock Asterisk, published for amd64 and arm64. The tag pins Asterisk 22, a long-term support release. The configuration is plain PJSIP, so it works with any Asterisk build that includes PJSIP. `fonoster/rtpengine` is built for amd64 only, so on Apple silicon it runs under emulation.
     </Note>
   </Step>
 
@@ -139,7 +182,9 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     docker compose ps
     ```
 
-    You see four services with status `Up` (or `running`). The Asterisk servers try to register right away and fail, because the Peer doesn't exist yet. You create it next.
+    You see four services with status `Up` (or `running`). The Asterisk servers try to register right away and Routr rejects them, because the Peer doesn't exist yet. You create it next. They keep retrying every 10 seconds.
+
+    Asterisk logs warnings and errors at startup from modules this tutorial doesn't use, such as ALSA, PostgreSQL, and CDR. You can ignore them.
   </Step>
 
   <Step title="Install rctl">
@@ -251,17 +296,27 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     ```
   </Step>
 
-  <Step title="Register the Asterisk servers">
-    Restart the Asterisk containers so they register now instead of waiting for their next retry.
+  <Step title="Check that the Asterisk servers registered">
+    Within 10 seconds of creating the Peer, both servers retry and register. Each one registers from its own container address, and Routr stores both contacts under `sip:asterisk@sip.local`.
+
+    Ask each server for its registration status.
 
     ```bash
-    docker compose restart asterisk01 asterisk02
+    docker compose exec asterisk01 asterisk -rx "pjsip show registrations"
+    docker compose exec asterisk02 asterisk -rx "pjsip show registrations"
     ```
 
-    Each server registers from its own container address. Routr stores both contacts under `sip:asterisk@sip.local`.
+    ```text
+     <Registration/ServerURI..............................>  <Auth....................>  <Status.......>
+    ==========================================================================================
+
+     routr/sip:routr:5060                                    routr-auth                  Registered        (exp. 45s)
+
+    Objects found: 1
+    ```
 
     <Check>
-    `docker compose logs routr` shows no authentication errors for the `asterisk` user, and both Asterisk containers stay up.
+    Both servers show `Registered`. If one shows `Rejected`, wait 10 seconds and ask again. If it stays `Rejected`, check that the Peer's username and credentials are `asterisk`/`asterisk`.
     </Check>
   </Step>
 
@@ -297,15 +352,15 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     You can also search the Asterisk logs for the message each dialplan writes:
 
     ```bash
-    docker compose logs asterisk01 asterisk02 | grep "Call answered"
+    docker compose logs --no-log-prefix asterisk01 asterisk02 | grep "Call answered by" | grep -v Executing | sort
     ```
 
-    The output alternates between the two servers, similar to this:
+    Sorted by time, the output alternates between the two servers, similar to this:
 
     ```text
-    asterisk01-1  | Call answered by asterisk01
-    asterisk02-1  | Call answered by asterisk02
-    asterisk01-1  | Call answered by asterisk01
+    [Oct 26 02:39:06]   Call answered by asterisk01
+    [Oct 26 02:39:09]   Call answered by asterisk02
+    [Oct 26 02:39:11]   Call answered by asterisk01
     ```
 
     <Check>
@@ -320,7 +375,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     docker compose stop asterisk02
     ```
 
-    New calls keep reaching `asterisk01` once the stopped server's registration expires or is removed. A call that was already in progress on `asterisk02` ends with it; Routr does not move it.
+    New calls keep reaching `asterisk01` once the stopped server's registration expires. With `expiration=60` in `pjsip.conf`, that takes up to a minute. Until then, Routr can still pick `asterisk02`, and that call fails. A call that was already in progress on `asterisk02` ends with it; Routr does not move it.
 
     Start the server again when you're done.
 

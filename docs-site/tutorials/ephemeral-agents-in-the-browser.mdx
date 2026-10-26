@@ -44,6 +44,52 @@ This is how you let website visitors call your contact center without giving eac
   </Step>
 
   <Step title="Define the services">
+    Download the English core sounds. The Asterisk image doesn't include prompts, and the dialplan below plays one.
+
+    ```bash
+    mkdir sounds
+    curl -sL https://downloads.asterisk.org/pub/telephony/sounds/releases/asterisk-core-sounds-en-ulaw-1.6.1.tar.gz | tar -xz -C sounds
+    ```
+
+    Create the PJSIP configuration for Asterisk. It registers to Routr as the `asterisk` Peer, which you create later, and accepts the calls Routr sends back. Until the Peer exists, Routr rejects the registration and Asterisk retries every 10 seconds.
+
+    Filename: `pjsip.conf`
+
+    ```ini
+    [transport-udp]
+    type=transport
+    protocol=udp
+    bind=0.0.0.0:5060
+
+    [routr]
+    type=registration
+    transport=transport-udp
+    server_uri=sip:routr:5060
+    client_uri=sip:asterisk@sip.local
+    outbound_auth=routr-auth
+    expiration=60
+    retry_interval=10
+    forbidden_retry_interval=10
+
+    [routr-auth]
+    type=auth
+    auth_type=userpass
+    username=asterisk
+    password=asterisk
+
+    [routr]
+    type=endpoint
+    transport=transport-udp
+    context=local-ctx
+    disallow=all
+    allow=ulaw,alaw
+
+    [routr]
+    type=identify
+    endpoint=routr
+    match=routr
+    ```
+
     Create a dialplan for Asterisk. It answers calls to the `asterisk` extension and plays a short prompt.
 
     Filename: `extensions.conf`
@@ -77,20 +123,16 @@ This is how you let website visitors call your contact center without giving eac
           - 5060:5060/udp
 
       asterisk:
-        image: fonoster/mediaserver:latest
+        image: andrius/asterisk:22.11.0_debian-trixie
         restart: always
-        expose:
-          - 6060
-        environment:
-          EXTERN_ADDR: ${DOCKER_HOST_ADDRESS}
-          SIPPROXY_HOST: routr
-          SIPPROXY_USERNAME: asterisk
-          SIPPROXY_SECRET: asterisk
         volumes:
-          - ./extensions.conf:/etc/asterisk/extensions.conf
+          - ./pjsip.conf:/etc/asterisk/pjsip.conf:ro
+          - ./extensions.conf:/etc/asterisk/extensions.conf:ro
+          - ./sounds:/var/lib/asterisk/sounds/en:ro
 
       rtpengine:
         image: fonoster/rtpengine:latest
+        platform: linux/amd64
         ports:
           - 22222:22222/udp
           - 10000-10100:10000-10100/udp
@@ -106,6 +148,7 @@ This is how you let website visitors call your contact center without giving eac
     - `CONNECT_VERIFIER_PUBLIC_KEY_PATH` turns on ephemeral agents. The Connect processor reads the key at startup and verifies every `X-Connect-Token` with it.
     - `CONNECT_VERIFIER_OPTIONS` is optional. Its JSON is passed to the verifier, here to accept only RS256 signatures.
     - Port `5062` is EdgePort's WebSocket (`ws`) listener. The browser connects there.
+    - `andrius/asterisk` is a community-maintained build of stock Asterisk 22, published for amd64 and arm64. `fonoster/rtpengine` is built for amd64 only, so on Apple silicon it runs under emulation.
   </Step>
 
   <Step title="Start the stack">
@@ -142,11 +185,15 @@ This is how you let website visitors call your contact center without giving eac
     rctl peers create --insecure
     ```
 
-    Restart Asterisk so it registers now.
+    Within 10 seconds, Asterisk retries and registers. Check its status.
 
     ```bash
-    docker compose restart asterisk
+    docker compose exec asterisk asterisk -rx "pjsip show registrations"
     ```
+
+    <Check>
+    The `routr/sip:routr:5060` registration shows `Registered`.
+    </Check>
 
     Print the Domain's reference. You need it for the token.
 
