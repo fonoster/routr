@@ -157,7 +157,7 @@ Set `RTPENGINE_HOST` to the service name. The command starts RTPEngine and adds 
 RTPENGINE_HOST=rtpengine npm run start:one
 ```
 
-RTPEngine advertises `127.0.0.1` as its media address by default. Set `DOCKER_HOST_ADDRESS` to an IP your SIP clients can reach before the service starts. The media ports `10000-10020/udp` aren't forwarded to your host from inside the container.
+RTPEngine advertises `127.0.0.1` as its media address by default (`RTPENGINE_PUBLIC_IP` in `.devcontainer/compose.yaml`). Set `DOCKER_HOST_ADDRESS` to an IP your SIP clients can reach before the service starts. The media ports `10000-10020/udp` aren't forwarded to your host from inside the container.
 
 ## Start and stop the services by hand
 

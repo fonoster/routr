@@ -162,7 +162,7 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:5432/routr?schema=public"
 Stop all three services with `npm run stop:deps`. Adminer is no longer part of the setup; connect to PostgreSQL with any client, for example `psql postgresql://postgres:postgres@localhost:5432/routr`.
 
 <Note>
-  RTPEngine advertises `DOCKER_HOST_ADDRESS` as its media address, `127.0.0.1` when unset. Set it to an IP your SIP clients can reach before the service starts. Compose can't use host networking on macOS, so the media ports are published instead.
+  RTPEngine advertises `DOCKER_HOST_ADDRESS` as its media address (Compose passes it to the image as `RTPENGINE_PUBLIC_IP`), `127.0.0.1` when unset. Set it to an IP your SIP clients can reach before the service starts. Compose can't use host networking on macOS, so the media ports are published instead. The `fonoster/rtpengine` image is amd64 only, so on Apple silicon it runs under emulation.
 </Note>
 
 ## Run the tests

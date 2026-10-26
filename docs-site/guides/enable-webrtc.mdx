@@ -80,9 +80,9 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
           - 22222:22222/udp
           - 10000-10100:10000-10100/udp
         environment:
-          PUBLIC_IP: ${DOCKER_HOST_ADDRESS}
-          PORT_MIN: 10000
-          PORT_MAX: 10100
+          RTPENGINE_PUBLIC_IP: ${DOCKER_HOST_ADDRESS}
+          RTPENGINE_PORT_MIN: 10000
+          RTPENGINE_PORT_MAX: 10100
     ```
 
     On Kubernetes, deploy RTPEngine yourself. The Routr chart doesn't include it.
@@ -181,7 +181,7 @@ Register a browser client, then call a desk softphone or a PBX Peer.
 ## Troubleshooting
 
 - **The browser can't open the WebSocket.** The page is served over HTTPS and you used `ws://`, or the certificate isn't trusted. Use `wss://` with a CA-issued certificate.
-- **The call connects with no audio.** RTPEngine's `PUBLIC_IP` is wrong, or its UDP port range isn't reachable from the internet.
+- **The call connects with no audio.** RTPEngine's `RTPENGINE_PUBLIC_IP` is wrong, or its UDP port range isn't reachable from the internet.
 - **RTPRelay never runs.** On a split deployment, the middleware isn't listed in `dispatcher.yaml`, or the EdgePort points directly at the Connect processor.
 - **Registrations start failing after a few reloads.** The Agent hit `maxContacts`. See the previous step.
 
