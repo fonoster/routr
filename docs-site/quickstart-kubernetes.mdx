@@ -15,8 +15,12 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
 - A local Kubernetes cluster, such as [Minikube](https://minikube.sigs.k8s.io/) or the one built into Docker Desktop, with a storage provisioner for persistent volumes.
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) configured for that cluster.
 - [Helm](https://helm.sh/docs/intro/install/) v3.
-- [Node.js](https://nodejs.org/en/download/) and npm, to install `rctl`.
+- [Node.js](https://nodejs.org/en/download/) 22 or later and npm, to install `rctl`.
 - The IP address your SIP clients will use to reach the cluster (for a local cluster, usually your machine's IP, for example `192.168.1.3`).
+
+<Warning>
+  The PostgreSQL and Redis images the chart installs (`bitnamilegacy/*`) are built for amd64 only. On an arm64 cluster, such as Docker Desktop or kind on Apple silicon, run them under amd64 emulation, or disable the subcharts and point Routr at your own databases. See [Helm values](/reference/helm-values).
+</Warning>
 
 ## Steps
 
@@ -114,6 +118,7 @@ A Routr Connect release named `sipnet` in a `sipnet` namespace, with each Routr 
     ```text
     This utility will help you create a new Domain.
     Press ^C at any time to quit.
+     ›   Warning: Egress rules unavailable due to 0 configured numbers.
     ? Friendly Name Local Domain
     ? SIP URI sip.local
     ? IP Access Control List None
