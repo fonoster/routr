@@ -84,7 +84,7 @@ The [CHANGELOG](https://github.com/fonoster/routr/tree/gh-pages/charts/CHANGELOG
 | -------------------- | ------------------------------------------------ | --------- |
 | `global.region`      | Region for the cluster (reserved for future use) | `default` |
 | `global.logsLevel`   | Global logs level recommending only for testing  | `info`    |
-| `global.otlExporter` | OpenTelemetry exporter URL                       |           |
+| `global.otlpEndpoint` | OTLP/HTTP endpoint for traces, metrics and logs |           |
 
 ### Edgeport parameters
 

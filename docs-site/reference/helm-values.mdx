@@ -75,7 +75,7 @@ Per-service defaults:
 | --- | --- | --- | --- |
 | `global.region` | string | `default` | Region written to the EdgePort and Location configs (reserved for future use) |
 | `global.logsLevel` | string | `info` | Sets `LOGS_LEVEL` on every service |
-| `global.otlExporter` | string | Unset | Sets `OTEL_EXPORTER_JAEGER_ENDPOINT` on every service |
+| `global.otlpEndpoint` | string | Unset | Sets `OTEL_EXPORTER_OTLP_ENDPOINT` on every service: traces, metrics and logs go there over OTLP/HTTP. Replaces `global.otlExporter`, which took a Jaeger collector URL and is no longer read |
 
 ## edgeport
 
@@ -223,6 +223,5 @@ Values from the [Bitnami Redis chart](https://github.com/bitnami/charts/tree/mai
 
 ## Notes
 
-- `global.otlExporter` sets `OTEL_EXPORTER_JAEGER_ENDPOINT`, but the Routr services read the standard `OTEL_EXPORTER_OTLP_ENDPOINT`. See [Environment variables](/reference/environment-variables).
 - The chart does not set `TRUSTED_EDGEPORT_ADDRESSES` on the Connect processor. With more than one EdgePort replica, requests forwarded between EdgePorts go through routing and access checks again. See [Connect processor](/reference/components/connect).
 - The chart has no values for Connect settings such as the Connect Token verifier.

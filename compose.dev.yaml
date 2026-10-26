@@ -7,7 +7,7 @@ services:
       dockerfile: ./mods/edgeport/Dockerfile
     environment:
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     networks:
       public:
         ipv4_address: 10.111.220.2
@@ -27,7 +27,7 @@ services:
       dockerfile: ./mods/edgeport/Dockerfile
     environment:
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     networks:
       public:
         ipv4_address: 10.111.220.3
@@ -44,7 +44,7 @@ services:
       dockerfile: ./mods/dispatcher/Dockerfile
     environment:
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     # Records every call of the compliance run, unredacted and linted; CI
     # uploads the files and they are the candidates for etc/corpus
     volumes:
@@ -60,7 +60,7 @@ services:
       dockerfile: ./mods/location/Dockerfile
     environment:
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     networks:
       internal:
         ipv4_address: 10.111.221.5
@@ -72,7 +72,7 @@ services:
       dockerfile: ./mods/connect/Dockerfile
     environment:
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     networks:
       internal:
         ipv4_address: 10.111.221.6
@@ -84,7 +84,7 @@ services:
       dockerfile: ./mods/simpledata/Dockerfile
     environment:
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     networks:
       internal:
         ipv4_address: 10.111.221.8
@@ -96,7 +96,7 @@ services:
       dockerfile: ./mods/requester/Dockerfile
     environment:
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     networks:
       internal:
         ipv4_address: 10.111.221.9
@@ -108,7 +108,7 @@ services:
       dockerfile: ./mods/registry/Dockerfile
     environment:
       LOGS_LEVEL: verbose
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     networks:
       internal:
         ipv4_address: 10.111.221.10
@@ -140,19 +140,17 @@ services:
     environment:
       LOGS_LEVEL: verbose
       RTPENGINE_HOST: rtpengine
-      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
     networks:
       internal:
         ipv4_address: 10.111.221.11
 
-  # Tracing monitoring
-  jaeger:
-    container_name: jaeger
-    image: jaegertracing/all-in-one:1.54
+  # Traces, metrics and logs: Grafana on http://localhost:3000 (admin/admin)
+  otel-lgtm:
+    container_name: otel-lgtm
+    image: grafana/otel-lgtm:0.38.0
     ports:
-      - 16686:16686
-      - 14268:14268
-      - 14250:14250
+      - 3000:3000
     networks:
       internal:
         ipv4_address: 10.111.221.7

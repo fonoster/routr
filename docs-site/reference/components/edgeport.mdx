@@ -84,7 +84,26 @@ Use the names the Java runtime knows. A name it doesn't recognize makes every TL
 | `SERVER_CERT_SUBJECT` | `/CN=localhost` | Subject of the generated server certificate |
 | `HEPLIFY_OPTIONS` | | When set, runs `heplify` with these options to mirror SIP traffic to a HEP collector such as Homer |
 | `LOG4J2` | `/etc/routr/log4j2.yaml` | Path to the Log4j2 configuration |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
+| `OTEL_EXPORTER_OTLP_HEADERS` | | Headers sent with every export, as `key=value,key=value` |
+| `OTEL_SERVICE_NAME` | `routr-edgeport` | Service name reported in traces, metrics and logs |
+| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
 | `JAVA_HOME` | `/opt/routr/jre` (image) | Java runtime used by `edgeport.sh` |
+
+## Telemetry
+
+With `OTEL_EXPORTER_OTLP_ENDPOINT` set, the EdgePort sends over OTLP:
+
+- **Traces:** one `SIP <METHOD>` span per request it receives, from arrival to its final response.
+  It carries `sip.method`, `sip.call_id`, `network.transport`, `network.peer.address`,
+  `network.peer.port` and `sip.status_code`. A request that never gets a final response ends as an
+  error when its transaction times out.
+- **Metrics:** `routr.sip.requests` (by method and transport), `routr.sip.responses` (by method
+  and status), `routr.sip.timeouts`, `routr.sip.transport_errors`, and `routr.sip.send_dropped`
+  (by `routr.drop.reason`, transport and method): messages the EdgePort dropped instead of
+  sending. Sent every 15 seconds.
+- **Logs:** every Log4j2 record of the `io.routr` loggers. A dropped message's record names its
+  first line and Call-ID.
 
 ## gRPC contract
 

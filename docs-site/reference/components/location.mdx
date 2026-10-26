@@ -49,10 +49,10 @@ The service builds a Redis URL from these keys, so always set both `host` and `p
 | --- | --- | --- |
 | `CONFIG_PATH` | `/etc/routr/location.yaml` (image) | Path to the configuration file. Required |
 | `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
 | `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME` | `location` | Service name reported in traces |
-| `OTEL_SDK_DISABLED` | | `true` turns tracing off |
+| `OTEL_SERVICE_NAME` | `location` | Service name reported in traces, metrics and logs |
+| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
 
 ## gRPC contract
 

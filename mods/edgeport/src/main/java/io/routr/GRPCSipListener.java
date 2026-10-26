@@ -23,6 +23,7 @@ import gov.nist.javax.sip.clientauthutils.AccountManager;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.ResponseEventExt;
 import io.grpc.ManagedChannel;
+import io.routr.telemetry.Telemetry;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import io.routr.common.Transport;
@@ -136,6 +137,7 @@ public class GRPCSipListener implements SipListener {
     messageConverter.setEdgePortVersion(edgePortVersion);
     messageConverter.setExternalAddrs(externalAddrs);
     messageConverter.setLocalnets(localnets);
+    Telemetry.setInternalNetworks(localnets);
     messageConverter.setListeningPoints(listeningPoints);
 
     this.messageFactory = SipFactory.getInstance().createMessageFactory();
@@ -190,6 +192,10 @@ public class GRPCSipListener implements SipListener {
         LOG.error("an exception occurred while processing request with callId: {}", callId, e);
       }
     }
+
+    var eventExt = (RequestEventExt) event;
+    Telemetry.requestReceived(req, serverTransaction, eventExt.getRemoteIpAddress(),
+        eventExt.getRemotePort());
 
     if (serverTransaction != null && requiresKnownDialog(req) && !isKnownDialog(req)) {
       rejectUnknownDialog(serverTransaction, req);
@@ -278,6 +284,8 @@ public class GRPCSipListener implements SipListener {
       } else {
         LOG.debug("an exception occurred while processing callId: {}", callId, e);
       }
+      // Answered (501 above) or not, the request's span ends here.
+      Telemetry.failed(serverTransaction, e.getClass().getSimpleName());
     }
   }
 
@@ -508,6 +516,13 @@ public class GRPCSipListener implements SipListener {
         : (Transaction) event.getServerTransaction();
     if (transaction != null) {
       var request = transaction.getRequest();
+      // A forwarded request that timed out leaves its caller's request unanswered. RETRANSMIT
+      // events are the stack's own retransmission timer, not a timeout.
+      if (event.getTimeout() == Timeout.TRANSACTION) {
+        Telemetry.timedOut(event.getClientTransaction() != null
+            ? transactionManager.getServerTransactionFor(event.getClientTransaction())
+            : transaction, request.getMethod());
+      }
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
       if (callId != null) {
         // Same sibling-in-flight caveat as processTransactionTerminated below.
@@ -520,6 +535,7 @@ public class GRPCSipListener implements SipListener {
     var transaction = event.getClientTransaction() != null
         ? (Transaction) event.getClientTransaction()
         : (Transaction) event.getServerTransaction();
+    Telemetry.terminated(transaction);
     if (transaction != null) {
       var request = transaction.getRequest();
       var callId = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
@@ -582,6 +598,7 @@ public class GRPCSipListener implements SipListener {
     String host = event.getHost();
     int port = event.getPort();
     LOG.warn("transport error on {}:{} via {}; cleaning up related transactions.", host, port, transport);
+    Telemetry.transportError(transport);
 
     // Find and remove all transactions associated with this transport, host, port combo
     List<Transaction> removedTransactions = transactionManager.removeTransactionsByTransport(transport, host, port);
@@ -641,6 +658,8 @@ public class GRPCSipListener implements SipListener {
           LOG.debug("an exception occurred while applying the CSeq offset for callId: {}", callId, e);
         }
       }
+
+      Telemetry.forwarding(serverTransaction, requestOut);
 
       // Does not need a transaction
       if (requestOut.getMethod().equals(Request.ACK)) {

@@ -18,6 +18,7 @@
  */
 package io.routr;
 
+import io.routr.telemetry.Telemetry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.graalvm.polyglot.Context;
@@ -40,6 +41,8 @@ public class Launcher {
 
   public static void main(String... args) {
     try {
+      // Before anything logs, so Log4j2 records go over OTLP too.
+      Telemetry.init("routr-edgeport");
       new Launcher().launch();
 
       String healthCheckEnv = System.getenv("ENABLE_HEALTHCHECKS");

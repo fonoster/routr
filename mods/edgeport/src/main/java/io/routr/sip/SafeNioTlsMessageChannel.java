@@ -21,6 +21,7 @@ package io.routr.sip;
 import gov.nist.javax.sip.stack.NioTcpMessageProcessor;
 import gov.nist.javax.sip.stack.NioTlsMessageChannel;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
+import io.routr.telemetry.Telemetry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -100,8 +101,9 @@ public class SafeNioTlsMessageChannel extends NioTlsMessageChannel {
     if (reconnecting) {
       LOG.warn(
           "TLS channel re-entered onNewSocket while reconnecting; dropping {} buffered byte(s) "
-              + "to avoid the JAIN-SIP onNewSocket -> sendMessage recursion. peerAddress={}, peerPort={}",
-          message != null ? message.length : 0, peerAddress, peerPort);
+              + "to avoid the JAIN-SIP onNewSocket -> sendMessage recursion. peerAddress={}, peerPort={}, {}",
+          message != null ? message.length : 0, peerAddress, peerPort,
+          Telemetry.dropped("tls_reconnect", "tls", message));
       return;
     }
 

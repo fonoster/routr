@@ -53,6 +53,16 @@ subprojects {
 }
 
 project(':mods:edgeport') {
+  dependencies {
+    implementation platform('io.opentelemetry:opentelemetry-bom:1.67.0')
+    implementation 'io.opentelemetry:opentelemetry-api'
+    implementation 'io.opentelemetry:opentelemetry-sdk'
+    implementation 'io.opentelemetry:opentelemetry-sdk-extension-autoconfigure'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-log4j-appender-2.17:2.33.0-alpha'
+    testImplementation 'io.opentelemetry:opentelemetry-sdk-testing'
+  }
+
   task copyRuntimeLibs(type: Copy) {
     from configurations.runtimeClasspath
     into "$rootDir/mods/$project.name/libs"
