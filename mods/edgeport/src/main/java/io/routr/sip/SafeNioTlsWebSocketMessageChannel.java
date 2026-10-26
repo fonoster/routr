@@ -55,10 +55,15 @@ import java.nio.channels.SocketChannel;
  * safe thing to do is drop the pending message, let the transaction time out
  * normally, and rely on {@code processIOException} to clean up. That is what
  * this override does.
+ *
+ * <p>It also accepts the upgrade request whatever the case of its header
+ * names (see {@link WebSocketUpgradeHeaders}).
  */
 public class SafeNioTlsWebSocketMessageChannel extends NioTlsWebSocketMessageChannel {
 
   private static final Logger LOG = LogManager.getLogger(SafeNioTlsWebSocketMessageChannel.class);
+
+  private final WebSocketUpgradeHeaders upgradeHeaders = new WebSocketUpgradeHeaders();
 
   protected SafeNioTlsWebSocketMessageChannel(SIPTransactionStack sipStack,
       NioTcpMessageProcessor nioTcpMessageProcessor,
@@ -79,6 +84,20 @@ public class SafeNioTlsWebSocketMessageChannel extends NioTlsWebSocketMessageCha
    */
   void markCached() {
     this.isCached = true;
+  }
+
+  /**
+   * The SSL state machine hands decrypted bytes here, and the stock
+   * implementation passes them to {@code NioWebSocketMessageChannel.addBytes},
+   * which answers the upgrade. Overriding {@code addBytes} instead would see
+   * the encrypted bytes.
+   */
+  @Override
+  public void addPlaintextBytes(byte[] bytes) throws Exception {
+    byte[] ready = upgradeHeaders.accept(bytes);
+    if (ready != null) {
+      super.addPlaintextBytes(ready);
+    }
   }
 
   /**

@@ -20,15 +20,20 @@ package io.routr.sip;
 
 import gov.nist.core.HostPort;
 import gov.nist.javax.sip.stack.MessageChannel;
+import gov.nist.javax.sip.stack.NioTcpMessageChannel;
+import gov.nist.javax.sip.stack.NioTcpMessageProcessor;
 import gov.nist.javax.sip.stack.NioWebSocketMessageProcessor;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.channels.SocketChannel;
 
 /**
  * Plain WS message processor that sends on its WSS sibling's connection to a
- * peer instead of opening a new one (see {@link SiblingChannels}).
+ * peer instead of opening a new one (see {@link SiblingChannels}), and that
+ * accepts connections with {@link SafeNioWebSocketMessageChannel} so the
+ * upgrade works whatever the case of the request's header names.
  */
 public class SafeNioWebSocketMessageProcessor extends NioWebSocketMessageProcessor
     implements SiblingChannels.Cache {
@@ -42,6 +47,26 @@ public class SafeNioWebSocketMessageProcessor extends NioWebSocketMessageProcess
   public MessageChannel findOpenChannel(InetAddress peerAddress, int peerPort) {
     return SiblingChannels.findOpen(messageChannels,
         MessageChannel.getKey(peerAddress, peerPort, transport));
+  }
+
+  /**
+   * Mirrors the stock implementation but instantiates our channel. Outgoing
+   * channels still come from JAIN-SIP's package-private
+   * {@code constructMessageChannel}; they read a 101 response, not a request,
+   * so the header case does not matter there.
+   */
+  @Override
+  public NioTcpMessageChannel createMessageChannel(
+      NioTcpMessageProcessor nioTcpMessageProcessor,
+      SocketChannel client) throws IOException {
+    NioTcpMessageChannel cached = nioHandler.getMessageChannel(client);
+    if (cached != null) {
+      return cached;
+    }
+    SafeNioWebSocketMessageChannel created =
+        new SafeNioWebSocketMessageChannel(sipStack, nioTcpMessageProcessor, client);
+    nioHandler.putMessageChannel(client, created);
+    return created;
   }
 
   @Override
