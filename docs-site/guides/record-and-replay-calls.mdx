@@ -59,17 +59,21 @@ Recording is off by default. Enable it on the Dispatcher, then choose which call
   <Tab title="routr-one">
     The all-in-one image has no configuration file, so it takes `RECORD_MESSAGES` (`true` to turn recording on), `RECORD_MESSAGES_MODE` (`flagged` or `all`, default `flagged`) and `RECORD_MESSAGES_PATH` (default `/var/routr/traces`). Credentials are always redacted and no rules are evaluated there.
 
-    Routr runs as the user `fonoster` (UID `5000`), and the image doesn't create `/var/routr/traces`. Mount a directory that user can write at `RECORD_MESSAGES_PATH`, or the container fails to start:
+    The image creates `/var/routr/traces`, owned by the user Routr runs as (`fonoster`, UID `5000`). Mount a named volume there to keep the recordings:
 
     ```yaml compose.yaml
     services:
       routr:
         environment:
           RECORD_MESSAGES: "true"
-          RECORD_MESSAGES_PATH: /var/routr/traces
         volumes:
-          - ./traces:/var/routr/traces
+          - traces:/var/routr/traces
+
+    volumes:
+      traces:
     ```
+
+    A bind mount, or a different `RECORD_MESSAGES_PATH`, must point to a directory UID `5000` can write, or the container fails to start:
 
     ```bash
     mkdir traces && sudo chown 5000:5000 traces

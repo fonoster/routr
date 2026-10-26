@@ -67,10 +67,10 @@ COPY --from=builder /work/jre jre
 COPY --from=builder /work/heplify /usr/local/bin/
 
 RUN apk add --no-cache libcap nodejs npm openssl postgresql sed sngrep su-exec tini \
-  && mkdir -p ${PATH_TO_CERTS} /var/lib/postgresql/data /run/postgresql /root/.npm \
+  && mkdir -p ${PATH_TO_CERTS} /var/lib/postgresql/data /run/postgresql /root/.npm /var/routr/traces \
   && addgroup -g ${GID} ${USER} \
   && adduser --disabled-password --gecos "" --ingroup ${USER} --home ${HOME} --uid ${UID} ${USER} \
-  && chown -R ${USER}:${USER} /service /etc/routr \
+  && chown -R ${USER}:${USER} /service /etc/routr /var/routr \
   && chown -R postgres:postgres /var/lib/postgresql/data /run/postgresql /root/.npm \
   && chmod +x edgeport.sh convert-to-p12.sh init-postgres.sh generate-certs.sh \
   && chmod 2777 /run/postgresql \
