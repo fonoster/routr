@@ -115,6 +115,7 @@ Peers take part in three routing types:
     - The `From` user is the Peer's username.
     - The Request-URI user is the destination number. It must not match an existing Number or Agent.
     - An `X-DOD-Number` header carries the caller ID number in E.164 format, for example `X-DOD-Number: +17066041487`.
+    - Optionally, `X-DOD-Privacy: id` hides the caller ID. Routr replaces any `Privacy` header with `Privacy: id` when this header is `id` (any case), and with `Privacy: none` otherwise.
     - It answers Routr's `401` challenge with the Peer's credentials.
 
     Routr finds the Number whose `telUrl` is `tel:` followed by the `X-DOD-Number` value, then sends the call through that Number's Trunk. It sets `P-Asserted-Identity` and `Remote-Party-ID` from the Number and authenticates with the Trunk's outbound credentials.
