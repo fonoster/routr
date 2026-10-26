@@ -39,25 +39,29 @@ Default Verify per area:
 
 ## Conventions
 
-Profile: repo-native
+Profile: typescript
 
-Overrides:
+New code follows the profile: validated functions (a factory with injected dependencies,
+Zod input validation, `withErrorHandlingAndValidation`), one function per file, and a test
+per function including the validation-failure case. Existing code changes only when an
+issue asks for it.
 
+Overrides (the profile yields to these):
+
+- CommonJS modules; relative imports carry no extension, not the profile's ESM `.js`.
+- Snake_case file names (`create_widget.ts`), not `createWidget.ts`.
 - Every source file starts with the MIT header in `.scripts/copyright.js` (ESLint
   `notice/notice` enforces it).
 - Prettier: no semicolons, double quotes, no trailing commas, width 80.
 - ESLint `google` plus `no-loops`: no `for`/`while` loops.
-- CommonJS modules; relative imports carry no extension. Snake_case file names.
+- Shared schemas, types and errors go in `mods/common`, the profile's shared package.
+- YAML config stays validated with Ajv JSON schemas (`src/config/schema.ts`); Zod is for
+  function input.
+- EdgePort's TypeScript runs in GraalJS with no `BigInt`: check new dependencies with
+  `npm run check:bundle`.
 - Tests: mocha, chai, sinon, sinon-chai; files named `*.unit.test.ts` (`*.int.test.ts` for
-  integration). YAML config is validated with Ajv JSON schemas (`src/config/schema.ts`).
+  integration).
 - Conventional commits, enforced by commitlint.
-
-Examples:
-
-- `mods/dispatcher/src/run_processor.ts`
-- `mods/connect/src/router.ts`
-- `mods/edgeport/src/create_sip_stack.ts` (TypeScript run in GraalJS, calling Java via
-  `Java.type`)
 
 ## Areas
 
