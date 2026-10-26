@@ -10,11 +10,13 @@ You run Routr and a NATS server with Docker Compose, turn on EdgePort's NATS pub
 
 Call events come from EdgePort, so you can feed them to billing, dashboards, or any service that speaks NATS without touching the SIP path.
 
+For traces and metrics instead of business events, see [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry).
+
 ## Prerequisites
 
 - Docker with Docker Compose
 - The [`nats` CLI](https://github.com/nats-io/natscli)
-- Node.js and npm, to install `rctl`
+- Node.js 22 or later, to install `rctl`
 - Two SIP softphones
 - The IP address of your machine on your local network (for example, `192.168.1.3`)
 
