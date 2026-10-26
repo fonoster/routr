@@ -45,8 +45,10 @@ Recording is off by default. Enable it on the Dispatcher, then choose which call
     With Docker Compose, mount that file over `/etc/routr/dispatcher.yaml` and the directory over `/var/routr/traces`.
   </Tab>
   <Tab title="Kubernetes">
+    With the release from [Deploy on Kubernetes](/guides/deploy-on-kubernetes), keep its current values and add the recording ones:
+
     ```bash
-    helm upgrade routr routr/routr-connect \
+    helm upgrade sipnet routr/routr-connect --namespace sipnet --reuse-values \
       --set dispatcher.recording.enabled=true \
       --set dispatcher.recording.mode=flagged \
       --set 'dispatcher.recording.lint.profiles={sip}'
@@ -55,7 +57,23 @@ Recording is off by default. Enable it on the Dispatcher, then choose which call
     The chart renders the block into the Dispatcher's ConfigMap. Files go to an `emptyDir` unless you set `dispatcher.recording.existingClaim` to a PersistentVolumeClaim.
   </Tab>
   <Tab title="routr-one">
-    The all-in-one image has no configuration file, so it takes `RECORD_MESSAGES`, `RECORD_MESSAGES_MODE` and `RECORD_MESSAGES_PATH`. Credentials are always redacted and no rules are evaluated there.
+    The all-in-one image has no configuration file, so it takes `RECORD_MESSAGES` (`true` to turn recording on), `RECORD_MESSAGES_MODE` (`flagged` or `all`, default `flagged`) and `RECORD_MESSAGES_PATH` (default `/var/routr/traces`). Credentials are always redacted and no rules are evaluated there.
+
+    Routr runs as the user `fonoster` (UID `5000`), and the image doesn't create `/var/routr/traces`. Mount a directory that user can write at `RECORD_MESSAGES_PATH`, or the container fails to start:
+
+    ```yaml compose.yaml
+    services:
+      routr:
+        environment:
+          RECORD_MESSAGES: "true"
+          RECORD_MESSAGES_PATH: /var/routr/traces
+        volumes:
+          - ./traces:/var/routr/traces
+    ```
+
+    ```bash
+    mkdir traces && sudo chown 5000:5000 traces
+    ```
   </Tab>
 </Tabs>
 
@@ -96,7 +114,7 @@ The Dispatcher stops writing a call after 1 000 records and stops starting new r
 Open a recording with `rctl trace replay`. The examples on this page use two recordings of SIPconnect 1.1 test 1.3.1 from the repository's corpus: agent 1001 calls `17853178070` through the trunk `sip.provider.net`, and agent 1002 places the same call.
 
 ```bash
-rctl trace replay seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl --sip-connect
+rctl trace replay etc/corpus/seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl --sip-connect
 ```
 
 The viewer opens with a short splash: the `r.` mark with its dot blinking and the name of the file being read. It lasts five seconds; press any key to skip it. When you open the viewer on a record with `--select`, there is no splash.
@@ -219,8 +237,8 @@ When no message was forwarded, the Path says so and names the component that ans
 Compare lines up two recordings of the same scenario, for example a call before and after an upgrade, or the same call placed by two agents:
 
 ```bash
-rctl trace replay seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl \
-  --compare seet-agent-1002_sc-1.3.1-dod-invite_provider_20261023.jsonl
+rctl trace replay etc/corpus/seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl \
+  --compare etc/corpus/seet-agent-1002_sc-1.3.1-dod-invite_provider_20261023.jsonl
 ```
 
 Press `4` for the Compare view. The top lines name file `A` and file `B` with their date, Routr version, outcome and number of messages, then sum up the differences: `≠ 6 of 7 rows differ · 0 only in A · 0 only in B`.
@@ -289,7 +307,7 @@ The palette is chosen once, at startup. If you switch your terminal theme, open 
 ## Print a call for an issue or CI
 
 ```bash
-rctl trace replay seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl --static --view ladder --select 2
+rctl trace replay etc/corpus/seet-agent-1001_sc-1.3.1-dod-invite_provider_20261023.jsonl --static --view ladder --select 2
 ```
 
 `--static` prints pages of plain text and exits, with no colour and no cursor movement, so the output reads in a GitHub issue, a pager or a CI log. Static mode is implied when stdout is not a terminal, and by `--view all`.
