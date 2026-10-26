@@ -5,10 +5,6 @@ description: "Understand Routr's built-in Connect processor, the resources it wo
 
 Connect mode is Routr running with its built-in **Connect processor**. Connect implements the PBX portion of the SIP Connect 1.1 specification, so you can register phones, call between them, reach the PSTN through a carrier, and send calls to media servers by creating resources instead of writing code. It's the most common way to run Routr, and both the `routr-one` image and the `routr-connect` Helm chart use it.
 
-<Note>
-  Routr isn't certified under SIP Connect 1.1. The Connect processor follows the PBX portion of the specification and adds features outside it, such as WebRTC support when combined with RTPEngine.
-</Note>
-
 ## Resources
 
 Connect describes your network with seven kinds of resources. You manage them with [rctl](/reference/rctl), the [SDK](/reference/sdk), or, with the `simpledata` API Server, YAML files.
@@ -41,9 +37,10 @@ Read [Resources overview](/reference/resources/overview) for every field.
 Connect handles each request according to its method:
 
 - **`REGISTER`**: Connect finds the Agent or Peer by the user and host in the `From` header, checks the digest credentials, and stores the route in the [Location Service](/reference/components/location). Agents register under their own address; Peers register under their `aor`.
+- **Requests inside a dialog**: any request whose `To` header carries a tag, such as a re-INVITE, `BYE`, `REFER`, or `NOTIFY`, is forwarded along the path already recorded for the dialog. Connect forwards `ACK` and `BYE` this way even without a tag.
+- **`CANCEL`**: Connect doesn't route it as a new call. It follows the `INVITE` it cancels, on the same path.
 - **`INVITE` and other new requests**: Connect identifies the caller and the callee, picks one of five [routing types](/concepts/routing), runs the access checks for that type, finds the route, and returns the request with the alterations needed to reach the target.
-- **`ACK` and `BYE`**: Connect forwards them along the path already recorded for the dialog.
-- **`MESSAGE`, `SUBSCRIBE`, `NOTIFY`, and `PUBLISH`**: Connect answers `405 Method Not Allowed`. To handle them, put another Processor in front of Connect in the Dispatcher.
+- **`MESSAGE`, `SUBSCRIBE`, `NOTIFY`, `PUBLISH`, and `REFER` outside a dialog**: Connect answers `405 Method Not Allowed`. To handle them, put another Processor in front of Connect in the Dispatcher.
 
 Agents that can't hold a password, such as browser clients, can authenticate with a signed JWT in the `X-Connect-Token` header instead. The token carries claims similar to an Agent's fields: its `aor`, `domain`, `allowedMethods`, and an `aorLink` to the Peer it may call. See [Ephemeral agents in the browser](/tutorials/ephemeral-agents-in-the-browser).
 

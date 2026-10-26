@@ -1,6 +1,6 @@
 ---
 title: "Introduction"
-description: "Learn what Routr is, who it's for, and how it differs from other SIP servers, so you can decide where to start."
+description: "Learn what Routr is and who it's for, so you can decide where to start."
 ---
 
 <img
@@ -35,11 +35,7 @@ Routr is the signaling engine behind [Fonoster](https://fonoster.com), and it's 
 - **Operators** who run SIP infrastructure on Docker or Kubernetes and want to scale each part of it on its own.
 - **Integrators** who need a SIP edge in front of Asterisk or FreeSWITCH. Routr registers phones, routes calls to and from carriers, and spreads calls across a group of media servers. It doesn't replace those media servers.
 
-## How Routr compares with Kamailio and OpenSIPS
-
-Kamailio and OpenSIPS are mature, programmable SIP servers with a long track record and a large module ecosystem. You program them with a routing script that runs inside one server process.
-
-Routr solves the same class of problem with a different design. Each function (edge, dispatch, routing, location, data) is a separate service, so you can scale, restart, or replace one without the others. Routing logic lives in a Processor that receives a protobuf message over gRPC, so you write it in a general-purpose language and test it like any other service. Routr is built to run in containers from the start, with a Docker image for single hosts and a Helm chart for Kubernetes.
+To see how Routr compares with Kamailio and OpenSIPS, read the [FAQs](/faqs).
 
 ## Where to go next
 

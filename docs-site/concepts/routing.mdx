@@ -40,15 +40,15 @@ Connect picks the routing type from the kinds of the two parties:
 | Any | Number | `from-pstn` |
 | Peer | Unknown | `peer-to-pstn` |
 
-Any other combination is rejected with `403 Forbidden`.
+A Peer calling an Agent (`peer-to-agent`) isn't supported: Connect answers `500 Server Internal Error`. Any other combination is unknown, and Connect rejects its `INVITE` with `403 Forbidden`.
 
 ### agent-to-agent
 
-An Agent calls another Agent in its Domain, for example `1001` dialing `1002` in `sip.local`. Connect asks the Location Service for the callee's registered route and sends the call there.
+An Agent calls another Agent in its Domain, for example `1001` dialing `1002` in `sip.local`. Connect asks the Location Service for the callee's registered route and sends the call there. If the callee isn't registered, Connect answers `480 Temporarily Unavailable`.
 
 ### agent-to-pstn
 
-An Agent dials a number that isn't an Agent, Peer, or Number in Routr. Connect checks the caller's Domain for an **egress policy** whose `rule`, a regular expression, matches the dialed number. The first match selects a Number, and that Number's Trunk carries the call. Connect sets the `Privacy` header from the Agent's privacy setting and adds `Remote-Party-ID`, `P-Asserted-Identity`, and the Trunk's authentication. If no policy matches, the call fails.
+An Agent dials a number that isn't an Agent, Peer, or Number in Routr. Connect checks the caller's Domain for an **egress policy** whose `rule`, a regular expression, matches the dialed number. The first match selects a Number, and that Number's Trunk carries the call. Connect sets the `Privacy` header from the Agent's privacy setting and adds `Remote-Party-ID`, `P-Asserted-Identity`, and the Trunk's authentication. If the Domain has no egress policies, or none matches, Connect answers `500 Server Internal Error`.
 
 ### from-pstn
 
@@ -64,9 +64,14 @@ A Peer, such as Asterisk, dials a number that Routr doesn't know. Because a Peer
 
 An Agent calls a Peer directly. This is designed for Agents that present an `X-Connect-Token` whose `aorLink` names the Peer, such as browser clients calling a feature server. Connect applies the Peer's load balancing settings to pick an instance.
 
-<Note>
-  The code also defines a `peer-to-agent` type, but it isn't supported yet.
-</Note>
+### Caller identity on Trunks
+
+Two Trunk settings change the numbers in calls that cross the Trunk:
+
+- `normalizeToE164` rewrites the From, To, and Request-URI users to `+E.164`. On calls from the Trunk, Connect normalizes before routing, so it finds the Number even when the carrier leaves out the `+`. On calls toward the Trunk, it normalizes after routing, so egress policy rules match the number as the caller dialed it.
+- `rewriteFromWithNumber` sets the From of calls leaving through the Trunk to the Number the call is placed from: the Number of the matching egress policy for `agent-to-pstn`, or the `X-DOD-Number` for `peer-to-pstn`.
+
+See [Caller identity](/reference/resources/trunks#caller-identity) for the details.
 
 ## Access checks
 

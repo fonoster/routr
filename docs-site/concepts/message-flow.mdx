@@ -32,12 +32,17 @@ message MessageRequest {
   repeated string localnets = 7;
   fonoster.routr.sipmessage.v2beta1.SIPMessage message = 8;
   map<string, string> metadata = 9;
+  // Version of the EdgePort that received the message (e.g. 2.18.0)
+  string edge_port_version = 10;
+  // Local socket the EdgePort received the message on
+  NetInterface received_on = 11;
 }
 ```
 
 - `edge_port_ref` identifies the EdgePort that received the message. The Location Service stores it with each registration, which is what lets EdgePorts [cooperate](/concepts/edgeport-cooperation).
 - `listening_points`, `external_addrs`, and `localnets` describe the EdgePort's interfaces, so a Processor can work out which address to put in `Via` and `Record-Route` headers.
 - `message` holds the parsed SIP headers (`From`, `To`, `Contact`, `Via`, `Route`, and others), any extra headers as a list of extensions, and the body.
+- `edge_port_version` is the version of the EdgePort that received the message, and `received_on` is the local socket it arrived on.
 
 The EdgePort then calls `ProcessMessage` on its configured processor address, usually the Message Dispatcher. Every Processor and Middleware implements this same gRPC method:
 
@@ -103,6 +108,10 @@ The Dispatcher returns the result to the EdgePort, which acts on it:
 Responses travel through the same pipeline. When the callee answers with `180 Ringing` or `200 OK`, the EdgePort converts the response to a `MessageRequest` and sends it to the Dispatcher. The Connect processor, for example, removes its own `Via` header and returns the response. The EdgePort then relays it on the server transaction it kept for the original request.
 
 That kept transaction is why the EdgePort is stateful: only the EdgePort that received a request can send its responses back to the caller.
+
+## Recording and tracing the path
+
+The Dispatcher can record every message of a call as it crosses this pipeline, with each component that touched it and what it changed. See [Record and replay calls](/guides/record-and-replay-calls). For tracing, the EdgePort propagates the W3C `traceparent` header: it continues a trace started by an internal sender and adds the header to requests it forwards to internal next hops, never to carriers or phones. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry).
 
 ## Related pages
 

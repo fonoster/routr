@@ -24,7 +24,7 @@ A traditional SIP server puts the network stack, the routing logic, and the data
 - Routing logic lives in a Processor, so you can write your own in any language with gRPC support.
 - Each service scales on its own. If routing needs more CPU, you add Processor replicas, not more SIP edges.
 
-The trade-off is more moving parts. For a single host, the `fonoster/routr-one` image runs all of them in one container so you don't have to wire them together. See [Deployment topologies](/concepts/deployment-topologies).
+The trade-off is more moving parts. For a single host, the `fonoster/routr-one` image runs the core services, Connect, and the API Server in one container so you don't have to wire them together. It doesn't run the Registry or the Requester, so Trunks with `sendRegister` need the split deployment from the Helm chart. See [Deployment topologies](/concepts/deployment-topologies).
 
 ## Components
 
@@ -46,18 +46,23 @@ These services make up the core of Routr, described in the [Core specification](
 | --- | --- | --- |
 | [Connect processor](/reference/components/connect) | Implements the PBX portion of SIP Connect 1.1 with Domains, Agents, Peers, Trunks, Numbers, Credentials, and ACLs. See [Connect mode](/concepts/connect-mode). | `51904` |
 | [API Server](/reference/components/apiserver) | Stores and serves Connect resources over gRPC. Use `simpledata` for read-only YAML or JSON files, or `pgdata` for PostgreSQL. `rctl` and the SDK talk to the external port. | `51907` internal, `51908` external |
-| [Registry](/reference/components/registry) | Sends outbound `REGISTER` requests on behalf of Trunks that have `sendRegister` enabled. | `51910` |
+| [Registry](/reference/components/registry) | Sends outbound `REGISTER` requests on behalf of Trunks that have `sendRegister` enabled. | None (HTTP health check on `8080`) |
 | [Requester](/reference/components/requester) | Lets services such as the Registry send SIP requests through an EdgePort using gRPC. | `51909` |
-| [RTPRelay](/reference/components/rtprelay) | A Middleware that drives RTPEngine so WebRTC clients and SIP endpoints can exchange media. | `51903` |
+| [RTPRelay](/reference/components/rtprelay) | A Middleware that drives RTPEngine so WebRTC clients and SIP endpoints can exchange media, and so calls to a destination reached over TLS, such as a TLS Trunk, use SDES-SRTP. | `51903` |
 | [SimpleAuth](/reference/components/simpleauth) | A Middleware that authenticates requests against a list of users, for setups that don't use Connect. | `51903` |
 
 <Note>
   Routr handles signaling only. Media flows directly between endpoints, or through RTPEngine when you use RTPRelay. To run IVRs, conferences, or voicemail, put Routr in front of a media server such as Asterisk or FreeSWITCH.
 </Note>
 
+### Recording and telemetry
+
+- The Message Dispatcher can record every message of a call to a file you replay with `rctl`. See [Record and replay calls](/guides/record-and-replay-calls).
+- EdgePort and the other services export traces, metrics, and logs over OTLP. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry).
+
 ## Stateful and stateless services
 
-The **EdgePort is the only stateful service**. It keeps SIP transactions and the connections that clients opened to it, because SIP requires that a response goes back on the same transaction and, for TCP, TLS, and WebSocket, over the same connection. Losing an EdgePort loses the transactions and connections it held. Clients reconnect and re-register.
+The **EdgePort is the only stateful service**: it keeps the SIP transactions and client connections it handles, so a restart drops them. See [When an EdgePort restarts](/concepts/edgeport-cooperation#when-an-edgeport-restarts).
 
 The Message Dispatcher, Processors, and Middlewares are **stateless**. Every message they receive carries everything needed to process it: the SIP message plus metadata such as the EdgePort reference, its listening points, its external addresses, and its local networks. Any replica can handle any message, so you scale them horizontally behind a regular Kubernetes service.
 
