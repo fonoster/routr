@@ -27,22 +27,16 @@ Add your own commands to `rctl` by writing an [oclif](https://oclif.io) plugin a
     npx oclif generate mycommand
     ```
 
-    The generator creates a TypeScript project with a sample `hello` command:
+    The generator creates a TypeScript project with two sample commands, `hello` and `hello world`. These are the files that matter here:
 
     ```text
     mycommand
-    ├── bin
-    │   ├── dev
-    │   └── run
     ├── package.json
-    ├── src
-    │   ├── commands
-    │   │   └── hello
-    │   │       ├── index.ts
-    │   │       └── world.ts
-    │   └── index.ts
-    ├── test
-    └── tsconfig.json
+    └── src
+        └── commands
+            └── hello
+                ├── index.ts
+                └── world.ts
     ```
   </Step>
 
@@ -65,7 +59,7 @@ Add your own commands to `rctl` by writing an [oclif](https://oclif.io) plugin a
 
       async run(): Promise<void> {
         const { args, flags } = await this.parse(Hello)
-        this.log(`hello ${args.person} from ${flags.from}!`)
+        this.log(`hello ${args.person} from ${flags.from}! (./src/commands/hello/index.ts)`)
       }
     }
     ```
@@ -87,11 +81,11 @@ Add your own commands to `rctl` by writing an [oclif](https://oclif.io) plugin a
     ```bash
     rctl plugins
     rctl hello --help
-    rctl hello world --from oclif
+    rctl hello friend --from oclif
     ```
 
     <Check>
-      `rctl hello world --from oclif` prints `hello world from oclif!`.
+      `rctl hello friend --from oclif` prints `hello friend from oclif! (./src/commands/hello/index.ts)`.
     </Check>
   </Step>
 </Steps>
@@ -109,7 +103,7 @@ Remove a plugin with `rctl plugins uninstall mycommand`, and upgrade installed p
 
 ## Pitfalls
 
-- **Name collisions override built-ins.** A user-installed plugin that defines a command with the same name as a core `rctl` command replaces it. Pick topic names that don't clash with `agents`, `domains`, `peers`, `trunks`, `numbers`, `credentials`, or `acl`.
+- **Built-in commands win name collisions.** If a plugin defines a command with the same name as a built-in one, `rctl` runs the built-in and never reaches yours. Pick topic names that don't clash with `agents`, `domains`, `peers`, `trunks`, `numbers`, `credentials`, `acl`, `trace`, `plugins`, or `autocomplete`.
 - **Commands use spaces.** `rctl` separates topics with a space (`rctl plugins link`), so your `hello/world.ts` command runs as `rctl hello world`.
 
 ## Related
