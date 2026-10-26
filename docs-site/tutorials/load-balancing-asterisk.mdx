@@ -26,7 +26,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
 ## Prerequisites
 
 - Docker with Docker Compose
-- Node.js and npm, to install `rctl`
+- Node.js 22 or later, to install `rctl`
 - A SIP softphone such as Zoiper or Linphone
 - The IP address of your machine on your local network (for example, `192.168.1.3`)
 
@@ -122,7 +122,7 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
     Both Asterisk services use the same `SIPPROXY_USERNAME` and `SIPPROXY_SECRET`. That is what makes Routr treat them as one Peer.
 
     <Note>
-    `fonoster/mediaserver` is an Asterisk image that registers to the host in `SIPPROXY_HOST` with the given username and secret. Any Asterisk build works the same way, as long as it registers to Routr as a Peer and sends calls for the `asterisk` extension to a dialplan.
+    `fonoster/mediaserver` is Fonoster's media server image: Asterisk with Fonoster's media controller, built for amd64 only. The tutorial relies on two things it configures from the environment: a PJSIP registration over TCP to `SIPPROXY_HOST` with `SIPPROXY_USERNAME` and `SIPPROXY_SECRET`, and an endpoint that sends incoming calls to the `local-ctx` context, which the mounted `extensions.conf` defines. Any Asterisk build works the same way, as long as it registers to Routr as a Peer and sends calls for the `asterisk` extension to a dialplan.
     </Note>
   </Step>
 
@@ -332,7 +332,9 @@ Routr balances **new** calls. It picks a server when a call starts, and the call
 
 ## Route PSTN calls to the Peer
 
-In production, calls usually arrive from a carrier. To send them to the same pool of Asterisk servers, link a Number to the Peer's AOR. The Number needs a Trunk whose inbound SIP URI matches the host your carrier sends calls to.
+In production, calls usually arrive from a carrier. To send them to the same pool of Asterisk servers, link a Number to the Peer's AOR. The Number needs a Trunk whose inbound SIP URI matches the host your carrier sends calls to. None of the steps above creates one, so create it first with `rctl trunks create --insecure`. See [Trunks](/reference/resources/trunks) for every field.
+
+If your carrier sends numbers without the leading `+`, turn on `normalizeToE164` on the Trunk so Routr still finds the Number. If it only accepts calls whose From is your number at its domain, turn on `rewriteFromWithNumber` (and set `fromDomain`); for calls from the Peer, Routr takes the Number from the `X-DOD-Number` header. See [Caller identity](/reference/resources/trunks#caller-identity).
 
 ```bash
 rctl numbers create --insecure
@@ -352,19 +354,19 @@ Press ^C at any time to quit.
 ? Ready? Yes
 ```
 
-When a call for `+17066041487` arrives on the Trunk, Routr finds the Peer whose AOR equals the Number's AOR Link and applies the Peer's balancing algorithm. See [Numbers](/reference/resources/numbers) and [Trunks](/reference/resources/trunks) for every field.
+When a call for `+17066041487` arrives on the Trunk, Routr finds the Peer whose AOR equals the Number's AOR Link and applies the Peer's balancing algorithm. See [Numbers](/reference/resources/numbers) for every Number field.
 
 ## Choose a balancing algorithm
 
 | Algorithm | How Routr picks a server | Notes |
 | --- | --- | --- |
-| `round-robin` | The next registered contact, in order | Works with the in-memory Location cache used by `routr-one`. |
-| `least-sessions` | The contact with the lowest session count | Each server reports its count in an `X-Session-Count` header on its REGISTER. Requires Redis. |
+| `round-robin` | The next registered contact, in order | The default. |
+| `least-sessions` | The contact with the lowest session count | Each server reports its count in an `X-Session-Count` header on its REGISTER. |
 
 Turn on session affinity when related calls must reach the same server, for example everyone joining one conference room. Set `withSessionAffinity` on the Peer and a `sessionAffinityHeader` on the Number (such as `X-Room-Id`). Routr sends calls with the same header value to the same server.
 
 <Note>
-`routr-one` runs the Location Service with the in-memory cache, so use `round-robin` with it. For `least-sessions`, run Routr with Redis, for example with the [Helm chart](/guides/deploy-on-kubernetes), which enables Redis by default. See [Scale with Redis](/guides/scale-with-redis).
+Both algorithms work with any Location store, including the in-memory cache that `routr-one` uses. You need Redis only when you run more than one Location Service instance, so they share registrations. See [Scale with Redis](/guides/scale-with-redis).
 </Note>
 
 <Note>
