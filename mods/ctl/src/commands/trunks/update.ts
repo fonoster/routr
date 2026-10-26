@@ -176,7 +176,7 @@ Updating Trunk T01... 80181ca6-d4aa-4575-9375-8f72b07d5555
         },
         {
           name: "port",
-          message: "Post",
+          message: "Port",
           type: "input",
           default: "5060",
           validate: portValidator
