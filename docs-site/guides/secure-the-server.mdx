@@ -1,6 +1,6 @@
 ---
 title: "Secure the server"
-description: "For operators exposing Routr beyond a test network: turn on TLS for the API Server and SIP signaling, install certificates, and connect clients over TLS."
+description: "For operators exposing Routr beyond a test network: turn on TLS for the API Server and SIP signaling, install certificates, connect clients over TLS, and encrypt stored credentials."
 ---
 
 Encrypt the two channels that carry credentials: the API Server (port `51908`, used by `rctl` and the SDK) and SIP signaling (TLS on `5061`, WSS on `5063`). This guide uses the `fonoster/routr-one` image. Notes for split deployments and Kubernetes follow at the end.
@@ -49,29 +49,21 @@ At startup, the container converts `server.crt` and `server.key` into `signaling
     </Tip>
   </Step>
   <Step title="Mount the certificates and turn on TLS">
-    Mount the files individually into `/etc/routr/certs`, set `TLS_ON` to enable TLS on the API Server, and publish the TLS ports. The following `compose.yaml` shows the full service.
+    Starting from the `compose.yaml` in [Deploy with Docker](/guides/deploy-with-docker), mount the files individually into `/etc/routr/certs`, set `TLS_ON` to enable TLS on the API Server, and publish the TLS ports. The snippet shows only what changes.
 
     ```yaml compose.yaml
     services:
       routr:
-        image: fonoster/routr-one:latest
         environment:
-          EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
           TLS_ON: "true"
           PKCS12_PASSWORD: ${PKCS12_PASSWORD}
         ports:
-          - 51908:51908
-          - 5060:5060/udp
           - 5061:5061
           - 5063:5063
         volumes:
-          - shared:/var/lib/postgresql/data
           - ./server.crt:/etc/routr/certs/server.crt
           - ./server.key:/etc/routr/certs/server.key
           - ./ca.crt:/etc/routr/certs/ca.crt
-
-    volumes:
-      shared:
     ```
 
     Mount files, not the whole directory. The container writes `signaling.p12` into `/etc/routr/certs` and needs that directory to stay writable. Leave out the `ca.crt` line if your CA bundle is already in `server.crt`.
@@ -138,25 +130,45 @@ To check what the EdgePort accepts, run `openssl s_client -connect <host>:5061 -
 A trunk whose outbound URI has `transport: tls` makes the EdgePort open a TLS connection to the carrier for every call that leaves through it. Three things must be true:
 
 1. The EdgePort has a `tls` transport and a `spec.securityContext` with a keystore, as set up above. The connection to the carrier leaves from that listening point. Without it the call gets `502 Bad Gateway` and the Connect processor logs `no listening point found for transport TLS`.
-2. The EdgePort trusts the carrier's certificate. With `client.authType: DisabledAll`, the default in the examples, JAIN-SIP skips certificate validation on the connections the EdgePort opens, so any carrier certificate is accepted. With any other `authType`, the carrier's certificate is checked against the truststore: leave `spec.securityContext.trustStore` unset so the JVM's public CAs apply, set it only to trust a private CA, and never point it at `signaling.p12`.
+2. The EdgePort accepts the carrier's certificate. routr-one ships with `client.authType: DisabledAll` (and `trustStore` set to its own `signaling.p12`). With `DisabledAll`, JAIN-SIP skips certificate validation on the connections the EdgePort opens, so any carrier certificate is accepted and the truststore is never consulted. In your own `edgeport.yaml` with any other `authType`, the carrier's certificate is checked against the truststore. `signaling.p12` holds only your own certificate, so don't use it there: leave `spec.securityContext.trustStore` unset so the JVM's public CAs apply, or point it at a truststore that holds the carrier's private CA.
 3. The TLS versions overlap. Most carriers negotiate TLS 1.2, so enable it as shown in [Choose TLS versions and cipher suites](#choose-tls-versions-and-cipher-suites).
 
 Carriers that require TLS usually require SRTP as well. SRTP follows the transport: when RTPEngine is in the path, the media relay asks it for SDES-SRTP (`RTP/SAVP` with `a=crypto` lines) on every leg that uses TLS, and plain RTP or DTLS-SRTP on the other leg as before. There is nothing to configure on the trunk. Without RTPEngine (`RTPENGINE_HOST` unset in routr-one, or no RTPRelay middleware in a split deployment) the carrier receives the caller's SDP unchanged and will reject plain RTP.
 
-### Caller identity toward a carrier
+If the carrier accepts only some SRTP crypto suites, override the `SDES` key of the `phone-to-secure-phone` and `web-to-secure-phone` profiles in an RTPRelay configuration file (see `config/rtprelay.yaml` in the repository):
 
-A carrier that authenticates by the From header, such as WhatsApp Business Calling over SIP, accepts a call only when From is your number at the domain it knows. By default Routr leaves the caller's own From on the call, for example `sip:1001@sip.local`. Set two fields on the trunk:
-
-```yaml
+```yaml rtprelay.yaml
+kind: RTPRelay
+apiVersion: v2beta1
 spec:
-  normalizeToE164: true             # From, To and Request-URI users become +E.164
-  rewriteFromWithNumber: true   # From becomes the Number, at fromDomain
-  fromDomain: sip.example.com   # for Meta, the hostname registered with Meta
+  profiles:
+    phone-to-secure-phone:
+      SDES:
+        - only-AES_CM_128_HMAC_SHA1_80
 ```
 
-With these, an agent's call leaves with `From: <sip:+18295863314@sip.example.com;user=phone>`, the Number from the Domain's egress policy. Without `fromDomain`, the host is the trunk's outbound URI host. A caller who asked for privacy keeps `anonymous@anonymous.invalid`. The caller still sees its own identity on responses and on the carrier's in-dialog requests. Routr keeps the mapping in its Record-Route parameters.
+Mount it at `/etc/routr/rtprelay.yaml` in routr-one, pass it to the `fonoster/routr-rtprelay` image with `CONFIG_PATH`, or set the same map in the `rtprelay.profiles` Helm value. See [RTPRelay](/reference/components/rtprelay#profiles).
 
-The `ENFORCE_E164` environment variable is gone: set `normalizeToE164` on each trunk instead. See [Caller identity](/reference/resources/trunks#caller-identity) for every detail.
+To present your Number as the caller identity a carrier checks, see [Caller identity](/reference/resources/trunks#caller-identity).
+
+## Encrypt credentials at rest
+
+The PostgreSQL-backed API Server (routr-one and `fonoster/routr-pgdata`) stores Credentials passwords in plain text unless you set `CLOAK_ENCRYPTION_KEY`. With a key, it encrypts the password field with AES-GCM before writing it and decrypts it on read.
+
+Generate a key and pass it to the container:
+
+```bash
+npx @47ng/cloak generate
+```
+
+```yaml compose.yaml
+services:
+  routr:
+    environment:
+      CLOAK_ENCRYPTION_KEY: ${CLOAK_ENCRYPTION_KEY}   # k1.aesgcm256....
+```
+
+On Kubernetes, set `apiserver.cloakEncryptionKey`. Keep the key with your database backups: without it, the stored passwords can't be read and authentication against those Credentials fails.
 
 ## Require client certificates (optional)
 
@@ -175,7 +187,7 @@ The `fonoster/routr-pgdata` image regenerates `server.crt` and `server.key` ever
 
 - **`rctl` reports a certificate error.** The endpoint host doesn't match the certificate's `CN`, or you used a self-signed certificate without `--cacert`.
 - **A phone or a TLS trunk fails the TLS handshake.** It probably doesn't support TLS 1.3. Enable TLS 1.2 as shown in [Choose TLS versions and cipher suites](#choose-tls-versions-and-cipher-suites).
-- **A call to a TLS trunk fails the handshake with a certificate error.** The EdgePort doesn't trust the carrier's certificate. Remove `spec.securityContext.trustStore` so the JVM's public CAs apply, or point it at a truststore that holds the carrier's CA.
+- **A call to a TLS trunk fails the handshake with a certificate error.** Your `edgeport.yaml` uses an `authType` other than `DisabledAll` and the EdgePort doesn't trust the carrier's certificate. Remove `spec.securityContext.trustStore` so the JVM's public CAs apply, or point it at a truststore that holds the carrier's CA.
 - **Browsers refuse the WSS connection.** Use a certificate from a trusted CA. See [Enable WebRTC clients](/guides/enable-webrtc).
 - **The EdgePort fails to load the keystore.** `PKCS12_PASSWORD` must be the same value the keystore was built with. Recreate the container after changing it.
 

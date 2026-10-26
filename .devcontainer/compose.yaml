@@ -63,12 +63,14 @@ services:
   # support. Bridged networking is good enough for development.
   rtpengine:
     image: fonoster/rtpengine:latest
+    # The image is published for amd64 only
+    platform: linux/amd64
     profiles: [deps]
     environment:
       # An address reachable by the SIP clients
-      PUBLIC_IP: ${DOCKER_HOST_ADDRESS:-127.0.0.1}
-      PORT_MIN: 10000
-      PORT_MAX: 10020
+      RTPENGINE_PUBLIC_IP: ${DOCKER_HOST_ADDRESS:-127.0.0.1}
+      RTPENGINE_PORT_MIN: 10000
+      RTPENGINE_PORT_MAX: 10020
       LOG_LEVEL: 8
 
 volumes:
