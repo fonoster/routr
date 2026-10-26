@@ -33,10 +33,10 @@ services:
       - connect:127.0.0.1
       - apiserver:127.0.0.1
       - requester:127.0.0.1
-      - jaeger:127.0.0.1
+      - otel-lgtm:127.0.0.1
 
   postgres:
-    image: postgres:17.7-alpine3.23
+    image: postgres:18.6-alpine3.24
     profiles: [deps]
     environment:
       POSTGRES_USER: postgres
@@ -45,7 +45,7 @@ services:
       TZ: UTC
       PGTZ: UTC
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
     healthcheck:
       test: pg_isready -U postgres -d routr
       interval: 2s
@@ -63,12 +63,14 @@ services:
   # support. Bridged networking is good enough for development.
   rtpengine:
     image: fonoster/rtpengine:latest
+    # The image is published for amd64 only
+    platform: linux/amd64
     profiles: [deps]
     environment:
       # An address reachable by the SIP clients
-      PUBLIC_IP: ${DOCKER_HOST_ADDRESS:-127.0.0.1}
-      PORT_MIN: 10000
-      PORT_MAX: 10020
+      RTPENGINE_PUBLIC_IP: ${DOCKER_HOST_ADDRESS:-127.0.0.1}
+      RTPENGINE_PORT_MIN: 10000
+      RTPENGINE_PORT_MAX: 10020
       LOG_LEVEL: 8
 
 volumes:

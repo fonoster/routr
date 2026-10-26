@@ -18,6 +18,7 @@
  */
 package io.routr.utils;
 
+import io.routr.telemetry.Telemetry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -48,12 +49,15 @@ public class SipMessageSender {
    * 
    * @param sendOperation The operation to execute (either sipProvider.sendResponse or transaction.sendResponse)
    * @param context Context string for logging purposes
+   * @return whether the response went out (false on a timeout or an error)
    */
-  public static void sendResponseWithTimeout(Runnable sendOperation, String context) {
+  public static boolean sendResponseWithTimeout(Runnable sendOperation, String context) {
     ExecutorService executor = Executors.newSingleThreadExecutor();
+    var sent = new java.util.concurrent.atomic.AtomicBoolean(false);
     Future<?> future = executor.submit(() -> {
       try {
         sendOperation.run();
+        sent.set(true);
       } catch (StackOverflowError e) {
         // Catch StackOverflowError specifically to prevent thread crashes
         // This can occur when attempting to send a response after receiving a REQUEST (like BYE)
@@ -70,8 +74,10 @@ public class SipMessageSender {
     try {
       future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       LOG.debug("Response sent via " + context + " successfully");
+      return sent.get();
     } catch (TimeoutException e) {
       LOG.warn("sendResponse() timed out via " + context + " — client likely disconnected");
+      Telemetry.dropped("send_timeout", "ws", null);
       future.cancel(true);
     } catch (java.util.concurrent.ExecutionException e) {
       // Check if the cause is a StackOverflowError
@@ -80,6 +86,7 @@ public class SipMessageSender {
         LOG.error("StackOverflowError caught in executor for " + context + 
             " — edge case: attempting to send response on a closed WebSocket/WSS connection " +
             "(likely after receiving a REQUEST on a closed connection). Response not sent.", cause);
+        Telemetry.dropped("stack_overflow", "ws", null);
       } else {
         LOG.error("Exception during sendResponse execution via " + context, e);
       }
@@ -88,6 +95,7 @@ public class SipMessageSender {
     } finally {
       executor.shutdown();
     }
+    return false;
   }
 
   /**
@@ -121,8 +129,9 @@ public class SipMessageSender {
    */
   public static void sendResponse(Transaction transaction, javax.sip.message.Response response, 
       boolean isWebSocket) throws SipException, InvalidArgumentException {
+    var sent = true;
     if (isWebSocket) {
-      sendResponseWithTimeout(() -> {
+      sent = sendResponseWithTimeout(() -> {
         try {
           ((javax.sip.ServerTransaction) transaction).sendResponse(response);
         } catch (SipException | InvalidArgumentException e) {
@@ -132,6 +141,7 @@ public class SipMessageSender {
     } else {
       ((javax.sip.ServerTransaction) transaction).sendResponse(response);
     }
+    Telemetry.responseSent(transaction, response, sent);
   }
 
   /**
@@ -166,6 +176,7 @@ public class SipMessageSender {
       LOG.debug("Request sent via " + context + " successfully");
     } catch (TimeoutException e) {
       LOG.warn("sendRequest() timed out via " + context + " — client likely disconnected");
+      Telemetry.dropped("send_timeout", "ws", null);
       future.cancel(true);
     } catch (java.util.concurrent.ExecutionException e) {
       // Check if the cause is a StackOverflowError
@@ -174,6 +185,7 @@ public class SipMessageSender {
         LOG.error("StackOverflowError caught in executor for " + context + 
             " — edge case: attempting to send request on a closed WebSocket/WSS connection " +
             "(likely after receiving a REQUEST on a closed connection). Request not sent.", cause);
+        Telemetry.dropped("stack_overflow", "ws", null);
       } else {
         LOG.error("Exception during sendRequest execution via " + context, e);
       }

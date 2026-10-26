@@ -65,7 +65,7 @@ Peers take part in three routing types:
     | Balancing Algorithm | `Round Robin` | `Round Robin` or `Least Sessions`. |
     | Enable Session Affinity? | `No` | Keeps related calls on the same instance. Used with a Number's session affinity header. |
 
-    `Least Sessions` needs the Location Service to run with Redis. The routr-one image keeps registrations in memory, so keep `Round Robin` there. See [Scale the Location Service with Redis](/guides/scale-with-redis).
+    `Least Sessions` sends each call to the registered instance with the lowest session count, which the PBX reports in the `X-Session-Count` header of its REGISTER. It works with any cache provider. If you run more than one Location Service instance, keep registrations in Redis so every instance sees the same counts. See [Scale the Location Service with Redis](/guides/scale-with-redis).
 
     In a file-based deployment, the same Peer looks like this:
 
@@ -115,6 +115,7 @@ Peers take part in three routing types:
     - The `From` user is the Peer's username.
     - The Request-URI user is the destination number. It must not match an existing Number or Agent.
     - An `X-DOD-Number` header carries the caller ID number in E.164 format, for example `X-DOD-Number: +17066041487`.
+    - Optionally, `X-DOD-Privacy: id` hides the caller ID. Routr replaces any `Privacy` header with `Privacy: id` when this header is `id` (any case), and with `Privacy: none` otherwise.
     - It answers Routr's `401` challenge with the Peer's credentials.
 
     Routr finds the Number whose `telUrl` is `tel:` followed by the `X-DOD-Number` value, then sends the call through that Number's Trunk. It sets `P-Asserted-Identity` and `Remote-Party-ID` from the Number and authenticates with the Trunk's outbound credentials.

@@ -8,4 +8,4 @@
 127.0.0.1 connect
 127.0.0.1 apiserver
 127.0.0.1 requester
-127.0.0.1 jaeger
+127.0.0.1 otel-lgtm

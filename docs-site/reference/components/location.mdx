@@ -49,10 +49,10 @@ The service builds a Redis URL from these keys, so always set both `host` and `p
 | --- | --- | --- |
 | `CONFIG_PATH` | `/etc/routr/location.yaml` (image) | Path to the configuration file. Required |
 | `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
 | `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME` | `location` | Service name reported in traces |
-| `OTEL_SDK_DISABLED` | | `true` turns tracing off |
+| `OTEL_SERVICE_NAME` | `location` | Service name reported in traces, metrics and logs |
+| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
 
 ## gRPC contract
 
@@ -87,6 +87,21 @@ docker run -it \
   -v $(pwd)/location.yaml:/etc/routr/location.yaml \
   -p 51902:51902 \
   fonoster/routr-location
+```
+
+## Quick test with gRPCurl
+
+You can call the Location Service directly with [gRPCurl](https://github.com/fullstorydev/grpcurl). The services don't expose gRPC reflection, so pass the protos with `-import-path` and `-proto`. The paths below are relative to a clone of the [repository](https://github.com/fonoster/routr).
+
+This command returns the routes registered for an AOR.
+
+```bash
+grpcurl -plaintext \
+  -import-path mods/common/src/protos \
+  -proto location.proto \
+  -d '{"aor": "sip:1001@sip.local"}' \
+  localhost:51902 \
+  fonoster.routr.location.v2beta1.Location/FindRoutes
 ```
 
 ## Notes

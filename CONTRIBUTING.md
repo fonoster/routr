@@ -1,3 +1,3 @@
 # How to contribute
 
-To learn how to contribute to this project, please visit our [documentation](https://routr.io/docs/contributing) site.
+To learn how to contribute to this project, please visit our [documentation](https://docs.routr.io/contributing) site.

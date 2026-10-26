@@ -3,7 +3,7 @@ title: "RTPRelay"
 description: "Reference for the RTPRelay middleware: its image, port, configuration file, environment variables, and gRPC contract."
 ---
 
-RTPRelay is a middleware that drives RTPEngine over the ng protocol. It rewrites the SDP of calls so RTPEngine relays the media, which bridges WebRTC clients and SIP clients and helps clients that cannot exchange media directly. It runs without a configuration file; one is needed only to tune the RTPEngine profiles.
+RTPRelay is a middleware that drives RTPEngine over the ng protocol. It rewrites the SDP of calls so RTPEngine relays the media, which bridges WebRTC clients and SIP clients, helps clients that cannot exchange media directly, and gives SDES-SRTP to legs reached over TLS, such as a carrier trunk. It runs without a configuration file; one is needed only to tune the RTPEngine profiles.
 
 ## Docker image
 
@@ -66,10 +66,10 @@ The result for `phone-to-secure-phone` is `transport-protocol: RTP/SAVP`, `rtcp-
 | `RTPENGINE_TIMEOUT` | `5000` | Timeout for RTPEngine requests, in milliseconds |
 | `BIND_ADDR` | `0.0.0.0:51903` | Address to listen on |
 | `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
 | `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME` | `rtprelay` | Service name reported in traces |
-| `OTEL_SDK_DISABLED` | | `true` turns tracing off |
+| `OTEL_SERVICE_NAME` | `rtprelay` | Service name reported in traces, metrics and logs |
+| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
 
 ## gRPC contract
 

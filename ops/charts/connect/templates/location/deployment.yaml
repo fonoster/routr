@@ -41,8 +41,10 @@ spec:
           env:
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}
-            - name: OTEL_EXPORTER_JAEGER_ENDPOINT
-              value: {{ .Values.global.otlExporter }}
+            {{- with .Values.global.otlpEndpoint }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ . | quote }}
+            {{- end }}
           ports:
             - containerPort: 51902
           volumeMounts:

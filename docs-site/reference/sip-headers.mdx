@@ -1,7 +1,7 @@
 ---
 title: "SIP headers reference"
 sidebarTitle: "SIP headers"
-description: "The X- headers Routr reads, adds, and strips, for developers and operators who integrate PBXs, providers, and clients with Routr Connect."
+description: "The X- and trace context headers Routr reads, adds, and strips, for developers and operators who integrate PBXs, providers, and clients with Routr Connect."
 ---
 
 Routr uses a set of extension headers to pass routing data between its own services and to and from your endpoints. This page lists each one: who sets it, who reads it, its value format, and whether Connect strips it from untrusted sources. Header names are case-insensitive.
@@ -19,6 +19,7 @@ Routr uses a set of extension headers to pass routing data between its own servi
 | [`X-Gateway-Auth`](#x-gateway-auth) | Connect, Registry | EdgePort, Connect | Yes |
 | [`X-Session-Count`](#x-session-count) | Peer | Location Service | Yes |
 | [Session affinity header](#session-affinity-header) | Caller or provider | Connect | No, unless you add it |
+| [`traceparent`](#traceparent) | EdgePort, or a trusted internal hop | EdgePort | By EdgePort, toward any target outside `localnets` |
 | [`X-App-Ref`, `X-Call-Ref`, `X-Is-Api-Originated-Type`, `X-Request-Uri`](#platform-headers) | Platform | Not read by Routr | Yes |
 
 ## Untrusted sources
@@ -108,7 +109,7 @@ Requests caller ID privacy on a `peer-to-pstn` call.
 | --- | --- |
 | Set by | A Peer, on INVITEs to the PSTN. |
 | Read by | Connect, for `peer-to-pstn` routing. |
-| Value | A privacy setting. Connect removes any `Privacy` header and adds its own based on this value. |
+| Value | `id` (case-insensitive) hides the caller ID. Any other value, or no header, means `none`. Connect removes any `Privacy` header and adds `Privacy: id` or `Privacy: none` to match. |
 | Stripped | Yes. |
 
 ## X-Access-Key-Id
@@ -160,6 +161,19 @@ Keeps related calls on the same Peer instance. The header name is not fixed: you
 | Stripped | No, unless you add its name to `UNTRUSTED_HEADERS_TO_STRIP`. |
 
 Set the name in the Number's `sessionAffinityHeader`, such as `X-Room-Id`. Affinity applies when the Number's `aorLink` is a Peer with `withSessionAffinity` enabled. See [Numbers](/reference/resources/numbers) and [Peers](/reference/resources/peers).
+
+## traceparent
+
+Carries the [W3C trace context](https://www.w3.org/TR/trace-context/) across SIP hops, so an EdgePort span and the spans of the next service join one trace. It is handled by EdgePort, not Connect, so `UNTRUSTED_HEADERS_TO_STRIP` doesn't apply to it.
+
+| | |
+| --- | --- |
+| Set by | EdgePort, on a request it forwards whose Request-URI host is an IPv4 address inside `localnets`, when telemetry is on. An internal service (such as an application server behind Routr) can also send it to EdgePort. |
+| Read by | EdgePort, only on a request whose source address is an IPv4 address inside `localnets`. A request from anywhere else starts a new trace, whatever it carries. |
+| Value | `00-<trace-id>-<parent-id>-<flags>`: 32, 16 and 2 hex digits. EdgePort writes lowercase and reads either case. A malformed value is ignored. |
+| Stripped | Yes, by EdgePort, from every forwarded request whose Request-URI host is outside `localnets` or is a hostname, so a trace context never reaches a carrier or a phone. |
+
+With telemetry off, EdgePort neither reads nor writes the header, but still removes it toward targets outside `localnets`. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry).
 
 ## Number extra headers
 

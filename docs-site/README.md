@@ -147,7 +147,7 @@ Made unsupervised during the migration (2026-10-21). Change any of them freely.
 **Tooling**
 
 19. Root `package.json` gets `start:docs-site` and `check:docs-site` (mint 4.2.1045, port 3333).
-    `start:docs` (Docusaurus) stays until the cutover.
+    The Docusaurus `start:docs` script and the `docs/` tree are gone; see REDIRECTS.md.
 20. `.mintignore` keeps README.md, REDIRECTS.md and the build docs out of the site.
 21. Commits used `--no-verify`: the repo's husky hooks run the full test suite and need an installed
     workspace, which this docs-only branch did not have.
@@ -174,7 +174,7 @@ Not fixed on this branch (docs-only). Worth an issue each.
 - routr-one has no Redis option, no Registry/Requester, and ignores `BIND_ADDR`, `LOCATION_ADDR`,
   `API_ADDR`.
 - Helm: `rtprelay.rtpePort` (old docs say `rtpPort`); enabling RTPRelay does not add the Dispatcher
-  middleware; `global.otlExporter` sets an env var no service reads; `edgeport.unknownMethodAction`,
+  middleware; `edgeport.unknownMethodAction`,
   `location.region`, `registry.serviceAnnotations`, `registry.autoscaling` are ignored; the Registry
   points at a `<release>-routr-edgeport` Service the chart does not create; `Chart.lock` and the
   bundled subcharts do not match `Chart.yaml`.

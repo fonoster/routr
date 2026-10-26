@@ -24,8 +24,10 @@ SimpleAuth is a middleware that challenges SIP requests with digest authenticati
 | `ALLOWLIST` | | Comma-separated From users that skip authentication |
 | `BIND_ADDR` | `0.0.0.0:51903` | Address to listen on |
 | `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on tracing |
-| `OTEL_SERVICE_NAME` | `simpleauth` | Service name reported in traces |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
+| `OTEL_SERVICE_NAME` | `simpleauth` | Service name reported in traces, metrics and logs |
+| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
 
 ## Users file
 

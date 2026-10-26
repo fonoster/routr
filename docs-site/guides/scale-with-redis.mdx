@@ -1,7 +1,7 @@
 ---
 title: "Scale the Location Service with Redis"
 sidebarTitle: "Scale with Redis"
-description: "For operators growing past one Location Service instance: switch the registration cache from memory to Redis on Docker or Kubernetes."
+description: "For operators growing past one Location Service instance: switch the registration cache from memory to Redis with routr-one, a split Docker deployment, or Kubernetes."
 ---
 
 Store registrations in Redis instead of process memory, so several Location Service instances share one view of where every endpoint is.
@@ -11,18 +11,46 @@ Store registrations in Redis instead of process memory, so several Location Serv
 The Location Service supports two cache providers: `memory` and `redis`. Memory is fine for a single instance. Switch to Redis when any of these apply:
 
 - **You run more than one Location Service instance.** With `memory`, each instance only knows the registrations it received, so lookups on another instance miss them.
-- **You balance Peers with `least-sessions`.** The algorithm picks the Peer contact with the fewest active sessions, and that count must be shared across instances. See [Load balancing](/concepts/load-balancing).
+- **You balance Peers with `least-sessions` across several instances.** The algorithm picks the Peer contact with the lowest session count reported in its last REGISTER. It works with either provider, but every instance must see the same registrations. See [Load balancing](/concepts/load-balancing).
 - **You want registrations to survive a Location Service restart.** With `memory`, a restart clears the location table until clients register again.
 
 ## Prerequisites
 
 - A Redis server reachable from the Location Service, or permission to run one next to it.
-- A deployment where the Location Service runs as its own service. The all-in-one `fonoster/routr-one` image always uses the memory provider, so use the split images on Docker or the Helm chart on Kubernetes.
 
 ## Switch the cache provider
 
 <Tabs>
-  <Tab title="Docker Compose">
+  <Tab title="Docker (routr-one)">
+    <Steps>
+      <Step title="Add Redis to your Compose file">
+        Add a Redis service and point routr-one at it with `LOCATION_CACHE_PROVIDER` and `LOCATION_CACHE_PARAMETERS`.
+
+        ```yaml compose.yaml
+        services:
+          routr:
+            image: fonoster/routr-one:latest
+            environment:
+              EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
+              LOCATION_CACHE_PROVIDER: redis
+              LOCATION_CACHE_PARAMETERS: host=redis,port=6379
+
+          redis:
+            image: redis:7.4.7-alpine
+            expose:
+              - 6379
+        ```
+
+        `LOCATION_CACHE_PARAMETERS` takes comma-separated `key=value` pairs and defaults to `host=localhost,port=6379`. The accepted keys are `host`, `port`, `username`, `password`, and `secure` (set `secure=true` to connect over TLS). Any other key makes the service fail to start.
+      </Step>
+      <Step title="Restart the services">
+        ```bash
+        DOCKER_HOST_ADDRESS=192.168.1.3 docker compose up -d redis routr
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Docker (split)">
     <Steps>
       <Step title="Add Redis to your Compose file">
         Add a Redis service next to the `location` service. The following snippet shows only the services that change.
@@ -37,7 +65,7 @@ The Location Service supports two cache providers: `memory` and `redis`. Memory 
               - ./config/location.yaml:/etc/routr/location.yaml
 
           redis:
-            image: redis:7.0.8-alpine
+            image: redis:7.4.7-alpine
             expose:
               - 6379
         ```
@@ -110,7 +138,7 @@ Check the Location Service logs for the provider it loaded.
 docker compose logs location
 ```
 
-<Check>The logs include `using redis as cache provider`. On Kubernetes, run `kubectl logs` on a Location pod instead.</Check>
+<Check>The logs include `using redis as cache provider` (routr-one prints `using REDIS as cache provider`; run `docker compose logs routr`). On Kubernetes, run `kubectl logs` on a Location pod instead.</Check>
 
 Register a softphone, then list the keys in Redis. Each key starts with the endpoint's address of record.
 
@@ -120,7 +148,7 @@ docker compose exec redis redis-cli --scan
 
 ## Pitfalls
 
-- **Redis connection errors at startup.** The service logs `redis client error` and lookups fail. Check that `host` and `port` resolve from inside the Location Service container.
+- **Redis connection errors at startup.** The service logs `redis client error` and lookups fail. Check that `host` and `port` resolve from inside the Location Service or routr-one container.
 - **Registrations disappear.** Each entry expires with the registration's `expires` value. Clients must refresh their registration before it expires.
 - **Old registrations after switching.** Registrations held in memory are not migrated. Clients appear in Redis after their next REGISTER.
 

@@ -43,7 +43,8 @@ import java.nio.channels.SocketChannel;
  * {@code constructMessageChannel}, is package-private in JAIN-SIP and cannot
  * be overridden from here.
  */
-public class SafeNioTlsMessageProcessor extends NioTlsMessageProcessor {
+public class SafeNioTlsMessageProcessor extends NioTlsMessageProcessor
+    implements SiblingChannels.Cache {
 
   private static final Logger LOG = LogManager.getLogger(SafeNioTlsMessageProcessor.class);
 
@@ -90,6 +91,12 @@ public class SafeNioTlsMessageProcessor extends NioTlsMessageProcessor {
   }
 
   @Override
+  public MessageChannel findOpenChannel(InetAddress peerAddress, int peerPort) {
+    return SiblingChannels.findOpen(messageChannels,
+        MessageChannel.getKey(peerAddress, peerPort, transport));
+  }
+
+  @Override
   public NioTcpMessageChannel createMessageChannel(
       NioTcpMessageProcessor nioTcpMessageProcessor,
       SocketChannel client) throws IOException {
@@ -114,6 +121,12 @@ public class SafeNioTlsMessageProcessor extends NioTlsMessageProcessor {
     MessageChannel existing = messageChannels.get(key);
     if (existing != null) {
       return existing;
+    }
+    // A client whose TLS a proxy terminated is connected to the TCP listening
+    // point and cannot accept a new connection (see SiblingChannels).
+    MessageChannel sibling = SiblingChannels.find(this, sipStack, targetHost, port, "TCP");
+    if (sibling != null) {
+      return sibling;
     }
     SafeNioTlsMessageChannel retval =
         new SafeNioTlsMessageChannel(targetHost, port, sipStack, this);

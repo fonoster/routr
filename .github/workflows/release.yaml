@@ -79,8 +79,9 @@ jobs:
         if: steps.plan.outputs.publish == 'true'
         run: npm run make
 
-      # Bumps every package, points the Helm chart at the new version (the root "version"
-      # script), commits both as one [skip ci] commit, tags it and pushes.
+      # Bumps every package, points the Helm chart at the new version and adds its entry to
+      # docs-site/changelog.mdx (the root "version" script), commits all of it as one [skip ci]
+      # commit, tags it and pushes.
       - name: Version and publish
         if: steps.plan.outputs.bump != 'none' && steps.plan.outputs.publish == 'true'
         env:

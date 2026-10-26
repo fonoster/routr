@@ -70,7 +70,7 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
     For WSS, mount a trusted certificate as described in [Secure the server](/guides/secure-the-server). The EdgePort serves WSS with the same keystore it uses for TLS.
   </Step>
   <Step title="Run RTPEngine">
-    RTPEngine needs a public IP and a UDP range for media, plus its control port (`22222/udp` by default). The following service uses the `fonoster/rtpengine` image from the Routr examples.
+    RTPEngine needs a public IP and a UDP range for media, plus its control port (`22222/udp` by default). The following service uses the `fonoster/rtpengine` image.
 
     ```yaml compose.yaml
     services:
@@ -80,9 +80,9 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
           - 22222:22222/udp
           - 10000-10100:10000-10100/udp
         environment:
-          PUBLIC_IP: ${DOCKER_HOST_ADDRESS}
-          PORT_MIN: 10000
-          PORT_MAX: 10100
+          RTPENGINE_PUBLIC_IP: ${DOCKER_HOST_ADDRESS}
+          RTPENGINE_PORT_MIN: 10000
+          RTPENGINE_PORT_MAX: 10100
     ```
 
     On Kubernetes, deploy RTPEngine yourself. The Routr chart doesn't include it.
@@ -128,7 +128,7 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
             - ref: connect-processor
               addr: connect:51904
               matchFunc: req => true
-              methods: [REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL]
+              methods: [REGISTER, MESSAGE, INVITE, ACK, BYE, CANCEL, REFER, NOTIFY]
           middlewares:
             - ref: rtprelay-middleware
               addr: rtprelay:51903
@@ -172,6 +172,28 @@ If every endpoint in a call is a WebRTC client, you need WSS but can skip RTPRel
   </Step>
 </Steps>
 
+## Tune the RTPEngine profiles
+
+RTPRelay sends RTPEngine one profile per call direction (`web-to-web`, `web-to-phone`, `web-to-secure-phone`, `phone-to-web`, `phone-to-phone`, `phone-to-secure-phone`). The defaults work for most setups. To change one, list only the keys you want to change; each profile is merged over its default one key at a time, and a list replaces the default list.
+
+```yaml rtprelay.yaml
+kind: RTPRelay
+apiVersion: v2beta1
+spec:
+  profiles:
+    phone-to-secure-phone:
+      SDES:
+        - only-AES_CM_128_HMAC_SHA1_80
+```
+
+| Deployment | Where the profiles go |
+| --- | --- |
+| Docker (routr-one) | Mount the file at `/etc/routr/rtprelay.yaml`, or set `RTPRELAY_CONFIG_PATH` to its path. routr-one reads only `spec.profiles` from it. |
+| Docker (split) | Mount the file into the `rtprelay` service and set `CONFIG_PATH` to its path. The repository's `config/rtprelay.yaml` is an example. |
+| Kubernetes (Helm) | Set the same map under `rtprelay.profiles` in `values.yaml`. The chart renders it into the file. |
+
+RTPRelay fails to start on a profile name or value it doesn't know. See [RTPRelay](/reference/components/rtprelay#profiles) for every default.
+
 ## Verify
 
 Register a browser client, then call a desk softphone or a PBX Peer.
@@ -181,7 +203,7 @@ Register a browser client, then call a desk softphone or a PBX Peer.
 ## Troubleshooting
 
 - **The browser can't open the WebSocket.** The page is served over HTTPS and you used `ws://`, or the certificate isn't trusted. Use `wss://` with a CA-issued certificate.
-- **The call connects with no audio.** RTPEngine's `PUBLIC_IP` is wrong, or its UDP port range isn't reachable from the internet.
+- **The call connects with no audio.** RTPEngine's `RTPENGINE_PUBLIC_IP` is wrong, or its UDP port range isn't reachable from the internet.
 - **RTPRelay never runs.** On a split deployment, the middleware isn't listed in `dispatcher.yaml`, or the EdgePort points directly at the Connect processor.
 - **Registrations start failing after a few reloads.** The Agent hit `maxContacts`. See the previous step.
 

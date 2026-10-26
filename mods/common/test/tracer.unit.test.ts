@@ -19,8 +19,8 @@
 import chai from "chai"
 import http from "http"
 import { AddressInfo } from "net"
-import opentelemetry, { ProxyTracerProvider } from "@opentelemetry/api"
-import { init, tracingEnabled } from "../src/tracer"
+import opentelemetry from "@opentelemetry/api"
+import { init, flush, shutdown, tracingEnabled } from "../src/tracer"
 
 const expect = chai.expect
 
@@ -46,7 +46,7 @@ describe("@routr/common/tracer", () => {
     span.end()
   })
 
-  it("exports the service's spans over OTLP/HTTP, starting only once", async () => {
+  it("exports the service's spans, metrics and logs over OTLP/HTTP, starting only once", async () => {
     const bodies: string[] = []
     const server = http.createServer((req, res) => {
       let body = ""
@@ -65,28 +65,31 @@ describe("@routr/common/tracer", () => {
       // A second call (Routr One loads several services) keeps the first registration
       init("dispatcher", env)
       tracer.startSpan("lookup").end()
+      opentelemetry.metrics
+        .getMeter("test")
+        .createCounter("routr.test.lookups")
+        .add(1)
+      opentelemetry.logs.getLogger("test").emit({ body: "a lookup" })
 
-      const provider = (
-        opentelemetry.trace.getTracerProvider() as ProxyTracerProvider
-      ).getDelegate() as unknown as {
-        forceFlush(): Promise<void>
-        shutdown(): Promise<void>
+      await flush()
+
+      const sent = (path: string) => {
+        const body = bodies.find((b) => b.startsWith(`${path} `))
+        expect(body, path).to.not.be.undefined
+        return JSON.parse((body as string).replace(/^\S+ /, ""))
       }
-      await provider.forceFlush()
-
-      expect(bodies).to.have.lengthOf(1)
-      expect(bodies[0]).to.match(/^\/v1\/traces /)
-      const [resourceSpans] = JSON.parse(
-        bodies[0].replace(/^\S+ /, "")
-      ).resourceSpans
+      const [resourceSpans] = sent("/v1/traces").resourceSpans
       const serviceName = resourceSpans.resource.attributes.find(
         (a: { key: string }) => a.key === "service.name"
       ).value.stringValue
       expect(serviceName).to.equal("location")
       expect(resourceSpans.scopeSpans[0].spans[0].name).to.equal("lookup")
-      await provider.shutdown()
+      expect(JSON.stringify(sent("/v1/metrics"))).to.contain(
+        "routr.test.lookups"
+      )
+      expect(JSON.stringify(sent("/v1/logs"))).to.contain("a lookup")
     } finally {
-      opentelemetry.trace.disable()
+      await shutdown()
       server.close()
     }
   })

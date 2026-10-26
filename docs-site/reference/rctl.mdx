@@ -8,7 +8,7 @@ description: "Every rctl command, argument, flag, and prompt, for operators who 
 
 ## Install
 
-Install the CLI globally from npm.
+Install the CLI globally from npm. It needs Node.js 22 or later.
 
 ```bash
 npm install -g @routr/ctl
@@ -113,8 +113,8 @@ rctl acl get --extended
 ```
 
 ```text
-Ref                                  Name              Deny List Allow List
-9e7a88f0-8390-42f5-a2cb-689583ba9f4f Local Network ACL 0.0.0.0/0 10.0.0.28
+Ref                                  Name              Deny CIDR Networks Allow CIDR Networks
+9e7a88f0-8390-42f5-a2cb-689583ba9f4f Local Network ACL 0.0.0.0/0          10.0.0.28
 ```
 
 ### `rctl acl describe`
@@ -266,8 +266,8 @@ rctl agents get --extended
 ```
 
 ```text
-Ref                                  Name     Username Domain    Max Contacts   Privacy Enabled
-d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1              PRIVATE Yes
+Ref                                  Name     Username Domain    Max Contacts Privacy Enabled
+d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1            Private Yes
 ```
 
 ### `rctl agents describe`
@@ -312,7 +312,7 @@ rctl agents update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, except `Username`, which you can't change.
+Prompts: The same prompts as `create`, pre-filled with the current values, except `Username`, which you can't change. `Select a Domain` is not pre-filled: it starts on `None`, and accepting `None` removes the Agent from its Domain. Pick the Domain again to keep it.
 
 Example:
 
@@ -456,7 +456,7 @@ rctl credentials update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, pre-filled with the current values.
+Prompts: The same prompts as `create`, pre-filled with the current values, except `Password`, which is never shown. Type the current password to keep it, or a new one to change it.
 
 Example:
 
@@ -563,8 +563,8 @@ rctl domains get --extended
 ```
 
 ```text
-Ref                                  Name         URI
-ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
+Ref                                  Name         URI       Egress Policies
+ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local .* / tel:+17853178070
 ```
 
 ### `rctl domains describe`
@@ -609,7 +609,7 @@ rctl domains update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, except `SIP URI`, which you can't change.
+Prompts: The same prompts as `create`, pre-filled with the current values, except `SIP URI`, which you can't change. Egress rules start a new list: add at least one and the new list replaces the stored rules; add none and the stored rules stay. The CLI warns `Adding Egress Policies will delete existing ones.` before it starts. Unlike `create`, `update` asks `Add an Egress Rule?` only when at least one ACL exists, not when Numbers exist.
 
 Example:
 
@@ -717,8 +717,8 @@ rctl numbers get --extended
 ```
 
 ```text
-Ref                                  Name           Telephony URL      AOR Link           Geo
-a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@sip.local Cameron, USA (US)
+Ref                                  Name           Telephony URL    AOR Link           Session Affinity Header Geo
+a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 tel:+17853178070 sip:1001@sip.local                         Cameron, USA (US)
 ```
 
 ### `rctl numbers describe`
@@ -873,8 +873,8 @@ rctl peers get --extended
 ```
 
 ```text
-Ref                                  Name                Username   AOR                      Max Contacts   Balancing Algorithm Session Affinity
-6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local 1              Round Robin         Yes
+Ref                                  Name                Username   AOR                      Max Contacts Balancing Algorithm Enabled
+6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local 1            Round Robin         Yes
 ```
 
 ### `rctl peers describe`
@@ -1036,8 +1036,8 @@ rctl trunks get --extended
 ```
 
 ```text
-Ref                                  Name   Inbound SIP URI
-8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local  sip.t01.provider.net
+Ref                                  Name    Inbound SIP URI      Send Register
+8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local   sip.t01.provider.net false
 ```
 
 ### `rctl trunks describe`
@@ -1082,7 +1082,7 @@ rctl trunks update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, pre-filled with the current values.
+Prompts: The same prompts as `create`, pre-filled with the current values, except the Outbound SIP URIs. They start a new list: add at least one and the new list replaces the stored URIs; add none and the stored URIs stay. The CLI warns `Adding Outbound SIP URIs will delete existing ones.` before it starts.
 
 Example:
 
@@ -1155,12 +1155,13 @@ rctl autocomplete zsh
 Lists installed plugins.
 
 ```text
-rctl plugins [--core]
+rctl plugins [--core] [--json]
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
 | `--core` | - | Show core plugins. |
+| `--json` | - | Format output as JSON. |
 
 Example:
 
@@ -1168,12 +1169,12 @@ Example:
 rctl plugins
 ```
 
-### `rctl plugins:install`
+### `rctl plugins install`
 
-Installs a plugin from npm or a Git URL. A user-installed plugin overrides a core plugin that has a command with the same name.
+Installs a plugin from npm or a Git URL. A user-installed plugin overrides a core plugin that has a command with the same name. Set `RCTL_NPM_LOG_LEVEL` to change the npm log level and `RCTL_NPM_REGISTRY` to use another npm registry.
 
 ```text
-rctl plugins:install PLUGIN...
+rctl plugins install PLUGIN... [-f] [-h] [-s | -v] [--json]
 ```
 
 | Argument | Required | Description |
@@ -1182,24 +1183,26 @@ rctl plugins:install PLUGIN...
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `-f, --force` | - | Run yarn install with the force flag. |
+| `-f, --force` | - | Force npm to fetch remote resources even if a local copy exists on disk. |
 | `-h, --help` | - | Show CLI help. |
-| `-v, --verbose` | - | Show verbose output. |
+| `-s, --silent` | - | Silence npm output. Cannot be combined with `--verbose`. |
+| `-v, --verbose` | - | Show verbose npm output. |
+| `--json` | - | Format output as JSON. |
 
 Aliases: `rctl plugins add`.
 
 Example:
 
 ```bash
-rctl plugins:install someuser/someplugin
+rctl plugins install someuser/someplugin
 ```
 
-### `rctl plugins:inspect`
+### `rctl plugins inspect`
 
 Shows installation properties of a plugin.
 
 ```text
-rctl plugins:inspect PLUGIN...
+rctl plugins inspect PLUGIN... [-h] [-v] [--json]
 ```
 
 | Argument | Required | Description |
@@ -1215,15 +1218,15 @@ rctl plugins:inspect PLUGIN...
 Example:
 
 ```bash
-rctl plugins:inspect myplugin
+rctl plugins inspect myplugin
 ```
 
-### `rctl plugins:link`
+### `rctl plugins link`
 
 Links a local plugin into the CLI for development. A linked plugin overrides user-installed and core plugins.
 
 ```text
-rctl plugins:link PLUGIN
+rctl plugins link PATH [-h] [--[no-]install] [-v]
 ```
 
 | Argument | Required | Description |
@@ -1233,25 +1236,26 @@ rctl plugins:link PLUGIN
 | Flag | Default | Description |
 | --- | --- | --- |
 | `-h, --help` | - | Show CLI help. |
+| `--[no-]install` | `true` | Install the plugin's dependencies after linking it. |
 | `-v, --verbose` | - | Show verbose output. |
 
 Example:
 
 ```bash
-rctl plugins:link ./my-plugin
+rctl plugins link ./my-plugin
 ```
 
-### `rctl plugins:uninstall`
+### `rctl plugins uninstall`
 
 Removes a plugin from the CLI.
 
 ```text
-rctl plugins:uninstall PLUGIN...
+rctl plugins uninstall [PLUGIN...] [-h] [-v]
 ```
 
 | Argument | Required | Description |
 | --- | --- | --- |
-| `PLUGIN` | Yes | Plugin to uninstall. |
+| `PLUGIN` | No | Plugin to uninstall. |
 
 | Flag | Default | Description |
 | --- | --- | --- |
@@ -1263,7 +1267,26 @@ Aliases: `rctl plugins unlink`, `rctl plugins remove`.
 Example:
 
 ```bash
-rctl plugins:uninstall myplugin
+rctl plugins uninstall myplugin
+```
+
+### `rctl plugins reset`
+
+Removes all user-installed and linked plugins.
+
+```text
+rctl plugins reset [--hard] [--reinstall]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--hard` | - | Also delete `node_modules` and the package manager files. |
+| `--reinstall` | - | Reinstall all plugins after uninstalling them. |
+
+Example:
+
+```bash
+rctl plugins reset --reinstall
 ```
 
 ### `rctl plugins update`
@@ -1287,7 +1310,7 @@ rctl plugins update
 
 ## Call traces
 
-`rctl trace` works on call recordings written by the Message Dispatcher (see [Record and replay calls](/guides/record-and-replay-calls)). It needs Node.js 22 or later and talks to no server except `trace send`.
+`rctl trace` works on call recordings written by the Message Dispatcher (see [Record and replay calls](/guides/record-and-replay-calls)). It talks to no server except `trace send` and `trace compat --against`.
 
 ### `rctl trace replay`
 
@@ -1355,6 +1378,7 @@ rctl trace lint FILE... [--sip-connect] [--fail-on error|warning] [--json] [--as
 | `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules. |
 | `--fail-on` | - | Exit `4` when a finding of this severity or worse exists. |
 | `--json` | - | Print the findings as JSON: `{ profiles, files: [{ file, records, findings: [{ seq, rule, profile, severity, spec, message, side, header }] }] }`. |
+| `--ascii` | - | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales). |
 
 Example:
 
@@ -1377,6 +1401,7 @@ rctl trace compat MANIFEST [--against <host:port>] [--sip-connect] [--fail-on dr
 | `--sip-connect` | - | Also evaluate the SIPconnect 1.1 rules on every file, on top of each file's own `profiles`. |
 | `--fail-on` | - | Exit `4` on drift (`drift`), on drift or an error finding (`error`), or on any finding (`warning`). |
 | `--json` | - | Print the report as JSON. |
+| `--ascii` | - | Draw with ASCII glyphs only (also chosen for `TERM=dumb` and non-UTF-8 locales). |
 
 ### `rctl trace sanitize`
 
