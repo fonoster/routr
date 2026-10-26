@@ -312,7 +312,7 @@ rctl agents update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, except `Username`, which you can't change.
+Prompts: The same prompts as `create`, pre-filled with the current values, except `Username`, which you can't change. `Select a Domain` is not pre-filled: it starts on `None`, and accepting `None` removes the Agent from its Domain. Pick the Domain again to keep it.
 
 Example:
 
@@ -456,7 +456,7 @@ rctl credentials update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, pre-filled with the current values.
+Prompts: The same prompts as `create`, pre-filled with the current values, except `Password`, which is never shown. Type the current password to keep it, or a new one to change it.
 
 Example:
 
@@ -609,7 +609,7 @@ rctl domains update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, except `SIP URI`, which you can't change.
+Prompts: The same prompts as `create`, pre-filled with the current values, except `SIP URI`, which you can't change. Egress rules start a new list: add at least one and the new list replaces the stored rules; add none and the stored rules stay. The CLI warns `Adding Egress Policies will delete existing ones.` before it starts.
 
 Example:
 
@@ -1082,7 +1082,7 @@ rctl trunks update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, pre-filled with the current values.
+Prompts: The same prompts as `create`, pre-filled with the current values, except the Outbound SIP URIs. They start a new list: add at least one and the new list replaces the stored URIs; add none and the stored URIs stay. The CLI warns `Adding Outbound SIP URIs will delete existing ones.` before it starts.
 
 Example:
 
