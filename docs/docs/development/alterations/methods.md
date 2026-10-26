@@ -1,3 +1,0 @@
-# Alteration Methods
-
-Coming soon.
