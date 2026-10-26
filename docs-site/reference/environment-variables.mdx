@@ -67,6 +67,7 @@ See [EdgePort](/reference/components/edgeport) for details.
 | `NATS_PUBLISHER_URL` | `nats://localhost:4222` | NATS server URL |
 | `NATS_PUBLISHER_SUBJECT` | `routr` | NATS subject for events |
 | `LOG4J2` | `/etc/routr/log4j2.yaml` | Log4j2 configuration for the EdgePort |
+| `JAIN_SIP_TRACE_LEVEL` | | Debug level of the JAIN-SIP stack's own log (sockets, TLS handshakes), printed under the `routr` logger. `32` is the most verbose. Unset keeps it quiet |
 | `JAVA_HOME` | `/service/jre` | Java runtime for the EdgePort |
 
 ## Message Dispatcher
@@ -126,17 +127,21 @@ See [RTPRelay](/reference/components/rtprelay) for details.
 | `RTPENGINE_TIMEOUT` | `5000` | Timeout for RTPEngine requests, in milliseconds |
 | `RTPRELAY_CONFIG_PATH` | `/etc/routr/rtprelay.yaml` | RTPRelay configuration file, read when it exists. Only its `spec.profiles` are used |
 
-## Logging and tracing
+## Logging and telemetry
 
-These apply to the Node.js services in the container.
+The Node.js services and the EdgePort read the same OpenTelemetry variables. Telemetry stays off until `OTEL_EXPORTER_OTLP_ENDPOINT` or `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` is set. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry).
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
-| `OTEL_SERVICE_NAME` | `one` | Service name reported in traces, metrics and logs |
-| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
+| `LOGS_LEVEL` | | Log level of the Node.js services, for example `verbose` or `info` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP base endpoint, such as `http://collector:4318`. Setting it turns on traces, metrics and logs, sent to `/v1/traces`, `/v1/metrics` and `/v1/logs` |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | Full OTLP/HTTP traces URL. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` for traces, and also turns telemetry on. Set alone, metrics and logs go to the same collector with `/v1/traces` swapped for `/v1/metrics` and `/v1/logs` |
+| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | | Full OTLP/HTTP metrics URL. Takes precedence for metrics; does not turn telemetry on by itself |
+| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | | Full OTLP/HTTP logs URL. Takes precedence for logs; does not turn telemetry on by itself |
+| `OTEL_EXPORTER_OTLP_HEADERS` | | Headers sent with every export, as `key=value` pairs separated by commas, for example `Authorization=Bearer <token>` |
+| `OTEL_METRIC_EXPORT_INTERVAL` | `15000` | Interval between metric exports, in milliseconds |
+| `OTEL_SERVICE_NAME` | `one` (Node.js services), `routr-edgeport` (EdgePort) | Service name reported in traces, metrics and logs. Set, it applies to every process in the container, the EdgePort included |
+| `OTEL_SDK_DISABLED` | | `true` turns telemetry off even when an endpoint is set |
 
 ## Example
 

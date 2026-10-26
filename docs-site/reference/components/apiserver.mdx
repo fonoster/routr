@@ -45,7 +45,9 @@ The API Server stores the Connect resources (Agents, Domains, Peers, Trunks, Num
 | `SERVER_CERT_SUBJECT` | `/CN=localhost` (image) | Subject of the generated server certificate |
 | `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
 | `OTEL_SERVICE_NAME` | `pgdata` | Service name reported in traces, metrics and logs |
+| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
 
 ### Example
 
@@ -68,7 +70,9 @@ docker run -it \
 | `BIND_ADDR` | `0.0.0.0:51907` | Address to listen on |
 | `LOGS_LEVEL` | | Log level, for example `verbose` or `info` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
 | `OTEL_SERVICE_NAME` | `simpledata` | Service name reported in traces, metrics and logs |
+| `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
 
 ### Resource files
 
@@ -126,6 +130,34 @@ Both backends register one service per resource kind.
 | `fonoster.routr.connect.acl.v2beta1.ACLService` | `Create`, `Update`, `Get`, `Delete`, `List` |
 
 `List` takes `page_size` and `page_token` and returns `items` and `next_page_token`. `FindBy` takes `field_name` and `field_value`. See the [Connect protos](https://github.com/fonoster/routr/tree/main/mods/common/src/connect/protos).
+
+## Quick test with gRPCurl
+
+You can call the API Server directly with [gRPCurl](https://github.com/fullstorydev/grpcurl). The services don't expose gRPC reflection, so pass the protos with `-import-path` and `-proto`. The paths below are relative to a clone of the [repository](https://github.com/fonoster/routr).
+
+This command lists the first ten Agents on the internal port of pgdata.
+
+```bash
+grpcurl -plaintext \
+  -import-path mods/common/src/connect/protos \
+  -proto agents.proto \
+  -d '{"page_size": 10}' \
+  localhost:51907 \
+  fonoster.routr.connect.agents.v2beta1.Agents/List
+```
+
+simpledata answers only `Get` and `FindBy`. This command finds an Agent by username on either backend.
+
+```bash
+grpcurl -plaintext \
+  -import-path mods/common/src/connect/protos \
+  -proto agents.proto \
+  -d '{"field_name": "username", "field_value": "1001"}' \
+  localhost:51907 \
+  fonoster.routr.connect.agents.v2beta1.Agents/FindBy
+```
+
+To reach the external port `51908` with `TLS_ON=true`, replace `-plaintext` with `-cacert` and the path to the CA certificate.
 
 ## Notes
 

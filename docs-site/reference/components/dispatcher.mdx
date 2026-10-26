@@ -36,7 +36,7 @@ The Dispatcher reads a YAML or JSON file and validates it against a JSON schema 
 | `spec.middlewares` | object[] | No | `[]` | Middlewares |
 | `spec.middlewares[*].ref` | string | Yes | | Middleware reference |
 | `spec.middlewares[*].addr` | string | Yes | | Middleware address, for example `rtprelay:51903` |
-| `spec.middlewares[*].postProcessor` | boolean | Yes | | `true` runs the middleware after the Processor, `false` runs it before |
+| `spec.middlewares[*].postProcessor` | boolean | No | | `true` runs the middleware after the Processor, `false` runs it before. Left unset, the middleware runs in neither phase |
 | `spec.recording` | object | No | | Message recording, one `.jsonl` file per call. See [Record and replay calls](/guides/record-and-replay-calls) |
 | `spec.recording.enabled` | boolean | Yes | | Turns recording on |
 | `spec.recording.path` | string | Yes | | Directory the files are written to |
@@ -111,9 +111,35 @@ docker run -it \
   fonoster/routr-dispatcher
 ```
 
+## Quick test with gRPCurl
+
+You can send a message to the Dispatcher with [gRPCurl](https://github.com/fullstorydev/grpcurl). The services don't expose gRPC reflection, so pass the protos with `-import-path` and `-proto`. The paths below are relative to a clone of the [repository](https://github.com/fonoster/routr).
+
+A `MessageRequest` is a full SIP message in JSON form. This command prints its fields.
+
+```bash
+grpcurl \
+  -import-path mods/common/src/protos \
+  -proto processor.proto \
+  describe fonoster.routr.processor.v2beta1.MessageRequest
+```
+
+This command sends the request in `message.json` and prints the `MessageResponse`.
+
+```bash
+grpcurl -plaintext \
+  -import-path mods/common/src/protos \
+  -proto processor.proto \
+  -d @ \
+  localhost:51901 \
+  fonoster.routr.processor.v2beta1.Processor/ProcessMessage < message.json
+```
+
+To send a message taken from a call recording, use [`rctl trace send`](/reference/rctl#rctl-trace-send) instead. It builds the request for you and compares the answer with the recorded one.
+
 ## Notes
 
 - You need a Dispatcher only with more than one Processor or at least one middleware. Otherwise, point the EdgePort at the Processor directly.
 - Order matters. The first Processor whose `matchFunc` returns `true` gets the message, so put catch-all functions last.
-- Set `postProcessor` on every middleware. A middleware without it runs in neither phase.
+- Set `postProcessor` on every middleware. The schema accepts a middleware without it, but that middleware runs in neither phase.
 - The schema does not enforce the fields inside `spec.processors[*]`, so a Processor entry without `matchFunc` or `methods` is not rejected at startup. Check each entry yourself.

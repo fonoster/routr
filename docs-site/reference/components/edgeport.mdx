@@ -80,11 +80,13 @@ Use the names the Java runtime knows. A name it doesn't recognize makes every TL
 | `NATS_PUBLISHER_SUBJECT` | `routr` | NATS subject for events |
 | `PKCS12_PASSWORD` | `changeme` | Password of the generated `signaling.p12` keystore. Keep it equal to `keyStorePassword` and `trustStorePassword` |
 | `PATH_TO_CERTS` | `/etc/routr/certs` | Directory with `server.crt`, `server.key`, and an optional `ca.crt` |
+| `PATH_TO_LOGS` | `/opt/routr/logs` | Log directory the image creates, owned by the service user. A build argument: setting it at run time doesn't move the logs |
 | `CA_CERT_SUBJECT` | `/CN=Self Signed CA` | Subject of the generated CA certificate |
 | `SERVER_CERT_SUBJECT` | `/CN=localhost` | Subject of the generated server certificate |
 | `HEPLIFY_OPTIONS` | | When set, runs `heplify` with these options to mirror SIP traffic to a HEP collector such as Homer |
 | `LOG4J2` | `/etc/routr/log4j2.yaml` | Path to the Log4j2 configuration |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP endpoint. Setting it turns on traces, metrics and logs |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | OTLP/HTTP traces endpoint. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` |
 | `OTEL_EXPORTER_OTLP_HEADERS` | | Headers sent with every export, as `key=value,key=value` |
 | `OTEL_SERVICE_NAME` | `routr-edgeport` | Service name reported in traces, metrics and logs |
 | `OTEL_SDK_DISABLED` | | `true` turns telemetry off |
@@ -92,7 +94,7 @@ Use the names the Java runtime knows. A name it doesn't recognize makes every TL
 
 ## Telemetry
 
-With `OTEL_EXPORTER_OTLP_ENDPOINT` set, the EdgePort sends over OTLP:
+With `OTEL_EXPORTER_OTLP_ENDPOINT` or `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` set, the EdgePort sends over OTLP:
 
 - **Traces:** one `SIP <METHOD>` span per request it receives, from arrival to its final response.
   It carries `sip.method`, `sip.call_id`, `network.transport`, `network.peer.address`,
