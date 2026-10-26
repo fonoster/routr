@@ -52,16 +52,7 @@ Install Routr Connect on a Kubernetes cluster with the `routr/routr-connect` cha
     helm install sipnet routr/routr-connect --namespace sipnet -f values.yaml
     ```
 
-    The output looks similar to this:
-
-    ```text
-    NAME: sipnet
-    LAST DEPLOYED: Sun May 21 17:47:48 2023
-    NAMESPACE: sipnet
-    STATUS: deployed
-    REVISION: 1
-    TEST SUITE: None
-    ```
+    Helm prints `STATUS: deployed` when it has created the release.
   </Step>
   <Step title="Wait for the pods">
     List the pods and wait until they are all running. The first start takes a few minutes while PostgreSQL initializes and migrations run.
@@ -107,6 +98,11 @@ Pass values with `-f values.yaml` or `--set key=value`. These are the ones most 
 | `location.cache.provider` | `redis` | `redis` or `memory`. See [Scale the Location Service with Redis](/guides/scale-with-redis). |
 | `redis.enabled` | `true` | Set to `false` if you run your own Redis and set `location.cache.parameters`. |
 | `rtprelay.enabled` | `false` | Enable for WebRTC. See [Enable WebRTC clients](/guides/enable-webrtc). |
+| `rtprelay.profiles` | `{}` | Override the RTPEngine profiles per call direction. See [RTPRelay](/reference/components/rtprelay). |
+| `dispatcher.recording.enabled` | `false` | Record SIP messages. See [Record and replay calls](/guides/record-and-replay-calls). |
+| `dispatcher.recording.mode` | `flagged` | `all` records every call, `flagged` only calls whose resources have tracing on. |
+| `dispatcher.recording.existingClaim` | `""` | A PVC to keep recordings across restarts. Empty uses an `emptyDir`. |
+| `global.otlpEndpoint` | unset | Send traces, metrics, and logs over OTLP/HTTP. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry). |
 
 The following example exposes UDP and TCP through cloud load balancers and uses an external database.
 
@@ -130,6 +126,44 @@ postgresql:
 Every EdgePort replica can receive any request. When a request lands on an EdgePort that doesn't hold the callee's connection, Routr forwards it to the EdgePort that does. See [EdgePort cooperation](/concepts/edgeport-cooperation).
 </Note>
 
+## Expose EdgePort through a cloud load balancer
+
+On a managed cluster, a `LoadBalancer` Service gives the EdgePort a public IP. You only learn that IP after the load balancer exists, so set it in two passes.
+
+<Steps>
+  <Step title="Request a load balancer">
+    Set the UDP Service type, leaving `externalAddrs` unset for now.
+
+    ```bash
+    helm upgrade --install sipnet routr/routr-connect --namespace sipnet \
+      -f values.yaml --set edgeport.serviceTypeUDP=LoadBalancer
+    ```
+  </Step>
+  <Step title="Wait for the external IP">
+    The cloud provider creates the load balancer for the `sipnet-routr-edgeport-udp` Service. Wait until `EXTERNAL-IP` shows an address instead of `<pending>`.
+
+    ```bash
+    kubectl get svc -n sipnet sipnet-routr-edgeport-udp --watch
+    ```
+  </Step>
+  <Step title="Advertise the address">
+    Set `edgeport.externalAddrs` to that IP, keeping the values already in the release.
+
+    ```bash
+    helm upgrade sipnet routr/routr-connect --namespace sipnet \
+      --reuse-values --set "edgeport.externalAddrs={203.0.113.10}"
+    ```
+
+    Add the IP to `values.yaml` too, so later upgrades with `-f values.yaml` keep it.
+  </Step>
+</Steps>
+
+<Warning>
+The chart only sets the Service type. Your provider must support UDP load balancers, and its firewall rules must allow UDP `5060`, or the node port when you keep `NodePort`. Without UDP load balancing, keep `NodePort` and point clients at a node's public IP and the assigned node port.
+</Warning>
+
+For TCP, TLS, WS, and WSS, set `edgeport.serviceTypeTCP` the same way. It creates the `sipnet-routr-edgeport-tcp` Service.
+
 ## Upgrade the release
 
 Refresh the repository and apply the new chart version with the same values file. The chart runs database migrations in a post-upgrade hook.
@@ -140,6 +174,17 @@ helm upgrade sipnet routr/routr-connect --namespace sipnet -f values.yaml
 ```
 
 Check the [changelog](/changelog) before upgrading across major versions. When an EdgePort pod restarts, the clients connected to it register again.
+
+### From chart 0.4.7 or earlier
+
+The EdgePort StatefulSet now uses the `<release>-routr-edgeport-headless` Service as its governing Service. Kubernetes doesn't allow changing that field on an existing StatefulSet, so delete the StatefulSet first, leaving its pods running, and then upgrade:
+
+```bash
+kubectl delete statefulset sipnet-routr-edgeport --cascade=orphan --namespace sipnet
+helm upgrade sipnet routr/routr-connect --namespace sipnet -f values.yaml
+```
+
+The pods keep serving traffic until the upgraded StatefulSet replaces them.
 
 ## Uninstall the release
 
@@ -152,7 +197,7 @@ helm uninstall sipnet --namespace sipnet
 Helm keeps the persistent volume claims, so your database survives. To delete them as well, remove the PVCs for the release.
 
 ```bash
-kubectl delete pvc -l release=sipnet -n sipnet
+kubectl delete pvc -l app.kubernetes.io/instance=sipnet -n sipnet
 ```
 
 <Warning>Deleting the PVCs deletes the PostgreSQL data. Back it up first.</Warning>
@@ -160,7 +205,7 @@ kubectl delete pvc -l release=sipnet -n sipnet
 ## Troubleshooting
 
 - **Clients register but calls have no audio or replies are lost.** `edgeport.externalAddrs` doesn't match the address clients use.
-- **No external IP for SIP.** With the default `NodePort` service type, clients must use a node IP and the assigned node port. Use `LoadBalancer` on cloud providers.
+- **No external IP for SIP.** With the default `NodePort` service type, clients must use a node IP and the assigned node port. Use `LoadBalancer` on cloud providers. See [Expose EdgePort through a cloud load balancer](#expose-edgeport-through-a-cloud-load-balancer).
 - **`rctl` can't connect.** Check that the port-forward is still running and that you match the TLS mode: `--insecure` when `apiserver.tlsOn` is `false`.
 
 ## Next steps
@@ -169,8 +214,8 @@ kubectl delete pvc -l release=sipnet -n sipnet
   <Card title="Helm values" icon="list" href="/reference/helm-values">
     Every chart parameter and its default.
   </Card>
-  <Card title="Deploy to Civo with Helm" icon="cloud" href="/tutorials/deploy-to-civo-with-helm">
-    A full walkthrough on a managed cluster.
+  <Card title="Monitor with OpenTelemetry" icon="chart-line" href="/guides/monitor-with-opentelemetry">
+    Send traces, metrics, and logs from every pod.
   </Card>
   <Card title="Scale with Redis" icon="database" href="/guides/scale-with-redis">
     Share registrations across Location Service replicas.
