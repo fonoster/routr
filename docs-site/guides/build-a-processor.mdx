@@ -37,6 +37,8 @@ message MessageRequest {
   repeated string localnets = 7;
   fonoster.routr.sipmessage.v2beta1.SIPMessage message = 8;
   map<string, string> metadata = 9;
+  string edge_port_version = 10;  // Version of the EdgePort, for example 2.18.0
+  NetInterface received_on = 11;  // Local socket the message arrived on
 }
 
 message MessageResponse {
@@ -114,17 +116,19 @@ The request carries everything the Processor needs (sender, listening points, ne
     | --- | --- |
     | `send(request)` | Returns the (altered) message to EdgePort, which forwards it |
     | `sendOk(extraHeaders?)` | Replies `200 OK` |
-    | `sendRegisterOk(request, extraHeaders?)` | Replies `200 OK` with the request's Contact |
+    | `sendRegisterOk(request, extraHeaders?, metadata?)` | Replies `200 OK` with the request's Contact. `metadata` goes back to the Message Dispatcher, for example the recording flag |
     | `sendNotFound()` | Replies `404 Not Found` |
     | `sendForbidden(message?)` | Replies `403 Forbidden` |
     | `sendMethodNotAllowed()` | Replies `405 Method Not Allowed` |
     | `sendTemporarilyUnavailable()` | Replies `480 Temporarily Unavailable` |
     | `sendNotImplemented()` | Replies `501 Not Implemented` |
     | `sendInternalServerError()` | Replies `500 Internal Server Error` |
+    | `sendBadGateway(reasonPhrase?)` | Replies `502 Bad Gateway`, for a next hop that can't be reached as configured |
+    | `sendError(error)` | Deprecated. Fails the gRPC call with `error` instead of replying with a SIP response |
   </Step>
 
   <Step title="Handle REGISTER">
-    Create `handlers.js`. The `register` handler stores the sender's route in the Location Service under the target AOR and replies `200 OK`:
+    Create `handlers.js`. The `register` handler stores the sender's route in the Location Service under the target AOR and replies `200 OK` with the request's Contact:
 
     ```javascript handlers.js
     const { Alterations, Target, Helper: ProcessorHelper } = require("@routr/processor")
@@ -138,7 +142,7 @@ The request carries everything the Processor needs (sender, listening points, ne
           route: LocationHelper.createRoute(req),
           maxContacts: -1 // -1 means no limit
         })
-        res.sendOk()
+        res.sendRegisterOk(req)
       },
       sendMessage: async (req, res) => {
         // Next step
