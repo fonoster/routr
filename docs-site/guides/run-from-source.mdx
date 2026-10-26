@@ -159,7 +159,7 @@ If you change `POSTGRES_PORT`, set `DATABASE_URL` to match. Before you start `st
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/routr?schema=public" npm run db:migrate
 ```
 
-Stop all three services with `npm run stop:deps`. Adminer is no longer part of the setup; connect to PostgreSQL with any client, for example `psql postgresql://postgres:postgres@localhost:5432/routr`.
+The services keep running until you stop them. Stop all three with `npm run stop:deps`. Connect to PostgreSQL with any client, for example `psql postgresql://postgres:postgres@localhost:5432/routr`.
 
 <Note>
   RTPEngine advertises `DOCKER_HOST_ADDRESS` as its media address (Compose passes it to the image as `RTPENGINE_PUBLIC_IP`), `127.0.0.1` when unset. Set it to an IP your SIP clients can reach before the service starts. Compose can't use host networking on macOS, so the media ports are published instead. The `fonoster/rtpengine` image is amd64 only, so on Apple silicon it runs under emulation.
@@ -188,6 +188,14 @@ docker compose -f compose.yaml -f compose.dev.yaml up \
 ```
 
 The certificates land in `etc/certs`, which git ignores. The EdgePort builds its keystore from them and the fake carrier serves the same certificate on its TLS port, which is how the scenario that calls a provider over TLS is trusted.
+
+Every service in `compose.dev.yaml` sends its traces, metrics, and logs to the `otel-lgtm` service (`grafana/otel-lgtm`). To look at them, start it before the suite and open Grafana at `http://localhost:3000` (user and password `admin`):
+
+```bash
+docker compose -f compose.yaml -f compose.dev.yaml up -d otel-lgtm
+```
+
+If the suite stopped it on exit, `docker start otel-lgtm` brings it back with its data. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry) for what Routr exports.
 
 ## Pitfalls
 
