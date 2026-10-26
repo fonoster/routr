@@ -5,6 +5,16 @@ description: "For operators and developers tracking Routr releases: what changed
 
 Every Routr release is tagged in the [repository](https://github.com/fonoster/routr/tags), and most have notes on [GitHub Releases](https://github.com/fonoster/routr/releases). The entries below cover each version from v2.13.0 on that changed Routr's behavior or configuration; each links to its release notes or, when a tag has no GitHub release, to its commits. Breaking changes come first in an entry.
 
+<Update label="v2.25.4" description="2026-10-26">
+  - Map FindBy results through mapToDto like Get and List (`pgdata`)
+  - Check CONNECT_VERIFIER_PUBLIC_KEY_PATH in the one-verifier startup assertion (`connect`)
+  - Show the Egress Rule prompt on domains update when Numbers exist (`ctl`)
+  - Call.ended carries the extra headers of the INVITE that started the call (`edgeport`)
+  - Trunk prompts ask for the Port, not the Post (`ctl`)
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.25.4)
+</Update>
+
 <Update label="v2.25.3" description="2026-10-26">
   - Ship the Prisma CLI in the image instead of fetching it at start (`one`)
 
