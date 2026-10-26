@@ -37,7 +37,8 @@ import java.nio.channels.SocketChannel;
  * implementation in {@code NioTlsWebSocketMessageProcessor} (which is private
  * inside JAIN-SIP 1.3.0-91) but instantiate our safe subclass.
  */
-public class SafeNioTlsWebSocketMessageProcessor extends NioTlsWebSocketMessageProcessor {
+public class SafeNioTlsWebSocketMessageProcessor extends NioTlsWebSocketMessageProcessor
+    implements SiblingChannels.Cache {
 
   public SafeNioTlsWebSocketMessageProcessor(InetAddress ipAddress,
       SIPTransactionStack sipStack, int port) {
@@ -53,6 +54,12 @@ public class SafeNioTlsWebSocketMessageProcessor extends NioTlsWebSocketMessageP
       SIPTransactionStack sipStack, int port, String transport) {
     super(ipAddress, sipStack, port);
     this.transport = transport;
+  }
+
+  @Override
+  public MessageChannel findOpenChannel(InetAddress peerAddress, int peerPort) {
+    return SiblingChannels.findOpen(messageChannels,
+        MessageChannel.getKey(peerAddress, peerPort, transport));
   }
 
   @Override
@@ -76,6 +83,13 @@ public class SafeNioTlsWebSocketMessageProcessor extends NioTlsWebSocketMessageP
     if (existing != null) {
       return existing;
     }
+    // A WebSocket client cannot accept a new connection: send on the one it
+    // opened to the sibling listening point, if any (see SiblingChannels).
+    MessageChannel sibling = SiblingChannels.find(this, sipStack,
+        targetHostPort.getInetAddress(), targetHostPort.getPort(), "WS", "WSS");
+    if (sibling != null) {
+      return sibling;
+    }
     SafeNioTlsWebSocketMessageChannel retval = new SafeNioTlsWebSocketMessageChannel(
         targetHostPort.getInetAddress(), targetHostPort.getPort(), sipStack, this);
     synchronized (messageChannels) {
@@ -92,6 +106,10 @@ public class SafeNioTlsWebSocketMessageProcessor extends NioTlsWebSocketMessageP
     MessageChannel existing = messageChannels.get(key);
     if (existing != null) {
       return existing;
+    }
+    MessageChannel sibling = SiblingChannels.find(this, sipStack, targetHost, port, "WS", "WSS");
+    if (sibling != null) {
+      return sibling;
     }
     SafeNioTlsWebSocketMessageChannel retval =
         new SafeNioTlsWebSocketMessageChannel(targetHost, port, sipStack, this);
