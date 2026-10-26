@@ -23,7 +23,6 @@ const sidebars = {
       items: [
         'development/introduction',
         'development/quick-start',
-        'development/development-mode-with-gitpod',
         {
           type: 'category',
           label: 'Components',
