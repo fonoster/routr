@@ -1155,12 +1155,13 @@ rctl autocomplete zsh
 Lists installed plugins.
 
 ```text
-rctl plugins [--core]
+rctl plugins [--core] [--json]
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
 | `--core` | - | Show core plugins. |
+| `--json` | - | Format output as JSON. |
 
 Example:
 
@@ -1168,12 +1169,12 @@ Example:
 rctl plugins
 ```
 
-### `rctl plugins:install`
+### `rctl plugins install`
 
-Installs a plugin from npm or a Git URL. A user-installed plugin overrides a core plugin that has a command with the same name.
+Installs a plugin from npm or a Git URL. A user-installed plugin overrides a core plugin that has a command with the same name. Set `RCTL_NPM_LOG_LEVEL` to change the npm log level and `RCTL_NPM_REGISTRY` to use another npm registry.
 
 ```text
-rctl plugins:install PLUGIN...
+rctl plugins install PLUGIN... [-f] [-h] [-s | -v] [--json]
 ```
 
 | Argument | Required | Description |
@@ -1182,24 +1183,26 @@ rctl plugins:install PLUGIN...
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `-f, --force` | - | Run yarn install with the force flag. |
+| `-f, --force` | - | Force npm to fetch remote resources even if a local copy exists on disk. |
 | `-h, --help` | - | Show CLI help. |
-| `-v, --verbose` | - | Show verbose output. |
+| `-s, --silent` | - | Silence npm output. Cannot be combined with `--verbose`. |
+| `-v, --verbose` | - | Show verbose npm output. |
+| `--json` | - | Format output as JSON. |
 
 Aliases: `rctl plugins add`.
 
 Example:
 
 ```bash
-rctl plugins:install someuser/someplugin
+rctl plugins install someuser/someplugin
 ```
 
-### `rctl plugins:inspect`
+### `rctl plugins inspect`
 
 Shows installation properties of a plugin.
 
 ```text
-rctl plugins:inspect PLUGIN...
+rctl plugins inspect PLUGIN... [-h] [-v] [--json]
 ```
 
 | Argument | Required | Description |
@@ -1215,15 +1218,15 @@ rctl plugins:inspect PLUGIN...
 Example:
 
 ```bash
-rctl plugins:inspect myplugin
+rctl plugins inspect myplugin
 ```
 
-### `rctl plugins:link`
+### `rctl plugins link`
 
 Links a local plugin into the CLI for development. A linked plugin overrides user-installed and core plugins.
 
 ```text
-rctl plugins:link PLUGIN
+rctl plugins link PATH [-h] [--[no-]install] [-v]
 ```
 
 | Argument | Required | Description |
@@ -1233,25 +1236,26 @@ rctl plugins:link PLUGIN
 | Flag | Default | Description |
 | --- | --- | --- |
 | `-h, --help` | - | Show CLI help. |
+| `--[no-]install` | `true` | Install the plugin's dependencies after linking it. |
 | `-v, --verbose` | - | Show verbose output. |
 
 Example:
 
 ```bash
-rctl plugins:link ./my-plugin
+rctl plugins link ./my-plugin
 ```
 
-### `rctl plugins:uninstall`
+### `rctl plugins uninstall`
 
 Removes a plugin from the CLI.
 
 ```text
-rctl plugins:uninstall PLUGIN...
+rctl plugins uninstall [PLUGIN...] [-h] [-v]
 ```
 
 | Argument | Required | Description |
 | --- | --- | --- |
-| `PLUGIN` | Yes | Plugin to uninstall. |
+| `PLUGIN` | No | Plugin to uninstall. |
 
 | Flag | Default | Description |
 | --- | --- | --- |
@@ -1263,7 +1267,26 @@ Aliases: `rctl plugins unlink`, `rctl plugins remove`.
 Example:
 
 ```bash
-rctl plugins:uninstall myplugin
+rctl plugins uninstall myplugin
+```
+
+### `rctl plugins reset`
+
+Removes all user-installed and linked plugins.
+
+```text
+rctl plugins reset [--hard] [--reinstall]
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--hard` | - | Also delete `node_modules` and the package manager files. |
+| `--reinstall` | - | Reinstall all plugins after uninstalling them. |
+
+Example:
+
+```bash
+rctl plugins reset --reinstall
 ```
 
 ### `rctl plugins update`
