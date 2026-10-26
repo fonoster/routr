@@ -8,12 +8,12 @@ You can run Routr in two shapes. The `fonoster/routr-one` image packs every serv
 <img
   className="block dark:hidden rounded-xl"
   src="/images/deployment/topologies-light.png"
-  alt="Two deployment topologies: routr-one runs every Routr service and PostgreSQL in one Docker container on a single host; routr-connect on Kubernetes runs EdgePorts as a StatefulSet and the Dispatcher, Connect, Location, API Server, Registry, and Requester as separate deployments with Redis and PostgreSQL"
+  alt="Two deployment topologies: routr-one runs EdgePort, the Dispatcher, Connect, Location, the API Server, and PostgreSQL in one Docker container, without the Registry or Requester, on a single host; routr-connect on Kubernetes runs EdgePorts as a StatefulSet and the Dispatcher, Connect, Location, API Server, Registry, and Requester as separate deployments with Redis and PostgreSQL"
 />
 <img
   className="hidden dark:block rounded-xl"
   src="/images/deployment/topologies-dark.png"
-  alt="Two deployment topologies: routr-one runs every Routr service and PostgreSQL in one Docker container on a single host; routr-connect on Kubernetes runs EdgePorts as a StatefulSet and the Dispatcher, Connect, Location, API Server, Registry, and Requester as separate deployments with Redis and PostgreSQL"
+  alt="Two deployment topologies: routr-one runs EdgePort, the Dispatcher, Connect, Location, the API Server, and PostgreSQL in one Docker container, without the Registry or Requester, on a single host; routr-connect on Kubernetes runs EdgePorts as a StatefulSet and the Dispatcher, Connect, Location, API Server, Registry, and Requester as separate deployments with Redis and PostgreSQL"
 />
 
 ## routr-one on Docker
