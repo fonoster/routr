@@ -113,8 +113,8 @@ rctl acl get --extended
 ```
 
 ```text
-Ref                                  Name              Deny List Allow List
-9e7a88f0-8390-42f5-a2cb-689583ba9f4f Local Network ACL 0.0.0.0/0 10.0.0.28
+Ref                                  Name              Deny CIDR Networks Allow CIDR Networks
+9e7a88f0-8390-42f5-a2cb-689583ba9f4f Local Network ACL 0.0.0.0/0          10.0.0.28
 ```
 
 ### `rctl acl describe`
@@ -266,8 +266,8 @@ rctl agents get --extended
 ```
 
 ```text
-Ref                                  Name     Username Domain    Max Contacts   Privacy Enabled
-d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1              PRIVATE Yes
+Ref                                  Name     Username Domain    Max Contacts Privacy Enabled
+d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1            Private Yes
 ```
 
 ### `rctl agents describe`
@@ -563,8 +563,8 @@ rctl domains get --extended
 ```
 
 ```text
-Ref                                  Name         URI
-ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local
+Ref                                  Name         URI       Egress Policies
+ab2b6959-f497-4b14-903b-85a7c464b564 Local Domain sip.local .* / tel:+17853178070
 ```
 
 ### `rctl domains describe`
@@ -609,7 +609,7 @@ rctl domains update REF [-i] [-c <value>] [-e <value>]
 | `-e, --endpoint=<value>` | `localhost:51908` | Endpoint of the Routr API server. |
 | `-i, --insecure` | `false` | Allow insecure connections to the Routr API server. |
 
-Prompts: The same prompts as `create`, pre-filled with the current values, except `SIP URI`, which you can't change. Egress rules start a new list: add at least one and the new list replaces the stored rules; add none and the stored rules stay. The CLI warns `Adding Egress Policies will delete existing ones.` before it starts.
+Prompts: The same prompts as `create`, pre-filled with the current values, except `SIP URI`, which you can't change. Egress rules start a new list: add at least one and the new list replaces the stored rules; add none and the stored rules stay. The CLI warns `Adding Egress Policies will delete existing ones.` before it starts. Unlike `create`, `update` asks `Add an Egress Rule?` only when at least one ACL exists, not when Numbers exist.
 
 Example:
 
@@ -717,8 +717,8 @@ rctl numbers get --extended
 ```
 
 ```text
-Ref                                  Name           Telephony URL      AOR Link           Geo
-a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 +17853178070       sip:1001@sip.local Cameron, USA (US)
+Ref                                  Name           Telephony URL    AOR Link           Session Affinity Header Geo
+a134487f-a668-4509-9ddd-dcbc98175468 (785) 317-8070 tel:+17853178070 sip:1001@sip.local                         Cameron, USA (US)
 ```
 
 ### `rctl numbers describe`
@@ -873,8 +873,8 @@ rctl peers get --extended
 ```
 
 ```text
-Ref                                  Name                Username   AOR                      Max Contacts   Balancing Algorithm Session Affinity
-6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local 1              Round Robin         Yes
+Ref                                  Name                Username   AOR                      Max Contacts Balancing Algorithm Enabled
+6f941c63-880c-419a-a72a-4a107cbaf5c5 Asterisk Conference conference sip:conference@sip.local 1            Round Robin         Yes
 ```
 
 ### `rctl peers describe`
@@ -1036,8 +1036,8 @@ rctl trunks get --extended
 ```
 
 ```text
-Ref                                  Name   Inbound SIP URI
-8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local  sip.t01.provider.net
+Ref                                  Name    Inbound SIP URI      Send Register
+8cde8ea9-3c58-4dbe-b2cf-23c4413dd4cc Local   sip.t01.provider.net false
 ```
 
 ### `rctl trunks describe`
