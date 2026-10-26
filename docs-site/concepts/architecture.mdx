@@ -24,7 +24,7 @@ A traditional SIP server puts the network stack, the routing logic, and the data
 - Routing logic lives in a Processor, so you can write your own in any language with gRPC support.
 - Each service scales on its own. If routing needs more CPU, you add Processor replicas, not more SIP edges.
 
-The trade-off is more moving parts. For a single host, the `fonoster/routr-one` image runs all of them in one container so you don't have to wire them together. See [Deployment topologies](/concepts/deployment-topologies).
+The trade-off is more moving parts. For a single host, the `fonoster/routr-one` image runs the core services, Connect, and the API Server in one container so you don't have to wire them together. It doesn't run the Registry or the Requester, so Trunks with `sendRegister` need the split deployment from the Helm chart. See [Deployment topologies](/concepts/deployment-topologies).
 
 ## Components
 
