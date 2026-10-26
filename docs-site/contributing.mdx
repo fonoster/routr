@@ -75,7 +75,7 @@ git commit --amend -s
 ## Pull request lifecycle
 
 1. Check that nobody else is working on the same issue. If a related pull request exists, offer to help there. If it gets no response in a reasonable time, open your own.
-2. Open the pull request against `main`. CI runs unit tests, the type check, lint, and the Java tests.
+2. Open the pull request against `main`. CI runs four required checks: **Unit tests, typecheck and lint**, **Known-good corpus compatibility**, **EdgePort and Requester tests**, and **SIP Connect v1.1 compliance (SEET)**. A pull request that only changes docs, the site, designs, or Markdown skips them.
 3. A maintainer reviews it and may ask you to improve the code, add tests or docs, change the approach, or split the change into smaller pull requests.
 4. Depending on the roadmap, a maintainer may delay the merge to fit a release, or ask you to close it and open a revised one.
 
