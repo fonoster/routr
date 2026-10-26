@@ -131,6 +131,34 @@ Both backends register one service per resource kind.
 
 `List` takes `page_size` and `page_token` and returns `items` and `next_page_token`. `FindBy` takes `field_name` and `field_value`. See the [Connect protos](https://github.com/fonoster/routr/tree/main/mods/common/src/connect/protos).
 
+## Quick test with gRPCurl
+
+You can call the API Server directly with [gRPCurl](https://github.com/fullstorydev/grpcurl). The services don't expose gRPC reflection, so pass the protos with `-import-path` and `-proto`. The paths below are relative to a clone of the [repository](https://github.com/fonoster/routr).
+
+This command lists the first ten Agents on the internal port of pgdata.
+
+```bash
+grpcurl -plaintext \
+  -import-path mods/common/src/connect/protos \
+  -proto agents.proto \
+  -d '{"page_size": 10}' \
+  localhost:51907 \
+  fonoster.routr.connect.agents.v2beta1.Agents/List
+```
+
+simpledata answers only `Get` and `FindBy`. This command finds an Agent by username on either backend.
+
+```bash
+grpcurl -plaintext \
+  -import-path mods/common/src/connect/protos \
+  -proto agents.proto \
+  -d '{"field_name": "username", "field_value": "1001"}' \
+  localhost:51907 \
+  fonoster.routr.connect.agents.v2beta1.Agents/FindBy
+```
+
+To reach the external port `51908` with `TLS_ON=true`, replace `-plaintext` with `-cacert` and the path to the CA certificate.
+
 ## Notes
 
 - simpledata implements only `Get` and `FindBy`. `Create`, `Update`, `Delete`, and `List` return "not implemented", so rctl and the SDK cannot manage simpledata resources.
