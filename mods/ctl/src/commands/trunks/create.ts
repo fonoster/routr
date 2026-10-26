@@ -160,7 +160,7 @@ Creating Trunk T01... b148b4b4-6884-4c06-bb7e-bd098f5fe793
         },
         {
           name: "port",
-          message: "Post",
+          message: "Port",
           type: "input",
           default: "5060",
           validate: portValidator
