@@ -120,6 +120,16 @@ The routr-one image reads these environment variables. Set them with `environmen
 | `START_INTERNAL_DB` | `true` | Set to `false` when `DATABASE_URL` points to an external PostgreSQL server. |
 | `RTPENGINE_HOST` | none | Enables the RTPRelay middleware. See [Enable WebRTC clients](/guides/enable-webrtc). |
 | `RTPENGINE_PORT` | `22222` | RTPEngine control port. |
+| `RTPRELAY_CONFIG_PATH` | `/etc/routr/rtprelay.yaml` | RTPRelay configuration file. Read only when it exists; routr-one takes its profiles. |
+| `LOCATION_CACHE_PROVIDER` | `memory` | Where the Location Service keeps registrations: `memory` or `redis`. See [Scale with Redis](/guides/scale-with-redis). |
+| `LOCATION_CACHE_PARAMETERS` | `host=localhost,port=6379` | Redis connection as `key=value` pairs. Used only with `redis`. |
+| `RECORD_MESSAGES` | `false` | Set to `true` to record SIP messages. See [Record and replay calls](/guides/record-and-replay-calls). |
+| `RECORD_MESSAGES_MODE` | `flagged` | `flagged` records only calls a processor flags; `all` records every call. |
+| `RECORD_MESSAGES_PATH` | `/var/routr/traces` | Directory for the recordings, one `.jsonl` file per call. Must be writable. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | none | Sends traces, metrics, and logs over OTLP/HTTP. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry). |
+| `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | `TLSv1.3` | Comma-separated TLS versions for SIP over TLS and WSS. |
+| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | TLS 1.3 and ECDHE-GCM/ChaCha20 suites | Comma-separated cipher suites for SIP over TLS and WSS. |
+| `CLOAK_ENCRYPTION_KEY` | none | Encrypts Credentials passwords in the database. See [Secure the server](/guides/secure-the-server#encrypt-credentials-at-rest). |
 | `PKCS12_PASSWORD` | `changeme` | Password for the SIP signaling keystore. Change it in production. |
 | `HEPLIFY_OPTIONS` | none | When set, sends SIP traffic to a Homer server through heplify. |
 
@@ -146,7 +156,7 @@ The container applies pending database migrations every time it starts, so upgra
     Copy the volume or dump the database before a major upgrade. Read the [changelog](/changelog) for breaking changes.
   </Step>
   <Step title="Change the image tag">
-    Set the new version in `compose.yaml`, for example `fonoster/routr-one:2.15.4`.
+    Set the new version in `compose.yaml`, for example `fonoster/routr-one:2.25.0`.
   </Step>
   <Step title="Recreate the container">
     Pull the new image and recreate the service. The `shared` volume is reused.
