@@ -47,7 +47,7 @@
     "format": "prettier --write mods/**/src",
     "prepare": "husky install",
     "release": "lerna publish --yes --no-git-reset --force-publish --dist-tag latest $(./.scripts/next-release.sh) --message \"chore(release): publish %s [skip ci]\"",
-    "version": ".scripts/bump-chart.sh $(node -p \"require('./lerna.json').version\") && git add ops/charts/connect/Chart.yaml",
+    "version": ".scripts/bump-chart.sh $(node -p \"require('./lerna.json').version\") && node .scripts/changelog-entry.js $(node -p \"require('./lerna.json').version\") && git add ops/charts/connect/Chart.yaml docs-site/changelog.mdx",
     "publish:prerelease": "lerna publish prerelease --no-private --dist-tag next",
     "publish:frompackages": "lerna publish from-package",
     "typecheck": "tsc --noEmit",
