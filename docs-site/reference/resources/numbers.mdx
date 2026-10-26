@@ -11,7 +11,7 @@ A Number is a phone number on a Trunk. It tells Routr where to send calls that a
 | YAML field | API / SDK field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- | --- |
 | `metadata.name` | `name` | `string` | Yes | - | Friendly name, such as `"(785) 317-8070"`. Up to 60 characters. |
-| `metadata.geoInfo.city` | `city` | `string` | Yes | - | City of the Number. Can't be changed after create. |
+| `metadata.geoInfo.city` | `city` | `string` | Yes | - | City of the Number. Can't be changed after create. The pgdata column defaults to `Unknown`, but the API rejects a create without `city`. |
 | `metadata.geoInfo.country` | `country` | `string` | Yes | - | Country of the Number. Can't be changed after create. |
 | `metadata.geoInfo.countryIsoCode` | `countryIsoCode` | `string` | Yes | - | Two-letter ISO country code, such as `US`. Can't be changed after create. |
 | `spec.trunkRef` | `trunkRef` | `string` | No | - | `ref` of the [Trunk](/reference/resources/trunks) that carries the Number. |
@@ -19,8 +19,8 @@ A Number is a phone number on a Trunk. It tells Routr where to send calls that a
 | `spec.location.aorLink` | `aorLink` | `string` | No | - | Address of Record that receives calls to this Number: an Agent (`sip:1001@sip.local`) or a Peer's `aor`. |
 | `spec.location.sessionAffinityHeader` | `sessionAffinityHeader` | `string` | No | - | Name of a header on incoming calls whose value keeps related calls on the same Peer instance. |
 | `spec.location.extraHeaders` | `extraHeaders` | `array` | No | - | Headers Routr adds to calls it routes to `aorLink`. |
-| `spec.location.extraHeaders[].name` | `extraHeaders[].name` | `string` | Yes | - | Header name. |
-| `spec.location.extraHeaders[].value` | `extraHeaders[].value` | `string` | Yes | - | Header value. |
+| `spec.location.extraHeaders[].name` | `extraHeaders[].name` | `string` | No | - | Header name. |
+| `spec.location.extraHeaders[].value` | `extraHeaders[].value` | `string` | No | - | Header value. pgdata rejects an empty value. |
 | - | `extended` | `object` | No | - | Custom attributes. API only. See `accessKeyId` below. |
 
 The API response also includes `trunk`, the object that `trunkRef` points to.
@@ -29,8 +29,8 @@ The API response also includes `trunk`, the object that `trunkRef` points to.
 
 - `name` is required and must be 1 to 60 characters.
 - `telUrl` must start with `tel:`. In pgdata it must be unique and up to 60 characters.
-- `aorLink` must start with `sip:` or `backend:`.
-- `sessionAffinityHeader` and each `extraHeaders[].name` may contain only letters, digits, and dashes, and can't end with a dash. Each `extraHeaders[].value` must be non-empty.
+- `aorLink` must start with `sip:` or `backend:`. In YAML it must be 5 to 255 characters; in pgdata it can be up to 323.
+- `sessionAffinityHeader` and each `extraHeaders[].name` may contain only letters, digits, and dashes, and can't end with a dash. In pgdata, each `extraHeaders[].value` must be non-empty. The YAML schema requires neither `name` nor `value`.
 - In YAML, `metadata.geoInfo` must be present. The loader reads it for every Number.
 - When `extended.accessKeyId` is set, a Peer can use this Number for `peer-to-pstn` calls only if its request carries the same value in `X-Access-Key-Id`.
 
