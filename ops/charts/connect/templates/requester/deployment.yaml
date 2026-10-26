@@ -41,10 +41,6 @@ spec:
           env:
             - name: LOGS_LEVEL
               value: {{ .Values.global.logsLevel }}
-            {{- with .Values.global.otlpEndpoint }}
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: {{ . | quote }}
-            {{- end }}
             - name: ENABLE_HEALTHCHECKS
               value: "true"
           ports:

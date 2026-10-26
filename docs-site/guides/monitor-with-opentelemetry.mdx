@@ -119,7 +119,7 @@ Default service names are `routr-edgeport` for the EdgePort and `dispatcher`, `c
     The repository's `compose.dev.yaml` is a complete example: every service sends to `otel-lgtm`.
   </Tab>
   <Tab title="Kubernetes (Helm)">
-    Set `global.otlpEndpoint`. The chart passes it as `OTEL_EXPORTER_OTLP_ENDPOINT` to every service.
+    Set `global.otlpEndpoint`. The chart passes it as `OTEL_EXPORTER_OTLP_ENDPOINT` to every service except the Requester, which has no telemetry.
 
     ```yaml values.yaml
     global:
@@ -129,8 +129,6 @@ Default service names are `routr-edgeport` for the EdgePort and `dispatcher`, `c
     ```bash
     helm upgrade sipnet routr/routr-connect --namespace sipnet -f values.yaml
     ```
-
-    The chart's EdgePort logging configuration has no OpenTelemetry appender, so on Kubernetes the EdgePort sends traces and metrics but not its logs. Collect those from the pod output.
   </Tab>
 </Tabs>
 

@@ -9,7 +9,12 @@ metadata:
 data:
   log4j2.yaml: |-
     Configuration:
+      # The OpenTelemetry appender sends records over OTLP once Telemetry.init installs the SDK;
+      # without an endpoint it does nothing.
+      packages: io.opentelemetry.instrumentation.log4j.appender.v2_17
       Appenders:
+        OpenTelemetry:
+          name: OpenTelemetry
         Console:
           PatternLayout:
             pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%-4level{lowerCase=true}]: (${sys:serviceName}) %c{1}.java %msg%n"
@@ -33,6 +38,7 @@ data:
             AppenderRef:
               - ref: Console
               - ref: LogToRollingFile
+              - ref: OpenTelemetry
         Root:
           level: error
           AppenderRef:
