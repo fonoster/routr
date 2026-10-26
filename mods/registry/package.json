@@ -1,6 +1,6 @@
 {
   "name": "@routr/registry",
-  "version": "2.25.4",
+  "version": "2.25.5",
   "description": "Sends trunks registrations and maintains their bindings",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -27,8 +27,8 @@
   },
   "dependencies": {
     "@grpc/grpc-js": "~1.14.6",
-    "@routr/common": "^2.25.4",
-    "@routr/processor": "^2.25.4",
+    "@routr/common": "^2.25.5",
+    "@routr/processor": "^2.25.5",
     "ajv": "^6.12.6",
     "express": "^4.22.1",
     "fp-ts": "^2.11.8",

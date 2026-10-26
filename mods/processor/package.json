@@ -1,6 +1,6 @@
 {
   "name": "@routr/processor",
-  "version": "2.25.4",
+  "version": "2.25.5",
   "description": "Processor server and API",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -15,7 +15,7 @@
     "@fonoster/logger": "0.6.0",
     "@grpc/grpc-js": "~1.14.6",
     "@grpc/proto-loader": "~0.7.10",
-    "@routr/common": "^2.25.4",
+    "@routr/common": "^2.25.5",
     "fp-ts": "^2.11.8",
     "phone": "^3.1.68"
   },
