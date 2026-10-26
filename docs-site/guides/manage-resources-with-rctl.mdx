@@ -8,7 +8,7 @@ Use `rctl`, Routr's command-line tool, to manage Connect resources: Agents, Doma
 
 ## Prerequisites
 
-- Node.js and npm.
+- Node.js 22 or later.
 - A running Routr server with a database-backed API Server, such as routr-one or the Helm chart. The file-based simpledata API Server is configured through YAML files instead.
 - Network access to the API Server's port `51908`. On Kubernetes, use `kubectl port-forward`. See [Deploy on Kubernetes](/guides/deploy-on-kubernetes).
 
@@ -83,24 +83,25 @@ Commands follow a `rctl <resource> <verb>` pattern. The resources are `acl`, `ag
     ? Select a Domain sip.local
     ? Username 1001
     ? Credentials Name John Doe Credentials
+    ? Max Contacts
     ? Privacy None
     ? Enabled? Yes
     ? Ready? Yes
-    Creating Agent John Doe... 8dae9a7d-99b8-4279-88e1-4cf6ed67190a
+    Creating Agent John Doe... d31f5fb8-e367-42f7-9884-1a7999f53fe8
     ```
 
-    The value at the end is the new resource's `ref`. Other commands use it.
+    The value at the end is the new resource's `ref`. Other commands use it. Leave **Max Contacts** empty for no limit on registrations.
   </Step>
   <Step title="List resources">
-    `get` prints a paginated table. Use `--size` to change the page size (default `50`) and `--extended` for more columns. Pass a `ref` to show one item.
+    `get` prints a paginated table. Use `--size` to change the page size (default `50`) and `-x`, `--extended` for more columns, such as `Ref`. Pass a `ref` to show one item.
 
     ```bash
     rctl agents get --insecure
     ```
 
     ```text
-    Ref                                  Name     Username Domain    Max Contacts   Privacy Enabled
-    d31f5fb8-e367-42f7-9884-1a7999f53fe8 John Doe jdoe     sip.local 1              PRIVATE Yes
+    Name     Username Domain    Max Contacts Privacy Enabled
+    John Doe 1001     sip.local              None    Yes
     ```
   </Step>
   <Step title="Show the details of a resource">
@@ -139,7 +140,11 @@ Commands follow a `rctl <resource> <verb>` pattern. The resources are `acl`, `ag
 
 ## Extend rctl
 
-`rctl` supports oclif plugins through `rctl plugins:install`. To add your own commands, see [Extend rctl](/guides/extend-rctl). For shell completion, run `rctl autocomplete`.
+`rctl` supports oclif plugins through `rctl plugins install`. To add your own commands, see [Extend rctl](/guides/extend-rctl). For shell completion, run `rctl autocomplete`.
+
+## Inspect recorded calls
+
+`rctl trace` replays, lints, and compares the per-call recordings the Message Dispatcher writes. See [Record and replay calls](/guides/record-and-replay-calls).
 
 ## Related
 

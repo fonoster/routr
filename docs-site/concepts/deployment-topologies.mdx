@@ -3,17 +3,17 @@ title: "Deployment topologies"
 description: "Compare running Routr as one container with routr-one and as separate services with the routr-connect Helm chart, and learn how each component scales."
 ---
 
-You can run Routr in two shapes. The `fonoster/routr-one` image packs every service into one container for a single host. The `routr-connect` Helm chart runs each service as its own workload on Kubernetes, so you can scale them independently. Both run the same services in Connect mode.
+You can run Routr in two shapes. The `fonoster/routr-one` image packs every service into one container for a single host. The `routr-connect` Helm chart runs each service as its own workload on Kubernetes, so you can scale them independently. Both run in Connect mode, but routr-one leaves out the Registry and the Requester.
 
 <img
   className="block dark:hidden rounded-xl"
   src="/images/deployment/topologies-light.png"
-  alt="Two deployment topologies: routr-one runs every Routr service and PostgreSQL in one Docker container on a single host; routr-connect on Kubernetes runs EdgePorts as a StatefulSet and the Dispatcher, Connect, Location, API Server, Registry, and Requester as separate deployments with Redis and PostgreSQL"
+  alt="Two deployment topologies: routr-one runs EdgePort, the Dispatcher, Connect, Location, the API Server, and PostgreSQL in one Docker container, without the Registry or Requester, on a single host; routr-connect on Kubernetes runs EdgePorts as a StatefulSet and the Dispatcher, Connect, Location, API Server, Registry, and Requester as separate deployments with Redis and PostgreSQL"
 />
 <img
   className="hidden dark:block rounded-xl"
   src="/images/deployment/topologies-dark.png"
-  alt="Two deployment topologies: routr-one runs every Routr service and PostgreSQL in one Docker container on a single host; routr-connect on Kubernetes runs EdgePorts as a StatefulSet and the Dispatcher, Connect, Location, API Server, Registry, and Requester as separate deployments with Redis and PostgreSQL"
+  alt="Two deployment topologies: routr-one runs EdgePort, the Dispatcher, Connect, Location, the API Server, and PostgreSQL in one Docker container, without the Registry or Requester, on a single host; routr-connect on Kubernetes runs EdgePorts as a StatefulSet and the Dispatcher, Connect, Location, API Server, Registry, and Requester as separate deployments with Redis and PostgreSQL"
 />
 
 ## routr-one on Docker
@@ -24,7 +24,8 @@ Use it for development, demos, and small single-host deployments such as a home 
 
 Its limits follow from running in one process tree:
 
-- Registrations live in memory, in the built-in Location Service. A restart clears them, and phones must re-register.
+- It doesn't run the Registry or the Requester, so Trunks with `sendRegister` never register with the carrier. If your carrier requires registration, use the Helm chart.
+- Registrations live in memory by default, so a restart clears them and phones must re-register. To keep them in Redis, set `LOCATION_CACHE_PROVIDER=redis` and point `LOCATION_CACHE_PARAMETERS` at your server (default `host=localhost,port=6379`).
 - Nothing scales independently. To handle more traffic, you need a bigger host, not more replicas.
 - One container is one EdgePort, so a restart drops the calls in progress.
 

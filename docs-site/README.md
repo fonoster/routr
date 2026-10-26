@@ -147,7 +147,7 @@ Made unsupervised during the migration (2026-10-21). Change any of them freely.
 **Tooling**
 
 19. Root `package.json` gets `start:docs-site` and `check:docs-site` (mint 4.2.1045, port 3333).
-    `start:docs` (Docusaurus) stays until the cutover.
+    The Docusaurus `start:docs` script and the `docs/` tree are gone; see REDIRECTS.md.
 20. `.mintignore` keeps README.md, REDIRECTS.md and the build docs out of the site.
 21. Commits used `--no-verify`: the repo's husky hooks run the full test suite and need an installed
     workspace, which this docs-only branch did not have.

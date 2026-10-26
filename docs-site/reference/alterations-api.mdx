@@ -4,7 +4,7 @@ sidebarTitle: "Alterations API"
 description: "Every alteration and header helper exported by @routr/processor, for developers who build Processors that rewrite SIP requests before EdgePort sends them."
 ---
 
-Alterations are small functions that take a `MessageRequest` and return a changed copy. A Processor chains them to prepare a request for its next hop: add Via and Record-Route headers, point the Request-URI at the target, add or remove headers. Each alteration deep-copies the request, so the input is never mutated.
+Alterations are small functions that take a `MessageRequest` and return a changed copy. A Processor chains them to prepare a request for its next hop: add Via and Record-Route headers, point the Request-URI at the target, add or remove headers. No alteration mutates its input. An alteration that changes the request deep-copies it first; one with nothing to change returns the original object, so compare by value, not by reference. These return the original when they have nothing to do: `addRouteToNextHop` (the Request-URI host is already the route host), `removeHeaders` (an empty list), `normalizeToE164` (`false`), `rewriteFromWithNumber` (no `rewriteFrom`, or an anonymous From), and `swapIdentityFromRouteSet` (no identity parameters on this EdgePort's Route entry).
 
 Some alterations take the request directly. Others are curried: you call them with a `Route` (or other arguments) first, and they return a function of the request.
 
@@ -41,7 +41,7 @@ export const tailor = (route: Route, request: MessageRequest): MessageRequest =>
 }
 ```
 
-`applyTrunkIdentity` runs `normalizeToE164(!!route.normalizeToE164, false)` and `rewriteFromWithNumber(route)`, then `identityRewriteParameters` on the result.
+`applyTrunkIdentity` runs `normalizeToE164(!!route.normalizeToE164)` and `rewriteFromWithNumber(route)`, then `identityRewriteParameters` on the result.
 
 The `Route` argument is usually the result of a Location Service lookup. Its relevant fields are `user`, `host`, `port`, `transport`, `advertisedHost`, `advertisedPort`, `edgePortRef`, `listeningPoints`, `localnets`, `externalAddrs`, `registeredOn`, and `headers`. A route to a Trunk also carries `normalizeToE164` and `rewriteFrom` (`{ user, host }`), from the Trunk's [caller identity settings](/reference/resources/trunks#caller-identity).
 
@@ -70,6 +70,7 @@ The `Route` argument is usually the result of a Location Service lookup. Its rel
 | [`rewriteFromWithNumber`](#rewritefromwithnumber) | `(route) => (request) => request` | From |
 | [`identityRewriteParameters`](#identityrewriteparameters) | `(original, altered) => Record<string, string>` | None (returns parameters) |
 | [`swapIdentityFromRouteSet`](#swapidentityfromrouteset) | `(request) => request` | From, To |
+| [`isAnonymous`](#isanonymous) | `(uri: SipURI) => boolean` | None (a predicate) |
 
 ## Request-URI
 
@@ -340,6 +341,18 @@ swapIdentityFromRouteSet(request: MessageRequest): MessageRequest
 ```
 
 For an in-dialog request whose Route entry for this EdgePort carries the parameters above, swaps From and To so each side sees the identities it knows: a request from the caller gets the From and To the Trunk saw, and a request from the Trunk gets the caller's own identity back. It reads only Route entries that point at this EdgePort, so with two EdgePorts on the path only the one that rewrote the INVITE swaps. Run it before `removeSelfRoutes`.
+
+### isAnonymous
+
+```typescript
+isAnonymous(uri: CommonTypes.SipURI): boolean
+```
+
+Returns `true` when the URI is the anonymous identity of RFC 3323: user `anonymous` or host `anonymous.invalid`, case-insensitively. `rewriteFromWithNumber` uses it to leave a private caller's From alone.
+
+```typescript
+const hidden = A.isAnonymous(request.message.from.address.uri)
+```
 
 ## Header helpers (Extensions)
 

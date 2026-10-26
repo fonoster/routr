@@ -150,6 +150,10 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
       metadata:
         name: My Provider
       spec:
+        # Users in From, To and Request-URI become +E.164, in both directions
+        normalizeToE164: true
+        # Outbound calls present the Number as the caller, not the extension
+        rewriteFromWithNumber: true
         inbound:
           uri: trunk01.example.com
         outbound:
@@ -165,6 +169,8 @@ With one processor and no middleware, the EdgePort talks to the Connect processo
               weight: 10
               enabled: true
     ```
+
+    With these two fields, outbound calls carry your Number in E.164 as the caller, and incoming calls find the Number even when the provider leaves out the `+`. See [Caller identity](/reference/resources/trunks#caller-identity).
 
     Create `config/resources/numbers.yaml`. Calls to `telUrl` ring the extension in `aorLink`.
 
@@ -274,7 +280,7 @@ On the advanced tab, set the registry server and the proxy to the server's IP ad
 <img
   className="rounded-xl"
   src="/images/home-or-office-setup/telephone_config_advanced.png"
-  alt="Telephone advanced settings with SIP address 1001@sip.local, registry server 192.168.1.2, and proxy 192.168.1.2 on port 5060"
+  alt="Telephone advanced settings with SIP address 1001@sip.local, registry server 192.168.1.3, and proxy 192.168.1.3 on port 5060"
 />
 
 ## Verify
@@ -295,7 +301,7 @@ docker compose restart apiserver
 
 - **Phones fail to register with `403 Forbidden`.** The username in the softphone doesn't match an Agent in the Domain, or the Domain in the softphone isn't `sip.local`.
 - **Calls connect without audio.** `externalAddrs` in `edgeport.yaml` doesn't match the server's IP address.
-- **Incoming PSTN calls are rejected with `403`.** The host in the provider's Request-URI must equal the trunk's `inbound.uri`, and the user part must match the Number's `telUrl` exactly, including the `+`.
+- **Incoming PSTN calls are rejected with `403`.** The host in the provider's Request-URI must equal the trunk's `inbound.uri`, and the user part must match the Number's `telUrl` exactly, including the `+`. If the provider leaves out the `+`, keep `normalizeToE164: true` on the trunk so the user part is normalized before the lookup.
 - **Outbound calls fail.** Check the trunk's outbound host, port, and credentials. Some providers also require `sendRegister: true`.
 
 ## Next steps

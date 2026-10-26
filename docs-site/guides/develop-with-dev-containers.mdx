@@ -30,7 +30,7 @@ The configuration lives in `.devcontainer/`. It's a Docker Compose setup in whic
 | `dev` | Your workspace: the `typescript-node` 22 image plus JDK 17 | With the container |
 | `postgres` | PostgreSQL 17.7, database `routr`, user and password `postgres` | On demand |
 | `redis` | Redis 7.4.7 | On demand |
-| `rtpengine` | RTPEngine, control port `22222/udp`, media ports `10000-10020/udp` | On demand |
+| `rtpengine` | RTPEngine (amd64 image), control port `22222/udp`, media ports `10000-10020/udp` | On demand |
 
 The on-demand services join the container's own Compose project and network, so you reach them by service name (`postgres`, `redis`, `rtpengine`). JDK 17 matches CI on purpose: the Java tests fail on JDK 21.
 
@@ -127,77 +127,31 @@ npm start
 
 ### Run the all-in-one distribution
 
-Start the all-in-one distribution against PostgreSQL:
+`npm run start:one` starts the services it needs, applies the migrations, and starts Routr. How it decides which services to start, and how to start or stop them yourself with `npm run start:deps` and `npm run stop:deps`, is the same as outside the container; see [Start the dependencies](/guides/run-from-source#start-the-dependencies). Inside the container, three things differ:
 
-```bash
-npm run start:one
-```
-
-The command starts only the services this run needs, waits until they're healthy, applies the migrations with `npm run db:migrate`, and then starts Routr:
-
-- **PostgreSQL**: always.
-- **Redis**: when `LOCATION_CACHE_PROVIDER` is `redis`, which the container sets by default.
-- **RTPEngine**: when `RTPENGINE_HOST` is set.
+- **The services are reached by name.** They join the container's Compose project instead of `routr-deps`, and publish no ports. `DATABASE_URL` and `LOCATION_CACHE_PARAMETERS` already point at `postgres` and `redis`.
+- **Redis starts by default.** The container sets `LOCATION_CACHE_PROVIDER=redis`. To keep registrations in memory and skip Redis for one run, use `LOCATION_CACHE_PROVIDER=memory npm run start:one`.
+- **RTPEngine is `rtpengine`, not `localhost`.** Start it and add RTPRelay with `RTPENGINE_HOST=rtpengine npm run start:one`. It advertises `127.0.0.1` as its media address (`RTPENGINE_PUBLIC_IP` in `.devcontainer/compose.yaml`) unless you set `DOCKER_HOST_ADDRESS` before the service starts, and its media ports `10000-10020/udp` aren't forwarded to your host.
 
 <Check>
   The log shows `routr v2 // all in one distribution`.
 </Check>
 
-To keep registrations in memory instead, and skip Redis, override the provider for one run:
-
-```bash
-LOCATION_CACHE_PROVIDER=memory npm run start:one
-```
-
-### Add RTPEngine
-
-Set `RTPENGINE_HOST` to the service name. The command starts RTPEngine and adds RTPRelay as a Dispatcher middleware:
-
-```bash
-RTPENGINE_HOST=rtpengine npm run start:one
-```
-
-RTPEngine advertises `127.0.0.1` as its media address by default. Set `DOCKER_HOST_ADDRESS` to an IP your SIP clients can reach before the service starts. The media ports `10000-10020/udp` aren't forwarded to your host from inside the container.
-
-## Start and stop the services by hand
-
-Start services yourself when a command doesn't do it for you, for example before `npm run start:pgdata`. With no arguments, the command starts PostgreSQL and Redis:
-
-```bash
-npm run start:deps
-```
-
-Name the services to start only some of them:
-
-```bash
-npm run start:deps -- postgres rtpengine
-```
-
 `npm run start:pgdata` doesn't migrate the database, so run `npm run db:migrate` once after PostgreSQL is up.
-
-The services keep running until you stop them. Stop all three with:
-
-```bash
-npm run stop:deps
-```
 
 ## Run the tests
 
-Run the same checks as CI from the container's terminal:
+Run the unit tests, the Java tests, the type check, and the linter from the container's terminal, with the commands in [Run the tests](/guides/run-from-source#run-the-tests).
+
+The SIP Connect compliance scenarios (SEET) build Routr images and run them with Docker Compose, so run them from your host, not from the container. Create the shared certificates first, then run the suite:
 
 ```bash
-npm test
-npm run test:java
-npm run typecheck
-npx eslint mods --ext .ts
-```
-
-The SIP Connect compliance scenarios (SEET) build Routr images and run them with Docker Compose, so run them from your host, not from the container. CI runs them on every pull request:
-
-```bash
+sh .scripts/dev-certs.sh
 docker compose -f compose.yaml -f compose.dev.yaml up \
   --build --abort-on-container-exit --exit-code-from compliance compliance
 ```
+
+The services in that stack send traces, metrics, and logs to `otel-lgtm`, with Grafana on `http://localhost:3000` (user and password `admin`). See [Run the tests](/guides/run-from-source#run-the-tests) and [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry).
 
 ## Connect from your machine
 

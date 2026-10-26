@@ -1,5 +1,10 @@
 # Redirect plan: routr.io/docs to docs.routr.io
 
+> **Done (2026-10).** docs.routr.io is live and the Docusaurus source (`docs/`) is deleted. The
+> frozen 2.0.0 and 1.x.x pages, their `assets/` and `img/` files stay on the `gh-pages`
+> branch as built; `.github/workflows/gh-pages.yaml` no longer builds them and deploys with
+> `keep_files`, writing only the website and the redirect stubs. The plan below is kept for history.
+
 The 2.x docs move from Docusaurus (served by GitHub Pages at `routr.io/docs/...`) to Mintlify at
 `docs.routr.io`. Versions 1.x.x and 2.0.0 stay frozen on the old site. This file is the homework to
 do when docs.routr.io goes live.
@@ -66,7 +71,7 @@ use). New paths are relative to `https://docs.routr.io`.
 | `connect/sending-call-events-to-nats` | `/tutorials/call-events-with-nats` | |
 | `tutorials/load-balancing-asterisk-with-routr` | `/tutorials/load-balancing-asterisk` | |
 | `tutorials/intercom-system-with-routr-and-kubernetes` | `/tutorials/intercom-on-kubernetes` | |
-| `tutorials/deploying-to-civo-with-helm` | `/tutorials/deploy-to-civo-with-helm` | |
+| `tutorials/deploying-to-civo-with-helm` | `/guides/deploy-on-kubernetes` | The Civo tutorial was removed; the cloud load balancer steps live in the Kubernetes guide |
 | `tutorials/ephemeral-agents-in-the-browser` | `/tutorials/ephemeral-agents-in-the-browser` | |
 | `community` | `/community` | |
 | `contributing` | `/contributing` | |

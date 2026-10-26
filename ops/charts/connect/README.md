@@ -62,13 +62,13 @@ The pods keep serving traffic until the upgraded StatefulSet replaces them.
 
 To uninstall/delete the `my-release` deployment:
 
-`helm delete my-release`
+`helm delete my-release --namespace routr`
 
 The command removes all the Kubernetes components but PVC's associated with the chart and deletes the release.
 
 To delete the PVC's associated with my-release:
 
-`kubectl delete pvc -l release=my-release`
+`kubectl delete pvc -l app.kubernetes.io/instance=my-release --namespace routr`
 
 > Note: Deleting the PVC's will delete postgresql data as well. Please be cautious before doing it.
 

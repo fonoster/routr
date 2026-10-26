@@ -89,6 +89,21 @@ docker run -it \
   fonoster/routr-location
 ```
 
+## Quick test with gRPCurl
+
+You can call the Location Service directly with [gRPCurl](https://github.com/fullstorydev/grpcurl). The services don't expose gRPC reflection, so pass the protos with `-import-path` and `-proto`. The paths below are relative to a clone of the [repository](https://github.com/fonoster/routr).
+
+This command returns the routes registered for an AOR.
+
+```bash
+grpcurl -plaintext \
+  -import-path mods/common/src/protos \
+  -proto location.proto \
+  -d '{"aor": "sip:1001@sip.local"}' \
+  localhost:51902 \
+  fonoster.routr.location.v2beta1.Location/FindRoutes
+```
+
 ## Notes
 
 - The `memory` provider works only with a single Location Service instance. Use `redis` to run several instances or to use `least-sessions`.

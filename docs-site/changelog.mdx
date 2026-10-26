@@ -1,14 +1,113 @@
 ---
 title: "Changelog"
-description: "For operators and developers tracking Routr releases: the latest versions with a one-line summary each, and where to find the full release notes."
+description: "For operators and developers tracking Routr releases: what changed in each version from v2.13.0 on, what to do when upgrading, and highlights of the older v2 lines."
 ---
 
-Routr publishes its releases on [GitHub](https://github.com/fonoster/routr/releases). Each release lists every change, grouped by type, with links to the commits. The entries below summarize the most recent releases; see GitHub for the full history.
+Every Routr release is tagged in the [repository](https://github.com/fonoster/routr/tags), and most have notes on [GitHub Releases](https://github.com/fonoster/routr/releases). The entries below cover each version from v2.13.0 on that changed Routr's behavior or configuration; each links to its release notes or, when a tag has no GitHub release, to its commits. Breaking changes come first in an entry.
+
+<Update label="v2.25.1" description="2026-10-26">
+  - Behind a proxy or load balancer that terminates TLS, EdgePort now sends requests toward a WSS or TLS client on the connection the client already opened. Before, a BYE to a browser was dropped (the call stayed up) and requests to a TLS phone failed with 503.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.25.1)
+</Update>
+
+<Update label="v2.25.0" description="2026-10-26">
+  - **Breaking:** the Helm value `global.otlExporter` (a Jaeger URL) is no longer read, and `OTEL_EXPORTER_JAEGER_ENDPOINT` is gone. Set `global.otlpEndpoint` to an OTLP/HTTP collector instead.
+  - EdgePort and every Node service now send traces, metrics, and logs over OTLP when `OTEL_EXPORTER_OTLP_ENDPOINT` is set. EdgePort opens one span per SIP transaction and counts requests, responses, timeouts, transport errors, and dropped sends.
+  - EdgePort carries the W3C `traceparent` on SIP requests, but only to and from `localnets` peers; it is removed from requests to carriers and phones.
+  - A bad `OTEL_*` value logs a warning and runs EdgePort without telemetry instead of stopping it.
+
+  See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry). [Release notes](https://github.com/fonoster/routr/releases/tag/v2.25.0)
+</Update>
+
+<Update label="v2.24.0" description="2026-10-25">
+  - **Breaking:** the Trunk setting `enforceE164` from v2.23.0 is renamed `normalizeToE164`. Update Trunks that set it; the database migration renames the column. The alteration is now `A.normalizeToE164` and takes one argument.
+  - Normalization now applies to every number that parses as valid E.164, landlines included, in From, To, and the Request-URI.
+  - The RTPEngine profiles can be overridden with an optional `rtprelay.yaml` (`CONFIG_PATH`; in the Helm chart, `rtprelay.profiles`). See [RTPRelay](/reference/components/rtprelay#configuration-file).
+  - An invalid RTPRelay configuration file now stops the relay instead of leaving it running with no service.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.24.0)
+</Update>
+
+<Update label="v2.23.0" description="2026-10-25">
+  - **Breaking:** `ENFORCE_E164` and `ENFORCE_E164_WITH_MOBILE_PREFIX` are removed from Connect and the API Server. Set E.164 normalization on each Trunk instead (renamed `normalizeToE164` in v2.24.0). The API Server no longer rejects Numbers that are not valid E.164.
+  - Trunks gain `rewriteFromWithNumber` and `fromDomain`, which present the Number as the caller in the outbound From, as carriers such as WhatsApp Business Calling require. See [Caller identity](/reference/resources/trunks#caller-identity).
+  - Responses carry the caller's original From and To again, and the `call.started` event names the real caller rather than the presented Number.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.23.0)
+</Update>
+
+<Update label="v2.21.0" description="2026-10-25">
+  A call leg toward a Trunk that uses TLS now gets SDES-SRTP (`RTP/SAVP`) from RTPRelay, which carriers that require TLS also require. The other leg keeps plain RTP, or DTLS-SRTP for browsers.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.20.0...v2.21.0)
+</Update>
+
+<Update label="v2.20.0" description="2026-10-25">
+  - Calls to a carrier over a TLS Trunk now connect; before, EdgePort overflowed its stack on the first send.
+  - The EdgePort truststore is optional. Left unset, it uses the JVM's public CAs, which is what carriers present. Remove a truststore that points at EdgePort's own certificate. See [Call a carrier over TLS](/guides/secure-the-server#call-a-carrier-over-tls).
+  - A Trunk on a transport EdgePort does not listen on gets 502 instead of 500, with a log line naming the missing transport.
+  - `JAIN_SIP_TRACE_LEVEL` turns on the SIP stack's own trace.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.19.0...v2.20.0)
+</Update>
+
+<Update label="v2.19.0" description="2026-10-24">
+  - Call recording: the Dispatcher can write each call to a `.jsonl` file with every hop, its timing, and header diffs. Set `spec.trace.enabled` on a Trunk, Agent, Peer, or Domain to record the calls that touch it, or record all calls.
+  - New `rctl trace` commands: `replay`, `validate`, `send`, `lint`, `compat`, and `sanitize`, with SIP and SIP Connect rule checks.
+  - `rctl` now requires Node.js 22.
+
+  See [Record and replay calls](/guides/record-and-replay-calls). [Release notes](https://github.com/fonoster/routr/releases/tag/v2.19.0)
+</Update>
+
+<Update label="v2.18.0" description="2026-10-24">
+  - **Breaking:** EdgePort defaults to TLS 1.3 with forward-secret AEAD cipher suites. Set `securityContext.client.protocols` and `cipherSuites`, or `SECURITY_CONTEXT_CLIENT_PROTOCOLS` and `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES`, to allow TLS 1.2 clients. See [Choose TLS versions and cipher suites](/guides/secure-the-server#choose-tls-versions-and-cipher-suites).
+  - **Breaking (Helm):** the EdgePort StatefulSet now uses a headless Service. Delete the StatefulSet with `--cascade=orphan` before upgrading an existing release. The chart also pulls Bitnami images from `bitnamilegacy` and gives the Registry a working EdgePort address.
+  - REFER and NOTIFY reach the Connect processor; a method no processor accepts gets 501 instead of no answer.
+  - Registration: `REGISTER_DEFAULT_EXPIRES` sets the expiry for a REGISTER that carries none (default `3600`); `expires 0` removes the binding with Redis; registration events read the Contact expiry.
+  - The API Server reports healthy when it runs with TLS, which stops the Helm restart loop.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.18.0)
+</Update>
+
+<Update label="v2.17.0" description="2026-10-23">
+  - Routr One can keep registrations in Redis with `LOCATION_CACHE_PROVIDER=redis` and `LOCATION_CACHE_PARAMETERS`. See [Scale with Redis](/guides/scale-with-redis).
+  - EdgePort answers every response on its request's server transaction, so a retransmitted BYE gets an answer and in-dialog transactions no longer leak.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.16.0...v2.17.0)
+</Update>
+
+<Update label="v2.16.0" description="2026-10-23">
+  - Resource updates are partial: fields left out of an update keep their stored value instead of being cleared, and Domain updates replace egress policies instead of deleting or appending them.
+  - In-dialog requests follow the route set instead of being routed as new calls. EdgePort answers 481 to an in-dialog INVITE or REFER for a dialog it did not proxy.
+  - Deregistered endpoints stop being routable (`RemoveRoutes` now deletes the binding).
+  - `rctl` moves to oclif v4, and `rctl <resource> delete <ref>` works again.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.15.4...v2.16.0)
+</Update>
+
+<Update label="v2.15.4" description="2026-10-18">
+  Security fixes in Connect:
+
+  - `X-Edgeport-Ref` is honored only from peer EdgePorts in `TRUSTED_EDGEPORT_ADDRESSES` (and `TRUSTED_EDGEPORTS`, if set). Both default to empty; multi-EdgePort deployments must set them.
+  - Trunk ACLs are checked against the real source address (Via `received`), not the Via host.
+  - Platform headers are stripped from PSTN and Connect Token requests (`UNTRUSTED_HEADERS_TO_STRIP`), and headers Routr adds replace caller-supplied copies.
+  - In `peer-to-pstn` routing, a Number with `extended.accessKeyId` requires a matching `X-Access-Key-Id`, or the request gets 403.
+
+  See [Environment variables](/reference/environment-variables#connect-processor). [Commits](https://github.com/fonoster/routr/compare/v2.15.3...v2.15.4)
+</Update>
 
 <Update label="v2.15.3" description="2026-10-17">
-  Release tooling fixes: npm publishing moves to trusted publishing, versions that were tagged but never reached npm are published, and unused TOML config support is removed.
+  Fixes EdgePort failing at start in v2.15.2 (`ReferenceError: "BigInt" is not defined`) by removing the unused TOML config support; configs are YAML or JSON. Release tooling fixes: npm publishing moves to trusted publishing, and versions that were tagged but never reached npm are published.
 
   [Release notes](https://github.com/fonoster/routr/releases/tag/v2.15.3)
+</Update>
+
+<Update label="v2.15.2" description="2026-10-17">
+  - **Breaking:** tracing moves to OpenTelemetry 2 over OTLP/HTTP and is on only when `OTEL_EXPORTER_OTLP_ENDPOINT` (or `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`) is set; the Jaeger exporter is removed. `OTEL_SERVICE_NAME` overrides the service name.
+  - Patches vulnerable dependencies, including `@grpc/grpc-js`.
+
+  EdgePort fails to start in this version; use v2.15.3. [Commits](https://github.com/fonoster/routr/compare/v2.15.1...v2.15.2)
 </Update>
 
 <Update label="v2.15.1" description="2026-09-07">
@@ -21,6 +120,18 @@ Routr publishes its releases on [GitHub](https://github.com/fonoster/routr/relea
   Adds the `STRIP_SESSION_PROGRESS_SDP` flag to strip SDP from 183 responses, corrects RTPEngine parameters for WebRTC bridging, fixes an EdgePort hang on WSS connections, and returns 400/404 instead of 500 for `peer-to-pstn` routing errors.
 
   [Release notes](https://github.com/fonoster/routr/releases/tag/v2.15.0)
+</Update>
+
+<Update label="v2.13.23" description="2026-05-13">
+  Fixes an EdgePort hang after a WebRTC peer disconnects: a recursion in the SIP stack's WSS channel killed the thread that processes SIP traffic while health checks kept passing.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.13.22...v2.13.23)
+</Update>
+
+<Update label="v2.13.22" description="2026-03-11">
+  Fixes agent-to-PSTN calls failing with the API Server (pgdata) because the Domain's egress policies were not loaded.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.13.21...v2.13.22)
 </Update>
 
 <Update label="v2.13.21" description="2025-12-24">
@@ -41,6 +152,14 @@ Routr publishes its releases on [GitHub](https://github.com/fonoster/routr/relea
   [Release notes](https://github.com/fonoster/routr/releases/tag/v2.13.15)
 </Update>
 
+<Update label="v2.13.14" description="2025-12-21">
+  - The ACK CSeq is incremented when the proxy authenticates on behalf of the caller.
+  - Responses can carry a body, and responses with a timeout work over WebSocket.
+  - Helm: the RTPRelay Service no longer selects unrelated pods.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.13.13...v2.13.14)
+</Update>
+
 <Update label="v2.13.13" description="2025-07-30">
   Uses an `ExecutorService` in EdgePort to prevent hanging on closed connections.
 
@@ -53,6 +172,78 @@ Routr publishes its releases on [GitHub](https://github.com/fonoster/routr/relea
   [Release notes](https://github.com/fonoster/routr/releases/tag/v2.13.12)
 </Update>
 
+<Update label="v2.13.10" description="2025-07-15">
+  EdgePort handles transport errors and cleans up the transactions they leave behind.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.13.9...v2.13.10)
+</Update>
+
+<Update label="v2.13.9" description="2025-02-01">
+  Fixes interoperability with Twilio on outbound calls: Connect builds its Via from the external addresses.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.13.8...v2.13.9)
+</Update>
+
+<Update label="v2.13.8" description="2025-01-29">
+  EdgePort no longer increments the CSeq of ACK requests.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.13.7...v2.13.8)
+</Update>
+
+<Update label="v2.13.6" description="2024-10-20">
+  Reverts startup script changes from v2.13.5 that caused a regression.
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.13.6)
+</Update>
+
+<Update label="v2.13.5" description="2024-10-19">
+  Adds the missing database initialization to the Routr One image ([#296](https://github.com/fonoster/routr/issues/296)).
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.13.5)
+</Update>
+
+<Update label="v2.13.3" description="2024-08-16">
+  Fixes a routing regression introduced with the `X-Call-Direction` header in v2.13.2.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.13.2...v2.13.3)
+</Update>
+
+<Update label="v2.13.2" description="2024-08-10">
+  Connect adds an `X-Call-Direction` header with the routing direction to the requests it routes.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.13.1...v2.13.2)
+</Update>
+
+<Update label="v2.13.0" description="2024-08-04">
+  **Breaking (SDK):** `SDK.ACL` is now `SDK.Acls`, its methods are `createAcl`, `getAcl`, `updateAcl`, `deleteAcl`, and `listAcls`, and resources return `createdAt` and `updatedAt` as dates instead of numbers.
+
+  [Commits](https://github.com/fonoster/routr/compare/v2.12.1...v2.13.0)
+</Update>
+
 ## Older releases
 
-Browse every release, including tags and assets, on the [GitHub releases page](https://github.com/fonoster/routr/releases). Documentation for older major versions is listed under [Previous versions](/previous-versions).
+Highlights of the earlier v2 lines. Each line's patch releases are listed on the [GitHub releases page](https://github.com/fonoster/routr/releases), and the [Routr v2.0.0 documentation](https://routr.io/docs/2.0.0/overview/introduction) covers the first v2 release. See [Previous versions](/previous-versions) for v1.x.
+
+<Update label="v2.12" description="2024-06-25">
+  The API Server encrypts sensitive fields at rest when `CLOAK_ENCRYPTION_KEY` is set. `rctl` accepts IP addresses as a Trunk's `inboundUri`.
+</Update>
+
+<Update label="v2.10 and v2.11" description="2024-03-11">
+  EdgePort and Routr One images ship with `sngrep`. Repeatable extension headers and the INFO, REFER, PRACK, and UPDATE methods are supported, `transportParam` is optional, and OK responses include the reason phrase.
+</Update>
+
+<Update label="v2.7 and v2.9" description="2024-02-12">
+  `rctl` configures `maxContacts`, and an unknown AOR gets 480. Peers no longer need the `backend:` AOR prefix, which is deprecated in favor of `sip:`. The EdgePort trustStore password can be set through an environment variable.
+</Update>
+
+<Update label="v2.4 to v2.6" description="2023-10-02">
+  Experimental agent-to-agent routing with ephemeral agents, separate UDP and TCP EdgePort Services in the Helm chart, and arm64 images for EdgePort and Requester on a custom Java runtime and Alpine 3.18.
+</Update>
+
+<Update label="v2.1 to v2.3" description="2023-06-11">
+  An external entry point for clients to reach the API Server's gRPC interface, automatic conversion of certificates to PKCS12, and the `rctl` `--cacert` flag. Loopback addresses are ignored by default, and v2.3 adds experimental Homer support.
+</Update>
+
+<Update label="v2.0" description="2022-02 to 2023-06">
+  The v2 architecture: EdgePort, Message Dispatcher, Connect processor, Location Service, API Server (pgdata), Requester, and RTPRelay, configured with YAML. It adds the Node.js SDK, `rctl`, the Helm chart, Routr One, JWT authentication for web clients, NATS call events, and arm64 support.
+</Update>

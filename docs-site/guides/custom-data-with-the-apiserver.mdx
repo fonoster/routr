@@ -16,7 +16,7 @@ Every resource the API Server manages (Agents, Domains, Peers, Trunks, Numbers, 
 ## Prerequisites
 
 - An API Server backed by **PostgreSQL** (`pgdata`). This is the backend in `fonoster/routr-one` and the Helm chart.
-- The SDK: `npm install --save @routr/sdk`.
+- Node.js 22 or later and the SDK: `npm install --save @routr/sdk`.
 
 <Warning>
   The YAML backend (`simpledata`) is read-only and does not load `extended` from resource files. Use `pgdata` to store custom data.
@@ -29,7 +29,7 @@ Every resource the API Server manages (Agents, Domains, Peers, Trunks, Numbers, 
     This script creates an Agent with an external ID in `extended`. It connects to the API Server on `localhost:51908` without TLS:
 
     ```javascript index.js
-    const SDK = require("@routr/sdk")
+    const SDK = require("@routr/sdk").default
 
     const agents = new SDK.Agents({ endpoint: "localhost:51908", insecure: true })
 
