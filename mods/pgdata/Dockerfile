@@ -60,9 +60,6 @@ WORKDIR /db
 
 RUN apk add --no-cache postgresql-client
 
-COPY mods/pgdata/package.json mods/pgdata/package-lock.json* ./
-RUN npm install --omit=dev
-
 COPY mods/pgdata/migrations migrations
 COPY mods/pgdata/schema.prisma .
 
