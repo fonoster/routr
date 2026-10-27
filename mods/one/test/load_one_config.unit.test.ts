@@ -288,9 +288,9 @@ describe("@routr/one[config/load_one_config]", () => {
     })
   })
 
-  it("loads etc/one.example.yaml once its placeholders are replaced", () => {
+  it("loads config/one.example.yaml once its placeholders are replaced", () => {
     const example = readFileSync(
-      join(__dirname, "..", "..", "..", "etc", "one.example.yaml"),
+      join(__dirname, "..", "..", "..", "config", "one.example.yaml"),
       "utf8"
     )
     const path = writeConfig(example.replace(/GENERATE-YOUR-OWN/g, "generated"))
