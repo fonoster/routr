@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Replays the known-good corpus (etc/corpus) through the Node chain started from
-# this checkout: simpledata -> location -> connect -> dispatcher, no EdgePort, no
-# Docker. Fails when any recorded message is answered differently today (drift)
-# or when a corpus file no longer passes its rule profiles.
+# Replays the known-good corpus (etc/corpus), then every partner manifest
+# (interop/*/manifest.yaml), through one Node chain started from this checkout:
+# simpledata -> location -> connect -> dispatcher, no EdgePort, no Docker. Fails
+# when any recorded message is answered differently today (drift) or on a spec
+# violation a file's manifest does not declare (an error-level finding). Every
+# manifest runs; the exit status is the first non-zero one.
 #
 # Usage: npm run compat [-- --sip-connect]
 # Needs: npm run build (the services run from dist/).
@@ -12,7 +14,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 MANIFEST="${MANIFEST:-etc/corpus/manifest.yaml}"
-RESOURCES="$ROOT/etc/corpus/$(sed -n 's/^resources: *//p' "$MANIFEST" | head -1)"
+RESOURCES="$ROOT/$(dirname "$MANIFEST")/$(sed -n 's/^resources: *//p' "$MANIFEST" | head -1)"
 export NODE_ENV=dev
 export LOGS_LEVEL="${LOGS_LEVEL:-info}"
 
@@ -56,4 +58,12 @@ wait_port 51902 location
 wait_port 51904 connect
 wait_port 51901 dispatcher
 
-node mods/ctl/bin/run trace compat "$MANIFEST" --against localhost:51901 --fail-on drift "$@"
+shopt -s nullglob
+manifests=("$MANIFEST" interop/*/manifest.yaml)
+status=0
+for m in "${manifests[@]}"; do
+  echo "== $m"
+  node mods/ctl/bin/run trace compat "$m" --against localhost:51901 --fail-on error "$@" \
+    || { rc=$?; [ "$status" -eq 0 ] && status=$rc; }
+done
+exit "$status"

@@ -20,6 +20,7 @@
     credentialsRef: credentials-02
     privacy: None
 
+# Recordings that use the WhatsApp entries below live in interop/whatsapp/.
 - apiVersion: v2beta1
   kind: Agent
   ref: agent-wa

@@ -52,6 +52,8 @@ Meet our sales team for any commercial inquiries.
 
 <a href="https://cal.com/psanders"><img src="https://cal.com/book-with-cal-dark.svg" alt="Book us with Cal.com"></a>
 
+Carriers and SIP vendors can certify interop with Routr: see [interop/README.md](interop/README.md).
+
 ## Features
 
 Routr's main features are:
