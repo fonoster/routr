@@ -215,6 +215,58 @@ describe("@routr/connect", () => {
         .null
     })
 
+    it("routes through the peer edgeport first, drops Routes to itself and keeps the rest", async () => {
+      // The agent is registered on edgeport-02 and the call arrives on
+      // edgeport-01: the route set must send it to edgeport-02 first. The
+      // EdgePort writes Routes in list order.
+      const req = createRequest({
+        fromUser: "+19195551212",
+        fromDomain: "newyork1.voip.ms",
+        toUser: "+17066041487",
+        toDomain: "newyork1.voip.ms",
+        requestUriHost: "trunk01.acme.com"
+      })
+      req.message.via[0].received = "127.0.0.1"
+      // The fixture's own Route points at this EdgePort (10.100.42.127:5060, a
+      // local address on its TCP listening point); add one that does not
+      const foreign = Helper.deepCopy(req.message.route[0])
+      foreign.address.uri.host = "203.0.113.50"
+      req.message.route = [...req.message.route, foreign]
+      const location = {
+        findRoutes: () => [
+          {
+            ...r1,
+            edgePortRef: "edgeport-02",
+            listeningPoints: [
+              { host: "0.0.0.0", port: 6060, transport: Transport.TCP }
+            ],
+            localnets: ["192.168.1.2/24"],
+            externalAddrs: [] as string[]
+          }
+        ]
+      }
+      let sent: MessageRequest
+      const response = {
+        send: (r: MessageRequest) => {
+          sent = r
+        }
+      } as unknown as Response
+
+      await handleRequest(location as unknown as ILocationService, apiClient)(
+        req,
+        response
+      )
+
+      const hops = sent.message.route.map(
+        (r) => `${r.address.uri.host}:${r.address.uri.port}`
+      )
+      expect(hops).to.deep.equal([
+        "192.168.1.2:6060",
+        "192.168.1.3:5060",
+        "203.0.113.50:5060"
+      ])
+    })
+
     it("rejects an unauthorized relay attempt with a forged X-Edgeport-Ref", async () => {
       // An outside caller claims to be a peer edgeport to send a call to the PSTN
       // without credentials. It must go through the normal access checks.

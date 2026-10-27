@@ -16,9 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MessageRequest, MessageType } from "../types"
+import { MessageRequest, MessageType, SIPMessage } from "../types"
 import { diffMessages, isEmptyDiff } from "./diff"
 import { normalizeMessage } from "./normalize"
+import { REDACTED } from "./redact"
 import { statusCodeOf } from "./status"
 import { MessageDiff, Profile, TraceOutcome, TraceRecord } from "./types"
 
@@ -42,6 +43,10 @@ export interface CorpusEntry {
   // is what it is); any other finding is a regression, a missing one a change
   findings: string[]
   note?: string
+  // A recording someone still has to review before it counts as known-good:
+  // real traffic from a new interconnect, for example. It is replayed and
+  // linted like any other file; tools label it so it is not taken as vetted.
+  draft?: boolean
 }
 
 export interface CorpusManifest {
@@ -88,12 +93,16 @@ export function parseManifest(input: unknown): CorpusManifest {
     ) {
       throw new Error(`${e.file}: findings must be a list of rule ids`)
     }
+    if (e.draft !== undefined && typeof e.draft !== "boolean") {
+      throw new Error(`${e.file}: draft must be true or false`)
+    }
     return {
       file: e.file,
       profiles,
       replay: e.replay !== false,
       findings: Array.from(new Set(findings)).sort(),
-      ...(e.note ? { note: e.note } : {})
+      ...(e.note ? { note: e.note } : {}),
+      ...(e.draft ? { draft: true } : {})
     }
   })
   return { resources: m.resources, files }
@@ -122,6 +131,60 @@ const outcomeOf = (
         status
       }
     : { outcome: TraceOutcome.FORWARDED }
+}
+
+// The media relay rewrites SDP bodies, and the compat chain never runs one (no
+// RTPEngine), so a body the relay rewrote is not comparable on replay
+const MEDIA_COMPONENT = /rtprelay/i
+
+/**
+ * Blanks, on both sides, what a recording cannot be compared on: a header the
+ * recorder redacted (its value is gone), and a body the media relay rewrote.
+ * Everything else, headers, routing and authentication included, still is.
+ *
+ * @param {TraceRecord} record - The recorded record, for its hops
+ * @param {SIPMessage} recorded - The recorded outgoing message, normalized
+ * @param {SIPMessage} replayed - The live outgoing message, normalized
+ */
+function ignoreWhatTheRecordingCannotShow(
+  record: TraceRecord,
+  recorded: SIPMessage,
+  replayed: SIPMessage
+) {
+  ;(recorded.extensions ?? []).forEach((ext) => {
+    if (ext.value !== REDACTED) return
+    ;(replayed.extensions ?? [])
+      .filter((e) => e.name.toLowerCase() === ext.name.toLowerCase())
+      .forEach((e) => (e.value = REDACTED))
+  })
+  // Only when the relay actually rewrote the body; a relay that passed the
+  // message through leaves it comparable
+  const throughMedia = (record.hops ?? []).some((h) => {
+    const headers = h.diff?.headers
+    return (
+      MEDIA_COMPONENT.test(h.component) &&
+      !!headers &&
+      ("Body" in headers.changed ||
+        "Body" in headers.added ||
+        "Body" in headers.removed)
+    )
+  })
+  if (throughMedia) {
+    recorded.body = withoutMediaDetails(recorded.body)
+    replayed.body = withoutMediaDetails(replayed.body)
+  }
+}
+
+/**
+ * Replaces the media a body describes with a placeholder media line. The diff
+ * summarizes a body by its m= and c= lines, so a body that has media still
+ * compares as present and one that lost its SDP still shows as removed.
+ *
+ * @param {string} body - The body, possibly empty
+ * @return {string} The placeholder, or the body unchanged when it has no media
+ */
+function withoutMediaDetails(body?: string): string | undefined {
+  return /^(m|c)=/m.test(body ?? "") ? "m=*" : body
 }
 
 /**
@@ -158,10 +221,10 @@ export function compareLive(
       ? { seq: record.seq, reason: "one side has no outgoing message" }
       : undefined
   }
-  const diff = diffMessages(
-    normalizeMessage(record.response.message),
-    normalizeMessage(live.message)
-  )
+  const recorded = normalizeMessage(record.response.message)
+  const replayed = normalizeMessage(live.message)
+  ignoreWhatTheRecordingCannotShow(record, recorded, replayed)
+  const diff = diffMessages(recorded, replayed)
   if (isEmptyDiff(diff)) return undefined
   const changed = [
     ...(diff.requestUri ? ["Request-URI"] : []),

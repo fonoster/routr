@@ -239,6 +239,40 @@ public class ConverterTests {
   }
 
   @Test
+  public void testRoutesKeepTheirOrderOnTheWire() throws Exception {
+    // A carrier that Record-Routes twice (Meta: wa.meta.vc, then an internal
+    // proxy) leaves a two-entry route set on in-dialog requests. It must reach
+    // the wire in order, or the request goes to the carrier's last proxy.
+    HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
+    AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();
+    MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
+    RouteConverter converter = new RouteConverter();
+
+    var first = converter.fromHeader((Route) factory.createRouteHeader(
+        addressFactory.createAddress("<sip:wa.meta.vc;lr;transport=tls>")));
+    var second = converter.fromHeader((Route) factory.createRouteHeader(
+        addressFactory.createAddress("<sip:proxy.example.net:8191;lr;transport=tls>")));
+    var message = SIPMessage.newBuilder().addRoute(first).addRoute(second).build();
+
+    var request = messageFactory.createRequest(
+        "BYE sip:+15555550142@wa.meta.vc SIP/2.0\r\n"
+        + "Call-ID: abc\r\nCSeq: 4 BYE\r\nFrom: <sip:a@b>;tag=1\r\nTo: <sip:c@d>;tag=2\r\n"
+        + "Via: SIP/2.0/TLS 203.0.113.10:5061;branch=z9hG4bK-1\r\nMax-Forwards: 70\r\n"
+        + "Content-Length: 0\r\n\r\n");
+    request.removeHeader(javax.sip.header.RouteHeader.NAME);
+    // What RequestUpdater does with the processor's headers
+    MessageConverter.createHeadersFromMessage(message).forEach(request::addHeader);
+
+    var hosts = new ArrayList<String>();
+    var routes = request.getHeaders(javax.sip.header.RouteHeader.NAME);
+    while (routes.hasNext()) {
+      var route = (javax.sip.header.RouteHeader) routes.next();
+      hosts.add(((SipURI) route.getAddress().getURI()).getHost());
+    }
+    assertEquals(List.of("wa.meta.vc", "proxy.example.net"), hosts);
+  }
+
+  @Test
   public void testRecordRouteConverter() throws InvalidArgumentException, PeerUnavailableException, ParseException {
     HeaderFactory factory = SipFactory.getInstance().createHeaderFactory();
     AddressFactory addressFactory = SipFactory.getInstance().createAddressFactory();

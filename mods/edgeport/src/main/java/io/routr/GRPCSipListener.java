@@ -312,6 +312,15 @@ public class GRPCSipListener implements SipListener {
           var req = event.getClientTransaction().getRequest();
           var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
 
+          // A challenge that arrives after the caller gave up (its CANCEL was
+          // answered with 487) must not be answered: the retry would start a
+          // new call nobody is waiting for, and ring the callee after the
+          // caller hung up. JAIN-SIP ACKs the challenge on its own.
+          if (callerGaveUp(event.getClientTransaction(), callId)) {
+            LOG.debug("not authenticating callId: {}; the caller's transaction is already over", callId);
+            return;
+          }
+
           LOG.debug("authenticating on behalf of callId: {}", callId);
 
           ClientTransaction newClientTransaction = authenticationHandler.handleAuthChallenge(event, accountManager);
@@ -629,6 +638,23 @@ public class GRPCSipListener implements SipListener {
     }
   }
 
+  // The caller gave up when it cancelled (remembered explicitly, since its server
+  // transaction disappears once it ACKs the 487), or when its transaction was
+  // already answered with a final response
+  private boolean callerGaveUp(final ClientTransaction clientTransaction, final CallIdHeader callId) {
+    if (callId != null && transactionManager.isCancelled(callId.getCallId())) {
+      return true;
+    }
+    var callerTransaction = transactionManager.getServerTransactionFor(clientTransaction);
+    if (callerTransaction == null && callId != null) {
+      callerTransaction = transactionManager.getServerTransaction(callId.getCallId());
+    }
+    if (callerTransaction == null || callerTransaction.getState() == null) {
+      return false;
+    }
+    return callerTransaction.getState().getValue() > TransactionState._PROCEEDING;
+  }
+
   private void sendRequest(final ServerTransaction serverTransaction, final Request request,
       final List<Header> headers) {
     try {
@@ -686,6 +712,10 @@ public class GRPCSipListener implements SipListener {
       if (callId == null) {
         return;
       }
+
+      // Remembered before anything else: a challenge to the INVITE can still
+      // arrive after this, and must not be answered (see callerGaveUp)
+      transactionManager.markCancelled(callId.getCallId());
 
       var originalClientTransaction = transactionManager.getClientTransaction(callId.getCallId());
       var originalServerTransaction = transactionManager.getServerTransaction(callId.getCallId());

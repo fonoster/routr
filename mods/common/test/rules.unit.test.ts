@@ -17,9 +17,10 @@
  * limitations under the License.
  */
 import chai from "chai"
+import { createHash } from "crypto"
 import { readFileSync } from "fs"
 import { join } from "path"
-import { Trace } from "../src"
+import { Identity, Trace } from "../src"
 import { SIPMessage } from "../src/types"
 
 const expect = chai.expect
@@ -449,6 +450,104 @@ describe("@routr/common/trace corpus helpers", () => {
     )
   })
 
+  it("does not compare a header the recorder redacted", () => {
+    const withHeader = (value: string) => ({
+      ...forwardedInvite.response.message,
+      extensions: [
+        ...(forwardedInvite.response.message.extensions ?? []),
+        { name: "X-Gateway-Auth", value }
+      ]
+    })
+    const record = {
+      ...forwardedInvite,
+      response: { ...forwardedInvite.response, message: withHeader("REDACTED") }
+    }
+    const live = {
+      ...forwardedInvite.request,
+      message: withHeader("dGVzdDp0ZXN0")
+    }
+    expect(Trace.compareLive(record, live)).to.equal(undefined)
+    // A value the recorder kept is still compared
+    const kept = {
+      ...forwardedInvite,
+      response: {
+        ...forwardedInvite.response,
+        message: withHeader("b2xkOm9sZA")
+      }
+    }
+    expect(Trace.compareLive(kept, live)?.reason).to.include("X-Gateway-Auth")
+  })
+
+  it("does not compare a body the media relay rewrote", () => {
+    const live = {
+      ...forwardedInvite.request,
+      message: {
+        ...forwardedInvite.response.message,
+        body: "v=0\r\nm=audio 1000 RTP/AVP 0\r\n"
+      }
+    }
+    const relayHop = {
+      component: "rtprelay-middleware",
+      kind: "middleware",
+      durationMs: 1,
+      action: "forwarded",
+      diff: {
+        headers: {
+          added: {},
+          removed: {},
+          changed: {
+            Body: { from: "m=audio 1 RTP/AVP 0", to: "m=audio 2 RTP/SAVP 0" }
+          }
+        }
+      }
+    } as unknown as Trace.TraceHop
+    const relayed = {
+      ...forwardedInvite,
+      hops: [...forwardedInvite.hops, relayHop],
+      response: {
+        ...forwardedInvite.response,
+        message: {
+          ...forwardedInvite.response.message,
+          body: "v=0\r\nm=audio 2000 RTP/SAVP 0\r\n"
+        }
+      }
+    }
+    expect(Trace.compareLive(relayed, live)).to.equal(undefined)
+    // Losing the SDP altogether is still drift, relay or not
+    const lostSdp = {
+      ...live,
+      message: { ...live.message, body: "" }
+    }
+    expect(Trace.compareLive(relayed, lostSdp)?.reason).to.include("Body")
+    // A relay that only passed the message through (the hops of the
+    // existing fixture) leaves the body comparable
+    const passedThrough = { ...relayed, hops: forwardedInvite.hops }
+    expect(Trace.compareLive(passedThrough, live)?.reason).to.include("Body")
+  })
+
+  describe("sip/ack-2xx when the EdgePort authenticated on the caller's behalf", () => {
+    // The provider leg's 2xx carries CSeq 3 after the authenticated retry,
+    // while the caller's INVITE and ACK keep CSeq 2
+    const withCSeq = (record: Trace.TraceRecord, value: string) =>
+      mutate(record, (inMsg) => setExt(inMsg, "CSeq", [value]))
+    const invite = withCSeq(forwardedInvite, "2 INVITE")
+    const ok = withCSeq(ok200, "3 INVITE")
+    const ackFromCaller = withCSeq(ack, "2 ACK")
+    const byeFromCaller = withCSeq(bye, "3 BYE")
+    const ack2xx = (call: Trace.TraceRecord[]) =>
+      Trace.Rules.evaluate(byeFromCaller, call).filter(
+        (f) => f.rule === "sip/ack-2xx"
+      )
+
+    it("accepts the caller's ACK by the CSeq of the INVITE it forwarded", () => {
+      expect(ack2xx([invite, ok, ackFromCaller])).to.have.length(0)
+    })
+
+    it("still warns when no ACK came", () => {
+      expect(ack2xx([invite, ok])).to.have.length(1)
+    })
+  })
+
   it("validates the manifest and the file naming convention", () => {
     const m = Trace.parseManifest({
       resources: "resources",
@@ -472,6 +571,19 @@ describe("@routr/common/trace corpus helpers", () => {
       Trace.Profile.SIP_CONNECT
     ])
     expect(m.files[1].replay).to.equal(false)
+    expect(m.files[1]).to.not.have.property("draft")
+    expect(
+      Trace.parseManifest({
+        resources: "r",
+        files: [{ file: "a_b_c_20261023.jsonl", draft: true }]
+      }).files[0].draft
+    ).to.equal(true)
+    expect(() =>
+      Trace.parseManifest({
+        resources: "r",
+        files: [{ file: "a_b_c_20261023.jsonl", draft: "yes" }]
+      })
+    ).to.throw("draft must be true or false")
     expect(() =>
       Trace.parseManifest({ resources: "r", files: [{ file: "Call 1.jsonl" }] })
     ).to.throw("does not follow")
@@ -512,11 +624,191 @@ describe("@routr/common/trace corpus helpers", () => {
     expect(() => Trace.sanitizeRecord(record, { credentials: [] })).to.throw(
       `no credential for digest username ${q("1001")}`
     )
+    // The lookup uses the username as rewritten, and the error names both
+    expect(() =>
+      Trace.sanitizeRecord(record, {
+        credentials: [{ username: "1001", password: "1234" }],
+        rewrites: [["1001", "1101"]]
+      })
+    ).to.throw(
+      `no credential for digest username ${q("1101")} (recorded as ${q(
+        "1001"
+      )})`
+    )
     expect(
       Trace.credentialsFromResources([
         { spec: { credentials: { username: "a", password: "b" } } },
         { spec: {} }
       ])
     ).to.deep.equal([{ username: "a", password: "b" }])
+  })
+
+  it("computes the digest over the record's method when the recorder left it empty", () => {
+    const auth = {
+      username: "1001",
+      realm: "sip.local",
+      nonce: "n1",
+      uri: "sip:sip.local",
+      response: "REDACTED",
+      cNonce: "REDACTED",
+      nonceCount: 1,
+      qop: "auth",
+      opaque: "",
+      algorithm: "MD5",
+      scheme: "Digest",
+      method: ""
+    }
+    const record = mutate(forwardedInvite, (inMsg) => {
+      inMsg.authorization = { ...auth } as never
+    })
+    const out = Trace.sanitizeRecord(record, {
+      credentials: [{ username: "1001", password: "1234" }]
+    })
+    // RFC 2617 with qop=auth: MD5(HA1:nonce:nc:cnonce:qop:HA2)
+    const md5 = (s: string) => createHash("md5").update(s).digest("hex")
+    const ha1 = md5("1001:sip.local:1234")
+    const ha2 = md5(`${record.method}:sip:sip.local`)
+    expect(out.request.message.authorization.response).to.equal(
+      md5(`${ha1}:n1:00000001:REDACTED:auth:${ha2}`)
+    )
+  })
+
+  it("computes the digest over the URI as rewritten", () => {
+    const record = mutate(forwardedInvite, (inMsg) => {
+      inMsg.authorization = {
+        username: "1001",
+        realm: "sip.local",
+        nonce: "n1",
+        uri: "sip:+15555550111@wa.meta.vc:5061",
+        response: "REDACTED",
+        cNonce: "",
+        nonceCount: 0,
+        qop: "",
+        opaque: "",
+        algorithm: "MD5",
+        scheme: "Digest",
+        method: ""
+      } as never
+    })
+    const out = Trace.sanitizeRecord(record, {
+      credentials: [{ username: "1001", password: "1234" }],
+      rewrites: [["15555550111", "15555550142"]]
+    })
+    const md5 = (s: string) => createHash("md5").update(s).digest("hex")
+    const ha1 = md5("1001:sip.local:1234")
+    const ha2 = md5(`${record.method}:sip:+15555550142@wa.meta.vc:5061`)
+    expect(out.request.message.authorization.response).to.equal(
+      md5(`${ha1}:n1:${ha2}`)
+    )
+  })
+
+  it("leaves an identity parameter alone when no rewrite applies to it", () => {
+    // Not UTF-8 once decoded: re-encoding it would turn bytes into U+FFFD
+    const opaque = Buffer.from([0xff, 0xfe, 0x00, 0x80, 0x41]).toString(
+      "base64url"
+    )
+    const record = mutate(forwardedInvite, (inMsg) => {
+      inMsg.recordRoute = [
+        {
+          address: { uri: { host: "203.0.113.10", port: 5061 } },
+          parameters: { rco: opaque }
+        }
+      ] as never
+      inMsg.extensions = [
+        ...(inMsg.extensions ?? []),
+        { name: "X-Note", value: `<sip:203.0.113.10;lr>;rco=${opaque}` }
+      ] as never
+    })
+    const out = Trace.sanitizeRecord(record, {
+      credentials: [{ username: "1001", password: "1234" }],
+      rewrites: [["15555550133", "15555550144"]]
+    })
+    const params = (
+      out.request.message.recordRoute as unknown as {
+        parameters: Record<string, string>
+      }[]
+    )[0].parameters
+    expect(params.rco).to.equal(opaque)
+    expect(JSON.stringify(out)).to.include(`rco=${opaque}`)
+  })
+
+  it("rewrites every identity parameter the processor writes", () => {
+    // Built with the shared encoder and parameter names, so a rename or a new
+    // parameter in the processor is covered here too
+    const record = mutate(forwardedInvite, (inMsg) => {
+      inMsg.recordRoute = [
+        {
+          address: { uri: { host: "203.0.113.10", port: 5061 } },
+          parameters: Object.fromEntries(
+            Identity.IDENTITY_PARAMETER_NAMES.map((name) => [
+              name,
+              Identity.encodeIdentity({
+                user: "+15555550133",
+                host: "real.example.net"
+              } as never)
+            ])
+          )
+        }
+      ] as never
+    })
+    const out = Trace.sanitizeRecord(record, {
+      credentials: [{ username: "1001", password: "1234" }],
+      rewrites: [["15555550133", "15555550144"]]
+    })
+    const params = (
+      out.request.message.recordRoute as unknown as {
+        parameters: Record<string, string>
+      }[]
+    )[0].parameters
+    Identity.IDENTITY_PARAMETER_NAMES.forEach((name) =>
+      expect(Identity.decodeIdentity(params[name])?.user).to.equal(
+        "+15555550144"
+      )
+    )
+  })
+
+  it("rewrites inside the base64url identity parameters Routr adds to Record-Route", () => {
+    const encode = (s: string) => Buffer.from(s).toString("base64url")
+    const rfn = encode("+15555550122@wa-test.example.net;user=phone")
+    const record = mutate(forwardedInvite, (inMsg) => {
+      inMsg.recordRoute = [
+        {
+          address: { uri: { host: "203.0.113.10", port: 5061 } },
+          parameters: {
+            r2: "on",
+            rfo: encode("dialer@wp.local"),
+            rfn
+          }
+        }
+      ] as never
+      // The recorder also keeps header lines as text, e.g. in a hop's diff
+      inMsg.extensions = [
+        ...(inMsg.extensions ?? []),
+        { name: "X-Note", value: `<sip:203.0.113.10:5061;lr>;r2=on;rfn=${rfn}` }
+      ] as never
+    })
+    const out = Trace.sanitizeRecord(record, {
+      credentials: [{ username: "1001", password: "1234" }],
+      rewrites: [
+        ["15555550122", "15555550199"],
+        ["wa-test.example.net", "wa.example.com"]
+      ]
+    })
+    const params = (
+      out.request.message.recordRoute as unknown as {
+        parameters: Record<string, string>
+      }[]
+    )[0].parameters
+    expect(Buffer.from(params.rfn, "base64url").toString()).to.equal(
+      "+15555550199@wa.example.com;user=phone"
+    )
+    expect(Buffer.from(params.rfo, "base64url").toString()).to.equal(
+      "dialer@wp.local"
+    )
+    expect(params.r2).to.equal("on")
+    expect(JSON.stringify(out)).to.not.include(rfn)
+    expect(JSON.stringify(out)).to.include(
+      `rfn=${encode("+15555550199@wa.example.com;user=phone")}`
+    )
   })
 })

@@ -120,7 +120,12 @@ public class MessageConverter {
 
     try {
       var vias = message.getViaList().listIterator(message.getViaList().size());
-      var routes = message.getRouteList().listIterator(message.getRouteList().size());
+      // Routes keep their order: SIPMessage.addHeader appends a Route, while it
+      // puts a Via or Record-Route on top (hence those are walked backwards).
+      // Walking Routes backwards too flipped any route set with two or more
+      // entries, such as an in-dialog BYE toward a carrier that Record-Routes
+      // twice, and sent it to the carrier's last proxy instead of its first.
+      var routes = message.getRouteList().listIterator();
       var recordRoutes = message.getRecordRouteList().listIterator(message.getRecordRouteList().size());
 
       while (vias.hasPrevious()) {
@@ -129,8 +134,8 @@ public class MessageConverter {
         headers.add(converter.fromDTO(via));
       }
 
-      while (routes.hasPrevious()) {
-        io.routr.message.Route route = routes.previous();
+      while (routes.hasNext()) {
+        io.routr.message.Route route = routes.next();
         var converter = getConverterByHeader(Route.class);
         headers.add(converter.fromDTO(route));
       }
