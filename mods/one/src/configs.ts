@@ -27,7 +27,6 @@ import {
   RTPENGINE_HOST,
   RTPENGINE_PORT
 } from "./envs"
-import { recordingFromEnv } from "./recording"
 
 export const dispatcherConfig: MessageDispatcherConfig = {
   bindAddr: "0.0.0.0:51901",
@@ -47,8 +46,7 @@ export const dispatcherConfig: MessageDispatcherConfig = {
       ]
     }
   ],
-  middlewares: [],
-  recording: recordingFromEnv()
+  middlewares: []
 }
 
 export const connectConfig: ConnectProcessorConfig = {

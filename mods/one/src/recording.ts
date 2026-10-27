@@ -21,10 +21,10 @@ import { RecordingConfig, RecordingMode } from "@routr/dispatcher"
 const DEFAULT_PATH = "/var/routr/traces"
 
 /**
- * Routr One has no configuration file, so message recording is switched on
- * with RECORD_MESSAGES, RECORD_MESSAGES_PATH and RECORD_MESSAGES_MODE.
- * Credentials are always redacted and no rules are evaluated here; a
- * dispatcher configured from a file offers both.
+ * The deprecated way to switch on message recording in Routr One, used when
+ * its configuration file doesn't set spec.recording: RECORD_MESSAGES,
+ * RECORD_MESSAGES_PATH and RECORD_MESSAGES_MODE. Credentials are always
+ * redacted and no rules are evaluated; spec.recording offers both.
  *
  * @param {NodeJS.ProcessEnv} env - Environment to read, defaults to process.env
  * @return {RecordingConfig | undefined} The recording config, or undefined when off

@@ -22,4 +22,5 @@ export {
   OneConfig,
   loadOneConfig
 } from "./load_one_config"
+export { resolveRecording } from "./resolve_recording"
 export { schema } from "./schema"
