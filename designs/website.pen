@@ -5601,6 +5601,41 @@
                   ]
                 }
               ]
+            },
+            {
+              "type": "frame",
+              "id": "T3ohSU",
+              "name": "Action",
+              "gap": 8,
+              "padding": [
+                4,
+                0,
+                0,
+                0
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "V7Dur",
+                  "name": "Label",
+                  "fill": "$text-primary",
+                  "content": "Get help",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "icon",
+                  "id": "a3vkGH",
+                  "name": "Arrow",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-right",
+                  "library": "lucide",
+                  "fill": "$text-primary"
+                }
+              ]
             }
           ]
         },
@@ -9325,6 +9360,95 @@
         },
         {
           "type": "frame",
+          "id": "TzsRq",
+          "name": "Help",
+          "width": "fill_container",
+          "fill": "#202020",
+          "layout": "vertical",
+          "gap": 40,
+          "padding": [
+            176,
+            80,
+            184,
+            80
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "klQye",
+              "name": "Eyebrow",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "q64uV",
+                  "name": "Icon",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "life-buoy",
+                  "library": "lucide",
+                  "fill": "$text-secondary"
+                },
+                {
+                  "type": "text",
+                  "id": "qGSXB",
+                  "name": "Label",
+                  "fill": "$text-secondary",
+                  "content": "SUPPORT",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 13,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.5
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "sF7CS",
+              "name": "Statement",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": 1180,
+              "content": "How we can help.",
+              "lineHeight": 1.1,
+              "fontFamily": "Poppins",
+              "fontSize": 68,
+              "fontWeight": "600",
+              "letterSpacing": -2.2
+            },
+            {
+              "type": "text",
+              "id": "UFwvI",
+              "name": "Statement",
+              "fill": "$text-muted",
+              "textGrowth": "fixed-width",
+              "width": 1180,
+              "content": "Need help with training, deployment or support? Work with the team that builds Routr.",
+              "lineHeight": 1.1,
+              "fontFamily": "Poppins",
+              "fontSize": 68,
+              "fontWeight": "600",
+              "letterSpacing": -2.2
+            },
+            {
+              "type": "text",
+              "id": "YDXPm",
+              "name": "Statement",
+              "fill": "$accent-text",
+              "textGrowth": "fixed-width",
+              "width": 1180,
+              "content": "Contact us →",
+              "lineHeight": 1.1,
+              "fontFamily": "Poppins",
+              "fontSize": 68,
+              "fontWeight": "600",
+              "letterSpacing": -2.2
+            }
+          ]
+        },
+        {
+          "type": "frame",
           "id": "TiVMZ",
           "name": "Community",
           "width": "fill_container",
@@ -10017,11 +10141,11 @@
                   "name": "View on GitHub",
                   "descendants": {
                     "s8cqE": {
-                      "enabled": true,
+                      "enabled": false,
                       "icon": "github"
                     },
                     "q2wj8": {
-                      "content": "View on GitHub"
+                      "content": "Get help"
                     }
                   }
                 }
@@ -10078,6 +10202,16 @@
                   "name": "Docs",
                   "fill": "$text-secondary",
                   "content": "Docs",
+                  "fontFamily": "Poppins",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "ieSKK",
+                  "name": "Docs",
+                  "fill": "$text-secondary",
+                  "content": "Get help",
                   "fontFamily": "Poppins",
                   "fontSize": 14,
                   "fontWeight": "normal"
@@ -11000,6 +11134,35 @@
                       "fontWeight": "normal"
                     }
                   ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "iQIyI",
+              "name": "Action",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ojBQg",
+                  "name": "Label",
+                  "fill": "$text-primary",
+                  "content": "Get help",
+                  "fontFamily": "Poppins",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "icon",
+                  "id": "wFogH",
+                  "name": "Arrow",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-right",
+                  "library": "lucide",
+                  "fill": "$text-primary"
                 }
               ]
             }
@@ -14373,6 +14536,95 @@
         },
         {
           "type": "frame",
+          "id": "FWt24",
+          "name": "Help",
+          "width": "fill_container",
+          "fill": "#202020",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            88,
+            24,
+            96,
+            24
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "Z4bja9",
+              "name": "Eyebrow",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "U2Ddm",
+                  "name": "Icon",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "life-buoy",
+                  "library": "lucide",
+                  "fill": "$text-secondary"
+                },
+                {
+                  "type": "text",
+                  "id": "hYnGB",
+                  "name": "Label",
+                  "fill": "$text-secondary",
+                  "content": "SUPPORT",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 12,
+                  "fontWeight": "500",
+                  "letterSpacing": 1.5
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "W0Fuh7",
+              "name": "Statement",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "How we can help.",
+              "lineHeight": 1.12,
+              "fontFamily": "Poppins",
+              "fontSize": 36,
+              "fontWeight": "600",
+              "letterSpacing": -1.1
+            },
+            {
+              "type": "text",
+              "id": "V9MCZ",
+              "name": "Statement",
+              "fill": "$text-muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Need help with training, deployment or support? Work with the team that builds Routr.",
+              "lineHeight": 1.12,
+              "fontFamily": "Poppins",
+              "fontSize": 36,
+              "fontWeight": "600",
+              "letterSpacing": -1.1
+            },
+            {
+              "type": "text",
+              "id": "Nsy85",
+              "name": "Statement",
+              "fill": "$accent-text",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Contact us →",
+              "lineHeight": 1.12,
+              "fontFamily": "Poppins",
+              "fontSize": 36,
+              "fontWeight": "600",
+              "letterSpacing": -1.1
+            }
+          ]
+        },
+        {
+          "type": "frame",
           "id": "zKk13",
           "name": "Community",
           "width": "fill_container",
@@ -15003,11 +15255,11 @@
                   "width": "fill_container",
                   "descendants": {
                     "s8cqE": {
-                      "enabled": true,
+                      "enabled": false,
                       "icon": "github"
                     },
                     "q2wj8": {
-                      "content": "View on GitHub"
+                      "content": "Get help"
                     }
                   }
                 }
@@ -15035,7 +15287,7 @@
               "type": "frame",
               "id": "Q17E3W",
               "name": "Links",
-              "gap": 24,
+              "gap": 15,
               "children": [
                 {
                   "type": "text",
@@ -15043,6 +15295,16 @@
                   "name": "Docs",
                   "fill": "$text-secondary",
                   "content": "Docs",
+                  "fontFamily": "Poppins",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "Ju6eN",
+                  "name": "Docs",
+                  "fill": "$text-secondary",
+                  "content": "Get help",
                   "fontFamily": "Poppins",
                   "fontSize": 14,
                   "fontWeight": "normal"
@@ -15830,6 +16092,663 @@
                   "type": "ref",
                   "ref": "G1XZe",
                   "name": "Preferences"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "nD0lU",
+      "x": 10879,
+      "y": 0,
+      "name": "Contact Popup / Desktop",
+      "theme": {
+        "mode": "dark"
+      },
+      "clip": true,
+      "width": 1440,
+      "fill": "$bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "gNzJn",
+          "name": "Notice Bar",
+          "opacity": 0.35,
+          "width": "fill_container",
+          "fill": "#0EA5E924",
+          "stroke": "#0EA5E952",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "gap": 8,
+          "padding": [
+            10,
+            80
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "wa4p0",
+              "name": "Icon",
+              "width": 14,
+              "height": 14,
+              "icon": "sparkles",
+              "library": "lucide",
+              "fill": "#38BDF8"
+            },
+            {
+              "type": "frame",
+              "id": "h1fV1M",
+              "name": "Text",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "IS8iN",
+                  "name": "Lead",
+                  "fill": "#E0F2FE",
+                  "content": "Routr v2.15 is out. ",
+                  "fontFamily": "Poppins",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "CaqiX",
+                  "name": "Body",
+                  "fill": "#7DD3FC",
+                  "content": "The Helm chart and the routr-one image are updated.  ",
+                  "fontFamily": "Poppins",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "delst",
+                  "name": "Link",
+                  "fill": "#E0F2FE",
+                  "content": "See the release notes →",
+                  "fontFamily": "Poppins",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "P5JjHv",
+          "name": "Nav",
+          "opacity": 0.35,
+          "width": "fill_container",
+          "stroke": "$border",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            20,
+            80
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "id": "c57lOJ",
+              "type": "ref",
+              "ref": "a0qbdn",
+              "name": "Logo"
+            },
+            {
+              "type": "frame",
+              "id": "gLxxX",
+              "name": "Links",
+              "gap": 36,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Z8kUs5",
+                  "name": "Architecture",
+                  "fill": "$text-secondary",
+                  "content": "Architecture",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "ULfl1",
+                  "name": "Connect",
+                  "fill": "$text-secondary",
+                  "content": "Connect",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "u8PLxD",
+                  "x": 104,
+                  "y": 0,
+                  "name": "Connect",
+                  "enabled": false,
+                  "fill": "$text-secondary",
+                  "content": "Connect",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "X9L1Yd",
+                  "name": "Docs",
+                  "fill": "$text-secondary",
+                  "content": "Docs",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "n3sw5R",
+                  "name": "Community",
+                  "fill": "$text-secondary",
+                  "content": "Community",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "E2Cps",
+              "name": "Actions",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "P4jXa",
+                  "name": "GitHub Stars",
+                  "cornerRadius": 10,
+                  "stroke": "$border",
+                  "strokeWidth": 1,
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "T8oz0H",
+                      "name": "GitHub",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "github",
+                      "library": "lucide",
+                      "fill": "$text-primary"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "zgVj7",
+                      "name": "Star",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "star",
+                      "library": "lucide",
+                      "fill": "$text-secondary"
+                    },
+                    {
+                      "type": "text",
+                      "id": "LqsAn",
+                      "name": "Count",
+                      "fill": "$text-primary",
+                      "content": "1.7K",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "id": "k2Ngpo",
+                  "type": "ref",
+                  "ref": "fDmf2",
+                  "name": "Get started",
+                  "padding": [
+                    10,
+                    18
+                  ],
+                  "descendants": {
+                    "Vw1mL": {
+                      "content": "Get started"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "oFkGS",
+          "name": "Hero",
+          "width": "fill_container",
+          "height": 720,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "assets/pattern-center.png",
+            "mode": "cover"
+          },
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            0,
+            80
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "MnUu5",
+              "name": "Dialog",
+              "width": 440,
+              "fill": "#252525",
+              "cornerRadius": 16,
+              "stroke": "#333333",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 32,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "lkAyj",
+                  "name": "Header",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "E133N",
+                      "name": "Icon",
+                      "width": 24,
+                      "height": 24,
+                      "icon": "mail",
+                      "library": "lucide",
+                      "fill": "$accent-text"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "zGq11",
+                      "name": "Icon",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "x",
+                      "library": "lucide",
+                      "fill": "$text-secondary"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "ATzZI",
+                  "name": "Title",
+                  "fill": "$text-primary",
+                  "content": "Contact us",
+                  "textAlign": "center",
+                  "fontFamily": "Poppins",
+                  "fontSize": 24,
+                  "fontWeight": "600",
+                  "letterSpacing": -2
+                },
+                {
+                  "type": "text",
+                  "id": "DmN9W",
+                  "name": "Subhead",
+                  "fill": "$text-secondary",
+                  "content": "Training, deployment or support.",
+                  "textAlign": "center",
+                  "fontFamily": "Poppins",
+                  "fontSize": 20,
+                  "fontWeight": "normal",
+                  "letterSpacing": -0.5
+                },
+                {
+                  "type": "frame",
+                  "id": "jT6Jy",
+                  "name": "Field",
+                  "width": "fill_container",
+                  "fill": "#181818",
+                  "cornerRadius": 10,
+                  "stroke": "#333333",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "gap": 12,
+                  "padding": [
+                    6,
+                    6,
+                    6,
+                    16
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "imjQx",
+                      "name": "Email",
+                      "fill": "$text-primary",
+                      "content": "team@fonoster.com",
+                      "textAlign": "center",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "id": "FeEvZ",
+                      "type": "ref",
+                      "ref": "b8zCvf",
+                      "x": 261,
+                      "y": 6,
+                      "descendants": {
+                        "s8cqE": {
+                          "enabled": true,
+                          "library": "lucide",
+                          "icon": "copy"
+                        },
+                        "q2wj8": {
+                          "content": "Copy"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "WBv3Z",
+          "name": "Footer",
+          "opacity": 0.35,
+          "width": "fill_container",
+          "stroke": "$border",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            32,
+            80
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "M7USc",
+              "name": "Brand",
+              "width": "fill_container",
+              "gap": 20,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "mKbp5",
+                  "name": "Copyright",
+                  "fill": "$text-muted",
+                  "content": "© 2026 Fonoster Inc.",
+                  "fontFamily": "Poppins",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "a5OvVB",
+              "name": "Links",
+              "gap": 28,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Fx5hz",
+                  "name": "Docs",
+                  "fill": "$text-secondary",
+                  "content": "Docs",
+                  "fontFamily": "Poppins",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "cCF94",
+                  "name": "GitHub",
+                  "fill": "$text-secondary",
+                  "content": "GitHub",
+                  "fontFamily": "Poppins",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "AknVM",
+                  "name": "Discord",
+                  "fill": "$text-secondary",
+                  "content": "Discord",
+                  "fontFamily": "Poppins",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "M5hkz",
+                  "name": "X",
+                  "fill": "$text-secondary",
+                  "content": "X",
+                  "fontFamily": "Poppins",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "jv24H",
+                  "name": "Fonoster",
+                  "fill": "$text-secondary",
+                  "content": "Fonoster",
+                  "fontFamily": "Poppins",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "cGtgH",
+              "name": "Prefs Wrap",
+              "width": "fill_container",
+              "justifyContent": "end",
+              "children": [
+                {
+                  "id": "t7ene",
+                  "type": "ref",
+                  "ref": "G1XZe",
+                  "name": "Preferences"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "ph7vz",
+      "x": 12359,
+      "y": 0,
+      "name": "Contact Popup / Mobile",
+      "theme": {
+        "mode": "dark"
+      },
+      "clip": true,
+      "width": 390,
+      "fill": "$bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "W6x046",
+          "name": "Hero",
+          "width": "fill_container",
+          "height": 844,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "assets/pattern-center.png",
+            "mode": "cover"
+          },
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            0,
+            16
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "jMtKo",
+              "name": "Dialog",
+              "width": "fill_container",
+              "fill": "#252525",
+              "cornerRadius": 16,
+              "stroke": "#333333",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Gg88f",
+                  "name": "Header",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "nBX3I",
+                      "name": "Icon",
+                      "width": 24,
+                      "height": 24,
+                      "icon": "mail",
+                      "library": "lucide",
+                      "fill": "$accent-text"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "bjhbh",
+                      "name": "Icon",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "x",
+                      "library": "lucide",
+                      "fill": "$text-secondary"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "E6FAK",
+                  "name": "Title",
+                  "fill": "$text-primary",
+                  "content": "Contact us",
+                  "textAlign": "center",
+                  "fontFamily": "Poppins",
+                  "fontSize": 24,
+                  "fontWeight": "600",
+                  "letterSpacing": -2
+                },
+                {
+                  "type": "text",
+                  "id": "GudCV",
+                  "name": "Subhead",
+                  "fill": "$text-secondary",
+                  "content": "Training, deployment or support.",
+                  "textAlign": "center",
+                  "fontFamily": "Poppins",
+                  "fontSize": 20,
+                  "fontWeight": "normal",
+                  "letterSpacing": -0.5
+                },
+                {
+                  "type": "frame",
+                  "id": "X1gAK",
+                  "name": "Field",
+                  "width": "fill_container",
+                  "fill": "#181818",
+                  "cornerRadius": 10,
+                  "stroke": "#333333",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "gap": 12,
+                  "padding": [
+                    6,
+                    6,
+                    6,
+                    16
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "l2oWn",
+                      "name": "Email",
+                      "fill": "$text-primary",
+                      "content": "team@fonoster.com",
+                      "textAlign": "center",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "id": "rdjs2",
+                      "type": "ref",
+                      "ref": "b8zCvf",
+                      "x": 195,
+                      "y": 6,
+                      "descendants": {
+                        "s8cqE": {
+                          "enabled": true,
+                          "library": "lucide",
+                          "icon": "copy"
+                        },
+                        "q2wj8": {
+                          "content": "Copy"
+                        }
+                      }
+                    }
+                  ]
                 }
               ]
             }
