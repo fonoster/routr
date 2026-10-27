@@ -1,6 +1,6 @@
 {
   "name": "@routr/common",
-  "version": "2.25.2",
+  "version": "2.25.5",
   "description": "Common package",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -38,7 +38,8 @@
     "js-yaml": "^4.1.1",
     "pb-util": "^1.0.3",
     "phone": "^3.1.68",
-    "validator": "^13.15.26"
+    "validator": "^13.15.26",
+    "zod": "^3.25.76"
   },
   "directories": {
     "src": "src",

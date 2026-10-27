@@ -36,7 +36,9 @@ import java.net.InetAddress;
  * <p>Plain WS gets {@link SafeNioWebSocketMessageProcessor} so a request named
  * WSS can go out on a WS connection (see {@link SiblingChannels}); it does
  * not suffer from the recursion because {@code NioWebSocketMessageChannel.onNewSocket}
- * is a no-op delegate to {@code NioTcpMessageChannel.onNewSocket}. TLS gets
+ * is a no-op delegate to {@code NioTcpMessageChannel.onNewSocket}. Both WS
+ * and WSS channels accept the upgrade whatever the case of its header names
+ * (see {@link WebSocketUpgradeHeaders}). TLS gets
  * {@link SafeNioTlsMessageProcessor}, and plain TCP gets
  * {@link SafeNioTcpMessageProcessor} so a request named TLS can go out on a
  * TCP connection. UDP and SCTP fall through to the standard factory.

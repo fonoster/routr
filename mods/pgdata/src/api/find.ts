@@ -46,14 +46,16 @@ export function findBy(
         include: Manager.includeFields()
       })) as { extended: unknown }[]
 
-      items.forEach((item: { extended: unknown }) => {
+      const itemsAsDto = items.map((item: { extended: unknown }) => {
         if (item.extended) {
           item.extended = struct.encode(item.extended as JsonObject)
         }
+
+        return Manager.mapToDto(item as any)
       })
 
       callback(null, {
-        items: items
+        items: itemsAsDto
       })
     } catch (e) {
       if (e instanceof PrismaClientInitializationError) {

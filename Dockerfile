@@ -14,8 +14,9 @@ COPY .scripts/custom-jre.sh .
 RUN apk add --no-cache --update cmake curl g++ git make nodejs npm openjdk17-jdk python3 tini \
   && sh custom-jre.sh \
   && npm install --omit=dev \
+  && npm install --prefix prisma-cli prisma@$(node -p "require('./node_modules/@prisma/client/package.json').version") \
   && mv schema.prisma node_modules/@routr/pgdata/ \
-  && cd node_modules/@routr/pgdata/ && npx prisma@6.12.0 generate \
+  && cd node_modules/@routr/pgdata/ && /work/prisma-cli/node_modules/.bin/prisma generate \
   && cd /work && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune 
 
 ADD https://github.com/sipcapture/heplify/releases/download/v1.67.1/heplify /work/heplify
@@ -62,6 +63,7 @@ COPY .scripts/generate-certs.sh .
 COPY .scripts/init-postgres.sh .
 COPY --from=builder /work/dist dist
 COPY --from=builder /work/node_modules node_modules
+COPY --from=builder /work/prisma-cli /opt/prisma-cli
 COPY --from=builder /work/package.json .
 COPY --from=builder /work/jre jre
 COPY --from=builder /work/heplify /usr/local/bin/
@@ -89,7 +91,7 @@ CMD ["/bin/sh", "-c", "if [ \"$START_INTERNAL_DB\" = \"true\" ]; then \
   if [ -n \"$HEPLIFY_OPTIONS\" ]; then \
     heplify $HEPLIFY_OPTIONS & \
   fi; \
-  cd node_modules/@routr/pgdata && npx prisma@6.12.0 migrate deploy --schema=/service/schema.prisma && cd /service; \
+  /opt/prisma-cli/node_modules/.bin/prisma migrate deploy --schema=/service/schema.prisma; \
   sed -i \"s|keyStorePassword:.*|keyStorePassword: $PKCS12_PASSWORD|g\" config/edgeport.yaml; \
   sed -i \"s|trustStorePassword:.*|trustStorePassword: $PKCS12_PASSWORD|g\" config/edgeport.yaml; \
   su-exec $USER ./convert-to-p12.sh $PATH_TO_CERTS $PKCS12_PASSWORD; \

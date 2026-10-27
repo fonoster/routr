@@ -18,7 +18,10 @@
  */
 import { assertOnlyOneEnvIsSet } from "./assertions"
 
-assertOnlyOneEnvIsSet(["CONNECT_VERIFIER_ADDR", "CONNECT_VERIFIER_PUBLIC_KEY"])
+assertOnlyOneEnvIsSet([
+  "CONNECT_VERIFIER_ADDR",
+  "CONNECT_VERIFIER_PUBLIC_KEY_PATH"
+])
 
 /**
  * Parses an optional environment variable that must hold a positive integer.
