@@ -5,6 +5,23 @@ description: "For operators and developers tracking Routr releases: what changed
 
 Every Routr release is tagged in the [repository](https://github.com/fonoster/routr/tags), and most have notes on [GitHub Releases](https://github.com/fonoster/routr/releases). The entries below cover each version from v2.13.0 on that changed Routr's behavior or configuration; each links to its release notes or, when a tag has no GitHub release, to its commits. Breaking changes come first in an entry.
 
+<Update label="v2.27.0" description="2026-10-27">
+  - Compat still reports a lost SDP on a record the media relay rewrote (`trace`)
+  - Sanitize leaves an identity parameter untouched when no rewrite applies (`trace`)
+  - The identity Record-Route parameters are defined once, in @routr/common (`common`)
+  - Ack-2xx pairs the ACK with the INVITE Routr forwarded, not only the 2xx's CSeq (`trace`)
+  - A call forwarded to a peer EdgePort drops Routes that point back at this one (`connect`)
+  - The pending TLS handshake message is sent under JAIN-SIP's wrap lock (`edgeport`)
+  - A cancelled call is remembered, so a late challenge never rings the callee (`edgeport`)
+  - Corpus drafts, and sanitize and compat handle redacted and relayed recordings (`trace`)
+  - Route sets with several entries reach the wire in order (`edgeport`)
+  - A challenge that arrives after the caller hung up is not answered (`edgeport`)
+  - A TLS connection the EdgePort opens sends what it queued during the handshake (`edgeport`)
+  - Answer only the digest challenges JAIN-SIP can compute (`edgeport`)
+
+  [Release notes](https://github.com/fonoster/routr/releases/tag/v2.27.0)
+</Update>
+
 <Update label="v2.26.0" description="2026-10-27">
   - Resolve ${VAR} and secret:// references in parsed config (`common`)
 
