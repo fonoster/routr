@@ -53,17 +53,17 @@ Between the Node.js services, the gRPC instrumentation carries the trace context
 
 ## Send telemetry
 
-The services read the standard OpenTelemetry variables:
+The services read the standard OpenTelemetry variables. routr-one 2.31.0 and later also take most of them from the `spec.telemetry` block of `/etc/routr/one.yaml` (see [Configure the container](/guides/deploy-with-docker#configure-the-container)); there, the variable is deprecated in favor of the key in the routr-one column.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | none | OTLP/HTTP base URL, for example `http://collector:4318`. Each signal goes to `/v1/traces`, `/v1/metrics`, or `/v1/logs` under it. Setting it turns telemetry on. |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | none | Full URL for traces. Also turns telemetry on. Set alone, metrics and logs go to the same collector. |
-| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`, `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | derived | Full URL for one signal. Neither turns telemetry on by itself. |
-| `OTEL_EXPORTER_OTLP_HEADERS` | none | Headers for every export request, for example `Authorization=Bearer <token>`. |
-| `OTEL_METRIC_EXPORT_INTERVAL` | `15000` | Milliseconds between metric exports. |
-| `OTEL_SERVICE_NAME` | per service | Overrides the `service.name` resource attribute. |
-| `OTEL_SDK_DISABLED` | `false` | `true` turns telemetry off even with an endpoint set. |
+| Variable | routr-one key | Default | Description |
+| --- | --- | --- | --- |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `spec.telemetry.endpoint` | none | OTLP/HTTP base URL, for example `http://collector:4318`. Each signal goes to `/v1/traces`, `/v1/metrics`, or `/v1/logs` under it. Setting it turns telemetry on. |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | `spec.telemetry.tracesEndpoint` | none | Full URL for traces. Also turns telemetry on. Set alone, metrics and logs go to the same collector. |
+| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`, `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | none | derived | Full URL for one signal. Neither turns telemetry on by itself. |
+| `OTEL_EXPORTER_OTLP_HEADERS` | none | none | Headers for every export request, for example `Authorization=Bearer <token>`. |
+| `OTEL_METRIC_EXPORT_INTERVAL` | `spec.telemetry.metricExportIntervalMillis` | `15000` | Milliseconds between metric exports. |
+| `OTEL_SERVICE_NAME` | `spec.telemetry.serviceName` | per service | Overrides the `service.name` resource attribute. |
+| `OTEL_SDK_DISABLED` | `spec.telemetry.enabled`, inverted | `false` | `true` turns telemetry off even with an endpoint set. The key is inverted: `telemetry.enabled: false` equals `OTEL_SDK_DISABLED=true`. |
 
 Default service names are `routr-edgeport` for the EdgePort and `dispatcher`, `connect`, `location`, `registry`, `pgdata`, `simpledata`, `rtprelay`, or `simpleauth` for the Node.js services. In routr-one, every Node.js service reports as `one` and the EdgePort as `routr-edgeport`. Setting `OTEL_SERVICE_NAME` on routr-one gives both the same name.
 
