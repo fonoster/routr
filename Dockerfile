@@ -57,6 +57,7 @@ COPY mods/edgeport/libs libs
 COPY mods/pgdata/schema.prisma .
 COPY mods/pgdata/migrations migrations
 COPY mods/edgeport/etc/log4j2.yaml /etc/routr/log4j2.yaml
+COPY config/one.example.yaml /etc/routr/one.example.yaml
 COPY etc/edgeport.yaml config/edgeport.yaml
 COPY .scripts/convert-to-p12.sh .
 COPY .scripts/generate-certs.sh .
@@ -73,6 +74,8 @@ RUN apk add --no-cache libcap nodejs npm openssl postgresql sed sngrep su-exec t
   && addgroup -g ${GID} ${USER} \
   && adduser --disabled-password --gecos "" --ingroup ${USER} --home ${HOME} --uid ${UID} ${USER} \
   && chown -R ${USER}:${USER} /service /etc/routr \
+  && chown -R root:root /service/dist /service/node_modules \
+  && chmod -R go-w /service/dist /service/node_modules \
   && chown -R postgres:postgres /var/lib/postgresql/data /run/postgresql /root/.npm \
   && chmod +x edgeport.sh convert-to-p12.sh init-postgres.sh generate-certs.sh \
   && chmod 2777 /run/postgresql \
@@ -84,7 +87,9 @@ RUN apk add --no-cache libcap nodejs npm openssl postgresql sed sngrep su-exec t
 # Re-mapping the signal from 143 to 0
 ENTRYPOINT ["tini", "-v", "-e", "143", "--"]
 
-CMD ["/bin/sh", "-c", "if [ \"$START_INTERNAL_DB\" = \"true\" ]; then \
+CMD ["/bin/sh", "-c", "OUT=$(su-exec $USER node ./dist/print_env) || exit 1; \
+  eval \"$OUT\"; \
+  if [ \"$START_INTERNAL_DB\" = \"true\" ]; then \
     su-exec postgres /service/init-postgres.sh; \
     su-exec postgres pg_ctl start -D /var/lib/postgresql/data --options='-h 0.0.0.0'; \
   fi; \

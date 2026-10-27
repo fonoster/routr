@@ -68,7 +68,7 @@ if (RTPENGINE_HOST) {
 
 try {
   dispatcherConfig.recording = resolveRecording({
-    env: process.env,
+    env: { ...process.env },
     loadConfig: loadOneConfig,
     logger
   })
