@@ -33,6 +33,7 @@ import {
   apiServerConfig,
   rtprelayConfig
 } from "./configs"
+import { loadOneConfig, resolveRecording } from "./config"
 
 const logger = getLogger({ service: "one", filePath: __filename })
 
@@ -63,6 +64,17 @@ if (RTPENGINE_HOST) {
     addr: "localhost:51903",
     postProcessor: true
   })
+}
+
+try {
+  dispatcherConfig.recording = resolveRecording({
+    env: process.env,
+    loadConfig: loadOneConfig,
+    logger
+  })
+} catch (e) {
+  logger.error((e as Error).message)
+  process.exit(1)
 }
 
 messageDispatcher(dispatcherConfig)
