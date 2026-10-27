@@ -125,8 +125,8 @@ jobs:
       - name: Build the Node services
         run: npm run generate --workspace=@routr/pgdata && npx lerna run build
 
-      # Replays every recording of etc/corpus through simpledata, location,
-      # connect and the dispatcher started from this checkout (no EdgePort, no
+      # Replays every recording of etc/corpus and interop/*/manifest.yaml through
+      # simpledata, location, connect and the dispatcher started from this checkout (no EdgePort, no
       # Docker) and fails on drift or on a rule finding the corpus did not have.
       - name: Replay the corpus through the chain
         run: npm run compat -- --sip-connect

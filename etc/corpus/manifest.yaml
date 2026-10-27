@@ -66,28 +66,3 @@ files:
     profiles: [sip, sip-connect]
     findings: []
     note: SIPconnect 1.1 test 12.1.1, the blind transfer's second leg to agent 1002
-  - file: sipjs_register-before-wa-dod-invite_routr_20261025.jsonl
-    profiles: [sip]
-    findings: []
-    draft: true
-    note: The SIP.js browser dialer registers over WSS before its call to a WhatsApp user (401 challenge, then 200)
-  - file: sipjs_wa-dod-invite_whatsapp_20261025.jsonl
-    profiles: [sip, sip-connect]
-    findings: [sip-connect/request-uri-e164]
-    draft: true
-    note: >-
-      Real call from the SIP.js dialer to a WhatsApp user through Meta's WhatsApp
-      Business Calling over SIP (TLS to wa.meta.vc, From rewritten to the business
-      number, ICE + DTLS-SRTP via RTPEngine), answered, browser BYE. Sanitized:
-      numbers, the registered hostname, public addresses and Meta ids are test
-      values. Review: request-uri-e164 is Meta's required URI format (no
-      user=phone).
-  - file: sipjs_wa-dod-invite-cancel_whatsapp_20261025.jsonl
-    profiles: [sip, sip-connect]
-    findings: [sip-connect/request-uri-e164]
-    draft: true
-    note: >-
-      Real call from the SIP.js dialer to a WhatsApp user, cancelled by the caller
-      right away: the CANCEL leaves before Meta's 180 arrives, and no further
-      INVITE follows. Sanitized like the answered call. Review: request-uri-e164
-      is Meta's required URI format (no user=phone).

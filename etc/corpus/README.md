@@ -1,7 +1,11 @@
-# Known-good corpus
+# SEET fixtures and shared replay resources
 
-Recordings of calls that behaved as they should, replayed through the chain on
-every pull request. `npm run compat` starts simpledata, location, connect and
+The SEET compliance recordings, calls that behaved as they should, replayed
+through the chain on every pull request, and `resources/`, the Trunks, Numbers,
+Agents and Credentials every replay uses. Partner recordings go to
+`interop/<partner>/` with that folder's `manifest.yaml` (see
+[interop/README.md](../../interop/README.md)), while `resources/` stays here for
+every replay. `npm run compat` starts simpledata, location, connect and
 the dispatcher from this checkout (no EdgePort, no Docker), sends every
 recorded message of every file in `manifest.yaml` to the dispatcher, and fails
 when the chain answers differently today (drift) or when a file no longer
@@ -39,7 +43,7 @@ the four fields; use hyphens inside a field.
      --credentials etc/corpus/resources/credentials.yaml \
      --rewrite +13055550100=+15555550100 \
      --rewrite sip.realprovider.net=sip.provider.net \
-     --out etc/corpus/zoiper_dod-invite_twilio_20261101.jsonl
+     --out interop/twilio/zoiper_dod-invite_twilio_20261101.jsonl
    ```
 
    Each rewrite is applied to every string of every record first, including
@@ -77,10 +81,10 @@ prints what to declare.
 be reproduced from the files alone.
 
 `draft: true` marks a recording nobody has reviewed yet, such as the first real
-traffic from a new interconnect. It is replayed and linted like any other file,
-so it guards the chain from the day it lands, and `rctl trace compat` prints
-`(draft, needs review)` next to it. A reviewer checks the flow and the declared
-findings, then removes the flag.
+traffic from a new interconnect under `interop/`. It is replayed and linted
+like any other file, so it guards the chain from the day it lands, and `rctl
+trace compat` prints `(draft, needs review)` next to it. A reviewer checks the
+flow and the declared findings, then removes the flag.
 
 ## Reading a drift
 

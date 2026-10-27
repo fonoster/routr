@@ -66,6 +66,7 @@
           weight: 10
           enabled: true
 
+# Recordings that use the WhatsApp entries below live in interop/whatsapp/.
 # WhatsApp Business Calling over SIP: TLS to Meta, the business number as the
 # caller at the hostname registered with Meta (sipjs_wa-dod-invite_whatsapp)
 - apiVersion: v2beta1

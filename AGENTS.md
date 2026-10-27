@@ -68,7 +68,7 @@ Overrides (the profile yields to these):
 | Area label | Paths | Experts |
 | :--- | :--- | :--- |
 | area: sip-core | mods/edgeport, mods/dispatcher, mods/processor, mods/location, mods/connect, mods/registry, mods/requester | realtime-comms-engineer |
-| area: interop | mods/connect, mods/common/src/trace, etc/corpus, etc/scenarios | realtime-comms-engineer |
+| area: interop | mods/connect, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
 | area: nat | mods/edgeport, mods/rtprelay, mods/common/src/ip_utils.ts | realtime-comms-engineer |
 | area: infra | ops/charts, Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts | release-engineer, security-engineer |
 | (none) | mods/pgdata, mods/simpledata | database-engineer |
@@ -86,7 +86,7 @@ Breaking (a major release, `!` in the commit subject):
 - Helm values in `ops/charts/connect/values.yaml`.
 - The database schema (`mods/pgdata/schema.prisma`) when a migration can't upgrade existing
   data.
-- SIP wire behavior, as replayed by the corpus in `etc/corpus`.
+- SIP wire behavior, as replayed by the corpus in `etc/corpus` and `interop/`.
 
 ## Risk hotspots
 
@@ -128,15 +128,18 @@ Breaking (a major release, `!` in the commit subject):
   and the SEET compliance job's SIPconnect test cases (`sc-*`). Judge provider-facing behavior
   there against SIPconnect 1.1 first, then the RFCs it references. Everything else follows the
   RFCs alone. A deliberate deviation gets a line under Decisions.
-- **The trace corpus is how Routr keeps interop.** `etc/corpus/` holds known-good recordings
-  of real calls. CI replays every file through the chain on each pull request
+- **The trace corpus is how Routr keeps interop.** `etc/corpus/` holds the SEET recordings
+  and `interop/<partner>/` the partner recordings, known-good recordings of real calls. The
+  same CI job replays every file of both through the chain on each pull request
   (`npm run compat`, the "Known-good corpus compatibility" job) and fails on drift or on new
   rule findings (`sip` and `sip-connect` profiles).
-  - An interop fix adds the sanitized recording that proves it (`etc/corpus/README.md`).
+  - An interop fix adds the sanitized recording that proves it (`etc/corpus/README.md`); a
+    partner interop fix adds it under `interop/<partner>/` (process in `interop/README.md`).
     Provider-facing files use `profiles: [sip-connect]`.
   - A change to wire behavior must replay the corpus clean. When a recording legitimately
     needs to change, the PR says which and why.
-  - Never edit, drop or re-record a known-good file just to make a change pass.
+  - Never edit, drop or re-record a known-good file, in `etc/corpus/` or `interop/`, just to
+    make a change pass.
 
 ### database-engineer
 

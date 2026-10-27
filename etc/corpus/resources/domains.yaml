@@ -11,6 +11,7 @@
         - rule: ".*"
           numberRef: number-01
 
+# Recordings that use the WhatsApp entries below live in interop/whatsapp/.
 - apiVersion: v2beta1
   kind: Domain
   ref: domain-wa
