@@ -18,6 +18,8 @@
  */
 import * as grpc from "@grpc/grpc-js"
 
+export { ValidationError } from "./validation_error"
+
 /**
  * Error thrown if the definition for a service is not found.
  */
