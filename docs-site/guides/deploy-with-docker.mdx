@@ -124,6 +124,12 @@ spec:
     keyStorePassword: ${ROUTR_KEYSTORE_PASSWORD}
 ```
 
+Set the password in your shell before you start the container. Both commands below pass it from there into the container, and the container stops at startup if it is unset or empty:
+
+```bash
+export ROUTR_KEYSTORE_PASSWORD=<your keystore password>
+```
+
 <Tabs>
   <Tab title="Docker Compose">
     ```yaml compose.yaml
@@ -194,7 +200,7 @@ volumes:
 
 Or mount it at another path and set `ROUTR_ONE_CONFIG` to that path. Don't mount the Secret as the directory `/etc/routr`: it hides `log4j2.yaml`, `rtprelay.yaml`, `certs/` and the example.
 
-To use an external PostgreSQL server instead of the internal one, set `spec.database.url` and turn off `spec.database.startInternal`. Pass the password as `ROUTR_DB_PASSWORD` in the container's environment.
+To use an external PostgreSQL server instead of the internal one, set `spec.database.url` and turn off `spec.database.startInternal`. Pass the password as `ROUTR_DB_PASSWORD` in the container's environment, as with the keystore password above: `export ROUTR_DB_PASSWORD=<your database password>` in your shell, then `ROUTR_DB_PASSWORD: ${ROUTR_DB_PASSWORD}` under `environment:` in Compose, or `-e ROUTR_DB_PASSWORD` with `docker run`.
 
 ```yaml one.yaml
 kind: RoutrOne
