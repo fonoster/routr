@@ -2,9 +2,9 @@
 # Replays the known-good corpus (etc/corpus), then every partner manifest
 # (interop/*/manifest.yaml), through one Node chain started from this checkout:
 # simpledata -> location -> connect -> dispatcher, no EdgePort, no Docker. Fails
-# when any recorded message is answered differently today (drift) or when a
-# file no longer passes its rule profiles. Every manifest runs; the exit status
-# is the first non-zero one.
+# when any recorded message is answered differently today (drift) or on a spec
+# violation a file's manifest does not declare (an error-level finding). Every
+# manifest runs; the exit status is the first non-zero one.
 #
 # Usage: npm run compat [-- --sip-connect]
 # Needs: npm run build (the services run from dist/).
@@ -63,7 +63,7 @@ manifests=("$MANIFEST" interop/*/manifest.yaml)
 status=0
 for m in "${manifests[@]}"; do
   echo "== $m"
-  node mods/ctl/bin/run trace compat "$m" --against localhost:51901 --fail-on drift "$@" \
+  node mods/ctl/bin/run trace compat "$m" --against localhost:51901 --fail-on error "$@" \
     || { rc=$?; [ "$status" -eq 0 ] && status=$rc; }
 done
 exit "$status"
