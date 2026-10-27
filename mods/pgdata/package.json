@@ -1,6 +1,6 @@
 {
   "name": "@routr/pgdata",
-  "version": "2.27.0",
+  "version": "2.28.0",
   "description": "Postgres API Server for Routr Connect",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -24,8 +24,8 @@
     "@fonoster/logger": "0.6.0",
     "@grpc/grpc-js": "~1.14.6",
     "@prisma/client": "^6.19.1",
-    "@routr/common": "^2.27.0",
-    "@routr/processor": "^2.27.0",
+    "@routr/common": "^2.28.0",
+    "@routr/processor": "^2.28.0",
     "google-protobuf": "^3.21.4",
     "grpc-health-check": "^2.1.0",
     "pb-util": "^1.0.3",
