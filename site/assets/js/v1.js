@@ -390,8 +390,59 @@
     });
   };
 
+  // "Contact us" opens a dialog with the address and a copy button; without <dialog>
+  // support the link stays a plain mailto.
+  const initContact = () => {
+    const dialog = $("#contact");
+    if (!dialog || typeof dialog.showModal !== "function") return;
+    const email = $(".contact__email", dialog);
+    const copy = $("[data-copy]", dialog);
+    const label = $("span", copy);
+    const icon = $("use", copy);
+    let reset;
+
+    $$("[data-contact]").forEach((link) =>
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        dialog.showModal();
+        copy.focus();
+      })
+    );
+    $("[data-contact-close]", dialog).addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+    copy.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(email.value);
+      } catch (e) {
+        email.select(); // clipboard blocked: leave the address selected for Cmd/Ctrl+C
+        return;
+      }
+      label.textContent = "Copied";
+      icon.setAttribute("href", `${ICONS}#i-check`);
+      clearTimeout(reset);
+      reset = setTimeout(() => {
+        label.textContent = "Copy";
+        icon.setAttribute("href", `${ICONS}#i-copy`);
+      }, 2000);
+    });
+  };
+
+  // GA4 click events for the "Get help" links and the contact dialog; help_copy is the conversion.
+  const initTracking = () => {
+    $$("[data-track]").forEach((link) =>
+      link.addEventListener("click", () => {
+        if (typeof window.gtag !== "function") return;
+        window.gtag("event", "help_click", { placement: link.dataset.track });
+      })
+    );
+  };
+
   initPrefs();
   initNav();
+  initTracking();
+  initContact();
   initReveal();
   initLoops();
   initOdometers();

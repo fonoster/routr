@@ -1209,6 +1209,9 @@ section[id] {
   gap: 24px;
   margin-top: 48px;
 }
+.engine__help {
+  margin-top: 48px;
+}
 .ecard {
   display: flex;
   flex-direction: column;
@@ -1831,6 +1834,9 @@ section[id] {
     margin-top: 24px;
     gap: 16px;
   }
+  .engine__help {
+    margin-top: 24px;
+  }
   .ecard {
     padding: 24px;
     gap: 16px;
@@ -1969,7 +1975,8 @@ section[id] {
     gap: 20px;
   }
   .footer__links {
-    gap: 24px;
+    flex-wrap: wrap;
+    gap: 12px 15px;
   }
   .footer__copy {
     order: 4;
@@ -2031,6 +2038,99 @@ section[id] {
 }
 .rr-why__line--accent {
   color: var(--accent-text);
+}
+.rr-why__line--accent a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.12em;
+}
+
+/* ---------- Contact dialog ---------- */
+.contact {
+  width: min(440px, calc(100% - 32px));
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-1);
+}
+.contact::backdrop {
+  background: rgb(0 0 0 / 0.6);
+}
+.contact__card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.contact__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.contact__mail {
+  width: 24px;
+  height: 24px;
+  color: var(--accent-text);
+}
+.contact__close {
+  display: inline-flex;
+  margin: -4px;
+  padding: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+}
+.contact__close:hover {
+  color: var(--text-1);
+}
+.contact__close .icon {
+  width: 20px;
+  height: 20px;
+}
+.contact__title {
+  margin: 0;
+  font: 600 24px/1.2 var(--font);
+  letter-spacing: -0.02em;
+}
+.contact__line {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-3);
+}
+.contact__field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.contact__email {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-1);
+  font: 400 14px var(--mono);
+}
+.contact__email:focus {
+  outline: none;
+}
+.contact__field:has(.contact__email:focus) {
+  border-color: var(--hl-border);
+}
+@media (max-width: 640px) {
+  .contact__card {
+    padding: 24px;
+  }
 }
 .rr-flow {
   display: grid;
