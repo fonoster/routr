@@ -91,6 +91,7 @@
       telUrl: tel:+18295863315
       aorLink: sip:1002@sip.local
 
+# Recordings that use the WhatsApp entries below live in interop/whatsapp/.
 - apiVersion: v2beta1
   kind: Number
   ref: number-wa

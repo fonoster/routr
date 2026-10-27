@@ -351,14 +351,14 @@ A component may annotate its hop with `trace.`-prefixed metadata keys (the Conne
 
 ## Keep a known-good corpus
 
-A recording of a call that behaved as it should is worth keeping: replayed through the chain after a change, it proves the chain still answers the same way. The repository keeps such recordings under `etc/corpus`, and `npm run compat` replays every one of them through the Node services started from the checkout, with no EdgePort and no Docker, on every pull request. Any message whose outcome or outgoing headers drifted fails the build, and so does a rule finding a file did not have.
+A recording of a call that behaved as it should is worth keeping: replayed through the chain after a change, it proves the chain still answers the same way. The repository keeps the SEET compliance recordings under `etc/corpus` and each partner interconnect's recordings under `interop/<partner>/`, with that folder's own `manifest.yaml`. `npm run compat` replays `etc/corpus` and every `interop/*/manifest.yaml` through the Node services started from the checkout, with no EdgePort and no Docker, on every pull request. Any message whose outcome or outgoing headers drifted fails the build, and so does a rule finding a file did not have.
 
 Files are named `<origin>_<flow>_<far-end>_<YYYYMMDD>.jsonl`: who sent the first message, what happened, who was on the other side, when. Adding a known-good is four steps:
 
 1. Take the file from the `call-recordings` artifact of a compliance run, or from your own stack.
-2. `rctl trace sanitize <file> --credentials etc/corpus/resources/credentials.yaml --rewrite <real>=<test> ... --out etc/corpus/<name>.jsonl`. The digest responses are recomputed with the test password, so the file still authenticates; the rewrites replace real numbers and hosts everywhere in the file.
-3. Add the Trunk, Number, Agent or Credentials the recording touches to `etc/corpus/resources` if they are not there.
-4. Add a line to `etc/corpus/manifest.yaml`, with `profiles: [sip-connect]` when the file faces a provider, and `findings` listing the rule ids the recording is known to trip (`rctl trace lint` prints them). A known-good describes what the chain does with real traffic; a finding that appears later is a regression, one that disappears is a change to declare.
+2. `rctl trace sanitize <file> --credentials etc/corpus/resources/credentials.yaml --rewrite <real>=<test> ... --out etc/corpus/<name>.jsonl` (`interop/<partner>/<name>.jsonl` for a partner interconnect). The digest responses are recomputed with the test password, so the file still authenticates; the rewrites replace real numbers and hosts everywhere in the file.
+3. Add the Trunk, Number, Agent or Credentials the recording touches to `etc/corpus/resources` if they are not there. Resources stay there for every replay, partner recordings included.
+4. Add a line to `etc/corpus/manifest.yaml` (or to `interop/<partner>/manifest.yaml`), with `profiles: [sip-connect]` when the file faces a provider, and `findings` listing the rule ids the recording is known to trip (`rctl trace lint` prints them). A known-good describes what the chain does with real traffic; a finding that appears later is a regression, one that disappears is a change to declare.
 
 The README in that directory has the details.
 

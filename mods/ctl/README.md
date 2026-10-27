@@ -1269,7 +1269,7 @@ DESCRIPTION
   it still authenticates on replay) and applies literal rewrites to numbers, hosts and addresses across the whole file.
 
 EXAMPLES
-  $ rctl trace sanitize call.jsonl --credentials etc/corpus/resources/credentials.yaml --out etc/corpus/zoiper_dod-invite_twilio_20261101.jsonl
+  $ rctl trace sanitize call.jsonl --credentials etc/corpus/resources/credentials.yaml --out interop/twilio/zoiper_dod-invite_twilio_20261101.jsonl
 
   $ rctl trace sanitize call.jsonl --credentials creds.yaml --rewrite +13055550100=+15555550100 --rewrite 203.0.113.7=10.111.220.22
 ```
