@@ -1,6 +1,6 @@
 {
   "name": "@routr/echo",
-  "version": "2.29.0",
+  "version": "2.30.0",
   "description": "Dummy implementation of a Processor service",
   "author": "Pedro Sanders <psanders@fonoster.com>",
   "homepage": "https://github.com/fonoster/routr#readme",
@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@fonoster/logger": "0.6.0",
-    "@routr/common": "^2.29.0",
-    "@routr/processor": "^2.29.0"
+    "@routr/common": "^2.30.0",
+    "@routr/processor": "^2.30.0"
   },
   "files": [
     "dist"
