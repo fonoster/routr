@@ -16,6 +16,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export const recordingSchema = {
+  description: "Message recording (one JSONL file per call)",
+  type: "object",
+  properties: {
+    enabled: { type: "boolean" },
+    path: { type: "string", minLength: 1 },
+    mode: { type: "string", enum: ["all", "flagged"] },
+    maxRecordsPerCall: { type: "integer", minimum: 1 },
+    maxCalls: { type: "integer", minimum: 1 },
+    idleTimeoutSeconds: { type: "integer", minimum: 1 },
+    redact: { type: "boolean" },
+    lint: {
+      type: "object",
+      properties: {
+        profiles: {
+          type: "array",
+          items: { type: "string", enum: ["sip", "sip-connect"] }
+        },
+        window: { type: "integer", minimum: 0 }
+      },
+      required: ["profiles"],
+      additionalProperties: false
+    }
+  },
+  required: ["enabled", "path"],
+  additionalProperties: false
+}
+
 export const schema = {
   $id: "https://json-schema.org/draft/2020-12/schema",
   title: "Message Dispatcher configuration",
@@ -61,33 +89,7 @@ export const schema = {
             required: ["ref", "addr"]
           }
         },
-        recording: {
-          description: "Message recording (one JSONL file per call)",
-          type: "object",
-          properties: {
-            enabled: { type: "boolean" },
-            path: { type: "string", minLength: 1 },
-            mode: { type: "string", enum: ["all", "flagged"] },
-            maxRecordsPerCall: { type: "integer", minimum: 1 },
-            maxCalls: { type: "integer", minimum: 1 },
-            idleTimeoutSeconds: { type: "integer", minimum: 1 },
-            redact: { type: "boolean" },
-            lint: {
-              type: "object",
-              properties: {
-                profiles: {
-                  type: "array",
-                  items: { type: "string", enum: ["sip", "sip-connect"] }
-                },
-                window: { type: "integer", minimum: 0 }
-              },
-              required: ["profiles"],
-              additionalProperties: false
-            }
-          },
-          required: ["enabled", "path"],
-          additionalProperties: false
-        },
+        recording: recordingSchema,
         processors: {
           description: "Message Processors",
           type: "array",

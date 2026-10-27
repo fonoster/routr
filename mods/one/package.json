@@ -25,7 +25,9 @@
     "@routr/dispatcher": "^2.27.0",
     "@routr/location": "^2.27.0",
     "@routr/pgdata": "^2.27.0",
-    "@routr/rtprelay": "^2.27.0"
+    "@routr/rtprelay": "^2.27.0",
+    "ajv": "^6.12.6",
+    "zod": "^3.25.76"
   },
   "files": [
     "dist"

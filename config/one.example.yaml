@@ -1,0 +1,106 @@
+# one.yaml: configuration for routr-one (the fonoster/routr-one image).
+# Copy it to /etc/routr/one.yaml in the container, or point ROUTR_ONE_CONFIG at it.
+#
+#   - This file holds secrets. The image runs as UID/GID 5000, so:
+#       sudo chown 5000:5000 one.yaml && chmod 600 one.yaml
+#     Never commit it. On Kubernetes, mount it from a Secret.
+#   - ${VAR} (and ${VAR:-default}) reads the container's environment, not the host's.
+#   - secret://file/<path> reads a file inside the container; secret://env/NAME and
+#     secret://k8s/<secret>#<key> work too.
+#   - Unknown or misspelled keys stop routr-one, naming the key.
+#   - Values containing GENERATE-YOUR-OWN are refused: replace them with your own.
+#   - Each key replaces the env var named next to it; a key you leave out keeps
+#     the env var (or the image default) working as before.
+
+kind: RoutrOne
+apiVersion: v2beta1
+ref: routr-one
+spec:
+  database:
+    # The internal database is the default; set url to use your own.
+    # url: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/routr  # DATABASE_URL
+    startInternal: true                     # START_INTERNAL_DB
+
+  encryption:
+    # Encrypts stored credentials. Generate your own with `npx @47ng/cloak generate`.
+    key: k1.aesgcm256.GENERATE-YOUR-OWN-with-npx-47ng-cloak-gen00=  # CLOAK_ENCRYPTION_KEY
+
+  apiServer:
+    tls:
+      enabled: false                        # TLS_ON
+      verifyClientCert: false               # VERIFY_CLIENT_CERT
+      caCert: /etc/routr/certs/ca.crt       # CACERT
+      serverCert: /etc/routr/certs/server.crt  # SERVER_CERT
+      serverKey: /etc/routr/certs/server.key   # SERVER_KEY
+
+  signaling:
+    # externalAddrs: [203.0.113.10]         # EXTERNAL_ADDRS
+    # localnets: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]  # LOCALNETS
+    ignoreLoopbackFromLocalnets: true       # IGNORE_LOOPBACK_FROM_LOCALNETS
+    keyStorePassword: GENERATE-YOUR-OWN-keystore-password  # PKCS12_PASSWORD
+    certsPath: /etc/routr/certs             # PATH_TO_CERTS
+    # tls:
+    #   protocols: [TLSv1.2, TLSv1.3]       # SECURITY_CONTEXT_CLIENT_PROTOCOLS
+    #   cipherSuites: [TLS_AES_128_GCM_SHA256]  # SECURITY_CONTEXT_CLIENT_CIPHER_SUITES
+    # stripSessionProgressSdp: false        # STRIP_SESSION_PROGRESS_SDP
+    # healthChecks: false                   # ENABLE_HEALTHCHECKS
+    # sipTraceLevel: DEBUG                  # JAIN_SIP_TRACE_LEVEL
+    log4j2: /etc/routr/log4j2.yaml          # LOG4J2
+    # publishers:
+    #   console:
+    #     enabled: false                    # CONSOLE_PUBLISHER_ENABLED
+    #   nats:
+    #     enabled: false                    # NATS_PUBLISHER_ENABLED
+    #     url: nats://nats:4222             # NATS_PUBLISHER_URL
+    #     subject: routr                    # NATS_PUBLISHER_SUBJECT
+
+  # connect:
+  #   verifier:                             # set addr or publicKeyPath, not both
+  #     addr: verifier:50051                # CONNECT_VERIFIER_ADDR
+  #     publicKeyPath: /etc/routr/public.pem  # CONNECT_VERIFIER_PUBLIC_KEY_PATH
+  #     options: {}                         # CONNECT_VERIFIER_OPTIONS (JSON)
+  #   registerDefaultExpires: 600           # REGISTER_DEFAULT_EXPIRES
+  #   untrustedHeadersToStrip: [X-Connect-Token]  # UNTRUSTED_HEADERS_TO_STRIP ([] turns it off)
+  #   trustedEdgeports: [edgeport-01]       # TRUSTED_EDGEPORTS
+  #   trustedEdgeportAddresses: [10.0.0.5]  # TRUSTED_EDGEPORT_ADDRESSES
+
+  location:
+    cache:
+      provider: memory                      # LOCATION_CACHE_PROVIDER (memory | redis)
+      # parameters: host=redis,port=6379    # LOCATION_CACHE_PARAMETERS
+
+  rtprelay:
+    # host: rtpengine                       # RTPENGINE_HOST
+    port: 22222                             # RTPENGINE_PORT
+    timeout: 5000                           # RTPENGINE_TIMEOUT
+    configPath: /etc/routr/rtprelay.yaml    # RTPRELAY_CONFIG_PATH
+
+  # recording:
+  #   enabled: true                         # RECORD_MESSAGES
+  #   path: /var/routr/traces               # RECORD_MESSAGES_PATH
+  #   mode: all                             # RECORD_MESSAGES_MODE (all | flagged)
+  #   redact: true                          # file only
+  #   lint:                                 # file only
+  #     profiles: [sip, sip-connect]
+  #   maxRecordsPerCall: 1000               # file only
+  #   maxCalls: 1000                        # file only
+  #   idleTimeoutSeconds: 300               # file only
+
+  # telemetry:
+  #   enabled: true                         # OTEL_SDK_DISABLED (inverted)
+  #   endpoint: http://otel-collector:4318  # OTEL_EXPORTER_OTLP_ENDPOINT
+  #   tracesEndpoint: http://otel-collector:4318/v1/traces  # OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+  #   metricExportIntervalMillis: 60000     # OTEL_METRIC_EXPORT_INTERVAL
+  #   serviceName: routr-one                # OTEL_SERVICE_NAME
+
+  # logs:
+  #   level: info                           # LOGS_LEVEL (error | warn | info | http | verbose | debug | silly)
+  #   format: json                          # LOGS_FORMAT (json | text)
+  #   transport: console                    # LOGS_TRANSPORT (console | fluent)
+  #   fluent:
+  #     host: fluentd                       # LOGS_DRIVER_HOST
+  #     port: 24224                         # LOGS_DRIVER_PORT
+  #     tagPrefix: routr                    # LOGS_OPT_TAG_PREFIX
+
+  # heplify:
+  #   options: -hs homer:9060               # HEPLIFY_OPTIONS
