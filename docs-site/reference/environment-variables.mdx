@@ -6,6 +6,8 @@ description: "Every environment variable and port of the routr-one image, groupe
 
 The `fonoster/routr-one` image runs EdgePort, Message Dispatcher, Connect processor, Location Service, and API Server (pgdata) in one container, plus RTPRelay when you set `RTPENGINE_HOST`. It also starts an internal PostgreSQL database by default. This page lists the variables that apply to that image. For standalone images, see the component pages.
 
+routr-one 2.31.0 and later read their settings from `/etc/routr/one.yaml`. See [Configure the container](/guides/deploy-with-docker#configure-the-container). Each variable marked deprecated below has a file key that replaces it. It keeps working until the next major release and logs a warning naming that key; a key set in the file wins over its variable.
+
 ## Ports
 
 | Port | Protocol | Component | Notes |
@@ -35,9 +37,10 @@ The standalone images use the same conventions, plus these ports:
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/routr` | PostgreSQL connection string. Point it at an external database to use your own |
-| `START_INTERNAL_DB` | `true` | `true` initializes and starts the bundled PostgreSQL. Set `false` with an external `DATABASE_URL` |
-| `HEPLIFY_OPTIONS` | | When set, runs `heplify` with these options to mirror SIP traffic to a HEP collector such as Homer |
+| `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/routr` | Deprecated: set `spec.database.url`. PostgreSQL connection string. Point it at an external database to use your own |
+| `START_INTERNAL_DB` | `true` | Deprecated: set `spec.database.startInternal`. `true` initializes and starts the bundled PostgreSQL. Set `false` with an external `DATABASE_URL` |
+| `ROUTR_ONE_CONFIG` | `/etc/routr/one.yaml` | Path of the configuration file. When it is set, the file must exist, and warnings name this path instead of the default |
+| `HEPLIFY_OPTIONS` | | Deprecated: set `spec.heplify.options`. When set, runs `heplify` with these options to mirror SIP traffic to a HEP collector such as Homer |
 | `EDGEPORT_RUNNER` | `/service/edgeport.sh` | Script that starts the EdgePort process |
 
 The container applies database migrations on every start.
@@ -48,37 +51,37 @@ See [EdgePort](/reference/components/edgeport) for details.
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `EXTERNAL_ADDRS` | | Comma-separated public addresses of the host. Set it to your host's IP when clients are outside the container |
-| `LOCALNETS` | Networks reported by the OS | Comma-separated CIDRs considered local |
-| `IGNORE_LOOPBACK_FROM_LOCALNETS` | `true` | Skip `127.0.0.1` when `LOCALNETS` comes from the OS |
+| `EXTERNAL_ADDRS` | | Deprecated: set `spec.signaling.externalAddrs`. Comma-separated public addresses of the host. Set it to your host's IP when clients are outside the container |
+| `LOCALNETS` | Networks reported by the OS | Deprecated: set `spec.signaling.localnets`. Comma-separated CIDRs considered local |
+| `IGNORE_LOOPBACK_FROM_LOCALNETS` | `true` | Deprecated: set `spec.signaling.ignoreLoopbackFromLocalnets`. Skip `127.0.0.1` when `LOCALNETS` comes from the OS |
 | `HOSTNAME` | Container hostname | EdgePort reference (`ref`) |
 | `PROCESSOR_ADDR` | `localhost:51901` (from the config file) | Address the EdgePort sends messages to |
 | `CONFIG_PATH` | `/service/config/edgeport.yaml` | EdgePort configuration file |
-| `PKCS12_PASSWORD` | `changeme` | Password of the SIP TLS keystore. Written into the EdgePort config at startup |
-| `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | `TLSv1.3` | Comma-separated TLS versions for the TLS and WSS transports, for example `TLSv1.3,TLSv1.2` |
-| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | Forward-secret AEAD suites | Comma-separated cipher suites for the TLS and WSS transports. See [EdgePort](/reference/components/edgeport#configuration-file) for the default list |
-| `PATH_TO_CERTS` | `/etc/routr/certs` | Directory with `server.crt`, `server.key`, and an optional `ca.crt`. Self-signed certificates are generated when missing |
+| `PKCS12_PASSWORD` | `changeme` | Deprecated: set `spec.signaling.keyStorePassword`. Password of the SIP TLS keystore. Written into the EdgePort config at startup |
+| `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | `TLSv1.3` | Deprecated: set `spec.signaling.tls.protocols`. Comma-separated TLS versions for the TLS and WSS transports, for example `TLSv1.3,TLSv1.2` |
+| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | Forward-secret AEAD suites | Deprecated: set `spec.signaling.tls.cipherSuites`. Comma-separated cipher suites for the TLS and WSS transports. See [EdgePort](/reference/components/edgeport#configuration-file) for the default list |
+| `PATH_TO_CERTS` | `/etc/routr/certs` | Deprecated: set `spec.signaling.certsPath`. Directory with `server.crt`, `server.key`, and an optional `ca.crt`. Self-signed certificates are generated when missing |
 | `CA_CERT_SUBJECT` | `/CN=Self Signed CA` | Subject of the generated CA certificate |
 | `SERVER_CERT_SUBJECT` | `/CN=localhost` | Subject of the generated server certificate |
-| `STRIP_SESSION_PROGRESS_SDP` | `false` | Remove the body from `183 Session Progress` responses |
-| `ENABLE_HEALTHCHECKS` | `false` | Start the HTTP health check on port `8080` |
-| `CONSOLE_PUBLISHER_ENABLED` | `false` | Print call events to the console |
-| `NATS_PUBLISHER_ENABLED` | `false` | Publish call events to NATS |
-| `NATS_PUBLISHER_URL` | `nats://localhost:4222` | NATS server URL |
-| `NATS_PUBLISHER_SUBJECT` | `routr` | NATS subject for events |
-| `LOG4J2` | `/etc/routr/log4j2.yaml` | Log4j2 configuration for the EdgePort |
-| `JAIN_SIP_TRACE_LEVEL` | | Debug level of the JAIN-SIP stack's own log (sockets, TLS handshakes), printed under the `routr` logger. `32` is the most verbose. Unset keeps it quiet |
+| `STRIP_SESSION_PROGRESS_SDP` | `false` | Deprecated: set `spec.signaling.stripSessionProgressSdp`. Remove the body from `183 Session Progress` responses |
+| `ENABLE_HEALTHCHECKS` | `false` | Deprecated: set `spec.signaling.healthChecks`. Start the HTTP health check on port `8080` |
+| `CONSOLE_PUBLISHER_ENABLED` | `false` | Deprecated: set `spec.signaling.publishers.console.enabled`. Print call events to the console |
+| `NATS_PUBLISHER_ENABLED` | `false` | Deprecated: set `spec.signaling.publishers.nats.enabled`. Publish call events to NATS |
+| `NATS_PUBLISHER_URL` | `nats://localhost:4222` | Deprecated: set `spec.signaling.publishers.nats.url`. NATS server URL |
+| `NATS_PUBLISHER_SUBJECT` | `routr` | Deprecated: set `spec.signaling.publishers.nats.subject`. NATS subject for events |
+| `LOG4J2` | `/etc/routr/log4j2.yaml` | Deprecated: set `spec.signaling.log4j2`. Log4j2 configuration for the EdgePort |
+| `JAIN_SIP_TRACE_LEVEL` | | Deprecated: set `spec.signaling.sipTraceLevel`. Debug level of the JAIN-SIP stack's own log (sockets, TLS handshakes), printed under the `routr` logger. `32` is the most verbose. Unset keeps it quiet |
 | `JAVA_HOME` | `/service/jre` | Java runtime for the EdgePort |
 
 ## Message Dispatcher
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `RECORD_MESSAGES` | | `true` records calls as one `.jsonl` file per call. See [Record and replay calls](/guides/record-and-replay-calls) |
-| `RECORD_MESSAGES_PATH` | `/var/routr/traces` | Directory the recordings are written to; mount it to keep them |
-| `RECORD_MESSAGES_MODE` | `flagged` | `flagged` records the calls that touch a Trunk, Agent, Peer or Domain whose `trace.enabled` is `true`; `all` records every call |
+| `RECORD_MESSAGES` | | Deprecated: set `spec.recording.enabled`. `true` records calls as one `.jsonl` file per call. See [Record and replay calls](/guides/record-and-replay-calls) |
+| `RECORD_MESSAGES_PATH` | `/var/routr/traces` | Deprecated: set `spec.recording.path`. Directory the recordings are written to; mount it to keep them |
+| `RECORD_MESSAGES_MODE` | `flagged` | Deprecated: set `spec.recording.mode`. `flagged` records the calls that touch a Trunk, Agent, Peer or Domain whose `trace.enabled` is `true`; `all` records every call |
 
-These three variables exist because `routr-one` has no configuration file. The standalone Dispatcher image takes the same settings, plus `redact` and `lint`, from the `recording` block of its configuration file.
+The `spec.recording` block of `/etc/routr/one.yaml` replaces these three variables, and also sets `redact`, `lint` and the per-call limits, which have no variable. See [Record and replay calls](/guides/record-and-replay-calls). The standalone Dispatcher image takes the same `recording` block in its own configuration file.
 
 ## Connect processor
 
@@ -86,13 +89,13 @@ See [Connect processor](/reference/components/connect) for details.
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `REGISTER_DEFAULT_EXPIRES` | `3600` | Registration lifetime in seconds when a REGISTER carries no expiry |
-| `CONNECT_VERIFIER_PUBLIC_KEY_PATH` | | Public key used to verify `X-Connect-Token` JWTs locally |
-| `CONNECT_VERIFIER_OPTIONS` | `{"expiresIn":"1h","algorithm":["RS256"]}` | JSON options for local verification |
-| `CONNECT_VERIFIER_ADDR` | | Address of a remote gRPC verifier |
-| `UNTRUSTED_HEADERS_TO_STRIP` | Platform headers list | Comma-separated headers removed from untrusted requests. Empty turns stripping off |
-| `TRUSTED_EDGEPORT_ADDRESSES` | Empty | Comma-separated IPs or CIDRs of peer EdgePorts allowed to send `X-Edgeport-Ref` |
-| `TRUSTED_EDGEPORTS` | Empty | Comma-separated EdgePort refs accepted in `X-Edgeport-Ref` |
+| `REGISTER_DEFAULT_EXPIRES` | `3600` | Deprecated: set `spec.connect.registerDefaultExpires`. Registration lifetime in seconds when a REGISTER carries no expiry |
+| `CONNECT_VERIFIER_PUBLIC_KEY_PATH` | | Deprecated: set `spec.connect.verifier.publicKeyPath`. Public key used to verify `X-Connect-Token` JWTs locally |
+| `CONNECT_VERIFIER_OPTIONS` | `{"expiresIn":"1h","algorithm":["RS256"]}` | Deprecated: set `spec.connect.verifier.options`. JSON options for local verification |
+| `CONNECT_VERIFIER_ADDR` | | Deprecated: set `spec.connect.verifier.addr`. Address of a remote gRPC verifier |
+| `UNTRUSTED_HEADERS_TO_STRIP` | Platform headers list | Deprecated: set `spec.connect.untrustedHeadersToStrip`. Comma-separated headers removed from untrusted requests. Empty turns stripping off |
+| `TRUSTED_EDGEPORT_ADDRESSES` | Empty | Deprecated: set `spec.connect.trustedEdgeportAddresses`. Comma-separated IPs or CIDRs of peer EdgePorts allowed to send `X-Edgeport-Ref` |
+| `TRUSTED_EDGEPORTS` | Empty | Deprecated: set `spec.connect.trustedEdgeports`. Comma-separated EdgePort refs accepted in `X-Edgeport-Ref` |
 
 ## API Server (pgdata)
 
@@ -100,12 +103,12 @@ See [API Server](/reference/components/apiserver) for details.
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `TLS_ON` | `false` | `true` serves the external port `51908` over TLS |
-| `VERIFY_CLIENT_CERT` | `false` | `true` requires client certificates signed by `CACERT` |
-| `CACERT` | `/etc/routr/certs/ca.crt` | CA certificate used to verify clients |
-| `SERVER_CERT` | `/etc/routr/certs/server.crt` | Server certificate for the external port |
-| `SERVER_KEY` | `/etc/routr/certs/server.key` | Server private key for the external port |
-| `CLOAK_ENCRYPTION_KEY` | | Cloak key that turns on field-level encryption |
+| `TLS_ON` | `false` | Deprecated: set `spec.apiServer.tls.enabled`. `true` serves the external port `51908` over TLS |
+| `VERIFY_CLIENT_CERT` | `false` | Deprecated: set `spec.apiServer.tls.verifyClientCert`. `true` requires client certificates signed by `CACERT` |
+| `CACERT` | `/etc/routr/certs/ca.crt` | Deprecated: set `spec.apiServer.tls.caCert`. CA certificate used to verify clients |
+| `SERVER_CERT` | `/etc/routr/certs/server.crt` | Deprecated: set `spec.apiServer.tls.serverCert`. Server certificate for the external port |
+| `SERVER_KEY` | `/etc/routr/certs/server.key` | Deprecated: set `spec.apiServer.tls.serverKey`. Server private key for the external port |
+| `CLOAK_ENCRYPTION_KEY` | | Deprecated: set `spec.encryption.key`. Cloak key that turns on field-level encryption |
 
 ## Location Service
 
@@ -113,8 +116,8 @@ See [Location](/reference/components/location) for details.
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `LOCATION_CACHE_PROVIDER` | `memory` | Where registrations are kept: `memory` or `redis` |
-| `LOCATION_CACHE_PARAMETERS` | `host=localhost,port=6379` | Redis connection parameters, used when `LOCATION_CACHE_PROVIDER` is `redis` |
+| `LOCATION_CACHE_PROVIDER` | `memory` | Deprecated: set `spec.location.cache.provider`. Where registrations are kept: `memory` or `redis` |
+| `LOCATION_CACHE_PARAMETERS` | `host=localhost,port=6379` | Deprecated: set `spec.location.cache.parameters`. Redis connection parameters, used when `LOCATION_CACHE_PROVIDER` is `redis` |
 
 ## RTPRelay
 
@@ -122,10 +125,10 @@ See [RTPRelay](/reference/components/rtprelay) for details.
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `RTPENGINE_HOST` | | RTPEngine host. Setting it starts RTPRelay and adds it as a post-processor middleware |
-| `RTPENGINE_PORT` | `22222` | RTPEngine ng control port |
-| `RTPENGINE_TIMEOUT` | `5000` | Timeout for RTPEngine requests, in milliseconds |
-| `RTPRELAY_CONFIG_PATH` | `/etc/routr/rtprelay.yaml` | RTPRelay configuration file, read when it exists. Only its `spec.profiles` are used |
+| `RTPENGINE_HOST` | | Deprecated: set `spec.rtprelay.host`. RTPEngine host. Setting it starts RTPRelay and adds it as a post-processor middleware |
+| `RTPENGINE_PORT` | `22222` | Deprecated: set `spec.rtprelay.port`. RTPEngine ng control port |
+| `RTPENGINE_TIMEOUT` | `5000` | Deprecated: set `spec.rtprelay.timeout`. Timeout for RTPEngine requests, in milliseconds |
+| `RTPRELAY_CONFIG_PATH` | `/etc/routr/rtprelay.yaml` | Deprecated: set `spec.rtprelay.configPath`. RTPRelay configuration file, read when it exists. Only its `spec.profiles` are used |
 
 ## Logging and telemetry
 
@@ -133,15 +136,20 @@ The Node.js services and the EdgePort read the same OpenTelemetry variables. Tel
 
 | Name | Default | Description |
 | --- | --- | --- |
-| `LOGS_LEVEL` | | Log level of the Node.js services, for example `verbose` or `info` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | | OTLP/HTTP base endpoint, such as `http://collector:4318`. Setting it turns on traces, metrics and logs, sent to `/v1/traces`, `/v1/metrics` and `/v1/logs` |
-| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | Full OTLP/HTTP traces URL. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` for traces, and also turns telemetry on. Set alone, metrics and logs go to the same collector with `/v1/traces` swapped for `/v1/metrics` and `/v1/logs` |
+| `LOGS_LEVEL` | | Deprecated: set `spec.logs.level`. Log level of the Node.js services, for example `verbose` or `info` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | | Deprecated: set `spec.telemetry.endpoint`. OTLP/HTTP base endpoint, such as `http://collector:4318`. Setting it turns on traces, metrics and logs, sent to `/v1/traces`, `/v1/metrics` and `/v1/logs` |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | | Deprecated: set `spec.telemetry.tracesEndpoint`. Full OTLP/HTTP traces URL. Takes precedence over `OTEL_EXPORTER_OTLP_ENDPOINT` for traces, and also turns telemetry on. Set alone, metrics and logs go to the same collector with `/v1/traces` swapped for `/v1/metrics` and `/v1/logs` |
 | `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | | Full OTLP/HTTP metrics URL. Takes precedence for metrics; does not turn telemetry on by itself |
 | `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | | Full OTLP/HTTP logs URL. Takes precedence for logs; does not turn telemetry on by itself |
 | `OTEL_EXPORTER_OTLP_HEADERS` | | Headers sent with every export, as `key=value` pairs separated by commas, for example `Authorization=Bearer <token>` |
-| `OTEL_METRIC_EXPORT_INTERVAL` | `15000` | Interval between metric exports, in milliseconds |
-| `OTEL_SERVICE_NAME` | `one` (Node.js services), `routr-edgeport` (EdgePort) | Service name reported in traces, metrics and logs. Set, it applies to every process in the container, the EdgePort included |
-| `OTEL_SDK_DISABLED` | | `true` turns telemetry off even when an endpoint is set |
+| `OTEL_METRIC_EXPORT_INTERVAL` | `15000` | Deprecated: set `spec.telemetry.metricExportIntervalMillis`. Interval between metric exports, in milliseconds |
+| `OTEL_SERVICE_NAME` | `one` (Node.js services), `routr-edgeport` (EdgePort) | Deprecated: set `spec.telemetry.serviceName`. Service name reported in traces, metrics and logs. Set, it applies to every process in the container, the EdgePort included |
+| `OTEL_SDK_DISABLED` | | Deprecated: set `spec.telemetry.enabled`, which is inverted: `telemetry.enabled: false` equals `OTEL_SDK_DISABLED=true`. `true` turns telemetry off even when an endpoint is set |
+| `LOGS_FORMAT` | `json` | Deprecated: set `spec.logs.format`. Log format of the Node.js services: `json` or `text` |
+| `LOGS_TRANSPORT` | `console` | Deprecated: set `spec.logs.transport`. Where the Node.js services send logs: `console` or `fluent` |
+| `LOGS_DRIVER_HOST` | | Deprecated: set `spec.logs.fluent.host`. Fluentd host, used when `LOGS_TRANSPORT` is `fluent` |
+| `LOGS_DRIVER_PORT` | `24224` | Deprecated: set `spec.logs.fluent.port`. Fluentd port |
+| `LOGS_OPT_TAG_PREFIX` | `fonoster-logs` | Deprecated: set `spec.logs.fluent.tagPrefix`. Tag prefix of the logs sent to Fluentd |
 
 ## Example
 

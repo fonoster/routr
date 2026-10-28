@@ -74,6 +74,10 @@ The routr-one image listens on the following ports. Publish only the ones you us
     </Tabs>
 
     Replace `latest` with a specific version for anything beyond a quick test. The available tags are listed on [Docker Hub](https://hub.docker.com/r/fonoster/routr-one/tags).
+
+    <Note>
+    Setting `EXTERNAL_ADDRS` as an environment variable is fine for a quick test, and the container logs a deprecation warning for it. For anything longer-lived, set `spec.signaling.externalAddrs` in `/etc/routr/one.yaml`. See [Configure the container](#configure-the-container).
+    </Note>
   </Step>
   <Step title="Check the container status">
     Wait a few seconds for the container to initialize, then list your containers.
@@ -108,44 +112,175 @@ The routr-one image listens on the following ports. Publish only the ones you us
 
 ## Configure the container
 
-The routr-one image reads these environment variables. Set them with `environment:` in Compose or `-e` with `docker run`.
+routr-one 2.31.0 and later read their settings from one file, `/etc/routr/one.yaml`. Write the file on the host and mount it into the container. The following example sets the external address.
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `EXTERNAL_ADDRS` | none | Comma-separated addresses to advertise to SIP clients. |
-| `LOCALNETS` | OS-reported networks | Comma-separated networks Routr treats as local. Use it with `EXTERNAL_ADDRS`. |
-| `TLS_ON` | `false` | Enables TLS on the API Server port `51908`. See [Secure the server](/guides/secure-the-server). |
-| `VERIFY_CLIENT_CERT` | `false` | Requires client certificates on the API Server. |
-| `DATABASE_URL` | internal PostgreSQL | Connection string for the API Server database. |
-| `START_INTERNAL_DB` | `true` | Set to `false` when `DATABASE_URL` points to an external PostgreSQL server. |
-| `RTPENGINE_HOST` | none | Enables the RTPRelay middleware. See [Enable WebRTC clients](/guides/enable-webrtc). |
-| `RTPENGINE_PORT` | `22222` | RTPEngine control port. |
-| `RTPRELAY_CONFIG_PATH` | `/etc/routr/rtprelay.yaml` | RTPRelay configuration file. Read only when it exists; routr-one takes its profiles. |
-| `LOCATION_CACHE_PROVIDER` | `memory` | Where the Location Service keeps registrations: `memory` or `redis`. See [Scale with Redis](/guides/scale-with-redis). |
-| `LOCATION_CACHE_PARAMETERS` | `host=localhost,port=6379` | Redis connection as `key=value` pairs. Used only with `redis`. |
-| `RECORD_MESSAGES` | `false` | Set to `true` to record SIP messages. See [Record and replay calls](/guides/record-and-replay-calls). |
-| `RECORD_MESSAGES_MODE` | `flagged` | `flagged` records only calls a processor flags; `all` records every call. |
-| `RECORD_MESSAGES_PATH` | `/var/routr/traces` | Directory for the recordings, one `.jsonl` file per call. Must be writable. |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | none | Sends traces, metrics, and logs over OTLP/HTTP. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry). |
-| `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | `TLSv1.3` | Comma-separated TLS versions for SIP over TLS and WSS. |
-| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | TLS 1.3 and ECDHE-GCM/ChaCha20 suites | Comma-separated cipher suites for SIP over TLS and WSS. |
-| `CLOAK_ENCRYPTION_KEY` | none | Encrypts Credentials passwords in the database. See [Secure the server](/guides/secure-the-server#encrypt-credentials-at-rest). |
-| `PKCS12_PASSWORD` | `changeme` | Password for the SIP signaling keystore. Change it in production. |
-| `HEPLIFY_OPTIONS` | none | When set, sends SIP traffic to a Homer server through heplify. |
+```yaml one.yaml
+kind: RoutrOne
+apiVersion: v2beta1
+ref: routr-one
+spec:
+  signaling:
+    externalAddrs: [192.168.1.3]
+```
+
+<Tabs>
+  <Tab title="Docker Compose">
+    ```yaml compose.yaml
+    services:
+      routr:
+        image: fonoster/routr-one:2.31.0
+        ports:
+          - 51908:51908
+          - 5060:5060/udp
+        volumes:
+          - ./one.yaml:/etc/routr/one.yaml:ro
+          - shared:/var/lib/postgresql/data
+
+    volumes:
+      shared:
+    ```
+  </Tab>
+  <Tab title="docker run">
+    ```bash
+    docker run -d --name routr \
+      -p 51908:51908 \
+      -p 5060:5060/udp \
+      -v "$PWD/one.yaml:/etc/routr/one.yaml:ro" \
+      -v routr-data:/var/lib/postgresql/data \
+      fonoster/routr-one:2.31.0
+    ```
+  </Tab>
+</Tabs>
+
+[`config/one.example.yaml`](https://github.com/fonoster/routr/blob/v2.31.0/config/one.example.yaml) lists every key, with the environment variable each one replaces. The image also ships it at `/etc/routr/one.example.yaml`. A key you leave out keeps its environment variable, or the image default, working as before. An unknown or misspelled key stops the container and names the key.
+
+The file holds secrets, and the image runs as UID and GID `5000`:
+
+```bash
+sudo chown 5000:5000 one.yaml && chmod 600 one.yaml
+```
+
+Never commit the file. On Kubernetes, mount it from a Secret.
+
+Two kinds of references keep secrets out of the file:
+
+- `${VAR}` (and `${VAR:-default}`) reads the container's environment, not the host's. `${POSTGRES_PASSWORD}` works only when the container gets it, for example with `-e POSTGRES_PASSWORD`.
+- `secret://file/<path>` reads a file inside the container, for example `secret://file/run/secrets/keystore-password`. `secret://env/NAME` and `secret://k8s/<secret>#<key>` work too.
+
+<Warning>
+A `${...}` reference never names a variable from the [deprecated list](#deprecated-environment-variables). Use a new name, such as `${ROUTR_DB_URL}` or `${ROUTR_DB_PASSWORD}`. The image sets `DATABASE_URL` and `PKCS12_PASSWORD=changeme` in its own environment, so `url: ${DATABASE_URL}` silently becomes the internal database once you remove `-e DATABASE_URL`, with no warning.
+</Warning>
+
+On Kubernetes, mount the Secret's `one.yaml` key with `subPath`, so the rest of `/etc/routr` stays in place:
+
+```yaml
+containers:
+  - name: routr
+    image: fonoster/routr-one:2.31.0
+    volumeMounts:
+      - name: one-config
+        mountPath: /etc/routr/one.yaml
+        subPath: one.yaml
+        readOnly: true
+volumes:
+  - name: one-config
+    secret:
+      secretName: routr-one-config
+```
+
+Or mount it at another path and set `ROUTR_ONE_CONFIG` to that path. Don't mount the Secret as the directory `/etc/routr`: it hides `log4j2.yaml`, `rtprelay.yaml`, `certs/` and the example.
+
+To use an external PostgreSQL server instead of the internal one, set `spec.database.url` and turn off `spec.database.startInternal`. The following file keeps the database password out of the URL with `${ROUTR_DB_PASSWORD}`:
+
+```yaml one.yaml
+kind: RoutrOne
+apiVersion: v2beta1
+ref: routr-one
+spec:
+  database:
+    url: postgres://postgres:${ROUTR_DB_PASSWORD}@postgres:5432/postgres
+    startInternal: false
+```
+
+The container must get `ROUTR_DB_PASSWORD` in its environment, or it stops at startup. Set it in your shell, then pass it with `ROUTR_DB_PASSWORD: ${ROUTR_DB_PASSWORD}` under `environment:` in Compose, or with `-e ROUTR_DB_PASSWORD` in `docker run`:
+
+```bash
+export ROUTR_DB_PASSWORD=<your database password>
+```
+
+### Deprecated environment variables
+
+Before 2.31.0, routr-one read only environment variables. They keep working until the next major release. Each one logs a warning naming the key that replaces it, and a key set in the file wins over its variable. Set them with `environment:` in Compose or `-e` with `docker run`.
+
+| Variable | File key | Default | Description |
+| --- | --- | --- | --- |
+| `EXTERNAL_ADDRS` | `spec.signaling.externalAddrs` | none | Comma-separated addresses to advertise to SIP clients. |
+| `LOCALNETS` | `spec.signaling.localnets` | OS-reported networks | Comma-separated networks Routr treats as local. Use it with `EXTERNAL_ADDRS`. |
+| `TLS_ON` | `spec.apiServer.tls.enabled` | `false` | Enables TLS on the API Server port `51908`. See [Secure the server](/guides/secure-the-server). |
+| `VERIFY_CLIENT_CERT` | `spec.apiServer.tls.verifyClientCert` | `false` | Requires client certificates on the API Server. |
+| `DATABASE_URL` | `spec.database.url` | internal PostgreSQL | Connection string for the API Server database. |
+| `START_INTERNAL_DB` | `spec.database.startInternal` | `true` | Set to `false` when `DATABASE_URL` points to an external PostgreSQL server. |
+| `RTPENGINE_HOST` | `spec.rtprelay.host` | none | Enables the RTPRelay middleware. See [Enable WebRTC clients](/guides/enable-webrtc). |
+| `RTPENGINE_PORT` | `spec.rtprelay.port` | `22222` | RTPEngine control port. |
+| `RTPRELAY_CONFIG_PATH` | `spec.rtprelay.configPath` | `/etc/routr/rtprelay.yaml` | RTPRelay configuration file. Read only when it exists; routr-one takes its profiles. |
+| `LOCATION_CACHE_PROVIDER` | `spec.location.cache.provider` | `memory` | Where the Location Service keeps registrations: `memory` or `redis`. See [Scale with Redis](/guides/scale-with-redis). |
+| `LOCATION_CACHE_PARAMETERS` | `spec.location.cache.parameters` | `host=localhost,port=6379` | Redis connection as `key=value` pairs. Used only with `redis`. |
+| `RECORD_MESSAGES` | `spec.recording.enabled` | `false` | Set to `true` to record SIP messages. See [Record and replay calls](/guides/record-and-replay-calls). |
+| `RECORD_MESSAGES_MODE` | `spec.recording.mode` | `flagged` | `flagged` records only calls a processor flags; `all` records every call. |
+| `RECORD_MESSAGES_PATH` | `spec.recording.path` | `/var/routr/traces` | Directory for the recordings, one `.jsonl` file per call. Must be writable. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `spec.telemetry.endpoint` | none | Sends traces, metrics, and logs over OTLP/HTTP. See [Monitor with OpenTelemetry](/guides/monitor-with-opentelemetry). |
+| `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | `spec.signaling.tls.protocols` | `TLSv1.3` | Comma-separated TLS versions for SIP over TLS and WSS. |
+| `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | `spec.signaling.tls.cipherSuites` | TLS 1.3 and ECDHE-GCM/ChaCha20 suites | Comma-separated cipher suites for SIP over TLS and WSS. |
+| `CLOAK_ENCRYPTION_KEY` | `spec.encryption.key` | none | Encrypts Credentials passwords in the database. See [Secure the server](/guides/secure-the-server#encrypt-credentials-at-rest). |
+| `PKCS12_PASSWORD` | `spec.signaling.keyStorePassword` | `changeme` | Password for the SIP signaling keystore. Change it in production. |
+| `HEPLIFY_OPTIONS` | `spec.heplify.options` | none | When set, sends SIP traffic to a Homer server through heplify. |
 
 For the complete list across all components, see [Environment variables](/reference/environment-variables).
 
-To use an external PostgreSQL server instead of the internal one, set both variables. The following snippet shows the shape.
+## Upgrade from environment variables
 
-```yaml compose.yaml
-services:
-  routr:
-    image: fonoster/routr-one:latest
-    environment:
-      EXTERNAL_ADDRS: ${DOCKER_HOST_ADDRESS}
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
-      START_INTERNAL_DB: "false"
-```
+Move a routr-one container from environment variables to `/etc/routr/one.yaml` without downtime beyond a restart.
+
+<Steps>
+  <Step title="Upgrade the image, keeping the variables">
+    Run routr-one 2.31.0 or later with the same environment variables. Each one set to a value other than its image default now logs a warning, and that list is your checklist:
+
+    ```bash
+    docker logs routr 2>&1 | grep -E "is deprecated|is ignored"
+    ```
+
+    ```text
+    EXTERNAL_ADDRS is deprecated; set spec.signaling.externalAddrs in /etc/routr/one.yaml
+    CLOAK_ENCRYPTION_KEY is deprecated; set spec.encryption.key in /etc/routr/one.yaml
+    ```
+
+    A variable equal to its image default, such as `PKCS12_PASSWORD=changeme`, `START_INTERNAL_DB=true` or `TLS_ON=false`, logs nothing and needs no key.
+  </Step>
+  <Step title="Write the file">
+    Write a `one.yaml` that holds only the warned keys, each value copied unchanged, and mount it at `/etc/routr/one.yaml` as in [Configure the container](#configure-the-container).
+
+    - Comma-separated lists, such as `EXTERNAL_ADDRS`, `LOCALNETS` or `TRUSTED_EDGEPORTS`, become YAML lists: `EXTERNAL_ADDRS=203.0.113.10,sip.example.com` becomes `externalAddrs: [203.0.113.10, sip.example.com]`.
+    - The JSON in `CONNECT_VERIFIER_OPTIONS` becomes a YAML object under `spec.connect.verifier.options`.
+    - `OTEL_SDK_DISABLED=true` becomes `telemetry.enabled: false`. The key is inverted.
+    - `spec.encryption.key` takes your existing `CLOAK_ENCRYPTION_KEY`. Never generate a new one: a new key can't read the Credentials passwords already stored.
+
+    If you start from the example file instead, delete the placeholder lines for keys you never set.
+  </Step>
+  <Step title="Confirm the file wins">
+    Recreate the container with the file mounted and the variables still set. Every warning now reads like this, and none reads `is deprecated`:
+
+    ```text
+    EXTERNAL_ADDRS is ignored; spec.signaling.externalAddrs in /etc/routr/one.yaml wins
+    ```
+
+    Check that `rctl` still lists your resources and that a SIP client still registers. Don't go on until all of this holds.
+  </Step>
+  <Step title="Remove the variables">
+    Remove the environment variables, recreate the container, and confirm that no warnings remain.
+  </Step>
+</Steps>
+
+To roll back before the last step, remove the mount and recreate the container: the variables are still in place. After the last step, run the previous image tag with a saved copy of the removed variables.
 
 ## Upgrade
 
