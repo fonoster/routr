@@ -33,7 +33,7 @@ docs.routr.io); the design specs are `CORE.md` and `CONNECT.md`.
 
 Default Verify per area:
 
-- sip-core, nat: `npm test`, `./gradlew test` and `npm run compat -- --sip-connect`.
+- sip-core: `npm test`, `./gradlew test` and `npm run compat -- --sip-connect`.
 - interop: `npm run compat -- --sip-connect`; the SEET job on the PR.
 - infra: the PR's Tests run; for the chart, `npm run helm:package`.
 
@@ -67,12 +67,32 @@ Overrides (the profile yields to these):
 
 | Area label | Paths | Experts |
 | :--- | :--- | :--- |
-| area: sip-core | mods/edgeport, mods/dispatcher, mods/processor, mods/location, mods/connect, mods/registry, mods/requester | realtime-comms-engineer |
+| area: sip-core | mods/edgeport, mods/dispatcher, mods/processor, mods/location, mods/connect, mods/registry, mods/requester, mods/rtprelay, mods/common/src/ip_utils.ts | realtime-comms-engineer |
 | area: interop | mods/connect, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
-| area: nat | mods/edgeport, mods/rtprelay, mods/common/src/ip_utils.ts | realtime-comms-engineer |
 | area: infra | ops/charts, Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts | release-engineer, security-engineer |
 | (none) | mods/pgdata, mods/simpledata | database-engineer |
 | (none) | mods/ctl, mods/sdk, docs-site | technical-writer |
+
+## Labels
+These are the only labels; any other is deleted. An issue's kind is its native issue type (Bug,
+Feature, Task), not a label. Close as "not planned" or "duplicate" instead of labeling.
+
+| Label | Meaning | Applied by |
+| :--- | :--- | :--- |
+| needs-triage | Filed, not yet shaped | Issue forms |
+| needs-info | Waiting on the reporter | /ps:report |
+| ready | Plan approved; agents may implement | A maintainer |
+| not-ready | The implementer refused; see its comment | /ps:implement |
+| blocked | An agent stopped on a blocker | Any ps skill |
+| needs-human | A loop limit was hit or a decision needs a maintainer | Any ps skill |
+| needs-issue | A pull request with no linked issue | require-linked-issue workflow |
+| breaking | Needs a major bump or a migration note | /ps:report |
+| risk: high | A maintainer reviews the plan before work starts | /ps:report |
+| external | Opened by someone outside the org | label-external workflow |
+| good first issue | A ready issue a newcomer can take | A maintainer |
+| dependencies | Dependency update | Dependabot |
+
+Plus one `area:` label per labeled row of `## Areas`; `(none)` rows get no label.
 
 ## Compatibility
 
@@ -165,3 +185,4 @@ Breaking (a major release, `!` in the commit subject):
 - 2026-10-26: Connect targets SIPconnect 1.1; the rest of Routr targets the RFCs.
 - 2026-10-26: Merge pull requests one at a time; each push to main runs a release.
 - 2026-10-26: Issues that can't be stated in one sentence are closed as not planned.
+- 2026-10-28: One label standard across fonoster, routr and roomr (`## Labels`); kinds are native issue types; `area: nat` folded into `area: sip-core`.
