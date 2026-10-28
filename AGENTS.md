@@ -155,8 +155,8 @@ Breaking (a major release, `!` in the commit subject):
 - The chart `ops/charts/connect` depends on Bitnami `postgresql` 12.1.15 and `redis`
   17.7.3. The release commit sets its `appVersion` and bumps its patch version
   (`.scripts/bump-chart.sh`); it publishes only after every image is on Docker Hub.
-- The Node service images `npm install` the `@routr/*` packages from the registry, not from
-  the checkout.
+- Only routr-one installs the `@routr/*` packages from npm, and the release waits for npm to
+  serve them; every other image packs them from the checkout.
 - Telemetry is OTLP/HTTP: `OTEL_EXPORTER_OTLP_ENDPOINT` (chart: `global.otlpEndpoint`).
   Unset turns it off. The old `otlExporter` value is no longer read.
 
