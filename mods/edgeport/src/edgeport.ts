@@ -21,7 +21,8 @@ declare const Java: any
 // Injected by webpack from mods/edgeport/package.json at bundle time
 declare const EDGEPORT_VERSION: string | undefined
 
-import { EXTERNAL_ADDRS, LOCALNETS } from "./envs"
+import { ALIASES, EXTERNAL_ADDRS, LOCALNETS } from "./envs"
+import { getAliases } from "./aliases"
 import {
   assertHasSecurityContext,
   assertNoDuplicatedPort,
@@ -85,6 +86,11 @@ export default function edgePort(config: EdgePortConfig) {
     config.spec.localnets?.forEach((net: string) => localnets.add(net))
   }
 
+  const aliases = new ArrayList()
+  getAliases(ALIASES, config.spec.aliases).forEach((alias: string) =>
+    aliases.add(alias)
+  )
+
   const version =
     typeof EDGEPORT_VERSION === "string" ? EDGEPORT_VERSION : "unknown"
 
@@ -93,7 +99,8 @@ export default function edgePort(config: EdgePortConfig) {
       sipProvider,
       { ...config, version },
       externalAddrs,
-      localnets
+      localnets,
+      aliases
     )
   )
 }

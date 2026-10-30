@@ -219,6 +219,31 @@ describe("@routr/one[config/load_one_config]", () => {
     ])
   })
 
+  it("passes spec.signaling.aliases to the EdgePort as ALIASES", () => {
+    const path = withSpec("  signaling:\n    aliases: [routr]\n")
+
+    const out = loadOneConfig({ path, env: {} })
+
+    expect(out.config.spec.signaling?.aliases).to.deep.equal(["routr"])
+    expect(out.env.ALIASES).to.equal("routr")
+    expect(out.warnings).to.deep.equal([])
+  })
+
+  it("rejects spec.signaling.aliases given as a string", () => {
+    const path = withSpec("  signaling:\n    aliases: routr\n")
+
+    expect(() => loadOneConfig({ path, env: {} })).to.throw(/invalid config/)
+  })
+
+  it("warns that a user-set ALIASES is deprecated", () => {
+    const out = loadOneConfig({ env: { ALIASES: "routr" } })
+
+    expect(out.env).to.not.have.property("ALIASES")
+    expect(out.warnings).to.deep.equal([
+      "ALIASES is deprecated; set spec.signaling.aliases in /etc/routr/one.yaml"
+    ])
+  })
+
   it("leaves out absent keys and maps an empty list to an empty string", () => {
     const absent = withSpec("  connect:\n    trustedEdgeports: [a, b]\n")
     const empty = withSpec("  connect:\n    untrustedHeadersToStrip: []\n")

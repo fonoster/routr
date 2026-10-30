@@ -525,6 +525,29 @@ describe("@routr/common/trace corpus helpers", () => {
     expect(Trace.compareLive(passedThrough, live)?.reason).to.include("Body")
   })
 
+  describe("sip/route-self-removed with aliases", () => {
+    const withAlias = (route: SIPMessage["route"]) =>
+      mutate(forwardedInvite, (_, out, r) => {
+        r.request.aliases = ["routr"]
+        out.route = route
+      })
+
+    it("fires when a Route naming an alias is left", () => {
+      const left = withAlias([
+        { address: { uri: { host: "routr", port: 5060 } } }
+      ] as SIPMessage["route"])
+      expect(
+        findingsOf("sip/route-self-removed", { record: left })
+      ).to.have.lengthOf(1)
+    })
+
+    it("passes once that Route is removed", () => {
+      expect(
+        findingsOf("sip/route-self-removed", { record: withAlias([]) })
+      ).to.deep.equal([])
+    })
+  })
+
   describe("sip/ack-2xx when the EdgePort authenticated on the caller's behalf", () => {
     // The provider leg's 2xx carries CSeq 3 after the authenticated retry,
     // while the caller's INVITE and ACK keep CSeq 2

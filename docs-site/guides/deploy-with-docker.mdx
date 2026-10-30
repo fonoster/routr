@@ -123,6 +123,18 @@ spec:
     externalAddrs: [192.168.1.3]
 ```
 
+When other services reach Routr by a service name, such as `routr` in a Docker Compose network, list that name in `spec.signaling.aliases`. Routr then treats a Route header that names it, on the port of one of its listening points, as its own and removes it instead of forwarding the request back to itself. Aliases are compared case-insensitively and never advertised.
+
+```yaml one.yaml
+kind: RoutrOne
+apiVersion: v2beta1
+ref: routr-one
+spec:
+  signaling:
+    externalAddrs: [203.0.113.10]
+    aliases: [routr]
+```
+
 <Tabs>
   <Tab title="Docker Compose">
     ```yaml compose.yaml

@@ -18,7 +18,7 @@
  */
 import { defineRule } from "../types"
 import { Profile, Severity } from "../../types"
-import { isForwarded, isOwnHost, outbound } from "../facts"
+import { isAliasHost, isForwarded, isOwnHost, outbound } from "../facts"
 
 export default defineRule(
   {
@@ -30,8 +30,10 @@ export default defineRule(
   },
   ({ record }, fail) => {
     if (!isForwarded(record)) return
-    const own = (outbound(record)?.route || []).find((r) =>
-      isOwnHost(record.request, r.address?.uri?.host)
+    const own = (outbound(record)?.route || []).find(
+      (r) =>
+        isOwnHost(record.request, r.address?.uri?.host) ||
+        isAliasHost(record.request, r.address?.uri?.host)
     )
     if (own) {
       return fail(

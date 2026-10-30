@@ -36,6 +36,8 @@ message MessageRequest {
   string edge_port_version = 10;
   // Local socket the EdgePort received the message on
   NetInterface received_on = 11;
+  // Hostnames this EdgePort answers to (spec.aliases)
+  repeated string aliases = 12;
 }
 ```
 
@@ -43,6 +45,7 @@ message MessageRequest {
 - `listening_points`, `external_addrs`, and `localnets` describe the EdgePort's interfaces, so a Processor can work out which address to put in `Via` and `Record-Route` headers.
 - `message` holds the parsed SIP headers (`From`, `To`, `Contact`, `Via`, `Route`, and others), any extra headers as a list of extensions, and the body.
 - `edge_port_version` is the version of the EdgePort that received the message, and `received_on` is the local socket it arrived on.
+- `aliases` lists the hostnames the EdgePort answers to (`spec.aliases`), so a Processor can recognize a Route that names it. They are never advertised.
 
 The EdgePort then calls `ProcessMessage` on its configured processor address, usually the Message Dispatcher. Every Processor and Middleware implements this same gRPC method:
 

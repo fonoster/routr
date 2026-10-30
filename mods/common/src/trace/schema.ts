@@ -120,6 +120,7 @@ const request = {
     listeningPoints: { type: "array" },
     externalAddrs: { type: "array", items: { type: "string" } },
     localnets: { type: "array", items: { type: "string" } },
+    aliases: { type: "array", items: { type: "string" } },
     message: sipMessage,
     metadata: stringMap,
     edgePortVersion: { type: "string" },

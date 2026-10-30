@@ -69,6 +69,16 @@ export const schema = {
           uniqueItems: true,
           minItems: 0
         },
+        aliases: {
+          description:
+            "Hostnames that also name this EdgePort, such as its Docker Compose service name. Never advertised.",
+          type: "array",
+          items: {
+            type: "string"
+          },
+          uniqueItems: true,
+          minItems: 0
+        },
         methods: {
           description: "Acceptable SIP Methods",
           type: "array",

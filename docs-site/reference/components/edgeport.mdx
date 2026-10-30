@@ -31,6 +31,7 @@ The EdgePort reads a YAML or JSON file and validates it against a JSON schema at
 | `spec.bindAddr` | string | No | `0.0.0.0` | IPv4 interface to accept requests on |
 | `spec.externalAddrs` | string[] | No | `[]` | External addresses of the EdgePort (IPs or hostnames). `EXTERNAL_ADDRS` overrides it |
 | `spec.localnets` | string[] | No | Networks reported by the OS | Networks considered local, in CIDR form. `LOCALNETS` overrides it |
+| `spec.aliases` | string[] | No | `[]` | Hostnames that also name this EdgePort, such as its Docker Compose service or Kubernetes Service name. A Route whose host is one of them, on the port of a listening point, is treated as this EdgePort and removed. Never advertised. `ALIASES` overrides it |
 | `spec.methods` | string[] | Yes | | Acceptable SIP methods |
 | `spec.unknownMethodAction` | string | No | | `Discard` or `Respond` (reserved for future use) |
 | `spec.transport` | object[] | Yes | | Listening points. One entry per protocol |
@@ -68,6 +69,7 @@ Use the names the Java runtime knows. A name it doesn't recognize makes every TL
 | `HOSTNAME` | Set by the runtime | Overrides `ref`. Docker and Kubernetes set it to the container or pod hostname |
 | `EXTERNAL_ADDRS` | | Comma-separated addresses. Overrides `spec.externalAddrs` |
 | `LOCALNETS` | | Comma-separated CIDRs. Overrides `spec.localnets` |
+| `ALIASES` | | Comma-separated hostnames. Overrides `spec.aliases` |
 | `SECURITY_CONTEXT_CLIENT_PROTOCOLS` | | Comma-separated TLS versions, for example `TLSv1.3,TLSv1.2`. Overrides `spec.securityContext.client.protocols` |
 | `SECURITY_CONTEXT_CLIENT_CIPHER_SUITES` | | Comma-separated cipher suites. Overrides `spec.securityContext.client.cipherSuites` |
 | `JAIN_SIP_TRACE_LEVEL` | | Troubleshooting only. JAIN-SIP's own trace level, for example `32` for debug: logs sockets and TLS handshakes under the `routr` logger. Very verbose |
@@ -115,7 +117,7 @@ The EdgePort is a gRPC client. For every SIP request and response, it calls `Pro
 | --- | --- | --- | --- |
 | `fonoster.routr.processor.v2beta1.Processor` | `ProcessMessage` | `MessageRequest` | `MessageResponse` |
 
-`MessageRequest` carries the Call-ID (`ref`), the EdgePort reference (`edge_port_ref`), the SIP method, the sender, the listening points, `external_addrs`, `localnets`, the SIP message, and metadata. See [processor.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/processor.proto) and [sipmessage.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/sipmessage.proto).
+`MessageRequest` carries the Call-ID (`ref`), the EdgePort reference (`edge_port_ref`), the SIP method, the sender, the listening points, `external_addrs`, `localnets`, `aliases`, the SIP message, and metadata. See [processor.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/processor.proto) and [sipmessage.proto](https://github.com/fonoster/routr/blob/main/mods/common/src/protos/sipmessage.proto).
 
 ## Minimal example
 
@@ -153,9 +155,33 @@ docker run -it \
   fonoster/routr-edgeport
 ```
 
+When other services reach the EdgePort by a name, list that name in `spec.aliases`. This configuration also listens on TLS and treats a Route to `routr` or `sip.example.com` as its own.
+
+```yaml
+kind: EdgePort
+apiVersion: v2beta1
+ref: edgeport-01
+spec:
+  bindAddr: 0.0.0.0
+  externalAddrs: [203.0.113.10]
+  localnets: [10.216.30.40/29]
+  # Hostnames other services use to reach this EdgePort, such as the Docker
+  # Compose service name in Route: <sip:routr:5060>. Compared case-insensitively.
+  # Never advertised.
+  aliases: [routr, sip.example.com]
+  transport:
+    - protocol: udp
+      port: 5060
+    - protocol: tls
+      port: 5061
+  processor:
+    addr: dispatcher:51901
+```
+
 ## Notes
 
 - Behind NAT (Docker, Kubernetes, cloud VMs), set `spec.externalAddrs` or `EXTERNAL_ADDRS`. Processors use these addresses to build the advertised address.
+- When callers reach the EdgePort by a name, such as a Docker service name in their Route header, list that name in `spec.aliases`; otherwise Routr forwards the request back to itself.
 - Publish every port in `spec.transport` from the container.
 - A `tls` or `wss` transport without `spec.securityContext` stops the EdgePort at startup.
 - Because `HOSTNAME` overrides `ref`, the EdgePort reference in Docker and Kubernetes is the container or pod hostname.

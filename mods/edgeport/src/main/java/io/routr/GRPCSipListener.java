@@ -64,7 +64,7 @@ public class GRPCSipListener implements SipListener {
   private final boolean stripSessionProgressSdp;
 
   public GRPCSipListener(final SipProvider sipProvider, final Map<String, Object> config,
-      final List<String> externalAddrs, final List<String> localnets)
+      final List<String> externalAddrs, final List<String> localnets, final List<String> aliases)
       throws IOException, PeerUnavailableException, InterruptedException {
     System.setProperty("serviceName", "edgeport");
     MapProxyObject values = new MapProxyObject(config);
@@ -112,6 +112,7 @@ public class GRPCSipListener implements SipListener {
     LOG.info("starting edgeport ref = {} version = {} at {}", edgePortRef, edgePortVersion, bindAddr);
     LOG.info("localnets list [{}]", String.join(",", localnets));
     LOG.info("external hosts list [{}]", String.join(",", externalAddrs));
+    LOG.info("aliases list [{}]", String.join(",", aliases));
 
     ManagedChannel channel = ManagedChannelBuilder.forTarget(addr)
         .usePlaintext()
@@ -137,6 +138,7 @@ public class GRPCSipListener implements SipListener {
     messageConverter.setEdgePortVersion(edgePortVersion);
     messageConverter.setExternalAddrs(externalAddrs);
     messageConverter.setLocalnets(localnets);
+    messageConverter.setAliases(aliases);
     Telemetry.setInternalNetworks(localnets);
     messageConverter.setListeningPoints(listeningPoints);
 
