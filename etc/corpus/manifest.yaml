@@ -66,3 +66,7 @@ files:
     profiles: [sip, sip-connect]
     findings: []
     note: SIPconnect 1.1 test 12.1.1, the blind transfer's second leg to agent 1002
+  - file: sipp-peer-asterisk_dod-invite-route-by-alias_provider_20261030.jsonl
+    profiles: [sip, sip-connect]
+    findings: [sip-connect/from-e164-or-anonymous, sip-connect/request-uri-e164, sip/private-address, sip/record-route-self]
+    note: Peer asterisk reaches Routr by its alias (Route <sip:routr:5060>, EdgePort aliases [routr]) and calls out with X-DOD-Number; the forwarded INVITE carries no Route naming routr (fonoster/routr#477)
