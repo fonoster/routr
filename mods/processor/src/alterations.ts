@@ -29,7 +29,12 @@ import {
 import { phone } from "phone"
 import { getEdgeInterface } from "./helper"
 
-const { IDENTITY_PARAMETERS, encodeIdentity, decodeIdentity } = I
+const {
+  IDENTITY_PARAMETERS,
+  encodeIdentity,
+  decodeIdentity,
+  decodeIdentityUser
+} = I
 type Identity = I.Identity
 
 // Forces the requestURI to be the same as the trunk uri.
@@ -539,10 +544,32 @@ const isOwnRoute = (
   }
 }
 
-const applyIdentity = (uri: CommonTypes.SipURI, identity: Identity) => {
+// The mapping a Route entry carries: in its URI user part, which a user agent
+// keeps (RFC 3261 section 12.1.2), else in its header parameters, which it may
+// drop. Only the user part carries the port, so only it is applied exactly.
+const identityMapping = (
+  route: CommonTypes.RouteHeader
+): { values: Record<string, string>; exact: boolean } | undefined => {
+  const hasMapping = (values?: Record<string, string>) =>
+    !!values?.[IDENTITY_PARAMETERS.fromNew] ||
+    !!values?.[IDENTITY_PARAMETERS.toNew]
+  const inUser = decodeIdentityUser(route.address?.uri?.user)
+  if (hasMapping(inUser)) return { values: inUser, exact: true }
+  if (hasMapping(route.parameters)) {
+    return { values: route.parameters, exact: false }
+  }
+  return undefined
+}
+
+const applyIdentity = (
+  uri: CommonTypes.SipURI,
+  identity: Identity,
+  exact: boolean
+) => {
   uri.user = identity.user
   uri.host = identity.host
   uri.userParam = identity.userParam
+  if (exact) uri.port = identity.port ?? -1
 }
 
 /**
@@ -551,9 +578,10 @@ const applyIdentity = (uri: CommonTypes.SipURI, identity: Identity) => {
  * Trunk, whose To is the Number, gets the caller's own identity back. Some phones
  * answer 481 to an in-dialog request whose To or From URI changed.
  *
- * The mapping is read only from Route entries that point at this EdgePort: with
- * two EdgePorts on the path, the one that rewrote the INVITE is the one that
- * swaps, and the other leaves the request alone.
+ * The mapping is read from the first Route entry that carries one, in its URI
+ * user part or else its header parameters, and only when that entry points at
+ * this EdgePort: with two EdgePorts on the path, the one that rewrote the INVITE
+ * is the one that swaps, and the other leaves the request alone.
  *
  * @param {MessageRequest} request - an in-dialog request, with its Route set
  * @return {MessageRequest} the request with From and To swapped where they match
@@ -561,22 +589,17 @@ const applyIdentity = (uri: CommonTypes.SipURI, identity: Identity) => {
 export const swapIdentityFromRouteSet = (
   request: MessageRequest
 ): MessageRequest => {
-  const own = (request.message.route ?? []).find(
-    (r: CommonTypes.RouteHeader) =>
-      r.parameters?.[IDENTITY_PARAMETERS.fromNew] ||
-      r.parameters?.[IDENTITY_PARAMETERS.toNew]
+  const own = (request.message.route ?? []).find((r: CommonTypes.RouteHeader) =>
+    identityMapping(r)
   )
 
   if (!own || !isOwnRoute(request, own)) return request
 
-  const fromOriginal = decodeIdentity(
-    own.parameters[IDENTITY_PARAMETERS.fromOriginal]
-  )
-  const fromNew = decodeIdentity(own.parameters[IDENTITY_PARAMETERS.fromNew])
-  const toOriginal = decodeIdentity(
-    own.parameters[IDENTITY_PARAMETERS.toOriginal]
-  )
-  const toNew = decodeIdentity(own.parameters[IDENTITY_PARAMETERS.toNew])
+  const { values, exact } = identityMapping(own)
+  const fromOriginal = decodeIdentity(values[IDENTITY_PARAMETERS.fromOriginal])
+  const fromNew = decodeIdentity(values[IDENTITY_PARAMETERS.fromNew])
+  const toOriginal = decodeIdentity(values[IDENTITY_PARAMETERS.toOriginal])
+  const toNew = decodeIdentity(values[IDENTITY_PARAMETERS.toNew])
 
   const req = H.deepCopy(request)
   const from = req.message.from.address.uri
@@ -584,17 +607,17 @@ export const swapIdentityFromRouteSet = (
 
   // From the caller: From is the caller, To is the callee
   if (fromNew && sameIdentity(from, fromOriginal)) {
-    applyIdentity(from, fromNew)
+    applyIdentity(from, fromNew, exact)
   } else if (toOriginal && sameIdentity(from, toNew)) {
     // From the Trunk: From is the callee as the Trunk knows it
-    applyIdentity(from, toOriginal)
+    applyIdentity(from, toOriginal, exact)
   }
 
   if (toNew && sameIdentity(to, toOriginal)) {
-    applyIdentity(to, toNew)
+    applyIdentity(to, toNew, exact)
   } else if (fromOriginal && sameIdentity(to, fromNew)) {
     // From the Trunk: To is the Number the caller was presented as
-    applyIdentity(to, fromOriginal)
+    applyIdentity(to, fromOriginal, exact)
   }
 
   return req

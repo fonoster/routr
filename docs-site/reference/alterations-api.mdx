@@ -4,7 +4,7 @@ sidebarTitle: "Alterations API"
 description: "Every alteration and header helper exported by @routr/processor, for developers who build Processors that rewrite SIP requests before EdgePort sends them."
 ---
 
-Alterations are small functions that take a `MessageRequest` and return a changed copy. A Processor chains them to prepare a request for its next hop: add Via and Record-Route headers, point the Request-URI at the target, add or remove headers. No alteration mutates its input. An alteration that changes the request deep-copies it first; one with nothing to change returns the original object, so compare by value, not by reference. These return the original when they have nothing to do: `addRouteToNextHop` (the Request-URI host is already the route host), `removeHeaders` (an empty list), `normalizeToE164` (`false`), `rewriteFromWithNumber` (no `rewriteFrom`, or an anonymous From), and `swapIdentityFromRouteSet` (no identity parameters on this EdgePort's Route entry).
+Alterations are small functions that take a `MessageRequest` and return a changed copy. A Processor chains them to prepare a request for its next hop: add Via and Record-Route headers, point the Request-URI at the target, add or remove headers. No alteration mutates its input. An alteration that changes the request deep-copies it first; one with nothing to change returns the original object, so compare by value, not by reference. These return the original when they have nothing to do: `addRouteToNextHop` (the Request-URI host is already the route host), `removeHeaders` (an empty list), `normalizeToE164` (`false`), `rewriteFromWithNumber` (no `rewriteFrom`, or an anonymous From), and `swapIdentityFromRouteSet` (no identity mapping on this EdgePort's Route entry).
 
 Some alterations take the request directly. Others are curried: you call them with a `Route` (or other arguments) first, and they return a function of the request.
 
@@ -340,7 +340,11 @@ Compares the From and To URIs of a request before and after the identity alterat
 swapIdentityFromRouteSet(request: MessageRequest): MessageRequest
 ```
 
-For an in-dialog request whose Route entry for this EdgePort carries the parameters above, swaps From and To so each side sees the identities it knows: a request from the caller gets the From and To the Trunk saw, and a request from the Trunk gets the caller's own identity back. It reads only Route entries that point at this EdgePort, so with two EdgePorts on the path only the one that rewrote the INVITE swaps. Run it before `removeSelfRoutes`.
+For an in-dialog request whose Route entry for this EdgePort carries the parameters above, swaps From and To so each side sees the identities it knows: a request from the caller gets the From and To the Trunk saw, and a request from the Trunk gets the caller's own identity back. It reads only Route entries that point at this EdgePort, so with two EdgePorts on the path only the one that rewrote the INVITE swaps.
+
+It reads the mapping from this EdgePort's Route entry in one of two forms. First the URI user part, `rfo.<b64>.rfn.<b64>.rco.<b64>.rcn.<b64>` (each pair optional, in that order), which a user agent keeps because RFC 3261 section 12.1.2 builds the route set from Record-Route URIs. Each value there is base64url of `user@host[:port][;user=...]`, and it is applied exactly: the URI port is set to the value's port, or to none when the value has no port. When the user part isn't of that form, it reads the header parameters above, and applies only user, host and `user=`, leaving the port alone. An entry with both forms is swapped once, from the user part.
+
+Run it before `removeSelfRoutes`.
 
 ### isAnonymous
 

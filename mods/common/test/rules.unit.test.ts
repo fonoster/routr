@@ -834,4 +834,51 @@ describe("@routr/common/trace corpus helpers", () => {
       `rfn=${encode("+15555550199@wa.example.com;user=phone")}`
     )
   })
+
+  it("rewrites inside the identity mapping Routr keeps in a Route or Record-Route URI user part", () => {
+    const encode = (s: string) => Buffer.from(s).toString("base64url")
+    const userPart = (rco: string, rcn: string) =>
+      `rfo.${encode("dialer@wp.local")}.rco.${encode(rco)}.rcn.${encode(rcn)}`
+    const original = userPart(
+      "+15555550188@10.216.30.40",
+      "+15555550188@wa.meta.vc:5061"
+    )
+    const record = mutate(forwardedInvite, (inMsg) => {
+      const entry = {
+        address: { uri: { user: original, host: "203.0.113.10", port: 5061 } }
+      }
+      inMsg.recordRoute = [entry] as never
+      inMsg.route = [entry] as never
+      inMsg.extensions = [
+        ...(inMsg.extensions ?? []),
+        { name: "X-Note", value: `<sip:${original}@203.0.113.10:5061;lr>` }
+      ] as never
+    })
+    const out = Trace.sanitizeRecord(record, {
+      credentials: [{ username: "1001", password: "1234" }],
+      rewrites: [["+15555550188", "+15555550100"]]
+    })
+    const expected = userPart(
+      "+15555550100@10.216.30.40",
+      "+15555550100@wa.meta.vc:5061"
+    )
+    const users = (["recordRoute", "route"] as const).map(
+      (h) =>
+        (
+          out.request.message[h] as unknown as {
+            address: { uri: { user: string } }
+          }[]
+        )[0].address.uri.user
+    )
+    expect(users).to.deep.equal([expected, expected])
+    const values = Identity.decodeIdentityUser(expected)
+    expect(Identity.decodeIdentity(values.rcn)).to.include({
+      user: "+15555550100",
+      host: "wa.meta.vc",
+      port: 5061
+    })
+    expect(Identity.decodeIdentity(values.rfo)?.user).to.equal("dialer")
+    expect(JSON.stringify(out)).to.not.include(original)
+    expect(JSON.stringify(out)).to.include(`<sip:${expected}@203.0.113.10`)
+  })
 })
