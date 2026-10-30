@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IDENTITY_PARAMETER_NAMES } from "../identity"
+import { IDENTITY_PARAMETER_NAMES, decodeIdentityUser } from "../identity"
 import { calculateAuthResponse } from "../auth"
 import { AuthChallengeResponse, Method } from "../types"
 import { TraceRecord } from "./types"
@@ -131,15 +131,43 @@ function applyRewrites(
     `\\b(${ENCODED_IDENTITY_PARAMETERS.join("|")})=([A-Za-z0-9_-]+)`,
     "g"
   )
+  // And in a Route or Record-Route URI user part kept as text
+  // ("<sip:rfo....rcn...@host>")
+  const names = ENCODED_IDENTITY_PARAMETERS.join("|")
+  const encodedUserInText = new RegExp(
+    `\\b((?:${names})\\.[A-Za-z0-9_-]+(?:\\.(?:${names})\\.[A-Za-z0-9_-]+)*)@`,
+    "g"
+  )
   return JSON.parse(
     rewrite(
-      text.replace(
-        encodedInText,
-        (_m, name: string, value: string) =>
-          `${name}=${reencode(value, rewrite)}`
-      )
+      text
+        .replace(
+          encodedInText,
+          (_m, name: string, value: string) =>
+            `${name}=${reencode(value, rewrite)}`
+        )
+        .replace(
+          encodedUserInText,
+          (_m, user: string) => `${reencodeUser(user, rewrite)}@`
+        )
     )
   )
+}
+
+/**
+ * Rewrites the identities inside a URI user part that holds Routr's identity
+ * mapping (rfo.<b64>.rfn.<b64>...); any other user part is returned as is.
+ *
+ * @param {string} user - The URI user part
+ * @param {Function} rewrite - The literal rewrites
+ * @return {string} The rewritten user part
+ */
+function reencodeUser(user: string, rewrite: (s: string) => string): string {
+  const values = decodeIdentityUser(user)
+  if (!values) return user
+  return Object.entries(values)
+    .map(([name, value]) => `${name}.${reencode(value, rewrite)}`)
+    .join(".")
 }
 
 /**
@@ -166,7 +194,8 @@ function reencode(value: string, rewrite: (s: string) => string): string {
 const ENCODED_IDENTITY_PARAMETERS = IDENTITY_PARAMETER_NAMES
 
 /**
- * Rewrites the identity parameters wherever they are a field of the record.
+ * Rewrites the identity parameters wherever they are a field of the record, or
+ * a URI user part.
  *
  * @param {T} value - Any part of the record
  * @param {Function} rewrite - The literal rewrites
@@ -186,6 +215,10 @@ function rewriteEncodedIdentities<T>(
     Object.entries(value as Record<string, unknown>).map(([k, v]) => {
       if (ENCODED_IDENTITY_PARAMETERS.includes(k) && typeof v === "string") {
         return [k, reencode(v, rewrite)]
+      }
+      // A Route or Record-Route URI whose user part holds the mapping
+      if (k === "user" && typeof v === "string") {
+        return [k, reencodeUser(v, rewrite)]
       }
       return [k, rewriteEncodedIdentities(v, rewrite)]
     })
