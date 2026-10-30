@@ -672,7 +672,8 @@ describe("@routr/connect", () => {
         },
         req
       )
-      expect(recordRouteParameters).to.deep.equal({})
+      // Only To, which moves to the Trunk's host and port, is recorded
+      expect(recordRouteParameters).to.have.keys("rco", "rcn")
       expect(out.message.from.address.uri.user).to.equal("anonymous")
       expect(out.message.from.address.uri.host).to.equal("anonymous.invalid")
     })

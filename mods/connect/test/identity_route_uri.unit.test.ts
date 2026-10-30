@@ -93,9 +93,9 @@ describe("@routr/connect identity mapping in the Record-Route URI", () => {
     added.forEach((rr: CommonTypes.RecordRoute) => {
       expect(rr.address.uri.user).to.match(/^rfo\.[A-Za-z0-9_-]+\.rfn\./)
       const values = I.decodeIdentityUser(rr.address.uri.user)
-      expect(values).to.have.keys("rfo", "rfn")
+      expect(values).to.have.keys("rfo", "rfn", "rco", "rcn")
       expect(rr.address.uri.user).to.equal(
-        `rfo.${values.rfo}.rfn.${values.rfn}`
+        `rfo.${values.rfo}.rfn.${values.rfn}.rco.${values.rco}.rcn.${values.rcn}`
       )
       // The caller's From in the fixture names port 5060
       expect(decode(values.rfo)).to.equal("roomr@default:5060")
@@ -149,14 +149,19 @@ describe("@routr/connect identity mapping in the Record-Route URI", () => {
         userParam: "phone",
         port: -1
       })
-      expect(out.message.to.address.uri).to.include(callerTo)
+      expect(out.message.to.address.uri).to.include({
+        user: "+15555550188",
+        host: "wa.meta.vc",
+        port: 5061
+      })
     })
 
     it("gives the Trunk's BYE the caller's own From and To", async () => {
       // The Trunk's Route set: the Record-Route URIs, in order
+      // The Trunk knows the callee at its own host and port
       const out = await forward(
         bye(
-          { ...callerTo, port: -1 },
+          { user: "+15555550188", host: "wa.meta.vc", port: 5061 },
           {
             user: "+15555550100",
             host: "wa-1.pstn.example.com",

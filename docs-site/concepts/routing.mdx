@@ -69,7 +69,7 @@ An Agent calls a Peer directly. This is designed for Agents that present an `X-C
 Two Trunk settings change the numbers in calls that cross the Trunk:
 
 - `normalizeToE164` rewrites the From, To, and Request-URI users to `+E.164`. On calls from the Trunk, Connect normalizes before routing, so it finds the Number even when the carrier leaves out the `+`. On calls toward the Trunk, it normalizes after routing, so egress policy rules match the number as the caller dialed it.
-- `rewriteFromWithNumber` sets the From of calls leaving through the Trunk to the Number the call is placed from: the Number of the matching egress policy for `agent-to-pstn`, or the `X-DOD-Number` for `peer-to-pstn`.
+- `rewriteFromWithNumber` sets the From of calls leaving through the Trunk to the Number the call is placed from: the Number of the matching egress policy for `agent-to-pstn`, or the `X-DOD-Number` for `peer-to-pstn`. It also sets To's host and port to the Trunk's outbound URI, so To matches the Request-URI.
 
 See [Caller identity](/reference/resources/trunks#caller-identity) for the details.
 

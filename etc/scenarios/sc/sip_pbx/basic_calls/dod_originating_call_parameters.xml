@@ -12,8 +12,8 @@
       -->
       <ereg regexp=".*INVITE sips?:\+[0-9]+@sip.provider.net.*" search_in="msg" case_indep="true" check_it="true" assign_to="1" />
       <ereg regexp=".*sips?:\+18295863314@sip.provider.net;user=phone.*" search_in="hdr" header="From" case_indep="true" check_it="true" assign_to="1" />
-      <!-- Routr does not rewrite the To host; SIP Connect would have it be the Service Provider's too -->
-      <ereg regexp=".*sips?:\+[0-9]+@sip.local.*" search_in="hdr" header="To" case_indep="true" check_it="true" assign_to="1" />
+      <!-- rewriteFromWithNumber also puts To at the Service Provider's host, matching the Request-URI -->
+      <ereg regexp=".*sips?:\+[0-9]+@sip.provider.net.*" search_in="hdr" header="To" case_indep="true" check_it="true" assign_to="1" />
       <!--
         SIP Connect 1.1 section 9: the asserted identity is a SIP URI carrying a global E.164 number
         with a leading "+" and the user=phone parameter, e.g. sip:+16132581234@example.com;user=phone.

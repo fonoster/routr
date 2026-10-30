@@ -41,7 +41,7 @@ export const tailor = (route: Route, request: MessageRequest): MessageRequest =>
 }
 ```
 
-`applyTrunkIdentity` runs `normalizeToE164(!!route.normalizeToE164)` and `rewriteFromWithNumber(route)`, then `identityRewriteParameters` on the result.
+`applyTrunkIdentity` runs `normalizeToE164(!!route.normalizeToE164)` and `rewriteFromWithNumber(route)`, which also moves To to the Trunk's host and port, then `identityRewriteParameters` on the result, so the From and To changes are both recorded.
 
 The `Route` argument is usually the result of a Location Service lookup. Its relevant fields are `user`, `host`, `port`, `transport`, `advertisedHost`, `advertisedPort`, `edgePortRef`, `listeningPoints`, `localnets`, `externalAddrs`, `registeredOn`, and `headers`. A route to a Trunk also carries `normalizeToE164` and `rewriteFrom` (`{ user, host }`), from the Trunk's [caller identity settings](/reference/resources/trunks#caller-identity).
 
@@ -67,7 +67,7 @@ The `Route` argument is usually the result of a Location Service lookup. Its rel
 | [`fixInvalidContact`](#fixinvalidcontact) | `(request) => request` | Contact |
 | [`overwriteContactWithSenderInfo`](#overwritecontactwithsenderinfo) | `(request) => request` | Contact |
 | [`normalizeToE164`](#normalizetoe164) | `(normalize: boolean) => (request) => request` | From, To, Request-URI users |
-| [`rewriteFromWithNumber`](#rewritefromwithnumber) | `(route) => (request) => request` | From |
+| [`rewriteFromWithNumber`](#rewritefromwithnumber) | `(route) => (request) => request` | From, To host and port |
 | [`identityRewriteParameters`](#identityrewriteparameters) | `(original, altered) => Record<string, string>` | None (returns parameters) |
 | [`swapIdentityFromRouteSet`](#swapidentityfromrouteset) | `(request) => request` | From, To |
 | [`isAnonymous`](#isanonymous) | `(uri: SipURI) => boolean` | None (a predicate) |
@@ -320,7 +320,7 @@ const out = A.normalizeToE164(true)(request)
 rewriteFromWithNumber(route: Route): (request: MessageRequest) => MessageRequest
 ```
 
-When `route.rewriteFrom` is set, sets the From URI user and host to `route.rewriteFrom.user` and `route.rewriteFrom.host`, adds `user=phone`, and drops the port. The display name and tag stay. An anonymous From (user `anonymous` or host `anonymous.invalid`) is never rewritten. Returns the request unchanged when `route.rewriteFrom` is not set.
+When `route.rewriteFrom` is set, sets the From URI user and host to `route.rewriteFrom.user` and `route.rewriteFrom.host`, adds `user=phone`, and drops the port. The display name and tag stay. An anonymous From (user `anonymous` or host `anonymous.invalid`) is never rewritten. It also sets the To URI host and port to `route.host` and `route.port`, the Trunk's outbound URI, so To matches the Request-URI; To's user, tag and display name stay, no transport parameter is added, and this happens for an anonymous From too. Returns the request unchanged when `route.rewriteFrom` is not set.
 
 ```typescript
 const out = A.rewriteFromWithNumber({ ...route, rewriteFrom: { user: "+18295863314", host: "sip.provider.net" } })(request)
