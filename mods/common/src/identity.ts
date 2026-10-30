@@ -50,18 +50,32 @@ export interface Identity {
 }
 
 /**
- * Encodes an identity as base64url, which keeps it a SIP token (RFC 3261
- * section 25.1): no quoting in the header, and it survives every hop unchanged.
+ * The port a SIP URI names, or undefined when it names none (the EdgePort's
+ * converter spells "no port" as -1, an unset field reads 0).
  *
- * @param {SipURI} uri - The URI whose user, host and user parameter to encode
- * @return {string} The base64url value
+ * @param {SipURI} uri - The URI
+ * @return {number | undefined} The port
  */
-export const encodeIdentity = (uri: SipURI): string =>
-  Buffer.from(
-    `${uri.user ?? ""}@${uri.host}${
+export const portOf = (uri: SipURI): number | undefined =>
+  uri.port > 0 ? uri.port : undefined
+
+/**
+ * Encodes an identity as base64url, which keeps it a SIP token (RFC 3261
+ * section 25.1) and unreserved in a URI user part (section 25.1, "unreserved"):
+ * no quoting or escaping, and it survives every hop unchanged.
+ *
+ * @param {SipURI} uri - The URI whose user, host, port and user parameter to
+ * encode; the port only when it names one
+ * @return {string} The base64url value of user@host[:port][;user=...]
+ */
+export const encodeIdentity = (uri: SipURI): string => {
+  const port = portOf(uri)
+  return Buffer.from(
+    `${uri.user ?? ""}@${uri.host}${port ? `:${port}` : ""}${
       uri.userParam ? `;user=${uri.userParam}` : ""
     }`
   ).toString("base64url")
+}
 
 /**
  * Decodes an identity parameter value, user@host[:port][;user=...].
@@ -111,4 +125,21 @@ export const decodeIdentityUser = (
     order.every((o, i) => o >= 0 && (i === 0 || o > order[i - 1])) &&
     pairs.every(([, value]) => /^[A-Za-z0-9_-]+$/.test(value))
   return valid ? Object.fromEntries(pairs) : undefined
+}
+
+/**
+ * Writes the identity mapping as a Route URI user part, the form
+ * decodeIdentityUser reads: rfo.<b64>.rfn.<b64>.rco.<b64>.rcn.<b64>, in that
+ * order, absent pairs left out.
+ *
+ * @param {Record<string, string>} values - The base64url values by parameter name
+ * @return {string | undefined} The user part, or undefined when there are none
+ */
+export const encodeIdentityUser = (
+  values: Record<string, string>
+): string | undefined => {
+  const pairs = IDENTITY_PARAMETER_NAMES.filter((name) => values[name]).map(
+    (name) => `${name}.${values[name]}`
+  )
+  return pairs.length > 0 ? pairs.join(".") : undefined
 }

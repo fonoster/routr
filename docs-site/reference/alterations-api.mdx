@@ -190,7 +190,7 @@ const out = A.removeSelfRoutes(request)
 addSelfRecordRoute(route: Route, parameters?: Record<string, string>): (request: MessageRequest) => MessageRequest
 ```
 
-Adds a Record-Route header for this EdgePort so later requests in the dialog pass through it. When the interface the request arrived on differs from the one that faces the target (by host, port, or transport), it adds two Record-Route headers, both with `r2=on`. Every header it adds also carries `parameters`, when given.
+Adds a Record-Route header for this EdgePort so later requests in the dialog pass through it. When the interface the request arrived on differs from the one that faces the target (by host, port, or transport), it adds two Record-Route headers, both with `r2=on`. When given, `parameters` (the identity mapping from `identityRewriteParameters`) goes in the URI user part of every header it adds, as `rfo.<b64>.rfn.<b64>.rco.<b64>.rcn.<b64>` (absent pairs left out), and not as header parameters: a user agent keeps the Record-Route URIs (RFC 3261 section 12.1.2) but may drop their parameters. Without it, the URI has no user part.
 
 ```typescript
 const out = A.addSelfRecordRoute(route)(request)
@@ -332,7 +332,7 @@ const out = A.rewriteFromWithNumber({ ...route, rewriteFrom: { user: "+182958633
 identityRewriteParameters(original: MessageRequest, altered: MessageRequest): Record<string, string>
 ```
 
-Compares the From and To URIs of a request before and after the identity alterations and returns Record-Route parameters for what changed: `rfo` and `rfn` hold the original and new From, `rco` and `rcn` the original and new To, each as base64url of `user@host` (plus `;user=` when set). Returns `{}` when nothing changed. Pass the result to `addSelfRecordRoute`.
+Compares the From and To URIs of a request before and after the identity alterations and returns the identity mapping for what changed: `rfo` and `rfn` hold the original and new From, `rco` and `rcn` the original and new To, each as base64url of `user@host[:port][;user=...]` (the port when the URI names one, `;user=` when set). A change of user, host, port or `user=` counts. Returns `{}` when nothing changed. Pass the result to `addSelfRecordRoute`, which writes it in the user part of its Record-Route URI.
 
 ### swapIdentityFromRouteSet
 
@@ -340,9 +340,9 @@ Compares the From and To URIs of a request before and after the identity alterat
 swapIdentityFromRouteSet(request: MessageRequest): MessageRequest
 ```
 
-For an in-dialog request whose Route entry for this EdgePort carries the parameters above, swaps From and To so each side sees the identities it knows: a request from the caller gets the From and To the Trunk saw, and a request from the Trunk gets the caller's own identity back. It reads only Route entries that point at this EdgePort, so with two EdgePorts on the path only the one that rewrote the INVITE swaps.
+For an in-dialog request whose Route entry for this EdgePort carries the mapping above, swaps From and To so each side sees the identities it knows: a request from the caller gets the From and To the Trunk saw, and a request from the Trunk gets the caller's own identity back. It reads only Route entries that point at this EdgePort, so with two EdgePorts on the path only the one that rewrote the INVITE swaps.
 
-It reads the mapping from this EdgePort's Route entry in one of two forms. First the URI user part, `rfo.<b64>.rfn.<b64>.rco.<b64>.rcn.<b64>` (each pair optional, in that order), which a user agent keeps because RFC 3261 section 12.1.2 builds the route set from Record-Route URIs. Each value there is base64url of `user@host[:port][;user=...]`, and it is applied exactly: the URI port is set to the value's port, or to none when the value has no port. When the user part isn't of that form, it reads the header parameters above, and applies only user, host and `user=`, leaving the port alone. An entry with both forms is swapped once, from the user part.
+It reads the mapping from this EdgePort's Route entry in one of two forms. First the URI user part, `rfo.<b64>.rfn.<b64>.rco.<b64>.rcn.<b64>` (each pair optional, in that order), which a user agent keeps because RFC 3261 section 12.1.2 builds the route set from Record-Route URIs. Each value there is base64url of `user@host[:port][;user=...]`, and it is applied exactly: the URI port is set to the value's port, or to none when the value has no port. When the user part isn't of that form, it reads header parameters of the same names, the form Routr wrote before the mapping moved into the URI, and applies only user, host and `user=`, leaving the port alone. An entry with both forms is swapped once, from the user part.
 
 Run it before `removeSelfRoutes`.
 

@@ -393,8 +393,9 @@ describe("@routr/processor/alterations", () => {
       expect(parameters).to.have.keys("rfo", "rfn")
       // Base64url: a SIP token, no quoting needed
       expect(parameters.rfo).to.match(/^[A-Za-z0-9_-]+$/)
+      // With the port, when the URI names one
       expect(Buffer.from(parameters.rfo, "base64url").toString()).to.equal(
-        "1001@sip.local"
+        "1001@sip.local:5060"
       )
       expect(Buffer.from(parameters.rfn, "base64url").toString()).to.equal(
         "+18295863314@sip.provider.net;user=phone"
@@ -405,14 +406,17 @@ describe("@routr/processor/alterations", () => {
       const added =
         r.message.recordRoute.length - altered.message.recordRoute.length
       expect(added).to.be.greaterThan(0)
-      expect(r.message.recordRoute[added].parameters).to.not.have.property(
-        "rfo"
+      expect(r.message.recordRoute[added].address.uri.user ?? "").to.not.match(
+        /^rfo\./
       )
-      r.message.recordRoute
-        .slice(0, added)
-        .forEach((rr: CT.RecordRoute) =>
-          expect(rr.parameters).to.include({ rfo: parameters.rfo })
+      // In the URI user part, which a user agent keeps (RFC 3261 section
+      // 12.1.2), and not as header parameters, which it may drop
+      r.message.recordRoute.slice(0, added).forEach((rr: CT.RecordRoute) => {
+        expect(rr.address.uri.user).to.equal(
+          `rfo.${parameters.rfo}.rfn.${parameters.rfn}`
         )
+        expect(rr.parameters ?? {}).to.not.have.property("rfo")
+      })
     })
 
     it("records a To normalized by normalizeToE164", () => {
