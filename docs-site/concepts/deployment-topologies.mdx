@@ -65,6 +65,7 @@ SIP puts addresses inside its messages, so an EdgePort must know the public addr
 
 - **Set `externalAddrs`.** In the chart, `edgeport.externalAddrs` is required for EdgePort to work. With routr-one, set the `EXTERNAL_ADDRS` environment variable. Use an address your clients can reach, such as a static public IP or a load balancer IP that doesn't change.
 - **Set `localnets` when needed.** EdgePort uses the local networks to decide whether to advertise its internal or external address. By default it uses the networks the operating system reports. Set `edgeport.localnets` to override them.
+- **Set `aliases` when other services reach Routr by a service name.** A Route that names the EdgePort by a hostname it doesn't know is forwarded back to itself. List such names in the EdgePort's `spec.aliases` (routr-one: `spec.signaling.aliases`).
 - **Choose a service type.** The chart creates separate Services for UDP and for TCP-based transports (TCP, TLS, WS, WSS). Both default to `NodePort`. Set `edgeport.serviceTypeUDP` and `edgeport.serviceTypeTCP` to `LoadBalancer` to get an external IP from your cloud, and use `serviceAnnotationsUDP` and `serviceAnnotationsTCP` for provider-specific options.
 - **Mind the traffic policy.** `externalTrafficPolicyUDP` and `externalTrafficPolicyTCP` default to `Cluster`. With `Local`, Kubernetes keeps traffic on the node that received it and preserves the client's source address, which matters for ACLs and NAT handling, but only nodes running an EdgePort pod receive traffic.
 

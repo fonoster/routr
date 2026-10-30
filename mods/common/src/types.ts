@@ -103,6 +103,8 @@ export interface MessageRequest {
   edgePortVersion?: string
   // Local socket the EdgePort received the message on
   receivedOn?: NetInterface
+  // Hostnames this EdgePort answers to (spec.aliases)
+  aliases?: string[]
 }
 
 export interface MessageResponse {

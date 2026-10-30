@@ -605,4 +605,29 @@ public class ConverterTests {
     var wildcard = converter.createMessageRequest(request, null, null);
     assertEquals("", wildcard.getReceivedOn().getHost());
   }
+
+  @Test
+  public void testAliases() throws Exception {
+    MessageFactory messageFactory = SipFactory.getInstance().createMessageFactory();
+    var raw = "INVITE sip:+15555550188@routr SIP/2.0\r\n"
+      + "Via: SIP/2.0/UDP 10.216.30.41:5060;branch=z9hG4bK-1\r\n"
+      + "Route: <sip:routr:5060;lr>\r\n"
+      + "From: <sip:roomr@default>;tag=1\r\n"
+      + "To: <sip:+15555550188@routr>\r\n"
+      + "Call-ID: call-1\r\n"
+      + "CSeq: 1 INVITE\r\n"
+      + "Max-Forwards: 70\r\n"
+      + "Content-Length: 0\r\n\r\n";
+    var request = messageFactory.createRequest(raw);
+
+    var converter = new MessageConverter("edgeport-01");
+    converter.setListeningPoints(new ArrayList<>());
+    converter.setExternalAddrs(new ArrayList<>());
+    converter.setLocalnets(new ArrayList<>());
+    // No aliases configured: the field stays empty
+    assertEquals(0, converter.createMessageRequest(request, null, null).getAliasesCount());
+
+    converter.setAliases(List.of("routr"));
+    assertEquals(List.of("routr"), converter.createMessageRequest(request, null, null).getAliasesList());
+  }
 }

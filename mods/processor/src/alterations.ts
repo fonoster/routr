@@ -328,7 +328,8 @@ export const removeAuthorization = (
 }
 
 // Whether a Route entry points at this EdgePort (one of its local or external
-// addresses, on the port of the matching listening point)
+// addresses or aliases, on the port of the matching listening point). Aliases
+// compare case-insensitively (RFC 3261 section 19.1.4)
 const isSelfRoute =
   (request: MessageRequest) =>
   (r: CommonTypes.RouteHeader): boolean => {
@@ -340,9 +341,11 @@ const isSelfRoute =
     )
 
     const routeUri = r.address.uri
+    const aliases = (request.aliases || []).map((a) => a.toLowerCase())
     return (
       (localIps.includes(routeUri.host) ||
-        request.externalAddrs.includes(routeUri.host)) &&
+        request.externalAddrs.includes(routeUri.host) ||
+        aliases.includes(routeUri.host?.toLowerCase())) &&
       routeUri.port === lp?.port
     )
   }

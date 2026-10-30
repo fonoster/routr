@@ -54,6 +54,7 @@ public class MessageConverter {
   private List<NetInterface> listeningPoints;
   private List<String> externalAddrs;
   private List<String> localnets;
+  private List<String> aliases = new ArrayList<>();
 
   public MessageConverter(String edgePortRef) {
     this.edgePortRef = edgePortRef;
@@ -284,6 +285,7 @@ public class MessageConverter {
       .addAllListeningPoints(this.listeningPoints)
       .addAllExternalAddrs(this.externalAddrs)
       .addAllLocalnets(this.localnets)
+      .addAllAliases(this.aliases)
       .setMessage(convertToMessageDTO(message))
       .setReceivedOn(getReceivedOn(message))
       .build();
@@ -325,5 +327,9 @@ public class MessageConverter {
 
   public void setLocalnets(final List<String> localnets) {
     this.localnets = localnets;
+  }
+
+  public void setAliases(final List<String> aliases) {
+    this.aliases = aliases;
   }
 }

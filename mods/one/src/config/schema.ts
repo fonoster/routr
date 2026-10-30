@@ -54,6 +54,7 @@ export const schema = {
       signaling: obj({
         externalAddrs: nonEmptyList,
         localnets: nonEmptyList,
+        aliases: { ...list, uniqueItems: true },
         ignoreLoopbackFromLocalnets: bool,
         keyStorePassword: str,
         certsPath: str,

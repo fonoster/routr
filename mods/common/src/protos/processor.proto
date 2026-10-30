@@ -87,6 +87,8 @@ message MessageRequest {
   string edge_port_version = 10;
   // Local socket the EdgePort received the message on
   NetInterface received_on = 11;
+  // Hostnames this EdgePort answers to (spec.aliases)
+  repeated string aliases = 12;
 }
 
 message MessageResponse {

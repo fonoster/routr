@@ -176,7 +176,7 @@ const out = pipe(
 removeSelfRoutes(request: MessageRequest): MessageRequest
 ```
 
-Removes Route headers that point to this EdgePort: those whose host is one of the EdgePort's local network IPs or external addresses and whose port is the EdgePort's listening port for that transport.
+Removes Route headers that point to this EdgePort: those whose host is one of the EdgePort's local network IPs, external addresses or aliases and whose port is the EdgePort's listening port for that transport.
 
 ```typescript
 const out = A.removeSelfRoutes(request)

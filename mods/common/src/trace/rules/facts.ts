@@ -95,6 +95,19 @@ export const isInternalHost = (req: MessageRequest, host?: string): boolean =>
 export const isOwnHost = (req: MessageRequest, host?: string): boolean =>
   isExternalHost(req, host) || isInternalHost(req, host)
 
+/**
+ * Whether a host is one of the names the proxy answers to (spec.aliases),
+ * compared case-insensitively. Aliases are never advertised, so only rules
+ * about Route entries pointing at the proxy use this.
+ *
+ * @param {MessageRequest} req - The recorded request
+ * @param {string} host - Host to test
+ * @return {boolean} True for an alias
+ */
+export const isAliasHost = (req: MessageRequest, host?: string): boolean =>
+  !!host &&
+  (req.aliases || []).some((a) => a.toLowerCase() === host.toLowerCase())
+
 const inNet = (host: string, net: string): boolean => {
   const [base, bitsRaw] = net.split("/")
   const bits = bitsRaw === undefined ? 32 : parseInt(bitsRaw, 10)

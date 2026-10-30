@@ -39,6 +39,7 @@ message MessageRequest {
   map<string, string> metadata = 9;
   string edge_port_version = 10;  // Version of the EdgePort, for example 2.18.0
   NetInterface received_on = 11;  // Local socket the message arrived on
+  repeated string aliases = 12;   // Hostnames the EdgePort answers to
 }
 
 message MessageResponse {
@@ -57,6 +58,7 @@ The request carries everything the Processor needs (sender, listening points, ne
   "method": "REGISTER",
   "externalAddrs": ["200.22.21.42"],
   "localnets": ["127.0.0.1/8", "10.100.42.127/24"],
+  "aliases": ["routr"],
   "listeningPoints": [{ "host": "0.0.0.0", "port": 5060, "transport": "UDP" }],
   "sender": { "host": "127.0.0.1", "port": 36214, "transport": "UDP" },
   "message": {

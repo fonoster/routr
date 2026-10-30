@@ -67,6 +67,7 @@ export const ENV_MAP: EnvMapping[] = [
   },
   { key: "signaling.externalAddrs", envVar: "EXTERNAL_ADDRS" },
   { key: "signaling.localnets", envVar: "LOCALNETS" },
+  { key: "signaling.aliases", envVar: "ALIASES" },
   {
     key: "signaling.ignoreLoopbackFromLocalnets",
     envVar: "IGNORE_LOOPBACK_FROM_LOCALNETS",

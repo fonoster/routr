@@ -31,6 +31,7 @@ export interface EdgePortConfig {
     }
     externalAddrs?: string[]
     localnets: string[]
+    aliases?: string[]
     securityContext?: {
       debugging?: boolean
       keyStore?: string

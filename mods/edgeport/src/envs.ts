@@ -20,6 +20,7 @@ declare const System: { getenv: (key: string) => string | undefined }
 
 export const EXTERNAL_ADDRS = System.getenv("EXTERNAL_ADDRS")?.split(",") ?? []
 export const LOCALNETS = System.getenv("LOCALNETS")?.split(",") ?? []
+export const ALIASES = System.getenv("ALIASES")?.split(",") ?? []
 export const SECURITY_CONTEXT_CLIENT_PROTOCOLS =
   System.getenv("SECURITY_CONTEXT_CLIENT_PROTOCOLS")?.split(",") ?? []
 export const SECURITY_CONTEXT_CLIENT_CIPHER_SUITES =
