@@ -32,8 +32,10 @@ import { getEdgeInterface } from "./helper"
 const {
   IDENTITY_PARAMETERS,
   encodeIdentity,
+  encodeIdentityUser,
   decodeIdentity,
-  decodeIdentityUser
+  decodeIdentityUser,
+  portOf
 } = I
 type Identity = I.Identity
 
@@ -213,12 +215,15 @@ export const applyXHeaders =
     return req
   }
 
-// The parameters argument is merged into every Record-Route entry this adds;
-// identityRewriteParameters uses it to carry a rewritten From or To.
+// The parameters argument is the identity mapping from identityRewriteParameters.
+// It goes in the URI user part of every Record-Route entry this adds, which a
+// user agent keeps (RFC 3261 section 12.1.2), so a rewritten From or To comes
+// back on the dialog's later requests (see swapIdentityFromRouteSet).
 export const addSelfRecordRoute =
   (route: Route, parameters: Record<string, string> = {}) =>
   (request: MessageRequest): MessageRequest => {
     const req = H.deepCopy(request)
+    const user = encodeIdentityUser(parameters)
     const originIntf = getEdgeInterface({
       listeningPoints: request.listeningPoints,
       localnets: request.localnets,
@@ -242,6 +247,7 @@ export const addSelfRecordRoute =
     const originRoute: CommonTypes.RecordRoute = {
       address: {
         uri: {
+          ...(user ? { user } : {}),
           host: originIntf.host,
           port: originIntf.port,
           transportParam: originIntf.transport,
@@ -258,6 +264,7 @@ export const addSelfRecordRoute =
       const targetRoute: CommonTypes.RecordRoute = {
         address: {
           uri: {
+            ...(user ? { user } : {}),
             host: targetIntf.host,
             port: targetIntf.port,
             transportParam: targetIntf.transport,
@@ -265,15 +272,13 @@ export const addSelfRecordRoute =
           }
         },
         parameters: {
-          r2: "on",
-          ...parameters
+          r2: "on"
         }
       }
 
       // Add r2 on to origin route
       originRoute.parameters = {
-        r2: "on",
-        ...parameters
+        r2: "on"
       }
 
       req.message.recordRoute = [
@@ -282,9 +287,6 @@ export const addSelfRecordRoute =
         ...req.message.recordRoute
       ]
     } else {
-      if (Object.keys(parameters).length > 0) {
-        originRoute.parameters = { ...parameters }
-      }
       req.message.recordRoute = [originRoute, ...req.message.recordRoute]
     }
 
@@ -496,11 +498,12 @@ const sameIdentity = (uri: CommonTypes.SipURI, identity?: Identity) =>
 const changed = (a: CommonTypes.SipURI, b: CommonTypes.SipURI) =>
   (a.user ?? "") !== (b.user ?? "") ||
   a.host !== b.host ||
+  portOf(a) !== portOf(b) ||
   (a.userParam ?? "") !== (b.userParam ?? "")
 
 /**
- * The Record-Route parameters that remember how the identity alterations changed
- * a request's From and To. Both ends of the dialog copy Record-Route into the
+ * The identity mapping that remembers how the identity alterations changed a
+ * request's From and To; addSelfRecordRoute writes it in its Record-Route URI. Both ends of the dialog copy Record-Route into the
  * Route of their in-dialog requests, so the mapping comes back to Routr on every
  * BYE, re-INVITE and ACK without any state in Routr (see swapIdentityFromRouteSet).
  *

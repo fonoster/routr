@@ -22,12 +22,12 @@ import { pipe } from "fp-ts/function"
 
 /**
  * The caller identity a Trunk asks for (Route.normalizeToE164 and Route.rewriteFrom),
- * applied to a request on its way out, plus the Record-Route parameters that let
- * Routr map the identities back on the dialog's later requests.
+ * applied to a request on its way out, plus the mapping that Record-Route carries
+ * in its URI so Routr can map the identities back on the dialog's later requests.
  *
  * @param {Route} route - the route; a Trunk route carries the settings
  * @param {MessageRequest} req - the request as routed
- * @return {object} the altered request and the Record-Route parameters
+ * @return {object} the altered request and the identity mapping
  */
 export const applyTrunkIdentity = (
   route: Route,

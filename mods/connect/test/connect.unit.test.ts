@@ -610,9 +610,11 @@ describe("@routr/connect", () => {
       expect(E.getHeaderValue(out, "P-Asserted-Identity")).to.equal(
         "<sip:+18295863314@sip.provider.net;user=phone>"
       )
-      // The mapping back rides on our Record-Route
-      expect(out.message.recordRoute[0].parameters).to.have.property("rfo")
-      expect(out.message.recordRoute[0].parameters).to.have.property("rcn")
+      // The mapping back rides in our Record-Route URI
+      expect(out.message.recordRoute[0].address.uri.user).to.match(
+        /^rfo\..+\.rcn\./
+      )
+      expect(out.message.recordRoute[0].parameters).to.deep.equal({ r2: "on" })
     })
 
     it("uses fromDomain when the Trunk sets it", async () => {
