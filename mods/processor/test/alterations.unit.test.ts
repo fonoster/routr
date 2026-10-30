@@ -390,7 +390,8 @@ describe("@routr/processor/alterations", () => {
         toTrunk({ user: "+18295863314", host: "sip.provider.net" })
       )(request)
       const parameters = A.identityRewriteParameters(request, altered)
-      expect(parameters).to.have.keys("rfo", "rfn")
+      // To moved to the Trunk's host, so it is recorded as well
+      expect(parameters).to.have.keys("rfo", "rfn", "rco", "rcn")
       // Base64url: a SIP token, no quoting needed
       expect(parameters.rfo).to.match(/^[A-Za-z0-9_-]+$/)
       // With the port, when the URI names one
@@ -413,7 +414,8 @@ describe("@routr/processor/alterations", () => {
       // 12.1.2), and not as header parameters, which it may drop
       r.message.recordRoute.slice(0, added).forEach((rr: CT.RecordRoute) => {
         expect(rr.address.uri.user).to.equal(
-          `rfo.${parameters.rfo}.rfn.${parameters.rfn}`
+          `rfo.${parameters.rfo}.rfn.${parameters.rfn}` +
+            `.rco.${parameters.rco}.rcn.${parameters.rcn}`
         )
         expect(rr.parameters ?? {}).to.not.have.property("rfo")
       })
@@ -432,10 +434,16 @@ describe("@routr/processor/alterations", () => {
     })
 
     describe("in-dialog requests", () => {
+      // A call to a callee other than the caller, so the From and To mappings
+      // tell them apart
+      const invite = createPSTNMessage(request, {
+        from: "1001",
+        to: "17853178070"
+      })
       const rewritten = A.rewriteFromWithNumber(
         toTrunk({ user: "+18295863314", host: "sip.provider.net" })
-      )(request)
-      const parameters = A.identityRewriteParameters(request, rewritten)
+      )(invite)
+      const parameters = A.identityRewriteParameters(invite, rewritten)
 
       // An in-dialog request whose first Route entry is this EdgePort, stamped
       // by the INVITE that set up the dialog
@@ -447,9 +455,9 @@ describe("@routr/processor/alterations", () => {
         return req
       }
 
-      const caller = request.message.from.address.uri
+      const caller = invite.message.from.address.uri
       const number = rewritten.message.from.address.uri
-      const callee = request.message.to.address.uri
+      const callee = invite.message.to.address.uri
 
       it("gives a request from the caller the From the Trunk knows", () => {
         const r = A.swapIdentityFromRouteSet(inDialog(caller, callee))

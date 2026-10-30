@@ -468,6 +468,11 @@ export const isAnonymous = (uri: CommonTypes.SipURI): boolean =>
  * domain. The tag and display name stay, so the dialog is unchanged for Routr,
  * which matches on tags and Call-ID. An anonymous From is left as it is.
  *
+ * To moves to the Trunk URI's host and port, so it matches the Request-URI
+ * (RFC 3261 section 8.1.1.1): WhatsApp Business Calling answers 403 when the
+ * digest uri, the Request-URI, differs from To. Its user stays as
+ * normalizeToE164 left it, and an anonymous From doesn't change that.
+ *
  * @param {Route} route - the route; does nothing unless route.rewriteFrom is set
  * @return {Function} the alteration
  */
@@ -475,9 +480,14 @@ export const rewriteFromWithNumber =
   (route: Route) =>
   (request: MessageRequest): MessageRequest => {
     if (!route.rewriteFrom) return request
-    if (isAnonymous(request.message.from.address.uri)) return request
 
     const req = H.deepCopy(request)
+    const to = req.message.to.address.uri
+    to.host = route.host
+    to.port = route.port
+
+    if (isAnonymous(req.message.from.address.uri)) return req
+
     const uri = req.message.from.address.uri
     uri.user = route.rewriteFrom.user
     uri.host = route.rewriteFrom.host

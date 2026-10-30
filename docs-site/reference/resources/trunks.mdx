@@ -13,7 +13,7 @@ A Trunk is a connection to a SIP provider. It defines how the provider reaches R
 | `metadata.name` | `name` | `string` | Yes | - | Friendly name. Up to 60 characters. |
 | `metadata.region` | - | `string` | No | - | Reserved for future use. Not loaded. |
 | `spec.normalizeToE164` | `normalizeToE164` | `boolean` | No | `false` | Normalize the From, To, and Request-URI users to +E.164 on calls through this Trunk, in both directions. See [Caller identity](#caller-identity). |
-| `spec.rewriteFromWithNumber` | `rewriteFromWithNumber` | `boolean` | No | `false` | On calls leaving through this Trunk, From becomes the Number's E.164 at `fromDomain`. See [Caller identity](#caller-identity). |
+| `spec.rewriteFromWithNumber` | `rewriteFromWithNumber` | `boolean` | No | `false` | On calls leaving through this Trunk, From becomes the Number's E.164 at `fromDomain`, and To's host and port become the outbound URI's. See [Caller identity](#caller-identity). |
 | `spec.fromDomain` | `fromDomain` | `string` | No | Outbound URI host | Host of the rewritten From. Up to 255 characters. |
 | `spec.inbound.uri` | `inboundUri` | `string` | Yes | - | Host the provider sends calls to, as an FQDN or IP address. Connect matches it against the Request-URI host of calls from the PSTN. |
 | `spec.inbound.accessControlListRef` | `accessControlListRef` | `string` | No | - | `ref` of an [ACL](/reference/resources/acl). Calls from the PSTN must come from an address in its `allow` list. |
@@ -45,10 +45,10 @@ The API response also includes `accessControlList`, `inboundCredentials`, and `o
 
 ## Caller identity
 
-Carriers that authenticate a call by its From header only accept a From that is your number at their domain. WhatsApp Business Calling over SIP needs the business number at the hostname registered with Meta; many SIPconnect carriers expect `+E.164` at their own domain. Two settings cover this:
+Carriers that authenticate a call by its From header only accept a From that is your number at their domain. WhatsApp Business Calling over SIP needs the business number at the hostname registered with Meta; many SIPconnect carriers expect `+E.164` at their own domain, and a To that matches the Request-URI. Two settings cover this:
 
 - `normalizeToE164` normalizes the From, To, and Request-URI users to `+E.164` when they parse as valid numbers, landlines included. On calls from the Trunk it runs before routing, so a Number is found even when the carrier leaves out the `+`. On calls toward the Trunk it runs after routing, so egress policy rules match the number as the caller dialed it.
-- `rewriteFromWithNumber` sets the From of calls leaving through the Trunk to the Number the call is placed from, at `fromDomain` (the outbound URI host when unset), with `user=phone`. For an Agent the Number comes from the Domain's egress policy; for a Peer, from `X-DOD-Number`. The display name and tag stay.
+- `rewriteFromWithNumber` sets the From of calls leaving through the Trunk to the Number the call is placed from, at `fromDomain` (the outbound URI host when unset), with `user=phone`. For an Agent the Number comes from the Domain's egress policy; for a Peer, from `X-DOD-Number`. The display name and tag stay. It also sets To's host and port to the outbound URI's, so To matches the Request-URI (RFC 3261 section 8.1.1.1); WhatsApp Business Calling answers `403 Proxy auth uri does not match SIP "to" uri` otherwise. To's user stays as the caller wrote it, or as `normalizeToE164` left it, and To is set even when From is anonymous.
 
 Some things stay as they were:
 
