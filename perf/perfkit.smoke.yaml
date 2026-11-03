@@ -1,0 +1,66 @@
+apiVersion: perfkit/v1
+project:
+  name: Routr
+  repo: fonoster/routr
+  siteUrl: https://routr.io/benchmarks
+  accent: "#5FCFCE"               # 6-digit hex; the page's accent color
+  logo: logo.svg                  # optional SVG; without it the nav shows project.name
+  title: How much SIP traffic Routr handles.
+  lead: We run these tests after significant changes to the code, on dedicated DigitalOcean servers, one for Routr and one for the load generator. The EdgePort runs alone to find its limit; the whole stack runs for hours to catch leaks.
+infra:
+  provider: digitalocean          # the only provider in v1
+  region: nyc3
+  uut: { size: c-8 }              # unit under test, a dedicated-CPU slug
+  loadgen: { size: c-16 }         # load generator
+  maxLifetime: 9h                 # sweep deletes this run's droplets after this
+images:                           # tag comes from --target-version, pinned by digest at start
+  edgeport: fonoster/routr-edgeport
+  echo: fonoster/routr-echo
+  one: fonoster/routr-one
+benchmarks:
+  - id: edgeport-echo
+    kind: capacity
+    title: EdgePort + Echo
+    narrative:
+      what: The EdgePort on its own, with Echo answering every request with 200 OK. No Dispatcher, Connect or database, so this is a ceiling for EdgePort alone, not for a full deployment.
+      why: The EdgePort is the only stateful piece of Routr. When it saturates, calls fail, no matter what runs behind it.
+      how: "Smoke run: SIPp sends SIP MESSAGE requests over UDP, starting at 50 messages/s and adding 50 every minute, up to 300 messages/s (at most six minutes). The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%."
+    uut:
+      compose: edgeport-echo/compose.yaml
+      processes:                  # sampled every 10 s; match is a regex on the command line
+        - { name: edgeport, match: "io\\.routr\\.Launcher" }
+        - { name: echo, match: "/usr/local/bin/run" }
+    load:
+      tool: sipp
+      transport: udp
+      port: 5060                  # the UUT's SIP port SIPp sends to; default 5060
+      uac: { scenario: edgeport-echo/uac_message.xml }
+      unit: messages
+      rate: { start: 50, step: 50, every: 60s, max: 300 }
+    thresholds: { p99LatencyMs: 50, failedCallsPct: 0.1 }
+  - id: one-soak
+    kind: soak
+    title: RoutrOne, 20 minutes
+    narrative:
+      what: The whole stack in one image, EdgePort plus Dispatcher, Connect, Location and the data service in one Node process, routing calls between registered agents.
+      why: Leaks only show after hours. A short test can pass while memory climbs until the process is killed in production.
+      how: "Smoke run: SIPp holds a steady 20 calls/s for 20 minutes, with 200 registered callee agents, each called by its own caller agent through Connect. After a 5-minute warm-up, each process's memory may grow at most 5 MB/h."
+    duration: 20m
+    warmup: 5m                    # excluded from every verdict
+    uut:
+      compose: one-soak/compose.yaml
+      setup: one-soak/seed.js   # optional; runs once the UUT is up
+      processes:
+        - { name: one, match: "dist/runner" }
+        - { name: edgeport, match: "io\\.routr\\.Launcher" }
+        - { name: postgres, match: "postgres" }   # all matching processes are summed
+    load:
+      tool: sipp
+      transport: udp
+      register: { scenario: one-soak/uac_register.xml, users: one-soak/callees.csv, expires: 300 }
+      uas: { scenario: one-soak/uas_answer.xml }
+      uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
+      hold: 30s
+      rate: { cps: 20 }           # a short soak: too short to rule out a leak
+    telemetry: { otlp: true, sampleRatio: 0.01 }
+    thresholds: { memoryGrowthMBPerHour: 5, failedCallsPct: 0.1, restarts: 0 }

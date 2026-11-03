@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<!-- edgeport-echo UAC: one SIP MESSAGE per "call", through the EdgePort to
+     Echo, which answers it with 200 OK. MESSAGE needs no dialog: no Contact in
+     the answer and no ACK or BYE. The latency measured is MESSAGE to 200.
+     perfkit passes no -s, so the Request-URI is built from the destination. -->
+<scenario name="EdgePort Echo MESSAGE">
+
+  <send start_rtd="1" retrans="500">
+    <![CDATA[
+      MESSAGE sip:echo@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
+      Max-Forwards: 70
+      From: <sip:perfkit@[local_ip]:[local_port]>;tag=[call_number]
+      To: <sip:echo@[remote_ip]:[remote_port]>
+      Call-ID: [call_id]
+      CSeq: 1 MESSAGE
+      Content-Type: text/plain
+      Content-Length: [len]
+
+      perfkit [call_number]
+    ]]>
+  </send>
+
+  <recv response="200" rtd="1" timeout="5000" />
+
+</scenario>
