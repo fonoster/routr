@@ -4676,6 +4676,16 @@
                 },
                 {
                   "type": "text",
+                  "id": "vQYtM",
+                  "name": "Benchmarks",
+                  "content": "Benchmarks",
+                  "fill": "$text-secondary",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
                   "id": "jYSTB",
                   "name": "Docs",
                   "fill": "$text-secondary",
@@ -15797,6 +15807,16 @@
                 },
                 {
                   "type": "text",
+                  "id": "cByDM",
+                  "name": "Benchmarks",
+                  "content": "Benchmarks",
+                  "fill": "$text-secondary",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
                   "id": "LWTnw",
                   "name": "Docs",
                   "fill": "$text-secondary",
@@ -16241,6 +16261,16 @@
                   "enabled": false,
                   "fill": "$text-secondary",
                   "content": "Connect",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "ydvCj",
+                  "name": "Benchmarks",
+                  "content": "Benchmarks",
+                  "fill": "$text-secondary",
                   "fontFamily": "Poppins",
                   "fontSize": 15,
                   "fontWeight": "normal"
@@ -17179,6 +17209,16 @@
                   "fontFamily": "Poppins",
                   "fontSize": 15,
                   "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "SFpxC",
+                  "name": "Benchmarks",
+                  "content": "Benchmarks",
+                  "fill": "$text-secondary",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "text",
