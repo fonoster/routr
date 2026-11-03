@@ -1,0 +1,129 @@
+---
+title: "Run a benchmark"
+sidebarTitle: "Run a benchmark"
+description: "For maintainers who want to know how much SIP traffic a Routr release handles and whether it leaks memory: run the perfkit benchmarks on DigitalOcean from a laptop or from GitHub, read the results at routr.io/benchmarks, and delete a run."
+---
+
+Routr's benchmarks run a released version on two dedicated DigitalOcean servers, one for Routr and one for the load generator, with [perfkit](https://github.com/fonoster/perfkit). Each run publishes a page at [routr.io/benchmarks](https://routr.io/benchmarks). Maintainers run them after significant code changes, not on every release.
+
+The definitions live in [`perf/`](https://github.com/fonoster/routr/tree/main/perf) in the repository.
+
+## The benchmarks
+
+| Id | What it measures |
+| --- | --- |
+| `edgeport-echo` | The EdgePort's limit: SIPp sends SIP MESSAGE requests through the EdgePort to Echo, adding 50 messages/s every minute until p99 latency reaches 50 ms or failed requests reach 0.1%. With no Dispatcher, Connect or database behind it, this is a ceiling for the EdgePort alone, not for a full deployment. |
+| `one-soak` | Memory leaks: routr-one routes 100 calls/s between 200 registered caller and callee Agents for six hours. After a 30-minute warm-up, each process's memory may grow at most 5 MB/h. |
+
+Two config files define them:
+
+- `perf/perfkit.yaml`: the full run. A full run of both benchmarks takes about seven to eight hours.
+- `perf/perfkit.smoke.yaml`: the smoke config. The same benchmarks, shortened: the EdgePort ramp stops at 300 messages/s, and the soak runs 20 minutes at 20 calls/s. It takes under an hour. Run it first to check the harness and the page before a full run.
+
+## Before you start
+
+- **Who can run it.** Running the workflow needs write access to `fonoster/routr`. Running from a laptop needs only the DigitalOcean token.
+- **Cost.** Each run creates two dedicated-CPU droplets, the sizes in `perf/perfkit.yaml` (`c-8` and `c-16`), and bills them until they are deleted. perfkit deletes them at the end of every run, even a failed or cancelled one. `perfkit sweep` is the fallback: it deletes droplets left behind, and the workflow runs it every six hours for droplets older than 9 hours.
+- **One-time setup.** An admin adds two repository secrets, under **Settings**, then **Secrets and variables**, then **Actions**:
+  - `DIGITALOCEAN_TOKEN`: a DigitalOcean API token with the custom scopes listed in [perfkit's README](https://github.com/fonoster/perfkit#readme): create, read and delete for droplet, VPC, firewall, SSH key and tag.
+  - `PERFKIT_SSH_KEY`: the private half of an ed25519 key made for perfkit only:
+
+    ```bash
+    ssh-keygen -t ed25519 -N "" -f perfkit
+    ```
+
+    Paste the contents of `perfkit` (not `perfkit.pub`) into the secret, then delete both files.
+
+## Run from GitHub
+
+<Steps>
+  <Step title="Open the workflow">
+    In `fonoster/routr`, open **Actions**, then **Benchmarks**, then **Run workflow**.
+  </Step>
+  <Step title="Fill in the inputs">
+    | Input | What to enter |
+    | --- | --- |
+    | `target-version` | The Routr release to benchmark, without the `v`, for example `2.31.6`. Its tag `v2.31.6` must exist, or the run stops before any droplet is created. |
+    | `config` | `perf/perfkit.smoke.yaml` (the default) for the short check, or `perf/perfkit.yaml` for the full run. |
+    | `benchmarks` | Ids to run, comma-separated, for example `edgeport-echo`. Leave it empty to run both. A benchmark left out shows as not run. |
+  </Step>
+  <Step title="Wait for the page">
+    The run continues across several jobs because GitHub stops a job after six hours. When it ends, the `publish` job adds the report to the `gh-pages` branch.
+    <Check>[routr.io/benchmarks](https://routr.io/benchmarks) shows the new run. No commit lands on `main`, so no release starts.</Check>
+  </Step>
+</Steps>
+
+## Run from a laptop
+
+You need Node.js 22 and npm 11. `npx` installs perfkit from its git tag, and npm 10, the npm that Node 22 ships with, fails on it. Check with `npm --version`, and update with `npm install -g npm@11`.
+
+From the repository root:
+
+```bash
+export DIGITALOCEAN_TOKEN=<your token>
+npx -y github:fonoster/perfkit#v0.1.0 run --config perf/perfkit.yaml --target-version 2.31.6
+```
+
+With npm 10, run the same command through npm 11:
+
+```bash
+npx -y npm@11 exec --yes --package=github:fonoster/perfkit#v0.1.0 -- perfkit run --config perf/perfkit.yaml --target-version 2.31.6
+```
+
+Add `--benchmarks edgeport-echo` to run one benchmark, `--config perf/perfkit.smoke.yaml` for the short check, or `--dry-run` to print the plan without creating anything. The report is written to `.perfkit/<run id>/report.json`. A laptop run doesn't publish to routr.io.
+
+## Where results appear
+
+Every published run gets its own page:
+
+- `https://routr.io/benchmarks/`: the latest run.
+- `https://routr.io/benchmarks/runs/<run id>/`: one run, with its `report.json`.
+- `https://routr.io/benchmarks/runs.json`: every run, newest first.
+
+The pages live only on the `gh-pages` branch. Nothing under `site/` builds them, and the website deploy keeps them in place.
+
+## Delete a run
+
+To remove a run, such as a smoke run you've reviewed:
+
+<Steps>
+  <Step title="Check out gh-pages">
+    ```bash
+    git fetch origin gh-pages
+    git switch gh-pages
+    ```
+  </Step>
+  <Step title="Remove the run">
+    Delete `benchmarks/runs/<run id>/`, and delete its entry in `benchmarks/runs.json`.
+  </Step>
+  <Step title="Fix the latest page">
+    If it was the latest run, `benchmarks/index.html` still shows it. Re-render it from the newest remaining run's report, with the edited `runs.json` as history:
+
+    ```bash
+    npx -y github:fonoster/perfkit#v0.1.0 render \
+      --report benchmarks/runs/<newest remaining run id>/report.json \
+      --history benchmarks/runs.json --out benchmarks
+    ```
+
+    When no run remains, delete `benchmarks/` instead.
+  </Step>
+  <Step title="Push">
+    ```bash
+    git add -A benchmarks
+    git commit -m "chore: delete benchmark run <run id>"
+    git push origin gh-pages
+    ```
+    <Check>`routr.io/benchmarks/runs.json` no longer lists the run, and `routr.io/benchmarks` shows the next run, or nothing when it was the only one.</Check>
+  </Step>
+</Steps>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="perfkit" icon="gauge" href="https://github.com/fonoster/perfkit">
+    The tool, its config format and its commands.
+  </Card>
+  <Card title="Run Routr from source" icon="code" href="/guides/run-from-source">
+    Build and test Routr on your machine.
+  </Card>
+</CardGroup>

@@ -26,6 +26,11 @@ docs.routr.io); the design specs are `CORE.md` and `CONNECT.md`.
 - Corpus replay: `npm run compat -- --sip-connect` (after the build).
 - Not gated in CI: `npm run test:integration` (needs Redis), `npm run test:graaljs` (needs
   GraalVM), the `@routr/ctl` suite.
+- Benchmarks (not gated in CI; costs money: two DigitalOcean droplets; needs
+  `DIGITALOCEAN_TOKEN` and npm 11):
+  `npx -y github:fonoster/perfkit#v0.1.0 run --config perf/perfkit.yaml --target-version <x.y.z>`
+  (`perf/perfkit.smoke.yaml` is the under-an-hour check). Guide:
+  `docs-site/guides/run-a-benchmark.mdx`.
 - CI (`.github/workflows/test.yaml`) runs on pull requests: unit, typecheck and lint;
   corpus compatibility; Java tests; SEET compliance against the full compose stack. A PR
   that touches only `docs/`, `docs-site/`, `site/`, `designs/` or Markdown skips them.
@@ -69,7 +74,7 @@ Overrides (the profile yields to these):
 | :--- | :--- | :--- |
 | area: sip-core | mods/edgeport, mods/dispatcher, mods/processor, mods/location, mods/connect, mods/registry, mods/requester, mods/rtprelay, mods/common/src/ip_utils.ts | realtime-comms-engineer |
 | area: interop | mods/connect, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
-| area: infra | ops/charts, Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts | release-engineer, security-engineer |
+| area: infra | ops/charts, Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts, perf/ | release-engineer, security-engineer |
 | (none) | mods/pgdata, mods/simpledata | database-engineer |
 | (none) | mods/ctl, mods/sdk, docs-site | technical-writer |
 
@@ -134,6 +139,10 @@ Breaking (a major release, `!` in the commit subject):
 - Retry a failed release with `gh workflow run release.yaml`; with no new commits it
   re-publishes the current tag.
 - Keep the workflow's file name: npm trusted publishing trusts only `release.yaml`.
+- Benchmarks are manual (`.github/workflows/benchmarks.yaml`, Run workflow) and publish to
+  gh-pages `/benchmarks` without a push to main, so they never release. `keep_files: true`
+  must stay in `gh-pages.yaml`, or a website deploy deletes the report history; both
+  workflows share the `gh-pages` concurrency group.
 
 ## Expert notes
 
