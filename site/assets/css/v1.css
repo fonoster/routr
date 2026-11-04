@@ -1038,7 +1038,11 @@ section[id] {
   transform: none;
 }
 .is-paused,
-.is-paused * {
+.is-paused *,
+.is-paused::before,
+.is-paused::after,
+.is-paused *::before,
+.is-paused *::after {
   animation-play-state: paused !important;
 }
 
@@ -2434,6 +2438,9 @@ section[id] {
 .rr-chip--replay {
   position: relative;
 }
+.rr-flow__rail {
+  container-type: inline-size;
+}
 .rr-flow__rail::after,
 .rr-chip--replay::after {
   content: "";
@@ -2468,12 +2475,17 @@ section[id] {
   opacity: 0;
   animation: rr-drop 6s linear infinite;
 }
+/* The rail's dot is 12px wide and travels the rail's width (100cqw), so it
+   never reaches past the rail and never widens the page. */
+.rr-flow__rail::after {
+  width: 12px;
+}
 @keyframes rr-run {
   0% { transform: translateX(0); opacity: 0; }
   2% { opacity: 1; }
   58% { opacity: 1; }
-  60% { transform: translateX(calc(100% - 12px)); opacity: 0; }
-  100% { transform: translateX(calc(100% - 12px)); opacity: 0; }
+  60% { transform: translateX(calc(100cqw - 12px)); opacity: 0; }
+  100% { transform: translateX(calc(100cqw - 12px)); opacity: 0; }
 }
 @keyframes rr-drop {
   0%, 31% { transform: translateY(0); opacity: 0; }
