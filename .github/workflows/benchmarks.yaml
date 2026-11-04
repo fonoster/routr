@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       target-version: { description: "Routr release to benchmark, e.g. 2.31.5", required: true, type: string }
-      config:         { description: "perf/perfkit.smoke.yaml is the short check", required: true, type: choice, options: [perf/perfkit.yaml, perf/perfkit.smoke.yaml], default: perf/perfkit.smoke.yaml }
+      config:         { description: "perf/perfkit.smoke.yaml is the short check", required: true, type: choice, options: [perf/perfkit.yaml, perf/perfkit.smoke.yaml, perf/perfkit.calibration.yaml], default: perf/perfkit.smoke.yaml }
       benchmarks:     { description: "Ids, comma-separated (empty = all): edgeport-echo, one-soak", required: false, type: string, default: "" }
   schedule:
     - cron: "17 */6 * * *"           # sweep only
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       - run: npm install -g npm@11
-      - run: npx -y github:fonoster/perfkit#v0.1.5 sweep --older-than 9h
+      - run: npx -y github:fonoster/perfkit#v0.1.6 sweep --older-than 9h
         env: { DIGITALOCEAN_TOKEN: "${{ secrets.DIGITALOCEAN_TOKEN }}" }
 
   resolve:
@@ -44,9 +44,9 @@ jobs:
 
   run:
     needs: resolve
-    uses: fonoster/perfkit/.github/workflows/run.yaml@v0.1.5
+    uses: fonoster/perfkit/.github/workflows/run.yaml@v0.1.6
     with:
-      perfkit-ref: v0.1.5
+      perfkit-ref: v0.1.6
       target-version: ${{ inputs.target-version }}
       config: ${{ inputs.config }}
       commit: ${{ needs.resolve.outputs.commit }}
@@ -68,7 +68,7 @@ jobs:
         with: { node-version: "22" }
       - run: npm install -g npm@11
       - run: >-
-          npx -y github:fonoster/perfkit#v0.1.5 render
+          npx -y github:fonoster/perfkit#v0.1.6 render
           --report report/report.json
           --history https://routr.io/benchmarks/runs.json
           --out out/benchmarks

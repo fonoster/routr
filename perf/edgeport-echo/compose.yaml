@@ -18,7 +18,7 @@ services:
     depends_on:
       - echo
     environment:
-      JAVA_TOOL_OPTIONS: -Xms1g -Xmx1g -XX:+AlwaysPreTouch
+      JAVA_TOOL_OPTIONS: -Xms2g -Xmx2g -XX:+AlwaysPreTouch
       # The config loader doesn't expand variables, so these come from the
       # environment, which wins over edgeport.yaml.
       EXTERNAL_ADDRS: ${PERFKIT_UUT_IP:?set PERFKIT_UUT_IP}
