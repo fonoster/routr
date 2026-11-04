@@ -27,7 +27,7 @@ benchmarks:
     narrative:
       what: The EdgePort (Java) on its own, with Echo answering every request with 200 OK. No Dispatcher, Connect or database, so this is a ceiling for EdgePort alone, not for a full deployment.
       why: The EdgePort is the only stateful piece of Routr. When it saturates, calls fail, no matter what runs behind it.
-      how: "Calibration run: SIPp sends SIP MESSAGE requests over UDP, starting at 100 messages/s and adding 100 every 30 s, up to 3,000 messages/s. The first 20 s warm the EdgePort up and are not measured. The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%."
+      how: "Calibration run: SIPp sends SIP MESSAGE requests over UDP, starting at 500 messages/s and adding 100 every 30 s, up to 3,000 messages/s. The first 20 s warm the EdgePort up and are not measured. The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%."
     uut:
       compose: edgeport-echo/compose.yaml
       processes:                  # sampled every 10 s; match is a regex on the command line
@@ -39,7 +39,7 @@ benchmarks:
       port: 5060
       uac: { scenario: edgeport-echo/uac_message.xml }
       unit: messages
-      rate: { start: 100, step: 100, every: 30s, max: 3000 }
+      rate: { start: 500, step: 100, every: 30s, max: 3000 }
     warmup: 20s                   # the EdgePort starts cold; not measured
     thresholds: { p99LatencyMs: 50, failedCallsPct: 0.1 }
   - id: edgeport-go-echo
@@ -48,7 +48,7 @@ benchmarks:
     narrative:
       what: "Experimental: the Go EdgePort (mods/edgeport-go), a candidate replacement for the Java EdgePort, not the default and not released for production. Same setup as EdgePort + Echo: Echo answers every request with 200 OK, so this is a ceiling for the Go EdgePort alone."
       why: The EdgePort is the only stateful piece of Routr. When it saturates, calls fail, no matter what runs behind it.
-      how: "Calibration run: SIPp sends SIP MESSAGE requests over UDP, starting at 100 messages/s and adding 100 every 30 s, up to 3,000 messages/s. The first 20 s warm the EdgePort up and are not measured. The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%."
+      how: "Calibration run: SIPp sends SIP MESSAGE requests over UDP, starting at 1,000 messages/s and adding 250 every 30 s, up to 10,000 messages/s. The first 20 s warm the EdgePort up and are not measured. The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%."
     uut:
       compose: edgeport-go-echo/compose.yaml
       processes:                  # sampled every 10 s; match is a regex on the command line
@@ -60,18 +60,18 @@ benchmarks:
       port: 5060
       uac: { scenario: edgeport-echo/uac_message.xml }
       unit: messages
-      rate: { start: 100, step: 100, every: 30s, max: 3000 }
+      rate: { start: 1000, step: 250, every: 30s, max: 10000 }
     warmup: 20s                   # the EdgePort starts cold; not measured
     thresholds: { p99LatencyMs: 50, failedCallsPct: 0.1 }
   - id: one-soak
     kind: soak
-    title: RoutrOne, 10 minutes
+    title: RoutrOne, 1 hour
     narrative:
       what: The whole stack in one image, EdgePort plus Dispatcher, Connect, Location and the data service in one Node process, routing calls between registered agents.
       why: Leaks only show after hours. A short test can pass while memory climbs until the process is killed in production.
-      how: "Calibration run: SIPp holds a steady 1 call/s for 10 minutes, with 200 registered callee agents, each called by its own caller agent through Connect. After a 2-minute warm-up, each process's memory may grow at most 5 MB/h."
-    duration: 10m
-    warmup: 2m                    # excluded from every verdict
+      how: "Calibration run: SIPp holds a steady 5 calls/s for 1 hour, with 200 registered callee agents, each called by its own caller agent through Connect. After a 15-minute warm-up, each process's memory may grow at most 5 MB/h."
+    duration: 1h
+    warmup: 15m                   # excluded from every verdict
     uut:
       compose: one-soak/compose.yaml
       setup: one-soak/seed.js   # optional; runs once the UUT is up
@@ -86,6 +86,6 @@ benchmarks:
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
       hold: 30s
-      rate: { cps: 1 }            # a short soak: too short to rule out a leak; about 10 SIP messages/s, far under the EdgePort's limit
+      rate: { cps: 5 }            # 18,000 calls in the hour; about 50 SIP messages/s, far under the EdgePort's limit
     telemetry: { otlp: true, sampleRatio: 0.01 }
     thresholds: { memoryGrowthMBPerHour: 5, failedCallsPct: 0.1, restarts: 0 }
