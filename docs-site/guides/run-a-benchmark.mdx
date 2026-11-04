@@ -61,13 +61,13 @@ From the repository root:
 
 ```bash
 export DIGITALOCEAN_TOKEN=<your token>
-npx -y github:fonoster/perfkit#v0.1.2 run --config perf/perfkit.yaml --target-version 2.31.7
+npx -y github:fonoster/perfkit#v0.1.4 run --config perf/perfkit.yaml --target-version 2.31.7
 ```
 
 With npm 10, run the same command through npm 11:
 
 ```bash
-npx -y npm@11 exec --yes --package=github:fonoster/perfkit#v0.1.2 -- perfkit run --config perf/perfkit.yaml --target-version 2.31.7
+npx -y npm@11 exec --yes --package=github:fonoster/perfkit#v0.1.4 -- perfkit run --config perf/perfkit.yaml --target-version 2.31.7
 ```
 
 Add `--benchmarks edgeport-echo` to run one benchmark, `--config perf/perfkit.smoke.yaml` for the short check, or `--dry-run` to print the plan without creating anything. The report is written to `.perfkit/<run id>/report.json`. A laptop run doesn't publish to routr.io.
@@ -100,7 +100,7 @@ To remove a run, such as a smoke run you've reviewed:
     If it was the latest run, `benchmarks/index.html` still shows it. Re-render it from the newest remaining run's report, with the edited `runs.json` as history:
 
     ```bash
-    npx -y github:fonoster/perfkit#v0.1.2 render \
+    npx -y github:fonoster/perfkit#v0.1.4 render \
       --report benchmarks/runs/<newest remaining run id>/report.json \
       --history benchmarks/runs.json --out benchmarks
     ```
