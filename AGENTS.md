@@ -24,6 +24,8 @@ docs.routr.io); the design specs are `CORE.md` and `CONNECT.md`.
 - GraalJS bundle check: `npm run transpile && npx webpack --config webpack.config.js --mode none && npm run check:bundle`.
 - Java (EdgePort, Requester): `./gradlew test` on JDK 17. Mockito 5.1.1 fails on JDK 21.
 - Corpus replay: `npm run compat -- --sip-connect` (after the build).
+- Go EdgePort (experimental): `cd mods/edgeport-go && go test ./...` (Go 1.24). SEET with it:
+  add `-f mods/edgeport-go/compose.seet.yaml` to the compliance job's compose commands.
 - Not gated in CI: `npm run test:integration` (needs Redis), `npm run test:graaljs` (needs
   GraalVM), the `@routr/ctl` suite.
 - Benchmarks (not gated in CI; costs money: two DigitalOcean droplets; needs
@@ -67,12 +69,18 @@ Overrides (the profile yields to these):
 - Tests: mocha, chai, sinon, sinon-chai; files named `*.unit.test.ts` (`*.int.test.ts` for
   integration).
 - Conventional commits, enforced by commitlint.
+- `mods/edgeport-go` is Go, not TypeScript, and experimental: a second EdgePort built on
+  sipgo (#496), image `fonoster/routr-edgeport:<version>-go-experimental`
+  (`.github/workflows/edgeport-go.yaml`). The Java EdgePort stays the default and the spec;
+  the Go one is not kept in lockstep. Go conventions there (gofmt, `go vet`, `go test
+  ./...`), the MIT header as a Go comment, generated gRPC code committed in `internal/pb`
+  (`scripts/protoc.sh`). Its SEET job runs when it, the suite or the workflows change.
 
 ## Areas
 
 | Area label | Paths | Experts |
 | :--- | :--- | :--- |
-| area: sip-core | mods/edgeport, mods/dispatcher, mods/processor, mods/location, mods/connect, mods/registry, mods/requester, mods/rtprelay, mods/common/src/ip_utils.ts | realtime-comms-engineer |
+| area: sip-core | mods/edgeport, mods/edgeport-go, mods/dispatcher, mods/processor, mods/location, mods/connect, mods/registry, mods/requester, mods/rtprelay, mods/common/src/ip_utils.ts | realtime-comms-engineer |
 | area: interop | mods/connect, mods/common/src/trace, etc/corpus, etc/scenarios, interop | realtime-comms-engineer |
 | area: infra | ops/charts, Dockerfile, mods/*/Dockerfile, compose*.yaml, .github/workflows, .scripts, perf/ | release-engineer, security-engineer |
 | (none) | mods/pgdata, mods/simpledata | database-engineer |

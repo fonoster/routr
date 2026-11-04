@@ -1,0 +1,67 @@
+{
+"dto": {
+  "responseType": "PROXY_AUTHENTICATION_REQUIRED",
+  "from": {
+    "address": {
+      "uri": {
+        "user": "1001",
+        "host": "sip.local",
+        "ttlParam": -1,
+        "port": -1
+      }
+    },
+    "tag": "p1",
+    "parameters": {
+      "tag": "p1"
+    }
+  },
+  "to": {
+    "address": {
+      "uri": {
+        "user": "+12225553000",
+        "host": "sip.provider.net",
+        "ttlParam": -1,
+        "port": -1
+      }
+    },
+    "tag": "gw",
+    "parameters": {
+      "tag": "gw"
+    }
+  },
+  "callId": {
+    "callId": "pa-1"
+  },
+  "contentLength": {
+  },
+  "extensions": [{
+    "name": "CSeq",
+    "value": "2 INVITE"
+  }, {
+    "name": "Proxy-Authenticate",
+    "value": "Digest realm\u003d\"provider\",nonce\u003d\"n1\",algorithm\u003dSHA-256"
+  }, {
+    "name": "Proxy-Authenticate",
+    "value": "Digest realm\u003d\"provider\",nonce\u003d\"n2\",algorithm\u003dMD5"
+  }],
+  "via": [{
+    "host": "10.111.220.2",
+    "port": 5060,
+    "branch": "z9hG4bKccc",
+    "transport": "UDP",
+    "rPortFlag": true,
+    "rPort": 5060,
+    "ttl": -1
+  }],
+  "reasonPhrase": "Proxy Authentication Required"
+},
+"headers": [
+  "Via: SIP/2.0/UDP 10.111.220.2:5060;branch=z9hG4bKccc;rport=5060",
+  "Call-ID: pa-1",
+  "From: <sip:1001@sip.local>;tag=p1",
+  "To: <sip:+12225553000@sip.provider.net>;tag=gw",
+  "CSeq: 2 INVITE",
+  "Proxy-Authenticate: Digest realm=\"provider\",nonce=\"n1\",algorithm=SHA-256",
+  "Proxy-Authenticate: Digest realm=\"provider\",nonce=\"n2\",algorithm=MD5"],
+"sent": "SIP/2.0 407 Proxy Authentication Required\r\nFrom: <sip:1001@sip.local>;tag=p1\r\nTo: <sip:+12225553000@sip.provider.net>;tag=gw\r\nCall-ID: pa-1\r\nCSeq: 2 INVITE\r\nProxy-Authenticate: Digest realm=\"provider\",nonce=\"n1\",algorithm=SHA-256\r\nProxy-Authenticate: Digest realm=\"provider\",nonce=\"n2\",algorithm=MD5\r\nProxy-Authenticate: Digest realm=\"provider\",nonce=\"n1\",algorithm=SHA-256\r\nProxy-Authenticate: Digest realm=\"provider\",nonce=\"n2\",algorithm=MD5\r\nVia: SIP/2.0/UDP 10.111.220.2:5060;branch=z9hG4bKccc;rport=5060\r\nContent-Length: 0\r\n\r\n"
+}
