@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE scenario SYSTEM "sipp.dtd">
 
-<!-- one-soak UAS role: the registered callees' phone. It answers each INVITE
-     that Routr routes to it with 100, 180 and 200, takes the ACK, waits for the
-     caller's BYE and answers 200. The 200's Contact is the INVITE's
-     Request-URI (the callee's registered binding, with its user part), not
-     [local_ip], which SIPp guesses when it has no remote host. Record-Route is
-     echoed so the caller's ACK and BYE go through Routr. -->
+<!-- one-soak UAS role: the registered callees' phone. It runs in the register
+     role's SIPp (-oocsf), so it answers on the socket the callees registered
+     from. It answers each INVITE that Routr routes to it with 100, 180 and 200,
+     takes the ACK, waits for the caller's BYE and answers 200, then stays a few
+     seconds so a retransmitted BYE finds the call and is answered again instead
+     of starting a new one. SIPp answers a retransmitted INVITE or BYE it has
+     already answered on its own; a second copy of the ACK is taken too. The
+     200's Contact is the INVITE's Request-URI (the callee's registered binding,
+     with its user part). Record-Route is echoed so the caller's ACK and BYE go
+     through Routr. The To tag is built from the caller's From tag, so every
+     dialog has its own. -->
 <scenario name="Soak UAS">
 
   <!-- [last_Request_URI] is built from the To header, so read the
@@ -14,6 +19,7 @@
   <recv request="INVITE" crlf="true">
     <action>
       <ereg regexp="^INVITE (sips?:[^ ]+) SIP/2.0" search_in="msg" check_it="true" assign_to="requestLine,bindingURI" />
+      <ereg regexp=";tag=([^;&gt; ]+)" search_in="hdr" header="From" check_it="true" assign_to="fromTagParam,fromTag" />
     </action>
   </recv>
 
@@ -35,7 +41,7 @@
       [last_Via:]
       [last_Record-Route:]
       [last_From:]
-      [last_To:];tag=[pid]SIPpTag01[call_number]
+      [last_To:];tag=uas-[$fromTag]
       [last_Call-ID:]
       [last_CSeq:]
       Contact: <[$bindingURI]>
@@ -49,7 +55,7 @@
       [last_Via:]
       [last_Record-Route:]
       [last_From:]
-      [last_To:];tag=[pid]SIPpTag01[call_number]
+      [last_To:];tag=uas-[$fromTag]
       [last_Call-ID:]
       [last_CSeq:]
       Contact: <[$bindingURI]>
@@ -68,9 +74,12 @@
 
   <recv request="ACK" crlf="true" />
 
+  <!-- A second ACK: the 200 was retransmitted before the first ACK came. -->
+  <recv request="ACK" optional="true" />
+
   <recv request="BYE" />
 
-  <Reference variables="requestLine" />
+  <Reference variables="requestLine,fromTagParam" />
 
   <send>
     <![CDATA[
@@ -83,5 +92,9 @@
       Content-Length: 0
     ]]>
   </send>
+
+  <!-- Keep the call for the caller's BYE retransmissions (T1 doubling up to
+       4 s, 32 s at most): SIPp answers one it has already answered. -->
+  <pause milliseconds="8000" />
 
 </scenario>

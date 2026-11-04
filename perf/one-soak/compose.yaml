@@ -11,7 +11,11 @@ services:
     environment:
       JAVA_TOOL_OPTIONS: -Xms1g -Xmx1g -XX:+AlwaysPreTouch
       EXTERNAL_ADDRS: ${PERFKIT_UUT_IP:?set PERFKIT_UUT_IP}
-      LOCALNETS: ${PERFKIT_VPC_CIDR:-127.0.0.1/8}
+      # Routr takes the address part of the LOCALNETS entry that holds the peer
+      # as its own address on that network, so the VPC range (10.x.0.0/20)
+      # would put the network address in Via and Record-Route. A /32 of its
+      # own address matches no peer, and Routr uses EXTERNAL_ADDRS everywhere.
+      LOCALNETS: ${PERFKIT_UUT_IP}/32
       LOGS_LEVEL: info
       ENABLE_HEALTHCHECKS: "true"
       # Empty (no telemetry in perfkit.yaml, or a laptop run) turns telemetry off.

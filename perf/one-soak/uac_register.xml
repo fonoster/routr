@@ -4,7 +4,9 @@
 <!-- one-soak register role: keeps one callee of callees.csv registered for the
      whole run. Each "call" is one user's endless loop: REGISTER, 401, REGISTER
      with digest auth, 200, then a pause of [refresh_ms] (half of [expires]) and
-     again, on the same Call-ID with a rising CSeq. Contact points at the UAS role on the load generator ([uas_port]),
+     again, on the same Call-ID with a rising CSeq. Each turn is a new
+     transaction, so the Via branch carries the CSeq: [branch] alone repeats
+     every turn, and Routr takes the refresh for a retransmission. Contact points at the UAS role on the load generator ([uas_port]),
      so calls to the callee reach uas_answer.xml. perfkit passes the keys
      expires, refresh_ms and uas_port with -key. The digest auth comes from
      [field2], the users file's ready-made [authentication ...] keyword:
@@ -16,7 +18,7 @@
   <send retrans="500">
     <![CDATA[
       REGISTER sip:bench.routr.local SIP/2.0
-      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]-[cseq]
       Max-Forwards: 70
       From: <sip:[field0]@bench.routr.local>;tag=[call_number]
       To: <sip:[field0]@bench.routr.local>
@@ -36,7 +38,7 @@
   <send retrans="500">
     <![CDATA[
       REGISTER sip:bench.routr.local SIP/2.0
-      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];rport;branch=[branch]-[cseq]
       Max-Forwards: 70
       From: <sip:[field0]@bench.routr.local>;tag=[call_number]
       To: <sip:[field0]@bench.routr.local>

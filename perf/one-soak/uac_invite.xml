@@ -6,7 +6,8 @@
      digest auth (start_rtd), 200 (rtd), ACK, hold, BYE, 200. ACK and BYE go to
      the 200's Contact and follow [routes]. perfkit passes no -s and sets the
      hold with -d, so the <pause/> has no value. Every call ends with BYE then
-     200. The digest auth comes from [field3], the users file's ready-made
+     200; a retransmitted 200 to the INVITE while it waits for the BYE's is
+     ACKed again and the BYE resent, so it doesn't fail the call. The digest auth comes from [field3], the users file's ready-made
      [authentication ...] keyword: SIPp 3.7 doesn't expand [field0] inside
      [authentication username=...]. -->
 <scenario name="Soak UAC">
@@ -87,6 +88,8 @@
     </action>
   </recv>
 
+  <label id="ack" />
+
   <send>
     <![CDATA[
       ACK [$remoteURI] SIP/2.0
@@ -102,7 +105,12 @@
     ]]>
   </send>
 
+  <!-- Only the first time: after a retransmitted 200, go back to the BYE. -->
+  <nop test="ackedAgain" next="bye" />
+
   <pause />
+
+  <label id="bye" />
 
   <send retrans="500">
     <![CDATA[
@@ -119,13 +127,19 @@
     ]]>
   </send>
 
-  <!-- The BYE's 200, not a retransmitted 200 to the INVITE. -->
+  <!-- The BYE's 200, or the INVITE's 200 again (the callee didn't get the
+       ACK in time): then ACK it again and resend the BYE (same branch, so a
+       retransmission) instead of failing the call. -->
   <recv response="200">
     <action>
-      <ereg regexp="BYE" search_in="hdr" header="CSeq" check_it="true" assign_to="byeCSeq" />
+      <ereg regexp="(INVITE|BYE)" search_in="hdr" header="CSeq" check_it="true" assign_to="cseqLine,method" />
+      <strcmp assign_to="notBye" variable="method" value="BYE" />
+      <test assign_to="ackedAgain" variable="notBye" compare="not_equal" value="0" />
     </action>
   </recv>
 
-  <Reference variables="contact,byeCSeq" />
+  <nop test="ackedAgain" next="ack" />
+
+  <Reference variables="contact,cseqLine" />
 
 </scenario>
