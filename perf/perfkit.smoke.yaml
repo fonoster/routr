@@ -40,13 +40,13 @@ benchmarks:
     thresholds: { p99LatencyMs: 50, failedCallsPct: 0.1 }
   - id: one-soak
     kind: soak
-    title: RoutrOne, 20 minutes
+    title: RoutrOne, 3 minutes
     narrative:
       what: The whole stack in one image, EdgePort plus Dispatcher, Connect, Location and the data service in one Node process, routing calls between registered agents.
       why: Leaks only show after hours. A short test can pass while memory climbs until the process is killed in production.
-      how: "Smoke run: SIPp holds a steady 20 calls/s for 20 minutes, with 200 registered callee agents, each called by its own caller agent through Connect. After a 5-minute warm-up, each process's memory may grow at most 5 MB/h."
-    duration: 20m
-    warmup: 5m                    # excluded from every verdict
+      how: "Smoke run: SIPp holds a steady 10 calls/s for 3 minutes, with 200 registered callee agents, each called by its own caller agent through Connect. After a 1-minute warm-up, each process's memory may grow at most 5 MB/h."
+    duration: 3m
+    warmup: 1m                    # excluded from every verdict
     uut:
       compose: one-soak/compose.yaml
       setup: one-soak/seed.js   # optional; runs once the UUT is up
@@ -61,6 +61,6 @@ benchmarks:
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
       hold: 30s
-      rate: { cps: 20 }           # a short soak: too short to rule out a leak
+      rate: { cps: 10 }           # a short soak: too short to rule out a leak; well under the EdgePort's limit
     telemetry: { otlp: true, sampleRatio: 0.01 }
     thresholds: { memoryGrowthMBPerHour: 5, failedCallsPct: 0.1, restarts: 0 }

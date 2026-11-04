@@ -12,7 +12,7 @@ How to run them, from a laptop or from GitHub: [Run a benchmark](https://docs.ro
 | Path | What it is |
 | --- | --- |
 | `perfkit.yaml` | The full run: the project, the droplets, the images and both benchmarks (`apiVersion: perfkit/v1`). |
-| `perfkit.smoke.yaml` | The same benchmarks, shortened (EdgePort ramp up to 300 messages/s, a 20-minute soak at 20 calls/s), to check the harness and the page in under an hour. |
+| `perfkit.smoke.yaml` | The same benchmarks, shortened (EdgePort ramp up to 300 messages/s, a 3-minute soak at 10 calls/s), to check the harness and the page in under an hour. |
 | `logo.svg` | The "routr." wordmark on the report page (dark), from the Logo component in the design. The letters are #FFFFFF, not `currentColor`, because perfkit embeds the logo as an `<img>`; the dot is #5FCFCE. |
 | `edgeport-echo/compose.yaml` | EdgePort and Echo on the UUT droplet, host networking. Echo binds `127.0.0.1:51904`. |
 | `edgeport-echo/edgeport.yaml` | EdgePort config: processor `127.0.0.1:51904`, UDP and TCP on 5060. Its addresses come from `EXTERNAL_ADDRS` and `LOCALNETS` in the compose file, because the config loader doesn't expand variables. |
