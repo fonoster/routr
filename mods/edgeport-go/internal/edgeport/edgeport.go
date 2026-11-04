@@ -63,6 +63,8 @@ type clientInfo struct {
 
 type serverInfo struct {
 	final atomic.Bool
+	// the status code of the final response sent
+	code atomic.Int32
 }
 
 // EdgePort is a running EdgePort.
@@ -371,6 +373,28 @@ func (e *EdgePort) trackServer(callID string, tx *sip.ServerTx) {
 	})
 }
 
+// passAcks hands the ACKs sipgo matches to an INVITE server transaction to
+// processRequest. An ACK that reuses its INVITE's branch (SIPp does, for the
+// ACK to a 2xx) lands on the INVITE's transaction (RFC 6026 "Accepted"); JAIN
+// SIP gives such an ACK to the listener, so it is forwarded like any 2xx ACK.
+// The ACK to a failure response stays with the transaction, as in JAIN SIP.
+func (e *EdgePort) passAcks(callID string, tx *sip.ServerTx) {
+	for {
+		select {
+		case ack := <-tx.Acks():
+			v, ok := e.servers.Load(tx)
+			if !ok {
+				continue
+			}
+			if code := v.(*serverInfo).code.Load(); code >= 200 && code < 300 {
+				e.queue.Run(callID, func() { e.processRequest(ack, nil) })
+			}
+		case <-tx.Done():
+			return
+		}
+	}
+}
+
 func (e *EdgePort) finalSent(tx *sip.ServerTx) bool {
 	if v, ok := e.servers.Load(tx); ok {
 		return v.(*serverInfo).final.Load()
@@ -476,6 +500,7 @@ func (e *EdgePort) respond(tx *sip.ServerTx, res *sip.Response) error {
 	}
 	if res.StatusCode >= 200 {
 		if v, ok := e.servers.Load(tx); ok {
+			v.(*serverInfo).code.Store(int32(res.StatusCode))
 			v.(*serverInfo).final.Store(true)
 		}
 	}

@@ -300,7 +300,7 @@ Content-Length: 0
 }
 
 func TestFlowInviteIsProxied(t *testing.T) {
-	proc := &fakeProcessor{answerAcks: true}
+	proc := &fakeProcessor{}
 	uas := newPeer(t)
 	proc.uas = uas.port
 	edge := startEdgePort(t, proc)
@@ -368,7 +368,27 @@ Content-Length: 0
 		t.Errorf("the callee's To tag kept: %s", ok.To().Value())
 	}
 
-	// The ACK for the 2xx goes statelessly; the processor's response to it is dropped
+	// The ACK for the 2xx, on the INVITE's branch as SIPp sends it, is forwarded
+	uac.send(edge, fmt.Sprintf(`
+ACK sip:1002@127.0.0.1:%d SIP/2.0
+Via: SIP/2.0/UDP 127.0.0.1:%d;rport;branch=z9hG4bK-i1
+Max-Forwards: 70
+From: <sip:1001@127.0.0.1>;tag=caller
+To: <sip:1002@127.0.0.1>;tag=callee
+Call-ID: i1
+CSeq: 1 ACK
+Content-Length: 0
+
+`, uas.port, uac.port))
+	msg, _ = uas.recv(2 * time.Second)
+	if ack, ok := msg.(*sip.Request); !ok || ack.Method != sip.ACK {
+		t.Fatalf("the ACK reaches the callee:\n%s", msg)
+	}
+
+	// Another ACK goes statelessly; the processor's response to it is dropped
+	proc.mu.Lock()
+	proc.answerAcks = true
+	proc.mu.Unlock()
 	uac.send(edge, fmt.Sprintf(`
 ACK sip:1002@127.0.0.1:%d SIP/2.0
 Via: SIP/2.0/UDP 127.0.0.1:%d;rport;branch=z9hG4bK-a1
@@ -381,8 +401,8 @@ Content-Length: 0
 
 `, uas.port, uac.port))
 	uac.silent(500 * time.Millisecond)
-	if len(proc.requests(ppb.Method_ACK)) != 1 {
-		t.Error("the processor saw the ACK")
+	if len(proc.requests(ppb.Method_ACK)) != 2 {
+		t.Error("the processor saw both ACKs")
 	}
 
 	// A re-INVITE on the dialog is now known: forwarded, not 481

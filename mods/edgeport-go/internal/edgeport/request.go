@@ -76,6 +76,7 @@ func (e *EdgePort) onRequest(req *sip.Request, tx *sip.ServerTx) {
 	if tx != nil {
 		e.trackServer(callID, tx)
 		if req.IsInvite() {
+			go e.passAcks(callID, tx)
 			invite := tx
 			cancelled := func(cancel *sip.Request) {
 				// Remembered at once: a challenge to the INVITE can still arrive
