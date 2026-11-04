@@ -1,0 +1,115 @@
+{
+"dto": {
+  "requestUri": {
+    "user": "echo",
+    "host": "10.0.0.1",
+    "ttlParam": -1,
+    "port": 5061,
+    "secure": true
+  },
+  "from": {
+    "address": {
+      "uri": {
+        "user": "perfkit",
+        "host": "10.0.0.2",
+        "ttlParam": -1,
+        "port": 5061,
+        "secure": true
+      }
+    },
+    "tag": "7",
+    "parameters": {
+      "tag": "7"
+    }
+  },
+  "to": {
+    "address": {
+      "uri": {
+        "user": "echo",
+        "host": "10.0.0.1",
+        "ttlParam": -1,
+        "port": 5061,
+        "secure": true
+      }
+    }
+  },
+  "contact": {
+    "address": {
+      "uri": {
+        "user": "pbx",
+        "host": "10.0.0.2",
+        "transportParam": "tls",
+        "ttlParam": -1,
+        "port": -1,
+        "bncParam": true
+      },
+      "displayName": "Trunk"
+    },
+    "expires": -1,
+    "qValue": -1.0
+  },
+  "callId": {
+    "callId": "msg-1"
+  },
+  "contentLength": {
+    "contentLength": 9
+  },
+  "maxForwards": {
+    "maxForwards": 70
+  },
+  "extensions": [{
+    "name": "CSeq",
+    "value": "1 MESSAGE"
+  }, {
+    "name": "Refer-To",
+    "value": "\u003csip:1002@sip.local\u003e"
+  }, {
+    "name": "Referred-By",
+    "value": "\u003csip:17853178070@sip.provider.net\u003e"
+  }, {
+    "name": "Event",
+    "value": "refer"
+  }, {
+    "name": "Subject",
+    "value": "hello, world"
+  }, {
+    "name": "X-Multi",
+    "value": "a, b"
+  }, {
+    "name": "X-Multi",
+    "value": "c"
+  }, {
+    "name": "Content-Type",
+    "value": "text/plain;charset\u003dutf-8"
+  }],
+  "via": [{
+    "host": "10.0.0.2",
+    "port": 5061,
+    "branch": "z9hG4bKmsg",
+    "transport": "TLS",
+    "rPortFlag": true,
+    "rPort": 50000,
+    "received": "10.0.0.2",
+    "mAddr": "10.0.0.2",
+    "ttl": 5
+  }],
+  "body": "perfkit 7"
+},
+"headers": [
+  "Via: SIP/2.0/TLS 10.0.0.2:5061;branch=z9hG4bKmsg;received=10.0.0.2;maddr=10.0.0.2;ttl=5;rport=50000",
+  "Max-Forwards: 70",
+  "Call-ID: msg-1",
+  "From: <sips:perfkit@10.0.0.2:5061>;tag=7",
+  "To: <sips:echo@10.0.0.1:5061>",
+  "Contact: \"Trunk\" <sip:pbx@10.0.0.2;bnc;transport=tls>",
+  "CSeq: 1 MESSAGE",
+  "Refer-To: <sip:1002@sip.local>",
+  "Referred-By: <sip:17853178070@sip.provider.net>",
+  "Event: refer",
+  "Subject: hello, world",
+  "X-Multi: a, b",
+  "X-Multi: c",
+  "Content-Type: text/plain;charset=utf-8"],
+"sent": "MESSAGE sip:echo@10.0.0.1:5061 SIP/2.0\r\nVia: SIP/2.0/TLS 10.0.0.2:5061;branch=z9hG4bKmsg;received=10.0.0.2;maddr=10.0.0.2;ttl=5;rport=50000\r\nMax-Forwards: 70\r\nCall-ID: msg-1\r\nFrom: <sips:perfkit@10.0.0.2:5061>;tag=7\r\nTo: <sips:echo@10.0.0.1:5061>\r\nContact: \"Trunk\" <sip:pbx@10.0.0.2;bnc;transport=tls>\r\nCSeq: 1 MESSAGE\r\nRefer-To: <sip:1002@sip.local>\r\nReferred-By: <sip:17853178070@sip.provider.net>\r\nEvent: refer\r\nSubject: hello, world\r\nX-Multi: a, b\r\nX-Multi: c\r\nContent-Type: text/plain;charset=utf-8\r\nContent-Length: 9\r\n\r\nperfkit 7",
+"answered": "SIP/2.0 200 \r\nCSeq: 1 MESSAGE\r\nCall-ID: msg-1\r\nFrom: <sips:perfkit@10.0.0.2:5061>;tag=7\r\nTo: <sips:echo@10.0.0.1:5061>\r\nVia: SIP/2.0/TLS 10.0.0.2:5061;branch=z9hG4bKmsg;rport=50000;received=10.0.0.2;ttl=5;maddr=10.0.0.2\r\nContact: \"Trunk\" <sip:pbx@10.0.0.2;bnc;transport=tls>\r\nX-Reply: 1\r\nAllow: INVITE\r\nContent-Length: 0\r\n\r\n"
+}

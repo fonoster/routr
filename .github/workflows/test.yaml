@@ -39,6 +39,7 @@ jobs:
       pull-requests: read
     outputs:
       code: ${{ steps.filter.outputs.code }}
+      edgeport_go: ${{ steps.filter.outputs.edgeport_go }}
     steps:
       - name: Look for changes outside docs, site, designs and Markdown
         id: filter
@@ -48,9 +49,16 @@ jobs:
         run: |
           if [ -z "$PR" ]; then
             echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "edgeport_go=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           files=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" -q '.[].filename')
+          # The Go EdgePort's SEET run is for changes to it, its workflows and the suite
+          if echo "$files" | grep -Eq '^(mods/edgeport-go/|etc/scenarios/|etc/seet\.json$|\.github/workflows/(test|edgeport-go)\.yaml$)'; then
+            echo "edgeport_go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "edgeport_go=false" >> "$GITHUB_OUTPUT"
+          fi
           code=$(echo "$files" | grep -Ev '^(docs|docs-site|site|designs)/|\.md$' || true)
           if [ -n "$code" ]; then
             echo "code=true" >> "$GITHUB_OUTPUT"
@@ -262,3 +270,110 @@ jobs:
       - name: Tear down the stack
         if: always()
         run: docker compose -f compose.yaml -f compose.dev.yaml down -v
+
+  # The experimental Go EdgePort (mods/edgeport-go, issue #496) against the same suite: the
+  # compliance job above with mods/edgeport-go/compose.seet.yaml swapping both EdgePorts for
+  # the Go image. It runs only when the Go EdgePort, its workflows or the suite change.
+  edgeport-go:
+    name: Go EdgePort unit tests
+    needs: changes
+    if: needs.changes.outputs.edgeport_go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: mods/edgeport-go/go.mod
+          cache-dependency-path: mods/edgeport-go/go.sum
+
+      - name: Vet and test
+        working-directory: mods/edgeport-go
+        run: |
+          test -z "$(gofmt -l .)" || { gofmt -l .; echo "::error::gofmt"; exit 1; }
+          go vet ./...
+          go test -race ./...
+
+  compliance-go:
+    name: SIP Connect v1.1 compliance (SEET, Go EdgePort)
+    needs: changes
+    if: needs.changes.outputs.edgeport_go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      COMPOSE: docker compose -f compose.yaml -f compose.dev.yaml -f mods/edgeport-go/compose.seet.yaml
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: npm
+
+      # The requester image copies mods/requester/libs (gradle) and the Node images npm pack
+      # dist/, so the project is built as in the compliance job.
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Build project
+        run: npm run make
+
+      - name: Generate dev certificates
+        run: sh .scripts/dev-certs.sh
+
+      - name: Bring up the stack
+        run: |
+          $COMPOSE up --build -d
+          sleep 60
+          $COMPOSE ps
+
+      - name: Run the compliance suite
+        run: $COMPOSE up --abort-on-container-exit --exit-code-from compliance compliance
+
+      - name: Collect SIPp traces
+        if: failure()
+        run: |
+          mkdir -p compliance-traces
+          cid=$($COMPOSE ps -aq compliance)
+          docker export -o compliance-traces/fs.tar "$cid"
+          tar -tf compliance-traces/fs.tar | grep -E '^(\./)?[^/]+_(errors|messages)\.log$' \
+            | xargs tar -xf compliance-traces/fs.tar -C compliance-traces || true
+          rm -f compliance-traces/fs.tar
+          $COMPOSE logs --no-color --tail 400 > compliance-traces/compose-services.log 2>&1 || true
+          ls -l compliance-traces
+
+      - name: Upload compliance traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-traces-go
+          path: compliance-traces
+          if-no-files-found: warn
+
+      - name: Collect call recordings
+        if: always()
+        run: |
+          mkdir -p call-recordings
+          $COMPOSE cp dispatcher:/var/routr/traces/. call-recordings/ || true
+          ls call-recordings | wc -l
+
+      - name: Upload call recordings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: call-recordings-go
+          path: call-recordings
+          if-no-files-found: warn
+
+      - name: Tear down the stack
+        if: always()
+        run: $COMPOSE down -v
