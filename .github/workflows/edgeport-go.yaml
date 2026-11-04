@@ -1,0 +1,88 @@
+name: EdgePort (Go, experimental)
+
+# Builds the experimental Go EdgePort (mods/edgeport-go, issue #496) for amd64 and arm64
+# and pushes fonoster/routr-edgeport:<version>-go-experimental and the moving
+# :go-experimental tag. <version> is the Lerna version (lerna.json) of the commit built.
+# The plain version tags and latest stay the Java EdgePort, which release.yaml publishes;
+# this workflow never touches them and is not part of a release.
+#
+# Run it by hand to rebuild the tags from the tip of a branch:
+#   gh workflow run edgeport-go.yaml
+#
+# A push to main runs it before release.yaml bumps lerna.json, so the tag carries the
+# version of the last release, not the one being cut. Run it by hand after the release to
+# tag the new version.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "mods/edgeport-go/**"
+      - ".github/workflows/edgeport-go.yaml"
+  workflow_dispatch:
+
+concurrency:
+  group: edgeport-go-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Go unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: mods/edgeport-go/go.mod
+          cache-dependency-path: mods/edgeport-go/go.sum
+
+      - name: Vet and test
+        working-directory: mods/edgeport-go
+        run: |
+          go vet ./...
+          go test ./...
+
+  image:
+    name: Publish routr-edgeport:<version>-go-experimental
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read the version
+        id: version
+        run: echo "version=$(jq -r .version lerna.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: mods/edgeport-go/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          build-args: VERSION=${{ steps.version.outputs.version }}
+          push: true
+          tags: |
+            fonoster/routr-edgeport:${{ steps.version.outputs.version }}-go-experimental
+            fonoster/routr-edgeport:go-experimental
