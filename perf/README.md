@@ -46,8 +46,8 @@ docker compose -f edgeport-echo/compose.yaml down
 
 ## perfkit version
 
-perfkit is pinned to the git tag `v0.1.6` in `.github/workflows/benchmarks.yaml` (every
-`github:fonoster/perfkit#v0.1.6` and `run.yaml@v0.1.6`) and in the guide's commands. To move
+perfkit is pinned to the git tag `v0.1.8` in `.github/workflows/benchmarks.yaml` (every
+`github:fonoster/perfkit#v0.1.8` and `run.yaml@v0.1.8`) and in the guide's commands. To move
 to a new tag, change all of them in one pull request, then run `perfkit validate` with the new
 tag on both config files:
 
