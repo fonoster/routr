@@ -346,6 +346,24 @@ section[id] {
   width: 24px;
   height: 24px;
 }
+/* Six links fit beside the actions down to ~1080px; below that the menu takes over. */
+.nav__links a {
+  white-space: nowrap;
+}
+@media (max-width: 1240px) {
+  .nav__links {
+    gap: 24px;
+  }
+}
+@media (max-width: 1080px) {
+  .nav__links,
+  .nav__actions .btn {
+    display: none;
+  }
+  .nav__menu {
+    display: grid;
+  }
+}
 .sheet {
   border-top: 1px solid var(--border);
   padding: 12px var(--pad) 24px;
