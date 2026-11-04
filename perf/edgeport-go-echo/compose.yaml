@@ -1,0 +1,34 @@
+# EdgePort (Go, experimental) + Echo: the experimental Go EdgePort (mods/edgeport-go) alone, with Echo answering every request with
+# 200 OK. perfkit runs it on the UUT droplet with the PERFKIT_* variables set
+# (see perf/README.md). Host networking only: Docker's UDP port publishing
+# distorts results at these rates, and perfkit refuses a service without it.
+services:
+  echo:
+    image: ${PERFKIT_IMAGE_ECHO:?set PERFKIT_IMAGE_ECHO}
+    network_mode: host
+    restart: "no"
+    environment:
+      BIND_ADDR: 127.0.0.1:51904
+      LOGS_LEVEL: info
+
+  edgeport:
+    image: ${PERFKIT_IMAGE_EDGEPORTGO:?set PERFKIT_IMAGE_EDGEPORTGO}
+    network_mode: host
+    restart: "no"
+    depends_on:
+      - echo
+    environment:
+      # The config loader doesn't expand variables, so these come from the
+      # environment, which wins over edgeport.yaml.
+      EXTERNAL_ADDRS: ${PERFKIT_UUT_IP:?set PERFKIT_UUT_IP}
+      LOCALNETS: ${PERFKIT_VPC_CIDR:-127.0.0.1/8}
+      LOGS_LEVEL: info
+      ENABLE_HEALTHCHECKS: "true"
+    volumes:
+      - ../edgeport-echo/edgeport.yaml:/etc/routr/edgeport.yaml:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
