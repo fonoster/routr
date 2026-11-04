@@ -367,9 +367,13 @@ func (e *EdgePort) process(req *ppb.MessageRequest) (*ppb.MessageResponse, error
 // the transaction ends.
 func (e *EdgePort) trackServer(callID string, tx *sip.ServerTx) {
 	e.servers.Store(tx, &serverInfo{})
+	// Released in call order, after the work already queued for the call: over a
+	// connection a transaction ends as soon as its final response is passed up
 	tx.OnTerminate(func(string, error) {
-		e.txm.RemoveServerTransaction(callID, tx)
-		e.servers.Delete(tx)
+		e.queue.Run(callID, func() {
+			e.txm.RemoveServerTransaction(callID, tx)
+			e.servers.Delete(tx)
+		})
 	})
 }
 
@@ -426,10 +430,6 @@ func (e *EdgePort) abandon(tx *sip.ServerTx) {
 func (e *EdgePort) trackClient(tx *sip.ClientTx, callID string, server *sip.ServerTx, creds *Credentials) {
 	info := &clientInfo{callID: callID, server: server, creds: creds}
 	e.clients.Store(tx, info)
-	tx.OnTerminate(func(string, error) {
-		e.txm.RemoveClientTransaction(callID, tx)
-		e.clients.Delete(tx)
-	})
 	tx.OnRetransmission(func(res *sip.Response) {
 		e.queue.Run(callIDOf(res), func() { e.processResponse(res, tx) })
 	})
@@ -439,6 +439,13 @@ func (e *EdgePort) trackClient(tx *sip.ClientTx, callID string, server *sip.Serv
 			case res := <-tx.Responses():
 				e.queue.Run(callIDOf(res), func() { e.processResponse(res, tx) })
 			case <-tx.Done():
+				// Released in call order, after the responses this loop queued: over
+				// a connection the transaction ends (Timer D is 0) as soon as its
+				// final response is passed up, before processResponse looks at it
+				e.queue.Run(callID, func() {
+					e.txm.RemoveClientTransaction(callID, tx)
+					e.clients.Delete(tx)
+				})
 				if server != nil && !info.replaced.Load() {
 					e.abandon(server)
 				}
