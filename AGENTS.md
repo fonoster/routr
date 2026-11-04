@@ -30,7 +30,7 @@ docs.routr.io); the design specs are `CORE.md` and `CONNECT.md`.
   GraalVM), the `@routr/ctl` suite.
 - Benchmarks (not gated in CI; costs money: two DigitalOcean droplets; needs
   `DIGITALOCEAN_TOKEN` and npm 11):
-  `npx -y github:fonoster/perfkit#v0.1.8 run --config perf/perfkit.yaml --target-version <x.y.z>`
+  `npx -y github:fonoster/perfkit#v0.1.9 run --config perf/perfkit.yaml --target-version <x.y.z>`
   (`perf/perfkit.smoke.yaml` is the under-an-hour check). Guide:
   `docs-site/guides/run-a-benchmark.mdx`.
 - CI (`.github/workflows/test.yaml`) runs on pull requests: unit, typecheck and lint;
