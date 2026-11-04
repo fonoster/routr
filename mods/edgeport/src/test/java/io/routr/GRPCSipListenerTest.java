@@ -362,4 +362,21 @@ public class GRPCSipListenerTest {
     assertFalse(GRPCSipListener.requiresKnownDialog(requestWithToTag(Request.ACK, "abc")));
     assertFalse(GRPCSipListener.requiresKnownDialog(requestWithToTag(Request.UPDATE, "abc")));
   }
+
+  @Test
+  public void testOnlyAnAnswerableRequestGetsTheProcessorsResponse() {
+    Request ack = mock(Request.class);
+    when(ack.getMethod()).thenReturn(Request.ACK);
+    Request invite = mock(Request.class);
+    when(invite.getMethod()).thenReturn(Request.INVITE);
+    Request bye = mock(Request.class);
+    when(bye.getMethod()).thenReturn(Request.BYE);
+    ServerTransaction transaction = mock(ServerTransaction.class);
+
+    // An ACK takes no response (RFC 3261 section 22.1)
+    assertFalse(GRPCSipListener.canSendResponse(ack, null));
+    assertTrue(GRPCSipListener.canSendResponse(invite, transaction));
+    // A retransmission with no server transaction is answered by the original one
+    assertFalse(GRPCSipListener.canSendResponse(bye, null));
+  }
 }

@@ -229,7 +229,12 @@ public class GRPCSipListener implements SipListener {
       // This is needed so that processors can send responses to the client 
       // that include body content.
       if (!isRequest) {
-        assert serverTransaction != null;
+        if (!canSendResponse(req, serverTransaction)) {
+          var callId = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
+          LOG.debug("dropping the processor's response to {}, callId: {}", method,
+              callId != null ? callId.getCallId() : null);
+          return;
+        }
         String body = response.getMessage().getBody();
         ContentTypeHeader contentTypeHeader = null;
         
@@ -454,6 +459,21 @@ public class GRPCSipListener implements SipListener {
   static boolean requiresKnownDialog(final Request request) {
     var method = request.getMethod();
     return (Request.INVITE.equals(method) || Request.REFER.equals(method)) && hasToTag(request);
+  }
+
+  /**
+   * Whether a processor's response to a request can be sent. It can't when the request
+   * has no server transaction: an ACK takes no response (RFC 3261 section 22.1), and a
+   * retransmission whose server transaction couldn't be created is already answered by
+   * the original transaction (section 17.2.3).
+   *
+   * @param request The request just received
+   * @param serverTransaction The request's server transaction, or null if it has none
+   * @return false for an ACK or a null server transaction, true otherwise
+   */
+  static boolean canSendResponse(final Request request,
+      final ServerTransaction serverTransaction) {
+    return !Request.ACK.equals(request.getMethod()) && serverTransaction != null;
   }
 
   static boolean hasToTag(final Request request) {

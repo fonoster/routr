@@ -22287,6 +22287,286 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "XrmNG",
+      "name": "GitHub Social Preview (1280x640)",
+      "x": 0,
+      "y": 3990,
+      "theme": {
+        "mode": "dark"
+      },
+      "clip": true,
+      "width": 1280,
+      "height": 640,
+      "fill": [
+        "#181818",
+        {
+          "type": "image",
+          "enabled": true,
+          "url": "assets/pattern-hero.png",
+          "mode": "cover"
+        }
+      ],
+      "layout": "none",
+      "children": [
+        {
+          "type": "ref",
+          "id": "RrtHi",
+          "ref": "a0qbdn",
+          "name": "Logo",
+          "x": 80,
+          "y": 72,
+          "width": 155,
+          "height": 40
+        },
+        {
+          "type": "frame",
+          "id": "X8l9X",
+          "name": "Copy",
+          "x": 80,
+          "y": 204,
+          "width": 540,
+          "layout": "vertical",
+          "gap": 20,
+          "children": [
+            {
+              "type": "text",
+              "id": "gUOrk",
+              "name": "Headline",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "The SIP server\nbuilt for the cloud.",
+              "lineHeight": 1.02,
+              "fontFamily": "Poppins",
+              "fontSize": 66,
+              "fontWeight": "600",
+              "letterSpacing": -2.6
+            },
+            {
+              "type": "text",
+              "id": "AtqjF",
+              "name": "Subhead",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": 540,
+              "content": "A lightweight SIP proxy, location server,\nand registrar. Open source, cloud-native.",
+              "lineHeight": 1.45,
+              "fontFamily": "Poppins",
+              "fontSize": 22,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "sDxjj",
+              "name": "URL",
+              "fill": "$text-muted",
+              "content": "github.com/fonoster/routr",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "8Y2eS",
+          "name": "Use Case Scene",
+          "x": 690,
+          "y": 156,
+          "width": 540,
+          "height": 328,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "v6GSh",
+              "x": 0,
+              "y": 0,
+              "name": "Scene Art",
+              "width": 540,
+              "height": 328,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "assets/hero-usecases.png",
+                "mode": "contain"
+              }
+            },
+            {
+              "type": "frame",
+              "id": "BU82k",
+              "x": 360.6,
+              "y": 54.3,
+              "name": "Label / build a scaip network",
+              "fill": "#121414EB",
+              "cornerRadius": 999,
+              "stroke": "#FFFFFF24",
+              "strokeWidth": 1,
+              "padding": [
+                5,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "dSlGp",
+                  "name": "Label",
+                  "fill": "#9FB8B7",
+                  "content": "build a scaip network",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "il2PI",
+              "x": 137.7,
+              "y": 0.4,
+              "name": "Label / connect camera networks",
+              "fill": "#121414EB",
+              "cornerRadius": 999,
+              "stroke": "#FFFFFF24",
+              "strokeWidth": 1,
+              "padding": [
+                5,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "i172n",
+                  "name": "Label",
+                  "fill": "#9FB8B7",
+                  "content": "connect camera networks",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "sk1jv",
+              "x": 360.9,
+              "y": 296,
+              "name": "Label / scale your pbx",
+              "fill": "#121414EB",
+              "cornerRadius": 999,
+              "stroke": "#FFFFFF24",
+              "strokeWidth": 1,
+              "padding": [
+                5,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "HBChA",
+                  "name": "Label",
+                  "fill": "#9FB8B7",
+                  "content": "scale your pbx",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gaKrO",
+              "x": 57.2,
+              "y": 217.9,
+              "name": "Label / wire up intercoms",
+              "fill": "#121414EB",
+              "cornerRadius": 999,
+              "stroke": "#FFFFFF24",
+              "strokeWidth": 1,
+              "padding": [
+                5,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ruZGP",
+                  "name": "Label",
+                  "fill": "#9FB8B7",
+                  "content": "wire up intercoms",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tkEB3",
+              "x": 197.6,
+              "y": 308.7,
+              "name": "Label / bridge radio over ip",
+              "fill": "#121414EB",
+              "cornerRadius": 999,
+              "stroke": "#FFFFFF24",
+              "strokeWidth": 1,
+              "padding": [
+                5,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "LWOtM",
+                  "name": "Label",
+                  "fill": "#9FB8B7",
+                  "content": "bridge radio over ip",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "M8RjS",
+              "x": 262.5,
+              "y": 179.5,
+              "name": "routr mark",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "BJOvg",
+                  "name": "routr",
+                  "fill": "#FFFFFF",
+                  "content": "routr",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "QcyVM",
+                  "name": "dot",
+                  "fill": "$accent",
+                  "content": ".",
+                  "fontFamily": "Poppins",
+                  "fontSize": 15,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {
