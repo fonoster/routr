@@ -28,8 +28,12 @@ const logger = getLogger({ service: "echo", filePath: __filename })
 
 new Processor({ bindAddr: BIND_ADDR, name: "echo" }).listen(
   (req: MessageRequest, res: Response) => {
-    logger.verbose("got new request: ")
-    logger.verbose(JSON.stringify(req, null, " "))
+    // JSON.stringify runs before the logger checks the level, so guard it: at the default
+    // "info" level it cost about a third of Echo's CPU per message for nothing.
+    if (logger.isLevelEnabled("verbose")) {
+      logger.verbose("got new request: ")
+      logger.verbose(JSON.stringify(req, null, " "))
+    }
     res.sendOk()
   }
 )
