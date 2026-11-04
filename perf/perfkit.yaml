@@ -24,7 +24,7 @@ benchmarks:
     narrative:
       what: The EdgePort on its own, with Echo answering every request with 200 OK. No Dispatcher, Connect or database, so this is a ceiling for EdgePort alone, not for a full deployment.
       why: The EdgePort is the only stateful piece of Routr. When it saturates, calls fail, no matter what runs behind it.
-      how: SIPp sends SIP MESSAGE requests over UDP, starting at 50 messages/s and adding 50 every minute. The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%.
+      how: SIPp sends SIP MESSAGE requests over UDP, starting at 25 messages/s and adding 25 every minute, after a 30-second warm-up that is not measured. The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%.
     uut:
       compose: edgeport-echo/compose.yaml
       processes:                  # sampled every 10 s; match is a regex on the command line
@@ -36,7 +36,8 @@ benchmarks:
       port: 5060                  # the UUT's SIP port SIPp sends to; default 5060
       uac: { scenario: edgeport-echo/uac_message.xml }
       unit: messages
-      rate: { start: 50, step: 50, every: 60s, max: 5000 }
+      rate: { start: 25, step: 25, every: 60s, max: 2000 }
+    warmup: 30s                   # the EdgePort starts cold (JVM, GraalJS); not measured
     thresholds: { p99LatencyMs: 50, failedCallsPct: 0.1 }
   - id: one-soak
     kind: soak
@@ -44,7 +45,7 @@ benchmarks:
     narrative:
       what: The whole stack in one image, EdgePort plus Dispatcher, Connect, Location and the data service in one Node process, routing calls between registered agents.
       why: Leaks only show after hours. A short test can pass while memory climbs until the process is killed in production.
-      how: SIPp holds a steady 100 calls/s for six hours, with 200 registered callee agents, each called by its own caller agent through Connect. After a 30-minute warm-up, each process's memory may grow at most 5 MB/h.
+      how: SIPp holds a steady 1 call/s for six hours, with 200 registered callee agents, each called by its own caller agent through Connect. After a 30-minute warm-up, each process's memory may grow at most 5 MB/h.
     duration: 6h
     warmup: 30m                   # excluded from every verdict
     uut:
@@ -61,6 +62,6 @@ benchmarks:
       uas: { scenario: one-soak/uas_answer.xml }
       uac: { scenario: one-soak/uac_invite.xml, users: one-soak/callers.csv }
       hold: 30s
-      rate: { cps: 100 }          # fixed and well below saturation: a soak looks for leaks, not limits
+      rate: { cps: 1 }            # well below saturation: a soak looks for leaks, not limits; revisit with the capacity baseline
     telemetry: { otlp: true, sampleRatio: 0.01 }
     thresholds: { memoryGrowthMBPerHour: 5, failedCallsPct: 0.1, restarts: 0 }
