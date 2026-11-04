@@ -27,7 +27,7 @@ const MAX_CYCLES_BEFORE_CLEANUP = 10000
  */
 export default class MemoryStore implements ILocatorStore {
   private collections: Map<string, Route[]>
-  private cleanupCount: number
+  private cleanupCount = 0
   private maxCyclesBeforeCleanup: number
 
   /**
@@ -91,8 +91,10 @@ export default class MemoryStore implements ILocatorStore {
   /** @inheritdoc */
   public cleanup() {
     // Remove any expired route from collection
+    // findRoutes stores [undefined] for an AOR with no routes; treat a missing
+    // route as expired instead of throwing
     this.collections.forEach((routes, key) => {
-      const filteredRoutes = routes.filter(expiredFilter)
+      const filteredRoutes = routes.filter((r) => r != null && expiredFilter(r))
       if (filteredRoutes.length > 0) {
         this.collections.set(key, filteredRoutes)
       } else {
