@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Routr benchmarks · v2.31.7</title>
+<meta name="description" content="How much SIP traffic Routr handles.">
+<meta name="generator" content="perfkit 0.1.5">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&amp;family=Roboto+Mono:wght@400;500&amp;display=swap">
+<style>
+:root {
+  --bg: #181818;
+  --surface: #202020;
+  --surface-sunken: #121212;
+  --border: #333333;
+  --text-primary: #FFFFFF;
+  --text-secondary: #E8E8E8;
+  --text-muted: #C2C2C2;
+  --accent: #5FCFCE;
+  --accent-text: #5FCFCE;
+  --accent-subtle: #5FCFCE33;
+  --on-accent: #001A1A;
+  --success: #39E19E;
+  --warning: #F5A524;
+  --danger: #F97066;
+  --info: #60A5FA;
+  --series-2: #A78BFA;
+  --series-3: #FB923C;
+  --series-4: #F472B6;
+  --font-display: "Poppins", system-ui, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, monospace;
+  --gutter: 80px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text-primary); font-family: var(--font-display); font-size: 14px; line-height: 1.5; }
+p, h1, h2, h3, dl, dd, figure, ul { margin: 0; }
+ul { padding: 0; list-style: none; }
+a { color: var(--accent-text); }
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1440px; margin: 0 auto; padding: 0 var(--gutter); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.icon { flex: none; }
+.mono, .section-meta, .chip, .eyebrow, .badge, .tag { font-family: var(--font-mono); }
+.eyebrow { color: var(--accent-text); font-size: 13px; font-weight: 500; letter-spacing: 1.5px; }
+
+/* Nav */
+.nav { border-bottom: 1px solid var(--border); }
+.nav-inner { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; padding-top: 20px; padding-bottom: 20px; }
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-link { display: flex; color: var(--text-primary); text-decoration: none; }
+.logo { display: block; height: 28px; width: auto; }
+.logo-text { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+.slash { color: var(--text-muted); font-size: 20px; }
+.product { font-size: 17px; font-weight: 500; }
+.actions { display: flex; align-items: center; gap: 12px; }
+.button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: transparent; color: var(--text-primary); font: 500 13px var(--font-mono); text-decoration: none; cursor: pointer; }
+.button .icon { color: var(--text-secondary); }
+.button:hover { background: var(--surface); }
+.picker { position: relative; }
+.picker-button { gap: 10px; }
+.picker-button[aria-expanded="true"] { border-color: var(--accent); }
+.picker-button[aria-expanded="true"] .icon:last-child { transform: rotate(180deg); }
+.picker-label .short { display: none; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 6px; background: var(--accent-subtle); color: var(--accent-text); font-size: 11px; font-weight: 500; }
+.picker-panel { position: absolute; right: 0; top: calc(100% + 8px); z-index: 10; width: 340px; max-width: calc(100vw - 32px); padding: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,.5); }
+.picker-panel[hidden] { display: none; }
+.picker-title { padding: 6px 8px 8px; color: var(--text-muted); font-size: 12px; }
+.picker-item { display: block; padding: 10px 12px; border-radius: 8px; color: var(--text-primary); text-decoration: none; }
+.picker-item:hover, .picker-item:focus-visible { background: #2a2a2a; }
+.picker-item.is-viewing { background: var(--accent-subtle); }
+.picker-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 600; }
+.picker-version { font-family: var(--font-mono); font-weight: 500; }
+.picker-sub { display: block; margin-top: 2px; font-size: 12px; color: var(--text-muted); }
+.picker-all { display: block; margin-top: 4px; padding: 12px; border-top: 1px solid var(--border); font-size: 13px; font-weight: 500; text-decoration: none; }
+.tone-success { color: var(--success); }
+.tone-danger { color: var(--danger); }
+.tone-warning { color: var(--warning); }
+.tone-neutral { color: var(--text-muted); }
+
+/* Header */
+.viewing-banner { background: var(--accent-subtle); border-bottom: 1px solid var(--border); }
+.viewing-banner .wrap { display: flex; align-items: center; gap: 10px; padding-top: 14px; padding-bottom: 14px; }
+.viewing-banner .icon { color: var(--accent-text); }
+.hero .wrap { display: flex; flex-direction: column; gap: 20px; padding-top: 72px; padding-bottom: 56px; }
+.title { font-size: 56px; font-weight: 600; letter-spacing: -1.5px; line-height: 1.1; }
+.lead { max-width: 780px; color: var(--text-secondary); font-size: 18px; line-height: 1.6; }
+.run-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-secondary); font-size: 13px; }
+.chip .icon { color: var(--text-muted); }
+.chip:first-child { font-family: var(--font-display); }
+.permalink a { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; text-decoration: none; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border: 1px solid; border-radius: 999px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.pill-lg { gap: 8px; padding: 7px 14px; }
+.pill-success { color: var(--success); background: #39E19E1F; border-color: #39E19E55; }
+.pill-danger { color: var(--danger); background: #F970661F; border-color: #F9706655; }
+.pill-warning { color: var(--warning); background: #F5A5241F; border-color: #F5A52455; }
+.pill-neutral { color: var(--text-secondary); background: #FFFFFF0F; border-color: var(--border); }
+
+/* Headline */
+.headline { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.stats { display: grid; grid-template-columns: repeat(var(--cells, 4), minmax(0, 1fr)); }
+.stats-1 { --cells: 1; } .stats-2 { --cells: 2; } .stats-3 { --cells: 3; }
+.stat { display: flex; flex-direction: column; gap: 8px; padding: 44px 40px; border-left: 1px solid var(--border); }
+.stat:first-child { padding-left: 0; border-left: 0; }
+.stat-value { font-size: clamp(28px, 3.9vw, 56px); font-weight: 600; letter-spacing: -2px; line-height: 1; white-space: nowrap; }
+.stat-label { color: var(--text-secondary); font-size: 14px; }
+.delta { display: flex; align-items: center; gap: 6px; font: 12px var(--font-mono); }
+.delta-better { color: var(--success); }
+.delta-worse { color: var(--danger); }
+.delta-same { color: var(--text-muted); }
+.headline-caption { padding: 0 0 20px; color: var(--text-muted); font-size: 13px; }
+
+/* Benchmark sections */
+.bench .wrap { display: flex; flex-direction: column; gap: 40px; padding-top: 88px; padding-bottom: 88px; }
+.bench-sunken { background: var(--surface-sunken); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.section-head { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: flex-end; }
+.section-head-main { display: flex; flex-direction: column; gap: 12px; }
+.title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.section-title { font-size: 40px; font-weight: 600; letter-spacing: -1px; line-height: 1.2; }
+.section-sub { color: var(--text-secondary); font-size: 14px; }
+.section-meta { color: var(--text-muted); font-size: 13px; }
+.banner { display: flex; gap: 10px; align-items: flex-start; padding: 14px 16px; border: 1px solid; border-radius: 10px; font-size: 14px; font-weight: 500; }
+.banner .icon { margin-top: 2px; }
+.banner a { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; text-decoration: none; }
+.banner-danger { color: var(--text-primary); background: #F9706614; border-color: #F9706655; }
+.banner-danger .icon { color: var(--danger); }
+.banner-warning { color: var(--text-primary); background: #F5A52414; border-color: #F5A52455; }
+.banner-warning .icon { color: var(--warning); }
+.banner-neutral { color: var(--text-primary); background: var(--surface); border-color: var(--border); }
+.banner-neutral .icon { color: var(--text-muted); }
+.card { display: flex; flex-direction: column; gap: 10px; padding: 24px; border: 1px solid var(--border); border-radius: 14px; min-width: 0; }
+.card-surface { background: var(--surface); }
+.card-title { font-size: 16px; font-weight: 600; }
+.card-title.with-icon { display: flex; align-items: center; gap: 10px; }
+.accent-icon { display: flex; color: var(--accent); }
+.card-sub { color: var(--text-muted); font-size: 13px; }
+.narrative { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.narrative-card p { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+.results { display: grid; grid-template-columns: minmax(0, 868fr) minmax(0, 392fr); gap: 20px; align-items: start; }
+.results-single { grid-template-columns: minmax(0, 1fr); }
+.side-card { gap: 4px; }
+.rows { padding-top: 16px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.row:last-child { border-bottom: 0; }
+.row dt { display: flex; align-items: center; gap: 10px; color: var(--text-secondary); }
+.row dd { font: 500 14px var(--font-mono); text-align: right; }
+.check { flex-wrap: wrap; row-gap: 4px; }
+.check dt { white-space: nowrap; }
+.check dd { margin-left: auto; }
+.check .pill { padding: 2px 8px; font-size: 12px; }
+.takeaway { display: flex; gap: 10px; margin-top: 12px; padding: 14px; border-radius: 10px; background: var(--accent-subtle); font-size: 13px; line-height: 1.5; }
+.takeaway .icon { color: var(--accent-text); margin-top: 2px; }
+.also { color: var(--text-secondary); font-size: 14px; }
+.also strong { color: var(--text-primary); font-weight: 600; }
+
+/* Charts */
+.chart-card { gap: 16px; padding: 24px 24px 16px; }
+.chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.chart-head-side { display: flex; align-items: center; gap: 16px; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--text-secondary); font: 12px var(--font-mono); }
+.legend li { display: flex; align-items: center; gap: 6px; }
+.swatch { display: inline-block; width: 14px; height: 3px; border-radius: 2px; background: currentColor; }
+.tag { padding: 2px 8px; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); font-size: 12px; }
+.scroll-x { position: relative; overflow-x: auto; }
+.chart { display: block; width: 100%; min-width: 620px; height: auto; font-family: var(--font-mono); }
+.scroll-hint { display: none; color: var(--text-muted); font: 12px var(--font-mono); }
+.chart .grid { stroke: var(--border); stroke-width: 1; }
+.chart .axis { stroke: #555555; stroke-width: 1; }
+.chart .tick, .chart .axis-unit { fill: var(--text-muted); font-size: 11px; }
+.chart .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.s-p99, .s-1 { color: var(--accent); stroke: var(--accent); fill: var(--accent); }
+.s-p95, .s-2 { color: var(--series-2); stroke: var(--series-2); fill: var(--series-2); }
+.s-p50 { color: var(--text-muted); stroke: var(--text-muted); fill: var(--text-muted); }
+.s-3 { color: var(--series-3); stroke: var(--series-3); fill: var(--series-3); }
+.s-4 { color: var(--series-4); stroke: var(--series-4); fill: var(--series-4); }
+.s-5 { color: var(--info); stroke: var(--info); fill: var(--info); }
+.chart .line.s-p99, .chart .line.s-p95, .chart .line.s-p50, .chart .line[class*="s-"] { fill: none; }
+.chart .line-label { stroke: none; font-size: 11px; paint-order: stroke; }
+.chart .over-limit { fill: #F9706614; }
+.chart .over-limit-label, .chart .threshold-label { fill: var(--danger); font-size: 11px; }
+.chart .threshold { stroke: var(--danger); stroke-width: 1; stroke-dasharray: 5 4; }
+.chart .limit-line { stroke: var(--accent); stroke-width: 1.5; }
+.chart .limit-dot { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
+.chart .limit-tag { fill: var(--accent); }
+.chart .limit-tag-text { fill: var(--on-accent); font-size: 12px; font-weight: 500; }
+.chart .warmup { fill: #FFFFFF0A; }
+.chart .warmup-label, .chart .partial-label { fill: var(--text-muted); font-size: 11px; }
+.chart-data summary { cursor: pointer; color: var(--text-muted); font-size: 13px; }
+table { border-collapse: collapse; }
+.data { width: 100%; margin-top: 12px; font: 12px var(--font-mono); }
+.data th, .data td { padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+.data th:first-child, .data td:first-child { text-align: left; }
+.data thead th { color: var(--text-muted); font-weight: 500; }
+
+/* Where the time goes */
+.hops { gap: 20px; }
+.hops-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+.hops-total { font: 500 14px var(--font-mono); }
+.hop-bar { display: flex; gap: 3px; height: 14px; border-radius: 7px; overflow: hidden; }
+.hop { display: block; min-width: 3px; background: currentColor; }
+.hop-legend { display: flex; flex-wrap: wrap; gap: 16px 40px; }
+.hop-legend li { display: flex; flex-direction: column; gap: 4px; }
+.hop-name { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 12px; }
+.hop-name .swatch { width: 8px; height: 8px; border-radius: 2px; }
+.hop-value { font: 500 13px var(--font-mono); }
+.hop-p99 { color: var(--text-muted); font: 11px var(--font-mono); }
+
+/* History */
+.history .wrap { display: flex; flex-direction: column; gap: 32px; padding-top: 88px; padding-bottom: 56px; }
+.history-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; }
+.history-head > div:first-child { display: flex; flex-direction: column; gap: 12px; }
+.trend { gap: 8px; padding: 16px 20px; border-radius: 12px; }
+.trend-title { color: var(--text-muted); font-size: 12px; }
+.trend-body { display: flex; align-items: center; gap: 16px; }
+.trend-value { font: 600 18px var(--font-mono); }
+.sparkline path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
+.sparkline circle { fill: var(--accent); }
+.callout { display: flex; align-items: center; gap: 10px; padding: 16px 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-secondary); font-size: 13px; }
+.callout .icon { color: var(--accent-text); }
+.table-card { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.runs { width: 100%; min-width: 860px; }
+.runs th { padding: 14px 24px; background: var(--surface); border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 12px; font-weight: 500; text-align: left; }
+.runs td { padding: 16px 24px; border-bottom: 1px solid var(--border); font-size: 13px; white-space: nowrap; }
+.runs tbody:last-of-type tr:last-child td { border-bottom: 0; }
+.runs .cell-date { font-weight: 500; }
+.runs .badge { margin-left: 8px; }
+.runs tr.is-viewing td { background: var(--accent-subtle); }
+.result { display: inline-flex; align-items: center; gap: 6px; }
+.cell-view { text-align: right; }
+.cell-view a { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; font-weight: 500; }
+.runs tbody.more { display: none; }
+#all-runs:target tbody.more { display: table-row-group; }
+#all-runs:target .show-all { display: none; }
+.show-all { display: block; padding: 14px 24px; background: var(--surface); border-top: 1px solid var(--border); color: var(--text-primary); font-size: 13px; font-weight: 500; text-align: center; text-decoration: none; }
+
+/* Test setup */
+.setup .wrap { display: flex; flex-direction: column; gap: 24px; padding-top: 32px; padding-bottom: 88px; }
+.setup-title { font-size: 24px; font-weight: 600; }
+.setup-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.setup-grid .card { gap: 4px; }
+.setup-grid .card-title .icon { color: var(--accent-text); }
+.setup-grid .rows { padding-top: 12px; }
+.setup-grid .row { padding: 10px 0; border: 0; font-size: 13px; }
+.setup-grid .row dd { font-size: 13px; }
+.reproduce { gap: 14px !important; }
+.reproduce p { color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.command { margin: 0; padding: 14px 16px; overflow-x: auto; border-radius: 10px; background: var(--surface-sunken); border: 1px solid var(--border); font: 12px/1.6 var(--font-mono); white-space: pre; }
+
+/* Footer */
+.footer { border-top: 1px solid var(--border); }
+.footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding-top: 28px; padding-bottom: 28px; }
+.footer-brand { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; }
+.generated { color: var(--text-muted); font-size: 13px; }
+.footer-links { display: flex; gap: 28px; font-size: 13px; }
+.footer-links a { color: var(--text-secondary); text-decoration: none; }
+
+@media (max-width: 1100px) {
+  :root { --gutter: 40px; }
+  .results { grid-template-columns: minmax(0, 1fr); }
+  .setup-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  :root { --gutter: 16px; }
+  .slash, .product, .report-link span { display: none; }
+  .picker-label .long { display: none; }
+  .picker-label .short { display: inline; }
+  .picker-button .badge { display: none; }
+  .hero .wrap { gap: 16px; padding-top: 32px; padding-bottom: 32px; }
+  .title { font-size: 30px; letter-spacing: -0.5px; }
+  .lead { font-size: 15px; }
+  .stats, .stats-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats-1 { grid-template-columns: minmax(0, 1fr); }
+  .stat { padding: 20px 12px; border-bottom: 1px solid var(--border); }
+  .stat:nth-child(odd) { padding-left: 0; border-left: 0; }
+  .stat-value { font-size: 28px; letter-spacing: -1px; }
+  .stat-label { font-size: 12px; }
+  .headline-caption { padding-top: 12px; }
+  .bench .wrap { gap: 24px; padding-top: 40px; padding-bottom: 40px; }
+  .section-title { font-size: 24px; }
+  .narrative { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .card { padding: 16px; }
+  .scroll-hint { display: block; }
+  .history .wrap { padding-top: 40px; }
+  .setup .wrap { padding-bottom: 40px; }
+  .footer-links { gap: 16px; }
+}
+</style>
+</head>
+<body>
+<header class="nav">
+<div class="wrap nav-inner">
+<div class="brand"><a class="brand-link" href="../../"><img class="logo" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20106%2028%22%20width%3D%22106%22%20height%3D%2228%22%3E%3Cg%20fill%3D%22%23FFFFFF%22%20fill-rule%3D%22evenodd%22%3E%3Cpath%20d%3D%22M6.58346%209.30769c0.76999-1.17949%201.73248-2.10256%202.88748-2.76923%201.15496-0.69231%202.43836-1.03846%203.84996-1.03846v6.9615h-1.8095c-1.64263%200-2.87462%200.359-3.69595%201.077-0.82133%200.6923-1.23199%201.923-1.23199%203.6923v9.9615h-6.58346v-21.46153h6.58346v3.57692z%22%2F%3E%3Cpath%20d%3D%22M26.2466%2027.5c-2.1047%200-4.004-0.4487-5.698-1.3462-1.6683-0.8974-2.9901-2.1794-3.9654-3.8461-0.9497-1.6667-1.4245-3.6154-1.4245-5.8462%200-2.2051%200.4876-4.141%201.463-5.8077%200.9753-1.69226%202.3099-2.98713%204.0039-3.88457%201.694-0.89744%203.5933-1.34615%205.698-1.34615%202.1046%200%204.004%200.44871%205.698%201.34615%201.6939%200.89744%203.0286%202.19231%204.0039%203.88457%200.9754%201.6667%201.463%203.6026%201.463%205.8077%200%202.2052-0.5005%204.1539-1.5015%205.8462-0.9753%201.6667-2.3228%202.9487-4.0424%203.8461-1.694%200.8975-3.5934%201.3462-5.698%201.3462z%20m0-5.6923c1.2577%200%202.3228-0.4615%203.1955-1.3846%200.8983-0.9231%201.3475-2.2436%201.3475-3.9616%200-1.7179-0.4364-3.0384-1.309-3.9615-0.847-0.9231-1.8993-1.3846-3.157-1.3846-1.2833%200-2.3485%200.4615-3.1955%201.3846-0.847%200.8974-1.2705%202.2179-1.2705%203.9615%200%201.718%200.4107%203.0385%201.232%203.9616%200.847%200.9231%201.8993%201.3846%203.157%201.3846z%22%2F%3E%3Cpath%20d%3D%22M62.1945%205.73077v21.46153h-6.5834v-2.9231c-0.6674%200.9488-1.5785%201.718-2.7335%202.3077-1.1293%200.5641-2.387%200.8462-3.773%200.8462-1.6426%200-3.0928-0.359-4.3505-1.0769-1.2576-0.7436-2.2329-1.8077-2.9259-3.1924-0.693-1.3846-1.0395-3.0128-1.0395-4.8846v-12.53843h6.5449v11.65383c0%201.4359%200.3722%202.5513%201.1165%203.3462%200.7443%200.7948%201.7453%201.1923%203.003%201.1923%201.2833%200%202.2971-0.3975%203.0415-1.1923%200.7443-0.7949%201.1165-1.9103%201.1165-3.3462v-11.65383h6.5834z%22%2F%3E%3Cpath%20d%3D%22M78.8968%2021.6154v5.5769h-3.3495c-2.387%200-4.2478-0.5769-5.5824-1.7308-1.3347-1.1794-2.002-3.0897-2.002-5.7307v-8.5385h-2.618v-5.46153h2.618v-5.23077h6.5834v5.23077h4.312v5.46153h-4.312v8.6154c0%200.641%200.154%201.1026%200.462%201.3846%200.308%200.2821%200.8213%200.4231%201.54%200.4231h2.3485z%22%2F%3E%3Cpath%20d%3D%22M89.1473%209.30769c0.77-1.17949%201.7325-2.10256%202.8875-2.76923%201.155-0.69231%202.4383-1.03846%203.85-1.03846v6.9615h-1.8095c-1.6426%200-2.8746%200.359-3.696%201.077-0.8213%200.6923-1.232%201.923-1.232%203.6923v9.9615h-6.5834v-21.46153h6.5834v3.57692z%22%2F%3E%3C%2Fg%3E%3Cpath%20fill%3D%22%235FCFCE%22%20d%3D%22M102.112%2027.5c-1.155%200-2.105-0.3333-2.8494-1-0.7187-0.6923-1.078-1.5385-1.078-2.5385%200-1.0256%200.3593-1.8846%201.078-2.5769%200.7444-0.6923%201.6944-1.0384%202.8494-1.0384%201.129%200%202.053%200.3461%202.772%201.0384%200.744%200.6923%201.116%201.5513%201.116%202.5769%200%201-0.372%201.8462-1.116%202.5385-0.719%200.6667-1.643%201-2.772%201z%22%2F%3E%3C%2Fsvg%3E" alt="Routr" height="28"></a><span class="slash" aria-hidden="true">/</span><span class="product">Benchmarks</span></div>
+<div class="actions">
+<div class="picker" data-picker>
+<button type="button" class="button picker-button" aria-expanded="false" aria-controls="run-list">
+<svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg><span class="picker-label"><span class="long">Nov 4, 2026 · v2.31.7</span><span class="short">Nov 4 · v2.31.7</span></span><span class="visually-hidden">, choose a run</span><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>
+</button>
+<div class="picker-panel" id="run-list" hidden>
+<p class="picker-title" id="run-list-title">Runs, newest first</p>
+<ul class="picker-list" aria-labelledby="run-list-title">
+<li><a class="picker-item" href="../../"><span class="picker-row"><span class="picker-date">Latest run</span></span><span class="picker-sub">the newest results</span></a></li>
+<li><a class="picker-item is-viewing" href="../../runs/20261104T100812Z-ef05473/" aria-current="page">
+<span class="picker-row"><span class="picker-date">Nov 4, 2026 10:08</span><span class="picker-version">v2.31.7</span></span>
+<span class="picker-sub tone-danger">viewing · 1 of 2 passed</span>
+</a></li>
+</ul>
+
+</div>
+</div>
+<a class="button report-link" href="report.json" aria-label="This run's report.json"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1 1 1 0 0 1 1 1v1a1 1 0 0 0 1 1"/><path d="M14 18a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1 1 1 0 0 1-1-1v-1a1 1 0 0 0-1-1"/></svg><span>report.json</span></a>
+</div>
+</div>
+</header>
+<main>
+<div class="viewing-banner"><div class="wrap"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg><p>You're viewing the run of Nov 4, 2026 10:08 UTC. <a href="../../">See the latest run</a></p></div></div>
+<div class="hero">
+<div class="wrap">
+<p class="eyebrow">BENCHMARKS · ROUTR</p>
+<h1 class="title">How much SIP traffic Routr handles.</h1>
+<p class="lead">We run these tests after significant changes to the code, on dedicated DigitalOcean servers, one for Routr and one for the load generator. The EdgePort runs alone to find its limit; the whole stack runs for hours to catch leaks.</p>
+<div class="run-meta">
+<p class="pill pill-lg pill-danger verdict"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>1 of 2 benchmarks passed</p>
+<ul class="chips"><li class="chip"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg><span>Ran Nov 4, 2026 · 10:08 UTC</span></li><li class="chip"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12.59 2.59A2 2 0 0 0 11.17 2H4a2 2 0 0 0-2 2v7.17a2 2 0 0 0 .59 1.42l8.7 8.7a2.43 2.43 0 0 0 3.42 0l6.58-6.58a2.43 2.43 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5"/></svg><span>v2.31.7</span></li><li class="chip"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M3 12h6"/><path d="M15 12h6"/></svg><span>ef05473</span></li><li class="chip"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 6h.01"/><path d="M6 18h.01"/></svg><span>nyc3 · c-8</span></li></ul>
+</div>
+
+</div>
+</div>
+<section class="headline" aria-label="Headline numbers">
+<div class="wrap">
+<div class="stats stats-4">
+<div class="stat">
+<p class="stat-value">75</p>
+<p class="stat-label">messages/s, EdgePort + Echo limit</p>
+
+</div>
+<div class="stat">
+<p class="stat-value">28 ms</p>
+<p class="stat-label">p99 at the limit</p>
+
+</div>
+<div class="stat">
+<p class="stat-value">3 min</p>
+<p class="stat-label">soak, 180 calls</p>
+
+</div>
+<div class="stat">
+<p class="stat-value">+79.2 MB/h</p>
+<p class="stat-label">memory growth after warm-up</p>
+
+</div>
+</div>
+<p class="headline-caption">First run: nothing to compare with yet.</p>
+</div>
+</section>
+<section class="bench" id="edgeport-echo" aria-labelledby="edgeport-echo-title">
+<div class="wrap">
+<div class="section-head">
+<div class="section-head-main">
+<p class="eyebrow">01 · CAPACITY</p>
+<div class="title-row"><h2 id="edgeport-echo-title" class="section-title">EdgePort + Echo</h2><span class="pill pill-success"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Passed</span></div>
+
+</div>
+<p class="section-meta">4 min · SIPp 3.7.3, UDP</p>
+</div>
+
+<div class="narrative"><div class="card narrative-card">
+<h3 class="card-title with-icon"><span class="accent-icon"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4"/><path d="M6 12H2"/><path d="M12 6V2"/><path d="M12 22v-4"/></svg></span>What it measures</h3>
+<p>The EdgePort on its own, with Echo answering every request with 200 OK. No Dispatcher, Connect or database, so this is a ceiling for EdgePort alone, not for a full deployment.</p>
+</div>
+<div class="card narrative-card">
+<h3 class="card-title with-icon"><span class="accent-icon"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span>Why it matters</h3>
+<p>The EdgePort is the only stateful piece of Routr. When it saturates, calls fail, no matter what runs behind it.</p>
+</div>
+<div class="card narrative-card">
+<h3 class="card-title with-icon"><span class="accent-icon"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg></span>How it runs</h3>
+<p>Smoke run: SIPp sends SIP MESSAGE requests over UDP, starting at 25 messages/s and adding 25 every minute, up to 200 messages/s. The first 30 s warm the EdgePort up and are not measured. The run stops at the first step where p99 MESSAGE-to-200 latency reaches 50 ms or failed requests reach 0.1%.</p>
+</div></div>
+<div class="results">
+<figure class="card card-surface chart-card">
+<div class="chart-head">
+<div><h3 class="card-title">Latency as load rises</h3><p class="card-sub">request to 200 OK, by offered rate</p></div>
+<div class="chart-head-side"><ul class="legend"><li><span class="swatch s-p99" aria-hidden="true"></span>p99</li><li><span class="swatch s-p95" aria-hidden="true"></span>p95</li><li><span class="swatch s-p50" aria-hidden="true"></span>p50</li></ul></div>
+</div>
+<div class="scroll-x chart-scroll" tabindex="0" role="group" aria-label="Latency chart, scrolls sideways"><svg class="chart" viewBox="0 0 820 340" role="img" aria-label="Latency as load rises: p50, p95 and p99 request to 200 OK latency in ms against offered messages/s. Marked: limit 75 messages/s. The numbers are in the table under the chart.">
+<text class="axis-unit" x="0" y="12">ms</text><line class="grid" x1="56" x2="796" y1="304.0" y2="304.0"/><text class="tick" x="46" y="308.0" text-anchor="end">0</text><line class="grid" x1="56" x2="796" y1="234.0" y2="234.0"/><text class="tick" x="46" y="238.0" text-anchor="end">1,000</text><line class="grid" x1="56" x2="796" y1="164.0" y2="164.0"/><text class="tick" x="46" y="168.0" text-anchor="end">2,000</text><line class="grid" x1="56" x2="796" y1="94.0" y2="94.0"/><text class="tick" x="46" y="98.0" text-anchor="end">3,000</text><line class="grid" x1="56" x2="796" y1="24.0" y2="24.0"/><text class="tick" x="46" y="28.0" text-anchor="end">4,000</text>
+<line class="axis" x1="56" x2="796" y1="304" y2="304"/><text class="tick" x="56.0" y="324" text-anchor="middle">0</text><text class="tick" x="241.0" y="324" text-anchor="middle">25</text><text class="tick" x="426.0" y="324" text-anchor="middle">50</text><text class="tick" x="611.0" y="324" text-anchor="middle">75</text><text class="tick" x="796.0" y="324" text-anchor="middle">100</text>
+<text class="axis-unit" x="426" y="338" text-anchor="middle">offered messages/s</text>
+<rect class="over-limit" x="611.0" y="24" width="185.0" height="280"/><text class="over-limit-label" x="788" y="40" text-anchor="end">over the limit</text><line class="threshold" x1="56" x2="796" y1="300.5" y2="300.5"/><text class="threshold-label" x="788" y="292.5" text-anchor="end">p99 limit 50 ms</text><path class="line s-p99" d="M241.0 302.6 L426.0 302.7 L611.0 302.0 L796.0 45.5"/><path class="line s-p95" d="M241.0 302.9 L426.0 303.0 L611.0 303.0 L796.0 64.0"/><path class="line s-p50" d="M241.0 303.0 L426.0 303.2 L611.0 303.2 L796.0 145.5"/><line class="limit-line" x1="611.0" x2="611.0" y1="24" y2="304"/><circle class="limit-dot" cx="611.0" cy="302.0" r="5.5"/><rect class="limit-tag" x="446.4" y="32" width="156.6" height="22" rx="4"/><text class="limit-tag-text" x="595.0" y="47" text-anchor="end">limit 75 messages/s</text>
+</svg></div>
+<p class="scroll-hint" aria-hidden="true">&larr; chart scrolls sideways &rarr;</p>
+<details class="chart-data"><summary>Numbers behind this chart</summary>
+<div class="scroll-x"><table class="data">
+<thead><tr><th scope="col">Offered messages/s</th><th scope="col">Achieved messages/s</th><th scope="col">p50 ms</th><th scope="col">p95 ms</th><th scope="col">p99 ms</th><th scope="col">Failed</th><th scope="col">Valid step</th></tr></thead>
+<tbody><tr><td>25</td><td>25</td><td>14</td><td>15</td><td>20</td><td>0%</td><td>yes</td></tr><tr><td>50</td><td>50</td><td>12</td><td>14</td><td>18</td><td>0%</td><td>yes</td></tr><tr><td>75</td><td>75</td><td>12</td><td>14</td><td>28</td><td>0%</td><td>yes</td></tr><tr><td>100</td><td>100</td><td>2,264</td><td>3,429.1</td><td>3,693.1</td><td>0%</td><td>yes</td></tr></tbody>
+</table></div>
+</details>
+</figure>
+<div class="card card-surface side-card">
+<h3 class="card-title">At the limit</h3>
+<p class="card-sub">measured at 75 messages/s</p>
+<dl class="rows"><div class="row"><dt>p99 latency</dt><dd>28 ms</dd></div><div class="row"><dt>p50 latency</dt><dd>12 ms</dd></div><div class="row"><dt>Failed messages</dt><dd>0%</dd></div><div class="row"><dt>Retransmissions</dt><dd>0%</dd></div></dl>
+<div class="takeaway"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><p>EdgePort + Echo held 75 messages/s. At 100 messages/s p99 reached 3,693.1 ms (limit: under 50 ms), so the run stopped there.</p></div>
+</div>
+</div>
+</div>
+</section>
+<section class="bench bench-sunken" id="one-soak" aria-labelledby="one-soak-title">
+<div class="wrap">
+<div class="section-head">
+<div class="section-head-main">
+<p class="eyebrow">02 · SOAK</p>
+<div class="title-row"><h2 id="one-soak-title" class="section-title">RoutrOne, 3 minutes</h2><span class="pill pill-danger"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Failed</span></div>
+<p class="section-sub">3 min + 1 min warm-up · steady 1 calls/s, 30 s calls, 200 agents</p>
+</div>
+<p class="section-meta">SIPp 3.7.3, UDP; OpenTelemetry</p>
+</div>
+<div class="banner banner-danger"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg><p>Failed: one memory grew 9.4 MB/h (limit: under 5 MB/h); edgeport memory grew 79.2 MB/h (limit: under 5 MB/h); postgres memory grew 51.5 MB/h (limit: under 5 MB/h).</p></div>
+<div class="narrative"><div class="card narrative-card">
+<h3 class="card-title with-icon"><span class="accent-icon"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4"/><path d="M6 12H2"/><path d="M12 6V2"/><path d="M12 22v-4"/></svg></span>What it measures</h3>
+<p>The whole stack in one image, EdgePort plus Dispatcher, Connect, Location and the data service in one Node process, routing calls between registered agents.</p>
+</div>
+<div class="card narrative-card">
+<h3 class="card-title with-icon"><span class="accent-icon"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span>Why it matters</h3>
+<p>Leaks only show after hours. A short test can pass while memory climbs until the process is killed in production.</p>
+</div>
+<div class="card narrative-card">
+<h3 class="card-title with-icon"><span class="accent-icon"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg></span>How it runs</h3>
+<p>Smoke run: SIPp holds a steady 1 call/s for 3 minutes, with 200 registered callee agents, each called by its own caller agent through Connect. After a 1-minute warm-up, each process&#39;s memory may grow at most 5 MB/h.</p>
+</div></div>
+<div class="results">
+<figure class="card card-surface chart-card">
+<div class="chart-head">
+<div><h3 class="card-title">Memory per process</h3><p class="card-sub">Resident memory per process in the container</p></div>
+<div class="chart-head-side"><ul class="legend"><li><span class="swatch s-1" aria-hidden="true"></span>one</li><li><span class="swatch s-2" aria-hidden="true"></span>edgeport</li><li><span class="swatch s-3" aria-hidden="true"></span>postgres</li></ul></div>
+</div>
+<div class="scroll-x chart-scroll" tabindex="0" role="group" aria-label="Memory chart, scrolls sideways"><svg class="chart" viewBox="0 0 820 320" role="img" aria-label="Memory per process: resident memory in MB over 4 min, warm-up of 1 min shaded. The numbers are in the table under the chart.">
+<text class="axis-unit" x="0" y="12">MB</text><line class="grid" x1="56" x2="796" y1="284.0" y2="284.0"/><text class="tick" x="46" y="288.0" text-anchor="end">0</text><line class="grid" x1="56" x2="796" y1="219.0" y2="219.0"/><text class="tick" x="46" y="223.0" text-anchor="end">500</text><line class="grid" x1="56" x2="796" y1="154.0" y2="154.0"/><text class="tick" x="46" y="158.0" text-anchor="end">1,000</text><line class="grid" x1="56" x2="796" y1="89.0" y2="89.0"/><text class="tick" x="46" y="93.0" text-anchor="end">1,500</text><line class="grid" x1="56" x2="796" y1="24.0" y2="24.0"/><text class="tick" x="46" y="28.0" text-anchor="end">2,000</text>
+<line class="axis" x1="56" x2="796" y1="284" y2="284"/><text class="tick" x="56.0" y="304" text-anchor="middle">0</text><text class="tick" x="788.7" y="304" text-anchor="middle">5 min</text>
+<rect class="warmup" x="56" y="24" width="146.5" height="260"/><text class="warmup-label" x="62" y="38">warm-up</text><path class="line s-1" d="M56.0 255.1 L80.4 251.4 L104.8 250.2 L129.3 249.9 L153.7 249.3 L180.6 249.2 L205.0 249.0 L229.4 249.2 L253.8 249.1 L278.2 249.3 L302.7 249.2 L327.1 249.0 L351.5 249.2 L375.9 249.1 L400.4 249.3 L424.8 249.1 L449.2 249.0 L473.6 249.2 L500.5 249.0 L524.9 248.9 L549.3 249.2 L573.8 249.1 L598.2 248.9 L622.6 249.1 L647.0 249.0 L671.4 249.2 L695.9 249.0 L720.3 249.0 L744.7 249.0 L769.1 249.2 L796.0 249.2"/><path class="line s-2" d="M56.0 124.7 L80.4 119.5 L104.8 121.0 L129.3 120.7 L153.7 120.7 L180.6 120.6 L205.0 120.5 L229.4 120.4 L253.8 120.4 L278.2 120.3 L302.7 120.2 L327.1 120.2 L351.5 120.1 L375.9 120.1 L400.4 120.0 L424.8 120.0 L449.2 119.8 L473.6 119.7 L500.5 119.7 L524.9 119.8 L549.3 119.8 L573.8 119.6 L598.2 119.7 L622.6 119.7 L647.0 119.7 L671.4 119.7 L695.9 119.7 L720.3 119.7 L744.7 119.7 L769.1 119.7 L796.0 119.7"/><path class="line s-3" d="M56.0 270.8 L80.4 270.8 L104.8 270.7 L129.3 270.6 L153.7 270.5 L180.6 270.5 L205.0 270.5 L229.4 270.5 L253.8 270.5 L278.2 270.5 L302.7 270.5 L327.1 270.5 L351.5 270.5 L375.9 270.5 L400.4 270.5 L424.8 270.5 L449.2 270.5 L473.6 270.5 L500.5 270.5 L524.9 270.5 L549.3 270.5 L573.8 270.5 L598.2 270.5 L622.6 270.5 L647.0 270.5 L671.4 270.5 L695.9 270.5 L720.3 270.5 L744.7 270.0 L769.1 269.9 L796.0 269.8"/><text class="line-label s-2" x="792.0" y="111.7" text-anchor="end">edgeport +79.2 MB/h</text><text class="line-label s-1" x="792.0" y="241.2" text-anchor="end">one +9.4 MB/h</text><text class="line-label s-3" x="792.0" y="261.8" text-anchor="end">postgres +51.5 MB/h</text>
+</svg></div>
+<p class="scroll-hint" aria-hidden="true">&larr; chart scrolls sideways &rarr;</p>
+<details class="chart-data"><summary>Numbers behind this chart</summary>
+<div class="scroll-x"><table class="data">
+<thead><tr><th scope="col">Process</th><th scope="col">First MB</th><th scope="col">Last MB</th><th scope="col">Peak MB</th><th scope="col">Growth after warm-up</th><th scope="col">Samples</th></tr></thead>
+<tbody><tr><th scope="row">one</th><td>222.1</td><td>267.3</td><td>270.2</td><td>+9.4 MB/h</td><td>31</td></tr><tr><th scope="row">edgeport</th><td>1,225.6</td><td>1,264.1</td><td>1,265.3</td><td>+79.2 MB/h</td><td>31</td></tr><tr><th scope="row">postgres</th><td>101.5</td><td>109.1</td><td>109.1</td><td>+51.5 MB/h</td><td>31</td></tr></tbody>
+</table></div>
+</details>
+</figure>
+<div class="card card-surface side-card">
+<h3 class="card-title">Stability checks</h3>
+<p class="card-sub">after the 1 min warm-up</p>
+<dl class="rows"><div class="row check">
+<dt><span class="check-status"><span class="pill pill-danger"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Failed</span></span>Memory growth</dt>
+<dd>one +9.4 MB/h · limit under 5</dd>
+</div><div class="row check">
+<dt><span class="check-status"><span class="pill pill-danger"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Failed</span></span>Memory growth</dt>
+<dd>edgeport +79.2 MB/h · limit under 5</dd>
+</div><div class="row check">
+<dt><span class="check-status"><span class="pill pill-danger"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Failed</span></span>Memory growth</dt>
+<dd>postgres +51.5 MB/h · limit under 5</dd>
+</div><div class="row check">
+<dt><span class="check-status"><span class="pill pill-success"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Passed</span></span>Failed calls</dt>
+<dd>0% · limit under 0.1%</dd>
+</div><div class="row check">
+<dt><span class="check-status"><span class="pill pill-success"><svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Passed</span></span>Restarts</dt>
+<dd>0 · limit 0</dd>
+</div></dl>
+</div>
+</div>
+<p class="also"><strong>Also measured:</strong> p99 871 to 871 ms (first vs last hour), open files up to 189, at most 31 concurrent calls, failed re-registrations 0 of 200.</p>
+<div class="card card-surface hops">
+<div class="hops-head">
+<div><h3 class="card-title">Where the time goes</h3><p class="card-sub">median time in each service per request, from a 1% sample of OpenTelemetry traces</p></div>
+<p class="hops-total">40 ms total</p>
+</div>
+<div class="hop-bar" aria-hidden="true"><span class="hop s-1" style="flex-grow:3.225"></span><span class="hop s-4" style="flex-grow:1.746"></span><span class="hop s-3" style="flex-grow:0.071"></span><span class="hop s-2" style="flex-grow:1.645"></span><span class="hop s-5" style="flex-grow:1.114"></span><span class="hop s-1" style="flex-grow:0.452"></span><span class="hop s-4" style="flex-grow:29.883"></span><span class="hop s-3" style="flex-grow:1.859"></span></div>
+<ul class="hop-legend"><li><span class="hop-name"><span class="swatch s-1" aria-hidden="true"></span>agents</span><span class="hop-value">3.2 ms</span><span class="hop-p99">p99 5.5 ms</span></li><li><span class="hop-name"><span class="swatch s-4" aria-hidden="true"></span>domains</span><span class="hop-value">1.7 ms</span><span class="hop-p99">p99 3.1 ms</span></li><li><span class="hop-name"><span class="swatch s-3" aria-hidden="true"></span>location</span><span class="hop-value">0.1 ms</span><span class="hop-p99">p99 0.2 ms</span></li><li><span class="hop-name"><span class="swatch s-2" aria-hidden="true"></span>numbers</span><span class="hop-value">1.6 ms</span><span class="hop-p99">p99 3.3 ms</span></li><li><span class="hop-name"><span class="swatch s-5" aria-hidden="true"></span>one</span><span class="hop-value">1.1 ms</span><span class="hop-p99">p99 2 ms</span></li><li><span class="hop-name"><span class="swatch s-1" aria-hidden="true"></span>processor</span><span class="hop-value">0.5 ms</span><span class="hop-p99">p99 1.8 ms</span></li><li><span class="hop-name"><span class="swatch s-4" aria-hidden="true"></span>routr-edgeport</span><span class="hop-value">29.9 ms</span><span class="hop-p99">p99 739.6 ms</span></li><li><span class="hop-name"><span class="swatch s-3" aria-hidden="true"></span>trunks</span><span class="hop-value">1.9 ms</span><span class="hop-p99">p99 3.3 ms</span></li></ul>
+</div>
+</div>
+</section>
+<section class="history" id="all-runs" aria-labelledby="previous-runs">
+<div class="wrap">
+<div class="history-head">
+<div>
+<p class="eyebrow">HISTORY</p>
+<h2 class="section-title" id="previous-runs">Previous runs</h2>
+<p class="section-sub">Every run keeps its own page and report.json. Open one to see it exactly as it was.</p>
+</div>
+
+</div>
+<div class="callout"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg><p>History starts with this run. Each new run adds a row here and a point to the capacity limit trend.</p></div>
+<div class="table-card">
+<div class="scroll-x" tabindex="0" role="group" aria-label="Runs table, scrolls sideways">
+<table class="runs">
+<thead><tr><th scope="col">Date</th><th scope="col">Version</th><th scope="col">Commit</th><th scope="col">EdgePort + Echo limit</th><th scope="col">Soak memory growth</th><th scope="col">Result</th><th scope="col"><span class="visually-hidden">Page</span></th></tr></thead>
+<tbody>
+<tr class="is-viewing">
+<td class="cell-date">Nov 4, 2026 <span class="badge">viewing</span></td>
+<td class="mono">v2.31.7</td>
+<td class="mono">ef05473</td>
+<td class="mono">75 messages/s</td>
+<td class="mono">+79.2 MB/h</td>
+<td><span class="result tone-danger"><svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>1 of 2 passed</span></td>
+<td class="cell-view"></td>
+</tr>
+</tbody>
+
+</table>
+</div>
+
+</div>
+</div>
+</section>
+<section class="setup" aria-labelledby="test-setup">
+<div class="wrap">
+<h2 class="setup-title" id="test-setup">Test setup</h2>
+<div class="setup-grid">
+<div class="card"><h3 class="card-title with-icon"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 6h.01"/><path d="M6 18h.01"/></svg>Servers</h3><dl class="rows"><div class="row"><dt>Server under test</dt><dd>c-8 · 8 vCPU · 15.6 GB</dd></div><div class="row"><dt>Load generator</dt><dd>c-16 · 16 vCPU · 31.3 GB</dd></div><div class="row"><dt>Region</dt><dd>DigitalOcean nyc3</dd></div><div class="row"><dt>OS</dt><dd>Ubuntu 24.04.5 LTS · Docker 29.9.3</dd></div></dl></div>
+<div class="card"><h3 class="card-title with-icon"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.7 4.73a2 2 0 0 0 2 0L20.7 7"/></svg>Software</h3><dl class="rows"><div class="row"><dt>edgeport</dt><dd>2.31.7 · sha256:6e238eb20d98</dd></div><div class="row"><dt>echo</dt><dd>2.31.7 · sha256:ea89df7be375</dd></div><div class="row"><dt>one</dt><dd>2.31.7 · sha256:8fb6a3c4343c</dd></div><div class="row"><dt>Load generator</dt><dd>SIPp 3.7.3-27-gdde43e1</dd></div><div class="row"><dt>Tracing</dt><dd>OpenTelemetry Collector 0.112.0</dd></div><div class="row"><dt>Harness</dt><dd>perfkit 0.1.5 · report schema v1</dd></div></dl></div>
+<div class="card reproduce"><h3 class="card-title with-icon"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></svg>Run it yourself</h3>
+<p>Same servers, same images, same scenario. Needs a DigitalOcean token; the servers are deleted when the run ends.</p>
+<pre class="command" tabindex="0"><code>$ perfkit run --config perf/perfkit.smoke.yaml --target-version 2.31.7 --commit ef05473f7b91e5732ad9c5a3127a06de899b0f81 --detach</code></pre>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="footer">
+<div class="wrap footer-inner">
+<div class="footer-brand"><img class="logo" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20106%2028%22%20width%3D%22106%22%20height%3D%2228%22%3E%3Cg%20fill%3D%22%23FFFFFF%22%20fill-rule%3D%22evenodd%22%3E%3Cpath%20d%3D%22M6.58346%209.30769c0.76999-1.17949%201.73248-2.10256%202.88748-2.76923%201.15496-0.69231%202.43836-1.03846%203.84996-1.03846v6.9615h-1.8095c-1.64263%200-2.87462%200.359-3.69595%201.077-0.82133%200.6923-1.23199%201.923-1.23199%203.6923v9.9615h-6.58346v-21.46153h6.58346v3.57692z%22%2F%3E%3Cpath%20d%3D%22M26.2466%2027.5c-2.1047%200-4.004-0.4487-5.698-1.3462-1.6683-0.8974-2.9901-2.1794-3.9654-3.8461-0.9497-1.6667-1.4245-3.6154-1.4245-5.8462%200-2.2051%200.4876-4.141%201.463-5.8077%200.9753-1.69226%202.3099-2.98713%204.0039-3.88457%201.694-0.89744%203.5933-1.34615%205.698-1.34615%202.1046%200%204.004%200.44871%205.698%201.34615%201.6939%200.89744%203.0286%202.19231%204.0039%203.88457%200.9754%201.6667%201.463%203.6026%201.463%205.8077%200%202.2052-0.5005%204.1539-1.5015%205.8462-0.9753%201.6667-2.3228%202.9487-4.0424%203.8461-1.694%200.8975-3.5934%201.3462-5.698%201.3462z%20m0-5.6923c1.2577%200%202.3228-0.4615%203.1955-1.3846%200.8983-0.9231%201.3475-2.2436%201.3475-3.9616%200-1.7179-0.4364-3.0384-1.309-3.9615-0.847-0.9231-1.8993-1.3846-3.157-1.3846-1.2833%200-2.3485%200.4615-3.1955%201.3846-0.847%200.8974-1.2705%202.2179-1.2705%203.9615%200%201.718%200.4107%203.0385%201.232%203.9616%200.847%200.9231%201.8993%201.3846%203.157%201.3846z%22%2F%3E%3Cpath%20d%3D%22M62.1945%205.73077v21.46153h-6.5834v-2.9231c-0.6674%200.9488-1.5785%201.718-2.7335%202.3077-1.1293%200.5641-2.387%200.8462-3.773%200.8462-1.6426%200-3.0928-0.359-4.3505-1.0769-1.2576-0.7436-2.2329-1.8077-2.9259-3.1924-0.693-1.3846-1.0395-3.0128-1.0395-4.8846v-12.53843h6.5449v11.65383c0%201.4359%200.3722%202.5513%201.1165%203.3462%200.7443%200.7948%201.7453%201.1923%203.003%201.1923%201.2833%200%202.2971-0.3975%203.0415-1.1923%200.7443-0.7949%201.1165-1.9103%201.1165-3.3462v-11.65383h6.5834z%22%2F%3E%3Cpath%20d%3D%22M78.8968%2021.6154v5.5769h-3.3495c-2.387%200-4.2478-0.5769-5.5824-1.7308-1.3347-1.1794-2.002-3.0897-2.002-5.7307v-8.5385h-2.618v-5.46153h2.618v-5.23077h6.5834v5.23077h4.312v5.46153h-4.312v8.6154c0%200.641%200.154%201.1026%200.462%201.3846%200.308%200.2821%200.8213%200.4231%201.54%200.4231h2.3485z%22%2F%3E%3Cpath%20d%3D%22M89.1473%209.30769c0.77-1.17949%201.7325-2.10256%202.8875-2.76923%201.155-0.69231%202.4383-1.03846%203.85-1.03846v6.9615h-1.8095c-1.6426%200-2.8746%200.359-3.696%201.077-0.8213%200.6923-1.232%201.923-1.232%203.6923v9.9615h-6.5834v-21.46153h6.5834v3.57692z%22%2F%3E%3C%2Fg%3E%3Cpath%20fill%3D%22%235FCFCE%22%20d%3D%22M102.112%2027.5c-1.155%200-2.105-0.3333-2.8494-1-0.7187-0.6923-1.078-1.5385-1.078-2.5385%200-1.0256%200.3593-1.8846%201.078-2.5769%200.7444-0.6923%201.6944-1.0384%202.8494-1.0384%201.129%200%202.053%200.3461%202.772%201.0384%200.744%200.6923%201.116%201.5513%201.116%202.5769%200%201-0.372%201.8462-1.116%202.5385-0.719%200.6667-1.643%201-2.772%201z%22%2F%3E%3C%2Fsvg%3E" alt="Routr" height="28"><p class="generated">Generated by perfkit 0.1.5 from report.json · schema perfkit/report/v1</p></div>
+<ul class="footer-links">
+<li><a href="https://github.com/fonoster/perfkit/blob/v0.1.5/docs/report-page.md">Methodology</a></li>
+<li><a href="https://github.com/fonoster/routr">GitHub</a></li>
+<li><a href="https://routr.io/">routr.io</a></li>
+</ul>
+</div>
+</footer>
+<script>
+(function () {
+  var picker = document.querySelector("[data-picker]");
+  if (!picker) return;
+  var button = picker.querySelector("button");
+  var panel = picker.querySelector(".picker-panel");
+  function setOpen(open, returnFocus) {
+    button.setAttribute("aria-expanded", open ? "true" : "false");
+    panel.hidden = !open;
+    if (open) {
+      var first = panel.querySelector("a");
+      if (first) first.focus();
+    } else if (returnFocus) {
+      button.focus();
+    }
+  }
+  button.addEventListener("click", function () {
+    setOpen(button.getAttribute("aria-expanded") !== "true", false);
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && !panel.hidden) setOpen(false, true);
+  });
+  document.addEventListener("click", function (event) {
+    if (!panel.hidden && !picker.contains(event.target)) setOpen(false, false);
+  });
+  panel.addEventListener("click", function (event) {
+    var link = event.target.closest("a");
+    if (link && link.getAttribute("href") === "#all-runs") setOpen(false, false);
+  });
+})();
+</script>
+</body>
+</html>
