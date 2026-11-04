@@ -96,9 +96,35 @@
 
   /* ---------- Loops pause offscreen and in background tabs ---------- */
   const loopHandlers = [];
+  // A loop's parts (the cards and the dots between them) are separate CSS animations
+  // that only line up while they share a clock. Anything that restarts one of them
+  // (a display: none breakpoint on resize, a pause that missed a pseudo-element)
+  // shifts it out of step, so put every infinite animation in the loop back on the
+  // page's clock, as if they had all started together.
+  const resync = (el) => {
+    if (!el.getAnimations || !document.timeline) return;
+    const now = document.timeline.currentTime;
+    el.getAnimations({ subtree: true })
+      .filter((a) => a.effect && a.effect.getTiming().iterations === Infinity)
+      .forEach((a) => {
+        a.currentTime = now;
+      });
+  };
   const initLoops = () => {
-    $$("[data-loop]").forEach((el) => watch(el, (visible) => el.classList.toggle("is-paused", !visible)));
+    const loops = $$("[data-loop]");
+    loops.forEach((el) =>
+      watch(el, (visible) => {
+        if (visible) resync(el);
+        el.classList.toggle("is-paused", !visible);
+      })
+    );
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => loops.forEach(resync), 150);
+    });
     document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) loops.forEach(resync);
       doc.classList.toggle("is-paused", document.hidden);
       loopHandlers.forEach((fn) => fn(!document.hidden));
     });
