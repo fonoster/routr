@@ -61,4 +61,31 @@ describe("@routr/location/memory_store", () => {
     expect(store.size()).to.be.equal(2)
     expect((await store.get("sip:conference@sip.local")).length).to.be.equal(1)
   })
+
+  it("drops expired routes after maxCyclesBeforeCleanup gets", async () => {
+    const store = new MemoryStore(2)
+    store.put("sip:conference@sip.local", Routes.conferenceWithExpiredRoute)
+    await store.get("sip:other@sip.local")
+    await store.get("sip:other@sip.local")
+    expect(store.size()).to.be.equal(0)
+  })
+
+  it("cleanup drops an entry holding no route instead of throwing", () => {
+    const store = new MemoryStore()
+    store.put("k", undefined)
+    expect(() => store.cleanup()).to.not.throw()
+    expect(store.size()).to.be.equal(0)
+  })
+
+  it("keeps live routes through a cleanup cycle", async () => {
+    const store = new MemoryStore(2)
+    store.put("sip:voice@sip.local", Routes.voiceBackendRoute01)
+    store.put("sip:conference@sip.local", Routes.conferenceWithExpiredRoute)
+    await store.get("sip:other@sip.local")
+    await store.get("sip:other@sip.local")
+    expect(store.size()).to.be.equal(1)
+    expect(await store.get("sip:voice@sip.local")).to.be.deep.equal([
+      Routes.voiceBackendRoute01
+    ])
+  })
 })
